@@ -1,0 +1,37 @@
+__pycache__
+
+tests/
+logs/
+redundant/
+cvnn/
+mimo_*/
+siso_*/
+
+*.csv
+*.h5
+*.xlsx
+*.zip
+*.png
+*.keras
+cvnn
+
+logs_*/
+saved_*/
+
+draft.ipynb
+
+
+# cnn_model_*
+# I want git to ignore all folder that start with cnn_model_ but not the files
+cnn_model_*/
+!cnn_model_/*.*
+*.onnx
+complete_dataset_without_scenario
+data_wrong
+dataset
+data
+cvnn_*/
+temporary_data
+resnet_*/
+model_*/
+ray_tracing_data/
