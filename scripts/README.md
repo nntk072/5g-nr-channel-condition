@@ -120,3 +120,20 @@ records transmit/receive waveform power and per-batch measured receive SNR for
 each delay. The path gains are deterministic and the burst starts with zero
 channel prehistory, so this is a controlled ISI diagnostic, not a TDL/CDL
 distribution or standards-wide receiver result.
+
+Use `run_identifiability_sweep.py` for a local two-path Fisher-information diagnostic across tone bandwidth, SNR, and delay separation:
+
+```bash
+python scripts/run_identifiability_sweep.py outputs/identifiability-sweep.json \
+  --tone-counts 256 1024 --tone-spacing-hz 30000 \
+  --snr-db 0 10 20 30 \
+  --separation-fractions 0 0.001 0.01 0.025 0.05 0.1 0.25 0.5 1 2
+```
+
+Separations are fractions of reciprocal sampled bandwidth. The output records
+rank, normalized conditioning, per-path delay CRLB standard deviations when
+finite, package/source hashes, and runtime versions. Rank-deficient points
+omit covariance rather than implying finite certainty. This is a local bound
+under a two-path complex-CFR plus circular-Gaussian-noise model; it is not an
+estimator result, global resolution threshold, receiver experiment, or scene
+validation.
