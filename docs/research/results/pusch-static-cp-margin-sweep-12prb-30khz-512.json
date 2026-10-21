@@ -76,7 +76,7 @@
       }
     ],
     "noise_variance_per_complex_sample": 0.001,
-    "package_source_sha256": "680f832e6c769d147fc84411a0f52d6676f7a6ee624106fb8a49737069cf10b7",
+    "package_source_sha256": "42804eaf16e55a489356c4e5a1c8b90feae46e8bd5b9a26b75690a3d524b31d6",
     "resource_blocks": 12,
     "same_pusch_bits_and_awgn_across_conditions": true,
     "sampled_waveform_snr_db": 30.0,
@@ -93,7 +93,7 @@
       0.9998312592506409
     ],
     "versions": {
-      "git_sha": "af2d337d725c2dd54ff2fd413c9dd52cbccd38ad",
+      "git_sha": "c8ac8897aa655d8dd1426b479b1d98b6d7d0ec71",
       "numpy": "2.5.4",
       "python": "3.12.3",
       "scikit-learn": "1.9.1",
