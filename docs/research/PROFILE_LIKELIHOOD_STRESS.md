@@ -36,3 +36,16 @@ trials that share one calibrated threshold. Its percentile interval summarizes
 Monte Carlo variability across repeated synthetic splits; it is not a
 replacement for the exchangeability assumptions or an external-validation
 result.
+
+The committed 100-split run can be reproduced with:
+
+```bash
+python scripts/run_repeated_identifiability_calibration.py \
+  outputs/repeated-calibration.json docs/research/results/repeated-calibration.json \
+  --seed 20261101 --repetitions 100 --trials 120 --calibration-trials 120 \
+  --bootstrap-draws 20000 --tone-counts 64 --tone-spacing-hz 30000 \
+  --snr-db 20 --separation-fractions 0.5 --gain-phase-difference-deg 90 \
+  --delay-grid-step-fraction 0.03125 --maximum-delay-fraction 1.0 \
+  --noise-variance-scale-factors 0.5 1 2 \
+  --third-path-amplitude-ratios 0 0.25
+```
