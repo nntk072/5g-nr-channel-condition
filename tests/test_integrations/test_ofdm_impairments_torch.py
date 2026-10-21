@@ -5,11 +5,46 @@ import pytest
 torch = pytest.importorskip("torch")
 
 from integrations.sionna.ofdm_impairments import (  # noqa: E402
+    apply_fractional_timing_offset,
     apply_integer_timing_offset,
     apply_residual_cfo,
     estimate_integer_timing_offset_from_cp,
     estimate_residual_cfo_from_cp,
 )
+
+
+def test_fractional_timing_offset_has_bandlimited_tone_phase_response() -> None:
+    sample_count = 4096
+    frequency_cycles_per_sample = 0.071
+    delay_samples = 0.375
+    sample_indices = torch.arange(sample_count, dtype=torch.float64)
+    waveform = torch.exp(2j * torch.pi * frequency_cycles_per_sample * sample_indices).to(
+        torch.complex128
+    )
+
+    delayed = apply_fractional_timing_offset(
+        waveform,
+        offset_samples=delay_samples,
+        kernel_radius=20,
+    )
+    expected = waveform * torch.exp(
+        torch.tensor(
+            -2j * torch.pi * frequency_cycles_per_sample * delay_samples,
+            dtype=torch.complex128,
+        )
+    )
+
+    torch.testing.assert_close(delayed[24:-24], expected[24:-24], atol=2e-5, rtol=2e-5)
+
+
+def test_fractional_timing_offset_validates_delay_and_kernel() -> None:
+    waveform = torch.ones(32, dtype=torch.complex64)
+    with pytest.raises(TypeError, match="real number"):
+        apply_fractional_timing_offset(waveform, offset_samples=True)
+    with pytest.raises(ValueError, match="below one sample"):
+        apply_fractional_timing_offset(waveform, offset_samples=1.0)
+    with pytest.raises(ValueError, match="kernel_radius"):
+        apply_fractional_timing_offset(waveform, offset_samples=0.25, kernel_radius=1)
 
 
 def test_cyclic_prefix_cfo_acquisition_recovers_per_waveform_and_corrects() -> None:

@@ -185,3 +185,56 @@ def apply_integer_timing_offset(waveform: Any, *, offset_samples: int) -> Any:
     if offset_samples > 0:
         return torch.cat((zeros, waveform[..., :-offset_samples]), dim=-1)
     return torch.cat((waveform[..., -offset_samples:], zeros), dim=-1)
+
+
+def apply_fractional_timing_offset(
+    waveform: Any,
+    *,
+    offset_samples: float,
+    kernel_radius: int = 16,
+) -> Any:
+    """Apply a bandlimited fractional-sample delay on the final time axis.
+
+    This uses a finite Blackman-windowed sinc interpolator and zero-valued
+    samples outside the captured waveform. ``offset_samples`` is restricted
+    to the fractional interval (-1, 1); integer sample timing is handled by
+    :func:`apply_integer_timing_offset`. This models an impairment only: it
+    does not acquire frame timing or estimate a receiver correction.
+    """
+    torch = _validate_waveform(waveform)
+    if isinstance(offset_samples, bool) or not isinstance(offset_samples, (int, float)):
+        raise TypeError("offset_samples must be a real number")
+    delay = float(offset_samples)
+    if not math.isfinite(delay) or abs(delay) >= 1.0:
+        raise ValueError("fractional offset must be finite and have magnitude below one sample")
+    if isinstance(kernel_radius, bool) or not isinstance(kernel_radius, int):
+        raise TypeError("kernel_radius must be an integer")
+    if not 2 <= kernel_radius <= 128:
+        raise ValueError("kernel_radius must be in [2, 128]")
+    if delay == 0.0:
+        return waveform.clone()
+
+    sample_count = waveform.shape[-1]
+    positions = torch.arange(sample_count, dtype=waveform.real.dtype, device=waveform.device)
+    source_positions = positions - delay
+    centers = torch.floor(source_positions).to(torch.int64)
+    taps = torch.arange(-kernel_radius, kernel_radius + 1, device=waveform.device)
+    source_indices = centers[:, None] + taps[None, :]
+    distance = source_indices.to(waveform.real.dtype) - source_positions[:, None]
+    normalized_distance = distance / kernel_radius
+    window = (
+        0.42
+        + 0.5 * torch.cos(math.pi * normalized_distance)
+        + 0.08 * torch.cos(2.0 * math.pi * normalized_distance)
+    )
+    window = torch.where(torch.abs(normalized_distance) <= 1.0, window, 0.0)
+    weights = torch.sinc(distance) * window
+    weights = weights / torch.sum(weights, dim=-1, keepdim=True)
+
+    valid = (source_indices >= 0) & (source_indices < sample_count)
+    safe_indices = source_indices.clamp(0, sample_count - 1).reshape(-1)
+    samples = waveform.index_select(-1, safe_indices).reshape(
+        *waveform.shape[:-1], sample_count, 2 * kernel_radius + 1
+    )
+    samples = samples * valid.to(waveform.real.dtype)
+    return torch.sum(samples * weights, dim=-1)

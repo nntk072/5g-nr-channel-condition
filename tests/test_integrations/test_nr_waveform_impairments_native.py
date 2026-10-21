@@ -8,6 +8,7 @@ pytest.importorskip("sionna")
 from experiments.cp_margin import run_static_cp_margin_experiment  # noqa: E402
 from integrations.sionna.nr_pusch import SionnaPUSCHLSReceiver  # noqa: E402
 from integrations.sionna.ofdm_impairments import (  # noqa: E402
+    apply_fractional_timing_offset,
     apply_integer_timing_offset,
     apply_residual_cfo,
     estimate_integer_timing_offset_from_cp,
@@ -49,8 +50,10 @@ def test_ofdm_roundtrip_and_residual_cfo_timing_errors_reach_dmrs_estimator():
         sampling_frequency_hz=sample_rate_hz,
     )
     timing_waveform = apply_integer_timing_offset(waveform, offset_samples=1)
+    fractional_waveform = apply_fractional_timing_offset(waveform, offset_samples=0.35)
     cfo_grid = demodulator(cfo_waveform)
     timing_grid = demodulator(timing_waveform)
+    fractional_grid = demodulator(fractional_waveform)
     cfo_estimate_hz = estimate_residual_cfo_from_cp(
         cfo_waveform,
         fft_size=grid.fft_size,
@@ -87,11 +90,14 @@ def test_ofdm_roundtrip_and_residual_cfo_timing_errors_reach_dmrs_estimator():
     ideal_nmse = estimated_channel_nmse(recovered_grid)
     cfo_nmse = estimated_channel_nmse(cfo_grid)
     timing_nmse = estimated_channel_nmse(timing_grid)
+    fractional_nmse = estimated_channel_nmse(fractional_grid)
     assert ideal_nmse < 1e-8
     assert cfo_nmse > 1e-5
     assert timing_nmse > 1e-5
+    assert fractional_nmse > 1e-5
     assert torch.mean(torch.abs(cfo_grid - recovered_grid) ** 2) > 1e-4
     assert torch.mean(torch.abs(timing_grid - recovered_grid) ** 2) > 1e-4
+    assert torch.mean(torch.abs(fractional_grid - recovered_grid) ** 2) > 1e-4
     assert torch.max(torch.abs(cfo_estimate_hz - 0.05 * 30_000.0)) < 1.0
     torch.testing.assert_close(corrected_grid, transmit_grid, atol=1e-4, rtol=1e-4)
     torch.testing.assert_close(
