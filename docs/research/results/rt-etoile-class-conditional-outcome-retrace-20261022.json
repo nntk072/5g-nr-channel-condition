@@ -1,0 +1,74 @@
+{
+  "schema": "loslab.rt_class_outcome_retrace.v1",
+  "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
+  "source_revision": "3687a57d1a3ef51b51b43efd4a165274b9fe6448",
+  "package_source_sha256": "c1c987fc02bb22dadcc7ff297fbf80855622307b6b5b5c44dd89af37c332b2a7",
+  "scene": "etoile",
+  "scene_asset_set_sha256": "d0b6ee5c9406e8b75c5fc17388e16037e988b5057d37bc40fe55699fefba115d",
+  "runtime": {
+    "python": "3.12.3",
+    "numpy": "2.5.4",
+    "sionna": "2.2.0",
+    "sionna_rt": "2.2.0",
+    "mitsuba_variant": "llvm_ad_mono_polarized",
+    "mitsuba": "3.9.1",
+    "drjit": "1.5.0"
+  },
+  "matched_configuration": {
+    "seed": 1021,
+    "tx_m": [232.8, -95.5, 17.0],
+    "rx_center_m": [211.0, -180.0, 1.5],
+    "radius_m": 60.0,
+    "requested_per_geometric_class": 20,
+    "max_attempts": 800,
+    "samples_per_source": 5000000,
+    "max_depth": 2,
+    "block_size_m": 20.0,
+    "carrier_hz": 3500000000.0,
+    "subcarriers": 128,
+    "subcarrier_spacing_hz": 30000.0,
+    "snr_db": 15.0,
+    "require_los_multipath": true
+  },
+  "retrace_dataset": {
+    "path": "outputs/e07-etoile-class-outcome-retrace-20261022.npz",
+    "sha256": "22153dd4d8ac0dcc74dd30710f7c9e8a77c7d48af4fb4ec3b01ea9c9948864b2",
+    "samples": 40,
+    "accepted_geometric_los": 20,
+    "accepted_geometric_nlos": 20
+  },
+  "matched_legacy_dataset": {
+    "path": "outputs/rt-six-scene-holdout-adaptive-20261021/etoile.npz",
+    "sha256": "ba3a2f6c0f0477e43d772528aa86aeccd4c364a8d3b4be3275055518a17efcaa",
+    "same_labels": true,
+    "same_group_ids": true,
+    "same_direct_path_counts": true,
+    "same_full_path_counts": true,
+    "relative_cfr_rms_difference": 3.170692863818658e-08,
+    "maximum_cfr_difference_over_legacy_peak": 1.0444350806437797e-07
+  },
+  "candidate_outcomes_by_geometric_class": {
+    "geometric_los": {
+      "full_solver_attempts": 20,
+      "full_solver_calls": 20,
+      "errors": 0,
+      "empty_paths": 0,
+      "los_direct_only_rejected": 0,
+      "cfr_conversion_failures": 0,
+      "accepted": 20,
+      "empty_path_fraction_of_calls": 0.0
+    },
+    "geometric_nlos": {
+      "full_solver_attempts": 28,
+      "full_solver_calls": 28,
+      "errors": 0,
+      "empty_paths": 8,
+      "los_direct_only_rejected": 0,
+      "cfr_conversion_failures": 0,
+      "accepted": 20,
+      "empty_path_fraction_of_calls": 0.2857142857142857
+    }
+  },
+  "interpretation": "Under this specific Etoile geometry sampler and 5M-sample/depth-2 Sionna solver, all eight empty full-solver outcomes occurred among geometric-NLOS candidates. They are solver noncoverage under this configured RT model, not measured radio outage or proof that no physical propagation path exists. Exported records exclude these empty-path candidates; all accepted LOS records are LOS-plus-indirect under the LOS-multipath selection rule.",
+  "reproduction": "python -m loslab rt-data --output <new.npz> --seed 1021 --scene etoile --tx 232.8 -95.5 17 --center 211 -180 1.5 --radius 60 --per-class 20 --max-attempts 800 --samples-per-src 5000000 --block-size 20 --max-depth 2 --mitsuba-variant llvm_ad_mono_polarized"
+}
