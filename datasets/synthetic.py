@@ -71,4 +71,5 @@ def debug_multipath(
         np.asarray(domains),
         np.asarray(sources),
         tuple(metadata),
+        label_semantics="synthetic_debug_direct_component",
     )

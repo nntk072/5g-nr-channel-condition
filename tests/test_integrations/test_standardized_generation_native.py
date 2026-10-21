@@ -51,6 +51,7 @@ def test_cdl_profiles_a_through_e_generate_profile_proxy_labels():
     )
 
     assert data.h.shape == (20, 1, 16)
+    assert data.label_semantics == "profile_proxy"
     assert all(np.isfinite(data.h).flat)
     for index, row in enumerate(data.metadata):
         expected_label = int(row["profile"] in "DE")

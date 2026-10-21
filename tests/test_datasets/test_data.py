@@ -53,6 +53,7 @@ def test_storage_roundtrip(tmp_path):
     assert np.array_equal(loaded.y, d.y)
     assert loaded.metadata == d.metadata
     assert loaded.generation_report == d.generation_report == {}
+    assert loaded.label_semantics == "synthetic_debug_direct_component"
 
 
 def test_generation_report_roundtrips_and_derivations_keep_lineage(tmp_path):
@@ -97,7 +98,9 @@ def test_load_legacy_npz_without_generation_report(tmp_path):
         metadata_json=np.asarray(json.dumps(data.metadata, sort_keys=True)),
     )
 
-    assert ChannelDataset.load(path).generation_report == {}
+    loaded = ChannelDataset.load(path)
+    assert loaded.generation_report == {}
+    assert loaded.label_semantics == "unspecified_legacy"
 
 
 def test_dataset_rejects_nans():
@@ -113,6 +116,24 @@ def test_concat_fails_on_mismatch():
     b = debug_multipath(n_subcarriers=32)
     with pytest.raises(ValueError):
         ChannelDataset.concatenate([a, b])
+
+
+def test_concat_rejects_mixed_binary_label_semantics():
+    from dataclasses import replace
+
+    geometric = debug_multipath(n_scenes=2, links_per_scene=4)
+    profile_proxy = replace(geometric, label_semantics="profile_proxy")
+
+    with pytest.raises(ValueError, match="Incompatible binary label semantics"):
+        ChannelDataset.concatenate([geometric, profile_proxy])
+
+
+def test_dataset_rejects_label_semantics_that_conflict_with_report():
+    from dataclasses import replace
+
+    data = debug_multipath(n_scenes=2, links_per_scene=4)
+    with pytest.raises(ValueError, match="disagrees with generation_report"):
+        replace(data, generation_report={"label_semantics": "profile_proxy"})
 
 
 def test_select_preserves_metadata():

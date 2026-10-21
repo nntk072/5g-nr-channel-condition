@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sys
 import types
 
@@ -68,6 +69,18 @@ def test_rt_dataset_cache_detects_payload_tampering(tmp_path):
     payload_path.write_bytes(payload)
 
     with pytest.raises(ValueError, match="payload hash mismatch"):
+        load_rt_dataset(tmp_path, identity)
+
+
+def test_rt_dataset_cache_detects_manifest_metadata_tampering(tmp_path):
+    identity = _identity()
+    payload_path = store_rt_dataset(tmp_path, _dataset(identity), identity)
+    manifest_path = payload_path.with_suffix(".json")
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["sample_count"] += 1
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="shape/sample count mismatch"):
         load_rt_dataset(tmp_path, identity)
 
 
@@ -160,3 +173,66 @@ def test_cache_aware_rt_generator_reuses_dataset_without_retracing(tmp_path, mon
     assert len(calls) == 1
     np.testing.assert_array_equal(first.h, second.h)
     assert first.generation_report == second.generation_report
+
+
+def test_cache_aware_rt_generator_bypasses_unresolved_scene_assets(tmp_path, monkeypatch):
+    from integrations.sionna import adapter, backend
+    from integrations.sionna.adapter import RayScene
+    from integrations.sionna.backend import RTBackendSelection
+
+    scene_xml = tmp_path / "mock_scene.xml"
+    scene_xml.write_text(
+        '<scene><string name="filename" value="https://assets.invalid/mesh.obj"/></scene>',
+        encoding="utf-8",
+    )
+    sionna_module = types.ModuleType("sionna")
+    sionna_module.__path__ = []
+    rt_module = types.ModuleType("sionna.rt")
+    rt_module.scene = types.SimpleNamespace(mock_scene=scene_xml)
+    sionna_module.rt = rt_module
+    monkeypatch.setitem(sys.modules, "sionna", sionna_module)
+    monkeypatch.setitem(sys.modules, "sionna.rt", rt_module)
+
+    selection = RTBackendSelection(
+        requested="llvm",
+        backend="llvm_cpu",
+        variant="llvm_ad_mono_polarized",
+        available_variants=("llvm_ad_mono_polarized",),
+        runtime_versions={"sionna-rt": "2.2.0", "mitsuba": "3.9.1", "drjit": "1.5.0"},
+        probe_passed=True,
+        probe_summary="mock native trace passed",
+    )
+    monkeypatch.setattr(backend, "select_rt_backend", lambda requested: selection)
+    monkeypatch.setattr(backend, "activate_rt_backend", lambda chosen: None)
+    monkeypatch.setattr(adapter, "versions", lambda: {"python": "3.12.0", "git_sha": "fixture"})
+    monkeypatch.setattr(adapter, "package_source_sha256", lambda: "source-v1")
+    monkeypatch.setattr(
+        adapter,
+        "rt_runtime_fingerprint",
+        lambda base: {**base, "platform_machine": "test-machine"},
+    )
+    generated = []
+
+    def generate(config, *, grid, seed, _backend_selection, _runtime_fingerprint):
+        generated.append(config)
+        identity = rt_run_identity(
+            scene_asset_manifest={"complete": False, "asset_set_sha256": "partial"},
+            physical_config={"scene": adapter.asdict(config), "grid": adapter.asdict(grid)},
+            solver_config=static_rt_solver_config(config.max_depth),
+            seed=seed,
+            backend_selection=_backend_selection.as_dict(),
+            runtime_versions=_runtime_fingerprint,
+            package_source_sha256="source-v1",
+        )
+        return _dataset(identity)
+
+    monkeypatch.setattr(adapter, "generate_raytraced", generate)
+    cache_directory = tmp_path / "cache"
+    result = adapter.generate_raytraced_cached(
+        RayScene(name="mock_scene", per_class=1, max_attempts=2),
+        cache_directory=cache_directory,
+    )
+
+    assert len(generated) == 1
+    assert result.generation_report["rt_run_identity"]["complete"] is False
+    assert not cache_directory.exists()

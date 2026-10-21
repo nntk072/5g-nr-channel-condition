@@ -195,6 +195,7 @@ def generate_standardized(
         np.asarray(domains),
         np.asarray(sources),
         tuple(meta),
+        label_semantics="profile_proxy",
     )
 
 
@@ -530,6 +531,7 @@ def generate_raytraced(
         raise RuntimeError("RT generation report does not account for every full-solver outcome")
     generation_report = {
         "schema": "loslab.raytraced_generation_report.v1",
+        "label_semantics": "geometric_direct_path_oracle",
         "status": "solver_error" if solver_failure else "completed",
         "environment": versions(),
         "rt_backend_selection": selection.as_dict(),
@@ -590,6 +592,7 @@ def generate_raytraced(
         np.asarray(sources),
         tuple(meta),
         generation_report,
+        label_semantics="geometric_direct_path_oracle",
     )
 
 

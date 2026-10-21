@@ -97,6 +97,8 @@ def test_full_rt_oracle_is_separate_and_los_contains_reflections(monkeypatch):
     assert len(d.y) == 6 and sum(d.y) == 3
     report = d.generation_report
     assert report["schema"] == "loslab.raytraced_generation_report.v1"
+    assert report["label_semantics"] == "geometric_direct_path_oracle"
+    assert d.label_semantics == report["label_semantics"]
     assert report["environment"]["python"]
     assert len(report["package_source_sha256"]) == 64
     assert report["accepted_counts"] == {

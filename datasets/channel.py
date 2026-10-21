@@ -18,12 +18,13 @@ import numpy as np
 @dataclass(frozen=True)
 class ChannelDataset:
     h: np.ndarray  # [N, antennas_or_links, frequency_bins] complex
-    y: np.ndarray  # [N] 1=geometric LOS, 0=NLOS or profile proxy
+    y: np.ndarray  # [N] binary target interpreted only with label_semantics
     group: np.ndarray  # [N] receiver location / link trajectory ID
     domain: np.ndarray  # [N] domain (tdl, cdl, scene ID)
     source: np.ndarray  # [N] source identifier (synthetic/tdl/cdl/rt)
     metadata: tuple[dict, ...]  # optional provenance only, NEVER used as features
     generation_report: dict = field(default_factory=dict)  # dataset-level QA/provenance
+    label_semantics: str = "unspecified_legacy"
 
     def __post_init__(self) -> None:
         h = np.asarray(self.h)
@@ -40,6 +41,8 @@ class ChannelDataset:
             raise ValueError("labels must be 0 or 1")
         if len(self.metadata) != n:
             raise ValueError("metadata count mismatch")
+        if not isinstance(self.label_semantics, str) or not self.label_semantics.strip():
+            raise ValueError("label_semantics must be a non-empty string")
         if any(not str(g).strip() for g in self.group):
             raise ValueError("empty group ID is forbidden")
         try:
@@ -48,6 +51,9 @@ class ChannelDataset:
             raise TypeError("generation_report must contain finite JSON-compatible values") from exc
         if not isinstance(report, dict):
             raise TypeError("generation_report must be a JSON object")
+        reported_semantics = report.get("label_semantics")
+        if reported_semantics is not None and reported_semantics != self.label_semantics:
+            raise ValueError("label_semantics disagrees with generation_report")
         object.__setattr__(self, "generation_report", report)
 
     def select(self, indices: np.ndarray) -> "ChannelDataset":
@@ -66,6 +72,7 @@ class ChannelDataset:
                 "selected_indices": ii.tolist(),
                 "parent_generation_report": self.generation_report,
             },
+            self.label_semantics,
         )
 
     @classmethod
@@ -75,6 +82,9 @@ class ChannelDataset:
         shapes = {(d.h.shape[1], d.h.shape[2]) for d in datasets}
         if len(shapes) != 1:
             raise ValueError(f"Incompatible antennas and subcarriers: {shapes}")
+        semantics = {dataset.label_semantics for dataset in datasets}
+        if len(semantics) != 1:
+            raise ValueError(f"Incompatible binary label semantics: {sorted(semantics)}")
         return cls(
             np.concatenate([d.h for d in datasets]),
             np.concatenate([d.y for d in datasets]),
@@ -87,6 +97,7 @@ class ChannelDataset:
                 "operation": "concatenate",
                 "components": [d.generation_report for d in datasets],
             },
+            datasets[0].label_semantics,
         )
 
     def save(self, path: str | Path) -> None:
@@ -106,6 +117,7 @@ class ChannelDataset:
                 generation_report_json=np.asarray(
                     json.dumps(self.generation_report, sort_keys=True, allow_nan=False)
                 ),
+                label_semantics_json=np.asarray(self.label_semantics),
             )
             os.replace(tmp, path)
         finally:
@@ -121,4 +133,18 @@ class ChannelDataset:
                 if "generation_report_json" in z.files
                 else {}
             )
-            return cls(z["h"], z["y"], z["group"], z["domain"], z["source"], metadata, report)
+            label_semantics = (
+                str(z["label_semantics_json"].item())
+                if "label_semantics_json" in z.files
+                else "unspecified_legacy"
+            )
+            return cls(
+                z["h"],
+                z["y"],
+                z["group"],
+                z["domain"],
+                z["source"],
+                metadata,
+                report,
+                label_semantics,
+            )
