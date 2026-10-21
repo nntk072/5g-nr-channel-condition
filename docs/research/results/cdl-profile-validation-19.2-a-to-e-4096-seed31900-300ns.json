@@ -1,0 +1,598 @@
+{
+  "configuration": {
+    "batch_size_per_profile": 4096,
+    "carrier_hz": 3500000000.0,
+    "delay_spread_ns": 300.0,
+    "profiles": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E"
+    ],
+    "rx_tx_antennas": "1x1 single-polarized omni",
+    "seed_base": 31900,
+    "spec_version": "19.2",
+    "speed_mps": 0.0
+  },
+  "evidence_grade": "PINNED_SIMULATOR_IMPLEMENTATION_CHECK_NOT_FULL_3GPP_CERTIFICATION",
+  "hardware": {
+    "cuda_available": true,
+    "cuda_device_name": "NVIDIA RTX PRO 500 Blackwell Generation Laptop GPU",
+    "device": "cuda:0"
+  },
+  "limitations": [
+    "Expected PDP is computed from the same pinned Sionna versioned CDL resource tables.",
+    "This checks table loading, delay ordering/scaling, LOS K-factor split, normalization, and Monte Carlo generation only.",
+    "One carrier, delay spread, speed, antenna, seed per profile, and static snapshot do not establish full TR 38.901 conformance.",
+    "The profile labels are not geometric LOS/NLOS truth or measured propagation evidence."
+  ],
+  "package_source_sha256": "c616d37d580ec0634738bc233830d4b3d6406fee8e289bca1f5715de3ac1249a",
+  "profile_resource_sha256": {
+    "A": "b96f8a179646ee468717c615e8061103d1e66eb1ff1ea78301de243740254cb7",
+    "B": "7c87c092cb2bb44891d301ee3c1991cdda1c6b64094a03f18746ec5fa14ee2a2",
+    "C": "f2044ecc3b72a1967221805ba70b1f0dab9634bb831478c1337b737ced6e4a28",
+    "D": "a8960f176347de457c0cb90fbc8cf137ac98bb1c5295b096f004d8d5c6e40176",
+    "E": "04328f33d8d79b24aa3d0303fecb58b465ed7e13874930b05e76be0d97743480"
+  },
+  "profile_results": [
+    {
+      "empirical_total_path_power": 0.9982669353485107,
+      "k_factor": null,
+      "los_profile": false,
+      "max_absolute_tap_power_error": 0.002868950366973877,
+      "max_relative_error_for_expected_power_at_least_0_02": 0.03704410046339035,
+      "num_generated_paths": 23,
+      "num_profile_clusters": 23,
+      "profile": "A",
+      "taps": [
+        {
+          "delay_s": 0.0,
+          "empirical_power": 0.012902511283755302,
+          "expected_power": 0.013181455433368683
+        },
+        {
+          "delay_s": 1.1457000681502905e-07,
+          "empirical_power": 0.28599613904953003,
+          "expected_power": 0.28837886452674866
+        },
+        {
+          "delay_s": 1.2075000199729402e-07,
+          "empirical_power": 0.17663440108299255,
+          "expected_power": 0.17376545071601868
+        },
+        {
+          "delay_s": 1.3830000966663647e-07,
+          "empirical_power": 0.07310590147972107,
+          "expected_power": 0.07243749499320984
+        },
+        {
+          "delay_s": 1.6125001423006324e-07,
+          "empirical_power": 0.043181631714105606,
+          "expected_power": 0.04364791139960289
+        },
+        {
+          "delay_s": 1.7250000894364348e-07,
+          "empirical_power": 0.025417331606149673,
+          "expected_power": 0.025701791048049927
+        },
+        {
+          "delay_s": 1.7604000390747387e-07,
+          "empirical_power": 0.11596699804067612,
+          "expected_power": 0.11480569839477539
+        },
+        {
+          "delay_s": 2.0123999888710387e-07,
+          "empirical_power": 0.029221365228295326,
+          "expected_power": 0.029509609565138817
+        },
+        {
+          "delay_s": 2.2854000292227283e-07,
+          "empirical_power": 0.05122532323002815,
+          "expected_power": 0.051281820982694626
+        },
+        {
+          "delay_s": 4.612500106304651e-07,
+          "empirical_power": 0.007610327564179897,
+          "expected_power": 0.007412477862089872
+        },
+        {
+          "delay_s": 5.693399884876271e-07,
+          "empirical_power": 0.060753293335437775,
+          "expected_power": 0.06309042125940323
+        },
+        {
+          "delay_s": 6.515400059470267e-07,
+          "empirical_power": 0.016323089599609375,
+          "expected_power": 0.016594471409916878
+        },
+        {
+          "delay_s": 6.672600534329831e-07,
+          "empirical_power": 0.006076607387512922,
+          "expected_power": 0.006165429949760437
+        },
+        {
+          "delay_s": 7.482600494768121e-07,
+          "empirical_power": 0.008706198073923588,
+          "expected_power": 0.008708902634680271
+        },
+        {
+          "delay_s": 7.535700206062756e-07,
+          "empirical_power": 0.02376757189631462,
+          "expected_power": 0.02398630604147911
+        },
+        {
+          "delay_s": 9.174599995276367e-07,
+          "empirical_power": 0.020832255482673645,
+          "expected_power": 0.021377822384238243
+        },
+        {
+          "delay_s": 1.2243000355738332e-06,
+          "empirical_power": 0.015780799090862274,
+          "expected_power": 0.015486862510442734
+        },
+        {
+          "delay_s": 1.3373700085139717e-06,
+          "empirical_power": 0.007158084772527218,
+          "expected_power": 0.006917724851518869
+        },
+        {
+          "delay_s": 1.3708499864151236e-06,
+          "empirical_power": 0.004333138931542635,
+          "expected_power": 0.00426543690264225
+        },
+        {
+          "delay_s": 1.4389800071512582e-06,
+          "empirical_power": 0.0036786519922316074,
+          "expected_power": 0.003715039696544409
+        },
+        {
+          "delay_s": 1.5019800230220426e-06,
+          "empirical_power": 0.006297968327999115,
+          "expected_power": 0.006309040822088718
+        },
+        {
+          "delay_s": 1.591290015312552e-06,
+          "empirical_power": 0.00297907879576087,
+          "expected_power": 0.0029509607702493668
+        },
+        {
+          "delay_s": 2.897580088756513e-06,
+          "empirical_power": 0.00031822934397496283,
+          "expected_power": 0.0003090035170316696
+        }
+      ]
+    },
+    {
+      "empirical_total_path_power": 0.999937117099762,
+      "k_factor": null,
+      "los_profile": false,
+      "max_absolute_tap_power_error": 0.0027688592672348022,
+      "max_relative_error_for_expected_power_at_least_0_02": 0.034425780177116394,
+      "num_generated_paths": 23,
+      "num_profile_clusters": 23,
+      "profile": "B",
+      "taps": [
+        {
+          "delay_s": 0.0,
+          "empirical_power": 0.14348776638507843,
+          "expected_power": 0.140983447432518
+        },
+        {
+          "delay_s": 3.215999910821665e-08,
+          "empirical_power": 0.08693121373653412,
+          "expected_power": 0.08495092391967773
+        },
+        {
+          "delay_s": 6.284999898298338e-08,
+          "empirical_power": 0.06714695692062378,
+          "expected_power": 0.06747891753911972
+        },
+        {
+          "delay_s": 6.465000268462973e-08,
+          "empirical_power": 0.056579772382974625,
+          "expected_power": 0.05612652003765106
+        },
+        {
+          "delay_s": 8.610000179487542e-08,
+          "empirical_power": 0.014674880541861057,
+          "expected_power": 0.014762778766453266
+        },
+        {
+          "delay_s": 8.957999853009824e-08,
+          "empirical_power": 0.10704130679368973,
+          "expected_power": 0.10694687813520432
+        },
+        {
+          "delay_s": 1.1043000114341339e-07,
+          "empirical_power": 0.023656679317355156,
+          "expected_power": 0.02450011484324932
+        },
+        {
+          "delay_s": 1.1091000828855613e-07,
+          "empirical_power": 0.06918022036552429,
+          "expected_power": 0.0706591010093689
+        },
+        {
+          "delay_s": 1.125600022078288e-07,
+          "empirical_power": 0.06487488001585007,
+          "expected_power": 0.06444186717271805
+        },
+        {
+          "delay_s": 1.5165001343575568e-07,
+          "empirical_power": 0.04288344457745552,
+          "expected_power": 0.042576320469379425
+        },
+        {
+          "delay_s": 1.5848999623813143e-07,
+          "empirical_power": 0.017510078847408295,
+          "expected_power": 0.017748763784766197
+        },
+        {
+          "delay_s": 1.7100001059588976e-07,
+          "empirical_power": 0.018232375383377075,
+          "expected_power": 0.018162187188863754
+        },
+        {
+          "delay_s": 3.306300300209841e-07,
+          "empirical_power": 0.04633456841111183,
+          "expected_power": 0.04668400436639786
+        },
+        {
+          "delay_s": 3.826800138995168e-07,
+          "empirical_power": 0.03839859366416931,
+          "expected_power": 0.0379461832344532
+        },
+        {
+          "delay_s": 4.6422002242252347e-07,
+          "empirical_power": 0.025360899046063423,
+          "expected_power": 0.025070795789361
+        },
+        {
+          "delay_s": 5.352600283003994e-07,
+          "empirical_power": 0.08825769275426865,
+          "expected_power": 0.09102655202150345
+        },
+        {
+          "delay_s": 6.050700562809652e-07,
+          "empirical_power": 0.02432643622159958,
+          "expected_power": 0.02450011484324932
+        },
+        {
+          "delay_s": 8.488200364809018e-07,
+          "empirical_power": 0.00846440251916647,
+          "expected_power": 0.008495092391967773
+        },
+        {
+          "delay_s": 9.065699941857019e-07,
+          "empirical_power": 0.014212348498404026,
+          "expected_power": 0.014762778766453266
+        },
+        {
+          "delay_s": 1.0856100516321021e-06,
+          "empirical_power": 0.010159429162740707,
+          "expected_power": 0.01021334808319807
+        },
+        {
+          "delay_s": 1.2320100495344377e-06,
+          "empirical_power": 0.004663440398871899,
+          "expected_power": 0.004562134854495525
+        },
+        {
+          "delay_s": 1.2836999303544872e-06,
+          "empirical_power": 0.01689412072300911,
+          "expected_power": 0.016949936747550964
+        },
+        {
+          "delay_s": 1.4350200672197388e-06,
+          "empirical_power": 0.010665557347238064,
+          "expected_power": 0.010451247915625572
+        }
+      ]
+    },
+    {
+      "empirical_total_path_power": 1.0045509338378906,
+      "k_factor": null,
+      "los_profile": false,
+      "max_absolute_tap_power_error": 0.002555370330810547,
+      "max_relative_error_for_expected_power_at_least_0_02": 0.01978905498981476,
+      "num_generated_paths": 24,
+      "num_profile_clusters": 24,
+      "profile": "C",
+      "taps": [
+        {
+          "delay_s": 0.0,
+          "empirical_power": 0.06208057329058647,
+          "expected_power": 0.06180572882294655
+        },
+        {
+          "delay_s": 6.29700025456259e-08,
+          "empirical_power": 0.13168585300445557,
+          "expected_power": 0.12913048267364502
+        },
+        {
+          "delay_s": 6.528000540129142e-08,
+          "empirical_power": 0.0950319841504097,
+          "expected_power": 0.09572574496269226
+        },
+        {
+          "delay_s": 6.657000284349124e-08,
+          "empirical_power": 0.07638318091630936,
+          "expected_power": 0.07603766024112701
+        },
+        {
+          "delay_s": 6.986999778746394e-08,
+          "empirical_power": 0.05143043398857117,
+          "expected_power": 0.05140777304768562
+        },
+        {
+          "delay_s": 1.909800175781129e-07,
+          "empirical_power": 0.170659139752388,
+          "expected_power": 0.17022712528705597
+        },
+        {
+          "delay_s": 1.9344001600529737e-07,
+          "empirical_power": 0.1037738025188446,
+          "expected_power": 0.10257197916507721
+        },
+        {
+          "delay_s": 1.96800016283305e-07,
+          "empirical_power": 0.06945598125457764,
+          "expected_power": 0.06934716552495956
+        },
+        {
+          "delay_s": 1.9752000923745072e-07,
+          "empirical_power": 0.030954841524362564,
+          "expected_power": 0.03097624145448208
+        },
+        {
+          "delay_s": 2.3805000637366902e-07,
+          "empirical_power": 0.03265634924173355,
+          "expected_power": 0.03319164365530014
+        },
+        {
+          "delay_s": 2.463900159455079e-07,
+          "empirical_power": 0.014815514907240868,
+          "expected_power": 0.014488675631582737
+        },
+        {
+          "delay_s": 2.8008000185764104e-07,
+          "empirical_power": 0.013302831910550594,
+          "expected_power": 0.01321383100003004
+        },
+        {
+          "delay_s": 3.685500189476443e-07,
+          "empirical_power": 0.05207293480634689,
+          "expected_power": 0.05260521173477173
+        },
+        {
+          "delay_s": 3.924900227048056e-07,
+          "empirical_power": 0.0358029305934906,
+          "expected_power": 0.035565488040447235
+        },
+        {
+          "delay_s": 6.511199899250641e-07,
+          "empirical_power": 0.02331198938190937,
+          "expected_power": 0.022963007912039757
+        },
+        {
+          "delay_s": 8.131500521812995e-07,
+          "empirical_power": 0.008170404471457005,
+          "expected_power": 0.008147581480443478
+        },
+        {
+          "delay_s": 1.2776700941685704e-06,
+          "empirical_power": 0.00704598892480135,
+          "expected_power": 0.006934717297554016
+        },
+        {
+          "delay_s": 1.3800899978377856e-06,
+          "empirical_power": 0.007007722742855549,
+          "expected_power": 0.006934717297554016
+        },
+        {
+          "delay_s": 1.6470601167384302e-06,
+          "empirical_power": 0.004456923343241215,
+          "expected_power": 0.004477428738027811
+        },
+        {
+          "delay_s": 1.6823099713292322e-06,
+          "empirical_power": 0.0033669662661850452,
+          "expected_power": 0.0033191642723977566
+        },
+        {
+          "delay_s": 1.8919500917036203e-06,
+          "empirical_power": 0.0043884157203137875,
+          "expected_power": 0.004275911953300238
+        },
+        {
+          "delay_s": 1.9912201878469205e-06,
+          "empirical_power": 0.0046297418884932995,
+          "expected_power": 0.004581721965223551
+        },
+        {
+          "delay_s": 2.1128100797795923e-06,
+          "empirical_power": 0.00116740632802248,
+          "expected_power": 0.0011776837054640055
+        },
+        {
+          "delay_s": 2.595690148154972e-06,
+          "empirical_power": 0.0008990070782601833,
+          "expected_power": 0.0008933646604418755
+        }
+      ]
+    },
+    {
+      "empirical_total_path_power": 1.0040942430496216,
+      "k_factor": 7.915250778198242,
+      "los_profile": true,
+      "max_absolute_tap_power_error": 0.004264235496520996,
+      "max_relative_error_for_expected_power_at_least_0_02": 0.004588358569890261,
+      "num_generated_paths": 13,
+      "num_profile_clusters": 13,
+      "profile": "D",
+      "taps": [
+        {
+          "delay_s": 0.0,
+          "empirical_power": 0.9336239695549011,
+          "expected_power": 0.9293597340583801
+        },
+        {
+          "delay_s": 1.0499999980595476e-08,
+          "empirical_power": 0.012120028026401997,
+          "expected_power": 0.012255501933395863
+        },
+        {
+          "delay_s": 1.8360000808570476e-07,
+          "empirical_power": 0.007258151192218065,
+          "expected_power": 0.007384668104350567
+        },
+        {
+          "delay_s": 4.0890003560889454e-07,
+          "empirical_power": 0.004827677272260189,
+          "expected_power": 0.00487900385633111
+        },
+        {
+          "delay_s": 4.215000046770001e-07,
+          "empirical_power": 0.015080600045621395,
+          "expected_power": 0.015077562071383
+        },
+        {
+          "delay_s": 5.324999960976129e-07,
+          "empirical_power": 0.004807330202311277,
+          "expected_power": 0.0047679441049695015
+        },
+        {
+          "delay_s": 5.412000518845161e-07,
+          "empirical_power": 0.009097183123230934,
+          "expected_power": 0.009085129015147686
+        },
+        {
+          "delay_s": 7.788000289110641e-07,
+          "empirical_power": 0.006006184034049511,
+          "expected_power": 0.006002484355121851
+        },
+        {
+          "delay_s": 1.212599954669713e-06,
+          "empirical_power": 0.0015212201979011297,
+          "expected_power": 0.001542876474559307
+        },
+        {
+          "delay_s": 2.381100102866185e-06,
+          "empirical_power": 0.0041455370374023914,
+          "expected_power": 0.00405817711725831
+        },
+        {
+          "delay_s": 2.827199978128192e-06,
+          "empirical_power": 0.00304407742805779,
+          "expected_power": 0.0030784429982304573
+        },
+        {
+          "delay_s": 2.9124000775482273e-06,
+          "empirical_power": 0.0009463719325140119,
+          "expected_power": 0.0009296750067733228
+        },
+        {
+          "delay_s": 3.7575000533252023e-06,
+          "empirical_power": 0.0016158457146957517,
+          "expected_power": 0.00157881376799196
+        }
+      ]
+    },
+    {
+      "empirical_total_path_power": 0.9998693466186523,
+      "k_factor": 8.454198837280273,
+      "los_profile": true,
+      "max_absolute_tap_power_error": 0.0003903508186340332,
+      "max_relative_error_for_expected_power_at_least_0_02": 0.0048722634091973305,
+      "num_generated_paths": 14,
+      "num_profile_clusters": 14,
+      "profile": "E",
+      "taps": [
+        {
+          "delay_s": 0.0,
+          "empirical_power": 0.8994787931442261,
+          "expected_power": 0.8998691439628601
+        },
+        {
+          "delay_s": 1.5399000119487027e-07,
+          "empirical_power": 0.02379899099469185,
+          "expected_power": 0.023683598265051842
+        },
+        {
+          "delay_s": 1.6320001350322855e-07,
+          "empirical_power": 0.0045218802988529205,
+          "expected_power": 0.004617935046553612
+        },
+        {
+          "delay_s": 1.6320001350322855e-07,
+          "empirical_power": 0.013988840393722057,
+          "expected_power": 0.013945936225354671
+        },
+        {
+          "delay_s": 1.689000157512055e-07,
+          "empirical_power": 0.009724274277687073,
+          "expected_power": 0.009428614750504494
+        },
+        {
+          "delay_s": 2.133600105480582e-07,
+          "empirical_power": 0.005215817131102085,
+          "expected_power": 0.00518140709027648
+        },
+        {
+          "delay_s": 5.727600296268065e-07,
+          "empirical_power": 0.012486530467867851,
+          "expected_power": 0.012429330497980118
+        },
+        {
+          "delay_s": 5.78789979499561e-07,
+          "empirical_power": 0.007390528451651335,
+          "expected_power": 0.007489413488656282
+        },
+        {
+          "delay_s": 5.876700015505776e-07,
+          "empirical_power": 0.00488788727670908,
+          "expected_power": 0.0049482062458992004
+        },
+        {
+          "delay_s": 7.927800425022724e-07,
+          "empirical_power": 0.005282304249703884,
+          "expected_power": 0.0053020985797047615
+        },
+        {
+          "delay_s": 1.1140799642817e-06,
+          "empirical_power": 0.002507592085748911,
+          "expected_power": 0.0024799767415970564
+        },
+        {
+          "delay_s": 1.6357200820493745e-06,
+          "empirical_power": 0.008603937923908234,
+          "expected_power": 0.008598992601037025
+        },
+        {
+          "delay_s": 3.6010201256431174e-06,
+          "empirical_power": 0.0009133546845987439,
+          "expected_power": 0.0009428611374460161
+        },
+        {
+          "delay_s": 6.192569799168268e-06,
+          "empirical_power": 0.0010685991728678346,
+          "expected_power": 0.001082549337297678
+        }
+      ]
+    }
+  ],
+  "runner_sha256": "86cced3a56efd10f54fa26ffa417b8f3175aa9a97516392f2b2f57d3d67795c2",
+  "schema": "loslab.cdl_profile_validation.v1",
+  "source_revision": "61350e8ca1f5f81d1a26bf0b8755b40dbfc70d17",
+  "versions": {
+    "git_sha": "61350e8ca1f5f81d1a26bf0b8755b40dbfc70d17",
+    "numpy": "2.5.4",
+    "python": "3.12.3",
+    "scikit-learn": "1.9.1",
+    "sionna": "2.2.0",
+    "sionna-phy": "not installed",
+    "sionna-rt": "2.2.0",
+    "torch": "2.11.0+cu128"
+  }
+}

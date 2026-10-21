@@ -12,7 +12,10 @@ from integrations.sionna.random import call_with_sionna_seed  # noqa: E402
 
 @pytest.mark.native_sionna
 @pytest.mark.parametrize("profile", list("ABCDE"))
-def test_cdl_19_2_delays_and_monte_carlo_powers_match_versioned_profile(profile: str):
+@pytest.mark.parametrize("delay_spread_ns", [30.0, 100.0, 300.0, 1000.0])
+def test_cdl_19_2_delays_and_monte_carlo_powers_match_versioned_profile(
+    profile: str, delay_spread_ns: float
+):
     if not torch.cuda.is_available():
         pytest.skip("CUDA is not available")
 
@@ -20,7 +23,7 @@ def test_cdl_19_2_delays_and_monte_carlo_powers_match_versioned_profile(profile:
     from sionna.phy.channel.tr38901 import models as profile_resources
 
     carrier_hz = 3.5e9
-    delay_spread_s = 100e-9
+    delay_spread_s = delay_spread_ns * 1e-9
     device = "cuda:0"
     array = PanelArray(
         num_rows_per_panel=1,
