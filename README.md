@@ -126,6 +126,22 @@ spreads. These labels are 3GPP profile proxies (`A/B/C → 0`, `D/E → 1`), not
 geometric LOS/NLOS truth or measured-data evidence. Keep these domains separate
 when training or evaluating physical channel-condition claims.
 
+To run the registered classical baselines with one entire TDL/CDL profile held
+out at a time, use the dataset and its sidecar manifest:
+
+```bash
+uv run --no-sync --locked python scripts/run_profile_holdout_baselines.py \
+  outputs/profile-proxy-tdl-cdl-a-to-e-4096-seed78021-final.npz \
+  outputs/profile-holdout-baselines.json --seed 20261021
+```
+
+The run saves per-sample scores and a provenance report. Validation groups
+select each decision threshold; all links from the held-out profile stay out
+of training and validation. Since each held-out profile carries only one proxy
+class, the report gives per-profile recall and macro summaries rather than an
+invalid pooled AUROC. This diagnostic measures transfer among standardized
+profile proxies, not transfer to geometric LOS/NLOS or measured channels.
+
 For an ideal frequency-domain simulation batch,
 <code>integrations.sionna.generate_tdl_pusch_batch</code> connects the PUSCH
 transmitter, pinned TDL profile, Sionna OFDM channel, reproducible AWGN, and
