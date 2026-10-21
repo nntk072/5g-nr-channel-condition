@@ -51,6 +51,46 @@ def _label_semantics_by_source(data: ChannelDataset) -> str:
     )
 
 
+def _normalized_label_semantics(value: str) -> str:
+    normalized = value.strip().upper().replace("-", "_").replace(" ", "_")
+    aliases = {
+        "GEOMETRIC_DIRECT_PATH_ORACLE": "geometric_direct_path_oracle",
+        "PROFILE_PROXY": "profile_proxy",
+        "SYNTHETIC_DEBUG_CONSTRUCTED": "synthetic_debug_direct_component",
+        "SYNTHETIC_DEBUG_DIRECT_COMPONENT": "synthetic_debug_direct_component",
+    }
+    return aliases.get(normalized, value.strip().lower().replace(" ", "_"))
+
+
+def _resolved_label_semantics(data: ChannelDataset) -> str:
+    """Resolve one target meaning and refuse to score mixed or unknown legacy labels."""
+    row_semantics: set[str] = set()
+    has_unresolved_row = False
+    for source, metadata in zip(data.source, data.metadata, strict=True):
+        raw = metadata.get("geometry_label") or metadata.get("label_semantics")
+        if raw is None and str(source) == "synthetic_debug":
+            raw = "synthetic_debug_direct_component"
+        if raw is None:
+            has_unresolved_row = True
+        else:
+            row_semantics.add(_normalized_label_semantics(str(raw)))
+
+    declared = data.label_semantics
+    if declared != "unspecified_legacy":
+        if row_semantics and row_semantics != {declared}:
+            raise ValueError(
+                "dataset label_semantics conflicts with per-sample label metadata: "
+                f"declared={declared!r}, observed={sorted(row_semantics)}"
+            )
+        return declared
+    if has_unresolved_row or len(row_semantics) != 1:
+        raise ValueError(
+            "cannot evaluate unspecified legacy labels without one explicit, consistent "
+            "label meaning; regenerate the dataset or provide per-sample label metadata"
+        )
+    return next(iter(row_semantics))
+
+
 def _precomputed_observation_semantics(data: ChannelDataset) -> str:
     semantics = sorted(
         {
@@ -81,6 +121,7 @@ def run_experiment(
     if not paths:
         raise ValueError("No datasets supplied")
     data = ChannelDataset.concatenate([ChannelDataset.load(p) for p in paths])
+    resolved_label_semantics = _resolved_label_semantics(data)
     if observation == "ideal_cfr":
         observable = data.h
     elif observation == "comb_ls":
@@ -122,7 +163,8 @@ def run_experiment(
         n_samples=len(data.y),
         source_counts={str(s): int(np.sum(data.source == s)) for s in np.unique(data.source)},
         domain_counts={str(s): int(np.sum(data.domain == s)) for s in np.unique(data.domain)},
-        label_semantics=_label_semantics_by_source(data),
+        label_semantics=resolved_label_semantics,
+        label_semantics_by_source=_label_semantics_by_source(data),
         observation_semantics={
             "ideal_cfr": "ideal channel, diagnostic upper bound",
             "comb_ls": "generic noisy comb pilot estimate, NOT 3GPP DMRS",

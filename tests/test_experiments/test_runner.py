@@ -4,7 +4,7 @@ import json
 
 import numpy as np
 from datasets.synthetic import debug_multipath
-from experiments.runner import _label_semantics_by_source, run_experiment
+from experiments.runner import _label_semantics_by_source, _resolved_label_semantics, run_experiment
 
 
 def test_run_experiment_writes_reproducible_complete_artifacts(tmp_path) -> None:
@@ -22,7 +22,8 @@ def test_run_experiment_writes_reproducible_complete_artifacts(tmp_path) -> None
 
     manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["state"] == "complete"
-    assert manifest["label_semantics"] == "SYNTHETIC_DEBUG_CONSTRUCTED"
+    assert manifest["label_semantics"] == "synthetic_debug_direct_component"
+    assert manifest["label_semantics_by_source"] == "SYNTHETIC_DEBUG_CONSTRUCTED"
     assert manifest["inputs"][0]["sha256"]
     assert (output / "COMPLETE").is_file()
     assert (output / "config" / "resolved.json").is_file()
@@ -97,6 +98,50 @@ def test_label_semantics_are_derived_from_each_dataset_source() -> None:
         _label_semantics_by_source(data)
         == "sionna_rt=GEOMETRIC_DIRECT_PATH_ORACLE; tdl=PROFILE_PROXY"
     )
+
+
+def test_uniform_legacy_label_metadata_resolves_to_canonical_semantics() -> None:
+    from datasets.channel import ChannelDataset
+
+    legacy_rt = ChannelDataset(
+        h=np.ones((2, 1, 8), dtype=np.complex64),
+        y=np.asarray([0, 1]),
+        group=np.asarray(["nlos", "los"]),
+        domain=np.asarray(["scene", "scene"]),
+        source=np.asarray(["sionna_rt", "sionna_rt"]),
+        metadata=(
+            {"geometry_label": "GEOMETRIC_DIRECT_PATH_ORACLE"},
+            {"geometry_label": "GEOMETRIC_DIRECT_PATH_ORACLE"},
+        ),
+    )
+
+    assert _resolved_label_semantics(legacy_rt) == "geometric_direct_path_oracle"
+
+
+def test_experiment_rejects_mixed_legacy_label_semantics_before_training(tmp_path) -> None:
+    import pytest
+    from datasets.channel import ChannelDataset
+
+    mixed = ChannelDataset(
+        h=np.ones((4, 1, 8), dtype=np.complex64),
+        y=np.asarray([0, 1, 0, 1]),
+        group=np.asarray(["g0", "g1", "g2", "g3"]),
+        domain=np.asarray(["d0", "d1", "d2", "d3"]),
+        source=np.asarray(["rt", "rt", "tdl", "tdl"]),
+        metadata=(
+            {"geometry_label": "GEOMETRIC_DIRECT_PATH_ORACLE"},
+            {"geometry_label": "GEOMETRIC_DIRECT_PATH_ORACLE"},
+            {"label_semantics": "PROFILE_PROXY"},
+            {"label_semantics": "PROFILE_PROXY"},
+        ),
+    )
+    source = tmp_path / "mixed-legacy.npz"
+    mixed.save(source)
+
+    with pytest.raises(ValueError, match="one explicit, consistent label meaning"):
+        run_experiment([source], tmp_path / "runs" / "must-not-train")
+
+    assert not (tmp_path / "runs" / "must-not-train").exists()
 
 
 def test_run_experiment_preserves_precomputed_dmrs_observation_semantics(tmp_path) -> None:
