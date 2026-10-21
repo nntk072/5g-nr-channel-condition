@@ -22,31 +22,53 @@ def load_curve(path: str | Path) -> dict[str, Any]:
     return result
 
 
-def compare_curves(control_path: str | Path, treatment_path: str | Path) -> dict[str, Any]:
-    """Validate a matched mobility pair and compute paired codeword outcomes."""
+def compare_curves(
+    control_path: str | Path,
+    treatment_path: str | Path,
+    *,
+    varying_config_field: str = "speed_mps",
+) -> dict[str, Any]:
+    """Validate a matched pair and compute BLER and decoded-throughput deltas."""
     control_path = Path(control_path)
     treatment_path = Path(treatment_path)
     control = load_curve(control_path)
     treatment = load_curve(treatment_path)
     control_config = control["configuration"]
     treatment_config = treatment["configuration"]
-    varying = {"speed_mps", "matched_realization_checks"}
+    if varying_config_field not in {"speed_mps", "dmrs_additional_position"}:
+        raise ValueError("varying_config_field must be speed_mps or dmrs_additional_position")
+    varying = {
+        varying_config_field,
+        "matched_realization_checks",
+        "transmit_waveform_mean_power_by_batch",
+    }
     for key in set(control_config) | set(treatment_config):
         if key not in varying and control_config.get(key) != treatment_config.get(key):
             raise ValueError(f"curve configuration differs unexpectedly at {key}")
-    if control_config["speed_mps"] == treatment_config["speed_mps"]:
-        raise ValueError("control and treatment must have different mobility speeds")
+    default_varying_value = 0 if varying_config_field == "dmrs_additional_position" else None
+    control_value = control_config.get(varying_config_field, default_varying_value)
+    treatment_value = treatment_config.get(varying_config_field, default_varying_value)
+    if control_value == treatment_value:
+        raise ValueError(f"control and treatment must differ at {varying_config_field}")
     control_checks = control_config["matched_realization_checks"]
     treatment_checks = treatment_config["matched_realization_checks"]
     if len(control_checks) != len(treatment_checks):
         raise ValueError("matched realization batch counts differ")
+    same_bits = True
+    same_channel = True
     for left, right in zip(control_checks, treatment_checks, strict=True):
         if left["seed"] != right["seed"]:
             raise ValueError("batch seeds differ across conditions")
         if left.get("noise_seed") != right.get("noise_seed"):
             raise ValueError(f"noise seeds differ for matched batch {left['seed']}")
-        if left["transmit_bits_sha256"] != right["transmit_bits_sha256"]:
-            raise ValueError(f"transmitted bits differ for matched seed {left['seed']}")
+        same_bits = same_bits and left["transmit_bits_sha256"] == right["transmit_bits_sha256"]
+        same_channel = (
+            same_channel and left["channel_truth_sha256"] == right["channel_truth_sha256"]
+        )
+    if varying_config_field == "speed_mps" and not same_bits:
+        raise ValueError("transmitted bits differ for the matched mobility experiment")
+    if varying_config_field == "dmrs_additional_position" and not same_channel:
+        raise ValueError("channel truth differs for the matched DMRS experiment")
 
     control_points = control["points"]
     treatment_points = treatment["points"]
@@ -64,6 +86,12 @@ def compare_curves(control_path: str | Path, treatment_path: str | Path) -> dict
                     right["frame_error_mask"],
                     seed=1,
                     draws=20_000,
+                    control_bits_per_success=left["mean_transmitted_tb_bits_per_codeword"]
+                    if "mean_transmitted_tb_bits_per_codeword" in left
+                    else left["bits"] / left["frames"],
+                    treatment_bits_per_success=right["mean_transmitted_tb_bits_per_codeword"]
+                    if "mean_transmitted_tb_bits_per_codeword" in right
+                    else right["bits"] / right["frames"],
                 ),
             }
         )
@@ -85,15 +113,24 @@ def compare_curves(control_path: str | Path, treatment_path: str | Path) -> dict
             "path": str(control_path),
             "sha256": sha256_file(control_path),
             "speed_mps": control_config["speed_mps"],
+            "dmrs_additional_position": control_config.get("dmrs_additional_position", 0),
+            "transmit_waveform_mean_power_by_batch": control_config.get(
+                "transmit_waveform_mean_power_by_batch"
+            ),
         },
         "treatment": {
             "path": str(treatment_path),
             "sha256": sha256_file(treatment_path),
             "speed_mps": treatment_config["speed_mps"],
+            "dmrs_additional_position": treatment_config.get("dmrs_additional_position", 0),
+            "transmit_waveform_mean_power_by_batch": treatment_config.get(
+                "transmit_waveform_mean_power_by_batch"
+            ),
         },
         "paired_design": {
-            "same_configuration_except": "speed_mps",
-            "same_transmitted_bits_by_seed": True,
+            "same_configuration_except": varying_config_field,
+            "same_transmitted_bits_by_seed": same_bits,
+            "same_channel_truth_by_seed": same_channel,
             "same_batch_seeds_and_noise_seeds": True,
             "statistic": "paired codeword bootstrap CI and Holm-adjusted exact McNemar tests",
             "versions": versions(),

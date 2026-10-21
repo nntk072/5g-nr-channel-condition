@@ -132,6 +132,9 @@ def test_sample_domain_tdl_pusch_decodes_waveforms_and_records_matched_bler():
     assert all(
         len(point["frame_error_mask"]) == point["frames"]
         and sum(point["frame_error_mask"]) == point["bler_errors"]
+        and point["mean_transmitted_tb_bits_per_codeword"] == point["bits"] / point["frames"]
+        and point["successfully_decoded_tb_bits_per_codeword"]
+        <= point["mean_transmitted_tb_bits_per_codeword"]
         for point in result["points"]
     )
     assert result["points"][0]["bler"] > result["points"][1]["bler"]

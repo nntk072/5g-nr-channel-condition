@@ -53,3 +53,16 @@ def test_sample_domain_link_curve_rejects_empty_snr_grid_before_loading_dependen
             batch_size=1,
             seed=1,
         )
+
+
+@pytest.mark.parametrize("position", [-1, 4, True])
+def test_sample_domain_link_curve_rejects_invalid_dmrs_position(position):
+    expected = TypeError if isinstance(position, bool) else ValueError
+    with pytest.raises(expected, match="dmrs_additional_position"):
+        run_tdl_pusch_time_bler_curve(
+            snr_db=(10.0,),
+            frames_per_snr=1,
+            batch_size=1,
+            seed=1,
+            dmrs_additional_position=position,
+        )

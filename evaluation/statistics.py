@@ -86,6 +86,8 @@ def paired_binary_error_comparison(
     *,
     seed: int = 1,
     draws: int = 5000,
+    control_bits_per_success: float = 1.0,
+    treatment_bits_per_success: float = 1.0,
 ) -> dict:
     """Compare paired per-codeword failures using a bootstrap and exact McNemar test.
 
@@ -104,6 +106,12 @@ def paired_binary_error_comparison(
         raise ValueError("seed must be a nonnegative integer")
     if isinstance(draws, bool) or not isinstance(draws, int) or draws <= 0:
         raise ValueError("draws must be a positive integer")
+    for name, value in (
+        ("control_bits_per_success", control_bits_per_success),
+        ("treatment_bits_per_success", treatment_bits_per_success),
+    ):
+        if not math.isfinite(value) or value < 0:
+            raise ValueError(f"{name} must be finite and nonnegative")
 
     control = control.astype(bool, copy=False)
     treatment = treatment.astype(bool, copy=False)
@@ -111,6 +119,13 @@ def paired_binary_error_comparison(
     rng = np.random.default_rng(seed)
     bootstrap = rng.choice(delta, size=(draws, delta.size), replace=True).mean(axis=1)
     ci_low, ci_high = np.percentile(bootstrap, [2.5, 97.5])
+    control_goodput = (~control) * control_bits_per_success
+    treatment_goodput = (~treatment) * treatment_bits_per_success
+    goodput_delta = treatment_goodput - control_goodput
+    goodput_bootstrap = rng.choice(goodput_delta, size=(draws, delta.size), replace=True).mean(
+        axis=1
+    )
+    goodput_ci_low, goodput_ci_high = np.percentile(goodput_bootstrap, [2.5, 97.5])
 
     control_only = int(np.count_nonzero(control & ~treatment))
     treatment_only = int(np.count_nonzero(~control & treatment))
@@ -140,6 +155,10 @@ def paired_binary_error_comparison(
         "both_success": int(np.count_nonzero(~control & ~treatment)),
         "treatment_minus_control_bler": float(delta.mean()),
         "paired_bootstrap_ci95": [float(ci_low), float(ci_high)],
+        "control_goodput_bits_per_codeword": float(control_goodput.mean()),
+        "treatment_goodput_bits_per_codeword": float(treatment_goodput.mean()),
+        "treatment_minus_control_goodput_bits_per_codeword": float(goodput_delta.mean()),
+        "paired_goodput_bootstrap_ci95": [float(goodput_ci_low), float(goodput_ci_high)],
         "discordant_pairs": discordant,
         "mcnemar_exact_two_sided_p_value": p_value,
         "bootstrap_seed": seed,

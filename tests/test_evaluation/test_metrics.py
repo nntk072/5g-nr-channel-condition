@@ -143,6 +143,7 @@ def test_paired_binary_error_comparison_counts_discordance_and_exact_test():
     assert result["treatment_only_error"] == 1
     assert result["both_success"] == 1
     assert result["treatment_minus_control_bler"] == 0.0
+    assert result["treatment_minus_control_goodput_bits_per_codeword"] == 0.0
     assert result["mcnemar_exact_two_sided_p_value"] == 1.0
 
 
@@ -169,16 +170,37 @@ def test_curve_comparator_requires_matching_bits_and_compares_masks(tmp_path):
         "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
         "configuration": {
             "matched_realization_checks": [
-                {"seed": 4, "noise_seed": 6, "transmit_bits_sha256": "same"}
+                {
+                    "seed": 4,
+                    "noise_seed": 6,
+                    "transmit_bits_sha256": "same",
+                    "channel_truth_sha256": "same-channel",
+                }
             ]
         },
-        "points": [{"snr_db": 12.0, "frames": 2, "frame_error_mask": [False, False]}],
+        "points": [
+            {
+                "snr_db": 12.0,
+                "frames": 2,
+                "bits": 200,
+                "mean_transmitted_tb_bits_per_codeword": 100.0,
+                "frame_error_mask": [False, False],
+            }
+        ],
     }
     control = {**base, "configuration": {**base["configuration"], "speed_mps": 3.0}}
     treatment = {
         **base,
         "configuration": {**base["configuration"], "speed_mps": 30.0},
-        "points": [{"snr_db": 12.0, "frames": 2, "frame_error_mask": [True, False]}],
+        "points": [
+            {
+                "snr_db": 12.0,
+                "frames": 2,
+                "bits": 200,
+                "mean_transmitted_tb_bits_per_codeword": 100.0,
+                "frame_error_mask": [True, False],
+            }
+        ],
     }
     control_path = tmp_path / "control.json"
     treatment_path = tmp_path / "treatment.json"
@@ -198,7 +220,12 @@ def test_curve_comparator_rejects_different_transmitted_bits(tmp_path):
         "configuration": {
             "speed_mps": 3.0,
             "matched_realization_checks": [
-                {"seed": 4, "noise_seed": 6, "transmit_bits_sha256": "one"}
+                {
+                    "seed": 4,
+                    "noise_seed": 6,
+                    "transmit_bits_sha256": "one",
+                    "channel_truth_sha256": "same-channel",
+                }
             ],
         },
         "points": [{"snr_db": 12.0, "frames": 1, "frame_error_mask": [False]}],
@@ -213,6 +240,67 @@ def test_curve_comparator_rejects_different_transmitted_bits(tmp_path):
 
     with pytest.raises(ValueError, match="transmitted bits differ"):
         compare_curves(control_path, treatment_path)
+
+
+def test_curve_comparator_pairs_dmrs_change_on_identical_channel_truth(tmp_path):
+    checks = [
+        {
+            "seed": 4,
+            "noise_seed": 6,
+            "transmit_bits_sha256": "control-bits",
+            "channel_truth_sha256": "same-channel",
+        }
+    ]
+    base = {
+        "schema": "loslab.tdl_pusch_time_bler_curve.v1",
+        "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
+        "configuration": {"speed_mps": 30.0, "matched_realization_checks": checks},
+    }
+    control = {
+        **base,
+        "configuration": {**base["configuration"], "dmrs_additional_position": 0},
+        "points": [
+            {
+                "snr_db": 18.0,
+                "frames": 2,
+                "bits": 200,
+                "mean_transmitted_tb_bits_per_codeword": 100.0,
+                "frame_error_mask": [False, False],
+            }
+        ],
+    }
+    treatment_checks = [{**checks[0], "transmit_bits_sha256": "treatment-bits"}]
+    treatment = {
+        **base,
+        "configuration": {
+            **base["configuration"],
+            "dmrs_additional_position": 3,
+            "matched_realization_checks": treatment_checks,
+        },
+        "points": [
+            {
+                "snr_db": 18.0,
+                "frames": 2,
+                "bits": 120,
+                "mean_transmitted_tb_bits_per_codeword": 60.0,
+                "frame_error_mask": [False, True],
+            }
+        ],
+    }
+    control_path = tmp_path / "control-dmrs.json"
+    treatment_path = tmp_path / "treatment-dmrs.json"
+    atomic_json(control_path, control)
+    atomic_json(treatment_path, treatment)
+
+    result = compare_curves(
+        control_path,
+        treatment_path,
+        varying_config_field="dmrs_additional_position",
+    )
+
+    assert result["paired_design"]["same_channel_truth_by_seed"]
+    assert not result["paired_design"]["same_transmitted_bits_by_seed"]
+    assert result["points"][0]["treatment_minus_control_goodput_bits_per_codeword"] == -70.0
 
 
 def test_code_hash_is_stable():

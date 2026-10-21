@@ -219,6 +219,7 @@ def run_tdl_pusch_time_bler_curve(
     carrier_frequency_hz: float = 3.5e9,
     speed_mps: float = 3.0,
     n_size_bwp: int = 12,
+    dmrs_additional_position: int = 0,
     subcarrier_spacing_khz: int = 30,
 ) -> dict[str, Any]:
     """Measure paired PUSCH BLER over the sample-domain, time-varying TDL link."""
@@ -241,6 +242,10 @@ def run_tdl_pusch_time_bler_curve(
         raise ValueError("carrier_frequency_hz must be finite and positive")
     if not math.isfinite(speed_mps) or speed_mps < 0:
         raise ValueError("speed_mps must be finite and nonnegative")
+    if isinstance(dmrs_additional_position, bool) or not isinstance(dmrs_additional_position, int):
+        raise TypeError("dmrs_additional_position must be an integer")
+    if not 0 <= dmrs_additional_position <= 3:
+        raise ValueError("dmrs_additional_position must be in [0, 3]")
     if not torch_cuda_available():
         raise RuntimeError("The sample-domain TDL-PUSCH curve requires CUDA")
 
@@ -253,6 +258,7 @@ def run_tdl_pusch_time_bler_curve(
         NRPUSCHConfig(
             n_size_bwp=n_size_bwp,
             subcarrier_spacing_khz=subcarrier_spacing_khz,
+            dmrs_additional_position=dmrs_additional_position,
         ),
         device="cuda:0",
     )
@@ -336,6 +342,10 @@ def run_tdl_pusch_time_bler_curve(
                 "bit_errors": bit_errors,
                 "bits": bits_total,
                 "ber": bit_errors / bits_total,
+                "mean_transmitted_tb_bits_per_codeword": bits_total / frames,
+                "successfully_decoded_tb_bits_per_codeword": (
+                    (bits_total / frames) * (1.0 - frame_errors / frames)
+                ),
             }
         )
 
@@ -354,6 +364,7 @@ def run_tdl_pusch_time_bler_curve(
             "seed": seed,
             "n_size_bwp_resource_blocks": n_size_bwp,
             "subcarrier_spacing_khz": subcarrier_spacing_khz,
+            "dmrs_additional_position": dmrs_additional_position,
             "snr_definition": (
                 "sampled waveform mean complex power / complex AWGN variance; "
                 "noise variance=10**(-SNR_dB/10) and measured transmit mean power is recorded"

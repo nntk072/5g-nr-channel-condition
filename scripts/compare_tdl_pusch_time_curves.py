@@ -19,10 +19,19 @@ def main() -> None:
     parser.add_argument("control", type=Path, help="control-condition curve JSON")
     parser.add_argument("treatment", type=Path, help="treatment-condition curve JSON")
     parser.add_argument("output", type=Path, help="new comparison JSON output")
+    parser.add_argument(
+        "--varying-config-field",
+        choices=("speed_mps", "dmrs_additional_position"),
+        default="speed_mps",
+    )
     args = parser.parse_args()
     if args.output.exists():
         parser.error(f"refusing to overwrite existing output: {args.output}")
-    result = compare_curves(args.control, args.treatment)
+    result = compare_curves(
+        args.control,
+        args.treatment,
+        varying_config_field=args.varying_config_field,
+    )
     atomic_json(args.output, result)
     print(json.dumps(result["points"], indent=2))
     print(f"Saved {args.output}")

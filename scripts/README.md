@@ -74,3 +74,27 @@ The comparator verifies matching bits, batch seeds, noise seeds, and all
 configuration fields other than mobility before calculating paired outcomes.
 Its uncertainty is conditional on the chosen simulation; it does not replace
 independent-scene inference.
+
+To compare additional PUSCH DMRS positions at fixed mobility, use identical
+SNRs, frame count, batch size, and seed, then vary only
+`--dmrs-additional-position`. The comparator checks that channel-truth hashes,
+batch seeds, and noise seeds match; the transmitted transport-block sizes may
+differ because extra DMRS symbols consume resources. It therefore reports both
+paired BLER and successfully decoded transport-block bits per codeword, so the
+pilot-density tradeoff includes payload goodput:
+
+```bash
+python scripts/run_tdl_pusch_time_bler_curve.py outputs/dmrs0.json \
+  --frames 512 --batch-size 64 --snr-db 12 18 24 --seed 42100 \
+  --speed-mps 30 --dmrs-additional-position 0
+python scripts/run_tdl_pusch_time_bler_curve.py outputs/dmrs3.json \
+  --frames 512 --batch-size 64 --snr-db 12 18 24 --seed 42100 \
+  --speed-mps 30 --dmrs-additional-position 3
+python scripts/compare_tdl_pusch_time_curves.py outputs/dmrs0.json \
+  outputs/dmrs3.json outputs/dmrs-paired.json \
+  --varying-config-field dmrs_additional_position
+```
+
+This remains a single-configuration TDL-A simulation with ideal synchronization
+and codeword-conditional uncertainty; it does not establish scene-level or
+standards-wide receiver performance.

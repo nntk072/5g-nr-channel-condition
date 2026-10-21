@@ -28,6 +28,7 @@ def main() -> None:
     parser.add_argument("--carrier-ghz", type=float, default=3.5)
     parser.add_argument("--speed-mps", type=float, default=3.0)
     parser.add_argument("--n-size-bwp", type=int, default=12)
+    parser.add_argument("--dmrs-additional-position", type=int, choices=range(4), default=0)
     parser.add_argument("--subcarrier-spacing-khz", type=int, default=30)
     args = parser.parse_args()
 
@@ -43,6 +44,7 @@ def main() -> None:
         carrier_frequency_hz=args.carrier_ghz * 1e9,
         speed_mps=args.speed_mps,
         n_size_bwp=args.n_size_bwp,
+        dmrs_additional_position=args.dmrs_additional_position,
         subcarrier_spacing_khz=args.subcarrier_spacing_khz,
     )
     atomic_json(args.output, result)
