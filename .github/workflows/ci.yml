@@ -47,8 +47,8 @@ jobs:
       - name: Type check
         run: uv run --locked mypy
 
-      - name: Run tests
-        run: uv run --locked python -m pytest
+      - name: Run core tests
+        run: uv run --locked python -m pytest --no-cov
 
   neural:
     name: Neural training tests (Python 3.12)
