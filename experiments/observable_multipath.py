@@ -155,7 +155,7 @@ def generate_grouped_two_path_dataset(
 
     hashs = hashlib.sha256()
     for array in (observed, mask, frequencies, noise_variance, delay, gains, groups, splits):
-        hashs.update(np.ascontiguousarray(array).view(np.uint8))
+        hashs.update(np.ascontiguousarray(array).tobytes())
     hashs.update(str(seed).encode())
     hashs.update(str(maximum_relative_delay_s).encode())
     return TwoPathDataset(
@@ -665,5 +665,5 @@ def dataset_source_sha256(dataset: TwoPathDataset) -> str:
         dataset.group_id,
         dataset.split,
     ):
-        digest.update(np.ascontiguousarray(array).view(np.uint8))
+        digest.update(np.ascontiguousarray(array).tobytes())
     return digest.hexdigest()
