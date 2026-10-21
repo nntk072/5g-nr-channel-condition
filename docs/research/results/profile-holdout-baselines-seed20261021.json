@@ -1,0 +1,493 @@
+{
+  "configuration": {
+    "baseline_configuration": {
+      "logreg": {
+        "class_weight": "balanced",
+        "estimator": "StandardScaler + LogisticRegression",
+        "max_iter": 1000
+      },
+      "mlp": {
+        "activation": "relu",
+        "alpha": 0.001,
+        "batch_size": 64,
+        "estimator": "StandardScaler + MLPClassifier",
+        "hidden_layer_sizes": [
+          128,
+          64,
+          32
+        ],
+        "max_epochs": 300,
+        "validation_min_delta": 0.0001,
+        "validation_patience_epochs": 18
+      },
+      "rf": {
+        "class_weight": "balanced_subsample",
+        "estimator": "RandomForestClassifier",
+        "min_samples_leaf": 3,
+        "n_estimators": 250,
+        "n_jobs": 1
+      }
+    },
+    "feature_semantics": "global-gain-and-phase-normalized CFR real/imaginary samples",
+    "methods": [
+      "logreg",
+      "mlp",
+      "rf"
+    ],
+    "mlp_early_stopping": "group-disjoint outer-fold training validation, not random rows",
+    "seed": 20261021,
+    "threshold_selection": "Youden J on group-disjoint training validation only",
+    "validation_fraction_of_training_groups": 0.2
+  },
+  "evidence_grade": "SIMULATED_PROFILE_PROXY_DIAGNOSTIC_NOT_GEOMETRIC_LOS",
+  "inputs": {
+    "dataset_path": "outputs/profile-proxy-tdl-cdl-a-to-e-4096-seed78021-final.npz",
+    "dataset_sha256": "efd5705592f6bdb9aca25320efda60bab1453c474b2fdde1fa5056f86a081521",
+    "source_manifest_path": "outputs/profile-proxy-tdl-cdl-a-to-e-4096-seed78021-final.npz.manifest.json",
+    "source_manifest_sha256": "2a2cf4c0eda1dcaabdc4d5e7654e1e33133e642cef70c38eec0ece9b35609aaa",
+    "source_revision": "2e8244e794e1d39be5f05b9c81ac45b0c055fe7c"
+  },
+  "limitations": [
+    "Each outer fold holds out one profile and therefore contains a single proxy class.",
+    "Report within-profile recall and macro averages; pooled AUROC is undefined and omitted.",
+    "Only five profile groups exist, so no profile-level confidence interval is claimed.",
+    "Profile-proxy labels are not geometric LOS/NLOS, measured truth, or physical-domain transfer.",
+    "Validation thresholds are selected from the other profiles; no held-out profile labels tune them."
+  ],
+  "package_source_sha256": "c616d37d580ec0634738bc233830d4b3d6406fee8e289bca1f5715de3ac1249a",
+  "predictions_path": "docs/research/results/profile-holdout-baselines-seed20261021.json.predictions.npz",
+  "predictions_sha256": "5f83a9391a74a28a434d6dadbdca555e652aa12c768dd249c289a32957b241fd",
+  "profile_holdout_folds": [
+    {
+      "label": 0,
+      "mean_test_positive_score": 0.07549556344747543,
+      "method": "logreg",
+      "n_test": 8192,
+      "profile": "A",
+      "profile_recall_at_validation_threshold": 0.9266357421875,
+      "test_groups": 8192,
+      "test_indices_sha256": "00ab2d008d40620f85bc4b2c618d79e0436206f9352c4f89b4b1bec536e0a399",
+      "threshold_from_validation": 0.460519403219223,
+      "train_groups": 26214,
+      "train_indices_sha256": "2ab2a1bc94c6f6b0efc06f971f5b99b36f02e8aa79aba6644386ffbc32a15ab7",
+      "train_profiles": [
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "training": {
+        "early_stopping": "not applicable"
+      },
+      "validation_groups": 6554,
+      "validation_indices_sha256": "3014231a637e57a82d94b8cd470b4eb5cb9ac17a661aabe18434068cadca50cc"
+    },
+    {
+      "label": 0,
+      "mean_test_positive_score": 0.018308695405721664,
+      "method": "mlp",
+      "n_test": 8192,
+      "profile": "A",
+      "profile_recall_at_validation_threshold": 0.9814453125,
+      "test_groups": 8192,
+      "test_indices_sha256": "00ab2d008d40620f85bc4b2c618d79e0436206f9352c4f89b4b1bec536e0a399",
+      "threshold_from_validation": 0.391622394323349,
+      "train_groups": 26214,
+      "train_indices_sha256": "2ab2a1bc94c6f6b0efc06f971f5b99b36f02e8aa79aba6644386ffbc32a15ab7",
+      "train_profiles": [
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "training": {
+        "best_validation_log_loss": 0.0926840528845787,
+        "early_stopping": "group-disjoint validation log loss; min_delta=1e-4; patience=18",
+        "epochs_run": 24
+      },
+      "validation_groups": 6554,
+      "validation_indices_sha256": "3014231a637e57a82d94b8cd470b4eb5cb9ac17a661aabe18434068cadca50cc"
+    },
+    {
+      "label": 0,
+      "mean_test_positive_score": 0.08902004352563272,
+      "method": "rf",
+      "n_test": 8192,
+      "profile": "A",
+      "profile_recall_at_validation_threshold": 0.945556640625,
+      "test_groups": 8192,
+      "test_indices_sha256": "00ab2d008d40620f85bc4b2c618d79e0436206f9352c4f89b4b1bec536e0a399",
+      "threshold_from_validation": 0.5759577454629359,
+      "train_groups": 26214,
+      "train_indices_sha256": "2ab2a1bc94c6f6b0efc06f971f5b99b36f02e8aa79aba6644386ffbc32a15ab7",
+      "train_profiles": [
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "training": {
+        "early_stopping": "not applicable"
+      },
+      "validation_groups": 6554,
+      "validation_indices_sha256": "3014231a637e57a82d94b8cd470b4eb5cb9ac17a661aabe18434068cadca50cc"
+    },
+    {
+      "label": 0,
+      "mean_test_positive_score": 0.13508853316307068,
+      "method": "logreg",
+      "n_test": 8192,
+      "profile": "B",
+      "profile_recall_at_validation_threshold": 0.873291015625,
+      "test_groups": 8192,
+      "test_indices_sha256": "b90a7428253c4890cc91b972a116246657c28ebf114ddd7540a249ecdf4b782d",
+      "threshold_from_validation": 0.5038948655128479,
+      "train_groups": 26214,
+      "train_indices_sha256": "e898d7bfa2f87223fbe75c4e21dd4415de0c7f92e96ddd1a511c568f30174d1e",
+      "train_profiles": [
+        "A",
+        "C",
+        "D",
+        "E"
+      ],
+      "training": {
+        "early_stopping": "not applicable"
+      },
+      "validation_groups": 6554,
+      "validation_indices_sha256": "82c558cdcad60f59c4ea67047f9ecd7d6506ffc91d4d0f98ea700b8f2d8e72fd"
+    },
+    {
+      "label": 0,
+      "mean_test_positive_score": 0.07694078981876373,
+      "method": "mlp",
+      "n_test": 8192,
+      "profile": "B",
+      "profile_recall_at_validation_threshold": 0.9312744140625,
+      "test_groups": 8192,
+      "test_indices_sha256": "b90a7428253c4890cc91b972a116246657c28ebf114ddd7540a249ecdf4b782d",
+      "threshold_from_validation": 0.5888978242874146,
+      "train_groups": 26214,
+      "train_indices_sha256": "e898d7bfa2f87223fbe75c4e21dd4415de0c7f92e96ddd1a511c568f30174d1e",
+      "train_profiles": [
+        "A",
+        "C",
+        "D",
+        "E"
+      ],
+      "training": {
+        "best_validation_log_loss": 0.07462089508771896,
+        "early_stopping": "group-disjoint validation log loss; min_delta=1e-4; patience=18",
+        "epochs_run": 25
+      },
+      "validation_groups": 6554,
+      "validation_indices_sha256": "82c558cdcad60f59c4ea67047f9ecd7d6506ffc91d4d0f98ea700b8f2d8e72fd"
+    },
+    {
+      "label": 0,
+      "mean_test_positive_score": 0.15880463306751053,
+      "method": "rf",
+      "n_test": 8192,
+      "profile": "B",
+      "profile_recall_at_validation_threshold": 0.8995361328125,
+      "test_groups": 8192,
+      "test_indices_sha256": "b90a7428253c4890cc91b972a116246657c28ebf114ddd7540a249ecdf4b782d",
+      "threshold_from_validation": 0.5541494456023369,
+      "train_groups": 26214,
+      "train_indices_sha256": "e898d7bfa2f87223fbe75c4e21dd4415de0c7f92e96ddd1a511c568f30174d1e",
+      "train_profiles": [
+        "A",
+        "C",
+        "D",
+        "E"
+      ],
+      "training": {
+        "early_stopping": "not applicable"
+      },
+      "validation_groups": 6554,
+      "validation_indices_sha256": "82c558cdcad60f59c4ea67047f9ecd7d6506ffc91d4d0f98ea700b8f2d8e72fd"
+    },
+    {
+      "label": 0,
+      "mean_test_positive_score": 0.10937748849391937,
+      "method": "logreg",
+      "n_test": 8192,
+      "profile": "C",
+      "profile_recall_at_validation_threshold": 0.8955078125,
+      "test_groups": 8192,
+      "test_indices_sha256": "abb1aa535f5590c24de6da74ce8173cf04d2308052f30a16846ab7b13059f724",
+      "threshold_from_validation": 0.47810694575309753,
+      "train_groups": 26214,
+      "train_indices_sha256": "2152114204f6ddb8d5938c8b789d1053cb3c05236947d1acedb98a502a864953",
+      "train_profiles": [
+        "A",
+        "B",
+        "D",
+        "E"
+      ],
+      "training": {
+        "early_stopping": "not applicable"
+      },
+      "validation_groups": 6554,
+      "validation_indices_sha256": "dd7809b6cbeb90dc82c6caf7f3bc6c19ed4f9ce2f25d63da24199cfb9624b4df"
+    },
+    {
+      "label": 0,
+      "mean_test_positive_score": 0.07708634436130524,
+      "method": "mlp",
+      "n_test": 8192,
+      "profile": "C",
+      "profile_recall_at_validation_threshold": 0.9302978515625,
+      "test_groups": 8192,
+      "test_indices_sha256": "abb1aa535f5590c24de6da74ce8173cf04d2308052f30a16846ab7b13059f724",
+      "threshold_from_validation": 0.5375162363052368,
+      "train_groups": 26214,
+      "train_indices_sha256": "2152114204f6ddb8d5938c8b789d1053cb3c05236947d1acedb98a502a864953",
+      "train_profiles": [
+        "A",
+        "B",
+        "D",
+        "E"
+      ],
+      "training": {
+        "best_validation_log_loss": 0.08197302371263504,
+        "early_stopping": "group-disjoint validation log loss; min_delta=1e-4; patience=18",
+        "epochs_run": 24
+      },
+      "validation_groups": 6554,
+      "validation_indices_sha256": "dd7809b6cbeb90dc82c6caf7f3bc6c19ed4f9ce2f25d63da24199cfb9624b4df"
+    },
+    {
+      "label": 0,
+      "mean_test_positive_score": 0.142638940254805,
+      "method": "rf",
+      "n_test": 8192,
+      "profile": "C",
+      "profile_recall_at_validation_threshold": 0.875732421875,
+      "test_groups": 8192,
+      "test_indices_sha256": "abb1aa535f5590c24de6da74ce8173cf04d2308052f30a16846ab7b13059f724",
+      "threshold_from_validation": 0.4757144687842848,
+      "train_groups": 26214,
+      "train_indices_sha256": "2152114204f6ddb8d5938c8b789d1053cb3c05236947d1acedb98a502a864953",
+      "train_profiles": [
+        "A",
+        "B",
+        "D",
+        "E"
+      ],
+      "training": {
+        "early_stopping": "not applicable"
+      },
+      "validation_groups": 6554,
+      "validation_indices_sha256": "dd7809b6cbeb90dc82c6caf7f3bc6c19ed4f9ce2f25d63da24199cfb9624b4df"
+    },
+    {
+      "label": 1,
+      "mean_test_positive_score": 0.9064266681671143,
+      "method": "logreg",
+      "n_test": 8192,
+      "profile": "D",
+      "profile_recall_at_validation_threshold": 0.9783935546875,
+      "test_groups": 8192,
+      "test_indices_sha256": "5fb3cec7aa373b1f950ebae2d5ec9d1f160e21ac4903ef4473ea7b86ad42db44",
+      "threshold_from_validation": 0.47425761818885803,
+      "train_groups": 26214,
+      "train_indices_sha256": "cd0f6b870b1d223fe15f8e2be54eee48ab423a60508b3b727ede6a000b7c61d2",
+      "train_profiles": [
+        "A",
+        "B",
+        "C",
+        "E"
+      ],
+      "training": {
+        "early_stopping": "not applicable"
+      },
+      "validation_groups": 6554,
+      "validation_indices_sha256": "aeda742953525af4e7e28bb0138401da22335ff2dde744e267e8b19edb46d031"
+    },
+    {
+      "label": 1,
+      "mean_test_positive_score": 0.8163521885871887,
+      "method": "mlp",
+      "n_test": 8192,
+      "profile": "D",
+      "profile_recall_at_validation_threshold": 0.9560546875,
+      "test_groups": 8192,
+      "test_indices_sha256": "5fb3cec7aa373b1f950ebae2d5ec9d1f160e21ac4903ef4473ea7b86ad42db44",
+      "threshold_from_validation": 0.08884482085704803,
+      "train_groups": 26214,
+      "train_indices_sha256": "cd0f6b870b1d223fe15f8e2be54eee48ab423a60508b3b727ede6a000b7c61d2",
+      "train_profiles": [
+        "A",
+        "B",
+        "C",
+        "E"
+      ],
+      "training": {
+        "best_validation_log_loss": 0.07621928304433823,
+        "early_stopping": "group-disjoint validation log loss; min_delta=1e-4; patience=18",
+        "epochs_run": 25
+      },
+      "validation_groups": 6554,
+      "validation_indices_sha256": "aeda742953525af4e7e28bb0138401da22335ff2dde744e267e8b19edb46d031"
+    },
+    {
+      "label": 1,
+      "mean_test_positive_score": 0.7496915370395785,
+      "method": "rf",
+      "n_test": 8192,
+      "profile": "D",
+      "profile_recall_at_validation_threshold": 0.9793701171875,
+      "test_groups": 8192,
+      "test_indices_sha256": "5fb3cec7aa373b1f950ebae2d5ec9d1f160e21ac4903ef4473ea7b86ad42db44",
+      "threshold_from_validation": 0.35785239128052343,
+      "train_groups": 26214,
+      "train_indices_sha256": "cd0f6b870b1d223fe15f8e2be54eee48ab423a60508b3b727ede6a000b7c61d2",
+      "train_profiles": [
+        "A",
+        "B",
+        "C",
+        "E"
+      ],
+      "training": {
+        "early_stopping": "not applicable"
+      },
+      "validation_groups": 6554,
+      "validation_indices_sha256": "aeda742953525af4e7e28bb0138401da22335ff2dde744e267e8b19edb46d031"
+    },
+    {
+      "label": 1,
+      "mean_test_positive_score": 0.8535583019256592,
+      "method": "logreg",
+      "n_test": 8192,
+      "profile": "E",
+      "profile_recall_at_validation_threshold": 0.925048828125,
+      "test_groups": 8192,
+      "test_indices_sha256": "3f7eb65ad902531d405cd4b50fca9de3a887079b876f4b404e7c8e62cb569479",
+      "threshold_from_validation": 0.5040802359580994,
+      "train_groups": 26214,
+      "train_indices_sha256": "8a5b56a97cc61f04a4df086f5e48b58c70d8377880d86be5005f0feebc3a8539",
+      "train_profiles": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "training": {
+        "early_stopping": "not applicable"
+      },
+      "validation_groups": 6554,
+      "validation_indices_sha256": "b87f8f3d2d41e27de08b876b5fec1ff15b5401ecb6e7194115a1477123ff3fb3"
+    },
+    {
+      "label": 1,
+      "mean_test_positive_score": 0.753899872303009,
+      "method": "mlp",
+      "n_test": 8192,
+      "profile": "E",
+      "profile_recall_at_validation_threshold": 0.85888671875,
+      "test_groups": 8192,
+      "test_indices_sha256": "3f7eb65ad902531d405cd4b50fca9de3a887079b876f4b404e7c8e62cb569479",
+      "threshold_from_validation": 0.1996149867773056,
+      "train_groups": 26214,
+      "train_indices_sha256": "8a5b56a97cc61f04a4df086f5e48b58c70d8377880d86be5005f0feebc3a8539",
+      "train_profiles": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "training": {
+        "best_validation_log_loss": 0.08238855749368668,
+        "early_stopping": "group-disjoint validation log loss; min_delta=1e-4; patience=18",
+        "epochs_run": 25
+      },
+      "validation_groups": 6554,
+      "validation_indices_sha256": "b87f8f3d2d41e27de08b876b5fec1ff15b5401ecb6e7194115a1477123ff3fb3"
+    },
+    {
+      "label": 1,
+      "mean_test_positive_score": 0.6848205008857434,
+      "method": "rf",
+      "n_test": 8192,
+      "profile": "E",
+      "profile_recall_at_validation_threshold": 0.906982421875,
+      "test_groups": 8192,
+      "test_indices_sha256": "3f7eb65ad902531d405cd4b50fca9de3a887079b876f4b404e7c8e62cb569479",
+      "threshold_from_validation": 0.35421597662078813,
+      "train_groups": 26214,
+      "train_indices_sha256": "8a5b56a97cc61f04a4df086f5e48b58c70d8377880d86be5005f0feebc3a8539",
+      "train_profiles": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "training": {
+        "early_stopping": "not applicable"
+      },
+      "validation_groups": 6554,
+      "validation_indices_sha256": "b87f8f3d2d41e27de08b876b5fec1ff15b5401ecb6e7194115a1477123ff3fb3"
+    }
+  ],
+  "runner_sha256": "ef8d8332580464c2b73b449cbcee9dea46c19da0f3f88afa920779d972113269",
+  "sample_count": 40960,
+  "schema": "loslab.profile_proxy_leave_one_profile_out.v1",
+  "source_revision": "6fbd08e0f21740f2a3b412ec13f8a94d9fe46811",
+  "summary": {
+    "logreg": {
+      "class_macro_profile_recall": 0.9250996907552083,
+      "per_profile": {
+        "A": 0.9266357421875,
+        "B": 0.873291015625,
+        "C": 0.8955078125,
+        "D": 0.9783935546875,
+        "E": 0.925048828125
+      },
+      "profile_macro_recall": 0.919775390625,
+      "profile_recall_by_class": {
+        "0": 0.8984781901041666,
+        "1": 0.95172119140625
+      }
+    },
+    "mlp": {
+      "class_macro_profile_recall": 0.9275716145833333,
+      "per_profile": {
+        "A": 0.9814453125,
+        "B": 0.9312744140625,
+        "C": 0.9302978515625,
+        "D": 0.9560546875,
+        "E": 0.85888671875
+      },
+      "profile_macro_recall": 0.931591796875,
+      "profile_recall_by_class": {
+        "0": 0.9476725260416666,
+        "1": 0.907470703125
+      }
+    },
+    "rf": {
+      "class_macro_profile_recall": 0.9250590006510417,
+      "per_profile": {
+        "A": 0.945556640625,
+        "B": 0.8995361328125,
+        "C": 0.875732421875,
+        "D": 0.9793701171875,
+        "E": 0.906982421875
+      },
+      "profile_macro_recall": 0.921435546875,
+      "profile_recall_by_class": {
+        "0": 0.9069417317708334,
+        "1": 0.94317626953125
+      }
+    }
+  },
+  "versions": {
+    "git_sha": "6fbd08e0f21740f2a3b412ec13f8a94d9fe46811",
+    "numpy": "2.5.4",
+    "python": "3.12.3",
+    "scikit-learn": "1.9.1",
+    "sionna": "2.2.0",
+    "sionna-phy": "not installed",
+    "sionna-rt": "2.2.0",
+    "torch": "2.11.0+cu128"
+  }
+}
