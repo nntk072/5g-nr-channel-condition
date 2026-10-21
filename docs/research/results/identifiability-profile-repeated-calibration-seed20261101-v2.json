@@ -1,0 +1,265 @@
+{
+  "bootstrap_draws": 20000,
+  "bootstrap_unit": "independent_calibration_evaluation_split",
+  "cases": [
+    {
+      "assumed_to_true_noise_variance_ratio": 0.5,
+      "calibration_threshold_percentiles_05_50_95": [
+        3.3463975619130353,
+        4.251243430623617,
+        5.29568709249426
+      ],
+      "calibration_trials_per_repetition": 120,
+      "evaluation_trials_per_repetition": 120,
+      "gain_phase_difference_deg": 90.0,
+      "max_split_coverage": 1.0,
+      "mean_split_coverage": 0.955833333333333,
+      "median_of_split_median_set_spans_ns": 49.6031746031746,
+      "min_split_coverage": 0.8666666666666667,
+      "repetition_count": 100,
+      "repetition_seed_range": [
+        20261101,
+        20261200
+      ],
+      "separation_fraction_of_reciprocal_bandwidth": 0.5,
+      "snr_db": 20.0,
+      "split_bootstrap_percentile_interval_95": [
+        0.9505833333333333,
+        0.96075
+      ],
+      "split_coverage_percentiles_05_50_95": [
+        0.9083333333333333,
+        0.9625,
+        0.9916666666666667
+      ],
+      "split_median_set_span_percentiles_05_50_95_ns": [
+        49.6031746031746,
+        49.6031746031746,
+        66.13756613756614
+      ],
+      "third_path_amplitude_ratio_to_strongest": 0.0,
+      "tone_count": 64,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "assumed_to_true_noise_variance_ratio": 0.5,
+      "calibration_threshold_percentiles_05_50_95": [
+        4.954870424546767,
+        23.31314099700164,
+        44.342492364866104
+      ],
+      "calibration_trials_per_repetition": 120,
+      "evaluation_trials_per_repetition": 120,
+      "gain_phase_difference_deg": 90.0,
+      "max_split_coverage": 1.0,
+      "mean_split_coverage": 0.9515833333333332,
+      "median_of_split_median_set_spans_ns": 99.2063492063492,
+      "min_split_coverage": 0.875,
+      "repetition_count": 100,
+      "repetition_seed_range": [
+        20261101,
+        20261200
+      ],
+      "separation_fraction_of_reciprocal_bandwidth": 0.5,
+      "snr_db": 20.0,
+      "split_bootstrap_percentile_interval_95": [
+        0.9464145833333331,
+        0.9565833333333331
+      ],
+      "split_coverage_percentiles_05_50_95": [
+        0.9,
+        0.9541666666666666,
+        0.9837499999999999
+      ],
+      "split_median_set_span_percentiles_05_50_95_ns": [
+        49.6031746031746,
+        99.2063492063492,
+        281.0846560846561
+      ],
+      "third_path_amplitude_ratio_to_strongest": 0.25,
+      "tone_count": 64,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "assumed_to_true_noise_variance_ratio": 1.0,
+      "calibration_threshold_percentiles_05_50_95": [
+        1.6994929491042747,
+        2.086891973149463,
+        2.6012725892656334
+      ],
+      "calibration_trials_per_repetition": 120,
+      "evaluation_trials_per_repetition": 120,
+      "gain_phase_difference_deg": 90.0,
+      "max_split_coverage": 1.0,
+      "mean_split_coverage": 0.9499166666666666,
+      "median_of_split_median_set_spans_ns": 49.6031746031746,
+      "min_split_coverage": 0.875,
+      "repetition_count": 100,
+      "repetition_seed_range": [
+        20261101,
+        20261200
+      ],
+      "separation_fraction_of_reciprocal_bandwidth": 0.5,
+      "snr_db": 20.0,
+      "split_bootstrap_percentile_interval_95": [
+        0.9448333333333332,
+        0.9549166666666667
+      ],
+      "split_coverage_percentiles_05_50_95": [
+        0.8995833333333334,
+        0.9583333333333334,
+        0.9833333333333333
+      ],
+      "split_median_set_span_percentiles_05_50_95_ns": [
+        49.6031746031746,
+        49.6031746031746,
+        66.13756613756614
+      ],
+      "third_path_amplitude_ratio_to_strongest": 0.0,
+      "tone_count": 64,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "assumed_to_true_noise_variance_ratio": 1.0,
+      "calibration_threshold_percentiles_05_50_95": [
+        2.9517561645968833,
+        13.004909176290226,
+        22.29888895271074
+      ],
+      "calibration_trials_per_repetition": 120,
+      "evaluation_trials_per_repetition": 120,
+      "gain_phase_difference_deg": 90.0,
+      "max_split_coverage": 1.0,
+      "mean_split_coverage": 0.9484166666666667,
+      "median_of_split_median_set_spans_ns": 115.74074074074075,
+      "min_split_coverage": 0.85,
+      "repetition_count": 100,
+      "repetition_seed_range": [
+        20261101,
+        20261200
+      ],
+      "separation_fraction_of_reciprocal_bandwidth": 0.5,
+      "snr_db": 20.0,
+      "split_bootstrap_percentile_interval_95": [
+        0.9423333333333335,
+        0.9543333333333333
+      ],
+      "split_coverage_percentiles_05_50_95": [
+        0.8912500000000001,
+        0.9583333333333334,
+        0.9833333333333333
+      ],
+      "split_median_set_span_percentiles_05_50_95_ns": [
+        66.13756613756614,
+        115.74074074074075,
+        281.0846560846561
+      ],
+      "third_path_amplitude_ratio_to_strongest": 0.25,
+      "tone_count": 64,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "assumed_to_true_noise_variance_ratio": 2.0,
+      "calibration_threshold_percentiles_05_50_95": [
+        0.8211192629361552,
+        1.0760915533426854,
+        1.375342693977099
+      ],
+      "calibration_trials_per_repetition": 120,
+      "evaluation_trials_per_repetition": 120,
+      "gain_phase_difference_deg": 90.0,
+      "max_split_coverage": 1.0,
+      "mean_split_coverage": 0.9535833333333333,
+      "median_of_split_median_set_spans_ns": 49.6031746031746,
+      "min_split_coverage": 0.875,
+      "repetition_count": 100,
+      "repetition_seed_range": [
+        20261101,
+        20261200
+      ],
+      "separation_fraction_of_reciprocal_bandwidth": 0.5,
+      "snr_db": 20.0,
+      "split_bootstrap_percentile_interval_95": [
+        0.9480833333333334,
+        0.9589166666666666
+      ],
+      "split_coverage_percentiles_05_50_95": [
+        0.9,
+        0.9583333333333334,
+        0.9916666666666667
+      ],
+      "split_median_set_span_percentiles_05_50_95_ns": [
+        49.6031746031746,
+        49.6031746031746,
+        66.13756613756614
+      ],
+      "third_path_amplitude_ratio_to_strongest": 0.0,
+      "tone_count": 64,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "assumed_to_true_noise_variance_ratio": 2.0,
+      "calibration_threshold_percentiles_05_50_95": [
+        1.3213513501075442,
+        5.489993804848924,
+        10.87546004420044
+      ],
+      "calibration_trials_per_repetition": 120,
+      "evaluation_trials_per_repetition": 120,
+      "gain_phase_difference_deg": 90.0,
+      "max_split_coverage": 1.0,
+      "mean_split_coverage": 0.9483333333333335,
+      "median_of_split_median_set_spans_ns": 107.47354497354497,
+      "min_split_coverage": 0.8416666666666667,
+      "repetition_count": 100,
+      "repetition_seed_range": [
+        20261101,
+        20261200
+      ],
+      "separation_fraction_of_reciprocal_bandwidth": 0.5,
+      "snr_db": 20.0,
+      "split_bootstrap_percentile_interval_95": [
+        0.9420833333333333,
+        0.9541666666666667
+      ],
+      "split_coverage_percentiles_05_50_95": [
+        0.8916666666666667,
+        0.95,
+        0.9916666666666667
+      ],
+      "split_median_set_span_percentiles_05_50_95_ns": [
+        65.31084656084657,
+        107.47354497354497,
+        281.0846560846561
+      ],
+      "third_path_amplitude_ratio_to_strongest": 0.25,
+      "tone_count": 64,
+      "tone_spacing_hz": 30000.0
+    }
+  ],
+  "evidence_grade": "REPEATED_SYNTHETIC_CALIBRATION_SPLIT_DIAGNOSTIC_NOT_EXTERNAL_VALIDATION",
+  "experiment_module_sha256": "a0ccf2613fcc8550d3a02f0444c613f1c85b335371a644332c9533114e1626f3",
+  "limitations": [
+    "This estimates repeated-split behavior only for the specified analytical synthetic distributions.",
+    "Split-level bootstrap intervals are descriptive Monte Carlo uncertainty summaries, not a finite-sample conformal theorem.",
+    "Each split's calibration and evaluation draws are exchangeable only within the same declared condition.",
+    "No conclusion transfers to measured channels, arbitrary receiver noise, diffuse multipath, or independent RT scenes."
+  ],
+  "package_source_sha256": "b3044ad3c4cd9443e8e2690a3fd5015e0eb812d2041d5c4c1bbd0dc642108c61",
+  "raw_report_sha256": "ce222ed8f8e90f1ae06995d12f4a115cb9015ebb7c4d8233f7a89a85fc87582b",
+  "repetition_count": 100,
+  "runner_sha256": "42066cd616263251d87d3d3155c8b14c641c8225d9cced8fcd3dc258922dc008",
+  "schema": "loslab.identifiability_repeated_calibration_summary.v1",
+  "seed": 20261101,
+  "source_revision": "6a37cffdcf385745f08b629ffc96af0a8dee18b4",
+  "versions": {
+    "git_sha": "6a37cffdcf385745f08b629ffc96af0a8dee18b4",
+    "numpy": "2.5.4",
+    "python": "3.12.3",
+    "scikit-learn": "1.9.1",
+    "sionna": "not installed",
+    "sionna-phy": "not installed",
+    "sionna-rt": "not installed",
+    "torch": "2.11.0+cpu"
+  }
+}
