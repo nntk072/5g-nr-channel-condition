@@ -67,7 +67,7 @@ python_version = "3.11"
 files = [
   "artifacts", "configuration", "datasets", "propagation", "receivers",
   "models", "learning", "evaluation", "experiments", "integrations",
-  "compute", "loslab",
+  "compute", "loslab", "scripts",
 ]
 ignore_missing_imports = true
 check_untyped_defs = true

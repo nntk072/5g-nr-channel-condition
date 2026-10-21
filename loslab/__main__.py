@@ -42,7 +42,11 @@ def main() -> None:
     rt.add_argument("--samples-per-src", type=int, default=120000)
     rt.add_argument("--block-size", type=float, default=30.0)
     rt.add_argument("--max-depth", type=int, default=3)
-    rt.add_argument("--mitsuba-variant", default="llvm_ad_mono_polarized")
+    rt.add_argument(
+        "--mitsuba-variant",
+        default="auto",
+        help="auto probes CUDA/OptiX then LLVM; use an exact variant for reproducible replay",
+    )
     rt.add_argument("--allow-direct-only", action="store_true")
     exp = sub.add_parser("experiment", help="Evaluate MLP vs CORAL MLP and baselines")
     exp.add_argument("--config", help="Versioned YAML/JSON experiment configuration")

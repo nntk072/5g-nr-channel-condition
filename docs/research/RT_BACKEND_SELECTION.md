@@ -39,6 +39,9 @@ Re-run the normal numerical and scene QA suite after selecting a backend for a
 new host. Historical data/configurations that explicitly record LLVM continue
 to use LLVM for exact replay; newly constructed default `RayScene` and RT
 trajectory configurations use `auto`.
+The `python -m loslab rt-data` command follows the same `auto` default; pass an
+exact Mitsuba variant when reproducing a dataset generated with a recorded
+backend.
 
 The solver-convergence, ray-budget replay, and path-QA runners use the same
 selector before importing `sionna.rt`. New convergence runs default to `auto`;

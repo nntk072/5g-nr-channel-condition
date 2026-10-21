@@ -36,7 +36,10 @@ def main() -> None:
         parser.error(str(error))
     result["runner_sha256"] = sha256_file(__file__)
     atomic_json(args.output, result)
-    print(f"Saved {len(result['cases'])} cases to {args.output}")
+    cases = result.get("cases")
+    if not isinstance(cases, list):
+        raise RuntimeError("experiment result is missing its cases list")
+    print(f"Saved {len(cases)} cases to {args.output}")
 
 
 if __name__ == "__main__":

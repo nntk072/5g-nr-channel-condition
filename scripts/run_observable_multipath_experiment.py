@@ -156,14 +156,14 @@ def _run_experiment_in_staging(
                     "uncertainty_scale": float(scale[local_index]),
                 }
             )
-        estimate, scale = profile_likelihood_delay(
+        estimate, profile_scale = profile_likelihood_delay(
             dataset.observed_cfr[sample_index],
             dataset.pilot_mask[sample_index],
             dataset.frequencies_hz[sample_index],
             dataset.maximum_relative_delay_s,
             float(dataset.noise_variance[sample_index]),
         )
-        classical_rows.append({**row, "prediction": estimate, "uncertainty_scale": scale})
+        classical_rows.append({**row, "prediction": estimate, "uncertainty_scale": profile_scale})
 
     common = {
         "schema": "loslab.scalar_regression_predictions.v1",

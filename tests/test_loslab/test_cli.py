@@ -39,6 +39,32 @@ def test_debug_data_command_writes_loadable_dataset(tmp_path, monkeypatch, capsy
     assert "DEBUG DATA" in capsys.readouterr().out
 
 
+def test_rt_data_cli_defaults_to_native_capability_detection(monkeypatch, capsys) -> None:
+    import loslab.sionna2 as sionna2
+
+    captured = {}
+
+    class FakeDataset:
+        y = [0]
+
+        def save(self, path):
+            captured["output"] = path
+
+    def fake_generate(config, *, seed):
+        captured["config"] = config
+        captured["seed"] = seed
+        return FakeDataset()
+
+    monkeypatch.setattr(sionna2, "generate_raytraced", fake_generate)
+    monkeypatch.setattr("sys.argv", ["loslab", "rt-data", "--output", "unused.npz"])
+
+    main()
+
+    assert captured["config"].mitsuba_variant == "auto"
+    assert captured["seed"] == 42
+    assert "GEOMETRY-LABELED RT" in capsys.readouterr().out
+
+
 def test_experiment_config_rejects_unknown_keys(tmp_path, monkeypatch) -> None:
     config = tmp_path / "experiment.yaml"
     config.write_text(
