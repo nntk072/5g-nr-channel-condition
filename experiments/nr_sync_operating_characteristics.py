@@ -10,6 +10,8 @@ from integrations.sionna.nr_sync import acquire_nr_cell, make_nr_sync_burst
 
 from experiments.link_curves import wilson_score_interval_95
 
+FRACTIONAL_TIMING_HYPOTHESES_SAMPLES = (-0.375, -0.1875, 0.0, 0.1875, 0.375)
+
 
 def _measurement(
     capture: np.ndarray,
@@ -23,6 +25,8 @@ def _measurement(
         cyclic_prefix_length=32,
         sampling_frequency_hz=sampling_frequency_hz,
         cfo_hypotheses_hz=cfo_hypotheses_hz,
+        fractional_timing_hypotheses_samples=FRACTIONAL_TIMING_HYPOTHESES_SAMPLES,
+        cfo_guard_samples=12,
         minimum_pss_score=0.0,
         minimum_sss_score=0.0,
     )
@@ -31,6 +35,7 @@ def _measurement(
         "sss_score": detection.sss_score,
         "physical_cell_id": detection.physical_cell_id,
         "sample_offset": detection.sample_offset,
+        "fractional_sample_offset": detection.fractional_sample_offset,
         "cfo_hz": detection.cfo_hz,
     }
 
@@ -110,6 +115,8 @@ def run_nr_sync_operating_characteristics(
     cfo_hypotheses_hz = (-3_000.0, 0.0, 3_000.0)
     maximum_timing_offset_samples = 32
     maximum_echo_delay_samples = 12
+    cfo_accuracy_tolerance_hz = 250.0
+    timing_accuracy_tolerance_samples = 0.1
     capture_samples = (
         maximum_timing_offset_samples
         + 4 * symbol_length
@@ -155,11 +162,13 @@ def run_nr_sync_operating_characteristics(
             for _ in range(signal_trials_per_point):
                 nid1 = int(rng.integers(0, 336))
                 nid2 = int(rng.integers(0, 3))
+                true_fractional_timing = float(rng.uniform(-0.375, 0.375))
                 burst = make_nr_sync_burst(
                     nid1,
                     nid2,
                     fft_size=fft_size,
                     cyclic_prefix_length=cyclic_prefix_length,
+                    fractional_delay_samples=true_fractional_timing,
                 )
                 if channel_name == "two_tap_echo":
                     channel = np.zeros(maximum_echo_delay_samples + 1, dtype=np.complex128)
@@ -167,7 +176,7 @@ def run_nr_sync_operating_characteristics(
                     channel[maximum_echo_delay_samples] = 0.9 + 0.1j
                     burst = np.convolve(burst, channel)
                 timing_offset = int(rng.integers(0, maximum_timing_offset_samples + 1))
-                cfo_hz = float(rng.choice(cfo_hypotheses_hz))
+                cfo_hz = float(rng.choice((-3_500.0, 3_500.0)))
                 gain = complex(np.exp(1j * rng.uniform(-np.pi, np.pi)))
                 clean = np.zeros(capture_samples, dtype=np.complex128)
                 clean[timing_offset : timing_offset + burst.size] = gain * burst
@@ -188,17 +197,28 @@ def run_nr_sync_operating_characteristics(
                     and measured["sss_score"] >= minimum_sss_score
                 )
                 correct_cell = measured["physical_cell_id"] == 3 * nid1 + nid2
-                correct_timing = measured["sample_offset"] == timing_offset
-                correct_cfo = measured["cfo_hz"] == cfo_hz
+                timing_error_samples = abs(
+                    measured["sample_offset"]
+                    + measured["fractional_sample_offset"]
+                    - timing_offset
+                    - true_fractional_timing
+                )
+                correct_timing = timing_error_samples <= timing_accuracy_tolerance_samples
+                cfo_error_hz = abs(measured["cfo_hz"] - cfo_hz)
+                correct_cfo = cfo_error_hz <= cfo_accuracy_tolerance_hz
                 trials.append(
                     {
                         "nid1": nid1,
                         "nid2": nid2,
                         "true_timing_samples": timing_offset,
+                        "true_fractional_timing_samples": true_fractional_timing,
                         "true_cfo_hz": cfo_hz,
                         "detected_cell_id": measured["physical_cell_id"],
                         "detected_timing_samples": measured["sample_offset"],
+                        "detected_fractional_timing_samples": measured["fractional_sample_offset"],
+                        "absolute_timing_error_samples": timing_error_samples,
                         "detected_cfo_hz": measured["cfo_hz"],
+                        "absolute_cfo_error_hz": cfo_error_hz,
                         "pss_score": measured["pss_score"],
                         "sss_score": measured["sss_score"],
                         "accepted": accepted,
@@ -254,6 +274,11 @@ def run_nr_sync_operating_characteristics(
             "sampling_frequency_hz": sampling_frequency_hz,
             "cfo_hypotheses_hz": list(cfo_hypotheses_hz),
             "maximum_timing_offset_samples": maximum_timing_offset_samples,
+            "fractional_timing_hypotheses_samples": list(FRACTIONAL_TIMING_HYPOTHESES_SAMPLES),
+            "timing_accuracy_tolerance_samples": timing_accuracy_tolerance_samples,
+            "true_off_grid_cfo_hz": [-3_500.0, 3_500.0],
+            "cfo_guard_samples": 12,
+            "correct_cfo_tolerance_hz": cfo_accuracy_tolerance_hz,
             "capture_samples": capture_samples,
             "noise_model": "independent circular complex Gaussian; variance from unit-variance RNG draws",
             "snr_definition": "mean complex-sample signal power over the padded four-symbol burst divided by AWGN variance",
@@ -277,11 +302,11 @@ def run_nr_sync_operating_characteristics(
         },
         "signal_points": signal_points,
         "limitations": [
-            "Only a four-symbol synthetic PSS/SSS burst, one configured numerology, and a finite on-grid CFO set are evaluated.",
+            "Only a four-symbol synthetic PSS/SSS burst and one configured numerology are evaluated; signal CFO is restricted to ±3.5 kHz, halfway between the outer ±3-kHz search bins.",
             "Threshold calibration and validation use white Gaussian noise, not interference, false neighboring cells, or realistic RF captures.",
-            "Signal trials use randomized cell identity, integer timing, on-grid CFO, random global phase, and either a flat channel or one static 12-sample in-CP echo.",
+            "Signal trials use randomized cell identity, integer plus fractional timing searched on a five-value grid, off-grid CFO, random global phase, and either a flat channel or one static 12-sample in-CP echo.",
             "The SNR convention includes the fixture's silent symbols and is not a standardized NR receiver sensitivity or link-budget measure.",
-            "Timing remains integer-sample, channel is assumed static between PSS and SSS, and fractional timing, off-grid CFO, mobility, PBCH, false-alarm-hour rates, and production thresholds are not validated.",
+            "Fractional timing is quantized to five hypotheses and CFO is CP-refined only within its unambiguous range; mobility, PBCH, false-alarm-hour rates, and production thresholds are not validated.",
             "Confidence intervals describe these independent Monte Carlo trials only and do not quantify scene or device variability.",
         ],
     }
