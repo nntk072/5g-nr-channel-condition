@@ -58,3 +58,23 @@ def test_pusch_dmrs_estimator_runs_on_cuda_with_named_axes():
     )
     with pytest.raises(ValueError, match="dimensions must be positive"):
         receiver.estimate(received[:, :0], torch.tensor(1e-3, device="cuda:0"))
+
+    torch.manual_seed(7)
+    clean_grid = torch.zeros(
+        (16, 1, 2, grid.num_ofdm_symbols, grid.fft_size),
+        dtype=torch.complex64,
+        device="cuda:0",
+    )
+    clean_grid[..., pilot_mask] = pilot_symbols * expected_channel
+
+    def estimate_nmse(noise_variance: float) -> torch.Tensor:
+        variance = torch.tensor(noise_variance, device="cuda:0")
+        real_noise = torch.randn(clean_grid.shape, device="cuda:0")
+        imag_noise = torch.randn(clean_grid.shape, device="cuda:0")
+        noisy_grid = clean_grid + torch.complex(real_noise, imag_noise) * torch.sqrt(variance / 2)
+        estimate = receiver.estimate(noisy_grid, variance)
+        return torch.mean(torch.abs(estimate.h_hat - expected_channel) ** 2)
+
+    low_noise_nmse = estimate_nmse(1e-3)
+    high_noise_nmse = estimate_nmse(1e-1)
+    assert low_noise_nmse < high_noise_nmse

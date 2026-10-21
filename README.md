@@ -45,7 +45,8 @@ Sionna's broadcastable estimator error variance, the DMRS pilot mask, and
 configuration/version metadata. Run the native test with
 <code>python -m pytest tests/test_integrations/test_nr_pusch_native.py</code>. The native
 test is discovered by the regular suite and skips when Sionna is absent. In a
-CUDA environment it verifies a known flat complex channel on the GPU. This
+CUDA environment it verifies a known flat complex channel on the GPU and checks
+that estimator NMSE decreases as AWGN variance falls. This
 golden-vector test validates the adapter contract; synchronization,
 channel/noise calibration, BER/BLER, and broad configuration coverage remain
 planned work. A separate RT-to-OFDM-grid bridge preserves path delays and maps
