@@ -3,6 +3,7 @@ import pytest
 torch = pytest.importorskip("torch")
 pytest.importorskip("sionna")
 
+from datasets.nr_store import read_nr_record, write_nr_record  # noqa: E402
 from integrations.sionna.nr_pusch import SionnaPUSCHLSReceiver  # noqa: E402
 from integrations.sionna.tdl_pusch import (  # noqa: E402
     generate_tdl_pusch_batch,
@@ -12,7 +13,7 @@ from receivers.nr import NRPUSCHConfig  # noqa: E402
 
 
 @pytest.mark.native_sionna
-def test_tdl_pusch_link_produces_receiver_observation_and_separate_truth():
+def test_tdl_pusch_link_produces_stored_receiver_records_with_separate_truth(tmp_path):
     if not torch.cuda.is_available():
         pytest.skip("CUDA is not available")
     receiver = SionnaPUSCHLSReceiver(
@@ -47,3 +48,8 @@ def test_tdl_pusch_link_produces_receiver_observation_and_separate_truth():
     assert not hasattr(records[0].observation.model_inputs(), "transmit_bits")
     assert link.metadata["channel_model"].startswith("Sionna OFDMChannel")
     torch.testing.assert_close(link.received_grid, repeated.received_grid)
+    stored = write_nr_record(tmp_path, records[0])
+    restored = read_nr_record(tmp_path, stored)
+    assert restored.observation.sample_id == "tdl-link-72-0"
+    assert restored.targets["channel_cfr"].shape == (1, 1, 2, 1, 1, 14, 24)
+    assert restored.provenance["channel_truth_source"] == "Sionna OFDMChannel return_channel"
