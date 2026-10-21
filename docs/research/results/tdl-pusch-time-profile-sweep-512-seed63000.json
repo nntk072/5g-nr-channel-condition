@@ -1,0 +1,1615 @@
+{
+  "analysis": {
+    "package_source_sha256": "c5ecc59482c0c00ba1fbe8f6883776017bfb3954965814770374b430a779ddcc",
+    "source_revision": "7bad3a814391d921c9aa69e0758bf5f59a2c0aed"
+  },
+  "comparisons_vs_tdl_a": {
+    "TDL-B": {
+      "control": {
+        "channel_memory_samples": 13,
+        "cp_covers_channel_memory": true,
+        "delay_spread_s": 1.0000000000000001e-07,
+        "dmrs_additional_position": 0,
+        "path": "outputs/tdl-pusch-profile-sweep-512-seed63000-20261021/tdl-a.json",
+        "profile": "TDL-A",
+        "sha256": "3c9fc108d5c7d1f05740e41f0c56f693920932223d9cc6152838461f0a409d64",
+        "speed_mps": 3.0,
+        "transmit_waveform_mean_power_by_batch": [
+          1.0025609731674194,
+          1.000008225440979,
+          0.998629093170166,
+          0.9977241158485413,
+          1.0001524686813354,
+          0.9991587400436401,
+          1.0001177787780762,
+          1.000216007232666
+        ],
+        "varying_config_value": "TDL-A"
+      },
+      "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
+      "limitations": [
+        "Inference is conditional on the listed standardized TDL profile pair and link configuration.",
+        "Codeword-paired uncertainty does not represent independent-scene uncertainty.",
+        "The decoder and synchronization configuration are fixed; the result is not standards certification."
+      ],
+      "paired_design": {
+        "additional_control_policy_change": null,
+        "analysis_environment": {
+          "git_sha": "7bad3a814391d921c9aa69e0758bf5f59a2c0aed",
+          "numpy": "2.5.4",
+          "python": "3.12.3",
+          "scikit-learn": "1.9.1",
+          "sionna": "not installed",
+          "sionna-phy": "not installed",
+          "sionna-rt": "not installed",
+          "torch": "2.11.0+cpu"
+        },
+        "analysis_package_source_sha256": "c5ecc59482c0c00ba1fbe8f6883776017bfb3954965814770374b430a779ddcc",
+        "channel_truth_is_intentionally_changed": true,
+        "derived_configuration_changes": [],
+        "input_environments": {
+          "control": {
+            "git_sha": "7bad3a814391d921c9aa69e0758bf5f59a2c0aed",
+            "numpy": "2.5.4",
+            "python": "3.12.3",
+            "scikit-learn": "1.9.1",
+            "sionna": "2.2.0",
+            "sionna-phy": "not installed",
+            "sionna-rt": "2.2.0",
+            "torch": "2.11.0+cu128"
+          },
+          "treatment": {
+            "git_sha": "7bad3a814391d921c9aa69e0758bf5f59a2c0aed",
+            "numpy": "2.5.4",
+            "python": "3.12.3",
+            "scikit-learn": "1.9.1",
+            "sionna": "2.2.0",
+            "sionna-phy": "not installed",
+            "sionna-rt": "2.2.0",
+            "torch": "2.11.0+cu128"
+          }
+        },
+        "input_package_source_sha256": {
+          "control": "c5ecc59482c0c00ba1fbe8f6883776017bfb3954965814770374b430a779ddcc",
+          "treatment": "c5ecc59482c0c00ba1fbe8f6883776017bfb3954965814770374b430a779ddcc"
+        },
+        "same_batch_seeds_and_noise_seeds": true,
+        "same_channel_truth_by_seed": false,
+        "same_configuration_except": "profile",
+        "same_transmitted_bits_by_seed": true,
+        "statistic": "paired codeword bootstrap CI and Holm-adjusted exact McNemar tests"
+      },
+      "points": [
+        {
+          "bootstrap_draws": 20000,
+          "bootstrap_seed": 1,
+          "both_error": 512,
+          "both_success": 0,
+          "codewords": 512,
+          "control_errors": 512,
+          "control_goodput_bits_per_codeword": 0.0,
+          "control_only_error": 0,
+          "discordant_pairs": 0,
+          "mcnemar_exact_two_sided_p_value": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm_family20": 1.0,
+          "paired_bootstrap_ci95": [
+            0.0,
+            0.0
+          ],
+          "paired_goodput_bootstrap_ci95": [
+            0.0,
+            0.0
+          ],
+          "snr_db": 0.0,
+          "treatment_errors": 512,
+          "treatment_goodput_bits_per_codeword": 0.0,
+          "treatment_minus_control_bler": 0.0,
+          "treatment_minus_control_goodput_bits_per_codeword": 0.0,
+          "treatment_only_error": 0,
+          "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference."
+        },
+        {
+          "bootstrap_draws": 20000,
+          "bootstrap_seed": 1,
+          "both_error": 512,
+          "both_success": 0,
+          "codewords": 512,
+          "control_errors": 512,
+          "control_goodput_bits_per_codeword": 0.0,
+          "control_only_error": 0,
+          "discordant_pairs": 0,
+          "mcnemar_exact_two_sided_p_value": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm_family20": 1.0,
+          "paired_bootstrap_ci95": [
+            0.0,
+            0.0
+          ],
+          "paired_goodput_bootstrap_ci95": [
+            0.0,
+            0.0
+          ],
+          "snr_db": 6.0,
+          "treatment_errors": 512,
+          "treatment_goodput_bits_per_codeword": 0.0,
+          "treatment_minus_control_bler": 0.0,
+          "treatment_minus_control_goodput_bits_per_codeword": 0.0,
+          "treatment_only_error": 0,
+          "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference."
+        },
+        {
+          "bootstrap_draws": 20000,
+          "bootstrap_seed": 1,
+          "both_error": 2,
+          "both_success": 491,
+          "codewords": 512,
+          "control_errors": 9,
+          "control_goodput_bits_per_codeword": 3961.125,
+          "control_only_error": 7,
+          "discordant_pairs": 19,
+          "mcnemar_exact_two_sided_p_value": 0.3592834472656259,
+          "mcnemar_exact_two_sided_p_value_holm": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm_family20": 1.0,
+          "paired_bootstrap_ci95": [
+            -0.0078125,
+            0.02734375
+          ],
+          "paired_goodput_bootstrap_ci95": [
+            -110.25,
+            23.625
+          ],
+          "snr_db": 12.0,
+          "treatment_errors": 14,
+          "treatment_goodput_bits_per_codeword": 3921.75,
+          "treatment_minus_control_bler": 0.009765625,
+          "treatment_minus_control_goodput_bits_per_codeword": -39.375,
+          "treatment_only_error": 12,
+          "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference."
+        },
+        {
+          "bootstrap_draws": 20000,
+          "bootstrap_seed": 1,
+          "both_error": 0,
+          "both_success": 511,
+          "codewords": 512,
+          "control_errors": 0,
+          "control_goodput_bits_per_codeword": 4032.0,
+          "control_only_error": 0,
+          "discordant_pairs": 1,
+          "mcnemar_exact_two_sided_p_value": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm_family20": 1.0,
+          "paired_bootstrap_ci95": [
+            0.0,
+            0.005859375
+          ],
+          "paired_goodput_bootstrap_ci95": [
+            -23.625,
+            0.0
+          ],
+          "snr_db": 18.0,
+          "treatment_errors": 1,
+          "treatment_goodput_bits_per_codeword": 4024.125,
+          "treatment_minus_control_bler": 0.001953125,
+          "treatment_minus_control_goodput_bits_per_codeword": -7.875,
+          "treatment_only_error": 1,
+          "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference."
+        },
+        {
+          "bootstrap_draws": 20000,
+          "bootstrap_seed": 1,
+          "both_error": 0,
+          "both_success": 511,
+          "codewords": 512,
+          "control_errors": 0,
+          "control_goodput_bits_per_codeword": 4032.0,
+          "control_only_error": 0,
+          "discordant_pairs": 1,
+          "mcnemar_exact_two_sided_p_value": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm_family20": 1.0,
+          "paired_bootstrap_ci95": [
+            0.0,
+            0.005859375
+          ],
+          "paired_goodput_bootstrap_ci95": [
+            -23.625,
+            0.0
+          ],
+          "snr_db": 24.0,
+          "treatment_errors": 1,
+          "treatment_goodput_bits_per_codeword": 4024.125,
+          "treatment_minus_control_bler": 0.001953125,
+          "treatment_minus_control_goodput_bits_per_codeword": -7.875,
+          "treatment_only_error": 1,
+          "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference."
+        }
+      ],
+      "schema": "loslab.paired_tdl_pusch_time_bler.v1",
+      "treatment": {
+        "channel_memory_samples": 13,
+        "cp_covers_channel_memory": true,
+        "delay_spread_s": 1.0000000000000001e-07,
+        "dmrs_additional_position": 0,
+        "path": "outputs/tdl-pusch-profile-sweep-512-seed63000-20261021/tdl-b.json",
+        "profile": "TDL-B",
+        "sha256": "9d151e47fda34815c604e89f0136347b32a3198d6bb0e4f51b5ee705140f61aa",
+        "speed_mps": 3.0,
+        "transmit_waveform_mean_power_by_batch": [
+          1.0025609731674194,
+          1.000008225440979,
+          0.998629093170166,
+          0.9977241158485413,
+          1.0001524686813354,
+          0.9991587400436401,
+          1.0001177787780762,
+          1.000216007232666
+        ],
+        "varying_config_value": "TDL-B"
+      }
+    },
+    "TDL-C": {
+      "control": {
+        "channel_memory_samples": 13,
+        "cp_covers_channel_memory": true,
+        "delay_spread_s": 1.0000000000000001e-07,
+        "dmrs_additional_position": 0,
+        "path": "outputs/tdl-pusch-profile-sweep-512-seed63000-20261021/tdl-a.json",
+        "profile": "TDL-A",
+        "sha256": "3c9fc108d5c7d1f05740e41f0c56f693920932223d9cc6152838461f0a409d64",
+        "speed_mps": 3.0,
+        "transmit_waveform_mean_power_by_batch": [
+          1.0025609731674194,
+          1.000008225440979,
+          0.998629093170166,
+          0.9977241158485413,
+          1.0001524686813354,
+          0.9991587400436401,
+          1.0001177787780762,
+          1.000216007232666
+        ],
+        "varying_config_value": "TDL-A"
+      },
+      "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
+      "limitations": [
+        "Inference is conditional on the listed standardized TDL profile pair and link configuration.",
+        "Codeword-paired uncertainty does not represent independent-scene uncertainty.",
+        "The decoder and synchronization configuration are fixed; the result is not standards certification."
+      ],
+      "paired_design": {
+        "additional_control_policy_change": null,
+        "analysis_environment": {
+          "git_sha": "7bad3a814391d921c9aa69e0758bf5f59a2c0aed",
+          "numpy": "2.5.4",
+          "python": "3.12.3",
+          "scikit-learn": "1.9.1",
+          "sionna": "not installed",
+          "sionna-phy": "not installed",
+          "sionna-rt": "not installed",
+          "torch": "2.11.0+cpu"
+        },
+        "analysis_package_source_sha256": "c5ecc59482c0c00ba1fbe8f6883776017bfb3954965814770374b430a779ddcc",
+        "channel_truth_is_intentionally_changed": true,
+        "derived_configuration_changes": [],
+        "input_environments": {
+          "control": {
+            "git_sha": "7bad3a814391d921c9aa69e0758bf5f59a2c0aed",
+            "numpy": "2.5.4",
+            "python": "3.12.3",
+            "scikit-learn": "1.9.1",
+            "sionna": "2.2.0",
+            "sionna-phy": "not installed",
+            "sionna-rt": "2.2.0",
+            "torch": "2.11.0+cu128"
+          },
+          "treatment": {
+            "git_sha": "7bad3a814391d921c9aa69e0758bf5f59a2c0aed",
+            "numpy": "2.5.4",
+            "python": "3.12.3",
+            "scikit-learn": "1.9.1",
+            "sionna": "2.2.0",
+            "sionna-phy": "not installed",
+            "sionna-rt": "2.2.0",
+            "torch": "2.11.0+cu128"
+          }
+        },
+        "input_package_source_sha256": {
+          "control": "c5ecc59482c0c00ba1fbe8f6883776017bfb3954965814770374b430a779ddcc",
+          "treatment": "c5ecc59482c0c00ba1fbe8f6883776017bfb3954965814770374b430a779ddcc"
+        },
+        "same_batch_seeds_and_noise_seeds": true,
+        "same_channel_truth_by_seed": false,
+        "same_configuration_except": "profile",
+        "same_transmitted_bits_by_seed": true,
+        "statistic": "paired codeword bootstrap CI and Holm-adjusted exact McNemar tests"
+      },
+      "points": [
+        {
+          "bootstrap_draws": 20000,
+          "bootstrap_seed": 1,
+          "both_error": 512,
+          "both_success": 0,
+          "codewords": 512,
+          "control_errors": 512,
+          "control_goodput_bits_per_codeword": 0.0,
+          "control_only_error": 0,
+          "discordant_pairs": 0,
+          "mcnemar_exact_two_sided_p_value": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm_family20": 1.0,
+          "paired_bootstrap_ci95": [
+            0.0,
+            0.0
+          ],
+          "paired_goodput_bootstrap_ci95": [
+            0.0,
+            0.0
+          ],
+          "snr_db": 0.0,
+          "treatment_errors": 512,
+          "treatment_goodput_bits_per_codeword": 0.0,
+          "treatment_minus_control_bler": 0.0,
+          "treatment_minus_control_goodput_bits_per_codeword": 0.0,
+          "treatment_only_error": 0,
+          "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference."
+        },
+        {
+          "bootstrap_draws": 20000,
+          "bootstrap_seed": 1,
+          "both_error": 512,
+          "both_success": 0,
+          "codewords": 512,
+          "control_errors": 512,
+          "control_goodput_bits_per_codeword": 0.0,
+          "control_only_error": 0,
+          "discordant_pairs": 0,
+          "mcnemar_exact_two_sided_p_value": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm_family20": 1.0,
+          "paired_bootstrap_ci95": [
+            0.0,
+            0.0
+          ],
+          "paired_goodput_bootstrap_ci95": [
+            0.0,
+            0.0
+          ],
+          "snr_db": 6.0,
+          "treatment_errors": 512,
+          "treatment_goodput_bits_per_codeword": 0.0,
+          "treatment_minus_control_bler": 0.0,
+          "treatment_minus_control_goodput_bits_per_codeword": 0.0,
+          "treatment_only_error": 0,
+          "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference."
+        },
+        {
+          "bootstrap_draws": 20000,
+          "bootstrap_seed": 1,
+          "both_error": 1,
+          "both_success": 493,
+          "codewords": 512,
+          "control_errors": 9,
+          "control_goodput_bits_per_codeword": 3961.125,
+          "control_only_error": 8,
+          "discordant_pairs": 18,
+          "mcnemar_exact_two_sided_p_value": 0.8145294189453125,
+          "mcnemar_exact_two_sided_p_value_holm": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm_family20": 1.0,
+          "paired_bootstrap_ci95": [
+            -0.01171875,
+            0.01953125
+          ],
+          "paired_goodput_bootstrap_ci95": [
+            -78.75,
+            47.25
+          ],
+          "snr_db": 12.0,
+          "treatment_errors": 11,
+          "treatment_goodput_bits_per_codeword": 3945.375,
+          "treatment_minus_control_bler": 0.00390625,
+          "treatment_minus_control_goodput_bits_per_codeword": -15.75,
+          "treatment_only_error": 10,
+          "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference."
+        },
+        {
+          "bootstrap_draws": 20000,
+          "bootstrap_seed": 1,
+          "both_error": 0,
+          "both_success": 512,
+          "codewords": 512,
+          "control_errors": 0,
+          "control_goodput_bits_per_codeword": 4032.0,
+          "control_only_error": 0,
+          "discordant_pairs": 0,
+          "mcnemar_exact_two_sided_p_value": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm_family20": 1.0,
+          "paired_bootstrap_ci95": [
+            0.0,
+            0.0
+          ],
+          "paired_goodput_bootstrap_ci95": [
+            0.0,
+            0.0
+          ],
+          "snr_db": 18.0,
+          "treatment_errors": 0,
+          "treatment_goodput_bits_per_codeword": 4032.0,
+          "treatment_minus_control_bler": 0.0,
+          "treatment_minus_control_goodput_bits_per_codeword": 0.0,
+          "treatment_only_error": 0,
+          "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference."
+        },
+        {
+          "bootstrap_draws": 20000,
+          "bootstrap_seed": 1,
+          "both_error": 0,
+          "both_success": 512,
+          "codewords": 512,
+          "control_errors": 0,
+          "control_goodput_bits_per_codeword": 4032.0,
+          "control_only_error": 0,
+          "discordant_pairs": 0,
+          "mcnemar_exact_two_sided_p_value": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm_family20": 1.0,
+          "paired_bootstrap_ci95": [
+            0.0,
+            0.0
+          ],
+          "paired_goodput_bootstrap_ci95": [
+            0.0,
+            0.0
+          ],
+          "snr_db": 24.0,
+          "treatment_errors": 0,
+          "treatment_goodput_bits_per_codeword": 4032.0,
+          "treatment_minus_control_bler": 0.0,
+          "treatment_minus_control_goodput_bits_per_codeword": 0.0,
+          "treatment_only_error": 0,
+          "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference."
+        }
+      ],
+      "schema": "loslab.paired_tdl_pusch_time_bler.v1",
+      "treatment": {
+        "channel_memory_samples": 13,
+        "cp_covers_channel_memory": true,
+        "delay_spread_s": 1.0000000000000001e-07,
+        "dmrs_additional_position": 0,
+        "path": "outputs/tdl-pusch-profile-sweep-512-seed63000-20261021/tdl-c.json",
+        "profile": "TDL-C",
+        "sha256": "f3ef3f94442d6018005202fab1d157dafff3996cd46a22d901e8e6137b331176",
+        "speed_mps": 3.0,
+        "transmit_waveform_mean_power_by_batch": [
+          1.0025609731674194,
+          1.000008225440979,
+          0.998629093170166,
+          0.9977241158485413,
+          1.0001524686813354,
+          0.9991587400436401,
+          1.0001177787780762,
+          1.000216007232666
+        ],
+        "varying_config_value": "TDL-C"
+      }
+    },
+    "TDL-D": {
+      "control": {
+        "channel_memory_samples": 13,
+        "cp_covers_channel_memory": true,
+        "delay_spread_s": 1.0000000000000001e-07,
+        "dmrs_additional_position": 0,
+        "path": "outputs/tdl-pusch-profile-sweep-512-seed63000-20261021/tdl-a.json",
+        "profile": "TDL-A",
+        "sha256": "3c9fc108d5c7d1f05740e41f0c56f693920932223d9cc6152838461f0a409d64",
+        "speed_mps": 3.0,
+        "transmit_waveform_mean_power_by_batch": [
+          1.0025609731674194,
+          1.000008225440979,
+          0.998629093170166,
+          0.9977241158485413,
+          1.0001524686813354,
+          0.9991587400436401,
+          1.0001177787780762,
+          1.000216007232666
+        ],
+        "varying_config_value": "TDL-A"
+      },
+      "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
+      "limitations": [
+        "Inference is conditional on the listed standardized TDL profile pair and link configuration.",
+        "Codeword-paired uncertainty does not represent independent-scene uncertainty.",
+        "The decoder and synchronization configuration are fixed; the result is not standards certification."
+      ],
+      "paired_design": {
+        "additional_control_policy_change": null,
+        "analysis_environment": {
+          "git_sha": "7bad3a814391d921c9aa69e0758bf5f59a2c0aed",
+          "numpy": "2.5.4",
+          "python": "3.12.3",
+          "scikit-learn": "1.9.1",
+          "sionna": "not installed",
+          "sionna-phy": "not installed",
+          "sionna-rt": "not installed",
+          "torch": "2.11.0+cpu"
+        },
+        "analysis_package_source_sha256": "c5ecc59482c0c00ba1fbe8f6883776017bfb3954965814770374b430a779ddcc",
+        "channel_truth_is_intentionally_changed": true,
+        "derived_configuration_changes": [],
+        "input_environments": {
+          "control": {
+            "git_sha": "7bad3a814391d921c9aa69e0758bf5f59a2c0aed",
+            "numpy": "2.5.4",
+            "python": "3.12.3",
+            "scikit-learn": "1.9.1",
+            "sionna": "2.2.0",
+            "sionna-phy": "not installed",
+            "sionna-rt": "2.2.0",
+            "torch": "2.11.0+cu128"
+          },
+          "treatment": {
+            "git_sha": "7bad3a814391d921c9aa69e0758bf5f59a2c0aed",
+            "numpy": "2.5.4",
+            "python": "3.12.3",
+            "scikit-learn": "1.9.1",
+            "sionna": "2.2.0",
+            "sionna-phy": "not installed",
+            "sionna-rt": "2.2.0",
+            "torch": "2.11.0+cu128"
+          }
+        },
+        "input_package_source_sha256": {
+          "control": "c5ecc59482c0c00ba1fbe8f6883776017bfb3954965814770374b430a779ddcc",
+          "treatment": "c5ecc59482c0c00ba1fbe8f6883776017bfb3954965814770374b430a779ddcc"
+        },
+        "same_batch_seeds_and_noise_seeds": true,
+        "same_channel_truth_by_seed": false,
+        "same_configuration_except": "profile",
+        "same_transmitted_bits_by_seed": true,
+        "statistic": "paired codeword bootstrap CI and Holm-adjusted exact McNemar tests"
+      },
+      "points": [
+        {
+          "bootstrap_draws": 20000,
+          "bootstrap_seed": 1,
+          "both_error": 512,
+          "both_success": 0,
+          "codewords": 512,
+          "control_errors": 512,
+          "control_goodput_bits_per_codeword": 0.0,
+          "control_only_error": 0,
+          "discordant_pairs": 0,
+          "mcnemar_exact_two_sided_p_value": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm_family20": 1.0,
+          "paired_bootstrap_ci95": [
+            0.0,
+            0.0
+          ],
+          "paired_goodput_bootstrap_ci95": [
+            0.0,
+            0.0
+          ],
+          "snr_db": 0.0,
+          "treatment_errors": 512,
+          "treatment_goodput_bits_per_codeword": 0.0,
+          "treatment_minus_control_bler": 0.0,
+          "treatment_minus_control_goodput_bits_per_codeword": 0.0,
+          "treatment_only_error": 0,
+          "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference."
+        },
+        {
+          "bootstrap_draws": 20000,
+          "bootstrap_seed": 1,
+          "both_error": 512,
+          "both_success": 0,
+          "codewords": 512,
+          "control_errors": 512,
+          "control_goodput_bits_per_codeword": 0.0,
+          "control_only_error": 0,
+          "discordant_pairs": 0,
+          "mcnemar_exact_two_sided_p_value": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm_family20": 1.0,
+          "paired_bootstrap_ci95": [
+            0.0,
+            0.0
+          ],
+          "paired_goodput_bootstrap_ci95": [
+            0.0,
+            0.0
+          ],
+          "snr_db": 6.0,
+          "treatment_errors": 512,
+          "treatment_goodput_bits_per_codeword": 0.0,
+          "treatment_minus_control_bler": 0.0,
+          "treatment_minus_control_goodput_bits_per_codeword": 0.0,
+          "treatment_only_error": 0,
+          "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference."
+        },
+        {
+          "bootstrap_draws": 20000,
+          "bootstrap_seed": 1,
+          "both_error": 0,
+          "both_success": 503,
+          "codewords": 512,
+          "control_errors": 9,
+          "control_goodput_bits_per_codeword": 3961.125,
+          "control_only_error": 9,
+          "discordant_pairs": 9,
+          "mcnemar_exact_two_sided_p_value": 0.00390625,
+          "mcnemar_exact_two_sided_p_value_holm": 0.01953125,
+          "mcnemar_exact_two_sided_p_value_holm_family20": 0.078125,
+          "paired_bootstrap_ci95": [
+            -0.029296875,
+            -0.0078125
+          ],
+          "paired_goodput_bootstrap_ci95": [
+            31.5,
+            118.125
+          ],
+          "snr_db": 12.0,
+          "treatment_errors": 0,
+          "treatment_goodput_bits_per_codeword": 4032.0,
+          "treatment_minus_control_bler": -0.017578125,
+          "treatment_minus_control_goodput_bits_per_codeword": 70.875,
+          "treatment_only_error": 0,
+          "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference."
+        },
+        {
+          "bootstrap_draws": 20000,
+          "bootstrap_seed": 1,
+          "both_error": 0,
+          "both_success": 512,
+          "codewords": 512,
+          "control_errors": 0,
+          "control_goodput_bits_per_codeword": 4032.0,
+          "control_only_error": 0,
+          "discordant_pairs": 0,
+          "mcnemar_exact_two_sided_p_value": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm_family20": 1.0,
+          "paired_bootstrap_ci95": [
+            0.0,
+            0.0
+          ],
+          "paired_goodput_bootstrap_ci95": [
+            0.0,
+            0.0
+          ],
+          "snr_db": 18.0,
+          "treatment_errors": 0,
+          "treatment_goodput_bits_per_codeword": 4032.0,
+          "treatment_minus_control_bler": 0.0,
+          "treatment_minus_control_goodput_bits_per_codeword": 0.0,
+          "treatment_only_error": 0,
+          "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference."
+        },
+        {
+          "bootstrap_draws": 20000,
+          "bootstrap_seed": 1,
+          "both_error": 0,
+          "both_success": 512,
+          "codewords": 512,
+          "control_errors": 0,
+          "control_goodput_bits_per_codeword": 4032.0,
+          "control_only_error": 0,
+          "discordant_pairs": 0,
+          "mcnemar_exact_two_sided_p_value": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm_family20": 1.0,
+          "paired_bootstrap_ci95": [
+            0.0,
+            0.0
+          ],
+          "paired_goodput_bootstrap_ci95": [
+            0.0,
+            0.0
+          ],
+          "snr_db": 24.0,
+          "treatment_errors": 0,
+          "treatment_goodput_bits_per_codeword": 4032.0,
+          "treatment_minus_control_bler": 0.0,
+          "treatment_minus_control_goodput_bits_per_codeword": 0.0,
+          "treatment_only_error": 0,
+          "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference."
+        }
+      ],
+      "schema": "loslab.paired_tdl_pusch_time_bler.v1",
+      "treatment": {
+        "channel_memory_samples": 13,
+        "cp_covers_channel_memory": true,
+        "delay_spread_s": 1.0000000000000001e-07,
+        "dmrs_additional_position": 0,
+        "path": "outputs/tdl-pusch-profile-sweep-512-seed63000-20261021/tdl-d.json",
+        "profile": "TDL-D",
+        "sha256": "6b62820ea8ce503191d1bf55c4fd8d63e01daffca6e53791d57bec3583ee0337",
+        "speed_mps": 3.0,
+        "transmit_waveform_mean_power_by_batch": [
+          1.0025609731674194,
+          1.000008225440979,
+          0.998629093170166,
+          0.9977241158485413,
+          1.0001524686813354,
+          0.9991587400436401,
+          1.0001177787780762,
+          1.000216007232666
+        ],
+        "varying_config_value": "TDL-D"
+      }
+    },
+    "TDL-E": {
+      "control": {
+        "channel_memory_samples": 13,
+        "cp_covers_channel_memory": true,
+        "delay_spread_s": 1.0000000000000001e-07,
+        "dmrs_additional_position": 0,
+        "path": "outputs/tdl-pusch-profile-sweep-512-seed63000-20261021/tdl-a.json",
+        "profile": "TDL-A",
+        "sha256": "3c9fc108d5c7d1f05740e41f0c56f693920932223d9cc6152838461f0a409d64",
+        "speed_mps": 3.0,
+        "transmit_waveform_mean_power_by_batch": [
+          1.0025609731674194,
+          1.000008225440979,
+          0.998629093170166,
+          0.9977241158485413,
+          1.0001524686813354,
+          0.9991587400436401,
+          1.0001177787780762,
+          1.000216007232666
+        ],
+        "varying_config_value": "TDL-A"
+      },
+      "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
+      "limitations": [
+        "Inference is conditional on the listed standardized TDL profile pair and link configuration.",
+        "Codeword-paired uncertainty does not represent independent-scene uncertainty.",
+        "The decoder and synchronization configuration are fixed; the result is not standards certification."
+      ],
+      "paired_design": {
+        "additional_control_policy_change": null,
+        "analysis_environment": {
+          "git_sha": "7bad3a814391d921c9aa69e0758bf5f59a2c0aed",
+          "numpy": "2.5.4",
+          "python": "3.12.3",
+          "scikit-learn": "1.9.1",
+          "sionna": "not installed",
+          "sionna-phy": "not installed",
+          "sionna-rt": "not installed",
+          "torch": "2.11.0+cpu"
+        },
+        "analysis_package_source_sha256": "c5ecc59482c0c00ba1fbe8f6883776017bfb3954965814770374b430a779ddcc",
+        "channel_truth_is_intentionally_changed": true,
+        "derived_configuration_changes": [],
+        "input_environments": {
+          "control": {
+            "git_sha": "7bad3a814391d921c9aa69e0758bf5f59a2c0aed",
+            "numpy": "2.5.4",
+            "python": "3.12.3",
+            "scikit-learn": "1.9.1",
+            "sionna": "2.2.0",
+            "sionna-phy": "not installed",
+            "sionna-rt": "2.2.0",
+            "torch": "2.11.0+cu128"
+          },
+          "treatment": {
+            "git_sha": "7bad3a814391d921c9aa69e0758bf5f59a2c0aed",
+            "numpy": "2.5.4",
+            "python": "3.12.3",
+            "scikit-learn": "1.9.1",
+            "sionna": "2.2.0",
+            "sionna-phy": "not installed",
+            "sionna-rt": "2.2.0",
+            "torch": "2.11.0+cu128"
+          }
+        },
+        "input_package_source_sha256": {
+          "control": "c5ecc59482c0c00ba1fbe8f6883776017bfb3954965814770374b430a779ddcc",
+          "treatment": "c5ecc59482c0c00ba1fbe8f6883776017bfb3954965814770374b430a779ddcc"
+        },
+        "same_batch_seeds_and_noise_seeds": true,
+        "same_channel_truth_by_seed": false,
+        "same_configuration_except": "profile",
+        "same_transmitted_bits_by_seed": true,
+        "statistic": "paired codeword bootstrap CI and Holm-adjusted exact McNemar tests"
+      },
+      "points": [
+        {
+          "bootstrap_draws": 20000,
+          "bootstrap_seed": 1,
+          "both_error": 512,
+          "both_success": 0,
+          "codewords": 512,
+          "control_errors": 512,
+          "control_goodput_bits_per_codeword": 0.0,
+          "control_only_error": 0,
+          "discordant_pairs": 0,
+          "mcnemar_exact_two_sided_p_value": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm_family20": 1.0,
+          "paired_bootstrap_ci95": [
+            0.0,
+            0.0
+          ],
+          "paired_goodput_bootstrap_ci95": [
+            0.0,
+            0.0
+          ],
+          "snr_db": 0.0,
+          "treatment_errors": 512,
+          "treatment_goodput_bits_per_codeword": 0.0,
+          "treatment_minus_control_bler": 0.0,
+          "treatment_minus_control_goodput_bits_per_codeword": 0.0,
+          "treatment_only_error": 0,
+          "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference."
+        },
+        {
+          "bootstrap_draws": 20000,
+          "bootstrap_seed": 1,
+          "both_error": 512,
+          "both_success": 0,
+          "codewords": 512,
+          "control_errors": 512,
+          "control_goodput_bits_per_codeword": 0.0,
+          "control_only_error": 0,
+          "discordant_pairs": 0,
+          "mcnemar_exact_two_sided_p_value": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm_family20": 1.0,
+          "paired_bootstrap_ci95": [
+            0.0,
+            0.0
+          ],
+          "paired_goodput_bootstrap_ci95": [
+            0.0,
+            0.0
+          ],
+          "snr_db": 6.0,
+          "treatment_errors": 512,
+          "treatment_goodput_bits_per_codeword": 0.0,
+          "treatment_minus_control_bler": 0.0,
+          "treatment_minus_control_goodput_bits_per_codeword": 0.0,
+          "treatment_only_error": 0,
+          "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference."
+        },
+        {
+          "bootstrap_draws": 20000,
+          "bootstrap_seed": 1,
+          "both_error": 0,
+          "both_success": 503,
+          "codewords": 512,
+          "control_errors": 9,
+          "control_goodput_bits_per_codeword": 3961.125,
+          "control_only_error": 9,
+          "discordant_pairs": 9,
+          "mcnemar_exact_two_sided_p_value": 0.00390625,
+          "mcnemar_exact_two_sided_p_value_holm": 0.01953125,
+          "mcnemar_exact_two_sided_p_value_holm_family20": 0.078125,
+          "paired_bootstrap_ci95": [
+            -0.029296875,
+            -0.0078125
+          ],
+          "paired_goodput_bootstrap_ci95": [
+            31.5,
+            118.125
+          ],
+          "snr_db": 12.0,
+          "treatment_errors": 0,
+          "treatment_goodput_bits_per_codeword": 4032.0,
+          "treatment_minus_control_bler": -0.017578125,
+          "treatment_minus_control_goodput_bits_per_codeword": 70.875,
+          "treatment_only_error": 0,
+          "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference."
+        },
+        {
+          "bootstrap_draws": 20000,
+          "bootstrap_seed": 1,
+          "both_error": 0,
+          "both_success": 512,
+          "codewords": 512,
+          "control_errors": 0,
+          "control_goodput_bits_per_codeword": 4032.0,
+          "control_only_error": 0,
+          "discordant_pairs": 0,
+          "mcnemar_exact_two_sided_p_value": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm_family20": 1.0,
+          "paired_bootstrap_ci95": [
+            0.0,
+            0.0
+          ],
+          "paired_goodput_bootstrap_ci95": [
+            0.0,
+            0.0
+          ],
+          "snr_db": 18.0,
+          "treatment_errors": 0,
+          "treatment_goodput_bits_per_codeword": 4032.0,
+          "treatment_minus_control_bler": 0.0,
+          "treatment_minus_control_goodput_bits_per_codeword": 0.0,
+          "treatment_only_error": 0,
+          "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference."
+        },
+        {
+          "bootstrap_draws": 20000,
+          "bootstrap_seed": 1,
+          "both_error": 0,
+          "both_success": 512,
+          "codewords": 512,
+          "control_errors": 0,
+          "control_goodput_bits_per_codeword": 4032.0,
+          "control_only_error": 0,
+          "discordant_pairs": 0,
+          "mcnemar_exact_two_sided_p_value": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm": 1.0,
+          "mcnemar_exact_two_sided_p_value_holm_family20": 1.0,
+          "paired_bootstrap_ci95": [
+            0.0,
+            0.0
+          ],
+          "paired_goodput_bootstrap_ci95": [
+            0.0,
+            0.0
+          ],
+          "snr_db": 24.0,
+          "treatment_errors": 0,
+          "treatment_goodput_bits_per_codeword": 4032.0,
+          "treatment_minus_control_bler": 0.0,
+          "treatment_minus_control_goodput_bits_per_codeword": 0.0,
+          "treatment_only_error": 0,
+          "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference."
+        }
+      ],
+      "schema": "loslab.paired_tdl_pusch_time_bler.v1",
+      "treatment": {
+        "channel_memory_samples": 13,
+        "cp_covers_channel_memory": true,
+        "delay_spread_s": 1.0000000000000001e-07,
+        "dmrs_additional_position": 0,
+        "path": "outputs/tdl-pusch-profile-sweep-512-seed63000-20261021/tdl-e.json",
+        "profile": "TDL-E",
+        "sha256": "6691a1c75f182defefccd9070755d4c3ce54532b2f245b855246e63d2112ac8c",
+        "speed_mps": 3.0,
+        "transmit_waveform_mean_power_by_batch": [
+          1.0025609731674194,
+          1.000008225440979,
+          0.998629093170166,
+          0.9977241158485413,
+          1.0001524686813354,
+          0.9991587400436401,
+          1.0001177787780762,
+          1.000216007232666
+        ],
+        "varying_config_value": "TDL-E"
+      }
+    }
+  },
+  "control_profile": "TDL-A",
+  "curves": {
+    "TDL-A": {
+      "configuration": {
+        "allow_cp_overrun": false,
+        "batch_seeds_shared_across_snr": [
+          63000,
+          63001,
+          63002,
+          63003,
+          63004,
+          63005,
+          63006,
+          63007
+        ],
+        "batch_size": 64,
+        "carrier_frequency_hz": 3500000000.0,
+        "channel_memory_samples": 13,
+        "channel_model": "Sionna TimeChannel with sampled waveform-domain TDL",
+        "confidence_interval": "two-sided 95% Wilson score interval across codewords",
+        "cp_covers_channel_memory": true,
+        "cyclic_prefix_min_samples": 13,
+        "decoder": "Sionna time-domain PUSCHReceiver with DMRS estimation and CRC status",
+        "delay_spread_s": 1.0000000000000001e-07,
+        "dmrs_additional_position": 0,
+        "frames_per_snr": 512,
+        "l_max": 7,
+        "l_min": -6,
+        "n_size_bwp_resource_blocks": 12,
+        "num_rx_ant": 1,
+        "package_source_sha256": "c5ecc59482c0c00ba1fbe8f6883776017bfb3954965814770374b430a779ddcc",
+        "profile": "TDL-A",
+        "resource_grid": {
+          "bandwidth_hz": 4320000.0,
+          "fft_size": 144,
+          "num_time_samples": 2198
+        },
+        "sample_rate_hz": 4320000.0,
+        "seed": 63000,
+        "snr_definition": "sampled waveform mean complex power / complex AWGN variance; noise variance=10**(-SNR_dB/10) and measured transmit mean power is recorded",
+        "spec_version": "19.2",
+        "speed_mps": 3.0,
+        "subcarrier_spacing_khz": 30,
+        "versions": {
+          "git_sha": "7bad3a814391d921c9aa69e0758bf5f59a2c0aed",
+          "numpy": "2.5.4",
+          "python": "3.12.3",
+          "scikit-learn": "1.9.1",
+          "sionna": "2.2.0",
+          "sionna-phy": "not installed",
+          "sionna-rt": "2.2.0",
+          "torch": "2.11.0+cu128"
+        }
+      },
+      "path": "outputs/tdl-pusch-profile-sweep-512-seed63000-20261021/tdl-a.json",
+      "points": [
+        {
+          "ber": 0.29544212704613093,
+          "bit_errors": 609906,
+          "bits": 2064384,
+          "bler": 1.0,
+          "bler_errors": 512,
+          "bler_wilson_95_ci": [
+            0.9925530242771172,
+            1.0
+          ],
+          "frames": 512,
+          "snr_db": 0.0
+        },
+        {
+          "ber": 0.15083966936383927,
+          "bit_errors": 311391,
+          "bits": 2064384,
+          "bler": 1.0,
+          "bler_errors": 512,
+          "bler_wilson_95_ci": [
+            0.9925530242771172,
+            1.0
+          ],
+          "frames": 512,
+          "snr_db": 6.0
+        },
+        {
+          "ber": 0.001060364738343254,
+          "bit_errors": 2189,
+          "bits": 2064384,
+          "bler": 0.017578125,
+          "bler_errors": 9,
+          "bler_wilson_95_ci": [
+            0.009274933048931773,
+            0.033066484933693366
+          ],
+          "frames": 512,
+          "snr_db": 12.0
+        },
+        {
+          "ber": 0.0,
+          "bit_errors": 0,
+          "bits": 2064384,
+          "bler": 0.0,
+          "bler_errors": 0,
+          "bler_wilson_95_ci": [
+            0.0,
+            0.007446975722882739
+          ],
+          "frames": 512,
+          "snr_db": 18.0
+        },
+        {
+          "ber": 0.0,
+          "bit_errors": 0,
+          "bits": 2064384,
+          "bler": 0.0,
+          "bler_errors": 0,
+          "bler_wilson_95_ci": [
+            0.0,
+            0.007446975722882739
+          ],
+          "frames": 512,
+          "snr_db": 24.0
+        }
+      ],
+      "sha256": "3c9fc108d5c7d1f05740e41f0c56f693920932223d9cc6152838461f0a409d64"
+    },
+    "TDL-B": {
+      "configuration": {
+        "allow_cp_overrun": false,
+        "batch_seeds_shared_across_snr": [
+          63000,
+          63001,
+          63002,
+          63003,
+          63004,
+          63005,
+          63006,
+          63007
+        ],
+        "batch_size": 64,
+        "carrier_frequency_hz": 3500000000.0,
+        "channel_memory_samples": 13,
+        "channel_model": "Sionna TimeChannel with sampled waveform-domain TDL",
+        "confidence_interval": "two-sided 95% Wilson score interval across codewords",
+        "cp_covers_channel_memory": true,
+        "cyclic_prefix_min_samples": 13,
+        "decoder": "Sionna time-domain PUSCHReceiver with DMRS estimation and CRC status",
+        "delay_spread_s": 1.0000000000000001e-07,
+        "dmrs_additional_position": 0,
+        "frames_per_snr": 512,
+        "l_max": 7,
+        "l_min": -6,
+        "n_size_bwp_resource_blocks": 12,
+        "num_rx_ant": 1,
+        "package_source_sha256": "c5ecc59482c0c00ba1fbe8f6883776017bfb3954965814770374b430a779ddcc",
+        "profile": "TDL-B",
+        "resource_grid": {
+          "bandwidth_hz": 4320000.0,
+          "fft_size": 144,
+          "num_time_samples": 2198
+        },
+        "sample_rate_hz": 4320000.0,
+        "seed": 63000,
+        "snr_definition": "sampled waveform mean complex power / complex AWGN variance; noise variance=10**(-SNR_dB/10) and measured transmit mean power is recorded",
+        "spec_version": "19.2",
+        "speed_mps": 3.0,
+        "subcarrier_spacing_khz": 30,
+        "versions": {
+          "git_sha": "7bad3a814391d921c9aa69e0758bf5f59a2c0aed",
+          "numpy": "2.5.4",
+          "python": "3.12.3",
+          "scikit-learn": "1.9.1",
+          "sionna": "2.2.0",
+          "sionna-phy": "not installed",
+          "sionna-rt": "2.2.0",
+          "torch": "2.11.0+cu128"
+        }
+      },
+      "path": "outputs/tdl-pusch-profile-sweep-512-seed63000-20261021/tdl-b.json",
+      "points": [
+        {
+          "ber": 0.2976326109871032,
+          "bit_errors": 614428,
+          "bits": 2064384,
+          "bler": 1.0,
+          "bler_errors": 512,
+          "bler_wilson_95_ci": [
+            0.9925530242771172,
+            1.0
+          ],
+          "frames": 512,
+          "snr_db": 0.0
+        },
+        {
+          "ber": 0.15520804268973215,
+          "bit_errors": 320409,
+          "bits": 2064384,
+          "bler": 1.0,
+          "bler_errors": 512,
+          "bler_wilson_95_ci": [
+            0.9925530242771172,
+            1.0
+          ],
+          "frames": 512,
+          "snr_db": 6.0
+        },
+        {
+          "ber": 0.0013592432415674603,
+          "bit_errors": 2806,
+          "bits": 2064384,
+          "bler": 0.02734375,
+          "bler_errors": 14,
+          "bler_wilson_95_ci": [
+            0.016356725239303357,
+            0.04537049399873423
+          ],
+          "frames": 512,
+          "snr_db": 12.0
+        },
+        {
+          "ber": 0.00016276041666666666,
+          "bit_errors": 336,
+          "bits": 2064384,
+          "bler": 0.001953125,
+          "bler_errors": 1,
+          "bler_wilson_95_ci": [
+            0.00034485776154337486,
+            0.010979278212421853
+          ],
+          "frames": 512,
+          "snr_db": 18.0
+        },
+        {
+          "ber": 0.0002998473152281746,
+          "bit_errors": 619,
+          "bits": 2064384,
+          "bler": 0.001953125,
+          "bler_errors": 1,
+          "bler_wilson_95_ci": [
+            0.00034485776154337486,
+            0.010979278212421853
+          ],
+          "frames": 512,
+          "snr_db": 24.0
+        }
+      ],
+      "sha256": "9d151e47fda34815c604e89f0136347b32a3198d6bb0e4f51b5ee705140f61aa"
+    },
+    "TDL-C": {
+      "configuration": {
+        "allow_cp_overrun": false,
+        "batch_seeds_shared_across_snr": [
+          63000,
+          63001,
+          63002,
+          63003,
+          63004,
+          63005,
+          63006,
+          63007
+        ],
+        "batch_size": 64,
+        "carrier_frequency_hz": 3500000000.0,
+        "channel_memory_samples": 13,
+        "channel_model": "Sionna TimeChannel with sampled waveform-domain TDL",
+        "confidence_interval": "two-sided 95% Wilson score interval across codewords",
+        "cp_covers_channel_memory": true,
+        "cyclic_prefix_min_samples": 13,
+        "decoder": "Sionna time-domain PUSCHReceiver with DMRS estimation and CRC status",
+        "delay_spread_s": 1.0000000000000001e-07,
+        "dmrs_additional_position": 0,
+        "frames_per_snr": 512,
+        "l_max": 7,
+        "l_min": -6,
+        "n_size_bwp_resource_blocks": 12,
+        "num_rx_ant": 1,
+        "package_source_sha256": "c5ecc59482c0c00ba1fbe8f6883776017bfb3954965814770374b430a779ddcc",
+        "profile": "TDL-C",
+        "resource_grid": {
+          "bandwidth_hz": 4320000.0,
+          "fft_size": 144,
+          "num_time_samples": 2198
+        },
+        "sample_rate_hz": 4320000.0,
+        "seed": 63000,
+        "snr_definition": "sampled waveform mean complex power / complex AWGN variance; noise variance=10**(-SNR_dB/10) and measured transmit mean power is recorded",
+        "spec_version": "19.2",
+        "speed_mps": 3.0,
+        "subcarrier_spacing_khz": 30,
+        "versions": {
+          "git_sha": "7bad3a814391d921c9aa69e0758bf5f59a2c0aed",
+          "numpy": "2.5.4",
+          "python": "3.12.3",
+          "scikit-learn": "1.9.1",
+          "sionna": "2.2.0",
+          "sionna-phy": "not installed",
+          "sionna-rt": "2.2.0",
+          "torch": "2.11.0+cu128"
+        }
+      },
+      "path": "outputs/tdl-pusch-profile-sweep-512-seed63000-20261021/tdl-c.json",
+      "points": [
+        {
+          "ber": 0.2953239319816468,
+          "bit_errors": 609662,
+          "bits": 2064384,
+          "bler": 1.0,
+          "bler_errors": 512,
+          "bler_wilson_95_ci": [
+            0.9925530242771172,
+            1.0
+          ],
+          "frames": 512,
+          "snr_db": 0.0
+        },
+        {
+          "ber": 0.14888751317584326,
+          "bit_errors": 307361,
+          "bits": 2064384,
+          "bler": 1.0,
+          "bler_errors": 512,
+          "bler_wilson_95_ci": [
+            0.9925530242771172,
+            1.0
+          ],
+          "frames": 512,
+          "snr_db": 6.0
+        },
+        {
+          "ber": 0.001407199435763889,
+          "bit_errors": 2905,
+          "bits": 2064384,
+          "bler": 0.021484375,
+          "bler_errors": 11,
+          "bler_wilson_95_ci": [
+            0.012038074956831065,
+            0.03805766352795906
+          ],
+          "frames": 512,
+          "snr_db": 12.0
+        },
+        {
+          "ber": 0.0,
+          "bit_errors": 0,
+          "bits": 2064384,
+          "bler": 0.0,
+          "bler_errors": 0,
+          "bler_wilson_95_ci": [
+            0.0,
+            0.007446975722882739
+          ],
+          "frames": 512,
+          "snr_db": 18.0
+        },
+        {
+          "ber": 0.0,
+          "bit_errors": 0,
+          "bits": 2064384,
+          "bler": 0.0,
+          "bler_errors": 0,
+          "bler_wilson_95_ci": [
+            0.0,
+            0.007446975722882739
+          ],
+          "frames": 512,
+          "snr_db": 24.0
+        }
+      ],
+      "sha256": "f3ef3f94442d6018005202fab1d157dafff3996cd46a22d901e8e6137b331176"
+    },
+    "TDL-D": {
+      "configuration": {
+        "allow_cp_overrun": false,
+        "batch_seeds_shared_across_snr": [
+          63000,
+          63001,
+          63002,
+          63003,
+          63004,
+          63005,
+          63006,
+          63007
+        ],
+        "batch_size": 64,
+        "carrier_frequency_hz": 3500000000.0,
+        "channel_memory_samples": 13,
+        "channel_model": "Sionna TimeChannel with sampled waveform-domain TDL",
+        "confidence_interval": "two-sided 95% Wilson score interval across codewords",
+        "cp_covers_channel_memory": true,
+        "cyclic_prefix_min_samples": 13,
+        "decoder": "Sionna time-domain PUSCHReceiver with DMRS estimation and CRC status",
+        "delay_spread_s": 1.0000000000000001e-07,
+        "dmrs_additional_position": 0,
+        "frames_per_snr": 512,
+        "l_max": 7,
+        "l_min": -6,
+        "n_size_bwp_resource_blocks": 12,
+        "num_rx_ant": 1,
+        "package_source_sha256": "c5ecc59482c0c00ba1fbe8f6883776017bfb3954965814770374b430a779ddcc",
+        "profile": "TDL-D",
+        "resource_grid": {
+          "bandwidth_hz": 4320000.0,
+          "fft_size": 144,
+          "num_time_samples": 2198
+        },
+        "sample_rate_hz": 4320000.0,
+        "seed": 63000,
+        "snr_definition": "sampled waveform mean complex power / complex AWGN variance; noise variance=10**(-SNR_dB/10) and measured transmit mean power is recorded",
+        "spec_version": "19.2",
+        "speed_mps": 3.0,
+        "subcarrier_spacing_khz": 30,
+        "versions": {
+          "git_sha": "7bad3a814391d921c9aa69e0758bf5f59a2c0aed",
+          "numpy": "2.5.4",
+          "python": "3.12.3",
+          "scikit-learn": "1.9.1",
+          "sionna": "2.2.0",
+          "sionna-phy": "not installed",
+          "sionna-rt": "2.2.0",
+          "torch": "2.11.0+cu128"
+        }
+      },
+      "path": "outputs/tdl-pusch-profile-sweep-512-seed63000-20261021/tdl-d.json",
+      "points": [
+        {
+          "ber": 0.28137594556051587,
+          "bit_errors": 580868,
+          "bits": 2064384,
+          "bler": 1.0,
+          "bler_errors": 512,
+          "bler_wilson_95_ci": [
+            0.9925530242771172,
+            1.0
+          ],
+          "frames": 512,
+          "snr_db": 0.0
+        },
+        {
+          "ber": 0.12644256107390872,
+          "bit_errors": 261026,
+          "bits": 2064384,
+          "bler": 1.0,
+          "bler_errors": 512,
+          "bler_wilson_95_ci": [
+            0.9925530242771172,
+            1.0
+          ],
+          "frames": 512,
+          "snr_db": 6.0
+        },
+        {
+          "ber": 0.0,
+          "bit_errors": 0,
+          "bits": 2064384,
+          "bler": 0.0,
+          "bler_errors": 0,
+          "bler_wilson_95_ci": [
+            0.0,
+            0.007446975722882739
+          ],
+          "frames": 512,
+          "snr_db": 12.0
+        },
+        {
+          "ber": 0.0,
+          "bit_errors": 0,
+          "bits": 2064384,
+          "bler": 0.0,
+          "bler_errors": 0,
+          "bler_wilson_95_ci": [
+            0.0,
+            0.007446975722882739
+          ],
+          "frames": 512,
+          "snr_db": 18.0
+        },
+        {
+          "ber": 0.0,
+          "bit_errors": 0,
+          "bits": 2064384,
+          "bler": 0.0,
+          "bler_errors": 0,
+          "bler_wilson_95_ci": [
+            0.0,
+            0.007446975722882739
+          ],
+          "frames": 512,
+          "snr_db": 24.0
+        }
+      ],
+      "sha256": "6b62820ea8ce503191d1bf55c4fd8d63e01daffca6e53791d57bec3583ee0337"
+    },
+    "TDL-E": {
+      "configuration": {
+        "allow_cp_overrun": false,
+        "batch_seeds_shared_across_snr": [
+          63000,
+          63001,
+          63002,
+          63003,
+          63004,
+          63005,
+          63006,
+          63007
+        ],
+        "batch_size": 64,
+        "carrier_frequency_hz": 3500000000.0,
+        "channel_memory_samples": 13,
+        "channel_model": "Sionna TimeChannel with sampled waveform-domain TDL",
+        "confidence_interval": "two-sided 95% Wilson score interval across codewords",
+        "cp_covers_channel_memory": true,
+        "cyclic_prefix_min_samples": 13,
+        "decoder": "Sionna time-domain PUSCHReceiver with DMRS estimation and CRC status",
+        "delay_spread_s": 1.0000000000000001e-07,
+        "dmrs_additional_position": 0,
+        "frames_per_snr": 512,
+        "l_max": 7,
+        "l_min": -6,
+        "n_size_bwp_resource_blocks": 12,
+        "num_rx_ant": 1,
+        "package_source_sha256": "c5ecc59482c0c00ba1fbe8f6883776017bfb3954965814770374b430a779ddcc",
+        "profile": "TDL-E",
+        "resource_grid": {
+          "bandwidth_hz": 4320000.0,
+          "fft_size": 144,
+          "num_time_samples": 2198
+        },
+        "sample_rate_hz": 4320000.0,
+        "seed": 63000,
+        "snr_definition": "sampled waveform mean complex power / complex AWGN variance; noise variance=10**(-SNR_dB/10) and measured transmit mean power is recorded",
+        "spec_version": "19.2",
+        "speed_mps": 3.0,
+        "subcarrier_spacing_khz": 30,
+        "versions": {
+          "git_sha": "7bad3a814391d921c9aa69e0758bf5f59a2c0aed",
+          "numpy": "2.5.4",
+          "python": "3.12.3",
+          "scikit-learn": "1.9.1",
+          "sionna": "2.2.0",
+          "sionna-phy": "not installed",
+          "sionna-rt": "2.2.0",
+          "torch": "2.11.0+cu128"
+        }
+      },
+      "path": "outputs/tdl-pusch-profile-sweep-512-seed63000-20261021/tdl-e.json",
+      "points": [
+        {
+          "ber": 0.2821446978856647,
+          "bit_errors": 582455,
+          "bits": 2064384,
+          "bler": 1.0,
+          "bler_errors": 512,
+          "bler_wilson_95_ci": [
+            0.9925530242771172,
+            1.0
+          ],
+          "frames": 512,
+          "snr_db": 0.0
+        },
+        {
+          "ber": 0.12705339704241073,
+          "bit_errors": 262287,
+          "bits": 2064384,
+          "bler": 1.0,
+          "bler_errors": 512,
+          "bler_wilson_95_ci": [
+            0.9925530242771172,
+            1.0
+          ],
+          "frames": 512,
+          "snr_db": 6.0
+        },
+        {
+          "ber": 0.0,
+          "bit_errors": 0,
+          "bits": 2064384,
+          "bler": 0.0,
+          "bler_errors": 0,
+          "bler_wilson_95_ci": [
+            0.0,
+            0.007446975722882739
+          ],
+          "frames": 512,
+          "snr_db": 12.0
+        },
+        {
+          "ber": 0.0,
+          "bit_errors": 0,
+          "bits": 2064384,
+          "bler": 0.0,
+          "bler_errors": 0,
+          "bler_wilson_95_ci": [
+            0.0,
+            0.007446975722882739
+          ],
+          "frames": 512,
+          "snr_db": 18.0
+        },
+        {
+          "ber": 0.0,
+          "bit_errors": 0,
+          "bits": 2064384,
+          "bler": 0.0,
+          "bler_errors": 0,
+          "bler_wilson_95_ci": [
+            0.0,
+            0.007446975722882739
+          ],
+          "frames": 512,
+          "snr_db": 24.0
+        }
+      ],
+      "sha256": "6691a1c75f182defefccd9070755d4c3ce54532b2f245b855246e63d2112ac8c"
+    }
+  },
+  "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
+  "limitations": [
+    "Results are conditional on the configured standardized Sionna TDL models and one PUSCH receiver configuration.",
+    "All compared profiles use ideal synchronization; no sample-domain residual CFO or timing error is injected.",
+    "The curves are simulation evidence, not standards certification or validation against measured channels.",
+    "Codeword-level intervals do not quantify uncertainty across independent channel environments."
+  ],
+  "paired_design": {
+    "different_channel_truth_by_profile": true,
+    "multiplicity_family": "four TDL contrasts versus TDL-A across all five SNR points (20 tests)",
+    "same_batch_and_awgn_seeds": true,
+    "same_transmitted_bits_by_batch": true
+  },
+  "schema": "loslab.tdl_pusch_tdl_profile_sweep.v1"
+}
