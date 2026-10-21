@@ -39,6 +39,9 @@ def run_capacity_sweep(
         raise ValueError("No datasets supplied")
     if not methods or not seeds:
         raise ValueError("methods and seeds must both be nonempty")
+    if len(set(methods)) != len(methods) or len(set(seeds)) != len(seeds):
+        raise ValueError("methods and seeds must not contain duplicates")
+    input_hashes = [{"path": str(path), "sha256": sha256_file(path)} for path in paths]
     root = Path(output)
     if root.exists():
         raise FileExistsError(f"capacity sweep output already exists: {root}")
@@ -62,7 +65,7 @@ def run_capacity_sweep(
         "state": "running",
         "config": config,
         "config_sha256": canonical_hash(config),
-        "inputs": [{"path": str(path), "sha256": sha256_file(path)} for path in paths],
+        "inputs": input_hashes,
     }
     atomic_json(root / "manifest.json", manifest)
     child_runs: dict[str, dict[str, Any]] = {}
@@ -85,15 +88,27 @@ def run_capacity_sweep(
                 coral_penalty=coral_penalty,
                 capacity=tier,
             )
+            child_manifest_path = child / "manifest.json"
+            child_manifest = json.loads(child_manifest_path.read_text(encoding="utf-8"))
+            if child_manifest.get("state") != "complete" or not (child / "COMPLETE").is_file():
+                raise ValueError(f"child run did not complete successfully: {tier}")
             child_runs[tier] = {
-                "manifest_sha256": sha256_file(child / "manifest.json"),
+                "manifest_sha256": sha256_file(child_manifest_path),
                 "results": json.loads((child / "results.json").read_text(encoding="utf-8")),
             }
 
         reference_splits: dict[tuple[int, str], str] = {}
+        reference_keys: set[tuple[int, str]] | None = None
         points: list[dict] = []
         for tier in CAPACITY_TIERS:
             rows = child_runs[tier]["results"]
+            keys = [(int(row["seed"]), str(row["method"])) for row in rows]
+            if len(set(keys)) != len(keys):
+                raise ValueError(f"duplicate seed/method result in capacity tier {tier}")
+            if reference_keys is None:
+                reference_keys = set(keys)
+            elif set(keys) != reference_keys:
+                raise ValueError(f"result methods or seeds differ across capacity tier {tier}")
             for row in rows:
                 key = (int(row["seed"]), str(row["method"]))
                 split_hash = str(row["split"]["indices_sha256"])
