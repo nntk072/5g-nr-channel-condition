@@ -1,0 +1,83 @@
+{
+  "schema": "loslab.mvp-evidence.v1",
+  "study_status": "SIMULATION_ONLY_UNVALIDATED",
+  "run_id": "mvp-six-scene-dmrs-holdout-etoile-20261022",
+  "source_revision": "d6d4687c9809b7627b83eb2ab39aba9825863a38",
+  "runtime": {
+    "python": "3.12.3",
+    "sionna": "2.2.0",
+    "sionna_rt": "2.2.0",
+    "mitsuba_variant": "llvm_ad_mono_polarized",
+    "torch": "2.11.0+cu128",
+    "device": "cuda:0"
+  },
+  "dataset": {
+    "samples": 240,
+    "samples_per_scene": 40,
+    "shape": [240, 1, 72],
+    "scene_domains": [
+      "rt_box_one_screen",
+      "rt_etoile",
+      "rt_simple_street_canyon",
+      "rt_urban_00041",
+      "rt_urban_00042",
+      "rt_urban_00043"
+    ],
+    "labels": "geometric_direct_path_oracle",
+    "observations": "Sionna PUSCH DMRS LS channel estimate; 12 dB configured SNR; ideal synchronization",
+    "observation_dataset_sha256": "b916fb2d3450ca08863e970cc0398a7cec9f96d08702f9cc50178b857133f2fd",
+    "source_datasets": {
+      "box_one_screen.npz": "70cbbe27ad5b75e2c824e32247e33780d6225245141b659902d0e7417a380e03",
+      "simple_street_canyon.npz": "835a0d5e1ba775a4ba130735851e5de6b2c41147156c828782284d224d0de557",
+      "etoile.npz": "ba3a2f6c0f0477e43d772528aa86aeccd4c364a8d3b4be3275055518a17efcaa",
+      "urban_00041.npz": "66099ad0d0e5cea286e81868e576e0727ff4feb23c13121c06512a9fb8088e93",
+      "urban_00042.npz": "9bfeb12f9b5f92efbfac71ca00a466eefcab7a74cb466425a9f142d7713cc",
+      "urban_00043.npz": "4021c3d237a7fb191c0ddc6cfd723c7fd55a4391d6d2e5c99ab953b1638e6975"
+    }
+  },
+  "evaluation": {
+    "held_out_scene": "rt_etoile",
+    "held_out_groups": 20,
+    "held_out_samples": 40,
+    "training_scenes": [
+      "rt_box_one_screen",
+      "rt_simple_street_canyon",
+      "rt_urban_00041",
+      "rt_urban_00042",
+      "rt_urban_00043"
+    ],
+    "methods": ["logreg", "rf", "raw_mlp"],
+    "seeds": [11, 23, 47],
+    "mean_test_auroc": {
+      "logreg": 0.33416666666666667,
+      "rf": 0.34,
+      "raw_mlp": 0.7391666666666666
+    },
+    "standard_deviation_test_auroc": {
+      "logreg": 0.012829003598617215,
+      "rf": 0.01999999999999999,
+      "raw_mlp": 0.022684429314693604
+    },
+    "paired_rf_minus_raw_mlp_auroc": {
+      "per_seed": [-0.4249999999999999, -0.37, -0.4025],
+      "mean": -0.39916666666666667,
+      "bootstrap_ci95": [-0.4249999999999999, -0.36999999999999994],
+      "exact_sign_flip_p": 0.25
+    },
+    "split_indices_sha256": "c72521c929f0e8fd6f24d0dd44253fe89df2e9db5d5aa6d4587ab6d9da28d5ce",
+    "manifest_sha256": "eea88dd119cd112b9795c132be8178e63b1a4012eb5d9fa4edd0e3242622e047",
+    "results_sha256": "74855b3f9a9d398cb7a456585bc86f1b30024c6ec23df4373d895e91e3d14105",
+    "summary_sha256": "d48d2880a2af6b69400e4f92f8ba018939b05a0c4d745f8d42eaa5106a4a0c67"
+  },
+  "reproduction": {
+    "observe": "python -m loslab nr-observe --input <six RT datasets> --output <observations.npz> --device cuda:0 --seed 20261022 --snr-db 12",
+    "evaluate": "python -m loslab experiment --input <observations.npz> --output <run-dir> --holdout rt_etoile --methods logreg rf raw_mlp --seeds 11 23 47 --bootstrap 200 --device cuda:0 --capacity small --observation precomputed",
+    "uncertainty_note": "Seed dispersion and paired bootstrap are reported; model-level calibration/uncertainty is not implemented for this MVP.",
+    "limitations": [
+      "Built-in and generated simulation scenes only; geometry/material realism is not independently qualified.",
+      "One held-out scene, 40 links, and three training seeds are an implementation MVP check, not a stable benchmark.",
+      "Ideal synchronization and configured 12 dB SNR; no measured-radio validation.",
+      "Do not interpret the observed AUROCs as evidence of generalization or method superiority."
+    ]
+  }
+}

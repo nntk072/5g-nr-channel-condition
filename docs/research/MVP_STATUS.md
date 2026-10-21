@@ -1,9 +1,8 @@
 # MVP implementation status
 
-**Status: not complete yet.** The core packages and an end-to-end software path
-exist, but the project has not passed the MVP release gate below. A green unit
-suite or a working single-scene smoke run is not sufficient evidence of a
-complete channel-condition MVP.
+**Status: implementation and multi-scene evaluation complete locally; final
+MVP gate awaits hosted CI for the numerical-stability fix.** This is a
+simulation-only software MVP, not a validated channel-condition benchmark.
 
 ## MVP boundary
 
@@ -19,11 +18,10 @@ channel-condition workflow. It must:
    with a complete scene family held out and no scene/path/label metadata passed
    as model features.
 4. Save a reproducible run manifest, predictions, metrics, split identity, and
-   artifact hashes, and provide a tested command sequence from a clean checkout.
+   artifact hashes, and provide a tested command sequence.
 5. Pass portable CI and at least one native Sionna run on a supported Linux
-   backend. OptiX is preferred when its native trace probe succeeds; LLVM is the
-   supported CPU fallback. The backend is not selected based only on CUDA
-   visibility.
+   backend. Runtime detection probes CUDA/OptiX and uses it only after a native
+   trace succeeds; otherwise it selects the supported LLVM CPU backend.
 
 The MVP is deliberately simulation-only. It does not require a best benchmark
 score, measured-radio data, a novelty claim, long-horizon forecasting, beam
@@ -34,35 +32,37 @@ results honestly.
 
 | Requirement | State | Evidence and limitation |
 |---|---|---|
-| Package, CLI, dependency lock, lint, typing, and tests | Implemented; local consolidated checks pass, hosted CI is pending the final push | 409 passed, 16 skipped, 80.41% coverage; Ruff/format, mypy, lock, and build pass locally. |
-| Environment-aware RT backend | Implemented and locally verified | This WSL host's CUDA/OptiX trace probe fails; LLVM traces a native direct path. |
-| Geometric RT data and provenance | Implemented; multi-scene MVP run still required | Cached generation, label/report contracts, RT-to-NR trajectory and scene pilots exist. Existing pilot scenes/materials are not independently qualified real environments. |
-| PUSCH/DMRS observation adapter | Implemented and locally verified | `loslab nr-observe` converts saved RT CFR into DMRS LS estimates, preserves group IDs and canonical label semantics, and refuses output overwrite. It assumes ideal synchronization and normalizes away link path loss. |
-| Shared classification/evaluation workflow | Implemented and locally exercised | One 40-link saved RT pilot passed through CUDA DMRS generation and the experiment runner. Its one-seed, one-scene AUROC was 0.50; this is only a plumbing smoke and cannot validate scene transfer. |
-| Classical multipath and learning baselines | Implemented; matched multi-scene evaluation remains open | Grouped classifiers and the new unknown-order sparse CFR baseline are available. The latter's analytical stress report is synthetic, not RT evidence. |
-| Locked independent-scene MVP evaluation | Not complete | Need multiple generated/qualified scene families, one frozen scene-family test set, and the same DMRS inputs for all baselines. |
-| Clean Linux reproduction and release instructions | Partial | Quickstart now describes the RT→DMRS→experiment path; a clean-environment run and complete multi-scene command sequence remain to be recorded. |
+| Package, CLI, dependency lock, lint, typing, and tests | Local checks pass; hosted CI pending after numerical fix | Pinned GPU-enabled suite: 409 passed, 16 skipped, 80.32% coverage. Ruff check/format, mypy (129 files), lock, and build pass locally. A CI-only noiseless-fit edge case was fixed with a signal-scaled floating-point RSS floor; the corrected commit still needs hosted CI. |
+| Environment-aware RT backend | Implemented and locally verified | Mitsuba 3.9.1 / Dr.Jit 1.5.0 LLVM variant traces natively in this WSL Linux environment. Automatic selection rejects this host's failed CUDA/OptiX probe and falls back to LLVM. No separate LLVM-project download is needed here; OptiX remains an optional runtime path for a later supported host. |
+| Geometric RT data and provenance | MVP data path exercised across six scene families | Six balanced datasets (40 links each) carry geometric direct-path labels and scene/runtime provenance. Scene asset identities are recorded, but geometry/material realism is not independently qualified. |
+| PUSCH/DMRS observation adapter | Implemented and exercised across all six scenes | `loslab nr-observe` produced 240 observations of shape `[240, 1, 72]`, preserving group IDs and canonical label semantics. Configuration: 12 dB, seed 20261022, ideal synchronization. The adapter records its link-path-loss normalization assumption. |
+| Shared classification/evaluation workflow | Exercised on a frozen scene-family holdout | Logistic regression, random forest, and raw-I/Q MLP used the same precomputed DMRS observations. `rt_etoile` was test-only (40 samples/20 groups); the other five scene families supplied train/validation groups. Three fixed seeds and per-sample predictions are retained. |
+| Classical multipath and learning baselines | Implemented | Grouped classifiers and the unknown-order sparse CFR estimator are available. The multipath-order stress report is analytical/synthetic and is not geometric RT evidence. |
+| Locked independent-scene MVP evaluation | Completed at implementation-smoke scale | Six scene families and one frozen held-out family were evaluated; source hashes, split hash, method results, and commands are in [`mvp-six-scene-dmrs-holdout-etoile-seed20261022.json`](results/mvp-six-scene-dmrs-holdout-etoile-seed20261022.json). Mean AUROCs were 0.334 (logistic), 0.340 (RF), and 0.739 (raw MLP). Three seeds and one 40-link held-out scene are too small for benchmark claims. |
+| Linux reproduction and release instructions | Commands documented; clean hosted reproduction pending CI | The six-scene generation script, `nr-observe`, and `experiment` commands form the reproduction route. The local native run used an existing pinned Linux environment; the clean hosted Linux workflow must pass before the MVP gate closes. |
 
 ## MVP exit checklist
 
-- [ ] Create or select at least three compatible RT scene families, audit their
-  geometry/material assets, and generate balanced training/development and
-  locked held-out-scene datasets with immutable manifests.
-- [ ] Run `loslab nr-observe` over those datasets on a supported Linux host;
-  verify identical receiver configuration and recorded observation semantics.
-- [ ] Run at least one classical method and two matched neural/feature controls
-  on the same scene-group split; save per-sample predictions and uncertainty or
-  explicitly mark it unimplemented for this MVP.
-- [ ] Confirm that the held-out scene is excluded from training, validation,
-  threshold selection, calibration, and model selection.
-- [ ] Reproduce the workflow from a clean Linux environment with `uv sync`,
-  native dependency setup, the exact commands, and output hashes recorded.
-- [ ] Run the full portable checks and hosted CI on the final pushed commit.
+- [x] Generate balanced datasets from six compatible scene families with
+  immutable sample, scene, solver, and asset identity provenance. Scene/material
+  realism qualification remains outside this simulation-only MVP.
+- [x] Run `loslab nr-observe` over all six datasets with one receiver
+  configuration and recorded observation semantics on Linux/LLVM plus CUDA PHY.
+- [x] Compare logistic regression, random forest, and raw-I/Q MLP on identical
+  DMRS observations; save per-sample predictions and seed-level uncertainty.
+  Model-level calibration is explicitly unimplemented for this MVP.
+- [x] Lock `rt_etoile` out of training and validation; the run manifest confirms
+  it is the sole test domain and records the split indices hash.
+- [x] Record the generation, observation, and evaluation commands and hashes in
+  the committed evidence report.
+- [ ] Pass the clean hosted Linux workflow on the final pushed numerical-fix
+  commit. This supplies the clean-checkout portable reproduction gate.
 - [ ] Review the generated report for correct simulation-only wording and retain
   weak/negative results without changing the locked evaluation.
 
-The current single-scene smoke does **not** satisfy these exit criteria. The
-remaining scientific gates in `MASTER_RESEARCH_PLAN.md`—independent measurements,
-qualified materials, receiver impairments, broad standards conformance, model
-novelty, forecasting, and downstream utility—remain beyond this MVP and are not
-quietly treated as complete.
+The six-scene run is an implementation-scale MVP check, not a stable benchmark.
+The final MVP release gate remains open until hosted CI passes and the report is
+reviewed. The broader scientific gates in `MASTER_RESEARCH_PLAN.md`—independent
+measurements, qualified materials, receiver impairments, broad standards
+conformance, model novelty, forecasting, and downstream utility—remain beyond
+this MVP and are not treated as complete.

@@ -104,7 +104,13 @@ def fit_sparse_multipath(
         delays: NDArray[np.float64], gains: NDArray[np.complex128]
     ) -> tuple[float, float, float]:
         residual = measured - _render(f, delays, gains)
-        rss = max(float(np.vdot(residual, residual).real), np.finfo(np.float64).tiny)
+        # Exact synthetic channels can leave different model orders with tiny,
+        # platform-dependent residuals from floating-point arithmetic. Without
+        # a signal-scaled floor, BIC interprets those numerical differences as
+        # a physical noise reduction and can add unsupported paths.
+        signal_energy = float(np.vdot(measured, measured).real)
+        numerical_floor = np.finfo(np.float64).eps * max(signal_energy, np.finfo(np.float64).tiny)
+        rss = max(float(np.vdot(residual, residual).real), numerical_floor)
         variance = rss / measured.size
         parameter_count = 3 * delays.size + 1
         bic = observation_count * math.log(rss / measured.size) + parameter_count * math.log(
