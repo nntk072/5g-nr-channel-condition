@@ -1,6 +1,6 @@
 # Measured-data candidates for the 5G NR channel-state plan
 
-**Status:** source-screened; no external dataset has been downloaded or admitted to an experiment yet.
+**Status:** CAEZ-5G license accepted by the user on 2026-10-22; official preprocessed indoor CSI download is in progress to a Git-ignored local path. The data is not admitted to an experiment until the download is complete and its schema, provenance, labels, and split leakage have been audited.
 
 ## CAEZ-5G (ETH Zurich)
 
@@ -8,7 +8,7 @@ The CAEZ source describes four real wideband, multi-antenna, multi-O-RU 5G NR up
 
 This is a plausible external source for **measured CSI reconstruction and temporal/trajectory channel-state prediction** (T16/T17), subject to inspecting the actual fields and timestamp alignment. It is not a labeled LOS/NLOS dataset: position labels alone do not establish whether each UE–O-RU link is physically LOS. We must not turn its positions into LOS labels without independently verified geometry and obstruction evidence. A measured-channel experiment should freeze the model before test evaluation, split by complete trajectories or contiguous time blocks, and retain noise estimates and complex CSI where available. Random sample splits would leak highly correlated neighboring PUSCH slots.
 
-The CAEZ dataset license permits processing and derivative works with attribution, but prohibits redistribution of the dataset and any subset; it places use at the user's risk. Any downloaded source must remain outside Git and public artifacts. The user has been asked to confirm acceptance before download; until then, the measured-data gate remains open. Cite the CAEZ authors' 2025 Asilomar paper in any public output using these data.
+The CAEZ dataset license permits processing and derivative works with attribution, but prohibits redistribution of the dataset and any subset; it places use at the user's risk. The user explicitly accepted the license and authorized a local research download. The selected official preprocessed file, `caez_5g_indoor_full.npz` under `data/external/caez/`, is listed at 5.5 GiB (5,957,915,148 bytes) and contains downsampled OFDM-domain absolute CSI features. It is substantially smaller than the 394 GB raw indoor archive, but it does not preserve complex phase. It is suitable only for analyses supported by its actual fields; it cannot establish phase-sensitive reconstruction performance or LOS/NLOS labels. Keep both the archive and any subset/derived data out of Git, public artifacts, and third-party sharing. Cite the CAEZ authors' 2025 Asilomar paper in any public output using these data. The official [license](https://iip.ethz.ch/datasets/caez/caez-dataset-license.html) and [preprocessed feature directory](https://iis-people.ee.ethz.ch/~iisdatasets/iip/caez/5g/csi_features/downsampled_ofdm_domain_absolutes/) are recorded for provenance.
 
 ## Coverage@CS-KAU
 
