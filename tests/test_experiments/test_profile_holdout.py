@@ -7,9 +7,11 @@ import pytest
 from datasets.channel import ChannelDataset
 from experiments.profile_holdout import (
     BASELINE_CONFIGURATION,
+    _model_complexity,
     normalized_cfr_features,
     run_profile_holdout,
 )
+from sklearn.ensemble import RandomForestClassifier
 
 
 def _small_profile_dataset() -> ChannelDataset:
@@ -75,6 +77,30 @@ def test_profile_holdout_keeps_outer_profiles_and_validation_groups_disjoint():
         assert row["validation_groups"] > 0
         assert row["test_groups"] == 40
         assert 0.0 <= row["profile_recall_at_validation_threshold"] <= 1.0
+        resources = row["resource_use"]
+        assert resources["fit_wall_seconds"] >= 0.0
+        assert resources["heldout_prediction_wall_seconds"] >= 0.0
+        assert resources["training_samples"] > 0
+        assert resources["input_features"] == 32
+        assert resources["training_input_bytes"] == (
+            resources["training_samples"] * resources["input_features"] * 4
+        )
+        assert resources["learned_parameter_count"] > 0
+        assert resources["serialized_model_bytes"] > 0
+
+
+def test_model_complexity_reports_random_forest_structure():
+    model = RandomForestClassifier(n_estimators=3, max_depth=2, random_state=41)
+    model.fit(np.arange(40, dtype=np.float32).reshape(20, 2), np.tile([0, 1], 10))
+
+    complexity = _model_complexity(model)
+
+    assert complexity["learned_parameter_count"] == 0
+    assert complexity["tree_count"] == 3
+    assert complexity["tree_node_count"] >= complexity["tree_leaf_count"]
+    assert complexity["tree_leaf_count"] >= complexity["tree_count"]
+    assert complexity["maximum_tree_depth"] <= 2
+    assert complexity["serialized_model_bytes"] > 0
 
 
 def test_profile_holdout_rejects_inconsistent_proxy_labels():

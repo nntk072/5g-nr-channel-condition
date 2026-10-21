@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import pickle
 from collections.abc import Callable
 from copy import deepcopy
+from time import perf_counter
 from typing import Any, Sequence
 
 import numpy as np
@@ -160,6 +162,33 @@ def _fit(
     return estimator.fit(x, y), {"early_stopping": "not applicable"}
 
 
+def _model_complexity(estimator: Any) -> dict[str, int]:
+    """Describe fitted model size without treating incomparable units as equivalent."""
+    import numpy as np
+
+    components = getattr(estimator, "steps", [("estimator", estimator)])
+    learned_parameter_count = 0
+    trees: list[Any] = []
+    for _, component in components:
+        for attribute in ("coefs_", "intercepts_"):
+            arrays = getattr(component, attribute, ())
+            learned_parameter_count += sum(int(np.size(array)) for array in arrays)
+        for attribute in ("coef_", "intercept_"):
+            array = getattr(component, attribute, None)
+            if array is not None:
+                learned_parameter_count += int(np.size(array))
+        trees.extend(getattr(component, "estimators_", ()))
+    tree_nodes = [int(tree.tree_.node_count) for tree in trees]
+    return {
+        "learned_parameter_count": learned_parameter_count,
+        "tree_count": len(trees),
+        "tree_node_count": sum(tree_nodes),
+        "tree_leaf_count": sum(int(tree.tree_.n_leaves) for tree in trees),
+        "maximum_tree_depth": max((int(tree.tree_.max_depth) for tree in trees), default=0),
+        "serialized_model_bytes": len(pickle.dumps(estimator, protocol=pickle.HIGHEST_PROTOCOL)),
+    }
+
+
 def run_profile_holdout(
     data: ChannelDataset,
     *,
@@ -221,6 +250,7 @@ def run_profile_holdout(
             model_seed = seed + profile_index * 1000 + method_index
             if progress is not None:
                 progress(f"profile={heldout_profile} method={method}: fitting")
+            fit_started = perf_counter()
             estimator, training = _fit(
                 method,
                 features[train],
@@ -229,9 +259,14 @@ def run_profile_holdout(
                 data.y[validation],
                 model_seed,
             )
+            fit_seconds = perf_counter() - fit_started
+            validation_prediction_started = perf_counter()
             validation_scores = estimator.predict_proba(features[validation])[:, 1]
+            validation_prediction_seconds = perf_counter() - validation_prediction_started
             threshold = threshold_from_validation(data.y[validation], validation_scores)
+            test_prediction_started = perf_counter()
             test_scores = estimator.predict_proba(features[test])[:, 1]
+            test_prediction_seconds = perf_counter() - test_prediction_started
             scores[method][test] = test_scores
             thresholds[method][test] = threshold
             test_class = int(data.y[test[0]])
@@ -254,6 +289,17 @@ def run_profile_holdout(
                     "test_indices_sha256": _index_hash(test),
                     "threshold_from_validation": float(threshold),
                     "training": training,
+                    "resource_use": {
+                        "fit_wall_seconds": fit_seconds,
+                        "validation_prediction_wall_seconds": validation_prediction_seconds,
+                        "heldout_prediction_wall_seconds": test_prediction_seconds,
+                        "training_samples": int(len(train)),
+                        "validation_samples": int(len(validation)),
+                        "heldout_samples": int(len(test)),
+                        "input_features": int(features.shape[1]),
+                        "training_input_bytes": int(features[train].nbytes),
+                        **_model_complexity(estimator),
+                    },
                     "profile_recall_at_validation_threshold": float(np.mean(correct)),
                     "mean_test_positive_score": float(np.mean(test_scores)),
                 }
