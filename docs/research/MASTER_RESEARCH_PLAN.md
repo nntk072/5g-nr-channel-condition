@@ -4,7 +4,7 @@
 
 **Document edition:** 1.2 — 2026-10-21 (GPU PUSCH receiver vertical slice verified)
 **Status:** execution specification and scientific decision record; **not** a completed study, not experimental evidence, and not a claim of top-tier acceptance.
-**Repository inspected:** live checkout /home/nguyenl37/5g-nr-channel-condition, branch main, base commit cc43a5544036578a6bb57ce52b66436d8acb6c1b (working tree now contains the PUSCH receiver implementation); local reference /home/nguyenl37/sionna at Sionna v2.2.0, commit 2f0a3820269b53fd022780a6f2f5f720f7ceb9b4, RT submodule commit 15b5ee036917a4c2a9b6420e05570b77717e2fcc.
+**Repository inspected:** live checkout /home/nguyenl37/5g-nr-channel-condition, branch main, initial implementation commit ffe199c80c1caf40dea91a406fe02124b3ff05ec (built from baseline cc43a5544036578a6bb57ce52b66436d8acb6c1b); local reference /home/nguyenl37/sionna at Sionna v2.2.0, commit 2f0a3820269b53fd022780a6f2f5f720f7ceb9b4, RT submodule commit 15b5ee036917a4c2a9b6420e05570b77717e2fcc.
 **Legacy work:** Long Nguyen, *5G Physical Layer Channel Conditions Classification Using Machine Learning Techniques*, Tampere University, July 2025, embedded in `docs/thesis/NguyenLong.pdf`.
 **Scope:** living research and engineering execution specification. This revision records verified GPU/PHY and RT feasibility; no scientific model or dataset result is claimed.
 **Verification performed during this revision:** full repository suite: 84 passed, 1 skipped, 82.13% coverage; CI-scoped Ruff lint/format and mypy pass (46 source files); package build succeeds. A project-owned PUSCH DMRS LS adapter runs on CUDA and recovers a known flat complex channel over the complete estimated grid (maximum error approximately 4.3e-8); the earlier PUSCH + Rayleigh + DMRS estimator smoke also passes on CUDA. Native Sionna RT free-space Friis/delay validation passes on LLVM CPU but its CUDA variant fails during Mitsuba initialization because WSL lacks working OptiX symbols. These are API/physics smoke checks, not research results.
@@ -39,7 +39,7 @@ This live snapshot supersedes older statements that the GPU or native Sionna is 
 
 | Item | Verified state | Consequence |
 |---|---|---|
-| Project | /home/nguyenl37/5g-nr-channel-condition, base commit cc43a5544036578a6bb57ce52b66436d8acb6c1b; implementation changes currently uncommitted | This checkout supersedes the uploaded ZIP and old directory name. |
+| Project | /home/nguyenl37/5g-nr-channel-condition, initial receiver and plan commit ffe199c80c1caf40dea91a406fe02124b3ff05ec | This checkout supersedes the uploaded ZIP and old directory name. |
 | Quality gates | 84 passed, 1 optional Sionna test skipped, 82.13% coverage; CI-scoped Ruff lint/format; mypy passes on 46 source files; package build succeeds | Keep ordinary CI CPU-only; native/GPU test is collected and skips when Sionna is absent. |
 | Sionna reference | `/home/nguyenl37/sionna` tag v2.2.0, commit `2f0a3820269b53fd022780a6f2f5f720f7ceb9b4`; initialized RT submodule v2.2.0, commit `15b5ee036917a4c2a9b6420e05570b77717e2fcc` | Both checkouts were clean. Pin source review and experiments to these revisions; keep the clone external. |
 | GPU | WSL2 NVIDIA RTX PRO 500 Blackwell Generation Laptop GPU, capability 12.0, about 6 GiB VRAM; driver 596.58, CUDA 13.2 | Suitable for PHY/model prototypes and small batches. Profile memory and stream data before scaling. |
