@@ -210,3 +210,39 @@ def test_run_experiment_supports_histogram_gradient_boosting(tmp_path) -> None:
 
     assert summary["aggregate_across_fixed_splits"]["histgb"]["seeds"] == 1
     assert (tmp_path / "runs" / "histgb" / "models" / "histgb_seed13.joblib").is_file()
+
+
+def test_run_experiment_routes_raw_observations_to_real_cnn(tmp_path, monkeypatch) -> None:
+    import experiments.runner as runner
+
+    source = tmp_path / "debug.npz"
+    debug_multipath(n_scenes=8, links_per_scene=16, seed=53).save(source)
+    observed_inputs = []
+
+    class Predictor:
+        def predict_proba(self, values):
+            assert np.iscomplexobj(values)
+            observed_inputs.append(values.shape)
+            score = np.linspace(0.1, 0.9, len(values))
+            return np.column_stack((1.0 - score, score))
+
+        def save(self, path, *, threshold, include_phase):
+            assert include_phase is True
+            assert 0.0 <= threshold <= 1.0
+            path.write_bytes(b"test checkpoint")
+
+    def fake_fit(train, labels, validation, validation_labels, **kwargs):
+        assert np.iscomplexobj(train)
+        assert np.iscomplexobj(validation)
+        assert labels.ndim == validation_labels.ndim == 1
+        return Predictor(), {"epoch_count": 1, "trainable_parameters": 1}
+
+    monkeypatch.setattr(runner, "fit_real_cnn", fake_fit)
+    output = tmp_path / "runs" / "cnn"
+    result = run_experiment([source], output, methods=("cnn",), seeds=(13,), bootstrap=10)
+
+    assert result["aggregate_across_fixed_splits"]["cnn"]["seeds"] == 1
+    assert (output / "models" / "cnn_seed13.pt").read_bytes() == b"test checkpoint"
+    assert observed_inputs
+    config = json.loads((output / "config" / "resolved.json").read_text(encoding="utf-8"))
+    assert "real/imaginary" in config["values"]["cnn_input_representation"]
