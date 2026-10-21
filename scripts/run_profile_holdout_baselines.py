@@ -9,7 +9,7 @@ from typing import Any, Sequence
 import numpy as np
 from artifacts.provenance import atomic_json, package_source_sha256, sha256_file, versions
 from datasets.channel import ChannelDataset
-from experiments.profile_holdout import run_profile_holdout
+from experiments.profile_holdout import BASELINE_CONFIGURATION, run_profile_holdout
 
 
 def run(
@@ -61,6 +61,9 @@ def run(
         "configuration": {
             "seed": seed,
             "methods": list(methods),
+            "baseline_configuration": {
+                method: BASELINE_CONFIGURATION[method] for method in methods
+            },
             "validation_fraction_of_training_groups": result[
                 "validation_fraction_of_training_groups"
             ],

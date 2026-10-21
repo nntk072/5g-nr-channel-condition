@@ -5,7 +5,11 @@ from __future__ import annotations
 import numpy as np
 import pytest
 from datasets.channel import ChannelDataset
-from experiments.profile_holdout import normalized_cfr_features, run_profile_holdout
+from experiments.profile_holdout import (
+    BASELINE_CONFIGURATION,
+    normalized_cfr_features,
+    run_profile_holdout,
+)
 
 
 def _small_profile_dataset() -> ChannelDataset:
@@ -89,3 +93,8 @@ def test_profile_holdout_rejects_inconsistent_proxy_labels():
 
     with pytest.raises(ValueError, match="does not match"):
         run_profile_holdout(corrupted, methods=("logreg",))
+
+
+def test_random_forest_baseline_configuration_is_single_worker():
+    assert BASELINE_CONFIGURATION["rf"]["n_estimators"] == 250
+    assert BASELINE_CONFIGURATION["rf"]["n_jobs"] == 1

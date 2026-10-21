@@ -16,6 +16,31 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
+BASELINE_CONFIGURATION: dict[str, dict[str, Any]] = {
+    "logreg": {
+        "estimator": "StandardScaler + LogisticRegression",
+        "max_iter": 1000,
+        "class_weight": "balanced",
+    },
+    "mlp": {
+        "estimator": "StandardScaler + MLPClassifier",
+        "hidden_layer_sizes": [128, 64, 32],
+        "activation": "relu",
+        "alpha": 1e-3,
+        "batch_size": 64,
+        "max_epochs": 300,
+        "validation_patience_epochs": 18,
+        "validation_min_delta": 1e-4,
+    },
+    "rf": {
+        "estimator": "RandomForestClassifier",
+        "n_estimators": 250,
+        "min_samples_leaf": 3,
+        "class_weight": "balanced_subsample",
+        "n_jobs": 1,
+    },
+}
+
 
 def normalized_cfr_features(h: np.ndarray) -> np.ndarray:
     """Return global-gain/phase normalized complex CFR samples as real features."""
@@ -130,6 +155,8 @@ def _fit(
         }
 
     estimator = make_estimator(method, seed)
+    if method == "rf":
+        estimator.set_params(n_jobs=1)
     return estimator.fit(x, y), {"early_stopping": "not applicable"}
 
 
@@ -268,6 +295,7 @@ def run_profile_holdout(
         "seed": seed,
         "mlp_early_stopping": "group-disjoint outer-fold training validation, not random rows",
         "methods": list(methods),
+        "baseline_configuration": {method: BASELINE_CONFIGURATION[method] for method in methods},
         "folds": fold_records,
         "summary": summary,
         "predictions": scores,
