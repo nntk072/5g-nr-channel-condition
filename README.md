@@ -47,8 +47,11 @@ configuration/version metadata. Run the native test with
 test is discovered by the regular suite and skips when Sionna is absent. In a
 CUDA environment it verifies a known flat complex channel on the GPU. This
 golden-vector test validates the adapter contract; synchronization,
-channel/noise calibration, BER/BLER, RT coupling, and broad configuration
-coverage remain planned work.
+channel/noise calibration, BER/BLER, and broad configuration coverage remain
+planned work. A separate RT-to-OFDM-grid bridge preserves path delays and maps
+Sionna RT CFR onto NR baseband bins; a native 10 m free-space CPU/LLVM test
+checks its per-subcarrier phase against the absolute-delay CIR formula. The
+complete RT-to-PUSCH receive chain is still under validation.
 
 ## Repository map
 
