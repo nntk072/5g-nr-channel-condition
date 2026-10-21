@@ -2,7 +2,25 @@
 
 from __future__ import annotations
 
+import pytest
 from experiments import cp_margin
+
+
+def test_holm_adjust_p_values_applies_step_down_and_preserves_names():
+    adjusted = cp_margin.holm_adjust_p_values(
+        {"largest": 0.04, "small": 0.01, "middle": 0.03, "tiny": 0.002}
+    )
+
+    assert adjusted == {"tiny": 0.008, "small": 0.03, "middle": 0.06, "largest": 0.06}
+
+
+def test_holm_adjust_p_values_rejects_invalid_probability():
+    try:
+        cp_margin.holm_adjust_p_values({"invalid": 1.01})
+    except ValueError as error:
+        assert "finite values in [0, 1]" in str(error)
+    else:
+        raise AssertionError("invalid p-value must be rejected")
 
 
 def test_cp_margin_wrapper_summarizes_matched_conditions(monkeypatch):
@@ -42,5 +60,7 @@ def test_cp_margin_wrapper_summarizes_matched_conditions(monkeypatch):
     assert result["points"]["beyond_cp"]["bler"] == 1.0
     assert result["points"]["inside_cp"]["measured_receive_snr_db_by_batch"]
     assert result["paired_comparison"]["treatment_minus_control_bler"] == 0.75
-    assert result["paired_comparison"]["mcnemar_exact_two_sided_p_value_holm"] <= 1.0
+    assert result["paired_comparison"]["mcnemar_exact_two_sided_p_value_holm"] == pytest.approx(
+        0.25
+    )
     assert result["configuration"]["package_source_sha256"]

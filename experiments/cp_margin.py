@@ -12,6 +12,20 @@ from integrations.sionna.cp_margin import run_static_cp_margin_experiment as _ru
 from experiments.link_curves import wilson_score_interval_95
 
 
+def holm_adjust_p_values(p_values: dict[str, float]) -> dict[str, float]:
+    """Apply Holm's step-down family-wise error correction to named p-values."""
+    if any(not math.isfinite(value) or not 0.0 <= value <= 1.0 for value in p_values.values()):
+        raise ValueError("p-values must be finite values in [0, 1]")
+    ordered = sorted(p_values, key=p_values.__getitem__)
+    adjusted: dict[str, float] = {}
+    running_max = 0.0
+    count = len(ordered)
+    for rank, name in enumerate(ordered):
+        running_max = max(running_max, (count - rank) * p_values[name])
+        adjusted[name] = min(1.0, running_max)
+    return adjusted
+
+
 def run_static_cp_margin_experiment(**kwargs: Any) -> dict[str, Any]:
     """Run the Sionna-backed controlled CP-margin experiment."""
     result = _run_native(**kwargs)
@@ -46,19 +60,15 @@ def run_static_cp_margin_experiment(**kwargs: Any) -> dict[str, Any]:
         for condition, point in points.items()
         if condition != "inside_cp"
     }
-    ordered_comparisons = sorted(
-        result["paired_comparisons_vs_inside_cp"],
-        key=lambda name: result["paired_comparisons_vs_inside_cp"][name][
-            "mcnemar_exact_two_sided_p_value"
-        ],
-    )
-    adjusted_max = 0.0
-    comparison_count = len(ordered_comparisons)
-    for rank, condition in enumerate(ordered_comparisons):
-        comparison = result["paired_comparisons_vs_inside_cp"][condition]
-        raw_p = comparison["mcnemar_exact_two_sided_p_value"]
-        adjusted_max = max(adjusted_max, (comparison_count - rank) * raw_p)
-        comparison["mcnemar_exact_two_sided_p_value_holm"] = min(1.0, adjusted_max)
+    raw_p_values = {
+        condition: comparison["mcnemar_exact_two_sided_p_value"]
+        for condition, comparison in result["paired_comparisons_vs_inside_cp"].items()
+    }
+    adjusted_p_values = holm_adjust_p_values(raw_p_values)
+    for condition, adjusted_p in adjusted_p_values.items():
+        result["paired_comparisons_vs_inside_cp"][condition][
+            "mcnemar_exact_two_sided_p_value_holm"
+        ] = adjusted_p
     result["paired_comparison"] = result["paired_comparisons_vs_inside_cp"]["beyond_cp"]
     result.update(
         {
