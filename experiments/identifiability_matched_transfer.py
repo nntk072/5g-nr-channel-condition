@@ -177,6 +177,7 @@ def analyze_matched_cross_condition_transfer(
         "limitations": [
             "Calibration/evaluation are two-path analytical CFR simulations with known path count, noise variance, and frequency grid.",
             "Cross-condition scores are not exchangeable; empirical coverage is a stress test, not a conformal guarantee.",
+            "Bootstrap intervals resample paired evaluation rows conditional on the observed calibration scores; they do not include calibration-sample uncertainty.",
             "Tone count is held fixed while pooling calibration; no tone-count transfer or independent-scene transfer is tested.",
             "OMP delay errors are normalized by reciprocal bandwidth; only the finite-grid OMP plus local-refinement baseline is evaluated.",
             "No diffuse multipath, model-order uncertainty, receiver estimation nuisance, learned method, RT scene, or measured channel is included.",
