@@ -1,0 +1,441 @@
+{
+  "evaluation_protocol": {
+    "features": "normalized CFR features from DMRS estimates; path loss excluded",
+    "holdout_scenes": [
+      "rt_box_one_screen",
+      "rt_simple_street_canyon",
+      "rt_etoile",
+      "rt_urban_00041",
+      "rt_urban_00042",
+      "rt_urban_00043"
+    ],
+    "macro_mean_test_auroc": {
+      "logreg": 0.5201190476190477,
+      "mlp": 0.5173809523809524,
+      "rf": 0.5411309523809523
+    },
+    "methods": [
+      "rf",
+      "mlp",
+      "logreg"
+    ],
+    "observation": "precomputed Sionna PUSCH DMRS LS channel estimate",
+    "seeds": [
+      11,
+      23,
+      47,
+      59,
+      71,
+      83,
+      97
+    ]
+  },
+  "evidence_grade": "SIX_SCENE_SIMULATION_DMRS_RECEIVER_STRESS_TEST",
+  "folds": {
+    "box_one_screen": {
+      "aggregate_across_fixed_splits": {
+        "logreg": {
+          "mean_test_auroc": 0.5817857142857144,
+          "seeds": 7,
+          "std_test_auroc": 0.043342489875080215
+        },
+        "mlp": {
+          "mean_test_auroc": 0.5060714285714285,
+          "seeds": 7,
+          "std_test_auroc": 0.10487946596427909
+        },
+        "rf": {
+          "mean_test_auroc": 0.5667857142857143,
+          "seeds": 7,
+          "std_test_auroc": 0.040148533745390534
+        }
+      },
+      "domain": "rt_box_one_screen",
+      "manifest_sha256": "883086516e6cbc6409d157d422da08a6082406c6154bfc70317d14ae52ee5a24",
+      "result_sha256": "d8e1ccdeb6bc75033ef583e06b7262fde76db772339ea7fa1a56b4604e7999a8",
+      "sample_count": 240,
+      "summary_sha256": "235b2ec8857cb152fc9a8ba2e82dbd8cac5a6e0f06daacc9e9df3e553fa5fb96",
+      "test_group_count": 4
+    },
+    "etoile": {
+      "aggregate_across_fixed_splits": {
+        "logreg": {
+          "mean_test_auroc": 0.37642857142857145,
+          "seeds": 7,
+          "std_test_auroc": 0.021930626551751348
+        },
+        "mlp": {
+          "mean_test_auroc": 0.43785714285714283,
+          "seeds": 7,
+          "std_test_auroc": 0.034533455138597464
+        },
+        "rf": {
+          "mean_test_auroc": 0.3539285714285714,
+          "seeds": 7,
+          "std_test_auroc": 0.03454638014253275
+        }
+      },
+      "domain": "rt_etoile",
+      "manifest_sha256": "c8563708ef2e2a51132364ea274d8bffcc8622725b485a95b56d8169bbfe50ec",
+      "result_sha256": "518b9a7568228a520b4394dcd0a35eb237ddc48fd85c44039e3039fa560bf8fb",
+      "sample_count": 240,
+      "summary_sha256": "746f2d85eba6083d17f41ade5b8d407ec4d465af5a8184163aa0445d2d78bfee",
+      "test_group_count": 20
+    },
+    "simple_street_canyon": {
+      "aggregate_across_fixed_splits": {
+        "logreg": {
+          "mean_test_auroc": 0.4353571428571428,
+          "seeds": 7,
+          "std_test_auroc": 0.03222410366702008
+        },
+        "mlp": {
+          "mean_test_auroc": 0.4832142857142857,
+          "seeds": 7,
+          "std_test_auroc": 0.1046991153826276
+        },
+        "rf": {
+          "mean_test_auroc": 0.48999999999999994,
+          "seeds": 7,
+          "std_test_auroc": 0.04012999709278166
+        }
+      },
+      "domain": "rt_simple_street_canyon",
+      "manifest_sha256": "deb9f5428cebb8de086a06e448613dcbb66a93729bf4cac1c3e35b28a69701e2",
+      "result_sha256": "1c7d099adfa7ffbcb70844d40d9e8ce8a2dca3a50702b81f2318123652154531",
+      "sample_count": 240,
+      "summary_sha256": "14e4116d8e55e0f549caf95413fdd2d9da5f1bb362c2adcc5f2d9336ee84de55",
+      "test_group_count": 11
+    },
+    "urban_00041": {
+      "aggregate_across_fixed_splits": {
+        "logreg": {
+          "mean_test_auroc": 0.7196428571428573,
+          "seeds": 7,
+          "std_test_auroc": 0.023823507798171217
+        },
+        "mlp": {
+          "mean_test_auroc": 0.6607142857142857,
+          "seeds": 7,
+          "std_test_auroc": 0.09835855205270538
+        },
+        "rf": {
+          "mean_test_auroc": 0.7039285714285715,
+          "seeds": 7,
+          "std_test_auroc": 0.03415214557855843
+        }
+      },
+      "domain": "rt_urban_00041",
+      "manifest_sha256": "882176095ff13229ea129602fabfba3ec5ee94e759db893f1e446d0627c89275",
+      "result_sha256": "470f676b6594cd6be5daa8211b0290b3ee75cb634f8becf1af9b9b714a1d160b",
+      "sample_count": 240,
+      "summary_sha256": "8e18f8aca0a4256eee9d8f72f2520c5503e7a5dcd052e4e265e70e8e1e0104cd",
+      "test_group_count": 13
+    },
+    "urban_00042": {
+      "aggregate_across_fixed_splits": {
+        "logreg": {
+          "mean_test_auroc": 0.41250000000000003,
+          "seeds": 7,
+          "std_test_auroc": 0.05279678020485721
+        },
+        "mlp": {
+          "mean_test_auroc": 0.4089285714285714,
+          "seeds": 7,
+          "std_test_auroc": 0.06207953807511012
+        },
+        "rf": {
+          "mean_test_auroc": 0.5028571428571428,
+          "seeds": 7,
+          "std_test_auroc": 0.046935873172619144
+        }
+      },
+      "domain": "rt_urban_00042",
+      "manifest_sha256": "ab31f5be241d8f49545523eefada84324bb1ec75589ce330981fdfabba7b687f",
+      "result_sha256": "dd8f966ce5bcfba23c83d93385122f99138e86e70c7b4afa6aca3d04215a2501",
+      "sample_count": 240,
+      "summary_sha256": "97c0df8b10c718d2d80fda70a2539e5c5175a862c89b9ce39d919fe205b567d5",
+      "test_group_count": 14
+    },
+    "urban_00043": {
+      "aggregate_across_fixed_splits": {
+        "logreg": {
+          "mean_test_auroc": 0.595,
+          "seeds": 7,
+          "std_test_auroc": 0.037024766485871774
+        },
+        "mlp": {
+          "mean_test_auroc": 0.6074999999999999,
+          "seeds": 7,
+          "std_test_auroc": 0.0462331050222673
+        },
+        "rf": {
+          "mean_test_auroc": 0.6292857142857142,
+          "seeds": 7,
+          "std_test_auroc": 0.04187566630599955
+        }
+      },
+      "domain": "rt_urban_00043",
+      "manifest_sha256": "6a07e59c4eaa1961e420e17dd7ceb3c71bf195e36ca8d9640ba025c886a627f1",
+      "result_sha256": "27b019311dd438de083128c27dd4f2d9c8664cd128c3f15e28458b677ebd1e1e",
+      "sample_count": 240,
+      "summary_sha256": "07ac8f61aae06d6c7dab43009327fae927998af65492390fd8694205924c07bf",
+      "test_group_count": 15
+    }
+  },
+  "generic_comb_pilot_comparison": {
+    "dmrs_minus_comb_macro_mean": {
+      "logreg": -0.04678571428571421,
+      "mlp": -0.06470238095238101,
+      "rf": -0.018452380952380998
+    },
+    "interpretation": "Descriptive paired-observation comparison on identical held-out indices; scene folds are not independent replications.",
+    "macro_mean_test_auroc": {
+      "logreg": 0.5669047619047619,
+      "mlp": 0.5820833333333334,
+      "rf": 0.5595833333333333
+    },
+    "reference_folds": {
+      "box_one_screen": {
+        "aggregate_across_fixed_splits": {
+          "logreg": {
+            "mean_test_auroc": 0.5721428571428572,
+            "seeds": 7,
+            "std_test_auroc": 0.04759701871416097
+          },
+          "mlp": {
+            "mean_test_auroc": 0.56,
+            "seeds": 7,
+            "std_test_auroc": 0.0825
+          },
+          "rf": {
+            "mean_test_auroc": 0.42749999999999994,
+            "seeds": 7,
+            "std_test_auroc": 0.05176066717756513
+          }
+        },
+        "manifest_sha256": "af18ac997a96758ffd58197e93e0e13fbda068119b54fe54b802aaa9f95029c8",
+        "observation_semantics": "generic noisy comb pilot estimate, NOT 3GPP DMRS",
+        "result_sha256": "ad1cb360e362194f0976d5c8ca0bfe115e5aca430a10497a0e183eda0b1bd63a",
+        "summary_sha256": "f7fac6c0aad927c1ab7a8394306208351a06f82548bd5055401423a3060a0a1e"
+      },
+      "etoile": {
+        "aggregate_across_fixed_splits": {
+          "logreg": {
+            "mean_test_auroc": 0.5153571428571428,
+            "seeds": 7,
+            "std_test_auroc": 0.0709375983322163
+          },
+          "mlp": {
+            "mean_test_auroc": 0.49321428571428577,
+            "seeds": 7,
+            "std_test_auroc": 0.06097667391638189
+          },
+          "rf": {
+            "mean_test_auroc": 0.45928571428571435,
+            "seeds": 7,
+            "std_test_auroc": 0.038370840863491996
+          }
+        },
+        "manifest_sha256": "047ecc604deaa654f3741c9786078a29a547cba61cd442eb7255bf4a16f4b884",
+        "observation_semantics": "generic noisy comb pilot estimate, NOT 3GPP DMRS",
+        "result_sha256": "22173d99e7610e3266023d82032c8ab60d872be6c20402c0222ec6c456479553",
+        "summary_sha256": "99ba498b8f7395ac5f2c05f76c4ebe8d86b99dadd9b6dd799bbbc086c0e32be9"
+      },
+      "simple_street_canyon": {
+        "aggregate_across_fixed_splits": {
+          "logreg": {
+            "mean_test_auroc": 0.5946428571428571,
+            "seeds": 7,
+            "std_test_auroc": 0.0659455041970984
+          },
+          "mlp": {
+            "mean_test_auroc": 0.6164285714285713,
+            "seeds": 7,
+            "std_test_auroc": 0.052774227115316874
+          },
+          "rf": {
+            "mean_test_auroc": 0.6121428571428572,
+            "seeds": 7,
+            "std_test_auroc": 0.0609205180855311
+          }
+        },
+        "manifest_sha256": "1896285f550b6c139110005973017aef8d20b5e30088ae5a9592d4f0dee42b3b",
+        "observation_semantics": "generic noisy comb pilot estimate, NOT 3GPP DMRS",
+        "result_sha256": "286b38eec2e3fa4087ffcca9d326b406660b2ac575fcc2690ea7a2eea54b14af",
+        "summary_sha256": "b0418c63c57a60178f2f06631d351179f633fbbe2fc9ae0a8fec1b5308328888"
+      },
+      "urban_00041": {
+        "aggregate_across_fixed_splits": {
+          "logreg": {
+            "mean_test_auroc": 0.6496428571428572,
+            "seeds": 7,
+            "std_test_auroc": 0.0431187452330908
+          },
+          "mlp": {
+            "mean_test_auroc": 0.6996428571428572,
+            "seeds": 7,
+            "std_test_auroc": 0.04124188231813454
+          },
+          "rf": {
+            "mean_test_auroc": 0.7035714285714285,
+            "seeds": 7,
+            "std_test_auroc": 0.009558715793402764
+          }
+        },
+        "manifest_sha256": "bd71b2cc040bc473406e602100fe9ba77a96060148ce82a972dfd0939a2d1fab",
+        "observation_semantics": "generic noisy comb pilot estimate, NOT 3GPP DMRS",
+        "result_sha256": "067e06fcf605752f63b54b59c0f605c583640d7e6ff4b6cfb5e15b6d1234ae81",
+        "summary_sha256": "dbf976fa05033b2603ce815ac5cc25b2395176ab259c5e8a06643abc6f3b7069"
+      },
+      "urban_00042": {
+        "aggregate_across_fixed_splits": {
+          "logreg": {
+            "mean_test_auroc": 0.5064285714285715,
+            "seeds": 7,
+            "std_test_auroc": 0.040307597062494094
+          },
+          "mlp": {
+            "mean_test_auroc": 0.5146428571428572,
+            "seeds": 7,
+            "std_test_auroc": 0.04684701545608704
+          },
+          "rf": {
+            "mean_test_auroc": 0.5778571428571428,
+            "seeds": 7,
+            "std_test_auroc": 0.05382124292949941
+          }
+        },
+        "manifest_sha256": "d30e26bb8636a047bd68ac44ff099316dcfc712212c0461a239e3219674ca044",
+        "observation_semantics": "generic noisy comb pilot estimate, NOT 3GPP DMRS",
+        "result_sha256": "93591982a2a93b80d94c4981e583daf85a53a7babffb3210937beda0328d3689",
+        "summary_sha256": "c0807c741ac3eafa0d72d52a23eef4a60249f88457cd18787f8a600dc639818b"
+      },
+      "urban_00043": {
+        "aggregate_across_fixed_splits": {
+          "logreg": {
+            "mean_test_auroc": 0.5632142857142857,
+            "seeds": 7,
+            "std_test_auroc": 0.04834154281676126
+          },
+          "mlp": {
+            "mean_test_auroc": 0.6085714285714285,
+            "seeds": 7,
+            "std_test_auroc": 0.04710044990180433
+          },
+          "rf": {
+            "mean_test_auroc": 0.5771428571428572,
+            "seeds": 7,
+            "std_test_auroc": 0.02833683451757077
+          }
+        },
+        "manifest_sha256": "c208b320c193b372faaee4954d0efd3422f7bb3fa6d66cf7c7e4269cbd07169d",
+        "observation_semantics": "generic noisy comb pilot estimate, NOT 3GPP DMRS",
+        "result_sha256": "911a0b39c56e1ce15c5c5df24ff0d424a52d796ecdc1c84cbd19ed08800093fd",
+        "summary_sha256": "3dfceb9ddf2e93366046db452cb3590ed9f508dbc8fe27af1b8687de5130e504"
+      }
+    },
+    "reference_observation_semantics": "generic noisy comb pilot estimate, NOT 3GPP DMRS",
+    "split_indices_identical_for_every_seed_and_method": true
+  },
+  "limitations": [
+    "All channels are Sionna RT simulation with geometric direct-path-oracle labels and simplified or built-in scenes; no measured channels are used.",
+    "The PUSCH observation uses a static frequency-domain channel, ideal synchronization, unit per-link channel-power normalization, and fixed nominal SNR; CFO, timing error, CP overrun, mobility, and path loss are absent.",
+    "The generic-comb and DMRS comparison uses identical train/validation/test indices when the report's split hash check passes, but training still varies by observation representation.",
+    "Six leave-one-scene-out folds share training scenes and are not six independent replications; metrics are descriptive and establish no model advantage.",
+    "Sionna RT used the LLVM CPU backend in the source-data generation; the PUSCH/DMRS receiver ran on CUDA."
+  ],
+  "observation_dataset": {
+    "channel_estimate_agreement_with_resampled_rt_cfr": {
+      "median_normalized_complex_channel_correlation": 0.9703555703163147,
+      "median_normalized_complex_channel_nmse": 0.06081680208444595
+    },
+    "generation_report": {
+      "channel_condition_label_semantics": "GEOMETRIC_DIRECT_PATH_ORACLE",
+      "input_artifacts": [
+        {
+          "path": "outputs/rt-six-scene-holdout-adaptive-20261021/box_one_screen.npz",
+          "sha256": "70cbbe27ad5b75e2c824e32247e33780d6225245141b659902d0e7417a380e03"
+        },
+        {
+          "path": "outputs/rt-six-scene-holdout-adaptive-20261021/simple_street_canyon.npz",
+          "sha256": "835a0d5e1ba775a4ba130735851e5de6b2c41147156c828782284d224d0de557"
+        },
+        {
+          "path": "outputs/rt-six-scene-holdout-adaptive-20261021/etoile.npz",
+          "sha256": "ba3a2f6c0f0477e43d772528aa86aeccd4c364a8d3b4be3275055518a17efcaa"
+        },
+        {
+          "path": "outputs/rt-six-scene-holdout-adaptive-20261021/urban_00041.npz",
+          "sha256": "66099ad0d0e5cea286e81868e576e0727ff4feb23c13121c06512a9fb8088e93"
+        },
+        {
+          "path": "outputs/rt-six-scene-holdout-adaptive-20261021/urban_00042.npz",
+          "sha256": "9bfeb12f9b5f92efbfac71ca00a466eefcab7a74cb466425b65a9f142d7713cc"
+        },
+        {
+          "path": "outputs/rt-six-scene-holdout-adaptive-20261021/urban_00043.npz",
+          "sha256": "4021c3d237a7fb191c0ddc6cfd723c7fd55a4391d6d2e5c99ab953b1638e6975"
+        }
+      ],
+      "input_grid": {
+        "n_subcarriers": 128,
+        "spacing_hz": 30000.0
+      },
+      "limitations": [
+        "No timing/CFO error, inter-symbol channel variation, or CP violation is simulated.",
+        "Per-link power normalization removes path-loss information.",
+        "RT labels are geometric depth-zero direct-path oracles, not measured LOS/NLOS labels."
+      ],
+      "noise_seed": 20261032,
+      "normalization": "unit mean channel power per link before AWGN",
+      "observation_semantics": "Sionna PUSCH DMRS LS estimate; ideal synchronization",
+      "package_source_sha256": "413ea92e420432779a7832b166af75ff0df8e260727d0eba359996f02f97670d",
+      "receiver_metadata": {
+        "device": "cuda:0",
+        "dmrs_additional_position": 0,
+        "dmrs_config_type": 1,
+        "dmrs_length": 1,
+        "interpolation_type": "nn",
+        "mapping_type": "A",
+        "n_size_bwp": 6,
+        "num_antenna_ports": 1,
+        "num_cdm_groups_without_data": 1,
+        "num_layers": 1,
+        "precoding": "non-codebook",
+        "receiver": "PUSCHLSChannelEstimator",
+        "resource_grid": {
+          "fft_size": 72,
+          "num_ofdm_symbols": 14,
+          "subcarrier_spacing_hz": 30000
+        },
+        "sionna_version": "2.2.0",
+        "subcarrier_spacing_khz": 30
+      },
+      "resampling": "linear interpolation of centered complex CFR onto full PUSCH grid",
+      "runtime_versions": {
+        "git_sha": "be8e86e7e77be52eaafd079a9c5a90e952bc92c5",
+        "numpy": "2.5.4",
+        "python": "3.12.3",
+        "scikit-learn": "1.9.1",
+        "sionna": "2.2.0",
+        "sionna-phy": "not installed",
+        "sionna-rt": "2.2.0",
+        "torch": "2.11.0+cu128"
+      },
+      "sample_count": 240,
+      "schema": "loslab.rt_dmrs_observation.v1",
+      "seed": 20261031,
+      "snr_db": 12.0,
+      "source_revision": "be8e86e7e77be52eaafd079a9c5a90e952bc92c5"
+    },
+    "observation_semantics": "Sionna PUSCH DMRS LS estimate; ideal synchronization",
+    "path": "outputs/rt-six-scene-dmrs-12db-20261021.npz",
+    "sample_count": 240,
+    "sha256": "82f28060b81372d8cb1006766e4e6634c78167af73a440a50926b65711a82a2e"
+  },
+  "package_source_sha256": "413ea92e420432779a7832b166af75ff0df8e260727d0eba359996f02f97670d",
+  "schema": "loslab.rt_dmrs_scene_holdout.v1",
+  "source_revision": "2da07f381126b7c17f323989cf6fadee4d1a63f4",
+  "summary_script_sha256": "ed396390f93d7028a934afb9d847a539c722d7ea7d0ab1bd6365d168c55bd570"
+}
