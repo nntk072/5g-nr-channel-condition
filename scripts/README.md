@@ -137,3 +137,20 @@ omit covariance rather than implying finite certainty. This is a local bound
 under a two-path complex-CFR plus circular-Gaussian-noise model; it is not an
 estimator result, global resolution threshold, receiver experiment, or scene
 validation.
+
+Use `run_rt_solver_convergence.py` to compare deterministic CPU/LLVM Sionna RT ray budgets and interaction depths on a fixed link:
+
+```bash
+PATH="/home/nguyenl37/.venvs/sionna220-gpu/bin:$PATH" \
+  python scripts/run_rt_solver_convergence.py outputs/rt-convergence.json \
+  --scene box_one_screen --tx -2 0 2.5 --rx 0 0 2.5 \
+  --max-depth 3 --samples-per-src 200 2000 20000 100000 \
+  --seeds 11 23 47 --n-subcarriers 256 \
+  --subcarrier-spacing-hz 30000 --carrier-hz 3500000000
+```
+
+The runner compares complex CFRs against the largest requested ray budget at
+maximum depth for the same seed, and records valid paths, path powers/delays,
+scene asset hashes, runtime and code provenance. The highest budget is a
+reference, not assumed truth. A single built-in scene and SISO link do not
+qualify convergence for other geometries or establish material realism.
