@@ -7,7 +7,7 @@ import math
 from typing import Any
 
 
-def run_static_cp_margin_experiment(
+def run_static_cp_margin_experiment(  # pragma: no cover - exercised by native CUDA integration test
     *,
     frames: int = 512,
     batch_size: int = 64,
