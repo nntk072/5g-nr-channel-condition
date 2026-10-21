@@ -1,0 +1,565 @@
+{
+  "configuration": {
+    "allow_cp_overrun": false,
+    "batch_sizes_codewords": [
+      1,
+      8,
+      16,
+      32,
+      64,
+      128
+    ],
+    "carrier_frequency_hz": 3500000000.0,
+    "channel_memory_samples": 13,
+    "channel_model": "Sionna TimeChannel with sampled waveform-domain TDL",
+    "cp_covers_channel_memory": true,
+    "cyclic_prefix_min_samples": 13,
+    "delay_spread_s": 1.0000000000000001e-07,
+    "dmrs_additional_position": 0,
+    "l_max": 7,
+    "l_min": -6,
+    "n_size_bwp_resource_blocks": 12,
+    "num_rx_ant": 2,
+    "profile": "TDL-A",
+    "receive_antennas": 2,
+    "resource_grid": {
+      "bandwidth_hz": 4320000.0,
+      "fft_size": 144,
+      "num_time_samples": 2198
+    },
+    "rx_diversity_decode_policy": "same generated noisy waveform decoded with RX0 and RX0+RX1",
+    "sample_rate_hz": 4320000.0,
+    "seed": 73000,
+    "snr_db": 10.0,
+    "spec_version": "19.2",
+    "speed_mps": 3.0,
+    "subcarrier_spacing_khz": 30
+  },
+  "construction_phases": [
+    {
+      "baseline_allocated_bytes": 0,
+      "baseline_reserved_bytes": 0,
+      "elapsed_seconds": 1.9806710289994953,
+      "peak_allocated_bytes": 1301504,
+      "peak_allocated_increment_bytes": 1301504,
+      "peak_reserved_bytes": 2097152,
+      "peak_reserved_increment_bytes": 2097152,
+      "phase": "receiver_construction"
+    },
+    {
+      "baseline_allocated_bytes": 1054208,
+      "baseline_reserved_bytes": 2097152,
+      "elapsed_seconds": 0.19170478800515411,
+      "peak_allocated_bytes": 6721024,
+      "peak_allocated_increment_bytes": 5666816,
+      "peak_reserved_bytes": 8388608,
+      "peak_reserved_increment_bytes": 6291456,
+      "phase": "tdl_link_construction"
+    }
+  ],
+  "evidence_grade": "ENGINEERING_PROFILE_NOT_LINK_PERFORMANCE_EVIDENCE",
+  "hardware": {
+    "compute_capability": [
+      12,
+      0
+    ],
+    "device_name": "NVIDIA RTX PRO 500 Blackwell Generation Laptop GPU",
+    "torch_cuda_version": "12.8",
+    "torch_version": "2.11.0+cu128",
+    "total_memory_bytes": 6409486336
+  },
+  "limitations": [
+    "One Sionna version, GPU, numerology, TDL profile, bandwidth, decoder and synchronization setting are profiled.",
+    "Memory figures are allocator observations, not total-device utilization or throughput guarantees.",
+    "The profile does not qualify scientific link performance or calibrated hardware behavior."
+  ],
+  "measurement_method": "CUDA-synchronized perf_counter wall time; PyTorch peak allocated and reserved allocator bytes reset around each phase; values are process-local and exclude driver/display memory not owned by PyTorch.",
+  "package_source_sha256": "75a61651999fef47ae6cf7cc559401a45076b0310daa3469dde01171c41a8cb1",
+  "runs": [
+    {
+      "batch_size_codewords": 1,
+      "channel_truth_shape": [
+        1,
+        1,
+        2,
+        1,
+        1,
+        2211,
+        14
+      ],
+      "crc_success_one_rx": 0,
+      "crc_success_two_rx": 1,
+      "decoded_bit_count_one_rx": 4032,
+      "decoded_bit_count_two_rx": 4032,
+      "mean_received_power_per_rx": [
+        0.42590758204460144,
+        1.5394877195358276
+      ],
+      "phases": [
+        {
+          "baseline_allocated_bytes": 6417920,
+          "baseline_reserved_bytes": 8388608,
+          "elapsed_seconds": 0.2601847249970888,
+          "peak_allocated_bytes": 56455168,
+          "peak_allocated_increment_bytes": 50037248,
+          "peak_reserved_bytes": 69206016,
+          "peak_reserved_increment_bytes": 60817408,
+          "phase": "waveform_and_tdl_channel"
+        },
+        {
+          "baseline_allocated_bytes": 15534592,
+          "baseline_reserved_bytes": 29360128,
+          "elapsed_seconds": 0.002246115000161808,
+          "peak_allocated_bytes": 15642112,
+          "peak_allocated_increment_bytes": 107520,
+          "peak_reserved_bytes": 29360128,
+          "peak_reserved_increment_bytes": 0,
+          "phase": "two_rx_awgn"
+        },
+        {
+          "baseline_allocated_bytes": 15570432,
+          "baseline_reserved_bytes": 29360128,
+          "elapsed_seconds": 0.00024183100322261453,
+          "peak_allocated_bytes": 15606272,
+          "peak_allocated_increment_bytes": 35840,
+          "peak_reserved_bytes": 29360128,
+          "peak_reserved_increment_bytes": 0,
+          "phase": "add_awgn_to_two_rx"
+        },
+        {
+          "baseline_allocated_bytes": 15606272,
+          "baseline_reserved_bytes": 29360128,
+          "elapsed_seconds": 0.13081329999840818,
+          "peak_allocated_bytes": 19710464,
+          "peak_allocated_increment_bytes": 4104192,
+          "peak_reserved_bytes": 33554432,
+          "peak_reserved_increment_bytes": 4194304,
+          "phase": "decode_one_rx"
+        },
+        {
+          "baseline_allocated_bytes": 15640576,
+          "baseline_reserved_bytes": 29360128,
+          "elapsed_seconds": 0.03212323199841194,
+          "peak_allocated_bytes": 19776512,
+          "peak_allocated_increment_bytes": 4135936,
+          "peak_reserved_bytes": 33554432,
+          "peak_reserved_increment_bytes": 4194304,
+          "phase": "decode_two_rx"
+        }
+      ],
+      "seed": 73000,
+      "waveform_shape": [
+        1,
+        1,
+        1,
+        2198
+      ]
+    },
+    {
+      "batch_size_codewords": 8,
+      "channel_truth_shape": [
+        8,
+        1,
+        2,
+        1,
+        1,
+        2211,
+        14
+      ],
+      "crc_success_one_rx": 3,
+      "crc_success_two_rx": 8,
+      "decoded_bit_count_one_rx": 32256,
+      "decoded_bit_count_two_rx": 32256,
+      "mean_received_power_per_rx": [
+        0.7424266934394836,
+        1.2578595876693726
+      ],
+      "phases": [
+        {
+          "baseline_allocated_bytes": 14968832,
+          "baseline_reserved_bytes": 29360128,
+          "elapsed_seconds": 0.025795001005462836,
+          "peak_allocated_bytes": 340767744,
+          "peak_allocated_increment_bytes": 325798912,
+          "peak_reserved_bytes": 398458880,
+          "peak_reserved_increment_bytes": 369098752,
+          "phase": "waveform_and_tdl_channel"
+        },
+        {
+          "baseline_allocated_bytes": 19484160,
+          "baseline_reserved_bytes": 62914560,
+          "elapsed_seconds": 0.0034353839946561493,
+          "peak_allocated_bytes": 20334080,
+          "peak_allocated_increment_bytes": 849920,
+          "peak_reserved_bytes": 62914560,
+          "peak_reserved_increment_bytes": 0,
+          "phase": "two_rx_awgn"
+        },
+        {
+          "baseline_allocated_bytes": 19767296,
+          "baseline_reserved_bytes": 62914560,
+          "elapsed_seconds": 0.00027104000037070364,
+          "peak_allocated_bytes": 20050432,
+          "peak_allocated_increment_bytes": 283136,
+          "peak_reserved_bytes": 62914560,
+          "peak_reserved_increment_bytes": 0,
+          "phase": "add_awgn_to_two_rx"
+        },
+        {
+          "baseline_allocated_bytes": 20050432,
+          "baseline_reserved_bytes": 62914560,
+          "elapsed_seconds": 0.0300028170022415,
+          "peak_allocated_bytes": 50915328,
+          "peak_allocated_increment_bytes": 30864896,
+          "peak_reserved_bytes": 69206016,
+          "peak_reserved_increment_bytes": 6291456,
+          "phase": "decode_one_rx"
+        },
+        {
+          "baseline_allocated_bytes": 20317696,
+          "baseline_reserved_bytes": 65011712,
+          "elapsed_seconds": 0.030947621999075636,
+          "peak_allocated_bytes": 51440640,
+          "peak_allocated_increment_bytes": 31122944,
+          "peak_reserved_bytes": 69206016,
+          "peak_reserved_increment_bytes": 4194304,
+          "phase": "decode_two_rx"
+        }
+      ],
+      "seed": 74000,
+      "waveform_shape": [
+        8,
+        1,
+        1,
+        2198
+      ]
+    },
+    {
+      "batch_size_codewords": 16,
+      "channel_truth_shape": [
+        16,
+        1,
+        2,
+        1,
+        1,
+        2211,
+        14
+      ],
+      "crc_success_one_rx": 11,
+      "crc_success_two_rx": 16,
+      "decoded_bit_count_one_rx": 64512,
+      "decoded_bit_count_two_rx": 64512,
+      "mean_received_power_per_rx": [
+        0.9840803742408752,
+        1.0023199319839478
+      ],
+      "phases": [
+        {
+          "baseline_allocated_bytes": 14968832,
+          "baseline_reserved_bytes": 29360128,
+          "elapsed_seconds": 0.023279348002688494,
+          "peak_allocated_bytes": 666554880,
+          "peak_allocated_increment_bytes": 651586048,
+          "peak_reserved_bytes": 759169024,
+          "peak_reserved_increment_bytes": 729808896,
+          "phase": "waveform_and_tdl_channel"
+        },
+        {
+          "baseline_allocated_bytes": 23998976,
+          "baseline_reserved_bytes": 98566144,
+          "elapsed_seconds": 0.0038802339986432344,
+          "peak_allocated_bytes": 25697792,
+          "peak_allocated_increment_bytes": 1698816,
+          "peak_reserved_bytes": 98566144,
+          "peak_reserved_increment_bytes": 0,
+          "phase": "two_rx_awgn"
+        },
+        {
+          "baseline_allocated_bytes": 24565248,
+          "baseline_reserved_bytes": 98566144,
+          "elapsed_seconds": 8.73870012583211e-05,
+          "peak_allocated_bytes": 25131520,
+          "peak_allocated_increment_bytes": 566272,
+          "peak_reserved_bytes": 98566144,
+          "peak_reserved_increment_bytes": 0,
+          "phase": "add_awgn_to_two_rx"
+        },
+        {
+          "baseline_allocated_bytes": 25131520,
+          "baseline_reserved_bytes": 98566144,
+          "elapsed_seconds": 0.04635695399338147,
+          "peak_allocated_bytes": 87217152,
+          "peak_allocated_increment_bytes": 62085632,
+          "peak_reserved_bytes": 106954752,
+          "peak_reserved_increment_bytes": 8388608,
+          "phase": "decode_one_rx"
+        },
+        {
+          "baseline_allocated_bytes": 25665024,
+          "baseline_reserved_bytes": 100663296,
+          "elapsed_seconds": 0.048303223004040774,
+          "peak_allocated_bytes": 88266752,
+          "peak_allocated_increment_bytes": 62601728,
+          "peak_reserved_bytes": 106954752,
+          "peak_reserved_increment_bytes": 6291456,
+          "phase": "decode_two_rx"
+        }
+      ],
+      "seed": 75000,
+      "waveform_shape": [
+        16,
+        1,
+        1,
+        2198
+      ]
+    },
+    {
+      "batch_size_codewords": 32,
+      "channel_truth_shape": [
+        32,
+        1,
+        2,
+        1,
+        1,
+        2211,
+        14
+      ],
+      "crc_success_one_rx": 18,
+      "crc_success_two_rx": 32,
+      "decoded_bit_count_one_rx": 129024,
+      "decoded_bit_count_two_rx": 129024,
+      "mean_received_power_per_rx": [
+        0.9933900833129883,
+        0.9932388067245483
+      ],
+      "phases": [
+        {
+          "baseline_allocated_bytes": 14968832,
+          "baseline_reserved_bytes": 29360128,
+          "elapsed_seconds": 0.07280182099930244,
+          "peak_allocated_bytes": 1318129664,
+          "peak_allocated_increment_bytes": 1303160832,
+          "peak_reserved_bytes": 1476395008,
+          "peak_reserved_increment_bytes": 1447034880,
+          "phase": "waveform_and_tdl_channel"
+        },
+        {
+          "baseline_allocated_bytes": 33028096,
+          "baseline_reserved_bytes": 163577856,
+          "elapsed_seconds": 0.005325569996784907,
+          "peak_allocated_bytes": 36424704,
+          "peak_allocated_increment_bytes": 3396608,
+          "peak_reserved_bytes": 163577856,
+          "peak_reserved_increment_bytes": 0,
+          "phase": "two_rx_awgn"
+        },
+        {
+          "baseline_allocated_bytes": 34160128,
+          "baseline_reserved_bytes": 163577856,
+          "elapsed_seconds": 0.00011273899872321635,
+          "peak_allocated_bytes": 35292160,
+          "peak_allocated_increment_bytes": 1132032,
+          "peak_reserved_bytes": 163577856,
+          "peak_reserved_increment_bytes": 0,
+          "phase": "add_awgn_to_two_rx"
+        },
+        {
+          "baseline_allocated_bytes": 35292160,
+          "baseline_reserved_bytes": 163577856,
+          "elapsed_seconds": 0.0952871449990198,
+          "peak_allocated_bytes": 159446016,
+          "peak_allocated_increment_bytes": 124153856,
+          "peak_reserved_bytes": 213909504,
+          "peak_reserved_increment_bytes": 50331648,
+          "phase": "decode_one_rx"
+        },
+        {
+          "baseline_allocated_bytes": 36637184,
+          "baseline_reserved_bytes": 184549376,
+          "elapsed_seconds": 0.10310214199853363,
+          "peak_allocated_bytes": 159803904,
+          "peak_allocated_increment_bytes": 123166720,
+          "peak_reserved_bytes": 195035136,
+          "peak_reserved_increment_bytes": 10485760,
+          "phase": "decode_two_rx"
+        }
+      ],
+      "seed": 76000,
+      "waveform_shape": [
+        32,
+        1,
+        1,
+        2198
+      ]
+    },
+    {
+      "batch_size_codewords": 64,
+      "channel_truth_shape": [
+        64,
+        1,
+        2,
+        1,
+        1,
+        2211,
+        14
+      ],
+      "crc_success_one_rx": 36,
+      "crc_success_two_rx": 64,
+      "decoded_bit_count_one_rx": 258048,
+      "decoded_bit_count_two_rx": 258048,
+      "mean_received_power_per_rx": [
+        0.8917298913002014,
+        1.0947657823562622
+      ],
+      "phases": [
+        {
+          "baseline_allocated_bytes": 14968832,
+          "baseline_reserved_bytes": 29360128,
+          "elapsed_seconds": 0.10313546600082191,
+          "peak_allocated_bytes": 2622095872,
+          "peak_allocated_increment_bytes": 2607127040,
+          "peak_reserved_bytes": 2923429888,
+          "peak_reserved_increment_bytes": 2894069760,
+          "phase": "waveform_and_tdl_channel"
+        },
+        {
+          "baseline_allocated_bytes": 51087360,
+          "baseline_reserved_bytes": 308281344,
+          "elapsed_seconds": 0.010910940000030678,
+          "peak_allocated_bytes": 57879552,
+          "peak_allocated_increment_bytes": 6792192,
+          "peak_reserved_bytes": 308281344,
+          "peak_reserved_increment_bytes": 0,
+          "phase": "two_rx_awgn"
+        },
+        {
+          "baseline_allocated_bytes": 53351424,
+          "baseline_reserved_bytes": 308281344,
+          "elapsed_seconds": 0.00011799699859693646,
+          "peak_allocated_bytes": 55615488,
+          "peak_allocated_increment_bytes": 2264064,
+          "peak_reserved_bytes": 308281344,
+          "peak_reserved_increment_bytes": 0,
+          "phase": "add_awgn_to_two_rx"
+        },
+        {
+          "baseline_allocated_bytes": 55615488,
+          "baseline_reserved_bytes": 308281344,
+          "elapsed_seconds": 0.5036683630023617,
+          "peak_allocated_bytes": 300141056,
+          "peak_allocated_increment_bytes": 244525568,
+          "peak_reserved_bytes": 367001600,
+          "peak_reserved_increment_bytes": 58720256,
+          "phase": "decode_one_rx"
+        },
+        {
+          "baseline_allocated_bytes": 57747968,
+          "baseline_reserved_bytes": 308281344,
+          "elapsed_seconds": 0.2808462090033572,
+          "peak_allocated_bytes": 305584128,
+          "peak_allocated_increment_bytes": 247836160,
+          "peak_reserved_bytes": 377487360,
+          "peak_reserved_increment_bytes": 69206016,
+          "phase": "decode_two_rx"
+        }
+      ],
+      "seed": 77000,
+      "waveform_shape": [
+        64,
+        1,
+        1,
+        2198
+      ]
+    },
+    {
+      "batch_size_codewords": 128,
+      "channel_truth_shape": [
+        128,
+        1,
+        2,
+        1,
+        1,
+        2211,
+        14
+      ],
+      "crc_success_one_rx": 73,
+      "crc_success_two_rx": 128,
+      "decoded_bit_count_one_rx": 516096,
+      "decoded_bit_count_two_rx": 516096,
+      "mean_received_power_per_rx": [
+        0.9473742842674255,
+        1.0428706407546997
+      ],
+      "phases": [
+        {
+          "baseline_allocated_bytes": 14968832,
+          "baseline_reserved_bytes": 29360128,
+          "elapsed_seconds": 0.9333648350002477,
+          "peak_allocated_bytes": 5230028288,
+          "peak_allocated_increment_bytes": 5215059456,
+          "peak_reserved_bytes": 5817499648,
+          "peak_reserved_increment_bytes": 5788139520,
+          "phase": "waveform_and_tdl_channel"
+        },
+        {
+          "baseline_allocated_bytes": 87205888,
+          "baseline_reserved_bytes": 572522496,
+          "elapsed_seconds": 0.025507473001198377,
+          "peak_allocated_bytes": 100790272,
+          "peak_allocated_increment_bytes": 13584384,
+          "peak_reserved_bytes": 572522496,
+          "peak_reserved_increment_bytes": 0,
+          "phase": "two_rx_awgn"
+        },
+        {
+          "baseline_allocated_bytes": 91734016,
+          "baseline_reserved_bytes": 572522496,
+          "elapsed_seconds": 0.00018625499797053635,
+          "peak_allocated_bytes": 96262144,
+          "peak_allocated_increment_bytes": 4528128,
+          "peak_reserved_bytes": 572522496,
+          "peak_reserved_increment_bytes": 0,
+          "phase": "add_awgn_to_two_rx"
+        },
+        {
+          "baseline_allocated_bytes": 96262144,
+          "baseline_reserved_bytes": 572522496,
+          "elapsed_seconds": 0.7513940260032541,
+          "peak_allocated_bytes": 579864064,
+          "peak_allocated_increment_bytes": 483601920,
+          "peak_reserved_bytes": 698351616,
+          "peak_reserved_increment_bytes": 125829120,
+          "phase": "decode_one_rx"
+        },
+        {
+          "baseline_allocated_bytes": 100526592,
+          "baseline_reserved_bytes": 614465536,
+          "elapsed_seconds": 0.6240327900013654,
+          "peak_allocated_bytes": 589412352,
+          "peak_allocated_increment_bytes": 488885760,
+          "peak_reserved_bytes": 698351616,
+          "peak_reserved_increment_bytes": 83886080,
+          "phase": "decode_two_rx"
+        }
+      ],
+      "seed": 78000,
+      "waveform_shape": [
+        128,
+        1,
+        1,
+        2198
+      ]
+    }
+  ],
+  "schema": "loslab.tdl_pusch_cuda_memory_profile.v1",
+  "versions": {
+    "git_sha": "ee70880f23e9ed0351aae5076842634e3614a09f",
+    "numpy": "2.5.4",
+    "python": "3.12.3",
+    "scikit-learn": "1.9.1",
+    "sionna": "2.2.0",
+    "sionna-phy": "not installed",
+    "sionna-rt": "2.2.0",
+    "torch": "2.11.0+cu128"
+  }
+}
