@@ -1,0 +1,1292 @@
+{
+  "cases": [
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": null,
+      "crlb_delay_std_ns": null,
+      "noise_variance_per_complex_tone": 1.0,
+      "parameter_count": 6,
+      "path_separation_s": 0.0,
+      "rank": 4,
+      "separation_fraction_of_reciprocal_bandwidth": 0.0,
+      "snr_db": 0.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 32133819802154.49,
+      "crlb_delay_std_ns": [
+        5814.060558437904,
+        7354.27014145445
+      ],
+      "noise_variance_per_complex_tone": 1.0,
+      "parameter_count": 6,
+      "path_separation_s": 1.30718954248366e-10,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.001,
+      "snr_db": 0.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 3215504937.231623,
+      "crlb_delay_std_ns": [
+        581.671488653806,
+        735.7627015266772
+      ],
+      "noise_variance_per_complex_tone": 1.0,
+      "parameter_count": 6,
+      "path_separation_s": 1.3071895424836602e-09,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.01,
+      "snr_db": 0.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 82234890.06117989,
+      "crlb_delay_std_ns": [
+        232.63415008217734,
+        294.2615103212141
+      ],
+      "noise_variance_per_complex_tone": 1.0,
+      "parameter_count": 6,
+      "path_separation_s": 3.2679738562091504e-09,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.025,
+      "snr_db": 0.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 5121430.433759891,
+      "crlb_delay_std_ns": [
+        116.25567021277863,
+        147.05308351270588
+      ],
+      "noise_variance_per_complex_tone": 1.0,
+      "parameter_count": 6,
+      "path_separation_s": 6.535947712418301e-09,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.05,
+      "snr_db": 0.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 315584.9933035577,
+      "crlb_delay_std_ns": [
+        58.00573414762924,
+        73.37209490267811
+      ],
+      "noise_variance_per_complex_tone": 1.0,
+      "parameter_count": 6,
+      "path_separation_s": 1.3071895424836602e-08,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 0.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 7335.289766482364,
+      "crlb_delay_std_ns": [
+        22.872786781502953,
+        28.93204106597662
+      ],
+      "noise_variance_per_complex_tone": 1.0,
+      "parameter_count": 6,
+      "path_separation_s": 3.26797385620915e-08,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.25,
+      "snr_db": 0.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 340.49221603421483,
+      "crlb_delay_std_ns": [
+        10.928367574354285,
+        13.823413056995618
+      ],
+      "noise_variance_per_complex_tone": 1.0,
+      "parameter_count": 6,
+      "path_separation_s": 6.5359477124183e-08,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.5,
+      "snr_db": 0.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 15.016087879828913,
+      "crlb_delay_std_ns": [
+        4.9342190557821395,
+        6.24134827619079
+      ],
+      "noise_variance_per_complex_tone": 1.0,
+      "parameter_count": 6,
+      "path_separation_s": 1.30718954248366e-07,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 0.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 4.206416557949254,
+      "crlb_delay_std_ns": [
+        3.262707171374092,
+        4.127034399882982
+      ],
+      "noise_variance_per_complex_tone": 1.0,
+      "parameter_count": 6,
+      "path_separation_s": 2.61437908496732e-07,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 2.0,
+      "snr_db": 0.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": null,
+      "crlb_delay_std_ns": null,
+      "noise_variance_per_complex_tone": 0.1,
+      "parameter_count": 6,
+      "path_separation_s": 0.0,
+      "rank": 4,
+      "separation_fraction_of_reciprocal_bandwidth": 0.0,
+      "snr_db": 10.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 32097868938099.555,
+      "crlb_delay_std_ns": [
+        1838.1022528097612,
+        2325.03607136234
+      ],
+      "noise_variance_per_complex_tone": 0.1,
+      "parameter_count": 6,
+      "path_separation_s": 1.30718954248366e-10,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.001,
+      "snr_db": 10.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 3215504707.1762877,
+      "crlb_delay_std_ns": [
+        183.94067832588155,
+        232.6685991077532
+      ],
+      "noise_variance_per_complex_tone": 0.1,
+      "parameter_count": 6,
+      "path_separation_s": 1.3071895424836602e-09,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.01,
+      "snr_db": 10.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 82234889.8219294,
+      "crlb_delay_std_ns": [
+        73.56537756183329,
+        93.05366001102966
+      ],
+      "noise_variance_per_complex_tone": 0.1,
+      "parameter_count": 6,
+      "path_separation_s": 3.2679738562091504e-09,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.025,
+      "snr_db": 10.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 5121430.436309746,
+      "crlb_delay_std_ns": [
+        36.763270880591534,
+        46.5022680881597
+      ],
+      "noise_variance_per_complex_tone": 0.1,
+      "parameter_count": 6,
+      "path_separation_s": 6.535947712418301e-09,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.05,
+      "snr_db": 10.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 315584.9932969192,
+      "crlb_delay_std_ns": [
+        18.343023725708473,
+        23.20229365909591
+      ],
+      "noise_variance_per_complex_tone": 0.1,
+      "parameter_count": 6,
+      "path_separation_s": 1.3071895424836602e-08,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 10.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 7335.289766480578,
+      "crlb_delay_std_ns": [
+        7.233010266494122,
+        9.149114712601138
+      ],
+      "noise_variance_per_complex_tone": 0.1,
+      "parameter_count": 6,
+      "path_separation_s": 3.26797385620915e-08,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.25,
+      "snr_db": 10.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 340.4922160342201,
+      "crlb_delay_std_ns": [
+        3.455853264248907,
+        4.371347029741715
+      ],
+      "noise_variance_per_complex_tone": 0.1,
+      "parameter_count": 6,
+      "path_separation_s": 6.5359477124183e-08,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.5,
+      "snr_db": 10.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 15.016087879828861,
+      "crlb_delay_std_ns": [
+        1.5603370690476976,
+        1.9736876223128554
+      ],
+      "noise_variance_per_complex_tone": 0.1,
+      "parameter_count": 6,
+      "path_separation_s": 1.30718954248366e-07,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 10.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 4.206416557949252,
+      "crlb_delay_std_ns": [
+        1.0317585999707457,
+        1.3050828685496367
+      ],
+      "noise_variance_per_complex_tone": 0.1,
+      "parameter_count": 6,
+      "path_separation_s": 2.61437908496732e-07,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 2.0,
+      "snr_db": 10.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": null,
+      "crlb_delay_std_ns": null,
+      "noise_variance_per_complex_tone": 0.01,
+      "parameter_count": 6,
+      "path_separation_s": 0.0,
+      "rank": 4,
+      "separation_fraction_of_reciprocal_bandwidth": 0.0,
+      "snr_db": 20.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 32135518626149.645,
+      "crlb_delay_std_ns": [
+        581.3766282421508,
+        735.389790855694
+      ],
+      "noise_variance_per_complex_tone": 0.01,
+      "parameter_count": 6,
+      "path_separation_s": 1.30718954248366e-10,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.001,
+      "snr_db": 20.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 3215504885.221464,
+      "crlb_delay_std_ns": [
+        58.16714860771206,
+        73.57626982677563
+      ],
+      "noise_variance_per_complex_tone": 0.01,
+      "parameter_count": 6,
+      "path_separation_s": 1.3071895424836602e-09,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.01,
+      "snr_db": 20.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 82234889.426183,
+      "crlb_delay_std_ns": [
+        23.263415011627618,
+        29.426151036409564
+      ],
+      "noise_variance_per_complex_tone": 0.01,
+      "parameter_count": 6,
+      "path_separation_s": 3.2679738562091504e-09,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.025,
+      "snr_db": 20.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 5121430.432606351,
+      "crlb_delay_std_ns": [
+        11.625567021191733,
+        14.705308351164152
+      ],
+      "noise_variance_per_complex_tone": 0.01,
+      "parameter_count": 6,
+      "path_separation_s": 6.535947712418301e-09,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.05,
+      "snr_db": 20.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 315584.99329637474,
+      "crlb_delay_std_ns": [
+        5.800573414753132,
+        7.337209490255265
+      ],
+      "noise_variance_per_complex_tone": 0.01,
+      "parameter_count": 6,
+      "path_separation_s": 1.3071895424836602e-08,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 20.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 7335.289766477745,
+      "crlb_delay_std_ns": [
+        2.2872786781503307,
+        2.8932041065976937
+      ],
+      "noise_variance_per_complex_tone": 0.01,
+      "parameter_count": 6,
+      "path_separation_s": 3.26797385620915e-08,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.25,
+      "snr_db": 20.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 340.4922160342258,
+      "crlb_delay_std_ns": [
+        1.0928367574354303,
+        1.382341305699564
+      ],
+      "noise_variance_per_complex_tone": 0.01,
+      "parameter_count": 6,
+      "path_separation_s": 6.5359477124183e-08,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.5,
+      "snr_db": 20.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 15.016087879828854,
+      "crlb_delay_std_ns": [
+        0.49342190557821397,
+        0.6241348276190789
+      ],
+      "noise_variance_per_complex_tone": 0.01,
+      "parameter_count": 6,
+      "path_separation_s": 1.30718954248366e-07,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 20.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 4.206416557949254,
+      "crlb_delay_std_ns": [
+        0.32627071713740924,
+        0.41270343998829817
+      ],
+      "noise_variance_per_complex_tone": 0.01,
+      "parameter_count": 6,
+      "path_separation_s": 2.61437908496732e-07,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 2.0,
+      "snr_db": 20.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": null,
+      "crlb_delay_std_ns": null,
+      "noise_variance_per_complex_tone": 0.001,
+      "parameter_count": 6,
+      "path_separation_s": 0.0,
+      "rank": 4,
+      "separation_fraction_of_reciprocal_bandwidth": 0.0,
+      "snr_db": 30.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 32094303660737.625,
+      "crlb_delay_std_ns": [
+        183.84743208071328,
+        232.55067042944535
+      ],
+      "noise_variance_per_complex_tone": 0.001,
+      "parameter_count": 6,
+      "path_separation_s": 1.30718954248366e-10,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.001,
+      "snr_db": 30.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 3215504655.209746,
+      "crlb_delay_std_ns": [
+        18.39406745989557,
+        23.266859439361415
+      ],
+      "noise_variance_per_complex_tone": 0.001,
+      "parameter_count": 6,
+      "path_separation_s": 1.3071895424836602e-09,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.01,
+      "snr_db": 30.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 82234889.89405738,
+      "crlb_delay_std_ns": [
+        7.356537762862366,
+        9.30536600954807
+      ],
+      "noise_variance_per_complex_tone": 0.001,
+      "parameter_count": 6,
+      "path_separation_s": 3.2679738562091504e-09,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.025,
+      "snr_db": 30.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 5121430.4339932725,
+      "crlb_delay_std_ns": [
+        3.6763270877921816,
+        4.650226808478731
+      ],
+      "noise_variance_per_complex_tone": 0.001,
+      "parameter_count": 6,
+      "path_separation_s": 6.535947712418301e-09,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.05,
+      "snr_db": 30.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 315584.99330165697,
+      "crlb_delay_std_ns": [
+        1.8343023725693757,
+        2.3202293659076907
+      ],
+      "noise_variance_per_complex_tone": 0.001,
+      "parameter_count": 6,
+      "path_separation_s": 1.3071895424836602e-08,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 30.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 7335.289766477383,
+      "crlb_delay_std_ns": [
+        0.7233010266494104,
+        0.9149114712601122
+      ],
+      "noise_variance_per_complex_tone": 0.001,
+      "parameter_count": 6,
+      "path_separation_s": 3.26797385620915e-08,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.25,
+      "snr_db": 30.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 340.4922160342276,
+      "crlb_delay_std_ns": [
+        0.34558532642489,
+        0.43713470297417084
+      ],
+      "noise_variance_per_complex_tone": 0.001,
+      "parameter_count": 6,
+      "path_separation_s": 6.5359477124183e-08,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.5,
+      "snr_db": 30.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 15.01608787982888,
+      "crlb_delay_std_ns": [
+        0.1560337069047697,
+        0.1973687622312855
+      ],
+      "noise_variance_per_complex_tone": 0.001,
+      "parameter_count": 6,
+      "path_separation_s": 1.30718954248366e-07,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 30.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 7650000.0,
+      "condition_number": 4.206416557949252,
+      "crlb_delay_std_ns": [
+        0.10317585999707456,
+        0.13050828685496368
+      ],
+      "noise_variance_per_complex_tone": 0.001,
+      "parameter_count": 6,
+      "path_separation_s": 2.61437908496732e-07,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 2.0,
+      "snr_db": 30.0,
+      "tone_count": 256,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": null,
+      "crlb_delay_std_ns": null,
+      "noise_variance_per_complex_tone": 1.0,
+      "parameter_count": 6,
+      "path_separation_s": 0.0,
+      "rank": 4,
+      "separation_fraction_of_reciprocal_bandwidth": 0.0,
+      "snr_db": 0.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 32315203533467.973,
+      "crlb_delay_std_ns": [
+        728.8340520549567,
+        921.9105224761229
+      ],
+      "noise_variance_per_complex_tone": 1.0,
+      "parameter_count": 6,
+      "path_separation_s": 3.258390355164549e-11,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.001,
+      "snr_db": 0.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 3234268090.997584,
+      "crlb_delay_std_ns": [
+        72.92019023181147,
+        92.23755542811848
+      ],
+      "noise_variance_per_complex_tone": 1.0,
+      "parameter_count": 6,
+      "path_separation_s": 3.258390355164549e-10,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.01,
+      "snr_db": 0.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 82715440.95739397,
+      "crlb_delay_std_ns": [
+        29.163782849170087,
+        36.889591596287325
+      ],
+      "noise_variance_per_complex_tone": 1.0,
+      "parameter_count": 6,
+      "path_separation_s": 8.145975887911372e-10,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.025,
+      "snr_db": 0.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 5151514.669022605,
+      "crlb_delay_std_ns": [
+        14.574238179805288,
+        18.43511512397317
+      ],
+      "noise_variance_per_complex_tone": 1.0,
+      "parameter_count": 6,
+      "path_separation_s": 1.6291951775822745e-09,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.05,
+      "snr_db": 0.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 317477.16202209104,
+      "crlb_delay_std_ns": [
+        7.271900420304327,
+        9.19830729844044
+      ],
+      "noise_variance_per_complex_tone": 1.0,
+      "parameter_count": 6,
+      "path_separation_s": 3.258390355164549e-09,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 0.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 7385.293281137833,
+      "crlb_delay_std_ns": [
+        2.8676817640880023,
+        3.627362391619069
+      ],
+      "noise_variance_per_complex_tone": 1.0,
+      "parameter_count": 6,
+      "path_separation_s": 8.145975887911372e-09,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.25,
+      "snr_db": 0.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 343.5947739778897,
+      "crlb_delay_std_ns": [
+        1.3704535280398917,
+        1.733501830407796
+      ],
+      "noise_variance_per_complex_tone": 1.0,
+      "parameter_count": 6,
+      "path_separation_s": 1.6291951775822744e-08,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.5,
+      "snr_db": 0.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 15.155256319448554,
+      "crlb_delay_std_ns": [
+        0.6187721296978429,
+        0.7826917129913198
+      ],
+      "noise_variance_per_complex_tone": 1.0,
+      "parameter_count": 6,
+      "path_separation_s": 3.258390355164549e-08,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 0.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 4.188955849426503,
+      "crlb_delay_std_ns": [
+        0.4077298943897645,
+        0.5157420545646261
+      ],
+      "noise_variance_per_complex_tone": 1.0,
+      "parameter_count": 6,
+      "path_separation_s": 6.516780710329098e-08,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 2.0,
+      "snr_db": 0.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": null,
+      "crlb_delay_std_ns": null,
+      "noise_variance_per_complex_tone": 0.1,
+      "parameter_count": 6,
+      "path_separation_s": 0.0,
+      "rank": 4,
+      "separation_fraction_of_reciprocal_bandwidth": 0.0,
+      "snr_db": 10.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 32203763871533.516,
+      "crlb_delay_std_ns": [
+        230.42594964054874,
+        291.46841729293095
+      ],
+      "noise_variance_per_complex_tone": 0.1,
+      "parameter_count": 6,
+      "path_separation_s": 3.258390355164549e-11,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.001,
+      "snr_db": 10.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 3234268060.312284,
+      "crlb_delay_std_ns": [
+        23.05938951969496,
+        29.168076937289865
+      ],
+      "noise_variance_per_complex_tone": 0.1,
+      "parameter_count": 6,
+      "path_separation_s": 3.258390355164549e-10,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.01,
+      "snr_db": 10.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 82715440.34612148,
+      "crlb_delay_std_ns": [
+        9.222397901997986,
+        11.665513143575973
+      ],
+      "noise_variance_per_complex_tone": 0.1,
+      "parameter_count": 6,
+      "path_separation_s": 8.145975887911372e-10,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.025,
+      "snr_db": 10.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 5151514.671137389,
+      "crlb_delay_std_ns": [
+        4.6087787809965475,
+        5.829695271916779
+      ],
+      "noise_variance_per_complex_tone": 0.1,
+      "parameter_count": 6,
+      "path_separation_s": 1.6291951775822745e-09,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.05,
+      "snr_db": 10.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 317477.1620200922,
+      "crlb_delay_std_ns": [
+        2.2995768246120196,
+        2.908760168125055
+      ],
+      "noise_variance_per_complex_tone": 0.1,
+      "parameter_count": 6,
+      "path_separation_s": 3.258390355164549e-09,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 10.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 7385.29328113085,
+      "crlb_delay_std_ns": [
+        0.9068405979047452,
+        1.1470727056351635
+      ],
+      "noise_variance_per_complex_tone": 0.1,
+      "parameter_count": 6,
+      "path_separation_s": 8.145975887911372e-09,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.25,
+      "snr_db": 10.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 343.5947739778727,
+      "crlb_delay_std_ns": [
+        0.43337545760194907,
+        0.5481814112159574
+      ],
+      "noise_variance_per_complex_tone": 0.1,
+      "parameter_count": 6,
+      "path_separation_s": 1.6291951775822744e-08,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.5,
+      "snr_db": 10.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 15.155256319448545,
+      "crlb_delay_std_ns": [
+        0.19567292824782995,
+        0.24750885187913713
+      ],
+      "noise_variance_per_complex_tone": 0.1,
+      "parameter_count": 6,
+      "path_separation_s": 3.258390355164549e-08,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 10.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 4.1889558494265,
+      "crlb_delay_std_ns": [
+        0.1289355136411565,
+        0.16309195775590585
+      ],
+      "noise_variance_per_complex_tone": 0.1,
+      "parameter_count": 6,
+      "path_separation_s": 6.516780710329098e-08,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 2.0,
+      "snr_db": 10.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": null,
+      "crlb_delay_std_ns": null,
+      "noise_variance_per_complex_tone": 0.01,
+      "parameter_count": 6,
+      "path_separation_s": 0.0,
+      "rank": 4,
+      "separation_fraction_of_reciprocal_bandwidth": 0.0,
+      "snr_db": 20.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 32290522460705.84,
+      "crlb_delay_std_ns": [
+        72.88200569173007,
+        92.18928199722292
+      ],
+      "noise_variance_per_complex_tone": 0.01,
+      "parameter_count": 6,
+      "path_separation_s": 3.258390355164549e-11,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.001,
+      "snr_db": 20.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 3234267813.433457,
+      "crlb_delay_std_ns": [
+        7.292019158698236,
+        9.223755714251457
+      ],
+      "noise_variance_per_complex_tone": 0.01,
+      "parameter_count": 6,
+      "path_separation_s": 3.258390355164549e-10,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.01,
+      "snr_db": 20.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 82715440.78688459,
+      "crlb_delay_std_ns": [
+        2.9163782843442734,
+        3.6889591589048103
+      ],
+      "noise_variance_per_complex_tone": 0.01,
+      "parameter_count": 6,
+      "path_separation_s": 8.145975887911372e-10,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.025,
+      "snr_db": 20.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 5151514.668902609,
+      "crlb_delay_std_ns": [
+        1.4574238179566597,
+        1.8435115123673218
+      ],
+      "noise_variance_per_complex_tone": 0.01,
+      "parameter_count": 6,
+      "path_separation_s": 1.6291951775822745e-09,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.05,
+      "snr_db": 20.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 317477.1620286082,
+      "crlb_delay_std_ns": [
+        0.7271900420318941,
+        0.9198307298458765
+      ],
+      "noise_variance_per_complex_tone": 0.01,
+      "parameter_count": 6,
+      "path_separation_s": 3.258390355164549e-09,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 20.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 7385.293281138623,
+      "crlb_delay_std_ns": [
+        0.2867681764088033,
+        0.3627362391619098
+      ],
+      "noise_variance_per_complex_tone": 0.01,
+      "parameter_count": 6,
+      "path_separation_s": 8.145975887911372e-09,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.25,
+      "snr_db": 20.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 343.59477397789004,
+      "crlb_delay_std_ns": [
+        0.13704535280398933,
+        0.1733501830407798
+      ],
+      "noise_variance_per_complex_tone": 0.01,
+      "parameter_count": 6,
+      "path_separation_s": 1.6291951775822744e-08,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.5,
+      "snr_db": 20.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 15.155256319448565,
+      "crlb_delay_std_ns": [
+        0.0618772129697843,
+        0.07826917129913198
+      ],
+      "noise_variance_per_complex_tone": 0.01,
+      "parameter_count": 6,
+      "path_separation_s": 3.258390355164549e-08,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 20.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 4.1889558494265025,
+      "crlb_delay_std_ns": [
+        0.04077298943897646,
+        0.0515742054564626
+      ],
+      "noise_variance_per_complex_tone": 0.01,
+      "parameter_count": 6,
+      "path_separation_s": 6.516780710329098e-08,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 2.0,
+      "snr_db": 20.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": null,
+      "crlb_delay_std_ns": null,
+      "noise_variance_per_complex_tone": 0.001,
+      "parameter_count": 6,
+      "path_separation_s": 0.0,
+      "rank": 4,
+      "separation_fraction_of_reciprocal_bandwidth": 0.0,
+      "snr_db": 30.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 32266120926282.59,
+      "crlb_delay_std_ns": [
+        23.052036134932763,
+        29.15878398127272
+      ],
+      "noise_variance_per_complex_tone": 0.001,
+      "parameter_count": 6,
+      "path_separation_s": 3.258390355164549e-11,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.001,
+      "snr_db": 30.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 3234268444.267693,
+      "crlb_delay_std_ns": [
+        2.305938881016252,
+        2.9168076039766255
+      ],
+      "noise_variance_per_complex_tone": 0.001,
+      "parameter_count": 6,
+      "path_separation_s": 3.258390355164549e-10,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.01,
+      "snr_db": 30.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 82715440.53251463,
+      "crlb_delay_std_ns": [
+        0.9222397897199361,
+        1.1665513137501746
+      ],
+      "noise_variance_per_complex_tone": 0.001,
+      "parameter_count": 6,
+      "path_separation_s": 8.145975887911372e-10,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.025,
+      "snr_db": 30.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 5151514.669248108,
+      "crlb_delay_std_ns": [
+        0.46087787812226644,
+        0.5829695272203281
+      ],
+      "noise_variance_per_complex_tone": 0.001,
+      "parameter_count": 6,
+      "path_separation_s": 1.6291951775822745e-09,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.05,
+      "snr_db": 30.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 317477.16202091536,
+      "crlb_delay_std_ns": [
+        0.22995768246095885,
+        0.2908760168121933
+      ],
+      "noise_variance_per_complex_tone": 0.001,
+      "parameter_count": 6,
+      "path_separation_s": 3.258390355164549e-09,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 30.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 7385.29328113282,
+      "crlb_delay_std_ns": [
+        0.09068405979047418,
+        0.11470727056351537
+      ],
+      "noise_variance_per_complex_tone": 0.001,
+      "parameter_count": 6,
+      "path_separation_s": 8.145975887911372e-09,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.25,
+      "snr_db": 30.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 343.5947739779109,
+      "crlb_delay_std_ns": [
+        0.043337545760195,
+        0.05481814112159583
+      ],
+      "noise_variance_per_complex_tone": 0.001,
+      "parameter_count": 6,
+      "path_separation_s": 1.6291951775822744e-08,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 0.5,
+      "snr_db": 30.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 15.155256319448553,
+      "crlb_delay_std_ns": [
+        0.019567292824783002,
+        0.024750885187913713
+      ],
+      "noise_variance_per_complex_tone": 0.001,
+      "parameter_count": 6,
+      "path_separation_s": 3.258390355164549e-08,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 30.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    },
+    {
+      "bandwidth_hz": 30690000.0,
+      "condition_number": 4.188955849426503,
+      "crlb_delay_std_ns": [
+        0.01289355136411565,
+        0.016309195775590587
+      ],
+      "noise_variance_per_complex_tone": 0.001,
+      "parameter_count": 6,
+      "path_separation_s": 6.516780710329098e-08,
+      "rank": 6,
+      "separation_fraction_of_reciprocal_bandwidth": 2.0,
+      "snr_db": 30.0,
+      "tone_count": 1024,
+      "tone_spacing_hz": 30000.0
+    }
+  ],
+  "evidence_grade": "ANALYTICAL_LOCAL_DIAGNOSTIC",
+  "limitations": [
+    "Local Fisher information is not a global estimator guarantee or a delay-resolution threshold.",
+    "No receiver, synchronization uncertainty, channel-estimation error, or scene variation is modeled.",
+    "CRLB covariance is omitted when the supplied local parameterization is rank deficient.",
+    "Noise variance is specified per complex tone and SNR is relative to unit variance."
+  ],
+  "model": "H(f)=sum_l a_l exp(-j 2 pi f tau_l) + circular complex Gaussian noise",
+  "package_source_sha256": "42804eaf16e55a489356c4e5a1c8b90feae46e8bd5b9a26b75690a3d524b31d6",
+  "path_gains_real_imag": [
+    [
+      1.0,
+      0.2
+    ],
+    [
+      0.7,
+      -0.4
+    ]
+  ],
+  "schema": "loslab.identifiability_sweep.v1",
+  "script_sha256": "9625a4ec6d54189665cc641eb437d4303bc523a03e5572de500551f4051e5182",
+  "source_revision": "9239741721e2e99c05e6fba83488c1f7c77f62ca",
+  "versions": {
+    "git_sha": "9239741721e2e99c05e6fba83488c1f7c77f62ca",
+    "numpy": "2.5.4",
+    "python": "3.12.3",
+    "scikit-learn": "1.9.1",
+    "sionna": "not installed",
+    "sionna-phy": "not installed",
+    "sionna-rt": "not installed",
+    "torch": "2.11.0+cpu"
+  }
+}
