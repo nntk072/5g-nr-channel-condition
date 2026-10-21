@@ -60,3 +60,53 @@ def test_rt_absolute_delay_cfr_maps_to_nr_baseband_bins():
     assert np.allclose(
         result.channel[0, 0, 0, 0, 0, 0].numpy(), result.channel[0, 0, 0, 0, 0, 13].numpy()
     )
+
+
+@pytest.mark.native_sionna
+def test_rt_direct_and_reflected_paths_sum_coherently_on_nr_grid():
+    import mitsuba as mi
+
+    mi.set_variant("llvm_ad_mono_polarized")
+    rt = pytest.importorskip("sionna.rt")
+    from integrations.sionna.rt_to_nr import paths_to_nr_ofdm_channel
+    from sionna.phy.ofdm import ResourceGrid
+
+    scene = rt.load_scene(rt.scene.simple_reflector, merge_shapes=False)
+    scene.tx_array = rt.PlanarArray(num_rows=1, num_cols=1, pattern="iso", polarization="V")
+    scene.rx_array = rt.PlanarArray(num_rows=1, num_cols=1, pattern="iso", polarization="V")
+    scene.add(rt.Transmitter("tx", [-10.0, 0.0, 10.0]))
+    scene.add(rt.Receiver("rx", [10.0, 0.0, 10.0]))
+    scene.get("tx").look_at([0.0, 0.0, 0.0])
+    scene.get("rx").look_at([0.0, 0.0, 0.0])
+    paths = rt.PathSolver(deterministic=True)(
+        scene,
+        max_depth=1,
+        los=True,
+        specular_reflection=True,
+        diffuse_reflection=False,
+        refraction=False,
+        diffraction=False,
+        seed=1,
+    )
+    grid = ResourceGrid(
+        num_ofdm_symbols=14,
+        fft_size=24,
+        subcarrier_spacing=30e3,
+        cyclic_prefix_length=0,
+        device="cpu",
+    )
+
+    result = paths_to_nr_ofdm_channel(paths, grid)
+    cir, delays_s = paths.cir(normalize_delays=False, out_type="numpy")
+    frequencies_hz = result.frequencies_hz.numpy()
+    expected = np.sum(
+        cir[0, 0, 0, 0, :, 0, None]
+        * np.exp(-2j * np.pi * delays_s[0, 0, :, None] * frequencies_hz[None, :]),
+        axis=0,
+    )
+
+    assert np.count_nonzero(paths.valid.numpy()) == 2
+    np.testing.assert_allclose(
+        result.channel[0, 0, 0, 0, 0, 0].numpy(), expected, rtol=1e-5, atol=1e-8
+    )
+    assert np.ptp(np.abs(result.channel[0, 0, 0, 0, 0, 0].numpy())) > 0
