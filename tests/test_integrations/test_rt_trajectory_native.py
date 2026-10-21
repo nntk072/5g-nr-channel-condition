@@ -36,6 +36,7 @@ def test_cpu_rt_path_retraces_and_stores_receiver_only_trajectory(tmp_path):
     assert trajectory.trajectory_id == config.trajectory_id
     assert trajectory.sample_times_s == (0.0, 0.1)
     assert len(trajectory.records) == 2
+    assert {record.provenance["rt_seed"] for record in trajectory.records} == {config.seed}
     for record in trajectory.records:
         model_inputs = record.observation.model_inputs()
         assert tuple(model_inputs.received_grid.shape)[0] == 1
@@ -48,3 +49,28 @@ def test_cpu_rt_path_retraces_and_stores_receiver_only_trajectory(tmp_path):
 
     sidecar = tmp_path / "manifests" / "trajectories" / f"{stored.content_sha256}.generation.json"
     assert sidecar.is_file()
+
+
+@pytest.mark.native_sionna
+def test_llvm_rt_common_random_numbers_remove_static_scene_sampling_jitter(tmp_path):
+    config = RTTrajectoryConfig(
+        trajectory_id="native-static-common-random-route",
+        scene="simple_reflector",
+        transmitter_position_m=(-10.0, 0.0, 10.0),
+        receiver_start_m=(10.0, 0.0, 10.0),
+        receiver_velocity_mps=(0.0, 0.0, 0.0),
+        num_steps=2,
+        sample_interval_s=0.1,
+        max_depth=1,
+        samples_per_src=200,
+        seed=20261021,
+        device="cpu",
+    )
+
+    stored = generate_rt_nr_trajectory(config, tmp_path)
+    trajectory = read_nr_trajectory(tmp_path, stored)
+
+    first = trajectory.records[0].targets["channel_cfr"]
+    second = trajectory.records[1].targets["channel_cfr"]
+    np.testing.assert_allclose(first, second, rtol=0.0, atol=1e-10)
+    assert {record.provenance["rt_seed"] for record in trajectory.records} == {config.seed}

@@ -164,7 +164,9 @@ def generate_rt_nr_trajectory(
         rx.position = list(position)
         tx.look_at(rx)
         rx.look_at(tx)
-        seed = config.seed + index
+        # Reuse common random numbers across the route so finite ray-sampling
+        # variation does not masquerade as physical channel evolution.
+        seed = config.seed
         direct = direct_solver(
             scene,
             max_depth=0,
@@ -262,7 +264,7 @@ def generate_rt_nr_trajectory(
             "geometric_los_oracle": geometric_los[index],
             "direct_path_count": direct_path_counts[index],
             "full_path_count": total_path_counts[index],
-            "rt_seed": config.seed + index,
+            "rt_seed": config.seed,
             "receiver_noise_seed": config.seed + config.num_steps,
             "receiver_snr_db": config.snr_db,
             "noise_policy": "common variance from trajectory-batch mean received-grid power",
