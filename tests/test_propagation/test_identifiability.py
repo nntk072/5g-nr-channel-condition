@@ -114,7 +114,7 @@ def test_path_parameter_fisher_reports_coincident_paths_as_rank_deficient():
     frequencies = np.linspace(-15e6, 15e6, 256)
 
     result = path_parameter_fisher_diagnostics(
-        np.asarray([1.0 + 0.2j, 0.7 - 0.4j]),
+        np.asarray([1.0 + 0.0j, 0.5 + 0.0j]),
         np.asarray([100e-9, 100e-9]),
         frequencies,
         noise_variance=0.1,
@@ -123,6 +123,38 @@ def test_path_parameter_fisher_reports_coincident_paths_as_rank_deficient():
     assert result.rank < 6
     assert np.isinf(result.condition_number)
     assert result.crlb_covariance is None
+    assert result.relative_delay_crlb_covariance_s2 is None
+
+
+def test_unknown_common_timing_makes_absolute_delays_unidentifiable_but_not_excess_delay():
+    frequencies = np.linspace(-15e6, 15e6, 256)
+    gains = np.asarray([1.0 + 0.2j, 0.7 - 0.4j])
+    delays = np.asarray([0.0, 80e-9])
+
+    known_clock = path_parameter_fisher_diagnostics(gains, delays, frequencies, noise_variance=0.1)
+    unknown_clock = path_parameter_fisher_diagnostics(
+        gains,
+        delays,
+        frequencies,
+        noise_variance=0.1,
+        unknown_common_timing_offset=True,
+    )
+
+    assert known_clock.rank == 6
+    assert known_clock.crlb_covariance is not None
+    assert known_clock.relative_delay_crlb_covariance_s2 is not None
+    assert unknown_clock.rank == 6
+    assert unknown_clock.fisher_information.shape == (7, 7)
+    assert unknown_clock.common_timing_nuisance_included
+    assert np.isinf(unknown_clock.condition_number)
+    assert unknown_clock.crlb_covariance is None
+    assert unknown_clock.relative_delay_crlb_covariance_s2 is not None
+    np.testing.assert_allclose(
+        unknown_clock.relative_delay_crlb_covariance_s2,
+        known_clock.relative_delay_crlb_covariance_s2,
+        rtol=1e-8,
+        atol=0.0,
+    )
 
 
 def test_close_paths_have_worse_joint_fisher_conditioning():

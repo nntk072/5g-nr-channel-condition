@@ -37,8 +37,46 @@ def test_identifiability_sweep_records_rank_deficiency_and_crlb(tmp_path):
     assert len(result["cases"]) == 2
     assert result["cases"][0]["crlb_delay_std_ns"] is None
     assert result["cases"][0]["condition_number"] is None
+    assert result["cases"][0]["absolute_delay_covariance_available"] is False
     assert result["cases"][1]["crlb_delay_std_ns"] is not None
     assert result["cases"][1]["rank"] == result["cases"][1]["parameter_count"]
+    assert result["cases"][1]["unknown_timing_rank"] == 6
+    assert result["cases"][1]["absolute_delay_covariance_available"] is False
+    assert result["cases"][1]["unknown_timing_relative_delay_crlb_std_ns"] is not None
+
+
+def test_identifiability_sweep_exposes_gain_phase_dependent_coincident_path_ambiguity(tmp_path):
+    output = tmp_path / "phase-sweep.json"
+    subprocess.run(
+        [
+            sys.executable,
+            str(SCRIPT),
+            str(output),
+            "--tone-counts",
+            "32",
+            "--snr-db",
+            "20",
+            "--separation-fractions",
+            "0",
+            "1",
+            "--gain-phase-difference-deg",
+            "0",
+            "90",
+        ],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    cases = json.loads(output.read_text())["cases"]
+    assert len(cases) == 4
+    zero_phase_coincident, quadrature_coincident, zero_phase_separated, _ = cases
+    assert zero_phase_coincident["gain_phase_difference_deg"] == 0
+    assert zero_phase_coincident["unknown_timing_relative_delay_crlb_std_ns"] is None
+    assert quadrature_coincident["gain_phase_difference_deg"] == 90
+    assert quadrature_coincident["unknown_timing_relative_delay_crlb_std_ns"] is not None
+    assert zero_phase_separated["unknown_timing_relative_delay_crlb_std_ns"] is not None
 
 
 def test_identifiability_sweep_refuses_to_overwrite(tmp_path):

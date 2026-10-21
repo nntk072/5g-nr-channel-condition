@@ -28,12 +28,13 @@ class PathParameterFisherDiagnostics:
     """Local Fisher information for complex gains and excess delays.
 
     Parameters are ordered as all gain real parts, all gain imaginary parts,
-    then all delays. The Fisher matrix uses normalized delay coordinates
+    then all delays, and (when requested) a common unknown receiver timing
+    offset. The Fisher matrix uses normalized delay coordinates
     ``tau / delay_scale_s`` so its condition number is not dominated by the
-    arbitrary choice of seconds versus nanoseconds. The covariance bound is in
-    physical units (seconds for delay rows/columns) and is absent when the
-    local model is rank deficient; a pseudoinverse must not be presented as
-    finite certainty along an unobservable parameter direction.
+    arbitrary choice of seconds versus nanoseconds. The full covariance bound
+    is absent when the local model is rank deficient. A relative-delay bound
+    may still be available when those contrasts are identifiable despite an
+    unidentifiable common timing direction.
     """
 
     fisher_information: np.ndarray
@@ -41,6 +42,8 @@ class PathParameterFisherDiagnostics:
     rank: int
     condition_number: float
     crlb_covariance: np.ndarray | None
+    relative_delay_crlb_covariance_s2: np.ndarray | None
+    common_timing_nuisance_included: bool
     delay_scale_s: float
 
 
@@ -101,13 +104,17 @@ def path_parameter_fisher_diagnostics(
     frequencies_hz: np.ndarray,
     *,
     noise_variance: float,
+    unknown_common_timing_offset: bool = False,
     rank_tolerance: float | None = None,
 ) -> PathParameterFisherDiagnostics:
     """Compute the local real-parameter Fisher matrix for a complex CFR model.
 
     The assumed observation is ``H(f)=sum_l a_l exp(-j 2π f τ_l) + n`` with
     independent circular complex Gaussian noise whose variance is
-    ``E[|n|²]`` per tone. This is a local CRLB diagnostic at the supplied true
+    ``E[|n|²]`` per tone. If ``unknown_common_timing_offset`` is true, a common
+    receiver timing nuisance is added to every path delay. Absolute path
+    delays then have a gauge ambiguity, while relative-delay contrasts can
+    remain locally identifiable. This is a local bound at the supplied true
     gains and delays, not a global estimator guarantee or a receiver.
     """
     gains = np.asarray(complex_gains, dtype=np.complex128)
@@ -123,6 +130,8 @@ def path_parameter_fisher_diagnostics(
         raise ValueError("frequencies_hz must be a finite 1D array with at least two tones")
     if not np.isfinite(noise_variance) or noise_variance <= 0:
         raise ValueError("noise_variance must be finite and positive")
+    if not isinstance(unknown_common_timing_offset, bool):
+        raise TypeError("unknown_common_timing_offset must be a bool")
     if rank_tolerance is not None and (not np.isfinite(rank_tolerance) or rank_tolerance <= 0):
         raise ValueError("rank_tolerance must be finite and positive")
 
@@ -138,30 +147,57 @@ def path_parameter_fisher_diagnostics(
     delay_jacobian = (
         -2j * np.pi * centered_frequencies[:, None] * gains[None, :] * steering * delay_scale_s
     )
-    jacobian = np.concatenate((steering, 1j * steering, delay_jacobian), axis=1)
+    jacobian_columns = [steering, 1j * steering, delay_jacobian]
+    if unknown_common_timing_offset:
+        # This nuisance shifts every path by the same amount. Its derivative
+        # is exactly the sum of the individual path-delay derivatives, so
+        # absolute delay cannot be distinguished from receiver timing.
+        jacobian_columns.append(np.sum(delay_jacobian, axis=1, keepdims=True))
+    jacobian = np.concatenate(jacobian_columns, axis=1)
     fisher = (2.0 / noise_variance) * np.real(jacobian.conj().T @ jacobian)
     fisher = (fisher + fisher.T) / 2.0
-    eigenvalues = np.linalg.eigvalsh(fisher)
+    eigenvalues, eigenvectors = np.linalg.eigh(fisher)
     tolerance = (
         rank_tolerance
         if rank_tolerance is not None
         else max(fisher.shape) * np.finfo(np.float64).eps * max(float(eigenvalues[-1]), 0.0)
     )
     rank = int(np.count_nonzero(eigenvalues > tolerance))
+    parameter_scale = np.ones(fisher.shape[0], dtype=np.float64)
+    parameter_scale[2 * gains.size :] = delay_scale_s
     if rank == fisher.shape[0]:
         condition_number = float(eigenvalues[-1] / eigenvalues[0])
         covariance_normalized = np.linalg.inv(fisher)
-        parameter_scale = np.ones(fisher.shape[0], dtype=np.float64)
-        parameter_scale[2 * gains.size :] = delay_scale_s
         covariance = parameter_scale[:, None] * covariance_normalized * parameter_scale[None, :]
     else:
         condition_number = float("inf")
         covariance = None
+    relative_covariance: np.ndarray | None = None
+    if gains.size > 1:
+        contrasts = np.zeros((gains.size - 1, fisher.shape[0]), dtype=np.float64)
+        for path_index in range(1, gains.size):
+            contrasts[path_index - 1, 2 * gains.size] = -1.0
+            contrasts[path_index - 1, 2 * gains.size + path_index] = 1.0
+        normalized_contrasts = contrasts * parameter_scale[None, :]
+        nullspace = eigenvectors[:, eigenvalues <= tolerance]
+        unobservable_projection = normalized_contrasts @ nullspace
+        if np.linalg.norm(unobservable_projection) <= 1e-9 * np.linalg.norm(normalized_contrasts):
+            inverse_eigenvalues = np.zeros_like(eigenvalues)
+            inverse_eigenvalues[eigenvalues > tolerance] = (
+                1.0 / eigenvalues[eigenvalues > tolerance]
+            )
+            covariance_normalized = (eigenvectors * inverse_eigenvalues[None, :]) @ eigenvectors.T
+            covariance_physical = (
+                parameter_scale[:, None] * covariance_normalized * parameter_scale[None, :]
+            )
+            relative_covariance = contrasts @ covariance_physical @ contrasts.T
     return PathParameterFisherDiagnostics(
         fisher_information=fisher,
         eigenvalues=eigenvalues,
         rank=rank,
         condition_number=condition_number,
         crlb_covariance=covariance,
+        relative_delay_crlb_covariance_s2=relative_covariance,
+        common_timing_nuisance_included=unknown_common_timing_offset,
         delay_scale_s=delay_scale_s,
     )
