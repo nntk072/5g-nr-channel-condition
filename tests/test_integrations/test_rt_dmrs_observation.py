@@ -4,7 +4,44 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-from integrations.sionna.rt_dmrs import resample_centered_cfr
+from datasets.channel import ChannelDataset
+from integrations.sionna.rt_dmrs import _label_semantics, resample_centered_cfr
+
+
+def _labelled_dataset(*, labels, declared="unspecified_legacy"):
+    count = len(labels)
+    return ChannelDataset(
+        h=np.ones((count, 1, 16), dtype=np.complex64),
+        y=np.asarray([index % 2 for index in range(count)], dtype=np.uint8),
+        group=np.asarray([f"g{index}" for index in range(count)]),
+        domain=np.asarray(["scene"] * count),
+        source=np.asarray(["sionna_rt"] * count),
+        metadata=tuple({"geometry_label": label} for label in labels),
+        label_semantics=declared,
+    )
+
+
+def test_rt_dmrs_label_semantics_resolves_legacy_metadata_and_declared_value():
+    legacy = _labelled_dataset(
+        labels=("GEOMETRIC_DIRECT_PATH_ORACLE", "GEOMETRIC_DIRECT_PATH_ORACLE")
+    )
+    declared = _labelled_dataset(
+        labels=("GEOMETRIC_DIRECT_PATH_ORACLE", "GEOMETRIC_DIRECT_PATH_ORACLE"),
+        declared="geometric_direct_path_oracle",
+    )
+
+    assert _label_semantics(legacy) == "geometric_direct_path_oracle"
+    assert _label_semantics(declared) == "geometric_direct_path_oracle"
+
+
+def test_rt_dmrs_label_semantics_rejects_mixed_or_unknown_targets():
+    mixed = _labelled_dataset(labels=("GEOMETRIC_DIRECT_PATH_ORACLE", "PROFILE_PROXY"))
+    unknown = _labelled_dataset(labels=("UNKNOWN", "UNKNOWN"))
+
+    with pytest.raises(ValueError, match="consistent label semantic"):
+        _label_semantics(mixed)
+    with pytest.raises(ValueError, match="consistent label semantic"):
+        _label_semantics(unknown)
 
 
 def test_centered_cfr_resampling_preserves_overlapping_subcarriers():

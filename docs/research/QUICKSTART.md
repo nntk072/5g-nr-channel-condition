@@ -23,8 +23,9 @@ python -m loslab doctor
 ```
 
 Sionna 2.2 PHY requires a compatible PyTorch runtime. Install a tested PyTorch
-wheel for your GPU/driver instead of blindly mixing CUDA versions. Native RT
-was **not available** in the environment used to prepare this upgrade. Check
+wheel for your GPU/driver instead of blindly mixing CUDA versions. RT generation
+probes Mitsuba's CUDA/OptiX path and uses LLVM on CPU when that path cannot run;
+check the actual host with `python -m loslab doctor --probe-rt`. Check
 `https://nvlabs.github.io/sionna/v2.2.0/installation.html` before deployment.
 
 ## 1. Run a zero-dependency end-to-end smoke experiment
@@ -80,6 +81,30 @@ along with the scene/grid/solver configuration, environment versions, and a
 source-code hash. Empty-path outcomes are counted but are not exported as
 channel observations. Older NPZ files without this report still load; dataset
 selection and concatenation preserve derivation lineage.
+
+## 3b. Feed RT channels through the NR PUSCH/DMRS receiver
+
+Convert one or more compatible RT CFR datasets into receiver-visible PUSCH
+DMRS channel estimates, then run the same grouped experiment pipeline:
+
+```bash
+python -m loslab nr-observe \
+  --input data/rt_city41.npz data/rt_city42.npz data/rt_city43.npz \
+  --output data/rt_cities_pusch_dmrs_12db.npz \
+  --snr-db 12 --seed 42022 --device cuda:0
+
+python -m loslab experiment \
+  --input data/rt_cities_pusch_dmrs_12db.npz \
+  --holdout rt_urban_00043 --output outputs/rt_dmrs_city43_holdout \
+  --methods logreg rf mlp raw_mlp --seeds 11 23 47 --bootstrap 400
+```
+
+The observation builder records its receiver configuration and preserves the
+geometric-label semantics and scene groups. This path assumes ideal
+synchronization and normalizes each link to unit channel power, so it evaluates
+CFR shape without path-loss or outage information. A small smoke run verifies
+software plumbing only; independent scenes, qualified materials, convergence,
+receiver impairments, and measurements remain necessary for scientific claims.
 
 ## 4. Generate independent, controllable city geometries (no Sionna needed)
 

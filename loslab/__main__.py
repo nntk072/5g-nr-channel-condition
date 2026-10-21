@@ -1,4 +1,4 @@
-"""CLI: python -m loslab {doctor,debug-data,phy-data,rt-data,experiment}."""
+"""CLI for environment checks, channel data, NR observations and experiments."""
 
 from __future__ import annotations
 
@@ -62,7 +62,18 @@ def main() -> None:
         "--cache-dir",
         help="optional immutable RT dataset cache; incomplete scene asset manifests bypass caching",
     )
-    exp = sub.add_parser("experiment", help="Evaluate MLP vs CORAL MLP and baselines")
+    nr_observe = sub.add_parser(
+        "nr-observe",
+        help="Apply a Sionna PUSCH/DMRS receiver to saved RT CFR datasets",
+    )
+    nr_observe.add_argument("--input", nargs="+", required=True, help="RT dataset NPZ files")
+    nr_observe.add_argument("--output", required=True, help="New observation dataset NPZ")
+    nr_observe.add_argument("--snr-db", type=float, default=12.0)
+    nr_observe.add_argument("--seed", type=int, default=20261031)
+    nr_observe.add_argument("--device", default="cpu")
+    nr_observe.add_argument("--n-size-bwp", type=int, default=6)
+    nr_observe.add_argument("--subcarrier-spacing-khz", type=int, default=30)
+    exp = sub.add_parser("experiment", help="Evaluate channel-condition baselines")
     exp.add_argument("--config", help="Versioned YAML/JSON experiment configuration")
     exp.add_argument("--input", nargs="+", help="One or more dataset NPZs")
     exp.add_argument("--output")
@@ -156,6 +167,42 @@ def main() -> None:
         )
         d.save(args.output)
         print(f"GEOMETRY-LABELED RT: saved {len(d.y)} to {args.output}")
+        return
+    if args.command == "nr-observe":
+        from pathlib import Path
+
+        from datasets.channel import ChannelDataset
+        from integrations.sionna.rt_dmrs import build_rt_dmrs_observation_dataset
+
+        output_path = Path(args.output)
+        if output_path.exists():
+            raise FileExistsError(
+                f"refusing to overwrite existing observation dataset: {output_path}"
+            )
+        sources = [ChannelDataset.load(path) for path in args.input]
+        observed = build_rt_dmrs_observation_dataset(
+            sources,
+            snr_db=args.snr_db,
+            seed=args.seed,
+            device=args.device,
+            n_size_bwp=args.n_size_bwp,
+            subcarrier_spacing_khz=args.subcarrier_spacing_khz,
+        )
+        observed.save(output_path)
+        print(
+            json.dumps(
+                {
+                    "output": str(output_path),
+                    "samples": len(observed.y),
+                    "shape": list(observed.h.shape),
+                    "label_semantics": observed.label_semantics,
+                    "observation_semantics": observed.generation_report["observation_semantics"],
+                    "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
+                    "warning": "RT/DMRS simulation is not measured radio evidence.",
+                },
+                indent=2,
+            )
+        )
         return
     if args.command == "experiment":
         from .experiment import run_experiment

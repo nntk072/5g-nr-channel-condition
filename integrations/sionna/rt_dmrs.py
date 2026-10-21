@@ -117,6 +117,8 @@ def build_rt_dmrs_observation_dataset(
     if device.startswith("cuda") and not torch.cuda.is_available():
         raise RuntimeError(f"CUDA device requested but unavailable: {device}")
 
+    label_semantics = _label_semantics(data)
+
     receiver = SionnaPUSCHLSReceiver(
         NRPUSCHConfig(
             n_size_bwp=n_size_bwp,
@@ -171,8 +173,10 @@ def build_rt_dmrs_observation_dataset(
         domain=data.domain,
         source=data.source,
         metadata=observation_metadata,
+        label_semantics=label_semantics,
         generation_report={
             "schema": "loslab.rt_dmrs_observation.v1",
+            "label_semantics": label_semantics,
             "observation_semantics": "Sionna PUSCH DMRS LS estimate; ideal synchronization",
             "receiver_metadata": receiver_metadata,
             "input_grid": {
@@ -185,7 +189,7 @@ def build_rt_dmrs_observation_dataset(
             "seed": seed,
             "noise_seed": seed + 1,
             "sample_count": len(data.y),
-            "channel_condition_label_semantics": _label_semantics(data),
+            "channel_condition_label_semantics": label_semantics,
             "limitations": [
                 "No timing/CFO error, inter-symbol channel variation, or CP violation is simulated.",
                 "Per-link power normalization removes path-loss information.",
@@ -197,10 +201,35 @@ def build_rt_dmrs_observation_dataset(
 
 
 def _label_semantics(data: ChannelDataset) -> str:
-    values = sorted(
-        {
-            str(item.get("geometry_label", item.get("label_semantics", "UNSPECIFIED")))
-            for item in data.metadata
-        }
-    )
-    return "; ".join(values)
+    """Resolve one canonical label meaning and reject ambiguous input data."""
+    aliases = {
+        "GEOMETRIC_DIRECT_PATH_ORACLE": "geometric_direct_path_oracle",
+        "PROFILE_PROXY": "profile_proxy",
+        "SYNTHETIC_DEBUG_CONSTRUCTED": "synthetic_debug_direct_component",
+        "SYNTHETIC_DEBUG_DIRECT_COMPONENT": "synthetic_debug_direct_component",
+        "UNSPECIFIED": "unspecified",
+        "UNKNOWN": "unspecified",
+        "UNKNOWN_LEGACY": "unspecified",
+    }
+    declared = data.label_semantics
+    values: set[str] = set()
+    has_unresolved = False
+    for metadata in data.metadata:
+        raw = metadata.get("geometry_label") or metadata.get("label_semantics")
+        if raw is None:
+            if declared == "unspecified_legacy":
+                has_unresolved = True
+            else:
+                values.add(declared)
+            continue
+        normalized = str(raw).strip().upper().replace("-", "_").replace(" ", "_")
+        semantic = aliases.get(normalized, normalized.lower())
+        if semantic == "unspecified":
+            has_unresolved = True
+        else:
+            values.add(semantic)
+    if declared != "unspecified_legacy" and values and values != {declared}:
+        raise ValueError("RT dataset label metadata conflicts with its declared semantics")
+    if has_unresolved or len(values) != 1:
+        raise ValueError("RT datasets need one explicit, consistent label semantic")
+    return next(iter(values))

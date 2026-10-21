@@ -14,6 +14,7 @@ synthetic smoke data as debug-only.
 - [Repository architecture](docs/architecture/README.md)
 - [Full phased refactor plan](docs/architecture/REFACTOR_PLAN.md)
 - [Master 5G NR research and engineering plan](docs/research/MASTER_RESEARCH_PLAN.md)
+- [MVP implementation status and exit checklist](docs/research/MVP_STATUS.md)
 - [2025 thesis PDF](docs/thesis/NguyenLong.pdf)
 
 ## Install and run

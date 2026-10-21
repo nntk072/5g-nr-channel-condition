@@ -49,6 +49,8 @@ def test_rt_cfr_becomes_deterministic_pusch_dmrs_receiver_observations():
     np.testing.assert_array_equal(first.h, second.h)
     np.testing.assert_array_equal(first.y, dataset.y)
     np.testing.assert_array_equal(first.group, dataset.group)
+    assert first.label_semantics == "geometric_direct_path_oracle"
+    assert first.generation_report["label_semantics"] == first.label_semantics
     assert first.generation_report["observation_semantics"].startswith("Sionna PUSCH DMRS")
     assert first.generation_report["receiver_metadata"]["device"] == "cuda:0"
     assert (

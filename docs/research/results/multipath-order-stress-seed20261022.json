@@ -1,0 +1,494 @@
+{
+  "bandwidths_hz": [
+    5000000.0,
+    20000000.0
+  ],
+  "cases": [
+    {
+      "bandwidth_hz": 5000000.0,
+      "median_estimated_to_true_noise_variance_ratio": 0.9485339357521938,
+      "median_full_grid_nmse": null,
+      "order_accuracy": 1.0,
+      "order_accuracy_wilson_95": [
+        0.9123783988027133,
+        1.0
+      ],
+      "predicted_order_counts": [
+        40,
+        0,
+        0,
+        0
+      ],
+      "snr_db": 0.0,
+      "trials": 40,
+      "true_path_order": 0
+    },
+    {
+      "bandwidth_hz": 5000000.0,
+      "median_estimated_to_true_noise_variance_ratio": 1.006523796708001,
+      "median_full_grid_nmse": 0.03702600532955838,
+      "order_accuracy": 1.0,
+      "order_accuracy_wilson_95": [
+        0.9123783988027133,
+        1.0
+      ],
+      "predicted_order_counts": [
+        0,
+        40,
+        0,
+        0
+      ],
+      "snr_db": 0.0,
+      "trials": 40,
+      "true_path_order": 1
+    },
+    {
+      "bandwidth_hz": 5000000.0,
+      "median_estimated_to_true_noise_variance_ratio": 0.9507005907390924,
+      "median_full_grid_nmse": 0.11286201077045821,
+      "order_accuracy": 0.65,
+      "order_accuracy_wilson_95": [
+        0.495058808372577,
+        0.778654711268237
+      ],
+      "predicted_order_counts": [
+        0,
+        14,
+        26,
+        0
+      ],
+      "snr_db": 0.0,
+      "trials": 40,
+      "true_path_order": 2
+    },
+    {
+      "bandwidth_hz": 5000000.0,
+      "median_estimated_to_true_noise_variance_ratio": 0.9216679663878069,
+      "median_full_grid_nmse": 0.1999586368340983,
+      "order_accuracy": 0.175,
+      "order_accuracy_wilson_95": [
+        0.08745413746035918,
+        0.3194999033178771
+      ],
+      "predicted_order_counts": [
+        0,
+        5,
+        28,
+        7
+      ],
+      "snr_db": 0.0,
+      "trials": 40,
+      "true_path_order": 3
+    },
+    {
+      "bandwidth_hz": 5000000.0,
+      "median_estimated_to_true_noise_variance_ratio": 0.9727802530965765,
+      "median_full_grid_nmse": null,
+      "order_accuracy": 1.0,
+      "order_accuracy_wilson_95": [
+        0.9123783988027133,
+        1.0
+      ],
+      "predicted_order_counts": [
+        40,
+        0,
+        0,
+        0
+      ],
+      "snr_db": 10.0,
+      "trials": 40,
+      "true_path_order": 0
+    },
+    {
+      "bandwidth_hz": 5000000.0,
+      "median_estimated_to_true_noise_variance_ratio": 0.9215499054622165,
+      "median_full_grid_nmse": 0.0040713037759308015,
+      "order_accuracy": 0.975,
+      "order_accuracy_wilson_95": [
+        0.8711863103652591,
+        0.9955731684973186
+      ],
+      "predicted_order_counts": [
+        0,
+        39,
+        1,
+        0
+      ],
+      "snr_db": 10.0,
+      "trials": 40,
+      "true_path_order": 1
+    },
+    {
+      "bandwidth_hz": 5000000.0,
+      "median_estimated_to_true_noise_variance_ratio": 0.8619788221328195,
+      "median_full_grid_nmse": 0.009264316525368962,
+      "order_accuracy": 0.925,
+      "order_accuracy_wilson_95": [
+        0.8013576647568945,
+        0.9741639742254118
+      ],
+      "predicted_order_counts": [
+        0,
+        2,
+        37,
+        1
+      ],
+      "snr_db": 10.0,
+      "trials": 40,
+      "true_path_order": 2
+    },
+    {
+      "bandwidth_hz": 5000000.0,
+      "median_estimated_to_true_noise_variance_ratio": 0.8248924454397142,
+      "median_full_grid_nmse": 0.014888460266813099,
+      "order_accuracy": 0.55,
+      "order_accuracy_wilson_95": [
+        0.3982909179893206,
+        0.6929469218909508
+      ],
+      "predicted_order_counts": [
+        0,
+        0,
+        18,
+        22
+      ],
+      "snr_db": 10.0,
+      "trials": 40,
+      "true_path_order": 3
+    },
+    {
+      "bandwidth_hz": 5000000.0,
+      "median_estimated_to_true_noise_variance_ratio": 1.01017302215357,
+      "median_full_grid_nmse": null,
+      "order_accuracy": 0.975,
+      "order_accuracy_wilson_95": [
+        0.8711863103652591,
+        0.9955731684973186
+      ],
+      "predicted_order_counts": [
+        39,
+        1,
+        0,
+        0
+      ],
+      "snr_db": 20.0,
+      "trials": 40,
+      "true_path_order": 0
+    },
+    {
+      "bandwidth_hz": 5000000.0,
+      "median_estimated_to_true_noise_variance_ratio": 0.9445068538131222,
+      "median_full_grid_nmse": 0.00034100819739388776,
+      "order_accuracy": 0.975,
+      "order_accuracy_wilson_95": [
+        0.8711863103652591,
+        0.9955731684973186
+      ],
+      "predicted_order_counts": [
+        0,
+        39,
+        1,
+        0
+      ],
+      "snr_db": 20.0,
+      "trials": 40,
+      "true_path_order": 1
+    },
+    {
+      "bandwidth_hz": 5000000.0,
+      "median_estimated_to_true_noise_variance_ratio": 0.9050299556433098,
+      "median_full_grid_nmse": 0.0011151426679270435,
+      "order_accuracy": 0.975,
+      "order_accuracy_wilson_95": [
+        0.8711863103652591,
+        0.9955731684973186
+      ],
+      "predicted_order_counts": [
+        0,
+        0,
+        39,
+        1
+      ],
+      "snr_db": 20.0,
+      "trials": 40,
+      "true_path_order": 2
+    },
+    {
+      "bandwidth_hz": 5000000.0,
+      "median_estimated_to_true_noise_variance_ratio": 0.8775910156346424,
+      "median_full_grid_nmse": 0.0012780201154000482,
+      "order_accuracy": 0.8,
+      "order_accuracy_wilson_95": [
+        0.6524269365360051,
+        0.8950001027456229
+      ],
+      "predicted_order_counts": [
+        0,
+        0,
+        8,
+        32
+      ],
+      "snr_db": 20.0,
+      "trials": 40,
+      "true_path_order": 3
+    },
+    {
+      "bandwidth_hz": 20000000.0,
+      "median_estimated_to_true_noise_variance_ratio": 1.0150238703136432,
+      "median_full_grid_nmse": null,
+      "order_accuracy": 0.95,
+      "order_accuracy_wilson_95": [
+        0.8349612263085903,
+        0.9861793326138516
+      ],
+      "predicted_order_counts": [
+        38,
+        2,
+        0,
+        0
+      ],
+      "snr_db": 0.0,
+      "trials": 40,
+      "true_path_order": 0
+    },
+    {
+      "bandwidth_hz": 20000000.0,
+      "median_estimated_to_true_noise_variance_ratio": 0.891045033700778,
+      "median_full_grid_nmse": 0.040079826659260284,
+      "order_accuracy": 0.825,
+      "order_accuracy_wilson_95": [
+        0.6805000966821229,
+        0.9125458625396408
+      ],
+      "predicted_order_counts": [
+        0,
+        33,
+        7,
+        0
+      ],
+      "snr_db": 0.0,
+      "trials": 40,
+      "true_path_order": 1
+    },
+    {
+      "bandwidth_hz": 20000000.0,
+      "median_estimated_to_true_noise_variance_ratio": 0.823100245045427,
+      "median_full_grid_nmse": 0.10500235705152336,
+      "order_accuracy": 0.75,
+      "order_accuracy_wilson_95": [
+        0.5980603857923197,
+        0.858128813609037
+      ],
+      "predicted_order_counts": [
+        0,
+        2,
+        30,
+        8
+      ],
+      "snr_db": 0.0,
+      "trials": 40,
+      "true_path_order": 2
+    },
+    {
+      "bandwidth_hz": 20000000.0,
+      "median_estimated_to_true_noise_variance_ratio": 0.8774089339002347,
+      "median_full_grid_nmse": 0.2775898351759224,
+      "order_accuracy": 0.425,
+      "order_accuracy_wilson_95": [
+        0.28509392559950375,
+        0.5780493145800892
+      ],
+      "predicted_order_counts": [
+        2,
+        6,
+        15,
+        17
+      ],
+      "snr_db": 0.0,
+      "trials": 40,
+      "true_path_order": 3
+    },
+    {
+      "bandwidth_hz": 20000000.0,
+      "median_estimated_to_true_noise_variance_ratio": 0.9615591318457232,
+      "median_full_grid_nmse": null,
+      "order_accuracy": 0.85,
+      "order_accuracy_wilson_95": [
+        0.709276756335103,
+        0.9293881228267964
+      ],
+      "predicted_order_counts": [
+        34,
+        5,
+        1,
+        0
+      ],
+      "snr_db": 10.0,
+      "trials": 40,
+      "true_path_order": 0
+    },
+    {
+      "bandwidth_hz": 20000000.0,
+      "median_estimated_to_true_noise_variance_ratio": 0.9032755973216581,
+      "median_full_grid_nmse": 0.004267163699465227,
+      "order_accuracy": 0.85,
+      "order_accuracy_wilson_95": [
+        0.709276756335103,
+        0.9293881228267964
+      ],
+      "predicted_order_counts": [
+        0,
+        34,
+        5,
+        1
+      ],
+      "snr_db": 10.0,
+      "trials": 40,
+      "true_path_order": 1
+    },
+    {
+      "bandwidth_hz": 20000000.0,
+      "median_estimated_to_true_noise_variance_ratio": 0.8283768715956772,
+      "median_full_grid_nmse": 0.009970745049459035,
+      "order_accuracy": 0.725,
+      "order_accuracy_wilson_95": [
+        0.5716504419378943,
+        0.8389198375233267
+      ],
+      "predicted_order_counts": [
+        0,
+        0,
+        29,
+        11
+      ],
+      "snr_db": 10.0,
+      "trials": 40,
+      "true_path_order": 2
+    },
+    {
+      "bandwidth_hz": 20000000.0,
+      "median_estimated_to_true_noise_variance_ratio": 0.8543055200377855,
+      "median_full_grid_nmse": 0.013611015951711707,
+      "order_accuracy": 0.85,
+      "order_accuracy_wilson_95": [
+        0.709276756335103,
+        0.9293881228267964
+      ],
+      "predicted_order_counts": [
+        0,
+        0,
+        6,
+        34
+      ],
+      "snr_db": 10.0,
+      "trials": 40,
+      "true_path_order": 3
+    },
+    {
+      "bandwidth_hz": 20000000.0,
+      "median_estimated_to_true_noise_variance_ratio": 1.0077286278079904,
+      "median_full_grid_nmse": null,
+      "order_accuracy": 0.9,
+      "order_accuracy_wilson_95": [
+        0.769482247724777,
+        0.9604204713173935
+      ],
+      "predicted_order_counts": [
+        36,
+        3,
+        1,
+        0
+      ],
+      "snr_db": 20.0,
+      "trials": 40,
+      "true_path_order": 0
+    },
+    {
+      "bandwidth_hz": 20000000.0,
+      "median_estimated_to_true_noise_variance_ratio": 0.9158781610731384,
+      "median_full_grid_nmse": 0.0005759472402067137,
+      "order_accuracy": 0.85,
+      "order_accuracy_wilson_95": [
+        0.709276756335103,
+        0.9293881228267964
+      ],
+      "predicted_order_counts": [
+        0,
+        34,
+        5,
+        1
+      ],
+      "snr_db": 20.0,
+      "trials": 40,
+      "true_path_order": 1
+    },
+    {
+      "bandwidth_hz": 20000000.0,
+      "median_estimated_to_true_noise_variance_ratio": 0.9094822128827471,
+      "median_full_grid_nmse": 0.0008096349492020501,
+      "order_accuracy": 0.85,
+      "order_accuracy_wilson_95": [
+        0.709276756335103,
+        0.9293881228267964
+      ],
+      "predicted_order_counts": [
+        0,
+        1,
+        34,
+        5
+      ],
+      "snr_db": 20.0,
+      "trials": 40,
+      "true_path_order": 2
+    },
+    {
+      "bandwidth_hz": 20000000.0,
+      "median_estimated_to_true_noise_variance_ratio": 0.897135780941659,
+      "median_full_grid_nmse": 0.0014355912329876703,
+      "order_accuracy": 0.95,
+      "order_accuracy_wilson_95": [
+        0.8349612263085903,
+        0.9861793326138516
+      ],
+      "predicted_order_counts": [
+        0,
+        0,
+        2,
+        38
+      ],
+      "snr_db": 20.0,
+      "trials": 40,
+      "true_path_order": 3
+    }
+  ],
+  "code_revision": "ed23c66568d2ebae69f9e290745d700bd60b591a",
+  "delay_grid_size": 257,
+  "estimator": "delay-grid OMP + continuous least-squares + unknown-noise BIC",
+  "estimator_source_sha256": "20acb220c49cefa5006418114a58c511412e0213fa6f626cde97df38143510ce",
+  "evidence_grade": "ANALYTICAL_SYNTHETIC_STRESS_ONLY",
+  "experiment": "masked_cfr_unknown_path_order_and_noise_stress",
+  "experiment_source_sha256": "47bfe34599193930f7f021e081a9892598e8415d4321b99259001c8bc8c351cc",
+  "limitations": [
+    "No diffuse residual or receiver channel-estimation error is modeled.",
+    "Each trial is synthetic and does not establish transfer to RT scenes or measurements.",
+    "BIC consistency is not guaranteed for coherent, unresolved, or misspecified paths.",
+    "Full-grid reconstruction uses hidden synthetic CFR only for post-fit scoring."
+  ],
+  "maximum_delay_s": 1e-06,
+  "path_orders": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "result_sha256": "41541c7a23c838aee5725fc16437383d525aff83a5b9a59a0489ac90b8e8927c",
+  "schema_version": 1,
+  "seed": 20261022,
+  "snr_db_values": [
+    0.0,
+    10.0,
+    20.0
+  ],
+  "tone_count": 64,
+  "trials_per_cell": 40
+}
