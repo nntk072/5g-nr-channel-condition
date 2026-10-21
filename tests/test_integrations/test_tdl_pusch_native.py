@@ -4,6 +4,7 @@ torch = pytest.importorskip("torch")
 pytest.importorskip("sionna")
 
 from datasets.nr_store import read_nr_record, write_nr_record  # noqa: E402
+from experiments.link_curves import run_tdl_pusch_bler_curve  # noqa: E402
 from integrations.sionna.nr_pusch import SionnaPUSCHLSReceiver  # noqa: E402
 from integrations.sionna.tdl_pusch import (  # noqa: E402
     generate_tdl_pusch_batch,
@@ -53,3 +54,31 @@ def test_tdl_pusch_link_produces_stored_receiver_records_with_separate_truth(tmp
     assert restored.observation.sample_id == "tdl-link-72-0"
     assert restored.targets["channel_cfr"].shape == (1, 1, 2, 1, 1, 14, 24)
     assert restored.provenance["channel_truth_source"] == "Sionna OFDMChannel return_channel"
+
+
+@pytest.mark.native_sionna
+def test_tdl_pusch_bler_curve_records_matched_fading_realizations():
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA is not available")
+
+    result = run_tdl_pusch_bler_curve(
+        snr_db=(0.0, 12.0),
+        frames_per_snr=16,
+        batch_size=8,
+        seed=8102,
+        profile="A",
+        delay_spread_s=100e-9,
+        carrier_frequency_hz=3.5e9,
+        speed_mps=3.0,
+        n_size_bwp=2,
+        subcarrier_spacing_khz=30,
+    )
+
+    assert result["evidence_grade"] == "SIMULATION_ONLY_UNVALIDATED"
+    assert [point["snr_db"] for point in result["points"]] == [0.0, 12.0]
+    assert all(point["frames"] == 16 for point in result["points"])
+    assert all(0.0 <= point["bler"] <= 1.0 for point in result["points"])
+    assert all(
+        item["transmit_bits_match_across_snr"] and item["channel_truth_allclose_across_snr"]
+        for item in result["configuration"]["matched_realization_checks"]
+    )

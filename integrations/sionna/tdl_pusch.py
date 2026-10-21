@@ -24,6 +24,26 @@ class SionnaTDLPUSCHBatch:
     metadata: dict[str, Any]
 
 
+class SionnaPUSCHLinkDecoder:
+    """Sionna-backed CRC decoder kept behind the native integration boundary."""
+
+    def __init__(self, receiver: Any) -> None:
+        try:
+            from sionna.phy.nr import PUSCHReceiver
+        except ImportError as exc:
+            raise RuntimeError("Install the optional Sionna 2.2 PHY dependencies") from exc
+        self._decoder = PUSCHReceiver(
+            receiver._transmitter,
+            return_tb_crc_status=True,
+            input_domain="freq",
+            device=receiver.device,
+        )
+
+    def __call__(self, received_grid: Any, noise_variance: Any) -> tuple[Any, Any]:
+        """Return decoded bits and transport-block CRC status."""
+        return self._decoder(received_grid, noise_variance)
+
+
 def tdl_pusch_records(
     receiver: Any,
     batch: SionnaTDLPUSCHBatch,

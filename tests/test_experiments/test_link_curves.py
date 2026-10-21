@@ -1,0 +1,41 @@
+import pytest
+from experiments.link_curves import run_tdl_pusch_bler_curve, wilson_score_interval_95
+
+
+def test_wilson_interval_has_finite_upper_bound_for_zero_observed_errors():
+    lower, upper = wilson_score_interval_95(0, 100)
+
+    assert lower == 0.0
+    assert 0.03 < upper < 0.04
+
+
+def test_wilson_interval_is_symmetric_at_half_error_rate():
+    lower, upper = wilson_score_interval_95(50, 100)
+
+    assert lower == pytest.approx(1.0 - upper)
+    assert lower < 0.5 < upper
+
+
+@pytest.mark.parametrize(
+    ("errors", "total", "error"),
+    [
+        (True, 10, TypeError),
+        (1.0, 10, TypeError),
+        (-1, 10, ValueError),
+        (11, 10, ValueError),
+        (0, 0, ValueError),
+    ],
+)
+def test_wilson_interval_rejects_invalid_counts(errors, total, error):
+    with pytest.raises(error):
+        wilson_score_interval_95(errors, total)
+
+
+def test_link_curve_rejects_empty_snr_grid_before_loading_native_dependencies():
+    with pytest.raises(ValueError, match="snr_db"):
+        run_tdl_pusch_bler_curve(
+            snr_db=[],
+            frames_per_snr=1,
+            batch_size=1,
+            seed=1,
+        )
