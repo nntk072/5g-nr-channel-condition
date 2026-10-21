@@ -57,6 +57,7 @@ class SionnaTDLTimePUSCHLink:
         speed_mps: float,
         num_rx_ant: int = 1,
         spec_version: str = "19.2",
+        allow_cp_overrun: bool = False,
     ) -> None:
         try:
             import torch
@@ -70,6 +71,8 @@ class SionnaTDLTimePUSCHLink:
             raise ValueError("initial sample-domain link supports one layer and one transmit port")
         if num_rx_ant <= 0:
             raise ValueError("num_rx_ant must be positive")
+        if not isinstance(allow_cp_overrun, bool):
+            raise TypeError("allow_cp_overrun must be a boolean")
         self._torch = torch
         self._device = receiver.device
         config = receiver._transmitter._pusch_configs
@@ -82,10 +85,12 @@ class SionnaTDLTimePUSCHLink:
         grid = self.transmitter.resource_grid
         l_min, l_max = time_lag_discrete_time_channel(grid.bandwidth, delay_spread_s)
         min_cyclic_prefix = int(torch.as_tensor(grid.cyclic_prefix_length).min().item())
-        if l_max - l_min > min_cyclic_prefix:
+        cp_covers_channel_memory = l_max - l_min <= min_cyclic_prefix
+        if not cp_covers_channel_memory and not allow_cp_overrun:
             raise ValueError(
                 "sample-domain channel memory exceeds the shortest cyclic prefix; "
-                "increase the PUSCH bandwidth/resource-block allocation or reduce delay spread"
+                "increase the PUSCH bandwidth/resource-block allocation or reduce delay spread; "
+                "set allow_cp_overrun=True only for an explicit stress test"
             )
         self.l_min = l_min
         self.l_max = l_max
@@ -130,6 +135,8 @@ class SionnaTDLTimePUSCHLink:
             "l_max": l_max,
             "cyclic_prefix_min_samples": min_cyclic_prefix,
             "channel_memory_samples": l_max - l_min,
+            "cp_covers_channel_memory": cp_covers_channel_memory,
+            "allow_cp_overrun": allow_cp_overrun,
             "resource_grid": {
                 "fft_size": grid.fft_size,
                 "num_time_samples": grid.num_time_samples,

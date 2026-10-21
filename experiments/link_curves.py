@@ -221,6 +221,7 @@ def run_tdl_pusch_time_bler_curve(
     n_size_bwp: int = 12,
     dmrs_additional_position: int = 0,
     subcarrier_spacing_khz: int = 30,
+    allow_cp_overrun: bool = False,
 ) -> dict[str, Any]:
     """Measure paired PUSCH BLER over the sample-domain, time-varying TDL link."""
     snr_values = tuple(float(value) for value in snr_db)
@@ -268,6 +269,7 @@ def run_tdl_pusch_time_bler_curve(
         delay_spread_s=delay_spread_s,
         carrier_frequency_hz=carrier_frequency_hz,
         speed_mps=speed_mps,
+        allow_cp_overrun=allow_cp_overrun,
     )
     if seed > 2**63 - 3:
         raise ValueError("seed must leave room for derived channel and noise seeds")
@@ -378,7 +380,12 @@ def run_tdl_pusch_time_bler_curve(
         "limitations": [
             "Sionna sampled TDL and its finite sinc-interpolation tap support are simulation models.",
             "The receiver has no injected timing or carrier-frequency synchronization error.",
-            "The cyclic prefix is required to cover the configured discrete channel memory.",
+            (
+                "The cyclic prefix covers the configured discrete channel memory."
+                if link.metadata["cp_covers_channel_memory"]
+                else "The discrete channel memory exceeds the cyclic prefix; this is an explicit "
+                "ISI/ICI stress condition and not a normal CP-contained PUSCH configuration."
+            ),
             "Wilson intervals count codewords and do not account for independent-scene uncertainty.",
             "This curve is not standards certification or validation against external measurements.",
         ],

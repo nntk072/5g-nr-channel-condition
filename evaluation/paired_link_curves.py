@@ -35,13 +35,28 @@ def compare_curves(
     treatment = load_curve(treatment_path)
     control_config = control["configuration"]
     treatment_config = treatment["configuration"]
-    if varying_config_field not in {"speed_mps", "dmrs_additional_position"}:
-        raise ValueError("varying_config_field must be speed_mps or dmrs_additional_position")
+    if varying_config_field not in {
+        "speed_mps",
+        "dmrs_additional_position",
+        "delay_spread_s",
+    }:
+        raise ValueError(
+            "varying_config_field must be speed_mps, dmrs_additional_position, or delay_spread_s"
+        )
     varying = {
         varying_config_field,
         "matched_realization_checks",
         "transmit_waveform_mean_power_by_batch",
     }
+    if varying_config_field == "delay_spread_s":
+        varying.update(
+            {
+                "allow_cp_overrun",
+                "channel_memory_samples",
+                "cp_covers_channel_memory",
+                "l_max",
+            }
+        )
     for key in set(control_config) | set(treatment_config):
         if key not in varying and control_config.get(key) != treatment_config.get(key):
             raise ValueError(f"curve configuration differs unexpectedly at {key}")
@@ -69,6 +84,21 @@ def compare_curves(
         raise ValueError("transmitted bits differ for the matched mobility experiment")
     if varying_config_field == "dmrs_additional_position" and not same_channel:
         raise ValueError("channel truth differs for the matched DMRS experiment")
+    if varying_config_field == "delay_spread_s":
+        if not same_bits:
+            raise ValueError("transmitted bits differ for the matched delay-spread experiment")
+        if same_channel:
+            raise ValueError("channel truth is identical across delay-spread conditions")
+        if control_config.get("allow_cp_overrun") is not False or not control_config.get(
+            "cp_covers_channel_memory"
+        ):
+            raise ValueError("control curve must have a CP-contained channel")
+        if treatment_config.get("allow_cp_overrun") is not True or treatment_config.get(
+            "cp_covers_channel_memory"
+        ):
+            raise ValueError("delay-spread treatment must explicitly record CP overrun")
+        if treatment_config["delay_spread_s"] <= control_config["delay_spread_s"]:
+            raise ValueError("treatment delay spread must exceed control delay spread")
 
     control_points = control["points"]
     treatment_points = treatment["points"]
@@ -112,8 +142,12 @@ def compare_curves(
         "control": {
             "path": str(control_path),
             "sha256": sha256_file(control_path),
+            "varying_config_value": control_value,
             "speed_mps": control_config["speed_mps"],
             "dmrs_additional_position": control_config.get("dmrs_additional_position", 0),
+            "delay_spread_s": control_config.get("delay_spread_s"),
+            "channel_memory_samples": control_config.get("channel_memory_samples"),
+            "cp_covers_channel_memory": control_config.get("cp_covers_channel_memory"),
             "transmit_waveform_mean_power_by_batch": control_config.get(
                 "transmit_waveform_mean_power_by_batch"
             ),
@@ -121,20 +155,44 @@ def compare_curves(
         "treatment": {
             "path": str(treatment_path),
             "sha256": sha256_file(treatment_path),
+            "varying_config_value": treatment_value,
             "speed_mps": treatment_config["speed_mps"],
             "dmrs_additional_position": treatment_config.get("dmrs_additional_position", 0),
+            "delay_spread_s": treatment_config.get("delay_spread_s"),
+            "channel_memory_samples": treatment_config.get("channel_memory_samples"),
+            "cp_covers_channel_memory": treatment_config.get("cp_covers_channel_memory"),
             "transmit_waveform_mean_power_by_batch": treatment_config.get(
                 "transmit_waveform_mean_power_by_batch"
             ),
         },
         "paired_design": {
             "same_configuration_except": varying_config_field,
+            "additional_control_policy_change": (
+                "allow_cp_overrun: false to true"
+                if varying_config_field == "delay_spread_s"
+                else None
+            ),
+            "derived_configuration_changes": (
+                ["channel_memory_samples", "cp_covers_channel_memory", "l_max"]
+                if varying_config_field == "delay_spread_s"
+                else []
+            ),
             "same_transmitted_bits_by_seed": same_bits,
             "same_channel_truth_by_seed": same_channel,
             "same_batch_seeds_and_noise_seeds": True,
             "statistic": "paired codeword bootstrap CI and Holm-adjusted exact McNemar tests",
-            "versions": versions(),
-            "package_source_sha256": package_source_sha256(),
+            "channel_truth_is_intentionally_changed": varying_config_field
+            != "dmrs_additional_position",
+            "input_environments": {
+                "control": control_config.get("versions"),
+                "treatment": treatment_config.get("versions"),
+            },
+            "input_package_source_sha256": {
+                "control": control_config.get("package_source_sha256"),
+                "treatment": treatment_config.get("package_source_sha256"),
+            },
+            "analysis_environment": versions(),
+            "analysis_package_source_sha256": package_source_sha256(),
         },
         "points": comparisons,
         "limitations": [

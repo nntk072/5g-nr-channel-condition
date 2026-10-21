@@ -142,3 +142,47 @@ def test_sample_domain_tdl_pusch_decodes_waveforms_and_records_matched_bler():
         item["transmit_bits_match_across_snr"] and item["channel_truth_match_across_snr"]
         for item in result["configuration"]["matched_realization_checks"]
     )
+
+
+@pytest.mark.native_sionna
+def test_sample_domain_link_records_explicit_channel_over_cyclic_prefix_stress():
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA is not available")
+    receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(n_size_bwp=12, subcarrier_spacing_khz=30),
+        device="cuda:0",
+    )
+    with pytest.raises(ValueError, match="allow_cp_overrun=True"):
+        SionnaTDLTimePUSCHLink(
+            receiver,
+            model="A",
+            delay_spread_s=300e-9,
+            carrier_frequency_hz=3.5e9,
+            speed_mps=3.0,
+        )
+
+    result = run_tdl_pusch_time_bler_curve(
+        snr_db=(12.0, 24.0),
+        frames_per_snr=16,
+        batch_size=8,
+        seed=99103,
+        profile="A",
+        delay_spread_s=300e-9,
+        carrier_frequency_hz=3.5e9,
+        speed_mps=3.0,
+        n_size_bwp=12,
+        subcarrier_spacing_khz=30,
+        allow_cp_overrun=True,
+    )
+    config = result["configuration"]
+    assert result["evidence_grade"] == "SIMULATION_ONLY_UNVALIDATED"
+    assert config["allow_cp_overrun"] is True
+    assert config["cp_covers_channel_memory"] is False
+    assert config["channel_memory_samples"] > config["cyclic_prefix_min_samples"]
+    assert [point["snr_db"] for point in result["points"]] == [12.0, 24.0]
+    assert all(point["frames"] == 16 for point in result["points"])
+    assert all(0 <= point["bler"] <= 1 for point in result["points"])
+    assert all(
+        check["transmit_bits_match_across_snr"] and check["channel_truth_match_across_snr"]
+        for check in config["matched_realization_checks"]
+    )

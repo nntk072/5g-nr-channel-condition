@@ -303,6 +303,74 @@ def test_curve_comparator_pairs_dmrs_change_on_identical_channel_truth(tmp_path)
     assert result["points"][0]["treatment_minus_control_goodput_bits_per_codeword"] == -70.0
 
 
+def test_curve_comparator_pairs_explicit_cp_overrun_delay_spread(tmp_path):
+    checks = [
+        {
+            "seed": 51000,
+            "noise_seed": 51002,
+            "transmit_bits_sha256": "same-bits",
+            "channel_truth_sha256": "control-channel",
+        }
+    ]
+    base_config = {
+        "speed_mps": 3.0,
+        "matched_realization_checks": checks,
+        "transmit_waveform_mean_power_by_batch": [1.0],
+        "channel_memory_samples": 13,
+        "cp_covers_channel_memory": True,
+        "allow_cp_overrun": False,
+        "l_max": 7,
+    }
+    common = {
+        "schema": "loslab.tdl_pusch_time_bler_curve.v1",
+        "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
+        "points": [
+            {
+                "snr_db": 12.0,
+                "frames": 2,
+                "bits": 200,
+                "frame_error_mask": [False, True],
+            }
+        ],
+    }
+    control = {
+        **common,
+        "configuration": {**base_config, "delay_spread_s": 100e-9},
+    }
+    treatment = {
+        **common,
+        "configuration": {
+            **base_config,
+            "delay_spread_s": 300e-9,
+            "channel_memory_samples": 14,
+            "cp_covers_channel_memory": False,
+            "allow_cp_overrun": True,
+            "l_max": 8,
+            "matched_realization_checks": [
+                {
+                    **checks[0],
+                    "channel_truth_sha256": "treatment-channel",
+                }
+            ],
+        },
+    }
+    control_path = tmp_path / "cp-contained.json"
+    treatment_path = tmp_path / "cp-overrun.json"
+    atomic_json(control_path, control)
+    atomic_json(treatment_path, treatment)
+
+    result = compare_curves(
+        control_path,
+        treatment_path,
+        varying_config_field="delay_spread_s",
+    )
+
+    assert result["paired_design"]["same_transmitted_bits_by_seed"]
+    assert not result["paired_design"]["same_channel_truth_by_seed"]
+    assert result["control"]["cp_covers_channel_memory"] is True
+    assert result["treatment"]["cp_covers_channel_memory"] is False
+
+
 def test_code_hash_is_stable():
     one = package_source_sha256()
     assert len(one) == 64 and one == package_source_sha256()
