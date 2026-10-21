@@ -83,3 +83,16 @@ def test_box_screen_separates_direct_visibility_from_indirect_paths_and_diffuse_
     assert diffuse_direct == 0
     assert np.count_nonzero(diffuse_valid) > 0
     assert np.count_nonzero(diffuse_paths & diffuse_valid) > 0
+
+
+@pytest.mark.native_sionna
+def test_receiver_outside_closed_metal_box_has_no_solved_paths():
+    direct, valid, diffuse = _trace_box_one_screen(
+        tx_position=[0.0, -1.0, 2.5],
+        rx_position=[6.0, 0.0, 2.5],
+        scattering_coefficient=0.0,
+    )
+
+    assert direct == 0
+    assert np.count_nonzero(valid) == 0
+    assert np.count_nonzero(diffuse) == 0
