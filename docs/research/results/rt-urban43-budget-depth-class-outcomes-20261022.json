@@ -1,0 +1,613 @@
+{
+  "additional_seed_check": {
+    "max_depth": 2,
+    "samples_per_source": 500000,
+    "seed": 43002
+  },
+  "budget_comparisons_to_500k_within_depth": [
+    {
+      "changed_full_path_counts": 1,
+      "max_channel_delta_over_500k_peak": 0.037372931838035583,
+      "max_depth": 1,
+      "reference_samples_per_source": 500000,
+      "relative_channel_l2_to_500k": 0.01994195766746998,
+      "same_group_ids": true,
+      "same_labels": true,
+      "same_receiver_positions": true,
+      "samples_per_source": 20000,
+      "seed": 43001
+    },
+    {
+      "changed_full_path_counts": 0,
+      "max_channel_delta_over_500k_peak": 7.306469342438504e-05,
+      "max_depth": 1,
+      "reference_samples_per_source": 500000,
+      "relative_channel_l2_to_500k": 3.144549918943085e-05,
+      "same_group_ids": true,
+      "same_labels": true,
+      "same_receiver_positions": true,
+      "samples_per_source": 100000,
+      "seed": 43001
+    },
+    {
+      "changed_full_path_counts": 0,
+      "max_channel_delta_over_500k_peak": 0.0,
+      "max_depth": 1,
+      "reference_samples_per_source": 500000,
+      "relative_channel_l2_to_500k": 0.0,
+      "same_group_ids": true,
+      "same_labels": true,
+      "same_receiver_positions": true,
+      "samples_per_source": 500000,
+      "seed": 43001
+    },
+    {
+      "changed_full_path_counts": 1,
+      "max_channel_delta_over_500k_peak": 0.09198549389839172,
+      "max_depth": 2,
+      "reference_samples_per_source": 500000,
+      "relative_channel_l2_to_500k": 0.038136307150125504,
+      "same_group_ids": true,
+      "same_labels": true,
+      "same_receiver_positions": true,
+      "samples_per_source": 20000,
+      "seed": 43001
+    },
+    {
+      "changed_full_path_counts": 0,
+      "max_channel_delta_over_500k_peak": 0.00011002303654095158,
+      "max_depth": 2,
+      "reference_samples_per_source": 500000,
+      "relative_channel_l2_to_500k": 7.700508285779506e-05,
+      "same_group_ids": true,
+      "same_labels": true,
+      "same_receiver_positions": true,
+      "samples_per_source": 100000,
+      "seed": 43001
+    },
+    {
+      "changed_full_path_counts": 0,
+      "max_channel_delta_over_500k_peak": 0.0,
+      "max_depth": 2,
+      "reference_samples_per_source": 500000,
+      "relative_channel_l2_to_500k": 0.0,
+      "same_group_ids": true,
+      "same_labels": true,
+      "same_receiver_positions": true,
+      "samples_per_source": 500000,
+      "seed": 43001
+    },
+    {
+      "changed_full_path_counts": 11,
+      "max_channel_delta_over_500k_peak": 0.0978994369506836,
+      "max_depth": 3,
+      "reference_samples_per_source": 500000,
+      "relative_channel_l2_to_500k": 0.04142201691865921,
+      "same_group_ids": true,
+      "same_labels": true,
+      "same_receiver_positions": true,
+      "samples_per_source": 20000,
+      "seed": 43001
+    },
+    {
+      "changed_full_path_counts": 3,
+      "max_channel_delta_over_500k_peak": 0.00469748442992568,
+      "max_depth": 3,
+      "reference_samples_per_source": 500000,
+      "relative_channel_l2_to_500k": 0.0036935359239578247,
+      "same_group_ids": true,
+      "same_labels": true,
+      "same_receiver_positions": true,
+      "samples_per_source": 100000,
+      "seed": 43001
+    },
+    {
+      "changed_full_path_counts": 0,
+      "max_channel_delta_over_500k_peak": 0.0,
+      "max_depth": 3,
+      "reference_samples_per_source": 500000,
+      "relative_channel_l2_to_500k": 0.0,
+      "same_group_ids": true,
+      "same_labels": true,
+      "same_receiver_positions": true,
+      "samples_per_source": 500000,
+      "seed": 43001
+    }
+  ],
+  "configuration": {
+    "block_size_m": 55.0,
+    "carrier_hz": 3500000000.0,
+    "max_attempts": 800,
+    "radius_m": 115.0,
+    "requested_accepted_per_class": 20,
+    "rx_center_m": [
+      0.0,
+      0.0,
+      1.5
+    ],
+    "scene_xml": "scenes/generated/research_scenes/city43/urban_00043.xml",
+    "snr_db": 15.0,
+    "solver_flags": {
+      "deterministic": true,
+      "diffraction": false,
+      "diffuse_reflection": true,
+      "los": true,
+      "max_depth": 2,
+      "refraction": true,
+      "specular_reflection": true
+    },
+    "spacing_hz": 30000.0,
+    "subcarriers": 128,
+    "tx_m": [
+      0.0,
+      -55.0,
+      18.0
+    ],
+    "variant": "llvm_ad_mono_polarized"
+  },
+  "evidence_grade": "SIMULATION_ONLY_UNVALIDATED_SOLVER_SENSITIVITY",
+  "factorial_grid": {
+    "max_depths": [
+      1,
+      2,
+      3
+    ],
+    "samples_per_source": [
+      20000,
+      100000,
+      500000
+    ],
+    "seed": 43001
+  },
+  "interpretation": "For this one generated urban scene and seed 43001, increasing depth reduced geometric-NLOS empty outcomes from 175/195 (depth 1) to 13/33 (depth 2) to 3/23 (depth 3); geometric-LOS empty outcomes were 0/20 at every depth. At fixed depth, all three tested ray budgets had identical candidate counts and class-conditional empty outcomes. Accepted channels were closer to the 500k result at higher budgets in this run, but accepted path counts sometimes differed at 20k; a higher budget/depth is not physical ground truth. The additional seed 43002 yielded a separate small candidate sample. These are synthetic solver diagnostics, not outage evidence or generalized convergence claims.",
+  "limitations": [
+    "One generated urban asset, one sampler placement, and 20 accepted links per class are included per run.",
+    "Seed 43002 contributes only one additional realization at a single setting.",
+    "Empty paths represent configured solver noncoverage, not measured outage or proof of no physical path.",
+    "Depth 3 is not established as ground truth; higher interactions may represent model paths unsupported by validated materials.",
+    "The scene asset has not been independently qualified against measurements."
+  ],
+  "package_source_sha256": "c1c987fc02bb22dadcc7ff297fbf80855622307b6b5b5c44dd89af37c332b2a7",
+  "reproduction": "Use the scene path, geometry, seeds, budgets, and depths above with `python -m loslab rt-data`; each run has a unique output NPZ and complete generation metadata.",
+  "runs": [
+    {
+      "accepted_counts": {
+        "geometric_los": 20,
+        "geometric_nlos": 20,
+        "total": 40
+      },
+      "backend": "llvm_cpu",
+      "dataset": {
+        "path": "outputs/e07-urban43-budget-20k-depth1-20261022.npz",
+        "sha256": "3e0bb04cc678d251b5cf8cb5a9099041fef4393c705370c5c2348d853ac4790c"
+      },
+      "empty_paths": 175,
+      "full_solver_calls": 215,
+      "max_depth": 1,
+      "outcomes_by_geometric_class": {
+        "geometric_los": {
+          "accepted": 20,
+          "attempts": 20,
+          "calls": 20,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 0,
+          "errors": 0,
+          "los_direct_only_rejected": 0
+        },
+        "geometric_nlos": {
+          "accepted": 20,
+          "attempts": 195,
+          "calls": 195,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 175,
+          "errors": 0,
+          "los_direct_only_rejected": 0
+        }
+      },
+      "package_source_sha256": "c1c987fc02bb22dadcc7ff297fbf80855622307b6b5b5c44dd89af37c332b2a7",
+      "samples_per_source": 20000,
+      "scene_asset_set_sha256": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c",
+      "seed": 43001
+    },
+    {
+      "accepted_counts": {
+        "geometric_los": 20,
+        "geometric_nlos": 20,
+        "total": 40
+      },
+      "backend": "llvm_cpu",
+      "dataset": {
+        "path": "outputs/e07-urban43-budget-100k-depth1-20261022.npz",
+        "sha256": "639a1a3ffd8851589c293d840098bb7aac17f350dca96a6dd98ec5ce281dfdd0"
+      },
+      "empty_paths": 175,
+      "full_solver_calls": 215,
+      "max_depth": 1,
+      "outcomes_by_geometric_class": {
+        "geometric_los": {
+          "accepted": 20,
+          "attempts": 20,
+          "calls": 20,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 0,
+          "errors": 0,
+          "los_direct_only_rejected": 0
+        },
+        "geometric_nlos": {
+          "accepted": 20,
+          "attempts": 195,
+          "calls": 195,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 175,
+          "errors": 0,
+          "los_direct_only_rejected": 0
+        }
+      },
+      "package_source_sha256": "c1c987fc02bb22dadcc7ff297fbf80855622307b6b5b5c44dd89af37c332b2a7",
+      "samples_per_source": 100000,
+      "scene_asset_set_sha256": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c",
+      "seed": 43001
+    },
+    {
+      "accepted_counts": {
+        "geometric_los": 20,
+        "geometric_nlos": 20,
+        "total": 40
+      },
+      "backend": "llvm_cpu",
+      "dataset": {
+        "path": "outputs/e07-urban43-budget-500k-depth1-20261022.npz",
+        "sha256": "907bb51d26d654a4f3a89e222156f16df4fe5d5daabf757ccde8961bcfa4287d"
+      },
+      "empty_paths": 175,
+      "full_solver_calls": 215,
+      "max_depth": 1,
+      "outcomes_by_geometric_class": {
+        "geometric_los": {
+          "accepted": 20,
+          "attempts": 20,
+          "calls": 20,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 0,
+          "errors": 0,
+          "los_direct_only_rejected": 0
+        },
+        "geometric_nlos": {
+          "accepted": 20,
+          "attempts": 195,
+          "calls": 195,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 175,
+          "errors": 0,
+          "los_direct_only_rejected": 0
+        }
+      },
+      "package_source_sha256": "c1c987fc02bb22dadcc7ff297fbf80855622307b6b5b5c44dd89af37c332b2a7",
+      "samples_per_source": 500000,
+      "scene_asset_set_sha256": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c",
+      "seed": 43001
+    },
+    {
+      "accepted_counts": {
+        "geometric_los": 20,
+        "geometric_nlos": 20,
+        "total": 40
+      },
+      "backend": "llvm_cpu",
+      "dataset": {
+        "path": "outputs/e07-urban43-class-outcome-retrace-20261022.npz",
+        "sha256": "055cdd72539784fbcfb12fd68206ad1ebf8b31bed5bcd80d4ef139a46453bab6"
+      },
+      "empty_paths": 13,
+      "full_solver_calls": 53,
+      "max_depth": 2,
+      "outcomes_by_geometric_class": {
+        "geometric_los": {
+          "accepted": 20,
+          "attempts": 20,
+          "calls": 20,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 0,
+          "errors": 0,
+          "los_direct_only_rejected": 0
+        },
+        "geometric_nlos": {
+          "accepted": 20,
+          "attempts": 33,
+          "calls": 33,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 13,
+          "errors": 0,
+          "los_direct_only_rejected": 0
+        }
+      },
+      "package_source_sha256": "c1c987fc02bb22dadcc7ff297fbf80855622307b6b5b5c44dd89af37c332b2a7",
+      "samples_per_source": 20000,
+      "scene_asset_set_sha256": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c",
+      "seed": 43001
+    },
+    {
+      "accepted_counts": {
+        "geometric_los": 20,
+        "geometric_nlos": 20,
+        "total": 40
+      },
+      "backend": "llvm_cpu",
+      "dataset": {
+        "path": "outputs/e07-urban43-budget-100k-depth2-20261022.npz",
+        "sha256": "b6c1612f5d2230986acecdc9ea546372a4580847a4696dd583f6aab394b6a8d0"
+      },
+      "empty_paths": 13,
+      "full_solver_calls": 53,
+      "max_depth": 2,
+      "outcomes_by_geometric_class": {
+        "geometric_los": {
+          "accepted": 20,
+          "attempts": 20,
+          "calls": 20,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 0,
+          "errors": 0,
+          "los_direct_only_rejected": 0
+        },
+        "geometric_nlos": {
+          "accepted": 20,
+          "attempts": 33,
+          "calls": 33,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 13,
+          "errors": 0,
+          "los_direct_only_rejected": 0
+        }
+      },
+      "package_source_sha256": "c1c987fc02bb22dadcc7ff297fbf80855622307b6b5b5c44dd89af37c332b2a7",
+      "samples_per_source": 100000,
+      "scene_asset_set_sha256": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c",
+      "seed": 43001
+    },
+    {
+      "accepted_counts": {
+        "geometric_los": 20,
+        "geometric_nlos": 20,
+        "total": 40
+      },
+      "backend": "llvm_cpu",
+      "dataset": {
+        "path": "outputs/e07-urban43-budget-500k-depth2-20261022.npz",
+        "sha256": "094015786eff0c257e0814fa67fc92be5ed829abec526a141a1c883604df04e8"
+      },
+      "empty_paths": 13,
+      "full_solver_calls": 53,
+      "max_depth": 2,
+      "outcomes_by_geometric_class": {
+        "geometric_los": {
+          "accepted": 20,
+          "attempts": 20,
+          "calls": 20,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 0,
+          "errors": 0,
+          "los_direct_only_rejected": 0
+        },
+        "geometric_nlos": {
+          "accepted": 20,
+          "attempts": 33,
+          "calls": 33,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 13,
+          "errors": 0,
+          "los_direct_only_rejected": 0
+        }
+      },
+      "package_source_sha256": "c1c987fc02bb22dadcc7ff297fbf80855622307b6b5b5c44dd89af37c332b2a7",
+      "samples_per_source": 500000,
+      "scene_asset_set_sha256": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c",
+      "seed": 43001
+    },
+    {
+      "accepted_counts": {
+        "geometric_los": 20,
+        "geometric_nlos": 20,
+        "total": 40
+      },
+      "backend": "llvm_cpu",
+      "dataset": {
+        "path": "outputs/e07-urban43-budget-20k-depth3-20261022.npz",
+        "sha256": "e036564d9e88160a2c373d8dd1914f663afa8fbe1aa2443455733544e6bd4356"
+      },
+      "empty_paths": 3,
+      "full_solver_calls": 43,
+      "max_depth": 3,
+      "outcomes_by_geometric_class": {
+        "geometric_los": {
+          "accepted": 20,
+          "attempts": 20,
+          "calls": 20,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 0,
+          "errors": 0,
+          "los_direct_only_rejected": 0
+        },
+        "geometric_nlos": {
+          "accepted": 20,
+          "attempts": 23,
+          "calls": 23,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 3,
+          "errors": 0,
+          "los_direct_only_rejected": 0
+        }
+      },
+      "package_source_sha256": "c1c987fc02bb22dadcc7ff297fbf80855622307b6b5b5c44dd89af37c332b2a7",
+      "samples_per_source": 20000,
+      "scene_asset_set_sha256": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c",
+      "seed": 43001
+    },
+    {
+      "accepted_counts": {
+        "geometric_los": 20,
+        "geometric_nlos": 20,
+        "total": 40
+      },
+      "backend": "llvm_cpu",
+      "dataset": {
+        "path": "outputs/e07-urban43-budget-100k-depth3-20261022.npz",
+        "sha256": "93ac2c571985ac017af3ae52ea1574d16066004e09908355ed487570661094c1"
+      },
+      "empty_paths": 3,
+      "full_solver_calls": 43,
+      "max_depth": 3,
+      "outcomes_by_geometric_class": {
+        "geometric_los": {
+          "accepted": 20,
+          "attempts": 20,
+          "calls": 20,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 0,
+          "errors": 0,
+          "los_direct_only_rejected": 0
+        },
+        "geometric_nlos": {
+          "accepted": 20,
+          "attempts": 23,
+          "calls": 23,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 3,
+          "errors": 0,
+          "los_direct_only_rejected": 0
+        }
+      },
+      "package_source_sha256": "c1c987fc02bb22dadcc7ff297fbf80855622307b6b5b5c44dd89af37c332b2a7",
+      "samples_per_source": 100000,
+      "scene_asset_set_sha256": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c",
+      "seed": 43001
+    },
+    {
+      "accepted_counts": {
+        "geometric_los": 20,
+        "geometric_nlos": 20,
+        "total": 40
+      },
+      "backend": "llvm_cpu",
+      "dataset": {
+        "path": "outputs/e07-urban43-budget-500k-depth3-20261022.npz",
+        "sha256": "d3c4b363619b32b8d9b1b63c12ec54041a47d8429c53741cacde37b86ccc6e91"
+      },
+      "empty_paths": 3,
+      "full_solver_calls": 43,
+      "max_depth": 3,
+      "outcomes_by_geometric_class": {
+        "geometric_los": {
+          "accepted": 20,
+          "attempts": 20,
+          "calls": 20,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 0,
+          "errors": 0,
+          "los_direct_only_rejected": 0
+        },
+        "geometric_nlos": {
+          "accepted": 20,
+          "attempts": 23,
+          "calls": 23,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 3,
+          "errors": 0,
+          "los_direct_only_rejected": 0
+        }
+      },
+      "package_source_sha256": "c1c987fc02bb22dadcc7ff297fbf80855622307b6b5b5c44dd89af37c332b2a7",
+      "samples_per_source": 500000,
+      "scene_asset_set_sha256": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c",
+      "seed": 43001
+    },
+    {
+      "accepted_counts": {
+        "geometric_los": 20,
+        "geometric_nlos": 20,
+        "total": 40
+      },
+      "backend": "llvm_cpu",
+      "dataset": {
+        "path": "outputs/e07-urban43-seed43002-500k-depth2-20261022.npz",
+        "sha256": "47b71b0c57067b68246bbe971a8c263c75d15abd93b33868c38462c956892e90"
+      },
+      "empty_paths": 13,
+      "full_solver_calls": 53,
+      "max_depth": 2,
+      "outcomes_by_geometric_class": {
+        "geometric_los": {
+          "accepted": 20,
+          "attempts": 20,
+          "calls": 20,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 0,
+          "errors": 0,
+          "los_direct_only_rejected": 0
+        },
+        "geometric_nlos": {
+          "accepted": 20,
+          "attempts": 33,
+          "calls": 33,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 13,
+          "errors": 0,
+          "los_direct_only_rejected": 0
+        }
+      },
+      "package_source_sha256": "c1c987fc02bb22dadcc7ff297fbf80855622307b6b5b5c44dd89af37c332b2a7",
+      "samples_per_source": 500000,
+      "scene_asset_set_sha256": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c",
+      "seed": 43002
+    }
+  ],
+  "runtime": {
+    "git_sha": "155cc0034d37b6920f2455d61a04fe359e31364a",
+    "numpy": "2.5.4",
+    "python": "3.12.3",
+    "scikit-learn": "1.9.1",
+    "sionna": "2.2.0",
+    "sionna-phy": "not installed",
+    "sionna-rt": "2.2.0",
+    "torch": "2.11.0+cu128"
+  },
+  "scene": "urban_00043",
+  "scene_asset_set_sha256": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c",
+  "schema": "loslab.rt_urban43_budget_depth_class_outcomes.v1",
+  "source_revision": "155cc0034d37b6920f2455d61a04fe359e31364a",
+  "summary": {
+    "budget_outcomes_stable_within_depth": true,
+    "seed43001_los_empty_calls_by_depth": {
+      "1": {
+        "calls": 20,
+        "empty": 0
+      },
+      "2": {
+        "calls": 20,
+        "empty": 0
+      },
+      "3": {
+        "calls": 20,
+        "empty": 0
+      }
+    },
+    "seed43001_nlos_empty_calls_by_depth": {
+      "1": {
+        "calls": 195,
+        "empty": 175
+      },
+      "2": {
+        "calls": 33,
+        "empty": 13
+      },
+      "3": {
+        "calls": 23,
+        "empty": 3
+      }
+    },
+    "seed43002_nlos_empty_calls": {
+      "calls": 33,
+      "empty": 13
+    }
+  }
+}
