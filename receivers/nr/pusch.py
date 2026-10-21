@@ -1,0 +1,97 @@
+"""Framework-independent contracts for NR PUSCH receiver observations."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Any, Mapping
+
+
+@dataclass(frozen=True, slots=True)
+class NRPUSCHConfig:
+    """PUSCH/DMRS resource-grid and channel-estimator configuration.
+
+    Subcarrier spacing is in kHz and BWP size is in resource blocks.
+    Sionna validates additional cross-field constraints when the optional
+    adapter is constructed.
+    """
+
+    n_size_bwp: int = 4
+    subcarrier_spacing_khz: int = 30
+    num_antenna_ports: int = 1
+    num_layers: int = 1
+    dmrs_config_type: int = 1
+    dmrs_length: int = 1
+    dmrs_additional_position: int = 0
+    num_cdm_groups_without_data: int = 1
+    mapping_type: str = "A"
+    precoding: str = "non-codebook"
+    interpolation_type: str = "nn"
+
+    def __post_init__(self) -> None:
+        integer_fields = (
+            "n_size_bwp",
+            "subcarrier_spacing_khz",
+            "num_antenna_ports",
+            "num_layers",
+            "dmrs_config_type",
+            "dmrs_length",
+            "dmrs_additional_position",
+            "num_cdm_groups_without_data",
+        )
+        for name in integer_fields:
+            value = getattr(self, name)
+            if isinstance(value, bool) or not isinstance(value, int):
+                raise TypeError(f"{name} must be an integer")
+        if not 1 <= self.n_size_bwp <= 275:
+            raise ValueError("n_size_bwp must be in [1, 275]")
+        if self.subcarrier_spacing_khz not in {15, 30, 60, 120, 240, 480, 960}:
+            raise ValueError("Unsupported NR subcarrier spacing")
+        if self.num_antenna_ports not in {1, 2, 4}:
+            raise ValueError("num_antenna_ports must be 1, 2, or 4")
+        if not 1 <= self.num_layers <= self.num_antenna_ports:
+            raise ValueError("num_layers must be between 1 and num_antenna_ports")
+        if self.dmrs_config_type not in {1, 2}:
+            raise ValueError("dmrs_config_type must be 1 or 2")
+        if self.dmrs_length not in {1, 2}:
+            raise ValueError("dmrs_length must be 1 or 2")
+        max_position = 3 if self.dmrs_length == 1 else 1
+        if not 0 <= self.dmrs_additional_position <= max_position:
+            raise ValueError(f"dmrs_additional_position must be in [0, {max_position}]")
+        if not 1 <= self.num_cdm_groups_without_data <= 3:
+            raise ValueError("num_cdm_groups_without_data must be in [1, 3]")
+        if self.mapping_type not in {"A", "B"}:
+            raise ValueError("mapping_type must be A or B")
+        if self.precoding not in {"codebook", "non-codebook"}:
+            raise ValueError("precoding must be codebook or non-codebook")
+        if self.interpolation_type not in {"nn", "lin", "lin_time_avg"}:
+            raise ValueError("Unsupported Sionna PUSCH interpolation type")
+
+
+@dataclass(frozen=True, slots=True)
+class NRChannelEstimate:
+    """Estimated channel, broadcastable estimator variance, pilot mask, and metadata.
+
+    Channel axes remain [batch, rx, rx antenna, tx, stream, OFDM symbol,
+    effective subcarrier]; no antenna or time axis is flattened.
+    """
+
+    h_hat: Any
+    error_variance: Any
+    pilot_mask: Any
+    metadata: Mapping[str, Any]
+
+    def __post_init__(self) -> None:
+        h_shape = tuple(getattr(self.h_hat, "shape", ()))
+        error_shape = tuple(getattr(self.error_variance, "shape", ()))
+        mask_shape = tuple(getattr(self.pilot_mask, "shape", ()))
+        if len(h_shape) != 7:
+            raise ValueError("h_hat must have seven named channel axes")
+        if len(error_shape) != 7 or any(
+            variance_axis not in (1, estimate_axis)
+            for variance_axis, estimate_axis in zip(error_shape, h_shape, strict=True)
+        ):
+            raise ValueError("error_variance must be broadcastable to h_hat")
+        if len(mask_shape) != 4 or mask_shape != h_shape[3:]:
+            raise ValueError("pilot_mask must have [tx, stream, symbol, subcarrier] axes")
+        if not self.metadata:
+            raise ValueError("estimate metadata must not be empty")

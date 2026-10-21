@@ -13,6 +13,7 @@ synthetic smoke data as debug-only.
 - [Research program and evidence limits](docs/research/RESEARCH_PROGRAM.md)
 - [Repository architecture](docs/architecture/README.md)
 - [Full phased refactor plan](docs/architecture/REFACTOR_PLAN.md)
+- [Master 5G NR research and engineering plan](docs/research/MASTER_RESEARCH_PLAN.md)
 - [2025 thesis PDF](docs/thesis/NguyenLong.pdf)
 
 ## Install and run
@@ -25,9 +26,29 @@ python -m pytest
 python -m loslab doctor
 ```
 
-Sionna PHY and ray tracing are optional integrations. Install the `sionna`
-extra only in an environment with compatible PyTorch, CUDA, Mitsuba, and Dr.Jit;
-see the quickstart before running native simulations.
+Sionna PHY and ray tracing are optional integrations. Install the Sionna extra
+only in an environment with compatible PyTorch, CUDA, Mitsuba, and Dr.Jit; see
+the quickstart before running native simulations.
+
+## NR PUSCH channel estimation
+
+The optional Sionna PHY integration includes an initial DMRS-based PUSCH LS
+receiver. Install it with <code>python -m pip install -e '.[sionna]'</code> in a
+compatible environment. Select a PyTorch build that matches the host CUDA setup
+before installing the extra when GPU execution is required.
+
+The receiver accepts a complex resource grid with axes
+<code>[batch, rx, rx_antenna, ofdm_symbol, fft_bin]</code> and returns channel
+estimates with axes
+<code>[batch, rx, rx_antenna, tx, stream, ofdm_symbol, subcarrier]</code>,
+Sionna's broadcastable estimator error variance, the DMRS pilot mask, and
+configuration/version metadata. Run the native test with
+<code>python -m pytest tests/test_integrations/test_nr_pusch_native.py</code>. The native
+test is discovered by the regular suite and skips when Sionna is absent. In a
+CUDA environment it verifies a known flat complex channel on the GPU. This
+golden-vector test validates the adapter contract; synchronization,
+channel/noise calibration, BER/BLER, RT coupling, and broad configuration
+coverage remain planned work.
 
 ## Repository map
 
