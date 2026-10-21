@@ -13,7 +13,11 @@ from evaluation.metrics import (
     in_domain_split,
     threshold_from_validation,
 )
-from evaluation.paired_link_curves import compare_curves, summarize_tdl_profile_sweep
+from evaluation.paired_link_curves import (
+    compare_curves,
+    compare_rx_correlation_curves,
+    summarize_tdl_profile_sweep,
+)
 from evaluation.statistics import paired_binary_error_comparison, paired_seed_delta
 
 
@@ -472,6 +476,78 @@ def test_tdl_profile_sweep_requires_matched_trials_and_adjusts_family(tmp_path):
         "mcnemar_exact_two_sided_p_value_holm_family20" in comparison["points"][0]
         for comparison in result["comparisons_vs_tdl_a"].values()
     )
+
+
+def test_receive_correlation_comparison_requires_exactly_matched_first_branch(tmp_path):
+    shared_config = {
+        "profile": "TDL-A",
+        "seed": 7,
+        "matched_realization_checks": [
+            {
+                "seed": 7,
+                "noise_real_seed": 9,
+                "noise_imag_seed": 10,
+                "transmit_bits_sha256": "payload",
+                "first_rx_channel_truth_sha256": "first-rx",
+                "all_rx_channel_truth_sha256": "latent-channel",
+            }
+        ],
+        "clean_receive_power_by_antenna_per_batch": [[1.0, 1.0]],
+    }
+    control = {
+        "schema": "loslab.tdl_pusch_rx_diversity.v1",
+        "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
+        "configuration": shared_config,
+        "points": [
+            {
+                "snr_db": 8.0,
+                "frames": 4,
+                "single_rx": {"frame_error_mask": [True, False, True, False]},
+                "two_rx": {"frame_error_mask": [True, False, False, False]},
+            }
+        ],
+    }
+    treatment_config = {
+        **shared_config,
+        "rx_correlation_coefficient": 0.9,
+        "rx_correlation_matrix_real": [[1.0, 0.9], [0.9, 1.0]],
+        "rx_correlation_matrix_imag": [[0.0, 0.0], [0.0, 0.0]],
+        "receive_spatial_correlation_assumption": "correlated",
+        "matched_realization_checks": [
+            {
+                **shared_config["matched_realization_checks"][0],
+                "latent_uncorrelated_channel_truth_sha256": "latent-channel",
+            }
+        ],
+        "clean_receive_power_by_antenna_per_batch": [[1.0, 1.0]],
+    }
+    treatment = {
+        **control,
+        "configuration": treatment_config,
+        "points": [
+            {
+                **control["points"][0],
+                "two_rx": {"frame_error_mask": [True, True, True, False]},
+            }
+        ],
+    }
+    control_path = tmp_path / "control.json"
+    treatment_path = tmp_path / "treatment.json"
+    atomic_json(control_path, control)
+    atomic_json(treatment_path, treatment)
+
+    result = compare_rx_correlation_curves(control_path, treatment_path)
+
+    assert result["paired_design"]["same_first_receive_antenna_channel"]
+    assert result["points"][0]["treatment_minus_control_bler"] == 0.5
+    assert "mcnemar_exact_two_sided_p_value_holm" in result["points"][0]
+
+    treatment_config["matched_realization_checks"][0]["first_rx_channel_truth_sha256"] = (
+        "different-first-rx"
+    )
+    atomic_json(treatment_path, treatment)
+    with pytest.raises(ValueError, match="first receive-antenna channel truth differs"):
+        compare_rx_correlation_curves(control_path, treatment_path)
 
 
 def test_code_hash_is_stable():

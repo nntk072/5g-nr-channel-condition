@@ -215,6 +215,45 @@ def test_sample_domain_tdl_pusch_rx_diversity_uses_paired_channel_draws():
 
 
 @pytest.mark.native_sionna
+def test_sample_domain_tdl_pusch_rx_diversity_accepts_correlated_rx_array():
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA is not available")
+
+    options = dict(
+        snr_db=(8.0,),
+        frames_per_snr=16,
+        batch_size=8,
+        seed=99105,
+        profile="A",
+        delay_spread_s=100e-9,
+        carrier_frequency_hz=3.5e9,
+        speed_mps=3.0,
+        n_size_bwp=12,
+        subcarrier_spacing_khz=30,
+    )
+    control = run_tdl_pusch_rx_diversity_curve(**options)
+    result = run_tdl_pusch_rx_diversity_curve(**options, rx_correlation=0.9)
+
+    config = result["configuration"]
+    assert config["rx_correlation_coefficient"] == 0.9
+    assert config["rx_correlation_matrix_real"] == [[1.0, 0.9], [0.9, 1.0]]
+    assert "coefficient 0.9" in config["receive_spatial_correlation_assumption"]
+    control_checks = control["configuration"]["matched_realization_checks"]
+    correlated_checks = config["matched_realization_checks"]
+    assert [item["transmit_bits_sha256"] for item in control_checks] == [
+        item["transmit_bits_sha256"] for item in correlated_checks
+    ]
+    assert [item["first_rx_channel_truth_sha256"] for item in control_checks] == [
+        item["first_rx_channel_truth_sha256"] for item in correlated_checks
+    ]
+    assert [point["single_rx"]["frame_error_mask"] for point in control["points"]] == [
+        point["single_rx"]["frame_error_mask"] for point in result["points"]
+    ]
+    assert len(result["points"][0]["single_rx"]["frame_error_mask"]) == 16
+    assert len(result["points"][0]["two_rx"]["frame_error_mask"]) == 16
+
+
+@pytest.mark.native_sionna
 def test_sample_domain_link_records_explicit_channel_over_cyclic_prefix_stress():
     if not torch.cuda.is_available():
         pytest.skip("CUDA is not available")

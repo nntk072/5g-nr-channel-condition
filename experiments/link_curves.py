@@ -415,6 +415,7 @@ def run_tdl_pusch_rx_diversity_curve(
     n_size_bwp: int = 12,
     dmrs_additional_position: int = 0,
     subcarrier_spacing_khz: int = 30,
+    rx_correlation: float = 0.0,
 ) -> dict[str, Any]:
     """Compare one versus two RX antennas on the exact same two-RX channel draw."""
     snr_values = tuple(float(value) for value in snr_db)
@@ -436,6 +437,8 @@ def run_tdl_pusch_rx_diversity_curve(
         raise ValueError("carrier_frequency_hz must be finite and positive")
     if not math.isfinite(speed_mps) or speed_mps < 0:
         raise ValueError("speed_mps must be finite and nonnegative")
+    if not math.isfinite(rx_correlation) or not -1.0 < rx_correlation < 1.0:
+        raise ValueError("rx_correlation must be finite and strictly between -1 and 1")
     if not torch_cuda_available():
         raise RuntimeError("The receive-antenna diversity curve requires CUDA")
 
@@ -471,8 +474,21 @@ def run_tdl_pusch_rx_diversity_curve(
         count = min(batch_size, frames_left)
         batch_seed = seed + batch_index
         waveform, bits, clean, channel_truth = link.transmit_channel(count, seed=batch_seed)
+        latent_channel_truth = channel_truth
+        if rx_correlation != 0.0:
+            correlated_branch = (
+                rx_correlation * clean[:, :, :1, :]
+                + math.sqrt(1.0 - rx_correlation**2) * clean[:, :, 1:2, :]
+            )
+            clean = torch.cat((clean[:, :, :1, :], correlated_branch), dim=2)
+            correlated_channel = (
+                rx_correlation * channel_truth[:, :, :1, ...]
+                + math.sqrt(1.0 - rx_correlation**2) * channel_truth[:, :, 1:2, ...]
+            )
+            channel_truth = torch.cat((channel_truth[:, :, :1, ...], correlated_channel), dim=2)
         bits_cpu = bits.detach().cpu().contiguous()
         channel_truth_cpu = channel_truth.detach().cpu().contiguous()
+        latent_channel_truth_cpu = latent_channel_truth.detach().cpu().contiguous()
         first_rx_truth = channel_truth_cpu[:, :, :1].contiguous()
         batches.append(
             {
@@ -498,6 +514,9 @@ def run_tdl_pusch_rx_diversity_curve(
                 ).hexdigest(),
                 "all_rx_channel_truth_sha256": hashlib.sha256(
                     channel_truth_cpu.numpy().tobytes()
+                ).hexdigest(),
+                "latent_uncorrelated_channel_truth_sha256": hashlib.sha256(
+                    latent_channel_truth_cpu.numpy().tobytes()
                 ).hexdigest(),
                 "noise_real_seed": batch_seed + 2,
                 "noise_imag_seed": batch_seed + 3,
@@ -614,8 +633,16 @@ def run_tdl_pusch_rx_diversity_curve(
             "n_size_bwp_resource_blocks": n_size_bwp,
             "subcarrier_spacing_khz": subcarrier_spacing_khz,
             "dmrs_additional_position": dmrs_additional_position,
+            "rx_correlation_coefficient": rx_correlation,
+            "rx_correlation_matrix_real": [[1.0, rx_correlation], [rx_correlation, 1.0]],
+            "rx_correlation_matrix_imag": [[0.0, 0.0], [0.0, 0.0]],
             "receive_spatial_correlation_assumption": (
-                "uncorrelated; no spatial_corr_mat or rx_corr_mat supplied to Sionna TDL"
+                "uncorrelated Sionna TDL branches; identity correlation transform"
+                if rx_correlation == 0.0
+                else (
+                    "post-sampled Cholesky transform on the same uncorrelated TDL draw; "
+                    f"real off-diagonal correlation coefficient {rx_correlation}"
+                )
             ),
             "snr_definition": (
                 "complex AWGN variance 10**(-SNR_dB/10); measured pre-noise receive power "
@@ -629,7 +656,7 @@ def run_tdl_pusch_rx_diversity_curve(
         "points": points,
         "limitations": [
             "Only Sionna TDL-A, one numerology, one bandwidth, one DMRS pattern, speed, and delay spread are evaluated.",
-            "The two receive antennas follow Sionna's default spatial-correlation configuration; no measured array calibration is used.",
+            "The receive correlation matrix is a controlled post-sampling synthetic transform, not a measured or calibrated antenna array.",
             "Synchronization is ideal and the 100-ns channel memory is CP-contained for this link.",
             "Inference is conditional on the simulated codewords and does not represent independent scenes or measured channels.",
         ],

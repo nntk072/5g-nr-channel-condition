@@ -28,6 +28,12 @@ def main() -> None:
     parser.add_argument("--n-size-bwp", type=int, default=12)
     parser.add_argument("--dmrs-additional-position", type=int, choices=range(4), default=0)
     parser.add_argument("--subcarrier-spacing-khz", type=int, default=30)
+    parser.add_argument(
+        "--rx-correlation",
+        type=float,
+        default=0.0,
+        help="real off-diagonal coefficient of the 2x2 receive correlation matrix (-1, 1)",
+    )
     args = parser.parse_args()
 
     if args.output.exists():
@@ -45,6 +51,7 @@ def main() -> None:
             n_size_bwp=args.n_size_bwp,
             dmrs_additional_position=args.dmrs_additional_position,
             subcarrier_spacing_khz=args.subcarrier_spacing_khz,
+            rx_correlation=args.rx_correlation,
         )
     except (TypeError, ValueError, RuntimeError) as error:
         parser.error(str(error))

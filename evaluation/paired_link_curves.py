@@ -232,6 +232,121 @@ def compare_curves(
     }
 
 
+def compare_rx_correlation_curves(
+    control_path: str | Path,
+    treatment_path: str | Path,
+) -> dict[str, Any]:
+    """Compare paired 2-RX BLER curves with uncorrelated and correlated branches."""
+    control_path = Path(control_path)
+    treatment_path = Path(treatment_path)
+    control = json.loads(control_path.read_text(encoding="utf8"))
+    treatment = json.loads(treatment_path.read_text(encoding="utf8"))
+    for path, curve in ((control_path, control), (treatment_path, treatment)):
+        if curve.get("schema") != "loslab.tdl_pusch_rx_diversity.v1":
+            raise ValueError(f"unsupported receive-diversity schema in {path}")
+        if curve.get("evidence_grade") != "SIMULATION_ONLY_UNVALIDATED":
+            raise ValueError(f"unexpected evidence grade in {path}")
+
+    control_config = control["configuration"]
+    treatment_config = treatment["configuration"]
+    control_rho = control_config.get("rx_correlation_coefficient", 0.0)
+    treatment_rho = treatment_config.get("rx_correlation_coefficient")
+    if control_rho != 0.0 or treatment_rho is None or treatment_rho == 0.0:
+        raise ValueError("control must be uncorrelated and treatment must use nonzero correlation")
+    varying = {
+        "rx_correlation_coefficient",
+        "rx_correlation_matrix_real",
+        "rx_correlation_matrix_imag",
+        "receive_spatial_correlation_assumption",
+        "matched_realization_checks",
+        "clean_receive_power_by_antenna_per_batch",
+        "package_source_sha256",
+        "versions",
+    }
+    for key in set(control_config) | set(treatment_config):
+        if key not in varying and control_config.get(key) != treatment_config.get(key):
+            raise ValueError(f"receive-diversity configuration differs unexpectedly at {key}")
+
+    control_checks = control_config["matched_realization_checks"]
+    treatment_checks = treatment_config["matched_realization_checks"]
+    if len(control_checks) != len(treatment_checks):
+        raise ValueError("matched realization batch counts differ")
+    for left, right in zip(control_checks, treatment_checks, strict=True):
+        for key in ("seed", "noise_real_seed", "noise_imag_seed", "transmit_bits_sha256"):
+            if left.get(key) != right.get(key):
+                raise ValueError(f"{key} differs for matched batch {left.get('seed')}")
+        if left.get("first_rx_channel_truth_sha256") != right.get("first_rx_channel_truth_sha256"):
+            raise ValueError("first receive-antenna channel truth differs across correlation")
+        treatment_latent_hash = right.get("latent_uncorrelated_channel_truth_sha256")
+        if treatment_latent_hash != left.get("all_rx_channel_truth_sha256"):
+            raise ValueError("correlated treatment does not reference the control's latent channel")
+
+    control_points = control["points"]
+    treatment_points = treatment["points"]
+    if len(control_points) != len(treatment_points):
+        raise ValueError("SNR point counts differ")
+    comparisons: list[dict[str, Any]] = []
+    for left, right in zip(control_points, treatment_points, strict=True):
+        if left["snr_db"] != right["snr_db"] or left["frames"] != right["frames"]:
+            raise ValueError("SNR values or codeword counts differ")
+        if left["single_rx"]["frame_error_mask"] != right["single_rx"]["frame_error_mask"]:
+            raise ValueError("single-RX outcomes differ despite identical first-antenna inputs")
+        comparisons.append(
+            {
+                "snr_db": left["snr_db"],
+                **paired_binary_error_comparison(
+                    left["two_rx"]["frame_error_mask"],
+                    right["two_rx"]["frame_error_mask"],
+                    seed=1,
+                    draws=20_000,
+                ),
+            }
+        )
+    ordered = sorted(
+        range(len(comparisons)),
+        key=lambda index: comparisons[index]["mcnemar_exact_two_sided_p_value"],
+    )
+    adjusted_max = 0.0
+    for rank, index in enumerate(ordered):
+        raw_p = comparisons[index]["mcnemar_exact_two_sided_p_value"]
+        adjusted_max = max(adjusted_max, (len(comparisons) - rank) * raw_p)
+        comparisons[index]["mcnemar_exact_two_sided_p_value_holm"] = min(1.0, adjusted_max)
+
+    return {
+        "schema": "loslab.paired_tdl_pusch_rx_correlation.v1",
+        "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
+        "control": {
+            "path": str(control_path),
+            "sha256": sha256_file(control_path),
+            "rx_correlation_coefficient": control_rho,
+            "versions": control_config.get("versions"),
+            "package_source_sha256": control_config.get("package_source_sha256"),
+        },
+        "treatment": {
+            "path": str(treatment_path),
+            "sha256": sha256_file(treatment_path),
+            "rx_correlation_coefficient": treatment_rho,
+            "versions": treatment_config.get("versions"),
+            "package_source_sha256": treatment_config.get("package_source_sha256"),
+        },
+        "paired_design": {
+            "same_transmitted_bits": True,
+            "same_latent_channel_draw": True,
+            "same_first_receive_antenna_channel": True,
+            "same_single_rx_outcomes": True,
+            "statistic": "paired codeword bootstrap CI and Holm-adjusted exact McNemar tests",
+            "analysis_environment": versions(),
+            "analysis_package_source_sha256": package_source_sha256(),
+        },
+        "points": comparisons,
+        "limitations": [
+            "The Cholesky transform is applied to simulated TDL receive branches, not a measured array response.",
+            "Codeword-paired uncertainty is conditional on one TDL-A, numerology, speed and link configuration; it is not scene-level inference.",
+            "The decoder and synchronization configuration are fixed; the result is not standards certification.",
+        ],
+    }
+
+
 def summarize_tdl_profile_sweep(curve_paths: list[str | Path]) -> dict[str, Any]:
     """Audit and compare matched sample-domain TDL-A–E curves against TDL-A."""
     curves_by_profile: dict[str, Path] = {}
