@@ -39,9 +39,11 @@ def compare_curves(
         "speed_mps",
         "dmrs_additional_position",
         "delay_spread_s",
+        "profile",
     }:
         raise ValueError(
-            "varying_config_field must be speed_mps, dmrs_additional_position, or delay_spread_s"
+            "varying_config_field must be speed_mps, dmrs_additional_position, "
+            "delay_spread_s, or profile"
         )
     varying = {
         varying_config_field,
@@ -57,6 +59,8 @@ def compare_curves(
                 "l_max",
             }
         )
+    if varying_config_field == "profile":
+        varying.update({"channel_model"})
     for key in set(control_config) | set(treatment_config):
         if key not in varying and control_config.get(key) != treatment_config.get(key):
             raise ValueError(f"curve configuration differs unexpectedly at {key}")
@@ -85,6 +89,11 @@ def compare_curves(
         )
     if varying_config_field == "speed_mps" and not same_bits:
         raise ValueError("transmitted bits differ for the matched mobility experiment")
+    if varying_config_field == "profile":
+        if not same_bits:
+            raise ValueError("transmitted bits differ for the matched channel-profile experiment")
+        if same_channel:
+            raise ValueError("channel truth is identical across channel profiles")
     if varying_config_field == "dmrs_additional_position" and not same_channel:
         raise ValueError("channel truth differs for the matched DMRS experiment")
     if varying_config_field == "delay_spread_s":
@@ -160,6 +169,7 @@ def compare_curves(
             "speed_mps": control_config["speed_mps"],
             "dmrs_additional_position": control_config.get("dmrs_additional_position", 0),
             "delay_spread_s": control_config.get("delay_spread_s"),
+            "profile": control_config.get("profile"),
             "channel_memory_samples": control_config.get("channel_memory_samples"),
             "cp_covers_channel_memory": control_config.get("cp_covers_channel_memory"),
             "transmit_waveform_mean_power_by_batch": control_config.get(
@@ -173,6 +183,7 @@ def compare_curves(
             "speed_mps": treatment_config["speed_mps"],
             "dmrs_additional_position": treatment_config.get("dmrs_additional_position", 0),
             "delay_spread_s": treatment_config.get("delay_spread_s"),
+            "profile": treatment_config.get("profile"),
             "channel_memory_samples": treatment_config.get("channel_memory_samples"),
             "cp_covers_channel_memory": treatment_config.get("cp_covers_channel_memory"),
             "transmit_waveform_mean_power_by_batch": treatment_config.get(
@@ -210,8 +221,142 @@ def compare_curves(
         },
         "points": comparisons,
         "limitations": [
-            "Inference is conditional on one standardized TDL-A simulation configuration.",
+            (
+                "Inference is conditional on the listed standardized TDL profile pair and link configuration."
+                if varying_config_field == "profile"
+                else "Inference is conditional on one standardized TDL simulation configuration."
+            ),
             "Codeword-paired uncertainty does not represent independent-scene uncertainty.",
             "The decoder and synchronization configuration are fixed; the result is not standards certification.",
+        ],
+    }
+
+
+def summarize_tdl_profile_sweep(curve_paths: list[str | Path]) -> dict[str, Any]:
+    """Audit and compare matched sample-domain TDL-A–E curves against TDL-A."""
+    curves_by_profile: dict[str, Path] = {}
+    loaded_by_profile: dict[str, dict[str, Any]] = {}
+    for curve_path in curve_paths:
+        path = Path(curve_path)
+        curve = load_curve(path)
+        profile = str(curve["configuration"].get("profile", ""))
+        if profile not in {f"TDL-{letter}" for letter in "ABCDE"}:
+            raise ValueError(f"unsupported profile {profile!r} in {path}")
+        if profile in curves_by_profile:
+            raise ValueError(f"duplicate {profile} curve")
+        curves_by_profile[profile] = path
+        loaded_by_profile[profile] = curve
+    required = {f"TDL-{letter}" for letter in "ABCDE"}
+    if set(curves_by_profile) != required:
+        raise ValueError("profile sweep requires exactly one curve for every TDL-A through TDL-E")
+
+    control = loaded_by_profile["TDL-A"]
+    control_config = control["configuration"]
+    control_checks = control_config["matched_realization_checks"]
+    control_points = control["points"]
+    for profile in sorted(required - {"TDL-A"}):
+        treatment = loaded_by_profile[profile]
+        treatment_config = treatment["configuration"]
+        varying = {
+            "profile",
+            "matched_realization_checks",
+            "transmit_waveform_mean_power_by_batch",
+        }
+        for key in set(control_config) | set(treatment_config):
+            if key not in varying and control_config.get(key) != treatment_config.get(key):
+                raise ValueError(f"{profile} configuration differs unexpectedly at {key}")
+        treatment_checks = treatment_config["matched_realization_checks"]
+        if len(control_checks) != len(treatment_checks):
+            raise ValueError(f"{profile} matched batch count differs from TDL-A")
+        for left, right in zip(control_checks, treatment_checks, strict=True):
+            if left["seed"] != right["seed"]:
+                raise ValueError(f"{profile} batch seeds differ from TDL-A")
+            for key in ("noise_seed", "noise_real_seed", "noise_imag_seed"):
+                if left.get(key) != right.get(key):
+                    raise ValueError(f"{profile} {key} differs from TDL-A")
+            if left["transmit_bits_sha256"] != right["transmit_bits_sha256"]:
+                raise ValueError(f"{profile} transmitted bits differ from TDL-A")
+            if left["channel_truth_sha256"] == right["channel_truth_sha256"]:
+                raise ValueError(f"{profile} channel truth unexpectedly matches TDL-A")
+        if len(control_points) != len(treatment["points"]):
+            raise ValueError(f"{profile} SNR grid differs from TDL-A")
+        for left, right in zip(control_points, treatment["points"], strict=True):
+            if left["snr_db"] != right["snr_db"] or left["frames"] != right["frames"]:
+                raise ValueError(f"{profile} SNR values or frame counts differ from TDL-A")
+
+    comparisons: dict[str, dict[str, Any]] = {}
+    family: list[tuple[str, int, float]] = []
+    for profile in sorted(required - {"TDL-A"}):
+        comparison = compare_curves(
+            curves_by_profile["TDL-A"],
+            curves_by_profile[profile],
+            varying_config_field="profile",
+        )
+        comparisons[profile] = comparison
+        for index, point in enumerate(comparison["points"]):
+            family.append((profile, index, point["mcnemar_exact_two_sided_p_value"]))
+
+    ordered = sorted(range(len(family)), key=lambda index: family[index][2])
+    adjusted_max = 0.0
+    family_size = len(family)
+    for rank, family_index in enumerate(ordered):
+        profile, point_index, raw_p = family[family_index]
+        adjusted_max = max(adjusted_max, (family_size - rank) * raw_p)
+        comparisons[profile]["points"][point_index][
+            "mcnemar_exact_two_sided_p_value_holm_family20"
+        ] = min(1.0, adjusted_max)
+
+    return {
+        "schema": "loslab.tdl_pusch_tdl_profile_sweep.v1",
+        "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
+        "control_profile": "TDL-A",
+        "paired_design": {
+            "same_transmitted_bits_by_batch": True,
+            "same_batch_and_awgn_seeds": True,
+            "different_channel_truth_by_profile": True,
+            "multiplicity_family": "four TDL contrasts versus TDL-A across all five SNR points (20 tests)",
+        },
+        "curves": {
+            profile: {
+                "path": str(curves_by_profile[profile]),
+                "sha256": sha256_file(curves_by_profile[profile]),
+                "configuration": {
+                    key: value
+                    for key, value in loaded_by_profile[profile]["configuration"].items()
+                    if key
+                    not in {
+                        "matched_realization_checks",
+                        "transmit_waveform_mean_power_by_batch",
+                    }
+                },
+                "points": [
+                    {
+                        key: point[key]
+                        for key in (
+                            "snr_db",
+                            "frames",
+                            "bler_errors",
+                            "bler",
+                            "bler_wilson_95_ci",
+                            "bit_errors",
+                            "bits",
+                            "ber",
+                        )
+                    }
+                    for point in loaded_by_profile[profile]["points"]
+                ],
+            }
+            for profile in sorted(required)
+        },
+        "comparisons_vs_tdl_a": comparisons,
+        "analysis": {
+            "source_revision": versions().get("git_sha"),
+            "package_source_sha256": package_source_sha256(),
+        },
+        "limitations": [
+            "Results are conditional on the configured standardized Sionna TDL models and one PUSCH receiver configuration.",
+            "All compared profiles use ideal synchronization; no sample-domain residual CFO or timing error is injected.",
+            "The curves are simulation evidence, not standards certification or validation against measured channels.",
+            "Codeword-level intervals do not quantify uncertainty across independent channel environments.",
         ],
     }

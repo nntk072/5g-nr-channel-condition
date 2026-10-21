@@ -13,7 +13,7 @@ from evaluation.metrics import (
     in_domain_split,
     threshold_from_validation,
 )
-from evaluation.paired_link_curves import compare_curves
+from evaluation.paired_link_curves import compare_curves, summarize_tdl_profile_sweep
 from evaluation.statistics import paired_binary_error_comparison, paired_seed_delta
 
 
@@ -371,6 +371,107 @@ def test_curve_comparator_pairs_explicit_cp_overrun_delay_spread(tmp_path):
     assert not result["paired_design"]["same_channel_truth_by_seed"]
     assert result["control"]["cp_covers_channel_memory"] is True
     assert result["treatment"]["cp_covers_channel_memory"] is False
+
+
+def test_curve_comparator_pairs_different_tdl_profiles(tmp_path):
+    checks = [
+        {
+            "seed": 51000,
+            "noise_seed": 51002,
+            "noise_real_seed": 51002,
+            "noise_imag_seed": 51003,
+            "transmit_bits_sha256": "same-bits",
+            "channel_truth_sha256": "tdl-b-channel",
+        }
+    ]
+    base_config = {
+        "profile": "TDL-B",
+        "speed_mps": 3.0,
+        "matched_realization_checks": checks,
+        "transmit_waveform_mean_power_by_batch": [1.0],
+    }
+    common = {
+        "schema": "loslab.tdl_pusch_time_bler_curve.v1",
+        "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
+        "points": [
+            {
+                "snr_db": 12.0,
+                "frames": 2,
+                "bits": 200,
+                "frame_error_mask": [False, True],
+            }
+        ],
+    }
+    control = {**common, "configuration": base_config}
+    treatment = {
+        **common,
+        "configuration": {
+            **base_config,
+            "profile": "TDL-C",
+            "matched_realization_checks": [{**checks[0], "channel_truth_sha256": "tdl-c-channel"}],
+        },
+    }
+    control_path = tmp_path / "tdl-b.json"
+    treatment_path = tmp_path / "tdl-c.json"
+    atomic_json(control_path, control)
+    atomic_json(treatment_path, treatment)
+
+    result = compare_curves(control_path, treatment_path, varying_config_field="profile")
+
+    assert result["paired_design"]["same_transmitted_bits_by_seed"]
+    assert not result["paired_design"]["same_channel_truth_by_seed"]
+    assert result["control"]["profile"] == "TDL-B"
+    assert result["treatment"]["profile"] == "TDL-C"
+
+
+def test_tdl_profile_sweep_requires_matched_trials_and_adjusts_family(tmp_path):
+    paths = []
+    for letter in "ABCDE":
+        curve = {
+            "schema": "loslab.tdl_pusch_time_bler_curve.v1",
+            "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
+            "configuration": {
+                "profile": f"TDL-{letter}",
+                "speed_mps": 3.0,
+                "matched_realization_checks": [
+                    {
+                        "seed": 1,
+                        "noise_seed": 3,
+                        "noise_real_seed": 3,
+                        "noise_imag_seed": 4,
+                        "transmit_bits_sha256": "same-bits",
+                        "channel_truth_sha256": f"channel-{letter}",
+                    }
+                ],
+                "transmit_waveform_mean_power_by_batch": [1.0],
+            },
+            "points": [
+                {
+                    "snr_db": 12.0,
+                    "frames": 4,
+                    "bler_errors": int(letter in "CE"),
+                    "bler": 0.25 if letter in "CE" else 0.0,
+                    "bler_wilson_95_ci": [0.0, 0.5],
+                    "bit_errors": 4,
+                    "bits": 400,
+                    "ber": 0.01,
+                    "frame_error_mask": [letter in "CE", False, False, False],
+                }
+            ],
+        }
+        path = tmp_path / f"tdl-{letter}.json"
+        atomic_json(path, curve)
+        paths.append(path)
+
+    result = summarize_tdl_profile_sweep(paths)
+
+    assert set(result["comparisons_vs_tdl_a"]) == {"TDL-B", "TDL-C", "TDL-D", "TDL-E"}
+    assert result["paired_design"]["same_transmitted_bits_by_batch"]
+    assert result["paired_design"]["different_channel_truth_by_profile"]
+    assert all(
+        "mcnemar_exact_two_sided_p_value_holm_family20" in comparison["points"][0]
+        for comparison in result["comparisons_vs_tdl_a"].values()
+    )
 
 
 def test_code_hash_is_stable():

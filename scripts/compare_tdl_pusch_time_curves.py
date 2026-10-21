@@ -21,7 +21,7 @@ def main() -> None:
     parser.add_argument("output", type=Path, help="new comparison JSON output")
     parser.add_argument(
         "--varying-config-field",
-        choices=("speed_mps", "dmrs_additional_position", "delay_spread_s"),
+        choices=("speed_mps", "dmrs_additional_position", "delay_spread_s", "profile"),
         default="speed_mps",
     )
     args = parser.parse_args()
