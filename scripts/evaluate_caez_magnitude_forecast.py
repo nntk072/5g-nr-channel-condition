@@ -1,4 +1,4 @@
-"""Evaluate a chronological persistence/trend baseline on CAEZ CSI magnitudes."""
+"""Evaluate baselines and compact regression on CAEZ CSI magnitudes."""
 
 from __future__ import annotations
 
@@ -9,6 +9,9 @@ from typing import Any
 
 import numpy as np
 from datasets.caez import _numeric_member, audit
+from sklearn.linear_model import Ridge
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 
 
 def forecast_pairs(
@@ -30,8 +33,26 @@ def forecast_pairs(
     if not 0 < test_fraction < 1:
         raise ValueError("test_fraction must be between zero and one")
 
+    anchors, targets, history = _aligned_pairs(
+        times,
+        horizon_s=horizon_s,
+        lookback_s=lookback_s,
+        tolerance_s=tolerance_s,
+    )
     test_start = int(np.floor(times.size * (1.0 - test_fraction)))
-    anchors = np.arange(test_start, times.size, dtype=np.int64)
+    valid = (anchors >= test_start) & (history >= test_start)
+    return anchors[valid], targets[valid], history[valid]
+
+
+def _aligned_pairs(
+    times: np.ndarray,
+    *,
+    horizon_s: float,
+    lookback_s: float,
+    tolerance_s: float,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Align every valid past/target pair to the nearest time samples."""
+    anchors = np.arange(times.size, dtype=np.int64)
     targets_right = np.searchsorted(times, times[anchors] + horizon_s, side="left")
     right_valid = targets_right < times.size
     left = np.clip(targets_right - 1, 0, times.size - 1)
@@ -42,14 +63,40 @@ def forecast_pairs(
     targets = np.where(choose_right, right, left)
     errors = np.abs(times[targets] - (times[anchors] + horizon_s))
     history = np.searchsorted(times, times[anchors] - lookback_s, side="right") - 1
-    valid = (
-        right_valid
-        & (targets > anchors)
-        & (errors <= tolerance_s)
-        & (history >= test_start)
-        & (history < anchors)
-    )
+    valid = right_valid & (targets > anchors) & (errors <= tolerance_s) & (history < anchors)
     return anchors[valid], targets[valid], history[valid]
+
+
+def _score_summary_predictions(
+    prediction: np.ndarray,
+    target: np.ndarray,
+    *,
+    n_orus: int,
+    n_rx: int,
+) -> dict[str, Any]:
+    scores = []
+    for oru in range(n_orus):
+        feature_slice = slice(oru * n_rx, (oru + 1) * n_rx)
+        actual = target[:, feature_slice]
+        error = prediction[:, feature_slice] - actual
+        squared_error = float(np.square(error, dtype=np.float64).sum())
+        rmse = float(np.sqrt(squared_error / actual.size))
+        target_std = float(np.std(actual, dtype=np.float64))
+        scores.append(
+            {
+                "rmse_db": rmse,
+                "mae_db": float(np.abs(error).mean()),
+                "nrmse_by_target_std": rmse / target_std if target_std > 0 else None,
+                "features": int(actual.size),
+            }
+        )
+    normalized = [item["nrmse_by_target_std"] for item in scores]
+    return {
+        "per_oru": scores,
+        "macro_nrmse_by_target_std": float(
+            np.mean([value for value in normalized if value is not None])
+        ),
+    }
 
 
 def _accumulate(
@@ -144,6 +191,57 @@ def evaluate(
                 np.mean([np.sqrt(squared[i] / energy[i]) for i in range(n_orus) if energy[i] > 0])
             ),
         }
+
+    # A compact learned regression target averages each antenna's magnitude over
+    # subcarriers. It is deliberately distinct from the full-tensor scores above.
+    summary_db = np.empty((channel.shape[0], n_orus * channel.shape[2]), dtype=np.float32)
+    for start in range(0, channel.shape[0], chunk_pairs):
+        stop = min(start + chunk_pairs, channel.shape[0])
+        magnitude_mean = np.asarray(channel[start:stop], dtype=np.float32).mean(axis=-1)
+        summary_db[start:stop] = 20.0 * np.log10(
+            np.maximum(magnitude_mean.reshape(stop - start, -1), 1e-8)
+        )
+    all_anchors, all_targets, all_history = _aligned_pairs(
+        timestamps,
+        horizon_s=horizon_s,
+        lookback_s=lookback_s,
+        tolerance_s=tolerance_s,
+    )
+    train_end = int(np.floor(0.7 * timestamps.size))
+    test_start = int(np.floor(0.8 * timestamps.size))
+    train_mask = all_targets < train_end
+    test_mask = (all_anchors >= test_start) & (all_history >= test_start)
+    train_anchors = all_anchors[train_mask]
+    train_targets = all_targets[train_mask]
+    train_history = all_history[train_mask]
+    test_anchors = all_anchors[test_mask]
+    test_targets = all_targets[test_mask]
+    test_history = all_history[test_mask]
+    if train_anchors.size == 0 or test_anchors.size == 0:
+        raise ValueError("temporal split produced an empty train or test partition")
+
+    train_features = np.concatenate((summary_db[train_anchors], summary_db[train_history]), axis=1)
+    train_targets_db = summary_db[train_targets]
+    test_features = np.concatenate((summary_db[test_anchors], summary_db[test_history]), axis=1)
+    test_targets_db = summary_db[test_targets]
+    regressor = make_pipeline(StandardScaler(), Ridge(alpha=1.0))
+    regressor.fit(train_features, train_targets_db)
+    ridge_prediction = np.asarray(regressor.predict(test_features), dtype=np.float64)
+    persistence_summary = summary_db[test_anchors]
+    trend_summary = persistence_summary + (persistence_summary - summary_db[test_history]) * (
+        horizon_s / lookback_s
+    )
+    compact_scores = {
+        "ridge": _score_summary_predictions(
+            ridge_prediction, test_targets_db, n_orus=n_orus, n_rx=channel.shape[2]
+        ),
+        "persistence": _score_summary_predictions(
+            persistence_summary, test_targets_db, n_orus=n_orus, n_rx=channel.shape[2]
+        ),
+        "linear_trend": _score_summary_predictions(
+            trend_summary, test_targets_db, n_orus=n_orus, n_rx=channel.shape[2]
+        ),
+    }
     return {
         "schema": "caez-measured-magnitude-forecast.v1",
         "source_archive": integrity["source_file"],
@@ -161,6 +259,24 @@ def evaluate(
             "last_test_target": float(timestamps[targets[-1]]),
         },
         "scores": scores,
+        "compact_summary_regression": {
+            "target": "per-O-RU, per-Rx-antenna subcarrier-mean magnitude in dB",
+            "model": "StandardScaler fit on train block + Ridge(alpha=1.0)",
+            "inputs": "current summary and summary nearest 500 ms in the past",
+            "split": {
+                "train_target_before_sample_fraction": 0.7,
+                "test_anchor_after_sample_fraction": 0.8,
+                "unused_temporal_gap_fraction": 0.1,
+                "train_pairs": int(train_anchors.size),
+                "test_pairs": int(test_anchors.size),
+            },
+            "scores": compact_scores,
+            "limitations": [
+                "Only summary magnitude is predicted; subcarrier-selective detail and phase are omitted.",
+                "The Ridge alpha is fixed in advance and is not evidence of hyperparameter tuning.",
+                "Single indoor campaign; chronological holdout does not establish other-site transfer.",
+            ],
+        },
         "limitations": [
             "Single indoor measurement campaign; this is not cross-scene validation.",
             "The selected feature archive discards complex phase and has no LOS/NLOS truth.",

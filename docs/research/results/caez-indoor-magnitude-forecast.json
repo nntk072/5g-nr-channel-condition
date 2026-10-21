@@ -1,6 +1,112 @@
 {
   "archive_bytes": 5957915148,
   "archive_sha256": "706e710cc30a96bbe4386e705d9361497e9c2e5df13c00fba77d9318e915c2cc",
+  "compact_summary_regression": {
+    "inputs": "current summary and summary nearest 500 ms in the past",
+    "limitations": [
+      "Only summary magnitude is predicted; subcarrier-selective detail and phase are omitted.",
+      "The Ridge alpha is fixed in advance and is not evidence of hyperparameter tuning.",
+      "Single indoor campaign; chronological holdout does not establish other-site transfer."
+    ],
+    "model": "StandardScaler fit on train block + Ridge(alpha=1.0)",
+    "scores": {
+      "linear_trend": {
+        "macro_nrmse_by_target_std": 2.576970370308748,
+        "per_oru": [
+          {
+            "features": 270868,
+            "mae_db": 7.712162017822266,
+            "nrmse_by_target_std": 2.545312812656079,
+            "rmse_db": 10.901026966426981
+          },
+          {
+            "features": 270868,
+            "mae_db": 7.812744617462158,
+            "nrmse_by_target_std": 2.2463957517696014,
+            "rmse_db": 11.0590437705128
+          },
+          {
+            "features": 270868,
+            "mae_db": 7.924003601074219,
+            "nrmse_by_target_std": 2.4040423898870693,
+            "rmse_db": 11.210578578915012
+          },
+          {
+            "features": 270868,
+            "mae_db": 7.545202732086182,
+            "nrmse_by_target_std": 3.112130526922242,
+            "rmse_db": 10.833409186898479
+          }
+        ]
+      },
+      "persistence": {
+        "macro_nrmse_by_target_std": 1.0470538930583935,
+        "per_oru": [
+          {
+            "features": 270868,
+            "mae_db": 3.2115132808685303,
+            "nrmse_by_target_std": 1.0354113699978265,
+            "rmse_db": 4.434444053229425
+          },
+          {
+            "features": 270868,
+            "mae_db": 3.321167469024658,
+            "nrmse_by_target_std": 0.9256845600695586,
+            "rmse_db": 4.55716053568601
+          },
+          {
+            "features": 270868,
+            "mae_db": 3.3425092697143555,
+            "nrmse_by_target_std": 0.9854500710759018,
+            "rmse_db": 4.595370490914155
+          },
+          {
+            "features": 270868,
+            "mae_db": 3.100957155227661,
+            "nrmse_by_target_std": 1.2416695710902867,
+            "rmse_db": 4.322284821339018
+          }
+        ]
+      },
+      "ridge": {
+        "macro_nrmse_by_target_std": 0.8072790855670082,
+        "per_oru": [
+          {
+            "features": 270868,
+            "mae_db": 2.6451851418736787,
+            "nrmse_by_target_std": 0.8023082626465774,
+            "rmse_db": 3.436113613623361
+          },
+          {
+            "features": 270868,
+            "mae_db": 2.7563932889804375,
+            "nrmse_by_target_std": 0.7262214694295523,
+            "rmse_db": 3.5752004121183294
+          },
+          {
+            "features": 270868,
+            "mae_db": 2.746649447380158,
+            "nrmse_by_target_std": 0.7677709406511032,
+            "rmse_db": 3.5802848140215238
+          },
+          {
+            "features": 270868,
+            "mae_db": 2.4877339672151724,
+            "nrmse_by_target_std": 0.9328156695408001,
+            "rmse_db": 3.2471561705607894
+          }
+        ]
+      }
+    },
+    "split": {
+      "test_anchor_after_sample_fraction": 0.8,
+      "test_pairs": 67717,
+      "train_pairs": 237235,
+      "train_target_before_sample_fraction": 0.7,
+      "unused_temporal_gap_fraction": 0.1
+    },
+    "target": "per-O-RU, per-Rx-antenna subcarrier-mean magnitude in dB"
+  },
   "forecast_target": "downsampled absolute OFDM-domain CSI magnitude; not complex CSI or LOS/NLOS",
   "horizon_s": 1.0,
   "license": "CAEZ Dataset License v1.0; attribution required; no redistribution",
