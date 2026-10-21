@@ -7,6 +7,7 @@ from integrations.sionna.nr_sync import (
     acquire_nr_cell,
     decode_nr_sss_symbol,
     make_nr_sync_burst,
+    modulate_nr_sync_symbol,
     nr_pss_sequence,
     nr_sss_sequence,
 )
@@ -77,7 +78,7 @@ def test_nr_sync_rejects_invalid_identity_and_capture() -> None:
         nr_pss_sequence(3)
     with pytest.raises(ValueError, match="nid1"):
         nr_sss_sequence(336, 0)
-    with pytest.raises(ValueError, match="shorter than one PSS"):
+    with pytest.raises(ValueError, match="too short to contain both"):
         acquire_nr_cell(
             np.ones(16, dtype=np.complex128),
             fft_size=256,
@@ -96,6 +97,37 @@ def test_pss_search_rejects_noise_below_detection_threshold() -> None:
             cyclic_prefix_length=32,
             sampling_frequency_hz=7_680_000.0,
             cfo_hypotheses_hz=(-3_000.0, 0.0, 3_000.0),
+        )
+
+
+def test_cell_search_excludes_late_pss_candidates_without_room_for_sss() -> None:
+    fft_size = 256
+    cp_length = 32
+    symbol_length = fft_size + cp_length
+    pss = modulate_nr_sync_symbol(
+        nr_pss_sequence(1), fft_size=fft_size, cyclic_prefix_length=cp_length
+    )
+    capture = np.zeros(4 * symbol_length, dtype=np.complex128)
+    capture[3 * symbol_length :] = pss
+
+    with pytest.raises(NRSyncNotFoundError, match="below minimum"):
+        acquire_nr_cell(
+            capture,
+            fft_size=fft_size,
+            cyclic_prefix_length=cp_length,
+            sampling_frequency_hz=7_680_000.0,
+            minimum_pss_score=0.99,
+            minimum_sss_score=0.0,
+        )
+
+
+def test_cell_search_requires_room_for_pss_and_later_sss_symbols() -> None:
+    with pytest.raises(ValueError, match="too short to contain both"):
+        acquire_nr_cell(
+            np.zeros(2 * (256 + 32), dtype=np.complex128),
+            fft_size=256,
+            cyclic_prefix_length=32,
+            sampling_frequency_hz=7_680_000.0,
         )
 
 

@@ -259,18 +259,24 @@ def acquire_nr_cell(
     assuming a static channel over the PSS-to-SSS interval. This is a controlled
     cell-search reference, not a complete or standards-certified NR synchronizer.
     """
+    _validate_ofdm(fft_size, cyclic_prefix_length)
     if not math.isfinite(minimum_sss_score) or not 0.0 <= minimum_sss_score <= 1.0:
         raise ValueError("minimum_sss_score must be finite and in [0, 1]")
     samples = np.asarray(capture, dtype=np.complex128)
+    symbol_length = fft_size + cyclic_prefix_length
+    if samples.ndim != 1 or samples.size < 3 * symbol_length:
+        raise ValueError("capture is too short to contain both the PSS and the later SSS symbol")
     pss = detect_nr_pss(
-        samples,
+        # Exclude candidate PSS positions too late to leave room for SSS at
+        # SS/PBCH symbol index 2. Searching the trailing SSS/PBCH symbols as
+        # extra PSS timing hypotheses creates false late acquisitions.
+        samples[: samples.size - 2 * symbol_length],
         fft_size=fft_size,
         cyclic_prefix_length=cyclic_prefix_length,
         sampling_frequency_hz=sampling_frequency_hz,
         cfo_hypotheses_hz=cfo_hypotheses_hz,
         minimum_score=minimum_pss_score,
     )
-    symbol_length = fft_size + cyclic_prefix_length
     sss_start = pss.sample_offset + 2 * symbol_length
     sss_end = sss_start + symbol_length
     if sss_end > samples.size:
