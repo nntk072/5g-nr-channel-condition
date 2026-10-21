@@ -15,6 +15,7 @@ def test_full_rt_oracle_is_separate_and_los_contains_reflections(monkeypatch):
     scene_module.scene = types.SimpleNamespace()
     calls = []
     full_solver_calls = 0
+    empty_path_class: str | None = None
     force_solver_error = False
     force_oracle_error = False
     force_all_los = False
@@ -42,7 +43,7 @@ def test_full_rt_oracle_is_separate_and_los_contains_reflections(monkeypatch):
             pass
 
         def __call__(self, scene, **kw):
-            nonlocal full_solver_calls
+            nonlocal empty_path_class, full_solver_calls
             calls.append(kw)
             visible = scene.receiver.position[0] > 0
             if kw["max_depth"] == 0:
@@ -55,6 +56,9 @@ def test_full_rt_oracle_is_separate_and_los_contains_reflections(monkeypatch):
                 raise ValueError("mock full solver failure")
             full_solver_calls += 1
             if full_solver_calls == 1:
+                empty_path_class = (
+                    "geometric_los" if (visible or force_all_los) else "geometric_nlos"
+                )
                 return FakePaths(0)
             return FakePaths(3 if visible else 2)
 
@@ -127,6 +131,8 @@ def test_full_rt_oracle_is_separate_and_los_contains_reflections(monkeypatch):
     )
     assert sum(outcome["accepted"] for outcome in by_class.values()) == len(d.y)
     assert sum(outcome["empty_paths"] for outcome in by_class.values()) == 1
+    assert empty_path_class is not None
+    assert by_class[empty_path_class]["empty_paths"] == 1
     assert "Empty full-solver path outcomes are counted" in report["selection_note"]
     assert all(m["los_plus_indirect_paths"] for m, y in zip(d.metadata, d.y) if y == 1)
     assert all(m["valid_paths_full"] >= 2 for m in d.metadata)

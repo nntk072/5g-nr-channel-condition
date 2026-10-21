@@ -1,0 +1,73 @@
+{
+  "schema": "loslab.rt_class_outcome_smoke.v1",
+  "evidence_grade": "SIMULATION_ONLY_IMPLEMENTATION_CHECK",
+  "source_revision": "3687a57d1a3ef51b51b43efd4a165274b9fe6448",
+  "package_source_sha256": "c1c987fc02bb22dadcc7ff297fbf80855622307b6b5b5c44dd89af37c332b2a7",
+  "dataset": {
+    "path": "outputs/e07-outcome-accounting-box-smoke-20261022.npz",
+    "sha256": "7f1007b591f88f198813e3d907a9eb7b944430433c0207f8e0de2064badeb12b",
+    "scene": "box_one_screen",
+    "scene_asset_set_sha256": "0096663dfcaf8a1a1079ba1912b76c226dc927b4c67e691796b2222f43cc98d4",
+    "accepted_samples": 8,
+    "accepted_per_class": 4,
+    "label_semantics": "geometric_direct_path_oracle"
+  },
+  "config": {
+    "seed": 9907,
+    "carrier_hz": 3500000000.0,
+    "subcarriers": 128,
+    "subcarrier_spacing_hz": 30000.0,
+    "radius_m": 4.0,
+    "max_depth": 2,
+    "samples_per_source": 5000,
+    "max_attempts": 300,
+    "requested_per_class": 4
+  },
+  "runtime": {
+    "python": "3.12.3",
+    "numpy": "2.5.4",
+    "sionna": "2.2.0",
+    "sionna_rt": "2.2.0",
+    "mitsuba": "3.9.1",
+    "drjit": "1.5.0",
+    "requested_backend": "auto",
+    "resolved_backend": "llvm_cpu",
+    "native_trace_probe": "LLVM direct-path probe passed; CUDA/OptiX probe failed to initialize OptiX"
+  },
+  "generation_accounting": {
+    "candidate_geometry_labels": {
+      "geometric_los": 4,
+      "geometric_nlos": 10
+    },
+    "full_solver_attempts": 8,
+    "full_solver_calls": 8,
+    "full_solver_errors": 0,
+    "full_solver_outcomes_by_geometric_class": {
+      "geometric_los": {
+        "attempts": 4,
+        "calls": 4,
+        "errors": 0,
+        "empty_paths": 0,
+        "los_direct_only_rejected": 0,
+        "cfr_conversion_failures": 0,
+        "accepted": 4
+      },
+      "geometric_nlos": {
+        "attempts": 4,
+        "calls": 4,
+        "errors": 0,
+        "empty_paths": 0,
+        "los_direct_only_rejected": 0,
+        "cfr_conversion_failures": 0,
+        "accepted": 4
+      }
+    },
+    "accounting_invariant": "per-class attempts=calls+errors; each solver call has exactly one terminal outcome; class totals equal global totals and accepted rows"
+  },
+  "reproduction": "python -m loslab rt-data --output <new.npz> --seed 9907 --scene box_one_screen --tx -2 0 2.5 --center 0 0 2.5 --radius 4 --per-class 4 --max-attempts 300 --samples-per-src 5000 --block-size 5 --max-depth 2 --mitsuba-variant auto",
+  "limitations": [
+    "One synthetic built-in scene and four accepted links per class; this validates report accounting, not noncoverage rates.",
+    "No full-solver errors, empty paths, or direct-only LOS rejections occurred in this small smoke run.",
+    "The six-scene legacy audit still lacks class attribution for its historical empty-path candidates."
+  ]
+}
