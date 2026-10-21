@@ -34,14 +34,19 @@ def run_static_cp_margin_experiment(**kwargs: Any) -> dict[str, Any]:
             for power in powers
         ]
     bits_per_frame = points["inside_cp"]["bits"] / points["inside_cp"]["frames"]
-    result["paired_comparison"] = paired_binary_error_comparison(
-        points["inside_cp"]["frame_error_mask"],
-        points["beyond_cp"]["frame_error_mask"],
-        seed=result["configuration"]["seed"],
-        draws=20_000,
-        control_bits_per_success=bits_per_frame,
-        treatment_bits_per_success=bits_per_frame,
-    )
+    result["paired_comparisons_vs_inside_cp"] = {
+        condition: paired_binary_error_comparison(
+            points["inside_cp"]["frame_error_mask"],
+            point["frame_error_mask"],
+            seed=result["configuration"]["seed"],
+            draws=20_000,
+            control_bits_per_success=bits_per_frame,
+            treatment_bits_per_success=bits_per_frame,
+        )
+        for condition, point in points.items()
+        if condition != "inside_cp"
+    }
+    result["paired_comparison"] = result["paired_comparisons_vs_inside_cp"]["beyond_cp"]
     result.update(
         {
             "schema": "loslab.pusch_static_cp_margin.v1",

@@ -27,6 +27,13 @@ def main() -> None:
     parser.add_argument("--subcarrier-spacing-khz", type=int, default=30)
     parser.add_argument("--in-cp-guard-samples", type=int, default=2)
     parser.add_argument("--beyond-cp-samples", type=int, default=3)
+    parser.add_argument(
+        "--additional-echo-delays-samples",
+        type=int,
+        nargs="*",
+        default=[],
+        help="additional positive discrete echo delays, in the same sample-domain setup",
+    )
     args = parser.parse_args()
     if args.output.exists():
         parser.error(f"refusing to overwrite existing output: {args.output}")
@@ -39,6 +46,7 @@ def main() -> None:
         subcarrier_spacing_khz=args.subcarrier_spacing_khz,
         in_cp_guard_samples=args.in_cp_guard_samples,
         beyond_cp_samples=args.beyond_cp_samples,
+        additional_echo_delays_samples=args.additional_echo_delays_samples,
     )
     atomic_json(args.output, result)
     print(
@@ -60,6 +68,17 @@ def main() -> None:
                         "paired_goodput_bootstrap_ci95",
                         "mcnemar_exact_two_sided_p_value",
                     )
+                },
+                "paired_comparisons_vs_inside_cp": {
+                    condition: {
+                        key: comparison[key]
+                        for key in (
+                            "treatment_minus_control_bler",
+                            "paired_bootstrap_ci95",
+                            "mcnemar_exact_two_sided_p_value",
+                        )
+                    }
+                    for condition, comparison in result["paired_comparisons_vs_inside_cp"].items()
                 },
             },
             indent=2,

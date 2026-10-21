@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import math
-from typing import Any
+from typing import Any, Sequence
 
 
 def run_static_cp_margin_experiment(  # pragma: no cover - exercised by native CUDA integration test
@@ -17,6 +17,7 @@ def run_static_cp_margin_experiment(  # pragma: no cover - exercised by native C
     subcarrier_spacing_khz: int = 30,
     in_cp_guard_samples: int = 2,
     beyond_cp_samples: int = 3,
+    additional_echo_delays_samples: Sequence[int] = (),
 ) -> dict[str, Any]:
     """Compare a fixed PUSCH payload with an echo just inside and beyond its CP.
 
@@ -48,6 +49,13 @@ def run_static_cp_margin_experiment(  # pragma: no cover - exercised by native C
             raise TypeError(f"{name} must be an integer")
     if in_cp_guard_samples < 1 or beyond_cp_samples < 1:
         raise ValueError("CP guard and beyond-CP offsets must each be at least one sample")
+    if any(
+        isinstance(delay, bool) or not isinstance(delay, int) or delay <= 0
+        for delay in additional_echo_delays_samples
+    ):
+        raise ValueError("additional echo delays must be positive integers")
+    if len(set(additional_echo_delays_samples)) != len(additional_echo_delays_samples):
+        raise ValueError("additional echo delays must be unique")
 
     try:
         import torch
@@ -76,6 +84,14 @@ def run_static_cp_margin_experiment(  # pragma: no cover - exercised by native C
         raise ValueError("in_cp_guard_samples must be smaller than the shortest CP")
     in_delay = cp - in_cp_guard_samples
     out_delay = cp + beyond_cp_samples
+    echo_delays = {
+        "inside_cp": in_delay,
+        "beyond_cp": out_delay,
+    }
+    for delay in additional_echo_delays_samples:
+        if delay in echo_delays.values():
+            raise ValueError("additional echo delays must differ from the default comparison")
+        echo_delays[f"echo_delay_{delay}_samples"] = delay
     modulator = OFDMModulator(
         cyclic_prefix_length=grid.cyclic_prefix_length,
         device=device,
@@ -97,10 +113,10 @@ def run_static_cp_margin_experiment(  # pragma: no cover - exercised by native C
     noise_variance = 1.0 / snr_linear
     direct_gain = 0.85 + 0.0j
     echo_gain = 0.48 + 0.12j
-    errors = {"inside_cp": 0, "beyond_cp": 0}
-    bit_errors = {"inside_cp": 0, "beyond_cp": 0}
-    error_masks: dict[str, list[bool]] = {"inside_cp": [], "beyond_cp": []}
-    receive_waveform_power: dict[str, list[float]] = {"inside_cp": [], "beyond_cp": []}
+    errors = {condition: 0 for condition in echo_delays}
+    bit_errors = {condition: 0 for condition in echo_delays}
+    error_masks: dict[str, list[bool]] = {condition: [] for condition in echo_delays}
+    receive_waveform_power: dict[str, list[float]] = {condition: [] for condition in echo_delays}
     transmit_waveform_power: list[float] = []
     bits_per_frame: int | None = None
     checks: list[dict[str, Any]] = []
@@ -135,7 +151,7 @@ def run_static_cp_margin_experiment(  # pragma: no cover - exercised by native C
         elif bits_per_frame != int(transmit_bits[0].numel()):
             raise RuntimeError("PUSCH transport-block size changed between batches")
 
-        for condition, delay in (("inside_cp", in_delay), ("beyond_cp", out_delay)):
+        for condition, delay in echo_delays.items():
             delayed = torch.cat(
                 (torch.zeros_like(waveform[..., :delay]), waveform[..., :-delay]), dim=-1
             )
@@ -160,7 +176,7 @@ def run_static_cp_margin_experiment(  # pragma: no cover - exercised by native C
             "bits": frames * int(bits_per_frame or 0),
             "frame_error_mask": error_masks[condition],
         }
-        for condition in ("inside_cp", "beyond_cp")
+        for condition in echo_delays
     }
     return {
         "configuration": {
@@ -172,6 +188,7 @@ def run_static_cp_margin_experiment(  # pragma: no cover - exercised by native C
             "in_cp_remaining_margin_samples": cp - in_delay,
             "beyond_cp_delay_samples": out_delay,
             "beyond_cp_excess_samples": out_delay - cp,
+            "echo_delay_by_condition_samples": echo_delays,
             "direct_path_gain": [direct_gain.real, direct_gain.imag],
             "echo_path_gain": [echo_gain.real, echo_gain.imag],
             "sampled_waveform_snr_db": snr_db,

@@ -229,6 +229,7 @@ def test_fixed_payload_pusch_cp_margin_experiment_pairs_same_bits_and_noise():
         subcarrier_spacing_khz=30,
         in_cp_guard_samples=2,
         beyond_cp_samples=3,
+        additional_echo_delays_samples=(1, 4, 8, 13, 20),
     )
     config = result["configuration"]
     inside = result["points"]["inside_cp"]
@@ -242,5 +243,8 @@ def test_fixed_payload_pusch_cp_margin_experiment_pairs_same_bits_and_noise():
     assert inside["bits"] == beyond["bits"]
     assert len(inside["measured_receive_snr_db_by_batch"]) == 4
     assert len(beyond["measured_receive_snr_db_by_batch"]) == 4
+    assert result["points"]["echo_delay_13_samples"]["frames"] == 128
+    assert result["points"]["echo_delay_20_samples"]["frames"] == 128
+    assert "echo_delay_13_samples" in result["paired_comparisons_vs_inside_cp"]
     assert beyond["bler"] > inside["bler"]
     assert result["paired_comparison"]["mcnemar_exact_two_sided_p_value"] < 0.05
