@@ -159,6 +159,13 @@ def run_experiment(
                 "metrics": metrics,
                 "confidence": ci,
                 "split": {
+                    "indices_sha256": canonical_hash(
+                        {
+                            "train_idx": train.tolist(),
+                            "validation_idx": val.tolist(),
+                            "test_idx": test.tolist(),
+                        }
+                    ),
                     "train_size": len(train),
                     "val_size": len(val),
                     "test_size": len(test),
@@ -197,7 +204,14 @@ def run_experiment(
             "std_test_auroc": float(np.std(seq, ddof=1)) if len(seq) > 1 else None,
         }
     comparisons = {}
-    for control, treatment in (("mlp", "coral"), ("coral0", "coral")):
+    method_pairs = (
+        ("rf", "mlp"),
+        ("logreg", "mlp"),
+        ("mlp", "coral"),
+        ("coral0", "coral"),
+        ("mlp", "coral0"),
+    )
+    for control, treatment in method_pairs:
         if control in methods and treatment in methods:
             comparisons[f"{treatment}_versus_{control}"] = paired_seed_delta(
                 results, control, treatment, draws=5000

@@ -48,3 +48,30 @@ def test_run_experiment_refuses_to_overwrite_completed_run(tmp_path) -> None:
 
     with pytest.raises(FileExistsError, match="immutable"):
         run_experiment([source], output, methods=("logreg",), seeds=(11,), bootstrap=10)
+
+
+def test_run_experiment_reports_paired_classical_vs_mlp_deltas(tmp_path) -> None:
+    source = tmp_path / "debug.npz"
+    debug_multipath(n_scenes=12, links_per_scene=24, seed=19).save(source)
+
+    summary = run_experiment(
+        [source],
+        tmp_path / "runs" / "paired",
+        methods=("rf", "mlp"),
+        seeds=(11, 23, 47),
+        bootstrap=10,
+    )
+
+    comparison = summary["paired_method_comparisons"]["mlp_versus_rf"]
+    assert comparison["paired_seeds"] == [11, 23, 47]
+    assert len(comparison["treatment_minus_control"]) == 3
+    assert comparison["test"] == "exact paired sign-flip"
+    assert comparison["warning"].startswith("Fewer than six seeds")
+
+    results = json.loads((tmp_path / "runs" / "paired" / "results.json").read_text())
+    by_seed_and_method = {(row["seed"], row["method"]): row for row in results}
+    for seed in (11, 23, 47):
+        assert (
+            by_seed_and_method[(seed, "rf")]["split"]["indices_sha256"]
+            == by_seed_and_method[(seed, "mlp")]["split"]["indices_sha256"]
+        )
