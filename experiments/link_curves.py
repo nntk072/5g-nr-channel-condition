@@ -611,6 +611,12 @@ def run_tdl_pusch_rx_diversity_curve(
                 item["clean_receive_power_by_antenna"] for item in batches
             ],
             "snr_db": list(snr_values),
+            "n_size_bwp_resource_blocks": n_size_bwp,
+            "subcarrier_spacing_khz": subcarrier_spacing_khz,
+            "dmrs_additional_position": dmrs_additional_position,
+            "receive_spatial_correlation_assumption": (
+                "uncorrelated; no spatial_corr_mat or rx_corr_mat supplied to Sionna TDL"
+            ),
             "snr_definition": (
                 "complex AWGN variance 10**(-SNR_dB/10); measured pre-noise receive power "
                 "is recorded separately for each antenna and batch"

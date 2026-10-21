@@ -194,6 +194,11 @@ def test_sample_domain_tdl_pusch_rx_diversity_uses_paired_channel_draws():
 
     assert result["schema"] == "loslab.tdl_pusch_rx_diversity.v1"
     assert result["configuration"]["num_rx_ant"] == 2
+    assert result["configuration"]["n_size_bwp_resource_blocks"] == 12
+    assert result["configuration"]["subcarrier_spacing_khz"] == 30
+    assert result["configuration"]["receive_spatial_correlation_assumption"].startswith(
+        "uncorrelated"
+    )
     assert len(result["configuration"]["clean_receive_power_by_antenna_per_batch"]) == 2
     assert all(
         check["single_rx_is_first_antenna_of_two_rx_draw"]
