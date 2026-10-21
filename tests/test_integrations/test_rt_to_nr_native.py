@@ -195,6 +195,8 @@ def test_rt_cpu_box_scene_generates_balanced_geometry_labeled_records():
     assert all(row["geometry_label"] == "GEOMETRIC_DIRECT_PATH_ORACLE" for row in data.metadata)
     assert all(row["valid_paths_full"] > 0 for row in data.metadata)
     assert all(row["mitsuba_variant"] == "llvm_ad_mono_polarized" for row in data.metadata)
+    assert all(row["scene_asset_manifest_complete"] for row in data.metadata)
+    assert all(len(row["scene_asset_set_sha256"]) == 64 for row in data.metadata)
     assert all(row["scene_config"]["samples_per_src"] == 20 for row in data.metadata)
     assert all(row["grid_config"]["n_subcarriers"] == 16 for row in data.metadata)
     assert all(row["solver_config"]["deterministic"] for row in data.metadata)
@@ -204,6 +206,8 @@ def test_rt_cpu_box_scene_generates_balanced_geometry_labeled_records():
         if label == 0
     )
     report = data.generation_report
+    assert report["scene_asset_manifest"]["complete"] is True
+    assert report["scene_asset_manifest"]["asset_count"] >= 1
     assert report["accepted_counts"]["total"] == 4
     assert report["attempt_counts"]["depth_zero_oracle_calls"] == (
         report["attempt_counts"]["candidate_geometric_los"]

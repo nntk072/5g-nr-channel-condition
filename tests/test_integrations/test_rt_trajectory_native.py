@@ -46,6 +46,8 @@ def test_cpu_rt_path_retraces_and_stores_receiver_only_trajectory(tmp_path):
         assert not hasattr(model_inputs, "targets")
         assert not hasattr(model_inputs, "provenance")
         assert np.isfinite(model_inputs.received_grid).all()
+        assert record.provenance["scene_asset_manifest_complete"] is True
+        assert record.provenance["scene_asset_count"] >= 1
 
     sidecar = tmp_path / "manifests" / "trajectories" / f"{stored.content_sha256}.generation.json"
     assert sidecar.is_file()

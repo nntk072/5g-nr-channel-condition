@@ -108,6 +108,7 @@ def generate_rt_nr_trajectory(
     if config.device.startswith("cuda") and not torch.cuda.is_available():
         raise RuntimeError(f"CUDA device requested but unavailable: {config.device}")
     from integrations.sionna.backend import activate_rt_backend, select_rt_backend
+    from integrations.sionna.scene_assets import scene_asset_manifest
 
     selection = select_rt_backend(config.mitsuba_variant)
     activate_rt_backend(selection)
@@ -120,20 +121,18 @@ def generate_rt_nr_trajectory(
 
     scene_ref = getattr(rt.scene, config.scene, config.scene)
     scene = load_scene(str(scene_ref) if isinstance(scene_ref, Path) else scene_ref)
-    scene_path = Path(config.scene)
+    scene_path = Path(str(scene_ref)).expanduser()
     if scene_path.is_file():
-        scene_asset_hashes = {
-            "scene_xml_sha256": hashlib.sha256(scene_path.read_bytes()).hexdigest()
-        }
-        scene_manifest = scene_path.with_suffix(".manifest.json")
-        if scene_manifest.is_file():
-            scene_asset_hashes["scene_manifest_sha256"] = hashlib.sha256(
-                scene_manifest.read_bytes()
-            ).hexdigest()
+        scene_asset_hashes = scene_asset_manifest(scene_path)
     else:
         scene_xml = scene_ref if isinstance(scene_ref, str) else repr(scene_ref)
         scene_asset_hashes = {
-            "resolved_builtin_scene_sha256": hashlib.sha256(scene_xml.encode()).hexdigest()
+            "scene_xml_path": scene_xml,
+            "asset_count": 0,
+            "assets": [],
+            "asset_set_sha256": hashlib.sha256(scene_xml.encode()).hexdigest(),
+            "unresolved_references": [scene_xml],
+            "complete": False,
         }
     receiver_config = NRPUSCHConfig(
         n_size_bwp=config.n_size_bwp,
@@ -284,7 +283,9 @@ def generate_rt_nr_trajectory(
                 "refraction": True,
                 "diffraction": False,
             },
-            "scene_asset_hashes": scene_asset_hashes,
+            "scene_asset_set_sha256": scene_asset_hashes["asset_set_sha256"],
+            "scene_asset_manifest_complete": scene_asset_hashes["complete"],
+            "scene_asset_count": scene_asset_hashes["asset_count"],
             "runtime_versions": runtime_versions,
             "package_source_sha256": source_sha256,
         }
@@ -312,6 +313,7 @@ def generate_rt_nr_trajectory(
         "direct_path_counts": direct_path_counts,
         "full_path_counts": total_path_counts,
         "receiver_metadata": receiver.metadata,
+        "scene_asset_manifest": scene_asset_hashes,
         "rt_backend_selection": selection.as_dict(),
         "runtime_versions": runtime_versions,
         "package_source_sha256": source_sha256,

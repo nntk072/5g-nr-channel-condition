@@ -7,6 +7,7 @@ LOS oracle: an independent depth-zero geometric PathSolver invocation.
 
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import asdict, dataclass, replace
 from pathlib import Path
@@ -300,6 +301,8 @@ def generate_raytraced(
     except ImportError as e:
         raise RuntimeError("Sionna RT 2.2 not installed; install sionna==2.2.0") from e
     cfg = replace(scene_config, mitsuba_variant=selection.variant)
+    from integrations.sionna.scene_assets import scene_asset_manifest
+
     obstacles = []
     scene_path = Path(cfg.name)
     scene_manifest = scene_path.with_suffix(".manifest.json")
@@ -315,6 +318,19 @@ def generate_raytraced(
     ):
         raise ValueError("Invalid ray tracing configuration")
     scene_ref = getattr(rt.scene, cfg.name, cfg.name)
+    scene_xml_path = Path(str(scene_ref)).expanduser()
+    if scene_xml_path.is_file():
+        scene_assets = scene_asset_manifest(scene_xml_path)
+    else:
+        scene_reference = str(scene_ref)
+        scene_assets = {
+            "scene_xml_path": scene_reference,
+            "asset_count": 0,
+            "assets": [],
+            "asset_set_sha256": hashlib.sha256(scene_reference.encode()).hexdigest(),
+            "unresolved_references": [scene_reference],
+            "complete": False,
+        }
     scene = load_scene(scene_ref)
     scene.frequency = grid.carrier_hz
     scene.bandwidth = grid.n_subcarriers * grid.spacing_hz
@@ -444,6 +460,9 @@ def generate_raytraced(
         meta.append(
             {
                 "scene": cfg.name,
+                "scene_asset_set_sha256": scene_assets["asset_set_sha256"],
+                "scene_asset_manifest_complete": scene_assets["complete"],
+                "scene_asset_count": scene_assets["asset_count"],
                 "geometry_label": "GEOMETRIC_DIRECT_PATH_ORACLE",
                 "tx": list(cfg.tx_position),
                 "rx": [x, y, z],
@@ -500,6 +519,7 @@ def generate_raytraced(
         "rt_backend_selection": selection.as_dict(),
         "package_source_sha256": package_source_sha256(),
         "scene_config": asdict(cfg),
+        "scene_asset_manifest": scene_assets,
         "grid_config": asdict(grid),
         "solver_config": {
             "deterministic": True,
