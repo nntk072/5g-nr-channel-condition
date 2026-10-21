@@ -1,9 +1,11 @@
-# 5G Channel LOS/NLOS Thesis
+# Wireless Channel Condition Research
 
-Research code for machine-learning-based channel classification, with current
-work focused on physically grounded LOS/NLOS detection under domain shift. The
-research framework distinguishes geometric LOS labels from standardized
-TDL/CDL profile proxy labels and marks synthetic smoke data as debug-only.
+Research code for machine-learning-based wireless channel condition analysis.
+The current study begins with physically grounded LOS/NLOS detection under
+domain shift, while the repository structure supports broader channel
+condition research. The framework distinguishes geometric LOS labels from
+standardized TDL/CDL profile proxy labels and marks synthetic smoke data as
+debug-only.
 
 ## Start here
 

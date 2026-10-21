@@ -3,9 +3,9 @@ requires = ["setuptools>=69", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "los-channel-thesis"
+name = "wireless-channel-condition"
 version = "0.2.0"
-description = "Reproducible LOS/NLOS channel classification research framework"
+description = "Research framework for wireless channel condition analysis"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
