@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 import os
 import tempfile
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import numpy as np
@@ -23,6 +23,7 @@ class ChannelDataset:
     domain: np.ndarray  # [N] domain (tdl, cdl, scene ID)
     source: np.ndarray  # [N] source identifier (synthetic/tdl/cdl/rt)
     metadata: tuple[dict, ...]  # optional provenance only, NEVER used as features
+    generation_report: dict = field(default_factory=dict)  # dataset-level QA/provenance
 
     def __post_init__(self) -> None:
         h = np.asarray(self.h)
@@ -41,6 +42,13 @@ class ChannelDataset:
             raise ValueError("metadata count mismatch")
         if any(not str(g).strip() for g in self.group):
             raise ValueError("empty group ID is forbidden")
+        try:
+            report = json.loads(json.dumps(self.generation_report, sort_keys=True, allow_nan=False))
+        except (TypeError, ValueError) as exc:
+            raise TypeError("generation_report must contain finite JSON-compatible values") from exc
+        if not isinstance(report, dict):
+            raise TypeError("generation_report must be a JSON object")
+        object.__setattr__(self, "generation_report", report)
 
     def select(self, indices: np.ndarray) -> "ChannelDataset":
         ii = np.asarray(indices, dtype=np.int64)
@@ -51,6 +59,13 @@ class ChannelDataset:
             self.domain[ii],
             self.source[ii],
             tuple(self.metadata[int(i)] for i in ii),
+            {
+                "schema": "loslab.dataset_derivation.v1",
+                "operation": "select",
+                "selected_samples": int(len(ii)),
+                "selected_indices": ii.tolist(),
+                "parent_generation_report": self.generation_report,
+            },
         )
 
     @classmethod
@@ -67,6 +82,11 @@ class ChannelDataset:
             np.concatenate([d.domain for d in datasets]),
             np.concatenate([d.source for d in datasets]),
             tuple(m for d in datasets for m in d.metadata),
+            {
+                "schema": "loslab.dataset_derivation.v1",
+                "operation": "concatenate",
+                "components": [d.generation_report for d in datasets],
+            },
         )
 
     def save(self, path: str | Path) -> None:
@@ -83,6 +103,9 @@ class ChannelDataset:
                 domain=np.asarray(self.domain, dtype=str),
                 source=np.asarray(self.source, dtype=str),
                 metadata_json=np.asarray(json.dumps(self.metadata, sort_keys=True)),
+                generation_report_json=np.asarray(
+                    json.dumps(self.generation_report, sort_keys=True, allow_nan=False)
+                ),
             )
             os.replace(tmp, path)
         finally:
@@ -93,4 +116,9 @@ class ChannelDataset:
     def load(cls, path: str | Path) -> "ChannelDataset":
         with np.load(path, allow_pickle=False) as z:
             metadata = tuple(json.loads(str(z["metadata_json"].item())))
-            return cls(z["h"], z["y"], z["group"], z["domain"], z["source"], metadata)
+            report = (
+                json.loads(str(z["generation_report_json"].item()))
+                if "generation_report_json" in z.files
+                else {}
+            )
+            return cls(z["h"], z["y"], z["group"], z["domain"], z["source"], metadata, report)

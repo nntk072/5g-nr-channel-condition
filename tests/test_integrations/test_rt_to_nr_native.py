@@ -203,3 +203,10 @@ def test_rt_cpu_box_scene_generates_balanced_geometry_labeled_records():
         for row, label in zip(data.metadata, data.y, strict=True)
         if label == 0
     )
+    report = data.generation_report
+    assert report["accepted_counts"]["total"] == 4
+    assert report["attempt_counts"]["depth_zero_oracle_calls"] == (
+        report["attempt_counts"]["candidate_geometric_los"]
+        + report["attempt_counts"]["candidate_geometric_nlos"]
+    )
+    assert report["attempt_counts"]["full_solver_empty_paths"] >= 0

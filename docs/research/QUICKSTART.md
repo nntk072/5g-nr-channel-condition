@@ -74,6 +74,12 @@ python -m loslab rt-data --scene munich --tx 8.5 21 27 \
 The default **requires a LOS example to have a direct + indirect ray**. If a
 scene does not yield both classes within `--max-attempts`, generation fails with
 an explicit error rather than silently imbalancing the dataset.
+The saved NPZ also carries a dataset-level `generation_report` with candidate,
+quota, empty-full-solver, direct-only rejection, and CFR-conversion counts,
+along with the scene/grid/solver configuration, environment versions, and a
+source-code hash. Empty-path outcomes are counted but are not exported as
+channel observations. Older NPZ files without this report still load; dataset
+selection and concatenation preserve derivation lineage.
 
 ## 4. Generate independent, controllable city geometries (no Sionna needed)
 

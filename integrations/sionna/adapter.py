@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Protocol, Sequence
 
 import numpy as np
+from artifacts.provenance import package_source_sha256, versions
 from datasets.channel import ChannelDataset
 from propagation.physics import add_estimation_noise, frequency_response, subcarrier_frequencies
 
@@ -320,6 +321,18 @@ def generate_raytraced(
     los_oracle = PathSolver(deterministic=True)
     rng = np.random.default_rng(seed)
     hits = {0: 0, 1: 0}
+    attempt_counts = {
+        "attempts_started": 0,
+        "obstacle_rejections": 0,
+        "depth_zero_oracle_calls": 0,
+        "candidate_geometric_nlos": 0,
+        "candidate_geometric_los": 0,
+        "class_quota_skips": 0,
+        "full_solver_calls": 0,
+        "full_solver_empty_paths": 0,
+        "los_direct_only_rejections": 0,
+        "cfr_conversion_failures": 0,
+    }
     samples = []
     ys = []
     groups = []
@@ -329,6 +342,7 @@ def generate_raytraced(
     for attempt in range(cfg.max_attempts):
         if min(hits.values()) >= cfg.per_class:
             break
+        attempt_counts["attempts_started"] += 1
         angle = float(rng.uniform(-np.pi, np.pi))
         distance = float(cfg.radius_m * np.sqrt(rng.uniform(0, 1)))
         x = cfg.rx_center[0] + distance * np.cos(angle)
@@ -338,8 +352,10 @@ def generate_raytraced(
             from propagation.geometry import on_obstacle
 
             if on_obstacle(x, y, obstacles, margin=0.75):
+                attempt_counts["obstacle_rejections"] += 1
                 continue
         receiver.position = [float(x), float(y), float(z)]
+        attempt_counts["depth_zero_oracle_calls"] += 1
         oracle_paths = los_oracle(
             scene,
             max_depth=0,
@@ -351,8 +367,11 @@ def generate_raytraced(
             seed=seed + attempt,
         )
         label = int(has_valid_path(oracle_paths))
+        attempt_counts["candidate_geometric_los" if label else "candidate_geometric_nlos"] += 1
         if hits[label] >= cfg.per_class:
+            attempt_counts["class_quota_skips"] += 1
             continue
+        attempt_counts["full_solver_calls"] += 1
         full = full_solver(
             scene,
             max_depth=cfg.max_depth,
@@ -366,10 +385,12 @@ def generate_raytraced(
         )
         n_paths = count_valid_paths(full)
         if n_paths == 0:
+            attempt_counts["full_solver_empty_paths"] += 1
             continue
         n_direct = count_valid_paths(oracle_paths)
         mixed = bool(label and n_paths > n_direct)
         if label and cfg.require_los_multipath and not mixed:
+            attempt_counts["los_direct_only_rejections"] += 1
             continue
         try:
             channel = rt_cfr(full, grid)
@@ -377,6 +398,7 @@ def generate_raytraced(
             diagnostics = direct_indirect_diagnostics(channel, direct)
             channel = add_estimation_noise(channel, grid.snr_db, rng)
         except (ValueError, RuntimeError):
+            attempt_counts["cfr_conversion_failures"] += 1
             continue
         samples.append(channel[0])
         ys.append(label)
@@ -418,6 +440,48 @@ def generate_raytraced(
             f"Insufficient visible paths after {cfg.max_attempts} attempts: "
             + f"LOS={hits[1]}, NLOS={hits[0]}. Change scene/positions/solver budgets."
         )
+    full_solver_outcomes = {
+        "empty_paths": attempt_counts["full_solver_empty_paths"],
+        "los_direct_only_rejected": attempt_counts["los_direct_only_rejections"],
+        "cfr_conversion_failures": attempt_counts["cfr_conversion_failures"],
+        "accepted": len(samples),
+    }
+    if (
+        attempt_counts["attempts_started"]
+        != attempt_counts["obstacle_rejections"] + attempt_counts["depth_zero_oracle_calls"]
+    ):
+        raise RuntimeError("RT generation report does not account for every candidate attempt")
+    if sum(full_solver_outcomes.values()) != attempt_counts["full_solver_calls"]:
+        raise RuntimeError("RT generation report does not account for every full-solver outcome")
+    generation_report = {
+        "schema": "loslab.raytraced_generation_report.v1",
+        "environment": versions(),
+        "package_source_sha256": package_source_sha256(),
+        "scene_config": asdict(cfg),
+        "grid_config": asdict(grid),
+        "solver_config": {
+            "deterministic": True,
+            "max_depth": cfg.max_depth,
+            "los": True,
+            "specular_reflection": True,
+            "diffuse_reflection": True,
+            "refraction": True,
+            "diffraction": False,
+        },
+        "seed": seed,
+        "attempt_counts": attempt_counts,
+        "full_solver_outcomes": full_solver_outcomes,
+        "accepted_counts": {
+            "total": len(ys),
+            "geometric_nlos": hits[0],
+            "geometric_los": hits[1],
+        },
+        "selection_note": (
+            "Balanced accepted records are conditional on the recorded scene, candidate sampler, "
+            "solver, class quotas, and LOS-multipath filter. Empty full-solver path outcomes are "
+            "counted but are not exported as channel observations."
+        ),
+    }
     return ChannelDataset(
         np.stack(samples),
         np.asarray(ys),
@@ -425,4 +489,5 @@ def generate_raytraced(
         np.asarray(domains),
         np.asarray(sources),
         tuple(meta),
+        generation_report,
     )

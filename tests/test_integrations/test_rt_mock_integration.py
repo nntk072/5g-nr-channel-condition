@@ -14,6 +14,7 @@ def test_full_rt_oracle_is_separate_and_los_contains_reflections(monkeypatch):
     sionna.rt = scene_module
     scene_module.scene = types.SimpleNamespace()
     calls = []
+    full_solver_calls = 0
 
     class FakeScene:
         def add(self, object):
@@ -38,10 +39,14 @@ def test_full_rt_oracle_is_separate_and_los_contains_reflections(monkeypatch):
             pass
 
         def __call__(self, scene, **kw):
+            nonlocal full_solver_calls
             calls.append(kw)
             visible = scene.receiver.position[0] > 0
             if kw["max_depth"] == 0:
                 return FakePaths(1 if visible else 0)
+            full_solver_calls += 1
+            if full_solver_calls == 1:
+                return FakePaths(0)
             return FakePaths(3 if visible else 2)
 
     scene_module.load_scene = lambda name: FakeScene()
@@ -73,6 +78,30 @@ def test_full_rt_oracle_is_separate_and_los_contains_reflections(monkeypatch):
         seed=13,
     )
     assert len(d.y) == 6 and sum(d.y) == 3
+    report = d.generation_report
+    assert report["schema"] == "loslab.raytraced_generation_report.v1"
+    assert report["environment"]["python"]
+    assert len(report["package_source_sha256"]) == 64
+    assert report["accepted_counts"] == {
+        "total": 6,
+        "geometric_nlos": 3,
+        "geometric_los": 3,
+    }
+    assert report["attempt_counts"]["attempts_started"] == (
+        report["attempt_counts"]["obstacle_rejections"]
+        + report["attempt_counts"]["depth_zero_oracle_calls"]
+    )
+    assert report["attempt_counts"]["depth_zero_oracle_calls"] == (
+        report["attempt_counts"]["candidate_geometric_los"]
+        + report["attempt_counts"]["candidate_geometric_nlos"]
+    )
+    assert report["attempt_counts"]["full_solver_calls"] >= len(d.y)
+    assert report["attempt_counts"]["full_solver_empty_paths"] == 1
+    assert (
+        sum(report["full_solver_outcomes"].values())
+        == report["attempt_counts"]["full_solver_calls"]
+    )
+    assert "Empty full-solver path outcomes are counted" in report["selection_note"]
     assert all(m["los_plus_indirect_paths"] for m, y in zip(d.metadata, d.y) if y == 1)
     assert all(m["valid_paths_full"] >= 2 for m in d.metadata)
     assert set(d.source) == {"sionna_rt"}

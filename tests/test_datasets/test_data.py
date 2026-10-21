@@ -1,3 +1,5 @@
+import json
+
 import numpy as np
 import pytest
 from datasets.channel import ChannelDataset
@@ -50,6 +52,52 @@ def test_storage_roundtrip(tmp_path):
     assert np.allclose(loaded.h, d.h)
     assert np.array_equal(loaded.y, d.y)
     assert loaded.metadata == d.metadata
+    assert loaded.generation_report == d.generation_report == {}
+
+
+def test_generation_report_roundtrips_and_derivations_keep_lineage(tmp_path):
+    source = debug_multipath(n_scenes=2, links_per_scene=6)
+    report = {
+        "schema": "loslab.test_generation_report.v1",
+        "attempt_counts": {"empty_paths": 3},
+    }
+    data = ChannelDataset(
+        source.h,
+        source.y,
+        source.group,
+        source.domain,
+        source.source,
+        source.metadata,
+        report,
+    )
+    path = tmp_path / "reported.npz"
+    data.save(path)
+    loaded = ChannelDataset.load(path)
+
+    assert loaded.generation_report == report
+    selected = loaded.select(np.asarray([0, 1]))
+    assert selected.generation_report["operation"] == "select"
+    assert selected.generation_report["selected_indices"] == [0, 1]
+    assert selected.generation_report["parent_generation_report"] == report
+    combined = ChannelDataset.concatenate([loaded, loaded])
+    assert combined.generation_report["operation"] == "concatenate"
+    assert combined.generation_report["components"] == [report, report]
+
+
+def test_load_legacy_npz_without_generation_report(tmp_path):
+    data = debug_multipath(n_scenes=2, links_per_scene=6)
+    path = tmp_path / "legacy.npz"
+    np.savez_compressed(
+        path,
+        h=data.h,
+        y=data.y,
+        group=data.group,
+        domain=data.domain,
+        source=data.source,
+        metadata_json=np.asarray(json.dumps(data.metadata, sort_keys=True)),
+    )
+
+    assert ChannelDataset.load(path).generation_report == {}
 
 
 def test_dataset_rejects_nans():
