@@ -1,0 +1,327 @@
+{
+  "bootstrap_draws": 10000,
+  "bootstrap_seed": 20261027,
+  "configuration": {
+    "control": {
+      "calibration_quantile_per_score": 0.975,
+      "calibration_trials": 1024,
+      "capture_samples": 1228,
+      "cfo_guard_samples": 12,
+      "cfo_hypotheses_hz": [
+        -3000.0,
+        0.0,
+        3000.0
+      ],
+      "channels": {
+        "flat": {
+          "taps": [
+            [
+              0,
+              1.0,
+              0.0
+            ]
+          ]
+        },
+        "two_tap_echo": {
+          "taps": [
+            [
+              0,
+              1.0,
+              0.0
+            ],
+            [
+              12,
+              0.9,
+              0.1
+            ]
+          ]
+        }
+      },
+      "correct_cfo_tolerance_hz": 250.0,
+      "cyclic_prefix_length_samples": 32,
+      "fft_size": 256,
+      "finite_sample_union_bound_allocation_per_score": 0.025,
+      "fractional_timing_hypotheses_samples": [
+        -0.375,
+        -0.1875,
+        0.0,
+        0.1875,
+        0.375
+      ],
+      "independent_noise_validation_trials": 2048,
+      "maximum_timing_offset_samples": 32,
+      "minimum_pss_score": 0.19919262735238752,
+      "minimum_sss_score": 0.27024965845652327,
+      "noise_model": "independent circular complex Gaussian; variance from unit-variance RNG draws",
+      "sampling_frequency_hz": 7680000.0,
+      "signal_trials_per_channel_snr_point": 256,
+      "snr_definition": "mean complex-sample signal power over the padded four-symbol burst divided by AWGN variance",
+      "target_joint_false_alarm_probability": 0.05,
+      "timing_accuracy_tolerance_samples": 0.1,
+      "true_off_grid_cfo_hz": [
+        -3500.0,
+        3500.0
+      ]
+    },
+    "treatment": {
+      "calibration_quantile_per_score": 0.975,
+      "calibration_trials": 1024,
+      "capture_samples": 1228,
+      "cfo_guard_samples": 12,
+      "cfo_hypotheses_hz": [
+        -3000.0,
+        0.0,
+        3000.0
+      ],
+      "channels": {
+        "flat": {
+          "taps": [
+            [
+              0,
+              1.0,
+              0.0
+            ]
+          ]
+        },
+        "two_tap_echo": {
+          "taps": [
+            [
+              0,
+              1.0,
+              0.0
+            ],
+            [
+              12,
+              0.9,
+              0.1
+            ]
+          ]
+        }
+      },
+      "correct_cfo_tolerance_hz": 250.0,
+      "cyclic_prefix_length_samples": 32,
+      "fft_size": 256,
+      "finite_sample_union_bound_allocation_per_score": 0.025,
+      "fractional_timing_hypotheses_samples": [
+        -0.375,
+        -0.1875,
+        0.0,
+        0.1875,
+        0.375
+      ],
+      "fractional_timing_refinement": {
+        "bounds_samples": [
+          -0.5,
+          0.5
+        ],
+        "method": "bounded scalar maximization of normalized PSS correlation",
+        "optimizer": "scipy.optimize.minimize_scalar(method=bounded)",
+        "xatol_samples": 1e-05
+      },
+      "independent_noise_validation_trials": 2048,
+      "maximum_timing_offset_samples": 32,
+      "minimum_pss_score": 0.19999193891843872,
+      "minimum_sss_score": 0.27024965845652327,
+      "noise_model": "independent circular complex Gaussian; variance from unit-variance RNG draws",
+      "sampling_frequency_hz": 7680000.0,
+      "signal_trials_per_channel_snr_point": 256,
+      "snr_definition": "mean complex-sample signal power over the padded four-symbol burst divided by AWGN variance",
+      "target_joint_false_alarm_probability": 0.05,
+      "timing_accuracy_tolerance_samples": 0.1,
+      "true_off_grid_cfo_hz": [
+        -3500.0,
+        3500.0
+      ]
+    }
+  },
+  "control_source_revision": "85dda8f10fb8bca66979523a4b4f3fefcada67e2",
+  "evidence_grade": "PAIRED_SEEDED_CONTROLLED_SIMULATION",
+  "inputs": {
+    "control": {
+      "path": "docs/research/results/nr-sync-operating-characteristics-fractional-seed20261022.json",
+      "sha256": "28ece24982a325f2988732e6bfd42d0375905aa46da107a5a4ff467306177733"
+    },
+    "treatment": {
+      "path": "docs/research/results/nr-sync-operating-characteristics-continuous-seed20261027.json",
+      "sha256": "6ac0ee34a97795d6dda3b6e799ad87802d5f742463475753344b0664b7d94f64"
+    }
+  },
+  "limitations": [
+    "The control and treatment are paired seeded synthetic trials, not independent scenes, devices, or measured NR captures.",
+    "The bootstrap interval resamples trials within each configured channel/SNR point and does not quantify external validity.",
+    "Holm adjustment covers the configured operating-point family only; no deployment-level synchronization claim follows."
+  ],
+  "noise_false_alarm_comparison": {
+    "control_false_alarms": 3,
+    "improved_noise_trials": 0,
+    "paired_exact_two_sided_p_value": 1.0,
+    "regressed_noise_trials": 0,
+    "treatment_false_alarms": 3,
+    "trials": 2048
+  },
+  "operating_points": [
+    {
+      "channel": "flat",
+      "control_correct_acquisitions": 52,
+      "control_correct_timing": 229,
+      "discordant_trials": 7,
+      "improved_trials": 7,
+      "mcnemar_exact_two_sided_p_value": 0.015625,
+      "mcnemar_holm_adjusted_p_value": 0.0625,
+      "paired_acquisition_rate_change": 0.02734375,
+      "paired_acquisition_rate_change_bootstrap_ci95": [
+        0.0078125,
+        0.05078125
+      ],
+      "paired_timing_rate_change": 0.1015625,
+      "regressed_trials": 0,
+      "snr_db": 0.0,
+      "treatment_correct_acquisitions": 59,
+      "treatment_correct_timing": 255,
+      "trials": 256
+    },
+    {
+      "channel": "flat",
+      "control_correct_acquisitions": 114,
+      "control_correct_timing": 247,
+      "discordant_trials": 5,
+      "improved_trials": 5,
+      "mcnemar_exact_two_sided_p_value": 0.0625,
+      "mcnemar_holm_adjusted_p_value": 0.1875,
+      "paired_acquisition_rate_change": 0.01953125,
+      "paired_acquisition_rate_change_bootstrap_ci95": [
+        0.00390625,
+        0.0390625
+      ],
+      "paired_timing_rate_change": 0.03515625,
+      "regressed_trials": 0,
+      "snr_db": 6.0,
+      "treatment_correct_acquisitions": 119,
+      "treatment_correct_timing": 256,
+      "trials": 256
+    },
+    {
+      "channel": "flat",
+      "control_correct_acquisitions": 205,
+      "control_correct_timing": 254,
+      "discordant_trials": 1,
+      "improved_trials": 1,
+      "mcnemar_exact_two_sided_p_value": 1.0,
+      "mcnemar_holm_adjusted_p_value": 1.0,
+      "paired_acquisition_rate_change": 0.00390625,
+      "paired_acquisition_rate_change_bootstrap_ci95": [
+        0.0,
+        0.01171875
+      ],
+      "paired_timing_rate_change": 0.0078125,
+      "regressed_trials": 0,
+      "snr_db": 12.0,
+      "treatment_correct_acquisitions": 206,
+      "treatment_correct_timing": 256,
+      "trials": 256
+    },
+    {
+      "channel": "flat",
+      "control_correct_acquisitions": 254,
+      "control_correct_timing": 256,
+      "discordant_trials": 0,
+      "improved_trials": 0,
+      "mcnemar_exact_two_sided_p_value": 1.0,
+      "mcnemar_holm_adjusted_p_value": 1.0,
+      "paired_acquisition_rate_change": 0.0,
+      "paired_acquisition_rate_change_bootstrap_ci95": [
+        0.0,
+        0.0
+      ],
+      "paired_timing_rate_change": 0.0,
+      "regressed_trials": 0,
+      "snr_db": 18.0,
+      "treatment_correct_acquisitions": 254,
+      "treatment_correct_timing": 256,
+      "trials": 256
+    },
+    {
+      "channel": "two_tap_echo",
+      "control_correct_acquisitions": 38,
+      "control_correct_timing": 137,
+      "discordant_trials": 22,
+      "improved_trials": 19,
+      "mcnemar_exact_two_sided_p_value": 0.0008554458618164062,
+      "mcnemar_holm_adjusted_p_value": 0.0051326751708984375,
+      "paired_acquisition_rate_change": 0.0625,
+      "paired_acquisition_rate_change_bootstrap_ci95": [
+        0.02734375,
+        0.09765625
+      ],
+      "paired_timing_rate_change": 0.16015625,
+      "regressed_trials": 3,
+      "snr_db": 0.0,
+      "treatment_correct_acquisitions": 54,
+      "treatment_correct_timing": 178,
+      "trials": 256
+    },
+    {
+      "channel": "two_tap_echo",
+      "control_correct_acquisitions": 69,
+      "control_correct_timing": 165,
+      "discordant_trials": 37,
+      "improved_trials": 27,
+      "mcnemar_exact_two_sided_p_value": 0.007632078602910042,
+      "mcnemar_holm_adjusted_p_value": 0.03816039301455021,
+      "paired_acquisition_rate_change": 0.06640625,
+      "paired_acquisition_rate_change_bootstrap_ci95": [
+        0.0234375,
+        0.11328125
+      ],
+      "paired_timing_rate_change": 0.171875,
+      "regressed_trials": 10,
+      "snr_db": 6.0,
+      "treatment_correct_acquisitions": 86,
+      "treatment_correct_timing": 209,
+      "trials": 256
+    },
+    {
+      "channel": "two_tap_echo",
+      "control_correct_acquisitions": 127,
+      "control_correct_timing": 154,
+      "discordant_trials": 81,
+      "improved_trials": 72,
+      "mcnemar_exact_two_sided_p_value": 2.4557438833479224e-13,
+      "mcnemar_holm_adjusted_p_value": 1.7190207183435456e-12,
+      "paired_acquisition_rate_change": 0.24609375,
+      "paired_acquisition_rate_change_bootstrap_ci95": [
+        0.18359375,
+        0.30859375
+      ],
+      "paired_timing_rate_change": 0.296875,
+      "regressed_trials": 9,
+      "snr_db": 12.0,
+      "treatment_correct_acquisitions": 190,
+      "treatment_correct_timing": 230,
+      "trials": 256
+    },
+    {
+      "channel": "two_tap_echo",
+      "control_correct_acquisitions": 156,
+      "control_correct_timing": 157,
+      "discordant_trials": 100,
+      "improved_trials": 97,
+      "mcnemar_exact_two_sided_p_value": 2.630866896130179e-25,
+      "mcnemar_holm_adjusted_p_value": 2.104693516904143e-24,
+      "paired_acquisition_rate_change": 0.3671875,
+      "paired_acquisition_rate_change_bootstrap_ci95": [
+        0.3046875,
+        0.4296875
+      ],
+      "paired_timing_rate_change": 0.3671875,
+      "regressed_trials": 3,
+      "snr_db": 18.0,
+      "treatment_correct_acquisitions": 250,
+      "treatment_correct_timing": 251,
+      "trials": 256
+    }
+  ],
+  "schema": "loslab.nr_sync_paired_comparison.v1",
+  "seed": 20261022,
+  "treatment_source_revision": "8ade5e15cbc38780cee5269bd89cfcee5cb3e6b7"
+}
