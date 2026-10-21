@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from time import perf_counter
 from typing import Any, Sequence
 
 import numpy as np
@@ -109,6 +110,25 @@ def _precomputed_observation_semantics(data: ChannelDataset) -> str:
     return "; ".join(semantics) if semantics else "precomputed channel dataset observations"
 
 
+def _sync_torch_device(device: str, enabled: bool) -> None:
+    if enabled and device.startswith("cuda"):
+        import torch
+
+        torch.cuda.synchronize(device)
+
+
+def _learned_parameter_count(model: Any, training: dict[str, Any]) -> int | None:
+    reported = training.get("trainable_parameters")
+    if isinstance(reported, int) and not isinstance(reported, bool):
+        return reported
+    estimator = model.steps[-1][1] if hasattr(model, "steps") else model
+    coefficients = getattr(estimator, "coefs_", None)
+    intercepts = getattr(estimator, "intercepts_", None)
+    if coefficients is not None and intercepts is not None:
+        return int(sum(array.size for array in (*coefficients, *intercepts)))
+    return None
+
+
 def run_experiment(
     paths: Sequence[str | Path],
     output: str | Path,
@@ -198,6 +218,13 @@ def run_experiment(
         assert not (set(data.group[test]) & (set(data.group[train]) | set(data.group[val])))
         for method in methods:
             method_input = observable if method in ("cnn", "cvnn") else x
+            uses_torch = method in ("cnn", "cvnn", "coral", "coral0")
+            _sync_torch_device(device, uses_torch)
+            if uses_torch and device.startswith("cuda"):
+                import torch
+
+                torch.cuda.reset_peak_memory_stats(device)
+            fit_started = perf_counter()
             if method in ("rf", "histgb", "mlp", "logreg"):
                 clf = fit_sklearn(x[train], data.y[train], seed=seed, method=method)
                 extra: dict[str, Any] = {}
@@ -232,7 +259,13 @@ def run_experiment(
                 )
             else:
                 raise ValueError(f"Unknown method {method}")
+            _sync_torch_device(device, uses_torch)
+            training_seconds = perf_counter() - fit_started
+            parameter_count = _learned_parameter_count(clf, extra)
+            validation_started = perf_counter()
             val_scores = clf.predict_proba(method_input[val])[:, 1]
+            _sync_torch_device(device, uses_torch)
+            validation_prediction_seconds = perf_counter() - validation_started
             threshold = threshold_from_validation(data.y[val], val_scores)
             checkpoint = (
                 layout.models / f"{method}_seed{seed}.pt"
@@ -258,7 +291,10 @@ def run_experiment(
                         "method": method,
                     },
                 )
+            test_prediction_started = perf_counter()
             prob = clf.predict_proba(method_input[test])[:, 1]
+            _sync_torch_device(device, uses_torch)
+            test_prediction_seconds = perf_counter() - test_prediction_started
             metrics = binary_metrics(data.y[test], prob, threshold=threshold)
             ci = block_bootstrap_auc(
                 data.y[test], prob, data.group[test], seed=seed, draws=bootstrap
@@ -293,6 +329,19 @@ def run_experiment(
                     "test_domains": sorted(set(data.domain[test].tolist())),
                 },
                 "training": extra,
+                "compute": {
+                    "training_seconds": float(training_seconds),
+                    "validation_prediction_seconds": float(validation_prediction_seconds),
+                    "test_prediction_seconds": float(test_prediction_seconds),
+                    "validation_prediction_samples": int(len(val)),
+                    "test_prediction_samples": int(len(test)),
+                    "learned_parameter_count": parameter_count,
+                    "peak_cuda_memory_bytes": (
+                        int(torch.cuda.max_memory_allocated(device))
+                        if uses_torch and device.startswith("cuda")
+                        else None
+                    ),
+                },
                 "checkpoint_path": str(checkpoint),
             }
             results.append(result)

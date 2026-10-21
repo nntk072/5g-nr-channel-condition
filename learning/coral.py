@@ -115,6 +115,7 @@ def fit_coral_mlp(
         raise RuntimeError("Could not train CORAL MLP")
     model.load_state_dict(best_state)
     model.eval()
+    parameter_count = sum(parameter.numel() for parameter in model.parameters())
 
     class Predictor:
         def save(self, path, *, threshold: float, include_phase: bool = False):
@@ -141,4 +142,5 @@ def fit_coral_mlp(
         "best_validation_ce": best_loss,
         "penalty": penalty,
         "train_domains": list(sorted(set(domains))),
+        "trainable_parameters": int(parameter_count),
     }

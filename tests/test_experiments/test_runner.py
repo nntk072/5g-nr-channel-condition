@@ -77,6 +77,12 @@ def test_run_experiment_reports_paired_classical_vs_mlp_deltas(tmp_path) -> None
             by_seed_and_method[(seed, "rf")]["split"]["indices_sha256"]
             == by_seed_and_method[(seed, "mlp")]["split"]["indices_sha256"]
         )
+    mlp_compute = by_seed_and_method[(11, "mlp")]["compute"]
+    assert mlp_compute["training_seconds"] >= 0.0
+    assert mlp_compute["validation_prediction_seconds"] >= 0.0
+    assert mlp_compute["test_prediction_seconds"] >= 0.0
+    assert mlp_compute["learned_parameter_count"] > 0
+    assert mlp_compute["peak_cuda_memory_bytes"] is None
 
 
 def test_label_semantics_are_derived_from_each_dataset_source() -> None:
