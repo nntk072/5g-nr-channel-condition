@@ -375,6 +375,18 @@ def generate_raytraced(
         "los_direct_only_rejections": 0,
         "cfr_conversion_failures": 0,
     }
+    full_solver_outcomes_by_geometric_class = {
+        class_name: {
+            "attempts": 0,
+            "calls": 0,
+            "errors": 0,
+            "empty_paths": 0,
+            "los_direct_only_rejected": 0,
+            "cfr_conversion_failures": 0,
+            "accepted": 0,
+        }
+        for class_name in ("geometric_nlos", "geometric_los")
+    }
     samples = []
     ys = []
     groups = []
@@ -425,6 +437,9 @@ def generate_raytraced(
         if hits[label] >= cfg.per_class:
             attempt_counts["class_quota_skips"] += 1
             continue
+        class_name = "geometric_los" if label else "geometric_nlos"
+        class_outcomes = full_solver_outcomes_by_geometric_class[class_name]
+        class_outcomes["attempts"] += 1
         attempt_counts["full_solver_attempts"] += 1
         try:
             full = full_solver(
@@ -439,6 +454,7 @@ def generate_raytraced(
                 seed=seed + attempt,
             )
         except Exception as error:
+            class_outcomes["errors"] += 1
             attempt_counts["full_solver_errors"] += 1
             solver_failure = {
                 "stage": "full_solver",
@@ -448,13 +464,16 @@ def generate_raytraced(
             }
             break
         attempt_counts["full_solver_calls"] += 1
+        class_outcomes["calls"] += 1
         n_paths = count_valid_paths(full)
         if n_paths == 0:
+            class_outcomes["empty_paths"] += 1
             attempt_counts["full_solver_empty_paths"] += 1
             continue
         n_direct = count_valid_paths(oracle_paths)
         mixed = bool(label and n_paths > n_direct)
         if label and cfg.require_los_multipath and not mixed:
+            class_outcomes["los_direct_only_rejected"] += 1
             attempt_counts["los_direct_only_rejections"] += 1
             continue
         try:
@@ -463,6 +482,7 @@ def generate_raytraced(
             diagnostics = direct_indirect_diagnostics(channel, direct)
             channel = add_estimation_noise(channel, grid.snr_db, rng)
         except (ValueError, RuntimeError):
+            class_outcomes["cfr_conversion_failures"] += 1
             attempt_counts["cfr_conversion_failures"] += 1
             continue
         samples.append(channel[0])
@@ -503,6 +523,7 @@ def generate_raytraced(
             }
         )
         hits[label] += 1
+        class_outcomes["accepted"] += 1
     full_solver_outcomes = {
         "empty_paths": attempt_counts["full_solver_empty_paths"],
         "los_direct_only_rejected": attempt_counts["los_direct_only_rejections"],
@@ -529,6 +550,35 @@ def generate_raytraced(
         raise RuntimeError("RT generation report does not account for every full-solver attempt")
     if sum(full_solver_outcomes.values()) != attempt_counts["full_solver_calls"]:
         raise RuntimeError("RT generation report does not account for every full-solver outcome")
+    if (
+        sum(item["attempts"] for item in full_solver_outcomes_by_geometric_class.values())
+        != (attempt_counts["full_solver_attempts"])
+    ):
+        raise RuntimeError("RT class report does not account for every full-solver attempt")
+    if (
+        sum(item["errors"] for item in full_solver_outcomes_by_geometric_class.values())
+        != (attempt_counts["full_solver_errors"])
+    ):
+        raise RuntimeError("RT class report does not account for every full-solver error")
+    if (
+        sum(item["calls"] for item in full_solver_outcomes_by_geometric_class.values())
+        != (attempt_counts["full_solver_calls"])
+    ):
+        raise RuntimeError("RT class report does not account for every full-solver call")
+    for class_name, item in full_solver_outcomes_by_geometric_class.items():
+        terminal_outcomes = (
+            item["empty_paths"]
+            + item["los_direct_only_rejected"]
+            + item["cfr_conversion_failures"]
+            + item["accepted"]
+        )
+        expected_attempts = item["calls"] + item["errors"]
+        if item["attempts"] != expected_attempts or terminal_outcomes != item["calls"]:
+            raise RuntimeError(f"RT class outcomes are incomplete for {class_name}")
+    if sum(item["accepted"] for item in full_solver_outcomes_by_geometric_class.values()) != len(
+        samples
+    ):
+        raise RuntimeError("RT class report does not match accepted sample count")
     generation_report = {
         "schema": "loslab.raytraced_generation_report.v1",
         "label_semantics": "geometric_direct_path_oracle",
@@ -544,6 +594,7 @@ def generate_raytraced(
         "requested_per_class": cfg.per_class,
         "attempt_counts": attempt_counts,
         "full_solver_outcomes": full_solver_outcomes,
+        "full_solver_outcomes_by_geometric_class": full_solver_outcomes_by_geometric_class,
         "solver_failure": solver_failure,
         "accepted_counts": {
             "total": len(ys),

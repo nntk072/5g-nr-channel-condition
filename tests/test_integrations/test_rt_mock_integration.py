@@ -120,6 +120,13 @@ def test_full_rt_oracle_is_separate_and_los_contains_reflections(monkeypatch):
         sum(report["full_solver_outcomes"].values())
         == report["attempt_counts"]["full_solver_calls"]
     )
+    by_class = report["full_solver_outcomes_by_geometric_class"]
+    assert (
+        sum(outcome["calls"] for outcome in by_class.values())
+        == (report["attempt_counts"]["full_solver_calls"])
+    )
+    assert sum(outcome["accepted"] for outcome in by_class.values()) == len(d.y)
+    assert sum(outcome["empty_paths"] for outcome in by_class.values()) == 1
     assert "Empty full-solver path outcomes are counted" in report["selection_note"]
     assert all(m["los_plus_indirect_paths"] for m, y in zip(d.metadata, d.y) if y == 1)
     assert all(m["valid_paths_full"] >= 2 for m in d.metadata)
@@ -172,6 +179,15 @@ def test_full_rt_oracle_is_separate_and_los_contains_reflections(monkeypatch):
         assert error.generation_report["attempt_counts"]["full_solver_attempts"] == 1
         assert error.generation_report["attempt_counts"]["full_solver_errors"] == 1
         assert error.generation_report["attempt_counts"]["full_solver_calls"] == 0
+        assert (
+            sum(
+                outcome["errors"]
+                for outcome in error.generation_report[
+                    "full_solver_outcomes_by_geometric_class"
+                ].values()
+            )
+            == 1
+        )
     else:
         raise AssertionError("solver failure should carry an RT generation report")
 

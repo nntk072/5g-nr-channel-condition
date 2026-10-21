@@ -1,0 +1,732 @@
+{
+  "audit_script_sha256": "7c56aa5bee72e66b9eebd7aa6dc2edc37efeee6052fbe28c7dddab616351ab5f",
+  "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
+  "interpretation": "Mechanism and power summaries describe only accepted samples under each recorded scene sampler, class quota, solver configuration, and LOS-multipath filter. Empty-path outcomes are candidate-level and legacy reports do not attribute them to LOS/NLOS separately; they are not exported observations.",
+  "label_semantics": "geometric_direct_path_oracle",
+  "reproduction": {
+    "command": "python scripts/audit_rt_label_complexity.py --input <rt-scene-1.npz> <rt-scene-2.npz> ... --output <new-audit.json>"
+  },
+  "scene_count": 6,
+  "scenes": [
+    {
+      "accepted_class_counts": {
+        "geometric_los": 20,
+        "geometric_nlos": 20
+      },
+      "accepted_mechanisms": {
+        "los_mixed": 20,
+        "nlos_indirect_paths": 20
+      },
+      "direct_to_indirect_power_ratio_db_for_los_mixed": {
+        "maximum": 17.83163487975842,
+        "median": 0.437844398920587,
+        "minimum": -10.223113124215741,
+        "p05": -8.216108513417357,
+        "p95": 11.797844068070017
+      },
+      "generation_report_sha256": "e6b406175e3109217e05609be3294fcd19c941b035a5b45a2a623b734712a7fd",
+      "generation_selection": {
+        "accepted_counts": {
+          "geometric_los": 20,
+          "geometric_nlos": 20,
+          "total": 40
+        },
+        "accepted_per_full_solver_call": 1.0,
+        "attempt_counts": {
+          "attempts_started": 43,
+          "candidate_geometric_los": 20,
+          "candidate_geometric_nlos": 23,
+          "cfr_conversion_failures": 0,
+          "class_quota_skips": 3,
+          "depth_zero_oracle_attempts": 43,
+          "depth_zero_oracle_calls": 43,
+          "depth_zero_oracle_errors": 0,
+          "full_solver_attempts": 40,
+          "full_solver_calls": 40,
+          "full_solver_empty_paths": 0,
+          "full_solver_errors": 0,
+          "los_direct_only_rejections": 0,
+          "obstacle_rejections": 0
+        },
+        "empty_path_candidate_fraction": 0.0,
+        "empty_path_class_attribution": "not recorded by legacy generation report",
+        "full_solver_outcomes": {
+          "accepted": 40,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 0,
+          "los_direct_only_rejected": 0
+        },
+        "requested_per_class": 20,
+        "selection_note": "Balanced accepted records are conditional on the recorded scene, candidate sampler, solver, class quotas, and LOS-multipath filter. Empty full-solver path outcomes are counted but are not exported as channel observations."
+      },
+      "generator_environment": {
+        "git_sha": "3eb8b61e8a3961672773729c4b1b1e5a58954d44",
+        "numpy": "2.5.4",
+        "python": "3.12.3",
+        "scikit-learn": "1.9.1",
+        "sionna": "2.2.0",
+        "sionna-phy": "not installed",
+        "sionna-rt": "2.2.0",
+        "torch": "2.11.0+cu128"
+      },
+      "n_samples": 40,
+      "path_power_by_geometric_label": {
+        "geometric_los": {
+          "direct_power": {
+            "maximum": 0.0003492977994028479,
+            "median": 1.7215536900039297e-05,
+            "minimum": 3.0939290809328668e-06,
+            "p05": 3.60642533223654e-06,
+            "p95": 0.00023005039474810482
+          },
+          "indirect_power": {
+            "maximum": 9.265070548281074e-05,
+            "median": 1.1351924513292033e-05,
+            "minimum": 1.9857759525621077e-06,
+            "p05": 2.0005105170639583e-06,
+            "p95": 5.2565404621418594e-05
+          }
+        },
+        "geometric_nlos": {
+          "direct_power": {
+            "maximum": 0.0,
+            "median": 0.0,
+            "minimum": 0.0,
+            "p05": 0.0,
+            "p95": 0.0
+          },
+          "indirect_power": {
+            "maximum": 1.2128710295655765e-05,
+            "median": 2.2241299575398443e-06,
+            "minimum": 1.0042872133908531e-07,
+            "p05": 2.477203786099835e-07,
+            "p95": 7.307003670575799e-06
+          }
+        }
+      },
+      "resolved_label_semantics": "geometric_direct_path_oracle",
+      "rt_backend_selection": {},
+      "scene_domain": "rt_box_one_screen",
+      "source_path": "outputs/rt-six-scene-holdout-adaptive-20261021/box_one_screen.npz",
+      "source_sha256": "70cbbe27ad5b75e2c824e32247e33780d6225245141b659902d0e7417a380e03",
+      "valid_full_path_count_histograms": {
+        "geometric_los": {
+          "19": 1,
+          "23": 9,
+          "24": 8,
+          "25": 2
+        },
+        "geometric_nlos": {
+          "10": 1,
+          "11": 7,
+          "12": 4,
+          "13": 2,
+          "14": 1,
+          "15": 1,
+          "7": 1,
+          "8": 2,
+          "9": 1
+        }
+      }
+    },
+    {
+      "accepted_class_counts": {
+        "geometric_los": 20,
+        "geometric_nlos": 20
+      },
+      "accepted_mechanisms": {
+        "los_mixed": 20,
+        "nlos_indirect_paths": 20
+      },
+      "direct_to_indirect_power_ratio_db_for_los_mixed": {
+        "maximum": 20.61905361681214,
+        "median": 9.961046585916051,
+        "minimum": -1.9159881409792736,
+        "p05": -1.2300198786872192,
+        "p95": 20.085632850593775
+      },
+      "generation_report_sha256": "334ca3436db2bc9d43fecdacc1d6b4ba8f0e7991c6e79fd4835749e2300878be",
+      "generation_selection": {
+        "accepted_counts": {
+          "geometric_los": 20,
+          "geometric_nlos": 20,
+          "total": 40
+        },
+        "accepted_per_full_solver_call": 0.8333333333333334,
+        "attempt_counts": {
+          "attempts_started": 172,
+          "candidate_geometric_los": 144,
+          "candidate_geometric_nlos": 28,
+          "cfr_conversion_failures": 0,
+          "class_quota_skips": 124,
+          "depth_zero_oracle_attempts": 172,
+          "depth_zero_oracle_calls": 172,
+          "depth_zero_oracle_errors": 0,
+          "full_solver_attempts": 48,
+          "full_solver_calls": 48,
+          "full_solver_empty_paths": 8,
+          "full_solver_errors": 0,
+          "los_direct_only_rejections": 0,
+          "obstacle_rejections": 0
+        },
+        "empty_path_candidate_fraction": 0.16666666666666666,
+        "empty_path_class_attribution": "not recorded by legacy generation report",
+        "full_solver_outcomes": {
+          "accepted": 40,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 8,
+          "los_direct_only_rejected": 0
+        },
+        "requested_per_class": 20,
+        "selection_note": "Balanced accepted records are conditional on the recorded scene, candidate sampler, solver, class quotas, and LOS-multipath filter. Empty full-solver path outcomes are counted but are not exported as channel observations."
+      },
+      "generator_environment": {
+        "git_sha": "3eb8b61e8a3961672773729c4b1b1e5a58954d44",
+        "numpy": "2.5.4",
+        "python": "3.12.3",
+        "scikit-learn": "1.9.1",
+        "sionna": "2.2.0",
+        "sionna-phy": "not installed",
+        "sionna-rt": "2.2.0",
+        "torch": "2.11.0+cu128"
+      },
+      "n_samples": 40,
+      "path_power_by_geometric_label": {
+        "geometric_los": {
+          "direct_power": {
+            "maximum": 3.5944943022059306e-08,
+            "median": 1.0182246157341979e-08,
+            "minimum": 2.8292643783345284e-09,
+            "p05": 3.187708208507445e-09,
+            "p95": 3.0934275230265486e-08
+          },
+          "indirect_power": {
+            "maximum": 5.145007975215776e-09,
+            "median": 9.966977243536235e-10,
+            "minimum": 2.5266744252405715e-10,
+            "p05": 2.652953495774213e-10,
+            "p95": 4.435515110756683e-09
+          }
+        },
+        "geometric_nlos": {
+          "direct_power": {
+            "maximum": 0.0,
+            "median": 0.0,
+            "minimum": 0.0,
+            "p05": 0.0,
+            "p95": 0.0
+          },
+          "indirect_power": {
+            "maximum": 9.626187846834e-09,
+            "median": 2.0019716995278714e-09,
+            "minimum": 5.629568686216224e-11,
+            "p05": 1.146456601527901e-10,
+            "p95": 8.7271792903465e-09
+          }
+        }
+      },
+      "resolved_label_semantics": "geometric_direct_path_oracle",
+      "rt_backend_selection": {},
+      "scene_domain": "rt_etoile",
+      "source_path": "outputs/rt-six-scene-holdout-adaptive-20261021/etoile.npz",
+      "source_sha256": "ba3a2f6c0f0477e43d772528aa86aeccd4c364a8d3b4be3275055518a17efcaa",
+      "valid_full_path_count_histograms": {
+        "geometric_los": {
+          "10": 4,
+          "11": 2,
+          "3": 1,
+          "4": 2,
+          "6": 2,
+          "7": 5,
+          "8": 2,
+          "9": 2
+        },
+        "geometric_nlos": {
+          "1": 6,
+          "3": 2,
+          "4": 5,
+          "5": 4,
+          "6": 3
+        }
+      }
+    },
+    {
+      "accepted_class_counts": {
+        "geometric_los": 20,
+        "geometric_nlos": 20
+      },
+      "accepted_mechanisms": {
+        "los_mixed": 20,
+        "nlos_indirect_paths": 20
+      },
+      "direct_to_indirect_power_ratio_db_for_los_mixed": {
+        "maximum": 16.014666843739555,
+        "median": 6.978218575452651,
+        "minimum": 1.1874203770043648,
+        "p05": 1.6144675152195183,
+        "p95": 14.871455419788006
+      },
+      "generation_report_sha256": "7dfc203e602f91bb26531a746ec73236edde80f0f9b0f2d71e33165637700976",
+      "generation_selection": {
+        "accepted_counts": {
+          "geometric_los": 20,
+          "geometric_nlos": 20,
+          "total": 40
+        },
+        "accepted_per_full_solver_call": 1.0,
+        "attempt_counts": {
+          "attempts_started": 68,
+          "candidate_geometric_los": 20,
+          "candidate_geometric_nlos": 48,
+          "cfr_conversion_failures": 0,
+          "class_quota_skips": 28,
+          "depth_zero_oracle_attempts": 68,
+          "depth_zero_oracle_calls": 68,
+          "depth_zero_oracle_errors": 0,
+          "full_solver_attempts": 40,
+          "full_solver_calls": 40,
+          "full_solver_empty_paths": 0,
+          "full_solver_errors": 0,
+          "los_direct_only_rejections": 0,
+          "obstacle_rejections": 0
+        },
+        "empty_path_candidate_fraction": 0.0,
+        "empty_path_class_attribution": "not recorded by legacy generation report",
+        "full_solver_outcomes": {
+          "accepted": 40,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 0,
+          "los_direct_only_rejected": 0
+        },
+        "requested_per_class": 20,
+        "selection_note": "Balanced accepted records are conditional on the recorded scene, candidate sampler, solver, class quotas, and LOS-multipath filter. Empty full-solver path outcomes are counted but are not exported as channel observations."
+      },
+      "generator_environment": {
+        "git_sha": "3eb8b61e8a3961672773729c4b1b1e5a58954d44",
+        "numpy": "2.5.4",
+        "python": "3.12.3",
+        "scikit-learn": "1.9.1",
+        "sionna": "2.2.0",
+        "sionna-phy": "not installed",
+        "sionna-rt": "2.2.0",
+        "torch": "2.11.0+cu128"
+      },
+      "n_samples": 40,
+      "path_power_by_geometric_label": {
+        "geometric_los": {
+          "direct_power": {
+            "maximum": 8.28844051170563e-08,
+            "median": 5.8271462322068146e-08,
+            "minimum": 3.2738203259441434e-08,
+            "p05": 3.3704312585314254e-08,
+            "p95": 7.921682936284924e-08
+          },
+          "indirect_power": {
+            "maximum": 4.330359715254417e-08,
+            "median": 9.210596729758436e-09,
+            "minimum": 9.899898678611407e-10,
+            "p05": 1.0766871838541192e-09,
+            "p95": 2.844985695915626e-08
+          }
+        },
+        "geometric_nlos": {
+          "direct_power": {
+            "maximum": 0.0,
+            "median": 0.0,
+            "minimum": 0.0,
+            "p05": 0.0,
+            "p95": 0.0
+          },
+          "indirect_power": {
+            "maximum": 5.8041866424218824e-08,
+            "median": 2.770751983405262e-08,
+            "minimum": 5.749700271451275e-09,
+            "p05": 6.958363796272238e-09,
+            "p95": 4.4493111950316696e-08
+          }
+        }
+      },
+      "resolved_label_semantics": "geometric_direct_path_oracle",
+      "rt_backend_selection": {},
+      "scene_domain": "rt_simple_street_canyon",
+      "source_path": "outputs/rt-six-scene-holdout-adaptive-20261021/simple_street_canyon.npz",
+      "source_sha256": "835a0d5e1ba775a4ba130735851e5de6b2c41147156c828782284d224d0de557",
+      "valid_full_path_count_histograms": {
+        "geometric_los": {
+          "4": 5,
+          "5": 1,
+          "6": 1,
+          "8": 13
+        },
+        "geometric_nlos": {
+          "3": 1,
+          "4": 6,
+          "5": 2,
+          "6": 3,
+          "7": 2,
+          "8": 4,
+          "9": 2
+        }
+      }
+    },
+    {
+      "accepted_class_counts": {
+        "geometric_los": 20,
+        "geometric_nlos": 20
+      },
+      "accepted_mechanisms": {
+        "los_mixed": 20,
+        "nlos_indirect_paths": 20
+      },
+      "direct_to_indirect_power_ratio_db_for_los_mixed": {
+        "maximum": 21.447685359795642,
+        "median": 1.6245974097621008,
+        "minimum": -5.751676862530983,
+        "p05": -5.233343038298402,
+        "p95": 14.699078752038824
+      },
+      "generation_report_sha256": "0f8df4b344cee5c30f9a00a55b6a138e07b89cb366c02b44755d83f36afc1a29",
+      "generation_selection": {
+        "accepted_counts": {
+          "geometric_los": 20,
+          "geometric_nlos": 20,
+          "total": 40
+        },
+        "accepted_per_full_solver_call": 0.8163265306122449,
+        "attempt_counts": {
+          "attempts_started": 80,
+          "candidate_geometric_los": 20,
+          "candidate_geometric_nlos": 36,
+          "cfr_conversion_failures": 0,
+          "class_quota_skips": 7,
+          "depth_zero_oracle_attempts": 56,
+          "depth_zero_oracle_calls": 56,
+          "depth_zero_oracle_errors": 0,
+          "full_solver_attempts": 49,
+          "full_solver_calls": 49,
+          "full_solver_empty_paths": 9,
+          "full_solver_errors": 0,
+          "los_direct_only_rejections": 0,
+          "obstacle_rejections": 24
+        },
+        "empty_path_candidate_fraction": 0.1836734693877551,
+        "empty_path_class_attribution": "not recorded by legacy generation report",
+        "full_solver_outcomes": {
+          "accepted": 40,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 9,
+          "los_direct_only_rejected": 0
+        },
+        "requested_per_class": 20,
+        "selection_note": "Balanced accepted records are conditional on the recorded scene, candidate sampler, solver, class quotas, and LOS-multipath filter. Empty full-solver path outcomes are counted but are not exported as channel observations."
+      },
+      "generator_environment": {
+        "git_sha": "3eb8b61e8a3961672773729c4b1b1e5a58954d44",
+        "numpy": "2.5.4",
+        "python": "3.12.3",
+        "scikit-learn": "1.9.1",
+        "sionna": "2.2.0",
+        "sionna-phy": "not installed",
+        "sionna-rt": "2.2.0",
+        "torch": "2.11.0+cu128"
+      },
+      "n_samples": 40,
+      "path_power_by_geometric_label": {
+        "geometric_los": {
+          "direct_power": {
+            "maximum": 3.537474313475286e-08,
+            "median": 7.629470166747865e-09,
+            "minimum": 1.7088942483312053e-09,
+            "p05": 1.974727731335335e-09,
+            "p95": 3.317376364719848e-08
+          },
+          "indirect_power": {
+            "maximum": 4.441903200813613e-08,
+            "median": 6.558017684454853e-09,
+            "minimum": 4.309980844441341e-11,
+            "p05": 1.0145417526918888e-10,
+            "p95": 3.7318461920676786e-08
+          }
+        },
+        "geometric_nlos": {
+          "direct_power": {
+            "maximum": 0.0,
+            "median": 0.0,
+            "minimum": 0.0,
+            "p05": 0.0,
+            "p95": 0.0
+          },
+          "indirect_power": {
+            "maximum": 1.082312550693132e-08,
+            "median": 6.454734247096638e-10,
+            "minimum": 3.6292394870601763e-12,
+            "p05": 2.6047211013503076e-11,
+            "p95": 8.87779130209765e-09
+          }
+        }
+      },
+      "resolved_label_semantics": "geometric_direct_path_oracle",
+      "rt_backend_selection": {},
+      "scene_domain": "rt_urban_00041",
+      "source_path": "outputs/rt-six-scene-holdout-adaptive-20261021/urban_00041.npz",
+      "source_sha256": "66099ad0d0e5cea286e81868e576e0727ff4feb23c13121c06512a9fb8088e93",
+      "valid_full_path_count_histograms": {
+        "geometric_los": {
+          "3": 2,
+          "4": 4,
+          "5": 4,
+          "6": 5,
+          "7": 4,
+          "8": 1
+        },
+        "geometric_nlos": {
+          "1": 7,
+          "2": 4,
+          "3": 7,
+          "6": 1,
+          "8": 1
+        }
+      }
+    },
+    {
+      "accepted_class_counts": {
+        "geometric_los": 20,
+        "geometric_nlos": 20
+      },
+      "accepted_mechanisms": {
+        "los_mixed": 20,
+        "nlos_indirect_paths": 20
+      },
+      "direct_to_indirect_power_ratio_db_for_los_mixed": {
+        "maximum": 11.710476332964085,
+        "median": 1.7392194333188282,
+        "minimum": -4.45885279622392,
+        "p05": -2.304027613644684,
+        "p95": 11.274179092293132
+      },
+      "generation_report_sha256": "5c27820ae8d4ffef8502c594d2c4cf971e96d1748437392b36c5b726bb7f6b23",
+      "generation_selection": {
+        "accepted_counts": {
+          "geometric_los": 20,
+          "geometric_nlos": 20,
+          "total": 40
+        },
+        "accepted_per_full_solver_call": 0.8333333333333334,
+        "attempt_counts": {
+          "attempts_started": 79,
+          "candidate_geometric_los": 22,
+          "candidate_geometric_nlos": 28,
+          "cfr_conversion_failures": 0,
+          "class_quota_skips": 2,
+          "depth_zero_oracle_attempts": 50,
+          "depth_zero_oracle_calls": 50,
+          "depth_zero_oracle_errors": 0,
+          "full_solver_attempts": 48,
+          "full_solver_calls": 48,
+          "full_solver_empty_paths": 8,
+          "full_solver_errors": 0,
+          "los_direct_only_rejections": 0,
+          "obstacle_rejections": 29
+        },
+        "empty_path_candidate_fraction": 0.16666666666666666,
+        "empty_path_class_attribution": "not recorded by legacy generation report",
+        "full_solver_outcomes": {
+          "accepted": 40,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 8,
+          "los_direct_only_rejected": 0
+        },
+        "requested_per_class": 20,
+        "selection_note": "Balanced accepted records are conditional on the recorded scene, candidate sampler, solver, class quotas, and LOS-multipath filter. Empty full-solver path outcomes are counted but are not exported as channel observations."
+      },
+      "generator_environment": {
+        "git_sha": "3eb8b61e8a3961672773729c4b1b1e5a58954d44",
+        "numpy": "2.5.4",
+        "python": "3.12.3",
+        "scikit-learn": "1.9.1",
+        "sionna": "2.2.0",
+        "sionna-phy": "not installed",
+        "sionna-rt": "2.2.0",
+        "torch": "2.11.0+cu128"
+      },
+      "n_samples": 40,
+      "path_power_by_geometric_label": {
+        "geometric_los": {
+          "direct_power": {
+            "maximum": 9.876145412590631e-08,
+            "median": 1.0234407099574128e-08,
+            "minimum": 1.6609109643184183e-09,
+            "p05": 2.052936609597822e-09,
+            "p95": 3.986255290300282e-08
+          },
+          "indirect_power": {
+            "maximum": 4.578067347438264e-08,
+            "median": 7.399081569658961e-09,
+            "minimum": 4.1922315618947437e-10,
+            "p05": 8.604009588131234e-10,
+            "p95": 2.908089049569186e-08
+          }
+        },
+        "geometric_nlos": {
+          "direct_power": {
+            "maximum": 0.0,
+            "median": 0.0,
+            "minimum": 0.0,
+            "p05": 0.0,
+            "p95": 0.0
+          },
+          "indirect_power": {
+            "maximum": 6.9832530869007314e-09,
+            "median": 3.4822036226733744e-10,
+            "minimum": 1.7449999778484937e-11,
+            "p05": 2.3046869534332215e-11,
+            "p95": 2.3060075626801825e-09
+          }
+        }
+      },
+      "resolved_label_semantics": "geometric_direct_path_oracle",
+      "rt_backend_selection": {},
+      "scene_domain": "rt_urban_00042",
+      "source_path": "outputs/rt-six-scene-holdout-adaptive-20261021/urban_00042.npz",
+      "source_sha256": "9bfeb12f9b5f92efbfac71ca00a466eefcab7a74cb466425b65a9f142d7713cc",
+      "valid_full_path_count_histograms": {
+        "geometric_los": {
+          "2": 2,
+          "4": 5,
+          "5": 6,
+          "6": 3,
+          "7": 2,
+          "8": 1,
+          "9": 1
+        },
+        "geometric_nlos": {
+          "1": 13,
+          "2": 3,
+          "3": 2,
+          "5": 1,
+          "6": 1
+        }
+      }
+    },
+    {
+      "accepted_class_counts": {
+        "geometric_los": 20,
+        "geometric_nlos": 20
+      },
+      "accepted_mechanisms": {
+        "los_mixed": 20,
+        "nlos_indirect_paths": 20
+      },
+      "direct_to_indirect_power_ratio_db_for_los_mixed": {
+        "maximum": 10.86226808872237,
+        "median": 1.7735361052091296,
+        "minimum": -4.694753639939665,
+        "p05": -4.440415446983959,
+        "p95": 7.580560477987794
+      },
+      "generation_report_sha256": "14d986f8065dc20e621ae2a60ce1f25b8862c01222e9d412f3e0e77cb250e08c",
+      "generation_selection": {
+        "accepted_counts": {
+          "geometric_los": 20,
+          "geometric_nlos": 20,
+          "total": 40
+        },
+        "accepted_per_full_solver_call": 0.7547169811320755,
+        "attempt_counts": {
+          "attempts_started": 77,
+          "candidate_geometric_los": 24,
+          "candidate_geometric_nlos": 33,
+          "cfr_conversion_failures": 0,
+          "class_quota_skips": 4,
+          "depth_zero_oracle_attempts": 57,
+          "depth_zero_oracle_calls": 57,
+          "depth_zero_oracle_errors": 0,
+          "full_solver_attempts": 53,
+          "full_solver_calls": 53,
+          "full_solver_empty_paths": 13,
+          "full_solver_errors": 0,
+          "los_direct_only_rejections": 0,
+          "obstacle_rejections": 20
+        },
+        "empty_path_candidate_fraction": 0.24528301886792453,
+        "empty_path_class_attribution": "not recorded by legacy generation report",
+        "full_solver_outcomes": {
+          "accepted": 40,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 13,
+          "los_direct_only_rejected": 0
+        },
+        "requested_per_class": 20,
+        "selection_note": "Balanced accepted records are conditional on the recorded scene, candidate sampler, solver, class quotas, and LOS-multipath filter. Empty full-solver path outcomes are counted but are not exported as channel observations."
+      },
+      "generator_environment": {
+        "git_sha": "3eb8b61e8a3961672773729c4b1b1e5a58954d44",
+        "numpy": "2.5.4",
+        "python": "3.12.3",
+        "scikit-learn": "1.9.1",
+        "sionna": "2.2.0",
+        "sionna-phy": "not installed",
+        "sionna-rt": "2.2.0",
+        "torch": "2.11.0+cu128"
+      },
+      "n_samples": 40,
+      "path_power_by_geometric_label": {
+        "geometric_los": {
+          "direct_power": {
+            "maximum": 1.065845651737618e-07,
+            "median": 7.606810958904475e-09,
+            "minimum": 1.9128916228794424e-09,
+            "p05": 1.9358455283224883e-09,
+            "p95": 3.074623693422046e-08
+          },
+          "indirect_power": {
+            "maximum": 4.206848558396814e-08,
+            "median": 3.6620899646067073e-09,
+            "minimum": 4.777076512141321e-10,
+            "p05": 1.104458580147849e-09,
+            "p95": 2.4260001296738677e-08
+          }
+        },
+        "geometric_nlos": {
+          "direct_power": {
+            "maximum": 0.0,
+            "median": 0.0,
+            "minimum": 0.0,
+            "p05": 0.0,
+            "p95": 0.0
+          },
+          "indirect_power": {
+            "maximum": 1.0692618346297422e-08,
+            "median": 5.840942174373254e-10,
+            "minimum": 2.5710940321221898e-11,
+            "p05": 3.425371781357045e-10,
+            "p95": 6.4886836348421216e-09
+          }
+        }
+      },
+      "resolved_label_semantics": "geometric_direct_path_oracle",
+      "rt_backend_selection": {},
+      "scene_domain": "rt_urban_00043",
+      "source_path": "outputs/rt-six-scene-holdout-adaptive-20261021/urban_00043.npz",
+      "source_sha256": "4021c3d237a7fb191c0ddc6cfd723c7fd55a4391d6d2e5c99ab953b1638e6975",
+      "valid_full_path_count_histograms": {
+        "geometric_los": {
+          "2": 2,
+          "3": 2,
+          "4": 7,
+          "5": 3,
+          "6": 4,
+          "7": 2
+        },
+        "geometric_nlos": {
+          "1": 8,
+          "2": 5,
+          "3": 1,
+          "4": 1,
+          "5": 5
+        }
+      }
+    }
+  ],
+  "schema": "loslab.rt_label_complexity_audit.v1"
+}
