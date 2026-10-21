@@ -142,6 +142,20 @@ class, the report gives per-profile recall and macro summaries rather than an
 invalid pooled AUROC. This diagnostic measures transfer among standardized
 profile proxies, not transfer to geometric LOS/NLOS or measured channels.
 
+On the pinned Sionna CUDA environment, `scripts/run_cdl_profile_validation.py`
+checks CDL A–E delay scaling/order, LOS K-factor power splitting, and empirical
+tap powers against the versioned Sionna 19.2 tables:
+
+```bash
+/home/nguyenl37/.venvs/sionna220-gpu/bin/python \
+  scripts/run_cdl_profile_validation.py \
+  docs/research/results/cdl-profile-validation.json \
+  --batch-size 4096 --seed 31900 --delay-spread-ns 100 --device cuda:0
+```
+
+This is a pinned simulator implementation check, not full 3GPP conformance or
+geometric/measurement validation.
+
 For an ideal frequency-domain simulation batch,
 <code>integrations.sionna.generate_tdl_pusch_batch</code> connects the PUSCH
 transmitter, pinned TDL profile, Sionna OFDM channel, reproducible AWGN, and
