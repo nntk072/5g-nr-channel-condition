@@ -196,6 +196,14 @@ class NRTrajectory:
         receiver_configs = {record.observation.receiver_config for record in records}
         if len(receiver_configs) != 1:
             raise ValueError("all records in one trajectory must use the same receiver config")
+        definitions: dict[str, TargetDefinition] = {}
+        for record in records:
+            for name, definition in record.target_definitions.items():
+                if name in definitions and definitions[name] != definition:
+                    raise ValueError(
+                        f"target definition for {name!r} changes within one trajectory"
+                    )
+                definitions[name] = definition
         object.__setattr__(self, "sample_times_s", times)
         object.__setattr__(self, "records", records)
 

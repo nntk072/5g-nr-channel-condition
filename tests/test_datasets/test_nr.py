@@ -269,6 +269,38 @@ def test_target_definition_contract_requires_meaning_units_and_source():
         )
 
 
+def test_trajectory_rejects_target_definition_drift():
+    first = make_single_record(
+        "defined-0",
+        targets={"channel_cfr": np.ones(24, np.complex64)},
+        target_masks={"channel_cfr": np.ones(24, np.bool_)},
+    )
+    second = make_single_record(
+        "defined-1",
+        targets={"channel_cfr": np.ones(24, np.complex64)},
+        target_masks={"channel_cfr": np.ones(24, np.bool_)},
+    )
+    definition_a = TargetDefinition("effective CFR", "dimensionless", "Sionna PHY")
+    definition_b = TargetDefinition("absolute CFR", "dimensionless", "Sionna RT")
+    first = NRChannelRecord(
+        first.observation,
+        first.targets,
+        first.target_masks,
+        first.provenance,
+        {"channel_cfr": definition_a},
+    )
+    second = NRChannelRecord(
+        second.observation,
+        second.targets,
+        second.target_masks,
+        second.provenance,
+        {"channel_cfr": definition_b},
+    )
+
+    with pytest.raises(ValueError, match="changes within one trajectory"):
+        NRTrajectory("definition-drift", (0.0, 0.1), (first, second))
+
+
 def test_nr_trajectory_round_trip_preserves_order_masks_and_content_addressing(tmp_path):
     records = (
         make_single_record(
