@@ -194,6 +194,7 @@ def test_sample_domain_tdl_pusch_rx_diversity_uses_paired_channel_draws():
 
     assert result["schema"] == "loslab.tdl_pusch_rx_diversity.v1"
     assert result["configuration"]["num_rx_ant"] == 2
+    assert len(result["configuration"]["clean_receive_power_by_antenna_per_batch"]) == 2
     assert all(
         check["single_rx_is_first_antenna_of_two_rx_draw"]
         for check in result["configuration"]["matched_realization_checks"]
@@ -202,6 +203,7 @@ def test_sample_domain_tdl_pusch_rx_diversity_uses_paired_channel_draws():
     assert all(
         len(point["single_rx"]["frame_error_mask"]) == 16
         and len(point["two_rx"]["frame_error_mask"]) == 16
+        and all(power > 0.0 for power in point["mean_clean_receive_power_by_antenna"])
         and "mcnemar_exact_two_sided_p_value_holm" in point["paired_comparison"]
         for point in result["points"]
     )

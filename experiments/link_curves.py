@@ -481,6 +481,12 @@ def run_tdl_pusch_rx_diversity_curve(
                 "clean": clean,
                 "noise_seed": batch_seed + 2,
                 "waveform_mean_power": float(waveform.abs().square().mean().item()),
+                "clean_receive_power_by_antenna": clean.abs()
+                .square()
+                .mean(dim=(0, 1, 3))
+                .detach()
+                .cpu()
+                .tolist(),
             }
         )
         matched_checks.append(
@@ -542,6 +548,18 @@ def run_tdl_pusch_rx_diversity_curve(
         points.append(
             {
                 "snr_db": snr,
+                "noise_variance_per_complex_dimension": noise_variance,
+                "mean_clean_receive_power_by_antenna": [
+                    float(
+                        sum(
+                            batch["clean_receive_power_by_antenna"][antenna]
+                            * batch["bits"].shape[0]
+                            for batch in batches
+                        )
+                        / frames_per_snr
+                    )
+                    for antenna in range(2)
+                ],
                 "frames": frames_per_snr,
                 "bits": bits_total,
                 "single_rx": {
@@ -589,8 +607,14 @@ def run_tdl_pusch_rx_diversity_curve(
             "transmit_waveform_mean_power_by_batch": [
                 item["waveform_mean_power"] for item in batches
             ],
+            "clean_receive_power_by_antenna_per_batch": [
+                item["clean_receive_power_by_antenna"] for item in batches
+            ],
             "snr_db": list(snr_values),
-            "snr_definition": "unit-average-power sampled waveform with complex AWGN variance 10**(-SNR_dB/10)",
+            "snr_definition": (
+                "complex AWGN variance 10**(-SNR_dB/10); measured pre-noise receive power "
+                "is recorded separately for each antenna and batch"
+            ),
             "single_rx_policy": "decode receive antenna index 0 from each generated two-antenna waveform",
             "two_rx_policy": "decode receive antenna indices 0 and 1 from the same waveform and channel draw",
             "versions": versions(),
