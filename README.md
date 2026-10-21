@@ -74,6 +74,12 @@ with <code>evaluation.freeze_split_lock</code>. These establish storage and spli
 infrastructure; target semantics, large-scale data generation, and spatial
 buffer audits still require research-specific schemas and datasets.
 
+For analytical sanity checks,
+<code>datasets.generate_analytical_multipath</code> creates seeded one-to-three
+path CFR fixtures with explicit Hz/second units, timing offsets, and a separate
+synthetic path oracle. Its direct-component flag is not a geometric LOS label,
+and the fixture is not a 3GPP or measured channel model.
+
 ## Repository map
 
 ```text
