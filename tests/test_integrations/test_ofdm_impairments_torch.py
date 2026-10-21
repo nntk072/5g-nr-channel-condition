@@ -7,8 +7,8 @@ torch = pytest.importorskip("torch")
 from integrations.sionna.ofdm_impairments import (  # noqa: E402
     apply_integer_timing_offset,
     apply_residual_cfo,
-    estimate_residual_cfo_from_cp,
     estimate_integer_timing_offset_from_cp,
+    estimate_residual_cfo_from_cp,
 )
 
 
