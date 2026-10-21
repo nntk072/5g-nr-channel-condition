@@ -246,3 +246,35 @@ def test_run_experiment_routes_raw_observations_to_real_cnn(tmp_path, monkeypatc
     assert observed_inputs
     config = json.loads((output / "config" / "resolved.json").read_text(encoding="utf-8"))
     assert "real/imaginary" in config["values"]["cnn_input_representation"]
+
+
+def test_run_experiment_routes_raw_observations_to_complex_cnn(tmp_path, monkeypatch) -> None:
+    import experiments.runner as runner
+
+    source = tmp_path / "debug.npz"
+    debug_multipath(n_scenes=8, links_per_scene=16, seed=59).save(source)
+    captured = []
+
+    class Predictor:
+        def predict_proba(self, values):
+            assert np.iscomplexobj(values)
+            captured.append(values.shape)
+            score = np.linspace(0.1, 0.9, len(values))
+            return np.column_stack((1.0 - score, score))
+
+        def save(self, path, *, threshold):
+            assert 0.0 <= threshold <= 1.0
+            path.write_bytes(b"complex checkpoint")
+
+    def fake_fit(train, labels, validation, validation_labels, **kwargs):
+        assert np.iscomplexobj(train) and np.iscomplexobj(validation)
+        assert labels.ndim == validation_labels.ndim == 1
+        return Predictor(), {"epoch_count": 1, "trainable_parameters": 1}
+
+    monkeypatch.setattr(runner, "fit_complex_cnn", fake_fit)
+    output = tmp_path / "runs" / "cvnn"
+    result = run_experiment([source], output, methods=("cvnn",), seeds=(17,), bootstrap=10)
+
+    assert result["aggregate_across_fixed_splits"]["cvnn"]["seeds"] == 1
+    assert (output / "models" / "cvnn_seed17.pt").read_bytes() == b"complex checkpoint"
+    assert captured

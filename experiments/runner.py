@@ -25,7 +25,7 @@ from evaluation.metrics import (
     threshold_from_validation,
 )
 from evaluation.statistics import paired_seed_delta
-from learning import fit_coral_mlp, fit_real_cnn, fit_sklearn
+from learning import fit_complex_cnn, fit_coral_mlp, fit_real_cnn, fit_sklearn
 from propagation.physics import observable_features
 from receivers.pilots import comb_ls_estimate
 
@@ -157,6 +157,9 @@ def run_experiment(
         "observation_seed": observation_seed,
         "feature_version": "logmag+pdp+moments-v1",
         "cnn_input_representation": "per-link real/imaginary channels over ordered subcarriers",
+        "cvnn_input_representation": (
+            "complex convolution, phase-equivariant encoding, magnitude-invariant classifier"
+        ),
     }
     dependency_versions = versions()
     manifest = run_manifest(
@@ -194,12 +197,21 @@ def run_experiment(
         assert not (set(data.group[train]) & set(data.group[val]))
         assert not (set(data.group[test]) & (set(data.group[train]) | set(data.group[val])))
         for method in methods:
-            method_input = observable if method == "cnn" else x
+            method_input = observable if method in ("cnn", "cvnn") else x
             if method in ("rf", "histgb", "mlp", "logreg"):
                 clf = fit_sklearn(x[train], data.y[train], seed=seed, method=method)
                 extra: dict[str, Any] = {}
             elif method == "cnn":
                 clf, extra = fit_real_cnn(
+                    observable[train],
+                    data.y[train],
+                    observable[val],
+                    data.y[val],
+                    seed=seed,
+                    device=device,
+                )
+            elif method == "cvnn":
+                clf, extra = fit_complex_cnn(
                     observable[train],
                     data.y[train],
                     observable[val],
@@ -224,13 +236,15 @@ def run_experiment(
             threshold = threshold_from_validation(data.y[val], val_scores)
             checkpoint = (
                 layout.models / f"{method}_seed{seed}.pt"
-                if method.startswith("coral") or method == "cnn"
+                if method.startswith("coral") or method in ("cnn", "cvnn")
                 else layout.models / f"{method}_seed{seed}.joblib"
             )
             if method.startswith("coral"):
                 clf.save(checkpoint, threshold=threshold, include_phase=include_phase)
             elif method == "cnn":
                 clf.save(checkpoint, threshold=threshold, include_phase=True)
+            elif method == "cvnn":
+                clf.save(checkpoint, threshold=threshold)
             else:
                 import joblib
 
@@ -255,6 +269,8 @@ def run_experiment(
                 "input_representation": (
                     "complex observation split into real/imaginary channels"
                     if method == "cnn"
+                    else "complex convolution with global-phase-invariant magnitude head"
+                    if method == "cvnn"
                     else "engineered observable features"
                 ),
                 "metrics": metrics,
@@ -309,6 +325,10 @@ def run_experiment(
         ("rf", "mlp"),
         ("histgb", "mlp"),
         ("cnn", "mlp"),
+        ("cvnn", "mlp"),
+        ("cvnn", "cnn"),
+        ("rf", "cvnn"),
+        ("histgb", "cvnn"),
         ("rf", "cnn"),
         ("histgb", "cnn"),
         ("logreg", "mlp"),
