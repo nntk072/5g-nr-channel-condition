@@ -1,0 +1,353 @@
+{
+  "artifact_sha256_note": "Image/contact-sheet hashes and the per-scene raw manifests are recorded above; the images and raw manifests remain local under outputs/ and are not committed.",
+  "backend": "Sionna RT 2.2 LLVM CPU, deterministic path solver; no OptiX CUDA RT available in WSL",
+  "evidence_grade": "VISUAL_SIMULATOR_QA_NOT_PHYSICAL_VALIDATION",
+  "limitations": [
+    "A simulator oracle replay is not surveyed physical ground truth.",
+    "AABB projections can obscure mesh topology and do not prove that every ray avoids/intersects the intended physical material.",
+    "These 24 links are a stratified visual sample, not a full-dataset path audit.",
+    "The images do not validate materials, ray-budget convergence, antenna orientation, or NR receiver observability."
+  ],
+  "output_directory": "outputs/rt-path-qa-adaptive-20261021/ (ignored local outputs; regenerate from commands in the research plan)",
+  "renderer_script_sha256": "6215e721f2f9e3a0f12435f326cfb03a3fb640c3b2c6ab108d0742ed8f4eb274",
+  "scene_reports": [
+    {
+      "budgets_by_sample": [
+        20000
+      ],
+      "class_counts_in_visual_sample": {
+        "0": 2,
+        "1": 2
+      },
+      "contact_sheet_sha256": "c6bb3d09ba4cf2c34741a80e1bf127b2b3571490f587b33f0a4ab73915996f8e",
+      "full_direct_path_agreement_count": 4,
+      "images": [
+        {
+          "direct_paths": 0,
+          "label": 0,
+          "path": "box_one_screen-sample-004-label-0.png",
+          "sample_index": 4,
+          "sha256": "f1c009d96d526564c6a51e09e63da4e95455436fb2ccc6ed451f385713ba171a",
+          "valid_paths": 7
+        },
+        {
+          "direct_paths": 0,
+          "label": 0,
+          "path": "box_one_screen-sample-018-label-0.png",
+          "sample_index": 18,
+          "sha256": "e110b4ce91b3699366d996b9cd288519708c6369bb8886a0a5b8c61c98b09422",
+          "valid_paths": 15
+        },
+        {
+          "direct_paths": 1,
+          "label": 1,
+          "path": "box_one_screen-sample-038-label-1.png",
+          "sample_index": 38,
+          "sha256": "bfb3c7a77e5b2841ea96ef924da4b2533d448e62366bd6810d0ba8a16f3649fd",
+          "valid_paths": 19
+        },
+        {
+          "direct_paths": 1,
+          "label": 1,
+          "path": "box_one_screen-sample-039-label-1.png",
+          "sample_index": 39,
+          "sha256": "5582a811b75d755c744353cb341722d604f4a29fe1ce672a21a12477b6e7b23f",
+          "valid_paths": 25
+        }
+      ],
+      "input_npz_sha256": "70cbbe27ad5b75e2c824e32247e33780d6225245141b659902d0e7417a380e03",
+      "links_reviewed": 4,
+      "max_depth_by_sample": [
+        2
+      ],
+      "oracle_label_replays_matched": 4,
+      "per_scene_manifest_sha256": "c5bb3769cc04beb68cc74cf245b58b71e75e2ff10f87db7b978897b7bc6ccfd0",
+      "scene": "box_one_screen",
+      "scene_tree_sha256": "04c273c697fcd569106d03e93db875d7f14ed0e13f8d6a35b260e2fb3aa9a5e6"
+    },
+    {
+      "budgets_by_sample": [
+        5000000
+      ],
+      "class_counts_in_visual_sample": {
+        "0": 2,
+        "1": 2
+      },
+      "contact_sheet_sha256": "80d22122b01417e68dc76bed319802139bb7bd85634b6f38efb039eff159d429",
+      "full_direct_path_agreement_count": 4,
+      "images": [
+        {
+          "direct_paths": 0,
+          "label": 0,
+          "path": "etoile-sample-007-label-0.png",
+          "sample_index": 7,
+          "sha256": "e318c583fa0462bd1624b9237a8a396df96e7d7dccea972e28a6139b55e7643b",
+          "valid_paths": 1
+        },
+        {
+          "direct_paths": 0,
+          "label": 0,
+          "path": "etoile-sample-035-label-0.png",
+          "sample_index": 35,
+          "sha256": "c1e9370cc8efd34c12d06bf0a9a2c0fc4d3fd04f1a2e0bb4792ebeeb7958c3e2",
+          "valid_paths": 6
+        },
+        {
+          "direct_paths": 1,
+          "label": 1,
+          "path": "etoile-sample-018-label-1.png",
+          "sample_index": 18,
+          "sha256": "8116a3286427c59d43c8fc1c9a9fa5f10ef966f55d2638d4ab8e61fc89a5c5d4",
+          "valid_paths": 3
+        },
+        {
+          "direct_paths": 1,
+          "label": 1,
+          "path": "etoile-sample-004-label-1.png",
+          "sample_index": 4,
+          "sha256": "dd8f762ae2519d31fc9ccb0523b3328f5adea9265c3b967f493aa77ca7292762",
+          "valid_paths": 11
+        }
+      ],
+      "input_npz_sha256": "ba3a2f6c0f0477e43d772528aa86aeccd4c364a8d3b4be3275055518a17efcaa",
+      "links_reviewed": 4,
+      "max_depth_by_sample": [
+        2
+      ],
+      "oracle_label_replays_matched": 4,
+      "per_scene_manifest_sha256": "9c2d3c96f2b38fbb1207636774e8acb21a79c0aa345a91f3a01604a3c91e0ce2",
+      "scene": "etoile",
+      "scene_tree_sha256": "32d929850e9ea7e0e8cddf92586e9022d7faf12dd6320f8ce7e6077d23f67249"
+    },
+    {
+      "budgets_by_sample": [
+        1000000
+      ],
+      "class_counts_in_visual_sample": {
+        "0": 2,
+        "1": 2
+      },
+      "contact_sheet_sha256": "4472fb143cc718b1f195d3c5539f137ef0e30ea4633830d1af7276876f4878c5",
+      "full_direct_path_agreement_count": 4,
+      "images": [
+        {
+          "direct_paths": 0,
+          "label": 0,
+          "path": "simple_street_canyon-sample-001-label-0.png",
+          "sample_index": 1,
+          "sha256": "38c973a02e663c1756ff44f2e02fb599e4df7822568d953d240c1e3383e8a94d",
+          "valid_paths": 3
+        },
+        {
+          "direct_paths": 0,
+          "label": 0,
+          "path": "simple_street_canyon-sample-020-label-0.png",
+          "sample_index": 20,
+          "sha256": "98b0b12b62e6cca0814865d1af66616822a07a3729cbebe4c0cf8a8f5a82b65a",
+          "valid_paths": 9
+        },
+        {
+          "direct_paths": 1,
+          "label": 1,
+          "path": "simple_street_canyon-sample-011-label-1.png",
+          "sample_index": 11,
+          "sha256": "14cb6abb3f27bf7ba057f8dbd1dc38bd74a854573f9f52f0f52f4857fb44dc3a",
+          "valid_paths": 4
+        },
+        {
+          "direct_paths": 1,
+          "label": 1,
+          "path": "simple_street_canyon-sample-039-label-1.png",
+          "sample_index": 39,
+          "sha256": "c84cd8c365687e34db7bf5e2e92412f99c29898bc1fd0b7b2258ad510fb469b6",
+          "valid_paths": 8
+        }
+      ],
+      "input_npz_sha256": "835a0d5e1ba775a4ba130735851e5de6b2c41147156c828782284d224d0de557",
+      "links_reviewed": 4,
+      "max_depth_by_sample": [
+        2
+      ],
+      "oracle_label_replays_matched": 4,
+      "per_scene_manifest_sha256": "d43e35afd298d24768623149e454d17cbca958d8b36a515f8dc65456d576eaa1",
+      "scene": "simple_street_canyon",
+      "scene_tree_sha256": "34773b3043af437ff095d7b009e23a11aa39e493c3a9fbccbcf6656eca56c2d2"
+    },
+    {
+      "budgets_by_sample": [
+        20000
+      ],
+      "class_counts_in_visual_sample": {
+        "0": 2,
+        "1": 2
+      },
+      "contact_sheet_sha256": "776466f5c03136762ed2cd48ead304fb32867603db5d3944b77a43d0e9272e54",
+      "full_direct_path_agreement_count": 4,
+      "images": [
+        {
+          "direct_paths": 0,
+          "label": 0,
+          "path": "urban_00041-sample-007-label-0.png",
+          "sample_index": 7,
+          "sha256": "507a0be847b270056fa003dadc1af27a7473936524936a2b6139fa4c7d799ed5",
+          "valid_paths": 1
+        },
+        {
+          "direct_paths": 0,
+          "label": 0,
+          "path": "urban_00041-sample-020-label-0.png",
+          "sample_index": 20,
+          "sha256": "64be74160c96ed77d512c99c75a6cf08abcb9a9dfb05b4700ebf24b0003a1469",
+          "valid_paths": 8
+        },
+        {
+          "direct_paths": 1,
+          "label": 1,
+          "path": "urban_00041-sample-002-label-1.png",
+          "sample_index": 2,
+          "sha256": "d57545a630be33b2b6228a12cffac19e9e7d2009562cbdf233b5c2f3d2e928a9",
+          "valid_paths": 3
+        },
+        {
+          "direct_paths": 1,
+          "label": 1,
+          "path": "urban_00041-sample-006-label-1.png",
+          "sample_index": 6,
+          "sha256": "04e90a9d7b6c732556749b4f59af01452f0071db7afaae052025cecb6b192d32",
+          "valid_paths": 8
+        }
+      ],
+      "input_npz_sha256": "66099ad0d0e5cea286e81868e576e0727ff4feb23c13121c06512a9fb8088e93",
+      "links_reviewed": 4,
+      "max_depth_by_sample": [
+        2
+      ],
+      "oracle_label_replays_matched": 4,
+      "per_scene_manifest_sha256": "59575eef632d8398d022eb35f68eda4c5badfcca856c564837463eb7d9795fb8",
+      "scene": "/home/nguyenl37/5g-nr-channel-condition/scenes/generated/research_scenes/city41/urban_00041.xml",
+      "scene_tree_sha256": "1a841ea2c95df4ee2adaf342e0fc5c00fb2f5c2f39b67c0541553c2fe39afaaf"
+    },
+    {
+      "budgets_by_sample": [
+        100000
+      ],
+      "class_counts_in_visual_sample": {
+        "0": 2,
+        "1": 2
+      },
+      "contact_sheet_sha256": "4a158f5c48329be52a27e5063beec6b9db2473d49077837b0de5c549bd2486ca",
+      "full_direct_path_agreement_count": 4,
+      "images": [
+        {
+          "direct_paths": 0,
+          "label": 0,
+          "path": "urban_00042-sample-005-label-0.png",
+          "sample_index": 5,
+          "sha256": "923ff26312bbde615ee072563399be4ab7265f85c8ee323fd8d1316f65d699ec",
+          "valid_paths": 1
+        },
+        {
+          "direct_paths": 0,
+          "label": 0,
+          "path": "urban_00042-sample-002-label-0.png",
+          "sample_index": 2,
+          "sha256": "df692837ed97c9bb67563529cdfc292e221c4353834c79d088bd07a787cc983f",
+          "valid_paths": 6
+        },
+        {
+          "direct_paths": 1,
+          "label": 1,
+          "path": "urban_00042-sample-010-label-1.png",
+          "sample_index": 10,
+          "sha256": "4710ca36e5dbfa077f792acdd58261f0c79a79e27b20436ffa7c818fbf4fed52",
+          "valid_paths": 2
+        },
+        {
+          "direct_paths": 1,
+          "label": 1,
+          "path": "urban_00042-sample-027-label-1.png",
+          "sample_index": 27,
+          "sha256": "d5b9f122621555239815e17f777c166174b9116cc636f7e1b745dd9bc4fc9e03",
+          "valid_paths": 9
+        }
+      ],
+      "input_npz_sha256": "9bfeb12f9b5f92efbfac71ca00a466eefcab7a74cb466425b65a9f142d7713cc",
+      "links_reviewed": 4,
+      "max_depth_by_sample": [
+        2
+      ],
+      "oracle_label_replays_matched": 4,
+      "per_scene_manifest_sha256": "12884d9a8f84de493dbbfc48bca60a1292cb68fc9c3044e6d7c496b1e73b7167",
+      "scene": "/home/nguyenl37/5g-nr-channel-condition/scenes/generated/research_scenes/city42/urban_00042.xml",
+      "scene_tree_sha256": "c74fb931828dab2090143b7e584603de6c843dbd606a82c7faf9a4fa3dc19441"
+    },
+    {
+      "budgets_by_sample": [
+        20000
+      ],
+      "class_counts_in_visual_sample": {
+        "0": 2,
+        "1": 2
+      },
+      "contact_sheet_sha256": "016cb09b8da7c7f24b38bfb16cb70bb15c63b0395cba05ca3f6ba95feee98b3e",
+      "full_direct_path_agreement_count": 4,
+      "images": [
+        {
+          "direct_paths": 0,
+          "label": 0,
+          "path": "urban_00043-sample-000-label-0.png",
+          "sample_index": 0,
+          "sha256": "422c679aae1482e3cb93a60812a76f00e5cb801d655556aee2b713b22c8ece8e",
+          "valid_paths": 1
+        },
+        {
+          "direct_paths": 0,
+          "label": 0,
+          "path": "urban_00043-sample-031-label-0.png",
+          "sample_index": 31,
+          "sha256": "ee90e1066a0df439bd0b7990dc2499e374c3d65be39a4875b77a9bef01f16dd1",
+          "valid_paths": 5
+        },
+        {
+          "direct_paths": 1,
+          "label": 1,
+          "path": "urban_00043-sample-020-label-1.png",
+          "sample_index": 20,
+          "sha256": "82838e671613420a21c1eb2e6e1dc580f2c00ba0a1b95cb64fd01d15608e7517",
+          "valid_paths": 2
+        },
+        {
+          "direct_paths": 1,
+          "label": 1,
+          "path": "urban_00043-sample-030-label-1.png",
+          "sample_index": 30,
+          "sha256": "458a67346ee24fc247ed180069684acdb3608b35aa1c6f0a50e14081c99dcb92",
+          "valid_paths": 7
+        }
+      ],
+      "input_npz_sha256": "4021c3d237a7fb191c0ddc6cfd723c7fd55a4391d6d2e5c99ab953b1638e6975",
+      "links_reviewed": 4,
+      "max_depth_by_sample": [
+        2
+      ],
+      "oracle_label_replays_matched": 4,
+      "per_scene_manifest_sha256": "aa0e4e5a8edc132dc59ab2acb618fa7a4435ceec6588ed3b552120f4ca2e96f0",
+      "scene": "/home/nguyenl37/5g-nr-channel-condition/scenes/generated/research_scenes/city43/urban_00043.xml",
+      "scene_tree_sha256": "9b8864831654336ac34e363e1cc92d7208b50c66bfcbdff1a873e3b2be635bbb"
+    }
+  ],
+  "schema": "loslab.rt_six_scene_path_visual_qa_evidence.v1",
+  "selection_policy": "Two deterministic path-count quantiles per geometric label for each scene; 4 selected links/scene, 24 total.",
+  "source_revision": "ee41caf011552a73d32ad86decc537c3202f23aa",
+  "visual_review": {
+    "observations": [
+      "All 24 stored geometric labels matched their deterministic depth-zero oracle replay.",
+      "All 24 full-solver direct candidates agreed with the depth-zero visibility oracle.",
+      "NLOS examples retain one or more indirect paths, including one-path NLOS links; LOS examples have a separate direct path alongside indirect components.",
+      "The overlays show 2D projections of axis-aligned Mitsuba mesh bounds, not exact mesh surfaces; some built-in city geometry is not visually interpretable at this scale."
+    ],
+    "review_scope": "Agent visually inspected every 4-panel scene contact sheet for TX/RX placement, ray endpoint ordering, and broad alignment with projected scene-object bounds. The direct labels and direct-path presence are also independently checked by deterministic depth-zero/full-solver replay.",
+    "review_status": "automated consistency and agent visual review only; independent domain-expert scene/path review remains outstanding",
+    "reviewed_contact_sheets": 6
+  }
+}
