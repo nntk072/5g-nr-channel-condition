@@ -92,7 +92,10 @@ a pinned Sionna 2.2 TR 38.901 TDL-to-CFR adapter with explicit profile/spec
 metadata, centered NR baseband bins, deterministic per-call seeds, and the
 original shared RNG state restored after generation. TDL profile names are
 recorded as stochastic <em>profile proxies</em>; they are never emitted as
-geometric LOS labels. It generates channel coefficients and CFR only, not a
+geometric LOS labels. Its metadata records nominal tap delays and mean powers;
+native tests compare A–E empirical powers and tap delays against the pinned
+Sionna 19.2 profile tables. This checks implementation consistency, not full
+3GPP conformance. It generates channel coefficients and CFR only, not a
 complete PUSCH/CP/synchronization/receiver chain.
 
 For an ideal frequency-domain simulation batch,
