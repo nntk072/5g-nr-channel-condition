@@ -161,3 +161,45 @@ def test_rt_reflected_path_depends_on_surface_radio_material():
     # matched; epsilon_r=4 produces a reflected path in this fixed geometry.
     assert path_counts == {1.0: 1, 4.0: 2}
     assert np.mean(np.abs(channels[4.0] - channels[1.0])) > 1e-6
+
+
+@pytest.mark.native_sionna
+def test_rt_cpu_box_scene_generates_balanced_geometry_labeled_records():
+    import mitsuba as mi
+
+    mi.set_variant("llvm_ad_mono_polarized")
+    pytest.importorskip("sionna.rt")
+    from integrations.sionna.adapter import GridConfig, RayScene, generate_raytraced
+
+    data = generate_raytraced(
+        RayScene(
+            name="box_one_screen",
+            tx_position=(-2.0, 0.0, 2.5),
+            rx_center=(2.0, 0.0, 2.5),
+            radius_m=4.0,
+            block_size_m=10.0,
+            max_depth=1,
+            samples_per_src=20,
+            per_class=2,
+            max_attempts=30,
+            require_los_multipath=False,
+        ),
+        grid=GridConfig(n_subcarriers=16),
+        seed=42,
+    )
+
+    assert data.h.shape == (4, 1, 16)
+    np.testing.assert_array_equal(np.bincount(data.y), [2, 2])
+    assert set(data.source) == {"sionna_rt"}
+    assert set(data.domain) == {"rt_box_one_screen"}
+    assert all(row["geometry_label"] == "GEOMETRIC_DIRECT_PATH_ORACLE" for row in data.metadata)
+    assert all(row["valid_paths_full"] > 0 for row in data.metadata)
+    assert all(row["mitsuba_variant"] == "llvm_ad_mono_polarized" for row in data.metadata)
+    assert all(row["scene_config"]["samples_per_src"] == 20 for row in data.metadata)
+    assert all(row["grid_config"]["n_subcarriers"] == 16 for row in data.metadata)
+    assert all(row["solver_config"]["deterministic"] for row in data.metadata)
+    assert all(
+        row["valid_paths_direct_oracle"] == 0
+        for row, label in zip(data.metadata, data.y, strict=True)
+        if label == 0
+    )

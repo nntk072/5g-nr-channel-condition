@@ -42,6 +42,7 @@ def main() -> None:
     rt.add_argument("--samples-per-src", type=int, default=120000)
     rt.add_argument("--block-size", type=float, default=30.0)
     rt.add_argument("--max-depth", type=int, default=3)
+    rt.add_argument("--mitsuba-variant", default="llvm_ad_mono_polarized")
     rt.add_argument("--allow-direct-only", action="store_true")
     exp = sub.add_parser("experiment", help="Evaluate MLP vs CORAL MLP and baselines")
     exp.add_argument("--config", help="Versioned YAML/JSON experiment configuration")
@@ -109,6 +110,7 @@ def main() -> None:
             block_size_m=args.block_size,
             max_depth=args.max_depth,
             require_los_multipath=not args.allow_direct_only,
+            mitsuba_variant=args.mitsuba_variant,
         )
         d = generate_raytraced(cfg, seed=args.seed)
         d.save(args.output)

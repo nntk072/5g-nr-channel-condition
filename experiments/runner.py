@@ -30,6 +30,27 @@ from propagation.physics import observable_features
 from receivers.pilots import comb_ls_estimate
 
 
+def _label_semantics_by_source(data: ChannelDataset) -> str:
+    semantics: dict[str, set[str]] = {}
+    for source, metadata in zip(data.source, data.metadata, strict=True):
+        source_name = str(source)
+        label_semantic = metadata.get("geometry_label") or metadata.get("label_semantics")
+        if label_semantic is None:
+            label_semantic = (
+                "SYNTHETIC_DEBUG_CONSTRUCTED"
+                if source_name == "synthetic_debug"
+                else f"UNSPECIFIED({source_name})"
+            )
+        semantics.setdefault(source_name, set()).add(str(label_semantic))
+    if len(semantics) == 1:
+        values = next(iter(semantics.values()))
+        if len(values) == 1:
+            return next(iter(values))
+    return "; ".join(
+        f"{source}={'|'.join(sorted(values))}" for source, values in sorted(semantics.items())
+    )
+
+
 def run_experiment(
     paths: Sequence[str | Path],
     output: str | Path,
@@ -88,7 +109,7 @@ def run_experiment(
         n_samples=len(data.y),
         source_counts={str(s): int(np.sum(data.source == s)) for s in np.unique(data.source)},
         domain_counts={str(s): int(np.sum(data.domain == s)) for s in np.unique(data.domain)},
-        label_semantics="mixed: RT=geometric, standardized=profile proxy",
+        label_semantics=_label_semantics_by_source(data),
         observation_semantics=(
             "ideal channel, diagnostic upper bound"
             if observation == "ideal_cfr"

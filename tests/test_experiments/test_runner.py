@@ -4,7 +4,7 @@ import json
 
 import numpy as np
 from datasets.synthetic import debug_multipath
-from experiments.runner import run_experiment
+from experiments.runner import _label_semantics_by_source, run_experiment
 
 
 def test_run_experiment_writes_reproducible_complete_artifacts(tmp_path) -> None:
@@ -22,6 +22,7 @@ def test_run_experiment_writes_reproducible_complete_artifacts(tmp_path) -> None
 
     manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["state"] == "complete"
+    assert manifest["label_semantics"] == "SYNTHETIC_DEBUG_CONSTRUCTED"
     assert manifest["inputs"][0]["sha256"]
     assert (output / "COMPLETE").is_file()
     assert (output / "config" / "resolved.json").is_file()
@@ -75,3 +76,24 @@ def test_run_experiment_reports_paired_classical_vs_mlp_deltas(tmp_path) -> None
             by_seed_and_method[(seed, "rf")]["split"]["indices_sha256"]
             == by_seed_and_method[(seed, "mlp")]["split"]["indices_sha256"]
         )
+
+
+def test_label_semantics_are_derived_from_each_dataset_source() -> None:
+    from datasets.channel import ChannelDataset
+
+    data = ChannelDataset(
+        h=np.ones((2, 1, 8), dtype=np.complex64),
+        y=np.asarray([0, 1]),
+        group=np.asarray(["nlos", "los"]),
+        domain=np.asarray(["scene-a", "profile-b"]),
+        source=np.asarray(["sionna_rt", "tdl"]),
+        metadata=(
+            {"geometry_label": "GEOMETRIC_DIRECT_PATH_ORACLE"},
+            {"label_semantics": "PROFILE_PROXY"},
+        ),
+    )
+
+    assert (
+        _label_semantics_by_source(data)
+        == "sionna_rt=GEOMETRIC_DIRECT_PATH_ORACLE; tdl=PROFILE_PROXY"
+    )

@@ -51,6 +51,8 @@ def test_full_rt_oracle_is_separate_and_los_contains_reflections(monkeypatch):
     scene_module.PathSolver = FakeSolver
     mi = types.ModuleType("mitsuba")
     mi.Float = float
+    selected_variants = []
+    mi.set_variant = selected_variants.append
     dr = types.ModuleType("drjit")
     dr.arange = lambda dtype, n: np.arange(n, dtype=float)
     monkeypatch.setitem(sys.modules, "sionna", sionna)
@@ -74,6 +76,11 @@ def test_full_rt_oracle_is_separate_and_los_contains_reflections(monkeypatch):
     assert all(m["los_plus_indirect_paths"] for m, y in zip(d.metadata, d.y) if y == 1)
     assert all(m["valid_paths_full"] >= 2 for m in d.metadata)
     assert set(d.source) == {"sionna_rt"}
+    assert selected_variants == ["llvm_ad_mono_polarized"]
+    assert all(m["mitsuba_variant"] == "llvm_ad_mono_polarized" for m in d.metadata)
+    assert all(m["scene_config"]["name"] == "mock" for m in d.metadata)
+    assert all(m["grid_config"]["n_subcarriers"] == 32 for m in d.metadata)
+    assert all(m["solver_config"]["deterministic"] for m in d.metadata)
     assert all(kw["specular_reflection"] is False for kw in calls if kw["max_depth"] == 0)
     assert all(
         kw["specular_reflection"] is True and kw["los"] for kw in calls if kw["max_depth"] > 0

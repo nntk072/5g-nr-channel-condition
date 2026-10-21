@@ -8,7 +8,7 @@ LOS oracle: an independent depth-zero geometric PathSolver invocation.
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Protocol, Sequence
 
@@ -242,6 +242,7 @@ class RayScene:
     block_size_m: float = 30.0
     max_depth: int = 3
     samples_per_src: int = 120_000
+    mitsuba_variant: str = "llvm_ad_mono_polarized"
     per_class: int = 16
     max_attempts: int = 2000
     require_los_multipath: bool = True
@@ -259,6 +260,12 @@ def generate_raytraced(
     direct-only LOS. NLOS must contain at least one observable indirect path.
     """
     try:
+        import mitsuba as mi
+
+        # Mitsuba selects its backend before Sionna RT types and scenes are
+        # constructed. LLVM is the portable default; CUDA can be requested
+        # explicitly on hosts with a working OptiX runtime.
+        mi.set_variant(scene_config.mitsuba_variant)
         import sionna.rt as rt
         from sionna.rt import PathSolver, PlanarArray, Receiver, Transmitter, load_scene
     except ImportError as e:
@@ -370,6 +377,17 @@ def generate_raytraced(
                 "seed": seed + attempt,
                 "snr_db": grid.snr_db,
                 "max_depth": cfg.max_depth,
+                "mitsuba_variant": cfg.mitsuba_variant,
+                "scene_config": asdict(cfg),
+                "grid_config": asdict(grid),
+                "solver_config": {
+                    "deterministic": True,
+                    "los": True,
+                    "specular_reflection": True,
+                    "diffuse_reflection": True,
+                    "refraction": True,
+                    "diffraction": False,
+                },
             }
         )
         hits[label] += 1
