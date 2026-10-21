@@ -50,7 +50,7 @@ def run_convergence(
     n_subcarriers: int = 256,
     subcarrier_spacing_hz: float = 30_000.0,
     carrier_hz: float = 3.5e9,
-    mitsuba_variant: str = "llvm_ad_mono_polarized",
+    mitsuba_variant: str = "auto",
 ) -> dict[str, Any]:
     """Compare ray budgets and interaction depths for identical fixed links."""
     if max_depth < 1:
@@ -65,12 +65,13 @@ def run_convergence(
         raise ValueError("transmitter and receiver positions must have three coordinates")
 
     try:
-        import mitsuba as mi
+        from integrations.sionna.backend import activate_rt_backend, select_rt_backend
 
-        mi.set_variant(mitsuba_variant)
+        backend_selection = select_rt_backend(mitsuba_variant)
+        activate_rt_backend(backend_selection)
         import sionna.rt as rt
-    except ImportError as error:
-        raise RuntimeError("Install the optional Sionna RT 2.2 environment") from error
+    except (ImportError, RuntimeError) as error:
+        raise RuntimeError(f"Could not initialize a usable Sionna RT backend: {error}") from error
 
     scene_reference = getattr(rt.scene, scene_name, scene_name)
     scene_xml = Path(str(scene_reference)).resolve()
@@ -164,7 +165,8 @@ def run_convergence(
             "scene_tree_sha256": _scene_tree_sha256(scene_xml),
         },
         "configuration": {
-            "mitsuba_variant": mitsuba_variant,
+            "mitsuba_variant": backend_selection.variant,
+            "rt_backend_selection": backend_selection.as_dict(),
             "deterministic_solver": True,
             "max_depth_values": list(range(max_depth + 1)),
             "samples_per_src_values": list(samples_per_src_values),
@@ -194,7 +196,7 @@ def run_convergence(
             "One built-in scene and one SISO link do not qualify solver convergence across geometries.",
             "The maximum requested sample count is a comparison reference, not proven ground truth.",
             "CFR uses normalized path delays but unnormalized received power.",
-            "This is CPU/LLVM implementation evidence; it does not establish scene-material realism or GPU RT throughput.",
+            "Backend selection validates one minimal native trace, not scene-material realism, convergence, or production throughput.",
         ],
     }
 
@@ -213,7 +215,7 @@ def main() -> None:
     parser.add_argument("--n-subcarriers", type=int, default=256)
     parser.add_argument("--subcarrier-spacing-hz", type=float, default=30_000.0)
     parser.add_argument("--carrier-hz", type=float, default=3.5e9)
-    parser.add_argument("--mitsuba-variant", default="llvm_ad_mono_polarized")
+    parser.add_argument("--mitsuba-variant", default="auto")
     args = parser.parse_args()
     if args.output.exists():
         parser.error(f"refusing to overwrite existing output: {args.output}")

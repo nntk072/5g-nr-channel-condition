@@ -65,6 +65,7 @@ def test_full_rt_oracle_is_separate_and_los_contains_reflections(monkeypatch):
     scene_module.PathSolver = FakeSolver
     mi = types.ModuleType("mitsuba")
     mi.Float = float
+    mi.variants = lambda: ["llvm_ad_mono_polarized"]
     selected_variants = []
     mi.set_variant = selected_variants.append
     dr = types.ModuleType("drjit")
@@ -73,6 +74,13 @@ def test_full_rt_oracle_is_separate_and_los_contains_reflections(monkeypatch):
     monkeypatch.setitem(sys.modules, "sionna.rt", scene_module)
     monkeypatch.setitem(sys.modules, "mitsuba", mi)
     monkeypatch.setitem(sys.modules, "drjit", dr)
+    from integrations.sionna import backend
+
+    monkeypatch.setattr(
+        backend,
+        "probe_native_rt_variant",
+        lambda variant: (True, f"mock RT probe passed: {variant}"),
+    )
     d = generate_raytraced(
         RayScene(
             name="mock",

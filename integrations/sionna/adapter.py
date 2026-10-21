@@ -8,7 +8,7 @@ LOS oracle: an independent depth-zero geometric PathSolver invocation.
 from __future__ import annotations
 
 import json
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from typing import Mapping, Protocol, Sequence
 
@@ -265,7 +265,7 @@ class RayScene:
     block_size_m: float = 30.0
     max_depth: int = 3
     samples_per_src: int = 120_000
-    mitsuba_variant: str = "llvm_ad_mono_polarized"
+    mitsuba_variant: str = "auto"
     per_class: int = 16
     max_attempts: int = 2000
     require_los_multipath: bool = True
@@ -291,17 +291,15 @@ def generate_raytraced(
     direct-only LOS. NLOS must contain at least one observable indirect path.
     """
     try:
-        import mitsuba as mi
+        from integrations.sionna.backend import activate_rt_backend, select_rt_backend
 
-        # Mitsuba selects its backend before Sionna RT types and scenes are
-        # constructed. LLVM is the portable default; CUDA can be requested
-        # explicitly on hosts with a working OptiX runtime.
-        mi.set_variant(scene_config.mitsuba_variant)
+        selection = select_rt_backend(scene_config.mitsuba_variant)
+        activate_rt_backend(selection)
         import sionna.rt as rt
         from sionna.rt import PathSolver, PlanarArray, Receiver, Transmitter, load_scene
     except ImportError as e:
         raise RuntimeError("Sionna RT 2.2 not installed; install sionna==2.2.0") from e
-    cfg = scene_config
+    cfg = replace(scene_config, mitsuba_variant=selection.variant)
     obstacles = []
     scene_path = Path(cfg.name)
     scene_manifest = scene_path.with_suffix(".manifest.json")
@@ -499,6 +497,7 @@ def generate_raytraced(
         "schema": "loslab.raytraced_generation_report.v1",
         "status": "solver_error" if solver_failure else "completed",
         "environment": versions(),
+        "rt_backend_selection": selection.as_dict(),
         "package_source_sha256": package_source_sha256(),
         "scene_config": asdict(cfg),
         "grid_config": asdict(grid),

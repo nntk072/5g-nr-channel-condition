@@ -1,0 +1,217 @@
+{
+  "dataset": {
+    "group_counts": {
+      "calibration": 120,
+      "test": 120,
+      "train": 480,
+      "validation": 80
+    },
+    "groups": 800,
+    "maximum_relative_delay_s": 1e-06,
+    "n_tones": 64,
+    "sample_counts": {
+      "calibration": 480,
+      "test": 480,
+      "train": 1920,
+      "validation": 320
+    },
+    "samples": 3200,
+    "samples_per_group": 4,
+    "source_sha256": "49da14a3f7c0a3bbcd3c86a1dbec336108bc43602e90b6a2b692edfd7105c3a0"
+  },
+  "limitations": [
+    "Synthetic fixed-order two-path CFR with known receiver noise variance.",
+    "Random condition groups come from one declared mixture; no scene or domain transfer is tested.",
+    "The profile-likelihood baseline knows model order and noise variance.",
+    "The identifiability-on/off pair is a single CRLB-scale-floor ablation, not a validated novel method.",
+    "Learned uncertainty is only a scale; calibration reports are descriptive on this synthetic split.",
+    "No diffuse paths, channel-estimation errors, synchronization impairments, or measured data."
+  ],
+  "methods": {
+    "identifiability_off": {
+      "group_conformal_95": {
+        "finite_sample_unbounded": false,
+        "mean_interval_width_s": 4.23097066376433e-07,
+        "test_group_simultaneous_coverage": 0.9666666666666667,
+        "test_sample_coverage": 0.9916666666666667
+      },
+      "group_macro_rmse_ci95_s": [
+        3.3670751397831617e-08,
+        4.7434914656025575e-08
+      ],
+      "group_macro_rmse_s": 4.066907383885773e-08,
+      "test_group_count": 120,
+      "test_sample_count": 480
+    },
+    "identifiability_on": {
+      "group_conformal_95": {
+        "finite_sample_unbounded": false,
+        "mean_interval_width_s": 3.803738817789986e-07,
+        "test_group_simultaneous_coverage": 0.9333333333333333,
+        "test_sample_coverage": 0.9833333333333333
+      },
+      "group_macro_rmse_ci95_s": [
+        3.39689946645234e-08,
+        4.680409611991437e-08
+      ],
+      "group_macro_rmse_s": 4.035701790620103e-08,
+      "test_group_count": 120,
+      "test_sample_count": 480
+    },
+    "profile_likelihood": {
+      "group_conformal_95": {
+        "finite_sample_unbounded": false,
+        "mean_interval_width_s": 9.973950615241471e-06,
+        "test_group_simultaneous_coverage": 0.9666666666666667,
+        "test_sample_coverage": 0.9916666666666667
+      },
+      "group_macro_rmse_ci95_s": [
+        6.731680784207588e-08,
+        1.2765900806250825e-07
+      ],
+      "group_macro_rmse_s": 9.591572342530297e-08,
+      "test_group_count": 120,
+      "test_sample_count": 480
+    }
+  },
+  "model": {
+    "architecture": "two_path_uncertainty_decoder",
+    "batch_size": 128,
+    "checkpoint_format": "numpy_npz_state_dict_no_pickle",
+    "early_stopping_patience": 15,
+    "epochs_requested": 120,
+    "hidden_dims": [
+      256,
+      128
+    ],
+    "learning_rate": 0.001,
+    "optimizer": "AdamW",
+    "weight_decay": 0.0001
+  },
+  "paired_test_comparisons": [
+    {
+      "bootstrap_draws": 2000,
+      "bootstrap_seed": 20261031,
+      "comparison_unit": "independent_group",
+      "control": "identifiability_off",
+      "group_macro_mae_delta_bootstrap_ci95": [
+        -1.6214788084908025e-09,
+        8.715913261495936e-10
+      ],
+      "group_macro_rmse_delta_bootstrap_ci95": [
+        -1.6018197902087823e-09,
+        1.0811131091877037e-09
+      ],
+      "groups": 120,
+      "samples": 480,
+      "treatment": "identifiability_on",
+      "treatment_minus_control_group_macro_mae": -3.790379824823257e-10,
+      "treatment_minus_control_group_macro_rmse": -3.1205593265669467e-10,
+      "warning": "Descriptive paired synthetic comparison; not independent-scene or measured-channel evidence."
+    },
+    {
+      "bootstrap_draws": 2000,
+      "bootstrap_seed": 20261031,
+      "comparison_unit": "independent_group",
+      "control": "identifiability_off",
+      "group_macro_mae_delta_bootstrap_ci95": [
+        6.2042190865576095e-09,
+        5.341776003091923e-08
+      ],
+      "group_macro_rmse_delta_bootstrap_ci95": [
+        2.4393645595080796e-08,
+        8.87318405770098e-08
+      ],
+      "groups": 120,
+      "samples": 480,
+      "treatment": "profile_likelihood",
+      "treatment_minus_control_group_macro_mae": 2.913787176503362e-08,
+      "treatment_minus_control_group_macro_rmse": 5.5246649586445235e-08,
+      "warning": "Descriptive paired synthetic comparison; not independent-scene or measured-channel evidence."
+    },
+    {
+      "bootstrap_draws": 2000,
+      "bootstrap_seed": 20261031,
+      "comparison_unit": "independent_group",
+      "control": "identifiability_on",
+      "group_macro_mae_delta_bootstrap_ci95": [
+        6.942205388207699e-09,
+        5.347955073105172e-08
+      ],
+      "group_macro_rmse_delta_bootstrap_ci95": [
+        2.5203398054010475e-08,
+        8.851051242463783e-08
+      ],
+      "groups": 120,
+      "samples": 480,
+      "treatment": "profile_likelihood",
+      "treatment_minus_control_group_macro_mae": 2.951690974751595e-08,
+      "treatment_minus_control_group_macro_rmse": 5.555870551910194e-08,
+      "warning": "Descriptive paired synthetic comparison; not independent-scene or measured-channel evidence."
+    }
+  ],
+  "run_manifest_sha256": "c562e9e80e9c7e8f936f92b69169b2e987cbf464f511ac6dd4901b34b9168500",
+  "schema": "loslab.observable_multipath_summary.v1",
+  "source": {
+    "git_revision": "2148e316aab27e1b0cc992e0cdd0b7626f5830f4",
+    "package_source_sha256": "c7c5f79edf8700f1ffa277236255691644f348e1d4967d5e2002bb41d984451a",
+    "runtime_versions": {
+      "git_sha": "2148e316aab27e1b0cc992e0cdd0b7626f5830f4",
+      "numpy": "2.5.4",
+      "python": "3.12.3",
+      "scikit-learn": "1.9.1",
+      "sionna": "2.2.0",
+      "sionna-phy": "not installed",
+      "sionna-rt": "2.2.0",
+      "torch": "2.11.0+cu128"
+    },
+    "seed": 20261031,
+    "source_sha256": "cf22b9db78caca079ceb4796b37308afb9cf00696cdf176bbdaef443243229d4"
+  },
+  "status": "DESCRIPTIVE_ANALYTICAL_PILOT_NO_SCIENTIFIC_CLAIM",
+  "training": {
+    "device": "cuda",
+    "identifiability_off_best_epoch": 33,
+    "identifiability_on_best_epoch": 38,
+    "identifiability_weight_on": 0.1,
+    "same_initialization_seed": 20261031
+  },
+  "verified_artifacts": {
+    "decoder_identifiability_off.npz": {
+      "bytes": 374842,
+      "sha256": "153098de6e78c30c0ea2f86c5a4832df156982e12705129cfcebf316f23ee4db"
+    },
+    "decoder_identifiability_on.npz": {
+      "bytes": 374963,
+      "sha256": "375cd0ab47b8429a2a8fb0248b30ad0f5e176b93da9fcb545f07564ee07aca92"
+    },
+    "identifiability_off_predictions.json": {
+      "bytes": 446749,
+      "sha256": "a309221a262b2fd04aa410212b8639f4da4cdb5e4ef4fca0a71145eeceebf35d"
+    },
+    "identifiability_off_uncertainty_report.json": {
+      "bytes": 16958,
+      "sha256": "052a2f4023fb559bd4fd928996e07ee69a7b9f510cf53c678251813065e110e5"
+    },
+    "identifiability_on_predictions.json": {
+      "bytes": 446648,
+      "sha256": "cf906a91d8768e6851accdabdb9d504f379670cae89f9098257acec30ba6f6fa"
+    },
+    "identifiability_on_uncertainty_report.json": {
+      "bytes": 17033,
+      "sha256": "608a0d4372bf59dd8212b75296df6361a72052ce5500381259d2592d79f527e2"
+    },
+    "paired_test_comparisons.json": {
+      "bytes": 2342,
+      "sha256": "3365ec9e927128b7385d3be028f8b24fb89a38bc9f0006f92721d78d5ffb2a79"
+    },
+    "profile_likelihood_predictions.json": {
+      "bytes": 445273,
+      "sha256": "a9a8714a784ad729e6704fc19aabe39823c74eba6aa39e46592d560e19d81eeb"
+    },
+    "profile_likelihood_uncertainty_report.json": {
+      "bytes": 16985,
+      "sha256": "4ff2b6b212dfcb3d1a713b068e19de1ebe5b0837f520427cba2e06ce85312df7"
+    }
+  }
+}

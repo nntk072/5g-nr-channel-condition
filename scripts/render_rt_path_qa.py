@@ -261,16 +261,19 @@ def render_dataset_qa(
         raise ValueError("one input dataset must contain a single transmitter position")
 
     try:
-        import mitsuba as mi
+        from integrations.sionna.backend import activate_rt_backend, select_rt_backend
 
         variant = str(metadata[0]["mitsuba_variant"])
         if any(str(row["mitsuba_variant"]) != variant for row in metadata):
             raise ValueError("dataset contains multiple Mitsuba variants")
-        mi.set_variant(variant)
+        backend_selection = select_rt_backend(variant)
+        activate_rt_backend(backend_selection)
         import sionna.rt as rt
         from sionna.rt import PathSolver, PlanarArray, Receiver, Transmitter, load_scene
-    except ImportError as error:
-        raise RuntimeError("Install the optional pinned Sionna RT 2.2 environment") from error
+    except (ImportError, RuntimeError) as error:
+        raise RuntimeError(
+            f"Could not initialize the dataset's Sionna RT backend: {error}"
+        ) from error
 
     scene_name = str(metadata[0]["scene"])
     scene_ref = getattr(rt.scene, scene_name, scene_name)
@@ -404,6 +407,7 @@ def render_dataset_qa(
             "xml_sha256": sha256_file(scene_xml),
             "scene_tree_sha256": _scene_tree_sha256(scene_xml),
             "mitsuba_variant": variant,
+            "rt_backend_selection": backend_selection.as_dict(),
         },
         "versions": versions(),
         "selection": {

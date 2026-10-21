@@ -1,0 +1,103 @@
+"""Group-level conformal uncertainty and selective-risk contracts."""
+
+from __future__ import annotations
+
+import numpy as np
+import pytest
+from evaluation.uncertainty import evaluate_grouped_regression_uncertainty
+
+
+def _evaluate(*, calibration_groups: tuple[str, ...] = ("c1", "c2", "c3", "c4")):
+    calibration_group = np.repeat(calibration_groups, 2)
+    calibration_target = np.arange(calibration_group.size, dtype=float)
+    calibration_prediction = calibration_target + np.tile([0.1, -0.2], len(calibration_groups))
+    calibration_scale = np.ones(calibration_group.size)
+    return evaluate_grouped_regression_uncertainty(
+        calibration_target,
+        calibration_prediction,
+        calibration_scale,
+        calibration_group,
+        np.asarray([10.0, 10.1, 20.0, 22.0]),
+        np.asarray([10.1, 10.2, 20.4, 22.8]),
+        np.asarray([0.2, 0.4, 0.5, 1.0]),
+        np.asarray(["test-a", "test-a", "test-b", "test-b"]),
+        seed=9,
+        bootstrap_draws=200,
+    )
+
+
+def test_group_conformal_uses_calibration_groups_and_reports_group_coverage():
+    report = _evaluate()
+    assert report["calibration_group_count"] == 4
+    assert report["test_group_count"] == 2
+    interval = report["group_conformal_intervals"]["0.5"]
+    assert interval["scale_multiplier"] == pytest.approx(0.2)
+    assert interval["mean_interval_width"] > 0
+    assert 0 <= interval["test_group_simultaneous_coverage"] <= 1
+
+
+def test_small_calibration_group_count_returns_unbounded_finite_sample_interval():
+    report = _evaluate(calibration_groups=("only-one-calibration-scene",))
+    interval = report["group_conformal_intervals"]["0.9"]
+    assert interval["finite_sample_unbounded"] is True
+    assert interval["scale_multiplier"] is None
+    assert interval["mean_interval_width"] is None
+
+
+def test_calibration_and_test_scene_overlap_is_rejected():
+    with pytest.raises(ValueError, match="groups overlap"):
+        evaluate_grouped_regression_uncertainty(
+            [0, 1],
+            [0, 1],
+            [1, 1],
+            ["scene-a", "scene-b"],
+            [0],
+            [0],
+            [1],
+            ["scene-a"],
+        )
+
+
+@pytest.mark.parametrize(
+    "scale",
+    [[0.0, 1.0], [1.0, float("nan")]],
+)
+def test_invalid_uncertainty_scale_is_rejected(scale):
+    with pytest.raises(ValueError, match="uncertainty scales"):
+        evaluate_grouped_regression_uncertainty(
+            [0, 1],
+            [0, 1],
+            scale,
+            ["c1", "c2"],
+            [0],
+            [0],
+            [1],
+            ["t1"],
+        )
+
+
+def test_risk_coverage_accepts_low_uncertainty_first_and_bootstraps_groups():
+    report = _evaluate()
+    curve = report["risk_coverage"]
+    assert [point["actual_coverage"] for point in curve] == [0.25, 0.5, 0.75, 1.0]
+    assert curve[0]["mae"] <= curve[-1]["mae"]
+    assert report["error_metrics"]["bootstrap_groups"] == 2
+    assert report["error_metrics"]["bootstrap_draws"] == 200
+
+
+def test_interval_coverage_is_reported_by_identifiability_stratum():
+    report = evaluate_grouped_regression_uncertainty(
+        [0.0, 1.0, 2.0, 3.0],
+        [0.1, 0.8, 2.2, 2.7],
+        [1.0] * 4,
+        ["c1", "c1", "c2", "c2"],
+        [4.0, 5.0, 6.0, 7.0],
+        [4.1, 5.1, 7.0, 9.0],
+        [1.0] * 4,
+        ["t1", "t1", "t2", "t2"],
+        test_stratum=["resolved", "resolved", "ambiguous", "ambiguous"],
+    )
+    by_stratum = report["test_interval_metrics_by_stratum"]["0.5"]
+    assert by_stratum["resolved"]["sample_count"] == 2
+    assert by_stratum["ambiguous"]["group_count"] == 1
+    assert 0 <= by_stratum["ambiguous"]["sample_coverage"] <= 1

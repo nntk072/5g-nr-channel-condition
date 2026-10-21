@@ -165,3 +165,84 @@ def paired_binary_error_comparison(
         "bootstrap_draws": draws,
         "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference.",
     }
+
+
+def paired_group_regression_comparison(
+    target: list[float],
+    control_prediction: list[float],
+    treatment_prediction: list[float],
+    group_id: list[str],
+    *,
+    control: str,
+    treatment: str,
+    seed: int = 1,
+    draws: int = 5000,
+) -> dict:
+    """Compare scalar regression methods by paired independent-group bootstrap.
+
+    Rows are paired within each group, then each group's RMSE/MAE contributes
+    one equally weighted value. This prevents many correlated samples in one
+    group from being treated as independent evidence.
+    """
+    y = np.asarray(target, dtype=np.float64)
+    control_values = np.asarray(control_prediction, dtype=np.float64)
+    treatment_values = np.asarray(treatment_prediction, dtype=np.float64)
+    groups = np.asarray(group_id, dtype=str)
+    if (
+        y.ndim != 1
+        or not y.size
+        or control_values.shape != y.shape
+        or treatment_values.shape != y.shape
+        or groups.shape != y.shape
+    ):
+        raise ValueError("paired targets, predictions, and groups must be aligned nonempty vectors")
+    if (
+        not np.isfinite(y).all()
+        or not np.isfinite(control_values).all()
+        or not np.isfinite(treatment_values).all()
+    ):
+        raise ValueError("paired targets and predictions must be finite")
+    if np.any(groups == ""):
+        raise ValueError("group IDs must be nonempty")
+    if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
+        raise ValueError("seed must be a nonnegative integer")
+    if isinstance(draws, bool) or not isinstance(draws, int) or draws < 100:
+        raise ValueError("draws must be an integer >= 100")
+
+    unique_groups = np.unique(groups)
+    control_error = control_values - y
+    treatment_error = treatment_values - y
+    control_group_rmse = np.asarray(
+        [np.sqrt(np.mean(control_error[groups == key] ** 2)) for key in unique_groups]
+    )
+    treatment_group_rmse = np.asarray(
+        [np.sqrt(np.mean(treatment_error[groups == key] ** 2)) for key in unique_groups]
+    )
+    control_group_mae = np.asarray(
+        [np.mean(np.abs(control_error[groups == key])) for key in unique_groups]
+    )
+    treatment_group_mae = np.asarray(
+        [np.mean(np.abs(treatment_error[groups == key])) for key in unique_groups]
+    )
+    rmse_delta = treatment_group_rmse - control_group_rmse
+    mae_delta = treatment_group_mae - control_group_mae
+    rng = np.random.default_rng(seed)
+    indices = rng.integers(0, unique_groups.size, size=(draws, unique_groups.size))
+    rmse_bootstrap = rmse_delta[indices].mean(axis=1)
+    mae_bootstrap = mae_delta[indices].mean(axis=1)
+    rmse_low, rmse_high = np.quantile(rmse_bootstrap, [0.025, 0.975])
+    mae_low, mae_high = np.quantile(mae_bootstrap, [0.025, 0.975])
+    return {
+        "control": control,
+        "treatment": treatment,
+        "comparison_unit": "independent_group",
+        "groups": int(unique_groups.size),
+        "samples": int(y.size),
+        "treatment_minus_control_group_macro_rmse": float(rmse_delta.mean()),
+        "group_macro_rmse_delta_bootstrap_ci95": [float(rmse_low), float(rmse_high)],
+        "treatment_minus_control_group_macro_mae": float(mae_delta.mean()),
+        "group_macro_mae_delta_bootstrap_ci95": [float(mae_low), float(mae_high)],
+        "bootstrap_seed": seed,
+        "bootstrap_draws": draws,
+        "warning": "Descriptive paired synthetic comparison; not independent-scene or measured-channel evidence.",
+    }

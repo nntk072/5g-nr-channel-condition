@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import math
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 
 import numpy as np
@@ -33,7 +33,7 @@ class RTTrajectoryConfig:
     snr_db: float = 12.0
     seed: int = 20261021
     device: str = "cpu"
-    mitsuba_variant: str = "llvm_ad_mono_polarized"
+    mitsuba_variant: str = "auto"
 
     def __post_init__(self) -> None:
         if not self.trajectory_id.strip() or not self.scene.strip():
@@ -99,7 +99,6 @@ def generate_rt_nr_trajectory(
     input consists solely of the noisy received grid and receiver estimate.
     """
     try:
-        import mitsuba as mi
         import torch
     except ImportError as exc:
         raise RuntimeError("Sionna RT, Sionna PHY, Mitsuba, and PyTorch are required") from exc
@@ -108,7 +107,11 @@ def generate_rt_nr_trajectory(
         raise ValueError("device must be cpu or a CUDA device such as cuda:0")
     if config.device.startswith("cuda") and not torch.cuda.is_available():
         raise RuntimeError(f"CUDA device requested but unavailable: {config.device}")
-    mi.set_variant(config.mitsuba_variant)
+    from integrations.sionna.backend import activate_rt_backend, select_rt_backend
+
+    selection = select_rt_backend(config.mitsuba_variant)
+    activate_rt_backend(selection)
+    config = replace(config, mitsuba_variant=selection.variant)
     try:
         import sionna.rt as rt
         from sionna.rt import PathSolver, PlanarArray, Receiver, Transmitter, load_scene
@@ -270,6 +273,7 @@ def generate_rt_nr_trajectory(
             "noise_policy": "common variance from trajectory-batch mean received-grid power",
             "noise_variance": float(noise_variance.detach().cpu()),
             "generation_config": asdict(config),
+            "rt_backend_selection": selection.as_dict(),
             "solver": {
                 "deterministic": True,
                 "max_depth": config.max_depth,
@@ -308,6 +312,7 @@ def generate_rt_nr_trajectory(
         "direct_path_counts": direct_path_counts,
         "full_path_counts": total_path_counts,
         "receiver_metadata": receiver.metadata,
+        "rt_backend_selection": selection.as_dict(),
         "runtime_versions": runtime_versions,
         "package_source_sha256": source_sha256,
         "limitations": [

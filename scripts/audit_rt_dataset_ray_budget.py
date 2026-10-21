@@ -127,13 +127,16 @@ def audit_dataset(
         raise ValueError("requested Mitsuba variant differs from stored dataset metadata")
 
     try:
-        import mitsuba as mi
+        from integrations.sionna.backend import activate_rt_backend, select_rt_backend
 
-        mi.set_variant(selected_variant)
+        backend_selection = select_rt_backend(selected_variant)
+        activate_rt_backend(backend_selection)
         import sionna.rt as rt
         from sionna.rt import PathSolver, PlanarArray, Receiver, Transmitter, load_scene
-    except ImportError as error:
-        raise RuntimeError("Install the optional Sionna RT 2.2 environment") from error
+    except (ImportError, RuntimeError) as error:
+        raise RuntimeError(
+            f"Could not initialize the dataset's Sionna RT backend: {error}"
+        ) from error
 
     scene_name = next(iter(scene_names))
     scene_ref = getattr(rt.scene, scene_name, scene_name)
@@ -222,6 +225,7 @@ def audit_dataset(
         },
         "configuration": {
             "mitsuba_variant": selected_variant,
+            "rt_backend_selection": backend_selection.as_dict(),
             "deterministic_solver": True,
             "max_depth": depth,
             "samples_per_src_values": list(samples_per_src_values),
