@@ -13,7 +13,7 @@ def main() -> None:
     parser.add_argument("--input", nargs="+", required=True, help="channel dataset NPZ files")
     parser.add_argument("--output", required=True, help="new immutable sweep directory")
     parser.add_argument(
-        "--methods", nargs="+", required=True, help="e.g. mlp cnn cvnn coral coral0"
+        "--methods", nargs="+", required=True, help="e.g. mlp raw_mlp cnn cvnn coral coral0"
     )
     parser.add_argument("--seeds", nargs="+", type=int, default=[11, 23, 47, 59, 71, 83])
     parser.add_argument("--bootstrap", type=int, default=200)

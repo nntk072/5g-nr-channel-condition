@@ -135,7 +135,7 @@ def run_experiment(
     output: str | Path,
     *,
     holdout: str | None = None,
-    methods: Sequence[str] = ("rf", "histgb", "mlp", "coral", "coral0"),
+    methods: Sequence[str] = ("rf", "histgb", "mlp", "raw_mlp", "coral", "coral0"),
     seeds: Sequence[int] = (11, 23, 47, 59, 71, 83, 97, 101, 109, 127),
     bootstrap: int = 200,
     include_phase: bool = False,
@@ -163,6 +163,9 @@ def run_experiment(
     else:
         raise ValueError("observation must be ideal_cfr, comb_ls, or precomputed")
     x = observable_features(observable, include_phase=include_phase)
+    raw_real_imag = np.concatenate((observable.real, observable.imag), axis=1).reshape(
+        len(observable), -1
+    )
     layout = RunLayout.at(output)
     layout.ensure()
     output = layout.root
@@ -180,6 +183,7 @@ def run_experiment(
         "pilot_snr_db": pilot_snr_db,
         "observation_seed": observation_seed,
         "feature_version": "logmag+pdp+moments-v1",
+        "raw_mlp_input_representation": "flattened real/imaginary CFR channels",
         "cnn_input_representation": "per-link real/imaginary channels over ordered subcarriers",
         "cvnn_input_representation": (
             "complex convolution, phase-equivariant encoding, magnitude-invariant classifier"
@@ -221,7 +225,13 @@ def run_experiment(
         assert not (set(data.group[train]) & set(data.group[val]))
         assert not (set(data.group[test]) & (set(data.group[train]) | set(data.group[val])))
         for method in methods:
-            method_input = observable if method in ("cnn", "cvnn") else x
+            method_input = (
+                observable
+                if method in ("cnn", "cvnn")
+                else raw_real_imag
+                if method == "raw_mlp"
+                else x
+            )
             uses_torch = method in ("cnn", "cvnn", "coral", "coral0")
             _sync_torch_device(device, uses_torch)
             if uses_torch and device.startswith("cuda"):
@@ -229,9 +239,13 @@ def run_experiment(
 
                 torch.cuda.reset_peak_memory_stats(device)
             fit_started = perf_counter()
-            if method in ("rf", "histgb", "xgb", "mlp", "logreg"):
+            if method in ("rf", "histgb", "xgb", "mlp", "raw_mlp", "logreg"):
                 clf = fit_sklearn(
-                    x[train], data.y[train], seed=seed, method=method, capacity=capacity
+                    method_input[train],
+                    data.y[train],
+                    seed=seed,
+                    method="mlp" if method == "raw_mlp" else method,
+                    capacity=capacity,
                 )
                 extra: dict[str, Any] = {}
             elif method == "cnn":
@@ -316,6 +330,8 @@ def run_experiment(
                     if method == "cnn"
                     else "complex convolution with global-phase-invariant magnitude head"
                     if method == "cvnn"
+                    else "flattened raw real/imaginary channel observation"
+                    if method == "raw_mlp"
                     else "engineered observable features"
                 ),
                 "metrics": metrics,
@@ -382,6 +398,11 @@ def run_experiment(
     method_pairs = (
         ("rf", "mlp"),
         ("histgb", "mlp"),
+        ("raw_mlp", "mlp"),
+        ("raw_mlp", "rf"),
+        ("raw_mlp", "histgb"),
+        ("cnn", "raw_mlp"),
+        ("cvnn", "raw_mlp"),
         ("xgb", "mlp"),
         ("xgb", "rf"),
         ("cnn", "mlp"),

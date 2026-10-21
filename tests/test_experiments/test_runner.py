@@ -284,3 +284,28 @@ def test_run_experiment_routes_raw_observations_to_complex_cnn(tmp_path, monkeyp
     assert result["aggregate_across_fixed_splits"]["cvnn"]["seeds"] == 1
     assert (output / "models" / "cvnn_seed17.pt").read_bytes() == b"complex checkpoint"
     assert captured
+
+
+def test_run_experiment_routes_flattened_real_imag_to_raw_mlp(tmp_path, monkeypatch) -> None:
+    import experiments.runner as runner
+
+    source = tmp_path / "debug.npz"
+    debug_multipath(n_scenes=8, links_per_scene=16, seed=71).save(source)
+    original_fit = runner.fit_sklearn
+    observed_shapes = []
+
+    def capture_fit(values, labels, *, seed, method, capacity):
+        observed_shapes.append(values.shape[1])
+        assert not np.iscomplexobj(values)
+        assert method == "mlp"
+        return original_fit(values, labels, seed=seed, method="logreg", capacity=capacity)
+
+    monkeypatch.setattr(runner, "fit_sklearn", capture_fit)
+    output = tmp_path / "runs" / "raw-mlp"
+    run_experiment([source], output, methods=("raw_mlp",), seeds=(19,), bootstrap=10)
+    data = np.load(source)
+    expected_features = 2 * data["h"].shape[1] * data["h"].shape[2]
+
+    assert observed_shapes == [expected_features]
+    prediction = np.load(output / "predictions" / "raw_mlp_seed19.npz")
+    assert prediction["p_test"].ndim == 1

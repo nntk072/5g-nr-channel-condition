@@ -18,7 +18,7 @@ def run_capacity_sweep(
     paths: Sequence[str | Path],
     output: str | Path,
     *,
-    methods: Sequence[str] = ("mlp", "cnn", "cvnn", "coral", "coral0"),
+    methods: Sequence[str] = ("mlp", "raw_mlp", "cnn", "cvnn", "coral", "coral0"),
     seeds: Sequence[int] = (11, 23, 47, 59, 71, 83),
     bootstrap: int = 200,
     holdout: str | None = None,
