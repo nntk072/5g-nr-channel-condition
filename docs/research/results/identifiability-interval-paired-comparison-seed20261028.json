@@ -1,0 +1,438 @@
+{
+  "bootstrap_draws": 20000,
+  "bootstrap_seed": 20261028,
+  "comparison_module_sha256": "75f05951c7f11de99bc4b699c5d32ae5ccbc286128383a6098ce1c4925347e8d",
+  "condition_cells": 16,
+  "conditions": [
+    {
+      "conformal_only_covers": 98,
+      "conformal_set_coverage": 0.94140625,
+      "conformal_set_median_span_ns": 226.7156862745098,
+      "evaluation_trials": 512,
+      "gain_phase_difference_deg": 0.0,
+      "mcnemar_exact_two_sided_p_value": 6.310887241768095e-30,
+      "mcnemar_holm_adjusted_p_value": 8.204153414298523e-29,
+      "paired_coverage_rate_change": 0.19140625,
+      "paired_coverage_rate_change_bootstrap_ci95": [
+        0.158203125,
+        0.2265625
+      ],
+      "paired_mean_span_change_bootstrap_ci95_ns": [
+        9.667888965482025,
+        13.804716222426467
+      ],
+      "paired_mean_span_change_ns": 11.814092498978757,
+      "profile_interval_coverage": 0.75,
+      "profile_interval_median_width_ns": 209.3545751633987,
+      "profile_only_covers": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 20.0,
+      "tone_count": 256
+    },
+    {
+      "conformal_only_covers": 0,
+      "conformal_set_coverage": 0.962890625,
+      "conformal_set_median_span_ns": 25.531045751633986,
+      "evaluation_trials": 512,
+      "gain_phase_difference_deg": 90.0,
+      "mcnemar_exact_two_sided_p_value": 0.00048828125,
+      "mcnemar_holm_adjusted_p_value": 0.0048828125,
+      "paired_coverage_rate_change": -0.0234375,
+      "paired_coverage_rate_change_bootstrap_ci95": [
+        -0.037109375,
+        -0.01171875
+      ],
+      "paired_mean_span_change_bootstrap_ci95_ns": [
+        -0.4607555912990199,
+        -0.1276552287581703
+      ],
+      "paired_mean_span_change_ns": -0.293208103553922,
+      "profile_interval_coverage": 0.986328125,
+      "profile_interval_median_width_ns": 25.531045751633986,
+      "profile_only_covers": 12,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 20.0,
+      "tone_count": 256
+    },
+    {
+      "conformal_only_covers": 0,
+      "conformal_set_coverage": 0.96484375,
+      "conformal_set_median_span_ns": 3.063725490196078,
+      "evaluation_trials": 512,
+      "gain_phase_difference_deg": 0.0,
+      "mcnemar_exact_two_sided_p_value": 0.00390625,
+      "mcnemar_holm_adjusted_p_value": 0.03515625,
+      "paired_coverage_rate_change": -0.017578125,
+      "paired_coverage_rate_change_bootstrap_ci95": [
+        -0.029296875,
+        -0.0078125
+      ],
+      "paired_mean_span_change_bootstrap_ci95_ns": [
+        0.4587609783496658,
+        0.566470077614372
+      ],
+      "paired_mean_span_change_ns": 0.5126155279820188,
+      "profile_interval_coverage": 0.982421875,
+      "profile_interval_median_width_ns": 2.0424836601307246,
+      "profile_only_covers": 9,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 20.0,
+      "tone_count": 256
+    },
+    {
+      "conformal_only_covers": 0,
+      "conformal_set_coverage": 0.955078125,
+      "conformal_set_median_span_ns": 3.063725490196078,
+      "evaluation_trials": 512,
+      "gain_phase_difference_deg": 90.0,
+      "mcnemar_exact_two_sided_p_value": 7.62939453125e-06,
+      "mcnemar_holm_adjusted_p_value": 9.1552734375e-05,
+      "paired_coverage_rate_change": -0.03515625,
+      "paired_coverage_rate_change_bootstrap_ci95": [
+        -0.052734375,
+        -0.01953125
+      ],
+      "paired_mean_span_change_bootstrap_ci95_ns": [
+        0.155579810049011,
+        0.26328890931371707
+      ],
+      "paired_mean_span_change_ns": 0.20943435968136404,
+      "profile_interval_coverage": 0.990234375,
+      "profile_interval_median_width_ns": 3.063725490196087,
+      "profile_only_covers": 18,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 20.0,
+      "tone_count": 256
+    },
+    {
+      "conformal_only_covers": 131,
+      "conformal_set_coverage": 0.966796875,
+      "conformal_set_median_span_ns": 98.54983660130719,
+      "evaluation_trials": 512,
+      "gain_phase_difference_deg": 0.0,
+      "mcnemar_exact_two_sided_p_value": 7.346839692639297e-40,
+      "mcnemar_holm_adjusted_p_value": 1.1020259538958945e-38,
+      "paired_coverage_rate_change": 0.255859375,
+      "paired_coverage_rate_change_bootstrap_ci95": [
+        0.21875,
+        0.29301757812499574
+      ],
+      "paired_mean_span_change_bootstrap_ci95_ns": [
+        -12.761533649918302,
+        -6.267073886846406
+      ],
+      "paired_mean_span_change_ns": -9.43252463745915,
+      "profile_interval_coverage": 0.7109375,
+      "profile_interval_median_width_ns": 105.69852941176471,
+      "profile_only_covers": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 30.0,
+      "tone_count": 256
+    },
+    {
+      "conformal_only_covers": 5,
+      "conformal_set_coverage": 0.95703125,
+      "conformal_set_median_span_ns": 11.233660130718954,
+      "evaluation_trials": 512,
+      "gain_phase_difference_deg": 90.0,
+      "mcnemar_exact_two_sided_p_value": 0.0625,
+      "mcnemar_holm_adjusted_p_value": 0.375,
+      "paired_coverage_rate_change": 0.009765625,
+      "paired_coverage_rate_change_bootstrap_ci95": [
+        0.001953125,
+        0.01953125
+      ],
+      "paired_mean_span_change_bootstrap_ci95_ns": [
+        -0.49266939848856206,
+        -0.26727813521241817
+      ],
+      "paired_mean_span_change_ns": -0.37897646037581695,
+      "profile_interval_coverage": 0.947265625,
+      "profile_interval_median_width_ns": 12.254901960784313,
+      "profile_only_covers": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 30.0,
+      "tone_count": 256
+    },
+    {
+      "conformal_only_covers": 0,
+      "conformal_set_coverage": 0.98046875,
+      "conformal_set_median_span_ns": 1.0212418300653594,
+      "evaluation_trials": 512,
+      "gain_phase_difference_deg": 0.0,
+      "mcnemar_exact_two_sided_p_value": 0.015625,
+      "mcnemar_holm_adjusted_p_value": 0.109375,
+      "paired_coverage_rate_change": -0.013671875,
+      "paired_coverage_rate_change_bootstrap_ci95": [
+        -0.025390625,
+        -0.00390625
+      ],
+      "paired_mean_span_change_bootstrap_ci95_ns": [
+        0.8796243106617645,
+        0.9334788602941176
+      ],
+      "paired_mean_span_change_ns": 0.9075488919526142,
+      "profile_interval_coverage": 0.994140625,
+      "profile_interval_median_width_ns": 0.0,
+      "profile_only_covers": 7,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 30.0,
+      "tone_count": 256
+    },
+    {
+      "conformal_only_covers": 1,
+      "conformal_set_coverage": 0.958984375,
+      "conformal_set_median_span_ns": 1.0212418300653594,
+      "evaluation_trials": 512,
+      "gain_phase_difference_deg": 90.0,
+      "mcnemar_exact_two_sided_p_value": 1.0,
+      "mcnemar_holm_adjusted_p_value": 1.0,
+      "paired_coverage_rate_change": 0.001953125,
+      "paired_coverage_rate_change_bootstrap_ci95": [
+        0.0,
+        0.005859375
+      ],
+      "paired_mean_span_change_bootstrap_ci95_ns": [
+        1.0252310559640512,
+        1.0431825725081691
+      ],
+      "paired_mean_span_change_ns": 1.033209507761437,
+      "profile_interval_coverage": 0.95703125,
+      "profile_interval_median_width_ns": 0.0,
+      "profile_only_covers": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 30.0,
+      "tone_count": 256
+    },
+    {
+      "conformal_only_covers": 99,
+      "conformal_set_coverage": 0.962890625,
+      "conformal_set_median_span_ns": 52.31243890518084,
+      "evaluation_trials": 512,
+      "gain_phase_difference_deg": 0.0,
+      "mcnemar_exact_two_sided_p_value": 3.1554436208840472e-30,
+      "mcnemar_holm_adjusted_p_value": 4.417621069237666e-29,
+      "paired_coverage_rate_change": 0.193359375,
+      "paired_coverage_rate_change_bootstrap_ci95": [
+        0.16015625,
+        0.228515625
+      ],
+      "paired_mean_span_change_bootstrap_ci95_ns": [
+        1.233021029823182,
+        2.380052891566879
+      ],
+      "paired_mean_span_change_ns": 1.8212103074596782,
+      "profile_interval_coverage": 0.76953125,
+      "profile_interval_median_width_ns": 46.83936135549038,
+      "profile_only_covers": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 20.0,
+      "tone_count": 1024
+    },
+    {
+      "conformal_only_covers": 0,
+      "conformal_set_coverage": 0.97265625,
+      "conformal_set_median_span_ns": 4.5821114369501466,
+      "evaluation_trials": 512,
+      "gain_phase_difference_deg": 90.0,
+      "mcnemar_exact_two_sided_p_value": 0.5,
+      "mcnemar_holm_adjusted_p_value": 1.0,
+      "paired_coverage_rate_change": -0.00390625,
+      "paired_coverage_rate_change_bootstrap_ci95": [
+        -0.009765625,
+        0.0
+      ],
+      "paired_mean_span_change_bootstrap_ci95_ns": [
+        0.20782580085125452,
+        0.2669915192754155
+      ],
+      "paired_mean_span_change_ns": 0.23765725551889866,
+      "profile_interval_coverage": 0.9765625,
+      "profile_interval_median_width_ns": 4.327549690452916,
+      "profile_only_covers": 2,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 20.0,
+      "tone_count": 1024
+    },
+    {
+      "conformal_only_covers": 0,
+      "conformal_set_coverage": 0.95703125,
+      "conformal_set_median_span_ns": 0.2545617464972304,
+      "evaluation_trials": 512,
+      "gain_phase_difference_deg": 0.0,
+      "mcnemar_exact_two_sided_p_value": 3.0517578125e-05,
+      "mcnemar_holm_adjusted_p_value": 0.000335693359375,
+      "paired_coverage_rate_change": -0.03125,
+      "paired_coverage_rate_change_bootstrap_ci95": [
+        -0.046875,
+        -0.017578125
+      ],
+      "paired_mean_span_change_bootstrap_ci95_ns": [
+        0.11932581867057657,
+        0.1412022187601823
+      ],
+      "paired_mean_span_change_ns": 0.13026401871537943,
+      "profile_interval_coverage": 0.98828125,
+      "profile_interval_median_width_ns": 0.2545617464972306,
+      "profile_only_covers": 16,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 20.0,
+      "tone_count": 1024
+    },
+    {
+      "conformal_only_covers": 0,
+      "conformal_set_coverage": 0.97265625,
+      "conformal_set_median_span_ns": 0.5091234929944608,
+      "evaluation_trials": 512,
+      "gain_phase_difference_deg": 90.0,
+      "mcnemar_exact_two_sided_p_value": 0.0078125,
+      "mcnemar_holm_adjusted_p_value": 0.0625,
+      "paired_coverage_rate_change": -0.015625,
+      "paired_coverage_rate_change_bootstrap_ci95": [
+        -0.02734375,
+        -0.005859375
+      ],
+      "paired_mean_span_change_bootstrap_ci95_ns": [
+        0.21627804634042008,
+        0.23169096458536959
+      ],
+      "paired_mean_span_change_ns": 0.22423310091845852,
+      "profile_interval_coverage": 0.98828125,
+      "profile_interval_median_width_ns": 0.2545617464972306,
+      "profile_only_covers": 8,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 20.0,
+      "tone_count": 1024
+    },
+    {
+      "conformal_only_covers": 147,
+      "conformal_set_coverage": 0.947265625,
+      "conformal_set_median_span_ns": 11.200716845878135,
+      "evaluation_trials": 512,
+      "gain_phase_difference_deg": 0.0,
+      "mcnemar_exact_two_sided_p_value": 1.1210387714598537e-44,
+      "mcnemar_holm_adjusted_p_value": 1.793662034335766e-43,
+      "paired_coverage_rate_change": 0.287109375,
+      "paired_coverage_rate_change_bootstrap_ci95": [
+        0.248046875,
+        0.326171875
+      ],
+      "paired_mean_span_change_bootstrap_ci95_ns": [
+        -3.339134159131639,
+        -2.2746484184078692
+      ],
+      "paired_mean_span_change_ns": -2.8006764023806614,
+      "profile_interval_coverage": 0.66015625,
+      "profile_interval_median_width_ns": 13.746334310850441,
+      "profile_only_covers": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 30.0,
+      "tone_count": 1024
+    },
+    {
+      "conformal_only_covers": 18,
+      "conformal_set_coverage": 0.958984375,
+      "conformal_set_median_span_ns": 1.272808732486152,
+      "evaluation_trials": 512,
+      "gain_phase_difference_deg": 90.0,
+      "mcnemar_exact_two_sided_p_value": 0.07551869750022888,
+      "mcnemar_holm_adjusted_p_value": 0.3775934875011444,
+      "paired_coverage_rate_change": 0.01953125,
+      "paired_coverage_rate_change_bootstrap_ci95": [
+        0.0,
+        0.0390625
+      ],
+      "paired_mean_span_change_bootstrap_ci95_ns": [
+        -0.018893254622841263,
+        0.011932581867057753
+      ],
+      "paired_mean_span_change_ns": -0.0034803363778917566,
+      "profile_interval_coverage": 0.939453125,
+      "profile_interval_median_width_ns": 1.272808732486152,
+      "profile_only_covers": 8,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 30.0,
+      "tone_count": 1024
+    },
+    {
+      "conformal_only_covers": 0,
+      "conformal_set_coverage": 1.0,
+      "conformal_set_median_span_ns": 0.2545617464972304,
+      "evaluation_trials": 512,
+      "gain_phase_difference_deg": 0.0,
+      "mcnemar_exact_two_sided_p_value": 1.0,
+      "mcnemar_holm_adjusted_p_value": 1.0,
+      "paired_coverage_rate_change": 0.0,
+      "paired_coverage_rate_change_bootstrap_ci95": [
+        0.0,
+        0.0
+      ],
+      "paired_mean_span_change_bootstrap_ci95_ns": [
+        0.25456174649723046,
+        0.25456174649723046
+      ],
+      "paired_mean_span_change_ns": 0.25456174649723046,
+      "profile_interval_coverage": 1.0,
+      "profile_interval_median_width_ns": 0.0,
+      "profile_only_covers": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 30.0,
+      "tone_count": 1024
+    },
+    {
+      "conformal_only_covers": 1,
+      "conformal_set_coverage": 0.95703125,
+      "conformal_set_median_span_ns": 0.2545617464972304,
+      "evaluation_trials": 512,
+      "gain_phase_difference_deg": 90.0,
+      "mcnemar_exact_two_sided_p_value": 1.0,
+      "mcnemar_holm_adjusted_p_value": 1.0,
+      "paired_coverage_rate_change": 0.001953125,
+      "paired_coverage_rate_change_bootstrap_ci95": [
+        0.0,
+        0.005859375
+      ],
+      "paired_mean_span_change_bootstrap_ci95_ns": [
+        0.2545617464972304,
+        0.2580420828751222
+      ],
+      "paired_mean_span_change_ns": 0.2560533192306126,
+      "profile_interval_coverage": 0.955078125,
+      "profile_interval_median_width_ns": 0.0,
+      "profile_only_covers": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 30.0,
+      "tone_count": 1024
+    }
+  ],
+  "evidence_grade": "PAIRED_SYNTHETIC_ANALYTICAL_UNCERTAINTY_COMPARISON",
+  "input": {
+    "path": "docs/research/results/identifiability-profile-likelihood-seed20261025.json",
+    "sha256": "013ed373ad8dc5cd10ab8a83db8411a4c7cef9ae8392ba410c0b4cb2e4b51e61"
+  },
+  "input_source_revision": "5ec93cf59ab3c10d5f483edbcd3ea3212b048450",
+  "limitations": [
+    "Both methods use the same finite-grid profile-likelihood score; this compares calibration, not independent estimator families.",
+    "Same-condition split-conformal calibration assumes exchangeable calibration/evaluation draws from the specified synthetic cell.",
+    "The finite grid, known two-path count, known noise variance, and exact analytical model omit channel-estimation error, diffuse energy, scene variation, and receiver impairments.",
+    "Set span measures the hull and may include disconnected low-likelihood gaps; coverage is grid-cell quantized.",
+    "Paired Monte Carlo uncertainty is conditional on these analytical distributions and is not evidence of real-scene or measured-channel calibration."
+  ],
+  "package_source_sha256": "5612a2c078abf0ea7aaff08a5fbe899ea269906d9ad0960a12df0aa462a7237d",
+  "pooled_conformal_set_coverage": 0.9635009765625,
+  "pooled_evaluation_trials": 8192,
+  "pooled_profile_interval_coverage": 0.9122314453125,
+  "runner_sha256": "71ae71c2842a145ed103d2a17934f06129f8eab682434bedc3b044a47c69a3e6",
+  "schema": "loslab.identifiability_interval_comparison.v1",
+  "seed": 20261025,
+  "versions": {
+    "git_sha": "a92a3a0f644549d344a8c94889f629aa651a3011",
+    "numpy": "2.5.4",
+    "python": "3.12.3",
+    "scikit-learn": "1.9.1",
+    "sionna": "not installed",
+    "sionna-phy": "not installed",
+    "sionna-rt": "not installed",
+    "torch": "2.11.0+cpu"
+  }
+}
