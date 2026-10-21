@@ -109,6 +109,23 @@ Sionna 19.2 profile tables. This checks implementation consistency, not full
 3GPP conformance. It generates channel coefficients and CFR only, not a
 complete PUSCH/CP/synchronization/receiver chain.
 
+To generate a deterministic, provenance-recorded profile-proxy source dataset
+for TDL/CDL A–E, run `scripts/run_profile_proxy_dataset.py`. For example, on a
+CUDA host:
+
+```bash
+uv run --no-sync --locked python scripts/run_profile_proxy_dataset.py \
+  outputs/profile-proxy-tdl-cdl-a-to-e.npz \
+  --samples-per-profile 4096 --seed 78021 --device cuda:0
+```
+
+The runner writes the dataset and a JSON sidecar containing hashes, runtime
+versions, per-profile and delay-spread counts, and received-CFR power summaries.
+By default, 4,096 samples per family/profile are balanced over four delay
+spreads. These labels are 3GPP profile proxies (`A/B/C → 0`, `D/E → 1`), not
+geometric LOS/NLOS truth or measured-data evidence. Keep these domains separate
+when training or evaluating physical channel-condition claims.
+
 For an ideal frequency-domain simulation batch,
 <code>integrations.sionna.generate_tdl_pusch_batch</code> connects the PUSCH
 transmitter, pinned TDL profile, Sionna OFDM channel, reproducible AWGN, and

@@ -16,6 +16,8 @@ import numpy as np
 from datasets.channel import ChannelDataset
 from propagation.physics import add_estimation_noise, frequency_response, subcarrier_frequencies
 
+from integrations.sionna.random import call_with_sionna_seed
+
 
 class RTPaths(Protocol):
     def cfr(self, **kwargs: object) -> object: ...
@@ -71,11 +73,18 @@ def generate_standardized(
         from sionna.phy.channel.tr38901 import CDL, TDL, PanelArray
     except ImportError as e:
         raise RuntimeError("Install sionna==2.2.0 and its PHY dependencies for this adapter") from e
-    if per_profile < 1 or not delay_spreads_ns:
-        raise ValueError("per_profile and delay_spreads_ns must be positive")
-    torch.manual_seed(seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(seed)
+    if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
+        raise ValueError("seed must be a nonnegative integer")
+    if isinstance(per_profile, bool) or not isinstance(per_profile, int) or per_profile < 1:
+        raise ValueError("per_profile must be a positive integer")
+    if not delay_spreads_ns or any(
+        not np.isfinite(spread) or spread <= 0 for spread in delay_spreads_ns
+    ):
+        raise ValueError("delay_spreads_ns must contain finite positive values")
+    if device != "cpu" and not device.startswith("cuda"):
+        raise ValueError("device must be cpu or a CUDA device such as cuda:0")
+    if device.startswith("cuda") and not torch.cuda.is_available():
+        raise RuntimeError(f"CUDA device requested but unavailable: {device}")
     rng = np.random.default_rng(seed)
     frequency = subcarrier_frequencies(grid.n_subcarriers, grid.spacing_hz)
     h_list = []
@@ -84,10 +93,10 @@ def generate_standardized(
     domains = []
     sources = []
     meta = []
-    for family in families:
+    for family_index, family in enumerate(families):
         if family.lower() not in ("tdl", "cdl"):
             raise ValueError(f"Unknown family {family}")
-        for profile in profiles:
+        for profile_index, profile in enumerate(profiles):
             p = profile.upper()
             if p not in ("A", "B", "C", "D", "E"):
                 raise ValueError(f"Invalid profile {profile}")
@@ -130,9 +139,20 @@ def generate_standardized(
                         device=device,
                     )
                     cm = CDL(ut_array=ut, bs_array=bs, direction="downlink", **common)
+                channel_seed = int(
+                    np.random.SeedSequence([seed, family_index, profile_index, j]).generate_state(
+                        1, dtype=np.uint32
+                    )[0]
+                )
                 with torch.no_grad():
-                    a, tau = cm(
-                        batch_size=count, num_time_steps=1, sampling_frequency=grid.spacing_hz
+                    a, tau = call_with_sionna_seed(
+                        device,
+                        channel_seed,
+                        lambda: cm(
+                            batch_size=count,
+                            num_time_steps=1,
+                            sampling_frequency=grid.spacing_hz,
+                        ),
                     )
                 data = _phy_cir_to_cfr(
                     a.detach().cpu().numpy(), tau.detach().cpu().numpy(), frequency
@@ -154,6 +174,8 @@ def generate_standardized(
                             "grid_carrier_hz": grid.carrier_hz,
                             "snr_db": grid.snr_db,
                             "spec_version": spec_version,
+                            "generation_seed": seed,
+                            "channel_seed": channel_seed,
                         }
                     )
     return ChannelDataset(
