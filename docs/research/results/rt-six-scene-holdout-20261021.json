@@ -103,5 +103,11 @@
     }
   ],
   "local_output_root": "outputs/rt-six-scene-holdout-20261021",
-  "interpretation_warning": "Seed-level comparisons are within-scene only. The six folds share their training scenes and do not provide six independent replications."
+  "interpretation_warning": "Seed-level comparisons are within-scene only. The six folds share their training scenes and do not provide six independent replications.",
+  "solver_convergence_follow_up": {
+    "report": "docs/research/results/rt-etoile-convergence-highbudget-20261021.json",
+    "status": "NOT_CONVERGENCE_QUALIFIED",
+    "reason": "The follow-up fixed-link Etoile sweep found seed-dependent path counts and about 2.76% CFR differences between 2M/5M and 10M samples/source for two seeds. The six-scene inputs used 200 samples/source and depth 2.",
+    "consequence": "Treat classifier metrics as low-budget exploratory results; do not use them as convergence-qualified channel evidence or to pass P5."
+  }
 }

@@ -1,0 +1,95 @@
+{
+  "schema": "loslab.rt_convergence_diagnostic.v1",
+  "evidence_grade": "SINGLE_SCENE_FIXED_LINK_SOLVER_DIAGNOSTIC",
+  "source_revision": "42a2ac70553398f2431689b043bfa6242b392cb9",
+  "runner": "scripts/run_rt_solver_convergence.py",
+  "runner_sha256": "12bd62e6797c73514e1a2eaad765950291010e56b2a80eaad983ef5573734322",
+  "scene": {
+    "name": "etoile",
+    "xml_sha256": "c747f65549f0810c71e7cebc925199e3fdd595b3d777eca7fb22e07ef95c0a1f",
+    "scene_tree_sha256": "32d929850e9ea7e0e8cddf92586e9022d7faf12dd6320f8ce7e6077d23f67249"
+  },
+  "configuration": {
+    "sionna_rt": "2.2.0",
+    "mitsuba_variant": "llvm_ad_mono_polarized",
+    "deterministic_solver": true,
+    "carrier_hz": 3500000000,
+    "subcarrier_spacing_hz": 30000,
+    "n_subcarriers": 256,
+    "tx_position_m": [232.8, -95.5, 17.0],
+    "rx_position_m": [223.01722011416155, -192.10997549659874, 1.5],
+    "seeds": [11, 23, 47],
+    "max_depth": 3
+  },
+  "reports": [
+    {
+      "path": "outputs/rt-convergence-etoile-highbudget-500k.json",
+      "sha256": "a44479a9b8c519307fac4b0e103a8fe46f54593f56f3e32f5cd3aba5f9fcf121",
+      "samples_per_src": [100000, 200000, 500000],
+      "depth_3_by_seed": {
+        "11": [[100000, 7, 0.063267], [200000, 7, 0.063267], [500000, 8, 0.0]],
+        "23": [[100000, 6, 0.129431], [200000, 8, 0.000662], [500000, 8, 0.0]],
+        "47": [[100000, 8, 0.000274], [200000, 8, 0.000811], [500000, 8, 0.0]]
+      }
+    },
+    {
+      "path": "outputs/rt-convergence-etoile-highbudget-2m.json",
+      "sha256": "276b7d976b95b9f1fe051eba791c9a12044a2715241132f3aade03504376382a",
+      "samples_per_src": [500000, 1000000, 2000000],
+      "depth_3_by_seed": {
+        "11": [[500000, 8, 0.027614], [1000000, 8, 0.0275881], [2000000, 9, 0.0]],
+        "23": [[500000, 8, 0.0010318], [1000000, 8, 0.0009417], [2000000, 8, 0.0]],
+        "47": [[500000, 8, 0.0007783], [1000000, 8, 0.0005484], [2000000, 8, 0.0]]
+      }
+    },
+    {
+      "path": "outputs/rt-convergence-etoile-highbudget-10m.json",
+      "sha256": "cb6bc2fc7ccc6dc40b0b84a75ad5bbd16ebe74fc68d066455ee2186f887306ec",
+      "samples_per_src": [2000000, 5000000, 10000000],
+      "depth_3_by_seed": {
+        "11": [[2000000, 9, 0.0277107], [5000000, 9, 0.0277661], [10000000, 8, 0.0]],
+        "23": [[2000000, 8, 0.0008709], [5000000, 8, 0.0008121], [10000000, 8, 0.0]],
+        "47": [[2000000, 8, 0.0276249], [5000000, 8, 0.0276319], [10000000, 9, 0.0]]
+      },
+      "depth_at_10m_by_seed": {
+        "11": [[0, 1, 1.807116], [1, 3, 0.2920639], [2, 4, 0.3606771], [3, 8, 0.0]],
+        "23": [[0, 1, 1.8071035], [1, 3, 0.2920961], [2, 4, 0.3607808], [3, 8, 0.0]],
+        "47": [[0, 1, 1.8054874], [1, 3, 0.2934745], [2, 4, 0.362767], [3, 9, 0.0]]
+      }
+    }
+  ],
+  "same_seed_repeat": {
+    "seed": 11,
+    "samples_per_src": 2000000,
+    "max_depth": 3,
+    "processes": 2,
+    "exact_match": true,
+    "depth_path_count_cfr_sha256": [
+      [0, 1, "328a236c71fe14a80d9124c4e893459972172463af6d8da573159d4933519a48"],
+      [1, 3, "b772835bae745f7da44bb699f1665b0286d37f03119059a524efe04fce127b1d"],
+      [2, 4, "d45f34115cfe71c8790d557ae7b3aae96fee7baf9b991b6d78f7645533e19f04"],
+      [3, 9, "6fb9d1a363efcc51c4ad0a323dbd5f51905aa03ec79f2844d994ee11bedb9022"]
+    ]
+  },
+  "limitations": [
+    "Highest sample budget is a comparison reference, not physical ground truth.",
+    "Only one scene and one fixed SISO link are studied.",
+    "No prespecified numerical convergence tolerance was available; this result is diagnostic, not a formal pass/fail qualification.",
+    "Repeatability at an identical seed does not establish convergence across ray budgets or seeds."
+  ],
+  "interpretation": "Etoile did not show stable path counts across the tested 2M to 10M samples/source range for two of three seeds; their relative CFR L2 errors against the 10M within-seed reference were about 2.76%. The six-scene classifier study used 200 samples/source and depth 2, so its features are low-budget exploratory outputs and must not be treated as convergence-qualified channel evidence.",
+  "related_reports": [
+    {
+      "path": "outputs/rt-convergence-box-multiseed.json",
+      "sha256": "15870716123abacc69cbebc29aefb8d1d3ae8dc32ccb8cef9e2aff24402c0721"
+    },
+    {
+      "path": "outputs/rt-convergence-canyon-multiseed.json",
+      "sha256": "e3e857e4844a48cc9e6e8e9fd77cdeb81566c978379d7c29aabdcaeaee649b55"
+    },
+    {
+      "path": "outputs/rt-convergence-etoile-multiseed.json",
+      "sha256": "1db32ffd3f54ed951adbacc96ee63aa6cd23fe94fff8fc09c1c42b50e8943492"
+    }
+  ]
+}
