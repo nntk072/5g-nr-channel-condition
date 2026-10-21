@@ -10,7 +10,7 @@ from pathlib import Path
 
 import numpy as np
 from artifacts.provenance import canonical_hash, package_source_sha256, versions
-from datasets.nr import NRChannelRecord, NRObservation, NRTrajectory
+from datasets.nr import NRChannelRecord, NRObservation, NRTrajectory, TargetDefinition
 from datasets.nr_store import (
     NRStoredTrajectory,
     _publish_immutable,
@@ -399,6 +399,18 @@ def generate_rt_nr_trajectory(
                 target_masks={
                     "channel_cfr": np.ones(grid.fft_size, dtype=np.bool_),
                     "geometric_los": np.asarray(True, dtype=np.bool_),
+                },
+                target_definitions={
+                    "channel_cfr": TargetDefinition(
+                        semantic="absolute-delay full-path complex CFR on effective PUSCH subcarriers",
+                        units="complex channel gain (dimensionless)",
+                        source="sionna_rt_pathsolver",
+                    ),
+                    "geometric_los": TargetDefinition(
+                        semantic="depth-zero LOS-only PathSolver visibility oracle",
+                        units="boolean",
+                        source="sionna_rt_depth_zero_oracle",
+                    ),
                 },
                 provenance=record_provenance,
             )

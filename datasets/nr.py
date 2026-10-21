@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from types import MappingProxyType
 from typing import Any, Mapping
 
@@ -103,6 +103,21 @@ class NRObservation:
 
 
 @dataclass(frozen=True, slots=True)
+class TargetDefinition:
+    """Machine-readable meaning, unit, and origin for one private target."""
+
+    semantic: str
+    units: str
+    source: str
+
+    def __post_init__(self) -> None:
+        for name in ("semantic", "units", "source"):
+            value = getattr(self, name)
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError(f"target definition {name} must be a non-empty string")
+
+
+@dataclass(frozen=True, slots=True)
 class NRChannelRecord:
     """Training/evaluation record separating model inputs from private truth."""
 
@@ -110,6 +125,7 @@ class NRChannelRecord:
     targets: Mapping[str, Any]
     target_masks: Mapping[str, Any]
     provenance: Mapping[str, Any]
+    target_definitions: Mapping[str, TargetDefinition] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if not self.targets:
@@ -136,9 +152,15 @@ class NRChannelRecord:
                 raise ValueError(f"target mask {name!r} is not broadcastable to its target")
         if not self.provenance:
             raise ValueError("provenance must not be empty")
+        definitions = dict(self.target_definitions)
+        if definitions and set(definitions) != set(self.targets):
+            raise ValueError("target definitions must describe every declared target")
+        if any(not isinstance(value, TargetDefinition) for value in definitions.values()):
+            raise TypeError("target definitions must be TargetDefinition values")
         object.__setattr__(self, "targets", _freeze_mapping(self.targets))
         object.__setattr__(self, "target_masks", _freeze_mapping(self.target_masks))
         object.__setattr__(self, "provenance", _freeze_mapping(self.provenance))
+        object.__setattr__(self, "target_definitions", _freeze_mapping(definitions))
 
 
 @dataclass(frozen=True, slots=True)

@@ -51,6 +51,9 @@ def test_tdl_pusch_link_produces_stored_receiver_records_with_separate_truth(tmp
     assert records[0].observation.model_inputs().received_grid.shape == (1, 1, 2, 14, 24)
     assert records[0].targets["channel_cfr"].shape == (1, 1, 2, 1, 1, 14, 24)
     assert records[0].target_masks["channel_cfr"].all()
+    assert records[0].target_definitions["channel_cfr"].source == (
+        "sionna_phy_ofdmchannel_return_channel"
+    )
     assert not hasattr(records[0].observation.model_inputs(), "transmit_bits")
     assert link.metadata["channel_model"].startswith("Sionna OFDMChannel")
     torch.testing.assert_close(link.received_grid, repeated.received_grid)

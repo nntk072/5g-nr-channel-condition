@@ -47,6 +47,8 @@ def test_cpu_rt_path_retraces_and_stores_receiver_only_trajectory(tmp_path, monk
         assert bool(np.asarray(record.target_masks["channel_cfr"]).all())
         assert bool(np.asarray(record.target_masks["geometric_los"]).all())
         assert record.provenance["target_semantics"]["geometric_los"].startswith("depth-zero")
+        assert record.target_definitions["geometric_los"].source == "sionna_rt_depth_zero_oracle"
+        assert record.target_definitions["channel_cfr"].units.startswith("complex channel gain")
         assert not hasattr(model_inputs, "targets")
         assert not hasattr(model_inputs, "provenance")
         assert np.isfinite(model_inputs.received_grid).all()

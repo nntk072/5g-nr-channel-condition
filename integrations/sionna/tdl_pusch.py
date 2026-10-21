@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
-from datasets.nr import NRChannelRecord, NRObservation
+from datasets.nr import NRChannelRecord, NRObservation, TargetDefinition
 from receivers.nr import NRChannelEstimate
 
 from .random import call_with_sionna_seed
@@ -255,6 +255,13 @@ def tdl_pusch_records(
                 observation=observation,
                 targets={"channel_cfr": channel_truth},
                 target_masks={"channel_cfr": torch.ones_like(channel_truth, dtype=torch.bool)},
+                target_definitions={
+                    "channel_cfr": TargetDefinition(
+                        semantic="perfect synchronized effective-subcarrier CFR",
+                        units="complex channel gain (dimensionless)",
+                        source="sionna_phy_ofdmchannel_return_channel",
+                    )
+                },
                 provenance={
                     **batch.metadata,
                     "batch_index": batch_index,

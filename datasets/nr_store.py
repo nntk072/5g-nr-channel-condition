@@ -14,7 +14,7 @@ from typing import Any, Mapping, cast
 import numpy as np
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
-from .nr import NRChannelRecord, NRObservation, NRTrajectory
+from .nr import NRChannelRecord, NRObservation, NRTrajectory, TargetDefinition
 
 
 @dataclass(frozen=True, slots=True)
@@ -119,6 +119,9 @@ def write_nr_record(root: str | Path, record: NRChannelRecord) -> NRStoredRecord
         "targets": target_keys,
         "target_masks": mask_keys,
         "provenance": dict(record.provenance),
+        "target_definitions": {
+            name: asdict(definition) for name, definition in record.target_definitions.items()
+        },
     }
     arrays["metadata_json"] = np.frombuffer(_json_bytes(metadata), dtype=np.uint8)
     buffer = io.BytesIO()
@@ -179,11 +182,16 @@ def read_nr_record(root: str | Path, manifest: NRStoredRecord | str | Path) -> N
         masks: Mapping[str, np.ndarray] = {
             name: archive[key] for name, key in metadata["target_masks"].items()
         }
+        definitions = {
+            name: TargetDefinition(**value)
+            for name, value in metadata.get("target_definitions", {}).items()
+        }
         return NRChannelRecord(
             observation=observation,
             targets=targets,
             target_masks=masks,
             provenance=metadata["provenance"],
+            target_definitions=definitions,
         )
 
 

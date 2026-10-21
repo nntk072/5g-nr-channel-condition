@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from datasets.nr import NRChannelRecord, NRObservation, NRTrajectory
+from datasets.nr import NRChannelRecord, NRObservation, NRTrajectory, TargetDefinition
 from datasets.nr_store import (
     read_nr_record,
     read_nr_trajectory,
@@ -225,6 +225,16 @@ def test_nr_record_round_trip_is_lossless_pickle_free_and_content_addressed(tmp_
         },
         target_masks={"geometric_los": np.asarray(True)},
         provenance={"scene_hash": "sha256:abc", "simulator": "Sionna 2.2"},
+        target_definitions={
+            "geometric_los": TargetDefinition(
+                semantic="depth-zero RT visibility oracle", units="boolean", source="sionna_rt"
+            ),
+            "channel_cfr": TargetDefinition(
+                semantic="perfect synchronized CFR",
+                units="complex channel gain",
+                source="sionna_phy",
+            ),
+        },
     )
 
     stored = write_nr_record(tmp_path, record)
@@ -240,6 +250,23 @@ def test_nr_record_round_trip_is_lossless_pickle_free_and_content_addressed(tmp_
     )
     np.testing.assert_array_equal(restored.targets["channel_cfr"], record.targets["channel_cfr"])
     assert restored.provenance == record.provenance
+    assert restored.target_definitions == record.target_definitions
+
+
+def test_target_definition_contract_requires_meaning_units_and_source():
+    with pytest.raises(ValueError, match="semantic"):
+        TargetDefinition(semantic="", units="seconds", source="simulator")
+
+    with pytest.raises(ValueError, match="describe every declared target"):
+        NRChannelRecord(
+            observation=make_observation(),
+            targets={"los": np.asarray(True), "channel_cfr": np.zeros(24)},
+            target_masks={},
+            provenance={"source": "fixture"},
+            target_definitions={
+                "los": TargetDefinition("direct visibility", "boolean", "RT oracle")
+            },
+        )
 
 
 def test_nr_trajectory_round_trip_preserves_order_masks_and_content_addressing(tmp_path):
