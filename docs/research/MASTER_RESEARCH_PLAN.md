@@ -2,7 +2,7 @@
 ## Physically Grounded, Identifiability-Aware Multipath State Learning for 5G NR
 ### From LOS/NLOS classification to channel-state reconstruction, uncertainty, and forecasting
 
-**Document edition:** 3.71 — 2026-10-22 (reject unknown legacy label sentinels)
+**Document edition:** 3.72 — 2026-10-22 (reuse verified RT trajectories by run identity)
 **Status:** execution specification and scientific decision record; **not** a completed study, not experimental evidence, and not a claim of top-tier acceptance.
 **Repository inspected:** live checkout /home/nguyenl37/5g-nr-channel-condition, branch main, initial implementation commit ffe199c80c1caf40dea91a406fe02124b3ff05ec (built from baseline cc43a5544036578a6bb57ce52b66436d8acb6c1b); local reference /home/nguyenl37/sionna at Sionna v2.2.0, commit 2f0a3820269b53fd022780a6f2f5f720f7ceb9b4, RT submodule commit 15b5ee036917a4c2a9b6420e05570b77717e2fcc.
 **Legacy work:** Long Nguyen, *5G Physical Layer Channel Conditions Classification Using Machine Learning Techniques*, Tampere University, July 2025, embedded in `docs/thesis/NguyenLong.pdf`.
@@ -2071,3 +2071,7 @@ The compact 100-split report is `docs/research/results/identifiability-profile-r
 **Edition 3.70 focused verification:** The native LLVM RT trajectory generation/storage round-trip and NR record/trajectory contract tests pass (19 tests); mypy and Ruff pass for the changed implementation. Full-suite verification will be consolidated after the current implementation batch.
 
 **Edition 3.71 legacy-label sentinel handling:** Legacy artifacts that carry `UNSPECIFIED`, `UNKNOWN`, or `UNKNOWN_LEGACY` in per-sample metadata are now treated as unresolved labels, not as a valid task category. A dataset-level declared semantic can still resolve rows lacking old metadata, while explicit contradictory row labels fail. Eight focused experiment-runner tests pass, including consistent old RT-label recovery and prevention of mixed/unknown-label runs before training.
+
+**Edition 3.72 RT trajectory cache:** RT-to-NR generation now computes its complete run identity before scene loading or ray tracing. A matching trajectory-ID manifest loads only after verifying the generation sidecar, identity-key contents, content-addressed trajectory, and each record's embedded identity; this returns without constructing a PathSolver. Reusing a trajectory ID for changed physical/runtime inputs fails before tracing and directs the caller to use a new ID. Interrupted publication without a sidecar is regenerated. Incomplete scene manifests bypass identity reuse. The feature complements the static dataset NPZ cache; cache hits preserve receiver-only observations and private target arrays exactly.
+
+**Edition 3.72 focused verification:** Native LLVM route generation and storage round-trip pass, followed by a second call with PathSolver replaced by a fail-fast stub to prove the cache avoids retracing. A changed-SNR run using the same trajectory ID is rejected before solver construction. All 19 focused native trajectory and NR record-contract tests pass, along with Ruff and mypy for the changed code.

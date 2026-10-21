@@ -31,6 +31,11 @@ treated as an error rather than a cache miss. A cache hit still probes and
 activates the selected runtime backend so identity resolution remains tied to
 a backend that works in the current environment. The same runtime fingerprint
 is passed from cache-key construction through generation to avoid recomputing
-device state mid-run. Trajectory generation currently records identities but
-does not use this static-dataset cache. Cache identity prevents incompatible
-runtime reuse; it does not establish numerical equivalence across hardware.
+device state mid-run. RT-to-NR trajectory generation also uses its
+trajectory-ID manifest as a second cache: when the complete identity
+matches, the trajectory index, generation sidecar, and every stored record are
+verified and returned before any path tracing. Reusing an existing trajectory
+ID for a different identity raises an error; choose a new ID for a changed
+route, scene, or runtime. Incomplete scene manifests bypass trajectory-cache
+lookup. Cache identity prevents incompatible runtime reuse; it does not
+establish numerical equivalence across hardware.

@@ -3,17 +3,84 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import math
 from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 
 import numpy as np
-from artifacts.provenance import package_source_sha256, versions
+from artifacts.provenance import canonical_hash, package_source_sha256, versions
 from datasets.nr import NRChannelRecord, NRObservation, NRTrajectory
-from datasets.nr_store import NRStoredTrajectory, _publish_immutable, write_nr_trajectory
+from datasets.nr_store import (
+    NRStoredTrajectory,
+    _publish_immutable,
+    read_nr_trajectory,
+    write_nr_trajectory,
+)
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
 from integrations.sionna.rt_identity import rt_run_identity, rt_runtime_fingerprint
+
+
+def _load_cached_trajectory(
+    store_root: str | Path,
+    trajectory_id: str,
+    run_identity: dict[str, object],
+) -> NRStoredTrajectory | None:
+    """Load a stored trajectory only when its identity and every record verify."""
+    if not run_identity.get("complete"):
+        return None
+    key = run_identity.get("cache_key_sha256")
+    inputs = run_identity.get("inputs")
+    if not isinstance(key, str) or not isinstance(inputs, dict) or canonical_hash(inputs) != key:
+        raise ValueError("invalid complete RT trajectory run identity")
+    trajectory_key = hashlib.sha256(trajectory_id.encode()).hexdigest()
+    manifest_path = Path(store_root) / "manifests" / "trajectories" / f"{trajectory_key}.json"
+    if not manifest_path.is_file():
+        return None
+    try:
+        manifest_values = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest_values["sample_ids"] = tuple(manifest_values["sample_ids"])
+        stored = NRStoredTrajectory(**manifest_values)
+    except (OSError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+        raise ValueError("invalid stored RT trajectory manifest") from exc
+    sidecar = manifest_path.with_name(f"{stored.content_sha256}.generation.json")
+    if not sidecar.is_file():
+        # An interrupted earlier publication can be regenerated and completed.
+        return None
+    try:
+        generation = json.loads(sidecar.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError("invalid stored RT trajectory generation sidecar") from exc
+    previous_identity = generation.get("rt_run_identity")
+    if not isinstance(previous_identity, dict):
+        raise ValueError("stored trajectory has no reusable RT run identity")
+    if previous_identity.get("cache_key_sha256") != key:
+        raise ValueError(
+            "trajectory_id already exists for a different RT run identity; choose a new ID"
+        )
+    previous_inputs = previous_identity.get("inputs")
+    if (
+        previous_identity.get("schema") != "loslab.rt_run_identity.v1"
+        or not previous_identity.get("complete")
+        or not isinstance(previous_inputs, dict)
+        or canonical_hash(previous_inputs) != key
+    ):
+        raise ValueError("stored trajectory generation identity content does not match its key")
+    trajectory = read_nr_trajectory(store_root, stored)
+    for record in trajectory.records:
+        record_identity = record.provenance.get("rt_run_identity")
+        record_inputs = record_identity.get("inputs") if isinstance(record_identity, dict) else None
+        if (
+            not isinstance(record_identity, dict)
+            or record_identity.get("schema") != "loslab.rt_run_identity.v1"
+            or not record_identity.get("complete")
+            or record_identity.get("cache_key_sha256") != key
+            or not isinstance(record_inputs, dict)
+            or canonical_hash(record_inputs) != key
+        ):
+            raise ValueError("stored trajectory record is missing its matching RT run identity")
+    return stored
 
 
 @dataclass(frozen=True, slots=True)
@@ -117,12 +184,10 @@ def generate_rt_nr_trajectory(
     config = replace(config, mitsuba_variant=selection.variant)
     try:
         import sionna.rt as rt
-        from sionna.rt import PathSolver, PlanarArray, Receiver, Transmitter, load_scene
     except ImportError as exc:
         raise RuntimeError("Sionna RT, Sionna PHY, Mitsuba, and PyTorch are required") from exc
 
     scene_ref = getattr(rt.scene, config.scene, config.scene)
-    scene = load_scene(str(scene_ref) if isinstance(scene_ref, Path) else scene_ref)
     scene_path = Path(str(scene_ref)).expanduser()
     if scene_path.is_file():
         scene_asset_hashes = scene_asset_manifest(scene_path)
@@ -136,6 +201,43 @@ def generate_rt_nr_trajectory(
             "unresolved_references": [scene_xml],
             "complete": False,
         }
+    positions, times = config.positions_and_times()
+    runtime_versions = versions()
+    source_sha256 = package_source_sha256()
+    runtime_fingerprint = rt_runtime_fingerprint(
+        {key: value for key, value in runtime_versions.items() if key != "git_sha"}
+    )
+    solver_config = {
+        "deterministic": True,
+        "max_depth": config.max_depth,
+        "samples_per_src": config.samples_per_src,
+        "los": True,
+        "specular_reflection": True,
+        "diffuse_reflection": True,
+        "refraction": True,
+        "diffraction": False,
+    }
+    run_identity = rt_run_identity(
+        scene_asset_manifest=scene_asset_hashes,
+        physical_config={
+            "trajectory": asdict(config),
+            "positions_m": [list(position) for position in positions],
+        },
+        solver_config=solver_config,
+        seed=config.seed,
+        backend_selection=selection.as_dict(),
+        runtime_versions=runtime_fingerprint,
+        package_source_sha256=source_sha256,
+    )
+    if run_identity["complete"]:
+        cached = _load_cached_trajectory(store_root, config.trajectory_id, run_identity)
+        if cached is not None:
+            return cached
+    try:
+        from sionna.rt import PathSolver, PlanarArray, Receiver, Transmitter, load_scene
+    except ImportError as exc:
+        raise RuntimeError("Sionna RT, Sionna PHY, Mitsuba, and PyTorch are required") from exc
+    scene = load_scene(str(scene_ref) if isinstance(scene_ref, Path) else scene_ref)
     receiver_config = NRPUSCHConfig(
         n_size_bwp=config.n_size_bwp,
         subcarrier_spacing_khz=config.subcarrier_spacing_khz,
@@ -159,7 +261,6 @@ def generate_rt_nr_trajectory(
 
     full_solver = PathSolver(deterministic=True)
     direct_solver = PathSolver(deterministic=True)
-    positions, times = config.positions_and_times()
     channels: list[np.ndarray] = []
     direct_path_counts: list[int] = []
     total_path_counts: list[int] = []
@@ -235,9 +336,6 @@ def generate_rt_nr_trajectory(
     ) * torch.sqrt(noise_variance / 2.0)
     estimate = receiver.estimate(noiseless + noise, noise_variance)
     indices = tuple(int(index) for index in grid.effective_subcarrier_ind)
-    runtime_versions = versions()
-    source_sha256 = package_source_sha256()
-
     records: list[NRChannelRecord] = []
     for index, (position, timestamp) in enumerate(zip(positions, times, strict=True)):
         received = (noiseless + noise)[index : index + 1]
@@ -262,6 +360,7 @@ def generate_rt_nr_trajectory(
             "source": "sionna_rt_retraced_trajectory",
             "scene": config.scene,
             "trajectory_id": config.trajectory_id,
+            "rt_run_identity": run_identity,
             "timestamp_s": timestamp,
             "receiver_position_m": list(position),
             "transmitter_position_m": list(config.transmitter_position_m),
@@ -283,16 +382,7 @@ def generate_rt_nr_trajectory(
             "noise_variance": float(noise_variance.detach().cpu()),
             "generation_config": asdict(config),
             "rt_backend_selection": selection.as_dict(),
-            "solver": {
-                "deterministic": True,
-                "max_depth": config.max_depth,
-                "samples_per_src": config.samples_per_src,
-                "los": True,
-                "specular_reflection": True,
-                "diffuse_reflection": True,
-                "refraction": True,
-                "diffraction": False,
-            },
+            "solver": solver_config,
             "scene_asset_set_sha256": scene_asset_hashes["asset_set_sha256"],
             "scene_asset_manifest_complete": scene_asset_hashes["complete"],
             "scene_asset_count": scene_asset_hashes["asset_count"],
@@ -330,29 +420,7 @@ def generate_rt_nr_trajectory(
         "rt_backend_selection": selection.as_dict(),
         "runtime_versions": runtime_versions,
         "package_source_sha256": source_sha256,
-        "rt_run_identity": rt_run_identity(
-            scene_asset_manifest=scene_asset_hashes,
-            physical_config={
-                "trajectory": asdict(config),
-                "positions_m": [list(p) for p in positions],
-            },
-            solver_config={
-                "deterministic": True,
-                "max_depth": config.max_depth,
-                "samples_per_src": config.samples_per_src,
-                "los": True,
-                "specular_reflection": True,
-                "diffuse_reflection": True,
-                "refraction": True,
-                "diffraction": False,
-            },
-            seed=config.seed,
-            backend_selection=selection.as_dict(),
-            runtime_versions=rt_runtime_fingerprint(
-                {key: value for key, value in runtime_versions.items() if key != "git_sha"}
-            ),
-            package_source_sha256=source_sha256,
-        ),
+        "rt_run_identity": run_identity,
         "limitations": [
             "Each timestamp is a separately retraced quasi-static RT snapshot.",
             "The synthetic scene materials and ray solver are not field calibrated.",

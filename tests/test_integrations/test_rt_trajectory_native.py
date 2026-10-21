@@ -1,5 +1,7 @@
 """Native LLVM RT and Sionna PHY integration for stored NR trajectories."""
 
+from dataclasses import replace
+
 import numpy as np
 import pytest
 
@@ -15,7 +17,7 @@ from integrations.sionna.rt_trajectory import (  # noqa: E402
 
 
 @pytest.mark.native_sionna
-def test_cpu_rt_path_retraces_and_stores_receiver_only_trajectory(tmp_path):
+def test_cpu_rt_path_retraces_and_stores_receiver_only_trajectory(tmp_path, monkeypatch):
     config = RTTrajectoryConfig(
         trajectory_id="native-simple-reflector-route",
         scene="simple_reflector",
@@ -53,6 +55,17 @@ def test_cpu_rt_path_retraces_and_stores_receiver_only_trajectory(tmp_path):
 
     sidecar = tmp_path / "manifests" / "trajectories" / f"{stored.content_sha256}.generation.json"
     assert sidecar.is_file()
+    import sionna.rt as rt
+
+    def unexpected_trace(*args, **kwargs):
+        raise AssertionError("matching trajectory cache entry should avoid retracing")
+
+    monkeypatch.setattr(rt, "PathSolver", unexpected_trace)
+    cached = generate_rt_nr_trajectory(config, tmp_path)
+    assert cached == stored
+
+    with pytest.raises(ValueError, match="different RT run identity"):
+        generate_rt_nr_trajectory(replace(config, snr_db=config.snr_db + 1.0), tmp_path)
 
 
 @pytest.mark.native_sionna
