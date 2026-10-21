@@ -1,0 +1,107 @@
+{
+  "schema": "loslab.rt_six_scene_holdout.v1",
+  "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
+  "source_revision": "25f9d4692d643b649ca5e1073a7e3cb1b98063f5",
+  "runner": "scripts/run_rt_six_scene_holdout.sh",
+  "runner_sha256": "271011d57925ca9648fd2953fe8903a2435dcec72d2cd3c582afd503bd9b79d5",
+  "environment": {
+    "python": "3.12.3",
+    "sionna_rt": "2.2.0",
+    "mitsuba_variant": "llvm_ad_mono_polarized",
+    "device": "CPU LLVM"
+  },
+  "generation": {
+    "links_per_scene": 40,
+    "labels_per_scene": {
+      "geometric_direct_path": 20,
+      "blocked_direct_path": 20
+    },
+    "samples_per_source": 200,
+    "max_path_depth": 2,
+    "max_attempts": 800,
+    "limitations": [
+      "Three urban geometries are procedurally generated simplified scenes with placeholder ITU materials.",
+      "Geometric direct-path labels are simulation oracles, not measured or standardized channel-condition labels.",
+      "The generic comb-pilot observation is not 5G NR DMRS."
+    ]
+  },
+  "evaluation": {
+    "design": "Leave one scene domain out; five domains train and one domain is held out.",
+    "observation": "comb_ls",
+    "pilot_spacing": 4,
+    "pilot_snr_db": 12,
+    "methods": ["rf", "mlp", "logreg"],
+    "seeds": [11, 23, 47, 59, 71, 83, 97],
+    "bootstrap_draws": 200,
+    "macro_mean_test_auroc": {
+      "rf": 0.4675595238095238,
+      "mlp": 0.49970238095238075,
+      "logreg": 0.5133333333333333
+    },
+    "interpretation": "Descriptive only. Scenes are few and heterogeneous, fold training sets overlap, and paired-seed uncertainty is not independent-scene inference. No method advantage is established."
+  },
+  "scenes": [
+    {
+      "name": "box_one_screen",
+      "dataset_sha256": "03a1663c495bd542f1edcd91db640a4f642f860c1fb20e8aa0907c91806ac8e2",
+      "fold_manifest_sha256": "408f78851939c9be12fde6215b3a6bc6a5bd0d296cbe08a715debe97e61d9e61",
+      "fold_summary_sha256": "023366e04361ffd3f4f5990273660b767f328bc4e76f7d464da68508234feb50",
+      "fold_results_sha256": "0d7f34770f7deeb18105ee6c2222c338444ca45e31033895053f5bc0feefdd35",
+      "mean_test_auroc": {"rf": 0.4142857142857142, "mlp": 0.5085714285714286, "logreg": 0.46964285714285714},
+      "mlp_minus_rf": {"mean": 0.0942857142857143, "seed_bootstrap_ci95": [0.020357142857142883, 0.16749999999999998], "exact_seed_sign_flip_p": 0.09375},
+      "mlp_minus_logreg": {"mean": 0.03892857142857142, "seed_bootstrap_ci95": [-0.046785714285714326, 0.12499999999999997], "exact_seed_sign_flip_p": 0.4375}
+    },
+    {
+      "name": "simple_street_canyon",
+      "dataset_sha256": "ac150a659f143546a07920445b7bae9f4f630b9e57b72415399265e0e1c1c98d",
+      "fold_manifest_sha256": "a4374bbf48eb7f800d138a1d3cf47009e19245916262818dd9e069071a91ce04",
+      "fold_summary_sha256": "121ba874c506a307260e57f2c344e73c3c92a635cc75555e54c3373db9f5e13c",
+      "fold_results_sha256": "716f63fdcd6552d7615723799e4da1c8da4db681974cd9c5033c0834a89a3106",
+      "mean_test_auroc": {"rf": 0.5039285714285715, "mlp": 0.5757142857142856, "logreg": 0.5021428571428571},
+      "mlp_minus_rf": {"mean": 0.07178571428571426, "seed_bootstrap_ci95": [0.028571428571428453, 0.11464285714285717], "exact_seed_sign_flip_p": 0.03125},
+      "mlp_minus_logreg": {"mean": 0.0735714285714286, "seed_bootstrap_ci95": [0.012142857142857153, 0.1264285714285715], "exact_seed_sign_flip_p": 0.0625}
+    },
+    {
+      "name": "etoile",
+      "dataset_sha256": "e088b7ad489bea3ea692fc86d4a7f35c34203dc2a95358eeb733a7e634d4cc62",
+      "fold_manifest_sha256": "dc2087660a462de7b0cea088d491b8e4725d50100bbe8bb03bce8cd7b1f3822d",
+      "fold_summary_sha256": "b4c63358117589c80a500af9d12ffdc927781cb13aab1a635e88c3c47b429ee2",
+      "fold_results_sha256": "a4cfe3cfaa03498d206781f53c8c2634e7d8f5e427b385012f37433bf9b03366",
+      "mean_test_auroc": {"rf": 0.5514285714285714, "mlp": 0.49321428571428566, "logreg": 0.5046428571428572},
+      "mlp_minus_rf": {"mean": -0.05821428571428572, "seed_bootstrap_ci95": [-0.1214285714285714, 0.0017857142857142555], "exact_seed_sign_flip_p": 0.1875},
+      "mlp_minus_logreg": {"mean": -0.011428571428571446, "seed_bootstrap_ci95": [-0.07392857142857143, 0.037499999999999964], "exact_seed_sign_flip_p": 0.828125}
+    },
+    {
+      "name": "urban_00041",
+      "dataset_sha256": "239188431d02d426df4443d259f4f665ebee5f3e209546268d3f6867b57b255e",
+      "fold_manifest_sha256": "6e071407b30fc72bb5806d4133d8b085b1bd6ccfd914e90150fd8af989fc4de2",
+      "fold_summary_sha256": "f2998840d9cc3a78892985a442269914008fc43424f1ca498275be8e1e5bcf61",
+      "fold_results_sha256": "48616afbda5b309a602a4e8d2d3ab164fe3c81859299a69dd28dbf227511b32d",
+      "mean_test_auroc": {"rf": 0.4264285714285715, "mlp": 0.45249999999999996, "logreg": 0.5260714285714285},
+      "mlp_minus_rf": {"mean": 0.026071428571428554, "seed_bootstrap_ci95": [-0.023214285714285725, 0.06643749999999984], "exact_seed_sign_flip_p": 0.359375},
+      "mlp_minus_logreg": {"mean": -0.07357142857142858, "seed_bootstrap_ci95": [-0.11821428571428567, -0.03142857142857146], "exact_seed_sign_flip_p": 0.03125}
+    },
+    {
+      "name": "urban_00042",
+      "dataset_sha256": "82e3a0f7dd8900cdd14d7e7eb03b40957551a4537818b9c9642951c78f196632",
+      "fold_manifest_sha256": "3fbc50ce27436ccd4e0e96b6a62f1f46996ebbb788480515d82d319487db6751",
+      "fold_summary_sha256": "e81e05480eea204e6e230030f72431dbe9969ef9b38ae1f880b155f2c2e7fd09",
+      "fold_results_sha256": "1d01b09317eabcea409dbbcb7cfecf7613bb86003e23d78e6f99204035fd3780",
+      "mean_test_auroc": {"rf": 0.38321428571428573, "mlp": 0.3860714285714287, "logreg": 0.49785714285714283},
+      "mlp_minus_rf": {"mean": 0.0028571428571428597, "seed_bootstrap_ci95": [-0.03249999999999997, 0.04071428571428569], "exact_seed_sign_flip_p": 0.921875},
+      "mlp_minus_logreg": {"mean": -0.11178571428571428, "seed_bootstrap_ci95": [-0.17107142857142857, -0.053214285714285714], "exact_seed_sign_flip_p": 0.015625}
+    },
+    {
+      "name": "urban_00043",
+      "dataset_sha256": "a561e5b92cf897830bc7a36bf0851bb5a48263a0ae170d52b7a58d15d6784c79",
+      "fold_manifest_sha256": "e12f0df0bb09ba306cbe7c026f9d059b50347fd950777702f41191fba570a598",
+      "fold_summary_sha256": "c3e02cd441de73dc19d336c1b658704467f49828f8f681cb3f577949515b6a78",
+      "fold_results_sha256": "3fe5db47f60104384d85f55df1192097734170508882204dfbf13b48f5700742",
+      "mean_test_auroc": {"rf": 0.5260714285714286, "mlp": 0.5821428571428572, "logreg": 0.5796428571428571},
+      "mlp_minus_rf": {"mean": 0.05607142857142851, "seed_bootstrap_ci95": [0.013571428571428488, 0.09964285714285716], "exact_seed_sign_flip_p": 0.0625},
+      "mlp_minus_logreg": {"mean": 0.0024999999999999628, "seed_bootstrap_ci95": [-0.05643750000000003, 0.0557142857142857], "exact_seed_sign_flip_p": 0.953125}
+    }
+  ],
+  "local_output_root": "outputs/rt-six-scene-holdout-20261021",
+  "interpretation_warning": "Seed-level comparisons are within-scene only. The six folds share their training scenes and do not provide six independent replications."
+}
