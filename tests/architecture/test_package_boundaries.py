@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ast
+import subprocess
 import sys
 from pathlib import Path
 
@@ -54,15 +55,15 @@ def test_sionna_is_only_imported_inside_its_adapter() -> None:
 
 
 def test_standard_package_imports_do_not_load_native_sionna() -> None:
-    for module in (
-        "artifacts",
-        "configuration",
-        "datasets",
-        "propagation",
-        "receivers",
-        "models",
-        "evaluation",
-        "experiments",
-    ):
-        __import__(module)
-    assert not {"sionna", "mitsuba", "drjit"}.intersection(sys.modules)
+    code = """
+import importlib
+import sys
+
+for module in (
+    "artifacts", "configuration", "datasets", "propagation", "receivers",
+    "models", "evaluation", "experiments",
+):
+    importlib.import_module(module)
+assert not {"sionna", "mitsuba", "drjit"}.intersection(sys.modules)
+"""
+    subprocess.run([sys.executable, "-c", code], cwd=ROOT, check=True)

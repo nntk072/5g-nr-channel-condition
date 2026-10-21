@@ -110,3 +110,54 @@ def test_rt_direct_and_reflected_paths_sum_coherently_on_nr_grid():
         result.channel[0, 0, 0, 0, 0, 0].numpy(), expected, rtol=1e-5, atol=1e-8
     )
     assert np.ptp(np.abs(result.channel[0, 0, 0, 0, 0, 0].numpy())) > 0
+
+
+@pytest.mark.native_sionna
+def test_rt_reflected_path_depends_on_surface_radio_material():
+    """Changing a reflector's material changes paths and the observed NR CFR."""
+    import mitsuba as mi
+
+    mi.set_variant("llvm_ad_mono_polarized")
+    rt = pytest.importorskip("sionna.rt")
+    from integrations.sionna.rt_to_nr import paths_to_nr_ofdm_channel
+    from sionna.phy.ofdm import ResourceGrid
+
+    grid = ResourceGrid(
+        num_ofdm_symbols=14,
+        fft_size=24,
+        subcarrier_spacing=30e3,
+        cyclic_prefix_length=0,
+        device="cpu",
+    )
+    channels = {}
+    path_counts = {}
+    for relative_permittivity in (1.0, 4.0):
+        scene = rt.load_scene(rt.scene.simple_reflector, merge_shapes=False)
+        scene.tx_array = rt.PlanarArray(num_rows=1, num_cols=1, pattern="iso", polarization="V")
+        scene.rx_array = rt.PlanarArray(num_rows=1, num_cols=1, pattern="iso", polarization="V")
+        scene.add(rt.Transmitter("tx", [-10.0, 0.0, 10.0]))
+        scene.add(rt.Receiver("rx", [10.0, 0.0, 10.0]))
+        scene.get("tx").look_at([0.0, 0.0, 0.0])
+        scene.get("rx").look_at([0.0, 0.0, 0.0])
+        scene.get("reflector").radio_material = rt.RadioMaterial(
+            name=f"material-eps-{relative_permittivity:g}",
+            relative_permittivity=relative_permittivity,
+            conductivity=0.0,
+        )
+        paths = rt.PathSolver(deterministic=True)(
+            scene,
+            max_depth=1,
+            los=True,
+            specular_reflection=True,
+            diffuse_reflection=False,
+            refraction=False,
+            diffraction=False,
+            seed=1,
+        )
+        path_counts[relative_permittivity] = int(np.count_nonzero(paths.valid.numpy()))
+        channels[relative_permittivity] = paths_to_nr_ofdm_channel(paths, grid).channel.numpy()
+
+    # With epsilon_r=1 and zero conductivity the boundary is electromagnetically
+    # matched; epsilon_r=4 produces a reflected path in this fixed geometry.
+    assert path_counts == {1.0: 1, 4.0: 2}
+    assert np.mean(np.abs(channels[4.0] - channels[1.0])) > 1e-6
