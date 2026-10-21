@@ -80,6 +80,14 @@ path CFR fixtures with explicit Hz/second units, timing offsets, and a separate
 synthetic path oracle. Its direct-component flag is not a geometric LOS label,
 and the fixture is not a 3GPP or measured channel model.
 
+<code>integrations.sionna.generate_tdl_frequency_response</code> also provides
+a pinned Sionna 2.2 TR 38.901 TDL-to-CFR adapter with explicit profile/spec
+metadata, centered NR baseband bins, deterministic per-call seeds, and the
+original shared RNG state restored after generation. TDL profile names are
+recorded as stochastic <em>profile proxies</em>; they are never emitted as
+geometric LOS labels. It generates channel coefficients and CFR only, not a
+complete PUSCH/CP/synchronization/receiver chain.
+
 ## Repository map
 
 ```text
