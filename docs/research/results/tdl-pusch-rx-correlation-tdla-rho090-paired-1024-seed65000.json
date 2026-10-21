@@ -1,0 +1,201 @@
+{
+  "control": {
+    "package_source_sha256": "3779eb9d440d339649601a522150edb5f9109fc3b3ef9722ae1181fde1ea4ff7",
+    "path": "docs/research/results/tdl-pusch-rx-diversity-tdla-1024-seed65000.json",
+    "rx_correlation_coefficient": 0.0,
+    "sha256": "3c70e1d90738fcef94ce2117c8adb1290b78c649d63589e08e38856f92733a00",
+    "versions": {
+      "git_sha": "31ebd63cf125a17806aafbc30f497e4f207f77eb",
+      "numpy": "2.5.4",
+      "python": "3.12.3",
+      "scikit-learn": "1.9.1",
+      "sionna": "2.2.0",
+      "sionna-phy": "not installed",
+      "sionna-rt": "2.2.0",
+      "torch": "2.11.0+cu128"
+    }
+  },
+  "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
+  "limitations": [
+    "The Cholesky transform is applied to simulated TDL receive branches, not a measured array response.",
+    "Codeword-paired uncertainty is conditional on one TDL-A, numerology, speed and link configuration; it is not scene-level inference.",
+    "The decoder and synchronization configuration are fixed; the result is not standards certification."
+  ],
+  "paired_design": {
+    "analysis_environment": {
+      "git_sha": "6baa9cbac105d83465e622a927a83ccc076f0223",
+      "numpy": "2.5.4",
+      "python": "3.12.3",
+      "scikit-learn": "1.9.1",
+      "sionna": "not installed",
+      "sionna-phy": "not installed",
+      "sionna-rt": "not installed",
+      "torch": "2.11.0+cpu"
+    },
+    "analysis_package_source_sha256": "c6e8492dc1dbab6796b7d6509b461346cda92e0ad95901f0f33126842fcd3dc4",
+    "same_first_receive_antenna_channel": true,
+    "same_latent_channel_draw": true,
+    "same_single_rx_outcomes": true,
+    "same_transmitted_bits": true,
+    "statistic": "paired codeword bootstrap CI and Holm-adjusted exact McNemar tests"
+  },
+  "points": [
+    {
+      "bootstrap_draws": 20000,
+      "bootstrap_seed": 1,
+      "both_error": 186,
+      "both_success": 346,
+      "codewords": 1024,
+      "control_errors": 306,
+      "control_goodput_bits_per_codeword": 0.701171875,
+      "control_only_error": 120,
+      "discordant_pairs": 492,
+      "mcnemar_exact_two_sided_p_value": 4.8598137652248995e-31,
+      "mcnemar_exact_two_sided_p_value_holm": 1.45794412956747e-30,
+      "paired_bootstrap_ci95": [
+        0.2060546875,
+        0.2861328125
+      ],
+      "paired_goodput_bootstrap_ci95": [
+        -0.2861328125,
+        -0.2060546875
+      ],
+      "snr_db": 6.0,
+      "treatment_errors": 558,
+      "treatment_goodput_bits_per_codeword": 0.455078125,
+      "treatment_minus_control_bler": 0.24609375,
+      "treatment_minus_control_goodput_bits_per_codeword": -0.24609375,
+      "treatment_only_error": 372,
+      "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference."
+    },
+    {
+      "bootstrap_draws": 20000,
+      "bootstrap_seed": 1,
+      "both_error": 0,
+      "both_success": 744,
+      "codewords": 1024,
+      "control_errors": 1,
+      "control_goodput_bits_per_codeword": 0.9990234375,
+      "control_only_error": 1,
+      "discordant_pairs": 280,
+      "mcnemar_exact_two_sided_p_value": 2.89292736528134e-82,
+      "mcnemar_exact_two_sided_p_value_holm": 1.4464636826406702e-81,
+      "paired_bootstrap_ci95": [
+        0.244140625,
+        0.298828125
+      ],
+      "paired_goodput_bootstrap_ci95": [
+        -0.298828125,
+        -0.244140625
+      ],
+      "snr_db": 8.0,
+      "treatment_errors": 279,
+      "treatment_goodput_bits_per_codeword": 0.7275390625,
+      "treatment_minus_control_bler": 0.271484375,
+      "treatment_minus_control_goodput_bits_per_codeword": -0.271484375,
+      "treatment_only_error": 279,
+      "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference."
+    },
+    {
+      "bootstrap_draws": 20000,
+      "bootstrap_seed": 1,
+      "both_error": 0,
+      "both_success": 919,
+      "codewords": 1024,
+      "control_errors": 0,
+      "control_goodput_bits_per_codeword": 1.0,
+      "control_only_error": 0,
+      "discordant_pairs": 105,
+      "mcnemar_exact_two_sided_p_value": 4.930380657631339e-32,
+      "mcnemar_exact_two_sided_p_value_holm": 1.9721522630525356e-31,
+      "paired_bootstrap_ci95": [
+        0.083984375,
+        0.12109375
+      ],
+      "paired_goodput_bootstrap_ci95": [
+        -0.1220703125,
+        -0.083984375
+      ],
+      "snr_db": 10.0,
+      "treatment_errors": 105,
+      "treatment_goodput_bits_per_codeword": 0.8974609375,
+      "treatment_minus_control_bler": 0.1025390625,
+      "treatment_minus_control_goodput_bits_per_codeword": -0.1025390625,
+      "treatment_only_error": 105,
+      "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference."
+    },
+    {
+      "bootstrap_draws": 20000,
+      "bootstrap_seed": 1,
+      "both_error": 0,
+      "both_success": 1000,
+      "codewords": 1024,
+      "control_errors": 0,
+      "control_goodput_bits_per_codeword": 1.0,
+      "control_only_error": 0,
+      "discordant_pairs": 24,
+      "mcnemar_exact_two_sided_p_value": 1.1920928955078144e-07,
+      "mcnemar_exact_two_sided_p_value_holm": 2.3841857910156287e-07,
+      "paired_bootstrap_ci95": [
+        0.0146484375,
+        0.033203125
+      ],
+      "paired_goodput_bootstrap_ci95": [
+        -0.033203125,
+        -0.0146484375
+      ],
+      "snr_db": 12.0,
+      "treatment_errors": 24,
+      "treatment_goodput_bits_per_codeword": 0.9765625,
+      "treatment_minus_control_bler": 0.0234375,
+      "treatment_minus_control_goodput_bits_per_codeword": -0.0234375,
+      "treatment_only_error": 24,
+      "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference."
+    },
+    {
+      "bootstrap_draws": 20000,
+      "bootstrap_seed": 1,
+      "both_error": 0,
+      "both_success": 1022,
+      "codewords": 1024,
+      "control_errors": 0,
+      "control_goodput_bits_per_codeword": 1.0,
+      "control_only_error": 0,
+      "discordant_pairs": 2,
+      "mcnemar_exact_two_sided_p_value": 0.5,
+      "mcnemar_exact_two_sided_p_value_holm": 0.5,
+      "paired_bootstrap_ci95": [
+        0.0,
+        0.0048828125
+      ],
+      "paired_goodput_bootstrap_ci95": [
+        -0.0048828125,
+        0.0
+      ],
+      "snr_db": 14.0,
+      "treatment_errors": 2,
+      "treatment_goodput_bits_per_codeword": 0.998046875,
+      "treatment_minus_control_bler": 0.001953125,
+      "treatment_minus_control_goodput_bits_per_codeword": -0.001953125,
+      "treatment_only_error": 2,
+      "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference."
+    }
+  ],
+  "schema": "loslab.paired_tdl_pusch_rx_correlation.v1",
+  "treatment": {
+    "package_source_sha256": "c6e8492dc1dbab6796b7d6509b461346cda92e0ad95901f0f33126842fcd3dc4",
+    "path": "docs/research/results/tdl-pusch-rx-diversity-tdla-rho090-paired-1024-seed65000.json",
+    "rx_correlation_coefficient": 0.9,
+    "sha256": "2ad7ebee904cdb2a26ea44be42baf127150ce95f820815effb3b18044e377acd",
+    "versions": {
+      "git_sha": "6baa9cbac105d83465e622a927a83ccc076f0223",
+      "numpy": "2.5.4",
+      "python": "3.12.3",
+      "scikit-learn": "1.9.1",
+      "sionna": "2.2.0",
+      "sionna-phy": "not installed",
+      "sionna-rt": "2.2.0",
+      "torch": "2.11.0+cu128"
+    }
+  }
+}
