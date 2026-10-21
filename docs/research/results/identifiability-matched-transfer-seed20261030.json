@@ -1,0 +1,3716 @@
+{
+  "analysis_module_sha256": "9fa95602247aecd9ac17bd7a14dbb393a5695d30834a791e8067f1a198cef34b",
+  "bootstrap_draws_per_case": 5000,
+  "calibration_protocol": "Within each tone count, compare leave-one-condition, leave-one-factor-level, and within-condition split-conformal calibration on the exact paired evaluation rows.",
+  "cases": [
+    {
+      "calibration_conditions": [
+        [
+          256,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1792,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 0.4296875,
+      "omp_only_coverage": 9,
+      "paired_coverage_bootstrap_ci95": [
+        0.3828125,
+        0.5157226562499986
+      ],
+      "paired_mcnemar_holm_p_value": 3.5521810360905386e-25,
+      "paired_mcnemar_p_value": 5.3820924789250584e-27,
+      "paired_profile_minus_omp_coverage_change": 0.44921875,
+      "policy": "leave_one_condition_out",
+      "profile_coverage": 0.87890625,
+      "profile_only_coverage": 124,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 20.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1792,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 10,
+      "paired_coverage_bootstrap_ci95": [
+        -0.06640625,
+        -0.01953125
+      ],
+      "paired_mcnemar_holm_p_value": 0.0859375,
+      "paired_mcnemar_p_value": 0.001953125,
+      "paired_profile_minus_omp_coverage_change": -0.0390625,
+      "policy": "leave_one_condition_out",
+      "profile_coverage": 0.9609375,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 20.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1792,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 7,
+      "paired_coverage_bootstrap_ci95": [
+        -0.05078125,
+        -0.0078125
+      ],
+      "paired_mcnemar_holm_p_value": 0.515625,
+      "paired_mcnemar_p_value": 0.015625,
+      "paired_profile_minus_omp_coverage_change": -0.02734375,
+      "policy": "leave_one_condition_out",
+      "profile_coverage": 0.97265625,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 20.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1792,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 10,
+      "paired_coverage_bootstrap_ci95": [
+        -0.06640625,
+        -0.015625
+      ],
+      "paired_mcnemar_holm_p_value": 0.0859375,
+      "paired_mcnemar_p_value": 0.001953125,
+      "paired_profile_minus_omp_coverage_change": -0.0390625,
+      "policy": "leave_one_condition_out",
+      "profile_coverage": 0.9609375,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 20.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1792,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 0.9296875,
+      "omp_only_coverage": 7,
+      "paired_coverage_bootstrap_ci95": [
+        0.0,
+        0.07421875
+      ],
+      "paired_mcnemar_holm_p_value": 1.0,
+      "paired_mcnemar_p_value": 0.0931396484375,
+      "paired_profile_minus_omp_coverage_change": 0.03515625,
+      "policy": "leave_one_condition_out",
+      "profile_coverage": 0.96484375,
+      "profile_only_coverage": 16,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 30.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1792,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 5,
+      "paired_coverage_bootstrap_ci95": [
+        -0.0390625,
+        -0.00390625
+      ],
+      "paired_mcnemar_holm_p_value": 1.0,
+      "paired_mcnemar_p_value": 0.0625,
+      "paired_profile_minus_omp_coverage_change": -0.01953125,
+      "policy": "leave_one_condition_out",
+      "profile_coverage": 0.98046875,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 30.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1792,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 4,
+      "paired_coverage_bootstrap_ci95": [
+        -0.03125,
+        -0.00390625
+      ],
+      "paired_mcnemar_holm_p_value": 1.0,
+      "paired_mcnemar_p_value": 0.125,
+      "paired_profile_minus_omp_coverage_change": -0.015625,
+      "policy": "leave_one_condition_out",
+      "profile_coverage": 0.984375,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 30.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          0.0
+        ]
+      ],
+      "calibration_trials": 1792,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 22,
+      "paired_coverage_bootstrap_ci95": [
+        -0.12109375,
+        -0.0546875
+      ],
+      "paired_mcnemar_holm_p_value": 2.86102294921875e-05,
+      "paired_mcnemar_p_value": 4.76837158203125e-07,
+      "paired_profile_minus_omp_coverage_change": -0.0859375,
+      "policy": "leave_one_condition_out",
+      "profile_coverage": 0.9140625,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 30.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1792,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 0.234375,
+      "omp_only_coverage": 3,
+      "paired_coverage_bootstrap_ci95": [
+        0.6640625,
+        0.77734375
+      ],
+      "paired_mcnemar_holm_p_value": 5.1809286149791285e-50,
+      "paired_mcnemar_p_value": 7.401326592827326e-52,
+      "paired_profile_minus_omp_coverage_change": 0.72265625,
+      "policy": "leave_one_condition_out",
+      "profile_coverage": 0.95703125,
+      "profile_only_coverage": 188,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 20.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1792,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 9,
+      "paired_coverage_bootstrap_ci95": [
+        -0.05859375,
+        -0.015625
+      ],
+      "paired_mcnemar_holm_p_value": 0.14453125,
+      "paired_mcnemar_p_value": 0.00390625,
+      "paired_profile_minus_omp_coverage_change": -0.03515625,
+      "policy": "leave_one_condition_out",
+      "profile_coverage": 0.96484375,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 20.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1792,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 9,
+      "paired_coverage_bootstrap_ci95": [
+        -0.05859375,
+        -0.015625
+      ],
+      "paired_mcnemar_holm_p_value": 0.14453125,
+      "paired_mcnemar_p_value": 0.00390625,
+      "paired_profile_minus_omp_coverage_change": -0.03515625,
+      "policy": "leave_one_condition_out",
+      "profile_coverage": 0.96484375,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 20.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1792,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 30,
+      "paired_coverage_bootstrap_ci95": [
+        -0.16015625,
+        -0.078125
+      ],
+      "paired_mcnemar_holm_p_value": 1.1548399925231934e-07,
+      "paired_mcnemar_p_value": 1.862645149230957e-09,
+      "paired_profile_minus_omp_coverage_change": -0.1171875,
+      "policy": "leave_one_condition_out",
+      "profile_coverage": 0.8828125,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 20.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1792,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 0.98046875,
+      "omp_only_coverage": 7,
+      "paired_coverage_bootstrap_ci95": [
+        -0.0390625,
+        0.0078125
+      ],
+      "paired_mcnemar_holm_p_value": 1.0,
+      "paired_mcnemar_p_value": 0.34375,
+      "paired_profile_minus_omp_coverage_change": -0.015625,
+      "policy": "leave_one_condition_out",
+      "profile_coverage": 0.96484375,
+      "profile_only_coverage": 3,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 30.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1792,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 6,
+      "paired_coverage_bootstrap_ci95": [
+        -0.04296875,
+        -0.0078125
+      ],
+      "paired_mcnemar_holm_p_value": 0.9375,
+      "paired_mcnemar_p_value": 0.03125,
+      "paired_profile_minus_omp_coverage_change": -0.0234375,
+      "policy": "leave_one_condition_out",
+      "profile_coverage": 0.9765625,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 30.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1792,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 0,
+      "paired_coverage_bootstrap_ci95": [
+        0.0,
+        0.0
+      ],
+      "paired_mcnemar_holm_p_value": 1.0,
+      "paired_mcnemar_p_value": 1.0,
+      "paired_profile_minus_omp_coverage_change": 0.0,
+      "policy": "leave_one_condition_out",
+      "profile_coverage": 1.0,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 30.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          0.0
+        ]
+      ],
+      "calibration_trials": 1792,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 18,
+      "paired_coverage_bootstrap_ci95": [
+        -0.1015625,
+        -0.0390625
+      ],
+      "paired_mcnemar_holm_p_value": 0.0004425048828125,
+      "paired_mcnemar_p_value": 7.62939453125e-06,
+      "paired_profile_minus_omp_coverage_change": -0.0703125,
+      "policy": "leave_one_condition_out",
+      "profile_coverage": 0.9296875,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 30.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 0.51953125,
+      "omp_only_coverage": 12,
+      "paired_coverage_bootstrap_ci95": [
+        0.2890625,
+        0.4296875
+      ],
+      "paired_mcnemar_holm_p_value": 1.2133582137510518e-17,
+      "paired_mcnemar_p_value": 1.8667049442323873e-19,
+      "paired_profile_minus_omp_coverage_change": 0.359375,
+      "policy": "leave_one_snr_level_out",
+      "profile_coverage": 0.87890625,
+      "profile_only_coverage": 104,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 20.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 11,
+      "paired_coverage_bootstrap_ci95": [
+        -0.0703125,
+        -0.01953125
+      ],
+      "paired_mcnemar_holm_p_value": 0.044921875,
+      "paired_mcnemar_p_value": 0.0009765625,
+      "paired_profile_minus_omp_coverage_change": -0.04296875,
+      "policy": "leave_one_snr_level_out",
+      "profile_coverage": 0.95703125,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 20.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 9,
+      "paired_coverage_bootstrap_ci95": [
+        -0.05859375,
+        -0.015625
+      ],
+      "paired_mcnemar_holm_p_value": 0.14453125,
+      "paired_mcnemar_p_value": 0.00390625,
+      "paired_profile_minus_omp_coverage_change": -0.03515625,
+      "policy": "leave_one_snr_level_out",
+      "profile_coverage": 0.96484375,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 20.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 12,
+      "paired_coverage_bootstrap_ci95": [
+        -0.07421875,
+        -0.0234375
+      ],
+      "paired_mcnemar_holm_p_value": 0.02294921875,
+      "paired_mcnemar_p_value": 0.00048828125,
+      "paired_profile_minus_omp_coverage_change": -0.046875,
+      "policy": "leave_one_snr_level_out",
+      "profile_coverage": 0.953125,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 20.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 0.96875,
+      "omp_only_coverage": 8,
+      "paired_coverage_bootstrap_ci95": [
+        -0.03125,
+        0.03125
+      ],
+      "paired_mcnemar_holm_p_value": 1.0,
+      "paired_mcnemar_p_value": 1.0,
+      "paired_profile_minus_omp_coverage_change": 0.0,
+      "policy": "leave_one_snr_level_out",
+      "profile_coverage": 0.96875,
+      "profile_only_coverage": 8,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 30.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 5,
+      "paired_coverage_bootstrap_ci95": [
+        -0.0390625,
+        -0.00390625
+      ],
+      "paired_mcnemar_holm_p_value": 1.0,
+      "paired_mcnemar_p_value": 0.0625,
+      "paired_profile_minus_omp_coverage_change": -0.01953125,
+      "policy": "leave_one_snr_level_out",
+      "profile_coverage": 0.98046875,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 30.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 4,
+      "paired_coverage_bootstrap_ci95": [
+        -0.03125,
+        -0.00390625
+      ],
+      "paired_mcnemar_holm_p_value": 1.0,
+      "paired_mcnemar_p_value": 0.125,
+      "paired_profile_minus_omp_coverage_change": -0.015625,
+      "policy": "leave_one_snr_level_out",
+      "profile_coverage": 0.984375,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 30.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 18,
+      "paired_coverage_bootstrap_ci95": [
+        -0.1015625,
+        -0.0390625
+      ],
+      "paired_mcnemar_holm_p_value": 0.0004425048828125,
+      "paired_mcnemar_p_value": 7.62939453125e-06,
+      "paired_profile_minus_omp_coverage_change": -0.0703125,
+      "policy": "leave_one_snr_level_out",
+      "profile_coverage": 0.9296875,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 30.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 0.328125,
+      "omp_only_coverage": 8,
+      "paired_coverage_bootstrap_ci95": [
+        0.5390625,
+        0.671875
+      ],
+      "paired_mcnemar_holm_p_value": 7.224718987873486e-37,
+      "paired_mcnemar_p_value": 1.078316266846789e-38,
+      "paired_profile_minus_omp_coverage_change": 0.60546875,
+      "policy": "leave_one_snr_level_out",
+      "profile_coverage": 0.93359375,
+      "profile_only_coverage": 163,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 20.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 15,
+      "paired_coverage_bootstrap_ci95": [
+        -0.08984375,
+        -0.03125
+      ],
+      "paired_mcnemar_holm_p_value": 0.003173828125,
+      "paired_mcnemar_p_value": 6.103515625e-05,
+      "paired_profile_minus_omp_coverage_change": -0.05859375,
+      "policy": "leave_one_snr_level_out",
+      "profile_coverage": 0.94140625,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 20.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 13,
+      "paired_coverage_bootstrap_ci95": [
+        -0.078125,
+        -0.02734375
+      ],
+      "paired_mcnemar_holm_p_value": 0.01171875,
+      "paired_mcnemar_p_value": 0.000244140625,
+      "paired_profile_minus_omp_coverage_change": -0.05078125,
+      "policy": "leave_one_snr_level_out",
+      "profile_coverage": 0.94921875,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 20.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 31,
+      "paired_coverage_bootstrap_ci95": [
+        -0.16015625,
+        -0.0859375
+      ],
+      "paired_mcnemar_holm_p_value": 5.960464477539063e-08,
+      "paired_mcnemar_p_value": 9.313225746154785e-10,
+      "paired_profile_minus_omp_coverage_change": -0.12109375,
+      "policy": "leave_one_snr_level_out",
+      "profile_coverage": 0.87890625,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 20.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 9,
+      "paired_coverage_bootstrap_ci95": [
+        -0.05859375,
+        -0.015625
+      ],
+      "paired_mcnemar_holm_p_value": 0.14453125,
+      "paired_mcnemar_p_value": 0.00390625,
+      "paired_profile_minus_omp_coverage_change": -0.03515625,
+      "policy": "leave_one_snr_level_out",
+      "profile_coverage": 0.96484375,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 30.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 5,
+      "paired_coverage_bootstrap_ci95": [
+        -0.0390625,
+        -0.00390625
+      ],
+      "paired_mcnemar_holm_p_value": 1.0,
+      "paired_mcnemar_p_value": 0.0625,
+      "paired_profile_minus_omp_coverage_change": -0.01953125,
+      "policy": "leave_one_snr_level_out",
+      "profile_coverage": 0.98046875,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 30.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 0,
+      "paired_coverage_bootstrap_ci95": [
+        0.0,
+        0.0
+      ],
+      "paired_mcnemar_holm_p_value": 1.0,
+      "paired_mcnemar_p_value": 1.0,
+      "paired_profile_minus_omp_coverage_change": 0.0,
+      "policy": "leave_one_snr_level_out",
+      "profile_coverage": 1.0,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 30.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 17,
+      "paired_coverage_bootstrap_ci95": [
+        -0.09765625,
+        -0.0390625
+      ],
+      "paired_mcnemar_holm_p_value": 0.0008087158203125,
+      "paired_mcnemar_p_value": 1.52587890625e-05,
+      "paired_profile_minus_omp_coverage_change": -0.06640625,
+      "policy": "leave_one_snr_level_out",
+      "profile_coverage": 0.93359375,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 30.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 0.0,
+      "omp_only_coverage": 0,
+      "paired_coverage_bootstrap_ci95": [
+        0.8359375,
+        0.91796875
+      ],
+      "paired_mcnemar_holm_p_value": 2.81899667452244e-66,
+      "paired_mcnemar_p_value": 3.7092061506874214e-68,
+      "paired_profile_minus_omp_coverage_change": 0.87890625,
+      "policy": "leave_one_separation_level_out",
+      "profile_coverage": 0.87890625,
+      "profile_only_coverage": 225,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 20.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 0.08984375,
+      "omp_only_coverage": 0,
+      "paired_coverage_bootstrap_ci95": [
+        0.82421875,
+        0.90625
+      ],
+      "paired_mcnemar_holm_p_value": 2.225523690412453e-65,
+      "paired_mcnemar_p_value": 2.967364920549937e-67,
+      "paired_profile_minus_omp_coverage_change": 0.8671875,
+      "policy": "leave_one_separation_level_out",
+      "profile_coverage": 0.95703125,
+      "profile_only_coverage": 222,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 20.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 7,
+      "paired_coverage_bootstrap_ci95": [
+        -0.05078125,
+        -0.0078125
+      ],
+      "paired_mcnemar_holm_p_value": 0.515625,
+      "paired_mcnemar_p_value": 0.015625,
+      "paired_profile_minus_omp_coverage_change": -0.02734375,
+      "policy": "leave_one_separation_level_out",
+      "profile_coverage": 0.97265625,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 20.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 10,
+      "paired_coverage_bootstrap_ci95": [
+        -0.06640625,
+        -0.01953125
+      ],
+      "paired_mcnemar_holm_p_value": 0.0859375,
+      "paired_mcnemar_p_value": 0.001953125,
+      "paired_profile_minus_omp_coverage_change": -0.0390625,
+      "policy": "leave_one_separation_level_out",
+      "profile_coverage": 0.9609375,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 20.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 0.0234375,
+      "omp_only_coverage": 0,
+      "paired_coverage_bootstrap_ci95": [
+        0.90625,
+        0.96484375
+      ],
+      "paired_mcnemar_holm_p_value": 8.829287101856045e-71,
+      "paired_mcnemar_p_value": 1.131959884853339e-72,
+      "paired_profile_minus_omp_coverage_change": 0.9375,
+      "policy": "leave_one_separation_level_out",
+      "profile_coverage": 0.9609375,
+      "profile_only_coverage": 240,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 30.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 0.35546875,
+      "omp_only_coverage": 0,
+      "paired_coverage_bootstrap_ci95": [
+        0.5390625,
+        0.65625
+      ],
+      "paired_mcnemar_holm_p_value": 1.2086199254801547e-44,
+      "paired_mcnemar_p_value": 1.7516230804060213e-46,
+      "paired_profile_minus_omp_coverage_change": 0.59765625,
+      "policy": "leave_one_separation_level_out",
+      "profile_coverage": 0.953125,
+      "profile_only_coverage": 153,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 30.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 4,
+      "paired_coverage_bootstrap_ci95": [
+        -0.03125,
+        -0.00390625
+      ],
+      "paired_mcnemar_holm_p_value": 1.0,
+      "paired_mcnemar_p_value": 0.125,
+      "paired_profile_minus_omp_coverage_change": -0.015625,
+      "policy": "leave_one_separation_level_out",
+      "profile_coverage": 0.984375,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 30.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 18,
+      "paired_coverage_bootstrap_ci95": [
+        -0.1015625,
+        -0.0390625
+      ],
+      "paired_mcnemar_holm_p_value": 0.0004425048828125,
+      "paired_mcnemar_p_value": 7.62939453125e-06,
+      "paired_profile_minus_omp_coverage_change": -0.0703125,
+      "policy": "leave_one_separation_level_out",
+      "profile_coverage": 0.9296875,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 30.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 0.00390625,
+      "omp_only_coverage": 0,
+      "paired_coverage_bootstrap_ci95": [
+        0.94140625,
+        0.984375
+      ],
+      "paired_mcnemar_holm_p_value": 7.074749280333369e-73,
+      "paired_mcnemar_p_value": 8.843436600416711e-75,
+      "paired_profile_minus_omp_coverage_change": 0.96484375,
+      "policy": "leave_one_separation_level_out",
+      "profile_coverage": 0.96875,
+      "profile_only_coverage": 247,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 20.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 0.125,
+      "omp_only_coverage": 0,
+      "paired_coverage_bootstrap_ci95": [
+        0.796875,
+        0.88671875
+      ],
+      "paired_mcnemar_holm_p_value": 1.4053440263724502e-63,
+      "paired_mcnemar_p_value": 1.8991135491519597e-65,
+      "paired_profile_minus_omp_coverage_change": 0.84375,
+      "policy": "leave_one_separation_level_out",
+      "profile_coverage": 0.96875,
+      "profile_only_coverage": 216,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 20.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 10,
+      "paired_coverage_bootstrap_ci95": [
+        -0.0625,
+        -0.015625
+      ],
+      "paired_mcnemar_holm_p_value": 0.0859375,
+      "paired_mcnemar_p_value": 0.001953125,
+      "paired_profile_minus_omp_coverage_change": -0.0390625,
+      "policy": "leave_one_separation_level_out",
+      "profile_coverage": 0.9609375,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 20.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 29,
+      "paired_coverage_bootstrap_ci95": [
+        -0.15234375,
+        -0.07421875
+      ],
+      "paired_mcnemar_holm_p_value": 2.2724270820617676e-07,
+      "paired_mcnemar_p_value": 3.725290298461914e-09,
+      "paired_profile_minus_omp_coverage_change": -0.11328125,
+      "policy": "leave_one_separation_level_out",
+      "profile_coverage": 0.88671875,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 20.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 0.03125,
+      "omp_only_coverage": 0,
+      "paired_coverage_bootstrap_ci95": [
+        0.90234375,
+        0.9609375
+      ],
+      "paired_mcnemar_holm_p_value": 1.743218222674142e-70,
+      "paired_mcnemar_p_value": 2.263919769706678e-72,
+      "paired_profile_minus_omp_coverage_change": 0.93359375,
+      "policy": "leave_one_separation_level_out",
+      "profile_coverage": 0.96484375,
+      "profile_only_coverage": 239,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 30.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 0.39453125,
+      "omp_only_coverage": 0,
+      "paired_coverage_bootstrap_ci95": [
+        0.51953125,
+        0.640625
+      ],
+      "paired_mcnemar_holm_p_value": 1.9057659114817512e-43,
+      "paired_mcnemar_p_value": 2.802596928649634e-45,
+      "paired_profile_minus_omp_coverage_change": 0.58203125,
+      "policy": "leave_one_separation_level_out",
+      "profile_coverage": 0.9765625,
+      "profile_only_coverage": 149,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 30.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 0,
+      "paired_coverage_bootstrap_ci95": [
+        0.0,
+        0.0
+      ],
+      "paired_mcnemar_holm_p_value": 1.0,
+      "paired_mcnemar_p_value": 1.0,
+      "paired_profile_minus_omp_coverage_change": 0.0,
+      "policy": "leave_one_separation_level_out",
+      "profile_coverage": 1.0,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 30.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 18,
+      "paired_coverage_bootstrap_ci95": [
+        -0.10166015624999997,
+        -0.0390625
+      ],
+      "paired_mcnemar_holm_p_value": 0.0004425048828125,
+      "paired_mcnemar_p_value": 7.62939453125e-06,
+      "paired_profile_minus_omp_coverage_change": -0.0703125,
+      "policy": "leave_one_separation_level_out",
+      "profile_coverage": 0.9296875,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 30.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 0.06640625,
+      "omp_only_coverage": 0,
+      "paired_coverage_bootstrap_ci95": [
+        0.8006835937500001,
+        0.88671875
+      ],
+      "paired_mcnemar_holm_p_value": 1.4053440263724502e-63,
+      "paired_mcnemar_p_value": 1.8991135491519597e-65,
+      "paired_profile_minus_omp_coverage_change": 0.84375,
+      "policy": "leave_one_gain_phase_level_out",
+      "profile_coverage": 0.91015625,
+      "profile_only_coverage": 216,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 20.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          0.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 10,
+      "paired_coverage_bootstrap_ci95": [
+        -0.0625,
+        -0.015625
+      ],
+      "paired_mcnemar_holm_p_value": 0.0859375,
+      "paired_mcnemar_p_value": 0.001953125,
+      "paired_profile_minus_omp_coverage_change": -0.0390625,
+      "policy": "leave_one_gain_phase_level_out",
+      "profile_coverage": 0.9609375,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 20.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 7,
+      "paired_coverage_bootstrap_ci95": [
+        -0.05078125,
+        -0.0078125
+      ],
+      "paired_mcnemar_holm_p_value": 0.515625,
+      "paired_mcnemar_p_value": 0.015625,
+      "paired_profile_minus_omp_coverage_change": -0.02734375,
+      "policy": "leave_one_gain_phase_level_out",
+      "profile_coverage": 0.97265625,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 20.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          0.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 10,
+      "paired_coverage_bootstrap_ci95": [
+        -0.0625,
+        -0.015625
+      ],
+      "paired_mcnemar_holm_p_value": 0.0859375,
+      "paired_mcnemar_p_value": 0.001953125,
+      "paired_profile_minus_omp_coverage_change": -0.0390625,
+      "policy": "leave_one_gain_phase_level_out",
+      "profile_coverage": 0.9609375,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 20.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 0.18359375,
+      "omp_only_coverage": 3,
+      "paired_coverage_bootstrap_ci95": [
+        0.7265625,
+        0.8359375
+      ],
+      "paired_mcnemar_holm_p_value": 2.0119218809029154e-54,
+      "paired_mcnemar_p_value": 2.833692790004106e-56,
+      "paired_profile_minus_omp_coverage_change": 0.78125,
+      "policy": "leave_one_gain_phase_level_out",
+      "profile_coverage": 0.96484375,
+      "profile_only_coverage": 203,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 30.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          0.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 6,
+      "paired_coverage_bootstrap_ci95": [
+        -0.04296875,
+        -0.0078125
+      ],
+      "paired_mcnemar_holm_p_value": 0.9375,
+      "paired_mcnemar_p_value": 0.03125,
+      "paired_profile_minus_omp_coverage_change": -0.0234375,
+      "policy": "leave_one_gain_phase_level_out",
+      "profile_coverage": 0.9765625,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 30.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          90.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 4,
+      "paired_coverage_bootstrap_ci95": [
+        -0.03125,
+        -0.00390625
+      ],
+      "paired_mcnemar_holm_p_value": 1.0,
+      "paired_mcnemar_p_value": 0.125,
+      "paired_profile_minus_omp_coverage_change": -0.015625,
+      "policy": "leave_one_gain_phase_level_out",
+      "profile_coverage": 0.984375,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 30.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          256,
+          30.0,
+          1.0,
+          0.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 22,
+      "paired_coverage_bootstrap_ci95": [
+        -0.12109375,
+        -0.05078125
+      ],
+      "paired_mcnemar_holm_p_value": 2.86102294921875e-05,
+      "paired_mcnemar_p_value": 4.76837158203125e-07,
+      "paired_profile_minus_omp_coverage_change": -0.0859375,
+      "policy": "leave_one_gain_phase_level_out",
+      "profile_coverage": 0.9140625,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 30.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 0.03515625,
+      "omp_only_coverage": 0,
+      "paired_coverage_bootstrap_ci95": [
+        0.9140625,
+        0.97265625
+      ],
+      "paired_mcnemar_holm_p_value": 2.2356207725853446e-71,
+      "paired_mcnemar_p_value": 2.8298997121333476e-73,
+      "paired_profile_minus_omp_coverage_change": 0.9453125,
+      "policy": "leave_one_gain_phase_level_out",
+      "profile_coverage": 0.98046875,
+      "profile_only_coverage": 242,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 20.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          0.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 15,
+      "paired_coverage_bootstrap_ci95": [
+        -0.08984375,
+        -0.03125
+      ],
+      "paired_mcnemar_holm_p_value": 0.003173828125,
+      "paired_mcnemar_p_value": 6.103515625e-05,
+      "paired_profile_minus_omp_coverage_change": -0.05859375,
+      "policy": "leave_one_gain_phase_level_out",
+      "profile_coverage": 0.94140625,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 20.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 4,
+      "paired_coverage_bootstrap_ci95": [
+        -0.03125,
+        -0.00390625
+      ],
+      "paired_mcnemar_holm_p_value": 1.0,
+      "paired_mcnemar_p_value": 0.125,
+      "paired_profile_minus_omp_coverage_change": -0.015625,
+      "policy": "leave_one_gain_phase_level_out",
+      "profile_coverage": 0.984375,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 20.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          0.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 31,
+      "paired_coverage_bootstrap_ci95": [
+        -0.16015625,
+        -0.08203125
+      ],
+      "paired_mcnemar_holm_p_value": 5.960464477539063e-08,
+      "paired_mcnemar_p_value": 9.313225746154785e-10,
+      "paired_profile_minus_omp_coverage_change": -0.12109375,
+      "policy": "leave_one_gain_phase_level_out",
+      "profile_coverage": 0.87890625,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 20.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 0.1875,
+      "omp_only_coverage": 0,
+      "paired_coverage_bootstrap_ci95": [
+        0.734375,
+        0.83203125
+      ],
+      "paired_mcnemar_holm_p_value": 4.480571000060022e-59,
+      "paired_mcnemar_p_value": 6.223015277861142e-61,
+      "paired_profile_minus_omp_coverage_change": 0.78515625,
+      "policy": "leave_one_gain_phase_level_out",
+      "profile_coverage": 0.97265625,
+      "profile_only_coverage": 201,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 30.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          0.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 11,
+      "paired_coverage_bootstrap_ci95": [
+        -0.0703125,
+        -0.01953125
+      ],
+      "paired_mcnemar_holm_p_value": 0.044921875,
+      "paired_mcnemar_p_value": 0.0009765625,
+      "paired_profile_minus_omp_coverage_change": -0.04296875,
+      "policy": "leave_one_gain_phase_level_out",
+      "profile_coverage": 0.95703125,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 30.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          20.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          90.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 0,
+      "paired_coverage_bootstrap_ci95": [
+        0.0,
+        0.0
+      ],
+      "paired_mcnemar_holm_p_value": 1.0,
+      "paired_mcnemar_p_value": 1.0,
+      "paired_profile_minus_omp_coverage_change": 0.0,
+      "policy": "leave_one_gain_phase_level_out",
+      "profile_coverage": 1.0,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 30.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          20.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          20.0,
+          1.0,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          0.1,
+          0.0
+        ],
+        [
+          1024,
+          30.0,
+          1.0,
+          0.0
+        ]
+      ],
+      "calibration_trials": 1024,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 1.0,
+      "omp_only_coverage": 18,
+      "paired_coverage_bootstrap_ci95": [
+        -0.1015625,
+        -0.04287109375000142
+      ],
+      "paired_mcnemar_holm_p_value": 0.0004425048828125,
+      "paired_mcnemar_p_value": 7.62939453125e-06,
+      "paired_profile_minus_omp_coverage_change": -0.0703125,
+      "policy": "leave_one_gain_phase_level_out",
+      "profile_coverage": 0.9296875,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 30.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          20.0,
+          0.1,
+          0.0
+        ]
+      ],
+      "calibration_trials": 256,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 0.95703125,
+      "omp_only_coverage": 9,
+      "paired_coverage_bootstrap_ci95": [
+        -0.0234375,
+        0.04296875
+      ],
+      "paired_mcnemar_holm_p_value": 1.0,
+      "paired_mcnemar_p_value": 0.8238029479980469,
+      "paired_profile_minus_omp_coverage_change": 0.0078125,
+      "policy": "within_condition",
+      "profile_coverage": 0.96484375,
+      "profile_only_coverage": 11,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 20.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          20.0,
+          0.1,
+          90.0
+        ]
+      ],
+      "calibration_trials": 256,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 0.95703125,
+      "omp_only_coverage": 4,
+      "paired_coverage_bootstrap_ci95": [
+        -0.0234375,
+        0.015625
+      ],
+      "paired_mcnemar_holm_p_value": 1.0,
+      "paired_mcnemar_p_value": 1.0,
+      "paired_profile_minus_omp_coverage_change": -0.00390625,
+      "policy": "within_condition",
+      "profile_coverage": 0.953125,
+      "profile_only_coverage": 3,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 20.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          20.0,
+          1.0,
+          0.0
+        ]
+      ],
+      "calibration_trials": 256,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 0.94921875,
+      "omp_only_coverage": 1,
+      "paired_coverage_bootstrap_ci95": [
+        -0.01171875,
+        0.01171875
+      ],
+      "paired_mcnemar_holm_p_value": 1.0,
+      "paired_mcnemar_p_value": 1.0,
+      "paired_profile_minus_omp_coverage_change": 0.0,
+      "policy": "within_condition",
+      "profile_coverage": 0.94921875,
+      "profile_only_coverage": 1,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 20.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          20.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 256,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 0.953125,
+      "omp_only_coverage": 0,
+      "paired_coverage_bootstrap_ci95": [
+        0.0,
+        0.0
+      ],
+      "paired_mcnemar_holm_p_value": 1.0,
+      "paired_mcnemar_p_value": 1.0,
+      "paired_profile_minus_omp_coverage_change": 0.0,
+      "policy": "within_condition",
+      "profile_coverage": 0.953125,
+      "profile_only_coverage": 0,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 20.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          30.0,
+          0.1,
+          0.0
+        ]
+      ],
+      "calibration_trials": 256,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 0.96875,
+      "omp_only_coverage": 10,
+      "paired_coverage_bootstrap_ci95": [
+        -0.0390625,
+        0.0234375
+      ],
+      "paired_mcnemar_holm_p_value": 1.0,
+      "paired_mcnemar_p_value": 0.8145294189453125,
+      "paired_profile_minus_omp_coverage_change": -0.0078125,
+      "policy": "within_condition",
+      "profile_coverage": 0.9609375,
+      "profile_only_coverage": 8,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 30.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          30.0,
+          0.1,
+          90.0
+        ]
+      ],
+      "calibration_trials": 256,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 0.94921875,
+      "omp_only_coverage": 3,
+      "paired_coverage_bootstrap_ci95": [
+        0.0,
+        0.05078125
+      ],
+      "paired_mcnemar_holm_p_value": 1.0,
+      "paired_mcnemar_p_value": 0.14599609375,
+      "paired_profile_minus_omp_coverage_change": 0.0234375,
+      "policy": "within_condition",
+      "profile_coverage": 0.97265625,
+      "profile_only_coverage": 9,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 30.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          30.0,
+          1.0,
+          0.0
+        ]
+      ],
+      "calibration_trials": 256,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 0.90234375,
+      "omp_only_coverage": 0,
+      "paired_coverage_bootstrap_ci95": [
+        0.03125,
+        0.08984375
+      ],
+      "paired_mcnemar_holm_p_value": 0.003173828125,
+      "paired_mcnemar_p_value": 6.103515625e-05,
+      "paired_profile_minus_omp_coverage_change": 0.05859375,
+      "policy": "within_condition",
+      "profile_coverage": 0.9609375,
+      "profile_only_coverage": 15,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 30.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          256,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 256,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 0.94921875,
+      "omp_only_coverage": 6,
+      "paired_coverage_bootstrap_ci95": [
+        -0.01953125,
+        0.03515625
+      ],
+      "paired_mcnemar_holm_p_value": 1.0,
+      "paired_mcnemar_p_value": 0.79052734375,
+      "paired_profile_minus_omp_coverage_change": 0.0078125,
+      "policy": "within_condition",
+      "profile_coverage": 0.95703125,
+      "profile_only_coverage": 8,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 30.0,
+      "tone_count": 256
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          20.0,
+          0.1,
+          0.0
+        ]
+      ],
+      "calibration_trials": 256,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 0.9140625,
+      "omp_only_coverage": 6,
+      "paired_coverage_bootstrap_ci95": [
+        0.0234375,
+        0.10546875
+      ],
+      "paired_mcnemar_holm_p_value": 0.14132830500602722,
+      "paired_mcnemar_p_value": 0.0037191659212112427,
+      "paired_profile_minus_omp_coverage_change": 0.0625,
+      "policy": "within_condition",
+      "profile_coverage": 0.9765625,
+      "profile_only_coverage": 22,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 20.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          20.0,
+          0.1,
+          90.0
+        ]
+      ],
+      "calibration_trials": 256,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 0.953125,
+      "omp_only_coverage": 4,
+      "paired_coverage_bootstrap_ci95": [
+        -0.0078125,
+        0.04296875
+      ],
+      "paired_mcnemar_holm_p_value": 1.0,
+      "paired_mcnemar_p_value": 0.3876953125,
+      "paired_profile_minus_omp_coverage_change": 0.015625,
+      "policy": "within_condition",
+      "profile_coverage": 0.96875,
+      "profile_only_coverage": 8,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 20.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          20.0,
+          1.0,
+          0.0
+        ]
+      ],
+      "calibration_trials": 256,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 0.953125,
+      "omp_only_coverage": 1,
+      "paired_coverage_bootstrap_ci95": [
+        0.0,
+        0.03515625
+      ],
+      "paired_mcnemar_holm_p_value": 1.0,
+      "paired_mcnemar_p_value": 0.21875,
+      "paired_profile_minus_omp_coverage_change": 0.015625,
+      "policy": "within_condition",
+      "profile_coverage": 0.96875,
+      "profile_only_coverage": 5,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 20.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          20.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 256,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 0.94921875,
+      "omp_only_coverage": 2,
+      "paired_coverage_bootstrap_ci95": [
+        -0.0078125,
+        0.03125
+      ],
+      "paired_mcnemar_holm_p_value": 1.0,
+      "paired_mcnemar_p_value": 0.453125,
+      "paired_profile_minus_omp_coverage_change": 0.01171875,
+      "policy": "within_condition",
+      "profile_coverage": 0.9609375,
+      "profile_only_coverage": 5,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 20.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          30.0,
+          0.1,
+          0.0
+        ]
+      ],
+      "calibration_trials": 256,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 0.98046875,
+      "omp_only_coverage": 8,
+      "paired_coverage_bootstrap_ci95": [
+        -0.04296875,
+        0.00390625
+      ],
+      "paired_mcnemar_holm_p_value": 1.0,
+      "paired_mcnemar_p_value": 0.2265625,
+      "paired_profile_minus_omp_coverage_change": -0.01953125,
+      "policy": "within_condition",
+      "profile_coverage": 0.9609375,
+      "profile_only_coverage": 3,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 30.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          30.0,
+          0.1,
+          90.0
+        ]
+      ],
+      "calibration_trials": 256,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 0.96875,
+      "omp_only_coverage": 1,
+      "paired_coverage_bootstrap_ci95": [
+        -0.01171875,
+        0.01171875
+      ],
+      "paired_mcnemar_holm_p_value": 1.0,
+      "paired_mcnemar_p_value": 1.0,
+      "paired_profile_minus_omp_coverage_change": 0.0,
+      "policy": "within_condition",
+      "profile_coverage": 0.96875,
+      "profile_only_coverage": 1,
+      "separation_fraction_of_reciprocal_bandwidth": 0.1,
+      "snr_db": 30.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          30.0,
+          1.0,
+          0.0
+        ]
+      ],
+      "calibration_trials": 256,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 0.0,
+      "omp_coverage": 0.94140625,
+      "omp_only_coverage": 0,
+      "paired_coverage_bootstrap_ci95": [
+        0.03125,
+        0.08984375
+      ],
+      "paired_mcnemar_holm_p_value": 0.003173828125,
+      "paired_mcnemar_p_value": 6.103515625e-05,
+      "paired_profile_minus_omp_coverage_change": 0.05859375,
+      "policy": "within_condition",
+      "profile_coverage": 1.0,
+      "profile_only_coverage": 15,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 30.0,
+      "tone_count": 1024
+    },
+    {
+      "calibration_conditions": [
+        [
+          1024,
+          30.0,
+          1.0,
+          90.0
+        ]
+      ],
+      "calibration_trials": 256,
+      "evaluation_trials": 256,
+      "gain_phase_difference_deg": 90.0,
+      "omp_coverage": 0.94921875,
+      "omp_only_coverage": 7,
+      "paired_coverage_bootstrap_ci95": [
+        -0.015625,
+        0.05078125
+      ],
+      "paired_mcnemar_holm_p_value": 1.0,
+      "paired_mcnemar_p_value": 0.359283447265625,
+      "paired_profile_minus_omp_coverage_change": 0.01953125,
+      "policy": "within_condition",
+      "profile_coverage": 0.96875,
+      "profile_only_coverage": 12,
+      "separation_fraction_of_reciprocal_bandwidth": 1.0,
+      "snr_db": 30.0,
+      "tone_count": 1024
+    }
+  ],
+  "evidence_grade": "MATCHED_ANALYTICAL_CROSS_CONDITION_CALIBRATION_STRESS_TEST",
+  "input_report": "docs/research/results/identifiability-matched-profile-vs-omp-seed20261029.json",
+  "input_report_sha256": "538480ad9ba27f533610947b12128d6456ac99004ad4d00d688288d3158e5a07",
+  "input_schema": "loslab.identifiability_matched_estimators.v1",
+  "input_source_revision": "04a50a6e40970f477051b425bddb341ca76922aa",
+  "limitations": [
+    "Calibration/evaluation are two-path analytical CFR simulations with known path count, noise variance, and frequency grid.",
+    "Cross-condition scores are not exchangeable; empirical coverage is a stress test, not a conformal guarantee.",
+    "Bootstrap intervals resample paired evaluation rows conditional on the observed calibration scores; they do not include calibration-sample uncertainty.",
+    "Tone count is held fixed while pooling calibration; no tone-count transfer or independent-scene transfer is tested.",
+    "OMP delay errors are normalized by reciprocal bandwidth; only the finite-grid OMP plus local-refinement baseline is evaluated.",
+    "No diffuse multipath, model-order uncertainty, receiver estimation nuisance, learned method, RT scene, or measured channel is included."
+  ],
+  "multiplicity_correction": "Holm adjustment across every policy-condition paired test",
+  "package_source_sha256": "4312f1c6c41e355ce8f2c7111929067fcb030d2ab40f29adf5dda2063e7bae0b",
+  "runner_sha256": "9430b822a697484b6bef9887f01c6e6fb025246291a4f4fc8e4e12d6b76c8e39",
+  "schema": "loslab.identifiability_matched_transfer.v1",
+  "seed": 20261030,
+  "source_revision": "c4986c723b5bf6c0d527e81115de38fe0af0530d",
+  "versions": {
+    "git_sha": "c4986c723b5bf6c0d527e81115de38fe0af0530d",
+    "numpy": "2.5.4",
+    "python": "3.12.3",
+    "scikit-learn": "1.9.1",
+    "sionna": "not installed",
+    "sionna-phy": "not installed",
+    "sionna-rt": "not installed",
+    "torch": "2.11.0+cpu"
+  }
+}
