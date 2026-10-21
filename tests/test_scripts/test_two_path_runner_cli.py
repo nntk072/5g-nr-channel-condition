@@ -49,11 +49,14 @@ def test_runner_publishes_complete_hashed_predictions_and_group_reports(tmp_path
     assert paired["comparisons"][0]["comparison_unit"] == "independent_group"
     summary_path = tmp_path / "summary.json"
     summary = summarize_run(output, summary_path)
-    assert summary["schema"] == "loslab.observable_multipath_summary.v2"
+    assert summary["schema"] == "loslab.observable_multipath_summary.v3"
     assert len(summary["verified_artifacts"]) == 10
     set_report = summary["profile_likelihood_delay_sets"]
     assert set_report["calibration"]["finite_sample_unbounded"]
     assert set_report["test"]["sample_coverage"] == 1.0
+    assert set_report["test_multicomponent_sample_count"] == 0
+    assert "rows" not in set_report["test"]
+    assert "group_coverage" not in set_report["test"]
     with pytest.raises(FileExistsError, match="refusing to overwrite"):
         summarize_run(output, summary_path)
 

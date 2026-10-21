@@ -70,7 +70,7 @@ def summarize_run(run_dir: Path, output: Path) -> dict[str, Any]:
         raise FileNotFoundError(f"run artifact is missing: {profile_set_path}")
     summary = {
         "schema": (
-            "loslab.observable_multipath_summary.v2"
+            "loslab.observable_multipath_summary.v3"
             if profile_set is not None
             else "loslab.observable_multipath_summary.v1"
         ),
@@ -108,9 +108,41 @@ def summarize_run(run_dir: Path, output: Path) -> dict[str, Any]:
         "limitations": manifest["limitations"],
     }
     if profile_set is not None:
+        calibration = profile_set["calibration"]
+        test = profile_set["test"]
+        rows = test["rows"]
+        component_counts = sorted({int(row["component_count"]) for row in rows})
         summary["profile_likelihood_delay_sets"] = {
-            "calibration": profile_set["calibration"],
-            "test": profile_set["test"],
+            "calibration": {
+                key: calibration[key]
+                for key in (
+                    "coverage_level",
+                    "group_count",
+                    "sample_count",
+                    "finite_sample_unbounded",
+                    "deviance_threshold",
+                    "order_statistic_rank_one_based",
+                )
+            },
+            "test": {
+                key: test[key]
+                for key in (
+                    "group_count",
+                    "sample_count",
+                    "sample_coverage",
+                    "group_simultaneous_coverage",
+                    "mean_total_set_measure_s",
+                    "mean_component_count",
+                    "by_stratum_descriptive",
+                )
+            },
+            "test_component_count_histogram": {
+                str(count): sum(int(row["component_count"]) == count for row in rows)
+                for count in component_counts
+            },
+            "test_multicomponent_sample_count": sum(
+                int(row["component_count"]) > 1 for row in rows
+            ),
             "grid_points": profile_set["grid_points"],
             "interpretation": profile_set["interpretation"],
         }
