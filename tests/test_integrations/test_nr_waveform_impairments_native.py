@@ -5,6 +5,7 @@ import pytest
 torch = pytest.importorskip("torch")
 pytest.importorskip("sionna")
 
+from experiments.cp_margin import run_static_cp_margin_experiment  # noqa: E402
 from integrations.sionna.nr_pusch import SionnaPUSCHLSReceiver  # noqa: E402
 from integrations.sionna.ofdm_impairments import (  # noqa: E402
     apply_integer_timing_offset,
@@ -212,3 +213,34 @@ def test_time_domain_two_tap_pusch_waveform_decodes_and_tracks_awgn_trend():
 
     assert high_snr_ber < low_snr_ber
     assert high_snr_bler < low_snr_bler
+
+
+@pytest.mark.native_sionna
+def test_fixed_payload_pusch_cp_margin_experiment_pairs_same_bits_and_noise():
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA is not available")
+
+    result = run_static_cp_margin_experiment(
+        frames=128,
+        batch_size=32,
+        seed=82_417,
+        snr_db=30.0,
+        n_size_bwp=12,
+        subcarrier_spacing_khz=30,
+        in_cp_guard_samples=2,
+        beyond_cp_samples=3,
+    )
+    config = result["configuration"]
+    inside = result["points"]["inside_cp"]
+    beyond = result["points"]["beyond_cp"]
+
+    assert config["in_cp_delay_samples"] < config["cyclic_prefix_min_samples"]
+    assert config["beyond_cp_delay_samples"] > config["cyclic_prefix_min_samples"]
+    assert config["same_pusch_bits_and_awgn_across_conditions"]
+    assert len(config["matched_realization_checks"]) == 4
+    assert len(inside["frame_error_mask"]) == len(beyond["frame_error_mask"]) == 128
+    assert inside["bits"] == beyond["bits"]
+    assert len(inside["measured_receive_snr_db_by_batch"]) == 4
+    assert len(beyond["measured_receive_snr_db_by_batch"]) == 4
+    assert beyond["bler"] > inside["bler"]
+    assert result["paired_comparison"]["mcnemar_exact_two_sided_p_value"] < 0.05
