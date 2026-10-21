@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from importlib.metadata import PackageNotFoundError, version
 from typing import Any
 
+from .random import call_with_sionna_seed
+
 
 @dataclass(frozen=True, slots=True)
 class SionnaTDLChannel:
@@ -89,7 +91,6 @@ def generate_tdl_frequency_response(
 
     try:
         import torch
-        from sionna.phy import config as phy_config
         from sionna.phy.channel.tr38901 import TDL
     except ImportError as exc:
         raise RuntimeError(
@@ -109,20 +110,16 @@ def generate_tdl_frequency_response(
         spec_version=spec_version,
         device=device,
     )
-    # Sionna 2.2 draws from its configured per-device generator. Temporarily
-    # seed and restore it so this function is deterministic without advancing
-    # the caller's shared Sionna/PyTorch random stream.
-    generator = phy_config.torch_rng(device)
-    rng_state = generator.get_state()
-    try:
-        generator.manual_seed(seed)
-        h_path, tau_s = tdl(
+    # Sionna 2.2 draws from its configured per-device generator.
+    h_path, tau_s = call_with_sionna_seed(
+        device,
+        seed,
+        lambda: tdl(
             batch_size=batch_size,
             num_time_steps=num_time_steps,
             sampling_frequency=sampling_frequency_hz,
-        )
-    finally:
-        generator.set_state(rng_state)
+        ),
+    )
 
     # Move the path axis behind time to broadcast delays against both time
     # samples and centered OFDM baseband frequencies.

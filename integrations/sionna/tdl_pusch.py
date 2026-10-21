@@ -1,0 +1,187 @@
+"""Controlled Sionna TDL → NR PUSCH frequency-domain link generation."""
+
+from __future__ import annotations
+
+import math
+from dataclasses import dataclass
+from typing import Any
+
+from datasets.nr import NRChannelRecord, NRObservation
+from receivers.nr import NRChannelEstimate
+
+from .random import call_with_sionna_seed
+
+
+@dataclass(frozen=True, slots=True)
+class SionnaTDLPUSCHBatch:
+    """Waveform, receiver observation, and private channel-truth target."""
+
+    transmit_grid: Any
+    transmit_bits: Any
+    received_grid: Any
+    channel_truth: Any
+    noise_variance: Any
+    metadata: dict[str, Any]
+
+
+def tdl_pusch_records(
+    receiver: Any,
+    batch: SionnaTDLPUSCHBatch,
+    *,
+    sample_ids: tuple[str, ...],
+) -> tuple[NRChannelRecord, ...]:
+    """Split one simulated batch into receiver-only observations and CFR targets."""
+    batch_size = int(batch.received_grid.shape[0])
+    if len(sample_ids) != batch_size or len(set(sample_ids)) != batch_size:
+        raise ValueError("sample_ids must uniquely identify every batch example")
+    estimate = receiver.estimate(batch.received_grid, batch.noise_variance)
+    torch = receiver._torch
+    effective_bins = torch.as_tensor(
+        receiver.resource_grid.effective_subcarrier_ind,
+        dtype=torch.long,
+        device=batch.channel_truth.device,
+    )
+    records: list[NRChannelRecord] = []
+    for batch_index, sample_id in enumerate(sample_ids):
+        h_hat = estimate.h_hat[batch_index : batch_index + 1]
+        variance = (
+            estimate.error_variance
+            if estimate.error_variance.shape[0] == 1
+            else estimate.error_variance[batch_index : batch_index + 1]
+        )
+        channel_estimate = NRChannelEstimate(
+            h_hat=h_hat,
+            error_variance=variance,
+            pilot_mask=estimate.pilot_mask,
+            metadata=estimate.metadata,
+        )
+        observation = NRObservation.from_receiver_output(
+            sample_id=sample_id,
+            received_grid=batch.received_grid[batch_index : batch_index + 1],
+            channel_estimate=channel_estimate,
+            effective_subcarrier_indices=receiver.resource_grid.effective_subcarrier_ind,
+            receiver_config=receiver.config,
+        )
+        # The initial receiver contract is one transmit antenna/port. Convert
+        # OFDMChannel's antenna axis into the estimator's one stream axis.
+        channel_truth = batch.channel_truth[batch_index : batch_index + 1]
+        channel_truth = channel_truth.squeeze(4).unsqueeze(4)
+        channel_truth = torch.index_select(channel_truth, -1, effective_bins)
+        records.append(
+            NRChannelRecord(
+                observation=observation,
+                targets={"channel_cfr": channel_truth},
+                target_masks={"channel_cfr": torch.ones_like(channel_truth, dtype=torch.bool)},
+                provenance={
+                    **batch.metadata,
+                    "batch_index": batch_index,
+                    "channel_truth_source": "Sionna OFDMChannel return_channel",
+                    "target_semantics": "perfect synchronized effective-subcarrier CFR",
+                },
+            )
+        )
+    return tuple(records)
+
+
+def generate_tdl_pusch_batch(
+    receiver: Any,
+    *,
+    model: str,
+    batch_size: int,
+    seed: int,
+    carrier_frequency_hz: float,
+    delay_spread_s: float,
+    noise_variance: float,
+    num_rx_ant: int = 1,
+    min_speed_mps: float = 0.0,
+    max_speed_mps: float | None = None,
+    spec_version: str = "19.2",
+) -> SionnaTDLPUSCHBatch:
+    """Create seeded PUSCH observations through Sionna's TDL and OFDM blocks.
+
+    Uses an ideal frequency-domain OFDM link: synchronization is perfect and
+    Sionna's ``OFDMChannel`` assumes no ICI/ISI (so the CP must cover the
+    effective channel delay). This deliberately is not a timing/CFO-impaired
+    waveform or a claim of full receiver conformance.
+    """
+    if isinstance(batch_size, bool) or not isinstance(batch_size, int) or batch_size <= 0:
+        raise ValueError("batch_size must be a positive integer")
+    if isinstance(num_rx_ant, bool) or not isinstance(num_rx_ant, int) or num_rx_ant <= 0:
+        raise ValueError("num_rx_ant must be a positive integer")
+    if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
+        raise ValueError("seed must be a nonnegative integer")
+    if not math.isfinite(noise_variance) or noise_variance < 0:
+        raise ValueError("noise_variance must be finite and nonnegative")
+    if not math.isfinite(carrier_frequency_hz) or carrier_frequency_hz <= 0:
+        raise ValueError("carrier_frequency_hz must be finite and positive")
+    if not math.isfinite(delay_spread_s) or delay_spread_s < 0:
+        raise ValueError("delay_spread_s must be finite and nonnegative")
+    if receiver.config.num_layers != 1 or receiver.config.num_antenna_ports != 1:
+        raise ValueError("initial PUSCH link supports one layer and one transmit antenna port")
+
+    try:
+        import torch
+        from sionna.phy.channel import OFDMChannel
+        from sionna.phy.channel.tr38901 import TDL
+    except ImportError as exc:
+        raise RuntimeError(
+            "Install the optional Sionna 2.2 PHY dependencies to generate NR PUSCH batches"
+        ) from exc
+
+    device = receiver.device
+    if device.startswith("cuda") and not torch.cuda.is_available():
+        raise RuntimeError(f"CUDA device requested but unavailable: {device}")
+    if seed > 2**63 - 3:
+        raise ValueError("seed must leave room for derived channel and noise seeds")
+    resource_grid = receiver.resource_grid
+    tdl = TDL(
+        model=model,
+        delay_spread=delay_spread_s,
+        carrier_frequency=carrier_frequency_hz,
+        min_speed=min_speed_mps,
+        max_speed=max_speed_mps,
+        num_rx_ant=num_rx_ant,
+        num_tx_ant=1,
+        spec_version=spec_version,
+        device=device,
+    )
+    ofdm_channel = OFDMChannel(
+        tdl,
+        resource_grid,
+        normalize_channel=False,
+        return_channel=True,
+        device=device,
+    )
+    transmit_grid, transmit_bits = receiver.transmit(batch_size, seed=seed)
+    received_clean, channel_truth = call_with_sionna_seed(
+        device,
+        seed + 1,
+        lambda: ofdm_channel(transmit_grid),
+    )
+    noise_generator = torch.Generator(device=device)
+    noise_generator.manual_seed(seed + 2)
+    noise = torch.complex(
+        torch.randn(received_clean.shape, device=device, generator=noise_generator),
+        torch.randn(received_clean.shape, device=device, generator=noise_generator),
+    ) * math.sqrt(noise_variance / 2.0)
+    received_grid = received_clean + noise
+    return SionnaTDLPUSCHBatch(
+        transmit_grid=transmit_grid,
+        transmit_bits=transmit_bits,
+        received_grid=received_grid,
+        channel_truth=channel_truth,
+        noise_variance=torch.as_tensor(noise_variance, dtype=torch.float32, device=device),
+        metadata={
+            "profile_proxy": model,
+            "geometric_los_label": None,
+            "spec_version": spec_version,
+            "carrier_frequency_hz": carrier_frequency_hz,
+            "delay_spread_s": delay_spread_s,
+            "noise_variance_per_complex_dimension": noise_variance,
+            "num_rx_ant": num_rx_ant,
+            "sampling_frequency_hz": 1.0 / resource_grid.ofdm_symbol_duration,
+            "seed": seed,
+            "device": device,
+            "channel_model": "Sionna OFDMChannel; perfect synchronization; no ICI/ISI",
+        },
+    )

@@ -88,6 +88,15 @@ recorded as stochastic <em>profile proxies</em>; they are never emitted as
 geometric LOS labels. It generates channel coefficients and CFR only, not a
 complete PUSCH/CP/synchronization/receiver chain.
 
+For an ideal frequency-domain simulation batch,
+<code>integrations.sionna.generate_tdl_pusch_batch</code> connects the PUSCH
+transmitter, pinned TDL profile, Sionna OFDM channel, reproducible AWGN, and
+PUSCH observation adapter. It keeps transmitted bits and perfect channel truth
+separate from <code>NRObservation.model_inputs()</code>. The current link supports
+one transmit layer/port, assumes perfect synchronization and a sufficient CP,
+and does not model CFO, ICI/ISI, or decode BLER; report it as a simulation
+fixture until those receiver checks are implemented.
+
 ## Repository map
 
 ```text

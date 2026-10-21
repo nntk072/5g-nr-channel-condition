@@ -9,6 +9,8 @@ from typing import Any
 from datasets.nr import NRObservation
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
+from .random import call_with_sionna_seed
+
 
 class SionnaPUSCHLSReceiver:
     """Estimate channels from a received PUSCH resource grid using NR DMRS.
@@ -139,4 +141,18 @@ class SionnaPUSCHLSReceiver:
             channel_estimate=estimate,
             effective_subcarrier_indices=self._resource_grid.effective_subcarrier_ind,
             receiver_config=self.config,
+        )
+
+    def transmit(self, batch_size: int, *, seed: int = 0) -> tuple[Any, Any]:
+        """Generate PUSCH resource grids and bits reproducibly.
+
+        This exposes the configured Sionna transmitter without leaking bits
+        into :class:`NRObservation` or its inference payload.
+        """
+        if isinstance(batch_size, bool) or not isinstance(batch_size, int) or batch_size <= 0:
+            raise ValueError("batch_size must be a positive integer")
+        return call_with_sionna_seed(
+            self.device,
+            seed,
+            lambda: self._transmitter(batch_size),
         )
