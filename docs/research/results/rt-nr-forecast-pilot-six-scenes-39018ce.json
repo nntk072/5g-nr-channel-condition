@@ -1,0 +1,509 @@
+{
+  "limitations": [
+    "Only six short synthetic or built-in scene trajectories are available.",
+    "The locked test split contains one independent scene group and three one-step persistence transitions.",
+    "The linear complex trend is a simple baseline, not a Doppler or learned dynamics model.",
+    "Targets are simulator CFR truth; no measured channel or within-slot dynamics are evaluated.",
+    "Metrics are descriptive and do not support a statistical scene-generalization claim."
+  ],
+  "methods": {
+    "linear_complex_extrapolation": "two latest estimates with timestamp-scaled complex linear trend",
+    "persistence": "reuse the latest past DMRS channel estimate"
+  },
+  "metrics_by_split": {
+    "test": {
+      "linear_complex_extrapolation": {
+        "mean_transition_nmse_db": 9.84539739980645,
+        "mean_transition_nmse_linear": 10.12602427766913,
+        "median_transition_nmse_db": 9.84539739980645,
+        "per_trajectory_mean_nmse_linear": {
+          "rt-simple-street-canyon-route-20261021-a": 10.12602427766913
+        },
+        "trajectory_count": 1,
+        "transition_count": 2
+      },
+      "persistence": {
+        "mean_transition_nmse_db": 4.539711482995821,
+        "mean_transition_nmse_linear": 3.0021925959280025,
+        "median_transition_nmse_db": 4.872793397370867,
+        "per_trajectory_mean_nmse_linear": {
+          "rt-simple-street-canyon-route-20261021-a": 3.0021925959280025
+        },
+        "trajectory_count": 1,
+        "transition_count": 3
+      }
+    },
+    "train": {
+      "linear_complex_extrapolation": {
+        "mean_transition_nmse_db": 9.039340522908917,
+        "mean_transition_nmse_linear": 10.661642437633034,
+        "median_transition_nmse_db": 10.820095579559794,
+        "per_trajectory_mean_nmse_linear": {
+          "rt-etoile-route-20261021-a": 16.32030833176303,
+          "rt-urban-00041-route-20261021-a": 1.9197837490503105,
+          "rt-urban-00042-route-20261021-a": 12.407141407453356,
+          "rt-urban-00043-route-20261021-a": 11.999336262265441
+        },
+        "trajectory_count": 4,
+        "transition_count": 8
+      },
+      "persistence": {
+        "mean_transition_nmse_db": 4.592689055252567,
+        "mean_transition_nmse_linear": 3.1748403936884206,
+        "median_transition_nmse_db": 5.39242270842097,
+        "per_trajectory_mean_nmse_linear": {
+          "rt-etoile-route-20261021-a": 3.99320933821083,
+          "rt-urban-00041-route-20261021-a": 1.7774424573894663,
+          "rt-urban-00042-route-20261021-a": 3.479650997305255,
+          "rt-urban-00043-route-20261021-a": 3.4490587818481315
+        },
+        "trajectory_count": 4,
+        "transition_count": 12
+      }
+    },
+    "validation": {
+      "linear_complex_extrapolation": {
+        "mean_transition_nmse_db": 6.379765128893538,
+        "mean_transition_nmse_linear": 4.446227163386523,
+        "median_transition_nmse_db": 6.379765128893538,
+        "per_trajectory_mean_nmse_linear": {
+          "rt-box-one-screen-route-20261021-a": 4.446227163386523
+        },
+        "trajectory_count": 1,
+        "transition_count": 2
+      },
+      "persistence": {
+        "mean_transition_nmse_db": 7.366344096274299,
+        "mean_transition_nmse_linear": 14.096067867848715,
+        "median_transition_nmse_db": 3.2241856868778225,
+        "per_trajectory_mean_nmse_linear": {
+          "rt-box-one-screen-route-20261021-a": 14.096067867848715
+        },
+        "trajectory_count": 1,
+        "transition_count": 3
+      }
+    }
+  },
+  "model_inputs": "past receiver-visible PUSCH DMRS channel estimates only",
+  "package_source_sha256": "2e8b9e0633f3a9e5684af7626d479ea1c7cd684491476576959ee2c3d13cab68",
+  "predictions": [
+    {
+      "forecast_origin_s": 0.0,
+      "forecast_target_s": 0.1,
+      "horizon_s": 0.1,
+      "method": "persistence",
+      "nmse_db": 2.6030730207837545,
+      "nmse_linear": 1.820988914910561,
+      "sample_id": "rt-simple-street-canyon-route-20261021-a:0001",
+      "split": "test",
+      "trajectory_id": "rt-simple-street-canyon-route-20261021-a"
+    },
+    {
+      "forecast_origin_s": 0.1,
+      "forecast_target_s": 0.2,
+      "horizon_s": 0.1,
+      "method": "linear_complex_extrapolation",
+      "nmse_db": 11.20355359218899,
+      "nmse_linear": 13.193358367537105,
+      "sample_id": "rt-simple-street-canyon-route-20261021-a:0002",
+      "split": "test",
+      "trajectory_id": "rt-simple-street-canyon-route-20261021-a"
+    },
+    {
+      "forecast_origin_s": 0.1,
+      "forecast_target_s": 0.2,
+      "horizon_s": 0.1,
+      "method": "persistence",
+      "nmse_db": 6.143268030832841,
+      "nmse_linear": 4.114592243773443,
+      "sample_id": "rt-simple-street-canyon-route-20261021-a:0002",
+      "split": "test",
+      "trajectory_id": "rt-simple-street-canyon-route-20261021-a"
+    },
+    {
+      "forecast_origin_s": 0.2,
+      "forecast_target_s": 0.30000000000000004,
+      "horizon_s": 0.10000000000000003,
+      "method": "linear_complex_extrapolation",
+      "nmse_db": 8.487241207423908,
+      "nmse_linear": 7.058690187801155,
+      "sample_id": "rt-simple-street-canyon-route-20261021-a:0003",
+      "split": "test",
+      "trajectory_id": "rt-simple-street-canyon-route-20261021-a"
+    },
+    {
+      "forecast_origin_s": 0.2,
+      "forecast_target_s": 0.30000000000000004,
+      "horizon_s": 0.10000000000000003,
+      "method": "persistence",
+      "nmse_db": 4.872793397370867,
+      "nmse_linear": 3.0709966291000024,
+      "sample_id": "rt-simple-street-canyon-route-20261021-a:0003",
+      "split": "test",
+      "trajectory_id": "rt-simple-street-canyon-route-20261021-a"
+    },
+    {
+      "forecast_origin_s": 0.0,
+      "forecast_target_s": 0.1,
+      "horizon_s": 0.1,
+      "method": "persistence",
+      "nmse_db": 5.797379876106399,
+      "nmse_linear": 3.7996009502068824,
+      "sample_id": "rt-etoile-route-20261021-a:0001",
+      "split": "train",
+      "trajectory_id": "rt-etoile-route-20261021-a"
+    },
+    {
+      "forecast_origin_s": 0.1,
+      "forecast_target_s": 0.2,
+      "horizon_s": 0.1,
+      "method": "linear_complex_extrapolation",
+      "nmse_db": 12.134927668346512,
+      "nmse_linear": 16.349059215797627,
+      "sample_id": "rt-etoile-route-20261021-a:0002",
+      "split": "train",
+      "trajectory_id": "rt-etoile-route-20261021-a"
+    },
+    {
+      "forecast_origin_s": 0.1,
+      "forecast_target_s": 0.2,
+      "horizon_s": 0.1,
+      "method": "persistence",
+      "nmse_db": 6.229074799975702,
+      "nmse_linear": 4.196695700854605,
+      "sample_id": "rt-etoile-route-20261021-a:0002",
+      "split": "train",
+      "trajectory_id": "rt-etoile-route-20261021-a"
+    },
+    {
+      "forecast_origin_s": 0.2,
+      "forecast_target_s": 0.30000000000000004,
+      "horizon_s": 0.10000000000000003,
+      "method": "linear_complex_extrapolation",
+      "nmse_db": 12.11962604174827,
+      "nmse_linear": 16.29155744772843,
+      "sample_id": "rt-etoile-route-20261021-a:0003",
+      "split": "train",
+      "trajectory_id": "rt-etoile-route-20261021-a"
+    },
+    {
+      "forecast_origin_s": 0.2,
+      "forecast_target_s": 0.30000000000000004,
+      "horizon_s": 0.10000000000000003,
+      "method": "persistence",
+      "nmse_db": 6.002464358053839,
+      "nmse_linear": 3.9833313635710033,
+      "sample_id": "rt-etoile-route-20261021-a:0003",
+      "split": "train",
+      "trajectory_id": "rt-etoile-route-20261021-a"
+    },
+    {
+      "forecast_origin_s": 0.0,
+      "forecast_target_s": 0.1,
+      "horizon_s": 0.1,
+      "method": "persistence",
+      "nmse_db": 5.19609291908586,
+      "nmse_linear": 3.3083335709535806,
+      "sample_id": "rt-urban-00041-route-20261021-a:0001",
+      "split": "train",
+      "trajectory_id": "rt-urban-00041-route-20261021-a"
+    },
+    {
+      "forecast_origin_s": 0.1,
+      "forecast_target_s": 0.2,
+      "horizon_s": 0.1,
+      "method": "linear_complex_extrapolation",
+      "nmse_db": 4.4909699068841515,
+      "nmse_linear": 2.8125288804088506,
+      "sample_id": "rt-urban-00041-route-20261021-a:0002",
+      "split": "train",
+      "trajectory_id": "rt-urban-00041-route-20261021-a"
+    },
+    {
+      "forecast_origin_s": 0.1,
+      "forecast_target_s": 0.2,
+      "horizon_s": 0.1,
+      "method": "persistence",
+      "nmse_db": -1.8603838620636424,
+      "nmse_linear": 0.6515708007971939,
+      "sample_id": "rt-urban-00041-route-20261021-a:0002",
+      "split": "train",
+      "trajectory_id": "rt-urban-00041-route-20261021-a"
+    },
+    {
+      "forecast_origin_s": 0.2,
+      "forecast_target_s": 0.30000000000000004,
+      "horizon_s": 0.10000000000000003,
+      "method": "linear_complex_extrapolation",
+      "nmse_db": 0.1158677381648362,
+      "nmse_linear": 1.0270386176917703,
+      "sample_id": "rt-urban-00041-route-20261021-a:0003",
+      "split": "train",
+      "trajectory_id": "rt-urban-00041-route-20261021-a"
+    },
+    {
+      "forecast_origin_s": 0.2,
+      "forecast_target_s": 0.30000000000000004,
+      "horizon_s": 0.10000000000000003,
+      "method": "persistence",
+      "nmse_db": 1.3748798778019586,
+      "nmse_linear": 1.3724230004176243,
+      "sample_id": "rt-urban-00041-route-20261021-a:0003",
+      "split": "train",
+      "trajectory_id": "rt-urban-00041-route-20261021-a"
+    },
+    {
+      "forecast_origin_s": 0.0,
+      "forecast_target_s": 0.1,
+      "horizon_s": 0.1,
+      "method": "persistence",
+      "nmse_db": 5.383244155038989,
+      "nmse_linear": 3.4540165606209943,
+      "sample_id": "rt-urban-00042-route-20261021-a:0001",
+      "split": "train",
+      "trajectory_id": "rt-urban-00042-route-20261021-a"
+    },
+    {
+      "forecast_origin_s": 0.1,
+      "forecast_target_s": 0.2,
+      "horizon_s": 0.1,
+      "method": "linear_complex_extrapolation",
+      "nmse_db": 10.819975804409978,
+      "nmse_linear": 12.07807106104182,
+      "sample_id": "rt-urban-00042-route-20261021-a:0002",
+      "split": "train",
+      "trajectory_id": "rt-urban-00042-route-20261021-a"
+    },
+    {
+      "forecast_origin_s": 0.1,
+      "forecast_target_s": 0.2,
+      "horizon_s": 0.1,
+      "method": "persistence",
+      "nmse_db": 5.313210452329017,
+      "nmse_linear": 3.3987642794796225,
+      "sample_id": "rt-urban-00042-route-20261021-a:0002",
+      "split": "train",
+      "trajectory_id": "rt-urban-00042-route-20261021-a"
+    },
+    {
+      "forecast_origin_s": 0.2,
+      "forecast_target_s": 0.30000000000000004,
+      "horizon_s": 0.10000000000000003,
+      "method": "linear_complex_extrapolation",
+      "nmse_db": 11.05040271088517,
+      "nmse_linear": 12.736211753864893,
+      "sample_id": "rt-urban-00042-route-20261021-a:0003",
+      "split": "train",
+      "trajectory_id": "rt-urban-00042-route-20261021-a"
+    },
+    {
+      "forecast_origin_s": 0.2,
+      "forecast_target_s": 0.30000000000000004,
+      "horizon_s": 0.10000000000000003,
+      "method": "persistence",
+      "nmse_db": 5.5463113374507875,
+      "nmse_linear": 3.5861721518151497,
+      "sample_id": "rt-urban-00042-route-20261021-a:0003",
+      "split": "train",
+      "trajectory_id": "rt-urban-00042-route-20261021-a"
+    },
+    {
+      "forecast_origin_s": 0.0,
+      "forecast_target_s": 0.1,
+      "horizon_s": 0.1,
+      "method": "persistence",
+      "nmse_db": 5.40160126180295,
+      "nmse_linear": 3.4686471734132174,
+      "sample_id": "rt-urban-00043-route-20261021-a:0001",
+      "split": "train",
+      "trajectory_id": "rt-urban-00043-route-20261021-a"
+    },
+    {
+      "forecast_origin_s": 0.1,
+      "forecast_target_s": 0.2,
+      "horizon_s": 0.1,
+      "method": "linear_complex_extrapolation",
+      "nmse_db": 10.820215354709608,
+      "nmse_linear": 12.078737287636644,
+      "sample_id": "rt-urban-00043-route-20261021-a:0002",
+      "split": "train",
+      "trajectory_id": "rt-urban-00043-route-20261021-a"
+    },
+    {
+      "forecast_origin_s": 0.1,
+      "forecast_target_s": 0.2,
+      "horizon_s": 0.1,
+      "method": "persistence",
+      "nmse_db": 5.427348399248741,
+      "nmse_linear": 3.4892721165169016,
+      "sample_id": "rt-urban-00043-route-20261021-a:0002",
+      "split": "train",
+      "trajectory_id": "rt-urban-00043-route-20261021-a"
+    },
+    {
+      "forecast_origin_s": 0.2,
+      "forecast_target_s": 0.30000000000000004,
+      "horizon_s": 0.10000000000000003,
+      "method": "linear_complex_extrapolation",
+      "nmse_db": 10.76273895812282,
+      "nmse_linear": 11.919935236894238,
+      "sample_id": "rt-urban-00043-route-20261021-a:0003",
+      "split": "train",
+      "trajectory_id": "rt-urban-00043-route-20261021-a"
+    },
+    {
+      "forecast_origin_s": 0.2,
+      "forecast_target_s": 0.30000000000000004,
+      "horizon_s": 0.10000000000000003,
+      "method": "persistence",
+      "nmse_db": 5.301045088200197,
+      "nmse_linear": 3.389257055614275,
+      "sample_id": "rt-urban-00043-route-20261021-a:0003",
+      "split": "train",
+      "trajectory_id": "rt-urban-00043-route-20261021-a"
+    },
+    {
+      "forecast_origin_s": 0.0,
+      "forecast_target_s": 0.1,
+      "horizon_s": 0.1,
+      "method": "persistence",
+      "nmse_db": 15.816660087141944,
+      "nmse_linear": 38.165065205349805,
+      "sample_id": "rt-box-one-screen-route-20261021-a:0001",
+      "split": "validation",
+      "trajectory_id": "rt-box-one-screen-route-20261021-a"
+    },
+    {
+      "forecast_origin_s": 0.1,
+      "forecast_target_s": 0.2,
+      "horizon_s": 0.1,
+      "method": "linear_complex_extrapolation",
+      "nmse_db": 5.443490097350399,
+      "nmse_linear": 3.5022650460761677,
+      "sample_id": "rt-box-one-screen-route-20261021-a:0002",
+      "split": "validation",
+      "trajectory_id": "rt-box-one-screen-route-20261021-a"
+    },
+    {
+      "forecast_origin_s": 0.1,
+      "forecast_target_s": 0.2,
+      "horizon_s": 0.1,
+      "method": "persistence",
+      "nmse_db": 3.0581865148031313,
+      "nmse_linear": 2.0221746021018934,
+      "sample_id": "rt-box-one-screen-route-20261021-a:0002",
+      "split": "validation",
+      "trajectory_id": "rt-box-one-screen-route-20261021-a"
+    },
+    {
+      "forecast_origin_s": 0.2,
+      "forecast_target_s": 0.30000000000000004,
+      "horizon_s": 0.10000000000000003,
+      "method": "linear_complex_extrapolation",
+      "nmse_db": 7.316040160436677,
+      "nmse_linear": 5.390189280696879,
+      "sample_id": "rt-box-one-screen-route-20261021-a:0003",
+      "split": "validation",
+      "trajectory_id": "rt-box-one-screen-route-20261021-a"
+    },
+    {
+      "forecast_origin_s": 0.2,
+      "forecast_target_s": 0.30000000000000004,
+      "horizon_s": 0.10000000000000003,
+      "method": "persistence",
+      "nmse_db": 3.2241856868778225,
+      "nmse_linear": 2.1009637960944456,
+      "sample_id": "rt-box-one-screen-route-20261021-a:0003",
+      "split": "validation",
+      "trajectory_id": "rt-box-one-screen-route-20261021-a"
+    }
+  ],
+  "runtime_versions": {
+    "git_sha": "39018cefe44e9068f80bd7719e2aa8297d030552",
+    "numpy": "2.5.4",
+    "python": "3.12.3",
+    "scikit-learn": "1.9.1",
+    "sionna": "2.2.0",
+    "sionna-phy": "not installed",
+    "sionna-rt": "2.2.0",
+    "torch": "2.11.0+cu128"
+  },
+  "schema": "loslab.rt_nr_forecast_pilot.v1",
+  "specs": [
+    {
+      "path": "config/datasets/rt_trajectories_pilot/box_one_screen.json",
+      "sha256": "2e9e35c7c9cc2bccc60cb320b860e96a3d5c929d5f9ef8bf9835c3f482a2b688"
+    },
+    {
+      "path": "config/datasets/rt_trajectories_pilot/etoile.json",
+      "sha256": "4b5e4aba60bafc179059a23493c792affbea2e9ef556037dc3e7398aa02bc168"
+    },
+    {
+      "path": "config/datasets/rt_trajectories_pilot/simple_street_canyon.json",
+      "sha256": "f7031c4d2da71b98f1fb5d3153b74e6a28e1ce19770d25c0c5c5c303e2a6ebe3"
+    },
+    {
+      "path": "config/datasets/rt_trajectories_pilot/urban_00041.json",
+      "sha256": "3a4cb3a603d50f08576e15e7109bd01b95b3525e98732982aa628b5bfb6c6055"
+    },
+    {
+      "path": "config/datasets/rt_trajectories_pilot/urban_00042.json",
+      "sha256": "0b55227557501b2e0cab7e05b7b71c2b04aaae0212696cfc7508dfd4765f5eec"
+    },
+    {
+      "path": "config/datasets/rt_trajectories_pilot/urban_00043.json",
+      "sha256": "08527a6a0c88e9c8f1d73593c13c51bd18806b4594397141287526c8c91f3870"
+    }
+  ],
+  "split_lock": "docs/research/locks/rt-nr-trajectory-scene-family-v1.json",
+  "split_lock_sha256": "0e19c7a635aa85bb76dbaead6f37a961eb0ccc65acb423ee7981a735a70afc3d",
+  "split_seed": "rt-nr-scene-family-v1",
+  "status": "PILOT_FIXED_BASELINES_NOT_A_FORECASTING_CLAIM",
+  "target": "future absolute-delay full RT CFR",
+  "trajectories": [
+    {
+      "content_sha256": "45ccb58780d07ee23c992412d0aa5800c87af5c91eba1ac4dbbe67595eeb3ad5",
+      "sample_count": 4,
+      "scene": "box_one_screen",
+      "split": "validation",
+      "trajectory_id": "rt-box-one-screen-route-20261021-a"
+    },
+    {
+      "content_sha256": "55deec40655d43594f9c746e88d3702f740ab7e334d361ea1f40a2a6a36be99f",
+      "sample_count": 4,
+      "scene": "etoile",
+      "split": "train",
+      "trajectory_id": "rt-etoile-route-20261021-a"
+    },
+    {
+      "content_sha256": "7c6346a8826e1393799b09c8368cd2eb898534f591134fd5d656b44c80e58d18",
+      "sample_count": 4,
+      "scene": "simple_street_canyon",
+      "split": "test",
+      "trajectory_id": "rt-simple-street-canyon-route-20261021-a"
+    },
+    {
+      "content_sha256": "4a4d9ca3a9fec6ee93c2c833127fe35ff15b485ed8661d25032fd1c3765e045b",
+      "sample_count": 4,
+      "scene": "scenes/generated/research_scenes/city41/urban_00041.xml",
+      "split": "train",
+      "trajectory_id": "rt-urban-00041-route-20261021-a"
+    },
+    {
+      "content_sha256": "9e83a00d084188b62779f9c3c2336fa30226a04fe146c49f045737ab81d18157",
+      "sample_count": 4,
+      "scene": "scenes/generated/research_scenes/city42/urban_00042.xml",
+      "split": "train",
+      "trajectory_id": "rt-urban-00042-route-20261021-a"
+    },
+    {
+      "content_sha256": "4886d0d933121053396676cbcbef8493dc91c4ea8bd241f1ea6eef08e8128bf1",
+      "sample_count": 4,
+      "scene": "scenes/generated/research_scenes/city43/urban_00043.xml",
+      "split": "train",
+      "trajectory_id": "rt-urban-00043-route-20261021-a"
+    }
+  ],
+  "trajectory_count": 6,
+  "transition_count": 30
+}
