@@ -19,12 +19,20 @@ def summarize_profile_likelihood_stress(
     if not isinstance(cases, list) or not cases:
         raise ValueError("report must contain at least one stress case")
     required = (
+        "tone_count",
+        "tone_spacing_hz",
+        "snr_db",
+        "separation_fraction_of_reciprocal_bandwidth",
+        "gain_phase_difference_deg",
+        "delay_grid_step_fraction_of_reciprocal_bandwidth",
+        "maximum_delay_fraction_of_reciprocal_bandwidth",
         "assumed_to_true_noise_variance_ratio",
         "third_path_amplitude_ratio_to_strongest",
         "true_path_count",
         "fitted_path_count",
         "path_order_randomized",
         "path_order_permutations_applied",
+        "relative_delay_truth_ns",
         "trials",
         "calibration_trials",
         "split_conformal_95_empirical_coverage",
