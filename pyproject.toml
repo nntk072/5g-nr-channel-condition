@@ -18,6 +18,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest>=8", "pytest-cov>=6", "ruff>=0.7", "mypy>=1.10"]
 sionna = ["sionna==2.2.0", "torch>=2.9"]
+boosting = ["xgboost-cpu>=2.1,<4"]
 
 [project.scripts]
 loslab = "loslab.__main__:main"

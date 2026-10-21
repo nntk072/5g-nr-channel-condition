@@ -50,3 +50,29 @@ def test_histogram_gradient_boosting_trains_and_returns_probabilities() -> None:
 
     assert probabilities.shape == (80, 2)
     assert np.isfinite(probabilities).all()
+
+
+def test_xgboost_trains_with_binary_class_balance_and_returns_probabilities() -> None:
+    pytest.importorskip("xgboost")
+    import numpy as np
+
+    rng = np.random.default_rng(91)
+    features = rng.normal(size=(48, 6)).astype(np.float32)
+    labels = np.asarray([0] * 32 + [1] * 16)
+    features[:, 0] += labels * 1.5
+    fitted = fit_sklearn(features, labels, seed=29, method="xgb")
+    probabilities = fitted.predict_proba(features)
+
+    assert fitted.scale_pos_weight == pytest.approx(2.0)
+    assert probabilities.shape == (48, 2)
+    assert np.isfinite(probabilities).all()
+    assert np.allclose(probabilities.sum(axis=1), 1.0)
+
+
+def test_xgboost_rejects_nonbinary_or_single_class_targets() -> None:
+    pytest.importorskip("xgboost")
+    import numpy as np
+
+    features = np.ones((8, 2), dtype=np.float32)
+    with pytest.raises(ValueError, match="both labels 0 and 1"):
+        fit_sklearn(features, np.zeros(8, dtype=np.int64), method="xgb")

@@ -51,7 +51,7 @@ jobs:
         run: uv run --locked python -m pytest --no-cov
 
   neural:
-    name: Neural training tests (Python 3.12)
+    name: Neural and boosted baseline tests (Python 3.12)
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -65,7 +65,7 @@ jobs:
           cache-dependency-glob: uv.lock
 
       - name: Install project and development dependencies
-        run: uv sync --locked --extra dev
+        run: uv sync --locked --extra dev --extra boosting
 
       - name: Install CPU-only PyTorch
         run: uv pip install --python .venv/bin/python torch==2.11.0 --index-url https://download.pytorch.org/whl/cpu

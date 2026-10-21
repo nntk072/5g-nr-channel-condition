@@ -229,7 +229,7 @@ def run_experiment(
 
                 torch.cuda.reset_peak_memory_stats(device)
             fit_started = perf_counter()
-            if method in ("rf", "histgb", "mlp", "logreg"):
+            if method in ("rf", "histgb", "xgb", "mlp", "logreg"):
                 clf = fit_sklearn(
                     x[train], data.y[train], seed=seed, method=method, capacity=capacity
                 )
@@ -382,6 +382,8 @@ def run_experiment(
     method_pairs = (
         ("rf", "mlp"),
         ("histgb", "mlp"),
+        ("xgb", "mlp"),
+        ("xgb", "rf"),
         ("cnn", "mlp"),
         ("cvnn", "mlp"),
         ("cvnn", "cnn"),
