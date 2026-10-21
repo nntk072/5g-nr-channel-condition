@@ -2,7 +2,7 @@
 ## Physically Grounded, Identifiability-Aware Multipath State Learning for 5G NR
 ### From LOS/NLOS classification to channel-state reconstruction, uncertainty, and forecasting
 
-**Document edition:** 3.69 — 2026-10-21 (evaluation label-semantics gate)
+**Document edition:** 3.70 — 2026-10-22 (explicit RT trajectory target masks)
 **Status:** execution specification and scientific decision record; **not** a completed study, not experimental evidence, and not a claim of top-tier acceptance.
 **Repository inspected:** live checkout /home/nguyenl37/5g-nr-channel-condition, branch main, initial implementation commit ffe199c80c1caf40dea91a406fe02124b3ff05ec (built from baseline cc43a5544036578a6bb57ce52b66436d8acb6c1b); local reference /home/nguyenl37/sionna at Sionna v2.2.0, commit 2f0a3820269b53fd022780a6f2f5f720f7ceb9b4, RT submodule commit 15b5ee036917a4c2a9b6420e05570b77717e2fcc.
 **Legacy work:** Long Nguyen, *5G Physical Layer Channel Conditions Classification Using Machine Learning Techniques*, Tampere University, July 2025, embedded in `docs/thesis/NguyenLong.pdf`.
@@ -2065,3 +2065,7 @@ The compact 100-split report is `docs/research/results/identifiability-profile-r
 **Edition 3.69 evaluation-label gate:** The experiment runner now resolves one canonical target meaning before creating a run directory or fitting any model. It uses the dataset-level semantic contract for new artifacts, checks recognized per-sample semantics against it, and safely recovers uniform legacy RT/profile/debug labels from row metadata. Mixed or unknown legacy labels stop before training, preventing geometric direct-path labels and TDL/CDL profile proxies from being pooled into a misleading binary score. Run manifests retain both the resolved task meaning and the original per-source semantic description. This protects the legacy binary experiment path; it does not add soft labels or extra target heads.
 
 **Edition 3.69 focused verification:** The experiment-runner tests pass, including positive resolution of uniform legacy RT metadata and a negative check that mixed geometric/profile labels fail before any run directory or model is created. Ruff and mypy pass for the changed implementation. The next complete suite is deferred to the planned consolidated verification batch.
+
+**Edition 3.70 RT target contract:** Each generated RT-to-NR record now carries explicit validity masks for both full-path CFR and geometric LOS truth; the LOS mask is a scalar boolean rather than an implicit absence of masking. Record provenance names each target's semantics and unit, documenting that `channel_cfr` is an absolute-delay full-path complex response on effective PUSCH subcarriers and `geometric_los` is depth-zero LOS-only solver visibility. These values remain private targets and are not added to `NRModelInputs`.
+
+**Edition 3.70 focused verification:** The native LLVM RT trajectory generation/storage round-trip and NR record/trajectory contract tests pass (19 tests); mypy and Ruff pass for the changed implementation. Full-suite verification will be consolidated after the current implementation batch.

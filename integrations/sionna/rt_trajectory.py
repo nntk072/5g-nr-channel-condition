@@ -266,6 +266,14 @@ def generate_rt_nr_trajectory(
             "receiver_position_m": list(position),
             "transmitter_position_m": list(config.transmitter_position_m),
             "geometric_los_oracle": geometric_los[index],
+            "target_semantics": {
+                "channel_cfr": "absolute-delay full-path complex CFR on effective PUSCH subcarriers",
+                "geometric_los": "depth-zero LOS-only PathSolver visibility oracle",
+            },
+            "target_units": {
+                "channel_cfr": "complex channel gain (dimensionless)",
+                "geometric_los": "boolean",
+            },
             "direct_path_count": direct_path_counts[index],
             "full_path_count": total_path_counts[index],
             "rt_seed": config.seed,
@@ -298,7 +306,10 @@ def generate_rt_nr_trajectory(
                     "channel_cfr": channels[index],
                     "geometric_los": np.asarray(geometric_los[index], dtype=np.bool_),
                 },
-                target_masks={"channel_cfr": np.ones(grid.fft_size, dtype=np.bool_)},
+                target_masks={
+                    "channel_cfr": np.ones(grid.fft_size, dtype=np.bool_),
+                    "geometric_los": np.asarray(True, dtype=np.bool_),
+                },
                 provenance=record_provenance,
             )
         )
