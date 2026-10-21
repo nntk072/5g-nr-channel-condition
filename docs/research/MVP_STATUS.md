@@ -1,8 +1,10 @@
 # MVP implementation status
 
-**Status: implementation and multi-scene evaluation complete locally; final
-MVP gate awaits hosted CI for the numerical-stability fix.** This is a
-simulation-only software MVP, not a validated channel-condition benchmark.
+**Status: simulation-only software MVP complete.** Hosted CI run
+[39684428037](https://github.com/nntk072/5g-nr-channel-condition/actions/runs/39684428037)
+passed all four jobs after the numerical-stability fix. This is an MVP
+implementation and evaluation workflow, not a validated channel-condition
+benchmark.
 
 ## MVP boundary
 
@@ -32,14 +34,14 @@ results honestly.
 
 | Requirement | State | Evidence and limitation |
 |---|---|---|
-| Package, CLI, dependency lock, lint, typing, and tests | Local checks pass; hosted CI pending after numerical fix | Pinned GPU-enabled suite: 409 passed, 16 skipped, 80.32% coverage. Ruff check/format, mypy (129 files), lock, and build pass locally. A CI-only noiseless-fit edge case was fixed with a signal-scaled floating-point RSS floor; the corrected commit still needs hosted CI. |
+| Package, CLI, dependency lock, lint, typing, and tests | Complete | Pinned GPU-enabled suite: 409 passed, 16 skipped, 80.32% coverage. Ruff check/format, mypy (129 files), lock, and build pass locally. Hosted CI [39684428037](https://github.com/nntk072/5g-nr-channel-condition/actions/runs/39684428037) passed build, Python 3.11 core, Python 3.12 core, and Python 3.12 neural/boosting jobs after the signal-scaled floating-point RSS floor fix. |
 | Environment-aware RT backend | Implemented and locally verified | Mitsuba 3.9.1 / Dr.Jit 1.5.0 LLVM variant traces natively in this WSL Linux environment. Automatic selection rejects this host's failed CUDA/OptiX probe and falls back to LLVM. No separate LLVM-project download is needed here; OptiX remains an optional runtime path for a later supported host. |
 | Geometric RT data and provenance | MVP data path exercised across six scene families | Six balanced datasets (40 links each) carry geometric direct-path labels and scene/runtime provenance. Scene asset identities are recorded, but geometry/material realism is not independently qualified. |
 | PUSCH/DMRS observation adapter | Implemented and exercised across all six scenes | `loslab nr-observe` produced 240 observations of shape `[240, 1, 72]`, preserving group IDs and canonical label semantics. Configuration: 12 dB, seed 20261022, ideal synchronization. The adapter records its link-path-loss normalization assumption. |
 | Shared classification/evaluation workflow | Exercised on a frozen scene-family holdout | Logistic regression, random forest, and raw-I/Q MLP used the same precomputed DMRS observations. `rt_etoile` was test-only (40 samples/20 groups); the other five scene families supplied train/validation groups. Three fixed seeds and per-sample predictions are retained. |
 | Classical multipath and learning baselines | Implemented | Grouped classifiers and the unknown-order sparse CFR estimator are available. The multipath-order stress report is analytical/synthetic and is not geometric RT evidence. |
 | Locked independent-scene MVP evaluation | Completed at implementation-smoke scale | Six scene families and one frozen held-out family were evaluated; source hashes, split hash, method results, and commands are in [`mvp-six-scene-dmrs-holdout-etoile-seed20261022.json`](results/mvp-six-scene-dmrs-holdout-etoile-seed20261022.json). Mean AUROCs were 0.334 (logistic), 0.340 (RF), and 0.739 (raw MLP). Three seeds and one 40-link held-out scene are too small for benchmark claims. |
-| Linux reproduction and release instructions | Commands documented; clean hosted reproduction pending CI | The six-scene generation script, `nr-observe`, and `experiment` commands form the reproduction route. The local native run used an existing pinned Linux environment; the clean hosted Linux workflow must pass before the MVP gate closes. |
+| Linux reproduction and release instructions | Complete for the MVP scope | The six-scene generation script, `nr-observe`, and `experiment` commands form the reproduction route. Hosted Linux CI passed from clean checkouts; native Sionna RT was exercised locally on LLVM. |
 
 ## MVP exit checklist
 
@@ -55,14 +57,13 @@ results honestly.
   it is the sole test domain and records the split indices hash.
 - [x] Record the generation, observation, and evaluation commands and hashes in
   the committed evidence report.
-- [ ] Pass the clean hosted Linux workflow on the final pushed numerical-fix
-  commit. This supplies the clean-checkout portable reproduction gate.
-- [ ] Review the generated report for correct simulation-only wording and retain
-  weak/negative results without changing the locked evaluation.
+- [x] Pass the clean hosted Linux workflow on the pushed numerical-fix commit
+  (CI run 39684428037; all four jobs passed).
+- [x] Review the report for simulation-only wording and retain weak/negative
+  results without changing the locked evaluation.
 
 The six-scene run is an implementation-scale MVP check, not a stable benchmark.
-The final MVP release gate remains open until hosted CI passes and the report is
-reviewed. The broader scientific gates in `MASTER_RESEARCH_PLAN.md`—independent
-measurements, qualified materials, receiver impairments, broad standards
-conformance, model novelty, forecasting, and downstream utility—remain beyond
-this MVP and are not treated as complete.
+The software MVP gate is complete. The broader scientific gates in
+`MASTER_RESEARCH_PLAN.md`—independent measurements, qualified materials,
+receiver impairments, broad standards conformance, model novelty, forecasting,
+and downstream utility—remain open and are not treated as complete.
