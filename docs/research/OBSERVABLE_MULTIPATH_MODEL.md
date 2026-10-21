@@ -56,3 +56,14 @@ identifiability-on/off comparison, matched classical and neural baselines,
 calibration on independent groups, and evaluation on qualified RT scenes and
 eventually measured NR data. The decoder must not be used to claim physical path
 count when the pilot observation cannot resolve the components.
+
+Experiment schema v2 also reports a set-valued profile-likelihood comparator.
+For each bounded relative-delay candidate, it eliminates the unknown complex
+gains and evaluates the complex-Gaussian likelihood-ratio deviance. A threshold
+is calibrated from the maximum true-delay deviance within each independent
+calibration group. Test outputs retain disconnected sublevel-set intervals
+instead of forcing ambiguous delay hypotheses into one interval. The threshold
+has the stated group-conformal interpretation only under exchangeable groups
+and the fixed-two-path, known-noise model; the finite grid approximates the
+continuous set, and this analytical result does not transfer to RT or measured
+channels without a separate validation.

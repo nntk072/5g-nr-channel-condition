@@ -246,6 +246,241 @@ def profile_likelihood_delay(
     return estimate, float(min(max(scale, maximum_delay_s * 1e-6), maximum_delay_s))
 
 
+def _profiled_delay_residual_power(
+    observed: np.ndarray, frequencies_hz: np.ndarray, delay_s: float
+) -> float:
+    """Minimize residual power over unknown complex gains at one delay."""
+    delayed = np.exp(-2j * np.pi * frequencies_hz * delay_s)
+    count = observed.size
+    energy = float(np.vdot(observed, observed).real)
+    cross = np.sum(delayed)
+    y0 = np.sum(observed)
+    y1 = np.vdot(delayed, observed)
+    determinant = float(count**2 - abs(cross) ** 2)
+    if determinant <= np.finfo(np.float64).eps * count**2:
+        return float(max(0.0, energy - abs(y0) ** 2 / count))
+    gain0 = (count * y0 - cross * y1) / determinant
+    gain1 = (count * y1 - np.conj(cross) * y0) / determinant
+    explained = np.conj(gain0) * y0 + np.conj(gain1) * y1
+    return float(max(0.0, energy - explained.real))
+
+
+def profile_likelihood_deviance_grid(
+    observed_cfr: np.ndarray,
+    pilot_mask: np.ndarray,
+    frequencies_hz: np.ndarray,
+    maximum_delay_s: float,
+    noise_variance: float,
+    *,
+    grid_points: int = 257,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Return profile likelihood-ratio deviance over bounded relative delays.
+
+    At each candidate delay, unknown complex path gains are eliminated by
+    least squares. For circular complex Gaussian noise with variance
+    ``E[|n|²]``, the returned deviance is ``2 * (RSS(delay)-RSS_min) / σ²``.
+    The grid is a bounded numerical approximation; it is not a continuous
+    confidence region and is specific to the fixed two-path/known-noise model.
+    """
+    y = np.asarray(observed_cfr, dtype=np.complex128)
+    f = np.asarray(frequencies_hz, dtype=np.float64)
+    mask = np.asarray(pilot_mask, dtype=bool)
+    if y.ndim != 1 or f.shape != y.shape or mask.shape != y.shape:
+        raise ValueError("observations, frequencies, and mask must be matching vectors")
+    if np.count_nonzero(mask) < 2:
+        raise ValueError("at least two pilot tones are required")
+    if not np.isfinite(y.real).all() or not np.isfinite(y.imag).all() or not np.isfinite(f).all():
+        raise ValueError("observations and frequencies must be finite")
+    if not math.isfinite(maximum_delay_s) or maximum_delay_s <= 0:
+        raise ValueError("maximum_delay_s must be finite and positive")
+    if not math.isfinite(noise_variance) or noise_variance <= 0:
+        raise ValueError("noise_variance must be finite and positive")
+    if isinstance(grid_points, bool) or not isinstance(grid_points, int) or grid_points < 17:
+        raise ValueError("grid_points must be an integer >= 17")
+    y = y[mask]
+    f = f[mask]
+    grid = np.linspace(0.0, maximum_delay_s, grid_points)
+    residual_power = np.asarray(
+        [_profiled_delay_residual_power(y, f, float(delay)) for delay in grid]
+    )
+    deviance = 2.0 * (residual_power - float(np.min(residual_power))) / noise_variance
+    return grid, np.maximum(deviance, 0.0)
+
+
+def _profile_set_components(
+    grid: np.ndarray, deviance: np.ndarray, threshold: float
+) -> list[list[float]]:
+    """Convert a sampled likelihood sublevel set to interpolated intervals."""
+    if math.isinf(threshold):
+        return [[float(grid[0]), float(grid[-1])]]
+    included = deviance <= threshold
+    components: list[list[float]] = []
+    index = 0
+    while index < included.size:
+        if not included[index]:
+            index += 1
+            continue
+        start = index
+        while index + 1 < included.size and included[index + 1]:
+            index += 1
+        end = index
+        if start == 0:
+            lower = float(grid[0])
+        else:
+            x0, x1 = float(grid[start - 1]), float(grid[start])
+            y0, y1 = float(deviance[start - 1]), float(deviance[start])
+            lower = x0 + (threshold - y0) * (x1 - x0) / (y1 - y0)
+        if end == included.size - 1:
+            upper = float(grid[-1])
+        else:
+            x0, x1 = float(grid[end]), float(grid[end + 1])
+            y0, y1 = float(deviance[end]), float(deviance[end + 1])
+            upper = x0 + (threshold - y0) * (x1 - x0) / (y1 - y0)
+        components.append([lower, upper])
+        index += 1
+    return components
+
+
+def evaluate_profile_likelihood_sets(
+    dataset: TwoPathDataset,
+    *,
+    coverage_level: float = 0.95,
+    grid_points: int = 257,
+) -> dict[str, object]:
+    """Calibrate and evaluate group-simultaneous profile-likelihood delay sets.
+
+    Calibration uses the maximum true-delay deviance within each independent
+    calibration group and the split-conformal finite-sample order statistic.
+    Test sets may contain disconnected delay intervals. The guarantee requires
+    exchangeable independent condition groups and the declared fixed-order,
+    known-noise analytical model; it does not transfer to RT scenes by itself.
+    """
+    if not math.isfinite(coverage_level) or not 0.0 < coverage_level < 1.0:
+        raise ValueError("coverage_level must be finite and in (0, 1)")
+    calibration = dataset.indices("calibration")
+    test = dataset.indices("test")
+    if not calibration.size or not test.size:
+        raise ValueError("calibration and test splits must both be nonempty")
+    calibration_groups = dataset.group_id[calibration].astype(str)
+    test_groups = dataset.group_id[test].astype(str)
+    overlap = set(calibration_groups).intersection(test_groups)
+    if overlap:
+        raise ValueError(f"calibration and test groups overlap: {sorted(overlap)}")
+
+    group_scores: dict[str, float] = {}
+    for sample_index, group in zip(calibration, calibration_groups, strict=True):
+        grid, deviance = profile_likelihood_deviance_grid(
+            dataset.observed_cfr[sample_index],
+            dataset.pilot_mask[sample_index],
+            dataset.frequencies_hz[sample_index],
+            dataset.maximum_relative_delay_s,
+            float(dataset.noise_variance[sample_index]),
+            grid_points=grid_points,
+        )
+        target = float(dataset.relative_delay_s[sample_index])
+        score = float(np.interp(target, grid, deviance))
+        group_scores[str(group)] = max(group_scores.get(str(group), 0.0), score)
+
+    ordered_scores = np.sort(np.asarray(list(group_scores.values()), dtype=np.float64))
+    rank = math.ceil((ordered_scores.size + 1) * coverage_level)
+    unbounded = rank > ordered_scores.size
+    threshold = math.inf if unbounded else float(ordered_scores[rank - 1])
+
+    rows: list[dict[str, object]] = []
+    row_coverage: list[bool] = []
+    row_measure: list[float] = []
+    row_component_count: list[int] = []
+    row_groups: list[str] = []
+    row_strata: list[str] = []
+    for sample_index, group in zip(test, test_groups, strict=True):
+        grid, deviance = profile_likelihood_deviance_grid(
+            dataset.observed_cfr[sample_index],
+            dataset.pilot_mask[sample_index],
+            dataset.frequencies_hz[sample_index],
+            dataset.maximum_relative_delay_s,
+            float(dataset.noise_variance[sample_index]),
+            grid_points=grid_points,
+        )
+        components = _profile_set_components(grid, deviance, threshold)
+        target = float(dataset.relative_delay_s[sample_index])
+        covered = any(lower <= target <= upper for lower, upper in components)
+        measure = float(sum(upper - lower for lower, upper in components))
+        stratum = str(dataset.stratum[sample_index])
+        row_coverage.append(covered)
+        row_measure.append(measure)
+        row_component_count.append(len(components))
+        row_groups.append(str(group))
+        row_strata.append(stratum)
+        rows.append(
+            {
+                "sample_id": str(dataset.sample_id[sample_index]),
+                "group_id": str(group),
+                "stratum": stratum,
+                "target_delay_s": target,
+                "covered": covered,
+                "components_s": components,
+                "component_count": len(components),
+                "total_set_measure_s": measure,
+            }
+        )
+
+    test_group_coverage = {
+        group: bool(
+            all(
+                covered
+                for row_group, covered in zip(row_groups, row_coverage, strict=True)
+                if row_group == group
+            )
+        )
+        for group in sorted(set(row_groups))
+    }
+    by_stratum: dict[str, dict[str, float | int]] = {}
+    for stratum in sorted(set(row_strata)):
+        selected_indices = [index for index, value in enumerate(row_strata) if value == stratum]
+        by_stratum[stratum] = {
+            "sample_count": len(selected_indices),
+            "sample_coverage": float(np.mean([row_coverage[index] for index in selected_indices])),
+            "mean_total_set_measure_s": float(
+                np.mean([row_measure[index] for index in selected_indices])
+            ),
+            "mean_component_count": float(
+                np.mean([row_component_count[index] for index in selected_indices])
+            ),
+        }
+    return {
+        "schema": "loslab.profile_likelihood_delay_sets.v1",
+        "status": "DESCRIPTIVE_ANALYTICAL_PROFILE_SET_EVALUATION",
+        "model": "fixed_two_path_complex_gain_profile; known independent complex Gaussian noise",
+        "calibration": {
+            "coverage_level": coverage_level,
+            "group_count": int(ordered_scores.size),
+            "sample_count": int(calibration.size),
+            "group_max_true_delay_deviance": ordered_scores.tolist(),
+            "finite_sample_unbounded": unbounded,
+            "deviance_threshold": None if unbounded else threshold,
+            "order_statistic_rank_one_based": rank,
+        },
+        "test": {
+            "group_count": int(len(test_group_coverage)),
+            "sample_count": len(rows),
+            "sample_coverage": float(np.mean(row_coverage)),
+            "group_simultaneous_coverage": float(np.mean(list(test_group_coverage.values()))),
+            "mean_total_set_measure_s": float(np.mean(row_measure)),
+            "mean_component_count": float(np.mean(row_component_count)),
+            "group_coverage": test_group_coverage,
+            "by_stratum_descriptive": by_stratum,
+            "rows": rows,
+        },
+        "grid_points": grid_points,
+        "maximum_relative_delay_s": dataset.maximum_relative_delay_s,
+        "interpretation": (
+            "Intervals approximate the profile-likelihood sublevel set on a bounded grid and may be "
+            "disconnected. Group coverage requires exchangeable independent groups; stratum results "
+            "are descriptive. The fixed two-path and known-noise assumptions limit transfer."
+        ),
+    }
+
+
 def fit_two_path_decoder(
     dataset: TwoPathDataset,
     *,

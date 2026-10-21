@@ -16,6 +16,7 @@ from artifacts.provenance import package_source_sha256, sha256_file, versions
 from evaluation.statistics import paired_group_regression_comparison
 from evaluation.uncertainty_io import evaluate_prediction_file
 from experiments.observable_multipath import (
+    evaluate_profile_likelihood_sets,
     fit_two_path_decoder,
     generate_grouped_two_path_dataset,
     predict_decoder,
@@ -247,6 +248,10 @@ def _run_experiment_in_staging(
         report["prediction_file"] = str(output_dir / path.name)
         _write_json(staging_dir / f"{method}_uncertainty_report.json", report)
 
+    profile_set_path = staging_dir / "profile_likelihood_delay_sets.json"
+    profile_set_report = evaluate_profile_likelihood_sets(dataset)
+    _write_json(profile_set_path, profile_set_report)
+
     model_paths = {
         "identifiability_off": staging_dir / "decoder_identifiability_off.npz",
         "identifiability_on": staging_dir / "decoder_identifiability_on.npz",
@@ -258,7 +263,7 @@ def _run_experiment_in_staging(
         state = {key: value.detach().cpu().numpy() for key, value in model.state_dict().items()}
         np.savez_compressed(model_paths[condition], **state)
     manifest = {
-        "schema": "loslab.observable_multipath_experiment.v1",
+        "schema": "loslab.observable_multipath_experiment.v2",
         "status": "DESCRIPTIVE_ANALYTICAL_PILOT",
         "claim_status": "NO_SCIENTIFIC_ADVANTAGE_CLAIM",
         "dataset": {
@@ -307,6 +312,7 @@ def _run_experiment_in_staging(
             for path in (
                 *prediction_paths.values(),
                 paired_path,
+                profile_set_path,
                 *(
                     staging_dir / f"{method}_uncertainty_report.json"
                     for method in prediction_payloads

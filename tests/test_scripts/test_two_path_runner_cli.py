@@ -34,6 +34,7 @@ def test_runner_publishes_complete_hashed_predictions_and_group_reports(tmp_path
         "identifiability_on_uncertainty_report.json",
         "profile_likelihood_uncertainty_report.json",
         "paired_test_comparisons.json",
+        "profile_likelihood_delay_sets.json",
         "decoder_identifiability_off.npz",
         "decoder_identifiability_on.npz",
     }
@@ -48,8 +49,11 @@ def test_runner_publishes_complete_hashed_predictions_and_group_reports(tmp_path
     assert paired["comparisons"][0]["comparison_unit"] == "independent_group"
     summary_path = tmp_path / "summary.json"
     summary = summarize_run(output, summary_path)
-    assert summary["schema"] == "loslab.observable_multipath_summary.v1"
-    assert len(summary["verified_artifacts"]) == 9
+    assert summary["schema"] == "loslab.observable_multipath_summary.v2"
+    assert len(summary["verified_artifacts"]) == 10
+    set_report = summary["profile_likelihood_delay_sets"]
+    assert set_report["calibration"]["finite_sample_unbounded"]
+    assert set_report["test"]["sample_coverage"] == 1.0
     with pytest.raises(FileExistsError, match="refusing to overwrite"):
         summarize_run(output, summary_path)
 

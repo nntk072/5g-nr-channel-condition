@@ -19,7 +19,11 @@ def summarize_run(run_dir: Path, output: Path) -> dict[str, Any]:
     if output.exists():
         raise FileExistsError(f"refusing to overwrite existing summary: {output}")
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    if manifest.get("schema") != "loslab.observable_multipath_experiment.v1":
+    manifest_schema = manifest.get("schema")
+    if manifest_schema not in {
+        "loslab.observable_multipath_experiment.v1",
+        "loslab.observable_multipath_experiment.v2",
+    }:
         raise ValueError("unsupported experiment manifest schema")
     verified: dict[str, dict[str, Any]] = {}
     for name, descriptor in manifest.get("artifacts", {}).items():
@@ -56,8 +60,20 @@ def summarize_run(run_dir: Path, output: Path) -> dict[str, Any]:
     paired = json.loads(paired_path.read_text(encoding="utf-8"))
     if paired.get("schema") != "loslab.paired_group_regression_comparisons.v1":
         raise ValueError("unsupported paired comparison schema")
+    profile_set_path = run_dir / "profile_likelihood_delay_sets.json"
+    profile_set = None
+    if profile_set_path.is_file():
+        profile_set = json.loads(profile_set_path.read_text(encoding="utf-8"))
+        if profile_set.get("schema") != "loslab.profile_likelihood_delay_sets.v1":
+            raise ValueError("unsupported profile-likelihood set schema")
+    elif manifest_schema == "loslab.observable_multipath_experiment.v2":
+        raise FileNotFoundError(f"run artifact is missing: {profile_set_path}")
     summary = {
-        "schema": "loslab.observable_multipath_summary.v1",
+        "schema": (
+            "loslab.observable_multipath_summary.v2"
+            if profile_set is not None
+            else "loslab.observable_multipath_summary.v1"
+        ),
         "status": "DESCRIPTIVE_ANALYTICAL_PILOT_NO_SCIENTIFIC_CLAIM",
         "run_manifest_sha256": hashlib.sha256(manifest_path.read_bytes()).hexdigest(),
         "source": manifest["provenance"],
@@ -91,6 +107,13 @@ def summarize_run(run_dir: Path, output: Path) -> dict[str, Any]:
         "verified_artifacts": verified,
         "limitations": manifest["limitations"],
     }
+    if profile_set is not None:
+        summary["profile_likelihood_delay_sets"] = {
+            "calibration": profile_set["calibration"],
+            "test": profile_set["test"],
+            "grid_points": profile_set["grid_points"],
+            "interpretation": profile_set["interpretation"],
+        }
     encoded = json.dumps(summary, indent=2, sort_keys=True, allow_nan=False).encode() + b"\n"
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_bytes(encoded)
