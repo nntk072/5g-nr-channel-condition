@@ -97,3 +97,38 @@ def test_label_semantics_are_derived_from_each_dataset_source() -> None:
         _label_semantics_by_source(data)
         == "sionna_rt=GEOMETRIC_DIRECT_PATH_ORACLE; tdl=PROFILE_PROXY"
     )
+
+
+def test_run_experiment_preserves_precomputed_dmrs_observation_semantics(tmp_path) -> None:
+    from datasets.channel import ChannelDataset
+
+    generated = debug_multipath(n_scenes=4, links_per_scene=12, seed=29)
+    source = tmp_path / "dmrs-observations.npz"
+    observed = ChannelDataset(
+        h=generated.h,
+        y=generated.y,
+        group=generated.group,
+        domain=generated.domain,
+        source=generated.source,
+        metadata=tuple(
+            {**metadata, "receiver_observation": "Sionna PUSCH DMRS LS channel estimate"}
+            for metadata in generated.metadata
+        ),
+        generation_report=generated.generation_report,
+    )
+    observed.save(source)
+    output = tmp_path / "runs" / "precomputed"
+
+    run_experiment(
+        [source],
+        output,
+        methods=("logreg",),
+        seeds=(11,),
+        bootstrap=10,
+        observation="precomputed",
+    )
+
+    manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["observation_semantics"] == "Sionna PUSCH DMRS LS channel estimate"
+    config = json.loads((output / "config" / "resolved.json").read_text(encoding="utf-8"))
+    assert config["values"]["observation"] == "precomputed"

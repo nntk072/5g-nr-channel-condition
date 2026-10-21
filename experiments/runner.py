@@ -51,6 +51,17 @@ def _label_semantics_by_source(data: ChannelDataset) -> str:
     )
 
 
+def _precomputed_observation_semantics(data: ChannelDataset) -> str:
+    semantics = sorted(
+        {
+            str(metadata.get("receiver_observation"))
+            for metadata in data.metadata
+            if metadata.get("receiver_observation")
+        }
+    )
+    return "; ".join(semantics) if semantics else "precomputed channel dataset observations"
+
+
 def run_experiment(
     paths: Sequence[str | Path],
     output: str | Path,
@@ -76,8 +87,10 @@ def run_experiment(
         observable = comb_ls_estimate(
             data.h, spacing=pilot_spacing, snr_db=pilot_snr_db, seed=observation_seed
         )
+    elif observation == "precomputed":
+        observable = data.h
     else:
-        raise ValueError("observation must be ideal_cfr or comb_ls")
+        raise ValueError("observation must be ideal_cfr, comb_ls, or precomputed")
     x = observable_features(observable, include_phase=include_phase)
     layout = RunLayout.at(output)
     layout.ensure()
@@ -110,11 +123,11 @@ def run_experiment(
         source_counts={str(s): int(np.sum(data.source == s)) for s in np.unique(data.source)},
         domain_counts={str(s): int(np.sum(data.domain == s)) for s in np.unique(data.domain)},
         label_semantics=_label_semantics_by_source(data),
-        observation_semantics=(
-            "ideal channel, diagnostic upper bound"
-            if observation == "ideal_cfr"
-            else "generic noisy comb pilot estimate, NOT 3GPP DMRS"
-        ),
+        observation_semantics={
+            "ideal_cfr": "ideal channel, diagnostic upper bound",
+            "comb_ls": "generic noisy comb pilot estimate, NOT 3GPP DMRS",
+            "precomputed": _precomputed_observation_semantics(data),
+        }[observation],
         study_status=(
             "DEBUG_ONLY" if "synthetic_debug" in data.source else "SIMULATION_ONLY_UNVALIDATED"
         ),

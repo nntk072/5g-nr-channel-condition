@@ -56,7 +56,9 @@ def main() -> None:
     exp.add_argument("--bootstrap", type=int, default=200)
     exp.add_argument("--device", default="cpu")
     exp.add_argument("--phase", action="store_true")
-    exp.add_argument("--observation", choices=["ideal_cfr", "comb_ls"], default="ideal_cfr")
+    exp.add_argument(
+        "--observation", choices=["ideal_cfr", "comb_ls", "precomputed"], default="ideal_cfr"
+    )
     exp.add_argument("--pilot-spacing", type=int, default=4)
     exp.add_argument("--pilot-snr-db", type=float, default=12.0)
     exp.add_argument("--observation-seed", type=int, default=2026)
