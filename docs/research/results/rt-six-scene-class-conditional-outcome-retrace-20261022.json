@@ -1,0 +1,287 @@
+{
+  "aggregate": {
+    "accepted_records": 240,
+    "by_geometric_class": {
+      "geometric_los": {
+        "accepted": 120,
+        "attempts": 120,
+        "calls": 120,
+        "cfr_conversion_failures": 0,
+        "empty_paths": 0,
+        "errors": 0,
+        "los_direct_only_rejected": 0
+      },
+      "geometric_nlos": {
+        "accepted": 120,
+        "attempts": 158,
+        "calls": 158,
+        "cfr_conversion_failures": 0,
+        "empty_paths": 38,
+        "errors": 0,
+        "los_direct_only_rejected": 0
+      }
+    },
+    "empty_path_fraction_of_calls": 0.1366906474820144,
+    "empty_paths": 38,
+    "full_solver_calls": 278
+  },
+  "date": "2026-10-22",
+  "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
+  "interpretation": "All 38 empty full-solver outcomes across these six matched synthetic scene configurations occurred among geometric-NLOS candidates; no geometric-LOS full-solver call was empty. Among calls, geometric-NLOS empty-path fraction is 38/158 (24.05%); geometric-LOS is 0/120. Empty paths indicate configured solver/model noncoverage, not measured outage or proof that no physical propagation path exists. Each scene exports 20 accepted records per geometric class; LOS selection requires an indirect path, so accepted LOS records do not estimate direct-only LOS prevalence. Channel arrays reproduce legacy records exactly in four scenes and within numerical roundoff in box/Etoile; labels and group IDs match in all six. These selected scenes, seeds and solver budgets do not establish general rates or qualify scene materials against measurement.",
+  "package_source_sha256": "c1c987fc02bb22dadcc7ff297fbf80855622307b6b5b5c44dd89af37c332b2a7",
+  "reproduction": "Use the per-scene settings and exact commands recorded in each NPZ generation_report_json; create new output paths. Backend: llvm_ad_mono_polarized.",
+  "runtime": {
+    "backend": "llvm_cpu",
+    "drjit": "1.5.0",
+    "mitsuba": "3.9.1",
+    "numpy": "2.5.4",
+    "python": "3.12.3",
+    "sionna": "2.2.0",
+    "sionna_rt": "2.2.0",
+    "variant": "llvm_ad_mono_polarized"
+  },
+  "scenes": [
+    {
+      "asset_set_sha256": "0096663dfcaf8a1a1079ba1912b76c226dc927b4c67e691796b2222f43cc98d4",
+      "candidate_outcomes_by_geometric_class": {
+        "geometric_los": {
+          "accepted": 20,
+          "attempts": 20,
+          "calls": 20,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 0,
+          "errors": 0,
+          "los_direct_only_rejected": 0
+        },
+        "geometric_nlos": {
+          "accepted": 20,
+          "attempts": 20,
+          "calls": 20,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 0,
+          "errors": 0,
+          "los_direct_only_rejected": 0
+        }
+      },
+      "legacy_npz": {
+        "path": "outputs/rt-six-scene-holdout-adaptive-20261021/box_one_screen.npz",
+        "sha256": "70cbbe27ad5b75e2c824e32247e33780d6225245141b659902d0e7417a380e03"
+      },
+      "max_depth": 2,
+      "new_npz": {
+        "path": "outputs/e07-box-class-outcome-retrace-20261022.npz",
+        "sha256": "2f431aca185572b7ed27c6f74ebff94576ec96ad898dbd8a5c9bd407e818966d"
+      },
+      "reproduction_match": {
+        "relative_channel_rms_difference": 9.837986425509371e-08,
+        "same_labels_and_group_ids": true
+      },
+      "requested_per_class": 20,
+      "samples_per_source": 20000,
+      "scene": "box_one_screen",
+      "seed": 42
+    },
+    {
+      "asset_set_sha256": "d2824c41043d248c8d3089fe8396b7cc225ad1c328a626ad70c897951797004b",
+      "candidate_outcomes_by_geometric_class": {
+        "geometric_los": {
+          "accepted": 20,
+          "attempts": 20,
+          "calls": 20,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 0,
+          "errors": 0,
+          "los_direct_only_rejected": 0
+        },
+        "geometric_nlos": {
+          "accepted": 20,
+          "attempts": 20,
+          "calls": 20,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 0,
+          "errors": 0,
+          "los_direct_only_rejected": 0
+        }
+      },
+      "legacy_npz": {
+        "path": "outputs/rt-six-scene-holdout-adaptive-20261021/simple_street_canyon.npz",
+        "sha256": "835a0d5e1ba775a4ba130735851e5de6b2c41147156c828782284d224d0de557"
+      },
+      "max_depth": 2,
+      "new_npz": {
+        "path": "outputs/e07-canyon-class-outcome-retrace-20261022.npz",
+        "sha256": "8801da6c0d90f0715ca38b5c079979953fc678a89de7613ffa732bfd89d9cff9"
+      },
+      "reproduction_match": {
+        "relative_channel_rms_difference": 0.0,
+        "same_labels_and_group_ids": true
+      },
+      "requested_per_class": 20,
+      "samples_per_source": 1000000,
+      "scene": "simple_street_canyon",
+      "seed": 142
+    },
+    {
+      "asset_set_sha256": "d0b6ee5c9406e8b75c5fc17388e16037e988b5057d37bc40fe55699fefba115d",
+      "candidate_outcomes_by_geometric_class": {
+        "geometric_los": {
+          "accepted": 20,
+          "attempts": 20,
+          "calls": 20,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 0,
+          "errors": 0,
+          "los_direct_only_rejected": 0
+        },
+        "geometric_nlos": {
+          "accepted": 20,
+          "attempts": 28,
+          "calls": 28,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 8,
+          "errors": 0,
+          "los_direct_only_rejected": 0
+        }
+      },
+      "legacy_npz": {
+        "path": "outputs/rt-six-scene-holdout-adaptive-20261021/etoile.npz",
+        "sha256": "ba3a2f6c0f0477e43d772528aa86aeccd4c364a8d3b4be3275055518a17efcaa"
+      },
+      "max_depth": 2,
+      "new_npz": {
+        "path": "outputs/e07-etoile-class-outcome-retrace-20261022.npz",
+        "sha256": "22153dd4d8ac0dcc74dd30710f7c9e8a77c7d48af4fb4ec3b01ea9c9948864b2"
+      },
+      "reproduction_match": {
+        "relative_channel_rms_difference": 3.170692863818658e-08,
+        "same_labels_and_group_ids": true
+      },
+      "requested_per_class": 20,
+      "samples_per_source": 5000000,
+      "scene": "etoile",
+      "seed": 1021
+    },
+    {
+      "asset_set_sha256": "e16f963657b448a9ca6125661caf45c285165c377b497fdd0d92c7408e42d546",
+      "candidate_outcomes_by_geometric_class": {
+        "geometric_los": {
+          "accepted": 20,
+          "attempts": 20,
+          "calls": 20,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 0,
+          "errors": 0,
+          "los_direct_only_rejected": 0
+        },
+        "geometric_nlos": {
+          "accepted": 20,
+          "attempts": 29,
+          "calls": 29,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 9,
+          "errors": 0,
+          "los_direct_only_rejected": 0
+        }
+      },
+      "legacy_npz": {
+        "path": "outputs/rt-six-scene-holdout-adaptive-20261021/urban_00041.npz",
+        "sha256": "66099ad0d0e5cea286e81868e576e0727ff4feb23c13121c06512a9fb8088e93"
+      },
+      "max_depth": 2,
+      "new_npz": {
+        "path": "outputs/e07-urban41-class-outcome-retrace-20261022.npz",
+        "sha256": "6556c052dc6691b2d17902bae11529837d848b1719366f565181a959387e1bf0"
+      },
+      "reproduction_match": {
+        "relative_channel_rms_difference": 0.0,
+        "same_labels_and_group_ids": true
+      },
+      "requested_per_class": 20,
+      "samples_per_source": 20000,
+      "scene": "urban_00041",
+      "seed": 41001
+    },
+    {
+      "asset_set_sha256": "e0eff74870e0aa24023d399daa0db328ba3b4f906550c75300c899abcd5018d2",
+      "candidate_outcomes_by_geometric_class": {
+        "geometric_los": {
+          "accepted": 20,
+          "attempts": 20,
+          "calls": 20,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 0,
+          "errors": 0,
+          "los_direct_only_rejected": 0
+        },
+        "geometric_nlos": {
+          "accepted": 20,
+          "attempts": 28,
+          "calls": 28,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 8,
+          "errors": 0,
+          "los_direct_only_rejected": 0
+        }
+      },
+      "legacy_npz": {
+        "path": "outputs/rt-six-scene-holdout-adaptive-20261021/urban_00042.npz",
+        "sha256": "9bfeb12f9b5f92efbfac71ca00a466eefcab7a74cb466425b65a9f142d7713cc"
+      },
+      "max_depth": 2,
+      "new_npz": {
+        "path": "outputs/e07-urban42-class-outcome-retrace-20261022.npz",
+        "sha256": "7d6e425ab8ec4f1f3b892d088f5790d14ebde3797f5ba943a1a828e40ed8f72e"
+      },
+      "reproduction_match": {
+        "relative_channel_rms_difference": 0.0,
+        "same_labels_and_group_ids": true
+      },
+      "requested_per_class": 20,
+      "samples_per_source": 100000,
+      "scene": "urban_00042",
+      "seed": 42001
+    },
+    {
+      "asset_set_sha256": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c",
+      "candidate_outcomes_by_geometric_class": {
+        "geometric_los": {
+          "accepted": 20,
+          "attempts": 20,
+          "calls": 20,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 0,
+          "errors": 0,
+          "los_direct_only_rejected": 0
+        },
+        "geometric_nlos": {
+          "accepted": 20,
+          "attempts": 33,
+          "calls": 33,
+          "cfr_conversion_failures": 0,
+          "empty_paths": 13,
+          "errors": 0,
+          "los_direct_only_rejected": 0
+        }
+      },
+      "legacy_npz": {
+        "path": "outputs/rt-six-scene-holdout-adaptive-20261021/urban_00043.npz",
+        "sha256": "4021c3d237a7fb191c0ddc6cfd723c7fd55a4391d6d2e5c99ab953b1638e6975"
+      },
+      "max_depth": 2,
+      "new_npz": {
+        "path": "outputs/e07-urban43-class-outcome-retrace-20261022.npz",
+        "sha256": "055cdd72539784fbcfb12fd68206ad1ebf8b31bed5bcd80d4ef139a46453bab6"
+      },
+      "reproduction_match": {
+        "relative_channel_rms_difference": 0.0,
+        "same_labels_and_group_ids": true
+      },
+      "requested_per_class": 20,
+      "samples_per_source": 20000,
+      "scene": "urban_00043",
+      "seed": 43001
+    }
+  ],
+  "schema": "loslab.rt_class_outcome_retrace_suite.v1",
+  "source_revision": "344946952139e398da567507c12e0893dec92ff5"
+}
