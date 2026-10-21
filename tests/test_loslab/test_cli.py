@@ -170,7 +170,7 @@ def test_experiment_config_dispatches_resolved_options(tmp_path, monkeypatch, ca
     config = tmp_path / "experiment.yaml"
     config.write_text(
         "schema: loslab.experiment.v1\ninputs: [data.npz]\noutput: run\n"
-        "methods: [logreg]\nseeds: [13]\nbootstrap: 10\n",
+        "methods: [logreg]\nseeds: [13]\nbootstrap: 10\ncapacity: large\n",
         encoding="utf-8",
     )
     calls = []
@@ -190,4 +190,5 @@ def test_experiment_config_dispatches_resolved_options(tmp_path, monkeypatch, ca
     assert options["methods"] == ["logreg"]
     assert options["seeds"] == [13]
     assert options["bootstrap"] == 10
+    assert options["capacity"] == "large"
     assert json.loads(capsys.readouterr().out) == {"status": "ok"}
