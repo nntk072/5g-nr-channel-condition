@@ -13,6 +13,8 @@ from datasets.nr import NRChannelRecord, NRObservation, NRTrajectory
 from datasets.nr_store import NRStoredTrajectory, _publish_immutable, write_nr_trajectory
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
+from integrations.sionna.rt_identity import rt_run_identity
+
 
 @dataclass(frozen=True, slots=True)
 class RTTrajectoryConfig:
@@ -317,6 +319,29 @@ def generate_rt_nr_trajectory(
         "rt_backend_selection": selection.as_dict(),
         "runtime_versions": runtime_versions,
         "package_source_sha256": source_sha256,
+        "rt_run_identity": rt_run_identity(
+            scene_asset_manifest=scene_asset_hashes,
+            physical_config={
+                "trajectory": asdict(config),
+                "positions_m": [list(p) for p in positions],
+            },
+            solver_config={
+                "deterministic": True,
+                "max_depth": config.max_depth,
+                "samples_per_src": config.samples_per_src,
+                "los": True,
+                "specular_reflection": True,
+                "diffuse_reflection": True,
+                "refraction": True,
+                "diffraction": False,
+            },
+            seed=config.seed,
+            backend_selection=selection.as_dict(),
+            runtime_versions={
+                key: value for key, value in runtime_versions.items() if key != "git_sha"
+            },
+            package_source_sha256=source_sha256,
+        ),
         "limitations": [
             "Each timestamp is a separately retraced quasi-static RT snapshot.",
             "The synthetic scene materials and ray solver are not field calibrated.",

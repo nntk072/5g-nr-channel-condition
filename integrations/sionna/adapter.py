@@ -19,6 +19,7 @@ from datasets.channel import ChannelDataset
 from propagation.physics import add_estimation_noise, frequency_response, subcarrier_frequencies
 
 from integrations.sionna.random import call_with_sionna_seed
+from integrations.sionna.rt_identity import rt_run_identity
 
 
 class RTPaths(Protocol):
@@ -493,6 +494,15 @@ def generate_raytraced(
         "cfr_conversion_failures": attempt_counts["cfr_conversion_failures"],
         "accepted": len(samples),
     }
+    solver_config = {
+        "deterministic": True,
+        "max_depth": cfg.max_depth,
+        "los": True,
+        "specular_reflection": True,
+        "diffuse_reflection": True,
+        "refraction": True,
+        "diffraction": False,
+    }
     if (
         attempt_counts["attempts_started"]
         != attempt_counts["obstacle_rejections"] + attempt_counts["depth_zero_oracle_attempts"]
@@ -521,15 +531,7 @@ def generate_raytraced(
         "scene_config": asdict(cfg),
         "scene_asset_manifest": scene_assets,
         "grid_config": asdict(grid),
-        "solver_config": {
-            "deterministic": True,
-            "max_depth": cfg.max_depth,
-            "los": True,
-            "specular_reflection": True,
-            "diffuse_reflection": True,
-            "refraction": True,
-            "diffraction": False,
-        },
+        "solver_config": solver_config,
         "seed": seed,
         "requested_per_class": cfg.per_class,
         "attempt_counts": attempt_counts,
@@ -546,6 +548,15 @@ def generate_raytraced(
             "counted but are not exported as channel observations."
         ),
     }
+    generation_report["rt_run_identity"] = rt_run_identity(
+        scene_asset_manifest=scene_assets,
+        physical_config={"scene": asdict(cfg), "grid": asdict(grid)},
+        solver_config=solver_config,
+        seed=seed,
+        backend_selection=selection.as_dict(),
+        runtime_versions={key: value for key, value in versions().items() if key != "git_sha"},
+        package_source_sha256=str(generation_report["package_source_sha256"]),
+    )
     if solver_failure is not None:
         raise RaytraceGenerationError(
             f"Sionna RT failed during {solver_failure['stage']} at candidate "
