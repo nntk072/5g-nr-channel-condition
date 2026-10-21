@@ -5,7 +5,8 @@ local scene-asset closure, physical configuration, solver options, RNG seed,
 active source-code digest, Sionna/Mitsuba/Dr.Jit versions, the successfully
 probed Mitsuba backend, and runtime details (OS, machine architecture, Python
 implementation, device-selection variables, and visible NVIDIA device/driver
-fingerprint when `nvidia-smi` is available). The identity is stored in the
+fingerprint (GPU index, UUID, PCI bus ID, model, driver, compute capability,
+and memory) when `nvidia-smi` is available). The identity is stored in the
 generation report (or trajectory sidecar) as `rt_run_identity.cache_key_sha256`.
 
 `auto` backend selection probes a real deterministic direct-path solve in an

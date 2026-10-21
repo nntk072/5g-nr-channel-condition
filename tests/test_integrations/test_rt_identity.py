@@ -100,7 +100,7 @@ def test_rt_runtime_fingerprint_includes_host_gpu_and_backend_environment(monkey
         "run",
         lambda *args, **kwargs: SimpleNamespace(
             returncode=0,
-            stdout="RTX test, 555.1, 8.9, 24576\n",
+            stdout="0, GPU-unique, 00000000:01:00.0, RTX test, 555.1, 8.9, 24576\n",
         ),
     )
 
@@ -111,7 +111,9 @@ def test_rt_runtime_fingerprint_includes_host_gpu_and_backend_environment(monkey
     assert fingerprint["platform_machine"]
     assert fingerprint["cuda_visible_devices"] == "2"
     assert fingerprint["mitsuba_default_variant"] == "llvm_ad_mono_polarized"
-    assert fingerprint["nvidia_device_fingerprint"] == "RTX test, 555.1, 8.9, 24576"
+    assert fingerprint["nvidia_device_fingerprint"] == (
+        "0, GPU-unique, 00000000:01:00.0, RTX test, 555.1, 8.9, 24576"
+    )
 
 
 def test_static_rt_solver_config_validates_and_records_all_switches():

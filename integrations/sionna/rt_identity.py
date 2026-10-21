@@ -31,7 +31,7 @@ def rt_runtime_fingerprint(base_versions: Mapping[str, str]) -> dict[str, str]:
         result = subprocess.run(
             [
                 "nvidia-smi",
-                "--query-gpu=name,driver_version,compute_cap,memory.total",
+                "--query-gpu=index,uuid,pci.bus_id,name,driver_version,compute_cap,memory.total",
                 "--format=csv,noheader,nounits",
             ],
             check=False,

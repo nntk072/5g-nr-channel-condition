@@ -2,7 +2,7 @@
 ## Physically Grounded, Identifiability-Aware Multipath State Learning for 5G NR
 ### From LOS/NLOS classification to channel-state reconstruction, uncertainty, and forecasting
 
-**Document edition:** 3.72 — 2026-10-22 (reuse verified RT trajectories by run identity)
+**Document edition:** 3.73 — 2026-10-22 (include physical GPU identity in RT cache keys)
 **Status:** execution specification and scientific decision record; **not** a completed study, not experimental evidence, and not a claim of top-tier acceptance.
 **Repository inspected:** live checkout /home/nguyenl37/5g-nr-channel-condition, branch main, initial implementation commit ffe199c80c1caf40dea91a406fe02124b3ff05ec (built from baseline cc43a5544036578a6bb57ce52b66436d8acb6c1b); local reference /home/nguyenl37/sionna at Sionna v2.2.0, commit 2f0a3820269b53fd022780a6f2f5f720f7ceb9b4, RT submodule commit 15b5ee036917a4c2a9b6420e05570b77717e2fcc.
 **Legacy work:** Long Nguyen, *5G Physical Layer Channel Conditions Classification Using Machine Learning Techniques*, Tampere University, July 2025, embedded in `docs/thesis/NguyenLong.pdf`.
@@ -2075,3 +2075,5 @@ The compact 100-split report is `docs/research/results/identifiability-profile-r
 **Edition 3.72 RT trajectory cache:** RT-to-NR generation now computes its complete run identity before scene loading or ray tracing. A matching trajectory-ID manifest loads only after verifying the generation sidecar, identity-key contents, content-addressed trajectory, and each record's embedded identity; this returns without constructing a PathSolver. Reusing a trajectory ID for changed physical/runtime inputs fails before tracing and directs the caller to use a new ID. Interrupted publication without a sidecar is regenerated. Incomplete scene manifests bypass identity reuse. The feature complements the static dataset NPZ cache; cache hits preserve receiver-only observations and private target arrays exactly.
 
 **Edition 3.72 focused verification:** Native LLVM route generation and storage round-trip pass, followed by a second call with PathSolver replaced by a fail-fast stub to prove the cache avoids retracing. A changed-SNR run using the same trajectory ID is rejected before solver construction. All 19 focused native trajectory and NR record-contract tests pass, along with Ruff and mypy for the changed code.
+
+**Edition 3.73 hardware identity:** Extended the NVIDIA runtime fingerprint with GPU index, UUID, PCI bus ID, model, driver, compute capability, and memory size. This distinguishes identical-card hosts/devices more safely when forming CUDA RT cache identities; the environment variables controlling device visibility/order remain included. The CPU/LLVM path remains usable when `nvidia-smi` is unavailable.
