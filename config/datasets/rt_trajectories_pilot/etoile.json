@@ -1,0 +1,14 @@
+{
+  "trajectory_id": "rt-etoile-route-20261021-a",
+  "scene": "etoile",
+  "transmitter_position_m": [232.8, -95.5, 17.0],
+  "receiver_start_m": [223.01722011416155, -192.10997549659874, 1.5],
+  "receiver_velocity_mps": [0.0, 3.0, 0.0],
+  "num_steps": 4,
+  "sample_interval_s": 0.1,
+  "max_depth": 2,
+  "samples_per_src": 200,
+  "snr_db": 12.0,
+  "seed": 20261022,
+  "device": "cpu"
+}

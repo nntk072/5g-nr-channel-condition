@@ -1,0 +1,37 @@
+{
+  "group_field": "scene_group_id",
+  "group_to_split": {
+    "box_one_screen": "validation",
+    "etoile": "train",
+    "procedural_urban_family": "train",
+    "simple_street_canyon": "test"
+  },
+  "sample_to_split": {
+    "rt-box-one-screen-route-20261021-a:0000": "validation",
+    "rt-box-one-screen-route-20261021-a:0001": "validation",
+    "rt-box-one-screen-route-20261021-a:0002": "validation",
+    "rt-box-one-screen-route-20261021-a:0003": "validation",
+    "rt-etoile-route-20261021-a:0000": "train",
+    "rt-etoile-route-20261021-a:0001": "train",
+    "rt-etoile-route-20261021-a:0002": "train",
+    "rt-etoile-route-20261021-a:0003": "train",
+    "rt-simple-street-canyon-route-20261021-a:0000": "test",
+    "rt-simple-street-canyon-route-20261021-a:0001": "test",
+    "rt-simple-street-canyon-route-20261021-a:0002": "test",
+    "rt-simple-street-canyon-route-20261021-a:0003": "test",
+    "rt-urban-00041-route-20261021-a:0000": "train",
+    "rt-urban-00041-route-20261021-a:0001": "train",
+    "rt-urban-00041-route-20261021-a:0002": "train",
+    "rt-urban-00041-route-20261021-a:0003": "train",
+    "rt-urban-00042-route-20261021-a:0000": "train",
+    "rt-urban-00042-route-20261021-a:0001": "train",
+    "rt-urban-00042-route-20261021-a:0002": "train",
+    "rt-urban-00042-route-20261021-a:0003": "train",
+    "rt-urban-00043-route-20261021-a:0000": "train",
+    "rt-urban-00043-route-20261021-a:0001": "train",
+    "rt-urban-00043-route-20261021-a:0002": "train",
+    "rt-urban-00043-route-20261021-a:0003": "train"
+  },
+  "schema_version": 1,
+  "seed": "rt-nr-scene-family-v1"
+}

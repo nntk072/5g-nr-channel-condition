@@ -1,0 +1,14 @@
+{
+  "trajectory_id": "rt-simple-street-canyon-route-20261021-a",
+  "scene": "simple_street_canyon",
+  "transmitter_position_m": [0.0, 0.0, 25.0],
+  "receiver_start_m": [-9.73944728435031, -1.3730239693552004, 1.5],
+  "receiver_velocity_mps": [3.0, 0.0, 0.0],
+  "num_steps": 4,
+  "sample_interval_s": 0.1,
+  "max_depth": 2,
+  "samples_per_src": 200,
+  "snr_db": 12.0,
+  "seed": 20261023,
+  "device": "cpu"
+}

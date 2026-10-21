@@ -1,0 +1,14 @@
+{
+  "trajectory_id": "rt-urban-00042-route-20261021-a",
+  "scene": "scenes/generated/research_scenes/city42/urban_00042.xml",
+  "transmitter_position_m": [0.0, -55.0, 18.0],
+  "receiver_start_m": [-107.71645217170196, -39.86076994072298, 1.5],
+  "receiver_velocity_mps": [2.9728, -0.418, 0.0],
+  "num_steps": 4,
+  "sample_interval_s": 0.1,
+  "max_depth": 2,
+  "samples_per_src": 200,
+  "snr_db": 12.0,
+  "seed": 20261025,
+  "device": "cpu"
+}
