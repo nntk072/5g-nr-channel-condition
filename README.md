@@ -80,6 +80,13 @@ path CFR fixtures with explicit Hz/second units, timing offsets, and a separate
 synthetic path oracle. Its direct-component flag is not a geometric LOS label,
 and the fixture is not a 3GPP or measured channel model.
 
+<code>propagation.path_steering_diagnostics</code> measures rank, condition
+number, and mutual coherence of candidate path steering vectors on a specified
+finite set of subcarrier frequencies. It demonstrates exact coincidence and
+bandwidth-limited conditioning cases; it is a fixed-delay gain-conditioning
+diagnostic, not a nonlinear path estimator, CRLB, or guaranteed resolution
+bound.
+
 <code>integrations.sionna.generate_tdl_frequency_response</code> also provides
 a pinned Sionna 2.2 TR 38.901 TDL-to-CFR adapter with explicit profile/spec
 metadata, centered NR baseband bins, deterministic per-call seeds, and the
