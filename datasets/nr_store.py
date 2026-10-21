@@ -14,7 +14,7 @@ from typing import Any, Mapping, cast
 import numpy as np
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
-from .nr import NRChannelRecord, NRObservation
+from .nr import NRChannelRecord, NRObservation, NRTrajectory
 
 
 @dataclass(frozen=True, slots=True)
@@ -25,6 +25,23 @@ class NRStoredRecord:
     content_sha256: str
     relative_path: str
     schema_version: int = 1
+
+
+@dataclass(frozen=True, slots=True)
+class NRStoredTrajectory:
+    """Immutable manifest pointer for a time-ordered NR trajectory."""
+
+    trajectory_id: str
+    content_sha256: str
+    relative_path: str
+    sample_ids: tuple[str, ...]
+    schema_version: int = 1
+
+    @property
+    def manifest_relative_path(self) -> str:
+        """Return the stable path of the trajectory-ID manifest pointer."""
+        key = hashlib.sha256(self.trajectory_id.encode()).hexdigest()
+        return f"manifests/trajectories/{key}.json"
 
 
 def _as_numpy(value: Any, *, field: str) -> np.ndarray:
@@ -168,3 +185,70 @@ def read_nr_record(root: str | Path, manifest: NRStoredRecord | str | Path) -> N
             target_masks=masks,
             provenance=metadata["provenance"],
         )
+
+
+def write_nr_trajectory(root: str | Path, trajectory: NRTrajectory) -> NRStoredTrajectory:
+    """Store trajectory records individually and publish an immutable ordered index."""
+    base = Path(root)
+    record_manifests = [write_nr_record(base, record) for record in trajectory.records]
+    trajectory_payload = {
+        "schema_version": 1,
+        "trajectory_id": trajectory.trajectory_id,
+        "sample_times_s": list(trajectory.sample_times_s),
+        "records": [asdict(manifest) for manifest in record_manifests],
+    }
+    payload = _json_bytes(trajectory_payload)
+    digest = hashlib.sha256(payload).hexdigest()
+    relative_path = f"trajectories/{digest[:2]}/{digest}.json"
+    _publish_immutable(base / relative_path, payload)
+    stored = NRStoredTrajectory(
+        trajectory_id=trajectory.trajectory_id,
+        content_sha256=digest,
+        relative_path=relative_path,
+        sample_ids=trajectory.sample_ids,
+    )
+    trajectory_key = hashlib.sha256(stored.trajectory_id.encode()).hexdigest()
+    manifest_data = _json_bytes(asdict(stored)) + b"\n"
+    _publish_immutable(
+        base / "manifests" / "trajectories" / f"{trajectory_key}.json", manifest_data
+    )
+    return stored
+
+
+def read_nr_trajectory(
+    root: str | Path,
+    manifest: NRStoredTrajectory | str | Path,
+) -> NRTrajectory:
+    """Load and validate a stored trajectory and every referenced NR record."""
+    base = Path(root)
+    if isinstance(manifest, NRStoredTrajectory):
+        stored = manifest
+    else:
+        manifest_path = Path(manifest)
+        if not manifest_path.is_absolute():
+            manifest_path = base / manifest_path
+        raw_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        raw_manifest["sample_ids"] = tuple(raw_manifest["sample_ids"])
+        stored = NRStoredTrajectory(**raw_manifest)
+    if stored.schema_version != 1:
+        raise ValueError(f"unsupported NR trajectory schema version: {stored.schema_version}")
+    relative_path = Path(stored.relative_path)
+    if relative_path.is_absolute() or ".." in relative_path.parts:
+        raise ValueError("trajectory path must remain inside the store")
+    payload = (base / relative_path).read_bytes()
+    if hashlib.sha256(payload).hexdigest() != stored.content_sha256:
+        raise ValueError("NR trajectory content hash does not match its manifest")
+    values = json.loads(payload.decode("utf-8"))
+    if values.get("schema_version") != 1:
+        raise ValueError("unsupported NR trajectory payload schema")
+    if values.get("trajectory_id") != stored.trajectory_id:
+        raise ValueError("NR trajectory ID does not match its manifest")
+    record_manifests = [NRStoredRecord(**value) for value in values.get("records", [])]
+    if tuple(record.sample_id for record in record_manifests) != stored.sample_ids:
+        raise ValueError("NR trajectory sample IDs do not match its manifest")
+    records = tuple(read_nr_record(base, record) for record in record_manifests)
+    return NRTrajectory(
+        trajectory_id=stored.trajectory_id,
+        sample_times_s=tuple(values["sample_times_s"]),
+        records=records,
+    )

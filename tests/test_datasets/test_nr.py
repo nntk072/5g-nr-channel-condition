@@ -1,7 +1,12 @@
 import numpy as np
 import pytest
-from datasets.nr import NRChannelRecord, NRObservation
-from datasets.nr_store import read_nr_record, write_nr_record
+from datasets.nr import NRChannelRecord, NRObservation, NRTrajectory
+from datasets.nr_store import (
+    read_nr_record,
+    read_nr_trajectory,
+    write_nr_record,
+    write_nr_trajectory,
+)
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
 
@@ -22,6 +27,26 @@ def make_observation(**overrides):
     }
     values.update(overrides)
     return NRObservation(**values)
+
+
+def make_single_record(sample_id, *, targets, target_masks):
+    estimate = NRChannelEstimate(
+        h_hat=np.zeros((1, 1, 2, 1, 1, 14, 24), dtype=np.complex64),
+        error_variance=np.zeros((1, 1, 1, 1, 1, 14, 24), dtype=np.float32),
+        pilot_mask=np.zeros((1, 1, 14, 24), dtype=np.bool_),
+        metadata={"receiver": "PUSCHLSChannelEstimator"},
+    )
+    observation = make_observation(
+        sample_id=sample_id,
+        received_grid=np.zeros((1, 1, 2, 14, 24), dtype=np.complex64),
+        channel_estimate=estimate,
+    )
+    return NRChannelRecord(
+        observation=observation,
+        targets=targets,
+        target_masks=target_masks,
+        provenance={"source": "trajectory-fixture"},
+    )
 
 
 def test_nr_observation_builds_inference_payload_without_sample_oracle_ids():
@@ -121,6 +146,75 @@ def test_nr_channel_record_rejects_masks_without_targets():
         )
 
 
+@pytest.mark.parametrize(
+    ("target", "mask", "exception", "message"),
+    [
+        (np.zeros((2, 3)), np.ones((2, 3)), TypeError, "boolean dtype"),
+        (np.zeros((2, 3)), np.ones((4,), dtype=np.bool_), ValueError, "broadcastable"),
+    ],
+)
+def test_nr_channel_record_validates_target_mask_dtype_and_shape(target, mask, exception, message):
+    with pytest.raises(exception, match=message):
+        NRChannelRecord(
+            observation=make_observation(),
+            targets={"target": target},
+            target_masks={"target": mask},
+            provenance={"source": "unit-test"},
+        )
+
+
+def test_nr_trajectory_keeps_time_ordered_multitarget_masks_out_of_model_inputs():
+    first = make_single_record(
+        "trajectory-1-step-0",
+        targets={"channel_cfr": np.ones(24, dtype=np.complex64), "los": np.asarray(True)},
+        target_masks={
+            "channel_cfr": np.ones(24, dtype=np.bool_),
+            "los": np.asarray(True),
+        },
+    )
+    second = make_single_record(
+        "trajectory-1-step-1",
+        targets={"channel_cfr": np.full(24, 2, dtype=np.complex64)},
+        target_masks={"channel_cfr": np.asarray([True] * 23 + [False])},
+    )
+    trajectory = NRTrajectory(
+        trajectory_id="route-1", sample_times_s=(0.0, 0.1), records=(first, second)
+    )
+
+    values, masks = trajectory.target_series("los")
+
+    assert trajectory.sample_ids == ("trajectory-1-step-0", "trajectory-1-step-1")
+    assert trajectory.target_names == ("channel_cfr", "los")
+    assert len(trajectory.model_inputs()) == 2
+    assert not hasattr(trajectory.model_inputs()[0], "targets")
+    assert bool(values[0]) and masks[0]
+    assert values[1] is None and masks[1] is None
+    assert not bool(trajectory.target_series("channel_cfr")[1][1][-1])
+
+
+def test_nr_trajectory_rejects_duplicate_samples_and_nonmonotone_times():
+    record = make_single_record(
+        "one",
+        targets={"target": np.asarray(1.0)},
+        target_masks={},
+    )
+    with pytest.raises(ValueError, match="strictly increasing"):
+        NRTrajectory(
+            "route",
+            (0.0, 0.0),
+            (
+                record,
+                make_single_record(
+                    "two",
+                    targets={"target": np.asarray(2.0)},
+                    target_masks={},
+                ),
+            ),
+        )
+    with pytest.raises(ValueError, match="sample IDs must be unique"):
+        NRTrajectory("route", (0.0, 1.0), (record, record))
+
+
 def test_nr_record_round_trip_is_lossless_pickle_free_and_content_addressed(tmp_path):
     observation = make_observation()
     record = NRChannelRecord(
@@ -146,6 +240,45 @@ def test_nr_record_round_trip_is_lossless_pickle_free_and_content_addressed(tmp_
     )
     np.testing.assert_array_equal(restored.targets["channel_cfr"], record.targets["channel_cfr"])
     assert restored.provenance == record.provenance
+
+
+def test_nr_trajectory_round_trip_preserves_order_masks_and_content_addressing(tmp_path):
+    records = (
+        make_single_record(
+            "route-a-0",
+            targets={"los": np.asarray(True), "channel_cfr": np.ones(24, np.complex64)},
+            target_masks={"los": np.asarray(True), "channel_cfr": np.ones(24, np.bool_)},
+        ),
+        make_single_record(
+            "route-a-1",
+            targets={"channel_cfr": np.full(24, 2, np.complex64)},
+            target_masks={"channel_cfr": np.asarray([True] * 12 + [False] * 12)},
+        ),
+    )
+    trajectory = NRTrajectory("route-a", (2.0, 2.1), records)
+
+    stored = write_nr_trajectory(tmp_path, trajectory)
+    assert write_nr_trajectory(tmp_path, trajectory) == stored
+    restored = read_nr_trajectory(tmp_path, stored.manifest_relative_path)
+
+    assert restored.trajectory_id == trajectory.trajectory_id
+    assert restored.sample_times_s == trajectory.sample_times_s
+    assert restored.sample_ids == trajectory.sample_ids
+    assert restored.target_names == trajectory.target_names
+    np.testing.assert_array_equal(
+        restored.target_series("channel_cfr")[1][1],
+        trajectory.target_series("channel_cfr")[1][1],
+    )
+
+
+def test_nr_trajectory_store_detects_payload_tampering(tmp_path):
+    record = make_single_record("route-b-0", targets={"label": np.asarray(1)}, target_masks={})
+    stored = write_nr_trajectory(tmp_path, NRTrajectory("route-b", (0.0,), (record,)))
+    payload = tmp_path / stored.relative_path
+    payload.write_bytes(payload.read_bytes() + b"tampered")
+
+    with pytest.raises(ValueError, match="content hash"):
+        read_nr_trajectory(tmp_path, stored)
 
 
 def test_nr_record_store_detects_tampering_and_sample_id_mutation(tmp_path):

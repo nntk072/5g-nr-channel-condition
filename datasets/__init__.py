@@ -7,8 +7,15 @@ from .analytical import (
     generate_analytical_multipath,
 )
 from .channel import ChannelDataset
-from .nr import NRChannelRecord, NRModelInputs, NRObservation
-from .nr_store import NRStoredRecord, read_nr_record, write_nr_record
+from .nr import NRChannelRecord, NRModelInputs, NRObservation, NRTrajectory
+from .nr_store import (
+    NRStoredRecord,
+    NRStoredTrajectory,
+    read_nr_record,
+    read_nr_trajectory,
+    write_nr_record,
+    write_nr_trajectory,
+)
 from .synthetic import debug_multipath
 
 __all__ = [
@@ -20,8 +27,12 @@ __all__ = [
     "NRModelInputs",
     "NRObservation",
     "NRStoredRecord",
+    "NRTrajectory",
+    "NRStoredTrajectory",
     "debug_multipath",
     "generate_analytical_multipath",
     "read_nr_record",
+    "read_nr_trajectory",
     "write_nr_record",
+    "write_nr_trajectory",
 ]

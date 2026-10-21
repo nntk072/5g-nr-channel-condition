@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Any, Mapping
 
+import numpy as np
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
 
@@ -114,8 +116,85 @@ class NRChannelRecord:
             raise ValueError("at least one explicitly named target is required")
         if not set(self.target_masks).issubset(self.targets):
             raise ValueError("target masks must correspond to declared targets")
+        for name, mask in self.target_masks.items():
+            mask_dtype = getattr(mask, "dtype", None)
+            if mask_dtype is None:
+                if not isinstance(mask, (bool, np.bool_)):
+                    raise TypeError(f"target mask {name!r} must have boolean dtype")
+            elif str(mask_dtype) not in {"bool", "torch.bool"}:
+                raise TypeError(f"target mask {name!r} must have boolean dtype")
+            target = self.targets[name]
+            target_shape = tuple(target.shape) if hasattr(target, "shape") else np.shape(target)
+            mask_shape = tuple(mask.shape) if hasattr(mask, "shape") else np.shape(mask)
+            try:
+                broadcast_shape = np.broadcast_shapes(target_shape, mask_shape)
+            except ValueError as exc:
+                raise ValueError(
+                    f"target mask {name!r} is not broadcastable to its target"
+                ) from exc
+            if broadcast_shape != target_shape:
+                raise ValueError(f"target mask {name!r} is not broadcastable to its target")
         if not self.provenance:
             raise ValueError("provenance must not be empty")
         object.__setattr__(self, "targets", _freeze_mapping(self.targets))
         object.__setattr__(self, "target_masks", _freeze_mapping(self.target_masks))
         object.__setattr__(self, "provenance", _freeze_mapping(self.provenance))
+
+
+@dataclass(frozen=True, slots=True)
+class NRTrajectory:
+    """Time-ordered NR records grouped as one indivisible split unit."""
+
+    trajectory_id: str
+    sample_times_s: tuple[float, ...]
+    records: tuple[NRChannelRecord, ...]
+
+    def __post_init__(self) -> None:
+        if not self.trajectory_id.strip():
+            raise ValueError("trajectory_id must be non-empty")
+        records = tuple(self.records)
+        times = tuple(self.sample_times_s)
+        if not records or len(times) != len(records):
+            raise ValueError("sample_times_s must provide one time for every trajectory record")
+        if any(isinstance(value, bool) for value in times):
+            raise TypeError("sample_times_s values must be real timestamps, not booleans")
+        try:
+            times = tuple(float(value) for value in times)
+        except (TypeError, ValueError) as exc:
+            raise TypeError("sample_times_s values must be real timestamps") from exc
+        if any(not math.isfinite(value) for value in times):
+            raise ValueError("sample_times_s values must be finite")
+        if any(right <= left for left, right in zip(times, times[1:])):
+            raise ValueError("sample_times_s must be strictly increasing")
+        sample_ids = tuple(record.observation.sample_id for record in records)
+        if len(set(sample_ids)) != len(sample_ids):
+            raise ValueError("trajectory sample IDs must be unique")
+        if any(tuple(record.observation.received_grid.shape)[0] != 1 for record in records):
+            raise ValueError("each trajectory record must contain exactly one observation")
+        receiver_configs = {record.observation.receiver_config for record in records}
+        if len(receiver_configs) != 1:
+            raise ValueError("all records in one trajectory must use the same receiver config")
+        object.__setattr__(self, "sample_times_s", times)
+        object.__setattr__(self, "records", records)
+
+    @property
+    def sample_ids(self) -> tuple[str, ...]:
+        """Return sample IDs in chronological order."""
+        return tuple(record.observation.sample_id for record in self.records)
+
+    @property
+    def target_names(self) -> tuple[str, ...]:
+        """Return the sorted union of named targets present in this trajectory."""
+        return tuple(sorted({name for record in self.records for name in record.targets}))
+
+    def model_inputs(self) -> tuple[NRModelInputs, ...]:
+        """Return time-aligned inference inputs without identifiers or target truth."""
+        return tuple(record.observation.model_inputs() for record in self.records)
+
+    def target_series(self, name: str) -> tuple[tuple[Any | None, ...], tuple[Any | None, ...]]:
+        """Return aligned target values and masks; missing targets are represented by None."""
+        if name not in self.target_names:
+            raise KeyError(f"unknown trajectory target: {name}")
+        values = tuple(record.targets.get(name) for record in self.records)
+        masks = tuple(record.target_masks.get(name) for record in self.records)
+        return values, masks
