@@ -1,0 +1,449 @@
+{
+  "adaptive_generation": {
+    "backend": "LLVM CPU Sionna RT; the OptiX CUDA RT backend is unavailable in this WSL environment",
+    "budgets_and_holdout": {
+      "box_one_screen": {
+        "class_counts": {
+          "0": 20,
+          "1": 20
+        },
+        "generation_attempts": 43,
+        "holdout_manifest_sha256": "af18ac997a96758ffd58197e93e0e13fbda068119b54fe54b802aaa9f95029c8",
+        "holdout_results_sha256": "ad1cb360e362194f0976d5c8ca0bfe115e5aca430a10497a0e183eda0b1bd63a",
+        "holdout_summary_sha256": "f7fac6c0aad927c1ab7a8394306208351a06f82548bd5055401423a3060a0a1e",
+        "input_npz_sha256": "70cbbe27ad5b75e2c824e32247e33780d6225245141b659902d0e7417a380e03",
+        "links": 40,
+        "metrics": {
+          "logreg": {
+            "mean_test_auroc_over_7_seeds": 0.5721428571428572,
+            "std_test_auroc_over_7_seeds": 0.04759701871416097
+          },
+          "mlp": {
+            "mean_test_auroc_over_7_seeds": 0.56,
+            "std_test_auroc_over_7_seeds": 0.0825
+          },
+          "rf": {
+            "mean_test_auroc_over_7_seeds": 0.42749999999999994,
+            "std_test_auroc_over_7_seeds": 0.05176066717756513
+          }
+        },
+        "package_source_sha256": "7d3255992a96e517c814ad57d022e5006b01e56c8b8d4c31bfd5d728cadb3cdb",
+        "samples_per_src": 20000,
+        "spatial_groups": 4
+      },
+      "etoile": {
+        "class_counts": {
+          "0": 20,
+          "1": 20
+        },
+        "generation_attempts": 172,
+        "holdout_manifest_sha256": "047ecc604deaa654f3741c9786078a29a547cba61cd442eb7255bf4a16f4b884",
+        "holdout_results_sha256": "22173d99e7610e3266023d82032c8ab60d872be6c20402c0222ec6c456479553",
+        "holdout_summary_sha256": "99ba498b8f7395ac5f2c05f76c4ebe8d86b99dadd9b6dd799bbbc086c0e32be9",
+        "input_npz_sha256": "ba3a2f6c0f0477e43d772528aa86aeccd4c364a8d3b4be3275055518a17efcaa",
+        "links": 40,
+        "metrics": {
+          "logreg": {
+            "mean_test_auroc_over_7_seeds": 0.5153571428571428,
+            "std_test_auroc_over_7_seeds": 0.0709375983322163
+          },
+          "mlp": {
+            "mean_test_auroc_over_7_seeds": 0.49321428571428577,
+            "std_test_auroc_over_7_seeds": 0.06097667391638189
+          },
+          "rf": {
+            "mean_test_auroc_over_7_seeds": 0.45928571428571435,
+            "std_test_auroc_over_7_seeds": 0.038370840863491996
+          }
+        },
+        "package_source_sha256": "7d3255992a96e517c814ad57d022e5006b01e56c8b8d4c31bfd5d728cadb3cdb",
+        "samples_per_src": 5000000,
+        "spatial_groups": 20
+      },
+      "simple_street_canyon": {
+        "class_counts": {
+          "0": 20,
+          "1": 20
+        },
+        "generation_attempts": 68,
+        "holdout_manifest_sha256": "1896285f550b6c139110005973017aef8d20b5e30088ae5a9592d4f0dee42b3b",
+        "holdout_results_sha256": "286b38eec2e3fa4087ffcca9d326b406660b2ac575fcc2690ea7a2eea54b14af",
+        "holdout_summary_sha256": "b0418c63c57a60178f2f06631d351179f633fbbe2fc9ae0a8fec1b5308328888",
+        "input_npz_sha256": "835a0d5e1ba775a4ba130735851e5de6b2c41147156c828782284d224d0de557",
+        "links": 40,
+        "metrics": {
+          "logreg": {
+            "mean_test_auroc_over_7_seeds": 0.5946428571428571,
+            "std_test_auroc_over_7_seeds": 0.0659455041970984
+          },
+          "mlp": {
+            "mean_test_auroc_over_7_seeds": 0.6164285714285713,
+            "std_test_auroc_over_7_seeds": 0.052774227115316874
+          },
+          "rf": {
+            "mean_test_auroc_over_7_seeds": 0.6121428571428572,
+            "std_test_auroc_over_7_seeds": 0.0609205180855311
+          }
+        },
+        "package_source_sha256": "7d3255992a96e517c814ad57d022e5006b01e56c8b8d4c31bfd5d728cadb3cdb",
+        "samples_per_src": 1000000,
+        "spatial_groups": 11
+      },
+      "urban_00041": {
+        "class_counts": {
+          "0": 20,
+          "1": 20
+        },
+        "generation_attempts": 80,
+        "holdout_manifest_sha256": "bd71b2cc040bc473406e602100fe9ba77a96060148ce82a972dfd0939a2d1fab",
+        "holdout_results_sha256": "067e06fcf605752f63b54b59c0f605c583640d7e6ff4b6cfb5e15b6d1234ae81",
+        "holdout_summary_sha256": "dbf976fa05033b2603ce815ac5cc25b2395176ab259c5e8a06643abc6f3b7069",
+        "input_npz_sha256": "66099ad0d0e5cea286e81868e576e0727ff4feb23c13121c06512a9fb8088e93",
+        "links": 40,
+        "metrics": {
+          "logreg": {
+            "mean_test_auroc_over_7_seeds": 0.6496428571428572,
+            "std_test_auroc_over_7_seeds": 0.0431187452330908
+          },
+          "mlp": {
+            "mean_test_auroc_over_7_seeds": 0.6996428571428572,
+            "std_test_auroc_over_7_seeds": 0.04124188231813454
+          },
+          "rf": {
+            "mean_test_auroc_over_7_seeds": 0.7035714285714285,
+            "std_test_auroc_over_7_seeds": 0.009558715793402764
+          }
+        },
+        "package_source_sha256": "7d3255992a96e517c814ad57d022e5006b01e56c8b8d4c31bfd5d728cadb3cdb",
+        "samples_per_src": 20000,
+        "spatial_groups": 13
+      },
+      "urban_00042": {
+        "class_counts": {
+          "0": 20,
+          "1": 20
+        },
+        "generation_attempts": 79,
+        "holdout_manifest_sha256": "d30e26bb8636a047bd68ac44ff099316dcfc712212c0461a239e3219674ca044",
+        "holdout_results_sha256": "93591982a2a93b80d94c4981e583daf85a53a7babffb3210937beda0328d3689",
+        "holdout_summary_sha256": "c0807c741ac3eafa0d72d52a23eef4a60249f88457cd18787f8a600dc639818b",
+        "input_npz_sha256": "9bfeb12f9b5f92efbfac71ca00a466eefcab7a74cb466425b65a9f142d7713cc",
+        "links": 40,
+        "metrics": {
+          "logreg": {
+            "mean_test_auroc_over_7_seeds": 0.5064285714285715,
+            "std_test_auroc_over_7_seeds": 0.040307597062494094
+          },
+          "mlp": {
+            "mean_test_auroc_over_7_seeds": 0.5146428571428572,
+            "std_test_auroc_over_7_seeds": 0.04684701545608704
+          },
+          "rf": {
+            "mean_test_auroc_over_7_seeds": 0.5778571428571428,
+            "std_test_auroc_over_7_seeds": 0.05382124292949941
+          }
+        },
+        "package_source_sha256": "7d3255992a96e517c814ad57d022e5006b01e56c8b8d4c31bfd5d728cadb3cdb",
+        "samples_per_src": 100000,
+        "spatial_groups": 14
+      },
+      "urban_00043": {
+        "class_counts": {
+          "0": 20,
+          "1": 20
+        },
+        "generation_attempts": 77,
+        "holdout_manifest_sha256": "c208b320c193b372faaee4954d0efd3422f7bb3fa6d66cf7c7e4269cbd07169d",
+        "holdout_results_sha256": "911a0b39c56e1ce15c5c5df24ff0d424a52d796ecdc1c84cbd19ed08800093fd",
+        "holdout_summary_sha256": "3dfceb9ddf2e93366046db452cb3590ed9f508dbc8fe27af1b8687de5130e504",
+        "input_npz_sha256": "4021c3d237a7fb191c0ddc6cfd723c7fd55a4391d6d2e5c99ab953b1638e6975",
+        "links": 40,
+        "metrics": {
+          "logreg": {
+            "mean_test_auroc_over_7_seeds": 0.5632142857142857,
+            "std_test_auroc_over_7_seeds": 0.04834154281676126
+          },
+          "mlp": {
+            "mean_test_auroc_over_7_seeds": 0.6085714285714285,
+            "std_test_auroc_over_7_seeds": 0.04710044990180433
+          },
+          "rf": {
+            "mean_test_auroc_over_7_seeds": 0.5771428571428572,
+            "std_test_auroc_over_7_seeds": 0.02833683451757077
+          }
+        },
+        "package_source_sha256": "7d3255992a96e517c814ad57d022e5006b01e56c8b8d4c31bfd5d728cadb3cdb",
+        "samples_per_src": 20000,
+        "spatial_groups": 15
+      }
+    },
+    "carrier_hz": 3500000000,
+    "links_per_scene": 40,
+    "max_depth": 2,
+    "mean_across_scenes_is_descriptive_only": "Six generated scenes are not independent external validation, and each fold reused seven seeds and generic comb-pilot features.",
+    "n_subcarriers": 128,
+    "per_class": 20,
+    "scene_macro_mean_auroc_across_6_scene_folds": {
+      "logreg": 0.5669047619047619,
+      "mlp": 0.5820833333333334,
+      "rf": 0.5595833333333333
+    },
+    "subcarrier_spacing_hz": 30000
+  },
+  "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
+  "fixed_link_ray_budget_audit": {
+    "audit_script_sha256": "f1d268ab650786362ce0d0490d489d7ca586d9504b2820a1f7e43c21186c4e3f",
+    "budgets": {
+      "100000": {
+        "links": 240,
+        "max_relative_cfr_l2": 0.8843774795532227,
+        "max_scene_relative_cfr_l2_p95": 0.266734523326157,
+        "path_count_changes": 14,
+        "per_scene": {
+          "box_one_screen": {
+            "path_count_changes": 0,
+            "relative_cfr_l2_max": 8.155725663527846e-05,
+            "relative_cfr_l2_p95": 3.001727918672249e-05
+          },
+          "etoile": {
+            "path_count_changes": 13,
+            "relative_cfr_l2_max": 0.8843774795532227,
+            "relative_cfr_l2_p95": 0.266734523326157
+          },
+          "simple_street_canyon": {
+            "path_count_changes": 1,
+            "relative_cfr_l2_max": 0.0974075123667717,
+            "relative_cfr_l2_p95": 0.0001434724137652665
+          },
+          "urban_00041": {
+            "path_count_changes": 0,
+            "relative_cfr_l2_max": 0.0005622729077003896,
+            "relative_cfr_l2_p95": 0.00034442527976352716
+          },
+          "urban_00042": {
+            "path_count_changes": 0,
+            "relative_cfr_l2_max": 0.00566151412203908,
+            "relative_cfr_l2_p95": 1.1139895642031033e-05
+          },
+          "urban_00043": {
+            "path_count_changes": 0,
+            "relative_cfr_l2_max": 0.0006239042268134654,
+            "relative_cfr_l2_p95": 0.0003513640476739958
+          }
+        }
+      },
+      "1000000": {
+        "links": 240,
+        "max_relative_cfr_l2": 0.0,
+        "max_scene_relative_cfr_l2_p95": 0.0,
+        "path_count_changes": 0,
+        "per_scene": {
+          "box_one_screen": {
+            "path_count_changes": 0,
+            "relative_cfr_l2_max": 0.0,
+            "relative_cfr_l2_p95": 0.0
+          },
+          "etoile": {
+            "path_count_changes": 0,
+            "relative_cfr_l2_max": 0.0,
+            "relative_cfr_l2_p95": 0.0
+          },
+          "simple_street_canyon": {
+            "path_count_changes": 0,
+            "relative_cfr_l2_max": 0.0,
+            "relative_cfr_l2_p95": 0.0
+          },
+          "urban_00041": {
+            "path_count_changes": 0,
+            "relative_cfr_l2_max": 0.0,
+            "relative_cfr_l2_p95": 0.0
+          },
+          "urban_00042": {
+            "path_count_changes": 0,
+            "relative_cfr_l2_max": 0.0,
+            "relative_cfr_l2_p95": 0.0
+          },
+          "urban_00043": {
+            "path_count_changes": 0,
+            "relative_cfr_l2_max": 0.0,
+            "relative_cfr_l2_p95": 0.0
+          }
+        }
+      },
+      "200": {
+        "links": 240,
+        "max_relative_cfr_l2": 4.870102882385254,
+        "max_scene_relative_cfr_l2_p95": 1.185123014450071,
+        "path_count_changes": 150,
+        "per_scene": {
+          "box_one_screen": {
+            "path_count_changes": 11,
+            "relative_cfr_l2_max": 0.47894418239593506,
+            "relative_cfr_l2_p95": 0.17628600671887384
+          },
+          "etoile": {
+            "path_count_changes": 39,
+            "relative_cfr_l2_max": 1.2482491731643677,
+            "relative_cfr_l2_p95": 1.0
+          },
+          "simple_street_canyon": {
+            "path_count_changes": 32,
+            "relative_cfr_l2_max": 0.6579498648643494,
+            "relative_cfr_l2_p95": 0.576933717727661
+          },
+          "urban_00041": {
+            "path_count_changes": 26,
+            "relative_cfr_l2_max": 4.31930685043335,
+            "relative_cfr_l2_p95": 1.185123014450071
+          },
+          "urban_00042": {
+            "path_count_changes": 19,
+            "relative_cfr_l2_max": 4.870102882385254,
+            "relative_cfr_l2_p95": 0.9770885288715362
+          },
+          "urban_00043": {
+            "path_count_changes": 23,
+            "relative_cfr_l2_max": 1.1913046836853027,
+            "relative_cfr_l2_p95": 1.0
+          }
+        }
+      },
+      "20000": {
+        "links": 240,
+        "max_relative_cfr_l2": 1.0,
+        "max_scene_relative_cfr_l2_p95": 0.8206181794404982,
+        "path_count_changes": 30,
+        "per_scene": {
+          "box_one_screen": {
+            "path_count_changes": 0,
+            "relative_cfr_l2_max": 8.156795229297131e-05,
+            "relative_cfr_l2_p95": 4.8363118730776415e-05
+          },
+          "etoile": {
+            "path_count_changes": 26,
+            "relative_cfr_l2_max": 1.0,
+            "relative_cfr_l2_p95": 0.8206181794404982
+          },
+          "simple_street_canyon": {
+            "path_count_changes": 1,
+            "relative_cfr_l2_max": 0.09168127179145813,
+            "relative_cfr_l2_p95": 4.488478534767623e-05
+          },
+          "urban_00041": {
+            "path_count_changes": 0,
+            "relative_cfr_l2_max": 0.0005622729077003896,
+            "relative_cfr_l2_p95": 0.0003461454762145875
+          },
+          "urban_00042": {
+            "path_count_changes": 2,
+            "relative_cfr_l2_max": 0.20601411163806915,
+            "relative_cfr_l2_p95": 0.004369056248105983
+          },
+          "urban_00043": {
+            "path_count_changes": 1,
+            "relative_cfr_l2_max": 0.3297135829925537,
+            "relative_cfr_l2_p95": 0.0007469530391972476
+          }
+        }
+      }
+    },
+    "limitation": "The largest budget is a finite solver comparison reference, not validated physical truth; the audit evaluates stored links and does not establish material realism or label correctness.",
+    "raw_report_sha256": "021c122d0b828651e1bb1976af20fa04103d64267b2a996f3b37c8bb0c5bf898",
+    "reference_samples_per_src": 1000000,
+    "source_revision": "3eb8b61e8a3961672773729c4b1b1e5a58954d44"
+  },
+  "higher_budget_link_audits": {
+    "etoile": {
+      "by_samples_per_src": {
+        "1000000": {
+          "path_count_changes": 4,
+          "relative_cfr_l2_max": 0.5379183292388916,
+          "relative_cfr_l2_p95": 0.05297300666570658
+        },
+        "10000000": {
+          "path_count_changes": 0,
+          "relative_cfr_l2_max": 0.0,
+          "relative_cfr_l2_p95": 0.0
+        },
+        "2000000": {
+          "path_count_changes": 1,
+          "relative_cfr_l2_max": 0.044747598469257355,
+          "relative_cfr_l2_p95": 0.0012865683704148976
+        },
+        "5000000": {
+          "path_count_changes": 0,
+          "relative_cfr_l2_max": 0.0027391533367335796,
+          "relative_cfr_l2_p95": 0.0010644019464962151
+        }
+      },
+      "input_npz_sha256": "e58d16526312a7a984c084447a2f0973382cf2ecb3ad7e9e6d697cd919daf6f9",
+      "raw_sha256": "5cef85dabb23d0f767d16fa3681dc3f9d5ab432d5ea4c80f297ec0ca3a4052f6",
+      "reference_samples_per_src": 10000000
+    },
+    "simple_street_canyon": {
+      "by_samples_per_src": {
+        "1000000": {
+          "path_count_changes": 0,
+          "relative_cfr_l2_max": 0.0004525691911112517,
+          "relative_cfr_l2_p95": 0.00011028477892978103
+        },
+        "10000000": {
+          "path_count_changes": 0,
+          "relative_cfr_l2_max": 0.0,
+          "relative_cfr_l2_p95": 0.0
+        },
+        "2000000": {
+          "path_count_changes": 0,
+          "relative_cfr_l2_max": 0.0004525691911112517,
+          "relative_cfr_l2_p95": 0.0001189137929031852
+        },
+        "5000000": {
+          "path_count_changes": 0,
+          "relative_cfr_l2_max": 0.0004525691911112517,
+          "relative_cfr_l2_p95": 9.360353797092098e-05
+        }
+      },
+      "input_npz_sha256": "fd6efbbb37f44c1672e5d47424b2ccfd3f59c06401278d65b876d231f3f6ca8e",
+      "raw_sha256": "4548b0b25b16dae0f9b47b7eed2372ab7c77af0432d4148bc12958c7815d88a3",
+      "reference_samples_per_src": 10000000
+    },
+    "urban_00042": {
+      "by_samples_per_src": {
+        "1000000": {
+          "path_count_changes": 0,
+          "relative_cfr_l2_max": 0.005688363686203957,
+          "relative_cfr_l2_p95": 0.0003416327061131591
+        },
+        "10000000": {
+          "path_count_changes": 0,
+          "relative_cfr_l2_max": 0.0,
+          "relative_cfr_l2_p95": 0.0
+        },
+        "2000000": {
+          "path_count_changes": 0,
+          "relative_cfr_l2_max": 0.0005229965317994356,
+          "relative_cfr_l2_p95": 0.00015834545483812637
+        },
+        "5000000": {
+          "path_count_changes": 0,
+          "relative_cfr_l2_max": 0.005688363686203957,
+          "relative_cfr_l2_p95": 0.00034162986557930656
+        }
+      },
+      "input_npz_sha256": "279e69f1f84a11692168ece9bc330d68a0c4808278542ee453305790437260b2",
+      "raw_sha256": "d5057471d2284eda871f4a1c74ad7962ebb4dfff6312489228f91855e1be552d",
+      "reference_samples_per_src": 10000000
+    }
+  },
+  "limitations": [
+    "Ray-budget comparisons are diagnostics, not proof of convergence: no tolerance was preregistered and the highest finite budget is not ground truth.",
+    "At 100k, 14 of 240 links changed valid-path count against the 1M comparison; 13 are from Etoile. Large CFR deviations remain despite unchanged path counts.",
+    "The adaptive per-scene budgets are exploratory estimates, not a validated acceptance threshold or a fully convergence-qualified dataset.",
+    "Observations are generic noisy comb-pilot estimates, not 3GPP NR DMRS or measured channel data.",
+    "Procedural city assets use simplified geometry and placeholder materials; scene/material qualification, visual path review, antenna and precision sweeps remain open.",
+    "These simulation results do not close research plan gates P5 or M2 and support no generalization or scientific performance claim."
+  ],
+  "runner_sha256": "eef28a35c51c5846c21e4fee442e1068045d4873ec53662f4d404545d91974e3",
+  "schema": "loslab.rt_six_scene_adaptive_budget_evidence.v1",
+  "source_revision": "3eb8b61e8a3961672773729c4b1b1e5a58954d44"
+}
