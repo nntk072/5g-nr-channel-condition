@@ -1,0 +1,202 @@
+{
+  "control": {
+    "channel_memory_samples": 13,
+    "cp_covers_channel_memory": true,
+    "delay_spread_s": 1.0000000000000001e-07,
+    "dmrs_additional_position": 0,
+    "path": "docs/research/results/tdl-pusch-time-bler-tdla-12prb-30khz-100ns-control-512-seed51005.json",
+    "sha256": "c05fcf966af6474b38af31f2b54e6fd4fb08630ef74ce8c6e4299cacc660e547",
+    "speed_mps": 3.0,
+    "transmit_waveform_mean_power_by_batch": [
+      1.001017451286316,
+      1.0007774829864502,
+      0.9989596605300903,
+      0.9975184798240662,
+      0.9996858835220337,
+      0.9981080889701843,
+      1.0047215223312378,
+      1.0005018711090088,
+      0.9974780678749084,
+      1.0021018981933594,
+      0.998757541179657,
+      1.001546025276184,
+      1.000956416130066,
+      0.9983605742454529,
+      0.9987182021141052,
+      0.9962732195854187
+    ],
+    "varying_config_value": 1.0000000000000001e-07
+  },
+  "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
+  "limitations": [
+    "Inference is conditional on one standardized TDL-A simulation configuration.",
+    "Codeword-paired uncertainty does not represent independent-scene uncertainty.",
+    "The decoder and synchronization configuration are fixed; the result is not standards certification."
+  ],
+  "paired_design": {
+    "additional_control_policy_change": "allow_cp_overrun: false to true",
+    "analysis_environment": {
+      "git_sha": "6a45da530b9dc5c533805c890ec7a681e07c32aa",
+      "numpy": "2.5.4",
+      "python": "3.12.3",
+      "scikit-learn": "1.9.1",
+      "sionna": "not installed",
+      "sionna-phy": "not installed",
+      "sionna-rt": "not installed",
+      "torch": "2.11.0+cpu"
+    },
+    "analysis_package_source_sha256": "fd94c58598552823d9411efaad656822a9ad57fbe14830d228b3850d1f7cbcfb",
+    "channel_truth_is_intentionally_changed": true,
+    "derived_configuration_changes": [
+      "channel_memory_samples",
+      "cp_covers_channel_memory",
+      "l_max"
+    ],
+    "input_environments": {
+      "control": {
+        "git_sha": "6a45da530b9dc5c533805c890ec7a681e07c32aa",
+        "numpy": "2.5.4",
+        "python": "3.12.3",
+        "scikit-learn": "1.9.1",
+        "sionna": "2.2.0",
+        "sionna-phy": "not installed",
+        "sionna-rt": "2.2.0",
+        "torch": "2.11.0+cu128"
+      },
+      "treatment": {
+        "git_sha": "6a45da530b9dc5c533805c890ec7a681e07c32aa",
+        "numpy": "2.5.4",
+        "python": "3.12.3",
+        "scikit-learn": "1.9.1",
+        "sionna": "2.2.0",
+        "sionna-phy": "not installed",
+        "sionna-rt": "2.2.0",
+        "torch": "2.11.0+cu128"
+      }
+    },
+    "input_package_source_sha256": {
+      "control": "fd94c58598552823d9411efaad656822a9ad57fbe14830d228b3850d1f7cbcfb",
+      "treatment": "fd94c58598552823d9411efaad656822a9ad57fbe14830d228b3850d1f7cbcfb"
+    },
+    "same_batch_seeds_and_noise_seeds": true,
+    "same_channel_truth_by_seed": false,
+    "same_configuration_except": "delay_spread_s",
+    "same_transmitted_bits_by_seed": true,
+    "statistic": "paired codeword bootstrap CI and Holm-adjusted exact McNemar tests"
+  },
+  "points": [
+    {
+      "bootstrap_draws": 20000,
+      "bootstrap_seed": 1,
+      "both_error": 4,
+      "both_success": 497,
+      "codewords": 512,
+      "control_errors": 7,
+      "control_goodput_bits_per_codeword": 3976.875,
+      "control_only_error": 3,
+      "discordant_pairs": 11,
+      "mcnemar_exact_two_sided_p_value": 0.2265625000000006,
+      "mcnemar_exact_two_sided_p_value_holm": 0.6796875000000018,
+      "paired_bootstrap_ci95": [
+        -0.001953125,
+        0.0234375
+      ],
+      "paired_goodput_bootstrap_ci95": [
+        -94.5,
+        7.875
+      ],
+      "snr_db": 12.0,
+      "treatment_errors": 12,
+      "treatment_goodput_bits_per_codeword": 3937.5,
+      "treatment_minus_control_bler": 0.009765625,
+      "treatment_minus_control_goodput_bits_per_codeword": -39.375,
+      "treatment_only_error": 8,
+      "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference."
+    },
+    {
+      "bootstrap_draws": 20000,
+      "bootstrap_seed": 1,
+      "both_error": 0,
+      "both_success": 510,
+      "codewords": 512,
+      "control_errors": 2,
+      "control_goodput_bits_per_codeword": 4016.25,
+      "control_only_error": 2,
+      "discordant_pairs": 2,
+      "mcnemar_exact_two_sided_p_value": 0.5,
+      "mcnemar_exact_two_sided_p_value_holm": 1.0,
+      "paired_bootstrap_ci95": [
+        -0.009765625,
+        0.0
+      ],
+      "paired_goodput_bootstrap_ci95": [
+        0.0,
+        39.375
+      ],
+      "snr_db": 18.0,
+      "treatment_errors": 0,
+      "treatment_goodput_bits_per_codeword": 4032.0,
+      "treatment_minus_control_bler": -0.00390625,
+      "treatment_minus_control_goodput_bits_per_codeword": 15.75,
+      "treatment_only_error": 0,
+      "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference."
+    },
+    {
+      "bootstrap_draws": 20000,
+      "bootstrap_seed": 1,
+      "both_error": 0,
+      "both_success": 510,
+      "codewords": 512,
+      "control_errors": 2,
+      "control_goodput_bits_per_codeword": 4016.25,
+      "control_only_error": 2,
+      "discordant_pairs": 2,
+      "mcnemar_exact_two_sided_p_value": 0.5,
+      "mcnemar_exact_two_sided_p_value_holm": 1.0,
+      "paired_bootstrap_ci95": [
+        -0.009765625,
+        0.0
+      ],
+      "paired_goodput_bootstrap_ci95": [
+        0.0,
+        39.375
+      ],
+      "snr_db": 24.0,
+      "treatment_errors": 0,
+      "treatment_goodput_bits_per_codeword": 4032.0,
+      "treatment_minus_control_bler": -0.00390625,
+      "treatment_minus_control_goodput_bits_per_codeword": 15.75,
+      "treatment_only_error": 0,
+      "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference."
+    }
+  ],
+  "schema": "loslab.paired_tdl_pusch_time_bler.v1",
+  "treatment": {
+    "channel_memory_samples": 14,
+    "cp_covers_channel_memory": false,
+    "delay_spread_s": 3.0000000000000004e-07,
+    "dmrs_additional_position": 0,
+    "path": "docs/research/results/tdl-pusch-time-bler-tdla-12prb-30khz-300ns-cp-overrun-512-seed51005.json",
+    "sha256": "a217389131b27c6877074574e2c8e084fb62a0cd29bc81e753778ce9e010042f",
+    "speed_mps": 3.0,
+    "transmit_waveform_mean_power_by_batch": [
+      1.001017451286316,
+      1.0007774829864502,
+      0.9989596605300903,
+      0.9975184798240662,
+      0.9996858835220337,
+      0.9981080889701843,
+      1.0047215223312378,
+      1.0005018711090088,
+      0.9974780678749084,
+      1.0021018981933594,
+      0.998757541179657,
+      1.001546025276184,
+      1.000956416130066,
+      0.9983605742454529,
+      0.9987182021141052,
+      0.9962732195854187
+    ],
+    "varying_config_value": 3.0000000000000004e-07
+  }
+}
