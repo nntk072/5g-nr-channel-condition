@@ -243,6 +243,42 @@ def test_acquisition_refines_off_grid_cfo_and_fractional_sample_timing() -> None
     assert result.sss_score > 0.9
 
 
+@pytest.mark.parametrize(
+    "fractional_timing",
+    (-0.44, -0.31, -0.073, 0.041, 0.284, 0.463),
+)
+def test_pss_fractional_timing_refinement_is_continuous(fractional_timing: float) -> None:
+    fft_size = 256
+    cp_length = 32
+    integer_timing = 11
+    sample_rate_hz = 7_680_000.0
+    burst = make_nr_sync_burst(
+        119,
+        1,
+        fft_size=fft_size,
+        cyclic_prefix_length=cp_length,
+        fractional_delay_samples=fractional_timing,
+    )
+    capture = np.concatenate(
+        (np.zeros(integer_timing), burst, np.zeros(2 * (fft_size + cp_length)))
+    )
+
+    result = acquire_nr_cell(
+        capture,
+        fft_size=fft_size,
+        cyclic_prefix_length=cp_length,
+        sampling_frequency_hz=sample_rate_hz,
+        fractional_timing_hypotheses_samples=(-0.375, -0.1875, 0.0, 0.1875, 0.375),
+        minimum_pss_score=0.0,
+        minimum_sss_score=0.0,
+    )
+
+    assert result.sample_offset == integer_timing
+    assert result.fractional_sample_offset == pytest.approx(fractional_timing, abs=0.005)
+    assert result.nid1 == 119
+    assert result.nid2 == 1
+
+
 @pytest.mark.parametrize("hypotheses", [(), (-0.5, 0.5), (0.0, 0.0), (np.nan,)])
 def test_pss_search_rejects_invalid_fractional_timing_hypotheses(hypotheses) -> None:
     with pytest.raises(ValueError, match="fractional timing hypotheses"):

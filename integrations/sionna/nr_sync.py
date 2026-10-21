@@ -12,6 +12,7 @@ from dataclasses import dataclass
 
 import numpy as np
 from numpy.typing import NDArray
+from scipy.optimize import minimize_scalar
 from scipy.signal import correlate
 
 ComplexArray = NDArray[np.complex128]
@@ -162,11 +163,14 @@ def detect_nr_pss(
     """Search timing/CFO hypotheses and refine CFO using repeated PSS CP samples.
 
     Integer timing is searched across the capture and fractional timing across
-    ``fractional_timing_hypotheses_samples`` in ``[-0.5, 0.5)``. The finite CFO
-    grid supplies the PSS matched-filter hypothesis; the returned CFO is then
-    refined from repeated samples in the PSS cyclic prefix and is unambiguous
-    only within ``±sampling_frequency_hz/(2*fft_size)``. ``cfo_guard_samples``
-    skips CP samples contaminated by a known channel-delay upper bound.
+    ``fractional_timing_hypotheses_samples`` in ``[-0.5, 0.5)``. The best
+    coarse timing is refined by bounded scalar optimization of the normalized
+    PSS matched-filter score over the continuous fractional-delay interval.
+    The finite CFO grid supplies the PSS matched-filter hypothesis; the
+    returned CFO is then refined from repeated samples in the PSS cyclic prefix
+    and is unambiguous only within ``±sampling_frequency_hz/(2*fft_size)``.
+    ``cfo_guard_samples`` skips CP samples contaminated by a known channel-delay
+    upper bound.
     """
     _validate_ofdm(fft_size, cyclic_prefix_length)
     samples = np.asarray(capture, dtype=np.complex128)
@@ -240,6 +244,41 @@ def detect_nr_pss(
         raise NRSyncNotFoundError(
             f"best PSS score {best.normalized_score:.3f} is below minimum {minimum_score:.3f}"
         )
+    coarse_best = best
+    matched_samples = samples[coarse_best.sample_offset : coarse_best.sample_offset + symbol_length]
+    matched_energy = float(np.vdot(matched_samples, matched_samples).real)
+
+    def negative_fractional_score(fractional_delay: float) -> float:
+        candidate = modulate_nr_sync_symbol(
+            nr_pss_sequence(coarse_best.nid2),
+            fft_size=fft_size,
+            cyclic_prefix_length=cyclic_prefix_length,
+            fractional_delay_samples=fractional_delay,
+        )
+        candidate *= np.exp(2j * np.pi * coarse_best.cfo_hz * sample_axis / sampling_frequency_hz)
+        candidate_energy = float(np.vdot(candidate, candidate).real)
+        denominator = math.sqrt(matched_energy * candidate_energy)
+        if denominator <= np.finfo(np.float64).tiny:
+            return 0.0
+        return -float(abs(np.vdot(candidate, matched_samples)) / denominator)
+
+    refined = minimize_scalar(
+        negative_fractional_score,
+        bounds=(-0.5, 0.5),
+        method="bounded",
+        options={"xatol": 1e-5, "maxiter": 100},
+    )
+    if refined.success and math.isfinite(float(refined.fun)):
+        refined_fraction = float(refined.x)
+        refined_score = -float(refined.fun)
+        if refined_score >= coarse_best.normalized_score:
+            best = PSSDetection(
+                coarse_best.sample_offset,
+                coarse_best.nid2,
+                coarse_best.cfo_hz,
+                refined_score,
+                refined_fraction,
+            )
     prefix_start = best.sample_offset + cfo_guard_samples
     prefix_end = best.sample_offset + cyclic_prefix_length
     tail_start = best.sample_offset + fft_size + cfo_guard_samples
