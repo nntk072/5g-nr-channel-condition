@@ -5,6 +5,7 @@ import pytest
 from integrations.sionna.nr_sync import (
     NRSyncNotFoundError,
     acquire_nr_cell,
+    decode_nr_sss_symbol,
     make_nr_sync_burst,
     nr_pss_sequence,
     nr_sss_sequence,
@@ -96,3 +97,60 @@ def test_pss_search_rejects_noise_below_detection_threshold() -> None:
             sampling_frequency_hz=7_680_000.0,
             cfo_hypotheses_hz=(-3_000.0, 0.0, 3_000.0),
         )
+
+
+def test_pss_sss_acquisition_uses_pss_channel_estimate_under_in_cp_multipath() -> None:
+    nid1 = 335
+    nid2 = 1
+    fft_size = 256
+    cp_length = 32
+    sample_rate_hz = 7_680_000.0
+    timing_offset = 17
+    cfo_hz = 3_000.0
+    burst = make_nr_sync_burst(
+        nid1,
+        nid2,
+        fft_size=fft_size,
+        cyclic_prefix_length=cp_length,
+    )
+    channel = np.zeros(13, dtype=np.complex128)
+    channel[0] = 1.0
+    channel[-1] = 0.9 + 0.1j
+    capture = np.convolve(burst, channel)
+    capture = np.concatenate((np.zeros(timing_offset), capture, np.zeros(64)))
+    time = np.arange(capture.size) / sample_rate_hz
+    capture *= np.exp(2j * np.pi * cfo_hz * time)
+    rng = np.random.default_rng(41)
+    noise_power = np.mean(np.abs(capture) ** 2) / 10 ** (12.0 / 10.0)
+    capture += np.sqrt(noise_power / 2) * (
+        rng.standard_normal(capture.size) + 1j * rng.standard_normal(capture.size)
+    )
+
+    result = acquire_nr_cell(
+        capture,
+        fft_size=fft_size,
+        cyclic_prefix_length=cp_length,
+        sampling_frequency_hz=sample_rate_hz,
+        cfo_hypotheses_hz=(0.0, 1_000.0, 2_000.0, 3_000.0, 4_000.0),
+    )
+
+    symbol_length = fft_size + cp_length
+    sss_start = result.sample_offset + 2 * symbol_length
+    corrected_sss = capture[sss_start : sss_start + symbol_length] * np.exp(
+        -2j * np.pi * result.cfo_hz * np.arange(symbol_length) / sample_rate_hz
+    )
+    flat_nid1, flat_score = decode_nr_sss_symbol(
+        corrected_sss,
+        nid2=nid2,
+        fft_size=fft_size,
+        cyclic_prefix_length=cp_length,
+    )
+
+    assert result.sample_offset == timing_offset
+    assert result.nid1 == nid1
+    assert result.nid2 == nid2
+    assert result.physical_cell_id == 3 * nid1 + nid2
+    assert flat_nid1 == nid1
+    assert result.pss_score > 0.7
+    assert result.sss_score > flat_score + 0.15
+    assert result.sss_score > 0.97

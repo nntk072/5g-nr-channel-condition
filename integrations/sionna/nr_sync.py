@@ -208,8 +208,9 @@ def decode_nr_sss_symbol(
     nid2: int,
     fft_size: int,
     cyclic_prefix_length: int,
+    channel_estimate: NDArray[np.complexfloating] | None = None,
 ) -> tuple[int, float]:
-    """Identify N_ID^(1) from a synchronized SSS symbol in a flat channel."""
+    """Identify N_ID^(1), optionally using channel response from the PSS symbol."""
     if isinstance(nid2, bool) or not isinstance(nid2, int) or not 0 <= nid2 <= 2:
         raise ValueError("nid2 must be an integer in [0, 2]")
     _validate_ofdm(fft_size, cyclic_prefix_length)
@@ -223,8 +224,20 @@ def decode_nr_sss_symbol(
     energy = float(np.linalg.norm(observed))
     if energy <= np.finfo(np.float64).tiny:
         raise ValueError("SSS symbol has insufficient energy")
+    channel = (
+        np.ones(127, dtype=np.complex128)
+        if channel_estimate is None
+        else np.asarray(channel_estimate, dtype=np.complex128)
+    )
+    if channel.shape != (127,) or not np.isfinite(channel).all():
+        raise ValueError("channel_estimate must be a finite 127-element complex vector")
+    channel_energy = float(np.linalg.norm(channel))
+    if channel_energy <= np.finfo(np.float64).tiny:
+        raise ValueError("channel_estimate has insufficient energy")
     hypotheses = np.stack([nr_sss_sequence(nid1, nid2) for nid1 in range(336)])
-    scores = np.abs(hypotheses @ observed) / (np.sqrt(127.0) * energy)
+    templates = hypotheses * channel[None, :]
+    template_energy = np.linalg.norm(templates, axis=1)
+    scores = np.abs(np.conj(templates) @ observed) / (template_energy * energy)
     nid1 = int(np.argmax(scores))
     return nid1, float(scores[nid1])
 
@@ -242,8 +255,9 @@ def acquire_nr_cell(
     """Acquire integer PSS timing and the 1008-cell identity from PSS/SSS.
 
     Numerology is configured, CFO is searched only on the supplied grid, and
-    the SSS decoder assumes a flat channel. This is a controlled cell-search
-    reference, not a complete or standards-certified NR synchronizer.
+    The SSS decoder reuses a PSS-derived per-subcarrier channel estimate,
+    assuming a static channel over the PSS-to-SSS interval. This is a controlled
+    cell-search reference, not a complete or standards-certified NR synchronizer.
     """
     if not math.isfinite(minimum_sss_score) or not 0.0 <= minimum_sss_score <= 1.0:
         raise ValueError("minimum_sss_score must be finite and in [0, 1]")
@@ -261,6 +275,17 @@ def acquire_nr_cell(
     sss_end = sss_start + symbol_length
     if sss_end > samples.size:
         raise ValueError("capture ends before the SSS symbol")
+    pss_start = pss.sample_offset
+    pss_end = pss_start + symbol_length
+    corrected_pss = samples[pss_start:pss_end] * np.exp(
+        -2j * np.pi * pss.cfo_hz * np.arange(symbol_length) / sampling_frequency_hz
+    )
+    pss_spectrum = np.fft.fft(corrected_pss[cyclic_prefix_length:])
+    offsets = np.arange(-64, 63)
+    pss_observed = pss_spectrum[offsets % fft_size]
+    channel_estimate: NDArray[np.complex128] = np.asarray(
+        pss_observed / nr_pss_sequence(pss.nid2), dtype=np.complex128
+    )
     corrected = samples[sss_start:sss_end] * np.exp(
         -2j * np.pi * pss.cfo_hz * np.arange(symbol_length) / sampling_frequency_hz
     )
@@ -269,6 +294,7 @@ def acquire_nr_cell(
         nid2=pss.nid2,
         fft_size=fft_size,
         cyclic_prefix_length=cyclic_prefix_length,
+        channel_estimate=channel_estimate,
     )
     if sss_score < minimum_sss_score:
         raise NRSyncNotFoundError(
