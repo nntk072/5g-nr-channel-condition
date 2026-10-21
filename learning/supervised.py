@@ -6,9 +6,15 @@ import numpy as np
 from models.classical import make_estimator
 
 
-def fit_sklearn(x: np.ndarray, y: np.ndarray, seed: int = 42, method: str = "mlp"):
+def fit_sklearn(
+    x: np.ndarray,
+    y: np.ndarray,
+    seed: int = 42,
+    method: str = "mlp",
+    capacity: str = "medium",
+):
     """Fit a named scikit-learn baseline."""
-    estimator = make_estimator(method, seed)
+    estimator = make_estimator(method, seed, capacity)
     if method == "mlp":
         # Preserve sklearn's effective clipping of the configured 64-row
         # minibatch after its 10% early-stopping split on small pilots.

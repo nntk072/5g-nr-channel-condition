@@ -29,6 +29,7 @@ def test_coral_training_checkpoint_round_trip(tmp_path) -> None:
         seed=9,
         epochs=3,
         batch_per_domain=4,
+        capacity="small",
     )
     checkpoint = tmp_path / "coral.pt"
     predictor.save(checkpoint, threshold=0.63, include_phase=True)

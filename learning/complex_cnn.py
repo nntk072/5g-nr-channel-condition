@@ -20,6 +20,7 @@ def fit_complex_cnn(
     batch_size: int = 64,
     learning_rate: float = 1e-3,
     device: str = "cpu",
+    capacity: str = "medium",
 ) -> tuple[ComplexCNNPredictor, dict[str, float | int]]:
     """Fit with per-link training-only RMS scaling and validation-only stopping."""
     import torch
@@ -68,7 +69,7 @@ def fit_complex_cnn(
     validation_labels_tensor = torch.as_tensor(validation_labels, dtype=torch.long, device=device)
     counts = np.bincount(labels, minlength=2).astype(np.float32)
     weights = torch.as_tensor(len(labels) / (2.0 * counts), dtype=torch.float32, device=device)
-    model = build_complex_cnn(train_real.shape[1]).to(device)
+    model = build_complex_cnn(train_real.shape[1], capacity).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=1e-4)
     loss_fn = nn.CrossEntropyLoss(weight=weights)
     best_loss = float("inf")
@@ -107,7 +108,7 @@ def fit_complex_cnn(
         raise RuntimeError("CVNN training did not produce a finite validation checkpoint")
     model.load_state_dict(best_state)
     model.eval()
-    predictor = ComplexCNNPredictor(model, rms, device)
+    predictor = ComplexCNNPredictor(model, rms, device, capacity=capacity)
     parameter_count = sum(parameter.numel() for parameter in model.parameters())
     return predictor, {
         "epoch_count": epoch_count,

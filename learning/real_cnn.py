@@ -20,6 +20,7 @@ def fit_real_cnn(
     batch_size: int = 64,
     learning_rate: float = 1e-3,
     device: str = "cpu",
+    capacity: str = "medium",
 ) -> tuple[RealCNNPredictor, dict[str, float | int]]:
     """Train a normalized 1D CNN; fit scaling on training observations only."""
     import torch
@@ -68,7 +69,7 @@ def fit_real_cnn(
     class_weights = torch.as_tensor(
         len(labels) / (2.0 * class_counts), dtype=torch.float32, device=device
     )
-    model = build_real_cnn(train.shape[1]).to(device)
+    model = build_real_cnn(train.shape[1], capacity).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=1e-4)
     loss_fn = nn.CrossEntropyLoss(weight=class_weights)
     best_loss = float("inf")
@@ -103,7 +104,7 @@ def fit_real_cnn(
         raise RuntimeError("real-CNN training did not produce a finite validation checkpoint")
     model.load_state_dict(best_state)
     model.eval()
-    predictor = RealCNNPredictor(model, mean, scale, device)
+    predictor = RealCNNPredictor(model, mean, scale, device, capacity=capacity)
     parameter_count = sum(parameter.numel() for parameter in model.parameters())
     return predictor, {
         "epoch_count": epoch_count,

@@ -9,13 +9,16 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
 
-def make_estimator(method: str, seed: int = 42):
+def make_estimator(method: str, seed: int = 42, capacity: str = "medium"):
     """Create an unfitted baseline estimator with fixed research defaults."""
+    from models.capacity import capacity_spec
+
     if method == "mlp":
+        hidden_layer_sizes = capacity_spec(capacity).mlp_widths
         return make_pipeline(
             StandardScaler(),
             MLPClassifier(
-                hidden_layer_sizes=(128, 64, 32),
+                hidden_layer_sizes=hidden_layer_sizes,
                 activation="relu",
                 alpha=1e-3,
                 batch_size=64,

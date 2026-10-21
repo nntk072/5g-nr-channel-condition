@@ -42,7 +42,15 @@ def test_complex_cnn_training_and_checkpoint_round_trip(tmp_path) -> None:
     validation_labels = np.tile(np.asarray([0, 1], dtype=np.int64), 6)
 
     predictor, diagnostics = fit_complex_cnn(
-        train, labels, validation, validation_labels, seed=41, epochs=3, patience=2, batch_size=8
+        train,
+        labels,
+        validation,
+        validation_labels,
+        seed=41,
+        epochs=3,
+        patience=2,
+        batch_size=8,
+        capacity="small",
     )
     checkpoint = tmp_path / "complex-cnn.pt"
     predictor.save(checkpoint, threshold=0.58)
@@ -52,6 +60,7 @@ def test_complex_cnn_training_and_checkpoint_round_trip(tmp_path) -> None:
     assert diagnostics["epoch_count"] <= 3
     assert diagnostics["trainable_parameters"] > 0
     assert restored.threshold == pytest.approx(0.58)
+    assert restored.capacity == "small"
     assert probabilities.shape == (len(validation_labels), 2)
     assert np.isfinite(probabilities).all()
     assert np.allclose(predictor.predict_proba(validation), probabilities)

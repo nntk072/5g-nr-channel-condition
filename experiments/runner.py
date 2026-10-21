@@ -27,6 +27,7 @@ from evaluation.metrics import (
 )
 from evaluation.statistics import paired_seed_delta
 from learning import fit_complex_cnn, fit_coral_mlp, fit_real_cnn, fit_sklearn
+from models.capacity import capacity_spec
 from propagation.physics import observable_features
 from receivers.pilots import comb_ls_estimate
 
@@ -144,9 +145,11 @@ def run_experiment(
     observation_seed: int = 2026,
     device: str = "cpu",
     coral_penalty: float = 0.1,
+    capacity: str = "medium",
 ) -> dict:
     if not paths:
         raise ValueError("No datasets supplied")
+    capacity_spec(capacity)
     data = ChannelDataset.concatenate([ChannelDataset.load(p) for p in paths])
     resolved_label_semantics = _resolved_label_semantics(data)
     if observation == "ideal_cfr":
@@ -170,6 +173,7 @@ def run_experiment(
         "bootstrap": bootstrap,
         "include_phase": include_phase,
         "device": device,
+        "capacity": capacity,
         "coral_penalty": coral_penalty,
         "observation": observation,
         "pilot_spacing": pilot_spacing,
@@ -226,7 +230,9 @@ def run_experiment(
                 torch.cuda.reset_peak_memory_stats(device)
             fit_started = perf_counter()
             if method in ("rf", "histgb", "mlp", "logreg"):
-                clf = fit_sklearn(x[train], data.y[train], seed=seed, method=method)
+                clf = fit_sklearn(
+                    x[train], data.y[train], seed=seed, method=method, capacity=capacity
+                )
                 extra: dict[str, Any] = {}
             elif method == "cnn":
                 clf, extra = fit_real_cnn(
@@ -236,6 +242,7 @@ def run_experiment(
                     data.y[val],
                     seed=seed,
                     device=device,
+                    capacity=capacity,
                 )
             elif method == "cvnn":
                 clf, extra = fit_complex_cnn(
@@ -245,6 +252,7 @@ def run_experiment(
                     data.y[val],
                     seed=seed,
                     device=device,
+                    capacity=capacity,
                 )
             elif method in ("coral", "coral0"):
                 clf, extra = fit_coral_mlp(
@@ -256,6 +264,7 @@ def run_experiment(
                     seed=seed,
                     penalty=coral_penalty if method == "coral" else 0.0,
                     device=device,
+                    capacity=capacity,
                 )
             else:
                 raise ValueError(f"Unknown method {method}")

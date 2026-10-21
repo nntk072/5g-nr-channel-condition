@@ -16,7 +16,8 @@ def load_coral_checkpoint(path, device: str = "cpu"):
     payload = torch.load(path, map_location=device, weights_only=True)
     if payload.get("format") != "loslab.coral.v1":
         raise ValueError("Invalid checkpoint format")
-    network = build_domain_mlp(payload["n_features"]).to(device)
+    capacity = str(payload.get("capacity", "medium"))
+    network = build_domain_mlp(payload["n_features"], capacity).to(device)
     network.load_state_dict(payload["state_dict"])
     network.eval()
     center = payload["mean"].to(device)
@@ -46,6 +47,7 @@ def fit_coral_mlp(
     lr: float = 1e-3,
     batch_per_domain: int = 48,
     device: str = "cpu",
+    capacity: str = "medium",
 ):
     """Fit same-capacity MLP with a second-order CORAL alignment penalty."""
     import torch
@@ -65,7 +67,7 @@ def fit_coral_mlp(
     if penalty > 0 and len(domain_indices) < 2:
         raise ValueError("CORAL needs >=2 training domains")
 
-    model = build_domain_mlp(x.shape[1]).to(device)
+    model = build_domain_mlp(x.shape[1], capacity).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-3)
     loss_fn = nn.CrossEntropyLoss()
     best_state = None
@@ -122,6 +124,7 @@ def fit_coral_mlp(
             torch.save(
                 {
                     "format": "loslab.coral.v1",
+                    "capacity": capacity,
                     "n_features": x.shape[1],
                     "state_dict": model.state_dict(),
                     "mean": torch.tensor(scaler.mean_, dtype=torch.float32),

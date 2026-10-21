@@ -73,6 +73,7 @@ def main() -> None:
     )
     exp.add_argument("--bootstrap", type=int, default=200)
     exp.add_argument("--device", default="cpu")
+    exp.add_argument("--capacity", choices=("small", "medium", "large"), default="medium")
     exp.add_argument("--phase", action="store_true")
     exp.add_argument(
         "--observation", choices=["ideal_cfr", "comb_ls", "precomputed"], default="ideal_cfr"
@@ -173,6 +174,7 @@ def main() -> None:
                 "bootstrap",
                 "include_phase",
                 "device",
+                "capacity",
                 "observation",
                 "pilot_spacing",
                 "pilot_snr_db",
@@ -192,6 +194,7 @@ def main() -> None:
                 "bootstrap": config.get("bootstrap", args.bootstrap),
                 "include_phase": config.get("include_phase", args.phase),
                 "device": config.get("device", args.device),
+                "capacity": config.get("capacity", args.capacity),
                 "observation": config.get("observation", args.observation),
                 "pilot_spacing": config.get("pilot_spacing", args.pilot_spacing),
                 "pilot_snr_db": config.get("pilot_snr_db", args.pilot_snr_db),
@@ -207,6 +210,7 @@ def main() -> None:
                 "bootstrap": args.bootstrap,
                 "include_phase": args.phase,
                 "device": args.device,
+                "capacity": args.capacity,
                 "observation": args.observation,
                 "pilot_spacing": args.pilot_spacing,
                 "pilot_snr_db": args.pilot_snr_db,

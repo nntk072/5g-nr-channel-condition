@@ -31,6 +31,7 @@ def test_real_cnn_training_checkpoint_round_trip(tmp_path) -> None:
         epochs=4,
         patience=2,
         batch_size=8,
+        capacity="small",
     )
     checkpoint = tmp_path / "real-cnn.pt"
     predictor.save(checkpoint, threshold=0.61)
@@ -40,6 +41,7 @@ def test_real_cnn_training_checkpoint_round_trip(tmp_path) -> None:
     assert training["epoch_count"] <= 4
     assert training["trainable_parameters"] > 0
     assert restored.threshold == pytest.approx(0.61)
+    assert restored.capacity == "small"
     assert restored.include_phase is True
     assert probability.shape == (len(y_validation), 2)
     assert np.isfinite(probability).all()

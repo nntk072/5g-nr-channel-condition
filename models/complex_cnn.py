@@ -17,8 +17,10 @@ def _complex_parts(values: Any) -> tuple[np.ndarray, np.ndarray]:
     return array.real.astype(np.float32), array.imag.astype(np.float32)
 
 
-def build_complex_cnn(input_channels: int):
+def build_complex_cnn(input_channels: int, capacity: str = "medium"):
     """Build a global-phase-equivariant complex encoder and invariant classifier."""
+    from models.capacity import capacity_spec
+
     if isinstance(input_channels, bool) or not isinstance(input_channels, int):
         raise TypeError("input_channels must be an integer")
     if input_channels < 1:
@@ -26,6 +28,8 @@ def build_complex_cnn(input_channels: int):
     import torch
     from torch import nn
     from torch.nn import functional as functional
+
+    width1, width2, width3 = capacity_spec(capacity).convolution_widths
 
     class ComplexConv1d(nn.Module):
         def __init__(self, in_channels: int, out_channels: int, kernel_size: int):
@@ -53,13 +57,15 @@ def build_complex_cnn(input_channels: int):
             super().__init__()
             self.encoder = nn.ModuleList(
                 (
-                    ComplexConv1d(channels, 32, 7),
-                    ComplexConv1d(32, 64, 5),
-                    ComplexConv1d(64, 64, 3),
+                    ComplexConv1d(channels, width1, 7),
+                    ComplexConv1d(width1, width2, 5),
+                    ComplexConv1d(width2, width3, 3),
                 )
             )
             self.pool = nn.AdaptiveAvgPool1d(8)
-            self.head = nn.Sequential(nn.Linear(64 * 8, 128), nn.ReLU(), nn.Linear(128, 2))
+            self.head = nn.Sequential(
+                nn.Linear(width3 * 8, width2 * 2), nn.ReLU(), nn.Linear(width2 * 2, 2)
+            )
 
         def forward(self, real, imag):
             for layer in self.encoder:
@@ -79,11 +85,13 @@ class ComplexCNNPredictor:
         scale: np.ndarray,
         device: str,
         *,
+        capacity: str = "medium",
         threshold: float | None = None,
     ):
         self.model = model
         self.scale = np.asarray(scale, dtype=np.float32)
         self.device = device
+        self.capacity = capacity
         self.threshold = threshold
 
     def predict_proba(self, values: Any) -> np.ndarray:
@@ -108,6 +116,7 @@ class ComplexCNNPredictor:
         torch.save(
             {
                 "format": "loslab.complex_cnn.v1",
+                "capacity": self.capacity,
                 "input_channels": int(len(self.scale)),
                 "scale": torch.as_tensor(self.scale),
                 "state_dict": self.model.state_dict(),
@@ -124,12 +133,14 @@ def load_complex_cnn(path: str | Path, *, device: str = "cpu") -> ComplexCNNPred
     payload = torch.load(path, map_location=device, weights_only=True)
     if payload.get("format") != "loslab.complex_cnn.v1":
         raise ValueError("Invalid complex-CNN checkpoint format")
-    model = build_complex_cnn(int(payload["input_channels"])).to(device)
+    capacity = str(payload.get("capacity", "medium"))
+    model = build_complex_cnn(int(payload["input_channels"]), capacity).to(device)
     model.load_state_dict(payload["state_dict"])
     model.eval()
     return ComplexCNNPredictor(
         model,
         payload["scale"].detach().cpu().numpy(),
         device,
+        capacity=capacity,
         threshold=float(payload["threshold"]),
     )
