@@ -42,4 +42,5 @@ def test_cp_margin_wrapper_summarizes_matched_conditions(monkeypatch):
     assert result["points"]["beyond_cp"]["bler"] == 1.0
     assert result["points"]["inside_cp"]["measured_receive_snr_db_by_batch"]
     assert result["paired_comparison"]["treatment_minus_control_bler"] == 0.75
+    assert result["paired_comparison"]["mcnemar_exact_two_sided_p_value_holm"] <= 1.0
     assert result["configuration"]["package_source_sha256"]

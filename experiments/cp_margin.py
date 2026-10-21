@@ -46,6 +46,19 @@ def run_static_cp_margin_experiment(**kwargs: Any) -> dict[str, Any]:
         for condition, point in points.items()
         if condition != "inside_cp"
     }
+    ordered_comparisons = sorted(
+        result["paired_comparisons_vs_inside_cp"],
+        key=lambda name: result["paired_comparisons_vs_inside_cp"][name][
+            "mcnemar_exact_two_sided_p_value"
+        ],
+    )
+    adjusted_max = 0.0
+    comparison_count = len(ordered_comparisons)
+    for rank, condition in enumerate(ordered_comparisons):
+        comparison = result["paired_comparisons_vs_inside_cp"][condition]
+        raw_p = comparison["mcnemar_exact_two_sided_p_value"]
+        adjusted_max = max(adjusted_max, (comparison_count - rank) * raw_p)
+        comparison["mcnemar_exact_two_sided_p_value_holm"] = min(1.0, adjusted_max)
     result["paired_comparison"] = result["paired_comparisons_vs_inside_cp"]["beyond_cp"]
     result.update(
         {

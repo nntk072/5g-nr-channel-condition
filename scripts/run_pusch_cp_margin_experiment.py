@@ -76,6 +76,7 @@ def main() -> None:
                             "treatment_minus_control_bler",
                             "paired_bootstrap_ci95",
                             "mcnemar_exact_two_sided_p_value",
+                            "mcnemar_exact_two_sided_p_value_holm",
                         )
                     }
                     for condition, comparison in result["paired_comparisons_vs_inside_cp"].items()

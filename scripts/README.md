@@ -107,14 +107,15 @@ python scripts/run_pusch_cp_margin_experiment.py \
   docs/research/results/pusch-static-cp-margin-sweep-12prb-30khz-512.json \
   --frames 512 --batch-size 64 --seed 82417 --snr-db 30 \
   --n-size-bwp 12 --subcarrier-spacing-khz 30 \
-  --in-cp-guard-samples 2 --beyond-cp-samples 3 \
-  --additional-echo-delays-samples 1 4 8 13 20
+  --in-cp-guard-samples 5 --beyond-cp-samples 3 \
+  --additional-echo-delays-samples 1 4 11 13 20
 ```
 
-The shortest CP is 13 samples. The default reference places the echo at 11
-samples; the paired beyond-CP condition places it at 16. Additional requested
+The shortest CP is 13 samples. The default reference places the echo at 8
+samples (5 samples of CP margin); the paired beyond-CP condition places it at
+16. Additional requested
 delays are evaluated on the same transmitted waveforms and standardized noise,
-with paired CRC comparisons against the 11-sample reference. The artifact
+with paired CRC comparisons against the 8-sample reference. The artifact
 records transmit/receive waveform power and per-batch measured receive SNR for
 each delay. The path gains are deterministic and the burst starts with zero
 channel prehistory, so this is a controlled ISI diagnostic, not a TDL/CDL
