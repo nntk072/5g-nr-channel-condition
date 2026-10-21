@@ -77,6 +77,14 @@ coverage and coordinates in one projected metric frame. Target semantics,
 large-scale data generation, and a real-data geographic audit still require
 research-specific schemas and datasets.
 
+Pilot-shard duplicate QA is available through
+<code>evaluation.audit_cfr_near_duplicates</code>, which flags phase/common-gain
+invariant CFR correlation across frozen splits, and
+<code>evaluation.find_cross_split_temporal_overlaps</code>, which finds
+overlapping windows from the same trajectory. CFR fingerprinting is quadratic
+in the sample count and is intended for small QA shards; a production-scale
+approximate index remains future work.
+
 For analytical sanity checks,
 <code>datasets.generate_analytical_multipath</code> creates seeded one-to-three
 path CFR fixtures with explicit Hz/second units, timing offsets, and a separate

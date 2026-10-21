@@ -1,5 +1,12 @@
-"""Evaluation metrics, grouped splits, and reporting utilities."""
+"""Evaluation metrics, grouped splits, duplicate audits, and reporting."""
 
+from .duplicate_audit import (
+    CFRDuplicateAudit,
+    CFRDuplicatePair,
+    TemporalOverlap,
+    audit_cfr_near_duplicates,
+    find_cross_split_temporal_overlaps,
+)
 from .independent_splits import (
     IndependentSplit,
     audit_group_leakage,
@@ -17,13 +24,18 @@ from .spatial_audit import SpatialLeakageAudit, SpatialLeakagePair, audit_spatia
 from .statistics import paired_seed_delta
 
 __all__ = [
+    "CFRDuplicateAudit",
+    "CFRDuplicatePair",
     "IndependentSplit",
     "SpatialLeakageAudit",
     "SpatialLeakagePair",
+    "TemporalOverlap",
+    "audit_cfr_near_duplicates",
     "audit_group_leakage",
     "audit_spatial_buffer",
     "binary_metrics",
     "block_bootstrap_auc",
+    "find_cross_split_temporal_overlaps",
     "freeze_split_lock",
     "group_split",
     "holdout_domain",
