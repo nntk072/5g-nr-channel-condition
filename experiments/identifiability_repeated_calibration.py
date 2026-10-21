@@ -151,23 +151,36 @@ def summarize_repeated_calibration_study(
     for case in cases:
         if not isinstance(case, dict) or not isinstance(case.get("repetitions"), list):
             raise ValueError("each repeated-calibration case must include repetition records")
+        repetitions = case["repetitions"]
+        if not repetitions or any(not isinstance(item, dict) for item in repetitions):
+            raise ValueError("every stress condition must include valid repetition records")
+        rates = np.asarray([item["test_coverage"] for item in repetitions], dtype=np.float64)
+        thresholds = np.asarray([item["threshold"] for item in repetitions], dtype=np.float64)
+        spans = np.asarray([item["median_set_span_ns"] for item in repetitions], dtype=np.float64)
+        seeds = [int(item["seed"]) for item in repetitions]
         compact_cases.append(
             {
-                key: value
-                for key, value in case.items()
-                if key in _CONDITION_FIELDS
-                or key
-                in {
-                    "repetition_count",
-                    "calibration_trials_per_repetition",
-                    "evaluation_trials_per_repetition",
-                    "mean_split_coverage",
-                    "split_bootstrap_percentile_interval_95",
-                    "min_split_coverage",
-                    "max_split_coverage",
-                    "median_of_split_median_set_spans_ns",
-                    "repetitions",
-                }
+                **{field: case[field] for field in _CONDITION_FIELDS},
+                "repetition_count": case["repetition_count"],
+                "calibration_trials_per_repetition": case["calibration_trials_per_repetition"],
+                "evaluation_trials_per_repetition": case["evaluation_trials_per_repetition"],
+                "repetition_seed_range": [min(seeds), max(seeds)],
+                "mean_split_coverage": case["mean_split_coverage"],
+                "split_bootstrap_percentile_interval_95": case[
+                    "split_bootstrap_percentile_interval_95"
+                ],
+                "split_coverage_percentiles_05_50_95": [
+                    float(value) for value in np.percentile(rates, [5, 50, 95])
+                ],
+                "min_split_coverage": case["min_split_coverage"],
+                "max_split_coverage": case["max_split_coverage"],
+                "median_of_split_median_set_spans_ns": case["median_of_split_median_set_spans_ns"],
+                "split_median_set_span_percentiles_05_50_95_ns": [
+                    float(value) for value in np.percentile(spans, [5, 50, 95])
+                ],
+                "calibration_threshold_percentiles_05_50_95": [
+                    float(value) for value in np.percentile(thresholds, [5, 50, 95])
+                ],
             }
         )
     return {

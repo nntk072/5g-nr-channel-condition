@@ -207,7 +207,10 @@ def test_repeated_calibration_bootstraps_independent_splits_deterministically():
     assert len(case["split_bootstrap_percentile_interval_95"]) == 2
     summary = summarize_repeated_calibration_study(first, raw_report_sha256="b" * 64)
     assert summary["raw_report_sha256"] == "b" * 64
-    assert len(summary["cases"][0]["repetitions"]) == 5
+    assert summary["cases"][0]["repetition_count"] == 5
+    assert summary["cases"][0]["repetition_seed_range"] == [801, 805]
+    assert "split_median_set_span_percentiles_05_50_95_ns" in summary["cases"][0]
+    assert "repetitions" not in summary["cases"][0]
 
 
 def test_repeated_calibration_rejects_too_few_splits():
