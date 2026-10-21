@@ -22,6 +22,25 @@ def main() -> None:
     parser.add_argument("--gain-phase-difference-deg", type=float, nargs="+", default=[0.0, 90.0])
     parser.add_argument("--delay-grid-step-fraction", type=float, default=1.0 / 128.0)
     parser.add_argument("--maximum-delay-fraction", type=float, default=2.0)
+    parser.add_argument(
+        "--noise-variance-scale-factors",
+        type=float,
+        nargs="+",
+        default=[0.5, 1.0, 2.0],
+        help="assumed noise variance divided by true variance for each calibrated condition",
+    )
+    parser.add_argument(
+        "--third-path-amplitude-ratios",
+        type=float,
+        nargs="+",
+        default=[0.0, 0.25],
+        help="optional third-path amplitude relative to the strongest path; must be below 0.7",
+    )
+    parser.add_argument(
+        "--randomize-path-order",
+        action="store_true",
+        help="randomly permute physical path arrays before synthesizing each observation",
+    )
     args = parser.parse_args()
     if args.output.exists():
         parser.error(f"refusing to overwrite existing output: {args.output}")
@@ -37,6 +56,9 @@ def main() -> None:
             gain_phase_differences_deg=args.gain_phase_difference_deg,
             delay_grid_step_fraction=args.delay_grid_step_fraction,
             maximum_delay_fraction=args.maximum_delay_fraction,
+            noise_variance_scale_factors=args.noise_variance_scale_factors,
+            third_path_amplitude_ratios=args.third_path_amplitude_ratios,
+            randomize_path_order=args.randomize_path_order,
         )
     except ValueError as error:
         parser.error(str(error))

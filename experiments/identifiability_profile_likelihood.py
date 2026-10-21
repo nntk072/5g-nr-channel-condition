@@ -211,8 +211,20 @@ def build_profile_likelihood_sweep(
     calibration_trials: int = 128,
     delay_grid_step_fraction: float = 1.0 / 128.0,
     maximum_delay_fraction: float = 2.0,
+    noise_variance_scale_factors: Sequence[float] = (1.0,),
+    third_path_amplitude_ratios: Sequence[float] = (0.0,),
+    randomize_path_order: bool = False,
 ) -> dict[str, Any]:
-    """Measure profile-likelihood interval coverage on paired two-path CFRs."""
+    """Measure calibrated delay-set behavior under controlled model mismatch.
+
+    The estimand is the delay between the two strongest specular paths. The
+    fitted likelihood always contains two paths; optional third-path energy is
+    therefore deliberate model mismatch. Calibration and evaluation are
+    independent draws within every listed condition. The assumed noise
+    variance is ``true_variance * scale_factor``. Optional random path order
+    permutes the same physical paths before synthesis to audit label-order
+    sensitivity; it does not change the physical channel.
+    """
     if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
         raise ValueError("seed must be a nonnegative integer")
     if isinstance(trials, bool) or not isinstance(trials, int) or trials < 2:
@@ -239,6 +251,17 @@ def build_profile_likelihood_sweep(
         not math.isfinite(value) for value in gain_phase_differences_deg
     ):
         raise ValueError("gain_phase_differences_deg must contain finite values")
+    if not noise_variance_scale_factors or any(
+        not math.isfinite(value) or value <= 0 for value in noise_variance_scale_factors
+    ):
+        raise ValueError("noise_variance_scale_factors must contain finite positive values")
+    if not third_path_amplitude_ratios or any(
+        not math.isfinite(value) or value < 0 or value >= 0.7
+        for value in third_path_amplitude_ratios
+    ):
+        raise ValueError("third_path_amplitude_ratios must be finite in [0, 0.7)")
+    if not isinstance(randomize_path_order, bool):
+        raise ValueError("randomize_path_order must be boolean")
     if not math.isfinite(delay_grid_step_fraction) or delay_grid_step_fraction <= 0:
         raise ValueError("delay_grid_step_fraction must be finite and positive")
     if not math.isfinite(maximum_delay_fraction) or maximum_delay_fraction <= 0:
@@ -265,211 +288,255 @@ def build_profile_likelihood_sweep(
             for separation_fraction in separation_fractions:
                 relative_delay_s = separation_fraction * delay_scale_s
                 for phase_difference_deg in gain_phase_differences_deg:
-                    gains = np.asarray(
-                        [1.0 + 0j, 0.7 * np.exp(1j * np.deg2rad(phase_difference_deg))],
-                        dtype=np.complex128,
-                    )
-                    reference = np.exp(
-                        -2j
-                        * np.pi
-                        * frequencies[:, None]
-                        * np.asarray([0.0, relative_delay_s])[None, :]
-                    )
-                    signal_power = float(np.mean(np.abs(reference @ gains) ** 2))
-                    noise_variance = signal_power / (10.0 ** (snr_db / 10.0))
-                    calibration_scores: list[float] = []
-                    calibration_records: list[dict[str, float | int]] = []
-                    test_profile_likelihood_ratios: list[np.ndarray] = []
-                    test_covered_68 = 0
-                    test_covered_95 = 0
-                    map_errors_ns: list[float] = []
-                    widths_68_ns: list[float] = []
-                    widths_95_ns: list[float] = []
-                    effective_bins: list[float] = []
-                    per_trial: list[dict[str, object]] = []
-                    for trial_index in range(calibration_trials + trials):
-                        timing_offset_s = float(rng.uniform(0.1, 0.3) * delay_scale_s)
-                        timing_offset_fraction = timing_offset_s / delay_scale_s
-                        true_delays = np.asarray(
-                            [timing_offset_s, timing_offset_s + relative_delay_s]
-                        )
-                        steering = np.exp(-2j * np.pi * frequencies[:, None] * true_delays[None, :])
-                        noiseless = steering @ gains
-                        noise = np.sqrt(noise_variance / 2.0) * (
-                            rng.standard_normal(tone_count) + 1j * rng.standard_normal(tone_count)
-                        )
-                        observed = noiseless + noise
-                        fit = _profile_prepared_grid(observed, noise_variance, prepared_grid)
-                        relative_grid = np.asarray(fit["relative_delay_grid_s"])
-                        profile_likelihood_ratio = np.asarray(
-                            fit["relative_delay_log_likelihood_ratio"]
-                        )
-                        nearest_truth_index = int(
-                            np.argmin(np.abs(relative_grid - relative_delay_s))
-                        )
-                        calibration_score = max(
-                            0.0, -float(profile_likelihood_ratio[nearest_truth_index])
-                        )
-                        if trial_index < calibration_trials:
-                            calibration_scores.append(calibration_score)
-                            calibration_records.append(
+                    for noise_variance_scale in noise_variance_scale_factors:
+                        for third_path_amplitude_ratio in third_path_amplitude_ratios:
+                            base_gains = [
+                                1.0 + 0j,
+                                0.7 * np.exp(1j * np.deg2rad(phase_difference_deg)),
+                            ]
+                            base_delays = [0.0, relative_delay_s]
+                            if third_path_amplitude_ratio > 0.0:
+                                third_phase = float(rng.uniform(-np.pi, np.pi))
+                                base_gains.append(
+                                    third_path_amplitude_ratio * np.exp(1j * third_phase)
+                                )
+                                base_delays.append((separation_fraction + 0.2) * delay_scale_s)
+                            physical_gains = np.asarray(base_gains, dtype=np.complex128)
+                            physical_delays = np.asarray(base_delays, dtype=np.float64)
+                            reference = np.exp(
+                                -2j * np.pi * frequencies[:, None] * physical_delays[None, :]
+                            )
+                            signal_power = float(np.mean(np.abs(reference @ physical_gains) ** 2))
+                            true_noise_variance = signal_power / (10.0 ** (snr_db / 10.0))
+                            assumed_noise_variance = true_noise_variance * noise_variance_scale
+                            calibration_scores: list[float] = []
+                            calibration_records: list[dict[str, float | int]] = []
+                            test_profile_likelihood_ratios: list[np.ndarray] = []
+                            test_covered_68 = 0
+                            test_covered_95 = 0
+                            map_errors_ns: list[float] = []
+                            widths_68_ns: list[float] = []
+                            widths_95_ns: list[float] = []
+                            effective_bins: list[float] = []
+                            per_trial: list[dict[str, object]] = []
+                            randomized_orders = 0
+                            for trial_index in range(calibration_trials + trials):
+                                timing_offset_s = float(rng.uniform(0.1, 0.3) * delay_scale_s)
+                                timing_offset_fraction = timing_offset_s / delay_scale_s
+                                true_delays = physical_delays + timing_offset_s
+                                trial_gains = physical_gains
+                                if randomize_path_order:
+                                    permutation = rng.permutation(len(physical_gains))
+                                    randomized_orders += int(
+                                        not np.array_equal(
+                                            permutation, np.arange(len(physical_gains))
+                                        )
+                                    )
+                                    trial_gains = physical_gains[permutation]
+                                    true_delays = true_delays[permutation]
+                                steering = np.exp(
+                                    -2j * np.pi * frequencies[:, None] * true_delays[None, :]
+                                )
+                                noiseless = steering @ trial_gains
+                                noise = np.sqrt(true_noise_variance / 2.0) * (
+                                    rng.standard_normal(tone_count)
+                                    + 1j * rng.standard_normal(tone_count)
+                                )
+                                observed = noiseless + noise
+                                fit = _profile_prepared_grid(
+                                    observed, assumed_noise_variance, prepared_grid
+                                )
+                                relative_grid = np.asarray(fit["relative_delay_grid_s"])
+                                profile_likelihood_ratio = np.asarray(
+                                    fit["relative_delay_log_likelihood_ratio"]
+                                )
+                                nearest_truth_index = int(
+                                    np.argmin(np.abs(relative_grid - relative_delay_s))
+                                )
+                                calibration_score = max(
+                                    0.0, -float(profile_likelihood_ratio[nearest_truth_index])
+                                )
+                                if trial_index < calibration_trials:
+                                    calibration_scores.append(calibration_score)
+                                    calibration_records.append(
+                                        {
+                                            "trial": trial_index,
+                                            "common_timing_offset_fraction_of_reciprocal_bandwidth": timing_offset_fraction,
+                                            "profile_likelihood_nonconformity": calibration_score,
+                                        }
+                                    )
+                                    continue
+
+                                interval_68 = fit["interval_68_s"]
+                                interval_95 = fit["interval_95_s"]
+                                lower_68, upper_68 = (float(value) for value in interval_68)
+                                lower_95, upper_95 = (float(value) for value in interval_95)
+                                hit_68 = lower_68 <= relative_delay_s <= upper_68
+                                hit_95 = lower_95 <= relative_delay_s <= upper_95
+                                test_covered_68 += int(hit_68)
+                                test_covered_95 += int(hit_95)
+                                map_error_ns = (
+                                    float(fit["map_relative_delay_s"]) - relative_delay_s
+                                ) * 1e9
+                                width_68_ns = (upper_68 - lower_68) * 1e9
+                                width_95_ns = (upper_95 - lower_95) * 1e9
+                                map_errors_ns.append(map_error_ns)
+                                widths_68_ns.append(width_68_ns)
+                                widths_95_ns.append(width_95_ns)
+                                effective_bins.append(float(fit["effective_relative_delay_bins"]))
+                                test_profile_likelihood_ratios.append(profile_likelihood_ratio)
+                                per_trial.append(
+                                    {
+                                        "trial": trial_index - calibration_trials,
+                                        "split": "evaluation",
+                                        "common_timing_offset_fraction_of_reciprocal_bandwidth": timing_offset_fraction,
+                                        "map_error_ns": map_error_ns,
+                                        "interval_68_width_ns": width_68_ns,
+                                        "interval_95_width_ns": width_95_ns,
+                                        "interval_68_covers_truth": hit_68,
+                                        "interval_95_covers_truth": hit_95,
+                                        "effective_relative_delay_bins": fit[
+                                            "effective_relative_delay_bins"
+                                        ],
+                                        "profile_likelihood_nonconformity": calibration_score,
+                                    }
+                                )
+                            threshold_68 = _split_conformal_threshold(calibration_scores, 0.68)
+                            threshold_95 = _split_conformal_threshold(calibration_scores, 0.95)
+                            calibrated_covered_68 = 0
+                            calibrated_covered_95 = 0
+                            calibrated_widths_68_ns: list[float] = []
+                            calibrated_widths_95_ns: list[float] = []
+                            calibrated_components_95: list[int] = []
+                            for evaluation_index, log_likelihood_ratio in enumerate(
+                                test_profile_likelihood_ratios
+                            ):
+                                selected_68 = np.flatnonzero(log_likelihood_ratio >= -threshold_68)
+                                selected_95 = np.flatnonzero(log_likelihood_ratio >= -threshold_95)
+                                grid_cell_half_width_s = (
+                                    delay_grid_step_fraction * delay_scale_s / 2.0
+                                )
+                                hit_68 = bool(
+                                    np.any(
+                                        np.abs(relative_grid[selected_68] - relative_delay_s)
+                                        <= grid_cell_half_width_s + 1e-15
+                                    )
+                                )
+                                hit_95 = bool(
+                                    np.any(
+                                        np.abs(relative_grid[selected_95] - relative_delay_s)
+                                        <= grid_cell_half_width_s + 1e-15
+                                    )
+                                )
+                                span_68_ns = float(
+                                    (selected_68[-1] - selected_68[0] + 1)
+                                    * delay_grid_step_fraction
+                                    * delay_scale_s
+                                    * 1e9
+                                )
+                                span_95_ns = float(
+                                    (selected_95[-1] - selected_95[0] + 1)
+                                    * delay_grid_step_fraction
+                                    * delay_scale_s
+                                    * 1e9
+                                )
+                                components_95 = int(1 + np.count_nonzero(np.diff(selected_95) > 1))
+                                calibrated_covered_68 += int(hit_68)
+                                calibrated_covered_95 += int(hit_95)
+                                calibrated_widths_68_ns.append(span_68_ns)
+                                calibrated_widths_95_ns.append(span_95_ns)
+                                calibrated_components_95.append(components_95)
+                                per_trial[evaluation_index].update(
+                                    {
+                                        "split_conformal_68_covers_truth": hit_68,
+                                        "split_conformal_68_set_span_ns": span_68_ns,
+                                        "split_conformal_95_covers_truth": hit_95,
+                                        "split_conformal_95_set_span_ns": span_95_ns,
+                                        "split_conformal_95_connected_components": components_95,
+                                    }
+                                )
+                            lo_68, hi_68 = _wilson_interval(test_covered_68, trials)
+                            lo_95, hi_95 = _wilson_interval(test_covered_95, trials)
+                            calibrated_lo_68, calibrated_hi_68 = _wilson_interval(
+                                calibrated_covered_68, trials
+                            )
+                            calibrated_lo_95, calibrated_hi_95 = _wilson_interval(
+                                calibrated_covered_95, trials
+                            )
+                            cases.append(
                                 {
-                                    "trial": trial_index,
-                                    "common_timing_offset_fraction_of_reciprocal_bandwidth": timing_offset_fraction,
-                                    "profile_likelihood_nonconformity": calibration_score,
+                                    "tone_count": tone_count,
+                                    "tone_spacing_hz": tone_spacing_hz,
+                                    "bandwidth_hz": bandwidth_hz,
+                                    "snr_db": snr_db,
+                                    "separation_fraction_of_reciprocal_bandwidth": separation_fraction,
+                                    "relative_delay_truth_ns": relative_delay_s * 1e9,
+                                    "gain_phase_difference_deg": phase_difference_deg,
+                                    "true_to_assumed_noise_variance_ratio": (
+                                        1.0 / noise_variance_scale
+                                    ),
+                                    "assumed_to_true_noise_variance_ratio": noise_variance_scale,
+                                    "third_path_amplitude_ratio_to_strongest": third_path_amplitude_ratio,
+                                    "true_path_count": len(physical_gains),
+                                    "fitted_path_count": 2,
+                                    "path_order_randomized": randomize_path_order,
+                                    "path_order_permutations_applied": randomized_orders,
+                                    "delay_estimand": "delay_between_two_strongest_specular_paths",
+                                    "trials": trials,
+                                    "calibration_trials": calibration_trials,
+                                    "calibration_records": calibration_records,
+                                    "delay_grid_step_fraction_of_reciprocal_bandwidth": (
+                                        delay_grid_step_fraction
+                                    ),
+                                    "maximum_delay_fraction_of_reciprocal_bandwidth": (
+                                        maximum_delay_fraction
+                                    ),
+                                    "interval_68_empirical_coverage": test_covered_68 / trials,
+                                    "interval_68_wilson_95_ci": [lo_68, hi_68],
+                                    "interval_95_empirical_coverage": test_covered_95 / trials,
+                                    "interval_95_wilson_95_ci": [lo_95, hi_95],
+                                    "split_conformal_68_threshold": threshold_68,
+                                    "split_conformal_68_empirical_coverage": calibrated_covered_68
+                                    / trials,
+                                    "split_conformal_68_wilson_95_ci": [
+                                        calibrated_lo_68,
+                                        calibrated_hi_68,
+                                    ],
+                                    "split_conformal_68_median_set_span_ns": float(
+                                        np.median(calibrated_widths_68_ns)
+                                    ),
+                                    "split_conformal_95_threshold": threshold_95,
+                                    "split_conformal_95_calibration_rank": math.ceil(
+                                        (calibration_trials + 1) * 0.95
+                                    ),
+                                    "split_conformal_95_empirical_coverage": calibrated_covered_95
+                                    / trials,
+                                    "split_conformal_95_wilson_95_ci": [
+                                        calibrated_lo_95,
+                                        calibrated_hi_95,
+                                    ],
+                                    "split_conformal_95_median_set_span_ns": float(
+                                        np.median(calibrated_widths_95_ns)
+                                    ),
+                                    "split_conformal_95_median_connected_components": float(
+                                        np.median(calibrated_components_95)
+                                    ),
+                                    "map_error_rmse_ns": float(
+                                        np.sqrt(np.mean(np.square(map_errors_ns)))
+                                    ),
+                                    "median_interval_68_width_ns": float(np.median(widths_68_ns)),
+                                    "median_interval_95_width_ns": float(np.median(widths_95_ns)),
+                                    "median_effective_relative_delay_bins": float(
+                                        np.median(effective_bins)
+                                    ),
+                                    "per_trial": per_trial,
                                 }
                             )
-                            continue
-
-                        interval_68 = fit["interval_68_s"]
-                        interval_95 = fit["interval_95_s"]
-                        lower_68, upper_68 = (float(value) for value in interval_68)
-                        lower_95, upper_95 = (float(value) for value in interval_95)
-                        hit_68 = lower_68 <= relative_delay_s <= upper_68
-                        hit_95 = lower_95 <= relative_delay_s <= upper_95
-                        test_covered_68 += int(hit_68)
-                        test_covered_95 += int(hit_95)
-                        map_error_ns = (float(fit["map_relative_delay_s"]) - relative_delay_s) * 1e9
-                        width_68_ns = (upper_68 - lower_68) * 1e9
-                        width_95_ns = (upper_95 - lower_95) * 1e9
-                        map_errors_ns.append(map_error_ns)
-                        widths_68_ns.append(width_68_ns)
-                        widths_95_ns.append(width_95_ns)
-                        effective_bins.append(float(fit["effective_relative_delay_bins"]))
-                        test_profile_likelihood_ratios.append(profile_likelihood_ratio)
-                        per_trial.append(
-                            {
-                                "trial": trial_index - calibration_trials,
-                                "split": "evaluation",
-                                "common_timing_offset_fraction_of_reciprocal_bandwidth": timing_offset_fraction,
-                                "map_error_ns": map_error_ns,
-                                "interval_68_width_ns": width_68_ns,
-                                "interval_95_width_ns": width_95_ns,
-                                "interval_68_covers_truth": hit_68,
-                                "interval_95_covers_truth": hit_95,
-                                "effective_relative_delay_bins": fit[
-                                    "effective_relative_delay_bins"
-                                ],
-                                "profile_likelihood_nonconformity": calibration_score,
-                            }
-                        )
-                    threshold_68 = _split_conformal_threshold(calibration_scores, 0.68)
-                    threshold_95 = _split_conformal_threshold(calibration_scores, 0.95)
-                    calibrated_covered_68 = 0
-                    calibrated_covered_95 = 0
-                    calibrated_widths_68_ns: list[float] = []
-                    calibrated_widths_95_ns: list[float] = []
-                    calibrated_components_95: list[int] = []
-                    for evaluation_index, log_likelihood_ratio in enumerate(
-                        test_profile_likelihood_ratios
-                    ):
-                        selected_68 = np.flatnonzero(log_likelihood_ratio >= -threshold_68)
-                        selected_95 = np.flatnonzero(log_likelihood_ratio >= -threshold_95)
-                        grid_cell_half_width_s = delay_grid_step_fraction * delay_scale_s / 2.0
-                        hit_68 = bool(
-                            np.any(
-                                np.abs(relative_grid[selected_68] - relative_delay_s)
-                                <= grid_cell_half_width_s + 1e-15
-                            )
-                        )
-                        hit_95 = bool(
-                            np.any(
-                                np.abs(relative_grid[selected_95] - relative_delay_s)
-                                <= grid_cell_half_width_s + 1e-15
-                            )
-                        )
-                        span_68_ns = float(
-                            (selected_68[-1] - selected_68[0] + 1)
-                            * delay_grid_step_fraction
-                            * delay_scale_s
-                            * 1e9
-                        )
-                        span_95_ns = float(
-                            (selected_95[-1] - selected_95[0] + 1)
-                            * delay_grid_step_fraction
-                            * delay_scale_s
-                            * 1e9
-                        )
-                        components_95 = int(1 + np.count_nonzero(np.diff(selected_95) > 1))
-                        calibrated_covered_68 += int(hit_68)
-                        calibrated_covered_95 += int(hit_95)
-                        calibrated_widths_68_ns.append(span_68_ns)
-                        calibrated_widths_95_ns.append(span_95_ns)
-                        calibrated_components_95.append(components_95)
-                        per_trial[evaluation_index].update(
-                            {
-                                "split_conformal_68_covers_truth": hit_68,
-                                "split_conformal_68_set_span_ns": span_68_ns,
-                                "split_conformal_95_covers_truth": hit_95,
-                                "split_conformal_95_set_span_ns": span_95_ns,
-                                "split_conformal_95_connected_components": components_95,
-                            }
-                        )
-                    lo_68, hi_68 = _wilson_interval(test_covered_68, trials)
-                    lo_95, hi_95 = _wilson_interval(test_covered_95, trials)
-                    calibrated_lo_68, calibrated_hi_68 = _wilson_interval(
-                        calibrated_covered_68, trials
-                    )
-                    calibrated_lo_95, calibrated_hi_95 = _wilson_interval(
-                        calibrated_covered_95, trials
-                    )
-                    cases.append(
-                        {
-                            "tone_count": tone_count,
-                            "tone_spacing_hz": tone_spacing_hz,
-                            "bandwidth_hz": bandwidth_hz,
-                            "snr_db": snr_db,
-                            "separation_fraction_of_reciprocal_bandwidth": separation_fraction,
-                            "relative_delay_truth_ns": relative_delay_s * 1e9,
-                            "gain_phase_difference_deg": phase_difference_deg,
-                            "trials": trials,
-                            "calibration_trials": calibration_trials,
-                            "calibration_records": calibration_records,
-                            "delay_grid_step_fraction_of_reciprocal_bandwidth": (
-                                delay_grid_step_fraction
-                            ),
-                            "maximum_delay_fraction_of_reciprocal_bandwidth": (
-                                maximum_delay_fraction
-                            ),
-                            "interval_68_empirical_coverage": test_covered_68 / trials,
-                            "interval_68_wilson_95_ci": [lo_68, hi_68],
-                            "interval_95_empirical_coverage": test_covered_95 / trials,
-                            "interval_95_wilson_95_ci": [lo_95, hi_95],
-                            "split_conformal_68_threshold": threshold_68,
-                            "split_conformal_68_empirical_coverage": calibrated_covered_68 / trials,
-                            "split_conformal_68_wilson_95_ci": [
-                                calibrated_lo_68,
-                                calibrated_hi_68,
-                            ],
-                            "split_conformal_68_median_set_span_ns": float(
-                                np.median(calibrated_widths_68_ns)
-                            ),
-                            "split_conformal_95_threshold": threshold_95,
-                            "split_conformal_95_empirical_coverage": calibrated_covered_95 / trials,
-                            "split_conformal_95_wilson_95_ci": [
-                                calibrated_lo_95,
-                                calibrated_hi_95,
-                            ],
-                            "split_conformal_95_median_set_span_ns": float(
-                                np.median(calibrated_widths_95_ns)
-                            ),
-                            "split_conformal_95_median_connected_components": float(
-                                np.median(calibrated_components_95)
-                            ),
-                            "map_error_rmse_ns": float(np.sqrt(np.mean(np.square(map_errors_ns)))),
-                            "median_interval_68_width_ns": float(np.median(widths_68_ns)),
-                            "median_interval_95_width_ns": float(np.median(widths_95_ns)),
-                            "median_effective_relative_delay_bins": float(
-                                np.median(effective_bins)
-                            ),
-                            "per_trial": per_trial,
-                        }
-                    )
     runtime = versions()
     return {
         "schema": "loslab.identifiability_profile_likelihood.v1",
-        "evidence_grade": "CONDITION_CALIBRATED_ANALYTICAL_TWO_PATH_PROFILE_LIKELIHOOD_DIAGNOSTIC",
-        "model": "two unordered complex specular paths in centered CFR tones with iid circular complex AWGN",
+        "evidence_grade": "CONDITION_CALIBRATED_ANALYTICAL_PROFILE_LIKELIHOOD_STRESS_DIAGNOSTIC",
+        "model": "two-path fitted profile likelihood; optional weaker third specular path; centered CFR tones with iid circular complex AWGN",
         "likelihood": "complex gains and common timing profiled by least squares over unordered delay pairs; normalized across relative-delay grid",
         "seed": seed,
         "source_revision": runtime.get("git_sha"),
@@ -479,7 +546,8 @@ def build_profile_likelihood_sweep(
         "cases": cases,
         "limitations": [
             "The normalized profile-likelihood mass is not a Bayesian posterior or a calibrated confidence distribution.",
-            "Path count is fixed at two and noise variance is treated as known; diffuse paths, channel-estimation error, and model mismatch are absent.",
+            "The fitted path count is fixed at two. Optional third-path conditions stress one specified model mismatch; they do not cover diffuse or dense multipath.",
+            "Noise-scale stress changes the assumed variance by a fixed factor within each separately calibrated condition; it does not test unknown, sample-varying, or distribution-shifted receiver noise.",
             "Common timing and complex gains are profiled over a finite grid; uncertainty widths depend on that grid and are not Bayesian credible intervals.",
             "Only one static analytical CFR family is tested; there is no receiver acquisition, independent geometry, Sionna scene transfer, or learned baseline.",
             "Profile intervals and conformal supports are quantized to delay-grid cells; central intervals may conceal multimodal or disconnected ambiguity sets.",
