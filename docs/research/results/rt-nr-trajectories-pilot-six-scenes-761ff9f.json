@@ -1,0 +1,156 @@
+{
+  "cfr_similarity_threshold": 0.9999,
+  "cross_split_cfr_near_duplicate_count": 0,
+  "cross_split_cfr_near_duplicates": [],
+  "group_counts_by_split": {
+    "test": 1,
+    "train": 2,
+    "validation": 1
+  },
+  "group_to_split": {
+    "box_one_screen": "validation",
+    "etoile": "train",
+    "procedural_urban_family": "train",
+    "simple_street_canyon": "test"
+  },
+  "limitations": [
+    "Six simulated scene assets form a pilot, not a powered estimate of scene generalization.",
+    "Three urban scenes share a procedural asset family and are kept in one split.",
+    "Validation and test each contain only one independent scene group in this pilot.",
+    "Temporal windows are declared NR-slot observation durations; they do not imply a forecast horizon.",
+    "CFR near-duplicate checks use receiver-visible DMRS estimates, not path-oracle targets."
+  ],
+  "observation_window_s": 0.0005,
+  "package_source_sha256": "8ef22a06fe9c4b6684a60e045a1ed1e38efe38d729c2846d2bf32124df948ff6",
+  "runtime_versions": {
+    "git_sha": "761ff9f2a26209fa9863b6223d8dbe1e10c0ff20",
+    "numpy": "2.5.4",
+    "python": "3.12.3",
+    "scikit-learn": "1.9.1",
+    "sionna": "2.2.0",
+    "sionna-phy": "not installed",
+    "sionna-rt": "2.2.0",
+    "torch": "2.11.0+cu128"
+  },
+  "sample_count": 24,
+  "sample_counts_by_split": {
+    "test": 4,
+    "train": 16,
+    "validation": 4
+  },
+  "schema": "loslab.rt_nr_trajectory_audit.v1",
+  "specs": [
+    {
+      "path": "config/datasets/rt_trajectories_pilot/box_one_screen.json",
+      "sha256": "2e9e35c7c9cc2bccc60cb320b860e96a3d5c929d5f9ef8bf9835c3f482a2b688"
+    },
+    {
+      "path": "config/datasets/rt_trajectories_pilot/etoile.json",
+      "sha256": "4b5e4aba60bafc179059a23493c792affbea2e9ef556037dc3e7398aa02bc168"
+    },
+    {
+      "path": "config/datasets/rt_trajectories_pilot/simple_street_canyon.json",
+      "sha256": "f7031c4d2da71b98f1fb5d3153b74e6a28e1ce19770d25c0c5c5c303e2a6ebe3"
+    },
+    {
+      "path": "config/datasets/rt_trajectories_pilot/urban_00041.json",
+      "sha256": "3a4cb3a603d50f08576e15e7109bd01b95b3525e98732982aa628b5bfb6c6055"
+    },
+    {
+      "path": "config/datasets/rt_trajectories_pilot/urban_00042.json",
+      "sha256": "0b55227557501b2e0cab7e05b7b71c2b04aaae0212696cfc7508dfd4765f5eec"
+    },
+    {
+      "path": "config/datasets/rt_trajectories_pilot/urban_00043.json",
+      "sha256": "08527a6a0c88e9c8f1d73593c13c51bd18806b4594397141287526c8c91f3870"
+    }
+  ],
+  "split_group_field": "scene_group_id",
+  "split_lock": "docs/research/locks/rt-nr-trajectory-scene-family-v1.json",
+  "split_lock_sha256": "0e19c7a635aa85bb76dbaead6f37a961eb0ccc65acb423ee7981a735a70afc3d",
+  "split_seed": "rt-nr-scene-family-v1",
+  "status": "SIMULATION_PILOT_NOT_FIELD_QUALIFIED",
+  "temporal_cross_split_overlap_count": 0,
+  "temporal_cross_split_overlaps": [],
+  "trajectories": [
+    {
+      "content_sha256": "b590fbbc3c18183e399b0c747f6e9dc2cec5f90f80597906b45bba64c8839bbe",
+      "sample_count": 4,
+      "sample_times_s": [
+        0.0,
+        0.1,
+        0.2,
+        0.30000000000000004
+      ],
+      "scene": "box_one_screen",
+      "scene_group_id": "box_one_screen",
+      "trajectory_id": "rt-box-one-screen-route-20261021-a"
+    },
+    {
+      "content_sha256": "b69869baa89280c86d09cd916fbc06bcb18eb429e66a5a28822a8b53af55b6aa",
+      "sample_count": 4,
+      "sample_times_s": [
+        0.0,
+        0.1,
+        0.2,
+        0.30000000000000004
+      ],
+      "scene": "etoile",
+      "scene_group_id": "etoile",
+      "trajectory_id": "rt-etoile-route-20261021-a"
+    },
+    {
+      "content_sha256": "fbbc567b8e4bec1fcfc5672921f5c1b06473b34893341da24a57c3852a8cf1ba",
+      "sample_count": 4,
+      "sample_times_s": [
+        0.0,
+        0.1,
+        0.2,
+        0.30000000000000004
+      ],
+      "scene": "simple_street_canyon",
+      "scene_group_id": "simple_street_canyon",
+      "trajectory_id": "rt-simple-street-canyon-route-20261021-a"
+    },
+    {
+      "content_sha256": "6a0c6d59fa3c5c64c55c75a10b9828f192955239b4f9caa142df339787adbab6",
+      "sample_count": 4,
+      "sample_times_s": [
+        0.0,
+        0.1,
+        0.2,
+        0.30000000000000004
+      ],
+      "scene": "scenes/generated/research_scenes/city41/urban_00041.xml",
+      "scene_group_id": "procedural_urban_family",
+      "trajectory_id": "rt-urban-00041-route-20261021-a"
+    },
+    {
+      "content_sha256": "70f29122eecbc4e231e85db531bb92c0b9c1f252bebcb08263f07835c3513b7c",
+      "sample_count": 4,
+      "sample_times_s": [
+        0.0,
+        0.1,
+        0.2,
+        0.30000000000000004
+      ],
+      "scene": "scenes/generated/research_scenes/city42/urban_00042.xml",
+      "scene_group_id": "procedural_urban_family",
+      "trajectory_id": "rt-urban-00042-route-20261021-a"
+    },
+    {
+      "content_sha256": "c7a1f21797ebf61aeb25f3ff5a7bc594190ab36d9f2b23fc77a9838991d5e74a",
+      "sample_count": 4,
+      "sample_times_s": [
+        0.0,
+        0.1,
+        0.2,
+        0.30000000000000004
+      ],
+      "scene": "scenes/generated/research_scenes/city43/urban_00043.xml",
+      "scene_group_id": "procedural_urban_family",
+      "trajectory_id": "rt-urban-00043-route-20261021-a"
+    }
+  ],
+  "trajectory_count": 6
+}
