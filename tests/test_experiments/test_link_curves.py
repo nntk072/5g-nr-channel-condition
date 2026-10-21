@@ -1,5 +1,9 @@
 import pytest
-from experiments.link_curves import run_tdl_pusch_bler_curve, wilson_score_interval_95
+from experiments.link_curves import (
+    run_tdl_pusch_bler_curve,
+    run_tdl_pusch_time_bler_curve,
+    wilson_score_interval_95,
+)
 
 
 def test_wilson_interval_has_finite_upper_bound_for_zero_observed_errors():
@@ -34,6 +38,16 @@ def test_wilson_interval_rejects_invalid_counts(errors, total, error):
 def test_link_curve_rejects_empty_snr_grid_before_loading_native_dependencies():
     with pytest.raises(ValueError, match="snr_db"):
         run_tdl_pusch_bler_curve(
+            snr_db=[],
+            frames_per_snr=1,
+            batch_size=1,
+            seed=1,
+        )
+
+
+def test_sample_domain_link_curve_rejects_empty_snr_grid_before_loading_dependencies():
+    with pytest.raises(ValueError, match="snr_db"):
+        run_tdl_pusch_time_bler_curve(
             snr_db=[],
             frames_per_snr=1,
             batch_size=1,

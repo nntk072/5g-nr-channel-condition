@@ -37,3 +37,23 @@ intervals, and checks that transmitted bits and TDL channel truth match across
 SNR points. Its current `OFDMChannel` path models TDL fading with perfect
 synchronization and no sample-domain ISI/ICI; it is not a time-domain waveform
 receiver-capability or standards-conformance claim.
+
+Use `run_tdl_pusch_time_bler_curve.py` to evaluate sample-domain TDL fading and
+the PUSCH waveform receiver, including the sampled channel filter memory:
+
+```bash
+PATH="/home/nguyenl37/.venvs/sionna220-gpu/bin:$PATH" \
+  python scripts/run_tdl_pusch_time_bler_curve.py \
+  outputs/tdl-pusch-time-bler-run.json \
+  --frames 1024 --batch-size 64 --snr-db 0 6 12 18 24 --seed 41000 \
+  --n-size-bwp 12 --subcarrier-spacing-khz 30
+```
+
+The default 12-PRB grid provides a 13-sample shortest cyclic prefix for the
+configured 13-sample discrete channel memory. The runner refuses a configuration
+whose discrete channel memory exceeds its shortest CP, reuses the same waveform,
+TDL realization, and standardized noise seed at each SNR, and records measured
+transmit waveform power, per-point Wilson intervals, and hashes. The curve is a
+simulation result with ideal synchronization; it does not validate blind timing,
+fractional timing/CFO recovery, external propagation measurements, or standards
+conformance.

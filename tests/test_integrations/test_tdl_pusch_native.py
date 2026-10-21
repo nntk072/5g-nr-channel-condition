@@ -4,9 +4,13 @@ torch = pytest.importorskip("torch")
 pytest.importorskip("sionna")
 
 from datasets.nr_store import read_nr_record, write_nr_record  # noqa: E402
-from experiments.link_curves import run_tdl_pusch_bler_curve  # noqa: E402
+from experiments.link_curves import (  # noqa: E402
+    run_tdl_pusch_bler_curve,
+    run_tdl_pusch_time_bler_curve,
+)
 from integrations.sionna.nr_pusch import SionnaPUSCHLSReceiver  # noqa: E402
 from integrations.sionna.tdl_pusch import (  # noqa: E402
+    SionnaTDLTimePUSCHLink,
     generate_tdl_pusch_batch,
     tdl_pusch_records,
 )
@@ -80,5 +84,53 @@ def test_tdl_pusch_bler_curve_records_matched_fading_realizations():
     assert all(0.0 <= point["bler"] <= 1.0 for point in result["points"])
     assert all(
         item["transmit_bits_match_across_snr"] and item["channel_truth_allclose_across_snr"]
+        for item in result["configuration"]["matched_realization_checks"]
+    )
+
+
+@pytest.mark.native_sionna
+def test_sample_domain_tdl_pusch_decodes_waveforms_and_records_matched_bler():
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA is not available")
+    receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(n_size_bwp=12, subcarrier_spacing_khz=30),
+        device="cuda:0",
+    )
+    link = SionnaTDLTimePUSCHLink(
+        receiver,
+        model="A",
+        delay_spread_s=100e-9,
+        carrier_frequency_hz=3.5e9,
+        speed_mps=3.0,
+    )
+    waveform, bits, clean, channel_truth = link.transmit_channel(8, seed=99102)
+    decoded, crc_ok = link.decode(clean, 1e-4)
+
+    assert waveform.is_cuda and channel_truth.is_cuda
+    assert waveform.ndim == 4 and clean.shape[-1] > waveform.shape[-1]
+    assert channel_truth.shape[-2] == clean.shape[-1]
+    assert link.metadata["channel_memory_samples"] <= link.metadata["cyclic_prefix_min_samples"]
+    assert torch.count_nonzero(channel_truth[..., 1:, :] - channel_truth[..., :-1, :]) > 0
+    assert torch.equal(decoded, bits)
+    assert crc_ok.all()
+
+    result = run_tdl_pusch_time_bler_curve(
+        snr_db=(0.0, 18.0),
+        frames_per_snr=8,
+        batch_size=4,
+        seed=99102,
+        profile="A",
+        delay_spread_s=100e-9,
+        carrier_frequency_hz=3.5e9,
+        speed_mps=3.0,
+        n_size_bwp=12,
+        subcarrier_spacing_khz=30,
+    )
+    assert result["evidence_grade"] == "SIMULATION_ONLY_UNVALIDATED"
+    assert [point["snr_db"] for point in result["points"]] == [0.0, 18.0]
+    assert [point["frames"] for point in result["points"]] == [8, 8]
+    assert result["points"][0]["bler"] > result["points"][1]["bler"]
+    assert all(
+        item["transmit_bits_match_across_snr"] and item["channel_truth_match_across_snr"]
         for item in result["configuration"]["matched_realization_checks"]
     )

@@ -44,6 +44,120 @@ class SionnaPUSCHLinkDecoder:
         return self._decoder(received_grid, noise_variance)
 
 
+class SionnaTDLTimePUSCHLink:
+    """Sionna waveform-domain PUSCH link over a sampled TDL channel."""
+
+    def __init__(
+        self,
+        receiver: Any,
+        *,
+        model: str,
+        delay_spread_s: float,
+        carrier_frequency_hz: float,
+        speed_mps: float,
+        num_rx_ant: int = 1,
+        spec_version: str = "19.2",
+    ) -> None:
+        try:
+            import torch
+            from sionna.phy.channel import TimeChannel, time_lag_discrete_time_channel
+            from sionna.phy.channel.tr38901 import TDL
+            from sionna.phy.nr import PUSCHReceiver, PUSCHTransmitter
+        except ImportError as exc:
+            raise RuntimeError("Install the optional Sionna 2.2 PHY dependencies") from exc
+
+        if receiver.config.num_layers != 1 or receiver.config.num_antenna_ports != 1:
+            raise ValueError("initial sample-domain link supports one layer and one transmit port")
+        if num_rx_ant <= 0:
+            raise ValueError("num_rx_ant must be positive")
+        self._torch = torch
+        self._device = receiver.device
+        config = receiver._transmitter._pusch_configs
+        self.transmitter = PUSCHTransmitter(
+            config,
+            return_bits=True,
+            output_domain="time",
+            device=self._device,
+        )
+        grid = self.transmitter.resource_grid
+        l_min, l_max = time_lag_discrete_time_channel(grid.bandwidth, delay_spread_s)
+        min_cyclic_prefix = int(torch.as_tensor(grid.cyclic_prefix_length).min().item())
+        if l_max - l_min > min_cyclic_prefix:
+            raise ValueError(
+                "sample-domain channel memory exceeds the shortest cyclic prefix; "
+                "increase the PUSCH bandwidth/resource-block allocation or reduce delay spread"
+            )
+        self.l_min = l_min
+        self.l_max = l_max
+        self.receiver = PUSCHReceiver(
+            self.transmitter,
+            input_domain="time",
+            l_min=l_min,
+            return_tb_crc_status=True,
+            device=self._device,
+        )
+        channel_model = TDL(
+            model=model,
+            delay_spread=delay_spread_s,
+            carrier_frequency=carrier_frequency_hz,
+            min_speed=speed_mps,
+            max_speed=speed_mps,
+            num_rx_ant=num_rx_ant,
+            num_tx_ant=1,
+            spec_version=spec_version,
+            device=self._device,
+        )
+        self.channel = TimeChannel(
+            channel_model,
+            bandwidth=grid.bandwidth,
+            num_time_samples=grid.num_time_samples,
+            l_min=l_min,
+            l_max=l_max,
+            normalize_channel=True,
+            return_channel=True,
+            device=self._device,
+        )
+        self.metadata = {
+            "channel_model": "Sionna TimeChannel with sampled waveform-domain TDL",
+            "profile": f"TDL-{model.upper()}",
+            "spec_version": spec_version,
+            "delay_spread_s": delay_spread_s,
+            "carrier_frequency_hz": carrier_frequency_hz,
+            "speed_mps": speed_mps,
+            "num_rx_ant": num_rx_ant,
+            "sample_rate_hz": grid.bandwidth,
+            "l_min": l_min,
+            "l_max": l_max,
+            "cyclic_prefix_min_samples": min_cyclic_prefix,
+            "channel_memory_samples": l_max - l_min,
+            "resource_grid": {
+                "fft_size": grid.fft_size,
+                "num_time_samples": grid.num_time_samples,
+                "bandwidth_hz": grid.bandwidth,
+            },
+        }
+
+    def transmit_channel(self, batch_size: int, *, seed: int) -> tuple[Any, Any, Any, Any]:
+        """Return seeded waveform, bits, noiseless channel output, and channel truth."""
+        if isinstance(batch_size, bool) or not isinstance(batch_size, int) or batch_size <= 0:
+            raise ValueError("batch_size must be a positive integer")
+        if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
+            raise ValueError("seed must be a nonnegative integer")
+        if seed > 2**63 - 2:
+            raise ValueError("seed must leave room for the channel seed")
+        waveform, bits = call_with_sionna_seed(
+            self._device, seed, lambda: self.transmitter(batch_size)
+        )
+        received, channel_truth = call_with_sionna_seed(
+            self._device, seed + 1, lambda: self.channel(waveform)
+        )
+        return waveform, bits, received, channel_truth
+
+    def decode(self, received_waveform: Any, noise_variance: Any) -> tuple[Any, Any]:
+        """Return decoded transport-block bits and CRC status."""
+        return self.receiver(received_waveform, noise_variance)
+
+
 def tdl_pusch_records(
     receiver: Any,
     batch: SionnaTDLPUSCHBatch,

@@ -206,3 +206,174 @@ def run_tdl_pusch_bler_curve(
             "Wilson intervals count codewords and do not account for independent-scene uncertainty.",
         ],
     }
+
+
+def run_tdl_pusch_time_bler_curve(
+    *,
+    snr_db: Sequence[float],
+    frames_per_snr: int,
+    batch_size: int,
+    seed: int,
+    profile: str = "A",
+    delay_spread_s: float = 100e-9,
+    carrier_frequency_hz: float = 3.5e9,
+    speed_mps: float = 3.0,
+    n_size_bwp: int = 12,
+    subcarrier_spacing_khz: int = 30,
+) -> dict[str, Any]:
+    """Measure paired PUSCH BLER over the sample-domain, time-varying TDL link."""
+    snr_values = tuple(float(value) for value in snr_db)
+    if not snr_values or any(not math.isfinite(value) for value in snr_values):
+        raise ValueError("snr_db must contain finite values")
+    if isinstance(frames_per_snr, bool) or not isinstance(frames_per_snr, int):
+        raise TypeError("frames_per_snr must be an integer")
+    if isinstance(batch_size, bool) or not isinstance(batch_size, int):
+        raise TypeError("batch_size must be an integer")
+    if frames_per_snr <= 0 or batch_size <= 0:
+        raise ValueError("frames_per_snr and batch_size must be positive")
+    if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
+        raise ValueError("seed must be a nonnegative integer")
+    if not profile or profile.upper() not in {"A", "B", "C", "D", "E"}:
+        raise ValueError("profile must be one of TDL-A through TDL-E")
+    if not math.isfinite(delay_spread_s) or delay_spread_s <= 0:
+        raise ValueError("delay_spread_s must be finite and positive")
+    if not math.isfinite(carrier_frequency_hz) or carrier_frequency_hz <= 0:
+        raise ValueError("carrier_frequency_hz must be finite and positive")
+    if not math.isfinite(speed_mps) or speed_mps < 0:
+        raise ValueError("speed_mps must be finite and nonnegative")
+    if not torch_cuda_available():
+        raise RuntimeError("The sample-domain TDL-PUSCH curve requires CUDA")
+
+    import torch
+    from integrations.sionna.nr_pusch import SionnaPUSCHLSReceiver
+    from integrations.sionna.tdl_pusch import SionnaTDLTimePUSCHLink
+    from receivers.nr import NRPUSCHConfig
+
+    receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(
+            n_size_bwp=n_size_bwp,
+            subcarrier_spacing_khz=subcarrier_spacing_khz,
+        ),
+        device="cuda:0",
+    )
+    link = SionnaTDLTimePUSCHLink(
+        receiver,
+        model=profile.upper(),
+        delay_spread_s=delay_spread_s,
+        carrier_frequency_hz=carrier_frequency_hz,
+        speed_mps=speed_mps,
+    )
+    if seed > 2**63 - 3:
+        raise ValueError("seed must leave room for derived channel and noise seeds")
+
+    batches: list[dict[str, Any]] = []
+    matched_checks: list[dict[str, Any]] = []
+    frames_left = frames_per_snr
+    batch_index = 0
+    while frames_left:
+        count = min(batch_size, frames_left)
+        batch_seed = seed + batch_index
+        waveform, bits, clean, h_time = link.transmit_channel(count, seed=batch_seed)
+        bits_cpu = bits.detach().cpu().contiguous()
+        h_cpu = h_time.detach().cpu().contiguous()
+        batches.append(
+            {
+                "seed": batch_seed,
+                "count": count,
+                "waveform": waveform,
+                "waveform_mean_power": float(waveform.abs().square().mean().item()),
+                "bits": bits,
+                "clean": clean,
+                "h_time": h_time,
+                "noise_seed": batch_seed + 2,
+            }
+        )
+        matched_checks.append(
+            {
+                "seed": batch_seed,
+                "transmit_bits_sha256": hashlib.sha256(bits_cpu.numpy().tobytes()).hexdigest(),
+                "channel_truth_sha256": hashlib.sha256(h_cpu.numpy().tobytes()).hexdigest(),
+                "transmit_bits_match_across_snr": True,
+                "channel_truth_match_across_snr": True,
+            }
+        )
+        frames_left -= count
+        batch_index += 1
+
+    points: list[dict[str, Any]] = []
+    for snr in snr_values:
+        noise_variance = 10.0 ** (-snr / 10.0)
+        frame_errors = bit_errors = frames = bits_total = 0
+        for batch in batches:
+            generator = torch.Generator(device="cuda:0")
+            generator.manual_seed(batch["noise_seed"])
+            clean = batch["clean"]
+            noise = torch.complex(
+                torch.randn(clean.shape, device="cuda:0", generator=generator),
+                torch.randn(clean.shape, device="cuda:0", generator=generator),
+            ) * math.sqrt(noise_variance / 2.0)
+            received = clean + noise
+            decoded, crc_ok = link.decode(received, noise_variance)
+            target = batch["bits"]
+            valid = crc_ok.reshape(-1).to(dtype=torch.bool)
+            bit_errors += int(torch.count_nonzero(decoded != target).item())
+            bits_total += int(target.numel())
+            frame_errors += int(torch.count_nonzero(~valid).item())
+            frames += int(valid.numel())
+        lower, upper = wilson_score_interval_95(frame_errors, frames)
+        points.append(
+            {
+                "snr_db": snr,
+                "noise_variance_per_complex_dimension": noise_variance,
+                "frames": frames,
+                "bler_errors": frame_errors,
+                "bler": frame_errors / frames,
+                "bler_wilson_95_ci": [lower, upper],
+                "bit_errors": bit_errors,
+                "bits": bits_total,
+                "ber": bit_errors / bits_total,
+            }
+        )
+
+    return {
+        "schema": "loslab.tdl_pusch_time_bler_curve.v1",
+        "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
+        "configuration": {
+            **link.metadata,
+            "frames_per_snr": frames_per_snr,
+            "batch_size": batch_size,
+            "batch_seeds_shared_across_snr": [batch["seed"] for batch in batches],
+            "transmit_waveform_mean_power_by_batch": [
+                batch["waveform_mean_power"] for batch in batches
+            ],
+            "matched_realization_checks": matched_checks,
+            "seed": seed,
+            "n_size_bwp_resource_blocks": n_size_bwp,
+            "subcarrier_spacing_khz": subcarrier_spacing_khz,
+            "snr_definition": (
+                "sampled waveform mean complex power / complex AWGN variance; "
+                "noise variance=10**(-SNR_dB/10) and measured transmit mean power is recorded"
+            ),
+            "decoder": "Sionna time-domain PUSCHReceiver with DMRS estimation and CRC status",
+            "confidence_interval": "two-sided 95% Wilson score interval across codewords",
+            "versions": versions(),
+            "package_source_sha256": package_source_sha256(),
+        },
+        "points": points,
+        "limitations": [
+            "Sionna sampled TDL and its finite sinc-interpolation tap support are simulation models.",
+            "The receiver has no injected timing or carrier-frequency synchronization error.",
+            "The cyclic prefix is required to cover the configured discrete channel memory.",
+            "Wilson intervals count codewords and do not account for independent-scene uncertainty.",
+            "This curve is not standards certification or validation against external measurements.",
+        ],
+    }
+
+
+def torch_cuda_available() -> bool:
+    """Check CUDA availability without making PyTorch a module-level dependency."""
+    try:
+        import torch
+    except ImportError:
+        return False
+    return torch.cuda.is_available()
