@@ -26,6 +26,7 @@ def test_pusch_dmrs_estimator_runs_on_cuda_with_named_axes():
     )
     received[..., pilot_mask] = pilot_symbols * expected_channel
     result = receiver.estimate(received, torch.tensor(1e-3, device="cuda:0"))
+    observation = receiver.observe("cuda-flat-channel-001", received, torch.tensor(1e-3))
 
     assert result.h_hat.shape == (
         2,
@@ -39,6 +40,11 @@ def test_pusch_dmrs_estimator_runs_on_cuda_with_named_axes():
     assert result.h_hat.is_cuda
     assert result.error_variance.is_cuda
     assert result.pilot_mask.is_cuda
+    assert observation.sample_id == "cuda-flat-channel-001"
+    assert observation.fft_bin_indices == tuple(
+        int(index) for index in grid.effective_subcarrier_ind
+    )
+    assert observation.model_inputs().received_grid.is_cuda
     assert bool(torch.isfinite(result.h_hat).all())
     assert bool(torch.isfinite(result.error_variance).all())
     assert result.error_variance.shape == (

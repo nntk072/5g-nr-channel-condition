@@ -6,6 +6,7 @@ from dataclasses import asdict
 from importlib.metadata import PackageNotFoundError, version
 from typing import Any
 
+from datasets.nr import NRObservation
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
 
@@ -127,4 +128,15 @@ class SionnaPUSCHLSReceiver:
             error_variance=error_variance,
             pilot_mask=self.pilot_mask.to(device=self.device),
             metadata=self.metadata,
+        )
+
+    def observe(self, sample_id: str, received_grid: Any, noise_variance: Any) -> NRObservation:
+        """Estimate and package receiver-visible data with physical FFT bins."""
+        estimate = self.estimate(received_grid, noise_variance)
+        return NRObservation.from_receiver_output(
+            sample_id=sample_id,
+            received_grid=received_grid,
+            channel_estimate=estimate,
+            effective_subcarrier_indices=self._resource_grid.effective_subcarrier_ind,
+            receiver_config=self.config,
         )

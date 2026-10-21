@@ -63,6 +63,31 @@ class NRObservation:
         if not isinstance(self.receiver_config, NRPUSCHConfig):
             raise TypeError("receiver_config must be the typed NRPUSCHConfig")
 
+    @classmethod
+    def from_receiver_output(
+        cls,
+        *,
+        sample_id: str,
+        received_grid: Any,
+        channel_estimate: NRChannelEstimate,
+        effective_subcarrier_indices: Any,
+        receiver_config: NRPUSCHConfig,
+    ) -> NRObservation:
+        """Build an observation using the receiver's effective FFT-bin mapping.
+
+        Sionna removes guard and DC carriers before channel estimation. The
+        supplied indices must therefore come from the same resource grid as
+        the estimate, rather than being reconstructed from bandwidth alone.
+        """
+        indices = tuple(int(index) for index in effective_subcarrier_indices)
+        return cls(
+            sample_id=sample_id,
+            received_grid=received_grid,
+            channel_estimate=channel_estimate,
+            fft_bin_indices=indices,
+            receiver_config=receiver_config,
+        )
+
     def model_inputs(self) -> NRModelInputs:
         """Return the inference payload without IDs, target values, or provenance."""
         return NRModelInputs(

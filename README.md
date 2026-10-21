@@ -59,10 +59,20 @@ complete RT-to-PUSCH receive chain is still under validation.
 
 The versioned NR dataset contracts live in datasets/nr.py. NRObservation
 validates grid/estimate axes, FFT-bin mapping, and a typed PUSCH configuration;
-its model_inputs method omits sample IDs, targets, and provenance.
-NRChannelRecord keeps target values, target masks, and provenance alongside
-the observation for training and evaluation. Content-addressed serialization,
-dataset split locking, and the complete target schema remain planned work.
+its model_inputs method omits sample IDs, targets, and provenance. The Sionna
+receiver's <code>observe()</code> method packages estimates with the resource
+grid's authoritative effective FFT-bin indices. NRChannelRecord keeps target
+values, masks, and provenance outside the model-input payload.
+
+<code>datasets.nr_store</code> writes pickle-free, content-addressed NPZ records
+and immutable JSON manifests with SHA256 verification. Use
+<code>write_nr_record(root, record)</code> and <code>read_nr_record(root,
+manifest)</code> to persist and verify records. Scene-grouped assignments can be
+created with <code>evaluation.make_independent_split</code>, audited with
+<code>evaluation.audit_group_leakage</code>, and frozen as immutable lock files
+with <code>evaluation.freeze_split_lock</code>. These establish storage and split
+infrastructure; target semantics, large-scale data generation, and spatial
+buffer audits still require research-specific schemas and datasets.
 
 ## Repository map
 
