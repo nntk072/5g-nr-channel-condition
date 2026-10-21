@@ -1,0 +1,90 @@
+{
+  "archive_bytes": 5957915148,
+  "archive_sha256": "706e710cc30a96bbe4386e705d9361497e9c2e5df13c00fba77d9318e915c2cc",
+  "fields": {
+    "H": {
+      "all_finite": true,
+      "dtype": "float32",
+      "finite_values": 1480664640,
+      "shape": [
+        338980,
+        4,
+        4,
+        273
+      ],
+      "total_values": 1480664640
+    },
+    "noise_var": {
+      "all_finite": true,
+      "dtype": "float32",
+      "finite_values": 1355920,
+      "shape": [
+        338980,
+        4
+      ],
+      "total_values": 1355920
+    },
+    "pos": {
+      "all_finite": true,
+      "dtype": "float64",
+      "finite_values": 677960,
+      "shape": [
+        338980,
+        2
+      ],
+      "total_values": 677960
+    },
+    "timestamps": {
+      "all_finite": true,
+      "dtype": "float64",
+      "finite_values": 338980,
+      "shape": [
+        338980
+      ],
+      "total_values": 338980
+    }
+  },
+  "label_scope": "CAEZ supplies UE positions; this archive does not establish LOS/NLOS labels",
+  "license": "CAEZ Dataset License v1.0; attribution required; no redistribution",
+  "member_sizes": {
+    "H": {
+      "member": "H.npy",
+      "uncompressed_bytes": 5922658688
+    },
+    "noise_var": {
+      "member": "noise_var.npy",
+      "uncompressed_bytes": 5423808
+    },
+    "pos": {
+      "member": "pos.npy",
+      "uncompressed_bytes": 5423808
+    },
+    "timestamps": {
+      "member": "timestamps.npy",
+      "uncompressed_bytes": 2711968
+    }
+  },
+  "npz_members": [
+    "H.npy",
+    "H_max_sc.npy",
+    "bounding_box.npy",
+    "noise_var.npy",
+    "oru_pos_dict.npy",
+    "pos.npy",
+    "timestamps.npy"
+  ],
+  "required_citation": "R. Wiesmayr, F. Zumegen, S. Taner, C. Dick, and C. Studer, CSI-Based User Positioning, Channel Charting, and Device Classification with an NVIDIA 5G Testbed, Asilomar Conference, 2025.",
+  "sample_count": 338980,
+  "sample_split_policy": "chronological contiguous blocks; never random per-slot split",
+  "schema": "caez-preprocessed-npz-audit.v1",
+  "source": "https://iip.ethz.ch/datasets/caez.html",
+  "source_file": "caez_5g_indoor_full.npz",
+  "timestamps": {
+    "first": 1759583858.392,
+    "last": 1759590289.832,
+    "max_step": 0.039999961853027344,
+    "min_positive_step": 0.004999876022338867,
+    "strictly_increasing": true
+  },
+  "zip_crc_check": "passed"
+}

@@ -1,0 +1,85 @@
+{
+  "archive_bytes": 5957915148,
+  "archive_sha256": "706e710cc30a96bbe4386e705d9361497e9c2e5df13c00fba77d9318e915c2cc",
+  "forecast_target": "downsampled absolute OFDM-domain CSI magnitude; not complex CSI or LOS/NLOS",
+  "horizon_s": 1.0,
+  "license": "CAEZ Dataset License v1.0; attribution required; no redistribution",
+  "limitations": [
+    "Single indoor measurement campaign; this is not cross-scene validation.",
+    "The selected feature archive discards complex phase and has no LOS/NLOS truth.",
+    "The baselines use past observations only and do not establish a learned-model advantage.",
+    "Temporal dependence remains within the held-out contiguous block by design."
+  ],
+  "lookback_s": 0.5,
+  "required_citation": "R. Wiesmayr, F. Zumegen, S. Taner, C. Dick, and C. Studer, CSI-Based User Positioning, Channel Charting, and Device Classification with an NVIDIA 5G Testbed, Asilomar Conference, 2025.",
+  "schema": "caez-measured-magnitude-forecast.v1",
+  "scores": {
+    "linear_trend": {
+      "macro_normalized_rmse": 1.4781935027337363,
+      "per_oru": [
+        {
+          "elements": 73946964,
+          "mae_magnitude": 1.2242488262508728,
+          "normalized_rmse": 1.467292038326248,
+          "rmse_magnitude": 2.2038715499010304
+        },
+        {
+          "elements": 73946964,
+          "mae_magnitude": 1.2462776828996196,
+          "normalized_rmse": 1.4978934997798805,
+          "rmse_magnitude": 2.269685685249288
+        },
+        {
+          "elements": 73946964,
+          "mae_magnitude": 1.6414289904170398,
+          "normalized_rmse": 1.516579789881949,
+          "rmse_magnitude": 3.0043016098158453
+        },
+        {
+          "elements": 73946964,
+          "mae_magnitude": 1.374512269700487,
+          "normalized_rmse": 1.4310086829468673,
+          "rmse_magnitude": 2.3852659950477477
+        }
+      ]
+    },
+    "persistence": {
+      "macro_normalized_rmse": 0.7082257959805401,
+      "per_oru": [
+        {
+          "elements": 73946964,
+          "mae_magnitude": 0.6306826072079894,
+          "normalized_rmse": 0.7025851803658901,
+          "rmse_magnitude": 1.0552824181863278
+        },
+        {
+          "elements": 73946964,
+          "mae_magnitude": 0.6432942803721555,
+          "normalized_rmse": 0.7160247666577647,
+          "rmse_magnitude": 1.0849577512726443
+        },
+        {
+          "elements": 73946964,
+          "mae_magnitude": 0.8535684614009087,
+          "normalized_rmse": 0.7283985105219548,
+          "rmse_magnitude": 1.4429368189845868
+        },
+        {
+          "elements": 73946964,
+          "mae_magnitude": 0.709402226044703,
+          "normalized_rmse": 0.6858947263765507,
+          "rmse_magnitude": 1.1432784346489615
+        }
+      ]
+    }
+  },
+  "source_archive": "caez_5g_indoor_full.npz",
+  "split": {
+    "first_test_anchor": 1759589003.862,
+    "forecast_pairs": 67717,
+    "last_test_target": 1759590289.832,
+    "policy": "chronological tail holdout",
+    "test_fraction": 0.2
+  },
+  "timestamp_tolerance_s": 0.02
+}
