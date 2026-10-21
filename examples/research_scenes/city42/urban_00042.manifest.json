@@ -1,0 +1,331 @@
+{
+  "buildings_and_vehicles": [
+    {
+      "bounds": [
+        -98.64373629133578,
+        -96.63327063851231,
+        0.0,
+        -66.35626370866422,
+        -68.36672936148769,
+        55.35410223583497
+      ],
+      "material": "concrete",
+      "mesh_sha256": "344ee5b5b22587f33302630d6bf3a179a33aa54fa2293f4320f2c5b612ef2255",
+      "name": "building_r00_c00"
+    },
+    {
+      "bounds": [
+        -39.565064087325894,
+        -99.85373410982054,
+        0.0,
+        -15.434935912674103,
+        -65.14626589017946,
+        50.77356599354659
+      ],
+      "material": "glass",
+      "mesh_sha256": "21153e4542d297145f296649d63cc53f1df1dc47eab36a05e174ada2ea9b8417",
+      "name": "building_r00_c01"
+    },
+    {
+      "bounds": [
+        15.231318203946724,
+        -96.7023156273734,
+        0.0,
+        39.76868179605327,
+        -68.2976843726266,
+        32.42750713893132
+      ],
+      "material": "glass",
+      "mesh_sha256": "bdbd7ee5fe733a13aa3109751c5b024efb49926ed6ac50346df5baadd7ba6535",
+      "name": "building_r00_c02"
+    },
+    {
+      "bounds": [
+        67.13680927951602,
+        -98.93656967962498,
+        0.0,
+        97.86319072048398,
+        -66.06343032037502,
+        35.84046734488456
+      ],
+      "material": "concrete",
+      "mesh_sha256": "9e36d7e3b7d6b3b2194c876bbd758f7f5addb22a863c8ce980e9c653a335ea56",
+      "name": "building_r00_c03"
+    },
+    {
+      "bounds": [
+        -97.327508722095,
+        -39.38290353662505,
+        0.0,
+        -67.672491277905,
+        -15.617096463374947,
+        53.89866508365136
+      ],
+      "material": "concrete",
+      "mesh_sha256": "b68bcd02e61f5fa2411a44a92e9121e500e899423552d0ca4a3d8be4c9a49118",
+      "name": "building_r01_c00"
+    },
+    {
+      "bounds": [
+        -43.54852644051224,
+        -41.12715580877921,
+        0.0,
+        -11.45147355948776,
+        -13.87284419122079,
+        60.622807146560454
+      ],
+      "material": "glass",
+      "mesh_sha256": "0857e7ca23e83c57180ff58dce2b549c9305b888f096962226283c4ff96e8a8d",
+      "name": "building_r01_c01"
+    },
+    {
+      "bounds": [
+        11.32969901755743,
+        -40.167832247111804,
+        0.0,
+        43.67030098244257,
+        -14.832167752888195,
+        36.935887175170606
+      ],
+      "material": "concrete",
+      "mesh_sha256": "661fd5583b5512c62e6fe1b9e626cd820ce03f6a8d4d4182b9d3ebe9700dc173",
+      "name": "building_r01_c02"
+    },
+    {
+      "bounds": [
+        70.07426304759471,
+        -43.09829371945473,
+        0.0,
+        94.92573695240529,
+        -11.901706280545273,
+        50.0038213276674
+      ],
+      "material": "metal",
+      "mesh_sha256": "e880143582fbd646701d97bde6b2c0f37ba7f5ec4f4101912eeb12a589f0a5a3",
+      "name": "building_r01_c03"
+    },
+    {
+      "bounds": [
+        -95.95495214882891,
+        13.777241763790787,
+        0.0,
+        -69.04504785117109,
+        41.222758236209216,
+        37.069123129962975
+      ],
+      "material": "concrete",
+      "mesh_sha256": "6d722b097c4fb9543c7623fdc749d504a05e045574136f109c444956adcb8d1f",
+      "name": "building_r02_c00"
+    },
+    {
+      "bounds": [
+        -39.77952903201283,
+        13.145770442644398,
+        0.0,
+        -15.22047096798717,
+        41.8542295573556,
+        25.664739405391554
+      ],
+      "material": "concrete",
+      "mesh_sha256": "908490d07f70c4f17bd3521b90422419ccd54dabecee6d780dc628b979821594",
+      "name": "building_r02_c01"
+    },
+    {
+      "bounds": [
+        13.377088486766016,
+        11.003930823652976,
+        0.0,
+        41.62291151323399,
+        43.99606917634702,
+        47.91245979410571
+      ],
+      "material": "concrete",
+      "mesh_sha256": "0ce33ed2a59978d9d2b8f2eb33ffc2dad660e1d90bec21b5e3c9ca55bc42f0fe",
+      "name": "building_r02_c02"
+    },
+    {
+      "bounds": [
+        66.0064411916288,
+        11.171413855019189,
+        0.0,
+        98.9935588083712,
+        43.82858614498081,
+        33.2114838144182
+      ],
+      "material": "concrete",
+      "mesh_sha256": "720a8d2729025127e0ae792e7b7f852fe1c8714d3b6523d2fde5d3860bbe25c1",
+      "name": "building_r02_c03"
+    },
+    {
+      "bounds": [
+        -98.09497302384986,
+        70.16148509834414,
+        0.0,
+        -66.90502697615014,
+        94.83851490165586,
+        24.39568551633009
+      ],
+      "material": "concrete",
+      "mesh_sha256": "be2fd43a39cfb746b87491eb5b79bbbaf952920e03d1d613733715f4630d6b19",
+      "name": "building_r03_c00"
+    },
+    {
+      "bounds": [
+        -43.72154626501283,
+        67.0108948604478,
+        0.0,
+        -11.27845373498717,
+        97.9891051395522,
+        48.14277279543775
+      ],
+      "material": "glass",
+      "mesh_sha256": "07e93ede593ecd80daafda1357629ef5f5cf40a87f3bb3154d0fd836a956a291",
+      "name": "building_r03_c01"
+    },
+    {
+      "bounds": [
+        13.246505346769961,
+        67.58755282428264,
+        0.0,
+        41.753494653230035,
+        97.41244717571736,
+        21.5704589119999
+      ],
+      "material": "concrete",
+      "mesh_sha256": "cd6db2b4f4989e98f9da64f23ec04debf5a4228eb58678002fed34bb5f83f4f3",
+      "name": "building_r03_c02"
+    },
+    {
+      "bounds": [
+        66.98958222925717,
+        68.1734227631412,
+        0.0,
+        98.01041777074283,
+        96.8265772368588,
+        41.56609700461588
+      ],
+      "material": "glass",
+      "mesh_sha256": "808f9f3a0ebc72864754c35a510b9e7e3a0e824359264703954ebc0ca8efd306",
+      "name": "building_r03_c03"
+    },
+    {
+      "bounds": [
+        6.640601108569316,
+        1.55,
+        0.05,
+        11.040601108569316,
+        3.45,
+        1.7
+      ],
+      "material": "metal",
+      "mesh_sha256": "23dcd89846b6a58a60d90b6b32d2ab3da6c57d63feeff20d1b852585164ab413",
+      "name": "vehicle_000"
+    },
+    {
+      "bounds": [
+        -53.45,
+        -34.548233819668994,
+        0.05,
+        -51.55,
+        -30.14823381966899,
+        1.7
+      ],
+      "material": "metal",
+      "mesh_sha256": "3486f7baabc71d2812e19879c337dfc0e798b1a7e0a3fa234f86fab3fb11ff71",
+      "name": "vehicle_001"
+    },
+    {
+      "bounds": [
+        -12.641630776660204,
+        -3.45,
+        0.05,
+        -8.241630776660205,
+        -1.55,
+        1.7
+      ],
+      "material": "metal",
+      "mesh_sha256": "64e824758bbbf361833490a27aa452e95f537805f2ca8a175259cf38c9c91287",
+      "name": "vehicle_002"
+    },
+    {
+      "bounds": [
+        51.55,
+        -17.292773785435028,
+        0.05,
+        53.45,
+        -12.892773785435029,
+        1.7
+      ],
+      "material": "metal",
+      "mesh_sha256": "67bbb641297caacaa2cb8c88febb48e14fbef984f6aa0f2f59ae629a9909abd3",
+      "name": "vehicle_003"
+    },
+    {
+      "bounds": [
+        -46.09998483221878,
+        56.55,
+        0.05,
+        -41.699984832218774,
+        58.45,
+        1.7
+      ],
+      "material": "metal",
+      "mesh_sha256": "9e9df39305a383b7810d84afff62e41c4badbe69728ce5ac7c3f42327aa81360",
+      "name": "vehicle_004"
+    },
+    {
+      "bounds": [
+        51.55,
+        -38.27165781637057,
+        0.05,
+        53.45,
+        -33.871657816370565,
+        1.7
+      ],
+      "material": "metal",
+      "mesh_sha256": "af76eb4c88d181ff88bb1d8e81422330d017a8946d6c9d48bfa8d5d3ceb79ad7",
+      "name": "vehicle_005"
+    },
+    {
+      "bounds": [
+        24.51622492993768,
+        51.55,
+        0.05,
+        28.91622492993768,
+        53.45,
+        1.7
+      ],
+      "material": "metal",
+      "mesh_sha256": "ab0f3ac00e7bc2625ea007e39e212abdee211b4d8471188337add1d5c6fe3eac",
+      "name": "vehicle_006"
+    },
+    {
+      "bounds": [
+        -53.45,
+        44.64320450255822,
+        0.05,
+        -51.55,
+        49.043204502558225,
+        1.7
+      ],
+      "material": "metal",
+      "mesh_sha256": "04500f79325d9df44f2d826cf9e0c5d47fb49368d6f9e8c95a8b127dfc136bca",
+      "name": "vehicle_007"
+    }
+  ],
+  "config": {
+    "block_spacing_m": 55.0,
+    "building_width_max_m": 35.0,
+    "building_width_min_m": 23.0,
+    "grid_size": 4,
+    "height_max_m": 62.0,
+    "height_min_m": 15.0,
+    "n_vehicles": 8,
+    "seed": 42
+  },
+  "coordinate_frame": "local Cartesian meters, z up",
+  "material_semantics": "Sionna 2.2 ITU placeholders; test host compatibility",
+  "schema": "loslab.city.v1",
+  "truth_status": "synthetic geometry, not a measured reconstruction",
+  "xml_sha256": "55fca59136a0c6a42c30ced91f8a6d5629edb70254218b14518781d5b18dfc50"
+}

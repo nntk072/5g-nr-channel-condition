@@ -1,0 +1,105 @@
+<scene version="3.0.0">
+  <bsdf type="diffuse" id="mat-itu_concrete" />
+  <bsdf type="diffuse" id="mat-itu_glass" />
+  <bsdf type="diffuse" id="mat-itu_metal" />
+  <shape type="obj" id="building_r00_c00">
+    <string name="filename" value="meshes_00042/building_r00_c00.obj" />
+    <ref id="mat-itu_concrete" />
+  </shape>
+  <shape type="obj" id="building_r00_c01">
+    <string name="filename" value="meshes_00042/building_r00_c01.obj" />
+    <ref id="mat-itu_glass" />
+  </shape>
+  <shape type="obj" id="building_r00_c02">
+    <string name="filename" value="meshes_00042/building_r00_c02.obj" />
+    <ref id="mat-itu_glass" />
+  </shape>
+  <shape type="obj" id="building_r00_c03">
+    <string name="filename" value="meshes_00042/building_r00_c03.obj" />
+    <ref id="mat-itu_concrete" />
+  </shape>
+  <shape type="obj" id="building_r01_c00">
+    <string name="filename" value="meshes_00042/building_r01_c00.obj" />
+    <ref id="mat-itu_concrete" />
+  </shape>
+  <shape type="obj" id="building_r01_c01">
+    <string name="filename" value="meshes_00042/building_r01_c01.obj" />
+    <ref id="mat-itu_glass" />
+  </shape>
+  <shape type="obj" id="building_r01_c02">
+    <string name="filename" value="meshes_00042/building_r01_c02.obj" />
+    <ref id="mat-itu_concrete" />
+  </shape>
+  <shape type="obj" id="building_r01_c03">
+    <string name="filename" value="meshes_00042/building_r01_c03.obj" />
+    <ref id="mat-itu_metal" />
+  </shape>
+  <shape type="obj" id="building_r02_c00">
+    <string name="filename" value="meshes_00042/building_r02_c00.obj" />
+    <ref id="mat-itu_concrete" />
+  </shape>
+  <shape type="obj" id="building_r02_c01">
+    <string name="filename" value="meshes_00042/building_r02_c01.obj" />
+    <ref id="mat-itu_concrete" />
+  </shape>
+  <shape type="obj" id="building_r02_c02">
+    <string name="filename" value="meshes_00042/building_r02_c02.obj" />
+    <ref id="mat-itu_concrete" />
+  </shape>
+  <shape type="obj" id="building_r02_c03">
+    <string name="filename" value="meshes_00042/building_r02_c03.obj" />
+    <ref id="mat-itu_concrete" />
+  </shape>
+  <shape type="obj" id="building_r03_c00">
+    <string name="filename" value="meshes_00042/building_r03_c00.obj" />
+    <ref id="mat-itu_concrete" />
+  </shape>
+  <shape type="obj" id="building_r03_c01">
+    <string name="filename" value="meshes_00042/building_r03_c01.obj" />
+    <ref id="mat-itu_glass" />
+  </shape>
+  <shape type="obj" id="building_r03_c02">
+    <string name="filename" value="meshes_00042/building_r03_c02.obj" />
+    <ref id="mat-itu_concrete" />
+  </shape>
+  <shape type="obj" id="building_r03_c03">
+    <string name="filename" value="meshes_00042/building_r03_c03.obj" />
+    <ref id="mat-itu_glass" />
+  </shape>
+  <shape type="obj" id="ground_00042">
+    <string name="filename" value="meshes_00042/ground_00042.obj" />
+    <ref id="mat-itu_concrete" />
+  </shape>
+  <shape type="obj" id="vehicle_000">
+    <string name="filename" value="meshes_00042/vehicle_000.obj" />
+    <ref id="mat-itu_metal" />
+  </shape>
+  <shape type="obj" id="vehicle_001">
+    <string name="filename" value="meshes_00042/vehicle_001.obj" />
+    <ref id="mat-itu_metal" />
+  </shape>
+  <shape type="obj" id="vehicle_002">
+    <string name="filename" value="meshes_00042/vehicle_002.obj" />
+    <ref id="mat-itu_metal" />
+  </shape>
+  <shape type="obj" id="vehicle_003">
+    <string name="filename" value="meshes_00042/vehicle_003.obj" />
+    <ref id="mat-itu_metal" />
+  </shape>
+  <shape type="obj" id="vehicle_004">
+    <string name="filename" value="meshes_00042/vehicle_004.obj" />
+    <ref id="mat-itu_metal" />
+  </shape>
+  <shape type="obj" id="vehicle_005">
+    <string name="filename" value="meshes_00042/vehicle_005.obj" />
+    <ref id="mat-itu_metal" />
+  </shape>
+  <shape type="obj" id="vehicle_006">
+    <string name="filename" value="meshes_00042/vehicle_006.obj" />
+    <ref id="mat-itu_metal" />
+  </shape>
+  <shape type="obj" id="vehicle_007">
+    <string name="filename" value="meshes_00042/vehicle_007.obj" />
+    <ref id="mat-itu_metal" />
+  </shape>
+</scene>
