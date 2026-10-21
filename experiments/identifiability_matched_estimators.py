@@ -34,6 +34,7 @@ def run_matched_uncertainty_estimators(
     omp_grid_step_fraction: float = 1.0 / 32.0,
     maximum_delay_fraction: float = 2.0,
     confidence_level: float = 0.95,
+    bootstrap_draws: int = 5_000,
 ) -> dict[str, Any]:
     """Compare calibrated delay sets on identical calibration/evaluation trials.
 
@@ -79,6 +80,10 @@ def run_matched_uncertainty_estimators(
         raise ValueError("maximum_delay_fraction must exceed max separation plus timing offset")
     if not math.isfinite(confidence_level) or not 0.0 < confidence_level < 1.0:
         raise ValueError("confidence_level must be finite and in (0, 1)")
+    if isinstance(bootstrap_draws, bool) or not isinstance(bootstrap_draws, int):
+        raise TypeError("bootstrap_draws must be an integer")
+    if bootstrap_draws <= 0:
+        raise ValueError("bootstrap_draws must be positive")
 
     rng = np.random.default_rng(seed)
     cases: list[dict[str, Any]] = []
@@ -248,6 +253,23 @@ def run_matched_uncertainty_estimators(
 
                     profile_covered = np.asarray(profile_coverage, dtype=bool)
                     omp_covered = np.asarray(omp_coverage, dtype=bool)
+                    coverage_delta = profile_covered.astype(np.float64) - omp_covered.astype(
+                        np.float64
+                    )
+                    span_delta = np.asarray(profile_spans_ns) - np.asarray(omp_spans_ns)
+                    bootstrap_rng = np.random.default_rng(
+                        np.random.SeedSequence([seed, len(cases), 20261029])
+                    )
+                    coverage_bootstrap = bootstrap_rng.choice(
+                        coverage_delta,
+                        size=(bootstrap_draws, coverage_delta.size),
+                        replace=True,
+                    ).mean(axis=1)
+                    span_bootstrap = bootstrap_rng.choice(
+                        span_delta,
+                        size=(bootstrap_draws, span_delta.size),
+                        replace=True,
+                    ).mean(axis=1)
                     profile_only = int(np.count_nonzero(profile_covered & ~omp_covered))
                     omp_only = int(np.count_nonzero(~profile_covered & omp_covered))
                     discordant = profile_only + omp_only
@@ -277,11 +299,24 @@ def run_matched_uncertainty_estimators(
                             "omp_conformal_absolute_error_threshold_ns": omp_threshold_s * 1e9,
                             "profile_conformal_coverage": float(profile_covered.mean()),
                             "omp_conformal_coverage": float(omp_covered.mean()),
+                            "paired_profile_minus_omp_coverage_change": float(
+                                coverage_delta.mean()
+                            ),
+                            "paired_profile_minus_omp_coverage_bootstrap_ci95": [
+                                float(value)
+                                for value in np.percentile(coverage_bootstrap, [2.5, 97.5])
+                            ],
                             "paired_profile_only_coverage": profile_only,
                             "paired_omp_only_coverage": omp_only,
                             "paired_coverage_mcnemar_p_value": paired_p,
                             "profile_median_hull_span_ns": float(np.median(profile_spans_ns)),
                             "omp_median_interval_width_ns": float(np.median(omp_spans_ns)),
+                            "paired_profile_minus_omp_mean_span_change_ns": float(
+                                span_delta.mean()
+                            ),
+                            "paired_profile_minus_omp_mean_span_bootstrap_ci95_ns": [
+                                float(value) for value in np.percentile(span_bootstrap, [2.5, 97.5])
+                            ],
                             "profile_median_components": float(np.median(profile_components)),
                             "profile_map_rmse_ns": float(
                                 np.sqrt(np.mean(np.square(profile_map_errors_ns)))
@@ -322,6 +357,7 @@ def run_matched_uncertainty_estimators(
             "classical_baseline": "two-path complex OMP with known path count, followed by local nonlinear least-squares refinement; split-conformal symmetric interval from absolute relative-delay calibration errors",
         },
         "calibration_protocol": "per-condition calibration and evaluation use disjoint seeded trials; both methods see identical complex observations within each trial",
+        "paired_bootstrap_draws": bootstrap_draws,
         "cases": cases,
         "limitations": [
             "Both methods are given the true path count (two), tone grid, carrier-relative frequencies, and noise variance; no model-order selection is tested.",
