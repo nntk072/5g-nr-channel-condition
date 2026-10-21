@@ -194,3 +194,19 @@ def test_run_experiment_preserves_precomputed_dmrs_observation_semantics(tmp_pat
     assert manifest["observation_semantics"] == "Sionna PUSCH DMRS LS channel estimate"
     config = json.loads((output / "config" / "resolved.json").read_text(encoding="utf-8"))
     assert config["values"]["observation"] == "precomputed"
+
+
+def test_run_experiment_supports_histogram_gradient_boosting(tmp_path) -> None:
+    source = tmp_path / "debug.npz"
+    debug_multipath(n_scenes=8, links_per_scene=16, seed=43).save(source)
+
+    summary = run_experiment(
+        [source],
+        tmp_path / "runs" / "histgb",
+        methods=("histgb",),
+        seeds=(13,),
+        bootstrap=10,
+    )
+
+    assert summary["aggregate_across_fixed_splits"]["histgb"]["seeds"] == 1
+    assert (tmp_path / "runs" / "histgb" / "models" / "histgb_seed13.joblib").is_file()

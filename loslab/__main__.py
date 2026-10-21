@@ -67,7 +67,7 @@ def main() -> None:
     exp.add_argument("--input", nargs="+", help="One or more dataset NPZs")
     exp.add_argument("--output")
     exp.add_argument("--holdout", default=None, help="Unseen RT scene/domain, e.g. rt_munich")
-    exp.add_argument("--methods", nargs="+", default=["rf", "mlp", "coral0", "coral"])
+    exp.add_argument("--methods", nargs="+", default=["rf", "histgb", "mlp", "coral0", "coral"])
     exp.add_argument(
         "--seeds", type=int, nargs="+", default=[11, 23, 47, 59, 71, 83, 97, 101, 109, 127]
     )

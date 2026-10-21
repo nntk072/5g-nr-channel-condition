@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import HistGradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import make_pipeline
@@ -32,6 +32,15 @@ def make_estimator(method: str, seed: int = 42):
             class_weight="balanced_subsample",
             random_state=seed,
             n_jobs=-1,
+        )
+    if method == "histgb":
+        return HistGradientBoostingClassifier(
+            learning_rate=0.08,
+            max_iter=250,
+            max_leaf_nodes=31,
+            l2_regularization=1.0,
+            class_weight="balanced",
+            random_state=seed,
         )
     if method == "logreg":
         return make_pipeline(

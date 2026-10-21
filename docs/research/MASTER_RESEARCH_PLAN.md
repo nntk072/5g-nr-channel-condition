@@ -2,7 +2,7 @@
 ## Physically Grounded, Identifiability-Aware Multipath State Learning for 5G NR
 ### From LOS/NLOS classification to channel-state reconstruction, uncertainty, and forecasting
 
-**Document edition:** 3.75 — 2026-10-22 (hold target definitions stable across trajectories)
+**Document edition:** 3.76 — 2026-10-22 (add histogram-gradient-boosting baseline)
 **Status:** execution specification and scientific decision record; **not** a completed study, not experimental evidence, and not a claim of top-tier acceptance.
 **Repository inspected:** live checkout /home/nguyenl37/5g-nr-channel-condition, branch main, initial implementation commit ffe199c80c1caf40dea91a406fe02124b3ff05ec (built from baseline cc43a5544036578a6bb57ce52b66436d8acb6c1b); local reference /home/nguyenl37/sionna at Sionna v2.2.0, commit 2f0a3820269b53fd022780a6f2f5f720f7ceb9b4, RT submodule commit 15b5ee036917a4c2a9b6420e05570b77717e2fcc.
 **Legacy work:** Long Nguyen, *5G Physical Layer Channel Conditions Classification Using Machine Learning Techniques*, Tampere University, July 2025, embedded in `docs/thesis/NguyenLong.pdf`.
@@ -2081,3 +2081,5 @@ The compact 100-split report is `docs/research/results/identifiability-profile-r
 **Edition 3.74 typed target definitions:** Added `TargetDefinition(semantic, units, source)` to the typed NR record contract and its pickle-free content-addressed storage, with backward-compatible reads for records created before the field existed. A nonempty definition map must cover every declared target. RT trajectory records define the absolute-delay CFR and depth-zero geometric LOS oracle separately; TDL→PUSCH records define the perfect synchronized channel target and Sionna PHY source. Definitions remain outside the observation-only model input. Dataset NR contract tests pass (27), and native LLVM trajectory plus native TDL→PUSCH tests pass (9); Ruff and mypy pass for changed code.
 
 **Edition 3.75 trajectory consistency:** `NRTrajectory` now rejects changes in the meaning/unit/source definition of a target across time steps, while still allowing legacy records with no typed definitions. A focused contract test exercises definition drift; dataset record tests, Ruff, and mypy pass.
+
+**Edition 3.76 matched baseline expansion:** Added a portable scikit-learn histogram gradient-boosting classifier (`histgb`) to the estimator registry and experiment runner, including immutable model/prediction artifacts and a paired MLP-versus-HistGB seed comparison. It joins the default baseline set beside RF, MLP, CORAL-off, and CORAL; users may also select it alone. Model-factory/fit and end-to-end runner tests pass. This broadens P6 controls but does not yet establish equal tuning budgets, a capacity/compute Pareto study, XGBoost, a CNN/CVNN, or performance superiority.

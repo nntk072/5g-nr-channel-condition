@@ -114,7 +114,7 @@ def run_experiment(
     output: str | Path,
     *,
     holdout: str | None = None,
-    methods: Sequence[str] = ("rf", "mlp", "coral", "coral0"),
+    methods: Sequence[str] = ("rf", "histgb", "mlp", "coral", "coral0"),
     seeds: Sequence[int] = (11, 23, 47, 59, 71, 83, 97, 101, 109, 127),
     bootstrap: int = 200,
     include_phase: bool = False,
@@ -193,7 +193,7 @@ def run_experiment(
         assert not (set(data.group[train]) & set(data.group[val]))
         assert not (set(data.group[test]) & (set(data.group[train]) | set(data.group[val])))
         for method in methods:
-            if method in ("rf", "mlp", "logreg"):
+            if method in ("rf", "histgb", "mlp", "logreg"):
                 clf = fit_sklearn(x[train], data.y[train], seed=seed, method=method)
                 extra = {}
             elif method in ("coral", "coral0"):
@@ -289,6 +289,7 @@ def run_experiment(
     comparisons = {}
     method_pairs = (
         ("rf", "mlp"),
+        ("histgb", "mlp"),
         ("logreg", "mlp"),
         ("mlp", "coral"),
         ("coral0", "coral"),
