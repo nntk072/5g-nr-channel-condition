@@ -15,6 +15,9 @@ def test_full_rt_oracle_is_separate_and_los_contains_reflections(monkeypatch):
     scene_module.scene = types.SimpleNamespace()
     calls = []
     full_solver_calls = 0
+    force_solver_error = False
+    force_oracle_error = False
+    force_all_los = False
 
     class FakeScene:
         def add(self, object):
@@ -43,7 +46,13 @@ def test_full_rt_oracle_is_separate_and_los_contains_reflections(monkeypatch):
             calls.append(kw)
             visible = scene.receiver.position[0] > 0
             if kw["max_depth"] == 0:
+                if force_oracle_error:
+                    raise RuntimeError("mock oracle failure")
+                if force_all_los:
+                    return FakePaths(1)
                 return FakePaths(1 if visible else 0)
+            if force_solver_error:
+                raise ValueError("mock full solver failure")
             full_solver_calls += 1
             if full_solver_calls == 1:
                 return FakePaths(0)
@@ -114,3 +123,66 @@ def test_full_rt_oracle_is_separate_and_los_contains_reflections(monkeypatch):
     assert all(
         kw["specular_reflection"] is True and kw["los"] for kw in calls if kw["max_depth"] > 0
     )
+
+    from integrations.sionna import RaytraceGenerationError
+
+    force_oracle_error = True
+    try:
+        generate_raytraced(
+            RayScene(name="mock", per_class=1, max_attempts=2),
+            grid=GridConfig(n_subcarriers=32),
+            seed=20,
+        )
+    except RaytraceGenerationError as error:
+        report = error.generation_report
+        assert report["status"] == "solver_error"
+        assert report["solver_failure"]["stage"] == "depth_zero_oracle"
+        assert report["attempt_counts"]["depth_zero_oracle_attempts"] == 1
+        assert report["attempt_counts"]["depth_zero_oracle_errors"] == 1
+        assert report["attempt_counts"]["depth_zero_oracle_calls"] == 0
+    else:
+        raise AssertionError("oracle failure should carry an RT generation report")
+    force_oracle_error = False
+
+    force_solver_error = True
+    try:
+        generate_raytraced(
+            RayScene(name="mock", per_class=1, max_attempts=2),
+            grid=GridConfig(n_subcarriers=32),
+            seed=21,
+        )
+    except RaytraceGenerationError as error:
+        assert error.generation_report["status"] == "solver_error"
+        assert error.generation_report["solver_failure"] == {
+            "stage": "full_solver",
+            "attempt_index": 0,
+            "exception_type": "ValueError",
+            "message": "mock full solver failure",
+        }
+        assert error.generation_report["attempt_counts"]["full_solver_attempts"] == 1
+        assert error.generation_report["attempt_counts"]["full_solver_errors"] == 1
+        assert error.generation_report["attempt_counts"]["full_solver_calls"] == 0
+    else:
+        raise AssertionError("solver failure should carry an RT generation report")
+
+    force_solver_error = False
+    force_all_los = True
+    try:
+        generate_raytraced(
+            RayScene(name="mock", per_class=1, max_attempts=2),
+            grid=GridConfig(n_subcarriers=32),
+            seed=22,
+        )
+    except RaytraceGenerationError as error:
+        report = error.generation_report
+        assert report["status"] == "insufficient_samples"
+        assert report["requested_per_class"] == 1
+        assert report["accepted_counts"] == {
+            "total": 1,
+            "geometric_nlos": 0,
+            "geometric_los": 1,
+        }
+        assert report["attempt_counts"]["class_quota_skips"] == 1
+        assert report["attempt_counts"]["attempts_started"] == 2
+    else:
+        raise AssertionError("insufficient class quota should carry an RT generation report")

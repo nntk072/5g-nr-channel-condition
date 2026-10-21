@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Protocol, Sequence
+from typing import Mapping, Protocol, Sequence
 
 import numpy as np
 from artifacts.provenance import package_source_sha256, versions
@@ -272,6 +272,14 @@ class RayScene:
     # built-in 'munich', 'etoile', or a valid user-supplied scene path
 
 
+class RaytraceGenerationError(RuntimeError):
+    """RT generation failure that preserves the complete attempt report."""
+
+    def __init__(self, message: str, generation_report: Mapping[str, object]) -> None:
+        super().__init__(message)
+        self.generation_report = dict(generation_report)
+
+
 def generate_raytraced(
     scene_config: RayScene = RayScene(), *, grid: GridConfig = GridConfig(), seed: int = 42
 ) -> ChannelDataset:
@@ -324,11 +332,15 @@ def generate_raytraced(
     attempt_counts = {
         "attempts_started": 0,
         "obstacle_rejections": 0,
+        "depth_zero_oracle_attempts": 0,
         "depth_zero_oracle_calls": 0,
+        "depth_zero_oracle_errors": 0,
         "candidate_geometric_nlos": 0,
         "candidate_geometric_los": 0,
         "class_quota_skips": 0,
+        "full_solver_attempts": 0,
         "full_solver_calls": 0,
+        "full_solver_errors": 0,
         "full_solver_empty_paths": 0,
         "los_direct_only_rejections": 0,
         "cfr_conversion_failures": 0,
@@ -339,6 +351,7 @@ def generate_raytraced(
     domains = []
     sources = []
     meta = []
+    solver_failure = None
     for attempt in range(cfg.max_attempts):
         if min(hits.values()) >= cfg.per_class:
             break
@@ -355,34 +368,56 @@ def generate_raytraced(
                 attempt_counts["obstacle_rejections"] += 1
                 continue
         receiver.position = [float(x), float(y), float(z)]
+        attempt_counts["depth_zero_oracle_attempts"] += 1
+        try:
+            oracle_paths = los_oracle(
+                scene,
+                max_depth=0,
+                los=True,
+                specular_reflection=False,
+                diffuse_reflection=False,
+                refraction=False,
+                diffraction=False,
+                seed=seed + attempt,
+            )
+        except Exception as error:
+            attempt_counts["depth_zero_oracle_errors"] += 1
+            solver_failure = {
+                "stage": "depth_zero_oracle",
+                "attempt_index": attempt,
+                "exception_type": type(error).__name__,
+                "message": str(error),
+            }
+            break
         attempt_counts["depth_zero_oracle_calls"] += 1
-        oracle_paths = los_oracle(
-            scene,
-            max_depth=0,
-            los=True,
-            specular_reflection=False,
-            diffuse_reflection=False,
-            refraction=False,
-            diffraction=False,
-            seed=seed + attempt,
-        )
         label = int(has_valid_path(oracle_paths))
         attempt_counts["candidate_geometric_los" if label else "candidate_geometric_nlos"] += 1
         if hits[label] >= cfg.per_class:
             attempt_counts["class_quota_skips"] += 1
             continue
+        attempt_counts["full_solver_attempts"] += 1
+        try:
+            full = full_solver(
+                scene,
+                max_depth=cfg.max_depth,
+                los=True,
+                specular_reflection=True,
+                diffuse_reflection=True,
+                refraction=True,
+                diffraction=False,
+                samples_per_src=cfg.samples_per_src,
+                seed=seed + attempt,
+            )
+        except Exception as error:
+            attempt_counts["full_solver_errors"] += 1
+            solver_failure = {
+                "stage": "full_solver",
+                "attempt_index": attempt,
+                "exception_type": type(error).__name__,
+                "message": str(error),
+            }
+            break
         attempt_counts["full_solver_calls"] += 1
-        full = full_solver(
-            scene,
-            max_depth=cfg.max_depth,
-            los=True,
-            specular_reflection=True,
-            diffuse_reflection=True,
-            refraction=True,
-            diffraction=False,
-            samples_per_src=cfg.samples_per_src,
-            seed=seed + attempt,
-        )
         n_paths = count_valid_paths(full)
         if n_paths == 0:
             attempt_counts["full_solver_empty_paths"] += 1
@@ -435,11 +470,6 @@ def generate_raytraced(
             }
         )
         hits[label] += 1
-    if min(hits.values()) < cfg.per_class:
-        raise RuntimeError(
-            f"Insufficient visible paths after {cfg.max_attempts} attempts: "
-            + f"LOS={hits[1]}, NLOS={hits[0]}. Change scene/positions/solver budgets."
-        )
     full_solver_outcomes = {
         "empty_paths": attempt_counts["full_solver_empty_paths"],
         "los_direct_only_rejected": attempt_counts["los_direct_only_rejections"],
@@ -448,13 +478,26 @@ def generate_raytraced(
     }
     if (
         attempt_counts["attempts_started"]
-        != attempt_counts["obstacle_rejections"] + attempt_counts["depth_zero_oracle_calls"]
+        != attempt_counts["obstacle_rejections"] + attempt_counts["depth_zero_oracle_attempts"]
     ):
         raise RuntimeError("RT generation report does not account for every candidate attempt")
+    if attempt_counts["depth_zero_oracle_attempts"] != (
+        attempt_counts["depth_zero_oracle_calls"] + attempt_counts["depth_zero_oracle_errors"]
+    ):
+        raise RuntimeError("RT generation report does not account for every LOS-oracle attempt")
+    if attempt_counts["depth_zero_oracle_calls"] != (
+        attempt_counts["candidate_geometric_los"] + attempt_counts["candidate_geometric_nlos"]
+    ):
+        raise RuntimeError("RT generation report does not account for every LOS-oracle result")
+    if attempt_counts["full_solver_attempts"] != (
+        attempt_counts["full_solver_calls"] + attempt_counts["full_solver_errors"]
+    ):
+        raise RuntimeError("RT generation report does not account for every full-solver attempt")
     if sum(full_solver_outcomes.values()) != attempt_counts["full_solver_calls"]:
         raise RuntimeError("RT generation report does not account for every full-solver outcome")
     generation_report = {
         "schema": "loslab.raytraced_generation_report.v1",
+        "status": "solver_error" if solver_failure else "completed",
         "environment": versions(),
         "package_source_sha256": package_source_sha256(),
         "scene_config": asdict(cfg),
@@ -469,8 +512,10 @@ def generate_raytraced(
             "diffraction": False,
         },
         "seed": seed,
+        "requested_per_class": cfg.per_class,
         "attempt_counts": attempt_counts,
         "full_solver_outcomes": full_solver_outcomes,
+        "solver_failure": solver_failure,
         "accepted_counts": {
             "total": len(ys),
             "geometric_nlos": hits[0],
@@ -482,6 +527,19 @@ def generate_raytraced(
             "counted but are not exported as channel observations."
         ),
     }
+    if solver_failure is not None:
+        raise RaytraceGenerationError(
+            f"Sionna RT failed during {solver_failure['stage']} at candidate "
+            f"{solver_failure['attempt_index']}: {solver_failure['message']}",
+            generation_report,
+        )
+    if min(hits.values()) < cfg.per_class:
+        generation_report["status"] = "insufficient_samples"
+        raise RaytraceGenerationError(
+            f"Insufficient visible paths after {cfg.max_attempts} attempts: "
+            + f"LOS={hits[1]}, NLOS={hits[0]}. Change scene/positions/solver budgets.",
+            generation_report,
+        )
     return ChannelDataset(
         np.stack(samples),
         np.asarray(ys),

@@ -1,6 +1,12 @@
 """Lazy Sionna PHY and ray-tracing adapters."""
 
-from .adapter import GridConfig, RayScene, generate_raytraced, generate_standardized
+from .adapter import (
+    GridConfig,
+    RayScene,
+    RaytraceGenerationError,
+    generate_raytraced,
+    generate_standardized,
+)
 from .cp_margin import run_static_cp_margin_experiment
 from .nr_pusch import SionnaPUSCHLSReceiver
 from .ofdm_impairments import apply_integer_timing_offset, apply_residual_cfo
@@ -12,6 +18,7 @@ __all__ = [
     "GridConfig",
     "NRGridChannel",
     "RayScene",
+    "RaytraceGenerationError",
     "SionnaPUSCHLSReceiver",
     "SionnaTDLChannel",
     "SionnaTDLPUSCHBatch",
