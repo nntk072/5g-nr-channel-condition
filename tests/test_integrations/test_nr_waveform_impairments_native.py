@@ -10,6 +10,7 @@ from integrations.sionna.ofdm_impairments import (  # noqa: E402
     apply_integer_timing_offset,
     apply_residual_cfo,
     estimate_residual_cfo_from_cp,
+    estimate_integer_timing_offset_from_cp,
 )
 from receivers.nr import NRPUSCHConfig  # noqa: E402
 
@@ -62,6 +63,21 @@ def test_ofdm_roundtrip_and_residual_cfo_timing_errors_reach_dmrs_estimator():
     )
     corrected_grid = demodulator(corrected_waveform)
 
+    max_timing_offset = min(3, grid.cyclic_prefix_length - 1)
+    timing_offset = min(2, max_timing_offset)
+    capture = torch.cat((waveform, torch.zeros_like(waveform[..., :max_timing_offset])), dim=-1)
+    delayed_capture = apply_integer_timing_offset(capture, offset_samples=timing_offset)
+    acquired_timing = estimate_integer_timing_offset_from_cp(
+        delayed_capture,
+        fft_size=grid.fft_size,
+        cyclic_prefix_length=grid.cyclic_prefix_length,
+        max_offset_samples=max_timing_offset,
+    )
+    corrected_capture = apply_integer_timing_offset(
+        delayed_capture, offset_samples=-int(acquired_timing[0].item())
+    )
+    timing_corrected_grid = demodulator(corrected_capture[..., : waveform.shape[-1]])
+
     def estimated_channel_nmse(observed_grid):
         observation = observed_grid[:, 0, 0].unsqueeze(1).unsqueeze(1)
         estimate = receiver.estimate(observation, torch.tensor(0.0, device="cuda:0")).h_hat
@@ -77,6 +93,11 @@ def test_ofdm_roundtrip_and_residual_cfo_timing_errors_reach_dmrs_estimator():
     assert torch.mean(torch.abs(timing_grid - recovered_grid) ** 2) > 1e-4
     assert torch.max(torch.abs(cfo_estimate_hz - 0.05 * 30_000.0)) < 1.0
     torch.testing.assert_close(corrected_grid, transmit_grid, atol=1e-4, rtol=1e-4)
+    torch.testing.assert_close(
+        acquired_timing,
+        torch.full_like(acquired_timing, timing_offset),
+    )
+    torch.testing.assert_close(timing_corrected_grid, transmit_grid, atol=1e-4, rtol=1e-4)
 
 
 @pytest.mark.native_sionna

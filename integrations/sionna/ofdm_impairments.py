@@ -101,6 +101,70 @@ def estimate_residual_cfo_from_cp(
     return phase * sampling_frequency_hz / (2.0 * math.pi * fft_size)
 
 
+def estimate_integer_timing_offset_from_cp(
+    waveform: Any,
+    *,
+    fft_size: int,
+    cyclic_prefix_length: int,
+    max_offset_samples: int,
+    guard_samples: int = 0,
+) -> Any:
+    """Acquire a bounded nonnegative integer delay from OFDM CP repetition.
+
+    The capture must include the first transmitted symbol, delayed by at most
+    ``max_offset_samples`` and zero-filled at the front. The detector scans
+    candidate starts for that first symbol and sums normalized CP-to-tail
+    correlation over all complete symbols available at the worst-case offset.
+    It returns one integer sample offset per leading waveform index.
+
+    This resolves a bounded sample delay when the capture's nominal origin is
+    known. It does not detect an NR frame in a continuous stream, resolve
+    fractional timing, or replace PSS/SSS/DMRS synchronization.
+    """
+    torch = _validate_waveform(waveform)
+    if isinstance(fft_size, bool) or not isinstance(fft_size, int) or fft_size <= 0:
+        raise ValueError("fft_size must be a positive integer")
+    if (
+        isinstance(cyclic_prefix_length, bool)
+        or not isinstance(cyclic_prefix_length, int)
+        or not 0 < cyclic_prefix_length <= fft_size
+    ):
+        raise ValueError("cyclic_prefix_length must be an integer in [1, fft_size]")
+    if isinstance(max_offset_samples, bool) or not isinstance(max_offset_samples, int):
+        raise TypeError("max_offset_samples must be an integer")
+    if not 0 <= max_offset_samples < waveform.shape[-1]:
+        raise ValueError("max_offset_samples must be nonnegative and smaller than waveform length")
+    if isinstance(guard_samples, bool) or not isinstance(guard_samples, int):
+        raise TypeError("guard_samples must be an integer")
+    if not 0 <= guard_samples < cyclic_prefix_length:
+        raise ValueError("guard_samples must be in [0, cyclic_prefix_length)")
+
+    symbol_length = fft_size + cyclic_prefix_length
+    symbol_count = (waveform.shape[-1] - max_offset_samples) // symbol_length
+    if symbol_count < 1:
+        raise ValueError("waveform must contain a complete symbol at every candidate offset")
+
+    offsets = torch.arange(max_offset_samples + 1, device=waveform.device)
+    symbols = torch.arange(symbol_count, device=waveform.device) * symbol_length
+    within_prefix = torch.arange(guard_samples, cyclic_prefix_length, device=waveform.device)
+    indices = offsets[:, None, None] + symbols[None, :, None] + within_prefix[None, None, :]
+    prefix_indices = indices.reshape(-1)
+    tail_indices = prefix_indices + fft_size
+    index_shape = (*waveform.shape[:-1], max_offset_samples + 1, symbol_count, -1)
+    prefix = waveform.index_select(-1, prefix_indices).reshape(index_shape)
+    tail = waveform.index_select(-1, tail_indices).reshape(index_shape)
+    correlation = torch.sum(torch.conj(prefix) * tail, dim=(-1, -2))
+    prefix_energy = torch.sum(torch.abs(prefix) ** 2, dim=(-1, -2))
+    tail_energy = torch.sum(torch.abs(tail) ** 2, dim=(-1, -2))
+    energy_product = prefix_energy * tail_energy
+    if bool((torch.amax(energy_product, dim=-1) <= torch.finfo(waveform.real.dtype).tiny).any()):
+        raise ValueError("cyclic-prefix correlation has insufficient signal energy")
+    score = torch.abs(correlation) / torch.sqrt(
+        torch.clamp_min(energy_product, torch.finfo(waveform.real.dtype).tiny)
+    )
+    return torch.argmax(score, dim=-1)
+
+
 def apply_integer_timing_offset(waveform: Any, *, offset_samples: int) -> Any:
     """Shift the receive FFT window using zero-filled frame boundaries.
 
