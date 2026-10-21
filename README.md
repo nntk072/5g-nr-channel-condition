@@ -1,11 +1,11 @@
-# Wireless Channel Condition Research
+# 5G NR Channel Condition Research
 
-Research code for machine-learning-based wireless channel condition analysis.
-The current study begins with physically grounded LOS/NLOS detection under
-domain shift, while the repository structure supports broader channel
-condition research. The framework distinguishes geometric LOS labels from
-standardized TDL/CDL profile proxy labels and marks synthetic smoke data as
-debug-only.
+Research framework for machine-learning-based 5G NR channel-condition
+analysis. The current study begins with physically grounded LOS/NLOS detection
+under domain shift, while the project is structured to grow toward broader
+channel-condition characterization and prediction. The framework distinguishes
+geometric LOS labels from standardized TDL/CDL profile proxy labels and marks
+synthetic smoke data as debug-only.
 
 ## Start here
 

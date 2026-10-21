@@ -3,9 +3,9 @@ requires = ["setuptools>=69", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "wireless-channel-condition"
+name = "5g-nr-channel-condition"
 version = "0.2.0"
-description = "Research framework for wireless channel condition analysis"
+description = "Research framework for 5G NR channel condition analysis"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
