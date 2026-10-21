@@ -1,0 +1,9 @@
+schema: loslab.experiment.v1
+name: debug-smoke
+inputs: [data/examples/debug_channels.npz]
+output: outputs/runs/debug-smoke
+holdout: debug_scene_5
+methods: [logreg]
+seeds: [11]
+bootstrap: 100
+observation: ideal_cfr

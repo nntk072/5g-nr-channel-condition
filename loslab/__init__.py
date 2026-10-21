@@ -3,4 +3,5 @@
 Legacy thesis notebooks remain archived in the repository root; this package does
 not import TensorFlow or legacy Sionna interfaces on import.
 """
+
 __version__ = "0.1.0"

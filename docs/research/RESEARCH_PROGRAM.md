@@ -112,4 +112,4 @@ balanced accuracy, Brier score, ECE and run cost. Track source/checkpoint SHA256
 - Sionna RT Paths: https://nvlabs.github.io/sionna/rt/api/paths.html
 - Sionna PHY TDL: https://nvlabs.github.io/sionna/v2.1.0/phy/api/channel/wireless/sionna.phy.channel.tr38901.TDL.html
 - Sionna PHY CDL: https://nvlabs.github.io/sionna/v2.1.0/phy/api/channel/wireless/sionna.phy.channel.tr38901.CDL.html
-- User's old thesis: `NguyenLong.pdf`, Tampere University, July 2025.
+- User's old thesis: [`docs/thesis/NguyenLong.pdf`](../thesis/NguyenLong.pdf), Tampere University, July 2025.

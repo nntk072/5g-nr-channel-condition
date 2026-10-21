@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Verify lockfile
+        run: uv lock --check
+
+      - name: Install project and test dependencies
+        run: uv sync --locked --extra dev
+
+      - name: Lint
+        run: uv run --locked ruff check artifacts configuration datasets propagation receivers models learning evaluation experiments integrations compute loslab tests
+
+      - name: Check formatting
+        run: uv run --locked ruff format --check artifacts configuration datasets propagation receivers models learning evaluation experiments integrations compute loslab tests
+
+      - name: Type check
+        run: uv run --locked mypy
+
+      - name: Run tests
+        run: uv run --locked python -m pytest
+
+  neural:
+    name: Neural training tests (Python 3.12)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install project and development dependencies
+        run: uv sync --locked --extra dev
+
+      - name: Install CPU-only PyTorch
+        run: uv pip install --python .venv/bin/python torch==2.11.0 --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Run full test suite including neural training
+        run: uv run --no-sync --locked python -m pytest
+
+  build:
+    name: Build package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Build wheel and source distribution
+        run: uv build

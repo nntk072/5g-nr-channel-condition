@@ -9,8 +9,8 @@ Recommended Linux/WSL2 Ubuntu 24.04 rather than legacy Windows+TensorFlow env.
 ```bash
 python3.11 -m venv .venv
 source .venv/bin/activate
-python -m pip install -r requirements-research.txt
-python -m pytest tests_research -q
+python -m pip install -e '.[dev]'
+python -m pytest -q
 python -m loslab doctor
 ```
 
@@ -18,7 +18,7 @@ For **genuine** standardized TDL/CDL and native ray-tracing generation, separate
 install the tested target Sionna version and its native Mitsuba/Dr.Jit/LLVM deps:
 
 ```bash
-python -m pip install 'sionna==2.2.0'
+python -m pip install -e '.[sionna]'
 python -m loslab doctor
 ```
 
@@ -30,14 +30,15 @@ was **not available** in the environment used to prepare this upgrade. Check
 ## 1. Run a zero-dependency end-to-end smoke experiment
 
 ```bash
-python -m loslab debug-data --output runs/debug_data.npz --scenes 6
-python -m loslab experiment --input runs/debug_data.npz \
-  --output runs/debug_check --holdout debug_scene_5 \
-  --methods logreg rf mlp coral0 coral --seeds 11 --bootstrap 100
+python -m loslab debug-data --output data/examples/debug_channels.npz --scenes 6
+python -m loslab experiment --config config/experiments/debug_smoke.yaml
 ```
 
 All output is **DEBUG_ONLY**. It is explicitly not 3GPP, not Sionna RT and not
 valid evidence for the paper.
+
+The example config runs logistic regression for one seed to validate the
+pipeline quickly. Add model variants and prespecified seeds for actual studies.
 
 The following receiver-observability stress test adds generic QPSK comb pilots,
 AWGN, least-squares pilot estimates and frequency interpolation:

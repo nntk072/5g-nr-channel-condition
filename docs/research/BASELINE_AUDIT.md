@@ -2,7 +2,7 @@
 
 ## Reviewed materials
 
-- `NguyenLong.pdf` (July 2025 Tampere thesis), including Chapter 6 results,
+- [`docs/thesis/NguyenLong.pdf`](../thesis/NguyenLong.pdf) (July 2025 Tampere thesis), including Chapter 6 results,
   the Conclusions, and its original experiment description.
 - `nr_pusch/configs_new.py`, `nr_pusch/model_new.py`, `mlp/mlp_model.py`,
   `evaluation.py`, `utils.py`, `ml_algorithms.py`.
