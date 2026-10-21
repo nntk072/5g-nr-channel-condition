@@ -9,6 +9,10 @@ from experiments.identifiability_profile_likelihood import (
     build_profile_likelihood_sweep,
     profile_relative_delay_likelihood,
 )
+from experiments.identifiability_repeated_calibration import (
+    build_repeated_calibration_study,
+    summarize_repeated_calibration_study,
+)
 from experiments.identifiability_stress_summary import summarize_profile_likelihood_stress
 
 
@@ -173,6 +177,42 @@ def test_stress_summary_rejects_wrong_report_type():
             },
             raw_report_sha256="a" * 64,
         )
+
+
+def test_repeated_calibration_bootstraps_independent_splits_deterministically():
+    config = {
+        "seed": 801,
+        "trials": 8,
+        "calibration_trials": 20,
+        "tone_counts": (32,),
+        "tone_spacing_hz": 30_000.0,
+        "snr_db_values": (20.0,),
+        "separation_fractions": (0.5,),
+        "gain_phase_differences_deg": (90.0,),
+        "delay_grid_step_fraction": 1.0 / 16.0,
+        "maximum_delay_fraction": 1.0,
+        "noise_variance_scale_factors": (1.0,),
+        "third_path_amplitude_ratios": (0.0,),
+        "randomize_path_order": True,
+    }
+    first = build_repeated_calibration_study(config, repetitions=5, bootstrap_draws=200)
+    second = build_repeated_calibration_study(config, repetitions=5, bootstrap_draws=200)
+
+    assert first == second
+    assert first["bootstrap_unit"] == "independent_calibration_evaluation_split"
+    case = first["cases"][0]
+    assert case["repetition_count"] == 5
+    assert len(case["repetitions"]) == 5
+    assert len(set(row["seed"] for row in case["repetitions"])) == 5
+    assert len(case["split_bootstrap_percentile_interval_95"]) == 2
+    summary = summarize_repeated_calibration_study(first, raw_report_sha256="b" * 64)
+    assert summary["raw_report_sha256"] == "b" * 64
+    assert len(summary["cases"][0]["repetitions"]) == 5
+
+
+def test_repeated_calibration_rejects_too_few_splits():
+    with pytest.raises(ValueError, match="at least 5"):
+        build_repeated_calibration_study({"seed": 1}, repetitions=4)
 
 
 def test_split_conformal_threshold_uses_finite_sample_order_statistic():

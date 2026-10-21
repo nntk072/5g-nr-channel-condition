@@ -28,3 +28,11 @@ calibration on measured channels, arbitrary multipath, changing receiver noise,
 or unseen Sionna RT scenes. Repeat-calibration experiments and independent
 physical evidence remain required before making a calibration claim beyond the
 stated synthetic conditions.
+
+`scripts/run_repeated_identifiability_calibration.py` repeats whole
+calibration/evaluation splits with independent seeds and bootstraps the
+split-level coverage rates. This preserves the dependence among evaluation
+trials that share one calibrated threshold. Its percentile interval summarizes
+Monte Carlo variability across repeated synthetic splits; it is not a
+replacement for the exchangeability assumptions or an external-validation
+result.
