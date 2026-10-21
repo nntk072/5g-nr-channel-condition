@@ -1,0 +1,424 @@
+{
+  "class_counts": {
+    "0": 24576,
+    "1": 16384
+  },
+  "configuration": {
+    "carrier_hz": 3500000000.0,
+    "delay_spreads_ns": [
+      30.0,
+      100.0,
+      300.0,
+      1000.0
+    ],
+    "device": "cuda:0",
+    "families": [
+      "tdl",
+      "cdl"
+    ],
+    "n_subcarriers": 128,
+    "profiles": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E"
+    ],
+    "samples_per_family_profile": 4096,
+    "seed": 78021,
+    "snr_db": 20.0,
+    "spec_version": "19.2",
+    "subcarrier_spacing_hz": 30000.0
+  },
+  "dataset_bytes": 39040864,
+  "dataset_path": "outputs/profile-proxy-tdl-cdl-a-to-e-4096-seed78021-final.npz",
+  "dataset_sha256": "efd5705592f6bdb9aca25320efda60bab1453c474b2fdde1fa5056f86a081521",
+  "evidence_grade": "SIMULATED_3GPP_PROFILE_PROXY_NOT_GEOMETRIC_LOS",
+  "hardware": {
+    "cuda_available": true,
+    "cuda_device_name": "NVIDIA RTX PRO 500 Blackwell Generation Laptop GPU",
+    "device": "cuda:0"
+  },
+  "limitations": [
+    "Labels indicate 3GPP profile proxies, not geometric LOS/NLOS or blockage truth.",
+    "The generated channels are simulator outputs and are not measured-data validation.",
+    "Profile proxy results do not replace scene-disjoint evaluation on qualified RT or measured data."
+  ],
+  "package_source_sha256": "3255cfaa6374d71691240a5d654ba00f7032b7df95d0c5a71fa71e511ca647ea",
+  "profile_summaries": [
+    {
+      "delay_spread_ns": 30.0,
+      "family": "cdl",
+      "mean_observed_cfr_power": 0.979249130090011,
+      "profile": "A",
+      "profile_proxy_label": 0,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.9551122074807146
+    },
+    {
+      "delay_spread_ns": 100.0,
+      "family": "cdl",
+      "mean_observed_cfr_power": 0.9876772372663254,
+      "profile": "A",
+      "profile_proxy_label": 0,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.87202053759887
+    },
+    {
+      "delay_spread_ns": 300.0,
+      "family": "cdl",
+      "mean_observed_cfr_power": 0.9800420173269231,
+      "profile": "A",
+      "profile_proxy_label": 0,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.7750756677383824
+    },
+    {
+      "delay_spread_ns": 1000.0,
+      "family": "cdl",
+      "mean_observed_cfr_power": 1.0251900268049212,
+      "profile": "A",
+      "profile_proxy_label": 0,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.6455739882836526
+    },
+    {
+      "delay_spread_ns": 30.0,
+      "family": "cdl",
+      "mean_observed_cfr_power": 0.9804524694804968,
+      "profile": "B",
+      "profile_proxy_label": 0,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.9180948705272977
+    },
+    {
+      "delay_spread_ns": 100.0,
+      "family": "cdl",
+      "mean_observed_cfr_power": 0.9994723399831855,
+      "profile": "B",
+      "profile_proxy_label": 0,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.7959323374127504
+    },
+    {
+      "delay_spread_ns": 300.0,
+      "family": "cdl",
+      "mean_observed_cfr_power": 1.0262447432833142,
+      "profile": "B",
+      "profile_proxy_label": 0,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.7113043247381627
+    },
+    {
+      "delay_spread_ns": 1000.0,
+      "family": "cdl",
+      "mean_observed_cfr_power": 1.0194875303131994,
+      "profile": "B",
+      "profile_proxy_label": 0,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.4752560651674959
+    },
+    {
+      "delay_spread_ns": 30.0,
+      "family": "cdl",
+      "mean_observed_cfr_power": 0.9564251539704856,
+      "profile": "C",
+      "profile_proxy_label": 0,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.909028357998135
+    },
+    {
+      "delay_spread_ns": 100.0,
+      "family": "cdl",
+      "mean_observed_cfr_power": 0.9918964272219455,
+      "profile": "C",
+      "profile_proxy_label": 0,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.8964136995029583
+    },
+    {
+      "delay_spread_ns": 300.0,
+      "family": "cdl",
+      "mean_observed_cfr_power": 0.987528578923957,
+      "profile": "C",
+      "profile_proxy_label": 0,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.6547813897363087
+    },
+    {
+      "delay_spread_ns": 1000.0,
+      "family": "cdl",
+      "mean_observed_cfr_power": 1.0138757164386334,
+      "profile": "C",
+      "profile_proxy_label": 0,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.54546834027583
+    },
+    {
+      "delay_spread_ns": 30.0,
+      "family": "cdl",
+      "mean_observed_cfr_power": 1.010544173521339,
+      "profile": "D",
+      "profile_proxy_label": 1,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.4196419863820405
+    },
+    {
+      "delay_spread_ns": 100.0,
+      "family": "cdl",
+      "mean_observed_cfr_power": 1.0181473608827218,
+      "profile": "D",
+      "profile_proxy_label": 1,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.3728132537605456
+    },
+    {
+      "delay_spread_ns": 300.0,
+      "family": "cdl",
+      "mean_observed_cfr_power": 1.011472705664346,
+      "profile": "D",
+      "profile_proxy_label": 1,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.324442158764743
+    },
+    {
+      "delay_spread_ns": 1000.0,
+      "family": "cdl",
+      "mean_observed_cfr_power": 1.01726886027609,
+      "profile": "D",
+      "profile_proxy_label": 1,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.31540960058006173
+    },
+    {
+      "delay_spread_ns": 30.0,
+      "family": "cdl",
+      "mean_observed_cfr_power": 0.9887120057392167,
+      "profile": "E",
+      "profile_proxy_label": 1,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.40721514177517715
+    },
+    {
+      "delay_spread_ns": 100.0,
+      "family": "cdl",
+      "mean_observed_cfr_power": 1.0140509888005909,
+      "profile": "E",
+      "profile_proxy_label": 1,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.33336847744541126
+    },
+    {
+      "delay_spread_ns": 300.0,
+      "family": "cdl",
+      "mean_observed_cfr_power": 0.9997112625860609,
+      "profile": "E",
+      "profile_proxy_label": 1,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.18579687279521764
+    },
+    {
+      "delay_spread_ns": 1000.0,
+      "family": "cdl",
+      "mean_observed_cfr_power": 1.0114706985768862,
+      "profile": "E",
+      "profile_proxy_label": 1,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.1189464719798441
+    },
+    {
+      "delay_spread_ns": 30.0,
+      "family": "tdl",
+      "mean_observed_cfr_power": 1.0604452309780754,
+      "profile": "A",
+      "profile_proxy_label": 0,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.9945656249980732
+    },
+    {
+      "delay_spread_ns": 100.0,
+      "family": "tdl",
+      "mean_observed_cfr_power": 0.9782852844473382,
+      "profile": "A",
+      "profile_proxy_label": 0,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.9000602578248067
+    },
+    {
+      "delay_spread_ns": 300.0,
+      "family": "tdl",
+      "mean_observed_cfr_power": 0.9603120762913022,
+      "profile": "A",
+      "profile_proxy_label": 0,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.7515993482229366
+    },
+    {
+      "delay_spread_ns": 1000.0,
+      "family": "tdl",
+      "mean_observed_cfr_power": 1.0363462111126864,
+      "profile": "A",
+      "profile_proxy_label": 0,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.6205610023369187
+    },
+    {
+      "delay_spread_ns": 30.0,
+      "family": "tdl",
+      "mean_observed_cfr_power": 1.0020848328567808,
+      "profile": "B",
+      "profile_proxy_label": 0,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.9583573023989997
+    },
+    {
+      "delay_spread_ns": 100.0,
+      "family": "tdl",
+      "mean_observed_cfr_power": 1.050412795280863,
+      "profile": "B",
+      "profile_proxy_label": 0,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.8723205889789334
+    },
+    {
+      "delay_spread_ns": 300.0,
+      "family": "tdl",
+      "mean_observed_cfr_power": 0.9908792336646002,
+      "profile": "B",
+      "profile_proxy_label": 0,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.6429869351237552
+    },
+    {
+      "delay_spread_ns": 1000.0,
+      "family": "tdl",
+      "mean_observed_cfr_power": 0.9813604221126297,
+      "profile": "B",
+      "profile_proxy_label": 0,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.4460540774510706
+    },
+    {
+      "delay_spread_ns": 30.0,
+      "family": "tdl",
+      "mean_observed_cfr_power": 0.9873349251865875,
+      "profile": "C",
+      "profile_proxy_label": 0,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.9328128199798457
+    },
+    {
+      "delay_spread_ns": 100.0,
+      "family": "tdl",
+      "mean_observed_cfr_power": 1.075026551317933,
+      "profile": "C",
+      "profile_proxy_label": 0,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.972839537884566
+    },
+    {
+      "delay_spread_ns": 300.0,
+      "family": "tdl",
+      "mean_observed_cfr_power": 1.0125042453728383,
+      "profile": "C",
+      "profile_proxy_label": 0,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.6621689895009576
+    },
+    {
+      "delay_spread_ns": 1000.0,
+      "family": "tdl",
+      "mean_observed_cfr_power": 0.9881404619045497,
+      "profile": "C",
+      "profile_proxy_label": 0,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.5548876991374809
+    },
+    {
+      "delay_spread_ns": 30.0,
+      "family": "tdl",
+      "mean_observed_cfr_power": 1.0303629350964911,
+      "profile": "D",
+      "profile_proxy_label": 1,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.45955166909234374
+    },
+    {
+      "delay_spread_ns": 100.0,
+      "family": "tdl",
+      "mean_observed_cfr_power": 0.9991304944560397,
+      "profile": "D",
+      "profile_proxy_label": 1,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.349954948470518
+    },
+    {
+      "delay_spread_ns": 300.0,
+      "family": "tdl",
+      "mean_observed_cfr_power": 1.0152184712642338,
+      "profile": "D",
+      "profile_proxy_label": 1,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.3168094833235301
+    },
+    {
+      "delay_spread_ns": 1000.0,
+      "family": "tdl",
+      "mean_observed_cfr_power": 1.010398458194686,
+      "profile": "D",
+      "profile_proxy_label": 1,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.3231074255029578
+    },
+    {
+      "delay_spread_ns": 30.0,
+      "family": "tdl",
+      "mean_observed_cfr_power": 0.9968816520413384,
+      "profile": "E",
+      "profile_proxy_label": 1,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.40600463811028736
+    },
+    {
+      "delay_spread_ns": 100.0,
+      "family": "tdl",
+      "mean_observed_cfr_power": 0.9967879790929146,
+      "profile": "E",
+      "profile_proxy_label": 1,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.33287521075565624
+    },
+    {
+      "delay_spread_ns": 300.0,
+      "family": "tdl",
+      "mean_observed_cfr_power": 1.0170618882402778,
+      "profile": "E",
+      "profile_proxy_label": 1,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.19919564758931418
+    },
+    {
+      "delay_spread_ns": 1000.0,
+      "family": "tdl",
+      "mean_observed_cfr_power": 1.0075119149987586,
+      "profile": "E",
+      "profile_proxy_label": 1,
+      "samples": 1024,
+      "std_observed_cfr_power": 0.11875797488135481
+    }
+  ],
+  "runner_sha256": "7e569af9db6b7463eecb592380e3e67f5d2dcdd0eb9c5b8e6ea7befd1cecfeaf",
+  "sample_count": 40960,
+  "schema": "loslab.profile_proxy_dataset.v1",
+  "source_revision": "2e8244e794e1d39be5f05b9c81ac45b0c055fe7c",
+  "versions": {
+    "git_sha": "2e8244e794e1d39be5f05b9c81ac45b0c055fe7c",
+    "numpy": "2.5.4",
+    "python": "3.12.3",
+    "scikit-learn": "1.9.1",
+    "sionna": "2.2.0",
+    "sionna-phy": "not installed",
+    "sionna-rt": "2.2.0",
+    "torch": "2.11.0+cu128"
+  }
+}
