@@ -1,0 +1,441 @@
+{
+  "configuration": {
+    "bootstrap": 200,
+    "capacity": "small",
+    "cnn_input_representation": "per-link real/imaginary channels over ordered subcarriers",
+    "coral_penalty": 0.1,
+    "cvnn_input_representation": "complex convolution, phase-equivariant encoding, magnitude-invariant classifier",
+    "device": "cuda:0",
+    "feature_version": "logmag+pdp+moments-v1",
+    "include_phase": false,
+    "observation": "precomputed",
+    "observation_seed": 2026,
+    "pilot_snr_db": 12.0,
+    "pilot_spacing": 4,
+    "raw_mlp_input_representation": "flattened real/imaginary CFR channels"
+  },
+  "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
+  "folds": [
+    {
+      "held_out_scene": "rt_box_one_screen",
+      "manifest_sha256": "414b8ef6c4697bc1557e54d92478885a296600be3a5f0c71988896ef1b1cc159",
+      "methods": {
+        "logreg": {
+          "mean_test_auroc_across_seeds": 0.5667857142857143,
+          "seeds": 7,
+          "std_test_auroc_across_seeds": 0.041397771802405996
+        },
+        "raw_mlp": {
+          "mean_test_auroc_across_seeds": 0.7289285714285715,
+          "seeds": 7,
+          "std_test_auroc_across_seeds": 0.03173149468748739
+        },
+        "rf": {
+          "mean_test_auroc_across_seeds": 0.5539285714285714,
+          "seeds": 7,
+          "std_test_auroc_across_seeds": 0.07197292574861969
+        }
+      },
+      "n_test_groups": 4,
+      "n_test_samples": 40,
+      "results_sha256": "7b6365888999b9a9a9e97a09903810f19c5d5478530aba18d8689cb3c322470f",
+      "seed_test_auroc": {
+        "logreg": {
+          "11": 0.615,
+          "23": 0.5175000000000001,
+          "47": 0.5625,
+          "59": 0.615,
+          "71": 0.5075,
+          "83": 0.55,
+          "97": 0.6
+        },
+        "raw_mlp": {
+          "11": 0.745,
+          "23": 0.7075,
+          "47": 0.7400000000000001,
+          "59": 0.7275,
+          "71": 0.6775,
+          "83": 0.7175,
+          "97": 0.7875
+        },
+        "rf": {
+          "11": 0.695,
+          "23": 0.495,
+          "47": 0.5425,
+          "59": 0.5575,
+          "71": 0.525,
+          "83": 0.4575,
+          "97": 0.605
+        }
+      },
+      "split_indices_sha256": "7dc8f65f5a7f64de9586f90dafb42392a1ce64dc82c33a134190514491eb4acc",
+      "summary_sha256": "235d8a92825808fd6addfc4a982260bb171dbc28a58904531e9bfdf22fd8d6c3"
+    },
+    {
+      "held_out_scene": "rt_etoile",
+      "manifest_sha256": "f6ee4bfff992a6e8cf4b23b241b5bb351ba02aef0a7983f4d10732def7ad78b8",
+      "methods": {
+        "logreg": {
+          "mean_test_auroc_across_seeds": 0.34750000000000003,
+          "seeds": 7,
+          "std_test_auroc_across_seeds": 0.04692318951526751
+        },
+        "raw_mlp": {
+          "mean_test_auroc_across_seeds": 0.7357142857142858,
+          "seeds": 7,
+          "std_test_auroc_across_seeds": 0.05243557757780841
+        },
+        "rf": {
+          "mean_test_auroc_across_seeds": 0.3271428571428571,
+          "seeds": 7,
+          "std_test_auroc_across_seeds": 0.026200755558508895
+        }
+      },
+      "n_test_groups": 20,
+      "n_test_samples": 40,
+      "results_sha256": "461d1ec2db9c2d66f0ce9cf35daaa6454bd19b51d8e3b04a72e03b4a5337fb0f",
+      "seed_test_auroc": {
+        "logreg": {
+          "11": 0.32,
+          "23": 0.33749999999999997,
+          "47": 0.34500000000000003,
+          "59": 0.31250000000000006,
+          "71": 0.43249999999999994,
+          "83": 0.39749999999999996,
+          "97": 0.28750000000000003
+        },
+        "raw_mlp": {
+          "11": 0.7649999999999999,
+          "23": 0.73,
+          "47": 0.7225,
+          "59": 0.6675,
+          "71": 0.835,
+          "83": 0.6775000000000001,
+          "97": 0.7525000000000001
+        },
+        "rf": {
+          "11": 0.34,
+          "23": 0.36,
+          "47": 0.32,
+          "59": 0.27749999999999997,
+          "71": 0.34500000000000003,
+          "83": 0.30500000000000005,
+          "97": 0.34249999999999997
+        }
+      },
+      "split_indices_sha256": "c72521c929f0e8fd6f24d0dd44253fe89df2e9db5d5aa6d4587ab6d9da28d5ce",
+      "summary_sha256": "ddb069a8889c3dead258646d020d57b5b07907a68bd67b411aeb33c201735dd2"
+    },
+    {
+      "held_out_scene": "rt_simple_street_canyon",
+      "manifest_sha256": "db7efacb55acc0b68b51359475e914cb1ef03b9914b08cdaa8332d9a80df07d2",
+      "methods": {
+        "logreg": {
+          "mean_test_auroc_across_seeds": 0.6378571428571428,
+          "seeds": 7,
+          "std_test_auroc_across_seeds": 0.047026371238239675
+        },
+        "raw_mlp": {
+          "mean_test_auroc_across_seeds": 0.7667857142857143,
+          "seeds": 7,
+          "std_test_auroc_across_seeds": 0.04697480870702109
+        },
+        "rf": {
+          "mean_test_auroc_across_seeds": 0.5867857142857142,
+          "seeds": 7,
+          "std_test_auroc_across_seeds": 0.04313008325557296
+        }
+      },
+      "n_test_groups": 11,
+      "n_test_samples": 40,
+      "results_sha256": "bf45c4102f9768365cd418c0e46ba7e4e54c3dee099d25d13341a24fca3c118d",
+      "seed_test_auroc": {
+        "logreg": {
+          "11": 0.6475,
+          "23": 0.565,
+          "47": 0.5775,
+          "59": 0.6575,
+          "71": 0.6725,
+          "83": 0.6375,
+          "97": 0.7075
+        },
+        "raw_mlp": {
+          "11": 0.735,
+          "23": 0.8225,
+          "47": 0.76,
+          "59": 0.6775,
+          "71": 0.815,
+          "83": 0.76,
+          "97": 0.7975
+        },
+        "rf": {
+          "11": 0.605,
+          "23": 0.6125,
+          "47": 0.5025,
+          "59": 0.645,
+          "71": 0.5499999999999999,
+          "83": 0.5974999999999999,
+          "97": 0.595
+        }
+      },
+      "split_indices_sha256": "6adf1d96241b60227b331ae21756204f94e173df0187e606ab23970055bb75c8",
+      "summary_sha256": "4e435065507154e7944821eb7c0990d21981bd9e8d18d73d868c681f772b38b4"
+    },
+    {
+      "held_out_scene": "rt_urban_00041",
+      "manifest_sha256": "8d3d320ee76ddaea85ceeda128a13fe59e875d5ed18a06fcbe0c271010b2cda4",
+      "methods": {
+        "logreg": {
+          "mean_test_auroc_across_seeds": 0.5492857142857143,
+          "seeds": 7,
+          "std_test_auroc_across_seeds": 0.025867598517474007
+        },
+        "raw_mlp": {
+          "mean_test_auroc_across_seeds": 0.7917857142857143,
+          "seeds": 7,
+          "std_test_auroc_across_seeds": 0.011237237658965914
+        },
+        "rf": {
+          "mean_test_auroc_across_seeds": 0.5875,
+          "seeds": 7,
+          "std_test_auroc_across_seeds": 0.05961183966773235
+        }
+      },
+      "n_test_groups": 13,
+      "n_test_samples": 40,
+      "results_sha256": "8c7c7f446f8d50eb94d7f6ee4e2505ebd85bb9803d1453d97d981b597154aacc",
+      "seed_test_auroc": {
+        "logreg": {
+          "11": 0.585,
+          "23": 0.58,
+          "47": 0.515,
+          "59": 0.565,
+          "71": 0.5425,
+          "83": 0.52,
+          "97": 0.5375
+        },
+        "raw_mlp": {
+          "11": 0.7925,
+          "23": 0.7825,
+          "47": 0.7825,
+          "59": 0.8175,
+          "71": 0.785,
+          "83": 0.7925,
+          "97": 0.79
+        },
+        "rf": {
+          "11": 0.69,
+          "23": 0.5925,
+          "47": 0.495,
+          "59": 0.6275,
+          "71": 0.5249999999999999,
+          "83": 0.5800000000000001,
+          "97": 0.6025
+        }
+      },
+      "split_indices_sha256": "bca23c0238651272cb4d0981d128f494b8d0776884b164edbda3f8586294eb8d",
+      "summary_sha256": "e05c734abded008595ad45313ed8a0a6c2d647dce21c074c34067e6449e40b7e"
+    },
+    {
+      "held_out_scene": "rt_urban_00042",
+      "manifest_sha256": "e35011ce82e6555f365505c53a8e0b0eb5e3663663fd303054824191556ed1c7",
+      "methods": {
+        "logreg": {
+          "mean_test_auroc_across_seeds": 0.5985714285714286,
+          "seeds": 7,
+          "std_test_auroc_across_seeds": 0.04389226141639206
+        },
+        "raw_mlp": {
+          "mean_test_auroc_across_seeds": 0.7153571428571429,
+          "seeds": 7,
+          "std_test_auroc_across_seeds": 0.07748765536970306
+        },
+        "rf": {
+          "mean_test_auroc_across_seeds": 0.6185714285714285,
+          "seeds": 7,
+          "std_test_auroc_across_seeds": 0.041658842802860835
+        }
+      },
+      "n_test_groups": 14,
+      "n_test_samples": 40,
+      "results_sha256": "3f6ed3e8de653348e0141a45cb64c86cf5d7a9e7416f905dc0119e1aaea96c6a",
+      "seed_test_auroc": {
+        "logreg": {
+          "11": 0.5349999999999999,
+          "23": 0.68,
+          "47": 0.6124999999999999,
+          "59": 0.5575000000000001,
+          "71": 0.6025,
+          "83": 0.5800000000000001,
+          "97": 0.6225
+        },
+        "raw_mlp": {
+          "11": 0.7075,
+          "23": 0.79,
+          "47": 0.5925,
+          "59": 0.7324999999999999,
+          "71": 0.71,
+          "83": 0.8374999999999999,
+          "97": 0.6375000000000001
+        },
+        "rf": {
+          "11": 0.6025,
+          "23": 0.6575000000000001,
+          "47": 0.5925,
+          "59": 0.5575,
+          "71": 0.585,
+          "83": 0.6725,
+          "97": 0.6625
+        }
+      },
+      "split_indices_sha256": "3ca978292194ea850cb9cdb574c5a98bbc43b48048b9b1e02f53a3fa0bcd15d1",
+      "summary_sha256": "b1e79785188ea59d9c149e8883117fe8f9655a5645dd6ac4c7c182a0ee18469d"
+    },
+    {
+      "held_out_scene": "rt_urban_00043",
+      "manifest_sha256": "522b2a2e619da518a350e7d1a72162153ff1e93d3db7aa65c18cc9f8ec86f8df",
+      "methods": {
+        "logreg": {
+          "mean_test_auroc_across_seeds": 0.6585714285714286,
+          "seeds": 7,
+          "std_test_auroc_across_seeds": 0.027414058660564965
+        },
+        "raw_mlp": {
+          "mean_test_auroc_across_seeds": 0.9517857142857142,
+          "seeds": 7,
+          "std_test_auroc_across_seeds": 0.004573660169594915
+        },
+        "rf": {
+          "mean_test_auroc_across_seeds": 0.6478571428571429,
+          "seeds": 7,
+          "std_test_auroc_across_seeds": 0.04108850576648475
+        }
+      },
+      "n_test_groups": 15,
+      "n_test_samples": 40,
+      "results_sha256": "ef7186fbed580c01731db910649acdf7a2c0ddfd89a162339cf2426f8e2bd51f",
+      "seed_test_auroc": {
+        "logreg": {
+          "11": 0.6525,
+          "23": 0.635,
+          "47": 0.6425000000000001,
+          "59": 0.6675,
+          "71": 0.72,
+          "83": 0.6575,
+          "97": 0.635
+        },
+        "raw_mlp": {
+          "11": 0.9575,
+          "23": 0.955,
+          "47": 0.9475,
+          "59": 0.955,
+          "71": 0.9475,
+          "83": 0.9449999999999998,
+          "97": 0.955
+        },
+        "rf": {
+          "11": 0.645,
+          "23": 0.595,
+          "47": 0.6725000000000001,
+          "59": 0.6025,
+          "71": 0.7150000000000001,
+          "83": 0.6225,
+          "97": 0.6825
+        }
+      },
+      "split_indices_sha256": "e248dc43f20f930ae1a025d71e7308eb93169417717141faba4566842a22876f",
+      "summary_sha256": "babac0ca64d621818bc7f44735b5a1b2c0b412ce6edb1eec1ba0df057c829456"
+    }
+  ],
+  "input": {
+    "path": "outputs/mvp-six-scene-dmrs-observations-20261022.npz",
+    "sha256": "b916fb2d3450ca08863e970cc0398a7cec9f96d08702f9cc50178b857133f2fd"
+  },
+  "interpretation": "Descriptive scene-macro results over these selected synthetic scenes. Seed repetitions are not independent scenes; this is not measured-channel validation, material qualification, or evidence of general superiority.",
+  "methods": [
+    "logreg",
+    "rf",
+    "raw_mlp"
+  ],
+  "observation": "precomputed",
+  "reproduction": {
+    "fold_template": "python -m loslab experiment --input outputs/mvp-six-scene-dmrs-observations-20261022.npz --output <new-run-root>/holdout-<domain> --holdout <domain> --methods logreg rf raw_mlp --seeds 11 23 47 59 71 83 97 --bootstrap 200 --device cuda:0 --capacity small --observation precomputed",
+    "summarize": "python scripts/summarize_rt_dmrs_losso.py <run-root> <new-report.json> --source-evidence docs/research/results/mvp-six-scene-dmrs-holdout-etoile-seed20261022.json"
+  },
+  "run_root": "outputs/mvp-six-scene-dmrs-losso-seed20261022",
+  "scene_count": 6,
+  "scene_domains": [
+    "rt_box_one_screen",
+    "rt_etoile",
+    "rt_simple_street_canyon",
+    "rt_urban_00041",
+    "rt_urban_00042",
+    "rt_urban_00043"
+  ],
+  "scene_macro_test_auroc": {
+    "logreg": {
+      "maximum_scene_mean": 0.6585714285714286,
+      "mean_across_scenes": 0.5597619047619048,
+      "minimum_scene_mean": 0.34750000000000003,
+      "scene_means": [
+        0.5667857142857143,
+        0.34750000000000003,
+        0.6378571428571428,
+        0.5492857142857143,
+        0.5985714285714286,
+        0.6585714285714286
+      ],
+      "std_across_scenes": 0.10212946687677922
+    },
+    "raw_mlp": {
+      "maximum_scene_mean": 0.9517857142857142,
+      "mean_across_scenes": 0.7817261904761904,
+      "minimum_scene_mean": 0.7153571428571429,
+      "scene_means": [
+        0.7289285714285715,
+        0.7357142857142858,
+        0.7667857142857143,
+        0.7917857142857143,
+        0.7153571428571429,
+        0.9517857142857142
+      ],
+      "std_across_scenes": 0.08016045151774245
+    },
+    "rf": {
+      "maximum_scene_mean": 0.6478571428571429,
+      "mean_across_scenes": 0.5536309523809524,
+      "minimum_scene_mean": 0.3271428571428571,
+      "scene_means": [
+        0.5539285714285714,
+        0.3271428571428571,
+        0.5867857142857142,
+        0.5875,
+        0.6185714285714285,
+        0.6478571428571429
+      ],
+      "std_across_scenes": 0.10538748890385576
+    }
+  },
+  "schema": "loslab.dmrs_loso_summary.v1",
+  "seeds": [
+    11,
+    23,
+    47,
+    59,
+    71,
+    83,
+    97
+  ],
+  "source_data_evidence": {
+    "path": "/home/nguyenl37/5g-nr-channel-condition/docs/research/results/mvp-six-scene-dmrs-holdout-etoile-seed20261022.json",
+    "sha256": "3ae93fa94da0e5b6f1eb1c5d9b30a0e5e0e80ca840bb5cfbc2009962992831f9",
+    "source_scene_datasets": {
+      "box_one_screen.npz": "70cbbe27ad5b75e2c824e32247e33780d6225245141b659902d0e7417a380e03",
+      "etoile.npz": "ba3a2f6c0f0477e43d772528aa86aeccd4c364a8d3b4be3275055518a17efcaa",
+      "simple_street_canyon.npz": "835a0d5e1ba775a4ba130735851e5de6b2c41147156c828782284d224d0de557",
+      "urban_00041.npz": "66099ad0d0e5cea286e81868e576e0727ff4feb23c13121c06512a9fb8088e93",
+      "urban_00042.npz": "9bfeb12f9b5f92efbfac71ca00a466eefcab7a74cb466425a9f142d7713cc",
+      "urban_00043.npz": "4021c3d237a7fb191c0ddc6cfd723c7fd55a4391d6d2e5c99ab953b1638e6975"
+    }
+  }
+}
