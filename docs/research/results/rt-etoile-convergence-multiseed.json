@@ -1,0 +1,427 @@
+{
+  "configuration": {
+    "carrier_hz": 3500000000.0,
+    "deterministic_solver": true,
+    "max_depth_values": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "mitsuba_variant": "llvm_ad_mono_polarized",
+    "n_subcarriers": 256,
+    "normalize_cfr_power": false,
+    "normalize_delays_for_cfr": true,
+    "reference_samples_per_src": 100000,
+    "rx_position_m": [
+      223.01722011416155,
+      -192.10997549659874,
+      1.5
+    ],
+    "samples_per_src_values": [
+      200,
+      2000,
+      20000,
+      100000
+    ],
+    "seeds": [
+      11,
+      23,
+      47
+    ],
+    "solver_flags": {
+      "diffraction": false,
+      "diffuse_reflection": true,
+      "los": true,
+      "refraction": true,
+      "specular_reflection": true
+    },
+    "subcarrier_spacing_hz": 30000.0,
+    "tx_position_m": [
+      232.8,
+      -95.5,
+      17.0
+    ]
+  },
+  "evidence_grade": "SINGLE_SCENE_FIXED_LINK_SOLVER_DIAGNOSTIC",
+  "limitations": [
+    "One built-in scene and one SISO link do not qualify solver convergence across geometries.",
+    "The maximum requested sample count is a comparison reference, not proven ground truth.",
+    "CFR uses normalized path delays but unnormalized received power.",
+    "This is CPU/LLVM implementation evidence; it does not establish scene-material realism or GPU RT throughput."
+  ],
+  "package_source_sha256": "42804eaf16e55a489356c4e5a1c8b90feae46e8bd5b9a26b75690a3d524b31d6",
+  "runs": [
+    {
+      "cfr_mean_power": 4.804896036603168e-09,
+      "cfr_sha256": "328a236c71fe14a80d9124c4e893459972172463af6d8da573159d4933519a48",
+      "max_depth": 0,
+      "relative_cfr_l2_to_max_budget_and_depth": 1.803396224975586,
+      "runtime_seconds": 0.28922812000018894,
+      "samples_per_src": 100000,
+      "seed": 11,
+      "valid_path_count": 1,
+      "valid_path_delays_ns_sorted": [
+        328.0046081542969
+      ],
+      "valid_path_power_sum": 4.804896036603168e-09
+    },
+    {
+      "cfr_mean_power": 1.3559814382446689e-09,
+      "cfr_sha256": "71e36e25d9bbdcc5d6b73afb01b2041fe143db63b105061c7d0c8c66d84625e0",
+      "max_depth": 1,
+      "relative_cfr_l2_to_max_budget_and_depth": 0.28589537739753723,
+      "runtime_seconds": 0.6501281050004764,
+      "samples_per_src": 100000,
+      "seed": 11,
+      "valid_path_count": 3,
+      "valid_path_delays_ns_sorted": [
+        328.0046081542969,
+        329.73004150390625,
+        332.4623718261719
+      ],
+      "valid_path_power_sum": 7.818994340880181e-09
+    },
+    {
+      "cfr_mean_power": 1.3829020151234772e-09,
+      "cfr_sha256": "5574c780b4c2f7bc74c7560d8f382168337153823826455f055845c9267963ba",
+      "max_depth": 2,
+      "relative_cfr_l2_to_max_budget_and_depth": 0.3539496064186096,
+      "runtime_seconds": 0.6915203249991464,
+      "samples_per_src": 100000,
+      "seed": 11,
+      "valid_path_count": 4,
+      "valid_path_delays_ns_sorted": [
+        328.0046081542969,
+        329.73004150390625,
+        332.4623718261719,
+        969.8396606445312
+      ],
+      "valid_path_power_sum": 7.855063266504203e-09
+    },
+    {
+      "cfr_mean_power": 1.3580147006919674e-09,
+      "cfr_sha256": "897f988ce12e766ad928fdd087ce76d4711bcb506fb275904fbdac17aa17b8d8",
+      "max_depth": 3,
+      "relative_cfr_l2_to_max_budget_and_depth": 0.2857542932033539,
+      "runtime_seconds": 0.03486041999894951,
+      "samples_per_src": 200,
+      "seed": 11,
+      "valid_path_count": 3,
+      "valid_path_delays_ns_sorted": [
+        328.0046081542969,
+        329.73004150390625,
+        332.46240234375
+      ],
+      "valid_path_power_sum": 7.818947267423937e-09
+    },
+    {
+      "cfr_mean_power": 1.3559814382446689e-09,
+      "cfr_sha256": "71e36e25d9bbdcc5d6b73afb01b2041fe143db63b105061c7d0c8c66d84625e0",
+      "max_depth": 3,
+      "relative_cfr_l2_to_max_budget_and_depth": 0.28589537739753723,
+      "runtime_seconds": 0.04621889500049292,
+      "samples_per_src": 2000,
+      "seed": 11,
+      "valid_path_count": 3,
+      "valid_path_delays_ns_sorted": [
+        328.0046081542969,
+        329.73004150390625,
+        332.4623718261719
+      ],
+      "valid_path_power_sum": 7.818994340880181e-09
+    },
+    {
+      "cfr_mean_power": 1.5895637028862097e-09,
+      "cfr_sha256": "4ff19b591c469c533df03c704e0ede1ee205f083079d55fc2493bb323f379c73",
+      "max_depth": 3,
+      "relative_cfr_l2_to_max_budget_and_depth": 0.10541253536939621,
+      "runtime_seconds": 0.6459334830014996,
+      "samples_per_src": 20000,
+      "seed": 11,
+      "valid_path_count": 6,
+      "valid_path_delays_ns_sorted": [
+        328.0046081542969,
+        329.73004150390625,
+        332.4623718261719,
+        537.36572265625,
+        969.8396606445312,
+        975.3807983398438
+      ],
+      "valid_path_power_sum": 8.008135488069001e-09
+    },
+    {
+      "cfr_mean_power": 1.596115684066035e-09,
+      "cfr_sha256": "91bba0f76280ef6de7ad0e3829475de545428adbf9f5034e8b42e5b50f486aef",
+      "max_depth": 3,
+      "relative_cfr_l2_to_max_budget_and_depth": 0.0,
+      "runtime_seconds": 0.7069370050012367,
+      "samples_per_src": 100000,
+      "seed": 11,
+      "valid_path_count": 7,
+      "valid_path_delays_ns_sorted": [
+        328.0046081542969,
+        329.73004150390625,
+        332.4623718261719,
+        537.36572265625,
+        969.8396606445312,
+        970.4246215820312,
+        975.3806762695312
+      ],
+      "valid_path_power_sum": 8.025994091553912e-09
+    },
+    {
+      "cfr_mean_power": 4.804896036603168e-09,
+      "cfr_sha256": "328a236c71fe14a80d9124c4e893459972172463af6d8da573159d4933519a48",
+      "max_depth": 0,
+      "relative_cfr_l2_to_max_budget_and_depth": 1.8061341047286987,
+      "runtime_seconds": 0.014433735001148307,
+      "samples_per_src": 100000,
+      "seed": 23,
+      "valid_path_count": 1,
+      "valid_path_delays_ns_sorted": [
+        328.0046081542969
+      ],
+      "valid_path_power_sum": 4.804896036603168e-09
+    },
+    {
+      "cfr_mean_power": 1.3559814382446689e-09,
+      "cfr_sha256": "71e36e25d9bbdcc5d6b73afb01b2041fe143db63b105061c7d0c8c66d84625e0",
+      "max_depth": 1,
+      "relative_cfr_l2_to_max_budget_and_depth": 0.28555160760879517,
+      "runtime_seconds": 0.039297895000345306,
+      "samples_per_src": 100000,
+      "seed": 23,
+      "valid_path_count": 3,
+      "valid_path_delays_ns_sorted": [
+        328.0046081542969,
+        329.73004150390625,
+        332.4623718261719
+      ],
+      "valid_path_power_sum": 7.818994340880181e-09
+    },
+    {
+      "cfr_mean_power": 1.3829020151234772e-09,
+      "cfr_sha256": "704cf9e433578a912f125ad2e29c7c5e3a5bead0e040c33b13d8b4e4cff59244",
+      "max_depth": 2,
+      "relative_cfr_l2_to_max_budget_and_depth": 0.30816465616226196,
+      "runtime_seconds": 0.04692462300045008,
+      "samples_per_src": 100000,
+      "seed": 23,
+      "valid_path_count": 4,
+      "valid_path_delays_ns_sorted": [
+        328.0046081542969,
+        329.73004150390625,
+        332.4623718261719,
+        969.8396606445312
+      ],
+      "valid_path_power_sum": 7.855063266504203e-09
+    },
+    {
+      "cfr_mean_power": 1.3580147006919674e-09,
+      "cfr_sha256": "897f988ce12e766ad928fdd087ce76d4711bcb506fb275904fbdac17aa17b8d8",
+      "max_depth": 3,
+      "relative_cfr_l2_to_max_budget_and_depth": 0.2854149341583252,
+      "runtime_seconds": 0.036143418999927235,
+      "samples_per_src": 200,
+      "seed": 23,
+      "valid_path_count": 3,
+      "valid_path_delays_ns_sorted": [
+        328.0046081542969,
+        329.73004150390625,
+        332.46240234375
+      ],
+      "valid_path_power_sum": 7.818947267423937e-09
+    },
+    {
+      "cfr_mean_power": 1.3559814382446689e-09,
+      "cfr_sha256": "71e36e25d9bbdcc5d6b73afb01b2041fe143db63b105061c7d0c8c66d84625e0",
+      "max_depth": 3,
+      "relative_cfr_l2_to_max_budget_and_depth": 0.28555160760879517,
+      "runtime_seconds": 0.042165843000475434,
+      "samples_per_src": 2000,
+      "seed": 23,
+      "valid_path_count": 3,
+      "valid_path_delays_ns_sorted": [
+        328.0046081542969,
+        329.73004150390625,
+        332.4623718261719
+      ],
+      "valid_path_power_sum": 7.818994340880181e-09
+    },
+    {
+      "cfr_mean_power": 1.620247380706985e-09,
+      "cfr_sha256": "7b29033e8672ba42f8088ddf13cd1adbef96927916701b47ff89d89dbde2c969",
+      "max_depth": 3,
+      "relative_cfr_l2_to_max_budget_and_depth": 0.15092124044895172,
+      "runtime_seconds": 0.039373162000629236,
+      "samples_per_src": 20000,
+      "seed": 23,
+      "valid_path_count": 5,
+      "valid_path_delays_ns_sorted": [
+        328.0046081542969,
+        329.73004150390625,
+        332.4623718261719,
+        537.36572265625,
+        975.3806762695312
+      ],
+      "valid_path_power_sum": 7.97206656244498e-09
+    },
+    {
+      "cfr_mean_power": 1.58955559825813e-09,
+      "cfr_sha256": "9570f87bb527b60af6279cee24964b7acbbefc4e0041c41abec0eacb11826784",
+      "max_depth": 3,
+      "relative_cfr_l2_to_max_budget_and_depth": 0.0,
+      "runtime_seconds": 0.06692042199938442,
+      "samples_per_src": 100000,
+      "seed": 23,
+      "valid_path_count": 6,
+      "valid_path_delays_ns_sorted": [
+        328.0046081542969,
+        329.73004150390625,
+        332.4623718261719,
+        537.3657836914062,
+        969.8396606445312,
+        975.3805541992188
+      ],
+      "valid_path_power_sum": 8.008180785168406e-09
+    },
+    {
+      "cfr_mean_power": 4.804896036603168e-09,
+      "cfr_sha256": "328a236c71fe14a80d9124c4e893459972172463af6d8da573159d4933519a48",
+      "max_depth": 0,
+      "relative_cfr_l2_to_max_budget_and_depth": 1.8058183193206787,
+      "runtime_seconds": 0.012040899999192334,
+      "samples_per_src": 100000,
+      "seed": 47,
+      "valid_path_count": 1,
+      "valid_path_delays_ns_sorted": [
+        328.0046081542969
+      ],
+      "valid_path_power_sum": 4.804896036603168e-09
+    },
+    {
+      "cfr_mean_power": 1.3559814382446689e-09,
+      "cfr_sha256": "71e36e25d9bbdcc5d6b73afb01b2041fe143db63b105061c7d0c8c66d84625e0",
+      "max_depth": 1,
+      "relative_cfr_l2_to_max_budget_and_depth": 0.2918853461742401,
+      "runtime_seconds": 0.04072301899941522,
+      "samples_per_src": 100000,
+      "seed": 47,
+      "valid_path_count": 3,
+      "valid_path_delays_ns_sorted": [
+        328.0046081542969,
+        329.73004150390625,
+        332.4623718261719
+      ],
+      "valid_path_power_sum": 7.818994340880181e-09
+    },
+    {
+      "cfr_mean_power": 1.3829020151234772e-09,
+      "cfr_sha256": "704cf9e433578a912f125ad2e29c7c5e3a5bead0e040c33b13d8b4e4cff59244",
+      "max_depth": 2,
+      "relative_cfr_l2_to_max_budget_and_depth": 0.3604721426963806,
+      "runtime_seconds": 0.04849944099987624,
+      "samples_per_src": 100000,
+      "seed": 47,
+      "valid_path_count": 4,
+      "valid_path_delays_ns_sorted": [
+        328.0046081542969,
+        329.73004150390625,
+        332.4623718261719,
+        969.8396606445312
+      ],
+      "valid_path_power_sum": 7.855063266504203e-09
+    },
+    {
+      "cfr_mean_power": 1.3580147006919674e-09,
+      "cfr_sha256": "897f988ce12e766ad928fdd087ce76d4711bcb506fb275904fbdac17aa17b8d8",
+      "max_depth": 3,
+      "relative_cfr_l2_to_max_budget_and_depth": 0.29175466299057007,
+      "runtime_seconds": 0.03655243499997596,
+      "samples_per_src": 200,
+      "seed": 47,
+      "valid_path_count": 3,
+      "valid_path_delays_ns_sorted": [
+        328.0046081542969,
+        329.73004150390625,
+        332.46240234375
+      ],
+      "valid_path_power_sum": 7.818947267423937e-09
+    },
+    {
+      "cfr_mean_power": 1.393085424794549e-09,
+      "cfr_sha256": "b5b3d46e4a181bd7c039695ae2c09cc46805d2358361a79f1c5cce044d1015f3",
+      "max_depth": 3,
+      "relative_cfr_l2_to_max_budget_and_depth": 0.2908804416656494,
+      "runtime_seconds": 0.03815124500033562,
+      "samples_per_src": 2000,
+      "seed": 47,
+      "valid_path_count": 4,
+      "valid_path_delays_ns_sorted": [
+        328.0046081542969,
+        329.73004150390625,
+        332.4623718261719,
+        975.3805541992188
+      ],
+      "valid_path_power_sum": 7.85045273232754e-09
+    },
+    {
+      "cfr_mean_power": 1.3930778752779815e-09,
+      "cfr_sha256": "39bef8be2551d580a3d9c4a671010316c615e0303d7bcdca3932320c7242b7fd",
+      "max_depth": 3,
+      "relative_cfr_l2_to_max_budget_and_depth": 0.2908100187778473,
+      "runtime_seconds": 0.040297509000083664,
+      "samples_per_src": 20000,
+      "seed": 47,
+      "valid_path_count": 4,
+      "valid_path_delays_ns_sorted": [
+        328.0046081542969,
+        329.73004150390625,
+        332.4623718261719,
+        975.3807983398438
+      ],
+      "valid_path_power_sum": 7.850407435228135e-09
+    },
+    {
+      "cfr_mean_power": 1.5959518151476004e-09,
+      "cfr_sha256": "9b474627c2bc5025165545793ecfa419714f20589a45614ffe24cda7645ecaa0",
+      "max_depth": 3,
+      "relative_cfr_l2_to_max_budget_and_depth": 0.0,
+      "runtime_seconds": 0.05213097000159905,
+      "samples_per_src": 100000,
+      "seed": 47,
+      "valid_path_count": 8,
+      "valid_path_delays_ns_sorted": [
+        328.0046081542969,
+        329.73004150390625,
+        332.4623718261719,
+        537.36572265625,
+        969.8396606445312,
+        970.4246215820312,
+        975.3806762695312,
+        1187.2066650390625
+      ],
+      "valid_path_power_sum": 8.032372100785778e-09
+    }
+  ],
+  "scene": {
+    "name": "etoile",
+    "scene_tree_sha256": "32d929850e9ea7e0e8cddf92586e9022d7faf12dd6320f8ce7e6077d23f67249",
+    "xml_path": "/home/nguyenl37/sionna/ext/sionna-rt/src/sionna/rt/scenes/etoile/etoile.xml",
+    "xml_sha256": "c747f65549f0810c71e7cebc925199e3fdd595b3d777eca7fb22e07ef95c0a1f"
+  },
+  "schema": "loslab.sionna_rt_solver_convergence.v1",
+  "script_sha256": "12bd62e6797c73514e1a2eaad765950291010e56b2a80eaad983ef5573734322",
+  "source_revision": "61a24c634e7376b3ef4979feb9cf16fed01170ff",
+  "versions": {
+    "git_sha": "61a24c634e7376b3ef4979feb9cf16fed01170ff",
+    "numpy": "2.5.4",
+    "python": "3.12.3",
+    "scikit-learn": "1.9.1",
+    "sionna": "2.2.0",
+    "sionna-phy": "not installed",
+    "sionna-rt": "2.2.0",
+    "torch": "2.11.0+cu128"
+  }
+}
