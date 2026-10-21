@@ -118,6 +118,23 @@ def test_uniform_legacy_label_metadata_resolves_to_canonical_semantics() -> None
     assert _resolved_label_semantics(legacy_rt) == "geometric_direct_path_oracle"
 
 
+def test_unspecified_legacy_label_metadata_is_not_treated_as_a_task() -> None:
+    import pytest
+    from datasets.channel import ChannelDataset
+
+    unknown = ChannelDataset(
+        h=np.ones((2, 1, 8), dtype=np.complex64),
+        y=np.asarray([0, 1]),
+        group=np.asarray(["a", "b"]),
+        domain=np.asarray(["scene", "scene"]),
+        source=np.asarray(["old_source", "old_source"]),
+        metadata=({"label_semantics": "UNSPECIFIED"}, {"label_semantics": "unknown"}),
+    )
+
+    with pytest.raises(ValueError, match="one explicit, consistent label meaning"):
+        _resolved_label_semantics(unknown)
+
+
 def test_experiment_rejects_mixed_legacy_label_semantics_before_training(tmp_path) -> None:
     import pytest
     from datasets.channel import ChannelDataset

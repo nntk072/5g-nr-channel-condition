@@ -58,6 +58,9 @@ def _normalized_label_semantics(value: str) -> str:
         "PROFILE_PROXY": "profile_proxy",
         "SYNTHETIC_DEBUG_CONSTRUCTED": "synthetic_debug_direct_component",
         "SYNTHETIC_DEBUG_DIRECT_COMPONENT": "synthetic_debug_direct_component",
+        "UNSPECIFIED": "unspecified",
+        "UNKNOWN": "unspecified",
+        "UNKNOWN_LEGACY": "unspecified",
     }
     return aliases.get(normalized, value.strip().lower().replace(" ", "_"))
 
@@ -73,7 +76,11 @@ def _resolved_label_semantics(data: ChannelDataset) -> str:
         if raw is None:
             has_unresolved_row = True
         else:
-            row_semantics.add(_normalized_label_semantics(str(raw)))
+            normalized = _normalized_label_semantics(str(raw))
+            if normalized == "unspecified":
+                has_unresolved_row = True
+            else:
+                row_semantics.add(normalized)
 
     declared = data.label_semantics
     if declared != "unspecified_legacy":
