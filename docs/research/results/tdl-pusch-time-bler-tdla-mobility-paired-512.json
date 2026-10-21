@@ -1,0 +1,143 @@
+{
+  "control": {
+    "path": "docs/research/results/tdl-pusch-time-bler-tdla-12prb-3mps-512.json",
+    "sha256": "c358af4338eeb5c667d26f0658c3729ca1c339b9ee1322da6fa543f8fbfcb540",
+    "speed_mps": 3.0
+  },
+  "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
+  "limitations": [
+    "Inference is conditional on one standardized TDL-A simulation configuration.",
+    "Codeword-paired uncertainty does not represent independent-scene uncertainty.",
+    "The decoder and synchronization configuration are fixed; the result is not standards certification."
+  ],
+  "paired_design": {
+    "package_source_sha256": "333a12a9a47c3b2d65ca2168f750c55dd47959767631c67635de89ca8bb1f361",
+    "same_batch_seeds_and_noise_seeds": true,
+    "same_configuration_except": "speed_mps",
+    "same_transmitted_bits_by_seed": true,
+    "statistic": "paired codeword bootstrap CI and Holm-adjusted exact McNemar tests",
+    "versions": {
+      "git_sha": "73d4f41c107ef9242f485851159e7d66c9134af3",
+      "numpy": "2.5.4",
+      "python": "3.12.3",
+      "scikit-learn": "1.9.1",
+      "sionna": "2.2.0",
+      "sionna-phy": "not installed",
+      "sionna-rt": "2.2.0",
+      "torch": "2.11.0+cu128"
+    }
+  },
+  "points": [
+    {
+      "bootstrap_draws": 20000,
+      "bootstrap_seed": 1,
+      "both_error": 512,
+      "both_success": 0,
+      "codewords": 512,
+      "control_errors": 512,
+      "control_only_error": 0,
+      "discordant_pairs": 0,
+      "mcnemar_exact_two_sided_p_value": 1.0,
+      "mcnemar_exact_two_sided_p_value_holm": 1.0,
+      "paired_bootstrap_ci95": [
+        0.0,
+        0.0
+      ],
+      "snr_db": 0.0,
+      "treatment_errors": 512,
+      "treatment_minus_control_bler": 0.0,
+      "treatment_only_error": 0,
+      "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference."
+    },
+    {
+      "bootstrap_draws": 20000,
+      "bootstrap_seed": 1,
+      "both_error": 512,
+      "both_success": 0,
+      "codewords": 512,
+      "control_errors": 512,
+      "control_only_error": 0,
+      "discordant_pairs": 0,
+      "mcnemar_exact_two_sided_p_value": 1.0,
+      "mcnemar_exact_two_sided_p_value_holm": 1.0,
+      "paired_bootstrap_ci95": [
+        0.0,
+        0.0
+      ],
+      "snr_db": 6.0,
+      "treatment_errors": 512,
+      "treatment_minus_control_bler": 0.0,
+      "treatment_only_error": 0,
+      "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference."
+    },
+    {
+      "bootstrap_draws": 20000,
+      "bootstrap_seed": 1,
+      "both_error": 12,
+      "both_success": 216,
+      "codewords": 512,
+      "control_errors": 12,
+      "control_only_error": 0,
+      "discordant_pairs": 284,
+      "mcnemar_exact_two_sided_p_value": 6.434446986835105e-86,
+      "mcnemar_exact_two_sided_p_value_holm": 3.2172234934175524e-85,
+      "paired_bootstrap_ci95": [
+        0.51171875,
+        0.59765625
+      ],
+      "snr_db": 12.0,
+      "treatment_errors": 296,
+      "treatment_minus_control_bler": 0.5546875,
+      "treatment_only_error": 284,
+      "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference."
+    },
+    {
+      "bootstrap_draws": 20000,
+      "bootstrap_seed": 1,
+      "both_error": 0,
+      "both_success": 292,
+      "codewords": 512,
+      "control_errors": 0,
+      "control_only_error": 0,
+      "discordant_pairs": 220,
+      "mcnemar_exact_two_sided_p_value": 1.186945968219994e-66,
+      "mcnemar_exact_two_sided_p_value_holm": 3.5608379046599825e-66,
+      "paired_bootstrap_ci95": [
+        0.38671875,
+        0.47265625
+      ],
+      "snr_db": 18.0,
+      "treatment_errors": 220,
+      "treatment_minus_control_bler": 0.4296875,
+      "treatment_only_error": 220,
+      "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference."
+    },
+    {
+      "bootstrap_draws": 20000,
+      "bootstrap_seed": 1,
+      "both_error": 1,
+      "both_success": 265,
+      "codewords": 512,
+      "control_errors": 1,
+      "control_only_error": 0,
+      "discordant_pairs": 246,
+      "mcnemar_exact_two_sided_p_value": 1.7686873200833354e-74,
+      "mcnemar_exact_two_sided_p_value_holm": 7.0747492803333415e-74,
+      "paired_bootstrap_ci95": [
+        0.4375,
+        0.5234375
+      ],
+      "snr_db": 24.0,
+      "treatment_errors": 247,
+      "treatment_minus_control_bler": 0.48046875,
+      "treatment_only_error": 246,
+      "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference."
+    }
+  ],
+  "schema": "loslab.paired_tdl_pusch_time_bler.v1",
+  "treatment": {
+    "path": "docs/research/results/tdl-pusch-time-bler-tdla-12prb-30mps-512.json",
+    "sha256": "ff0fdcb5c5c89dc82e2cdbe67cd70cee10fccdac99630b9ad88cce5d4fa9481e",
+    "speed_mps": 30.0
+  }
+}

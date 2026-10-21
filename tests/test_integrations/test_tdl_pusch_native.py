@@ -129,6 +129,11 @@ def test_sample_domain_tdl_pusch_decodes_waveforms_and_records_matched_bler():
     assert result["evidence_grade"] == "SIMULATION_ONLY_UNVALIDATED"
     assert [point["snr_db"] for point in result["points"]] == [0.0, 18.0]
     assert [point["frames"] for point in result["points"]] == [8, 8]
+    assert all(
+        len(point["frame_error_mask"]) == point["frames"]
+        and sum(point["frame_error_mask"]) == point["bler_errors"]
+        for point in result["points"]
+    )
     assert result["points"][0]["bler"] > result["points"][1]["bler"]
     assert all(
         item["transmit_bits_match_across_snr"] and item["channel_truth_match_across_snr"]

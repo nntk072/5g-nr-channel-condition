@@ -57,3 +57,20 @@ transmit waveform power, per-point Wilson intervals, and hashes. The curve is a
 simulation result with ideal synchronization; it does not validate blind timing,
 fractional timing/CFO recovery, external propagation measurements, or standards
 conformance.
+
+For a controlled mobility comparison, generate control and treatment curves
+with the same configuration, seed, and codeword count, changing only
+`--speed-mps`. The curve output retains the per-codeword CRC mask. Compare them
+with the paired bootstrap and exact McNemar analysis:
+
+```bash
+python scripts/compare_tdl_pusch_time_curves.py \
+  outputs/tdl-pusch-time-control.json \
+  outputs/tdl-pusch-time-treatment.json \
+  outputs/tdl-pusch-time-paired-comparison.json
+```
+
+The comparator verifies matching bits, batch seeds, noise seeds, and all
+configuration fields other than mobility before calculating paired outcomes.
+Its uncertainty is conditional on the chosen simulation; it does not replace
+independent-scene inference.

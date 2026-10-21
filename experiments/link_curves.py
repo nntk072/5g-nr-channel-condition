@@ -291,6 +291,7 @@ def run_tdl_pusch_time_bler_curve(
         matched_checks.append(
             {
                 "seed": batch_seed,
+                "noise_seed": batch_seed + 2,
                 "transmit_bits_sha256": hashlib.sha256(bits_cpu.numpy().tobytes()).hexdigest(),
                 "channel_truth_sha256": hashlib.sha256(h_cpu.numpy().tobytes()).hexdigest(),
                 "transmit_bits_match_across_snr": True,
@@ -304,6 +305,7 @@ def run_tdl_pusch_time_bler_curve(
     for snr in snr_values:
         noise_variance = 10.0 ** (-snr / 10.0)
         frame_errors = bit_errors = frames = bits_total = 0
+        frame_error_mask: list[bool] = []
         for batch in batches:
             generator = torch.Generator(device="cuda:0")
             generator.manual_seed(batch["noise_seed"])
@@ -316,6 +318,7 @@ def run_tdl_pusch_time_bler_curve(
             decoded, crc_ok = link.decode(received, noise_variance)
             target = batch["bits"]
             valid = crc_ok.reshape(-1).to(dtype=torch.bool)
+            frame_error_mask.extend((~valid).detach().cpu().tolist())
             bit_errors += int(torch.count_nonzero(decoded != target).item())
             bits_total += int(target.numel())
             frame_errors += int(torch.count_nonzero(~valid).item())
@@ -329,6 +332,7 @@ def run_tdl_pusch_time_bler_curve(
                 "bler_errors": frame_errors,
                 "bler": frame_errors / frames,
                 "bler_wilson_95_ci": [lower, upper],
+                "frame_error_mask": frame_error_mask,
                 "bit_errors": bit_errors,
                 "bits": bits_total,
                 "ber": bit_errors / bits_total,

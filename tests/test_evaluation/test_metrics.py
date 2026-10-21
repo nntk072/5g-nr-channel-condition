@@ -1,3 +1,5 @@
+import json
+
 import numpy as np
 import pytest
 from artifacts.provenance import atomic_json, canonical_hash, package_source_sha256, sha256_file
@@ -11,7 +13,8 @@ from evaluation.metrics import (
     in_domain_split,
     threshold_from_validation,
 )
-from evaluation.statistics import paired_seed_delta
+from evaluation.paired_link_curves import compare_curves
+from evaluation.statistics import paired_binary_error_comparison, paired_seed_delta
 
 
 def test_group_split_no_leakage():
@@ -126,6 +129,90 @@ def test_paired_comparison_split_mismatch_rejected():
     ]
     with pytest.raises(ValueError, match="split"):
         paired_seed_delta(rows, "mlp", "coral")
+
+
+def test_paired_binary_error_comparison_counts_discordance_and_exact_test():
+    result = paired_binary_error_comparison(
+        [False, False, True, True],
+        [True, False, True, False],
+        draws=100,
+    )
+
+    assert result["both_error"] == 1
+    assert result["control_only_error"] == 1
+    assert result["treatment_only_error"] == 1
+    assert result["both_success"] == 1
+    assert result["treatment_minus_control_bler"] == 0.0
+    assert result["mcnemar_exact_two_sided_p_value"] == 1.0
+
+
+def test_paired_binary_error_comparison_detects_consistent_degradation():
+    result = paired_binary_error_comparison(
+        [False] * 5,
+        [True] * 5,
+        draws=100,
+    )
+
+    assert result["treatment_minus_control_bler"] == 1.0
+    assert result["paired_bootstrap_ci95"] == [1.0, 1.0]
+    assert result["mcnemar_exact_two_sided_p_value"] == pytest.approx(0.0625)
+
+
+def test_paired_binary_error_comparison_rejects_unmatched_masks():
+    with pytest.raises(ValueError, match="equal length"):
+        paired_binary_error_comparison([False], [False, True])
+
+
+def test_curve_comparator_requires_matching_bits_and_compares_masks(tmp_path):
+    base = {
+        "schema": "loslab.tdl_pusch_time_bler_curve.v1",
+        "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
+        "configuration": {
+            "matched_realization_checks": [
+                {"seed": 4, "noise_seed": 6, "transmit_bits_sha256": "same"}
+            ]
+        },
+        "points": [{"snr_db": 12.0, "frames": 2, "frame_error_mask": [False, False]}],
+    }
+    control = {**base, "configuration": {**base["configuration"], "speed_mps": 3.0}}
+    treatment = {
+        **base,
+        "configuration": {**base["configuration"], "speed_mps": 30.0},
+        "points": [{"snr_db": 12.0, "frames": 2, "frame_error_mask": [True, False]}],
+    }
+    control_path = tmp_path / "control.json"
+    treatment_path = tmp_path / "treatment.json"
+    atomic_json(control_path, control)
+    atomic_json(treatment_path, treatment)
+
+    result = compare_curves(control_path, treatment_path)
+
+    assert result["points"][0]["treatment_minus_control_bler"] == 0.5
+    assert result["points"][0]["mcnemar_exact_two_sided_p_value_holm"] == 1.0
+
+
+def test_curve_comparator_rejects_different_transmitted_bits(tmp_path):
+    curve = {
+        "schema": "loslab.tdl_pusch_time_bler_curve.v1",
+        "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
+        "configuration": {
+            "speed_mps": 3.0,
+            "matched_realization_checks": [
+                {"seed": 4, "noise_seed": 6, "transmit_bits_sha256": "one"}
+            ],
+        },
+        "points": [{"snr_db": 12.0, "frames": 1, "frame_error_mask": [False]}],
+    }
+    control_path = tmp_path / "control.json"
+    treatment_path = tmp_path / "treatment.json"
+    atomic_json(control_path, curve)
+    treatment = json.loads(control_path.read_text())
+    treatment["configuration"]["speed_mps"] = 30.0
+    treatment["configuration"]["matched_realization_checks"][0]["transmit_bits_sha256"] = "two"
+    atomic_json(treatment_path, treatment)
+
+    with pytest.raises(ValueError, match="transmitted bits differ"):
+        compare_curves(control_path, treatment_path)
 
 
 def test_code_hash_is_stable():

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import itertools
+import math
 
 import numpy as np
 
@@ -76,4 +77,72 @@ def paired_seed_delta(
             if len(differences) < 6
             else "Seed-level inference cannot replace independent-scene inference."
         ),
+    }
+
+
+def paired_binary_error_comparison(
+    control_errors: list[bool],
+    treatment_errors: list[bool],
+    *,
+    seed: int = 1,
+    draws: int = 5000,
+) -> dict:
+    """Compare paired per-codeword failures using a bootstrap and exact McNemar test.
+
+    Pair order must be the same in both conditions. The result describes this
+    paired simulation only; it does not replace independent-scene inference.
+    """
+    control = np.asarray(control_errors)
+    treatment = np.asarray(treatment_errors)
+    if control.ndim != 1 or treatment.ndim != 1:
+        raise ValueError("paired error masks must be one-dimensional")
+    if control.size == 0 or control.shape != treatment.shape:
+        raise ValueError("paired error masks must be nonempty and have equal length")
+    if not np.isin(control, [False, True]).all() or not np.isin(treatment, [False, True]).all():
+        raise ValueError("paired error masks must contain only boolean outcomes")
+    if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
+        raise ValueError("seed must be a nonnegative integer")
+    if isinstance(draws, bool) or not isinstance(draws, int) or draws <= 0:
+        raise ValueError("draws must be a positive integer")
+
+    control = control.astype(bool, copy=False)
+    treatment = treatment.astype(bool, copy=False)
+    delta = treatment.astype(np.float64) - control.astype(np.float64)
+    rng = np.random.default_rng(seed)
+    bootstrap = rng.choice(delta, size=(draws, delta.size), replace=True).mean(axis=1)
+    ci_low, ci_high = np.percentile(bootstrap, [2.5, 97.5])
+
+    control_only = int(np.count_nonzero(control & ~treatment))
+    treatment_only = int(np.count_nonzero(~control & treatment))
+    discordant = control_only + treatment_only
+    if discordant == 0:
+        p_value = 1.0
+    else:
+        tail_count = min(control_only, treatment_only)
+        log_terms = [
+            math.lgamma(discordant + 1)
+            - math.lgamma(k + 1)
+            - math.lgamma(discordant - k + 1)
+            - discordant * math.log(2.0)
+            for k in range(tail_count + 1)
+        ]
+        max_log = max(log_terms)
+        one_tail = math.exp(max_log) * sum(math.exp(term - max_log) for term in log_terms)
+        p_value = min(1.0, 2.0 * one_tail)
+
+    return {
+        "codewords": int(control.size),
+        "control_errors": int(np.count_nonzero(control)),
+        "treatment_errors": int(np.count_nonzero(treatment)),
+        "both_error": int(np.count_nonzero(control & treatment)),
+        "control_only_error": control_only,
+        "treatment_only_error": treatment_only,
+        "both_success": int(np.count_nonzero(~control & ~treatment)),
+        "treatment_minus_control_bler": float(delta.mean()),
+        "paired_bootstrap_ci95": [float(ci_low), float(ci_high)],
+        "discordant_pairs": discordant,
+        "mcnemar_exact_two_sided_p_value": p_value,
+        "bootstrap_seed": seed,
+        "bootstrap_draws": draws,
+        "warning": "Paired codeword inference is conditional on this simulation; it is not scene-level inference.",
     }

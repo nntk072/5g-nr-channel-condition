@@ -16,7 +16,9 @@ from experiments.link_curves import run_tdl_pusch_time_bler_curve  # noqa: E402
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("output", type=Path, help="new JSON output path; existing files are refused")
+    parser.add_argument(
+        "output", type=Path, help="new JSON output path; existing files are refused"
+    )
     parser.add_argument("--snr-db", type=float, nargs="+", default=[0, 6, 12, 18, 24])
     parser.add_argument("--frames", type=int, default=1024, help="codewords per SNR point")
     parser.add_argument("--batch-size", type=int, default=64)
