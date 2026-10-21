@@ -15,6 +15,53 @@ def test_doctor_reports_environment_without_running_simulation(monkeypatch, caps
     report = json.loads(capsys.readouterr().out)
     assert "python" in report
     assert "sionna" in report
+    assert "rt_backend" not in report
+
+
+def test_doctor_can_probe_and_report_resolved_rt_backend(monkeypatch, capsys) -> None:
+    from types import SimpleNamespace
+
+    import integrations.sionna.backend as backend
+
+    monkeypatch.setattr("loslab.provenance.versions", lambda: {"python": "3.12.0"})
+    monkeypatch.setattr(
+        backend,
+        "select_rt_backend",
+        lambda requested: SimpleNamespace(
+            as_dict=lambda: {
+                "requested": requested,
+                "backend": "llvm_cpu",
+                "variant": "llvm_ad_mono_polarized",
+                "probe_passed": True,
+            }
+        ),
+    )
+    monkeypatch.setattr("sys.argv", ["loslab", "doctor", "--probe-rt", "--mitsuba-variant", "auto"])
+
+    main()
+
+    report = json.loads(capsys.readouterr().out)
+    assert report["rt_backend"]["probe_passed"] is True
+    assert report["rt_backend"]["backend"] == "llvm_cpu"
+    assert report["rt_backend"]["requested"] == "auto"
+
+
+def test_doctor_reports_unavailable_rt_backend_as_json(monkeypatch, capsys) -> None:
+    import integrations.sionna.backend as backend
+
+    monkeypatch.setattr("loslab.provenance.versions", lambda: {"python": "3.12.0"})
+
+    def fail_selection(requested):
+        raise RuntimeError("no usable Sionna RT backend")
+
+    monkeypatch.setattr(backend, "select_rt_backend", fail_selection)
+    monkeypatch.setattr("sys.argv", ["loslab", "doctor", "--probe-rt"])
+
+    main()
+
+    report = json.loads(capsys.readouterr().out)
+    assert report["rt_backend"]["probe_passed"] is False
+    assert "no usable" in report["rt_backend"]["error"]
 
 
 def test_debug_data_command_writes_loadable_dataset(tmp_path, monkeypatch, capsys) -> None:

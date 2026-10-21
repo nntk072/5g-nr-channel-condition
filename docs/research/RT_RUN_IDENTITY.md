@@ -15,6 +15,10 @@ part of the run identity, so the two execution paths cannot collide. An
 explicitly requested backend still fails with diagnostics rather than silently
 changing execution mode.
 
+Run `python -m loslab doctor --probe-rt` to print the resolved backend and
+probe/fallback diagnostics as JSON before starting a larger RT generation.
+Without `--probe-rt`, `doctor` remains a version-only, no-simulation check.
+
 If any scene resource cannot be resolved to a local file, the manifest is
 incomplete and the identity has `complete: false` and a null cache key. Such a
 run can still be executed and audited, but callers must not reuse its outputs as

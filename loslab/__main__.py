@@ -9,7 +9,17 @@ import json
 def main() -> None:
     parser = argparse.ArgumentParser(prog="python -m loslab")
     sub = parser.add_subparsers(dest="command", required=True)
-    sub.add_parser("doctor", help="Report installed Sionna/PyTorch versions, no simulation run")
+    doctor = sub.add_parser("doctor", help="Report installed versions and optional RT capability")
+    doctor.add_argument(
+        "--probe-rt",
+        action="store_true",
+        help="run a tiny native probe and report the usable Mitsuba backend",
+    )
+    doctor.add_argument(
+        "--mitsuba-variant",
+        default="auto",
+        help="backend for --probe-rt: auto (OptiX then LLVM), cuda, llvm, or exact variant",
+    )
     city = sub.add_parser("city-scene", help="Generate reproducible 3D urban scene files")
     city.add_argument("--output-dir", required=True)
     city.add_argument("--seed", type=int, default=42)
@@ -74,7 +84,21 @@ def main() -> None:
     if args.command == "doctor":
         from .provenance import versions
 
-        print(json.dumps(versions(), indent=2))
+        report: dict[str, object] = dict(versions())
+        if args.probe_rt:
+            from integrations.sionna.backend import select_rt_backend
+
+            try:
+                selection = select_rt_backend(args.mitsuba_variant)
+            except (ImportError, RuntimeError) as error:
+                report["rt_backend"] = {
+                    "requested": args.mitsuba_variant,
+                    "probe_passed": False,
+                    "error": str(error),
+                }
+            else:
+                report["rt_backend"] = selection.as_dict()
+        print(json.dumps(report, indent=2))
         return
     if args.command == "city-scene":
         from .geometry import CityConfig, make_city
