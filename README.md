@@ -71,8 +71,11 @@ manifest)</code> to persist and verify records. Scene-grouped assignments can be
 created with <code>evaluation.make_independent_split</code>, audited with
 <code>evaluation.audit_group_leakage</code>, and frozen as immutable lock files
 with <code>evaluation.freeze_split_lock</code>. These establish storage and split
-infrastructure; target semantics, large-scale data generation, and spatial
-buffer audits still require research-specific schemas and datasets.
+infrastructure. <code>evaluation.audit_spatial_buffer</code> additionally
+reports cross-split neighbors inside a meter buffer, requiring exact sample
+coverage and coordinates in one projected metric frame. Target semantics,
+large-scale data generation, and a real-data geographic audit still require
+research-specific schemas and datasets.
 
 For analytical sanity checks,
 <code>datasets.generate_analytical_multipath</code> creates seeded one-to-three

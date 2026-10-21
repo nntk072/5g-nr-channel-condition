@@ -13,11 +13,15 @@ from .metrics import (
     holdout_domain,
     in_domain_split,
 )
+from .spatial_audit import SpatialLeakageAudit, SpatialLeakagePair, audit_spatial_buffer
 from .statistics import paired_seed_delta
 
 __all__ = [
     "IndependentSplit",
+    "SpatialLeakageAudit",
+    "SpatialLeakagePair",
     "audit_group_leakage",
+    "audit_spatial_buffer",
     "binary_metrics",
     "block_bootstrap_auc",
     "freeze_split_lock",
