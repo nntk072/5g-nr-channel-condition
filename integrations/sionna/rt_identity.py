@@ -2,9 +2,52 @@
 
 from __future__ import annotations
 
+import os
+import platform
+import subprocess
 from typing import Any, Mapping
 
 from artifacts.provenance import canonical_hash
+
+
+def rt_runtime_fingerprint(base_versions: Mapping[str, str]) -> dict[str, str]:
+    """Extend package versions with OS/CPU and visible NVIDIA driver/device identity."""
+    runtime = dict(base_versions)
+    runtime.update(
+        {
+            "platform_system": platform.system(),
+            "platform_release": platform.release(),
+            "platform_machine": platform.machine(),
+            "platform_processor": platform.processor() or "unavailable",
+            "python_implementation": platform.python_implementation(),
+            "cuda_visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES", "unset"),
+            "cuda_device_order": os.environ.get("CUDA_DEVICE_ORDER", "unset"),
+            "nvidia_visible_devices": os.environ.get("NVIDIA_VISIBLE_DEVICES", "unset"),
+            "mitsuba_default_variant": os.environ.get("MI_DEFAULT_VARIANT", "unset"),
+            "drjit_llvm_path": os.environ.get("DRJIT_LIBLLVM_PATH", "unset"),
+        }
+    )
+    try:
+        result = subprocess.run(
+            [
+                "nvidia-smi",
+                "--query-gpu=name,driver_version,compute_cap,memory.total",
+                "--format=csv,noheader,nounits",
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=3,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        runtime["nvidia_device_fingerprint"] = "unavailable"
+    else:
+        runtime["nvidia_device_fingerprint"] = (
+            result.stdout.strip().replace("\n", ";")
+            if result.returncode == 0 and result.stdout.strip()
+            else "unavailable"
+        )
+    return runtime
 
 
 def rt_run_identity(
@@ -60,4 +103,19 @@ def rt_run_identity(
         "complete": True,
         "cache_key_sha256": canonical_hash(inputs),
         "inputs": inputs,
+    }
+
+
+def static_rt_solver_config(max_depth: int) -> dict[str, object]:
+    """Return the complete solver switches used by static RT dataset generation."""
+    if isinstance(max_depth, bool) or not isinstance(max_depth, int) or max_depth < 0:
+        raise ValueError("max_depth must be a nonnegative integer")
+    return {
+        "deterministic": True,
+        "max_depth": max_depth,
+        "los": True,
+        "specular_reflection": True,
+        "diffuse_reflection": True,
+        "refraction": True,
+        "diffraction": False,
     }

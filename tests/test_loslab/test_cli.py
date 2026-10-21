@@ -65,6 +65,48 @@ def test_rt_data_cli_defaults_to_native_capability_detection(monkeypatch, capsys
     assert "GEOMETRY-LABELED RT" in capsys.readouterr().out
 
 
+def test_rt_data_cli_dispatches_to_content_addressed_cache_when_requested(
+    monkeypatch, capsys, tmp_path
+) -> None:
+    import loslab.sionna2 as sionna2
+
+    captured = {}
+
+    class FakeDataset:
+        y = [0]
+
+        def save(self, path):
+            captured["output"] = path
+
+    def unexpected_uncached(*args, **kwargs):
+        raise AssertionError("cache option should use the cache-aware RT entry point")
+
+    def cached(config, *, cache_directory, seed):
+        captured.update({"config": config, "cache_directory": cache_directory, "seed": seed})
+        return FakeDataset()
+
+    monkeypatch.setattr(sionna2, "generate_raytraced", unexpected_uncached)
+    monkeypatch.setattr(sionna2, "generate_raytraced_cached", cached)
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "loslab",
+            "rt-data",
+            "--output",
+            "unused.npz",
+            "--cache-dir",
+            str(tmp_path / "rt-cache"),
+        ],
+    )
+
+    main()
+
+    assert captured["cache_directory"] == str(tmp_path / "rt-cache")
+    assert captured["config"].mitsuba_variant == "auto"
+    assert captured["seed"] == 42
+    assert "GEOMETRY-LABELED RT" in capsys.readouterr().out
+
+
 def test_experiment_config_rejects_unknown_keys(tmp_path, monkeypatch) -> None:
     config = tmp_path / "experiment.yaml"
     config.write_text(

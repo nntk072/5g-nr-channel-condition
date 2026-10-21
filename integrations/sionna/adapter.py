@@ -11,7 +11,7 @@ import hashlib
 import json
 from dataclasses import asdict, dataclass, replace
 from pathlib import Path
-from typing import Mapping, Protocol, Sequence
+from typing import TYPE_CHECKING, Mapping, Protocol, Sequence
 
 import numpy as np
 from artifacts.provenance import package_source_sha256, versions
@@ -19,7 +19,14 @@ from datasets.channel import ChannelDataset
 from propagation.physics import add_estimation_noise, frequency_response, subcarrier_frequencies
 
 from integrations.sionna.random import call_with_sionna_seed
-from integrations.sionna.rt_identity import rt_run_identity
+from integrations.sionna.rt_identity import (
+    rt_run_identity,
+    rt_runtime_fingerprint,
+    static_rt_solver_config,
+)
+
+if TYPE_CHECKING:
+    from integrations.sionna.backend import RTBackendSelection
 
 
 class RTPaths(Protocol):
@@ -283,7 +290,12 @@ class RaytraceGenerationError(RuntimeError):
 
 
 def generate_raytraced(
-    scene_config: RayScene = RayScene(), *, grid: GridConfig = GridConfig(), seed: int = 42
+    scene_config: RayScene = RayScene(),
+    *,
+    grid: GridConfig = GridConfig(),
+    seed: int = 42,
+    _backend_selection: RTBackendSelection | None = None,
+    _runtime_fingerprint: Mapping[str, str] | None = None,
 ) -> ChannelDataset:
     """Balanced physical LOS/NLOS ray tracing. Fail closed when insufficient examples.
 
@@ -295,7 +307,9 @@ def generate_raytraced(
     try:
         from integrations.sionna.backend import activate_rt_backend, select_rt_backend
 
-        selection = select_rt_backend(scene_config.mitsuba_variant)
+        selection = _backend_selection or select_rt_backend(scene_config.mitsuba_variant)
+        if not selection.probe_passed:
+            raise RuntimeError("an unverified Mitsuba backend cannot run RT generation")
         activate_rt_backend(selection)
         import sionna.rt as rt
         from sionna.rt import PathSolver, PlanarArray, Receiver, Transmitter, load_scene
@@ -494,15 +508,7 @@ def generate_raytraced(
         "cfr_conversion_failures": attempt_counts["cfr_conversion_failures"],
         "accepted": len(samples),
     }
-    solver_config = {
-        "deterministic": True,
-        "max_depth": cfg.max_depth,
-        "los": True,
-        "specular_reflection": True,
-        "diffuse_reflection": True,
-        "refraction": True,
-        "diffraction": False,
-    }
+    solver_config = static_rt_solver_config(cfg.max_depth)
     if (
         attempt_counts["attempts_started"]
         != attempt_counts["obstacle_rejections"] + attempt_counts["depth_zero_oracle_attempts"]
@@ -554,7 +560,13 @@ def generate_raytraced(
         solver_config=solver_config,
         seed=seed,
         backend_selection=selection.as_dict(),
-        runtime_versions={key: value for key, value in versions().items() if key != "git_sha"},
+        runtime_versions=(
+            _runtime_fingerprint
+            if _runtime_fingerprint is not None
+            else rt_runtime_fingerprint(
+                {key: value for key, value in versions().items() if key != "git_sha"}
+            )
+        ),
         package_source_sha256=str(generation_report["package_source_sha256"]),
     )
     if solver_failure is not None:
@@ -579,3 +591,66 @@ def generate_raytraced(
         tuple(meta),
         generation_report,
     )
+
+
+def generate_raytraced_cached(
+    scene_config: RayScene = RayScene(),
+    *,
+    cache_directory: str | Path,
+    grid: GridConfig = GridConfig(),
+    seed: int = 42,
+) -> ChannelDataset:
+    """Return a verified cached RT dataset or generate and publish it immutably."""
+    from integrations.sionna.backend import activate_rt_backend, select_rt_backend
+    from integrations.sionna.rt_cache import load_rt_dataset, store_rt_dataset
+    from integrations.sionna.scene_assets import scene_asset_manifest
+
+    selection = select_rt_backend(scene_config.mitsuba_variant)
+    activate_rt_backend(selection)
+    try:
+        import sionna.rt as rt
+    except ImportError as exc:
+        raise RuntimeError("Sionna RT 2.2 not installed; install sionna==2.2.0") from exc
+    cfg = replace(scene_config, mitsuba_variant=selection.variant)
+    scene_ref = getattr(rt.scene, cfg.name, cfg.name)
+    scene_xml_path = Path(str(scene_ref)).expanduser()
+    if scene_xml_path.is_file():
+        assets = scene_asset_manifest(scene_xml_path)
+    else:
+        reference = str(scene_ref)
+        assets = {
+            "scene_xml_path": reference,
+            "asset_count": 0,
+            "assets": [],
+            "asset_set_sha256": hashlib.sha256(reference.encode()).hexdigest(),
+            "unresolved_references": [reference],
+            "complete": False,
+        }
+    package_hash = package_source_sha256()
+    runtime_fingerprint = rt_runtime_fingerprint(
+        {key: value for key, value in versions().items() if key != "git_sha"}
+    )
+    identity = rt_run_identity(
+        scene_asset_manifest=assets,
+        physical_config={"scene": asdict(cfg), "grid": asdict(grid)},
+        solver_config=static_rt_solver_config(cfg.max_depth),
+        seed=seed,
+        backend_selection=selection.as_dict(),
+        runtime_versions=runtime_fingerprint,
+        package_source_sha256=package_hash,
+    )
+    if identity["complete"]:
+        cached = load_rt_dataset(cache_directory, identity)
+        if cached is not None:
+            return cached
+
+    dataset = generate_raytraced(
+        cfg,
+        grid=grid,
+        seed=seed,
+        _backend_selection=selection,
+        _runtime_fingerprint=runtime_fingerprint,
+    )
+    if identity["complete"]:
+        store_rt_dataset(cache_directory, dataset, identity)
+    return dataset

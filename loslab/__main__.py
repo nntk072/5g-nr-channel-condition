@@ -48,6 +48,10 @@ def main() -> None:
         help="auto probes CUDA/OptiX then LLVM; use an exact variant for reproducible replay",
     )
     rt.add_argument("--allow-direct-only", action="store_true")
+    rt.add_argument(
+        "--cache-dir",
+        help="optional immutable RT dataset cache; incomplete scene asset manifests bypass caching",
+    )
     exp = sub.add_parser("experiment", help="Evaluate MLP vs CORAL MLP and baselines")
     exp.add_argument("--config", help="Versioned YAML/JSON experiment configuration")
     exp.add_argument("--input", nargs="+", help="One or more dataset NPZs")
@@ -103,7 +107,7 @@ def main() -> None:
         print(f"3GPP PROFILE-PROXY LABELS: saved {len(d.y)} to {args.output}")
         return
     if args.command == "rt-data":
-        from .sionna2 import RayScene, generate_raytraced
+        from .sionna2 import RayScene, generate_raytraced, generate_raytraced_cached
 
         cfg = RayScene(
             name=args.scene,
@@ -118,7 +122,11 @@ def main() -> None:
             require_los_multipath=not args.allow_direct_only,
             mitsuba_variant=args.mitsuba_variant,
         )
-        d = generate_raytraced(cfg, seed=args.seed)
+        d = (
+            generate_raytraced_cached(cfg, cache_directory=args.cache_dir, seed=args.seed)
+            if args.cache_dir
+            else generate_raytraced(cfg, seed=args.seed)
+        )
         d.save(args.output)
         print(f"GEOMETRY-LABELED RT: saved {len(d.y)} to {args.output}")
         return

@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-from integrations.sionna.rt_identity import rt_run_identity
+from integrations.sionna.rt_identity import (
+    rt_run_identity,
+    rt_runtime_fingerprint,
+    static_rt_solver_config,
+)
 
 
 def _inputs():
@@ -82,3 +86,48 @@ def test_rt_run_identity_rejects_unverified_backend_and_invalid_seed():
         assert "seed" in str(error)
     else:
         raise AssertionError("boolean seed must be rejected")
+
+
+def test_rt_runtime_fingerprint_includes_host_gpu_and_backend_environment(monkeypatch):
+    from types import SimpleNamespace
+
+    import integrations.sionna.rt_identity as identity_module
+
+    monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "2")
+    monkeypatch.setenv("MI_DEFAULT_VARIANT", "llvm_ad_mono_polarized")
+    monkeypatch.setattr(
+        identity_module.subprocess,
+        "run",
+        lambda *args, **kwargs: SimpleNamespace(
+            returncode=0,
+            stdout="RTX test, 555.1, 8.9, 24576\n",
+        ),
+    )
+
+    fingerprint = rt_runtime_fingerprint({"python": "3.12.0"})
+
+    assert fingerprint["python"] == "3.12.0"
+    assert fingerprint["platform_system"]
+    assert fingerprint["platform_machine"]
+    assert fingerprint["cuda_visible_devices"] == "2"
+    assert fingerprint["mitsuba_default_variant"] == "llvm_ad_mono_polarized"
+    assert fingerprint["nvidia_device_fingerprint"] == "RTX test, 555.1, 8.9, 24576"
+
+
+def test_static_rt_solver_config_validates_and_records_all_switches():
+    assert static_rt_solver_config(2) == {
+        "deterministic": True,
+        "max_depth": 2,
+        "los": True,
+        "specular_reflection": True,
+        "diffuse_reflection": True,
+        "refraction": True,
+        "diffraction": False,
+    }
+    for invalid in (-1, True, 2.0):
+        try:
+            static_rt_solver_config(invalid)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError(f"invalid max_depth accepted: {invalid!r}")

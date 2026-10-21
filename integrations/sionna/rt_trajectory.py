@@ -13,7 +13,7 @@ from datasets.nr import NRChannelRecord, NRObservation, NRTrajectory
 from datasets.nr_store import NRStoredTrajectory, _publish_immutable, write_nr_trajectory
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
-from integrations.sionna.rt_identity import rt_run_identity
+from integrations.sionna.rt_identity import rt_run_identity, rt_runtime_fingerprint
 
 
 @dataclass(frozen=True, slots=True)
@@ -337,9 +337,9 @@ def generate_rt_nr_trajectory(
             },
             seed=config.seed,
             backend_selection=selection.as_dict(),
-            runtime_versions={
-                key: value for key, value in runtime_versions.items() if key != "git_sha"
-            },
+            runtime_versions=rt_runtime_fingerprint(
+                {key: value for key, value in runtime_versions.items() if key != "git_sha"}
+            ),
             package_source_sha256=source_sha256,
         ),
         "limitations": [
