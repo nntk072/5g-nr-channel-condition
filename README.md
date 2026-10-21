@@ -55,6 +55,15 @@ Sionna RT CFR onto NR baseband bins; a native 10 m free-space CPU/LLVM test
 checks its per-subcarrier phase against the absolute-delay CIR formula. The
 complete RT-to-PUSCH receive chain is still under validation.
 
+## Leak-resistant NR records
+
+The versioned NR dataset contracts live in datasets/nr.py. NRObservation
+validates grid/estimate axes, FFT-bin mapping, and a typed PUSCH configuration;
+its model_inputs method omits sample IDs, targets, and provenance.
+NRChannelRecord keeps target values, target masks, and provenance alongside
+the observation for training and evaluation. Content-addressed serialization,
+dataset split locking, and the complete target schema remain planned work.
+
 ## Repository map
 
 ```text
