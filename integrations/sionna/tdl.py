@@ -31,6 +31,7 @@ def generate_tdl_frequency_response(
     carrier_frequency_hz: float,
     subcarrier_spacing_hz: float,
     num_subcarriers: int,
+    batch_size: int = 1,
     delay_spread_s: float | None = None,
     num_time_steps: int = 1,
     sampling_frequency_hz: float = 1.0,
@@ -52,6 +53,7 @@ def generate_tdl_frequency_response(
         raise ValueError("seed must be a nonnegative integer")
     for name, integer_value in (
         ("num_subcarriers", num_subcarriers),
+        ("batch_size", batch_size),
         ("num_time_steps", num_time_steps),
         ("num_rx_ant", num_rx_ant),
         ("num_tx_ant", num_tx_ant),
@@ -59,8 +61,12 @@ def generate_tdl_frequency_response(
     ):
         if isinstance(integer_value, bool) or not isinstance(integer_value, int):
             raise TypeError(f"{name} must be an integer")
-    if num_subcarriers < 8 or num_time_steps <= 0:
-        raise ValueError("num_subcarriers must be >= 8 and num_time_steps positive")
+    if num_subcarriers < 8:
+        raise ValueError("num_subcarriers must be >= 8")
+    if batch_size <= 0:
+        raise ValueError("batch_size must be positive")
+    if num_time_steps <= 0:
+        raise ValueError("num_time_steps must be positive")
     if num_rx_ant <= 0 or num_tx_ant <= 0 or num_sinusoids <= 0:
         raise ValueError("antenna counts and num_sinusoids must be positive")
     for name, scalar_value in (
@@ -111,7 +117,7 @@ def generate_tdl_frequency_response(
     try:
         generator.manual_seed(seed)
         h_path, tau_s = tdl(
-            batch_size=1,
+            batch_size=batch_size,
             num_time_steps=num_time_steps,
             sampling_frequency=sampling_frequency_hz,
         )
@@ -141,10 +147,12 @@ def generate_tdl_frequency_response(
             "sionna_version": sionna_version,
             "spec_version": spec_version,
             "profile_proxy": model,
-            "geometric_los_label": False,
+            "geometric_los_label": None,
+            "geometric_los_label_provided": False,
             "carrier_frequency_hz": carrier_frequency_hz,
             "subcarrier_spacing_hz": subcarrier_spacing_hz,
             "num_subcarriers": num_subcarriers,
+            "batch_size": batch_size,
             "num_time_steps": num_time_steps,
             "sampling_frequency_hz": sampling_frequency_hz,
             "seed": seed,

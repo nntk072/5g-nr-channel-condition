@@ -8,6 +8,7 @@ from integrations.sionna.tdl import generate_tdl_frequency_response
     ("values", "message"),
     [
         ({"num_subcarriers": 4}, "num_subcarriers"),
+        ({"batch_size": 0}, "batch_size"),
         ({"num_time_steps": 0}, "num_time_steps"),
         ({"subcarrier_spacing_hz": 0}, "subcarrier_spacing_hz"),
         ({"seed": -1}, "seed"),

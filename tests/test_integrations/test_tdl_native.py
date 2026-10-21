@@ -7,16 +7,18 @@ from sionna.phy import config as phy_config  # noqa: E402
 
 
 @pytest.mark.native_sionna
-def test_pinned_tr38901_tdl_gpu_taps_map_to_centered_nr_cfr():
+@pytest.mark.parametrize("model", ["A", "D"])
+def test_pinned_tr38901_tdl_gpu_taps_map_to_centered_nr_cfr(model):
     if not torch.cuda.is_available():
         pytest.skip("CUDA is not available")
 
     values = {
-        "model": "A",
+        "model": model,
         "seed": 1234,
         "carrier_frequency_hz": 3.5e9,
         "subcarrier_spacing_hz": 30_000.0,
         "num_subcarriers": 64,
+        "batch_size": 2,
         "delay_spread_s": 300e-9,
         "num_time_steps": 3,
         "sampling_frequency_hz": 15_000.0,
@@ -46,10 +48,11 @@ def test_pinned_tr38901_tdl_gpu_taps_map_to_centered_nr_cfr():
     assert channel.h_path.is_cuda
     assert channel.tau_s.is_cuda
     assert channel.channel_frequency_response.is_cuda
-    assert channel.channel_frequency_response.shape == (1, 1, 2, 1, 1, 3, 64)
+    assert channel.channel_frequency_response.shape == (2, 1, 2, 1, 1, 3, 64)
     assert channel.metadata["spec_version"] == "19.2"
-    assert channel.metadata["profile_proxy"] == "A"
-    assert channel.metadata["geometric_los_label"] is False
+    assert channel.metadata["profile_proxy"] == model
+    assert channel.metadata["geometric_los_label"] is None
+    assert channel.metadata["geometric_los_label_provided"] is False
     torch.testing.assert_close(channel.channel_frequency_response, expected)
     torch.testing.assert_close(
         channel.channel_frequency_response, repeated.channel_frequency_response
