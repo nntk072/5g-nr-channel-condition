@@ -3,6 +3,7 @@
   "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
   "source_revision": "25f9d4692d643b649ca5e1073a7e3cb1b98063f5",
   "runner": "scripts/run_rt_six_scene_holdout.sh",
+  "runner_source_commit": "42a2ac70553398f2431689b043bfa6242b392cb9",
   "runner_sha256": "271011d57925ca9648fd2953fe8903a2435dcec72d2cd3c582afd503bd9b79d5",
   "environment": {
     "python": "3.12.3",

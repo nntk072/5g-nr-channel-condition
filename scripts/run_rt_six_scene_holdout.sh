@@ -3,12 +3,17 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 python_bin="${SIONNA_PYTHON:-python}"
+samples_per_src="${SAMPLES_PER_SRC:-200}"
 output_dir="${1:-outputs/rt-six-scene-holdout-20261021}"
 if [[ "${output_dir}" != /* ]]; then
   output_dir="${repo_root}/${output_dir}"
 fi
 if [[ -e "${output_dir}" ]]; then
   echo "Refusing to overwrite existing six-scene run: ${output_dir}" >&2
+  exit 2
+fi
+if [[ ! "${samples_per_src}" =~ ^[1-9][0-9]*$ ]]; then
+  echo "SAMPLES_PER_SRC must be a positive integer." >&2
   exit 2
 fi
 if ! "${python_bin}" -c 'import sionna.rt' >/dev/null 2>&1; then
@@ -31,7 +36,7 @@ run_scene() {
     --tx "${tx_x}" "${tx_y}" "${tx_z}" \
     --center "${center_x}" "${center_y}" "${center_z}" \
     --radius "${radius}" --per-class 20 --max-attempts 800 \
-    --samples-per-src 200 --block-size "${block_size}" --max-depth 2 \
+    --samples-per-src "${samples_per_src}" --block-size "${block_size}" --max-depth 2 \
     --mitsuba-variant llvm_ad_mono_polarized
 }
 

@@ -1,0 +1,136 @@
+{
+  "schema": "loslab.rt_six_scene_holdout.v1",
+  "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
+  "source_revision": "f43c1c80e871c4ecbeb6298367491a9c6d67aa38",
+  "runner": "scripts/run_rt_six_scene_holdout.sh",
+  "runner_sha256": "4444fa124bbdbe1750455d88a2c7945ea7ac8f937346afc7d1787a8cd4816141",
+  "generation": {
+    "samples_per_src": 100000,
+    "max_path_depth": 2,
+    "links_per_scene": 40,
+    "labels_per_scene": {"geometric_direct_path": 20, "blocked_direct_path": 20},
+    "spatial_group_counts": {
+      "box_one_screen": 4,
+      "simple_street_canyon": 11,
+      "etoile": 20,
+      "urban_00041": 13,
+      "urban_00042": 14,
+      "urban_00043": 15
+    },
+    "mitsuba_variant": "llvm_ad_mono_polarized",
+    "sionna_rt": "2.2.0",
+    "limitations": [
+      "Urban assets are procedurally generated simplified geometry with placeholder ITU materials.",
+      "Labels are geometric direct-path oracles, not measured or standards-defined channel-condition labels.",
+      "Observations use generic noisy comb pilots, not NR DMRS."
+    ]
+  },
+  "evaluation": {
+    "design": "Leave one scene domain out; train on the other five domains.",
+    "observation": "comb_ls",
+    "pilot_spacing": 4,
+    "pilot_snr_db": 12,
+    "methods": ["rf", "mlp", "logreg"],
+    "seeds": [11, 23, 47, 59, 71, 83, 97],
+    "bootstrap_draws": 200,
+    "macro_mean_test_auroc": {
+      "rf": 0.5711309523809525,
+      "mlp": 0.5858333333333333,
+      "logreg": 0.5545238095238095
+    },
+    "macro_delta_from_200_samples_per_src": {
+      "rf": 0.1035714285714287,
+      "mlp": 0.08613095238095258,
+      "logreg": 0.04119047619047619
+    },
+    "interpretation": "Descriptive only. Per-scene results vary; six folds share training domains, and seed-level uncertainty is not independent-scene inference. The change from the 200-sample run is not a paired causal estimate because solver rejections may change the accepted links/groups. No method advantage is established."
+  },
+  "scenes": [
+    {
+      "name": "box_one_screen",
+      "dataset_sha256": "8ee646ade343187506b3e560ca2185d93dc3063abd4efa5a7d870b505e4dd958",
+      "labels": [20, 20],
+      "groups": 4,
+      "fold_manifest_sha256": "b3a0bfb6a609bca5f446f91f5c5ccefa7b0398458900781efe85b49fdd0be4f0",
+      "fold_summary_sha256": "69e6b2e71ee7bf4e0767be49416a39e65c53b7199d6fbdb1046c127442ed40d8",
+      "fold_results_sha256": "176e98a3a91f2c014c0595079406febc0f17181b27c7a811c0ab5659736781a7",
+      "mean_test_auroc": {"rf": 0.4146428571428572, "mlp": 0.5310714285714285, "logreg": 0.527142857142857},
+      "mlp_minus_rf": {"mean": 0.1164285714285714, "seed_bootstrap_ci95": [0.05785714285714284, 0.17714285714285705], "exact_seed_sign_flip_p": 0.03125},
+      "mlp_minus_logreg": {"mean": 0.003928571428571392, "seed_bootstrap_ci95": [-0.04500000000000005, 0.06214285714285706], "exact_seed_sign_flip_p": 0.953125}
+    },
+    {
+      "name": "simple_street_canyon",
+      "dataset_sha256": "fd6efbbb37f44c1672e5d47424b2ccfd3f59c06401278d65b876d231f3f6ca8e",
+      "labels": [20, 20],
+      "groups": 11,
+      "fold_manifest_sha256": "fb39ce20fda4991798508844a1c57dfc1d4d6abdae31bfe8159ac77a685510ca",
+      "fold_summary_sha256": "c8296769cc63c0f8bb511c7b59c4cfb138d4c12f1e24b9b8c5237476b8b79f6a",
+      "fold_results_sha256": "4457f92e43f8857adb3ffbe3d5f34ea2b711c76f4c9582f2cfc53439d9cd2831",
+      "mean_test_auroc": {"rf": 0.45785714285714285, "mlp": 0.47928571428571437, "logreg": 0.49107142857142855},
+      "mlp_minus_rf": {"mean": 0.021428571428571408, "seed_bootstrap_ci95": [-0.031785714285714285, 0.0821428571428571], "exact_seed_sign_flip_p": 0.578125},
+      "mlp_minus_logreg": {"mean": -0.011785714285714297, "seed_bootstrap_ci95": [-0.06964285714285715, 0.0525], "exact_seed_sign_flip_p": 0.65625}
+    },
+    {
+      "name": "etoile",
+      "dataset_sha256": "e58d16526312a7a984c084447a2f0973382cf2ecb3ad7e9e6d697cd919daf6f9",
+      "labels": [20, 20],
+      "groups": 20,
+      "fold_manifest_sha256": "6efdae87771b794e16f600e7caa2341b581b03245b07ea779bb3ecf67de1b99d",
+      "fold_summary_sha256": "e8af120cff1dc6f581cf2383ff0fd33729527348a79ea9c032d79bc14fc93072",
+      "fold_results_sha256": "553d37da85bb8d65b3c260e5039ca00bacb8d9cccb4854ff1741ff63da52f8e0",
+      "mean_test_auroc": {"rf": 0.6775, "mlp": 0.6571428571428571, "logreg": 0.5803571428571429},
+      "mlp_minus_rf": {"mean": -0.02035714285714287, "seed_bootstrap_ci95": [-0.07392857142857144, 0.02607142857142854], "exact_seed_sign_flip_p": 0.625},
+      "mlp_minus_logreg": {"mean": 0.0767857142857143, "seed_bootstrap_ci95": [0.03785714285714286, 0.1157142857142857], "exact_seed_sign_flip_p": 0.03125}
+    },
+    {
+      "name": "urban_00041",
+      "dataset_sha256": "420450a23e28d8adc56d1f1344ffff3497e3765015e59a22cb61be9d65bfbb8a",
+      "labels": [20, 20],
+      "groups": 13,
+      "fold_manifest_sha256": "862ede420bc64311f80a9d852856a8d40e528cfa83bb0885952ebdce04615c6f",
+      "fold_summary_sha256": "d9c01e0c992188efe38250db5ef4dc366bf063569b1b9cc5474d96e2f41f7884",
+      "fold_results_sha256": "10a9a1e996367a57e88f160a686f3d61329ea8a279f33a33a8724cce6c906e9f",
+      "mean_test_auroc": {"rf": 0.6907142857142858, "mlp": 0.6946428571428572, "logreg": 0.6535714285714285},
+      "mlp_minus_rf": {"mean": 0.00392857142857136, "seed_bootstrap_ci95": [-0.013928571428571544, 0.019642857142857104], "exact_seed_sign_flip_p": 0.71875},
+      "mlp_minus_logreg": {"mean": 0.04107142857142855, "seed_bootstrap_ci95": [0.007857142857142816, 0.0682142857142857], "exact_seed_sign_flip_p": 0.046875}
+    },
+    {
+      "name": "urban_00042",
+      "dataset_sha256": "279e69f1f84a11692168ece9bc330d68a0c4808278542ee453305790437260b2",
+      "labels": [20, 20],
+      "groups": 14,
+      "fold_manifest_sha256": "94fe69d1dbb17896e209c9b94162ac2632cf053a30ed271775bd5c8fa40b2a64",
+      "fold_summary_sha256": "a1a4f795f5f3dd29c25e1dff743ad583a5e53c36a6df690eb716d6b61ec1e7c2",
+      "fold_results_sha256": "3b4d069a2ae309e41a9b2e6bc4a45e06f4838aeff0ee3cc9a6386302b3ddc0ee",
+      "mean_test_auroc": {"rf": 0.5957142857142858, "mlp": 0.5317857142857143, "logreg": 0.5064285714285713},
+      "mlp_minus_rf": {"mean": -0.06392857142857143, "seed_bootstrap_ci95": [-0.11643749999999999, -0.011428571428571439], "exact_seed_sign_flip_p": 0.09375},
+      "mlp_minus_logreg": {"mean": 0.02535714285714292, "seed_bootstrap_ci95": [-0.017874999999999936, 0.06392857142857147], "exact_seed_sign_flip_p": 0.296875}
+    },
+    {
+      "name": "urban_00043",
+      "dataset_sha256": "d86ff258e14cefba5acac0afd47634b46d3fb8a41c2d2f532876ca08c9fb445d",
+      "labels": [20, 20],
+      "groups": 15,
+      "fold_manifest_sha256": "bf6626ee08dc1abc368e0eaf28a2e934b1c397daad02e3b6155845381abba3d6",
+      "fold_summary_sha256": "c5a71c773cc6ed37677ac08a6720e8c7159c13bd49224855b7a3fd1848fa8d92",
+      "fold_results_sha256": "0ee77f168b0a4da3ec84fb046139e7292d1b9fe99d2aa28d510b202bcbad41d0",
+      "mean_test_auroc": {"rf": 0.5903571428571429, "mlp": 0.6210714285714285, "logreg": 0.5685714285714286},
+      "mlp_minus_rf": {"mean": 0.03071428571428571, "seed_bootstrap_ci95": [-0.0053660714285715, 0.06715178571428558], "exact_seed_sign_flip_p": 0.1875},
+      "mlp_minus_logreg": {"mean": 0.05249999999999999, "seed_bootstrap_ci95": [0.01821428571428569, 0.0832142857142857], "exact_seed_sign_flip_p": 0.046875}
+    }
+  ],
+  "fixed_link_depth2_budget_checks": {
+    "report": "docs/research/results/rt-six-scene-depth2-budget-check-20261021.json",
+    "selected_links_only": true,
+    "100k_vs_1m_relative_cfr_l2_max": {
+      "box_one_screen": 0.0,
+      "simple_street_canyon": 0.0000002,
+      "etoile": 0.0008362,
+      "urban_00041": 0.00007,
+      "urban_00042": 0.0,
+      "urban_00043": 0.0
+    },
+    "warning": "One fixed link and three solver seeds per scene do not qualify all sampled receiver positions or geometry families. These values are diagnostics, not a preregistered convergence pass."
+  },
+  "local_output_root": "outputs/rt-six-scene-holdout-100k-20261021"
+}

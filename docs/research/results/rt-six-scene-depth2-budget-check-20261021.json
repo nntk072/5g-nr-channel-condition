@@ -1,0 +1,101 @@
+{
+  "schema": "loslab.rt_depth2_budget_check.v1",
+  "evidence_grade": "FIXED_LINK_SOLVER_DIAGNOSTIC",
+  "source_revision": "f43c1c80e871c4ecbeb6298367491a9c6d67aa38",
+  "runner": "scripts/run_rt_solver_convergence.py",
+  "runner_sha256": "12bd62e6797c73514e1a2eaad765950291010e56b2a80eaad983ef5573734322",
+  "sionna_rt": "2.2.0",
+  "mitsuba_variant": "llvm_ad_mono_polarized",
+  "deterministic_solver": true,
+  "channel_configuration": {
+    "carrier_hz": 3500000000,
+    "subcarrier_spacing_hz": 30000,
+    "n_subcarriers": 256,
+    "max_depth": 2,
+    "samples_per_src": [200, 2000, 20000, 100000, 1000000],
+    "seeds": [11, 23, 47]
+  },
+  "scenes": [
+    {
+      "name": "box_one_screen",
+      "report": "outputs/rt-convergence-box-depth2-1m.json",
+      "report_sha256": "573169b80b1ecfb17b854d7e70fd49319ea781f18039cceebd77b7ac7aabc30e",
+      "xml_sha256": "1f172e8ad38d43af1589b246ef3edffd774d5b35006c9374e310ff807c117e5a",
+      "scene_tree_sha256": "04c273c697fcd569106d03e93db875d7f14ed0e13f8d6a35b260e2fb3aa9a5e6",
+      "depth2_by_seed": {
+        "11": [[200, 2, 0.0], [2000, 2, 0.0], [20000, 2, 0.0], [100000, 2, 0.0], [1000000, 2, 0.0]],
+        "23": [[200, 2, 0.0], [2000, 2, 0.0], [20000, 2, 0.0], [100000, 2, 0.0], [1000000, 2, 0.0]],
+        "47": [[200, 2, 0.0], [2000, 2, 0.0], [20000, 2, 0.0], [100000, 2, 0.0], [1000000, 2, 0.0]]
+      }
+    },
+    {
+      "name": "simple_street_canyon",
+      "report": "outputs/rt-convergence-canyon-depth2-1m.json",
+      "report_sha256": "4067a78d5b6fa62f6efd02e4ee880cb632d87e61aee8ac02cea8378bc9f2aea4",
+      "xml_sha256": "02e4c97a82dfa3fbcc42a1742ed28a3b64fdeeeb962a15f505445b38a9179dc0",
+      "scene_tree_sha256": "34773b3043af437ff095d7b009e23a11aa39e493c3a9fbccbcf6656eca56c2d2",
+      "depth2_by_seed": {
+        "11": [[200, 6, 0.0096747], [2000, 8, 0.0000017], [20000, 8, 0.0], [100000, 8, 0.0], [1000000, 8, 0.0]],
+        "23": [[200, 5, 0.0285265], [2000, 8, 0.0000002], [20000, 8, 0.0000002], [100000, 8, 0.0000002], [1000000, 8, 0.0]],
+        "47": [[200, 5, 0.0285264], [2000, 7, 0.006709], [20000, 8, 0.0000048], [100000, 8, 0.0], [1000000, 8, 0.0]]
+      }
+    },
+    {
+      "name": "etoile",
+      "report": "outputs/rt-convergence-etoile-depth2-1m.json",
+      "report_sha256": "3559182cbf011b364ceae6cd4986eb00de2c0b409049506c0a47b78128525b23",
+      "xml_sha256": "c747f65549f0810c71e7cebc925199e3fdd595b3d777eca7fb22e07ef95c0a1f",
+      "scene_tree_sha256": "32d929850e9ea7e0e8cddf92586e9022d7faf12dd6320f8ce7e6077d23f67249",
+      "depth2_by_seed": {
+        "11": [[200, 3, 0.1616519], [2000, 3, 0.1616336], [20000, 4, 0.0008361], [100000, 4, 0.0008362], [1000000, 4, 0.0]],
+        "23": [[200, 3, 0.1616519], [2000, 3, 0.1616336], [20000, 3, 0.1616334], [100000, 4, 0.0008362], [1000000, 4, 0.0]],
+        "47": [[200, 3, 0.1616519], [2000, 3, 0.1616336], [20000, 3, 0.1616334], [100000, 4, 0.0008362], [1000000, 4, 0.0]]
+      }
+    },
+    {
+      "name": "urban_00041",
+      "report": "outputs/rt-convergence-urban41-depth2-1m.json",
+      "report_sha256": "ef6d6cfdae09c7c50cf8e32899438162dff80e0120c29f98e7ae5d65b3c9f5fa",
+      "xml_sha256": "2639201bbe108b010a5f473b740eab34d6b951689b39b39fc4061f3d81d388b0",
+      "scene_tree_sha256": "1a841ea2c95df4ee2adaf342e0fc5c00fb2f5c2f39b67c0541553c2fe39afaaf",
+      "rx_position_m": [0.126961002292981, 23.299472105698698, 1.5],
+      "depth2_by_seed": {
+        "11": [[200, 5, 0.10991], [2000, 6, 0.00007], [20000, 6, 0.00007], [100000, 6, 0.00007], [1000000, 6, 0.0]],
+        "23": [[200, 5, 0.112586], [2000, 6, 0.000343], [20000, 6, 0.00007], [100000, 6, 0.00007], [1000000, 6, 0.0]],
+        "47": [[200, 5, 0.112586], [2000, 6, 0.00007], [20000, 6, 0.00007], [100000, 6, 0.00007], [1000000, 6, 0.0]]
+      }
+    },
+    {
+      "name": "urban_00042",
+      "report": "outputs/rt-convergence-urban42-depth2-1m.json",
+      "report_sha256": "738f41b6df2a97fb0be619bd19ae6885a0c98486a74e184badc28fba3597ee2a",
+      "xml_sha256": "55fca59136a0c6a42c30ced91f8a6d5629edb70254218b14518781d5b18dfc50",
+      "scene_tree_sha256": "c74fb931828dab2090143b7e584603de6c843dbd606a82c7faf9a4fa3dc19441",
+      "rx_position_m": [-107.71645217170196, -39.86076994072298, 1.5],
+      "depth2_by_seed": {
+        "11": [[200, 4, 0.0], [2000, 4, 0.0], [20000, 4, 0.0], [100000, 4, 0.0], [1000000, 4, 0.0]],
+        "23": [[200, 4, 0.0], [2000, 4, 0.0], [20000, 4, 0.0], [100000, 4, 0.0], [1000000, 4, 0.0]],
+        "47": [[200, 4, 0.0], [2000, 4, 0.0], [20000, 4, 0.0], [100000, 4, 0.0], [1000000, 4, 0.0]]
+      }
+    },
+    {
+      "name": "urban_00043",
+      "report": "outputs/rt-convergence-urban43-depth2-1m.json",
+      "report_sha256": "196cceef39201096b85f31545d935e62fa7720c019558dc6e2228700c8ecf6f7",
+      "xml_sha256": "3d716ff2e759230469eae6ca0537fb56c741c7ba2a12f5ed3bfb2966b5f38131",
+      "scene_tree_sha256": "9b8864831654336ac34e363e1cc92d7208b50c66bfcbdff1a873e3b2be635bbb",
+      "rx_position_m": [-50.062052672983874, 19.833205022479994, 1.5],
+      "depth2_by_seed": {
+        "11": [[200, 1, 0.000057], [2000, 1, 0.0], [20000, 1, 0.0], [100000, 1, 0.0], [1000000, 1, 0.0]],
+        "23": [[200, 1, 0.0], [2000, 1, 0.0], [20000, 1, 0.0], [100000, 1, 0.0], [1000000, 1, 0.0]],
+        "47": [[200, 1, 0.0], [2000, 1, 0.0], [20000, 1, 0.0], [100000, 1, 0.0], [1000000, 1, 0.0]]
+      }
+    }
+  ],
+  "limitations": [
+    "One fixed receiver link per scene does not establish convergence over all sampled positions.",
+    "The highest ray budget is a comparison reference, not truth.",
+    "No numerical acceptance threshold was preregistered; these runs do not formally pass the P5 convergence gate.",
+    "This sweep varies ray budget at max depth 2; it does not qualify antenna or geometry-precision settings."
+  ]
+}
