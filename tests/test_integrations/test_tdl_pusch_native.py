@@ -6,6 +6,7 @@ pytest.importorskip("sionna")
 from datasets.nr_store import read_nr_record, write_nr_record  # noqa: E402
 from experiments.link_curves import (  # noqa: E402
     run_tdl_pusch_bler_curve,
+    run_tdl_pusch_rx_diversity_curve,
     run_tdl_pusch_time_bler_curve,
 )
 from integrations.sionna.nr_pusch import SionnaPUSCHLSReceiver  # noqa: E402
@@ -141,6 +142,68 @@ def test_sample_domain_tdl_pusch_decodes_waveforms_and_records_matched_bler():
     assert all(
         item["transmit_bits_match_across_snr"] and item["channel_truth_match_across_snr"]
         for item in result["configuration"]["matched_realization_checks"]
+    )
+
+
+@pytest.mark.native_sionna
+def test_sample_domain_tdl_pusch_receiver_decodes_one_and_two_receive_antennas():
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA is not available")
+    receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(n_size_bwp=12, subcarrier_spacing_khz=30),
+        device="cuda:0",
+    )
+    link = SionnaTDLTimePUSCHLink(
+        receiver,
+        model="A",
+        delay_spread_s=100e-9,
+        carrier_frequency_hz=3.5e9,
+        speed_mps=3.0,
+        num_rx_ant=2,
+    )
+    waveform, bits, clean, channel_truth = link.transmit_channel(16, seed=99103)
+
+    decoded_two, crc_two = link.decode(clean, 1e-6)
+    decoded_one, crc_one = link.decode(clean[:, :, :1, :], 1e-6)
+
+    assert waveform.is_cuda and channel_truth.is_cuda
+    assert clean.shape[2] == 2
+    assert channel_truth.shape[2] == 2
+    assert torch.equal(decoded_two, bits)
+    assert torch.equal(decoded_one, bits)
+    assert crc_two.all() and crc_one.all()
+
+
+@pytest.mark.native_sionna
+def test_sample_domain_tdl_pusch_rx_diversity_uses_paired_channel_draws():
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA is not available")
+
+    result = run_tdl_pusch_rx_diversity_curve(
+        snr_db=(8.0, 12.0),
+        frames_per_snr=16,
+        batch_size=8,
+        seed=99104,
+        profile="A",
+        delay_spread_s=100e-9,
+        carrier_frequency_hz=3.5e9,
+        speed_mps=3.0,
+        n_size_bwp=12,
+        subcarrier_spacing_khz=30,
+    )
+
+    assert result["schema"] == "loslab.tdl_pusch_rx_diversity.v1"
+    assert result["configuration"]["num_rx_ant"] == 2
+    assert all(
+        check["single_rx_is_first_antenna_of_two_rx_draw"]
+        for check in result["configuration"]["matched_realization_checks"]
+    )
+    assert [point["snr_db"] for point in result["points"]] == [8.0, 12.0]
+    assert all(
+        len(point["single_rx"]["frame_error_mask"]) == 16
+        and len(point["two_rx"]["frame_error_mask"]) == 16
+        and "mcnemar_exact_two_sided_p_value_holm" in point["paired_comparison"]
+        for point in result["points"]
     )
 
 

@@ -1,6 +1,7 @@
 import pytest
 from experiments.link_curves import (
     run_tdl_pusch_bler_curve,
+    run_tdl_pusch_rx_diversity_curve,
     run_tdl_pusch_time_bler_curve,
     wilson_score_interval_95,
 )
@@ -55,6 +56,16 @@ def test_sample_domain_link_curve_rejects_empty_snr_grid_before_loading_dependen
         )
 
 
+def test_rx_diversity_curve_rejects_empty_snr_grid_before_loading_dependencies():
+    with pytest.raises(ValueError, match="snr_db"):
+        run_tdl_pusch_rx_diversity_curve(
+            snr_db=[],
+            frames_per_snr=1,
+            batch_size=1,
+            seed=1,
+        )
+
+
 @pytest.mark.parametrize("position", [-1, 4, True])
 def test_sample_domain_link_curve_rejects_invalid_dmrs_position(position):
     expected = TypeError if isinstance(position, bool) else ValueError
@@ -65,4 +76,19 @@ def test_sample_domain_link_curve_rejects_invalid_dmrs_position(position):
             batch_size=1,
             seed=1,
             dmrs_additional_position=position,
+        )
+
+
+@pytest.mark.parametrize(
+    ("num_rx_ant", "error"),
+    [(0, ValueError), (-1, ValueError), (True, TypeError), (1.5, TypeError)],
+)
+def test_sample_domain_link_curve_rejects_invalid_receive_antenna_count(num_rx_ant, error):
+    with pytest.raises(error, match="num_rx_ant"):
+        run_tdl_pusch_time_bler_curve(
+            snr_db=(10.0,),
+            frames_per_snr=1,
+            batch_size=1,
+            seed=1,
+            num_rx_ant=num_rx_ant,
         )

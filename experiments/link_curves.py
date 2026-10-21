@@ -7,6 +7,7 @@ import math
 from typing import Any, Sequence
 
 from artifacts.provenance import package_source_sha256, versions
+from evaluation.statistics import paired_binary_error_comparison
 
 
 def wilson_score_interval_95(errors: int, total: int) -> tuple[float, float]:
@@ -221,6 +222,7 @@ def run_tdl_pusch_time_bler_curve(
     n_size_bwp: int = 12,
     dmrs_additional_position: int = 0,
     subcarrier_spacing_khz: int = 30,
+    num_rx_ant: int = 1,
     allow_cp_overrun: bool = False,
 ) -> dict[str, Any]:
     """Measure paired PUSCH BLER over the sample-domain, time-varying TDL link."""
@@ -247,6 +249,10 @@ def run_tdl_pusch_time_bler_curve(
         raise TypeError("dmrs_additional_position must be an integer")
     if not 0 <= dmrs_additional_position <= 3:
         raise ValueError("dmrs_additional_position must be in [0, 3]")
+    if isinstance(num_rx_ant, bool) or not isinstance(num_rx_ant, int):
+        raise TypeError("num_rx_ant must be an integer")
+    if num_rx_ant <= 0:
+        raise ValueError("num_rx_ant must be positive")
     if not torch_cuda_available():
         raise RuntimeError("The sample-domain TDL-PUSCH curve requires CUDA")
 
@@ -269,6 +275,7 @@ def run_tdl_pusch_time_bler_curve(
         delay_spread_s=delay_spread_s,
         carrier_frequency_hz=carrier_frequency_hz,
         speed_mps=speed_mps,
+        num_rx_ant=num_rx_ant,
         allow_cp_overrun=allow_cp_overrun,
     )
     if seed > 2**63 - 3:
@@ -391,6 +398,210 @@ def run_tdl_pusch_time_bler_curve(
             ),
             "Wilson intervals count codewords and do not account for independent-scene uncertainty.",
             "This curve is not standards certification or validation against external measurements.",
+        ],
+    }
+
+
+def run_tdl_pusch_rx_diversity_curve(
+    *,
+    snr_db: Sequence[float],
+    frames_per_snr: int,
+    batch_size: int,
+    seed: int,
+    profile: str = "A",
+    delay_spread_s: float = 100e-9,
+    carrier_frequency_hz: float = 3.5e9,
+    speed_mps: float = 3.0,
+    n_size_bwp: int = 12,
+    dmrs_additional_position: int = 0,
+    subcarrier_spacing_khz: int = 30,
+) -> dict[str, Any]:
+    """Compare one versus two RX antennas on the exact same two-RX channel draw."""
+    snr_values = tuple(float(value) for value in snr_db)
+    if not snr_values or any(not math.isfinite(value) for value in snr_values):
+        raise ValueError("snr_db must contain finite values")
+    if isinstance(frames_per_snr, bool) or not isinstance(frames_per_snr, int):
+        raise TypeError("frames_per_snr must be an integer")
+    if isinstance(batch_size, bool) or not isinstance(batch_size, int):
+        raise TypeError("batch_size must be an integer")
+    if frames_per_snr <= 0 or batch_size <= 0:
+        raise ValueError("frames_per_snr and batch_size must be positive")
+    if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
+        raise ValueError("seed must be a nonnegative integer")
+    if not profile or profile.upper() not in {"A", "B", "C", "D", "E"}:
+        raise ValueError("profile must be one of TDL-A through TDL-E")
+    if not math.isfinite(delay_spread_s) or delay_spread_s <= 0:
+        raise ValueError("delay_spread_s must be finite and positive")
+    if not math.isfinite(carrier_frequency_hz) or carrier_frequency_hz <= 0:
+        raise ValueError("carrier_frequency_hz must be finite and positive")
+    if not math.isfinite(speed_mps) or speed_mps < 0:
+        raise ValueError("speed_mps must be finite and nonnegative")
+    if not torch_cuda_available():
+        raise RuntimeError("The receive-antenna diversity curve requires CUDA")
+
+    import torch
+    from integrations.sionna.nr_pusch import SionnaPUSCHLSReceiver
+    from integrations.sionna.tdl_pusch import SionnaTDLTimePUSCHLink, seeded_complex_awgn
+    from receivers.nr import NRPUSCHConfig
+
+    receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(
+            n_size_bwp=n_size_bwp,
+            subcarrier_spacing_khz=subcarrier_spacing_khz,
+            dmrs_additional_position=dmrs_additional_position,
+        ),
+        device="cuda:0",
+    )
+    link = SionnaTDLTimePUSCHLink(
+        receiver,
+        model=profile.upper(),
+        delay_spread_s=delay_spread_s,
+        carrier_frequency_hz=carrier_frequency_hz,
+        speed_mps=speed_mps,
+        num_rx_ant=2,
+    )
+    if seed > 2**63 - 3:
+        raise ValueError("seed must leave room for derived channel and noise seeds")
+
+    batches: list[dict[str, Any]] = []
+    matched_checks: list[dict[str, Any]] = []
+    frames_left = frames_per_snr
+    batch_index = 0
+    while frames_left:
+        count = min(batch_size, frames_left)
+        batch_seed = seed + batch_index
+        waveform, bits, clean, channel_truth = link.transmit_channel(count, seed=batch_seed)
+        bits_cpu = bits.detach().cpu().contiguous()
+        channel_truth_cpu = channel_truth.detach().cpu().contiguous()
+        first_rx_truth = channel_truth_cpu[:, :, :1].contiguous()
+        batches.append(
+            {
+                "seed": batch_seed,
+                "bits": bits,
+                "clean": clean,
+                "noise_seed": batch_seed + 2,
+                "waveform_mean_power": float(waveform.abs().square().mean().item()),
+            }
+        )
+        matched_checks.append(
+            {
+                "seed": batch_seed,
+                "transmit_bits_sha256": hashlib.sha256(bits_cpu.numpy().tobytes()).hexdigest(),
+                "first_rx_channel_truth_sha256": hashlib.sha256(
+                    first_rx_truth.numpy().tobytes()
+                ).hexdigest(),
+                "all_rx_channel_truth_sha256": hashlib.sha256(
+                    channel_truth_cpu.numpy().tobytes()
+                ).hexdigest(),
+                "noise_real_seed": batch_seed + 2,
+                "noise_imag_seed": batch_seed + 3,
+                "single_rx_is_first_antenna_of_two_rx_draw": True,
+            }
+        )
+        frames_left -= count
+        batch_index += 1
+
+    points: list[dict[str, Any]] = []
+    for snr in snr_values:
+        noise_variance = 10.0 ** (-snr / 10.0)
+        one_error_mask: list[bool] = []
+        two_error_mask: list[bool] = []
+        one_bit_errors = two_bit_errors = bits_total = 0
+        for batch in batches:
+            clean = batch["clean"]
+            noise = seeded_complex_awgn(
+                tuple(clean.shape),
+                device="cuda:0",
+                noise_variance=noise_variance,
+                real_seed=batch["noise_seed"],
+                imag_seed=batch["noise_seed"] + 1,
+            )
+            received_two = clean + noise
+            received_one = received_two[:, :, :1, :]
+            decoded_one, crc_one = link.decode(received_one, noise_variance)
+            decoded_two, crc_two = link.decode(received_two, noise_variance)
+            bits = batch["bits"]
+            one_error_mask.extend((~crc_one.reshape(-1).bool()).cpu().tolist())
+            two_error_mask.extend((~crc_two.reshape(-1).bool()).cpu().tolist())
+            one_bit_errors += int(torch.count_nonzero(decoded_one != bits).item())
+            two_bit_errors += int(torch.count_nonzero(decoded_two != bits).item())
+            bits_total += int(bits.numel())
+
+        single_errors = sum(one_error_mask)
+        diversity_errors = sum(two_error_mask)
+        single_ci = wilson_score_interval_95(single_errors, frames_per_snr)
+        diversity_ci = wilson_score_interval_95(diversity_errors, frames_per_snr)
+        paired = paired_binary_error_comparison(
+            one_error_mask,
+            two_error_mask,
+            seed=1,
+            draws=20_000,
+            control_bits_per_success=(bits_total / frames_per_snr),
+            treatment_bits_per_success=(bits_total / frames_per_snr),
+        )
+        points.append(
+            {
+                "snr_db": snr,
+                "frames": frames_per_snr,
+                "bits": bits_total,
+                "single_rx": {
+                    "bler_errors": single_errors,
+                    "bler": single_errors / frames_per_snr,
+                    "bler_wilson_95_ci": list(single_ci),
+                    "bit_errors": one_bit_errors,
+                    "ber": one_bit_errors / bits_total,
+                    "frame_error_mask": one_error_mask,
+                },
+                "two_rx": {
+                    "bler_errors": diversity_errors,
+                    "bler": diversity_errors / frames_per_snr,
+                    "bler_wilson_95_ci": list(diversity_ci),
+                    "bit_errors": two_bit_errors,
+                    "ber": two_bit_errors / bits_total,
+                    "frame_error_mask": two_error_mask,
+                },
+                "paired_comparison": paired,
+            }
+        )
+
+    ordered = sorted(
+        range(len(points)),
+        key=lambda index: points[index]["paired_comparison"]["mcnemar_exact_two_sided_p_value"],
+    )
+    adjusted_max = 0.0
+    for rank, index in enumerate(ordered):
+        raw_p = points[index]["paired_comparison"]["mcnemar_exact_two_sided_p_value"]
+        adjusted_max = max(adjusted_max, (len(points) - rank) * raw_p)
+        points[index]["paired_comparison"]["mcnemar_exact_two_sided_p_value_holm"] = min(
+            1.0, adjusted_max
+        )
+
+    return {
+        "schema": "loslab.tdl_pusch_rx_diversity.v1",
+        "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
+        "configuration": {
+            **link.metadata,
+            "frames_per_snr": frames_per_snr,
+            "batch_size": batch_size,
+            "seed": seed,
+            "batch_seeds_shared_across_snr": [item["seed"] for item in matched_checks],
+            "matched_realization_checks": matched_checks,
+            "transmit_waveform_mean_power_by_batch": [
+                item["waveform_mean_power"] for item in batches
+            ],
+            "snr_db": list(snr_values),
+            "snr_definition": "unit-average-power sampled waveform with complex AWGN variance 10**(-SNR_dB/10)",
+            "single_rx_policy": "decode receive antenna index 0 from each generated two-antenna waveform",
+            "two_rx_policy": "decode receive antenna indices 0 and 1 from the same waveform and channel draw",
+            "versions": versions(),
+            "package_source_sha256": package_source_sha256(),
+        },
+        "points": points,
+        "limitations": [
+            "Only Sionna TDL-A, one numerology, one bandwidth, one DMRS pattern, speed, and delay spread are evaluated.",
+            "The two receive antennas follow Sionna's default spatial-correlation configuration; no measured array calibration is used.",
+            "Synchronization is ideal and the 100-ns channel memory is CP-contained for this link.",
+            "Inference is conditional on the simulated codewords and does not represent independent scenes or measured channels.",
         ],
     }
 

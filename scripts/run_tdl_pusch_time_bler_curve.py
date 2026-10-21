@@ -30,6 +30,7 @@ def main() -> None:
     parser.add_argument("--n-size-bwp", type=int, default=12)
     parser.add_argument("--dmrs-additional-position", type=int, choices=range(4), default=0)
     parser.add_argument("--subcarrier-spacing-khz", type=int, default=30)
+    parser.add_argument("--num-rx-ant", type=int, default=1)
     parser.add_argument(
         "--allow-cp-overrun",
         action="store_true",
@@ -51,6 +52,7 @@ def main() -> None:
         n_size_bwp=args.n_size_bwp,
         dmrs_additional_position=args.dmrs_additional_position,
         subcarrier_spacing_khz=args.subcarrier_spacing_khz,
+        num_rx_ant=args.num_rx_ant,
         allow_cp_overrun=args.allow_cp_overrun,
     )
     atomic_json(args.output, result)
