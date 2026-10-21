@@ -89,6 +89,27 @@ def test_path_parameter_crlb_scales_linearly_with_noise_variance():
     np.testing.assert_allclose(high_noise.crlb_covariance, 10.0 * low_noise.crlb_covariance)
 
 
+def test_single_path_delay_crlb_matches_closed_form_with_unknown_complex_gain():
+    frequencies = np.linspace(-12e6, 12e6, 192)
+    gain = 0.8 - 0.6j
+    noise_variance = 0.25
+
+    result = path_parameter_fisher_diagnostics(
+        np.asarray([gain]),
+        np.asarray([275e-9]),
+        frequencies,
+        noise_variance=noise_variance,
+    )
+
+    centered = frequencies - np.mean(frequencies)
+    expected_delay_variance = noise_variance / (
+        2.0 * abs(gain) ** 2 * (2.0 * np.pi) ** 2 * np.sum(centered**2)
+    )
+    assert result.crlb_covariance is not None
+    assert result.rank == 3
+    assert result.crlb_covariance[2, 2] == pytest.approx(expected_delay_variance, rel=1e-10)
+
+
 def test_path_parameter_fisher_reports_coincident_paths_as_rank_deficient():
     frequencies = np.linspace(-15e6, 15e6, 256)
 
