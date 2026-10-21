@@ -6,10 +6,52 @@ import math
 from dataclasses import dataclass
 from typing import Any
 
+import numpy as np
 from datasets.nr import NRChannelRecord, NRObservation
 from receivers.nr import NRChannelEstimate
 
 from .random import call_with_sionna_seed
+
+
+def seeded_complex_awgn(
+    shape: tuple[int, ...],
+    *,
+    device: str,
+    noise_variance: float,
+    real_seed: int,
+    imag_seed: int,
+) -> Any:
+    """Generate complex AWGN from independent component streams.
+
+    Separate real and imaginary generators preserve identical sample prefixes
+    when matched links have different waveform lengths.
+    """
+    import torch
+
+    if not shape or any(
+        isinstance(size, bool) or not isinstance(size, int) or size <= 0 for size in shape
+    ):
+        raise ValueError("shape must contain positive integer dimensions")
+    if not math.isfinite(noise_variance) or noise_variance < 0:
+        raise ValueError("noise_variance must be finite and nonnegative")
+    for name, seed in (("real_seed", real_seed), ("imag_seed", imag_seed)):
+        if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
+            raise ValueError(f"{name} must be a nonnegative integer")
+    stream_count = math.prod(shape[:-1]) if len(shape) > 1 else 1
+
+    def normal_samples(seed: int) -> np.ndarray:
+        samples = np.empty(shape, dtype=np.float32)
+        stream_samples = samples.reshape(stream_count, shape[-1])
+        for stream_index, row in enumerate(stream_samples):
+            sequence = np.random.SeedSequence([seed, stream_index])
+            generator = np.random.Generator(np.random.Philox(sequence))
+            row[:] = generator.standard_normal(shape[-1], dtype=np.float32)
+        return samples
+
+    scale = math.sqrt(noise_variance / 2.0)
+    real = torch.as_tensor(normal_samples(real_seed), device=device)
+    imag = torch.as_tensor(normal_samples(imag_seed), device=device)
+    return torch.complex(real, imag) * scale
 
 
 @dataclass(frozen=True, slots=True)

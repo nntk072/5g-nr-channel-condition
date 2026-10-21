@@ -76,6 +76,9 @@ def compare_curves(
             raise ValueError("batch seeds differ across conditions")
         if left.get("noise_seed") != right.get("noise_seed"):
             raise ValueError(f"noise seeds differ for matched batch {left['seed']}")
+        for component in ("noise_real_seed", "noise_imag_seed"):
+            if left.get(component) != right.get(component):
+                raise ValueError(f"{component} differs for matched batch {left['seed']}")
         same_bits = same_bits and left["transmit_bits_sha256"] == right["transmit_bits_sha256"]
         same_channel = (
             same_channel and left["channel_truth_sha256"] == right["channel_truth_sha256"]
@@ -87,6 +90,17 @@ def compare_curves(
     if varying_config_field == "delay_spread_s":
         if not same_bits:
             raise ValueError("transmitted bits differ for the matched delay-spread experiment")
+        if any(
+            check.get(component) is None
+            for check in control_checks + treatment_checks
+            for component in ("noise_real_seed", "noise_imag_seed")
+        ):
+            raise ValueError("delay-spread curves must record separate real/imaginary noise seeds")
+        if any(
+            check["noise_real_seed"] == check["noise_imag_seed"]
+            for check in control_checks + treatment_checks
+        ):
+            raise ValueError("real and imaginary AWGN streams must use distinct seeds")
         if same_channel:
             raise ValueError("channel truth is identical across delay-spread conditions")
         if control_config.get("allow_cp_overrun") is not False or not control_config.get(

@@ -252,7 +252,7 @@ def run_tdl_pusch_time_bler_curve(
 
     import torch
     from integrations.sionna.nr_pusch import SionnaPUSCHLSReceiver
-    from integrations.sionna.tdl_pusch import SionnaTDLTimePUSCHLink
+    from integrations.sionna.tdl_pusch import SionnaTDLTimePUSCHLink, seeded_complex_awgn
     from receivers.nr import NRPUSCHConfig
 
     receiver = SionnaPUSCHLSReceiver(
@@ -304,6 +304,8 @@ def run_tdl_pusch_time_bler_curve(
                 "channel_truth_sha256": hashlib.sha256(h_cpu.numpy().tobytes()).hexdigest(),
                 "transmit_bits_match_across_snr": True,
                 "channel_truth_match_across_snr": True,
+                "noise_real_seed": batch_seed + 2,
+                "noise_imag_seed": batch_seed + 3,
             }
         )
         frames_left -= count
@@ -315,13 +317,14 @@ def run_tdl_pusch_time_bler_curve(
         frame_errors = bit_errors = frames = bits_total = 0
         frame_error_mask: list[bool] = []
         for batch in batches:
-            generator = torch.Generator(device="cuda:0")
-            generator.manual_seed(batch["noise_seed"])
             clean = batch["clean"]
-            noise = torch.complex(
-                torch.randn(clean.shape, device="cuda:0", generator=generator),
-                torch.randn(clean.shape, device="cuda:0", generator=generator),
-            ) * math.sqrt(noise_variance / 2.0)
+            noise = seeded_complex_awgn(
+                tuple(clean.shape),
+                device="cuda:0",
+                noise_variance=noise_variance,
+                real_seed=batch["noise_seed"],
+                imag_seed=batch["noise_seed"] + 1,
+            )
             received = clean + noise
             decoded, crc_ok = link.decode(received, noise_variance)
             target = batch["bits"]

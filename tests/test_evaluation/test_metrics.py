@@ -308,6 +308,8 @@ def test_curve_comparator_pairs_explicit_cp_overrun_delay_spread(tmp_path):
         {
             "seed": 51000,
             "noise_seed": 51002,
+            "noise_real_seed": 51002,
+            "noise_imag_seed": 51003,
             "transmit_bits_sha256": "same-bits",
             "channel_truth_sha256": "control-channel",
         }
