@@ -1,0 +1,457 @@
+{
+  "configuration": {
+    "material_scattering_overrides": {
+      "screen-mat": 0.5
+    },
+    "materials": {
+      "box-mat": {
+        "scattering_coefficient": [
+          0.0
+        ],
+        "scattering_pattern": "LambertianPattern",
+        "xpd_coefficient": [
+          0.0
+        ]
+      },
+      "screen-mat": {
+        "scattering_coefficient": [
+          0.5
+        ],
+        "scattering_pattern": "LambertianPattern",
+        "xpd_coefficient": [
+          0.0
+        ]
+      }
+    },
+    "max_depth": 6,
+    "mitsuba_variant": "llvm_ad_mono_polarized",
+    "samples_per_src": 100000,
+    "seeds": [
+      11,
+      23,
+      47
+    ]
+  },
+  "figure": {
+    "png": {
+      "path": "docs/research/figures/rt-box-los-nlos-path-cap-sweep-s05-20261022.png",
+      "sha256": "2dabfffdd9bc4d3eb67da325be8df9557fd6e89a63c38b608ba3fd35b49a5a54"
+    },
+    "svg": {
+      "path": "docs/research/figures/rt-box-los-nlos-path-cap-sweep-s05-20261022.svg",
+      "sha256": "0dc347993b7542c5c4688a64e716fab3360a95d32b898e602cd11bb9f2bfaa16"
+    }
+  },
+  "inputs": [
+    {
+      "max_num_paths_per_src": 1000,
+      "path": "/home/nguyenl37/5g-nr-channel-condition/docs/research/results/rt-box-los-nlos-convergence-depth6-s05-cap1000-20261022.json",
+      "sha256": "76f5febd7eaa3e7f95a8907408fabd93fce49400939a4d97d6792ec948dedce6"
+    },
+    {
+      "max_num_paths_per_src": 10000,
+      "path": "/home/nguyenl37/5g-nr-channel-condition/docs/research/results/rt-box-los-nlos-convergence-depth6-s05-cap10000-20261022.json",
+      "sha256": "f1e758eea23d2f52c5f37abf69b0148c59edfb5eb7095721fca3be6f3c93ba82"
+    },
+    {
+      "max_num_paths_per_src": 1000000,
+      "path": "/home/nguyenl37/5g-nr-channel-condition/docs/research/results/rt-box-los-nlos-convergence-depth6-s05-20261022.json",
+      "sha256": "685d7cf03343d126c98af5550b28001477cb0b3eb21254daeb1c4833b5a45816"
+    }
+  ],
+  "limitations": [
+    "The largest path cap is a finite comparison reference, not ground truth.",
+    "Only one synthetic thin-screen scene, one scattering override, and one depth/budget are compared.",
+    "CFR vectors are not stored in the convergence reports, so this audit compares path and aggregate observables, not cross-cap complex CFR error.",
+    "The S=0.5 material override is for mechanism testing, not calibrated material realism."
+  ],
+  "per_seed": [
+    {
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 1000,
+      "power_weighted_arrival_angular_spread_deg": 29.1488807291764,
+      "power_weighted_rms_delay_spread_ns": 5.402613911797971,
+      "seed": 11,
+      "valid_diffuse_reflection_path_count": 993,
+      "valid_path_count": 999,
+      "valid_path_power_sum": 5.2376839448697865e-05
+    },
+    {
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 1000,
+      "power_weighted_arrival_angular_spread_deg": 29.073061127782093,
+      "power_weighted_rms_delay_spread_ns": 5.402352787342579,
+      "seed": 23,
+      "valid_diffuse_reflection_path_count": 993,
+      "valid_path_count": 999,
+      "valid_path_power_sum": 5.235688513494097e-05
+    },
+    {
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 1000,
+      "power_weighted_arrival_angular_spread_deg": 29.028957783314727,
+      "power_weighted_rms_delay_spread_ns": 5.402805758336626,
+      "seed": 47,
+      "valid_diffuse_reflection_path_count": 993,
+      "valid_path_count": 999,
+      "valid_path_power_sum": 5.2344890718813986e-05
+    },
+    {
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 1000,
+      "power_weighted_arrival_angular_spread_deg": 73.8373022563838,
+      "power_weighted_rms_delay_spread_ns": 22.04591709187298,
+      "seed": 11,
+      "valid_diffuse_reflection_path_count": 487,
+      "valid_path_count": 537,
+      "valid_path_power_sum": 7.453585112671135e-06
+    },
+    {
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 1000,
+      "power_weighted_arrival_angular_spread_deg": 73.83915650897174,
+      "power_weighted_rms_delay_spread_ns": 22.054102544188936,
+      "seed": 23,
+      "valid_diffuse_reflection_path_count": 487,
+      "valid_path_count": 537,
+      "valid_path_power_sum": 7.453758826159174e-06
+    },
+    {
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 1000,
+      "power_weighted_arrival_angular_spread_deg": 73.83045577136876,
+      "power_weighted_rms_delay_spread_ns": 22.057655257867737,
+      "seed": 47,
+      "valid_diffuse_reflection_path_count": 489,
+      "valid_path_count": 539,
+      "valid_path_power_sum": 7.455068043782376e-06
+    },
+    {
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 10000,
+      "power_weighted_arrival_angular_spread_deg": 47.59589690671402,
+      "power_weighted_rms_delay_spread_ns": 23.047986630331252,
+      "seed": 11,
+      "valid_diffuse_reflection_path_count": 8048,
+      "valid_path_count": 8210,
+      "valid_path_power_sum": 6.926993955858052e-05
+    },
+    {
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 10000,
+      "power_weighted_arrival_angular_spread_deg": 47.48130620504662,
+      "power_weighted_rms_delay_spread_ns": 22.84848399369821,
+      "seed": 23,
+      "valid_diffuse_reflection_path_count": 8061,
+      "valid_path_count": 8221,
+      "valid_path_power_sum": 6.911783566465601e-05
+    },
+    {
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 10000,
+      "power_weighted_arrival_angular_spread_deg": 47.43872445625999,
+      "power_weighted_rms_delay_spread_ns": 22.75939081641809,
+      "seed": 47,
+      "valid_diffuse_reflection_path_count": 8087,
+      "valid_path_count": 8245,
+      "valid_path_power_sum": 6.897555431351066e-05
+    },
+    {
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 10000,
+      "power_weighted_arrival_angular_spread_deg": 80.5757246620604,
+      "power_weighted_rms_delay_spread_ns": 26.74939736380111,
+      "seed": 11,
+      "valid_diffuse_reflection_path_count": 3378,
+      "valid_path_count": 3560,
+      "valid_path_power_sum": 1.2900723959319293e-05
+    },
+    {
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 10000,
+      "power_weighted_arrival_angular_spread_deg": 80.58289314974054,
+      "power_weighted_rms_delay_spread_ns": 26.744203296402702,
+      "seed": 23,
+      "valid_diffuse_reflection_path_count": 3291,
+      "valid_path_count": 3473,
+      "valid_path_power_sum": 1.2895887266495265e-05
+    },
+    {
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 10000,
+      "power_weighted_arrival_angular_spread_deg": 80.59364343886968,
+      "power_weighted_rms_delay_spread_ns": 26.723011359308657,
+      "seed": 47,
+      "valid_diffuse_reflection_path_count": 3358,
+      "valid_path_count": 3539,
+      "valid_path_power_sum": 1.2895518011646345e-05
+    },
+    {
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 1000000,
+      "power_weighted_arrival_angular_spread_deg": 50.67268464586124,
+      "power_weighted_rms_delay_spread_ns": 28.918357486418245,
+      "seed": 11,
+      "valid_diffuse_reflection_path_count": 10449,
+      "valid_path_count": 10748,
+      "valid_path_power_sum": 7.360961171798408e-05
+    },
+    {
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 1000000,
+      "power_weighted_arrival_angular_spread_deg": 50.6610680758337,
+      "power_weighted_rms_delay_spread_ns": 28.94419992571784,
+      "seed": 23,
+      "valid_diffuse_reflection_path_count": 10546,
+      "valid_path_count": 10846,
+      "valid_path_power_sum": 7.360809831880033e-05
+    },
+    {
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 1000000,
+      "power_weighted_arrival_angular_spread_deg": 50.63077025394068,
+      "power_weighted_rms_delay_spread_ns": 28.89897565694355,
+      "seed": 47,
+      "valid_diffuse_reflection_path_count": 10550,
+      "valid_path_count": 10850,
+      "valid_path_power_sum": 7.358597940765321e-05
+    },
+    {
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 1000000,
+      "power_weighted_arrival_angular_spread_deg": 80.57572898933437,
+      "power_weighted_rms_delay_spread_ns": 26.74939558744427,
+      "seed": 11,
+      "valid_diffuse_reflection_path_count": 3378,
+      "valid_path_count": 3560,
+      "valid_path_power_sum": 1.2900723959319293e-05
+    },
+    {
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 1000000,
+      "power_weighted_arrival_angular_spread_deg": 80.58290613129279,
+      "power_weighted_rms_delay_spread_ns": 26.744203296402702,
+      "seed": 23,
+      "valid_diffuse_reflection_path_count": 3291,
+      "valid_path_count": 3473,
+      "valid_path_power_sum": 1.2895888175989967e-05
+    },
+    {
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 1000000,
+      "power_weighted_arrival_angular_spread_deg": 80.59363391936046,
+      "power_weighted_rms_delay_spread_ns": 26.723011359308657,
+      "seed": 47,
+      "valid_diffuse_reflection_path_count": 3358,
+      "valid_path_count": 3539,
+      "valid_path_power_sum": 1.2895518011646345e-05
+    }
+  ],
+  "scene": {
+    "name": "box_one_screen",
+    "scene_tree_sha256": "04c273c697fcd569106d03e93db875d7f14ed0e13f8d6a35b260e2fb3aa9a5e6",
+    "xml_path": "/home/nguyenl37/5g-nr-channel-condition/.venv/lib/python3.12/site-packages/sionna/rt/scenes/box_one_screen/box_one_screen.xml",
+    "xml_sha256": "1f172e8ad38d43af1589b246ef3edffd774d5b35006c9374e310ff807c117e5a"
+  },
+  "schema": "loslab.rt_path_cap_sweep.v1",
+  "summaries": [
+    {
+      "geometric_visibility_state": "visible",
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 1000,
+      "metrics": {
+        "power_weighted_arrival_angular_spread_deg": {
+          "max": 29.1488807291764,
+          "median": 29.073061127782093,
+          "min": 29.028957783314727
+        },
+        "power_weighted_rms_delay_spread_ns": {
+          "max": 5.402805758336626,
+          "median": 5.402613911797971,
+          "min": 5.402352787342579
+        },
+        "valid_diffuse_reflection_path_count": {
+          "max": 993.0,
+          "median": 993.0,
+          "min": 993.0
+        },
+        "valid_path_count": {
+          "max": 999.0,
+          "median": 999.0,
+          "min": 999.0
+        },
+        "valid_path_power_sum": {
+          "max": 5.2376839448697865e-05,
+          "median": 5.235688513494097e-05,
+          "min": 5.2344890718813986e-05
+        }
+      },
+      "seed_count": 3
+    },
+    {
+      "geometric_visibility_state": "blocked",
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 1000,
+      "metrics": {
+        "power_weighted_arrival_angular_spread_deg": {
+          "max": 73.83915650897174,
+          "median": 73.8373022563838,
+          "min": 73.83045577136876
+        },
+        "power_weighted_rms_delay_spread_ns": {
+          "max": 22.057655257867737,
+          "median": 22.054102544188936,
+          "min": 22.04591709187298
+        },
+        "valid_diffuse_reflection_path_count": {
+          "max": 489.0,
+          "median": 487.0,
+          "min": 487.0
+        },
+        "valid_path_count": {
+          "max": 539.0,
+          "median": 537.0,
+          "min": 537.0
+        },
+        "valid_path_power_sum": {
+          "max": 7.455068043782376e-06,
+          "median": 7.453758826159174e-06,
+          "min": 7.453585112671135e-06
+        }
+      },
+      "seed_count": 3
+    },
+    {
+      "geometric_visibility_state": "visible",
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 10000,
+      "metrics": {
+        "power_weighted_arrival_angular_spread_deg": {
+          "max": 47.59589690671402,
+          "median": 47.48130620504662,
+          "min": 47.43872445625999
+        },
+        "power_weighted_rms_delay_spread_ns": {
+          "max": 23.047986630331252,
+          "median": 22.84848399369821,
+          "min": 22.75939081641809
+        },
+        "valid_diffuse_reflection_path_count": {
+          "max": 8087.0,
+          "median": 8061.0,
+          "min": 8048.0
+        },
+        "valid_path_count": {
+          "max": 8245.0,
+          "median": 8221.0,
+          "min": 8210.0
+        },
+        "valid_path_power_sum": {
+          "max": 6.926993955858052e-05,
+          "median": 6.911783566465601e-05,
+          "min": 6.897555431351066e-05
+        }
+      },
+      "seed_count": 3
+    },
+    {
+      "geometric_visibility_state": "blocked",
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 10000,
+      "metrics": {
+        "power_weighted_arrival_angular_spread_deg": {
+          "max": 80.59364343886968,
+          "median": 80.58289314974054,
+          "min": 80.5757246620604
+        },
+        "power_weighted_rms_delay_spread_ns": {
+          "max": 26.74939736380111,
+          "median": 26.744203296402702,
+          "min": 26.723011359308657
+        },
+        "valid_diffuse_reflection_path_count": {
+          "max": 3378.0,
+          "median": 3358.0,
+          "min": 3291.0
+        },
+        "valid_path_count": {
+          "max": 3560.0,
+          "median": 3539.0,
+          "min": 3473.0
+        },
+        "valid_path_power_sum": {
+          "max": 1.2900723959319293e-05,
+          "median": 1.2895887266495265e-05,
+          "min": 1.2895518011646345e-05
+        }
+      },
+      "seed_count": 3
+    },
+    {
+      "geometric_visibility_state": "visible",
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 1000000,
+      "metrics": {
+        "power_weighted_arrival_angular_spread_deg": {
+          "max": 50.67268464586124,
+          "median": 50.6610680758337,
+          "min": 50.63077025394068
+        },
+        "power_weighted_rms_delay_spread_ns": {
+          "max": 28.94419992571784,
+          "median": 28.918357486418245,
+          "min": 28.89897565694355
+        },
+        "valid_diffuse_reflection_path_count": {
+          "max": 10550.0,
+          "median": 10546.0,
+          "min": 10449.0
+        },
+        "valid_path_count": {
+          "max": 10850.0,
+          "median": 10846.0,
+          "min": 10748.0
+        },
+        "valid_path_power_sum": {
+          "max": 7.360961171798408e-05,
+          "median": 7.360809831880033e-05,
+          "min": 7.358597940765321e-05
+        }
+      },
+      "seed_count": 3
+    },
+    {
+      "geometric_visibility_state": "blocked",
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 1000000,
+      "metrics": {
+        "power_weighted_arrival_angular_spread_deg": {
+          "max": 80.59363391936046,
+          "median": 80.58290613129279,
+          "min": 80.57572898933437
+        },
+        "power_weighted_rms_delay_spread_ns": {
+          "max": 26.74939558744427,
+          "median": 26.744203296402702,
+          "min": 26.723011359308657
+        },
+        "valid_diffuse_reflection_path_count": {
+          "max": 3378.0,
+          "median": 3358.0,
+          "min": 3291.0
+        },
+        "valid_path_count": {
+          "max": 3560.0,
+          "median": 3539.0,
+          "min": 3473.0
+        },
+        "valid_path_power_sum": {
+          "max": 1.2900723959319293e-05,
+          "median": 1.2895888175989967e-05,
+          "min": 1.2895518011646345e-05
+        }
+      },
+      "seed_count": 3
+    }
+  ]
+}
