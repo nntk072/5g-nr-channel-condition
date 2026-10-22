@@ -112,6 +112,21 @@ def _relative_complex_l2(value: dict[str, Any], reference: dict[str, Any]) -> fl
     return math.sqrt(difference_power / reference_power)
 
 
+def _ratio(value: Any, reference: Any) -> float | None:
+    if (
+        isinstance(value, bool)
+        or isinstance(reference, bool)
+        or not isinstance(value, (int, float))
+        or not isinstance(reference, (int, float))
+        or not math.isfinite(value)
+        or not math.isfinite(reference)
+    ):
+        return None
+    if reference == 0.0:
+        return 1.0 if value == 0.0 else None
+    return float(value / reference)
+
+
 def compare_ray_budgets(
     low_path: Path,
     reference_path: Path,
@@ -160,6 +175,23 @@ def compare_ray_budgets(
                 "reference_budget_diffuse_path_count": ref.get(
                     "valid_diffuse_reflection_path_count"
                 ),
+                "low_to_reference_cfr_mean_power_ratio": _ratio(
+                    value.get("cfr_mean_power"), ref.get("cfr_mean_power")
+                ),
+                "low_to_reference_non_diffuse_path_power_ratio": _ratio(
+                    value.get("non_diffuse_path_power_sum"),
+                    ref.get("non_diffuse_path_power_sum"),
+                ),
+                "low_to_reference_diffuse_path_power_ratio": _ratio(
+                    value.get("diffuse_path_power_sum"), ref.get("diffuse_path_power_sum")
+                ),
+                "absolute_rms_delay_spread_difference_ns": abs(
+                    value["power_weighted_rms_delay_spread_ns"]
+                    - ref["power_weighted_rms_delay_spread_ns"]
+                )
+                if isinstance(value.get("power_weighted_rms_delay_spread_ns"), (int, float))
+                and isinstance(ref.get("power_weighted_rms_delay_spread_ns"), (int, float))
+                else None,
                 "relative_complex_cfr_l2": error,
             }
         )
@@ -174,6 +206,11 @@ def compare_ray_budgets(
             for row in rows
             if row["relative_complex_cfr_l2"] is not None
         ]
+
+        def median_metric(name: str) -> float | None:
+            values = [row[name] for row in rows if row[name] is not None]
+            return statistics.median(values) if values else None
+
         summary_by_depth_condition.append(
             {
                 "max_depth": depth,
@@ -185,6 +222,18 @@ def compare_ray_budgets(
                 ),
                 "relative_complex_cfr_l2_median": statistics.median(errors) if errors else None,
                 "relative_complex_cfr_l2_max": max(errors) if errors else None,
+                "low_to_reference_cfr_mean_power_ratio_median": median_metric(
+                    "low_to_reference_cfr_mean_power_ratio"
+                ),
+                "low_to_reference_non_diffuse_path_power_ratio_median": median_metric(
+                    "low_to_reference_non_diffuse_path_power_ratio"
+                ),
+                "low_to_reference_diffuse_path_power_ratio_median": median_metric(
+                    "low_to_reference_diffuse_path_power_ratio"
+                ),
+                "absolute_rms_delay_spread_difference_ns_median": median_metric(
+                    "absolute_rms_delay_spread_difference_ns"
+                ),
                 "zero_energy_comparisons": len(rows) - len(errors),
             }
         )
@@ -242,7 +291,28 @@ def main() -> None:
         reference_budget=args.reference_budget,
     )
     atomic_json(args.output, result)
-    print(json.dumps(result["summary"], sort_keys=True))
+    deepest_depth = max(
+        row["max_depth"] for row in result["summary"]["grouped_by_depth_and_geometric_condition"]
+    )
+    deepest = {
+        row["condition"]: {
+            "median_cfr_l2": row["relative_complex_cfr_l2_median"],
+            "path_count_changes": row["path_count_changes"],
+            "median_cfr_mean_power_ratio": row["low_to_reference_cfr_mean_power_ratio_median"],
+        }
+        for row in result["summary"]["grouped_by_depth_and_geometric_condition"]
+        if row["max_depth"] == deepest_depth
+    }
+    print(
+        json.dumps(
+            {
+                "matched_runs": result["summary"]["matched_runs"],
+                "deepest_depth": deepest_depth,
+                "conditions": deepest,
+            },
+            sort_keys=True,
+        )
+    )
 
 
 if __name__ == "__main__":

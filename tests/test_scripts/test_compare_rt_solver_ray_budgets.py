@@ -30,6 +30,10 @@ def _row(
         "candidate_path_counts_per_source_before_path_validation": [path_count],
         "candidate_path_cap_filled": False,
         "valid_diffuse_reflection_path_count": 2,
+        "cfr_mean_power": 20.0 if budget == 100 else 10.0,
+        "non_diffuse_path_power_sum": 8.0 if budget == 100 else 4.0,
+        "diffuse_path_power_sum": 2.0 if budget == 100 else 6.0,
+        "power_weighted_rms_delay_spread_ns": 10.0 if budget == 100 else 12.0,
     }
 
 
@@ -78,6 +82,9 @@ def test_reports_cfr_and_path_count_sensitivity_against_larger_budget(tmp_path: 
     assert group["matched_runs"] == 1
     assert group["path_count_changes"] == 1
     assert group["relative_complex_cfr_l2_median"] == pytest.approx(0.1 / (1 + 2.1**2) ** 0.5)
+    assert group["low_to_reference_non_diffuse_path_power_ratio_median"] == 2.0
+    assert group["low_to_reference_diffuse_path_power_ratio_median"] == pytest.approx(1 / 3)
+    assert group["absolute_rms_delay_spread_difference_ns_median"] == 2.0
 
 
 def test_zero_reference_channel_is_reported_without_division_error(tmp_path: Path):
