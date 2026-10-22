@@ -2,7 +2,7 @@
 ## Physically Grounded, Identifiability-Aware Multipath State Learning for 5G NR
 ### From LOS/NLOS classification to channel-state reconstruction, uncertainty, and forecasting
 
-**Document edition:** 3.121 — 2026-10-22 (whole-episode RT path mapping)
+**Document edition:** 3.122 — 2026-10-22 (static Sionna scene extraction)
 **Status:** execution specification and scientific decision record; **not** a completed study, not experimental evidence, and not a claim of top-tier acceptance.
 **Repository inspected:** live checkout /home/nguyenl37/5g-nr-channel-condition, branch main, initial implementation commit ffe199c80c1caf40dea91a406fe02124b3ff05ec (built from baseline cc43a5544036578a6bb57ce52b66436d8acb6c1b); local reference /home/nguyenl37/sionna at Sionna v2.2.0, commit 2f0a3820269b53fd022780a6f2f5f720f7ceb9b4, RT submodule commit 15b5ee036917a4c2a9b6420e05570b77717e2fcc.
 **Legacy work:** Long Nguyen, *5G Physical Layer Channel Conditions Classification Using Machine Learning Techniques*, Tampere University, July 2025, embedded in `docs/thesis/NguyenLong.pdf`.
@@ -2247,3 +2247,21 @@ LLVM backend. Ruff check and formatting pass across the 234-file maintained
 scope, mypy passes across 148 configured source files, `uv build` succeeds, and
 `git diff --check` passes. Hosted CI remains to be checked after pushing; it
 does not install native Sionna RT.
+**Edition 3.122 static scene-to-episode extraction:** Added
+`integrations/sionna/array_layouts.py` to convert the pinned Sionna 2.2 scene
+device mappings, positions, orientations, normalized element locations,
+pattern-major feed ordering, and carrier frequency into UMCD arrays, nodes,
+and directed links. It preserves Sionna TX/RX device-axis order and supplies
+ready-to-use `SionnaPathBinding` records for shared or per-link `Paths`
+results. Multi-port RF-chain counts and physical pattern labels must be
+provided by the caller; unknown network roles default to `OTHER`; moving
+devices are rejected until pose timelines are represented. A native LLVM
+2-TX×2-RX, dual-polarized, two-element test assembles all 64 link/frame/feed
+groups and checks delay mapping against the native solver output. No material
+or RF-chain calibration is implied.
+**Edition 3.122 verification:** The full local suite passes at 87.68% coverage;
+the static extraction suite passes including native Sionna RT. Ruff check and
+formatting pass across the 236-file maintained scope, mypy passes across 149
+source files, `uv lock --check`, `uv build`, and `git diff --check` pass.
+The hosted workflow does not install native Sionna RT, so the scene/Paths
+assertions remain local-backend evidence.

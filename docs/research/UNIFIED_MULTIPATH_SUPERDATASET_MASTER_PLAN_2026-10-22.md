@@ -1635,11 +1635,17 @@ table from explicit Sionna TX/RX/frame bindings. It requires exact link×frame
 coverage, applies ordered link-local port maps, retains empty port groups, and
 records solver-failure/unconverged states without fabricating path rows. A
 native 2-TX×2-RX scene test verifies all four directed device pairs are mapped
-into one episode. The finite-segment visibility oracle is now independent of
-PathSolver and separately cross-checked during legacy RT generation. Automatic
-Scene→NetworkEpisode/array-layout extraction, calibrated array/port semantics,
-solver convergence, and path-budget convergence plots are not complete; Stage
-S2 remains in progress.
+into one episode. `integrations/sionna/array_layouts.py` now converts static
+Scene devices and normalized antenna element positions into UMCD node/array
+records, preserves pattern-major port order and the scene device-axis indices,
+and can bind a shared `Paths` result to every extracted link. Native LLVM
+verification covers a 2-TX×2-RX scene with two elements and dual polarization.
+RF-chain counts and physical polarization labels remain explicit caller inputs;
+moving devices are rejected pending trajectory support. The finite-segment
+visibility oracle is now independent of PathSolver and separately cross-checked
+during legacy RT generation. Pose-timeline extraction, calibrated array/port
+semantics, solver convergence, and path-budget convergence plots are not
+complete; Stage S2 remains in progress.
 
 ### Stage S3: standardized and control families
 
