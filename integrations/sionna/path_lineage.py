@@ -121,9 +121,22 @@ class PathLineageObserver:
             k_rx = tuple(
                 self._array(buffer, axis, count) for axis in ("_k_rx_x", "_k_rx_y", "_k_rx_z")
             )
+            lineage_depth = self._array(buffer, "_lineage_depth", count)
+            lineage_sample = self._array(buffer, "_lineage_sample", count)
+            lineage_interaction = self._array(buffer, "_lineage_interaction", count)
+            lineage_valid = self._array(buffer, "_lineage_valid", count)
+            lineage_new_specular = self._array(
+                buffer, "_lineage_new_specular", count
+            )
+            lineage_hash_0 = self._array(buffer, "_lineage_hash_0", count)
+            lineage_hash_1 = self._array(buffer, "_lineage_hash_1", count)
             order_counts = Counter(int(np.count_nonzero(row)) for row in interactions)
             zero_rows = []
             for index in sorted(zero_indices):
+                candidate_depth = (
+                    int(lineage_depth[index]) if lineage_depth is not None else None
+                )
+                lineage_written = candidate_depth is not None and candidate_depth > 0
                 zero_rows.append(
                     {
                         "buffer_index": int(index),
@@ -139,6 +152,36 @@ class PathLineageObserver:
                         "vertices_m": vertices[index].astype(float).tolist(),
                         "k_tx": self._vector_at(k_tx, index),
                         "k_rx": self._vector_at(k_rx, index),
+                        "origin_sample_index": (
+                            int(lineage_sample[index])
+                            if lineage_written and lineage_sample is not None
+                            else None
+                        ),
+                        "candidate_depth": (
+                            candidate_depth if lineage_written else None
+                        ),
+                        "sampled_interaction_type": (
+                            int(lineage_interaction[index])
+                            if lineage_written and lineage_interaction is not None
+                            else None
+                        ),
+                        "candidate_valid_before_image_method": (
+                            bool(lineage_valid[index])
+                            if lineage_written and lineage_valid is not None
+                            else None
+                        ),
+                        "specular_hash_winner": (
+                            bool(lineage_new_specular[index])
+                            if lineage_written and lineage_new_specular is not None
+                            else None
+                        ),
+                        "specular_hashes": [
+                            int(lineage_hash_0[index]),
+                            int(lineage_hash_1[index]),
+                        ] if lineage_written
+                            and lineage_hash_0 is not None
+                            and lineage_hash_1 is not None
+                            else None,
                     }
                 )
             record = {

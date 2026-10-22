@@ -1,0 +1,247 @@
+{
+  "case": {
+    "high_samples_per_src": 1000000,
+    "link_id": "center-los",
+    "low_samples_per_src": 100000,
+    "max_depth": 10,
+    "seed": 23,
+    "thresholds_m": [
+      0.001,
+      0.005,
+      0.01,
+      0.02,
+      0.05
+    ]
+  },
+  "interpretation": "Zero-interaction rows are summarized as an aggregate contribution class and are never assigned one-to-one identities by Hungarian matching. Threshold sensitivity applies only to nonzero-interaction records. Fingerprint counts are descriptive, not proof of physical identity.",
+  "nonzero_interaction_threshold_sensitivity": [
+    {
+      "maximum_match_cost_m": 0.001,
+      "nonzero_interaction_matching": {
+        "cfr_delta_decomposition_norm_relative_to_nonzero_delta": {
+          "additive_closure_error": 6.097261541207828e-16,
+          "lost_path_contributions": 0.8589424788161656,
+          "matched_path_coefficient_geometry_change": 0.00404222796357954,
+          "new_path_contributions": 0.6121166035544201
+        },
+        "high_only_count": 380,
+        "high_record_count": 522,
+        "low_only_count": 43,
+        "low_record_count": 185,
+        "matched_count": 142,
+        "matched_path_variation": {
+          "absolute_delay_error_ns": {
+            "max": 0.00011368683772161603,
+            "median": 0.0,
+            "p95": 5.6843418860808015e-05
+          },
+          "maximum_arrival_departure_direction_error_rad": {
+            "max": 4.121699974310754e-06,
+            "median": 1.4901161193847656e-08,
+            "p95": 1.070521755359181e-06
+          },
+          "maximum_interaction_vertex_displacement_m": {
+            "max": 0.0005957801223850384,
+            "median": 0.0,
+            "p95": 0.00015513942849218598
+          },
+          "symmetric_complex_coefficient_relative_error": {
+            "max": 7.877266272471693e-05,
+            "median": 0.0,
+            "p95": 2.3673111142117728e-05
+          }
+        }
+      }
+    },
+    {
+      "maximum_match_cost_m": 0.005,
+      "nonzero_interaction_matching": {
+        "cfr_delta_decomposition_norm_relative_to_nonzero_delta": {
+          "additive_closure_error": 6.097261541207828e-16,
+          "lost_path_contributions": 0.8496088193274413,
+          "matched_path_coefficient_geometry_change": 0.004042348836682135,
+          "new_path_contributions": 0.6291565863157031
+        },
+        "high_only_count": 374,
+        "high_record_count": 522,
+        "low_only_count": 37,
+        "low_record_count": 185,
+        "matched_count": 148,
+        "matched_path_variation": {
+          "absolute_delay_error_ns": {
+            "max": 0.00011368683772161603,
+            "median": 0.0,
+            "p95": 5.6843418860808015e-05
+          },
+          "maximum_arrival_departure_direction_error_rad": {
+            "max": 1.3486604623140367e-05,
+            "median": 1.4901161193847656e-08,
+            "p95": 3.8340825321959585e-06
+          },
+          "maximum_interaction_vertex_displacement_m": {
+            "max": 0.0007863310768341752,
+            "median": 0.0,
+            "p95": 0.0002884745312403024
+          },
+          "symmetric_complex_coefficient_relative_error": {
+            "max": 7.877266272471693e-05,
+            "median": 0.0,
+            "p95": 2.6180515257799088e-05
+          }
+        }
+      }
+    },
+    {
+      "maximum_match_cost_m": 0.01,
+      "nonzero_interaction_matching": {
+        "cfr_delta_decomposition_norm_relative_to_nonzero_delta": {
+          "additive_closure_error": 6.097261541207828e-16,
+          "lost_path_contributions": 0.8496088193274413,
+          "matched_path_coefficient_geometry_change": 0.004042348836682135,
+          "new_path_contributions": 0.6291565863157031
+        },
+        "high_only_count": 374,
+        "high_record_count": 522,
+        "low_only_count": 37,
+        "low_record_count": 185,
+        "matched_count": 148,
+        "matched_path_variation": {
+          "absolute_delay_error_ns": {
+            "max": 0.00011368683772161603,
+            "median": 0.0,
+            "p95": 5.6843418860808015e-05
+          },
+          "maximum_arrival_departure_direction_error_rad": {
+            "max": 1.3486604623140367e-05,
+            "median": 1.4901161193847656e-08,
+            "p95": 3.8340825321959585e-06
+          },
+          "maximum_interaction_vertex_displacement_m": {
+            "max": 0.0007863310768341752,
+            "median": 0.0,
+            "p95": 0.0002884745312403024
+          },
+          "symmetric_complex_coefficient_relative_error": {
+            "max": 7.877266272471693e-05,
+            "median": 0.0,
+            "p95": 2.6180515257799088e-05
+          }
+        }
+      }
+    },
+    {
+      "maximum_match_cost_m": 0.02,
+      "nonzero_interaction_matching": {
+        "cfr_delta_decomposition_norm_relative_to_nonzero_delta": {
+          "additive_closure_error": 6.097261541207828e-16,
+          "lost_path_contributions": 0.8496088193274413,
+          "matched_path_coefficient_geometry_change": 0.004042348836682135,
+          "new_path_contributions": 0.6291565863157031
+        },
+        "high_only_count": 374,
+        "high_record_count": 522,
+        "low_only_count": 37,
+        "low_record_count": 185,
+        "matched_count": 148,
+        "matched_path_variation": {
+          "absolute_delay_error_ns": {
+            "max": 0.00011368683772161603,
+            "median": 0.0,
+            "p95": 5.6843418860808015e-05
+          },
+          "maximum_arrival_departure_direction_error_rad": {
+            "max": 1.3486604623140367e-05,
+            "median": 1.4901161193847656e-08,
+            "p95": 3.8340825321959585e-06
+          },
+          "maximum_interaction_vertex_displacement_m": {
+            "max": 0.0007863310768341752,
+            "median": 0.0,
+            "p95": 0.0002884745312403024
+          },
+          "symmetric_complex_coefficient_relative_error": {
+            "max": 7.877266272471693e-05,
+            "median": 0.0,
+            "p95": 2.6180515257799088e-05
+          }
+        }
+      }
+    },
+    {
+      "maximum_match_cost_m": 0.05,
+      "nonzero_interaction_matching": {
+        "cfr_delta_decomposition_norm_relative_to_nonzero_delta": {
+          "additive_closure_error": 6.097261541207828e-16,
+          "lost_path_contributions": 0.8496088193274413,
+          "matched_path_coefficient_geometry_change": 0.004042348836682135,
+          "new_path_contributions": 0.6291565863157031
+        },
+        "high_only_count": 374,
+        "high_record_count": 522,
+        "low_only_count": 37,
+        "low_record_count": 185,
+        "matched_count": 148,
+        "matched_path_variation": {
+          "absolute_delay_error_ns": {
+            "max": 0.00011368683772161603,
+            "median": 0.0,
+            "p95": 5.6843418860808015e-05
+          },
+          "maximum_arrival_departure_direction_error_rad": {
+            "max": 1.3486604623140367e-05,
+            "median": 1.4901161193847656e-08,
+            "p95": 3.8340825321959585e-06
+          },
+          "maximum_interaction_vertex_displacement_m": {
+            "max": 0.0007863310768341752,
+            "median": 0.0,
+            "p95": 0.0002884745312403024
+          },
+          "symmetric_complex_coefficient_relative_error": {
+            "max": 7.877266272471693e-05,
+            "median": 0.0,
+            "p95": 2.6180515257799088e-05
+          }
+        }
+      }
+    }
+  ],
+  "provenance": {
+    "analysis_script_sha256": "f10a78d0de4df2d1d4da5cffe296be2e74238729462d698f616e4684edd7e6d1",
+    "package_source_sha256": "84bdd32cea59cceab66b527b677a563550a67b7a2c12eb01fa491248b0682657",
+    "source_report": "docs/research/results/rt-city43-center-los-seed23-depth10-s0-path-attribution-100k-vs-1m-20261022.json.gz",
+    "source_report_sha256": "2aac0458f9a5da69fa9d99ee11b6c0947b6e3ec01380ff60e92d18bceed064a0",
+    "versions": {
+      "git_sha": "3ca828a01693ef082bd84dd46d39e942fe8360e1",
+      "numpy": "2.5.4",
+      "python": "3.12.3",
+      "scikit-learn": "1.9.1",
+      "sionna": "2.2.0",
+      "sionna-phy": "not installed",
+      "sionna-rt": "2.2.0",
+      "torch": "2.11.0+cu128"
+    }
+  },
+  "schema": "loslab.rt_path_match_sensitivity.v1",
+  "zero_interaction_class": {
+    "aggregate_delta_norm_relative_to_total_cfr_delta": 0.999949398405427,
+    "high": {
+      "coherent_component_mean_power": 0.00013638656240720198,
+      "incoherent_sum_path_mean_power": 1.8184874987626926e-06,
+      "record_count": 75,
+      "unique_coefficients_at_1e-12_resolution": 1,
+      "unique_delays_at_1_ps_resolution": 1,
+      "unique_geometry_fingerprints_descriptive_only": 1,
+      "zero_transmitter_angle_records": 74
+    },
+    "low": {
+      "coherent_component_mean_power": 1.9639664986637083e-06,
+      "incoherent_sum_path_mean_power": 2.1821849985152313e-07,
+      "record_count": 9,
+      "unique_coefficients_at_1e-12_resolution": 1,
+      "unique_delays_at_1_ps_resolution": 1,
+      "unique_geometry_fingerprints_descriptive_only": 1,
+      "zero_transmitter_angle_records": 8
+    }
+  }
+}
