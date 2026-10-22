@@ -105,6 +105,29 @@ class NRObservation:
 
 
 @dataclass(frozen=True, slots=True)
+class LinkedNRObservation:
+    """One receiver observation bound to a link and frame in a network episode."""
+
+    link_id: str
+    frame_index: int
+    observation: NRObservation
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.link_id, str) or not self.link_id.strip():
+            raise ValueError("link_id must be a non-empty string")
+        if isinstance(self.frame_index, bool) or not isinstance(self.frame_index, int):
+            raise TypeError("frame_index must be an integer")
+        if self.frame_index < 0:
+            raise ValueError("frame_index must be non-negative")
+        if not isinstance(self.observation, NRObservation):
+            raise TypeError("observation must be an NRObservation")
+        if self.observation.received_grid.shape[0] != 1:
+            raise ValueError("a linked observation must contain exactly one batch item")
+        if self.observation.channel_estimate.h_hat.shape[0] != 1:
+            raise ValueError("a linked channel estimate must contain exactly one batch item")
+
+
+@dataclass(frozen=True, slots=True)
 class NRChannelRecord:
     """Training/evaluation record separating model inputs from private truth."""
 

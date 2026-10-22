@@ -12,6 +12,7 @@ from .episode_store import (
     EpisodeBundle,
     StoredEpisodeBundle,
     read_episode_bundle,
+    read_receiver_model_inputs,
     write_episode_bundle,
 )
 from .network import (
@@ -23,7 +24,14 @@ from .network import (
     NetworkNode,
     NodeRole,
 )
-from .nr import NRChannelRecord, NRModelInputs, NRObservation, NRTrajectory, TargetDefinition
+from .nr import (
+    LinkedNRObservation,
+    NRChannelRecord,
+    NRModelInputs,
+    NRObservation,
+    NRTrajectory,
+    TargetDefinition,
+)
 from .nr_store import (
     NRStoredRecord,
     NRStoredTrajectory,
@@ -42,6 +50,7 @@ __all__ = [
     "ChannelPowerScale",
     "PhysicalChannelView",
     "EpisodeBundle",
+    "LinkedNRObservation",
     "StoredEpisodeBundle",
     "AntennaArraySpec",
     "DirectedLink",
@@ -65,6 +74,7 @@ __all__ = [
     "TargetValue",
     "definition_digest",
     "read_episode_bundle",
+    "read_receiver_model_inputs",
     "write_episode_bundle",
     "NRStoredTrajectory",
     "debug_multipath",

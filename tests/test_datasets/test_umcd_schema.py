@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 
 import numpy as np
 import pytest
@@ -14,6 +15,7 @@ from datasets.channel_view import (
 from datasets.episode_store import (
     EpisodeBundle,
     read_episode_bundle,
+    read_receiver_model_inputs,
     write_episode_bundle,
 )
 from datasets.network import (
@@ -25,8 +27,10 @@ from datasets.network import (
     NetworkNode,
     NodeRole,
 )
+from datasets.nr import LinkedNRObservation, NRObservation
 from datasets.path_oracle import PathOracleTable, PathSolveStatus
 from datasets.targets import TargetDefinition, TargetValidity, TargetValue, definition_digest
+from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
 
 def _episode() -> NetworkEpisode:
@@ -428,5 +432,54 @@ def test_episode_bundle_rejects_tampered_content_and_immutable_id_reuse(tmp_path
     path_ref = next(item for item in manifest["layers"] if item["layer"] == "oracle_paths")
     path_object = tmp_path / path_ref["path"]
     path_object.write_bytes(path_object.read_bytes() + b"tampered")
+    with pytest.raises(ValueError, match="content hash"):
+        read_episode_bundle(tmp_path, stored)
+
+
+def _receiver_binding() -> LinkedNRObservation:
+    estimate = NRChannelEstimate(
+        h_hat=np.ones((1, 1, 1, 1, 1, 14, 4), dtype=np.complex64),
+        error_variance=np.zeros((1, 1, 1, 1, 1, 14, 4), dtype=np.float32),
+        pilot_mask=np.ones((1, 1, 14, 4), dtype=np.bool_),
+        metadata={"estimator": "test"},
+    )
+    observation = NRObservation(
+        sample_id="sample-1",
+        received_grid=np.ones((1, 1, 1, 14, 12), dtype=np.complex64),
+        channel_estimate=estimate,
+        fft_bin_indices=(0, 1, 2, 3),
+        receiver_config=NRPUSCHConfig(),
+    )
+    return LinkedNRObservation("gNB-1-to-UE-1", 0, observation)
+
+
+def test_receiver_view_roundtrip_isolated_from_oracle_and_targets(tmp_path):
+    bundle = replace(_bundle(), receiver_observations=(_receiver_binding(),))
+    stored = write_episode_bundle(tmp_path, bundle)
+
+    inference = read_receiver_model_inputs(tmp_path, stored)
+    assert len(inference) == 1
+    np.testing.assert_array_equal(
+        inference[0].received_grid, bundle.receiver_observations[0].observation.received_grid
+    )
+    np.testing.assert_array_equal(
+        inference[0].h_hat, bundle.receiver_observations[0].observation.channel_estimate.h_hat
+    )
+    assert inference[0].fft_bin_indices == (0, 1, 2, 3)
+    assert not hasattr(inference[0], "sample_id")
+    assert not hasattr(inference[0], "targets")
+
+    loaded = read_episode_bundle(tmp_path, stored)
+    assert loaded.receiver_observations[0].link_id == "gNB-1-to-UE-1"
+    assert loaded.receiver_observations[0].observation.sample_id == "sample-1"
+    manifest = json.loads((tmp_path / stored.relative_path).read_text())
+    assert "receiver_observations" in {item["layer"] for item in manifest["layers"]}
+
+    oracle_ref = next(item for item in manifest["layers"] if item["layer"] == "oracle_paths")
+    oracle_path = tmp_path / oracle_ref["path"]
+    oracle_path.write_bytes(oracle_path.read_bytes() + b"tampered")
+    # Receiver inference reads only the episode and receiver objects; the full
+    # training bundle reader still checks every oracle/target object.
+    assert len(read_receiver_model_inputs(tmp_path, stored)) == 1
     with pytest.raises(ValueError, match="content hash"):
         read_episode_bundle(tmp_path, stored)
