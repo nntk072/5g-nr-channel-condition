@@ -2,7 +2,7 @@
 ## Physically Grounded, Identifiability-Aware Multipath State Learning for 5G NR
 ### From LOS/NLOS classification to channel-state reconstruction, uncertainty, and forecasting
 
-**Document edition:** 3.112 — 2026-10-22 (polarized MIMO path partition)
+**Document edition:** 3.120 — 2026-10-22 (independent geometric visibility oracle)
 **Status:** execution specification and scientific decision record; **not** a completed study, not experimental evidence, and not a claim of top-tier acceptance.
 **Repository inspected:** live checkout /home/nguyenl37/5g-nr-channel-condition, branch main, initial implementation commit ffe199c80c1caf40dea91a406fe02124b3ff05ec (built from baseline cc43a5544036578a6bb57ce52b66436d8acb6c1b); local reference /home/nguyenl37/sionna at Sionna v2.2.0, commit 2f0a3820269b53fd022780a6f2f5f720f7ceb9b4, RT submodule commit 15b5ee036917a4c2a9b6420e05570b77717e2fcc.
 **Legacy work:** Long Nguyen, *5G Physical Layer Channel Conditions Classification Using Machine Learning Techniques*, Tampere University, July 2025, embedded in `docs/thesis/NguyenLong.pdf`.
@@ -2214,3 +2214,21 @@ The target/label distinctions and the roles of RT, TDL/CDL, analytical, and meas
 **Edition 3.119 interaction geometry trace:** Extended the UMCD ragged path table with a second CSR offset level for each path's ordered interactions, preserving native interaction-type flags, scene-local object and primitive IDs, and Sionna scene-XYZ vertices in meters. The native adapter handles synthetic and explicit array axes and filters padded `NONE` depths without fabricating interaction rows. The immutable episode store persists these arrays and the declared vertex coordinate frame; validation rejects partial traces, offset/order disagreement, and invalid coordinates. Native LLVM comparisons and bundle round-trip tests pass. This captures interaction geometry from the path solver; object IDs remain scene-realization scoped, and this does not replace an independent geometric direct-visibility oracle or solver-convergence validation.
 
 **Edition 3.119 verification:** The complete local suite passes with 519 passed, 3 skipped, and 87.77% coverage. Thirteen focused dataset/native cases cover interaction-trace validation, storage round-trip, synthetic/explicit arrays, V/VH polarization, zero paths, and multi-device selection. Ruff check/format pass across 231 maintained files; mypy passes across 146 source files; `uv lock --check` and `uv build` pass. Hosted CI [run 39727460346](https://github.com/nntk072/5g-nr-channel-condition/actions/runs/39727460346) passes all four jobs. Hosted workflows do not install native Sionna RT.
+**Edition 3.120 independent geometric LOS oracle:** RT generation now labels links
+from an independent finite Mitsuba scene-segment query, cross-checked against
+Sionna's depth-zero LOS-only solver. Four parallel probes detect boundary-
+sensitive links and a grazing-incidence threshold marks tangent hits ambiguous.
+Ambiguous links and geometry/solver disagreements are counted and skipped;
+per-link records retain segment length, first-hit distance, incidence cosine,
+and probe outcomes. Native LLVM tests cover clear, screen-blocked, and screen-
+edge links; mock tests verify that mismatches never enter datasets. This
+fixture-level gate does not settle material penetration or broader orientation
+and coplanar cases. Historical datasets retain their existing provenance and
+were not rewritten. The City43 3D figure now gives building meshes/footprints
+more contrast and shows three TX locations with sampled RX links.
+**Edition 3.120 verification:** The full local suite passes with 522 passed, 3
+skipped, and 87.75% coverage. Ruff check and formatting pass across the 232-file
+maintained scope; mypy passes across 147 configured source files; `uv lock
+--check`, `uv build`, and `git diff --check` pass. Hosted CI is pending. Native
+Mitsuba/Sionna RT coverage is verified on this local LLVM backend; hosted CI
+does not install RT.

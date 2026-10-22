@@ -21,6 +21,8 @@ from datasets.channel import ChannelDataset
 from matplotlib.lines import Line2D
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
+matplotlib.rcParams["svg.hashsalt"] = "5g-nr-channel-condition"
+
 CLASS_COLORS = {0: "#168a83", 1: "#e27a32"}
 TX_COLORS = {"west_x3": "#5b4b9a", "center_x0": "#2773a8", "east_x3": "#b54c6b"}
 TX_LABELS = {"west_x3": "West", "center_x0": "Center", "east_x3": "East"}
@@ -74,10 +76,10 @@ def make_figure(run_root: Path, output: Path) -> None:
         ax3d.add_collection3d(
             Poly3DCollection(
                 _cuboid_faces(bounds),
-                facecolor="#8795a1",
-                edgecolor="#53616c",
-                linewidth=0.42,
-                alpha=0.28,
+                facecolor="#768692",
+                edgecolor="#3e4b54",
+                linewidth=0.62,
+                alpha=0.42,
             )
         )
         x0, y0, _, x1, y1, _ = bounds
@@ -268,7 +270,7 @@ def make_figure(run_root: Path, output: Path) -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output, dpi=220, bbox_inches="tight")
     svg_output = output.with_suffix(".svg")
-    fig.savefig(svg_output, bbox_inches="tight")
+    fig.savefig(svg_output, bbox_inches="tight", metadata={"Date": None})
     svg_text = svg_output.read_text(encoding="utf-8")
     svg_output.write_text(
         "\n".join(line.rstrip() for line in svg_text.splitlines()) + "\n",

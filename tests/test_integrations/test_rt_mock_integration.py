@@ -5,6 +5,7 @@ import types
 
 import numpy as np
 from integrations.sionna.adapter import GridConfig, RayScene, generate_raytraced
+from integrations.sionna.los_oracle import SegmentVisibilityResult, SegmentVisibilityState
 
 
 def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
@@ -18,7 +19,9 @@ def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
     empty_path_class: str | None = None
     force_solver_error = False
     force_oracle_error = False
+    force_geometry_error = False
     force_all_los = False
+    force_visibility_disagreement = False
 
     class FakeScene:
         def add(self, object):
@@ -59,6 +62,8 @@ def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
             if kw["max_depth"] == 0:
                 if force_oracle_error:
                     raise RuntimeError("mock oracle failure")
+                if force_visibility_disagreement:
+                    visible = not visible
                 if force_all_los:
                     return FakePaths(1)
                 return FakePaths(1 if visible else 0)
@@ -77,6 +82,21 @@ def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
     scene_module.Transmitter = FakeElement
     scene_module.Receiver = FakeElement
     scene_module.PathSolver = FakeSolver
+    from integrations.sionna import adapter
+
+    def fake_segment_visibility(scene, source_position_m, target_position_m):
+        if force_geometry_error:
+            raise RuntimeError("mock geometry failure")
+        visible = force_all_los or target_position_m[0] > 0
+        return SegmentVisibilityResult(
+            SegmentVisibilityState.VISIBLE if visible else SegmentVisibilityState.BLOCKED,
+            1.0,
+            None,
+            None,
+            (),
+        )
+
+    monkeypatch.setattr(adapter, "segment_visibility", fake_segment_visibility)
     mi = types.ModuleType("mitsuba")
     mi.Float = float
     mi.TensorXb = lambda value: np.asarray(value, dtype=bool)
@@ -113,8 +133,15 @@ def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
     )
     assert len(d.y) == 6 and sum(d.y) == 3
     report = d.generation_report
-    assert report["schema"] == "loslab.raytraced_generation_report.v2"
+    assert report["schema"] == "loslab.raytraced_generation_report.v3"
     assert report["label_semantics"] == "geometric_direct_path_oracle"
+    assert report["label_oracle"] == {
+        "primary": "independent_finite_scene_segment_visibility_query",
+        "cross_check": "depth_zero_los_only_path_solver",
+        "policy": "skip_ambiguous_or_disagreeing_candidates",
+        "grazing_cosine_threshold": 1e-3,
+        "boundary_probe_offset_m": 1e-3,
+    }
     assert report["channel_semantics"] == {
         "schema": "loslab.rt_absolute_channel.v1",
         "delay_reference": "absolute_sionna_path_delay_s",
@@ -135,11 +162,16 @@ def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
     }
     assert report["attempt_counts"]["attempts_started"] == (
         report["attempt_counts"]["obstacle_rejections"]
-        + report["attempt_counts"]["depth_zero_oracle_calls"]
+        + report["attempt_counts"]["geometry_oracle_attempts"]
+    )
+    assert report["attempt_counts"]["geometry_oracle_attempts"] == (
+        report["attempt_counts"]["geometry_oracle_calls"]
+        + report["attempt_counts"]["geometry_oracle_errors"]
     )
     assert report["attempt_counts"]["depth_zero_oracle_calls"] == (
         report["attempt_counts"]["candidate_geometric_los"]
         + report["attempt_counts"]["candidate_geometric_nlos"]
+        + report["attempt_counts"]["depth_zero_geometry_disagreements"]
     )
     assert report["attempt_counts"]["full_solver_calls"] >= len(d.y)
     assert report["attempt_counts"]["full_solver_empty_paths"] == 1
@@ -159,6 +191,8 @@ def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
     assert "Empty full-solver path outcomes are counted" in report["selection_note"]
     assert all(m["los_plus_indirect_paths"] for m, y in zip(d.metadata, d.y) if y == 1)
     assert all(m["valid_paths_full"] >= 2 for m in d.metadata)
+    assert all(m["geometry_oracle"]["state"] in {"visible", "blocked"} for m in d.metadata)
+    assert all(len(m["geometry_oracle"]["boundary_probe_blocked"]) == 0 for m in d.metadata)
     assert all(
         m["valid_paths_direct_component"] == (1 if y else 0)
         for m, y in zip(d.metadata, d.y, strict=True)
@@ -211,6 +245,38 @@ def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
     else:
         raise AssertionError("oracle failure should carry an RT generation report")
     force_oracle_error = False
+
+    force_geometry_error = True
+    try:
+        generate_raytraced(
+            RayScene(name="mock", per_class=1, max_attempts=2),
+            grid=GridConfig(n_subcarriers=32),
+            seed=19,
+        )
+    except RaytraceGenerationError as error:
+        report = error.generation_report
+        assert report["solver_failure"]["stage"] == "geometry_oracle"
+        assert report["attempt_counts"]["geometry_oracle_attempts"] == 1
+        assert report["attempt_counts"]["geometry_oracle_errors"] == 1
+    else:
+        raise AssertionError("geometry oracle failure should carry an RT generation report")
+    force_geometry_error = False
+
+    force_visibility_disagreement = True
+    try:
+        generate_raytraced(
+            RayScene(name="mock", per_class=1, max_attempts=2),
+            grid=GridConfig(n_subcarriers=32),
+            seed=18,
+        )
+    except RaytraceGenerationError as error:
+        report = error.generation_report
+        assert report["status"] == "insufficient_samples"
+        assert report["attempt_counts"]["depth_zero_geometry_disagreements"] == 2
+        assert report["attempt_counts"]["full_solver_attempts"] == 0
+    else:
+        raise AssertionError("a geometry/solver disagreement must not produce a sample")
+    force_visibility_disagreement = False
 
     force_solver_error = True
     try:

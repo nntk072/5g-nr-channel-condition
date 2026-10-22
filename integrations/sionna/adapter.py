@@ -2,7 +2,8 @@
 
 Important: no fabricated LOS=one-path assumption. A physical LOS link may contain
 one direct ray plus any number of reflected, diffuse and refracted rays.
-LOS oracle: an independent depth-zero geometric PathSolver invocation.
+LOS labels use an independent scene-segment query cross-checked against a
+depth-zero geometric PathSolver invocation.
 """
 
 from __future__ import annotations
@@ -19,6 +20,7 @@ from artifacts.provenance import package_source_sha256, versions
 from datasets.channel import ChannelDataset
 from propagation.physics import add_estimation_noise, frequency_response, subcarrier_frequencies
 
+from integrations.sionna.los_oracle import SegmentVisibilityState, segment_visibility
 from integrations.sionna.random import call_with_sionna_seed
 from integrations.sionna.rt_identity import (
     rt_run_identity,
@@ -386,8 +388,9 @@ def generate_raytraced(
 ) -> ChannelDataset:
     """Balanced physical LOS/NLOS ray tracing. Fail closed when insufficient examples.
 
-    Full PathSolver includes direct + reflection (and optional diffuse). Independent
-    depth-zero oracle determines geometric LOS without exploiting model profile.
+    Full PathSolver includes direct + reflection (and optional diffuse). A finite
+    scene-segment query determines geometric LOS; depth-zero PathSolver results
+    cross-check the label, and ambiguous/disagreeing candidates are excluded.
     Report how often LOS really contains >=2 valid paths; default rejects
     direct-only LOS. NLOS must contain at least one observable indirect path.
     """
@@ -449,9 +452,15 @@ def generate_raytraced(
     attempt_counts = {
         "attempts_started": 0,
         "obstacle_rejections": 0,
+        "geometry_oracle_attempts": 0,
+        "geometry_oracle_calls": 0,
+        "geometry_oracle_errors": 0,
+        "geometry_oracle_ambiguous": 0,
+        "geometry_oracle_coincident": 0,
         "depth_zero_oracle_attempts": 0,
         "depth_zero_oracle_calls": 0,
         "depth_zero_oracle_errors": 0,
+        "depth_zero_geometry_disagreements": 0,
         "candidate_geometric_nlos": 0,
         "candidate_geometric_los": 0,
         "class_quota_skips": 0,
@@ -497,6 +506,28 @@ def generate_raytraced(
                 attempt_counts["obstacle_rejections"] += 1
                 continue
         receiver.position = [float(x), float(y), float(z)]
+        attempt_counts["geometry_oracle_attempts"] += 1
+        try:
+            visibility = segment_visibility(scene, cfg.tx_position, (x, y, z))
+        except Exception as error:
+            attempt_counts["geometry_oracle_errors"] += 1
+            solver_failure = {
+                "stage": "geometry_oracle",
+                "attempt_index": attempt,
+                "exception_type": type(error).__name__,
+                "message": str(error),
+            }
+            break
+        attempt_counts["geometry_oracle_calls"] += 1
+        if visibility.state is SegmentVisibilityState.AMBIGUOUS:
+            attempt_counts["geometry_oracle_ambiguous"] += 1
+            continue
+        if visibility.state is SegmentVisibilityState.COINCIDENT_ENDPOINTS:
+            attempt_counts["geometry_oracle_coincident"] += 1
+            continue
+        if visibility.visible is None:
+            raise RuntimeError("geometry oracle returned a non-labelable visibility state")
+        label = int(visibility.visible)
         attempt_counts["depth_zero_oracle_attempts"] += 1
         try:
             oracle_paths = los_oracle(
@@ -519,7 +550,10 @@ def generate_raytraced(
             }
             break
         attempt_counts["depth_zero_oracle_calls"] += 1
-        label = int(has_valid_path(oracle_paths))
+        solver_label = int(has_valid_path(oracle_paths))
+        if solver_label != label:
+            attempt_counts["depth_zero_geometry_disagreements"] += 1
+            continue
         attempt_counts["candidate_geometric_los" if label else "candidate_geometric_nlos"] += 1
         if hits[label] >= cfg.per_class:
             attempt_counts["class_quota_skips"] += 1
@@ -603,6 +637,13 @@ def generate_raytraced(
                 "scene_asset_manifest_complete": scene_assets["complete"],
                 "scene_asset_count": scene_assets["asset_count"],
                 "geometry_label": "GEOMETRIC_DIRECT_PATH_ORACLE",
+                "geometry_oracle": {
+                    "state": visibility.state.value,
+                    "segment_length_m": visibility.segment_length_m,
+                    "first_intersection_distance_m": visibility.first_intersection_distance_m,
+                    "incidence_cosine": visibility.incidence_cosine,
+                    "boundary_probe_blocked": list(visibility.boundary_probe_blocked),
+                },
                 "tx": list(cfg.tx_position),
                 "transmitter_id": cfg.transmitter_id,
                 "rx": [x, y, z],
@@ -638,15 +679,27 @@ def generate_raytraced(
     solver_config = static_rt_solver_config(cfg.max_depth)
     if (
         attempt_counts["attempts_started"]
-        != attempt_counts["obstacle_rejections"] + attempt_counts["depth_zero_oracle_attempts"]
+        != attempt_counts["obstacle_rejections"] + attempt_counts["geometry_oracle_attempts"]
     ):
         raise RuntimeError("RT generation report does not account for every candidate attempt")
+    if attempt_counts["geometry_oracle_attempts"] != (
+        attempt_counts["geometry_oracle_calls"] + attempt_counts["geometry_oracle_errors"]
+    ):
+        raise RuntimeError("RT generation report does not account for every scene-geometry query")
+    if attempt_counts["geometry_oracle_calls"] != (
+        attempt_counts["geometry_oracle_ambiguous"]
+        + attempt_counts["geometry_oracle_coincident"]
+        + attempt_counts["depth_zero_oracle_attempts"]
+    ):
+        raise RuntimeError("RT generation report does not account for every geometry result")
     if attempt_counts["depth_zero_oracle_attempts"] != (
         attempt_counts["depth_zero_oracle_calls"] + attempt_counts["depth_zero_oracle_errors"]
     ):
         raise RuntimeError("RT generation report does not account for every LOS-oracle attempt")
     if attempt_counts["depth_zero_oracle_calls"] != (
-        attempt_counts["candidate_geometric_los"] + attempt_counts["candidate_geometric_nlos"]
+        attempt_counts["candidate_geometric_los"]
+        + attempt_counts["candidate_geometric_nlos"]
+        + attempt_counts["depth_zero_geometry_disagreements"]
     ):
         raise RuntimeError("RT generation report does not account for every LOS-oracle result")
     if attempt_counts["full_solver_attempts"] != (
@@ -685,8 +738,15 @@ def generate_raytraced(
     ):
         raise RuntimeError("RT class report does not match accepted sample count")
     generation_report = {
-        "schema": "loslab.raytraced_generation_report.v2",
+        "schema": "loslab.raytraced_generation_report.v3",
         "label_semantics": "geometric_direct_path_oracle",
+        "label_oracle": {
+            "primary": "independent_finite_scene_segment_visibility_query",
+            "cross_check": "depth_zero_los_only_path_solver",
+            "policy": "skip_ambiguous_or_disagreeing_candidates",
+            "grazing_cosine_threshold": 1e-3,
+            "boundary_probe_offset_m": 1e-3,
+        },
         "channel_semantics": {
             "schema": "loslab.rt_absolute_channel.v1",
             "delay_reference": "absolute_sionna_path_delay_s",
