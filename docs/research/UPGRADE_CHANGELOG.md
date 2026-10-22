@@ -117,4 +117,5 @@
   `H_full = H_direct + H_indirect`.
 - All 30 focused adapter/mock/native tests pass; Ruff lint/format and mypy pass.
   The full suite passed at 88.11% coverage before this test-only expansion.
-  Hosted CI is pending for this revision; it does not install native Sionna RT.
+  Hosted CI run 39713206686 passes all four software jobs for commit 1a1de6c;
+  it does not install native Sionna RT.
