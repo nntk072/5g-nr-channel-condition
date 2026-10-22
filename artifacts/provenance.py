@@ -21,6 +21,43 @@ def sha256_file(path: str | Path) -> str:
     return h.hexdigest()
 
 
+def require_file_matches_git_head(path: str | Path) -> None:
+    """Fail when a provenance-bound source file differs from committed HEAD."""
+    source = Path(path).resolve()
+    try:
+        root = Path(
+            subprocess.check_output(
+                ["git", "rev-parse", "--show-toplevel"],
+                cwd=source.parent,
+                stderr=subprocess.DEVNULL,
+                timeout=2,
+            )
+            .decode()
+            .strip()
+        ).resolve()
+    except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
+        raise RuntimeError("a Git checkout is required to verify the experiment source") from error
+    try:
+        relative = source.relative_to(root).as_posix()
+    except ValueError as error:
+        raise RuntimeError("the experiment source must be inside the Git checkout") from error
+    try:
+        committed = subprocess.check_output(
+            ["git", "show", f"HEAD:{relative}"],
+            cwd=root,
+            stderr=subprocess.DEVNULL,
+            timeout=2,
+        )
+    except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
+        raise RuntimeError(
+            "the experiment source must be tracked in the current Git commit"
+        ) from error
+    if hashlib.sha256(source.read_bytes()).digest() != hashlib.sha256(committed).digest():
+        raise RuntimeError(
+            f"experiment source {relative} differs from Git HEAD; commit it before generating results"
+        )
+
+
 def canonical_hash(data: dict[str, Any]) -> str:
     return hashlib.sha256(
         json.dumps(data, sort_keys=True, separators=(",", ":"), default=str).encode()

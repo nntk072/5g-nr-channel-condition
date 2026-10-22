@@ -11,7 +11,13 @@ from pathlib import Path
 from typing import Any, Sequence, cast
 
 import numpy as np
-from artifacts.provenance import atomic_json, package_source_sha256, sha256_file, versions
+from artifacts.provenance import (
+    atomic_json,
+    package_source_sha256,
+    require_file_matches_git_head,
+    sha256_file,
+    versions,
+)
 from integrations.sionna.adapter import GridConfig, count_valid_paths, rt_cfr
 from integrations.sionna.los_oracle import SegmentVisibilityResult, segment_visibility
 
@@ -476,6 +482,10 @@ def main() -> None:
         help="add a named link; repeat for matched links in the same scene",
     )
     args = parser.parse_args()
+    try:
+        require_file_matches_git_head(__file__)
+    except RuntimeError as error:
+        parser.error(str(error))
     if args.output.exists():
         parser.error(f"refusing to overwrite existing output: {args.output}")
     material_overrides: dict[str, float] = {}

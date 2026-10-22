@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import runpy
+import subprocess
 from pathlib import Path
 
 import numpy as np
 import pytest
+from artifacts.provenance import require_file_matches_git_head
 
 ROOT = Path(__file__).resolve().parents[2]
 RUNNER = runpy.run_path(str(ROOT / "scripts" / "run_rt_solver_convergence.py"))
@@ -15,6 +17,44 @@ relative_l2_error_if_defined = RUNNER["relative_l2_error_if_defined"]
 path_observables = RUNNER["path_observables"]
 count_paths_with_interaction = RUNNER["count_paths_with_interaction"]
 ConvergenceLink = RUNNER["ConvergenceLink"]
+
+
+def test_provenance_runner_requires_source_to_match_committed_git_head(tmp_path):
+    subprocess.run(["git", "init", str(tmp_path)], check=True, capture_output=True)
+    source = tmp_path / "runner.py"
+    source.write_text("print('committed')\n", encoding="utf-8")
+    subprocess.run(
+        ["git", "-C", str(tmp_path), "add", "runner.py"], check=True, capture_output=True
+    )
+    subprocess.run(
+        [
+            "git",
+            "-C",
+            str(tmp_path),
+            "-c",
+            "user.name=Research Test",
+            "-c",
+            "user.email=research-test@example.invalid",
+            "commit",
+            "-m",
+            "add runner",
+        ],
+        check=True,
+        capture_output=True,
+    )
+
+    require_file_matches_git_head(source)
+    source.write_text("print('modified')\n", encoding="utf-8")
+    with pytest.raises(RuntimeError, match="differs from Git HEAD"):
+        require_file_matches_git_head(source)
+
+
+def test_provenance_runner_rejects_untracked_source(tmp_path):
+    subprocess.run(["git", "init", str(tmp_path)], check=True, capture_output=True)
+    source = tmp_path / "runner.py"
+    source.write_text("print('untracked')\n", encoding="utf-8")
+    with pytest.raises(RuntimeError, match="must be tracked"):
+        require_file_matches_git_head(source)
 
 
 def test_relative_l2_error_uses_reference_norm():
