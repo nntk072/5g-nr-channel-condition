@@ -66,6 +66,20 @@
 - Focused mock and native LLVM tests verify adapter parity with the pinned CFR,
   delay-normalization sensitivity, same-path SISO and explicit 2×3 MIMO
   conservation, and generation integration. Locally: 481 passed, 3 skipped,
-  88.12% coverage; 21 focused tests passed; Ruff lint/format, mypy (139 files),
-  lock check, package build and diff checks pass. Hosted CI and canonical
-  dataset regeneration remain pending.
+  88.12% coverage; focused tests passed; Ruff lint/format, mypy (139 files),
+  lock check, package build and diff checks pass. Hosted CI run 39710231241
+  passed all four jobs for commit 2b03354. Canonical dataset regeneration
+  remains pending.
+
+## Phase 0 follow-up — 2026-10-22
+
+- Native LLVM RT-to-NR tests now cover even and odd FFT sizes (24 and 25) and
+  compare bin coordinates and CFR against the explicit CIR/delay Fourier sum.
+- A native two-path regression reconstructs CFR independently from raw
+  `Paths.a` and `Paths.tau`, including the carrier-phase conversion, and checks
+  it against the same-path full CFR within tolerance for pinned single-
+  precision path coefficients.
+- All 21 focused adapter/mock/native integration tests pass locally, as do
+  Ruff lint/format and mypy. Hosted CI for these follow-up regressions is
+  pending; canonical
+  dataset regeneration remains gated on the remaining physics checks.

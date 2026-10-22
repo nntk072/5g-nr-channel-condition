@@ -55,6 +55,27 @@ def test_rt_absolute_delay_cfr_maps_to_nr_baseband_bins():
     np.testing.assert_allclose(
         result.channel[0, 0, 0, 0, 0, 0].numpy(), expected, rtol=1e-5, atol=1e-8
     )
+    odd_grid = ResourceGrid(
+        num_ofdm_symbols=1,
+        fft_size=25,
+        subcarrier_spacing=30e3,
+        cyclic_prefix_length=0,
+        device="cpu",
+    )
+    odd_result = paths_to_nr_ofdm_channel(paths, odd_grid)
+    odd_frequencies = (np.arange(25) - 12) * 30e3
+    odd_reference = np.sum(
+        cir[0, 0, 0, 0, :, 0, None]
+        * np.exp(-2j * np.pi * delays_s[0, 0, :, None] * odd_frequencies[None, :]),
+        axis=0,
+    )
+    np.testing.assert_allclose(odd_result.frequencies_hz.numpy(), odd_frequencies, rtol=0, atol=0)
+    np.testing.assert_allclose(
+        odd_result.channel[0, 0, 0, 0, 0, 0].numpy(),
+        odd_reference,
+        rtol=1e-5,
+        atol=1e-8,
+    )
     np.testing.assert_allclose(delays_s[0, 0, 0], distance_m / speed_of_light, atol=1e-12)
     assert result.metadata["normalize_delays"] is False
     assert result.metadata["frequency_reference"] == "NR baseband subcarrier offsets"
@@ -73,6 +94,20 @@ def test_rt_absolute_delay_cfr_maps_to_nr_baseband_bins():
         out_type="numpy",
     ).reshape(1, 1, 24)
     np.testing.assert_allclose(adapter_channel, adapter_reference, rtol=1e-5, atol=1e-8)
+    path_gain = paths.a
+    path_gain = np.asarray(path_gain[0].numpy()) + 1j * np.asarray(path_gain[1].numpy())
+    path_delays = np.asarray(paths.tau.numpy(), dtype=float)
+    if path_delays.ndim == 3:
+        path_delays = path_delays[:, None, :, None, :]
+    frequency_offsets = (np.arange(24) - 12) * 30e3
+    carrier_frequency_hz = float(np.asarray(scene.frequency.numpy()).item())
+    baseband_gains = path_gain * np.exp(-2j * np.pi * carrier_frequency_hz * path_delays)
+    manual_cfr = np.sum(
+        baseband_gains[..., :, None]
+        * np.exp(-2j * np.pi * path_delays[..., :, None] * frequency_offsets),
+        axis=-2,
+    ).reshape(1, 1, 24)
+    np.testing.assert_allclose(adapter_channel, manual_cfr, rtol=1e-5, atol=1e-8)
     normalized_reference = paths.cfr(
         frequencies=(np.arange(24) - 12) * 30e3,
         num_time_steps=1,
@@ -149,6 +184,20 @@ def test_rt_direct_and_reflected_paths_sum_coherently_on_nr_grid():
     direct_cfr = rt_cfr(paths, rt_grid, path_mask=direct_mask)
     indirect_cfr = rt_cfr(paths, rt_grid, path_mask=indirect_mask)
     np.testing.assert_allclose(full_cfr, direct_cfr + indirect_cfr, rtol=1e-5, atol=1e-8)
+    path_gain = paths.a
+    path_gain = np.asarray(path_gain[0].numpy()) + 1j * np.asarray(path_gain[1].numpy())
+    path_delays = np.asarray(paths.tau.numpy(), dtype=float)
+    if path_delays.ndim == 3:
+        path_delays = path_delays[:, None, :, None, :]
+    carrier_frequency_hz = float(np.asarray(scene.frequency.numpy()).item())
+    frequency_offsets = (np.arange(24) - 12) * 30e3
+    baseband_gains = path_gain * np.exp(-2j * np.pi * carrier_frequency_hz * path_delays)
+    manual_cfr = np.sum(
+        baseband_gains[..., :, None]
+        * np.exp(-2j * np.pi * path_delays[..., :, None] * frequency_offsets),
+        axis=-2,
+    ).reshape(1, 1, 24)
+    np.testing.assert_allclose(full_cfr, manual_cfr, rtol=1e-4, atol=3e-8)
     diagnostic = direct_indirect_diagnostics(full_cfr, direct_cfr)
     np.testing.assert_allclose(
         diagnostic["residual_indirect_power"], np.mean(np.abs(indirect_cfr) ** 2), rtol=1e-5

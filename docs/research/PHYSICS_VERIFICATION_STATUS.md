@@ -7,7 +7,7 @@ dataset generation or model runs remain deferred.
 
 - `MASTER_RESEARCH_PLAN_5G_MULTIPATH_SIONNA_2026-10-21.md`, named by the goal,
   is not present in this checkout. Its current maintained successor is
-  [`MASTER_RESEARCH_PLAN.md`](MASTER_RESEARCH_PLAN.md), edition 3.107.
+  [`MASTER_RESEARCH_PLAN.md`](MASTER_RESEARCH_PLAN.md), edition 3.109.
 - [`UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md`](UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md)
   is now tracked here. The ignored source copy under `outputs/` has SHA256
   `4554b6b6a478a5828881a42f41080f7951c59ee042c3883c9819f231fa17d626`; the
@@ -23,12 +23,12 @@ dataset generation or model runs remain deferred.
 |---|---|---|
 | Audit existing repository and pinned Sionna implementation | In progress | The repository already contains analytical-channel fixtures, a native RT-to-NR bridge, CPU/LLVM RT tests, trajectory generation, NR receiver adapters, QA and provenance tooling. The pinned `Paths.cfr()` implementation was inspected directly. Continue the field/axis/units/material audit before declaring compatibility complete. |
 | Preserve absolute path delay and phase in RT CFR | Adapter fixed; targeted native check passes | `integrations/sionna/adapter.py::rt_cfr` now passes `normalize_delays=False` and `normalize=False`. The native 10 m free-space test compares adapter output to the pinned `Paths.cfr()` result and verifies it differs from the delay-normalized response. Generation report schema v2 records the absolute-delay channel contract. |
-| Test baseband phase and frequency-bin mapping | Partial | Existing RT-to-NR native tests reconstruct free-space and two-ray CFR from `Paths.cir(..., normalize_delays=False)` on an NR grid. Extend to manually reconstructed `Paths.a`/`Paths.tau`, odd/even grids, nonzero timing references, and independent gold values. |
-| Direct/indirect channel conservation | Partial | `direct_path_mask()` and coefficient-masked CFRs now partition a single Sionna 2.2 `Paths` object. The generator uses this same-set direct component, and a native two-path LLVM test checks complex CFR conservation and residual indirect power. MIMO, multi-depth interactions, zero-path, and non-synthetic array partitions remain to verify. |
+| Test baseband phase and frequency-bin mapping | Partial | Native 10 m free-space checks reconstruct CFR manually from `Paths.a`, `Paths.tau`, the explicit `exp(-j 2π f_c τ)` passband-to-baseband factor, and baseband offsets. Even (24) and odd (25) NR FFT grids match the CIR/delay Fourier sum and bridge frequency-bin coordinates. A native two-path manual coefficient/delay reconstruction also matches within tolerance for pinned single-precision coefficients. Nonzero timing-reference shifts, stronger independent coefficient gold values, and time-varying bins remain. |
+| Direct/indirect channel conservation | Partial | `direct_path_mask()` and coefficient-masked CFRs partition a single Sionna 2.2 `Paths` object. The generator uses this same-set direct component; native two-path LLVM SISO tests verify complex CFR conservation, residual indirect power, and independent raw `Paths.a`/`Paths.tau` reconstruction. An explicit 2×3 native MIMO test conserves all six link axes. Multi-depth interactions, zero-path masking, synthetic-array broadcasting edge cases, and non-synthetic multi-polarized partitions remain to verify. |
 | Absolute power/link budget, path coefficients, and materials | Open | The RT suite includes a known-delay free-space case and synthetic material sensitivity; a complete gain/path-loss and polarization convention audit is pending. Synthetic material sensitivity is not material calibration. |
 | Geometric labels and invalid/no-path states | Partial | Six selected scenes have geometry-label and solver-outcome audits. The generator still exports only accepted balanced samples; empty solver outcomes are counted but are not canonical outage labels. Add boundary, penetration, orientation and uncertain/censored-state coverage. |
 | Unified immutable data layers and target masks | Open | Existing `ChannelDataset` and NR observation/target contracts are useful starting points but do not implement the unified parent-episode, ragged path table, per-target observability masks, and linked-view schema in UMCD-1. |
-| Regenerate canonical data after the delay-contract fix | Not started; blocked on remaining physics gates | Existing NPZ datasets, DMRS views, and fitted model reports are preserved as legacy normalized-delay runs. No old output was rewritten or relabeled. Regenerate with new source hashes only after the applicable D1 physics gates pass. |
+| Regenerate canonical data after the delay-contract fix | Not started; deferred until remaining physics gates pass | Existing NPZ datasets, DMRS views, and fitted model reports are preserved as legacy normalized-delay runs. No old output was rewritten or relabeled. Regenerate with new source hashes only after the applicable D1 physics gates pass. |
 | Scale/training and research claims | Deferred | Do not scale or interpret old model metrics as canonical absolute-channel evidence until the preceding gates are verified. |
 
 ## Latest focused verification
@@ -42,6 +42,10 @@ array component-conservation cases. The complete repository suite passed **481
 tests, 3 skipped, 88.12% coverage** in 337.93 s; that run began before the
 final `_valid`-mask bookkeeping adjustment, and the focused native suite passed
 after it. Ruff check and formatting, mypy (139 source files), `uv lock --check`,
-`uv build`, and `git diff --check` pass for this change set. The hosted CI has
-not yet run on these uncommitted changes. The design-level gates above remain
-open despite these software checks.
+`uv build`, and `git diff --check` pass for commit `2b03354`. Hosted CI run
+[39710231241](https://github.com/nntk072/5g-nr-channel-condition/actions/runs/39710231241)
+passes all four jobs for that commit. Follow-up local focused adapter/mock/native
+integration checks pass after adding even/odd-grid frequency mapping and raw
+coefficient/delay reconstruction for a two-path scene; Ruff lint/format and
+mypy pass. A follow-up hosted run will cover these additions. The design-level
+gates above remain open despite these software checks.
