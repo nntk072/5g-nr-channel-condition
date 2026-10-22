@@ -222,6 +222,37 @@ def test_path_level_diagnostics_reconstruct_cfr_and_keep_valid_zero_gain_paths()
     assert reconstruction_error == pytest.approx(0.0, abs=1e-12)
 
 
+def test_path_level_diagnostics_uses_native_cfr_contributions_when_provided():
+    native = np.asarray([[0.1 + 0.2j, -0.3 + 0.4j]], dtype=np.complex64)
+    common = {
+        "link_id": "native-cfr",
+        "scene_tree_sha256": "c" * 64,
+        "gains": np.asarray([0.5 + 0.25j]),
+        "delays_s": np.asarray([370e-9]),
+        "theta_r_rad": np.asarray([0.0]),
+        "phi_r_rad": np.asarray([0.0]),
+        "theta_t_rad": np.asarray([0.0]),
+        "phi_t_rad": np.asarray([0.0]),
+        "interactions": np.asarray([[1]], dtype=np.uint32),
+        "objects": np.asarray([[2]], dtype=np.uint32),
+        "primitives": np.asarray([[3]], dtype=np.uint32),
+        "vertices_m": np.zeros((1, 1, 3)),
+        "valid": np.asarray([True]),
+        "frequencies_hz": np.asarray([-30e3, 0.0]),
+        "carrier_hz": 3.5e9,
+        "reference_cfr": native.sum(axis=0),
+        "cfr_contributions": native,
+    }
+
+    rows, reconstruction_error = path_level_diagnostics(**common)
+
+    assert reconstruction_error == pytest.approx(0.0, abs=1e-12)
+    assert rows[0]["cfr_contribution_real"] == pytest.approx(native[0].real.tolist())
+    assert rows[0]["cfr_contribution_imag"] == pytest.approx(native[0].imag.tolist())
+    with pytest.raises(ValueError, match="align with valid paths"):
+        path_level_diagnostics(**{**common, "cfr_contributions": native[:, :1]})
+
+
 def test_path_fingerprint_does_not_depend_on_solver_path_slot():
     common = {
         "link_id": "same-link",

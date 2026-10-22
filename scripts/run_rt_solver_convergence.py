@@ -180,6 +180,7 @@ def path_level_diagnostics(
     frequencies_hz: np.ndarray,
     carrier_hz: float,
     reference_cfr: np.ndarray,
+    cfr_contributions: np.ndarray | None = None,
 ) -> tuple[list[dict[str, Any]], float | None]:
     """Serialize every valid SISO path and verify its CFR contribution sum.
 
@@ -231,7 +232,17 @@ def path_level_diagnostics(
 
     records: list[dict[str, Any]] = []
     contributions: list[np.ndarray] = []
-    for path_index in np.flatnonzero(valid_values):
+    valid_path_indices = np.flatnonzero(valid_values)
+    native_contributions = None
+    if cfr_contributions is not None:
+        native_contributions = np.asarray(cfr_contributions)
+        if (
+            not np.iscomplexobj(native_contributions)
+            or native_contributions.shape != (len(valid_path_indices), len(frequencies))
+            or not np.isfinite(native_contributions).all()
+        ):
+            raise ValueError("native CFR contributions must align with valid paths and frequencies")
+    for contribution_index, path_index in enumerate(valid_path_indices):
         signature_steps: list[dict[str, Any]] = []
         for step_index, code_value in enumerate(interaction_values[:, path_index]):
             code = int(code_value)
@@ -260,7 +271,11 @@ def path_level_diagnostics(
         delay = float(delay_values[path_index])
         coefficient = complex(gain_values[path_index])
         baseband_coefficient = coefficient * np.exp(-2j * np.pi * carrier_hz * delay)
-        contribution = baseband_coefficient * np.exp(-2j * np.pi * frequencies * delay)
+        contribution = (
+            native_contributions[contribution_index]
+            if native_contributions is not None
+            else baseband_coefficient * np.exp(-2j * np.pi * frequencies * delay)
+        )
         contributions.append(contribution)
         records.append(
             {
@@ -512,6 +527,23 @@ def run_convergence(
         if include_path_diagnostics:
             if valid_path_mask.ndim != 3 or valid_path_mask.shape[0:2] != (1, 1):
                 raise RuntimeError("path diagnostics currently require exactly one SISO link")
+            native_path_contributions = (
+                np.stack(
+                    [
+                        rt_cfr(
+                            paths,
+                            grid,
+                            path_mask=np.eye(1, len(valid), path_index, dtype=bool).reshape(
+                                1, 1, len(valid)
+                            ),
+                        ).reshape(-1)
+                        for path_index in np.flatnonzero(valid)
+                    ],
+                    axis=0,
+                )
+                if np.any(valid)
+                else np.zeros((0, len(frequencies_hz)), dtype=np.complex128)
+            )
             path_rows, reconstruction_error = path_level_diagnostics(
                 link_id=link.link_id,
                 scene_tree_sha256=scene_tree_sha256,
@@ -529,6 +561,7 @@ def run_convergence(
                 frequencies_hz=frequencies_hz,
                 carrier_hz=carrier_hz,
                 reference_cfr=cfr,
+                cfr_contributions=native_path_contributions,
             )
             row["path_diagnostics"] = path_rows
             row["path_cfr_reconstruction_relative_l2"] = reconstruction_error
