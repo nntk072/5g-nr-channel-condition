@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
+from dataclasses import replace
 
 import numpy as np
 import pytest
@@ -18,11 +20,13 @@ from datasets.network import (
 from datasets.split_policy import (
     LeakageNamespace,
     LeakageRelation,
+    SplitChildBinding,
     SplitParentType,
     SplitPolicy,
     SplitPolicyRegistry,
     SplitSubject,
     audit_split_policy_registry,
+    bind_split_children,
     freeze_split_policy_registry,
     make_split_policy_registry,
     network_episode_subject,
@@ -99,6 +103,7 @@ def _standardized_record() -> StandardizedChannelRecord:
             "profile_model": "A",
             "profile_los_component": False,
             "delay_reference": "profile_excess_delay",
+            "seed": 19,
             "subcarrier_spacing_hz": 15_000.0,
             "num_subcarriers": 8,
             "num_time_steps": 1,
@@ -185,7 +190,7 @@ def test_registry_rejects_manually_split_shared_relation():
         component: ("train", "validation", "calibration", "test")[index % 4]
         for index, component in enumerate(assignments.values())
     }
-    with pytest.raises(ValueError, match="same component"):
+    with pytest.raises(ValueError, match="canonical relation reconstruction"):
         SplitPolicyRegistry(
             policy=policy,
             subject_to_component=assignments,
@@ -252,7 +257,8 @@ def test_network_episode_children_inherit_parent_split_and_asset_lineage():
         relations=(LeakageRelation(LeakageNamespace.SITE, "held-site"),),
     )
     subjects = [parent, *_unlinked_subjects(8)]
-    _, registry = _four_way_registry(subjects)
+    policy = SplitPolicy.release_v2(seed="network-children")
+    registry = make_split_policy_registry(subjects, policy=policy)
     assert parent.subject_id == episode.episode_id
     assert registry.subjects[parent.subject_id].source_family == episode.family_id
     assert (
@@ -260,20 +266,33 @@ def test_network_episode_children_inherit_parent_split_and_asset_lineage():
     )
     parent_split = registry.split_for_parent(episode.episode_id)
     descendants = ["link", "frame", "path-oracle", "channel", "receiver", "noise", "target"]
-    assert {registry.split_for_child(episode.episode_id) for _child in descendants} == {
-        parent_split
-    }
+    bindings = tuple(
+        SplitChildBinding(f"{episode.episode_id}:{kind}:0", episode.episode_id, kind)
+        for kind in descendants
+    )
+    registry = bind_split_children(registry, bindings)
+    assert {registry.split_for_child(binding.child_id) for binding in bindings} == {parent_split}
+    audit_split_policy_registry(registry, subjects, bindings)
 
 
 def test_standardized_draw_not_generator_batch_is_parent_for_all_views():
     record = _standardized_record()
     parent = standardized_draw_subject(record)
     subjects = [parent, *_unlinked_subjects(8)]
-    _, registry = _four_way_registry(subjects)
+    policy = SplitPolicy.release_v2(seed="standardized-children")
+    registry = make_split_policy_registry(subjects, policy=policy)
     assert parent.subject_id == record.sample_id
     assert parent.parent_type is SplitParentType.STANDARDIZED_CHANNEL_DRAW
     assert parent.source_family == "standardized.tdl"
-    assert registry.split_for_parent(record.sample_id) == registry.split_for_child(record.sample_id)
+    bindings = tuple(
+        SplitChildBinding(f"{record.sample_id}:{kind}:0", record.sample_id, kind)
+        for kind in ("receiver_observation", "noise_realization", "pusch_view")
+    )
+    registry = bind_split_children(registry, bindings)
+    assert {registry.split_for_child(binding.child_id) for binding in bindings} == {
+        registry.split_for_parent(record.sample_id)
+    }
+    audit_split_policy_registry(registry, subjects, bindings)
     assert parent.subject_id != record.run_id
     assert parent.relations == ()
 
@@ -291,12 +310,97 @@ def test_counterfactual_descendants_and_repeated_receiver_variants_stay_with_par
         _subject("same-route-window", (LeakageNamespace.TRAJECTORY_SESSION, "session-8")),
         *_unlinked_subjects(6),
     ]
-    _, registry = _four_way_registry(subjects)
+    policy = SplitPolicy.release_v2(seed="counterfactual-children")
+    registry = make_split_policy_registry(subjects, policy=policy)
     base = registry.split_for_parent("base-episode")
     assert registry.split_for_parent("counterfactual-twin") == base
     assert registry.split_for_parent("same-route-window") == base
     # Noise, bandwidth, receiver, and PUSCH variants are children, never new parents.
-    assert {registry.split_for_child("base-episode") for _ in range(12)} == {base}
+    bindings = tuple(
+        SplitChildBinding(f"view-{index}", "base-episode", kind)
+        for index, kind in enumerate(
+            ("noise_realization", "bandwidth_resampled_view", "receiver_observation", "pusch_view")
+            * 3
+        )
+    )
+    registry = bind_split_children(registry, bindings)
+    assert {registry.split_for_child(binding.child_id) for binding in bindings} == {base}
+
+
+def test_child_bindings_reject_unknown_parent_conflicts_and_changed_audit():
+    subjects = [_subject("parent-a"), *_unlinked_subjects(8)]
+    policy = SplitPolicy.release_v2(seed="binding-validation")
+    registry = make_split_policy_registry(subjects, policy=policy)
+    with pytest.raises(ValueError, match="unknown split parent"):
+        bind_split_children(registry, [SplitChildBinding("orphan", "missing", "frame")])
+    with pytest.raises(ValueError, match="conflicting parent or kind"):
+        bind_split_children(
+            registry,
+            [
+                SplitChildBinding("child-1", "parent-a", "frame"),
+                SplitChildBinding("child-1", "subject-00", "frame"),
+            ],
+        )
+    binding = SplitChildBinding("child-1", "parent-a", "frame")
+    frozen = bind_split_children(registry, [binding])
+    with pytest.raises(ValueError, match="frozen parent binding changed"):
+        audit_split_policy_registry(
+            frozen,
+            subjects,
+            [SplitChildBinding("child-1", "subject-00", "frame")],
+        )
+    with pytest.raises(KeyError, match="child is absent"):
+        frozen.split_for_child("parent-a")
+    with pytest.raises(ValueError, match="exactly the frozen child set"):
+        audit_split_policy_registry(frozen, subjects)
+
+
+def test_standardized_profile_and_family_metadata_do_not_change_opaque_partition():
+    record_a = _standardized_record()
+    record_d = replace(
+        record_a,
+        family=StandardizedFamily.CDL,
+        profile_model="D",
+        profile_los_component=True,
+        metadata={
+            **record_a.metadata,
+            "profile_model": "D",
+            "profile_proxy": "D",
+            "profile_los_component": True,
+        },
+    )
+    subject_a = standardized_draw_subject(record_a)
+    subject_d = standardized_draw_subject(record_d)
+    assert subject_a.partition_id == subject_d.partition_id
+    policy = SplitPolicy.release_v2(seed="profile-invariance")
+    registry_a = make_split_policy_registry([subject_a, *_unlinked_subjects(8)], policy=policy)
+    registry_d = make_split_policy_registry([subject_d, *_unlinked_subjects(8)], policy=policy)
+    assert (
+        registry_a.subject_to_component[subject_a.subject_id]
+        == registry_d.subject_to_component[subject_d.subject_id]
+    )
+    assert registry_a.split_for_parent(subject_a.subject_id) == registry_d.split_for_parent(
+        subject_d.subject_id
+    )
+
+
+def test_standardized_parent_requires_unique_opaque_identity_when_seed_is_missing():
+    record = _standardized_record()
+    without_seed = replace(
+        record,
+        metadata={key: value for key, value in record.metadata.items() if key != "seed"},
+    )
+    with pytest.raises(ValueError, match="generation seed metadata or an explicit partition_id"):
+        standardized_draw_subject(without_seed)
+    explicit = standardized_draw_subject(without_seed, partition_id="opaque-parent-17")
+    assert explicit.partition_id == "opaque-parent-17"
+    duplicate = _subject("second-parent")
+    collision = replace(duplicate, partition_id=explicit.partition_id)
+    with pytest.raises(ValueError, match="uniquely identify parent subjects"):
+        make_split_policy_registry(
+            [explicit, collision, *_unlinked_subjects(4)],
+            policy=SplitPolicy.release_v2(seed="partition-collision"),
+        )
 
 
 def test_audit_rejects_any_frozen_lineage_change():
@@ -327,11 +431,18 @@ def test_policy_hash_changes_with_relation_contract_and_detects_tampering():
 def test_registry_lock_is_canonical_immutable_and_detects_registry_or_policy_tampering(tmp_path):
     subjects = _unlinked_subjects()
     policy, registry = _four_way_registry(subjects)
+    registry = bind_split_children(
+        registry,
+        [SplitChildBinding("receiver-view-0", subjects[0].subject_id, "receiver_observation")],
+    )
     path = tmp_path / "release-v2.json"
     digest = freeze_split_policy_registry(path, registry)
     assert freeze_split_policy_registry(path, registry) == digest
     restored = read_split_policy_registry(path)
     assert restored.to_dict() == registry.to_dict()
+    assert restored.split_for_child("receiver-view-0") == restored.split_for_parent(
+        subjects[0].subject_id
+    )
 
     payload = json.loads(path.read_text())
     payload["policy"]["seed"] = "tampered"
@@ -344,6 +455,68 @@ def test_registry_lock_is_canonical_immutable_and_detects_registry_or_policy_tam
     )
     with pytest.raises(FileExistsError, match="refusing to modify"):
         freeze_split_policy_registry(path, other)
+
+
+def _rehash_registry_payload(payload: dict) -> dict:
+    core = {key: value for key, value in payload.items() if key != "registry_sha256"}
+    payload["registry_sha256"] = hashlib.sha256(
+        json.dumps(core, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
+    ).hexdigest()
+    return payload
+
+
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    [
+        ("component_id", "canonical relation reconstruction"),
+        ("assignment", "deterministic policy reconstruction"),
+        ("overmerge", "canonical relation reconstruction"),
+        ("missing_split", "deterministic policy reconstruction"),
+        ("report", "representation is not canonical"),
+    ],
+)
+def test_rehashed_noncanonical_registry_is_rejected(tmp_path, mutation: str, message: str):
+    _, registry = _four_way_registry(_unlinked_subjects())
+    payload = registry.to_dict()
+    component_ids = sorted(payload["components"])
+
+    if mutation == "component_id":
+        old = component_ids[0]
+        new = "component-not-derived-from-parent-identities"
+        payload["components"][new] = payload["components"].pop(old)
+        for subject in payload["subjects"].values():
+            if subject["component_id"] == old:
+                subject["component_id"] = new
+    elif mutation == "assignment":
+        component = component_ids[0]
+        old_split = payload["components"][component]["split"]
+        new_split = next(name for name in payload["policy"]["split_fractions"] if name != old_split)
+        payload["components"][component]["split"] = new_split
+        for subject in payload["subjects"].values():
+            if subject["component_id"] == component:
+                subject["split"] = new_split
+    elif mutation == "overmerge":
+        left, right = component_ids[:2]
+        split = payload["components"][left]["split"]
+        payload["components"].pop(right)
+        for subject in payload["subjects"].values():
+            if subject["component_id"] == right:
+                subject["component_id"] = left
+                subject["split"] = split
+    elif mutation == "missing_split":
+        for component, value in payload["components"].items():
+            if value["split"] == "calibration":
+                value["split"] = "train"
+                for subject in payload["subjects"].values():
+                    if subject["component_id"] == component:
+                        subject["split"] = "train"
+    else:
+        payload["report"]["splits"]["train"]["independent_components"] += 1
+
+    path = tmp_path / f"{mutation}.json"
+    path.write_text(json.dumps(_rehash_registry_payload(payload)))
+    with pytest.raises(ValueError, match=message):
+        read_split_policy_registry(path)
 
 
 def test_source_family_and_labels_are_not_implicit_leakage_relations():

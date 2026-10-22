@@ -68,10 +68,20 @@ def make_independent_split(
         raise ValueError(
             "fractions must define train/validation/test or train/validation/calibration/test"
         )
-    split_order = tuple(
-        name for name in ("train", "validation", "calibration", "test") if name in proportions_input
-    )
-    proportions = {name: float(proportions_input[name]) for name in split_order}
+    allocation_order: tuple[str, ...]
+    if "calibration" in proportions_input:
+        split_order = tuple(
+            name
+            for name in ("train", "validation", "calibration", "test")
+            if name in proportions_input
+        )
+        allocation_order = split_order
+    else:
+        # Retain the historical three-way allocation tie-break order from the
+        # caller's mapping while keeping the old fixed assignment order below.
+        split_order = ("train", "validation", "test")
+        allocation_order = tuple(str(name) for name in proportions_input)
+    proportions = {name: float(proportions_input[name]) for name in allocation_order}
     if (
         any(not math.isfinite(value) or value <= 0 for value in proportions.values())
         or abs(sum(proportions.values()) - 1) > 1e-9

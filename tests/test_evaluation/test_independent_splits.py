@@ -35,6 +35,26 @@ def test_split_is_deterministic_and_groups_never_cross_boundaries():
         assert values == {split.group_to_split[scene]}
 
 
+def test_three_way_custom_fraction_mapping_keeps_historical_tie_break_order():
+    samples = [
+        {"sample_id": f"sample-{index}", "scene_group_id": f"scene-{index}"} for index in range(10)
+    ]
+    validation_first = make_independent_split(
+        samples,
+        seed="legacy-custom-order",
+        fractions={"train": 0.6, "validation": 0.25, "test": 0.15},
+    )
+    test_first = make_independent_split(
+        samples,
+        seed="legacy-custom-order",
+        fractions={"train": 0.6, "test": 0.15, "validation": 0.25},
+    )
+    assert sum(split == "validation" for split in validation_first.group_to_split.values()) == 3
+    assert sum(split == "test" for split in validation_first.group_to_split.values()) == 1
+    assert sum(split == "validation" for split in test_first.group_to_split.values()) == 2
+    assert sum(split == "test" for split in test_first.group_to_split.values()) == 2
+
+
 def test_split_requires_group_identity_and_unique_sample_ids():
     with pytest.raises(ValueError, match="duplicate sample ID"):
         make_independent_split(

@@ -12,8 +12,12 @@ parent; links, frames, paths, receiver observations, noise realizations,
 bandwidth variants, and targets derived from it inherit that parent's split.
 A `StandardizedChannelRecord` represents one standardized stochastic draw;
 its `sample_id` is the parent ID. Its `run_id` only identifies a generator
-batch. Profile category and LOS-component flags are not leakage relations and
-must not determine the split.
+batch. A separate opaque `partition_id` determines component identity and
+assignment; the standardized adapter derives it from generation seed and
+sample index, or accepts an explicit stable value. Profile/category metadata,
+source-family labels, targets, and artifact IDs do not enter the partition
+hash. A combined release must provide unique partition IDs; collisions reject
+instead of silently joining distinct parents.
 
 Other families can be represented by `SplitSubject` directly. Include only
 known relations. An absent relation is an empty tuple, never a shared sentinel
@@ -45,8 +49,10 @@ Example:
 from datasets import (
     LeakageNamespace,
     LeakageRelation,
+    SplitChildBinding,
     SplitPolicy,
     audit_split_policy_registry,
+    bind_split_children,
     freeze_split_policy_registry,
     make_split_policy_registry,
     network_episode_subject,
@@ -62,17 +68,29 @@ subjects = [
     standardized_draw_subject(standardized_record),
 ]
 registry = make_split_policy_registry(subjects, policy=policy)
-audit_split_policy_registry(registry, subjects)
+children = [
+    SplitChildBinding("pusch-view-0001", standardized_record.sample_id, "pusch_view"),
+]
+registry = bind_split_children(registry, children)
+audit_split_policy_registry(registry, subjects, children)
 lock_sha256 = freeze_split_policy_registry("release/split-registry.json", registry)
 ```
 
 Persist the returned lock digest with release provenance. Existing lock files
 are immutable: attempts to replace them with different policy, assignment,
 parent, or lineage data fail. Reading validates canonical serialization and
-the policy and registry SHA-256 digests. Re-audit exact parent coverage and
-lineage before every release/export. A child uses
-`registry.split_for_child(parent_id)`; do not create a new split assignment
-for it.
+the policy and registry SHA-256 digests by independently rebuilding connected
+components, canonical component IDs, deterministic assignments, required
+partition presence, child inheritance, and report counts. Re-audit exact
+parent and persisted-child coverage and lineage before every release/export.
+A child uses `registry.split_for_child(child_id)`; its frozen binding resolves
+the parent, and the child cannot supply a split label.
+
+The SHA-256 values provide content integrity and deterministic identity; they
+do not prove who created or approved a lock. Before model tuning, preserve the
+exact registry-file digest in an independently controlled release record or
+sign it using the institution's chosen approval process. Signature/PKI
+management is outside this implementation.
 
 `registry.report()` reports independent component and parent counts per split,
 including counts by source family. It reports effective independent units,
@@ -81,8 +99,9 @@ not replace spatial-buffer, near-duplicate, target-coverage, or privacy audits.
 
 ## Scope and release status
 
-The v2 data structures, deterministic grouping, assignment, lock, audit, and
-legacy three-way compatibility have acceptance tests. A real release still
+The v2 data structures, canonical reconstruction, opaque partition identities,
+explicit child bindings, deterministic grouping, lock, audit, and legacy
+three-way compatibility have adversarial acceptance tests. A real release still
 needs verified lineage adapters for every included family, corpus-wide
 spatial/duplicate/target audits, a frozen registry generated from the final
 release candidates, and the rest of G7. In particular, these utilities do not
