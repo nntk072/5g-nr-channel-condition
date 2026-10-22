@@ -9,6 +9,7 @@ from artifacts.provenance import package_source_sha256
 from datasets.channel import ChannelDataset
 from receivers.nr import NRPUSCHConfig
 
+from .noise import proper_complex_awgn
 from .nr_pusch import SionnaPUSCHLSReceiver
 
 
@@ -198,10 +199,7 @@ def build_rt_dmrs_observation_dataset(
     else:
         noise_variance = torch.as_tensor(noise_variance_w, dtype=torch.float32, device=device)
     noise_generator = torch.Generator(device=device).manual_seed(seed + 1)
-    noise = torch.complex(
-        torch.randn(noiseless.shape, dtype=torch.float32, device=device, generator=noise_generator),
-        torch.randn(noiseless.shape, dtype=torch.float32, device=device, generator=noise_generator),
-    ) * torch.sqrt(noise_variance / 2.0)
+    noise = proper_complex_awgn(noiseless, noise_variance, generator=noise_generator)
     with torch.no_grad():
         estimate = receiver.estimate(noiseless + noise, noise_variance)
     observed_cfr = estimate.h_hat.mean(dim=5)[:, 0, 0, 0, 0, :].detach().cpu().numpy()

@@ -12,6 +12,7 @@ from datasets.nr import NRChannelRecord, TargetDefinition
 from datasets.standardized import StandardizedChannelRun
 from receivers.nr import NRPUSCHConfig
 
+from .noise import proper_complex_awgn
 from .nr_pusch import SionnaPUSCHLSReceiver
 from .rt_dmrs import resample_centered_cfr
 
@@ -121,20 +122,7 @@ def build_standardized_pusch_dmrs_records(
         noise_variance = signal_power * (10.0 ** (-snr_db / 10.0))
         noise_generator = torch.Generator(device=device)
         noise_generator.manual_seed(child_noise_seed)
-        noise = torch.complex(
-            torch.randn(
-                received_clean.shape,
-                dtype=torch.float32,
-                device=device,
-                generator=noise_generator,
-            ),
-            torch.randn(
-                received_clean.shape,
-                dtype=torch.float32,
-                device=device,
-                generator=noise_generator,
-            ),
-        ) * torch.sqrt(noise_variance / 2.0)
+        noise = proper_complex_awgn(received_clean, noise_variance, generator=noise_generator)
         received_grid = received_clean + noise
         view_identity = {
             "run_id": run.run_id,
