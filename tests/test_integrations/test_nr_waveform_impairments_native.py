@@ -128,29 +128,28 @@ def test_waveform_impairment_helpers_preserve_shape_and_validate_units():
 
 @pytest.mark.native_sionna
 def test_pusch_frequency_grid_decoder_has_correct_high_vs_low_snr_trend():
-    if not torch.cuda.is_available():
-        pytest.skip("CUDA is not available")
     from sionna.phy.nr import PUSCHReceiver
 
     transmitter = SionnaPUSCHLSReceiver(
         NRPUSCHConfig(n_size_bwp=2, subcarrier_spacing_khz=30),
-        device="cuda:0",
+        device="cpu",
     )
     tx_grid, tx_bits = transmitter.transmit(32, seed=904)
     decoder = PUSCHReceiver(
         transmitter._transmitter,
         return_tb_crc_status=True,
         input_domain="freq",
-        device="cuda:0",
+        device="cpu",
     )
-    torch.manual_seed(905)
+    noise_generator = torch.Generator().manual_seed(905)
     noise = torch.complex(
-        torch.randn(tx_grid.shape, device="cuda:0"), torch.randn(tx_grid.shape, device="cuda:0")
+        torch.randn(tx_grid.shape, generator=noise_generator),
+        torch.randn(tx_grid.shape, generator=noise_generator),
     )
 
     def decode_at_variance(noise_variance: float):
-        noisy_grid = tx_grid + noise * torch.sqrt(torch.tensor(noise_variance / 2, device="cuda:0"))
-        return decoder(noisy_grid, torch.tensor(noise_variance, device="cuda:0"))
+        noisy_grid = tx_grid + noise * torch.sqrt(torch.tensor(noise_variance / 2))
+        return decoder(noisy_grid, torch.tensor(noise_variance))
 
     high_snr_bits, high_snr_crc = decode_at_variance(1e-3)
     low_snr_bits, low_snr_crc = decode_at_variance(1.0)
