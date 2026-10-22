@@ -15,6 +15,7 @@ from datasets.channel_view import (
 from datasets.episode_store import (
     EpisodeBundle,
     read_episode_bundle,
+    read_frequency_model_inputs,
     read_receiver_model_inputs,
     write_episode_bundle,
 )
@@ -29,6 +30,11 @@ from datasets.network import (
     NodeRole,
 )
 from datasets.nr import LinkedNRObservation, NRObservation
+from datasets.observations import (
+    FrequencyDomainModelInputs,
+    FrequencyDomainObservation,
+    LinkedFrequencyDomainObservation,
+)
 from datasets.path_oracle import PathOracleTable, PathSolveStatus
 from datasets.provenance import UMCDRunProvenance
 from datasets.targets import TargetDefinition, TargetValidity, TargetValue, definition_digest
@@ -440,6 +446,58 @@ def test_episode_bundle_roundtrip_keeps_layers_content_addressed_and_pickle_free
         "oracle_channels",
         "targets",
     }
+
+
+def test_frequency_receiver_observation_roundtrip_is_separate_and_inference_only(tmp_path):
+    bundle = _bundle()
+    episode = bundle.episode
+    frequency_input = FrequencyDomainModelInputs(
+        observed_cfr=np.full((1, 2, 3), 0.5 + 0.25j, dtype=np.complex64),
+        noise_variance=0.05,
+        snr_db=10.0,
+        carrier_hz=episode.carrier_hz,
+        subcarrier_offsets_hz=episode.subcarrier_offsets_hz,
+    )
+    linked = LinkedFrequencyDomainObservation(
+        "gNB-1-to-UE-1",
+        0,
+        FrequencyDomainObservation("direct-cfr-1", frequency_input),
+    )
+    bundle = replace(bundle, receiver_observations=(linked,))
+
+    stored = write_episode_bundle(tmp_path, bundle)
+    loaded = read_episode_bundle(tmp_path, stored)
+    inferred = read_frequency_model_inputs(tmp_path, stored)
+
+    assert isinstance(loaded.receiver_observations[0], LinkedFrequencyDomainObservation)
+    np.testing.assert_array_equal(inferred[0].observed_cfr, frequency_input.observed_cfr)
+    np.testing.assert_array_equal(inferred[0].subcarrier_offsets_hz, episode.subcarrier_offsets_hz)
+    assert inferred[0].noise_variance == 0.05
+    assert not hasattr(inferred[0], "targets")
+    with pytest.raises(ValueError, match="no NR receiver observations"):
+        read_receiver_model_inputs(tmp_path, stored)
+
+
+def test_frequency_receiver_observation_rejects_wrong_port_or_frequency_axes():
+    bundle = _bundle()
+    episode = bundle.episode
+    bad_observation = FrequencyDomainObservation(
+        "bad-cfr",
+        FrequencyDomainModelInputs(
+            observed_cfr=np.ones((1, 1, 4), dtype=np.complex64),
+            noise_variance=0.0,
+            snr_db=20.0,
+            carrier_hz=episode.carrier_hz,
+            subcarrier_offsets_hz=np.asarray([-45e3, -15e3, 0.0, 15e3]),
+        ),
+    )
+    with pytest.raises(ValueError, match="axes do not match"):
+        replace(
+            bundle,
+            receiver_observations=(
+                LinkedFrequencyDomainObservation("gNB-1-to-UE-1", 0, bad_observation),
+            ),
+        )
 
 
 def test_episode_store_roundtrip_preserves_dynamic_poses(tmp_path):

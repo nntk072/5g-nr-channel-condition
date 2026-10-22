@@ -862,7 +862,7 @@ def test_rt_reflected_path_depends_on_surface_radio_material():
 
 
 @pytest.mark.native_sionna
-def test_rt_cpu_box_scene_generates_balanced_geometry_labeled_records():
+def test_rt_cpu_box_scene_generates_balanced_geometry_labeled_records(tmp_path):
     import mitsuba as mi
 
     mi.set_variant("llvm_ad_mono_polarized")
@@ -884,6 +884,7 @@ def test_rt_cpu_box_scene_generates_balanced_geometry_labeled_records():
         ),
         grid=GridConfig(n_subcarriers=16),
         seed=42,
+        umcd_store_root=tmp_path / "umcd",
     )
 
     assert data.h.shape == (4, 1, 16)
@@ -912,3 +913,15 @@ def test_rt_cpu_box_scene_generates_balanced_geometry_labeled_records():
         + report["attempt_counts"]["candidate_geometric_nlos"]
     )
     assert report["attempt_counts"]["full_solver_empty_paths"] >= 0
+    assert len(report["umcd_bundle_refs"]) == 4
+
+    from datasets.episode_store import read_episode_bundle, read_frequency_model_inputs
+
+    first_bundle = report["umcd_bundle_refs"][0]
+    loaded = read_episode_bundle(tmp_path / "umcd", first_bundle["relative_path"])
+    observations = read_frequency_model_inputs(tmp_path / "umcd", first_bundle["relative_path"])
+    assert loaded.path_oracle.link_ids == (loaded.episode.links[0].link_id,)
+    assert len(loaded.channel_views) == 1
+    assert len(loaded.targets) == 1
+    assert len(observations) == 1
+    assert observations[0].observed_cfr.shape == (1, 1, 16)

@@ -12,6 +12,7 @@ from .episode_store import (
     EpisodeBundle,
     StoredEpisodeBundle,
     read_episode_bundle,
+    read_frequency_model_inputs,
     read_receiver_model_inputs,
     write_episode_bundle,
 )
@@ -41,6 +42,11 @@ from .nr_store import (
     write_nr_record,
     write_nr_trajectory,
 )
+from .observations import (
+    FrequencyDomainModelInputs,
+    FrequencyDomainObservation,
+    LinkedFrequencyDomainObservation,
+)
 from .path_oracle import PathOracleTable, PathSolveStatus
 from .provenance import UMCDRunProvenance
 from .splits import (
@@ -63,6 +69,9 @@ __all__ = [
     "StoredEpisodeBundle",
     "AntennaArraySpec",
     "DirectedLink",
+    "FrequencyDomainModelInputs",
+    "FrequencyDomainObservation",
+    "LinkedFrequencyDomainObservation",
     "LinkDirection",
     "LinkRole",
     "NetworkEpisode",
@@ -86,6 +95,7 @@ __all__ = [
     "TargetValue",
     "definition_digest",
     "read_episode_bundle",
+    "read_frequency_model_inputs",
     "read_receiver_model_inputs",
     "audit_episode_split_registry",
     "freeze_episode_split_registry",

@@ -18,6 +18,17 @@ from typing import TYPE_CHECKING, Any, Mapping, Protocol, Sequence, cast
 import numpy as np
 from artifacts.provenance import package_source_sha256, versions
 from datasets.channel import ChannelDataset
+from datasets.channel_view import (
+    ChannelDelayReference,
+    ChannelPowerScale,
+    PhysicalChannelView,
+)
+from datasets.network import LinkDirection, LinkRole, NodeRole
+from datasets.observations import (
+    FrequencyDomainModelInputs,
+    FrequencyDomainObservation,
+    LinkedFrequencyDomainObservation,
+)
 from propagation.physics import add_estimation_noise, frequency_response, subcarrier_frequencies
 
 from integrations.sionna.los_oracle import SegmentVisibilityState, segment_visibility
@@ -378,11 +389,148 @@ class RaytraceGenerationError(RuntimeError):
         self.generation_report = dict(generation_report)
 
 
+def _publish_static_rt_sample_umcd(
+    *,
+    store_root: str | Path,
+    scene: object,
+    full_paths: object,
+    clean_cfr: np.ndarray,
+    noisy_cfr: np.ndarray,
+    label: int,
+    rx_position: tuple[float, float, float],
+    split_group_id: str,
+    scene_config: RayScene,
+    grid: GridConfig,
+    seed: int,
+    selection: RTBackendSelection,
+    runtime_fingerprint: Mapping[str, str],
+    package_sha256: str,
+    scene_assets: Mapping[str, Any],
+    material_manifest: Mapping[str, Any],
+) -> Mapping[str, object]:
+    """Publish one static RT path solve and its direct noisy-CFR observation."""
+    from datasets.targets import TargetDefinition, TargetValidity, TargetValue, definition_digest
+
+    from integrations.sionna.array_layouts import sionna_scene_to_network_episode
+    from integrations.sionna.rt_network import SionnaPathBinding, write_sionna_rt_episode_bundle
+
+    offsets = tuple(
+        float(value)
+        for value in (np.arange(grid.n_subcarriers, dtype=np.float64) - grid.n_subcarriers // 2)
+        * grid.spacing_hz
+    )
+    identity = rt_run_identity(
+        scene_asset_manifest=scene_assets,
+        physical_config={
+            "scene": asdict(scene_config),
+            "grid": asdict(grid),
+            "rx_position_m": list(rx_position),
+            "material_state": dict(material_manifest),
+        },
+        solver_config=static_rt_solver_config(scene_config.max_depth),
+        seed=seed,
+        backend_selection=selection.as_dict(),
+        runtime_versions=runtime_fingerprint,
+        package_source_sha256=package_sha256,
+    )
+    if not identity["complete"]:
+        raise ValueError("UMCD static RT publication requires a complete run identity")
+    sample_id = f"rt-{identity['cache_key_sha256']}"
+    network = sionna_scene_to_network_episode(
+        scene,
+        episode_id=sample_id,
+        split_group_id=split_group_id,
+        family_id="F03-RT-STATIC",
+        subcarrier_offsets_hz=offsets,
+        node_roles={"tx:research_tx": NodeRole.GNB, "rx:research_rx": NodeRole.UE},
+        associations=(("tx:research_tx", "rx:research_rx"),),
+        direction=LinkDirection.DOWNLINK,
+        link_role=LinkRole.SERVING,
+    )
+    episode = network.episode
+    link = episode.links[0]
+    path_binding = SionnaPathBinding(
+        link_id=link.link_id,
+        frame_index=0,
+        rx_device_index=0,
+        tx_device_index=0,
+        paths=full_paths,
+    )
+    clean = np.asarray(clean_cfr).reshape(1, 1, 1, grid.n_subcarriers)
+    noisy = np.asarray(noisy_cfr).reshape(1, 1, grid.n_subcarriers)
+    noise_variance = float(
+        max(float(np.mean(np.abs(clean_cfr) ** 2)), 1e-24) * 10.0 ** (-grid.snr_db / 10.0)
+    )
+    channel_view = PhysicalChannelView(
+        view_id=f"{sample_id}:absolute-cfr",
+        link_id=link.link_id,
+        channel=clean,
+        frame_times_s=(0.0,),
+        rx_port_ids=tuple(
+            episode.array(episode.node(link.rx_node_id).array_id).port_ids[index]
+            for index in link.rx_port_indices
+        ),
+        tx_port_ids=tuple(
+            episode.array(episode.node(link.tx_node_id).array_id).port_ids[index]
+            for index in link.tx_port_indices
+        ),
+        carrier_hz=grid.carrier_hz,
+        subcarrier_offsets_hz=np.asarray(offsets),
+        delay_reference=ChannelDelayReference.ABSOLUTE_PROPAGATION,
+        power_scale=ChannelPowerScale.ABSOLUTE,
+    )
+    receiver_observation = LinkedFrequencyDomainObservation(
+        link.link_id,
+        0,
+        FrequencyDomainObservation(
+            sample_id,
+            FrequencyDomainModelInputs(
+                observed_cfr=noisy,
+                noise_variance=noise_variance,
+                snr_db=grid.snr_db,
+                carrier_hz=grid.carrier_hz,
+                subcarrier_offsets_hz=np.asarray(offsets),
+            ),
+        ),
+    )
+    label_definition = TargetDefinition(
+        semantic="geometric direct-path visibility",
+        units="boolean",
+        source="independent_segment_visibility_oracle",
+        reference="finite scene-segment visibility cross-checked by depth-zero PathSolver",
+        definition_sha256=definition_digest(
+            "UMCD:F03-RT-STATIC:geometric_direct_path_visibility:v1"
+        ),
+    )
+    target = TargetValue(
+        entity_id=link.link_id,
+        definition=label_definition,
+        values=np.asarray([label], dtype=np.uint8),
+        valid_mask=np.asarray([True]),
+        reason_codes=(TargetValidity.VALID,),
+        confidence="independent_geometry_with_solver_crosscheck",
+    )
+    stored = write_sionna_rt_episode_bundle(
+        store_root,
+        episode,
+        (path_binding,),
+        run_identity=identity,
+        material_config=material_manifest,
+        source_family="F03-RT-STATIC",
+        producer="Sionna 2.2 deterministic PathSolver",
+        channel_views=(channel_view,),
+        targets=(target,),
+        receiver_observations=(receiver_observation,),
+    )
+    return asdict(stored)
+
+
 def generate_raytraced(
     scene_config: RayScene = RayScene(),
     *,
     grid: GridConfig = GridConfig(),
     seed: int = 42,
+    umcd_store_root: str | Path | None = None,
     _backend_selection: RTBackendSelection | None = None,
     _runtime_fingerprint: Mapping[str, str] | None = None,
 ) -> ChannelDataset:
@@ -406,7 +554,10 @@ def generate_raytraced(
     except ImportError as e:
         raise RuntimeError("Sionna RT 2.2 not installed; install sionna==2.2.0") from e
     cfg = replace(scene_config, mitsuba_variant=selection.variant)
-    from integrations.sionna.scene_assets import scene_asset_manifest
+    from integrations.sionna.scene_assets import (
+        scene_asset_manifest,
+        sionna_scene_material_manifest,
+    )
 
     obstacles = []
     scene_path = Path(cfg.name)
@@ -440,6 +591,18 @@ def generate_raytraced(
     scene = load_scene(scene_ref)
     scene.frequency = grid.carrier_hz
     scene.bandwidth = grid.n_subcarriers * grid.spacing_hz
+    material_manifest = sionna_scene_material_manifest(scene)
+    runtime_fingerprint = (
+        dict(_runtime_fingerprint)
+        if _runtime_fingerprint is not None
+        else rt_runtime_fingerprint(
+            {key: value for key, value in versions().items() if key != "git_sha"}
+        )
+    )
+    package_sha256 = package_source_sha256()
+    solver_config = static_rt_solver_config(cfg.max_depth)
+    if umcd_store_root is not None and not scene_assets["complete"]:
+        raise ValueError("UMCD RT publication requires a complete scene-asset closure")
     scene.tx_array = PlanarArray(num_rows=1, num_cols=1, pattern="iso", polarization="V")
     scene.rx_array = PlanarArray(num_rows=1, num_cols=1, pattern="iso", polarization="V")
     scene.add(Transmitter(name="research_tx", position=list(cfg.tx_position)))
@@ -489,6 +652,7 @@ def generate_raytraced(
     domains = []
     sources = []
     meta = []
+    umcd_bundle_refs: list[Mapping[str, object]] = []
     solver_failure = None
     for attempt in range(cfg.max_attempts):
         if min(hits.values()) >= cfg.per_class:
@@ -598,7 +762,7 @@ def generate_raytraced(
             attempt_counts["los_direct_only_rejections"] += 1
             continue
         try:
-            channel = rt_cfr(full, grid)
+            clean_channel = rt_cfr(full, grid)
             path_mask = direct_path_mask(full) if label else None
             direct_count = int(path_mask.sum()) if path_mask is not None else 0
             if label and direct_count != n_direct:
@@ -609,15 +773,15 @@ def generate_raytraced(
             direct = (
                 rt_cfr(full, grid, path_mask=path_mask)
                 if path_mask is not None
-                else np.zeros_like(channel)
+                else np.zeros_like(clean_channel)
             )
-            diagnostics = direct_indirect_diagnostics(channel, direct)
-            channel = add_estimation_noise(channel, grid.snr_db, rng)
+            diagnostics = direct_indirect_diagnostics(clean_channel, direct)
+            observed_channel = add_estimation_noise(clean_channel, grid.snr_db, rng)
         except (ValueError, RuntimeError):
             class_outcomes["cfr_conversion_failures"] += 1
             attempt_counts["cfr_conversion_failures"] += 1
             continue
-        samples.append(channel[0])
+        samples.append(observed_channel[0])
         ys.append(label)
         scene_id = scene_path.stem if scene_path.suffix else cfg.name
         block_x = int(np.floor(x / cfg.block_size_m))
@@ -668,6 +832,27 @@ def generate_raytraced(
                 },
             }
         )
+        if umcd_store_root is not None:
+            umcd_bundle_refs.append(
+                _publish_static_rt_sample_umcd(
+                    store_root=umcd_store_root,
+                    scene=scene,
+                    full_paths=full,
+                    clean_cfr=clean_channel,
+                    noisy_cfr=observed_channel,
+                    label=label,
+                    rx_position=(float(x), float(y), float(z)),
+                    split_group_id=str(scene_assets["asset_set_sha256"]),
+                    scene_config=cfg,
+                    grid=grid,
+                    seed=seed + attempt,
+                    selection=selection,
+                    runtime_fingerprint=runtime_fingerprint,
+                    package_sha256=package_sha256,
+                    scene_assets=scene_assets,
+                    material_manifest=material_manifest,
+                )
+            )
         hits[label] += 1
         class_outcomes["accepted"] += 1
     full_solver_outcomes = {
@@ -676,7 +861,6 @@ def generate_raytraced(
         "cfr_conversion_failures": attempt_counts["cfr_conversion_failures"],
         "accepted": len(samples),
     }
-    solver_config = static_rt_solver_config(cfg.max_depth)
     if (
         attempt_counts["attempts_started"]
         != attempt_counts["obstacle_rejections"] + attempt_counts["geometry_oracle_attempts"]
@@ -781,21 +965,20 @@ def generate_raytraced(
             "solver, class quotas, and LOS-multipath filter. Empty full-solver path outcomes are "
             "counted but are not exported as channel observations."
         ),
+        "umcd_bundle_refs": [dict(item) for item in umcd_bundle_refs],
     }
     generation_report["rt_run_identity"] = rt_run_identity(
         scene_asset_manifest=scene_assets,
-        physical_config={"scene": asdict(cfg), "grid": asdict(grid)},
+        physical_config={
+            "scene": asdict(cfg),
+            "grid": asdict(grid),
+            "material_state": material_manifest,
+        },
         solver_config=solver_config,
         seed=seed,
         backend_selection=selection.as_dict(),
-        runtime_versions=(
-            _runtime_fingerprint
-            if _runtime_fingerprint is not None
-            else rt_runtime_fingerprint(
-                {key: value for key, value in versions().items() if key != "git_sha"}
-            )
-        ),
-        package_source_sha256=str(generation_report["package_source_sha256"]),
+        runtime_versions=runtime_fingerprint,
+        package_source_sha256=package_sha256,
     )
     if solver_failure is not None:
         raise RaytraceGenerationError(

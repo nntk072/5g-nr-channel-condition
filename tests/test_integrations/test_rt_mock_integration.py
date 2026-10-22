@@ -24,6 +24,10 @@ def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
     force_visibility_disagreement = False
 
     class FakeScene:
+        def __init__(self):
+            self.radio_materials = {}
+            self.objects = {}
+
         def add(self, object):
             if object.name == "research_rx":
                 self.receiver = object

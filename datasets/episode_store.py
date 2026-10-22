@@ -26,6 +26,11 @@ from .network import (
     NodeRole,
 )
 from .nr import LinkedNRObservation, NRModelInputs, NRObservation
+from .observations import (
+    FrequencyDomainModelInputs,
+    FrequencyDomainObservation,
+    LinkedFrequencyDomainObservation,
+)
 from .path_oracle import PathOracleTable, PathSolveStatus
 from .provenance import UMCDRunProvenance
 from .targets import TargetDefinition, TargetValidity, TargetValue
@@ -39,7 +44,7 @@ class EpisodeBundle:
     path_oracle: PathOracleTable
     channel_views: tuple[PhysicalChannelView, ...]
     targets: tuple[TargetValue, ...]
-    receiver_observations: tuple[LinkedNRObservation, ...] = ()
+    receiver_observations: tuple[LinkedNRObservation | LinkedFrequencyDomainObservation, ...] = ()
     provenance_records: tuple[UMCDRunProvenance, ...] = ()
 
     def __post_init__(self) -> None:
@@ -65,6 +70,23 @@ class EpisodeBundle:
                 raise ValueError("receiver observation link_id must reference an episode link")
             if binding.frame_index >= frame_count:
                 raise ValueError("receiver observation frame_index must reference an episode frame")
+            if isinstance(binding, LinkedFrequencyDomainObservation):
+                observation_inputs = binding.observation.model_inputs
+                link = self.episode.link(binding.link_id)
+                expected_shape = (
+                    len(link.rx_port_indices),
+                    len(link.tx_port_indices),
+                    len(self.episode.subcarrier_offsets_hz),
+                )
+                if observation_inputs.observed_cfr.shape != expected_shape:
+                    raise ValueError("frequency observation axes do not match link ports and grid")
+                if observation_inputs.carrier_hz != self.episode.carrier_hz or not np.array_equal(
+                    observation_inputs.subcarrier_offsets_hz,
+                    self.episode.subcarrier_offsets_hz,
+                ):
+                    raise ValueError("frequency observation grid differs from its parent episode")
+            elif not isinstance(binding, LinkedNRObservation):
+                raise TypeError("receiver observations must use a supported linked contract")
         observation_keys = [(item.link_id, item.frame_index) for item in observations]
         sample_ids = [item.observation.sample_id for item in observations]
         if len(set(observation_keys)) != len(observation_keys):
@@ -314,6 +336,26 @@ def _receiver_payload(binding: LinkedNRObservation) -> bytes:
     )
 
 
+def _frequency_receiver_payload(binding: LinkedFrequencyDomainObservation) -> bytes:
+    inputs = binding.observation.model_inputs
+    metadata = {
+        "schema": "umcd.receiver_frequency_observation.v1",
+        "link_id": binding.link_id,
+        "frame_index": binding.frame_index,
+        "sample_id": binding.observation.sample_id,
+        "noise_variance": inputs.noise_variance,
+        "snr_db": inputs.snr_db,
+        "carrier_hz": inputs.carrier_hz,
+        "measurement_semantics": "complex_frequency_response_plus_awgn",
+        "waveform_model": "direct_noisy_cfr_not_a_pusch_dmrs_observation",
+    }
+    return _pack_npz(
+        metadata,
+        observed_cfr=inputs.observed_cfr,
+        subcarrier_offsets_hz=inputs.subcarrier_offsets_hz,
+    )
+
+
 def _provenance_payload(record: UMCDRunProvenance) -> bytes:
     return _pack_npz(record.to_dict())
 
@@ -336,6 +378,28 @@ def _read_receiver(metadata: dict[str, Any], arrays: dict[str, np.ndarray]) -> L
     return LinkedNRObservation(metadata["link_id"], metadata["frame_index"], observation)
 
 
+def _read_frequency_receiver(
+    metadata: dict[str, Any], arrays: dict[str, np.ndarray]
+) -> LinkedFrequencyDomainObservation:
+    if metadata.get("schema") != "umcd.receiver_frequency_observation.v1":
+        raise ValueError("unsupported frequency receiver-observation schema")
+    if metadata.get("measurement_semantics") != "complex_frequency_response_plus_awgn":
+        raise ValueError("unsupported frequency observation measurement semantics")
+    if metadata.get("waveform_model") != "direct_noisy_cfr_not_a_pusch_dmrs_observation":
+        raise ValueError("unsupported frequency observation waveform model")
+    inputs = FrequencyDomainModelInputs(
+        observed_cfr=arrays["observed_cfr"],
+        noise_variance=metadata["noise_variance"],
+        snr_db=metadata["snr_db"],
+        carrier_hz=metadata["carrier_hz"],
+        subcarrier_offsets_hz=arrays["subcarrier_offsets_hz"],
+    )
+    observation = FrequencyDomainObservation(metadata["sample_id"], inputs)
+    return LinkedFrequencyDomainObservation(
+        metadata["link_id"], metadata["frame_index"], observation
+    )
+
+
 def write_episode_bundle(root: str | Path, bundle: EpisodeBundle) -> StoredEpisodeBundle:
     """Publish immutable layer objects, then atomically publish the bundle manifest.
 
@@ -349,7 +413,12 @@ def write_episode_bundle(root: str | Path, bundle: EpisodeBundle) -> StoredEpiso
     payloads.extend(("oracle_channels", _channel_payload(view)) for view in bundle.channel_views)
     payloads.extend(("targets", _target_payload(target)) for target in bundle.targets)
     payloads.extend(
-        ("receiver_observations", _receiver_payload(binding))
+        (
+            "receiver_observations",
+            _receiver_payload(binding)
+            if isinstance(binding, LinkedNRObservation)
+            else _frequency_receiver_payload(binding),
+        )
         for binding in bundle.receiver_observations
     )
     payloads.extend(
@@ -469,6 +538,8 @@ def read_receiver_model_inputs(
     observations: list[LinkedNRObservation] = []
     for reference in observation_refs:
         receiver_metadata, receiver_arrays = _read_object(base, reference)
+        if receiver_metadata.get("schema") == "umcd.receiver_frequency_observation.v1":
+            continue
         binding = _read_receiver(receiver_metadata, receiver_arrays)
         if binding.link_id not in link_ids or binding.frame_index >= len(episode.frame_times_s):
             raise ValueError("receiver observation references an unknown link or frame")
@@ -477,7 +548,57 @@ def read_receiver_model_inputs(
         raise ValueError("receiver observations are duplicated for a link/frame")
     if len({item.observation.sample_id for item in observations}) != len(observations):
         raise ValueError("receiver observation sample IDs are duplicated")
+    if not observations:
+        raise ValueError("bundle contains no NR receiver observations")
     return tuple(item.observation.model_inputs() for item in observations)
+
+
+def read_frequency_model_inputs(
+    root: str | Path, manifest: StoredEpisodeBundle | str | Path
+) -> tuple[FrequencyDomainModelInputs, ...]:
+    """Read generic complex-CFR inference inputs without opening truth layers."""
+    base = Path(root)
+    metadata, references = _validated_manifest(base, manifest)
+    episode_refs = [item for item in references if item.get("layer") == "episode"]
+    observation_refs = [item for item in references if item.get("layer") == "receiver_observations"]
+    if len(episode_refs) != 1 or not observation_refs:
+        raise ValueError("bundle needs one episode and at least one receiver-observation layer")
+    episode_metadata, episode_arrays = _read_object(base, episode_refs[0])
+    if episode_metadata.get("schema") != "umcd.episode.v1":
+        raise ValueError("unsupported episode layer schema")
+    episode = _read_episode(episode_metadata, episode_arrays)
+    if metadata["episode_id"] != episode.episode_id:
+        raise ValueError("manifest and episode payload IDs differ")
+    link_ids = {link.link_id for link in episode.links}
+    observations: list[LinkedFrequencyDomainObservation] = []
+    for reference in observation_refs:
+        receiver_metadata, receiver_arrays = _read_object(base, reference)
+        if receiver_metadata.get("schema") != "umcd.receiver_frequency_observation.v1":
+            continue
+        binding = _read_frequency_receiver(receiver_metadata, receiver_arrays)
+        if binding.link_id not in link_ids or binding.frame_index >= len(episode.frame_times_s):
+            raise ValueError("frequency observation references an unknown link or frame")
+        link = episode.link(binding.link_id)
+        expected_shape = (
+            len(link.rx_port_indices),
+            len(link.tx_port_indices),
+            len(episode.subcarrier_offsets_hz),
+        )
+        inputs = binding.observation.model_inputs
+        if inputs.observed_cfr.shape != expected_shape:
+            raise ValueError("frequency observation axes do not match its link and grid")
+        if inputs.carrier_hz != episode.carrier_hz or not np.array_equal(
+            inputs.subcarrier_offsets_hz, episode.subcarrier_offsets_hz
+        ):
+            raise ValueError("frequency observation grid differs from its parent episode")
+        observations.append(binding)
+    if not observations:
+        raise ValueError("bundle contains no direct noisy-CFR observations")
+    if len({(item.link_id, item.frame_index) for item in observations}) != len(observations):
+        raise ValueError("frequency observations are duplicated for a link/frame")
+    if len({item.observation.sample_id for item in observations}) != len(observations):
+        raise ValueError("frequency observation sample IDs are duplicated")
+    return tuple(item.observation.model_inputs for item in observations)
 
 
 def _read_episode(metadata: dict[str, Any], arrays: dict[str, np.ndarray]) -> NetworkEpisode:
@@ -651,10 +772,15 @@ def read_episode_bundle(
                 confidence=target_metadata["confidence"],
             )
         )
-    observations = [
-        _read_receiver(receiver_metadata, arrays)
-        for receiver_metadata, arrays in grouped.get("receiver_observations", [])
-    ]
+    observations: list[LinkedNRObservation | LinkedFrequencyDomainObservation] = []
+    for receiver_metadata, arrays in grouped.get("receiver_observations", []):
+        schema = receiver_metadata.get("schema")
+        if schema == "umcd.receiver_observation.v1":
+            observations.append(_read_receiver(receiver_metadata, arrays))
+        elif schema == "umcd.receiver_frequency_observation.v1":
+            observations.append(_read_frequency_receiver(receiver_metadata, arrays))
+        else:
+            raise ValueError("unsupported receiver-observation layer schema")
     provenance_records = [
         UMCDRunProvenance.from_dict(provenance_metadata)
         for provenance_metadata, _ in grouped.get("provenance", [])

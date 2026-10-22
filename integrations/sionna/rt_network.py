@@ -15,6 +15,7 @@ from datasets.episode_store import (
 )
 from datasets.network import NetworkEpisode
 from datasets.nr import LinkedNRObservation
+from datasets.observations import LinkedFrequencyDomainObservation
 from datasets.path_oracle import PathOracleTable, PathSolveStatus
 from datasets.provenance import UMCDRunProvenance
 from datasets.targets import TargetValue
@@ -192,7 +193,7 @@ def build_sionna_rt_episode_bundle(
     producer: str,
     channel_views: Sequence[PhysicalChannelView] = (),
     targets: Sequence[TargetValue] = (),
-    receiver_observations: Sequence[LinkedNRObservation] = (),
+    receiver_observations: Sequence[LinkedNRObservation | LinkedFrequencyDomainObservation] = (),
 ) -> EpisodeBundle:
     """Build a canonical RT episode bundle and provenance for every populated layer.
 
@@ -244,7 +245,7 @@ def write_sionna_rt_episode_bundle(
     producer: str,
     channel_views: Sequence[PhysicalChannelView] = (),
     targets: Sequence[TargetValue] = (),
-    receiver_observations: Sequence[LinkedNRObservation] = (),
+    receiver_observations: Sequence[LinkedNRObservation | LinkedFrequencyDomainObservation] = (),
 ) -> StoredEpisodeBundle:
     """Build and immutably publish a provenance-complete Sionna RT bundle."""
     bundle = build_sionna_rt_episode_bundle(
