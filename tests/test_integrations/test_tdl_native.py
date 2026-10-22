@@ -57,3 +57,41 @@ def test_pinned_tr38901_tdl_gpu_taps_map_to_centered_nr_cfr(model):
     torch.testing.assert_close(
         channel.channel_frequency_response, repeated.channel_frequency_response
     )
+
+
+@pytest.mark.native_sionna
+@pytest.mark.parametrize("device", ["cpu", "cuda:0"] if torch.cuda.is_available() else ["cpu"])
+def test_tdl_a_temporal_correlation_matches_maximum_doppler_jakes_reference(device):
+    """Check the moving NLOS tap against J0(2π f_D Δt), not only its CFR map."""
+    carrier_frequency_hz = 3.5e9
+    speed_mps = 30.0
+    maximum_doppler_hz = speed_mps * carrier_frequency_hz / 299_792_458.0
+    # Quarter of the maximum-Doppler period gives a well-conditioned Jakes
+    # correlation (~0.472), away from both the zero-lag and first-zero cases.
+    lag_s = 1.0 / (4.0 * maximum_doppler_hz)
+    channel = generate_tdl_frequency_response(
+        model="A",  # NLOS profile: no specular component in the reference.
+        seed=4031,
+        carrier_frequency_hz=carrier_frequency_hz,
+        subcarrier_spacing_hz=30_000.0,
+        num_subcarriers=8,
+        batch_size=8192,
+        delay_spread_s=100e-9,
+        num_time_steps=2,
+        sampling_frequency_hz=1.0 / lag_s,
+        min_speed_mps=speed_mps,
+        max_speed_mps=speed_mps,
+        spec_version="19.2",
+        device=device,
+    )
+
+    # h_path axes are [batch, rx, rx_ant, tx, tx_ant, path, time]. Normalize
+    # by empirical tap power so the check is independent of PDP tap weight.
+    tap = channel.h_path[:, 0, 0, 0, 0, 0, :]
+    observed = torch.mean(tap[:, 0].conj() * tap[:, 1]) / torch.mean(torch.abs(tap[:, 0]) ** 2)
+    expected = torch.special.bessel_j0(
+        torch.tensor(2.0 * torch.pi * maximum_doppler_hz * lag_s, device=device)
+    )
+
+    torch.testing.assert_close(observed.real, expected, rtol=0.0, atol=0.04)
+    torch.testing.assert_close(observed.imag, torch.zeros_like(observed.imag), rtol=0.0, atol=0.04)
