@@ -135,6 +135,7 @@ class RTTrajectoryConfig:
     device: str = "cpu"
     mitsuba_variant: str = "auto"
     moving_scene_objects: tuple[RTSceneObjectMotion, ...] = ()
+    slot_index_in_subframe: int = 0
 
     def __post_init__(self) -> None:
         if not self.trajectory_id.strip() or not self.scene.strip():
@@ -163,6 +164,23 @@ class RTTrajectoryConfig:
             raise TypeError("seed must be an integer")
         if self.seed < 0 or self.seed + self.num_steps > 2**63 - 1:
             raise ValueError("seed and derived per-step seeds must fit in [0, 2**63 - 1]")
+        if isinstance(self.slot_index_in_subframe, bool) or not isinstance(
+            self.slot_index_in_subframe, int
+        ):
+            raise TypeError("slot_index_in_subframe must be an integer")
+        slots_per_subframe = {
+            15: 1,
+            30: 2,
+            60: 4,
+            120: 8,
+            240: 16,
+            480: 32,
+            960: 64,
+        }.get(self.subcarrier_spacing_khz)
+        if slots_per_subframe is None:
+            raise ValueError("subcarrier_spacing_khz must be a supported NR subcarrier spacing")
+        if not 0 <= self.slot_index_in_subframe < slots_per_subframe:
+            raise ValueError("slot_index_in_subframe is outside the configured NR subframe")
         object_names = tuple(motion.object_name for motion in self.moving_scene_objects)
         if len(object_names) != len(set(object_names)):
             raise ValueError("moving scene-object names must be unique")
@@ -310,12 +328,17 @@ def generate_rt_nr_trajectory(
     )
     from .adapter import count_valid_paths
     from .nr_pusch import SionnaPUSCHLSReceiver
-    from .rt_to_nr import paths_to_nr_ofdm_channel
+    from .rt_to_nr import paths_to_nr_ofdm_channel_at_times
 
     receiver = SionnaPUSCHLSReceiver(receiver_config, device=config.device)
     grid = receiver.resource_grid
-    ofdm_symbol_interval_s = float(grid.ofdm_symbol_duration)
-    ofdm_symbol_sampling_hz = 1.0 / ofdm_symbol_interval_s
+    from .nr_timing import nr_normal_cp_symbol_start_times
+
+    ofdm_symbol_times_s = nr_normal_cp_symbol_start_times(
+        config.subcarrier_spacing_khz * 1_000.0,
+        grid.num_ofdm_symbols,
+        slot_index_in_subframe=config.slot_index_in_subframe,
+    )
     scene.frequency = config.carrier_hz
     scene.bandwidth = grid.fft_size * config.subcarrier_spacing_khz * 1_000.0
     scene.tx_array = PlanarArray(num_rows=1, num_cols=1, pattern="iso", polarization="V")
@@ -437,13 +460,10 @@ def generate_rt_nr_trajectory(
             raise RuntimeError(
                 f"No valid RT paths at trajectory step {index}; outages need an explicit receiver policy"
             )
-        mapped = paths_to_nr_ofdm_channel(
+        mapped = paths_to_nr_ofdm_channel_at_times(
             paths,
             grid,
-            sampling_frequency_hz=ofdm_symbol_sampling_hz,
-            num_time_steps=grid.num_ofdm_symbols,
-            normalize_delays=False,
-            normalize=False,
+            ofdm_symbol_times_s,
             device=config.device,
         )
         channel_series = mapped.channel[0, 0, 0, 0, 0].detach().cpu().numpy()
@@ -529,15 +549,15 @@ def generate_rt_nr_trajectory(
                 "geometric_los": "boolean",
             },
             "channel_time_evolution": {
-                "model": "Sionna RT Paths.cfr Doppler phase evolution on ResourceGrid symbol timing",
+                "model": "Sionna RT per-path CIR and Doppler at 3GPP NR OFDM symbol starts",
                 "num_time_steps": grid.num_ofdm_symbols,
-                "sampling_frequency_hz": ofdm_symbol_sampling_hz,
-                "ofdm_symbol_interval_s": ofdm_symbol_interval_s,
-                "cyclic_prefix_length_samples": int(grid.cyclic_prefix_length),
+                "symbol_start_times_s": list(ofdm_symbol_times_s),
+                "slot_index_in_subframe": config.slot_index_in_subframe,
                 "symbol_timing_policy": (
-                    "exact Sionna 2.2 ResourceGrid.ofdm_symbol_duration, including its scalar "
-                    "cyclic prefix repeated for each symbol; NR per-symbol CP variation is not modeled"
+                    "3GPP TS 38.211 clause 5.3.1 normal-CP per-symbol timing and slot position; "
+                    "path Doppler evaluated at each exact symbol start"
                 ),
+                "sionna_phy_grid_scalar_cp_samples": int(grid.cyclic_prefix_length),
                 "moving_geometry_within_slot": False,
             },
             "direct_path_count": direct_path_counts[index],

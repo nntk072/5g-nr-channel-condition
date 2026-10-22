@@ -1,10 +1,14 @@
 from types import SimpleNamespace
 
+import numpy as np
 import pytest
 
 torch = pytest.importorskip("torch")
 
-from integrations.sionna.rt_to_nr import paths_to_nr_ofdm_channel  # noqa: E402
+from integrations.sionna.rt_to_nr import (  # noqa: E402
+    paths_to_nr_ofdm_channel,
+    paths_to_nr_ofdm_channel_at_times,
+)
 
 
 class FakePaths:
@@ -16,6 +20,20 @@ class FakePaths:
         times = kwargs["num_time_steps"]
         frequencies = len(kwargs["frequencies"])
         return torch.ones((1, 2, 1, 1, times, frequencies), dtype=torch.complex64)
+
+
+class FakeTimedPaths:
+    def __init__(self):
+        self.doppler = torch.tensor([[[100.0, float("nan")]]])
+        self.valid = torch.tensor([[[True, False]]])
+
+    def cir(self, **kwargs):
+        assert kwargs["normalize_delays"] is False
+        coefficients = np.asarray([1.0 + 0.0j, 2.0 + 1.0j], dtype=np.complex64).reshape(
+            1, 1, 1, 1, 2, 1
+        )
+        delays = np.asarray([0.0, 1e-6], dtype=np.float64).reshape(1, 1, 1, 1, 2)
+        return coefficients, delays
 
 
 def test_rt_paths_map_to_nr_axes_and_repeat_static_snapshot():
@@ -69,3 +87,38 @@ def test_rt_paths_keep_dynamic_ofdm_symbol_axis():
     )
     assert result.channel.shape == (1, 1, 2, 1, 1, 4, 8)
     assert result.metadata["static_snapshot_repeated"] is False
+
+
+def test_rt_paths_evaluate_at_explicit_times_with_invalid_paths_masked():
+    result = paths_to_nr_ofdm_channel_at_times(
+        FakeTimedPaths(),
+        SimpleNamespace(fft_size=4, num_ofdm_symbols=2, subcarrier_spacing=15e3),
+        (0.0, 1e-3),
+    )
+
+    expected = np.exp(2j * np.pi * 100.0 * np.asarray([0.0, 1e-3]))
+    assert result.channel.shape == (1, 1, 1, 1, 1, 2, 4)
+    np.testing.assert_allclose(
+        result.channel.numpy()[0, 0, 0, 0, 0, :, :],
+        np.broadcast_to(expected[:, None], (2, 4)),
+    )
+    assert result.metadata["sample_times_s"] == [0.0, 1e-3]
+    assert result.metadata["normalize_delays"] is False
+
+
+@pytest.mark.parametrize(
+    ("times", "message"),
+    [
+        ((), "non-empty finite vector"),
+        ((0.0, float("nan")), "non-empty finite vector"),
+        ((0.0, 0.0), "strictly increasing"),
+        ((0.0,), "length must match"),
+    ],
+)
+def test_rt_paths_at_times_reject_invalid_sampling_times(times, message):
+    with pytest.raises(ValueError, match=message):
+        paths_to_nr_ofdm_channel_at_times(
+            FakeTimedPaths(),
+            SimpleNamespace(fft_size=4, num_ofdm_symbols=2, subcarrier_spacing=15e3),
+            times,
+        )

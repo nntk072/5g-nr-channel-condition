@@ -12,6 +12,7 @@ pytest.importorskip("sionna")
 
 from datasets.episode_store import StoredEpisodeBundle, read_episode_bundle  # noqa: E402
 from datasets.nr_store import read_nr_trajectory  # noqa: E402
+from integrations.sionna.nr_timing import nr_normal_cp_symbol_start_times  # noqa: E402
 from integrations.sionna.rt_trajectory import (  # noqa: E402
     RTSceneObjectMotion,
     RTTrajectoryConfig,
@@ -54,20 +55,17 @@ def test_cpu_rt_path_retraces_and_stores_receiver_only_trajectory(tmp_path, monk
             record.observation.received_grid.shape[-2],
             record.observation.received_grid.shape[-1],
         )
-        expected_symbol_interval_s = (
-            1.0
-            + evolution["cyclic_prefix_length_samples"] / record.observation.received_grid.shape[-1]
-        ) / (config.subcarrier_spacing_khz * 1_000.0)
-        np.testing.assert_allclose(
-            evolution["ofdm_symbol_interval_s"], expected_symbol_interval_s, rtol=1e-12
+        expected_symbol_times_s = nr_normal_cp_symbol_start_times(
+            config.subcarrier_spacing_khz * 1_000.0,
+            symbol_channels.shape[0],
+            slot_index_in_subframe=config.slot_index_in_subframe,
         )
         np.testing.assert_allclose(
-            evolution["sampling_frequency_hz"],
-            1.0 / evolution["ofdm_symbol_interval_s"],
-            rtol=1e-12,
+            evolution["symbol_start_times_s"], expected_symbol_times_s, rtol=0, atol=1e-15
         )
-        assert evolution["cyclic_prefix_length_samples"] > 0
-        assert "NR per-symbol CP variation is not modeled" in evolution["symbol_timing_policy"]
+        assert evolution["slot_index_in_subframe"] == config.slot_index_in_subframe
+        assert "TS 38.211 clause 5.3.1" in evolution["symbol_timing_policy"]
+        assert evolution["sionna_phy_grid_scalar_cp_samples"] > 0
         assert not np.allclose(symbol_channels, symbol_channels[0:1], rtol=0.0, atol=1e-8)
         assert bool(np.asarray(record.target_masks["channel_cfr"]).all())
         assert bool(np.asarray(record.target_masks["geometric_los"]).all())

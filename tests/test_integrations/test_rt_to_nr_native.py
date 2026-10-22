@@ -162,6 +162,62 @@ def test_rt_absolute_delay_cfr_maps_to_nr_baseband_bins():
 
 
 @pytest.mark.native_sionna
+@pytest.mark.parametrize("synthetic_array", [True, False])
+def test_nonuniform_cfr_adapter_matches_sionna_for_uniform_sample_times(synthetic_array):
+    import mitsuba as mi
+
+    mi.set_variant("llvm_ad_mono_polarized")
+    rt = pytest.importorskip("sionna.rt")
+    from integrations.sionna.rt_to_nr import (
+        paths_to_nr_ofdm_channel,
+        paths_to_nr_ofdm_channel_at_times,
+    )
+    from sionna.phy.ofdm import ResourceGrid
+
+    scene = rt.load_scene()
+    scene.tx_array = rt.PlanarArray(num_rows=1, num_cols=2, pattern="iso", polarization="V")
+    scene.rx_array = rt.PlanarArray(num_rows=1, num_cols=2, pattern="iso", polarization="V")
+    scene.add(rt.Transmitter("tx", [0.0, 0.0, 1.0]))
+    scene.add(rt.Receiver("rx", [10.0, 0.0, 1.0]))
+    scene.get("tx").look_at(scene.get("rx"))
+    scene.get("rx").look_at(scene.get("tx"))
+    scene.get("rx").velocity = mi.Vector3f(30.0, 0.0, 0.0)
+    paths = rt.PathSolver(deterministic=True)(
+        scene,
+        max_depth=0,
+        los=True,
+        specular_reflection=False,
+        diffuse_reflection=False,
+        refraction=False,
+        diffraction=False,
+        synthetic_array=synthetic_array,
+        seed=31,
+    )
+    grid = ResourceGrid(
+        num_ofdm_symbols=4,
+        fft_size=24,
+        subcarrier_spacing=30e3,
+        cyclic_prefix_length=0,
+        device="cpu",
+    )
+    sampling_frequency_hz = 15_000.0
+    times_s = tuple(np.arange(grid.num_ofdm_symbols) / sampling_frequency_hz)
+
+    uniform = paths_to_nr_ofdm_channel(
+        paths,
+        grid,
+        sampling_frequency_hz=sampling_frequency_hz,
+        num_time_steps=grid.num_ofdm_symbols,
+    )
+    explicit_times = paths_to_nr_ofdm_channel_at_times(paths, grid, times_s)
+
+    assert explicit_times.channel.shape == uniform.channel.shape
+    np.testing.assert_allclose(
+        explicit_times.channel.numpy(), uniform.channel.numpy(), rtol=2e-5, atol=2e-7
+    )
+
+
+@pytest.mark.native_sionna
 def test_rt_direct_and_reflected_paths_sum_coherently_on_nr_grid():
     import mitsuba as mi
 
