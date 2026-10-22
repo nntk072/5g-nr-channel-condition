@@ -237,7 +237,7 @@ def test_mixed_outage_trajectory_uses_noise_only_and_masks_channel_truth(tmp_pat
         trajectory_id="native-all-screen-outage-route",
         no_path_policy="noise_only_mixed_episode",
     )
-    with pytest.raises(RuntimeError, match="all-no-path trajectory"):
+    with pytest.raises(RuntimeError, match="requires at least one path-bearing snapshot"):
         generate_rt_nr_trajectory(all_outage_config, tmp_path / "all-outage")
 
     stored = generate_rt_nr_trajectory(config, tmp_path, umcd_store_root=umcd_root)
@@ -278,6 +278,62 @@ def test_mixed_outage_trajectory_uses_noise_only_and_masks_channel_truth(tmp_pat
     assert not channel_view.valid_mask[0].any()
     assert channel_view.valid_mask[1].all()
     np.testing.assert_array_equal(channel_view.channel[0], 0.0)
+
+
+@pytest.mark.native_sionna
+def test_absolute_power_policy_generates_all_no_path_noise_only_episode(tmp_path):
+    config = RTTrajectoryConfig(
+        trajectory_id="native-absolute-screen-outage-route",
+        scene="box_one_screen",
+        transmitter_position_m=(-2.0, 0.0, 2.5),
+        receiver_start_m=(2.0, 0.0, 2.5),
+        receiver_velocity_mps=(0.0, 0.0, 0.0),
+        num_steps=1,
+        max_depth=0,
+        samples_per_src=200,
+        seed=20261021,
+        device="cpu",
+        snr_db=None,
+        tx_power_per_re_w=1e-6,
+        noise_figure_db=7.0,
+        temperature_k=290.0,
+        no_path_policy="noise_only_absolute_power",
+    )
+    umcd_root = tmp_path / "umcd"
+    stored = generate_rt_nr_trajectory(config, tmp_path, umcd_store_root=umcd_root)
+    trajectory = read_nr_trajectory(tmp_path, stored)
+    record = trajectory.records[0]
+
+    assert record.provenance["full_path_count"] == 0
+    assert record.provenance["direct_path_count"] == 0
+    assert record.provenance["geometric_los_oracle"] is False
+    assert record.provenance["channel_truth_valid"] is False
+    assert record.provenance["receiver_snr_db"] is None
+    assert record.provenance["tx_power_per_re_w"] == config.tx_power_per_re_w
+    assert record.provenance["noise_policy"].startswith("k_B * temperature_k")
+    expected_noise_w = 1.380649e-23 * 290.0 * 30_000.0 * 10.0**0.7
+    assert record.provenance["noise_variance_w"] == pytest.approx(expected_noise_w, rel=1e-15)
+    assert not record.target_masks["channel_cfr"].any()
+    assert not record.target_masks["channel_cfr_ofdm_symbols"].any()
+    np.testing.assert_array_equal(record.targets["channel_cfr"], 0.0)
+    received = record.observation.received_grid
+    assert np.any(received != 0.0)
+    assert np.mean(np.abs(received) ** 2) == pytest.approx(expected_noise_w, rel=0.15)
+    estimate = record.observation.channel_estimate
+    assert np.isfinite(estimate.h_hat).all()
+    assert np.isfinite(estimate.error_variance).all()
+    assert np.all(estimate.error_variance > 0.0)
+    assert estimate.metadata["observation_power_mode"] == "absolute_tx_power_thermal_noise"
+
+    import json
+
+    generation_path = (tmp_path / stored.manifest_relative_path).with_name(
+        f"{stored.content_sha256}.generation.json"
+    )
+    generation = json.loads(generation_path.read_text(encoding="utf-8"))
+    bundle = read_episode_bundle(umcd_root, StoredEpisodeBundle(**generation["umcd_bundle"]))
+    assert [status.value for status in bundle.path_oracle.solve_status] == ["no_path"]
+    assert not bundle.channel_views[0].valid_mask.any()
 
 
 @pytest.mark.native_sionna

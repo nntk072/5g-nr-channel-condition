@@ -130,7 +130,10 @@ class RTTrajectoryConfig:
     n_size_bwp: int = 6
     max_depth: int = 2
     samples_per_src: int = 200
-    snr_db: float = 12.0
+    snr_db: float | None = 12.0
+    tx_power_per_re_w: float | None = None
+    noise_figure_db: float = 7.0
+    temperature_k: float = 290.0
     seed: int = 20261021
     device: str = "cpu"
     mitsuba_variant: str = "auto"
@@ -153,16 +156,39 @@ class RTTrajectoryConfig:
             raise ValueError("sample_interval_s must be finite and positive")
         if not math.isfinite(self.carrier_hz) or self.carrier_hz <= 0:
             raise ValueError("carrier_hz must be finite and positive")
-        if not math.isfinite(self.snr_db):
-            raise ValueError("snr_db must be finite")
+        if self.tx_power_per_re_w is None:
+            if self.snr_db is None or not math.isfinite(self.snr_db):
+                raise ValueError("snr_db must be finite unless absolute-power mode is selected")
+        else:
+            if self.snr_db is not None:
+                raise ValueError("snr_db must be None when tx_power_per_re_w is set")
+            if (
+                isinstance(self.tx_power_per_re_w, bool)
+                or not math.isfinite(self.tx_power_per_re_w)
+                or self.tx_power_per_re_w <= 0.0
+            ):
+                raise ValueError("tx_power_per_re_w must be finite and positive")
+        if not math.isfinite(self.noise_figure_db) or self.noise_figure_db < 0.0:
+            raise ValueError("noise_figure_db must be finite and nonnegative")
+        if not math.isfinite(self.temperature_k) or self.temperature_k <= 0.0:
+            raise ValueError("temperature_k must be finite and positive")
         for name in ("max_depth", "samples_per_src"):
             value = getattr(self, name)
             if isinstance(value, bool) or not isinstance(value, int):
                 raise TypeError(f"{name} must be an integer")
         if self.max_depth < 0 or self.samples_per_src < 1:
             raise ValueError("max_depth must be nonnegative and samples_per_src positive")
-        if self.no_path_policy not in {"reject", "noise_only_mixed_episode"}:
-            raise ValueError("no_path_policy must be 'reject' or 'noise_only_mixed_episode'")
+        if self.no_path_policy not in {
+            "reject",
+            "noise_only_mixed_episode",
+            "noise_only_absolute_power",
+        }:
+            raise ValueError(
+                "no_path_policy must be 'reject', 'noise_only_mixed_episode', "
+                "or 'noise_only_absolute_power'"
+            )
+        if self.no_path_policy == "noise_only_absolute_power" and self.tx_power_per_re_w is None:
+            raise ValueError("noise_only_absolute_power requires tx_power_per_re_w")
         if isinstance(self.seed, bool) or not isinstance(self.seed, int):
             raise TypeError("seed must be an integer")
         if self.seed < 0 or self.seed + self.num_steps > 2**63 - 1:
@@ -494,19 +520,42 @@ def generate_rt_nr_trajectory(
         geometric_los.append(bool(visibility.visible))
         geometric_los_states.append(visibility.state.value)
 
+    if config.no_path_policy == "noise_only_mixed_episode" and not any(total_path_counts):
+        raise RuntimeError("noise_only_mixed_episode requires at least one path-bearing snapshot")
+
     channel_tensor = torch.as_tensor(
         np.stack(waveform_channels), dtype=torch.complex64, device=config.device
     )
     tx_grid, _ = receiver.transmit(config.num_steps, seed=config.seed)
+    if config.tx_power_per_re_w is None:
+        transmit_amplitude = 1.0
+    else:
+        transmit_amplitude = math.sqrt(config.tx_power_per_re_w)
+        tx_grid = tx_grid * transmit_amplitude
     channel_tensor = channel_tensor.reshape(
         config.num_steps, 1, 1, grid.num_ofdm_symbols, grid.fft_size
     )
     noiseless = tx_grid * channel_tensor
-    noise_variance = noiseless.abs().square().mean() * (10.0 ** (-config.snr_db / 10.0))
-    if float(noise_variance.detach().cpu()) <= 0.0:
+    if config.tx_power_per_re_w is None:
+        assert config.snr_db is not None
+        noise_variance = noiseless.abs().square().mean() * (10.0 ** (-config.snr_db / 10.0))
+    else:
+        from .rt_dmrs import thermal_noise_variance_w
+
+        noise_variance = torch.as_tensor(
+            thermal_noise_variance_w(
+                temperature_k=config.temperature_k,
+                noise_figure_db=config.noise_figure_db,
+                bandwidth_hz=config.subcarrier_spacing_khz * 1_000.0,
+            ),
+            dtype=torch.float32,
+            device=config.device,
+        )
+    if config.tx_power_per_re_w is None and float(noise_variance.detach().cpu()) <= 0.0:
         raise RuntimeError(
             "Relative-SNR noise cannot be calibrated for an all-no-path trajectory; "
-            "include at least one path-bearing snapshot or use a future absolute-noise mode"
+            "include a path-bearing snapshot or use no_path_policy='noise_only_absolute_power' "
+            "with explicit transmit power"
         )
     noise_generator = torch.Generator(device=config.device).manual_seed(
         config.seed + config.num_steps
@@ -525,14 +574,31 @@ def generate_rt_nr_trajectory(
     for index, (position, timestamp) in enumerate(zip(positions, times, strict=True)):
         received = (noiseless + noise)[index : index + 1]
         channel_estimate = NRChannelEstimate(
-            h_hat=estimate.h_hat[index : index + 1],
+            h_hat=(
+                estimate.h_hat[index : index + 1] / transmit_amplitude
+                if transmit_amplitude != 1.0
+                else estimate.h_hat[index : index + 1]
+            ),
             error_variance=(
                 estimate.error_variance
                 if estimate.error_variance.shape[0] == 1
                 else estimate.error_variance[index : index + 1]
-            ),
+            )
+            / (config.tx_power_per_re_w if config.tx_power_per_re_w is not None else 1.0),
             pilot_mask=estimate.pilot_mask,
-            metadata={**receiver.metadata, "trajectory_step": index},
+            metadata={
+                **receiver.metadata,
+                "trajectory_step": index,
+                "observation_power_mode": (
+                    "absolute_tx_power_thermal_noise"
+                    if config.tx_power_per_re_w is not None
+                    else "relative_snr"
+                ),
+                "noise_variance": float(noise_variance.detach().cpu()),
+                "noise_variance_units": (
+                    "W" if config.tx_power_per_re_w is not None else "normalized_grid_power"
+                ),
+            },
         )
         observation = NRObservation(
             sample_id=f"{config.trajectory_id}:{index:04d}",
@@ -584,7 +650,19 @@ def generate_rt_nr_trajectory(
             "rt_seed": config.seed,
             "receiver_noise_seed": config.seed + config.num_steps,
             "receiver_snr_db": config.snr_db,
-            "noise_policy": "common variance from trajectory-batch mean received-grid power",
+            "tx_power_per_re_w": config.tx_power_per_re_w,
+            "noise_figure_db": config.noise_figure_db if config.tx_power_per_re_w else None,
+            "temperature_k": config.temperature_k if config.tx_power_per_re_w else None,
+            "noise_policy": (
+                "k_B * temperature_k * subcarrier_spacing_hz * noise_factor"
+                if config.tx_power_per_re_w is not None
+                else "common variance from trajectory-batch mean received-grid power"
+            ),
+            "noise_variance_w": (
+                float(noise_variance.detach().cpu())
+                if config.tx_power_per_re_w is not None
+                else None
+            ),
             "noise_variance": float(noise_variance.detach().cpu()),
             "generation_config": asdict(config),
             "rt_backend_selection": selection.as_dict(),
@@ -734,9 +812,10 @@ def generate_rt_nr_trajectory(
             "Each timestamp is a separately retraced quasi-static RT snapshot.",
             "Configured scene-object translations are retraced at each timestamp; rotations and deformation are unsupported.",
             "Moving-object Doppler is validated only for one reflective-screen scene; other moving interactions and path births/deaths are not qualified.",
-            "The noise-only no-path policy requires a path-bearing snapshot in the same trajectory to calibrate its relative-SNR noise variance.",
+            "Relative-SNR all-no-path trajectories are rejected; absolute-power mode requires explicit transmit power and uses k_B T B F noise.",
             "The synthetic scene materials and ray solver are not field calibrated.",
             "An opt-in mixed-episode noise-only policy represents solver no-path snapshots with masked channel truth; this is not a calibrated physical outage.",
+            "Absolute-power noise uses declared transmit power, temperature, bandwidth, and noise figure; those parameters are not hardware calibrated.",
         ],
     }
     # The trajectory index is immutable; generation metadata belongs in a distinct sidecar.

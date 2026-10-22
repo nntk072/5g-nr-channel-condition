@@ -31,6 +31,9 @@ def test_rt_trajectory_config_generates_ordered_constant_velocity_route() -> Non
         {"sample_interval_s": 0.0},
         {"carrier_hz": float("nan")},
         {"snr_db": float("inf")},
+        {"snr_db": None},
+        {"tx_power_per_re_w": 1e-6},
+        {"no_path_policy": "noise_only_absolute_power"},
         {"max_depth": -1},
         {"max_depth": True},
         {"samples_per_src": 0},
@@ -51,3 +54,18 @@ def test_rt_trajectory_config_rejects_invalid_values(overrides: dict[str, object
 
     with pytest.raises((TypeError, ValueError)):
         RTTrajectoryConfig(**values)  # type: ignore[arg-type]
+
+
+def test_rt_trajectory_absolute_power_mode_requires_explicit_transmit_power() -> None:
+    config = RTTrajectoryConfig(
+        trajectory_id="physical-noise-route",
+        scene="simple_reflector",
+        transmitter_position_m=(1.0, 2.0, 3.0),
+        receiver_start_m=(4.0, 5.0, 6.0),
+        receiver_velocity_mps=(0.0, 0.0, 0.0),
+        snr_db=None,
+        tx_power_per_re_w=1e-6,
+        no_path_policy="noise_only_absolute_power",
+    )
+    assert config.tx_power_per_re_w == 1e-6
+    assert config.snr_db is None
