@@ -1,0 +1,608 @@
+{
+  "configuration": {
+    "cfr_vectors_included": true,
+    "material_scattering_overrides": {
+      "screen-mat": 0.5
+    },
+    "materials": {
+      "box-mat": {
+        "scattering_coefficient": [
+          0.0
+        ],
+        "scattering_pattern": "LambertianPattern",
+        "xpd_coefficient": [
+          0.0
+        ]
+      },
+      "screen-mat": {
+        "scattering_coefficient": [
+          0.5
+        ],
+        "scattering_pattern": "LambertianPattern",
+        "xpd_coefficient": [
+          0.0
+        ]
+      }
+    },
+    "max_depth": 3,
+    "mitsuba_variant": "llvm_ad_mono_polarized",
+    "samples_per_src": 20000,
+    "seeds": [
+      11,
+      23,
+      47
+    ]
+  },
+  "figure": {
+    "png": {
+      "path": "docs/research/figures/rt-box-los-nlos-path-cap-sweep-depth3-s05-candidate-audit-20261022.png",
+      "sha256": "759b3004943f63a1eb4597cebfafb23617cd30c63c44eaa3213f17607b923891"
+    },
+    "svg": {
+      "path": "docs/research/figures/rt-box-los-nlos-path-cap-sweep-depth3-s05-candidate-audit-20261022.svg",
+      "sha256": "f85cbb28f1c4d102795ee29a9581110b402dacc6228bb659f6230a1b625a03a9"
+    }
+  },
+  "inputs": [
+    {
+      "max_num_paths_per_src": 1000,
+      "path": "/home/nguyenl37/5g-nr-channel-condition/docs/research/results/rt-box-los-nlos-path-cap-1k-candidate-audit-20261022.json",
+      "sha256": "54230d1121ecd4817af3cbed358f03f8be72aa7dfe0f7c2cba6b4ef565733f63"
+    },
+    {
+      "max_num_paths_per_src": 10000,
+      "path": "/home/nguyenl37/5g-nr-channel-condition/docs/research/results/rt-box-los-nlos-path-cap-10k-candidate-audit-20261022.json",
+      "sha256": "db5b36f4ab0f6204ea75f5739f2487e58e9c0b1367b6227eebd656b3c4651fee"
+    },
+    {
+      "max_num_paths_per_src": 1000000,
+      "path": "/home/nguyenl37/5g-nr-channel-condition/docs/research/results/rt-box-los-nlos-path-cap-1m-candidate-audit-20261022.json",
+      "sha256": "17c9378b4542cd0b835c7528bc0a2c0be3b9237695c62a1655868afe14fe8ae6"
+    }
+  ],
+  "limitations": [
+    "The largest path cap is a finite comparison reference, not ground truth.",
+    "Only one scene, one scattering override, and one depth/budget are compared.",
+    "The maximum cap is a finite reference, not ground truth; cross-cap CFR error is unavailable when reports omit CFR vectors.",
+    "The S=0.5 material override is for mechanism testing, not calibrated material realism."
+  ],
+  "per_seed": [
+    {
+      "candidate_path_cap_filled": true,
+      "candidate_path_count_before_path_validation": 1000,
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 1000,
+      "power_weighted_arrival_angular_spread_deg": 39.17322438790505,
+      "power_weighted_rms_delay_spread_ns": 10.658481208736248,
+      "relative_cfr_l2_error_to_max_path_cap": 0.46479308345168807,
+      "seed": 11,
+      "valid_diffuse_reflection_path_count": 921,
+      "valid_path_count": 947,
+      "valid_path_power_sum": 6.021623266860843e-05
+    },
+    {
+      "candidate_path_cap_filled": true,
+      "candidate_path_count_before_path_validation": 1000,
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 1000,
+      "power_weighted_arrival_angular_spread_deg": 39.35729842199101,
+      "power_weighted_rms_delay_spread_ns": 11.252700993225062,
+      "relative_cfr_l2_error_to_max_path_cap": 0.3229168239218846,
+      "seed": 23,
+      "valid_diffuse_reflection_path_count": 917,
+      "valid_path_count": 945,
+      "valid_path_power_sum": 6.040948210284114e-05
+    },
+    {
+      "candidate_path_cap_filled": true,
+      "candidate_path_count_before_path_validation": 1000,
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 1000,
+      "power_weighted_arrival_angular_spread_deg": 39.18876002268034,
+      "power_weighted_rms_delay_spread_ns": 10.672096095731831,
+      "relative_cfr_l2_error_to_max_path_cap": 0.46595165129821026,
+      "seed": 47,
+      "valid_diffuse_reflection_path_count": 918,
+      "valid_path_count": 944,
+      "valid_path_power_sum": 6.022857269272208e-05
+    },
+    {
+      "candidate_path_cap_filled": false,
+      "candidate_path_count_before_path_validation": 244,
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 1000,
+      "power_weighted_arrival_angular_spread_deg": 71.24513600147333,
+      "power_weighted_rms_delay_spread_ns": 18.22603934442668,
+      "relative_cfr_l2_error_to_max_path_cap": 1.5472963521466547e-07,
+      "seed": 11,
+      "valid_diffuse_reflection_path_count": 47,
+      "valid_path_count": 79,
+      "valid_path_power_sum": 6.2960220930108335e-06
+    },
+    {
+      "candidate_path_cap_filled": false,
+      "candidate_path_count_before_path_validation": 238,
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 1000,
+      "power_weighted_arrival_angular_spread_deg": 71.25545775935153,
+      "power_weighted_rms_delay_spread_ns": 18.22879447388459,
+      "relative_cfr_l2_error_to_max_path_cap": 1.9061814327873105e-07,
+      "seed": 23,
+      "valid_diffuse_reflection_path_count": 41,
+      "valid_path_count": 73,
+      "valid_path_power_sum": 6.2924141275289e-06
+    },
+    {
+      "candidate_path_cap_filled": false,
+      "candidate_path_count_before_path_validation": 242,
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 1000,
+      "power_weighted_arrival_angular_spread_deg": 71.23558366547248,
+      "power_weighted_rms_delay_spread_ns": 18.224495690333242,
+      "relative_cfr_l2_error_to_max_path_cap": 1.8610694644213418e-07,
+      "seed": 47,
+      "valid_diffuse_reflection_path_count": 44,
+      "valid_path_count": 76,
+      "valid_path_power_sum": 6.296980245679151e-06
+    },
+    {
+      "candidate_path_cap_filled": false,
+      "candidate_path_count_before_path_validation": 1345,
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 10000,
+      "power_weighted_arrival_angular_spread_deg": 42.33847792714028,
+      "power_weighted_rms_delay_spread_ns": 14.27955087507371,
+      "relative_cfr_l2_error_to_max_path_cap": 7.431479816223644e-07,
+      "seed": 11,
+      "valid_diffuse_reflection_path_count": 1161,
+      "valid_path_count": 1209,
+      "valid_path_power_sum": 6.317059160210192e-05
+    },
+    {
+      "candidate_path_cap_filled": false,
+      "candidate_path_count_before_path_validation": 1324,
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 10000,
+      "power_weighted_arrival_angular_spread_deg": 42.177603401305845,
+      "power_weighted_rms_delay_spread_ns": 14.256440472593113,
+      "relative_cfr_l2_error_to_max_path_cap": 6.127792936671822e-07,
+      "seed": 23,
+      "valid_diffuse_reflection_path_count": 1139,
+      "valid_path_count": 1187,
+      "valid_path_power_sum": 6.308835872914642e-05
+    },
+    {
+      "candidate_path_cap_filled": false,
+      "candidate_path_count_before_path_validation": 1336,
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 10000,
+      "power_weighted_arrival_angular_spread_deg": 42.32036767575395,
+      "power_weighted_rms_delay_spread_ns": 14.279772031500215,
+      "relative_cfr_l2_error_to_max_path_cap": 6.923614504218013e-07,
+      "seed": 47,
+      "valid_diffuse_reflection_path_count": 1151,
+      "valid_path_count": 1199,
+      "valid_path_power_sum": 6.316723010968417e-05
+    },
+    {
+      "candidate_path_cap_filled": false,
+      "candidate_path_count_before_path_validation": 244,
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 10000,
+      "power_weighted_arrival_angular_spread_deg": 71.24513600147333,
+      "power_weighted_rms_delay_spread_ns": 18.22604112078352,
+      "relative_cfr_l2_error_to_max_path_cap": 1.4462022614175666e-07,
+      "seed": 11,
+      "valid_diffuse_reflection_path_count": 47,
+      "valid_path_count": 79,
+      "valid_path_power_sum": 6.296023002505535e-06
+    },
+    {
+      "candidate_path_cap_filled": false,
+      "candidate_path_count_before_path_validation": 238,
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 10000,
+      "power_weighted_arrival_angular_spread_deg": 71.25544874341635,
+      "power_weighted_rms_delay_spread_ns": 18.22879447388459,
+      "relative_cfr_l2_error_to_max_path_cap": 1.9735394314217193e-07,
+      "seed": 23,
+      "valid_diffuse_reflection_path_count": 41,
+      "valid_path_count": 73,
+      "valid_path_power_sum": 6.2924141275289e-06
+    },
+    {
+      "candidate_path_cap_filled": false,
+      "candidate_path_count_before_path_validation": 242,
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 10000,
+      "power_weighted_arrival_angular_spread_deg": 71.23558727227119,
+      "power_weighted_rms_delay_spread_ns": 18.224495690333242,
+      "relative_cfr_l2_error_to_max_path_cap": 1.7744323591449408e-07,
+      "seed": 47,
+      "valid_diffuse_reflection_path_count": 44,
+      "valid_path_count": 76,
+      "valid_path_power_sum": 6.296980700426502e-06
+    },
+    {
+      "candidate_path_cap_filled": false,
+      "candidate_path_count_before_path_validation": 1345,
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 1000000,
+      "power_weighted_arrival_angular_spread_deg": 42.33848806833774,
+      "power_weighted_rms_delay_spread_ns": 14.27954998689529,
+      "relative_cfr_l2_error_to_max_path_cap": 0.0,
+      "seed": 11,
+      "valid_diffuse_reflection_path_count": 1161,
+      "valid_path_count": 1209,
+      "valid_path_power_sum": 6.317059887805954e-05
+    },
+    {
+      "candidate_path_cap_filled": false,
+      "candidate_path_count_before_path_validation": 1324,
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 1000000,
+      "power_weighted_arrival_angular_spread_deg": 42.177603401305845,
+      "power_weighted_rms_delay_spread_ns": 14.256439584414693,
+      "relative_cfr_l2_error_to_max_path_cap": 0.0,
+      "seed": 23,
+      "valid_diffuse_reflection_path_count": 1139,
+      "valid_path_count": 1187,
+      "valid_path_power_sum": 6.308835872914642e-05
+    },
+    {
+      "candidate_path_cap_filled": false,
+      "candidate_path_count_before_path_validation": 1336,
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 1000000,
+      "power_weighted_arrival_angular_spread_deg": 42.32035753103477,
+      "power_weighted_rms_delay_spread_ns": 14.279772919678635,
+      "relative_cfr_l2_error_to_max_path_cap": 0.0,
+      "seed": 47,
+      "valid_diffuse_reflection_path_count": 1151,
+      "valid_path_count": 1199,
+      "valid_path_power_sum": 6.316723010968417e-05
+    },
+    {
+      "candidate_path_cap_filled": false,
+      "candidate_path_count_before_path_validation": 244,
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 1000000,
+      "power_weighted_arrival_angular_spread_deg": 71.24513419817606,
+      "power_weighted_rms_delay_spread_ns": 18.22604112078352,
+      "relative_cfr_l2_error_to_max_path_cap": 0.0,
+      "seed": 11,
+      "valid_diffuse_reflection_path_count": 47,
+      "valid_path_count": 79,
+      "valid_path_power_sum": 6.296023002505535e-06
+    },
+    {
+      "candidate_path_cap_filled": false,
+      "candidate_path_count_before_path_validation": 238,
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 1000000,
+      "power_weighted_arrival_angular_spread_deg": 71.25545775935153,
+      "power_weighted_rms_delay_spread_ns": 18.22879269752775,
+      "relative_cfr_l2_error_to_max_path_cap": 0.0,
+      "seed": 23,
+      "valid_diffuse_reflection_path_count": 41,
+      "valid_path_count": 73,
+      "valid_path_power_sum": 6.2924141275289e-06
+    },
+    {
+      "candidate_path_cap_filled": false,
+      "candidate_path_count_before_path_validation": 242,
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 1000000,
+      "power_weighted_arrival_angular_spread_deg": 71.23558546887185,
+      "power_weighted_rms_delay_spread_ns": 18.22449746669008,
+      "relative_cfr_l2_error_to_max_path_cap": 0.0,
+      "seed": 47,
+      "valid_diffuse_reflection_path_count": 44,
+      "valid_path_count": 76,
+      "valid_path_power_sum": 6.2969797909318e-06
+    }
+  ],
+  "scene": {
+    "name": "box_one_screen",
+    "scene_tree_sha256": "04c273c697fcd569106d03e93db875d7f14ed0e13f8d6a35b260e2fb3aa9a5e6",
+    "xml_path": "/home/nguyenl37/5g-nr-channel-condition/.venv/lib/python3.12/site-packages/sionna/rt/scenes/box_one_screen/box_one_screen.xml",
+    "xml_sha256": "1f172e8ad38d43af1589b246ef3edffd774d5b35006c9374e310ff807c117e5a"
+  },
+  "schema": "loslab.rt_path_cap_sweep.v1",
+  "summaries": [
+    {
+      "candidate_path_cap_filled_fraction": 1.0,
+      "geometric_visibility_state": "visible",
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 1000,
+      "metrics": {
+        "candidate_path_cap_filled_fraction": {
+          "max": 1.0,
+          "median": 1.0,
+          "min": 1.0
+        },
+        "candidate_path_count_before_path_validation": {
+          "max": 1000.0,
+          "median": 1000.0,
+          "min": 1000.0
+        },
+        "power_weighted_arrival_angular_spread_deg": {
+          "max": 39.35729842199101,
+          "median": 39.18876002268034,
+          "min": 39.17322438790505
+        },
+        "power_weighted_rms_delay_spread_ns": {
+          "max": 11.252700993225062,
+          "median": 10.672096095731831,
+          "min": 10.658481208736248
+        },
+        "relative_cfr_l2_error_to_max_path_cap": {
+          "max": 0.46595165129821026,
+          "median": 0.46479308345168807,
+          "min": 0.3229168239218846
+        },
+        "valid_diffuse_reflection_path_count": {
+          "max": 921.0,
+          "median": 918.0,
+          "min": 917.0
+        },
+        "valid_path_count": {
+          "max": 947.0,
+          "median": 945.0,
+          "min": 944.0
+        },
+        "valid_path_power_sum": {
+          "max": 6.040948210284114e-05,
+          "median": 6.022857269272208e-05,
+          "min": 6.021623266860843e-05
+        }
+      },
+      "seed_count": 3
+    },
+    {
+      "candidate_path_cap_filled_fraction": 0.0,
+      "geometric_visibility_state": "blocked",
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 1000,
+      "metrics": {
+        "candidate_path_cap_filled_fraction": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0
+        },
+        "candidate_path_count_before_path_validation": {
+          "max": 244.0,
+          "median": 242.0,
+          "min": 238.0
+        },
+        "power_weighted_arrival_angular_spread_deg": {
+          "max": 71.25545775935153,
+          "median": 71.24513600147333,
+          "min": 71.23558366547248
+        },
+        "power_weighted_rms_delay_spread_ns": {
+          "max": 18.22879447388459,
+          "median": 18.22603934442668,
+          "min": 18.224495690333242
+        },
+        "relative_cfr_l2_error_to_max_path_cap": {
+          "max": 1.9061814327873105e-07,
+          "median": 1.8610694644213418e-07,
+          "min": 1.5472963521466547e-07
+        },
+        "valid_diffuse_reflection_path_count": {
+          "max": 47.0,
+          "median": 44.0,
+          "min": 41.0
+        },
+        "valid_path_count": {
+          "max": 79.0,
+          "median": 76.0,
+          "min": 73.0
+        },
+        "valid_path_power_sum": {
+          "max": 6.296980245679151e-06,
+          "median": 6.2960220930108335e-06,
+          "min": 6.2924141275289e-06
+        }
+      },
+      "seed_count": 3
+    },
+    {
+      "candidate_path_cap_filled_fraction": 0.0,
+      "geometric_visibility_state": "visible",
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 10000,
+      "metrics": {
+        "candidate_path_cap_filled_fraction": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0
+        },
+        "candidate_path_count_before_path_validation": {
+          "max": 1345.0,
+          "median": 1336.0,
+          "min": 1324.0
+        },
+        "power_weighted_arrival_angular_spread_deg": {
+          "max": 42.33847792714028,
+          "median": 42.32036767575395,
+          "min": 42.177603401305845
+        },
+        "power_weighted_rms_delay_spread_ns": {
+          "max": 14.279772031500215,
+          "median": 14.27955087507371,
+          "min": 14.256440472593113
+        },
+        "relative_cfr_l2_error_to_max_path_cap": {
+          "max": 7.431479816223644e-07,
+          "median": 6.923614504218013e-07,
+          "min": 6.127792936671822e-07
+        },
+        "valid_diffuse_reflection_path_count": {
+          "max": 1161.0,
+          "median": 1151.0,
+          "min": 1139.0
+        },
+        "valid_path_count": {
+          "max": 1209.0,
+          "median": 1199.0,
+          "min": 1187.0
+        },
+        "valid_path_power_sum": {
+          "max": 6.317059160210192e-05,
+          "median": 6.316723010968417e-05,
+          "min": 6.308835872914642e-05
+        }
+      },
+      "seed_count": 3
+    },
+    {
+      "candidate_path_cap_filled_fraction": 0.0,
+      "geometric_visibility_state": "blocked",
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 10000,
+      "metrics": {
+        "candidate_path_cap_filled_fraction": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0
+        },
+        "candidate_path_count_before_path_validation": {
+          "max": 244.0,
+          "median": 242.0,
+          "min": 238.0
+        },
+        "power_weighted_arrival_angular_spread_deg": {
+          "max": 71.25544874341635,
+          "median": 71.24513600147333,
+          "min": 71.23558727227119
+        },
+        "power_weighted_rms_delay_spread_ns": {
+          "max": 18.22879447388459,
+          "median": 18.22604112078352,
+          "min": 18.224495690333242
+        },
+        "relative_cfr_l2_error_to_max_path_cap": {
+          "max": 1.9735394314217193e-07,
+          "median": 1.7744323591449408e-07,
+          "min": 1.4462022614175666e-07
+        },
+        "valid_diffuse_reflection_path_count": {
+          "max": 47.0,
+          "median": 44.0,
+          "min": 41.0
+        },
+        "valid_path_count": {
+          "max": 79.0,
+          "median": 76.0,
+          "min": 73.0
+        },
+        "valid_path_power_sum": {
+          "max": 6.296980700426502e-06,
+          "median": 6.296023002505535e-06,
+          "min": 6.2924141275289e-06
+        }
+      },
+      "seed_count": 3
+    },
+    {
+      "candidate_path_cap_filled_fraction": 0.0,
+      "geometric_visibility_state": "visible",
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 1000000,
+      "metrics": {
+        "candidate_path_cap_filled_fraction": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0
+        },
+        "candidate_path_count_before_path_validation": {
+          "max": 1345.0,
+          "median": 1336.0,
+          "min": 1324.0
+        },
+        "power_weighted_arrival_angular_spread_deg": {
+          "max": 42.33848806833774,
+          "median": 42.32035753103477,
+          "min": 42.177603401305845
+        },
+        "power_weighted_rms_delay_spread_ns": {
+          "max": 14.279772919678635,
+          "median": 14.27954998689529,
+          "min": 14.256439584414693
+        },
+        "relative_cfr_l2_error_to_max_path_cap": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0
+        },
+        "valid_diffuse_reflection_path_count": {
+          "max": 1161.0,
+          "median": 1151.0,
+          "min": 1139.0
+        },
+        "valid_path_count": {
+          "max": 1209.0,
+          "median": 1199.0,
+          "min": 1187.0
+        },
+        "valid_path_power_sum": {
+          "max": 6.317059887805954e-05,
+          "median": 6.316723010968417e-05,
+          "min": 6.308835872914642e-05
+        }
+      },
+      "seed_count": 3
+    },
+    {
+      "candidate_path_cap_filled_fraction": 0.0,
+      "geometric_visibility_state": "blocked",
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 1000000,
+      "metrics": {
+        "candidate_path_cap_filled_fraction": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0
+        },
+        "candidate_path_count_before_path_validation": {
+          "max": 244.0,
+          "median": 242.0,
+          "min": 238.0
+        },
+        "power_weighted_arrival_angular_spread_deg": {
+          "max": 71.25545775935153,
+          "median": 71.24513419817606,
+          "min": 71.23558546887185
+        },
+        "power_weighted_rms_delay_spread_ns": {
+          "max": 18.22879269752775,
+          "median": 18.22604112078352,
+          "min": 18.22449746669008
+        },
+        "relative_cfr_l2_error_to_max_path_cap": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0
+        },
+        "valid_diffuse_reflection_path_count": {
+          "max": 47.0,
+          "median": 44.0,
+          "min": 41.0
+        },
+        "valid_path_count": {
+          "max": 79.0,
+          "median": 76.0,
+          "min": 73.0
+        },
+        "valid_path_power_sum": {
+          "max": 6.2969797909318e-06,
+          "median": 6.296023002505535e-06,
+          "min": 6.2924141275289e-06
+        }
+      },
+      "seed_count": 3
+    }
+  ]
+}
