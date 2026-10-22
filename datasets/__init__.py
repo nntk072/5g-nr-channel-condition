@@ -41,6 +41,13 @@ from .nr_store import (
     write_nr_trajectory,
 )
 from .path_oracle import PathOracleTable, PathSolveStatus
+from .splits import (
+    EpisodeSplitRegistry,
+    audit_episode_split_registry,
+    freeze_episode_split_registry,
+    make_episode_split_registry,
+    read_episode_split_registry,
+)
 from .synthetic import debug_multipath
 from .targets import TargetValidity, TargetValue, definition_digest
 
@@ -61,6 +68,7 @@ __all__ = [
     "NodeRole",
     "PathOracleTable",
     "PathSolveStatus",
+    "EpisodeSplitRegistry",
     "AnalyticalMultipathSample",
     "AnalyticalModelInputs",
     "AnalyticalPathOracle",
@@ -75,6 +83,10 @@ __all__ = [
     "definition_digest",
     "read_episode_bundle",
     "read_receiver_model_inputs",
+    "audit_episode_split_registry",
+    "freeze_episode_split_registry",
+    "make_episode_split_registry",
+    "read_episode_split_registry",
     "write_episode_bundle",
     "NRStoredTrajectory",
     "debug_multipath",
