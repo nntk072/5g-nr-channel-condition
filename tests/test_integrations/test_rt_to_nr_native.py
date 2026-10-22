@@ -13,6 +13,7 @@ def test_rt_absolute_delay_cfr_maps_to_nr_baseband_bins():
 
     mi.set_variant("llvm_ad_mono_polarized")
     rt = pytest.importorskip("sionna.rt")
+    from integrations.sionna.adapter import GridConfig, rt_cfr
     from integrations.sionna.rt_to_nr import paths_to_nr_ofdm_channel
     from sionna.phy.ofdm import ResourceGrid
 
@@ -61,6 +62,26 @@ def test_rt_absolute_delay_cfr_maps_to_nr_baseband_bins():
         result.channel[0, 0, 0, 0, 0, 0].numpy(), result.channel[0, 0, 0, 0, 0, 13].numpy()
     )
 
+    # The legacy dataset adapter must use the same absolute-delay convention
+    # as the canonical NR bridge, rather than silently removing the ToA slope.
+    adapter_channel = rt_cfr(paths, GridConfig(n_subcarriers=24, spacing_hz=30e3))
+    adapter_reference = paths.cfr(
+        frequencies=(np.arange(24) - 12) * 30e3,
+        num_time_steps=1,
+        normalize_delays=False,
+        normalize=False,
+        out_type="numpy",
+    ).reshape(1, 1, 24)
+    np.testing.assert_allclose(adapter_channel, adapter_reference, rtol=1e-5, atol=1e-8)
+    normalized_reference = paths.cfr(
+        frequencies=(np.arange(24) - 12) * 30e3,
+        num_time_steps=1,
+        normalize_delays=True,
+        normalize=False,
+        out_type="numpy",
+    ).reshape(1, 1, 24)
+    assert np.max(np.abs(adapter_channel - normalized_reference)) > 1e-3
+
 
 @pytest.mark.native_sionna
 def test_rt_direct_and_reflected_paths_sum_coherently_on_nr_grid():
@@ -68,6 +89,12 @@ def test_rt_direct_and_reflected_paths_sum_coherently_on_nr_grid():
 
     mi.set_variant("llvm_ad_mono_polarized")
     rt = pytest.importorskip("sionna.rt")
+    from integrations.sionna.adapter import (
+        GridConfig,
+        direct_indirect_diagnostics,
+        direct_path_mask,
+        rt_cfr,
+    )
     from integrations.sionna.rt_to_nr import paths_to_nr_ofdm_channel
     from sionna.phy.ofdm import ResourceGrid
 
@@ -110,6 +137,64 @@ def test_rt_direct_and_reflected_paths_sum_coherently_on_nr_grid():
         result.channel[0, 0, 0, 0, 0, 0].numpy(), expected, rtol=1e-5, atol=1e-8
     )
     assert np.ptp(np.abs(result.channel[0, 0, 0, 0, 0, 0].numpy())) > 0
+
+    # Partition coefficients from this exact Paths object; coherent
+    # reconstruction must conserve the frequency response at one delay origin.
+    rt_grid = GridConfig(n_subcarriers=24, spacing_hz=30e3)
+    valid = np.asarray(paths.valid.numpy(), dtype=bool)
+    direct_mask = direct_path_mask(paths)
+    indirect_mask = valid & ~direct_mask
+    assert direct_mask.sum() == 1 and indirect_mask.sum() == 1
+    full_cfr = rt_cfr(paths, rt_grid)
+    direct_cfr = rt_cfr(paths, rt_grid, path_mask=direct_mask)
+    indirect_cfr = rt_cfr(paths, rt_grid, path_mask=indirect_mask)
+    np.testing.assert_allclose(full_cfr, direct_cfr + indirect_cfr, rtol=1e-5, atol=1e-8)
+    diagnostic = direct_indirect_diagnostics(full_cfr, direct_cfr)
+    np.testing.assert_allclose(
+        diagnostic["residual_indirect_power"], np.mean(np.abs(indirect_cfr) ** 2), rtol=1e-5
+    )
+
+
+@pytest.mark.native_sionna
+def test_same_paths_direct_indirect_partition_preserves_explicit_mimo_axes():
+    import mitsuba as mi
+
+    mi.set_variant("llvm_ad_mono_polarized")
+    rt = pytest.importorskip("sionna.rt")
+    from integrations.sionna.adapter import GridConfig, direct_path_mask, rt_cfr
+
+    scene = rt.load_scene(rt.scene.simple_reflector, merge_shapes=False)
+    scene.tx_array = rt.PlanarArray(num_rows=1, num_cols=2, pattern="iso", polarization="V")
+    scene.rx_array = rt.PlanarArray(num_rows=1, num_cols=3, pattern="iso", polarization="V")
+    scene.add(rt.Transmitter("tx", [-10.0, 0.0, 10.0]))
+    scene.add(rt.Receiver("rx", [10.0, 0.0, 10.0]))
+    scene.get("tx").look_at([0.0, 0.0, 0.0])
+    scene.get("rx").look_at([0.0, 0.0, 0.0])
+    paths = rt.PathSolver(deterministic=True)(
+        scene,
+        max_depth=1,
+        los=True,
+        specular_reflection=True,
+        diffuse_reflection=False,
+        refraction=False,
+        diffraction=False,
+        synthetic_array=False,
+        seed=1,
+    )
+
+    valid = np.asarray(paths.valid.numpy(), dtype=bool)
+    direct_mask = direct_path_mask(paths)
+    indirect_mask = valid & ~direct_mask
+    assert paths.a[0].shape[:4] == (1, 3, 1, 2)
+    assert direct_mask.shape == valid.shape
+    assert direct_mask.any() and indirect_mask.any()
+
+    grid = GridConfig(n_subcarriers=24, spacing_hz=30e3)
+    full = rt_cfr(paths, grid)
+    direct = rt_cfr(paths, grid, path_mask=direct_mask)
+    indirect = rt_cfr(paths, grid, path_mask=indirect_mask)
+    assert full.shape == (1, 6, 24)
+    np.testing.assert_allclose(full, direct + indirect, rtol=1e-5, atol=1e-8)
 
 
 @pytest.mark.native_sionna

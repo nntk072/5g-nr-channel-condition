@@ -44,6 +44,10 @@ def main() -> None:
     rt.add_argument("--output", required=True)
     rt.add_argument("--seed", type=int, default=42)
     rt.add_argument("--scene", default="munich", help="Built-in scene name or scene file")
+    rt.add_argument(
+        "--tx-id",
+        help="optional transmitter-location ID; creates a separate evaluation domain",
+    )
     rt.add_argument("--tx", type=float, nargs=3, default=[8.5, 21.0, 27.0])
     rt.add_argument("--center", type=float, nargs=3, default=[44.0, 95.0, 1.5])
     rt.add_argument("--radius", type=float, default=90.0)
@@ -150,6 +154,7 @@ def main() -> None:
         cfg = RayScene(
             name=args.scene,
             tx_position=tuple(args.tx),
+            transmitter_id=args.tx_id,
             rx_center=tuple(args.center),
             radius_m=args.radius,
             per_class=args.per_class,

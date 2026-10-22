@@ -7,7 +7,7 @@ import numpy as np
 from integrations.sionna.adapter import GridConfig, RayScene, generate_raytraced
 
 
-def test_full_rt_oracle_is_separate_and_los_contains_reflections(monkeypatch):
+def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
     scene_module = types.ModuleType("sionna.rt")
     sionna = types.ModuleType("sionna")
     sionna.__path__ = []
@@ -31,12 +31,22 @@ def test_full_rt_oracle_is_separate_and_los_contains_reflections(monkeypatch):
 
     class FakePaths:
         def __init__(self, num_paths):
-            self.valid = np.ones(num_paths, dtype=bool)
+            self.valid = np.ones((1, 1, 1, 1, num_paths), dtype=bool)
+            self._a_real = np.ones(self.valid.shape, dtype=np.float32)
+            self._a_imag = np.full(self.valid.shape, 0.5, dtype=np.float32)
+            self.interactions = np.zeros((1, *self.valid.shape), dtype=np.uint32)
+            if num_paths > 1:
+                self.interactions[..., 1:] = 1
+
+        @property
+        def a(self):
+            return self._a_real, self._a_imag
 
         def cfr(self, **kwargs):
             # Sionna 2.2 out_type='numpy' returns complex ndarray.
             n = len(kwargs["frequencies"])
-            return np.ones((1, 1, 1, 1, 1, n), dtype=np.complex64) * (1 + 0.5j)
+            gain = self._a_real.sum() + 1j * self._a_imag.sum()
+            return np.full((1, 1, 1, 1, 1, n), gain, dtype=np.complex64)
 
     class FakeSolver:
         def __init__(self, **kw):
@@ -69,11 +79,13 @@ def test_full_rt_oracle_is_separate_and_los_contains_reflections(monkeypatch):
     scene_module.PathSolver = FakeSolver
     mi = types.ModuleType("mitsuba")
     mi.Float = float
+    mi.TensorXb = lambda value: np.asarray(value, dtype=bool)
     mi.variants = lambda: ["llvm_ad_mono_polarized"]
     selected_variants = []
     mi.set_variant = selected_variants.append
     dr = types.ModuleType("drjit")
     dr.arange = lambda dtype, n: np.arange(n, dtype=float)
+    dr.select = np.where
     monkeypatch.setitem(sys.modules, "sionna", sionna)
     monkeypatch.setitem(sys.modules, "sionna.rt", scene_module)
     monkeypatch.setitem(sys.modules, "mitsuba", mi)
@@ -88,6 +100,7 @@ def test_full_rt_oracle_is_separate_and_los_contains_reflections(monkeypatch):
     d = generate_raytraced(
         RayScene(
             name="mock",
+            transmitter_id="tx-a",
             tx_position=(0.0, 0.0, 10.0),
             rx_center=(0.0, 0.0, 1.0),
             radius_m=5.0,
@@ -100,8 +113,18 @@ def test_full_rt_oracle_is_separate_and_los_contains_reflections(monkeypatch):
     )
     assert len(d.y) == 6 and sum(d.y) == 3
     report = d.generation_report
-    assert report["schema"] == "loslab.raytraced_generation_report.v1"
+    assert report["schema"] == "loslab.raytraced_generation_report.v2"
     assert report["label_semantics"] == "geometric_direct_path_oracle"
+    assert report["channel_semantics"] == {
+        "schema": "loslab.rt_absolute_channel.v1",
+        "delay_reference": "absolute_sionna_path_delay_s",
+        "normalize_delays": False,
+        "normalize_channel_power": False,
+        "frequency_reference": "baseband_subcarrier_offsets_hz",
+        "phase_convention": "sionna_paths_cfr_baseband_equivalent",
+        "component_partition": "same_paths_valid_zero_interaction_mask",
+        "time_steps": 1,
+    }
     assert d.label_semantics == report["label_semantics"]
     assert report["environment"]["python"]
     assert len(report["package_source_sha256"]) == 64
@@ -136,8 +159,30 @@ def test_full_rt_oracle_is_separate_and_los_contains_reflections(monkeypatch):
     assert "Empty full-solver path outcomes are counted" in report["selection_note"]
     assert all(m["los_plus_indirect_paths"] for m, y in zip(d.metadata, d.y) if y == 1)
     assert all(m["valid_paths_full"] >= 2 for m in d.metadata)
+    assert all(
+        m["valid_paths_direct_component"] == (1 if y else 0)
+        for m, y in zip(d.metadata, d.y, strict=True)
+    )
     assert set(d.source) == {"sionna_rt"}
-    assert selected_variants == ["llvm_ad_mono_polarized"]
+    assert set(d.domain) == {"rt_mock_tx-a"}
+    assert {row["transmitter_id"] for row in d.metadata} == {"tx-a"}
+    other_tx = generate_raytraced(
+        RayScene(
+            name="mock",
+            transmitter_id="tx-b",
+            tx_position=(1.0, 0.0, 10.0),
+            rx_center=(0.0, 0.0, 1.0),
+            radius_m=5.0,
+            per_class=3,
+            max_attempts=200,
+            samples_per_src=100,
+        ),
+        grid=GridConfig(n_subcarriers=32),
+        seed=13,
+    )
+    assert set(other_tx.domain) == {"rt_mock_tx-b"}
+    assert not set(d.group).intersection(other_tx.group)
+    assert selected_variants == ["llvm_ad_mono_polarized"] * 2
     assert all(m["mitsuba_variant"] == "llvm_ad_mono_polarized" for m in d.metadata)
     assert all(m["scene_config"]["name"] == "mock" for m in d.metadata)
     assert all(m["grid_config"]["n_subcarriers"] == 32 for m in d.metadata)

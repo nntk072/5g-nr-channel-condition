@@ -60,6 +60,7 @@ def test_rt_cfr_accepts_real_imag_tuple_and_preserves_all_links(monkeypatch):
     class TuplePaths:
         def cfr(self, **kwargs):
             assert kwargs["normalize"] is False
+            assert kwargs["normalize_delays"] is False
             real = np.ones((1, 2, 1, 3, 1, 8), dtype=np.float32)
             return real, np.full_like(real, 0.25)
 

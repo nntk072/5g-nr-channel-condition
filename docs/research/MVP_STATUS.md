@@ -2,6 +2,16 @@
 
 **Status: simulation-only software MVP complete; broader research plan remains open.** The latest implementation commit is 3319700; hosted CI run [39697604971](https://github.com/nntk072/5g-nr-channel-condition/actions/runs/39697604971) passed all jobs. The latest complete local suite passed (425 passed, 16 skipped, 80.41% coverage); Ruff check/format, mypy (137 configured source files), lock check, and package build passed. These are software gates, not validation of a general channel-condition benchmark.
 
+**Physics-audit correction (2026-10-22):** `integrations/sionna/adapter.py::rt_cfr`
+previously normalized each RT link's first path delay independently. It now
+preserves the absolute Sionna path-delay reference and records this channel
+contract in generation-report schema v2. Existing datasets, DMRS observations,
+and model runs retain their original hashes and are legacy relative-delay-view
+artifacts; do not use them as absolute-delay canonical records. Re-generate the
+canonical RT data and rerun affected downstream comparisons after the remaining
+Phase 0 path-conservation gates pass. A native pinned-Sionna regression check
+and adapter contract tests pass; the complete suite is still pending.
+
 The different model targets and channel-family roles are summarized in
 [`OUTPUT_TASKS_AND_CHANNELS.md`](OUTPUT_TASKS_AND_CHANNELS.md) to keep
 geometric LOS/NLOS, standardized-profile proxy labels, multipath estimation,
@@ -37,7 +47,8 @@ results honestly.
 |---|---|---|
 | Package, CLI, dependency lock, lint, typing, and tests | Complete locally and hosted CI | Pinned GPU-enabled suite: 425 passed, 16 skipped, 80.41% coverage. Ruff check/format pass across maintained source, test, and script directories; mypy passes on 137 configured source files; uv lock --check and uv build pass. Hosted CI [39697604971](https://github.com/nntk072/5g-nr-channel-condition/actions/runs/39697604971) passed all jobs. |
 | Environment-aware RT backend | Implemented and locally verified | Mitsuba 3.9.1 / Dr.Jit 1.5.0 LLVM variant traces natively in this WSL Linux environment. Automatic selection rejects this host's failed CUDA/OptiX probe and falls back to LLVM. No separate LLVM-project download is needed here; OptiX remains an optional runtime path for a later supported host. |
-| Geometric RT data and provenance | MVP data path exercised across six scene families | Six balanced datasets (40 links each) carry geometric direct-path labels and scene/runtime provenance. Scene asset identities are recorded, but geometry/material realism is not independently qualified. |
+| Geometric RT data and provenance | Historical six-scene pilot; canonical regeneration pending | Six balanced datasets (40 links each) carry geometric direct-path labels and scene/runtime provenance. These pre-correction channel arrays use independently normalized path delays; preserve them as legacy relative-delay-view experiments and regenerate before absolute-delay or canonical-channel claims. Scene asset identities are recorded, but geometry/material realism is not independently qualified. |
+| Absolute-delay RT CFR and path partition | Adapter corrected; focused native validation passes | Pinned Sionna 2.2 LLVM tests verify absolute free-space delay/phase, same-Paths direct-plus-indirect CFR conservation for SISO and explicit 2×3 MIMO arrays, and versioned generation semantics. Full-suite result: 481 passed, 3 skipped, 88.12% coverage. Ruff, format, mypy (139 source files), lock, build and diff checks pass locally; hosted CI and canonical dataset regeneration remain pending. See [`PHYSICS_VERIFICATION_STATUS.md`](PHYSICS_VERIFICATION_STATUS.md). |
 | PUSCH/DMRS observation adapter | Implemented and exercised across all six scenes | `loslab nr-observe` produced 240 observations of shape `[240, 1, 72]`, preserving group IDs and canonical label semantics. Configuration: 12 dB, seed 20261022, ideal synchronization. The adapter records its link-path-loss normalization assumption. |
 | Shared classification/evaluation workflow | Exercised across six leave-one-scene-family-out folds | Logistic regression, random forest, and raw-I/Q MLP used the same precomputed DMRS observations. Each family was held out once (40 samples, 4–20 groups); the other five supplied train/validation groups. Seven fixed seeds and per-sample predictions are retained. |
 | Classical multipath and learning baselines | Implemented | Grouped classifiers and the unknown-order sparse CFR estimator are available. The multipath-order stress report is analytical/synthetic and is not geometric RT evidence. |

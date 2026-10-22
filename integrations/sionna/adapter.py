@@ -9,9 +9,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+from copy import copy
 from dataclasses import asdict, dataclass, replace
 from pathlib import Path
-from typing import TYPE_CHECKING, Mapping, Protocol, Sequence
+from typing import TYPE_CHECKING, Any, Mapping, Protocol, Sequence, cast
 
 import numpy as np
 from artifacts.provenance import package_source_sha256, versions
@@ -216,19 +217,90 @@ def count_valid_paths(paths: object) -> int:
     return int(np.count_nonzero(a))
 
 
-def rt_cfr(paths: RTPaths, grid: GridConfig) -> np.ndarray:
-    """Convert Sionna RT Paths to [1, links, subcarriers] CFR without path metadata.
+def direct_path_mask(paths: object) -> np.ndarray:
+    """Select valid zero-interaction paths from one Sionna 2.2 Paths object."""
+    valid = getattr(paths, "valid", None)
+    interactions = getattr(paths, "interactions", None)
+    if valid is None or interactions is None:
+        raise ValueError("Sionna Paths must expose valid and interactions fields")
+    valid_array = np.asarray(valid.numpy() if hasattr(valid, "numpy") else valid, dtype=bool)
+    interaction_array = np.asarray(
+        interactions.numpy() if hasattr(interactions, "numpy") else interactions
+    )
+    if interaction_array.ndim != valid_array.ndim + 1:
+        raise ValueError(
+            "Sionna interactions must have one leading depth axis: "
+            f"valid={valid_array.shape}, interactions={interaction_array.shape}"
+        )
+    if interaction_array.shape[1:] != valid_array.shape:
+        raise ValueError(
+            "Sionna valid/interactions path axes differ: "
+            f"valid={valid_array.shape}, interactions={interaction_array.shape}"
+        )
+    return valid_array & np.all(interaction_array == 0, axis=0)
+
+
+def _mask_path_coefficients(paths: RTPaths, path_mask: np.ndarray) -> RTPaths:
+    """Copy pinned Sionna Paths and zero coefficients outside a validated mask."""
+    import drjit as dr
+    import mitsuba as mi
+
+    valid = getattr(paths, "valid", None)
+    coefficients = getattr(paths, "a", None)
+    if valid is None or coefficients is None or len(coefficients) != 2:
+        raise ValueError("Path subsetting requires Sionna 2.2 valid and complex coefficient fields")
+    valid_array = np.asarray(valid.numpy() if hasattr(valid, "numpy") else valid, dtype=bool)
+    mask = np.asarray(path_mask, dtype=bool)
+    if mask.shape != valid_array.shape:
+        raise ValueError(
+            f"Path mask shape {mask.shape} does not match valid shape {valid_array.shape}"
+        )
+    if np.any(mask & ~valid_array):
+        raise ValueError("Path mask selects invalid or padded Sionna paths")
+    coefficient_shape = tuple(coefficients[0].shape)
+    if mask.shape != coefficient_shape:
+        if bool(getattr(paths, "synthetic_array", False)) and len(coefficient_shape) == 5:
+            mask = mask[:, None, :, None, :]
+        if mask.shape != coefficient_shape:
+            raise ValueError(
+                "Path mask axes do not match coefficient axes: "
+                f"mask={mask.shape}, coefficients={coefficient_shape}"
+            )
+
+    masked: Any = copy(paths)
+    selector = cast(Any, mi.TensorXb)(mask.tolist())
+    if not hasattr(masked, "_a_real") or not hasattr(masked, "_a_imag"):
+        raise ValueError("Unsupported Sionna Paths implementation: coefficient storage is missing")
+    masked._a_real = dr.select(selector, masked._a_real, 0.0)
+    masked._a_imag = dr.select(selector, masked._a_imag, 0.0)
+    if hasattr(masked, "_valid"):
+        masked._valid = selector
+    return masked
+
+
+def rt_cfr(paths: RTPaths, grid: GridConfig, *, path_mask: np.ndarray | None = None) -> np.ndarray:
+    """Convert Sionna RT Paths to an absolute-delay [1, links, subcarriers] CFR.
 
     Sionna 2.2 Paths.cfr returns a complex ndarray for out_type='numpy'
     (some earlier interfaces returned a real/imag tuple).
-    Preserve all antennas but only one frequency/time snapshot.
+    Preserve all antennas, absolute path delays, and carrier phase; use one
+    frequency/time snapshot. Normalizing delays here would erase absolute ToA
+    and make independently solved full/direct channels use different phase
+    references, invalidating their coherent residual.
     """
     import drjit as dr
     import mitsuba as mi
 
+    if path_mask is not None:
+        paths = _mask_path_coefficients(paths, path_mask)
+
     f = (dr.arange(mi.Float, grid.n_subcarriers) - grid.n_subcarriers // 2) * grid.spacing_hz
     parts = paths.cfr(
-        frequencies=f, num_time_steps=1, normalize_delays=True, normalize=False, out_type="numpy"
+        frequencies=f,
+        num_time_steps=1,
+        normalize_delays=False,
+        normalize=False,
+        out_type="numpy",
     )
     if isinstance(parts, (tuple, list)) and len(parts) == 2:
         r, im = (np.asarray(x) for x in parts)
@@ -248,9 +320,9 @@ def rt_cfr(paths: RTPaths, grid: GridConfig) -> np.ndarray:
 def direct_indirect_diagnostics(full_cfr: np.ndarray, direct_cfr: np.ndarray) -> dict:
     """Diagnostic-only oracle power decomposition; never feed to classifier.
 
-    For geometrically visible links, the direct-path-only CFR is obtained from
-    a separate LOS-only solve; the residual represents indirect propagation.
-    Both CFRs must share the same delay reference and antenna coordinates.
+    Build the direct CFR from the full solve with
+    ``rt_cfr(paths, grid, path_mask=direct_path_mask(paths))``; the residual
+    then shares the exact path set, delay reference, and antenna coordinates.
     """
     full = np.asarray(full_cfr)
     direct = np.asarray(direct_cfr)
@@ -279,6 +351,7 @@ class RayScene:
     per_class: int = 16
     max_attempts: int = 2000
     require_los_multipath: bool = True
+    transmitter_id: str | None = None
     # built-in 'munich', 'etoile', or a valid user-supplied scene path
 
 
@@ -331,6 +404,7 @@ def generate_raytraced(
         and cfg.per_class >= 1
         and cfg.max_attempts >= 2 * cfg.per_class
         and cfg.block_size_m > 0
+        and (cfg.transmitter_id is None or cfg.transmitter_id.strip())
     ):
         raise ValueError("Invalid ray tracing configuration")
     scene_ref = getattr(rt.scene, cfg.name, cfg.name)
@@ -478,7 +552,18 @@ def generate_raytraced(
             continue
         try:
             channel = rt_cfr(full, grid)
-            direct = rt_cfr(oracle_paths, grid) if label else np.zeros_like(channel)
+            path_mask = direct_path_mask(full) if label else None
+            direct_count = int(path_mask.sum()) if path_mask is not None else 0
+            if label and direct_count != n_direct:
+                raise ValueError(
+                    "Full-solve direct-path mask disagrees with depth-zero oracle: "
+                    f"full={direct_count}, oracle={n_direct}"
+                )
+            direct = (
+                rt_cfr(full, grid, path_mask=path_mask)
+                if path_mask is not None
+                else np.zeros_like(channel)
+            )
             diagnostics = direct_indirect_diagnostics(channel, direct)
             channel = add_estimation_noise(channel, grid.snr_db, rng)
         except (ValueError, RuntimeError):
@@ -488,10 +573,15 @@ def generate_raytraced(
         samples.append(channel[0])
         ys.append(label)
         scene_id = scene_path.stem if scene_path.suffix else cfg.name
-        groups.append(
-            f"{scene_id}_block_{int(np.floor(x / cfg.block_size_m))}_{int(np.floor(y / cfg.block_size_m))}"
-        )
-        domains.append(f"rt_{scene_id}")
+        block_x = int(np.floor(x / cfg.block_size_m))
+        block_y = int(np.floor(y / cfg.block_size_m))
+        group_id = f"{scene_id}_block_{block_x}_{block_y}"
+        domain_id = f"rt_{scene_id}"
+        if cfg.transmitter_id is not None:
+            group_id = f"{scene_id}_tx_{cfg.transmitter_id}_block_{block_x}_{block_y}"
+            domain_id = f"{domain_id}_{cfg.transmitter_id}"
+        groups.append(group_id)
+        domains.append(domain_id)
         sources.append("sionna_rt")
         meta.append(
             {
@@ -501,9 +591,11 @@ def generate_raytraced(
                 "scene_asset_count": scene_assets["asset_count"],
                 "geometry_label": "GEOMETRIC_DIRECT_PATH_ORACLE",
                 "tx": list(cfg.tx_position),
+                "transmitter_id": cfg.transmitter_id,
                 "rx": [x, y, z],
                 "valid_paths_full": n_paths,
                 "valid_paths_direct_oracle": n_direct,
+                "valid_paths_direct_component": direct_count,
                 "los_plus_indirect_paths": mixed,
                 **diagnostics,
                 "seed": seed + attempt,
@@ -580,8 +672,18 @@ def generate_raytraced(
     ):
         raise RuntimeError("RT class report does not match accepted sample count")
     generation_report = {
-        "schema": "loslab.raytraced_generation_report.v1",
+        "schema": "loslab.raytraced_generation_report.v2",
         "label_semantics": "geometric_direct_path_oracle",
+        "channel_semantics": {
+            "schema": "loslab.rt_absolute_channel.v1",
+            "delay_reference": "absolute_sionna_path_delay_s",
+            "normalize_delays": False,
+            "normalize_channel_power": False,
+            "frequency_reference": "baseband_subcarrier_offsets_hz",
+            "phase_convention": "sionna_paths_cfr_baseband_equivalent",
+            "component_partition": "same_paths_valid_zero_interaction_mask",
+            "time_steps": 1,
+        },
         "status": "solver_error" if solver_failure else "completed",
         "environment": versions(),
         "rt_backend_selection": selection.as_dict(),
