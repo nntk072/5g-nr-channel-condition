@@ -1,0 +1,232 @@
+{
+  "comparisons": [
+    {
+      "candidate_path_count_equal": true,
+      "cfr_sha256_equal": false,
+      "link_id": "center-los",
+      "max_depth": 10,
+      "per_source_candidate_counts_equal": true,
+      "relative_complex_cfr_l2": 4.724645762228491e-07,
+      "samples_per_src": 20000,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "candidate_path_count_equal": true,
+      "cfr_sha256_equal": false,
+      "link_id": "center-los",
+      "max_depth": 10,
+      "per_source_candidate_counts_equal": true,
+      "relative_complex_cfr_l2": 3.674295879975559e-07,
+      "samples_per_src": 20000,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "candidate_path_count_equal": true,
+      "cfr_sha256_equal": false,
+      "link_id": "center-los",
+      "max_depth": 10,
+      "per_source_candidate_counts_equal": true,
+      "relative_complex_cfr_l2": 4.1181482665095246e-07,
+      "samples_per_src": 20000,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "candidate_path_count_equal": true,
+      "cfr_sha256_equal": false,
+      "link_id": "center-nlos",
+      "max_depth": 10,
+      "per_source_candidate_counts_equal": true,
+      "relative_complex_cfr_l2": 4.3088888243905364e-07,
+      "samples_per_src": 20000,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "candidate_path_count_equal": true,
+      "cfr_sha256_equal": false,
+      "link_id": "center-nlos",
+      "max_depth": 10,
+      "per_source_candidate_counts_equal": true,
+      "relative_complex_cfr_l2": 3.378526801890398e-07,
+      "samples_per_src": 20000,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "candidate_path_count_equal": true,
+      "cfr_sha256_equal": false,
+      "link_id": "center-nlos",
+      "max_depth": 10,
+      "per_source_candidate_counts_equal": true,
+      "relative_complex_cfr_l2": 3.3083239682530016e-07,
+      "samples_per_src": 20000,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "candidate_path_count_equal": true,
+      "cfr_sha256_equal": false,
+      "link_id": "east-los",
+      "max_depth": 10,
+      "per_source_candidate_counts_equal": true,
+      "relative_complex_cfr_l2": 3.736400716214898e-07,
+      "samples_per_src": 20000,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "candidate_path_count_equal": true,
+      "cfr_sha256_equal": false,
+      "link_id": "east-los",
+      "max_depth": 10,
+      "per_source_candidate_counts_equal": true,
+      "relative_complex_cfr_l2": 4.39168859837807e-07,
+      "samples_per_src": 20000,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "candidate_path_count_equal": true,
+      "cfr_sha256_equal": false,
+      "link_id": "east-los",
+      "max_depth": 10,
+      "per_source_candidate_counts_equal": true,
+      "relative_complex_cfr_l2": 6.153895448347602e-07,
+      "samples_per_src": 20000,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "candidate_path_count_equal": true,
+      "cfr_sha256_equal": false,
+      "link_id": "east-nlos",
+      "max_depth": 10,
+      "per_source_candidate_counts_equal": true,
+      "relative_complex_cfr_l2": 6.75282599392429e-07,
+      "samples_per_src": 20000,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "candidate_path_count_equal": true,
+      "cfr_sha256_equal": false,
+      "link_id": "east-nlos",
+      "max_depth": 10,
+      "per_source_candidate_counts_equal": true,
+      "relative_complex_cfr_l2": 1.1421376584720092e-06,
+      "samples_per_src": 20000,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "candidate_path_count_equal": true,
+      "cfr_sha256_equal": false,
+      "link_id": "east-nlos",
+      "max_depth": 10,
+      "per_source_candidate_counts_equal": true,
+      "relative_complex_cfr_l2": 1.0412528379667399e-06,
+      "samples_per_src": 20000,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "candidate_path_count_equal": true,
+      "cfr_sha256_equal": false,
+      "link_id": "west-los",
+      "max_depth": 10,
+      "per_source_candidate_counts_equal": true,
+      "relative_complex_cfr_l2": 2.970494836907496e-07,
+      "samples_per_src": 20000,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "candidate_path_count_equal": true,
+      "cfr_sha256_equal": false,
+      "link_id": "west-los",
+      "max_depth": 10,
+      "per_source_candidate_counts_equal": true,
+      "relative_complex_cfr_l2": 7.693380329681764e-07,
+      "samples_per_src": 20000,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "candidate_path_count_equal": true,
+      "cfr_sha256_equal": false,
+      "link_id": "west-los",
+      "max_depth": 10,
+      "per_source_candidate_counts_equal": true,
+      "relative_complex_cfr_l2": 6.490675446669517e-07,
+      "samples_per_src": 20000,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "candidate_path_count_equal": true,
+      "cfr_sha256_equal": false,
+      "link_id": "west-nlos",
+      "max_depth": 10,
+      "per_source_candidate_counts_equal": true,
+      "relative_complex_cfr_l2": 4.397031636189137e-07,
+      "samples_per_src": 20000,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "candidate_path_count_equal": true,
+      "cfr_sha256_equal": false,
+      "link_id": "west-nlos",
+      "max_depth": 10,
+      "per_source_candidate_counts_equal": true,
+      "relative_complex_cfr_l2": 3.5558015271790736e-07,
+      "samples_per_src": 20000,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "candidate_path_count_equal": true,
+      "cfr_sha256_equal": false,
+      "link_id": "west-nlos",
+      "max_depth": 10,
+      "per_source_candidate_counts_equal": true,
+      "relative_complex_cfr_l2": 5.891837397587814e-07,
+      "samples_per_src": 20000,
+      "seed": 47,
+      "valid_path_count_equal": true
+    }
+  ],
+  "depth_compared": 10,
+  "limitations": [
+    "Different source revisions are accepted only because the experiment runner hash, package-source hash, scene-tree hash, solver configuration, and runtime versions match.",
+    "This is a same-configuration numerical replay audit, not physical validation or a solver-convergence result.",
+    "A finite ray budget is not ground truth."
+  ],
+  "reports": [
+    {
+      "path": "docs/research/results/rt-city43-spatial-los-nlos-depth10-s05-20k-20261022.json",
+      "revision": "72de2c34bca3ac53932f00bf72f0956a775cf2c3",
+      "sha256": "e58a7d0e81affae4202490ff3cd226fa65ac52d08e25a1fe9b90bd5d85dadd8e"
+    },
+    {
+      "path": "docs/research/results/rt-city43-spatial-los-nlos-depth10-s05-20k-100k-20261022.json",
+      "revision": "990820cc49a9de6f70c33966b67a29035c812d62",
+      "sha256": "a2663e9d11c8bfd2c41b31225f3cb12612e91a20f2bca1231263f3553403e6c9"
+    }
+  ],
+  "same_scene_solver_package_and_runtime": true,
+  "schema": "loslab.rt_solver_replay_subset_audit.v1",
+  "summary": {
+    "candidate_path_count_matches": 18,
+    "exact_cfr_hash_matches": 0,
+    "matched_runs": 18,
+    "per_source_candidate_count_matches": 18,
+    "relative_complex_cfr_l2_max": 1.1421376584720092e-06,
+    "relative_complex_cfr_l2_median": 4.3943601172836035e-07,
+    "relative_complex_cfr_l2_min": 2.970494836907496e-07,
+    "valid_path_count_matches": 18
+  }
+}
