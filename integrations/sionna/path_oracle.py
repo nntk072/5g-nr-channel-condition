@@ -6,7 +6,7 @@ selected explicitly, while output antenna indices are link-local array ports.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Sequence
 
 import numpy as np
 from datasets.path_oracle import PathOracleTable, PathSolveStatus
@@ -66,6 +66,8 @@ def sionna_paths_to_oracle_table(
     frame_index: int = 0,
     rx_device_index: int = 0,
     tx_device_index: int = 0,
+    rx_port_map: Sequence[int] | None = None,
+    tx_port_map: Sequence[int] | None = None,
     solve_status: PathSolveStatus | None = None,
 ) -> PathOracleTable:
     """Convert one device pair from a pinned Sionna RT ``Paths`` result.
@@ -79,9 +81,10 @@ def sionna_paths_to_oracle_table(
 
     ``Paths`` cannot indicate a failed or unconverged solver run. Callers that
     know the solve outcome may pass ``solve_status`` to apply that status to
-    each represented port pair. By default, non-empty pairs are solved and
-    empty pairs have no path. The output includes every RX/TX antenna-port
-    pair, including explicit empty groups.
+    each represented port pair. ``rx_port_map`` and ``tx_port_map`` select
+    physical Sionna array ports in link order; output indices are link-local.
+    By default every physical port is included. Non-empty pairs are solved and
+    empty pairs retain explicit groups.
     """
     if not isinstance(link_id, str) or not link_id.strip():
         raise ValueError("link_id must be a non-empty string")
@@ -134,6 +137,8 @@ def sionna_paths_to_oracle_table(
     rx_count, rx_port_count, tx_count, tx_port_count, _ = target_shape
     if rx_device_index >= rx_count or tx_device_index >= tx_count:
         raise IndexError("selected TX/RX device index is outside Sionna Paths axes")
+    rx_mapping = _validate_port_map(rx_port_map, rx_port_count, name="rx_port_map")
+    tx_mapping = _validate_port_map(tx_port_map, tx_port_count, name="tx_port_map")
 
     group_links: list[str] = []
     group_frames: list[int] = []
@@ -161,8 +166,8 @@ def sionna_paths_to_oracle_table(
         (int(InteractionType.SENSING), "sensing"),
     )
 
-    for rx_port in range(rx_port_count):
-        for tx_port in range(tx_port_count):
+    for rx_link_port, rx_port in enumerate(rx_mapping):
+        for tx_link_port, tx_port in enumerate(tx_mapping):
             selection = (
                 rx_device_index,
                 rx_port,
@@ -197,8 +202,8 @@ def sionna_paths_to_oracle_table(
             )
             group_links.append(link_id)
             group_frames.append(frame_index)
-            group_rx_ports.append(rx_port)
-            group_tx_ports.append(tx_port)
+            group_rx_ports.append(rx_link_port)
+            group_tx_ports.append(tx_link_port)
             inferred_status = PathSolveStatus.SOLVED if mask.any() else PathSolveStatus.NO_PATH
             group_status.append(solve_status or inferred_status)
             flat_delays.append(path_delays)
@@ -261,3 +266,21 @@ def sionna_paths_to_oracle_table(
         interaction_vertices_m=concatenate(vertex_parts, shape=(0, 3), dtype=np.dtype(np.float64)),
         interaction_vertex_frame="sionna_rt_scene_xyz_m",
     )
+
+
+def _validate_port_map(
+    port_map: Sequence[int] | None,
+    available_count: int,
+    *,
+    name: str,
+) -> tuple[int, ...]:
+    mapping = tuple(range(available_count)) if port_map is None else tuple(port_map)
+    if not mapping or any(
+        isinstance(value, bool) or not isinstance(value, int) or value < 0 for value in mapping
+    ):
+        raise ValueError(f"{name} must contain nonnegative integer array-port indices")
+    if len(set(mapping)) != len(mapping):
+        raise ValueError(f"{name} cannot contain duplicate array-port indices")
+    if any(value >= available_count for value in mapping):
+        raise IndexError(f"{name} references an array port outside the Sionna Paths axes")
+    return mapping

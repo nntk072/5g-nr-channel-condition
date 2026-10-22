@@ -1630,9 +1630,16 @@ order/type, scene-local object/primitive IDs, scene-XYZ vertices, Doppler and
 angle fields against pinned Sionna output for synthetic and explicit arrays,
 V/VH polarization combinations, and empty solves. The immutable bundle stores
 the ordered ragged interaction trace and its coordinate-frame declaration.
-Whole-episode device/link mapping, independent geometric direct-path visibility,
-solver-convergence studies, and path-budget convergence plots are not complete;
-Stage S2 remains in progress.
+`integrations/sionna/rt_network.py` now assembles one complete UMCD episode path
+table from explicit Sionna TX/RX/frame bindings. It requires exact link×frame
+coverage, applies ordered link-local port maps, retains empty port groups, and
+records solver-failure/unconverged states without fabricating path rows. A
+native 2-TX×2-RX scene test verifies all four directed device pairs are mapped
+into one episode. The finite-segment visibility oracle is now independent of
+PathSolver and separately cross-checked during legacy RT generation. Automatic
+Scene→NetworkEpisode/array-layout extraction, calibrated array/port semantics,
+solver convergence, and path-budget convergence plots are not complete; Stage
+S2 remains in progress.
 
 ### Stage S3: standardized and control families
 

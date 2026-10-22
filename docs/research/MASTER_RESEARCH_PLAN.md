@@ -2,7 +2,7 @@
 ## Physically Grounded, Identifiability-Aware Multipath State Learning for 5G NR
 ### From LOS/NLOS classification to channel-state reconstruction, uncertainty, and forecasting
 
-**Document edition:** 3.120 — 2026-10-22 (independent geometric visibility oracle)
+**Document edition:** 3.121 — 2026-10-22 (whole-episode RT path mapping)
 **Status:** execution specification and scientific decision record; **not** a completed study, not experimental evidence, and not a claim of top-tier acceptance.
 **Repository inspected:** live checkout /home/nguyenl37/5g-nr-channel-condition, branch main, initial implementation commit ffe199c80c1caf40dea91a406fe02124b3ff05ec (built from baseline cc43a5544036578a6bb57ce52b66436d8acb6c1b); local reference /home/nguyenl37/sionna at Sionna v2.2.0, commit 2f0a3820269b53fd022780a6f2f5f720f7ceb9b4, RT submodule commit 15b5ee036917a4c2a9b6420e05570b77717e2fcc.
 **Legacy work:** Long Nguyen, *5G Physical Layer Channel Conditions Classification Using Machine Learning Techniques*, Tampere University, July 2025, embedded in `docs/thesis/NguyenLong.pdf`.
@@ -2232,3 +2232,18 @@ maintained scope; mypy passes across 147 configured source files; `uv lock
 --check`, `uv build`, and `git diff --check` pass. Hosted CI is pending. Native
 Mitsuba/Sionna RT coverage is verified on this local LLVM backend; hosted CI
 does not install RT.
+**Edition 3.121 whole-episode RT path mapping:** Added
+`integrations/sionna/rt_network.py` to assemble the `Paths` outputs for every
+link and frame in an UMCD episode. Bindings explicitly identify Sionna device
+indices; link port maps can select and reorder array ports, and the resulting
+table must cover each link/frame/port pair exactly. Empty solves and solver
+failure/unconverged outcomes remain represented. A native LLVM 2-TX×2-RX test
+maps all four device pairs into one episode; unit tests cover port-map ordering,
+missing/duplicate bindings, and failed-solve groups. Scene-to-episode array
+extraction and broad physical verification remain open.
+**Edition 3.121 verification:** The complete local suite passes with 87.71%
+coverage (configured minimum: 75%); the new RT-network tests pass on the native
+LLVM backend. Ruff check and formatting pass across the 234-file maintained
+scope, mypy passes across 148 configured source files, `uv build` succeeds, and
+`git diff --check` passes. Hosted CI remains to be checked after pushing; it
+does not install native Sionna RT.
