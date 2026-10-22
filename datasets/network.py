@@ -169,8 +169,86 @@ class DirectedLink:
 
 
 @dataclass(frozen=True, slots=True, eq=False)
+class NodePoseTimeline:
+    """Per-frame world positions and array orientations for ordered network nodes."""
+
+    node_ids: tuple[str, ...]
+    frame_times_s: tuple[float, ...]
+    positions_world_m: np.ndarray
+    orientations_local_to_world: np.ndarray
+
+    def __post_init__(self) -> None:
+        node_ids = tuple(self.node_ids)
+        if not node_ids or any(not isinstance(node, str) or not node.strip() for node in node_ids):
+            raise ValueError("pose timeline needs non-empty node IDs")
+        if len(set(node_ids)) != len(node_ids):
+            raise ValueError("pose timeline node IDs must be unique")
+        if any(
+            not isinstance(time, (int, float)) or isinstance(time, bool)
+            for time in self.frame_times_s
+        ):
+            raise TypeError("pose timeline frame times must be real numbers")
+        times = tuple(float(time) for time in self.frame_times_s)
+        if not times or any(not math.isfinite(time) for time in times):
+            raise ValueError("pose timeline frame times must be finite and non-empty")
+        if any(right <= left for left, right in zip(times, times[1:])):
+            raise ValueError("pose timeline frame times must be strictly increasing")
+        positions = np.array(self.positions_world_m, dtype=np.float64, copy=True)
+        expected_positions = (len(times), len(node_ids), 3)
+        if positions.shape != expected_positions or not np.isfinite(positions).all():
+            raise ValueError(f"positions_world_m must be finite with shape {expected_positions}")
+        orientations = np.array(self.orientations_local_to_world, dtype=np.float64, copy=True)
+        expected_orientations = (len(times), len(node_ids), 3, 3)
+        if orientations.shape != expected_orientations or not np.isfinite(orientations).all():
+            raise ValueError(
+                f"orientations_local_to_world must be finite with shape {expected_orientations}"
+            )
+        gram = np.swapaxes(orientations, -1, -2) @ orientations
+        determinants = np.linalg.det(orientations)
+        if not np.allclose(gram, np.eye(3), atol=1e-6, rtol=0) or not np.allclose(
+            determinants, 1.0, atol=1e-6, rtol=0
+        ):
+            raise ValueError("every pose orientation must be a proper rotation")
+        positions.setflags(write=False)
+        orientations.setflags(write=False)
+        object.__setattr__(self, "node_ids", node_ids)
+        object.__setattr__(self, "frame_times_s", times)
+        object.__setattr__(self, "positions_world_m", positions)
+        object.__setattr__(self, "orientations_local_to_world", orientations)
+
+    def node_index(self, node_id: str) -> int:
+        """Return a node's stable column in this timeline."""
+        try:
+            return self.node_ids.index(node_id)
+        except ValueError as exc:
+            raise KeyError(node_id) from exc
+
+    def position(self, node_id: str, frame_index: int) -> np.ndarray:
+        """Return a read-only world position for one node and frame."""
+        if isinstance(frame_index, bool) or not isinstance(frame_index, int):
+            raise TypeError("frame_index must be an integer")
+        if not 0 <= frame_index < len(self.frame_times_s):
+            raise IndexError("frame_index is outside the pose timeline")
+        try:
+            return self.positions_world_m[frame_index, self.node_index(node_id)]
+        except IndexError as exc:
+            raise KeyError(node_id) from exc
+
+    def orientation(self, node_id: str, frame_index: int) -> np.ndarray:
+        """Return a read-only local-array-to-world rotation for one node and frame."""
+        if isinstance(frame_index, bool) or not isinstance(frame_index, int):
+            raise TypeError("frame_index must be an integer")
+        if not 0 <= frame_index < len(self.frame_times_s):
+            raise IndexError("frame_index is outside the pose timeline")
+        try:
+            return self.orientations_local_to_world[frame_index, self.node_index(node_id)]
+        except IndexError as exc:
+            raise KeyError(node_id) from exc
+
+
+@dataclass(frozen=True, slots=True, eq=False)
 class NetworkEpisode:
-    """Static network-propagation parent shared by all link/view descendants."""
+    """Network-propagation parent shared by all link and observation descendants."""
 
     episode_id: str
     split_group_id: str
@@ -181,6 +259,7 @@ class NetworkEpisode:
     links: tuple[DirectedLink, ...]
     frame_times_s: tuple[float, ...]
     subcarrier_offsets_hz: np.ndarray
+    pose_timeline: NodePoseTimeline | None = None
 
     def __post_init__(self) -> None:
         for name in ("episode_id", "split_group_id", "family_id"):
@@ -234,11 +313,36 @@ class NetworkEpisode:
         if not np.any(offsets == 0.0):
             raise ValueError("baseband subcarrier offsets must include DC at 0 Hz")
         offsets.setflags(write=False)
+        timeline = self.pose_timeline
+        if timeline is not None:
+            if not isinstance(timeline, NodePoseTimeline):
+                raise TypeError("pose_timeline must be a NodePoseTimeline")
+            if timeline.frame_times_s != times:
+                raise ValueError("pose timeline frame times must match the episode")
+            if timeline.node_ids != tuple(node.node_id for node in nodes):
+                raise ValueError("pose timeline node IDs must match episode node order")
+            for node_index, node in enumerate(nodes):
+                array = array_by_id[node.array_id]
+                if not np.allclose(
+                    timeline.positions_world_m[0, node_index],
+                    node.position_world_m,
+                    atol=1e-9,
+                    rtol=0,
+                ):
+                    raise ValueError("initial pose position must match the network node position")
+                if not np.allclose(
+                    timeline.orientations_local_to_world[0, node_index],
+                    array.orientation_local_to_world,
+                    atol=1e-6,
+                    rtol=0,
+                ):
+                    raise ValueError("initial pose orientation must match the antenna array pose")
         object.__setattr__(self, "arrays", arrays)
         object.__setattr__(self, "nodes", nodes)
         object.__setattr__(self, "links", links)
         object.__setattr__(self, "frame_times_s", times)
         object.__setattr__(self, "subcarrier_offsets_hz", offsets)
+        object.__setattr__(self, "pose_timeline", timeline)
 
     def link(self, link_id: str) -> DirectedLink:
         """Return a link by stable ID or raise ``KeyError``."""
@@ -260,3 +364,25 @@ class NetworkEpisode:
             if array.array_id == array_id:
                 return array
         raise KeyError(array_id)
+
+    def position_at(self, node_id: str, frame_index: int) -> tuple[float, float, float]:
+        """Return a node's world position at a frame, using static pose if needed."""
+        if isinstance(frame_index, bool) or not isinstance(frame_index, int):
+            raise TypeError("frame_index must be an integer")
+        if not 0 <= frame_index < len(self.frame_times_s):
+            raise IndexError("frame_index is outside the episode time axis")
+        if self.pose_timeline is not None:
+            position = self.pose_timeline.position(node_id, frame_index)
+            return float(position[0]), float(position[1]), float(position[2])
+        return self.node(node_id).position_world_m
+
+    def orientation_at(self, node_id: str, frame_index: int) -> np.ndarray:
+        """Return the array's local-to-world rotation at a frame."""
+        if isinstance(frame_index, bool) or not isinstance(frame_index, int):
+            raise TypeError("frame_index must be an integer")
+        if not 0 <= frame_index < len(self.frame_times_s):
+            raise IndexError("frame_index is outside the episode time axis")
+        if self.pose_timeline is not None:
+            return self.pose_timeline.orientation(node_id, frame_index)
+        node = self.node(node_id)
+        return self.array(node.array_id).orientation_local_to_world

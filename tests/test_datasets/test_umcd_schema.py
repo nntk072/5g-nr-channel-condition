@@ -25,6 +25,7 @@ from datasets.network import (
     LinkRole,
     NetworkEpisode,
     NetworkNode,
+    NodePoseTimeline,
     NodeRole,
 )
 from datasets.nr import LinkedNRObservation, NRObservation
@@ -89,6 +90,52 @@ def test_network_episode_preserves_ordered_arrays_links_and_grid():
     assert episode.array("gNB-array").polarization_per_element == ("V", "V", "H", "H")
     assert episode.link("gNB-1-to-UE-1").tx_port_indices == (0, 1)
     assert not episode.subcarrier_offsets_hz.flags.writeable
+    assert episode.position_at("UE-1", 0) == (20.0, 0.0, 1.5)
+    np.testing.assert_array_equal(episode.orientation_at("gNB-1", 0), np.eye(3))
+
+
+def _dynamic_episode() -> NetworkEpisode:
+    episode = _episode()
+    positions = np.asarray(
+        [
+            [node.position_world_m for node in episode.nodes],
+            [[0.0, 0.0, 10.0], [22.0, 3.0, 1.5]],
+        ]
+    )
+    orientations = np.broadcast_to(np.eye(3), (2, 2, 3, 3)).copy()
+    yaw_90 = np.asarray([[0.0, -1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]])
+    orientations[1, 1] = yaw_90
+    timeline = NodePoseTimeline(
+        node_ids=tuple(node.node_id for node in episode.nodes),
+        frame_times_s=(0.0, 0.1),
+        positions_world_m=positions,
+        orientations_local_to_world=orientations,
+    )
+    return replace(episode, frame_times_s=(0.0, 0.1), pose_timeline=timeline)
+
+
+def test_pose_timeline_validates_and_exposes_time_varying_node_poses():
+    episode = _dynamic_episode()
+    timeline = episode.pose_timeline
+    assert timeline is not None
+    np.testing.assert_array_equal(timeline.position("UE-1", 1), [22.0, 3.0, 1.5])
+    assert episode.position_at("UE-1", 1) == (22.0, 3.0, 1.5)
+    np.testing.assert_array_equal(
+        timeline.orientation("UE-1", 1),
+        [[0.0, -1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]],
+    )
+    assert not timeline.positions_world_m.flags.writeable
+    with pytest.raises(IndexError, match="outside"):
+        timeline.position("UE-1", -1)
+    with pytest.raises(KeyError):
+        timeline.position("unknown-node", 0)
+    with pytest.raises(ValueError, match="proper rotation"):
+        NodePoseTimeline(
+            node_ids=("node",),
+            frame_times_s=(0.0,),
+            positions_world_m=np.zeros((1, 1, 3)),
+            orientations_local_to_world=np.diag([1.0, 1.0, -1.0])[None, None],
+        )
 
 
 @pytest.mark.parametrize(
@@ -392,6 +439,28 @@ def test_episode_bundle_roundtrip_keeps_layers_content_addressed_and_pickle_free
         "oracle_channels",
         "targets",
     }
+
+
+def test_episode_store_roundtrip_preserves_dynamic_poses(tmp_path):
+    bundle = _bundle()
+    channel = replace(
+        bundle.channel_views[0],
+        channel=np.repeat(bundle.channel_views[0].channel, 2, axis=0),
+        frame_times_s=(0.0, 0.1),
+    )
+    dynamic_bundle = replace(bundle, episode=_dynamic_episode(), channel_views=(channel,))
+
+    stored = write_episode_bundle(tmp_path, dynamic_bundle)
+    loaded = read_episode_bundle(tmp_path, stored)
+
+    assert loaded.episode.pose_timeline is not None
+    np.testing.assert_array_equal(
+        loaded.episode.pose_timeline.position("UE-1", 1), [22.0, 3.0, 1.5]
+    )
+    np.testing.assert_array_equal(
+        loaded.episode.pose_timeline.orientation("UE-1", 1),
+        dynamic_bundle.episode.pose_timeline.orientation("UE-1", 1),
+    )
 
 
 def test_episode_bundle_rejects_tampered_content_and_immutable_id_reuse(tmp_path):

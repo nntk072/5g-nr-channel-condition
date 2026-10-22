@@ -22,6 +22,7 @@ from .network import (
     LinkRole,
     NetworkEpisode,
     NetworkNode,
+    NodePoseTimeline,
     NodeRole,
 )
 from .nr import LinkedNRObservation, NRModelInputs, NRObservation
@@ -141,6 +142,7 @@ def _episode_payload(episode: NetworkEpisode) -> bytes:
         "family_id": episode.family_id,
         "carrier_hz": episode.carrier_hz,
         "frame_times_s": list(episode.frame_times_s),
+        "has_pose_timeline": episode.pose_timeline is not None,
         "arrays": [
             {
                 "array_id": array.array_id,
@@ -189,6 +191,11 @@ def _episode_payload(episode: NetworkEpisode) -> bytes:
         }
     )
     arrays["subcarrier_offsets_hz"] = episode.subcarrier_offsets_hz
+    if episode.pose_timeline is not None:
+        arrays["pose_positions_world_m"] = episode.pose_timeline.positions_world_m
+        arrays["pose_orientations_local_to_world"] = (
+            episode.pose_timeline.orientations_local_to_world
+        )
     return _pack_npz(metadata, **arrays)
 
 
@@ -482,6 +489,14 @@ def _read_episode(metadata: dict[str, Any], arrays: dict[str, np.ndarray]) -> Ne
         )
         for item in metadata["links"]
     )
+    pose_timeline = None
+    if metadata.get("has_pose_timeline", False):
+        pose_timeline = NodePoseTimeline(
+            node_ids=tuple(item["node_id"] for item in metadata["nodes"]),
+            frame_times_s=tuple(metadata["frame_times_s"]),
+            positions_world_m=arrays["pose_positions_world_m"],
+            orientations_local_to_world=arrays["pose_orientations_local_to_world"],
+        )
     return NetworkEpisode(
         metadata["episode_id"],
         metadata["split_group_id"],
@@ -492,6 +507,7 @@ def _read_episode(metadata: dict[str, Any], arrays: dict[str, np.ndarray]) -> Ne
         links,
         tuple(metadata["frame_times_s"]),
         arrays["subcarrier_offsets_hz"],
+        pose_timeline,
     )
 
 

@@ -22,6 +22,7 @@ from .network import (
     LinkRole,
     NetworkEpisode,
     NetworkNode,
+    NodePoseTimeline,
     NodeRole,
 )
 from .nr import (
@@ -65,6 +66,7 @@ __all__ = [
     "LinkRole",
     "NetworkEpisode",
     "NetworkNode",
+    "NodePoseTimeline",
     "NodeRole",
     "PathOracleTable",
     "PathSolveStatus",
