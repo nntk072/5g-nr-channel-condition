@@ -9,6 +9,7 @@ from .adapter import (
     generate_standardized,
 )
 from .backend import RTBackendSelection, activate_rt_backend, select_rt_backend
+from .cdl import CDLArrayConfig, SionnaCDLChannel, generate_cdl_frequency_response
 from .cp_margin import run_static_cp_margin_experiment
 from .nr_pusch import SionnaPUSCHLSReceiver
 from .ofdm_impairments import apply_integer_timing_offset, apply_residual_cfo
@@ -20,12 +21,14 @@ from .tdl_pusch import SionnaTDLPUSCHBatch, generate_tdl_pusch_batch, tdl_pusch_
 
 __all__ = [
     "GridConfig",
+    "CDLArrayConfig",
     "NRGridChannel",
     "RayScene",
     "RTBackendSelection",
     "RaytraceGenerationError",
     "RTCacheConflictError",
     "SionnaPUSCHLSReceiver",
+    "SionnaCDLChannel",
     "SionnaTDLChannel",
     "SionnaTDLPUSCHBatch",
     "apply_integer_timing_offset",
@@ -34,6 +37,7 @@ __all__ = [
     "generate_raytraced",
     "generate_raytraced_cached",
     "generate_standardized",
+    "generate_cdl_frequency_response",
     "load_rt_dataset",
     "run_static_cp_margin_experiment",
     "select_rt_backend",
