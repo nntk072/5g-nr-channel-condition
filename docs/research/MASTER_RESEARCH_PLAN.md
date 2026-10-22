@@ -90,6 +90,8 @@ The project-owned receiver tests verify exact flat-channel PUSCH recovery, lower
 
 ---
 
+**Edition 3.176 post-solver weak-path sensitivity audit:** Committed runner `f839c02` measures how per-link relative path-coefficient-power masks applied after PathSolver alter the absolute-delay coherent CFR, without changing canonical path truth. A three-seed blocked link in the synthetic City43 16-building scene has 335–349 valid paths. A −20 dB cutoff keeps 15–23 paths but causes 43.4–75.3% relative CFR L2 error; −40 dB keeps 99.85–99.88% of summed coefficient power yet causes 2.30–6.65% CFR error. The hash-bound report preserves paths, CFR vectors, settings and source hashes. This is one-link, S=0.5 synthetic sensitivity evidence, not receiver detectability or a justified production cutoff. G3.09 remains open pending broader scenes, physical threshold semantics and predeclared tolerances. See the [audit report](results/rt-city43-nlos-path-power-threshold-20261022.json), [City43 3D building scene](figures/rt-city43-los-nlos-capstress-depth3-s05-20k-scene-20261022.png), and physics-status edition 3.182.
+
 ## 1. Current-repository audit and exact technical debt
 
 ### 1.1 What already exists (retain and test)
