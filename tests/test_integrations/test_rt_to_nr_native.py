@@ -214,6 +214,96 @@ def test_rt_direct_and_reflected_paths_sum_coherently_on_nr_grid():
 
 
 @pytest.mark.native_sionna
+@pytest.mark.parametrize(("polarization", "fresnel_mode"), [("V", "TM"), ("H", "TE")])
+def test_rt_reflected_path_gain_matches_analytic_fresnel_slab(polarization, fresnel_mode):
+    """V and H links match the analytic TM and TE slab coefficients, respectively."""
+    import mitsuba as mi
+
+    mi.set_variant("llvm_ad_mono_polarized")
+    rt = pytest.importorskip("sionna.rt")
+    from integrations.sionna.adapter import direct_path_mask
+    from scipy.constants import c, epsilon_0
+
+    frequency_hz = 3.5e9
+    relative_permittivity = 4.0
+    conductivity_s_per_m = 0.01
+    slab_thickness_m = 0.1
+    direct_distance_m = 20.0
+    reflected_distance_m = 2.0 * np.sqrt(10.0**2 + 10.0**2)
+    scene = rt.load_scene(rt.scene.simple_reflector, merge_shapes=False)
+    scene.frequency = frequency_hz
+    scene.tx_array = rt.PlanarArray(
+        num_rows=1, num_cols=1, pattern="iso", polarization=polarization
+    )
+    scene.rx_array = rt.PlanarArray(
+        num_rows=1, num_cols=1, pattern="iso", polarization=polarization
+    )
+    scene.add(rt.Transmitter("tx", [-10.0, 0.0, 10.0]))
+    scene.add(rt.Receiver("rx", [10.0, 0.0, 10.0]))
+    scene.get("tx").look_at([0.0, 0.0, 0.0])
+    scene.get("rx").look_at([0.0, 0.0, 0.0])
+    scene.get("reflector").radio_material = rt.RadioMaterial(
+        name=f"analytic-{fresnel_mode.lower()}-fresnel-slab",
+        relative_permittivity=relative_permittivity,
+        conductivity=conductivity_s_per_m,
+        thickness=slab_thickness_m,
+        scattering_coefficient=0.0,
+    )
+    paths = rt.PathSolver(deterministic=True)(
+        scene,
+        max_depth=1,
+        los=True,
+        specular_reflection=True,
+        diffuse_reflection=False,
+        refraction=False,
+        diffraction=False,
+        seed=1,
+    )
+
+    valid = np.asarray(paths.valid.numpy(), dtype=bool).reshape(-1)
+    direct = direct_path_mask(paths).reshape(-1)
+    reflected = valid & ~direct
+    assert np.count_nonzero(valid) == 2
+    assert np.count_nonzero(direct) == np.count_nonzero(reflected) == 1
+    gains = np.asarray(paths.a[0].numpy()).reshape(-1) + 1j * np.asarray(
+        paths.a[1].numpy()
+    ).reshape(-1)
+    delays_s = np.asarray(paths.tau.numpy(), dtype=float).reshape(-1)
+    np.testing.assert_allclose(delays_s[direct], direct_distance_m / c, rtol=0, atol=1e-12)
+    np.testing.assert_allclose(delays_s[reflected], reflected_distance_m / c, rtol=0, atol=1e-12)
+    wavelength_m = c / frequency_hz
+    np.testing.assert_allclose(
+        np.abs(gains[direct][0]), wavelength_m / (4.0 * np.pi * direct_distance_m), rtol=1e-5
+    )
+
+    # Independent textbook TE/TM Fresnel coefficient for a finite dielectric slab.
+    cos_theta = 10.0 / np.sqrt(10.0**2 + 10.0**2)
+    angular_frequency = 2.0 * np.pi * frequency_hz
+    complex_permittivity = relative_permittivity - 1j * conductivity_s_per_m / (
+        angular_frequency * epsilon_0
+    )
+    transmitted_cosine_term = np.sqrt(complex_permittivity - (1.0 - cos_theta**2))
+    if fresnel_mode == "TE":
+        interface_coefficient = (cos_theta - transmitted_cosine_term) / (
+            cos_theta + transmitted_cosine_term
+        )
+    else:
+        interface_coefficient = (complex_permittivity * cos_theta - transmitted_cosine_term) / (
+            complex_permittivity * cos_theta + transmitted_cosine_term
+        )
+    slab_phase = 2.0 * np.pi * slab_thickness_m / wavelength_m * transmitted_cosine_term
+    round_trip = np.exp(-2j * slab_phase)
+    expected_coefficient = (
+        interface_coefficient * (1.0 - round_trip) / (1.0 - interface_coefficient**2 * round_trip)
+    )
+
+    measured_coefficient = (
+        gains[reflected][0] / gains[direct][0] * reflected_distance_m / direct_distance_m
+    )
+    np.testing.assert_allclose(measured_coefficient, expected_coefficient, rtol=2e-4, atol=2e-5)
+
+
+@pytest.mark.native_sionna
 @pytest.mark.parametrize("synthetic_array", [True, False])
 @pytest.mark.parametrize(
     ("tx_polarization", "rx_polarization"),

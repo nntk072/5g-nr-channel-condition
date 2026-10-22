@@ -7,7 +7,7 @@ dataset generation or model runs remain deferred.
 
 - `MASTER_RESEARCH_PLAN_5G_MULTIPATH_SIONNA_2026-10-21.md`, named by the goal,
   is not present in this checkout. Its current maintained successor is
-  [`MASTER_RESEARCH_PLAN.md`](MASTER_RESEARCH_PLAN.md), edition 3.114.
+  [`MASTER_RESEARCH_PLAN.md`](MASTER_RESEARCH_PLAN.md), edition 3.115.
 - [`UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md`](UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md)
   is now tracked here. The ignored source copy under `outputs/` has SHA256
   `4554b6b6a478a5828881a42f41080f7951c59ee042c3883c9819f231fa17d626`; the
@@ -25,7 +25,7 @@ dataset generation or model runs remain deferred.
 | Preserve absolute path delay and phase in RT CFR | Adapter fixed; targeted native check passes | `integrations/sionna/adapter.py::rt_cfr` now passes `normalize_delays=False` and `normalize=False`. The native 10 m free-space test compares adapter output to the pinned `Paths.cfr()` result and verifies it differs from the delay-normalized response. Generation report schema v2 records the absolute-delay channel contract. |
 | Test baseband phase and frequency-bin mapping | Partial | Native 10 m free-space checks reconstruct CFR manually from `Paths.a`, `Paths.tau`, the explicit `exp(-j 2π f_c τ)` passband-to-baseband factor, and baseband offsets. Even (24) and odd (25) NR FFT grids match the CIR/delay Fourier sum and bridge frequency-bin coordinates. A native two-path manual coefficient/delay reconstruction also matches within tolerance for pinned single-precision coefficients. Nonzero timing-reference shifts, stronger independent coefficient gold values, and time-varying bins remain. |
 | Direct/indirect channel conservation | Partial | `direct_path_mask()` and coefficient-masked CFRs partition a single Sionna 2.2 `Paths` object. The generator uses this same-set direct component; native two-path LLVM tests verify complex CFR conservation, residual indirect power, and independent raw `Paths.a`/`Paths.tau` reconstruction. Both synthetic and explicit 2×3 array modes conserve all antenna-pair axes for all four TX/RX V/VH polarization combinations. Native empty-path fixtures expose and cover zero-length Dr.Jit masking and synthetic-mask broadcasting. A new deterministic blocked-link test separates exactly one interaction from two-or-more interactions and verifies complex CFR reconstruction; it passes on the pinned LLVM backend. Gold values for interaction-specific, cross-polarization, and orientation-dependent coefficients remain open. |
-| Absolute power/link budget, path coefficients, and materials | Partial | The native isotropic 10 m path now checks `|a| = λ/(4πd)` and zero phase against Friis, in addition to `τ=d/c`; raw `Paths.a`/`Paths.tau` reconstruction is checked in free space and a two-path scene. Link-budget propagation through receiver normalization/noise, polarization and orientation conventions, and calibrated material/path-gain comparisons remain. Synthetic material sensitivity is not material calibration. |
+| Absolute power/link budget, path coefficients, and materials | Partial | Native isotropic free-space tests check `|a| = λ/(4πd)`, phase, and `τ=d/c`. A new pinned LLVM slab fixture compares end-to-end V/V and H/H reflected coefficients against independent complex TM/TE Fresnel-slab equations after normalizing free-space path loss; both polarizations pass. Link-budget propagation through receiver normalization/noise, arbitrary antenna orientations, materials calibrated to real measurements, and broader solver convergence remain open. Controlled synthetic-material agreement is not real-material calibration. |
 | Geometric labels and invalid/no-path states | Partial | Six selected scenes have geometry-label and solver-outcome audits. The generator still exports only accepted balanced samples; empty solver outcomes are counted but are not canonical outage labels. Add boundary, penetration, orientation and uncertain/censored-state coverage. |
 | Unified immutable data layers and target masks | Open | Existing `ChannelDataset` and NR observation/target contracts are useful starting points but do not implement the unified parent-episode, ragged path table, per-target observability masks, and linked-view schema in UMCD-1. |
 | Regenerate canonical data after the delay-contract fix | Not started; deferred until remaining physics gates pass | Existing NPZ datasets, DMRS views, and fitted model reports are preserved as legacy normalized-delay runs. No old output was rewritten or relabeled. Regenerate with new source hashes only after the applicable D1 physics gates pass. |
@@ -72,4 +72,12 @@ files), `uv lock --check`, `uv build`, and `git diff --check` also pass. Hosted
 CI [run 39717796831](https://github.com/nntk072/5g-nr-channel-condition/actions/runs/39717796831)
 passes all four jobs for code commit `9e10b32`; it does not install native RT.
 This test improves one synthetic geometry gate but does not qualify real
-material, polarization, or solver behavior.
+material calibration, arbitrary antenna orientation, or solver convergence.
+
+**Edition 3.115 follow-up:** `tests/test_integrations/test_rt_to_nr_native.py::test_rt_reflected_path_gain_matches_analytic_fresnel_slab`
+passes for both parameterized native LLVM cases. It checks 45° incidence,
+image-source path lengths, direct Friis gain, and the complex slab Fresnel
+coefficient through the full Sionna RT path solver. The complete local suite
+passes with 627 passed, 3 skipped, and 88.12% coverage; Ruff check/format and
+mypy across 140 source files also pass. Hosted CI for this change is pending
+push. The test remains local-native evidence because hosted CI omits Sionna RT.
