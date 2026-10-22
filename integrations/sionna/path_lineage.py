@@ -125,17 +125,13 @@ class PathLineageObserver:
             lineage_sample = self._array(buffer, "_lineage_sample", count)
             lineage_interaction = self._array(buffer, "_lineage_interaction", count)
             lineage_valid = self._array(buffer, "_lineage_valid", count)
-            lineage_new_specular = self._array(
-                buffer, "_lineage_new_specular", count
-            )
+            lineage_new_specular = self._array(buffer, "_lineage_new_specular", count)
             lineage_hash_0 = self._array(buffer, "_lineage_hash_0", count)
             lineage_hash_1 = self._array(buffer, "_lineage_hash_1", count)
             order_counts = Counter(int(np.count_nonzero(row)) for row in interactions)
             zero_rows = []
             for index in sorted(zero_indices):
-                candidate_depth = (
-                    int(lineage_depth[index]) if lineage_depth is not None else None
-                )
+                candidate_depth = int(lineage_depth[index]) if lineage_depth is not None else None
                 lineage_written = candidate_depth is not None and candidate_depth > 0
                 zero_rows.append(
                     {
@@ -157,9 +153,7 @@ class PathLineageObserver:
                             if lineage_written and lineage_sample is not None
                             else None
                         ),
-                        "candidate_depth": (
-                            candidate_depth if lineage_written else None
-                        ),
+                        "candidate_depth": (candidate_depth if lineage_written else None),
                         "sampled_interaction_type": (
                             int(lineage_interaction[index])
                             if lineage_written and lineage_interaction is not None
@@ -178,10 +172,11 @@ class PathLineageObserver:
                         "specular_hashes": [
                             int(lineage_hash_0[index]),
                             int(lineage_hash_1[index]),
-                        ] if lineage_written
-                            and lineage_hash_0 is not None
-                            and lineage_hash_1 is not None
-                            else None,
+                        ]
+                        if lineage_written
+                        and lineage_hash_0 is not None
+                        and lineage_hash_1 is not None
+                        else None,
                     }
                 )
             record = {

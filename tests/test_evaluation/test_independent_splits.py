@@ -6,6 +6,7 @@ from evaluation.independent_splits import (
     freeze_split_lock,
     make_independent_split,
 )
+from evaluation.spatial_audit import audit_spatial_buffer
 
 
 def records():
@@ -52,6 +53,24 @@ def test_split_requires_group_identity_and_unique_sample_ids():
             ],
             seed="v1",
         )
+
+
+def test_four_way_split_supports_spatial_buffer_audit():
+    samples = [
+        {
+            "sample_id": f"sample-{index}",
+            "scene_group_id": f"scene-{index}",
+            "coordinates_m": [float(index * 100), 0.0],
+        }
+        for index in range(12)
+    ]
+    split = make_independent_split(
+        samples,
+        seed="four-way-spatial",
+        fractions={"train": 0.55, "validation": 0.15, "calibration": 0.15, "test": 0.15},
+    )
+    assert set(split.sample_to_split.values()) == {"train", "validation", "calibration", "test"}
+    assert audit_spatial_buffer(samples, split, buffer_m=1.0).is_clean
 
 
 def test_group_leakage_audit_rejects_changed_scene_group():

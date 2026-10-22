@@ -80,7 +80,11 @@ def audit_spatial_buffer(
     points = np.stack(coordinates)
     labels_array = np.asarray(labels)
     pairs: list[SpatialLeakagePair] = []
-    split_names = ("train", "validation", "test")
+    split_names = tuple(
+        name
+        for name in ("train", "validation", "calibration", "test")
+        if name in set(split.sample_to_split.values())
+    )
     for index, first_split in enumerate(split_names):
         first_indices = np.flatnonzero(labels_array == first_split)
         if first_indices.size == 0:

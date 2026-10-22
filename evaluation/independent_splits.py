@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import os
 import tempfile
 from dataclasses import dataclass
@@ -26,11 +27,11 @@ class IndependentSplit:
             raise ValueError("split assignments must not be empty")
         if not self.seed.strip() or not self.group_field.strip():
             raise ValueError("seed and group_field must be non-empty")
-        allowed = {"train", "validation", "test"}
+        allowed = {"train", "validation", "calibration", "test"}
         if set(self.sample_to_split.values()) - allowed:
-            raise ValueError("split names must be train, validation, or test")
+            raise ValueError("split names must be train, validation, calibration, or test")
         if set(self.group_to_split.values()) - allowed:
-            raise ValueError("split names must be train, validation, or test")
+            raise ValueError("split names must be train, validation, calibration, or test")
         object.__setattr__(self, "sample_to_split", MappingProxyType(dict(self.sample_to_split)))
         object.__setattr__(self, "group_to_split", MappingProxyType(dict(self.group_to_split)))
 
@@ -59,11 +60,20 @@ def make_independent_split(
     ordered by SHA256(seed, group ID), so the result is stable across Python
     versions and does not depend on process hash randomization.
     """
-    proportions = dict(fractions or {"train": 0.7, "validation": 0.15, "test": 0.15})
-    if set(proportions) != {"train", "validation", "test"}:
-        raise ValueError("fractions must define train, validation, and test")
+    proportions_input = dict(fractions or {"train": 0.7, "validation": 0.15, "test": 0.15})
+    if set(proportions_input) not in (
+        {"train", "validation", "test"},
+        {"train", "validation", "calibration", "test"},
+    ):
+        raise ValueError(
+            "fractions must define train/validation/test or train/validation/calibration/test"
+        )
+    split_order = tuple(
+        name for name in ("train", "validation", "calibration", "test") if name in proportions_input
+    )
+    proportions = {name: float(proportions_input[name]) for name in split_order}
     if (
-        any(value <= 0 for value in proportions.values())
+        any(not math.isfinite(value) or value <= 0 for value in proportions.values())
         or abs(sum(proportions.values()) - 1) > 1e-9
     ):
         raise ValueError("split fractions must be positive and sum to one")
@@ -81,8 +91,12 @@ def make_independent_split(
         sample_groups[sample_id] = group_id
 
     groups = sorted(set(sample_groups.values()))
-    if len(groups) < 3:
-        raise ValueError("at least three independent groups are required for three-way splits")
+    if len(groups) < len(split_order):
+        minimum = "three" if len(split_order) == 3 else "4"
+        raise ValueError(
+            f"at least {minimum} independent groups ({len(split_order)}) are required for "
+            f"{len(split_order)}-way splits"
+        )
     ordered = sorted(
         groups,
         key=lambda group: hashlib.sha256(f"{seed}\0{group}".encode()).digest(),
@@ -101,7 +115,7 @@ def make_independent_split(
 
     group_to_split: dict[str, str] = {}
     offset = 0
-    for name in ("train", "validation", "test"):
+    for name in split_order:
         for group_id in ordered[offset : offset + counts[name]]:
             group_to_split[group_id] = name
         offset += counts[name]
