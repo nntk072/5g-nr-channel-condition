@@ -13,6 +13,9 @@ segments show representative clear and building-blocked direct paths; these
 are geometry checks, not simulated multipath rays or measured channels. See
 the [spatial-holdout report](results/rt-urban43-joint-location-holdout-20261022.json)
 and [figure metadata](figures/rt-urban43-spatial-holdout-3d-20261022.json).
+The separate [RT depth-convergence plot](figures/rt-box-los-nlos-convergence-depth20-100k-20261022.png)
+shows a controlled thin-screen box experiment; its increasing path and delay
+statistics through depth 20 are a solver diagnostic, not the building scene.
 
 ## Build a small receiver-visible PUSCH/DMRS dataset
 
@@ -23,7 +26,7 @@ with a build report:
 
 ```bash
 uv run --no-sync --locked python scripts/build_standardized_pusch_dataset.py \
-  outputs/pusch-tdla-demo --family tdl --profile A --samples 4 --seed 20261022 \
+  outputs/pusch-tdla-provenance-demo --family tdl --profile A --samples 4 --seed 20261022 \
   --snr-db 20 --device cpu
 ```
 

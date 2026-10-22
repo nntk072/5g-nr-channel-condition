@@ -52,7 +52,7 @@ def test_material_label_distinguishes_explicit_scattering_fixture():
     assert material_label({}) == "scene-default scattering"
 
 
-@pytest.mark.parametrize("version", ("v2", "v3"))
+@pytest.mark.parametrize("version", ("v2", "v3", "v4"))
 def test_loader_accepts_versioned_reports_with_absolute_delay(tmp_path: Path, version: str):
     report = tmp_path / "report.json"
     report.write_text(

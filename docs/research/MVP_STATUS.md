@@ -8,14 +8,17 @@ draws to Sionna's PUSCH transmitter and DMRS LS estimator, keeps noisy receiver
 data apart from perfect CFR/profile-proxy targets, and writes records through
 the hash-verified NR store. `scripts/build_standardized_pusch_dataset.py`
 builds a reproducible local sample; a four-record TDL-A dataset was generated
-at `outputs/pusch-tdla-demo` in this workspace. The native test slice passes
+at `outputs/pusch-tdla-provenance-demo` in this workspace. The native test slice passes
 16 tests, Ruff and mypy pass for the touched integration modules, and `uv build`
 produces both wheel and source distribution. This is an ideal static
 frequency-domain SISO/SIMO fixture: it does not add impairments, ICI/ISI,
 absolute power calibration, geometric LOS labels, or temporal propagation.
 The [3D Urban43 figure](figures/rt-urban43-spatial-holdout-3d-20261022.png)
 visibly shows 16 building meshes, three TX sites, and 120 audited RX locations;
-its labels certify geometric direct-path visibility only.
+its labels certify geometric direct-path visibility only. The extended
+[box-scene depth sweep](figures/rt-box-los-nlos-convergence-depth20-100k-20261022.png)
+still changes at max depth 20, so the RT solver-depth convergence gate remains
+open and this result does not establish a production ray-tracing configuration.
 
 **Physics-audit correction (2026-10-22):** `integrations/sionna/adapter.py::rt_cfr`
 previously normalized each RT link's first path delay independently. It now

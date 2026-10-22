@@ -46,13 +46,14 @@ def summarize_seed_range(
 
 
 def load_reports(paths: Sequence[Path]) -> list[dict[str, Any]]:
-    """Load only current geometry-labeled convergence report schema v2."""
+    """Load geometry-labeled convergence reports with absolute-delay semantics."""
     reports = []
     for path in paths:
         data = json.loads(path.read_text(encoding="utf-8"))
         if data.get("schema") not in {
             "loslab.sionna_rt_solver_convergence.v2",
             "loslab.sionna_rt_solver_convergence.v3",
+            "loslab.sionna_rt_solver_convergence.v4",
         }:
             raise ValueError(f"unsupported convergence report schema in {path}")
         if data.get("configuration", {}).get("normalize_delays_for_cfr") is not False:
@@ -78,6 +79,10 @@ def plot_reports(report_paths: Sequence[Path], output_prefix: Path) -> dict[str,
     reports = load_reports(report_paths)
     fig, axes = plt.subplots(2, 2, figsize=(13.5, 9.0), constrained_layout=True)
     ax_budget, ax_depth, ax_delay, ax_angle = axes.flat
+    single_budget = (
+        len(reports) == 1
+        and len(reports[0]["data"]["configuration"]["samples_per_src_values"]) == 1
+    )
     colors = plt.get_cmap("tab10")
     line_styles = ("-", "--", ":", "-.")
 
@@ -101,11 +106,15 @@ def plot_reports(report_paths: Sequence[Path], output_prefix: Path) -> dict[str,
                 row for row in rows if row["samples_per_src"] == config["reference_samples_per_src"]
             ]
 
+            budget_rows = by_reference_budget if single_budget else by_depth
+            budget_metric = (
+                "valid_path_count" if single_budget else "relative_cfr_l2_to_max_budget_and_depth"
+            )
             x, median, low, high = summarize_seed_range(
-                by_depth,
-                x_field="samples_per_src",
-                metric="relative_cfr_l2_to_max_budget_and_depth",
-                positive_only=True,
+                budget_rows,
+                x_field="max_depth" if single_budget else "samples_per_src",
+                metric=budget_metric,
+                positive_only=not single_budget,
             )
             if len(x):
                 ax_budget.errorbar(
@@ -137,9 +146,10 @@ def plot_reports(report_paths: Sequence[Path], output_prefix: Path) -> dict[str,
                     label=label,
                 )
 
+            delay_rows = by_reference_budget if single_budget else by_depth
             x, median, low, high = summarize_seed_range(
-                by_depth,
-                x_field="samples_per_src",
+                delay_rows,
+                x_field="max_depth" if single_budget else "samples_per_src",
                 metric="power_weighted_rms_delay_spread_ns",
             )
             if len(x):
@@ -182,11 +192,16 @@ def plot_reports(report_paths: Sequence[Path], output_prefix: Path) -> dict[str,
                     label=label,
                 )
 
-    ax_budget.set_xscale("log")
-    ax_budget.set_yscale("log")
-    ax_budget.set_xlabel("Path-solver ray samples per source")
-    ax_budget.set_ylabel("Relative complex CFR L2 error")
-    ax_budget.set_title("Ray-sample sensitivity at maximum depth")
+    if single_budget:
+        ax_budget.set_xlabel("Maximum interaction depth")
+        ax_budget.set_ylabel("Number of valid paths")
+        ax_budget.set_title("Path-count growth at fixed ray budget")
+    else:
+        ax_budget.set_xscale("log")
+        ax_budget.set_yscale("log")
+        ax_budget.set_xlabel("Path-solver ray samples per source")
+        ax_budget.set_ylabel("Relative complex CFR L2 error")
+        ax_budget.set_title("Ray-sample sensitivity at maximum depth")
 
     ax_depth.set_yscale("log")
     ax_depth.set_xlim(
@@ -196,10 +211,14 @@ def plot_reports(report_paths: Sequence[Path], output_prefix: Path) -> dict[str,
     ax_depth.set_ylabel("Relative complex CFR L2 error")
     ax_depth.set_title("Interaction-depth sensitivity at reference budget")
 
-    ax_delay.set_xscale("log")
-    ax_delay.set_xlabel("Path-solver ray samples per source")
+    if single_budget:
+        ax_delay.set_xlabel("Maximum interaction depth")
+        ax_delay.set_title("Delay-spread change at fixed ray budget")
+    else:
+        ax_delay.set_xscale("log")
+        ax_delay.set_xlabel("Path-solver ray samples per source")
+        ax_delay.set_title("Delay-spread stability at maximum depth")
     ax_delay.set_ylabel("Power-weighted RMS delay spread (ns)")
-    ax_delay.set_title("Delay-spread stability at maximum depth")
 
     ax_angle.set_xlabel("Maximum interaction depth")
     ax_angle.set_ylabel("Power-weighted arrival angular spread (degrees)")
