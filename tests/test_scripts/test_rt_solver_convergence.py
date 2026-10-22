@@ -67,6 +67,8 @@ def test_convergence_link_requires_finite_xyz_positions():
 
 @pytest.mark.native_sionna
 def test_convergence_matrix_labels_los_and_blocked_links_independently():
+    pytest.importorskip("mitsuba")
+    pytest.importorskip("sionna.rt")
     run_convergence = RUNNER["run_convergence"]
     result = run_convergence(
         scene_name="box_one_screen",
