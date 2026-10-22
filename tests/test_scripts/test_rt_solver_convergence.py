@@ -388,16 +388,20 @@ def test_convergence_matrix_labels_los_and_blocked_links_independently():
         max_num_paths_per_src=1000,
         include_cfr_vectors=True,
         include_path_diagnostics=True,
+        path_diagnostics_max_depth_only=True,
     )
     assert scattered["configuration"]["materials"]["screen-mat"]["scattering_coefficient"] == [0.5]
     assert scattered["schema"].endswith(".v5")
     assert scattered["configuration"]["cfr_vectors_included"] is True
     assert scattered["configuration"]["path_diagnostics_included"] is True
+    assert scattered["configuration"]["path_diagnostics_depths"] == [3]
     assert all(len(row["cfr_vector_real"]) == 8 for row in scattered["runs"])
     assert all(len(row["cfr_vector_imag"]) == 8 for row in scattered["runs"])
-    assert all(len(row["path_diagnostics"]) == row["valid_path_count"] for row in scattered["runs"])
-    assert all(row["path_cfr_reconstruction_within_tolerance"] for row in scattered["runs"])
-    for row in scattered["runs"]:
+    diagnostic_runs = [row for row in scattered["runs"] if row["max_depth"] == 3]
+    assert all(len(row["path_diagnostics"]) == row["valid_path_count"] for row in diagnostic_runs)
+    assert all(row["path_cfr_reconstruction_within_tolerance"] for row in diagnostic_runs)
+    assert all("path_diagnostics" not in row for row in scattered["runs"] if row["max_depth"] != 3)
+    for row in diagnostic_runs:
         summed = sum(
             np.asarray(path["cfr_contribution_real"])
             + 1j * np.asarray(path["cfr_contribution_imag"])

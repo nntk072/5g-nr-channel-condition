@@ -347,6 +347,7 @@ def run_convergence(
     max_num_paths_per_src: int = 1_000_000,
     include_cfr_vectors: bool = False,
     include_path_diagnostics: bool = False,
+    path_diagnostics_max_depth_only: bool = False,
 ) -> dict[str, Any]:
     """Compare ray budgets and interaction depths for named fixed links."""
     if max_depth < 1:
@@ -367,6 +368,10 @@ def run_convergence(
         raise TypeError("include_cfr_vectors must be a boolean")
     if not isinstance(include_path_diagnostics, bool):
         raise TypeError("include_path_diagnostics must be a boolean")
+    if not isinstance(path_diagnostics_max_depth_only, bool):
+        raise TypeError("path_diagnostics_max_depth_only must be a boolean")
+    if path_diagnostics_max_depth_only and not include_path_diagnostics:
+        raise ValueError("max-depth-only diagnostics require include_path_diagnostics")
     for name, coefficient in (material_scattering_overrides or {}).items():
         if not name or isinstance(coefficient, bool) or not math.isfinite(coefficient):
             raise ValueError("material scattering overrides require names and finite coefficients")
@@ -524,7 +529,7 @@ def run_convergence(
         if include_cfr_vectors:
             row["cfr_vector_real"] = cfr.real.astype(np.float64).tolist()
             row["cfr_vector_imag"] = cfr.imag.astype(np.float64).tolist()
-        if include_path_diagnostics:
+        if include_path_diagnostics and (not path_diagnostics_max_depth_only or depth == max_depth):
             if valid_path_mask.ndim != 3 or valid_path_mask.shape[0:2] != (1, 1):
                 raise RuntimeError("path diagnostics currently require exactly one SISO link")
             native_path_contributions = (
@@ -655,6 +660,13 @@ def run_convergence(
             "cfr_vectors_included": include_cfr_vectors,
             "cfr_vector_encoding": "float64-real-imaginary-lists" if include_cfr_vectors else None,
             "path_diagnostics_included": include_path_diagnostics,
+            "path_diagnostics_depths": (
+                [max_depth]
+                if include_path_diagnostics and path_diagnostics_max_depth_only
+                else list(range(max_depth + 1))
+                if include_path_diagnostics
+                else []
+            ),
             "path_diagnostics_encoding": (
                 "valid-siso-paths-with-geometry-fingerprints-and-per-path-complex-baseband-cfr"
                 if include_path_diagnostics
@@ -720,6 +732,11 @@ def main() -> None:
         help="store valid-path geometry, interactions, coefficients, fingerprints, and CFR contributions",
     )
     parser.add_argument(
+        "--path-diagnostics-max-depth-only",
+        action="store_true",
+        help="limit per-path CFR diagnostics to rows at the configured maximum depth",
+    )
+    parser.add_argument(
         "--material-scattering",
         action="append",
         default=[],
@@ -765,6 +782,7 @@ def main() -> None:
             max_num_paths_per_src=args.max_num_paths_per_src,
             include_cfr_vectors=args.include_cfr_vectors,
             include_path_diagnostics=args.include_path_diagnostics,
+            path_diagnostics_max_depth_only=args.path_diagnostics_max_depth_only,
             link_cases=(
                 tuple(
                     ConvergenceLink(
