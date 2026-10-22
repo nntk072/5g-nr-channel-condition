@@ -33,16 +33,16 @@ def resample_centered_cfr(
     target_subcarriers: int,
     target_spacing_hz: float,
 ) -> np.ndarray:
-    """Linearly resample centered complex CFRs onto another centered grid."""
+    """Linearly resample centered CFRs, preserving each receive-antenna axis."""
     values = np.asarray(channels)
     if (
         values.ndim != 3
-        or values.shape[1] != 1
+        or values.shape[1] < 1
         or values.shape[2] < 8
         or not np.iscomplexobj(values)
         or not np.isfinite(values).all()
     ):
-        raise ValueError("channels must be finite complex [samples, 1, >=8 tones]")
+        raise ValueError("channels must be finite complex [samples, rx_ant, >=8 tones]")
     for name, value in (
         ("source_spacing_hz", source_spacing_hz),
         ("target_spacing_hz", target_spacing_hz),
@@ -68,11 +68,13 @@ def resample_centered_cfr(
     ):
         raise ValueError("target frequency grid must lie inside the source CFR bandwidth")
 
-    resampled = np.empty((len(values), target_subcarriers), dtype=np.complex128)
-    for index, channel in enumerate(values[:, 0, :]):
-        resampled[index] = np.interp(
-            target_frequencies, source_frequencies, channel.real
-        ) + 1j * np.interp(target_frequencies, source_frequencies, channel.imag)
+    resampled = np.empty((len(values), values.shape[1], target_subcarriers), dtype=np.complex128)
+    for sample_index in range(len(values)):
+        for antenna_index in range(values.shape[1]):
+            channel = values[sample_index, antenna_index]
+            resampled[sample_index, antenna_index] = np.interp(
+                target_frequencies, source_frequencies, channel.real
+            ) + 1j * np.interp(target_frequencies, source_frequencies, channel.imag)
     return resampled.astype(np.complex64)
 
 

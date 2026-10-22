@@ -64,7 +64,31 @@ def test_centered_cfr_resampling_preserves_overlapping_subcarriers():
         target_spacing_hz=30_000.0,
     )
 
-    np.testing.assert_array_equal(actual, channels[:, 0, 28:100])
+    np.testing.assert_array_equal(actual, channels[:, :, 28:100])
+
+
+def test_centered_cfr_resampling_preserves_multiple_receive_antennas():
+    frequencies = (np.arange(128) - 64) * 30_000.0
+    channels = np.stack(
+        [
+            np.stack(
+                [
+                    np.exp(-2j * np.pi * frequencies * 20e-9),
+                    0.5 * np.exp(-2j * np.pi * frequencies * 80e-9),
+                ]
+            )
+        ]
+    ).astype(np.complex64)
+
+    actual = resample_centered_cfr(
+        channels,
+        source_spacing_hz=30_000.0,
+        target_subcarriers=72,
+        target_spacing_hz=30_000.0,
+    )
+
+    assert actual.shape == (1, 2, 72)
+    np.testing.assert_array_equal(actual, channels[:, :, 28:100])
 
 
 def test_thermal_noise_variance_uses_temperature_bandwidth_and_noise_figure():
@@ -99,7 +123,7 @@ def test_thermal_noise_variance_rejects_invalid_physical_inputs(
 @pytest.mark.parametrize(
     ("channels", "overrides", "message"),
     [
-        (np.ones((2, 2, 128), dtype=np.complex64), {}, "samples, 1"),
+        (np.ones((2, 0, 128), dtype=np.complex64), {}, "rx_ant"),
         (np.ones((2, 1, 128), dtype=np.float64), {}, "complex"),
         (np.ones((2, 1, 128), dtype=np.complex64), {"source_spacing_hz": 0.0}, "source_spacing_hz"),
         (

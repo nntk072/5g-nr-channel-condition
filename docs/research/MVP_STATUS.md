@@ -2,6 +2,21 @@
 
 **Status: simulation-only software MVP complete; broader research plan remains open.** The absolute-delay/path-partition implementation is committed as `2b03354`; its complete local suite passed (481 passed, 3 skipped, 88.12% coverage), and hosted CI run [39710231241](https://github.com/nntk072/5g-nr-channel-condition/actions/runs/39710231241) passed all four jobs. Follow-up commits `00928a3`, `dac545c`, and `70421a6` added native frequency-bin, path-coefficient, Friis, empty-path, and array-mask checks; hosted CI runs [39711191556](https://github.com/nntk072/5g-nr-channel-condition/actions/runs/39711191556), [39711520188](https://github.com/nntk072/5g-nr-channel-condition/actions/runs/39711520188), and [39712795569](https://github.com/nntk072/5g-nr-channel-condition/actions/runs/39712795569) pass all four software jobs. Commit `1a1de6c` adds all V/VH polarization pairs for synthetic/explicit 2×3 MIMO partition tests; all 30 focused native/mock tests pass locally, and hosted CI [39713206686](https://github.com/nntk072/5g-nr-channel-condition/actions/runs/39713206686) passes all four software jobs. The complete local suite passes at 88.11% coverage. Hosted CI does not install Sionna RT, so native cases are locally verified. Ruff, format, mypy (139 configured source files), lock check, and package build pass. These are software and bounded physics gates, not validation of a general channel-condition benchmark.
 
+**Current build addition (2026-10-22):** the new
+`integrations/sionna/standardized_pusch.py` path connects immutable TDL/CDL
+draws to Sionna's PUSCH transmitter and DMRS LS estimator, keeps noisy receiver
+data apart from perfect CFR/profile-proxy targets, and writes records through
+the hash-verified NR store. `scripts/build_standardized_pusch_dataset.py`
+builds a reproducible local sample; a four-record TDL-A dataset was generated
+at `outputs/pusch-tdla-demo` in this workspace. The native test slice passes
+16 tests, Ruff and mypy pass for the touched integration modules, and `uv build`
+produces both wheel and source distribution. This is an ideal static
+frequency-domain SISO/SIMO fixture: it does not add impairments, ICI/ISI,
+absolute power calibration, geometric LOS labels, or temporal propagation.
+The [3D Urban43 figure](figures/rt-urban43-spatial-holdout-3d-20261022.png)
+visibly shows 16 building meshes, three TX sites, and 120 audited RX locations;
+its labels certify geometric direct-path visibility only.
+
 **Physics-audit correction (2026-10-22):** `integrations/sionna/adapter.py::rt_cfr`
 previously normalized each RT link's first path delay independently. It now
 preserves the absolute Sionna path-delay reference and records this channel

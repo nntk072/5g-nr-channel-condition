@@ -2,6 +2,38 @@
 
 All commands run from `long_nguyen_thesis-main/` in Python **3.11+**.
 
+## See the simulated buildings and link geometry
+
+![3D Urban43 scene with 16 building meshes, three transmitter sites, and 120 audited receiver positions](figures/rt-urban43-spatial-holdout-3d-20261022.png)
+
+This is a 3D view of the actual generated building meshes. The audit contains
+120 receiver locations across three transmitter sites (40 per site), with 60
+geometric LOS and 60 geometric NLOS direct-path labels. Solid and dashed
+segments show representative clear and building-blocked direct paths; these
+are geometry checks, not simulated multipath rays or measured channels. See
+the [spatial-holdout report](results/rt-urban43-joint-location-holdout-20261022.json)
+and [figure metadata](figures/rt-urban43-spatial-holdout-3d-20261022.json).
+
+## Build a small receiver-visible PUSCH/DMRS dataset
+
+With the locked Sionna PHY dependencies installed, this command creates four
+deterministic TDL-A draws, sends a PUSCH grid through each frequency response,
+estimates the channel from DMRS, and stores immutable NR observation records
+with a build report:
+
+```bash
+uv run --no-sync --locked python scripts/build_standardized_pusch_dataset.py \
+  outputs/pusch-tdla-demo --family tdl --profile A --samples 4 --seed 20261022 \
+  --snr-db 20 --device cpu
+```
+
+Choose `--family cdl --profile D` to build CDL-D records. The example uses a
+12-PRB BWP at 30 kHz and a frozen frequency-domain channel. Noisy receiver
+observations and DMRS estimates are stored separately from perfect CFR and
+profile-category targets. A profile proxy is not geometric LOS/NLOS. This
+build assumes ideal synchronization, one transmit port, and no ICI/ISI, RF
+impairments, or calibrated absolute link budget.
+
 ## 0. Environment & native requirements
 
 Recommended Linux/WSL2 Ubuntu 24.04 rather than legacy Windows+TensorFlow env.
