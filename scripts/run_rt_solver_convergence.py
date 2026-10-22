@@ -297,6 +297,11 @@ def run_convergence(
         candidate_path_count = candidate_path_counter.last_candidate_path_count
         if candidate_path_count is None:
             raise RuntimeError("Sionna did not expose its pre-filter candidate path count")
+        candidate_path_counts_per_source = (
+            candidate_path_counter.last_candidate_path_counts_per_source
+        )
+        if candidate_path_counts_per_source is None:
+            raise RuntimeError("Sionna did not expose per-source candidate path counts")
         cfr = rt_cfr(paths, grid).reshape(-1)
         valid = np.asarray(paths.valid.numpy(), dtype=bool).reshape(-1)
         gain_real, gain_imag = paths.a
@@ -329,7 +334,12 @@ def run_convergence(
             "samples_per_src": samples,
             "valid_path_count": count_valid_paths(paths),
             "candidate_path_count_before_path_validation": candidate_path_count,
-            "candidate_path_cap_filled": candidate_path_count >= max_num_paths_per_src,
+            "candidate_path_counts_per_source_before_path_validation": list(
+                candidate_path_counts_per_source
+            ),
+            "candidate_path_cap_filled": any(
+                count >= max_num_paths_per_src for count in candidate_path_counts_per_source
+            ),
             "valid_diffuse_reflection_path_count": int(np.count_nonzero(valid_diffuse)),
             "valid_non_diffuse_path_count": int(np.count_nonzero(valid_non_diffuse)),
             "valid_path_power_sum": float(np.sum(np.abs(gains[valid]) ** 2)),
@@ -400,7 +410,7 @@ def run_convergence(
             "reference_samples_per_src": reference_samples,
             "max_num_paths_per_src": max_num_paths_per_src,
             "candidate_path_count_stage": "after_candidate_generation_before_invalid_path_filter",
-            "candidate_path_count_scope": "single_transmitter_source",
+            "candidate_path_count_scope": "per_transmitter_source_from_buffer_source_indices",
             "seeds": list(seeds),
             "links": [
                 {

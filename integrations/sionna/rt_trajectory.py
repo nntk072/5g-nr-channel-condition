@@ -423,6 +423,7 @@ def generate_rt_nr_trajectory(
     direct_path_counts: list[int] = []
     total_path_counts: list[int] = []
     candidate_path_counts: list[int] = []
+    candidate_path_counts_per_source: list[tuple[int, ...]] = []
     geometric_los: list[bool] = []
     geometric_los_states: list[str] = []
     umcd_path_bindings: list[SionnaPathBinding] = []
@@ -534,6 +535,10 @@ def generate_rt_nr_trajectory(
         direct_path_counts.append(direct_count)
         total_path_counts.append(path_count)
         candidate_path_counts.append(candidate_path_count)
+        per_source_counts = full_candidate_counter.last_candidate_path_counts_per_source
+        if per_source_counts is None:
+            raise RuntimeError("RT trajectory solve did not expose per-source candidate counts")
+        candidate_path_counts_per_source.append(per_source_counts)
         geometric_los.append(bool(visibility.visible))
         geometric_los_states.append(visibility.state.value)
 
@@ -663,6 +668,9 @@ def generate_rt_nr_trajectory(
             "direct_path_count": direct_path_counts[index],
             "full_path_count": total_path_counts[index],
             "candidate_paths_before_validation": candidate_path_counts[index],
+            "candidate_paths_per_source_before_validation": list(
+                candidate_path_counts_per_source[index]
+            ),
             "max_num_paths_per_src": config.max_num_paths_per_src,
             "candidate_path_cap_filled": False,
             "channel_truth_valid": total_path_counts[index] > 0,

@@ -205,6 +205,7 @@ def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
     assert all(m["los_plus_indirect_paths"] for m, y in zip(d.metadata, d.y) if y == 1)
     assert all(m["valid_paths_full"] >= 2 for m in d.metadata)
     assert all(m["candidate_paths_before_validation"] == 3 for m in d.metadata)
+    assert all(m["candidate_paths_per_source_before_validation"] == [3] for m in d.metadata)
     assert all(not m["candidate_path_cap_filled"] for m in d.metadata)
     assert all(m["geometry_oracle"]["state"] in {"visible", "blocked"} for m in d.metadata)
     assert all(len(m["geometry_oracle"]["boundary_probe_blocked"]) == 0 for m in d.metadata)

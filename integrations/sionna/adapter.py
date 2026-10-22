@@ -838,6 +838,9 @@ def generate_raytraced(
                 "rx": [x, y, z],
                 "valid_paths_full": n_paths,
                 "candidate_paths_before_validation": candidate_path_count,
+                "candidate_paths_per_source_before_validation": list(
+                    full_candidate_counter.last_candidate_path_counts_per_source or ()
+                ),
                 "max_num_paths_per_src": cfg.max_num_paths_per_src,
                 "candidate_path_cap_filled": False,
                 "valid_paths_direct_oracle": n_direct,
@@ -987,7 +990,7 @@ def generate_raytraced(
         "solver_config": solver_config,
         "candidate_path_audit": {
             "counter_stage": "after_candidate_generation_before_invalid_path_filter",
-            "counter_scope": "single_transmitter_source",
+            "counter_scope": "per_transmitter_source_from_candidate_buffer_indices",
             "saturated_samples_are_rejected": True,
         },
         "seed": seed,

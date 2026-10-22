@@ -116,10 +116,21 @@ def audit_dataset(
     scene_names = {str(row["scene"]) for row in metadata}
     tx_positions = {tuple(row["tx"]) for row in metadata}
     depths = {int(row["max_depth"]) for row in metadata}
+    candidate_caps: set[int] = set()
+    for row in metadata:
+        cap = row["scene_config"].get("max_num_paths_per_src", 1_000_000)
+        if isinstance(cap, bool) or not isinstance(cap, int) or cap < 1:
+            raise ValueError("dataset candidate caps must be positive integers")
+        candidate_caps.add(cap)
     grid_configs = {tuple(sorted(row["grid_config"].items())) for row in metadata}
     variants = {str(row["mitsuba_variant"]) for row in metadata}
-    if any(len(values) != 1 for values in (scene_names, tx_positions, depths, grid_configs)):
-        raise ValueError("one input NPZ must describe one scene, transmitter, depth, and grid")
+    if any(
+        len(values) != 1
+        for values in (scene_names, tx_positions, depths, grid_configs, candidate_caps)
+    ):
+        raise ValueError(
+            "one input NPZ must describe one scene, transmitter, depth, grid, and candidate cap"
+        )
     if len(variants) != 1:
         raise ValueError("dataset contains mixed Mitsuba variants")
     selected_variant = mitsuba_variant or next(iter(variants))
@@ -128,6 +139,9 @@ def audit_dataset(
 
     try:
         from integrations.sionna.backend import activate_rt_backend, select_rt_backend
+        from integrations.sionna.candidate_audit import (
+            instrument_path_solver_candidate_counter,
+        )
 
         backend_selection = select_rt_backend(selected_variant)
         activate_rt_backend(backend_selection)
@@ -159,12 +173,14 @@ def audit_dataset(
     receiver = Receiver(name="budget_audit_rx", position=list(metadata[0]["rx"]))
     scene.add(receiver)
     solver = PathSolver(deterministic=True)
+    candidate_counter = instrument_path_solver_candidate_counter(solver)
     depth = next(iter(depths))
+    candidate_cap = next(iter(candidate_caps))
 
     records: list[dict[str, Any]] = []
     for sample_index, row in enumerate(metadata):
         receiver.position = [float(value) for value in row["rx"]]
-        per_budget: list[tuple[int, np.ndarray, int, str]] = []
+        per_budget: list[tuple[int, np.ndarray, int, str, tuple[int, ...]]] = []
         for budget in samples_per_src_values:
             paths = solver(
                 scene,
@@ -175,14 +191,24 @@ def audit_dataset(
                 refraction=True,
                 diffraction=False,
                 samples_per_src=budget,
+                max_num_paths_per_src=candidate_cap,
                 seed=int(row["seed"]),
             )
+            per_source_candidates = candidate_counter.last_candidate_path_counts_per_source
+            if per_source_candidates is None:
+                raise RuntimeError("RT budget audit did not expose per-source candidate counts")
+            if any(count >= candidate_cap for count in per_source_candidates):
+                raise RuntimeError(
+                    "RT budget audit encountered a candidate path cap-filled output: "
+                    f"sample={sample_index}, samples_per_src={budget}, "
+                    f"counts={per_source_candidates}, cap={candidate_cap}"
+                )
             cfr = rt_cfr(paths, grid).reshape(-1)
             path_count = count_valid_paths(paths)
             cfr_hash = hashlib.sha256(np.ascontiguousarray(cfr).tobytes()).hexdigest()
-            per_budget.append((budget, cfr, path_count, cfr_hash))
+            per_budget.append((budget, cfr, path_count, cfr_hash, per_source_candidates))
         reference = per_budget[-1][1]
-        for budget, cfr, path_count, cfr_hash in per_budget:
+        for budget, cfr, path_count, cfr_hash, per_source_candidates in per_budget:
             records.append(
                 {
                     "sample_index": sample_index,
@@ -192,6 +218,8 @@ def audit_dataset(
                     "solver_seed": int(row["seed"]),
                     "max_depth": depth,
                     "samples_per_src": budget,
+                    "max_num_paths_per_src": candidate_cap,
+                    "candidate_paths_per_source_before_validation": list(per_source_candidates),
                     "valid_path_count": path_count,
                     "relative_cfr_l2_to_reference": relative_l2_error(cfr, reference),
                     "cfr_sha256": cfr_hash,
@@ -228,6 +256,7 @@ def audit_dataset(
             "rt_backend_selection": backend_selection.as_dict(),
             "deterministic_solver": True,
             "max_depth": depth,
+            "max_num_paths_per_src": candidate_cap,
             "samples_per_src_values": list(samples_per_src_values),
             "reference_samples_per_src": samples_per_src_values[-1],
             "tx_position_m": list(next(iter(tx_positions))),

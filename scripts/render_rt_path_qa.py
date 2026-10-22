@@ -262,6 +262,7 @@ def render_dataset_qa(
 
     try:
         from integrations.sionna.backend import activate_rt_backend, select_rt_backend
+        from integrations.sionna.candidate_audit import instrument_path_solver_candidate_counter
 
         variant = str(metadata[0]["mitsuba_variant"])
         if any(str(row["mitsuba_variant"]) != variant for row in metadata):
@@ -291,6 +292,7 @@ def render_dataset_qa(
     receiver = Receiver(name="path_qa_rx", position=list(metadata[0]["rx"]))
     scene.add(receiver)
     solver = PathSolver(deterministic=True)
+    candidate_counter = instrument_path_solver_candidate_counter(solver)
     selected = select_stratified_indices(
         metadata,
         dataset.y,
@@ -313,9 +315,21 @@ def render_dataset_qa(
             "refraction": True,
             "diffraction": False,
             "samples_per_src": int(row["scene_config"]["samples_per_src"]),
+            "max_num_paths_per_src": int(
+                row["scene_config"].get("max_num_paths_per_src", 1_000_000)
+            ),
             "seed": seed,
         }
         paths = solver(scene, max_depth=max_depth, **kwargs)
+        candidate_counts = candidate_counter.last_candidate_path_counts_per_source
+        if candidate_counts is None:
+            raise RuntimeError("RT path QA did not expose per-source candidate counts")
+        if any(count >= kwargs["max_num_paths_per_src"] for count in candidate_counts):
+            raise RuntimeError(
+                "RT path QA encountered a candidate path cap-filled output: "
+                f"sample={sample_index}, counts={candidate_counts}, "
+                f"cap={kwargs['max_num_paths_per_src']}"
+            )
         oracle = solver(
             scene,
             max_depth=0,
@@ -325,6 +339,7 @@ def render_dataset_qa(
             refraction=False,
             diffraction=False,
             samples_per_src=int(row["scene_config"]["samples_per_src"]),
+            max_num_paths_per_src=kwargs["max_num_paths_per_src"],
             seed=seed,
         )
         oracle_direct = has_valid_path(oracle)
@@ -379,6 +394,8 @@ def render_dataset_qa(
                 "label": expected_label,
                 "oracle_direct_replayed": oracle_direct,
                 "full_valid_path_count": count_valid_paths(paths),
+                "candidate_paths_per_source_before_validation": list(candidate_counts),
+                "max_num_paths_per_src": kwargs["max_num_paths_per_src"],
                 "full_direct_candidate_count": direct_candidates,
                 "interaction_counts": dict(sorted(interaction_counts.items())),
                 "ray_budget_samples_per_src": kwargs["samples_per_src"],

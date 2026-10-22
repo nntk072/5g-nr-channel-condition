@@ -32,6 +32,56 @@ def test_candidate_path_counter_records_buffer_before_path_validation():
 
     assert recorder() is sentinel
     assert recorder.last_candidate_path_count == 17
+    assert recorder.last_candidate_path_counts_per_source == (17,)
+
+
+def test_candidate_path_counter_recovers_each_transmitter_source_count():
+    pytest.importorskip("drjit")
+    mi = pytest.importorskip("mitsuba")
+
+    class CandidateBuffer:
+        paths_counter = mi.UInt(3)
+        src_indices = mi.UInt([0, 1, 0])
+
+    source_positions = mi.Point3f([0.0, 10.0, 20.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0])
+    sentinel = CandidateBuffer()
+    recorder = CandidatePathCounter(lambda **_: sentinel)
+
+    assert recorder(src_positions=source_positions) is sentinel
+    assert recorder.last_total_candidate_path_count == 3
+    assert recorder.last_candidate_path_counts_per_source == (2, 1, 0)
+    assert recorder.last_candidate_path_count == 2
+
+
+@pytest.mark.native_sionna
+def test_native_candidate_path_counter_audits_each_saturated_source():
+    rt = pytest.importorskip("sionna.rt")
+    scene = rt.load_scene()
+    scene.frequency = 3.5e9
+    scene.tx_array = rt.PlanarArray(num_rows=1, num_cols=1, pattern="iso", polarization="V")
+    scene.rx_array = rt.PlanarArray(num_rows=1, num_cols=1, pattern="iso", polarization="V")
+    scene.add(rt.Transmitter(name="cap_audit_tx_a", position=[0.0, 0.0, 1.0]))
+    scene.add(rt.Transmitter(name="cap_audit_tx_b", position=[0.0, 10.0, 1.0]))
+    scene.add(rt.Receiver(name="cap_audit_rx", position=[10.0, 5.0, 1.0]))
+    solver = rt.PathSolver(deterministic=True)
+    recorder = CandidatePathCounter(solver._candidate_generator)
+    solver._candidate_generator = recorder
+
+    solver(
+        scene,
+        max_depth=0,
+        max_num_paths_per_src=1,
+        los=True,
+        specular_reflection=False,
+        diffuse_reflection=False,
+        refraction=False,
+        diffraction=False,
+        samples_per_src=1,
+        seed=1,
+    )
+
+    assert recorder.last_total_candidate_path_count == 2
+    assert recorder.last_candidate_path_counts_per_source == (1, 1)
 
 
 def test_provenance_runner_requires_source_to_match_committed_git_head(tmp_path):

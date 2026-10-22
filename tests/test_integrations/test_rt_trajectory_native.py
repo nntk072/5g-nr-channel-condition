@@ -48,6 +48,9 @@ def test_cpu_rt_path_retraces_and_stores_receiver_only_trajectory(tmp_path, monk
         assert record.provenance["candidate_paths_before_validation"] < (
             config.max_num_paths_per_src
         )
+        assert record.provenance["candidate_paths_per_source_before_validation"] == [
+            record.provenance["candidate_paths_before_validation"]
+        ]
         assert record.provenance["candidate_path_cap_filled"] is False
         model_inputs = record.observation.model_inputs()
         assert tuple(model_inputs.received_grid.shape)[0] == 1
