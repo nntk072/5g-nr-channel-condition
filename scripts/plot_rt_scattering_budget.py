@@ -30,7 +30,10 @@ def summarize_seed_range(
 def load_report(path: Path) -> dict[str, Any]:
     """Require versioned material and path-component provenance."""
     report = json.loads(path.read_text(encoding="utf-8"))
-    if report.get("schema") != "loslab.sionna_rt_solver_convergence.v3":
+    if report.get("schema") not in {
+        "loslab.sionna_rt_solver_convergence.v3",
+        "loslab.sionna_rt_solver_convergence.v4",
+    }:
         raise ValueError(f"unsupported scattering-budget report schema in {path}")
     configuration = report.get("configuration", {})
     if configuration.get("solver_flags", {}).get("diffuse_reflection") is not True:

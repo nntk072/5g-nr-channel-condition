@@ -74,3 +74,12 @@ def test_loader_requires_diffuse_observables_and_nonzero_scattering(tmp_path: Pa
     report.write_text(json.dumps(invalid), encoding="utf-8")
     with pytest.raises(ValueError, match="missing diffuse-component observables"):
         load_report(report)
+
+
+def test_loader_accepts_cfr_bearing_v4_reports(tmp_path: Path):
+    report = _report(0.5)
+    report["schema"] = "loslab.sionna_rt_solver_convergence.v4"
+    path = tmp_path / "scattering-v4.json"
+    path.write_text(json.dumps(report), encoding="utf-8")
+
+    assert load_report(path)["schema"] == "loslab.sionna_rt_solver_convergence.v4"
