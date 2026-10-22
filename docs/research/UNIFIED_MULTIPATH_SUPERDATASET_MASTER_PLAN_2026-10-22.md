@@ -1626,10 +1626,11 @@ Use **verification-first, additive modules**. Preserve the uploaded project's ty
 `integrations/sionna/path_oracle.py`. It converts one explicitly selected
 Sionna TX/RX device pair per call and groups ragged paths by link-local RX/TX
 array ports. Native LLVM tests compare coefficient, absolute delay, interaction
-order, Doppler and angle fields against pinned Sionna output for synthetic and
-explicit arrays, V/VH polarization combinations, and empty solves. This
-advances the field-extraction deliverable only. Object/primitive IDs and
-vertices, whole-episode device/link mapping, geometric direct-path visibility,
+order/type, scene-local object/primitive IDs, scene-XYZ vertices, Doppler and
+angle fields against pinned Sionna output for synthetic and explicit arrays,
+V/VH polarization combinations, and empty solves. The immutable bundle stores
+the ordered ragged interaction trace and its coordinate-frame declaration.
+Whole-episode device/link mapping, independent geometric direct-path visibility,
 solver-convergence studies, and path-budget convergence plots are not complete;
 Stage S2 remains in progress.
 

@@ -216,6 +216,46 @@ def test_ragged_path_table_validates_link_frame_and_port_references():
         paths.validate_for(episode)
 
 
+def test_path_interaction_trace_rejects_partial_or_misaligned_geometry():
+    common = {
+        "link_ids": ("link-1",),
+        "frame_indices": np.asarray([0]),
+        "rx_port_indices": np.asarray([0]),
+        "tx_port_indices": np.asarray([0]),
+        "path_offsets": np.asarray([0, 1]),
+        "solve_status": (PathSolveStatus.SOLVED,),
+        "delay_s": np.asarray([2e-9]),
+        "complex_gain": np.asarray([0.25 + 0.1j]),
+        "interaction_order": np.asarray([1]),
+    }
+    interactions = {
+        "interaction_offsets": np.asarray([0, 1]),
+        "interaction_types": np.asarray([1]),
+        "object_ids": np.asarray([7]),
+        "primitive_ids": np.asarray([3]),
+        "interaction_vertices_m": np.asarray([[1.0, 2.0, 3.0]]),
+        "interaction_vertex_frame": "test_scene_xyz_m",
+    }
+    with pytest.raises(ValueError, match="must be supplied together"):
+        PathOracleTable(**common, interaction_offsets=interactions["interaction_offsets"])
+    with pytest.raises(ValueError, match="agree with per-path interaction_order"):
+        PathOracleTable(
+            **common,
+            **{
+                **interactions,
+                "interaction_offsets": np.asarray([0, 0]),
+            },
+        )
+    with pytest.raises(ValueError, match=r"finite shape \[interaction, xyz\]"):
+        PathOracleTable(
+            **common,
+            **{
+                **interactions,
+                "interaction_vertices_m": np.asarray([[1.0, np.nan, 3.0]]),
+            },
+        )
+
+
 def test_physical_channel_view_requires_named_axes_and_explicit_normalization():
     episode = _episode()
     arguments = {
@@ -283,7 +323,13 @@ def _bundle() -> EpisodeBundle:
         solve_status=(PathSolveStatus.SOLVED,),
         delay_s=np.asarray([10e-9]),
         complex_gain=np.asarray([0.01 + 0.02j]),
-        interaction_order=np.asarray([0]),
+        interaction_order=np.asarray([1]),
+        interaction_offsets=np.asarray([0, 1]),
+        interaction_types=np.asarray([1]),
+        object_ids=np.asarray([7]),
+        primitive_ids=np.asarray([3]),
+        interaction_vertices_m=np.asarray([[1.0, 2.0, 3.0]]),
+        interaction_vertex_frame="test_scene_xyz_m",
     )
     channel = PhysicalChannelView(
         view_id="oracle-cfr-v1",
@@ -322,6 +368,14 @@ def test_episode_bundle_roundtrip_keeps_layers_content_addressed_and_pickle_free
 
     assert loaded.episode.episode_id == bundle.episode.episode_id
     np.testing.assert_array_equal(loaded.path_oracle.complex_gain, bundle.path_oracle.complex_gain)
+    np.testing.assert_array_equal(
+        loaded.path_oracle.interaction_offsets, bundle.path_oracle.interaction_offsets
+    )
+    np.testing.assert_array_equal(loaded.path_oracle.object_ids, bundle.path_oracle.object_ids)
+    np.testing.assert_array_equal(
+        loaded.path_oracle.interaction_vertices_m, bundle.path_oracle.interaction_vertices_m
+    )
+    assert loaded.path_oracle.interaction_vertex_frame == "test_scene_xyz_m"
     np.testing.assert_array_equal(loaded.channel_views[0].channel, bundle.channel_views[0].channel)
     np.testing.assert_array_equal(loaded.targets[0].valid_mask, bundle.targets[0].valid_mask)
     assert (tmp_path / "objects/oracle_paths").is_dir()

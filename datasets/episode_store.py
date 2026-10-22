@@ -185,6 +185,8 @@ def _path_payload(paths: PathOracleTable) -> bytes:
             "doppler_hz": paths.doppler_hz is not None,
             "aoa_azimuth_elevation_rad": paths.aoa_azimuth_elevation_rad is not None,
             "aod_azimuth_elevation_rad": paths.aod_azimuth_elevation_rad is not None,
+            "interaction_geometry": paths.interaction_offsets is not None,
+            "interaction_vertex_frame": paths.interaction_vertex_frame,
         },
     }
     arrays = {
@@ -200,6 +202,16 @@ def _path_payload(paths: PathOracleTable) -> bytes:
         "doppler_hz",
         "aoa_azimuth_elevation_rad",
         "aod_azimuth_elevation_rad",
+    ):
+        value = getattr(paths, name)
+        if value is not None:
+            arrays[name] = value
+    for name in (
+        "interaction_offsets",
+        "interaction_types",
+        "object_ids",
+        "primitive_ids",
+        "interaction_vertices_m",
     ):
         value = getattr(paths, name)
         if value is not None:
@@ -406,6 +418,30 @@ def read_episode_bundle(
             if optional["aod_azimuth_elevation_rad"]
             else None
         ),
+        interaction_offsets=(
+            path_arrays.get("interaction_offsets")
+            if optional.get("interaction_geometry", False)
+            else None
+        ),
+        interaction_types=(
+            path_arrays.get("interaction_types")
+            if optional.get("interaction_geometry", False)
+            else None
+        ),
+        object_ids=(
+            path_arrays.get("object_ids") if optional.get("interaction_geometry", False) else None
+        ),
+        primitive_ids=(
+            path_arrays.get("primitive_ids")
+            if optional.get("interaction_geometry", False)
+            else None
+        ),
+        interaction_vertices_m=(
+            path_arrays.get("interaction_vertices_m")
+            if optional.get("interaction_geometry", False)
+            else None
+        ),
+        interaction_vertex_frame=optional.get("interaction_vertex_frame"),
         path_kind=None if path_metadata["path_kind"] is None else tuple(path_metadata["path_kind"]),
         coefficient_convention=path_metadata["coefficient_convention"],
     )

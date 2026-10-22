@@ -357,6 +357,11 @@ def test_same_paths_direct_indirect_partition_preserves_mimo_axes(
     assert oracle.aoa_azimuth_elevation_rad is not None
     assert oracle.aod_azimuth_elevation_rad is not None
     assert oracle.path_kind is not None
+    assert oracle.interaction_offsets is not None
+    assert oracle.interaction_types is not None
+    assert oracle.object_ids is not None
+    assert oracle.primitive_ids is not None
+    assert oracle.interaction_vertices_m is not None
     rx_count = int(paths.a[0].shape[1])
     tx_count = int(paths.a[0].shape[3])
     assert oracle.group_count == rx_count * tx_count
@@ -385,9 +390,18 @@ def test_same_paths_direct_indirect_partition_preserves_mimo_axes(
     phi_r = np.broadcast_to(phi_r, paths.a[0].shape)
     gains = paths.a[0].numpy() + 1j * paths.a[1].numpy()
     interactions = np.asarray(paths.interactions.numpy())
+    objects = np.asarray(paths.objects.numpy())
+    primitives = np.asarray(paths.primitives.numpy())
+    vertices = np.asarray(paths.vertices.numpy())
     if interactions.ndim == 4:
         interactions = interactions[:, :, None, :, None, :]
+        objects = objects[:, :, None, :, None, :]
+        primitives = primitives[:, :, None, :, None, :]
+        vertices = vertices[:, :, None, :, None, :, :]
     interactions = np.broadcast_to(interactions, (interactions.shape[0],) + paths.a[0].shape)
+    objects = np.broadcast_to(objects, (objects.shape[0],) + paths.a[0].shape)
+    primitives = np.broadcast_to(primitives, (primitives.shape[0],) + paths.a[0].shape)
+    vertices = np.broadcast_to(vertices, (vertices.shape[0],) + paths.a[0].shape + (3,))
     for rx_port in range(rx_count):
         for tx_port in range(tx_count):
             group = rx_port * tx_count + tx_port
@@ -428,6 +442,33 @@ def test_same_paths_direct_indirect_partition_preserves_mimo_axes(
                     axis=0,
                 ),
             )
+            expected_type_matrix = interactions[:, 0, rx_port, 0, tx_port][:, mask]
+            expected_object_matrix = objects[:, 0, rx_port, 0, tx_port][:, mask]
+            expected_primitive_matrix = primitives[:, 0, rx_port, 0, tx_port][:, mask]
+            expected_vertex_tensor = vertices[:, 0, rx_port, 0, tx_port][:, mask]
+            for local_path in range(int(mask.sum())):
+                path_row = group_slice.start + local_path
+                interaction_slice = slice(
+                    int(oracle.interaction_offsets[path_row]),
+                    int(oracle.interaction_offsets[path_row + 1]),
+                )
+                interaction_mask = expected_type_matrix[:, local_path] != int(InteractionType.NONE)
+                np.testing.assert_array_equal(
+                    oracle.interaction_types[interaction_slice],
+                    expected_type_matrix[interaction_mask, local_path],
+                )
+                np.testing.assert_array_equal(
+                    oracle.object_ids[interaction_slice],
+                    expected_object_matrix[interaction_mask, local_path],
+                )
+                np.testing.assert_array_equal(
+                    oracle.primitive_ids[interaction_slice],
+                    expected_primitive_matrix[interaction_mask, local_path],
+                )
+                np.testing.assert_allclose(
+                    oracle.interaction_vertices_m[interaction_slice],
+                    expected_vertex_tensor[interaction_mask, local_path],
+                )
             assert all(
                 (kind == "direct") == (order == 0)
                 for kind, order in zip(

@@ -49,6 +49,9 @@ class PathOracleTable:
     Optional physical fields are either populated for every path in this solve
     or absent for the whole table. Partial per-path availability should be
     represented by a future field-validity extension, not sentinel zeros.
+    Interaction rows use ``interaction_offsets[path]:[path+1]`` and retain
+    Sionna's depth order. Object and primitive IDs are scene-local; for sensing
+    interactions, Sionna's object field contains a sensing-target index.
     """
 
     link_ids: tuple[str, ...]
@@ -64,6 +67,12 @@ class PathOracleTable:
     aoa_azimuth_elevation_rad: np.ndarray | None = None
     aod_azimuth_elevation_rad: np.ndarray | None = None
     path_kind: tuple[str, ...] | None = None
+    interaction_offsets: np.ndarray | None = None
+    interaction_types: np.ndarray | None = None
+    object_ids: np.ndarray | None = None
+    primitive_ids: np.ndarray | None = None
+    interaction_vertices_m: np.ndarray | None = None
+    interaction_vertex_frame: str | None = None
     coefficient_convention: str = "sionna_rt_path_coefficient_v1"
 
     def __post_init__(self) -> None:
@@ -126,6 +135,73 @@ class PathOracleTable:
             len(kinds) != path_count or any(not isinstance(kind, str) or not kind for kind in kinds)
         ):
             raise ValueError("path_kind must provide one non-empty value per path")
+
+        interaction_values = (
+            self.interaction_offsets,
+            self.interaction_types,
+            self.object_ids,
+            self.primitive_ids,
+            self.interaction_vertices_m,
+        )
+        interaction_data = None
+        if any(value is not None for value in interaction_values):
+            if any(value is None for value in interaction_values):
+                raise ValueError(
+                    "interaction offsets, types, IDs, and vertices must be supplied together"
+                )
+            raw_offsets = np.asarray(self.interaction_offsets)
+            if raw_offsets.dtype.kind not in "iu":
+                raise TypeError("interaction_offsets must use an integer dtype")
+            interaction_offsets = _freeze_vector(
+                raw_offsets, name="interaction_offsets", dtype=np.dtype(np.int64)
+            )
+            if len(interaction_offsets) != path_count + 1 or interaction_offsets[0] != 0:
+                raise ValueError("interaction_offsets must contain one leading zero per path table")
+            if np.any(np.diff(interaction_offsets) < 0):
+                raise ValueError("interaction_offsets must be nondecreasing")
+            interaction_count = int(interaction_offsets[-1])
+            if not np.array_equal(np.diff(interaction_offsets), orders):
+                raise ValueError("interaction offsets must agree with per-path interaction_order")
+            interaction_types = _freeze_vector(
+                np.asarray(self.interaction_types),
+                name="interaction_types",
+                dtype=np.dtype(np.int64),
+            )
+            object_ids = _freeze_vector(
+                np.asarray(self.object_ids), name="object_ids", dtype=np.dtype(np.int64)
+            )
+            primitive_ids = _freeze_vector(
+                np.asarray(self.primitive_ids), name="primitive_ids", dtype=np.dtype(np.int64)
+            )
+            vertices = np.array(self.interaction_vertices_m, dtype=np.float64, copy=True)
+            if any(
+                len(values) != interaction_count
+                for values in (interaction_types, object_ids, primitive_ids)
+            ):
+                raise ValueError("interaction arrays must match interaction_offsets total")
+            if (
+                np.any(interaction_types <= 0)
+                or np.any(object_ids < 0)
+                or np.any(primitive_ids < 0)
+            ):
+                raise ValueError("interaction types and IDs must be nonnegative valid values")
+            if vertices.shape != (interaction_count, 3) or not np.isfinite(vertices).all():
+                raise ValueError("interaction_vertices_m must have finite shape [interaction, xyz]")
+            if (
+                not isinstance(self.interaction_vertex_frame, str)
+                or not self.interaction_vertex_frame.strip()
+            ):
+                raise ValueError("interaction vertices require a named coordinate frame")
+            vertices.setflags(write=False)
+            interaction_data = (
+                interaction_offsets,
+                interaction_types,
+                object_ids,
+                primitive_ids,
+                vertices,
+            )
+        elif self.interaction_vertex_frame is not None:
+            raise ValueError("interaction_vertex_frame requires interaction geometry arrays")
         if (
             not isinstance(self.coefficient_convention, str)
             or not self.coefficient_convention.strip()
@@ -151,6 +227,13 @@ class PathOracleTable:
         object.__setattr__(self, "aoa_azimuth_elevation_rad", aoa)
         object.__setattr__(self, "aod_azimuth_elevation_rad", aod)
         object.__setattr__(self, "path_kind", kinds)
+        if interaction_data is not None:
+            object.__setattr__(self, "interaction_offsets", interaction_data[0])
+            object.__setattr__(self, "interaction_types", interaction_data[1])
+            object.__setattr__(self, "object_ids", interaction_data[2])
+            object.__setattr__(self, "primitive_ids", interaction_data[3])
+            object.__setattr__(self, "interaction_vertices_m", interaction_data[4])
+            object.__setattr__(self, "interaction_vertex_frame", self.interaction_vertex_frame)
 
     @staticmethod
     def _optional_vector(value: np.ndarray | None, *, name: str, count: int) -> np.ndarray | None:

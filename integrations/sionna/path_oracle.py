@@ -33,6 +33,32 @@ def _port_shape(value: np.ndarray, target: tuple[int, ...], *, name: str) -> np.
         ) from error
 
 
+def _interaction_shape(
+    value: np.ndarray,
+    target: tuple[int, ...],
+    *,
+    name: str,
+    xyz_axis: bool = False,
+) -> np.ndarray:
+    """Broadcast depth-indexed Sionna data to every antenna-port pair."""
+    if xyz_axis:
+        if value.ndim == 5:
+            value = value[:, :, None, :, None, :, :]
+        if value.ndim != 7 or value.shape[-1] != 3:
+            raise ValueError(f"Sionna {name} must have depth, path, and XYZ axes")
+        expected = (value.shape[0],) + target + (3,)
+    else:
+        if value.ndim == 4:
+            value = value[:, :, None, :, None, :]
+        if value.ndim != 6:
+            raise ValueError(f"Sionna {name} must have depth plus path axes")
+        expected = (value.shape[0],) + target
+    try:
+        return np.broadcast_to(value, expected)
+    except ValueError as error:
+        raise ValueError(f"Sionna {name} do not match the path coefficient axes") from error
+
+
 def sionna_paths_to_oracle_table(
     paths: object,
     *,
@@ -89,21 +115,18 @@ def sionna_paths_to_oracle_table(
     try:
         from sionna.rt.constants import InteractionType
 
-        interactions = _numpy(getattr(paths, "interactions"))
-        if interactions.ndim != 4 and interactions.ndim != 6:
-            raise ValueError("Sionna interactions must have depth plus 3 or 5 path axes")
-        if interactions.ndim == 4:
-            interactions = interactions[:, :, None, :, None, :]
-        if interactions.ndim != 6:
-            raise ValueError("Sionna interactions must include depth and path axes")
-        try:
-            interaction_slots = np.broadcast_to(
-                interactions, (interactions.shape[0],) + target_shape
-            )
-        except ValueError as error:
-            raise ValueError(
-                "Sionna interactions do not match the path coefficient axes"
-            ) from error
+        interaction_slots = _interaction_shape(
+            _numpy(getattr(paths, "interactions")), target_shape, name="interactions"
+        )
+        object_slots = _interaction_shape(
+            _numpy(getattr(paths, "objects")), target_shape, name="objects"
+        )
+        primitive_slots = _interaction_shape(
+            _numpy(getattr(paths, "primitives")), target_shape, name="primitives"
+        )
+        vertex_slots = _interaction_shape(
+            _numpy(getattr(paths, "vertices")), target_shape, name="vertices", xyz_axis=True
+        )
         interaction_order = np.count_nonzero(interaction_slots != int(InteractionType.NONE), axis=0)
     except ImportError as error:
         raise RuntimeError("Sionna RT is required to interpret path interactions") from error
@@ -125,6 +148,11 @@ def sionna_paths_to_oracle_table(
     flat_aoa: list[np.ndarray] = []
     flat_aod: list[np.ndarray] = []
     flat_kinds: list[str] = []
+    interaction_offsets = [0]
+    interaction_type_parts: list[np.ndarray] = []
+    object_id_parts: list[np.ndarray] = []
+    primitive_id_parts: list[np.ndarray] = []
+    vertex_parts: list[np.ndarray] = []
     interaction_labels = (
         (int(InteractionType.SPECULAR), "specular_reflection"),
         (int(InteractionType.DIFFUSE), "diffuse_reflection"),
@@ -147,6 +175,9 @@ def sionna_paths_to_oracle_table(
             path_gains = gain_real[selection][mask] + 1j * gain_imag[selection][mask]
             path_orders = interaction_order[selection][mask]
             path_interactions = interaction_slots[(slice(None),) + selection][..., mask]
+            path_objects = object_slots[(slice(None),) + selection][..., mask]
+            path_primitives = primitive_slots[(slice(None),) + selection][..., mask]
+            path_vertices = vertex_slots[(slice(None),) + selection + (slice(None),)][..., mask, :]
             path_doppler = doppler[selection][mask]
             phi_aoa = np.asarray(phi_r[selection][mask], dtype=np.float64)
             phi_aod = np.asarray(phi_t[selection][mask], dtype=np.float64)
@@ -176,6 +207,15 @@ def sionna_paths_to_oracle_table(
             flat_doppler.append(path_doppler)
             flat_aoa.append(aoa)
             flat_aod.append(aod)
+            valid_interactions = path_interactions.T != int(InteractionType.NONE)
+            per_path_interactions = np.count_nonzero(valid_interactions, axis=1)
+            interaction_offsets.extend(
+                (np.cumsum(per_path_interactions) + interaction_offsets[-1]).tolist()
+            )
+            interaction_type_parts.append(path_interactions.T[valid_interactions])
+            object_id_parts.append(path_objects.T[valid_interactions])
+            primitive_id_parts.append(path_primitives.T[valid_interactions])
+            vertex_parts.append(path_vertices.transpose(1, 0, 2)[valid_interactions])
             for path_column in range(path_interactions.shape[-1]):
                 labels = []
                 for raw_type in path_interactions[:, path_column]:
@@ -214,4 +254,10 @@ def sionna_paths_to_oracle_table(
         aoa_azimuth_elevation_rad=concatenate(flat_aoa, shape=(0, 2), dtype=np.dtype(np.float64)),
         aod_azimuth_elevation_rad=concatenate(flat_aod, shape=(0, 2), dtype=np.dtype(np.float64)),
         path_kind=tuple(flat_kinds),
+        interaction_offsets=np.asarray(interaction_offsets, dtype=np.int64),
+        interaction_types=concatenate(interaction_type_parts, shape=(0,), dtype=np.dtype(np.int64)),
+        object_ids=concatenate(object_id_parts, shape=(0,), dtype=np.dtype(np.int64)),
+        primitive_ids=concatenate(primitive_id_parts, shape=(0,), dtype=np.dtype(np.int64)),
+        interaction_vertices_m=concatenate(vertex_parts, shape=(0, 3), dtype=np.dtype(np.float64)),
+        interaction_vertex_frame="sionna_rt_scene_xyz_m",
     )

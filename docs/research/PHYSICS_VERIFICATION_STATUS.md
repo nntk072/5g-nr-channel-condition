@@ -7,7 +7,7 @@ dataset generation or model runs remain deferred.
 
 - `MASTER_RESEARCH_PLAN_5G_MULTIPATH_SIONNA_2026-10-21.md`, named by the goal,
   is not present in this checkout. Its current maintained successor is
-  [`MASTER_RESEARCH_PLAN.md`](MASTER_RESEARCH_PLAN.md), edition 3.118.
+  [`MASTER_RESEARCH_PLAN.md`](MASTER_RESEARCH_PLAN.md), edition 3.119.
 - [`UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md`](UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md)
   is now tracked here. The ignored source copy under `outputs/` has SHA256
   `4554b6b6a478a5828881a42f41080f7951c59ee042c3883c9819f231fa17d626`; the
@@ -27,7 +27,7 @@ dataset generation or model runs remain deferred.
 | Direct/indirect channel conservation | Partial | `direct_path_mask()` and coefficient-masked CFRs partition a single Sionna 2.2 `Paths` object. The generator uses this same-set direct component; native two-path LLVM tests verify complex CFR conservation, residual indirect power, and independent raw `Paths.a`/`Paths.tau` reconstruction. Both synthetic and explicit 2×3 array modes conserve all antenna-pair axes for all four TX/RX V/VH polarization combinations. Native empty-path fixtures expose and cover zero-length Dr.Jit masking and synthetic-mask broadcasting. A new deterministic blocked-link test separates exactly one interaction from two-or-more interactions and verifies complex CFR reconstruction; it passes on the pinned LLVM backend. Gold values for interaction-specific, cross-polarization, and orientation-dependent coefficients remain open. |
 | Absolute power/link budget, path coefficients, and materials | Partial | Native isotropic free-space tests check `|a| = λ/(4πd)`, phase, and `τ=d/c`. A pinned LLVM slab fixture compares end-to-end V/V and H/H reflected coefficients against independent complex TM/TE Fresnel-slab equations; both pass. The RT-to-DMRS adapter now has a distinct absolute-power mode with explicit per-resource-element transmit power and fixed `k_B T B F` noise; a native CUDA regression verifies that half channel gain remains half in the LS estimate, unlike the legacy normalized-SNR mode. Waveform calibration, arbitrary antenna orientations, materials fitted to measurements, and broader solver convergence remain open. Synthetic-material agreement is not real-material calibration. |
 | Geometric labels and invalid/no-path states | Partial | Six selected scenes have geometry-label and solver-outcome audits. The generator still exports only accepted balanced samples; empty solver outcomes are counted but are not canonical outage labels. Add boundary, penetration, orientation and uncertain/censored-state coverage. |
-| Unified immutable data layers and target masks | Partial | New additive UMCD v1 contracts model a multi-node parent episode, explicit antenna element/port weights, directed links, link/frame/port-keyed ragged path truth with separate solve outcomes, named-axis per-link CFR, and per-target element validity/reason codes. `datasets/episode_store.py` publishes separate SHA-256-addressed, pickle-free layers and a manifest-last immutable bundle. `integrations/sionna/path_oracle.py` now converts pinned Sionna 2.2 `Paths` results into this ragged contract, including per-port coefficients, absolute delays, interaction order/type, Doppler and wrapped azimuth/elevation; native LLVM tests cover synthetic/explicit arrays, polarization combinations, and empty-path results. Remaining: object/primitive IDs and vertices, solver/material provenance, multi-node enumeration and link mapping at the episode boundary, geometry-based direct visibility, partial field validity, receiver-view linkage/access enforcement, pose timelines, split registry, schema migration, and production-scale Arrow/Zarr storage. |
+| Unified immutable data layers and target masks | Partial | New additive UMCD v1 contracts model a multi-node parent episode, explicit antenna element/port weights, directed links, link/frame/port-keyed ragged path truth with separate solve outcomes, named-axis per-link CFR, and per-target element validity/reason codes. `datasets/episode_store.py` publishes separate SHA-256-addressed, pickle-free layers and a manifest-last immutable bundle. `integrations/sionna/path_oracle.py` converts pinned Sionna 2.2 `Paths` results into this ragged contract, including per-port coefficients, absolute delays, ordered interaction flags, scene-local object/primitive IDs, named-frame interaction vertices in meters, Doppler and wrapped azimuth/elevation. Interaction traces survive an immutable bundle round-trip; native LLVM tests compare extracted fields against raw arrays for synthetic/explicit arrays. Remaining: solver/material provenance, episode-level multi-node enumeration and mapping, independent geometry-based direct visibility, partial field validity, receiver-view linkage/access enforcement, pose timelines, split registry, schema migration, and production-scale Arrow/Zarr storage. |
 | Regenerate canonical data after the delay-contract fix | Not started; deferred until remaining physics gates pass | Existing NPZ datasets, DMRS views, and fitted model reports are preserved as legacy normalized-delay runs. No old output was rewritten or relabeled. Regenerate with new source hashes only after the applicable D1 physics gates pass. |
 | Scale/training and research claims | Deferred | Do not scale or interpret old model metrics as canonical absolute-channel evidence until the preceding gates are verified. |
 
@@ -125,7 +125,17 @@ All 11 focused cases pass. The complete local suite passes with 518 passed,
 files, mypy passes across 146 source files, and `uv lock --check`, `uv build`,
 and `git diff --check` pass. Hosted CI
 [run 39725668192](https://github.com/nntk072/5g-nr-channel-condition/actions/runs/39725668192)
-passes all four jobs but does not install native RT. This is a path-field bridge, not completion of
-Stage S2: object/primitive/vertex extraction, device/link enumeration,
-geometry-derived direct visibility, solver convergence and power-budget
-convergence remain open.
+passes all four jobs but does not install native RT. Stage S2 still needs
+episode-level device/link enumeration, geometry-derived direct visibility,
+solver convergence and power-budget convergence.
+
+**Edition 3.119 follow-up:** Added CSR interaction traces to the UMCD path table:
+per-path offsets index ordered Sionna interaction flags, scene-local object and
+primitive IDs, and scene-coordinate vertices in meters. The episode store
+records these as separate pickle-free arrays and preserves their coordinate
+frame; validation rejects incomplete traces and count mismatches. The complete
+suite passes with 519 passed, 3 skipped, and 87.77% coverage. Thirteen focused
+schema/store/native LLVM cases pass. Ruff, format, mypy (146 files), lock check,
+and package build pass. Hosted CI is pending for this change. Object IDs are
+scene-specific; geometry-based visibility, full episode topology mapping, and
+solver convergence remain unverified.
