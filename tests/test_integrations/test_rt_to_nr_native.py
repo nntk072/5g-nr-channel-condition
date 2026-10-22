@@ -317,6 +317,8 @@ def test_same_paths_direct_indirect_partition_preserves_mimo_axes(
     mi.set_variant("llvm_ad_mono_polarized")
     rt = pytest.importorskip("sionna.rt")
     from integrations.sionna.adapter import GridConfig, direct_path_mask, rt_cfr
+    from integrations.sionna.path_oracle import sionna_paths_to_oracle_table
+    from sionna.rt.constants import InteractionType
 
     scene = rt.load_scene(rt.scene.simple_reflector, merge_shapes=False)
     scene.tx_array = rt.PlanarArray(
@@ -350,6 +352,89 @@ def test_same_paths_direct_indirect_partition_preserves_mimo_axes(
     assert direct_mask.shape == valid.shape
     assert direct_mask.any() and indirect_mask.any()
 
+    oracle = sionna_paths_to_oracle_table(paths, link_id="tx-rx", frame_index=3)
+    assert oracle.doppler_hz is not None
+    assert oracle.aoa_azimuth_elevation_rad is not None
+    assert oracle.aod_azimuth_elevation_rad is not None
+    assert oracle.path_kind is not None
+    rx_count = int(paths.a[0].shape[1])
+    tx_count = int(paths.a[0].shape[3])
+    assert oracle.group_count == rx_count * tx_count
+    tau = np.asarray(paths.tau.numpy())
+    doppler = np.asarray(paths.doppler.numpy())
+    theta_t = np.asarray(paths.theta_t.numpy())
+    phi_t = np.asarray(paths.phi_t.numpy())
+    theta_r = np.asarray(paths.theta_r.numpy())
+    phi_r = np.asarray(paths.phi_r.numpy())
+    path_valid = valid
+    if valid.ndim == 3:
+        path_valid = valid[:, None, :, None, :]
+        tau = tau[:, None, :, None, :]
+        doppler = doppler[:, None, :, None, :]
+        theta_t = theta_t[:, None, :, None, :]
+        phi_t = phi_t[:, None, :, None, :]
+        theta_r = theta_r[:, None, :, None, :]
+        phi_r = phi_r[:, None, :, None, :]
+    path_valid = np.broadcast_to(path_valid, paths.a[0].shape)
+    assert oracle.path_count == int(path_valid.sum())
+    tau = np.broadcast_to(tau, paths.a[0].shape)
+    doppler = np.broadcast_to(doppler, paths.a[0].shape)
+    theta_t = np.broadcast_to(theta_t, paths.a[0].shape)
+    phi_t = np.broadcast_to(phi_t, paths.a[0].shape)
+    theta_r = np.broadcast_to(theta_r, paths.a[0].shape)
+    phi_r = np.broadcast_to(phi_r, paths.a[0].shape)
+    gains = paths.a[0].numpy() + 1j * paths.a[1].numpy()
+    interactions = np.asarray(paths.interactions.numpy())
+    if interactions.ndim == 4:
+        interactions = interactions[:, :, None, :, None, :]
+    interactions = np.broadcast_to(interactions, (interactions.shape[0],) + paths.a[0].shape)
+    for rx_port in range(rx_count):
+        for tx_port in range(tx_count):
+            group = rx_port * tx_count + tx_port
+            mask = path_valid[0, rx_port, 0, tx_port]
+            group_slice = oracle.group_slice(group)
+            assert group_slice.stop - group_slice.start == int(mask.sum())
+            np.testing.assert_allclose(
+                oracle.delay_s[group_slice], tau[0, rx_port, 0, tx_port, mask]
+            )
+            np.testing.assert_allclose(
+                oracle.complex_gain[group_slice], gains[0, rx_port, 0, tx_port, mask]
+            )
+            np.testing.assert_allclose(
+                oracle.doppler_hz[group_slice], doppler[0, rx_port, 0, tx_port, mask]
+            )
+            expected_aoa = np.stack(
+                (
+                    (phi_r[0, rx_port, 0, tx_port, mask].astype(np.float64) + np.pi) % (2 * np.pi)
+                    - np.pi,
+                    np.pi / 2 - theta_r[0, rx_port, 0, tx_port, mask],
+                ),
+                axis=-1,
+            )
+            expected_aod = np.stack(
+                (
+                    (phi_t[0, rx_port, 0, tx_port, mask].astype(np.float64) + np.pi) % (2 * np.pi)
+                    - np.pi,
+                    np.pi / 2 - theta_t[0, rx_port, 0, tx_port, mask],
+                ),
+                axis=-1,
+            )
+            np.testing.assert_allclose(oracle.aoa_azimuth_elevation_rad[group_slice], expected_aoa)
+            np.testing.assert_allclose(oracle.aod_azimuth_elevation_rad[group_slice], expected_aod)
+            np.testing.assert_array_equal(
+                oracle.interaction_order[group_slice],
+                np.count_nonzero(
+                    interactions[:, 0, rx_port, 0, tx_port, mask] != int(InteractionType.NONE),
+                    axis=0,
+                ),
+            )
+            assert all(
+                (kind == "direct") == (order == 0)
+                for kind, order in zip(
+                    oracle.path_kind[group_slice], oracle.interaction_order[group_slice]
+                )
+            )
+
     grid = GridConfig(n_subcarriers=24, spacing_hz=30e3)
     full = rt_cfr(paths, grid)
     direct = rt_cfr(paths, grid, path_mask=direct_mask)
@@ -366,6 +451,7 @@ def test_empty_paths_produce_finite_zero_cfr_for_both_array_modes(synthetic_arra
     mi.set_variant("llvm_ad_mono_polarized")
     rt = pytest.importorskip("sionna.rt")
     from integrations.sionna.adapter import GridConfig, direct_path_mask, rt_cfr
+    from integrations.sionna.path_oracle import sionna_paths_to_oracle_table
 
     scene = rt.load_scene()
     scene.tx_array = rt.PlanarArray(num_rows=1, num_cols=2, pattern="iso", polarization="V")
@@ -387,6 +473,10 @@ def test_empty_paths_produce_finite_zero_cfr_for_both_array_modes(synthetic_arra
     assert valid.size == 0
     assert direct_mask.shape == valid.shape
     assert not direct_mask.any()
+    oracle = sionna_paths_to_oracle_table(paths, link_id="empty-link")
+    assert oracle.group_count == 6
+    assert oracle.path_count == 0
+    assert set(oracle.solve_status) == {"no_path"}
 
     grid = GridConfig(n_subcarriers=24, spacing_hz=30e3)
     full = rt_cfr(paths, grid)
@@ -396,6 +486,46 @@ def test_empty_paths_produce_finite_zero_cfr_for_both_array_modes(synthetic_arra
     assert np.all(np.isfinite(full))
     assert np.count_nonzero(full) == 0
     np.testing.assert_array_equal(full, direct + indirect)
+
+
+@pytest.mark.native_sionna
+def test_path_oracle_selects_explicit_multi_device_link():
+    import mitsuba as mi
+
+    mi.set_variant("llvm_ad_mono_polarized")
+    rt = pytest.importorskip("sionna.rt")
+    from integrations.sionna.path_oracle import sionna_paths_to_oracle_table
+
+    scene = rt.load_scene()
+    scene.tx_array = rt.PlanarArray(num_rows=1, num_cols=1, pattern="iso", polarization="V")
+    scene.rx_array = rt.PlanarArray(num_rows=1, num_cols=1, pattern="iso", polarization="V")
+    scene.add(rt.Transmitter("tx0", [0.0, 0.0, 1.0]))
+    scene.add(rt.Transmitter("tx1", [2.0, 0.0, 1.0]))
+    scene.add(rt.Receiver("rx0", [10.0, 0.0, 1.0]))
+    scene.add(rt.Receiver("rx1", [12.0, 0.0, 1.0]))
+    paths = rt.PathSolver(deterministic=True)(
+        scene,
+        max_depth=0,
+        los=True,
+        specular_reflection=False,
+        diffuse_reflection=False,
+        refraction=False,
+        diffraction=False,
+        synthetic_array=True,
+    )
+
+    oracle = sionna_paths_to_oracle_table(
+        paths,
+        link_id="tx0-to-rx1",
+        rx_device_index=1,
+        tx_device_index=0,
+    )
+    assert oracle.group_count == 1
+    assert oracle.path_count == int(np.count_nonzero(paths.valid.numpy()[1, 0]))
+    expected_mask = np.asarray(paths.valid.numpy()[1, 0], dtype=bool)
+    np.testing.assert_allclose(oracle.delay_s, paths.tau.numpy()[1, 0, expected_mask])
+    expected_gain = paths.a[0].numpy()[1, 0, 0, 0] + 1j * paths.a[1].numpy()[1, 0, 0, 0]
+    np.testing.assert_allclose(oracle.complex_gain, expected_gain[expected_mask])
 
 
 @pytest.mark.native_sionna

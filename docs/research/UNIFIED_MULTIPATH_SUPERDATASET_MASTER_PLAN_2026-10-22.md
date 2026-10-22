@@ -1622,6 +1622,17 @@ Use **verification-first, additive modules**. Preserve the uploaded project's ty
 - Compute direct/indirect channels by coherent filtering from one common path set. Validate all `G2`, `M01..M20` tests.
 - **Deliver:** tiny fully explained physical fixtures, power/gauge conformance report, path budget convergence plots.
 
+**Implementation snapshot (2026-10-22):** The first native adapter is present at
+`integrations/sionna/path_oracle.py`. It converts one explicitly selected
+Sionna TX/RX device pair per call and groups ragged paths by link-local RX/TX
+array ports. Native LLVM tests compare coefficient, absolute delay, interaction
+order, Doppler and angle fields against pinned Sionna output for synthetic and
+explicit arrays, V/VH polarization combinations, and empty solves. This
+advances the field-extraction deliverable only. Object/primitive IDs and
+vertices, whole-episode device/link mapping, geometric direct-path visibility,
+solver-convergence studies, and path-budget convergence plots are not complete;
+Stage S2 remains in progress.
+
 ### Stage S3: standardized and control families
 
 - Add factories for all **supported** TDL/CDL profiles and fixed conformance tables, analytic controls, flat/correlated fading and full 3GPP scenario-specific classes.
