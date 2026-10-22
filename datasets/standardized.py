@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import io
 import json
+import math
 import os
 import tempfile
 from dataclasses import dataclass
@@ -19,6 +20,9 @@ from types import MappingProxyType
 from typing import Any, Mapping, cast
 
 import numpy as np
+
+from .observations import FrequencyDomainModelInputs, FrequencyDomainObservation
+from .targets import TargetDefinition, TargetValidity, TargetValue, definition_digest
 
 
 class StandardizedFamily(StrEnum):
@@ -203,6 +207,147 @@ class StandardizedChannelRun:
         )
 
 
+@dataclass(frozen=True, slots=True, eq=False)
+class StandardizedLearningExample:
+    """A noisy receiver view and separately held profile-proxy target."""
+
+    observation: FrequencyDomainObservation
+    targets: Mapping[str, TargetValue]
+    source_run_id: str
+    observation_seed: int
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.observation, FrequencyDomainObservation):
+            raise TypeError("observation must be a FrequencyDomainObservation")
+        targets = dict(self.targets)
+        if not targets or any(not isinstance(target, TargetValue) for target in targets.values()):
+            raise TypeError("learning examples require named TargetValue records")
+        if any(target.entity_id != self.observation.sample_id for target in targets.values()):
+            raise ValueError("target sample IDs must match their receiver observation")
+        if not self.source_run_id.strip():
+            raise ValueError("source_run_id must be non-empty")
+        if (
+            isinstance(self.observation_seed, bool)
+            or not isinstance(self.observation_seed, int)
+            or self.observation_seed < 0
+        ):
+            raise ValueError("observation_seed must be a nonnegative integer")
+        object.__setattr__(self, "targets", MappingProxyType(targets))
+
+    @property
+    def sample_id(self) -> str:
+        return self.observation.sample_id
+
+    def model_inputs(self) -> FrequencyDomainModelInputs:
+        """Return receiver-visible data without sample IDs, targets, or oracle truth."""
+        return self.observation.model_inputs
+
+
+@dataclass(frozen=True, slots=True, eq=False)
+class StandardizedLearningRun:
+    """Receiver/target child records joined by sample ID to a channel-oracle run."""
+
+    run_id: str
+    examples: tuple[StandardizedLearningExample, ...]
+
+    def __post_init__(self) -> None:
+        examples = tuple(self.examples)
+        if not isinstance(self.run_id, str) or not self.run_id.strip() or not examples:
+            raise ValueError("learning run needs a non-empty run_id and at least one example")
+        sample_ids = tuple(example.sample_id for example in examples)
+        if len(set(sample_ids)) != len(sample_ids):
+            raise ValueError("learning run sample IDs must be unique")
+        if any(example.source_run_id != self.run_id for example in examples):
+            raise ValueError("learning examples must reference their parent channel run")
+        object.__setattr__(self, "examples", examples)
+
+
+def standardized_learning_example_from_record(
+    record: StandardizedChannelRecord,
+    *,
+    snr_db: float,
+    seed: int,
+    time_index: int = 0,
+) -> StandardizedLearningExample:
+    """Create a noisy CFR view and a typed profile-proxy target.
+
+    This direct frequency-domain observation uses complex AWGN. It is not a
+    PUSCH/DMRS waveform, channel estimator, or geometric LOS label.
+    """
+    if not isinstance(record, StandardizedChannelRecord):
+        raise TypeError("record must be a StandardizedChannelRecord")
+    if not math.isfinite(snr_db):
+        raise ValueError("snr_db must be finite")
+    if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
+        raise ValueError("seed must be a nonnegative integer")
+    if isinstance(time_index, bool) or not isinstance(time_index, int):
+        raise TypeError("time_index must be an integer")
+    if time_index < 0 or time_index >= record.cfr.shape[-2]:
+        raise ValueError("time_index is outside the stored channel trajectory")
+    noiseless = np.asarray(record.cfr[0, :, 0, :, time_index, :], dtype=np.complex128)
+    signal_power = float(np.mean(np.abs(noiseless) ** 2))
+    if signal_power <= 0 or not math.isfinite(signal_power):
+        raise ValueError("cannot define relative-SNR noise for a zero-power channel")
+    noise_variance = signal_power / (10.0 ** (snr_db / 10.0))
+    rng = np.random.default_rng(seed)
+    noise = np.sqrt(noise_variance / 2.0) * (
+        rng.standard_normal(noiseless.shape) + 1j * rng.standard_normal(noiseless.shape)
+    )
+    inputs = FrequencyDomainModelInputs(
+        observed_cfr=(noiseless + noise).astype(np.complex64),
+        noise_variance=noise_variance,
+        snr_db=snr_db,
+        carrier_hz=float(record.metadata["carrier_frequency_hz"]),
+        subcarrier_offsets_hz=record.subcarrier_offsets_hz,
+    )
+    observation = FrequencyDomainObservation(record.sample_id, inputs)
+    definition = TargetDefinition(
+        semantic="standardized_profile_los_category_proxy",
+        units="binary_class",
+        source="Sionna 3GPP TR 38.901 profile model",
+        reference="A/B/C map to 0 and D/E map to 1; not geometric LOS truth",
+        definition_sha256=definition_digest(
+            "profile_los_proxy:v1; A/B/C=0; D/E=1; "
+            "source=standardized_profile_model; not_geometric_visibility"
+        ),
+    )
+    target = TargetValue(
+        entity_id=record.sample_id,
+        definition=definition,
+        values=np.asarray([int(record.profile_los_component)], dtype=np.uint8),
+        valid_mask=np.asarray([True]),
+        reason_codes=(TargetValidity.VALID,),
+        confidence="exact standardized profile category; not physical visibility",
+    )
+    return StandardizedLearningExample(
+        observation=observation,
+        targets={"profile_los_proxy": target},
+        source_run_id=record.run_id,
+        observation_seed=seed,
+    )
+
+
+def standardized_learning_run_from_channel_run(
+    run: StandardizedChannelRun, *, snr_db: float, seed: int, time_index: int = 0
+) -> StandardizedLearningRun:
+    """Create independently seeded receiver observations for each oracle draw."""
+    if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
+        raise ValueError("seed must be a nonnegative integer")
+    examples = []
+    for record in run.records:
+        child_seed = int(
+            np.random.SeedSequence([seed, record.sample_index]).generate_state(1, dtype=np.uint32)[
+                0
+            ]
+        )
+        examples.append(
+            standardized_learning_example_from_record(
+                record, snr_db=snr_db, seed=child_seed, time_index=time_index
+            )
+        )
+    return StandardizedLearningRun(run.run_id, tuple(examples))
+
+
 def standardized_run_from_channel(
     channel: Any,
     *,
@@ -271,6 +416,17 @@ class StoredStandardizedRun:
     schema_version: int = 1
 
 
+@dataclass(frozen=True, slots=True)
+class StoredStandardizedLearningRun:
+    """Immutable pointer to separately stored observation and target children."""
+
+    run_id: str
+    content_sha256: str
+    relative_path: str
+    sample_ids: tuple[str, ...]
+    schema_version: int = 1
+
+
 def _publish_immutable(path: Path, payload: bytes) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temp_path: str | None = None
@@ -290,6 +446,199 @@ def _publish_immutable(path: Path, payload: bytes) -> None:
     finally:
         if temp_path is not None:
             Path(temp_path).unlink(missing_ok=True)
+
+
+def _target_bytes(targets: Mapping[str, TargetValue]) -> bytes:
+    payload: dict[str, Any] = {"schema": "standardized_targets.v1", "targets": {}}
+    for name, target in sorted(targets.items()):
+        definition = target.definition
+        payload["targets"][name] = {
+            "entity_id": target.entity_id,
+            "definition": {
+                "semantic": definition.semantic,
+                "units": definition.units,
+                "source": definition.source,
+                "reference": definition.reference,
+                "definition_sha256": definition.definition_sha256,
+            },
+            "values": target.values.tolist(),
+            "valid_mask": target.valid_mask.tolist(),
+            "reason_codes": [reason.value for reason in target.reason_codes],
+            "confidence": target.confidence,
+        }
+    return _canonical_json(payload, name="standardized targets") + b"\n"
+
+
+def _observation_bytes(example: StandardizedLearningExample, run_id: str) -> bytes:
+    inputs = example.model_inputs()
+    metadata = {
+        "schema": "standardized_observation.v1",
+        "sample_id": example.sample_id,
+        "source_run_id": run_id,
+        "observation_seed": example.observation_seed,
+        "observation_semantics": "synthetic_noisy_cfr_estimate",
+        "receiver_model": "true_cfr_plus_complex_awgn; not_nr_waveform_or_channel_estimator",
+        "noise_variance": inputs.noise_variance,
+        "snr_db": inputs.snr_db,
+        "carrier_hz": inputs.carrier_hz,
+    }
+    stream = io.BytesIO()
+    np.savez_compressed(
+        stream,
+        observed_cfr=inputs.observed_cfr,
+        subcarrier_offsets_hz=inputs.subcarrier_offsets_hz,
+        metadata_json=np.frombuffer(
+            _canonical_json(metadata, name="observation metadata"), dtype=np.uint8
+        ),
+    )
+    return stream.getvalue()
+
+
+def write_standardized_learning_run(
+    root: str | Path, run: StandardizedLearningRun
+) -> StoredStandardizedLearningRun:
+    """Persist receiver observations and targets apart from physical truth."""
+    base = Path(root)
+    references: list[dict[str, Any]] = []
+    for example in run.examples:
+        observation_payload = _observation_bytes(example, run.run_id)
+        observation_hash = hashlib.sha256(observation_payload).hexdigest()
+        observation_path = f"observations/{observation_hash[:2]}/{observation_hash}.npz"
+        _publish_immutable(base / observation_path, observation_payload)
+        target_payload = _target_bytes(example.targets)
+        target_hash = hashlib.sha256(target_payload).hexdigest()
+        target_path = f"targets/{target_hash[:2]}/{target_hash}.json"
+        _publish_immutable(base / target_path, target_payload)
+        references.append(
+            {
+                "sample_id": example.sample_id,
+                "observation": {
+                    "content_sha256": observation_hash,
+                    "relative_path": observation_path,
+                },
+                "targets": {"content_sha256": target_hash, "relative_path": target_path},
+            }
+        )
+    core = {
+        "schema": "standardized_learning_run.v1",
+        "schema_version": 1,
+        "run_id": run.run_id,
+        "records": references,
+    }
+    manifest_hash = hashlib.sha256(_canonical_json(core, name="learning run manifest")).hexdigest()
+    manifest = {**core, "content_sha256": manifest_hash}
+    relative_path = (
+        f"manifests/learning-runs/{hashlib.sha256(run.run_id.encode()).hexdigest()}.json"
+    )
+    _publish_immutable(
+        base / relative_path,
+        _canonical_json(manifest, name="learning run manifest") + b"\n",
+    )
+    return StoredStandardizedLearningRun(
+        run_id=run.run_id,
+        content_sha256=manifest_hash,
+        relative_path=relative_path,
+        sample_ids=tuple(example.sample_id for example in run.examples),
+    )
+
+
+def read_standardized_learning_run(
+    root: str | Path, manifest: StoredStandardizedLearningRun | str | Path
+) -> StandardizedLearningRun:
+    """Read a learning view and validate independent observation/target hashes."""
+    base = Path(root)
+    if isinstance(manifest, StoredStandardizedLearningRun):
+        stored = manifest
+        relative = PurePosixPath(stored.relative_path)
+        if relative.is_absolute() or ".." in relative.parts:
+            raise ValueError("standardized learning manifest path must remain inside the store")
+        manifest_path = base.joinpath(*relative.parts)
+    else:
+        manifest_path = Path(manifest)
+        if not manifest_path.is_absolute():
+            manifest_path = base / manifest_path
+        raw = json.loads(manifest_path.read_text(encoding="utf-8"))
+        stored = StoredStandardizedLearningRun(
+            run_id=raw["run_id"],
+            content_sha256=raw["content_sha256"],
+            relative_path=manifest_path.relative_to(base).as_posix(),
+            sample_ids=tuple(item["sample_id"] for item in raw["records"]),
+            schema_version=raw["schema_version"],
+        )
+    raw_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if stored.schema_version != 1 or raw_manifest.get("schema") != "standardized_learning_run.v1":
+        raise ValueError("unsupported standardized learning run schema")
+    core = {key: raw_manifest[key] for key in ("schema", "schema_version", "run_id", "records")}
+    digest = hashlib.sha256(_canonical_json(core, name="learning run manifest")).hexdigest()
+    if digest != raw_manifest.get("content_sha256") or digest != stored.content_sha256:
+        raise ValueError("standardized learning manifest hash is invalid")
+    if raw_manifest["run_id"] != stored.run_id:
+        raise ValueError("standardized learning run ID disagrees with its manifest pointer")
+
+    examples: list[StandardizedLearningExample] = []
+    for reference in raw_manifest["records"]:
+        sample_id = reference["sample_id"]
+        observation_ref = reference["observation"]
+        observation_path = PurePosixPath(observation_ref["relative_path"])
+        if observation_path.is_absolute() or ".." in observation_path.parts:
+            raise ValueError("standardized observation path must remain inside the store")
+        observation_bytes = base.joinpath(*observation_path.parts).read_bytes()
+        observation_hash = hashlib.sha256(observation_bytes).hexdigest()
+        if (
+            observation_hash != observation_ref["content_sha256"]
+            or observation_path.name != f"{observation_hash}.npz"
+        ):
+            raise ValueError("standardized observation content hash is invalid")
+        with np.load(io.BytesIO(observation_bytes), allow_pickle=False) as archive:
+            metadata = json.loads(archive["metadata_json"].tobytes().decode("utf-8"))
+            if (
+                metadata.get("schema") != "standardized_observation.v1"
+                or metadata.get("sample_id") != sample_id
+                or metadata.get("source_run_id") != stored.run_id
+            ):
+                raise ValueError("standardized observation identity is invalid")
+            inputs = FrequencyDomainModelInputs(
+                observed_cfr=archive["observed_cfr"],
+                noise_variance=metadata["noise_variance"],
+                snr_db=metadata["snr_db"],
+                carrier_hz=metadata["carrier_hz"],
+                subcarrier_offsets_hz=archive["subcarrier_offsets_hz"],
+            )
+        target_ref = reference["targets"]
+        target_path = PurePosixPath(target_ref["relative_path"])
+        if target_path.is_absolute() or ".." in target_path.parts:
+            raise ValueError("standardized target path must remain inside the store")
+        target_bytes = base.joinpath(*target_path.parts).read_bytes()
+        target_hash = hashlib.sha256(target_bytes).hexdigest()
+        if target_hash != target_ref["content_sha256"] or target_path.name != f"{target_hash}.json":
+            raise ValueError("standardized target content hash is invalid")
+        target_payload = json.loads(target_bytes.decode("utf-8"))
+        if target_payload.get("schema") != "standardized_targets.v1":
+            raise ValueError("unsupported standardized target schema")
+        targets: dict[str, TargetValue] = {}
+        for name, item in target_payload["targets"].items():
+            definition = TargetDefinition(**item["definition"])
+            targets[name] = TargetValue(
+                entity_id=item["entity_id"],
+                definition=definition,
+                values=np.asarray(item["values"]),
+                valid_mask=np.asarray(item["valid_mask"], dtype=bool),
+                reason_codes=tuple(TargetValidity(value) for value in item["reason_codes"]),
+                confidence=item["confidence"],
+            )
+        observation = FrequencyDomainObservation(sample_id, inputs)
+        examples.append(
+            StandardizedLearningExample(
+                observation=observation,
+                targets=targets,
+                source_run_id=stored.run_id,
+                observation_seed=int(metadata["observation_seed"]),
+            )
+        )
+    sample_ids = tuple(example.sample_id for example in examples)
+    if sample_ids != stored.sample_ids:
+        raise ValueError("standardized learning sample order disagrees with run pointer")
+    return StandardizedLearningRun(stored.run_id, tuple(examples))
 
 
 def _record_bytes(record: StandardizedChannelRecord) -> bytes:

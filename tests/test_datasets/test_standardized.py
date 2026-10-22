@@ -9,8 +9,12 @@ import pytest
 from datasets import (
     StandardizedChannelRecord,
     StandardizedFamily,
+    read_standardized_learning_run,
     read_standardized_run,
+    standardized_learning_example_from_record,
+    standardized_learning_run_from_channel_run,
     standardized_run_from_channel,
+    write_standardized_learning_run,
     write_standardized_run,
 )
 
@@ -23,6 +27,7 @@ def _metadata(*, model: str = "A", los: bool = False) -> dict[str, object]:
         "profile_model": model,
         "profile_los_component": los,
         "geometric_los_label": None,
+        "carrier_frequency_hz": 3.5e9,
         "batch_size": 2,
         "num_time_steps": 2,
         "num_subcarriers": 8,
@@ -185,6 +190,66 @@ def test_record_hash_uses_content_addressed_filename(tmp_path) -> None:
         item["content_sha256"]
         == hashlib.sha256((tmp_path / item["relative_path"]).read_bytes()).hexdigest()
     )
+
+
+def test_noisy_cfr_observation_and_profile_proxy_target_are_separate() -> None:
+    run = standardized_run_from_channel(_channel(), family=StandardizedFamily.TDL)
+    record = run.records[0]
+    first = standardized_learning_example_from_record(record, snr_db=20.0, seed=404)
+    replay = standardized_learning_example_from_record(record, snr_db=20.0, seed=404)
+    other_noise = standardized_learning_example_from_record(record, snr_db=20.0, seed=405)
+
+    np.testing.assert_array_equal(
+        first.model_inputs().observed_cfr, replay.model_inputs().observed_cfr
+    )
+    assert not np.array_equal(
+        first.model_inputs().observed_cfr, other_noise.model_inputs().observed_cfr
+    )
+    assert first.sample_id == record.sample_id
+    assert first.targets["profile_los_proxy"].values.tolist() == [0]
+    assert "not geometric LOS" in first.targets["profile_los_proxy"].definition.reference
+    assert not hasattr(first.model_inputs(), "sample_id")
+    assert not hasattr(first.model_inputs(), "targets")
+    assert not hasattr(first.model_inputs(), "h_path")
+    with pytest.raises(ValueError, match="outside"):
+        standardized_learning_example_from_record(record, snr_db=20.0, seed=404, time_index=2)
+
+
+def test_learning_run_persists_observation_and_target_layers_separately(tmp_path) -> None:
+    channels = standardized_run_from_channel(
+        _channel(), family=StandardizedFamily.TDL, run_id="tdl-a-learning"
+    )
+    learning = standardized_learning_run_from_channel_run(channels, snr_db=15.0, seed=7001)
+    stored = write_standardized_learning_run(tmp_path, learning)
+    restored = read_standardized_learning_run(tmp_path, stored)
+
+    assert restored.run_id == channels.run_id
+    assert [item.sample_id for item in restored.examples] == [
+        item.sample_id for item in channels.records
+    ]
+    for original, actual in zip(learning.examples, restored.examples, strict=True):
+        np.testing.assert_array_equal(
+            actual.model_inputs().observed_cfr, original.model_inputs().observed_cfr
+        )
+        assert actual.targets["profile_los_proxy"].values.tolist() == [0]
+        assert actual.observation_seed == original.observation_seed
+    manifest = json.loads((tmp_path / stored.relative_path).read_text())
+    assert all(set(item) == {"sample_id", "observation", "targets"} for item in manifest["records"])
+    assert (tmp_path / manifest["records"][0]["observation"]["relative_path"]).is_file()
+    assert (tmp_path / manifest["records"][0]["targets"]["relative_path"]).is_file()
+
+
+def test_learning_store_rejects_tampered_target_layer(tmp_path) -> None:
+    channels = standardized_run_from_channel(
+        _channel(), family=StandardizedFamily.TDL, run_id="tdl-a-tamper"
+    )
+    learning = standardized_learning_run_from_channel_run(channels, snr_db=12.0, seed=8001)
+    stored = write_standardized_learning_run(tmp_path, learning)
+    manifest = json.loads((tmp_path / stored.relative_path).read_text())
+    target_path = tmp_path / manifest["records"][0]["targets"]["relative_path"]
+    target_path.write_text(target_path.read_text().replace("profile_los_proxy", "forged"))
+    with pytest.raises(ValueError, match="target content hash"):
+        read_standardized_learning_run(tmp_path, stored)
 
 
 @pytest.mark.native_sionna
