@@ -136,6 +136,8 @@ records these as separate pickle-free arrays and preserves their coordinate
 frame; validation rejects incomplete traces and count mismatches. The complete
 suite passes with 519 passed, 3 skipped, and 87.77% coverage. Thirteen focused
 schema/store/native LLVM cases pass. Ruff, format, mypy (146 files), lock check,
-and package build pass. Hosted CI is pending for this change. Object IDs are
-scene-specific; geometry-based visibility, full episode topology mapping, and
-solver convergence remain unverified.
+and package build pass. Hosted CI
+[run 39727460346](https://github.com/nntk072/5g-nr-channel-condition/actions/runs/39727460346)
+passes all four jobs but does not install native RT. Object IDs are scene-
+specific; geometry-based visibility, full episode topology mapping, and solver
+convergence remain unverified.
