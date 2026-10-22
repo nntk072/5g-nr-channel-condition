@@ -284,6 +284,8 @@ def _path_payload(paths: PathOracleTable) -> bytes:
 
 
 def _channel_payload(view: PhysicalChannelView) -> bytes:
+    if view.valid_mask is None:
+        raise ValueError("physical channel view is missing its validity mask")
     metadata = {
         "schema": "umcd.physical_channel.v1",
         "view_id": view.view_id,
@@ -300,6 +302,7 @@ def _channel_payload(view: PhysicalChannelView) -> bytes:
     return _pack_npz(
         metadata,
         channel=view.channel,
+        valid_mask=view.valid_mask,
         subcarrier_offsets_hz=view.subcarrier_offsets_hz,
     )
 
@@ -753,6 +756,7 @@ def read_episode_bundle(
                 delay_reference=ChannelDelayReference(channel_metadata["delay_reference"]),
                 power_scale=ChannelPowerScale(channel_metadata["power_scale"]),
                 normalization_recipe=channel_metadata["normalization_recipe"],
+                valid_mask=arrays.get("valid_mask"),
                 axes=tuple(channel_metadata["axes"]),
             )
         )

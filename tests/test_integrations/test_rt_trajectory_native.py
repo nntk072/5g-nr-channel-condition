@@ -207,6 +207,80 @@ def test_moving_scene_object_is_retraced_and_recorded_per_frame(tmp_path):
 
 
 @pytest.mark.native_sionna
+def test_mixed_outage_trajectory_uses_noise_only_and_masks_channel_truth(tmp_path):
+    config = RTTrajectoryConfig(
+        trajectory_id="native-mixed-screen-outage-route",
+        scene="box_one_screen",
+        transmitter_position_m=(-2.0, 0.0, 2.5),
+        receiver_start_m=(2.0, 0.0, 2.5),
+        receiver_velocity_mps=(0.0, 0.0, 0.0),
+        num_steps=2,
+        sample_interval_s=1.0,
+        max_depth=0,
+        samples_per_src=200,
+        seed=20261021,
+        device="cpu",
+        moving_scene_objects=(RTSceneObjectMotion("screen", (0.0, 10.0, 0.0)),),
+        no_path_policy="noise_only_mixed_episode",
+    )
+    umcd_root = tmp_path / "umcd"
+    reject_config = replace(
+        config,
+        trajectory_id="native-rejected-screen-outage-route",
+        moving_scene_objects=(),
+        no_path_policy="reject",
+    )
+    with pytest.raises(RuntimeError, match="no_path_policy='noise_only_mixed_episode'"):
+        generate_rt_nr_trajectory(reject_config, tmp_path / "reject")
+    all_outage_config = replace(
+        reject_config,
+        trajectory_id="native-all-screen-outage-route",
+        no_path_policy="noise_only_mixed_episode",
+    )
+    with pytest.raises(RuntimeError, match="all-no-path trajectory"):
+        generate_rt_nr_trajectory(all_outage_config, tmp_path / "all-outage")
+
+    stored = generate_rt_nr_trajectory(config, tmp_path, umcd_store_root=umcd_root)
+    trajectory = read_nr_trajectory(tmp_path, stored)
+
+    assert [record.provenance["full_path_count"] for record in trajectory.records] == [0, 1]
+    assert [record.provenance["direct_path_count"] for record in trajectory.records] == [0, 1]
+    assert [record.provenance["geometric_los_oracle"] for record in trajectory.records] == [
+        False,
+        True,
+    ]
+    outage = trajectory.records[0]
+    covered = trajectory.records[1]
+    assert outage.provenance["channel_truth_valid"] is False
+    assert covered.provenance["channel_truth_valid"] is True
+    assert not outage.target_masks["channel_cfr"].any()
+    assert not outage.target_masks["channel_cfr_ofdm_symbols"].any()
+    assert covered.target_masks["channel_cfr"].all()
+    assert covered.target_masks["channel_cfr_ofdm_symbols"].all()
+    np.testing.assert_array_equal(outage.targets["channel_cfr"], 0.0)
+    np.testing.assert_array_equal(outage.targets["channel_cfr_ofdm_symbols"], 0.0)
+    assert outage.provenance["noise_variance"] > 0.0
+    assert np.any(outage.observation.received_grid != 0.0)
+    assert outage.provenance["noise_policy"] == (
+        "common variance from trajectory-batch mean received-grid power"
+    )
+
+    import json
+
+    generation_path = (tmp_path / stored.manifest_relative_path).with_name(
+        f"{stored.content_sha256}.generation.json"
+    )
+    generation = json.loads(generation_path.read_text(encoding="utf-8"))
+    bundle = read_episode_bundle(umcd_root, StoredEpisodeBundle(**generation["umcd_bundle"]))
+    assert [status.value for status in bundle.path_oracle.solve_status] == ["no_path", "solved"]
+    channel_view = bundle.channel_views[0]
+    assert channel_view.valid_mask is not None
+    assert not channel_view.valid_mask[0].any()
+    assert channel_view.valid_mask[1].all()
+    np.testing.assert_array_equal(channel_view.channel[0], 0.0)
+
+
+@pytest.mark.native_sionna
 def test_moving_scene_object_doppler_matches_geometric_delay_derivative(tmp_path):
     config = RTTrajectoryConfig(
         trajectory_id="native-moving-screen-doppler-route",

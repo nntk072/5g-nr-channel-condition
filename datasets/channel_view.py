@@ -45,6 +45,7 @@ class PhysicalChannelView:
     delay_reference: ChannelDelayReference
     power_scale: ChannelPowerScale
     normalization_recipe: str | None = None
+    valid_mask: np.ndarray | None = None
     axes: tuple[str, ...] = ("frame", "rx_port", "tx_port", "subcarrier")
 
     def __post_init__(self) -> None:
@@ -67,6 +68,16 @@ class PhysicalChannelView:
             raise ValueError("port IDs must be unique within each link endpoint")
         if values.shape[:3] != (len(times), len(rx_ids), len(tx_ids)):
             raise ValueError("channel leading axes disagree with frame and port metadata")
+        raw_valid = (
+            np.ones(values.shape, dtype=np.bool_)
+            if self.valid_mask is None
+            else np.asarray(self.valid_mask)
+        )
+        if raw_valid.dtype.kind != "b" or raw_valid.shape != values.shape:
+            raise ValueError("valid_mask must be boolean and match every channel element")
+        valid = np.array(raw_valid, dtype=np.bool_, copy=True)
+        if np.any(values[~valid] != 0.0):
+            raise ValueError("masked channel elements must use zero storage")
         frequencies = np.array(self.subcarrier_offsets_hz, dtype=np.float64, copy=True)
         if frequencies.shape != (values.shape[-1],) or not np.isfinite(frequencies).all():
             raise ValueError("subcarrier_offsets_hz must map the complete final channel axis")
@@ -91,8 +102,10 @@ class PhysicalChannelView:
         if tuple(self.axes) != ("frame", "rx_port", "tx_port", "subcarrier"):
             raise ValueError("channel axes must use the canonical named-axis order")
         values.setflags(write=False)
+        valid.setflags(write=False)
         frequencies.setflags(write=False)
         object.__setattr__(self, "channel", values)
+        object.__setattr__(self, "valid_mask", valid)
         object.__setattr__(self, "frame_times_s", times)
         object.__setattr__(self, "rx_port_ids", rx_ids)
         object.__setattr__(self, "tx_port_ids", tx_ids)

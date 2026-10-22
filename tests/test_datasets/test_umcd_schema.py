@@ -332,6 +332,24 @@ def test_physical_channel_view_requires_named_axes_and_explicit_normalization():
     channel.validate_for(episode)
     assert channel.axes == ("frame", "rx_port", "tx_port", "subcarrier")
     assert not channel.channel.flags.writeable
+    assert channel.valid_mask is not None and channel.valid_mask.all()
+    assert not channel.valid_mask.flags.writeable
+    with pytest.raises(ValueError, match="masked channel elements"):
+        PhysicalChannelView(
+            **{
+                **arguments,
+                "valid_mask": np.zeros_like(arguments["channel"], dtype=np.bool_),
+            }
+        )
+    invalid_zero_channel = PhysicalChannelView(
+        **{
+            **arguments,
+            "channel": np.zeros_like(arguments["channel"]),
+            "valid_mask": np.zeros_like(arguments["channel"], dtype=np.bool_),
+        }
+    )
+    assert invalid_zero_channel.valid_mask is not None
+    assert not invalid_zero_channel.valid_mask.any()
     with pytest.raises(ValueError, match="normalization_recipe"):
         PhysicalChannelView(
             **{
@@ -506,6 +524,7 @@ def test_episode_store_roundtrip_preserves_dynamic_poses(tmp_path):
         bundle.channel_views[0],
         channel=np.repeat(bundle.channel_views[0].channel, 2, axis=0),
         frame_times_s=(0.0, 0.1),
+        valid_mask=np.repeat(bundle.channel_views[0].valid_mask, 2, axis=0),
     )
     dynamic_bundle = replace(bundle, episode=_dynamic_episode(), channel_views=(channel,))
 

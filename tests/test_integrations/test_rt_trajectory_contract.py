@@ -19,6 +19,7 @@ def test_rt_trajectory_config_generates_ordered_constant_velocity_route() -> Non
 
     assert positions == ((4.0, 5.0, 6.0), (4.5, 4.75, 6.125), (5.0, 4.5, 6.25))
     assert times == (0.0, 0.25, 0.5)
+    assert config.no_path_policy == "reject"
 
 
 @pytest.mark.parametrize(
@@ -33,6 +34,7 @@ def test_rt_trajectory_config_generates_ordered_constant_velocity_route() -> Non
         {"max_depth": -1},
         {"max_depth": True},
         {"samples_per_src": 0},
+        {"no_path_policy": "zero_is_ground_truth"},
         {"seed": True},
         {"receiver_velocity_mps": (float("nan"), 0.0, 0.0)},
     ],

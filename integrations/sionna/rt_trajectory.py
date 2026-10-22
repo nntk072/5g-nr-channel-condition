@@ -135,6 +135,7 @@ class RTTrajectoryConfig:
     device: str = "cpu"
     mitsuba_variant: str = "auto"
     moving_scene_objects: tuple[RTSceneObjectMotion, ...] = ()
+    no_path_policy: str = "reject"
     slot_index_in_subframe: int = 0
 
     def __post_init__(self) -> None:
@@ -160,6 +161,8 @@ class RTTrajectoryConfig:
                 raise TypeError(f"{name} must be an integer")
         if self.max_depth < 0 or self.samples_per_src < 1:
             raise ValueError("max_depth must be nonnegative and samples_per_src positive")
+        if self.no_path_policy not in {"reject", "noise_only_mixed_episode"}:
+            raise ValueError("no_path_policy must be 'reject' or 'noise_only_mixed_episode'")
         if isinstance(self.seed, bool) or not isinstance(self.seed, int):
             raise TypeError("seed must be an integer")
         if self.seed < 0 or self.seed + self.num_steps > 2**63 - 1:
@@ -456,24 +459,33 @@ def generate_rt_nr_trajectory(
                 "depth-zero PathSolver and independent geometry LOS oracle disagree at "
                 f"step {index}: direct_paths={direct_count}, geometry={visibility.state.value}"
             )
-        if path_count == 0:
+        if path_count == 0 and direct_count > 0:
             raise RuntimeError(
-                f"No valid RT paths at trajectory step {index}; outages need an explicit receiver policy"
+                f"Full PathSolver found no paths at trajectory step {index} even though "
+                "the independent depth-zero direct-path solve succeeded"
             )
-        mapped = paths_to_nr_ofdm_channel_at_times(
-            paths,
-            grid,
-            ofdm_symbol_times_s,
-            device=config.device,
-        )
-        channel_series = mapped.channel[0, 0, 0, 0, 0].detach().cpu().numpy()
+        if path_count == 0 and config.no_path_policy == "reject":
+            raise RuntimeError(
+                f"No valid RT paths at trajectory step {index}; set "
+                "no_path_policy='noise_only_mixed_episode' to retain a mixed outage episode"
+            )
+        if path_count == 0:
+            channel_series = np.zeros((grid.num_ofdm_symbols, grid.fft_size), dtype=np.complex64)
+        else:
+            mapped = paths_to_nr_ofdm_channel_at_times(
+                paths,
+                grid,
+                ofdm_symbol_times_s,
+                device=config.device,
+            )
+            channel_series = mapped.channel[0, 0, 0, 0, 0].detach().cpu().numpy()
         if (
             channel_series.shape != (grid.num_ofdm_symbols, grid.fft_size)
             or not np.isfinite(channel_series).all()
         ):
             raise RuntimeError(f"Unexpected or nonfinite RT channel at trajectory step {index}")
         channel = channel_series[0]
-        if float(np.mean(np.abs(channel) ** 2)) <= np.finfo(np.float32).tiny:
+        if path_count > 0 and float(np.mean(np.abs(channel) ** 2)) <= np.finfo(np.float32).tiny:
             raise RuntimeError(f"RT channel has no usable power at trajectory step {index}")
         channels.append(channel.astype(np.complex64))
         waveform_channels.append(channel_series.astype(np.complex64))
@@ -491,6 +503,11 @@ def generate_rt_nr_trajectory(
     )
     noiseless = tx_grid * channel_tensor
     noise_variance = noiseless.abs().square().mean() * (10.0 ** (-config.snr_db / 10.0))
+    if float(noise_variance.detach().cpu()) <= 0.0:
+        raise RuntimeError(
+            "Relative-SNR noise cannot be calibrated for an all-no-path trajectory; "
+            "include at least one path-bearing snapshot or use a future absolute-noise mode"
+        )
     noise_generator = torch.Generator(device=config.device).manual_seed(
         config.seed + config.num_steps
     )
@@ -562,6 +579,8 @@ def generate_rt_nr_trajectory(
             },
             "direct_path_count": direct_path_counts[index],
             "full_path_count": total_path_counts[index],
+            "channel_truth_valid": total_path_counts[index] > 0,
+            "no_path_policy": config.no_path_policy,
             "rt_seed": config.seed,
             "receiver_noise_seed": config.seed + config.num_steps,
             "receiver_snr_db": config.snr_db,
@@ -585,9 +604,13 @@ def generate_rt_nr_trajectory(
                     "geometric_los": np.asarray(geometric_los[index], dtype=np.bool_),
                 },
                 target_masks={
-                    "channel_cfr": np.ones(grid.fft_size, dtype=np.bool_),
-                    "channel_cfr_ofdm_symbols": np.ones_like(
-                        waveform_channels[index], dtype=np.bool_
+                    "channel_cfr": np.full(
+                        grid.fft_size, total_path_counts[index] > 0, dtype=np.bool_
+                    ),
+                    "channel_cfr_ofdm_symbols": np.full_like(
+                        waveform_channels[index],
+                        total_path_counts[index] > 0,
+                        dtype=np.bool_,
                     ),
                     "geometric_los": np.asarray(True, dtype=np.bool_),
                 },
@@ -646,6 +669,10 @@ def generate_rt_nr_trajectory(
             subcarrier_offsets_hz=subcarrier_offsets_hz,
             delay_reference=ChannelDelayReference.ABSOLUTE_PROPAGATION,
             power_scale=ChannelPowerScale.ABSOLUTE,
+            valid_mask=np.broadcast_to(
+                (np.asarray(total_path_counts) > 0).reshape(config.num_steps, 1, 1, 1),
+                (config.num_steps, 1, 1, fft_size),
+            ),
         )
         target_definition = TargetDefinition(
             semantic="geometric direct-path visibility",
@@ -707,8 +734,9 @@ def generate_rt_nr_trajectory(
             "Each timestamp is a separately retraced quasi-static RT snapshot.",
             "Configured scene-object translations are retraced at each timestamp; rotations and deformation are unsupported.",
             "Moving-object Doppler is validated only for one reflective-screen scene; other moving interactions and path births/deaths are not qualified.",
+            "The noise-only no-path policy requires a path-bearing snapshot in the same trajectory to calibrate its relative-SNR noise variance.",
             "The synthetic scene materials and ray solver are not field calibrated.",
-            "Outage snapshots are rejected pending a declared zero-power receiver policy.",
+            "An opt-in mixed-episode noise-only policy represents solver no-path snapshots with masked channel truth; this is not a calibrated physical outage.",
         ],
     }
     # The trajectory index is immutable; generation metadata belongs in a distinct sidecar.

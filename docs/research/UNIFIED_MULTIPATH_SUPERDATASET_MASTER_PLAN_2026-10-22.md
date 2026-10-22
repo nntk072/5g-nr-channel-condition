@@ -201,7 +201,7 @@ The independent statistical unit for cross-scene claims is at least **scene/site
 | `pose_timeline` | episode_id,time | TX/RX/object pose, velocity, acceleration, clock, orientation, occlusion events and timestamp | private oracle |
 | `rt_solver_run` | solve_id | solver seed/deterministic flag, path budget/depth, interaction flags, backend, versions, runtime fingerprint, convergence stats | provenance |
 | `path_table` | episode_id, frame, tx, rx, path_index | valid flag; absolute delay; complex path amplitude; Doppler; AoA/AoD; interactions; per-path type; vertices/object/material IDs when exposed; solver sampling weight | private oracle |
-| `channel_tensor` | channel_view_id | array URI, axis names, frequencies/time, complex CIR/CFR, absolute scaling, reference gauge, aggregation flags | oracle and receiver-target copies separated |
+| `channel_tensor` | channel_view_id | array URI, axis names, frequencies/time, complex CIR/CFR, element-wise validity mask, absolute scaling, reference gauge, aggregation flags | oracle and receiver-target copies separated |
 | `waveform` | waveform_id | 38.211/214 assumptions, carrier/numerology, BWP/PRBs, DMRS/PRS configuration, Tx symbols, channel application domain, CP/FFT details | source metadata / pilots; transmitted payload private as needed |
 | `receiver_view` | observation_id | parent episode, received IQ/OFDM grid, estimated CSI, error variance, pilot mask, synchronization/beam state, observation-quality mask, link-budget params | model-visible fields only |
 | `impairment` | observation_id | thermal/interference noise, CFO, timing offset, IQ/PA/ADC, phase noise, EVM, AGC, seed, noise covariance, receiver calibration | permitted config or truth according to task |
