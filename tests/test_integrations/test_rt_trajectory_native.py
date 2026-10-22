@@ -49,10 +49,25 @@ def test_cpu_rt_path_retraces_and_stores_receiver_only_trajectory(tmp_path, monk
         assert tuple(model_inputs.h_hat.shape)[0] == 1
         assert tuple(record.targets["channel_cfr"].shape) == (72,)
         symbol_channels = record.targets["channel_cfr_ofdm_symbols"]
+        evolution = record.provenance["channel_time_evolution"]
         assert symbol_channels.shape == (
             record.observation.received_grid.shape[-2],
             record.observation.received_grid.shape[-1],
         )
+        expected_symbol_interval_s = (
+            1.0
+            + evolution["cyclic_prefix_length_samples"] / record.observation.received_grid.shape[-1]
+        ) / (config.subcarrier_spacing_khz * 1_000.0)
+        np.testing.assert_allclose(
+            evolution["ofdm_symbol_interval_s"], expected_symbol_interval_s, rtol=1e-12
+        )
+        np.testing.assert_allclose(
+            evolution["sampling_frequency_hz"],
+            1.0 / evolution["ofdm_symbol_interval_s"],
+            rtol=1e-12,
+        )
+        assert evolution["cyclic_prefix_length_samples"] > 0
+        assert "NR per-symbol CP variation is not modeled" in evolution["symbol_timing_policy"]
         assert not np.allclose(symbol_channels, symbol_channels[0:1], rtol=0.0, atol=1e-8)
         assert bool(np.asarray(record.target_masks["channel_cfr"]).all())
         assert bool(np.asarray(record.target_masks["geometric_los"]).all())

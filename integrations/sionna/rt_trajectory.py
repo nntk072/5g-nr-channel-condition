@@ -314,6 +314,8 @@ def generate_rt_nr_trajectory(
 
     receiver = SionnaPUSCHLSReceiver(receiver_config, device=config.device)
     grid = receiver.resource_grid
+    ofdm_symbol_interval_s = float(grid.ofdm_symbol_duration)
+    ofdm_symbol_sampling_hz = 1.0 / ofdm_symbol_interval_s
     scene.frequency = config.carrier_hz
     scene.bandwidth = grid.fft_size * config.subcarrier_spacing_khz * 1_000.0
     scene.tx_array = PlanarArray(num_rows=1, num_cols=1, pattern="iso", polarization="V")
@@ -438,7 +440,7 @@ def generate_rt_nr_trajectory(
         mapped = paths_to_nr_ofdm_channel(
             paths,
             grid,
-            sampling_frequency_hz=config.subcarrier_spacing_khz * 1_000.0,
+            sampling_frequency_hz=ofdm_symbol_sampling_hz,
             num_time_steps=grid.num_ofdm_symbols,
             normalize_delays=False,
             normalize=False,
@@ -527,10 +529,15 @@ def generate_rt_nr_trajectory(
                 "geometric_los": "boolean",
             },
             "channel_time_evolution": {
-                "model": "Sionna RT Paths.cfr Doppler phase evolution",
+                "model": "Sionna RT Paths.cfr Doppler phase evolution on ResourceGrid symbol timing",
                 "num_time_steps": grid.num_ofdm_symbols,
-                "sampling_frequency_hz": config.subcarrier_spacing_khz * 1_000.0,
-                "sample_interval_approximation": "1/subcarrier_spacing; cyclic prefix omitted",
+                "sampling_frequency_hz": ofdm_symbol_sampling_hz,
+                "ofdm_symbol_interval_s": ofdm_symbol_interval_s,
+                "cyclic_prefix_length_samples": int(grid.cyclic_prefix_length),
+                "symbol_timing_policy": (
+                    "exact Sionna 2.2 ResourceGrid.ofdm_symbol_duration, including its scalar "
+                    "cyclic prefix repeated for each symbol; NR per-symbol CP variation is not modeled"
+                ),
                 "moving_geometry_within_slot": False,
             },
             "direct_path_count": direct_path_counts[index],
