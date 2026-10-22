@@ -209,6 +209,12 @@ def build_standardized_pusch_dmrs_records(
                         "batch, RX nodes, RX antennas, OFDM symbols, and FFT bins divided by "
                         "complex AWGN variance; no noise figure, beamforming, or RF impairment"
                     ),
+                    "snr_reference": "post-channel, pre-beamforming receive resource grid",
+                    "noise_figure_db": None,
+                    "noise_model": (
+                        "proper complex AWGN with independent resource-grid samples; "
+                        "E[|n|^2] is noise_variance_per_complex_dimension"
+                    ),
                     "pusch_transmit_seed": child_seed,
                     "noise_variance_per_complex_dimension": float(noise_variance),
                     "noise_variance_per_real_dimension": float(noise_variance) / 2.0,

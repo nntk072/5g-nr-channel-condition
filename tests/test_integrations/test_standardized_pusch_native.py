@@ -180,6 +180,17 @@ def test_independent_noise_views_keep_waveform_parent_and_channel_truth(tmp_path
         assert view_a.provenance["receiver_view_kind"] == "standardized_pusch_noise_view"
         assert view_a.provenance["pusch_transmit_seed"] == view_b.provenance["pusch_transmit_seed"]
         assert view_a.provenance["noise_seed"] != view_b.provenance["noise_seed"]
+        assert view_a.provenance["snr_reference"] == (
+            "post-channel, pre-beamforming receive resource grid"
+        )
+        assert (
+            "mean received PUSCH resource-grid complex-sample power"
+            in view_a.provenance["snr_definition"]
+        )
+        assert view_a.provenance["noise_figure_db"] is None
+        assert view_a.provenance["noise_variance_per_real_dimension"] == pytest.approx(
+            view_a.provenance["noise_variance_per_complex_dimension"] / 2
+        )
         assert (
             view_a.provenance["receiver_view_identity_sha256"]
             != view_b.provenance["receiver_view_identity_sha256"]

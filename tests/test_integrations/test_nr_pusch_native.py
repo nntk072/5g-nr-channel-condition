@@ -8,6 +8,42 @@ from receivers.nr import NRPUSCHConfig  # noqa: E402
 
 
 @pytest.mark.native_sionna
+def test_pusch_dmrs_estimator_recovers_frequency_selective_noiseless_channel_on_cpu():
+    receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(n_size_bwp=6, subcarrier_spacing_khz=30), device="cpu"
+    )
+    grid = receiver.resource_grid
+    transmit_grid, _ = receiver.transmit(2, seed=5302)
+    fft_bins = torch.arange(grid.fft_size)
+    # Distinct adjacent FFT-bin gains expose a one-bin or DC/guard mapping shift.
+    channel_on_fft_bins = torch.where(
+        (fft_bins % 2) == 0,
+        torch.tensor(0.25 + 0.4j, dtype=torch.complex64),
+        torch.tensor(0.8 - 0.15j, dtype=torch.complex64),
+    )
+    received_grid = transmit_grid[:, 0, 0].unsqueeze(1).unsqueeze(1) * channel_on_fft_bins.reshape(
+        1, 1, 1, 1, grid.fft_size
+    )
+
+    observation = receiver.observe("cpu-noiseless-frequency-selective", received_grid, 0.0)
+    effective_bins = torch.as_tensor(grid.effective_subcarrier_ind, dtype=torch.long)
+    expected = channel_on_fft_bins.index_select(0, effective_bins)
+    expected = expected.reshape(1, 1, 1, 1, 1, 1, -1).expand_as(observation.channel_estimate.h_hat)
+    pilot_mask = observation.channel_estimate.pilot_mask.to(dtype=torch.bool).reshape(
+        1, 1, 1, 1, 1, grid.num_ofdm_symbols, grid.num_effective_subcarriers
+    )
+    pilot_mask = pilot_mask.expand_as(observation.channel_estimate.h_hat)
+
+    assert observation.fft_bin_indices == tuple(int(index) for index in effective_bins)
+    assert grid.num_effective_subcarriers == grid.fft_size
+    assert observation.fft_bin_indices == tuple(range(grid.fft_size))
+    assert bool(pilot_mask.any())
+    torch.testing.assert_close(
+        observation.channel_estimate.h_hat[pilot_mask], expected[pilot_mask], atol=1e-5, rtol=1e-5
+    )
+
+
+@pytest.mark.native_sionna
 def test_pusch_dmrs_estimator_runs_on_cuda_with_named_axes():
     if not torch.cuda.is_available():
         pytest.skip("CUDA is not available")
