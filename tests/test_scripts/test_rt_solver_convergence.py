@@ -103,6 +103,20 @@ def test_path_cap_must_be_a_positive_integer():
         )
 
 
+def test_cfr_vector_output_flag_must_be_boolean():
+    run_convergence = RUNNER["run_convergence"]
+    with pytest.raises(TypeError, match="include_cfr_vectors must be a boolean"):
+        run_convergence(
+            scene_name="box_one_screen",
+            tx_position=(-2.0, 0.0, 2.5),
+            rx_position=(-1.0, 0.0, 2.5),
+            max_depth=1,
+            samples_per_src_values=(10,),
+            seeds=(11,),
+            include_cfr_vectors="yes",
+        )
+
+
 @pytest.mark.native_sionna
 def test_convergence_matrix_labels_los_and_blocked_links_independently():
     pytest.importorskip("mitsuba")
@@ -146,6 +160,11 @@ def test_convergence_matrix_labels_los_and_blocked_links_independently():
         link_cases=(ConvergenceLink("through-screen", (-2.0, 0.0, 2.5), (2.0, 0.0, 2.5)),),
         material_scattering_overrides={"screen-mat": 0.5},
         max_num_paths_per_src=1000,
+        include_cfr_vectors=True,
     )
     assert scattered["configuration"]["materials"]["screen-mat"]["scattering_coefficient"] == [0.5]
+    assert scattered["schema"].endswith(".v4")
+    assert scattered["configuration"]["cfr_vectors_included"] is True
+    assert all(len(row["cfr_vector_real"]) == 8 for row in scattered["runs"])
+    assert all(len(row["cfr_vector_imag"]) == 8 for row in scattered["runs"])
     assert max(row["valid_diffuse_reflection_path_count"] for row in scattered["runs"]) > 0

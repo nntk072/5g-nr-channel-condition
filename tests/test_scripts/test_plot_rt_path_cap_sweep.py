@@ -14,7 +14,14 @@ summarize_cap_reports = MODULE["summarize_cap_reports"]
 plot_cap_sweep = MODULE["plot_cap_sweep"]
 
 
-def _write_report(path: Path, *, cap: int, path_count: int, scene_hash: str = "scene") -> None:
+def _write_report(
+    path: Path,
+    *,
+    cap: int,
+    path_count: int,
+    scene_hash: str = "scene",
+    cfr_scale: float | None = None,
+) -> None:
     configuration = {
         "normalize_delays_for_cfr": False,
         "max_num_paths_per_src": cap,
@@ -27,6 +34,7 @@ def _write_report(path: Path, *, cap: int, path_count: int, scene_hash: str = "s
         "materials": {"screen": {"scattering_coefficient": [0.5]}},
         "material_scattering_overrides": {"screen": 0.5},
         "mitsuba_variant": "llvm_ad_mono_polarized",
+        "cfr_vectors_included": cfr_scale is not None,
     }
     runs = [
         {
@@ -39,13 +47,22 @@ def _write_report(path: Path, *, cap: int, path_count: int, scene_hash: str = "s
             "valid_path_power_sum": 0.25,
             "power_weighted_rms_delay_spread_ns": 12.0 + seed / 10,
             "power_weighted_arrival_angular_spread_rad_3d": 0.5,
+            **(
+                {"cfr_vector_real": [cfr_scale, 2 * cfr_scale], "cfr_vector_imag": [0, 0]}
+                if cfr_scale is not None
+                else {}
+            ),
         }
         for seed in configuration["seeds"]
     ]
     path.write_text(
         json.dumps(
             {
-                "schema": "loslab.sionna_rt_solver_convergence.v3",
+                "schema": (
+                    "loslab.sionna_rt_solver_convergence.v4"
+                    if cfr_scale is not None
+                    else "loslab.sionna_rt_solver_convergence.v3"
+                ),
                 "scene": {"name": "fixture", "scene_tree_sha256": scene_hash},
                 "configuration": configuration,
                 "runs": runs,
@@ -71,6 +88,12 @@ def test_cap_summary_checks_matched_rows_and_summarizes_seed_range(tmp_path: Pat
         "min": 998.0,
         "max": 999.0,
     }
+    assert summary["configuration"]["cfr_vectors_included"] is False
+    assert low_summary["metrics"]["relative_cfr_l2_error_to_max_path_cap"] == {
+        "median": None,
+        "min": None,
+        "max": None,
+    }
 
 
 def test_cap_summary_rejects_scene_mismatch(tmp_path: Path):
@@ -80,6 +103,31 @@ def test_cap_summary_rejects_scene_mismatch(tmp_path: Path):
     _write_report(high, cap=10_000, path_count=8000, scene_hash="other")
 
     with pytest.raises(ValueError, match="same scene asset hash"):
+        summarize_cap_reports([low, high], max_depth=6, sample_budget=100_000)
+
+
+def test_cap_summary_compares_complex_cfr_vectors_to_largest_cap(tmp_path: Path):
+    low = tmp_path / "low.json"
+    high = tmp_path / "high.json"
+    _write_report(low, cap=1000, path_count=998, cfr_scale=1.0)
+    _write_report(high, cap=10_000, path_count=8000, cfr_scale=2.0)
+
+    summary = summarize_cap_reports([low, high], max_depth=6, sample_budget=100_000)
+
+    low_row = next(row for row in summary["per_seed"] if row["max_num_paths_per_src"] == 1000)
+    high_row = next(row for row in summary["per_seed"] if row["max_num_paths_per_src"] == 10_000)
+    assert summary["configuration"]["cfr_vectors_included"] is True
+    assert low_row["relative_cfr_l2_error_to_max_path_cap"] == pytest.approx(0.5)
+    assert high_row["relative_cfr_l2_error_to_max_path_cap"] == pytest.approx(0.0)
+
+
+def test_cap_summary_rejects_mixed_cfr_vector_availability(tmp_path: Path):
+    low = tmp_path / "low.json"
+    high = tmp_path / "high.json"
+    _write_report(low, cap=1000, path_count=998, cfr_scale=1.0)
+    _write_report(high, cap=10_000, path_count=8000)
+
+    with pytest.raises(ValueError, match="consistently include or omit"):
         summarize_cap_reports([low, high], max_depth=6, sample_budget=100_000)
 
 

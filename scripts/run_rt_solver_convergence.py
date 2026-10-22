@@ -181,6 +181,7 @@ def run_convergence(
     link_cases: Sequence[ConvergenceLink] | None = None,
     material_scattering_overrides: dict[str, float] | None = None,
     max_num_paths_per_src: int = 1_000_000,
+    include_cfr_vectors: bool = False,
 ) -> dict[str, Any]:
     """Compare ray budgets and interaction depths for named fixed links."""
     if max_depth < 1:
@@ -197,6 +198,8 @@ def run_convergence(
         or max_num_paths_per_src < 1
     ):
         raise ValueError("max_num_paths_per_src must be a positive integer")
+    if not isinstance(include_cfr_vectors, bool):
+        raise TypeError("include_cfr_vectors must be a boolean")
     for name, coefficient in (material_scattering_overrides or {}).items():
         if not name or isinstance(coefficient, bool) or not math.isfinite(coefficient):
             raise ValueError("material scattering overrides require names and finite coefficients")
@@ -328,6 +331,9 @@ def run_convergence(
             "runtime_seconds": time.perf_counter() - started,
             "_cfr": cfr,
         }
+        if include_cfr_vectors:
+            row["cfr_vector_real"] = cfr.real.astype(np.float64).tolist()
+            row["cfr_vector_imag"] = cfr.imag.astype(np.float64).tolist()
         records_by_key[key] = row
         return row
 
@@ -360,7 +366,11 @@ def run_convergence(
 
     runtime = versions()
     return {
-        "schema": "loslab.sionna_rt_solver_convergence.v3",
+        "schema": (
+            "loslab.sionna_rt_solver_convergence.v4"
+            if include_cfr_vectors
+            else "loslab.sionna_rt_solver_convergence.v3"
+        ),
         "evidence_grade": "SINGLE_SCENE_GEOMETRY_LABELED_SOLVER_DIAGNOSTIC",
         "scene": {
             "name": scene_name,
@@ -400,6 +410,8 @@ def run_convergence(
             "n_subcarriers": n_subcarriers,
             "normalize_delays_for_cfr": False,
             "normalize_cfr_power": False,
+            "cfr_vectors_included": include_cfr_vectors,
+            "cfr_vector_encoding": "float64-real-imaginary-lists" if include_cfr_vectors else None,
             "solver_flags": {
                 "los": True,
                 "specular_reflection": True,
@@ -421,6 +433,7 @@ def run_convergence(
             "Diffuse reflection is only generated when an interacting material has a nonzero scattering coefficient; actual per-material coefficients and diffuse-path counts are recorded.",
             "The path cap is recorded but cap sensitivity requires a separate audit.",
             "CFR retains absolute path delays and unnormalized received power.",
+            "Complex CFR vectors are only stored when include_cfr_vectors is enabled.",
             "Delay spread is coefficient-power weighted; angular spread is the spherical mean-direction statistic documented in the runner.",
             "Backend selection validates one minimal native trace, not scene-material realism, convergence, or production throughput.",
         ],
@@ -443,6 +456,11 @@ def main() -> None:
     parser.add_argument("--carrier-hz", type=float, default=3.5e9)
     parser.add_argument("--mitsuba-variant", default="auto")
     parser.add_argument("--max-num-paths-per-src", type=int, default=1_000_000)
+    parser.add_argument(
+        "--include-cfr-vectors",
+        action="store_true",
+        help="store each complex CFR sample for direct error analysis across reports",
+    )
     parser.add_argument(
         "--material-scattering",
         action="append",
@@ -483,6 +501,7 @@ def main() -> None:
             mitsuba_variant=args.mitsuba_variant,
             material_scattering_overrides=material_overrides,
             max_num_paths_per_src=args.max_num_paths_per_src,
+            include_cfr_vectors=args.include_cfr_vectors,
             link_cases=(
                 tuple(
                     ConvergenceLink(
