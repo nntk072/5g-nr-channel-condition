@@ -154,3 +154,51 @@ def test_standardized_tdl_simo_keeps_receive_antenna_axis() -> None:
     assert record.observation.channel_estimate.h_hat.shape == (1, 1, 2, 1, 1, 14, 72)
     assert record.targets["channel_cfr"].shape == (1, 1, 2, 1, 1, 14, 72)
     assert record.target_masks["channel_cfr"].shape == record.targets["channel_cfr"].shape
+
+
+@pytest.mark.native_sionna
+def test_independent_noise_views_keep_waveform_parent_and_channel_truth(tmp_path) -> None:
+    run = _standardized_run(StandardizedFamily.TDL)
+    config = NRPUSCHConfig(n_size_bwp=6, subcarrier_spacing_khz=30)
+    first = build_standardized_pusch_dmrs_records(
+        run, snr_db=18.0, seed=1207, noise_seed=8101, receiver_config=config, device="cpu"
+    )
+    second = build_standardized_pusch_dmrs_records(
+        run, snr_db=18.0, seed=1207, noise_seed=8102, receiver_config=config, device="cpu"
+    )
+    replay = build_standardized_pusch_dmrs_records(
+        run, snr_db=18.0, seed=1207, noise_seed=8101, receiver_config=config, device="cpu"
+    )
+
+    assert len(first) == len(second) == len(replay) == 2
+    assert len({record.observation.sample_id for record in (*first, *second)}) == 4
+    for view_a, view_b, repeated in zip(first, second, replay, strict=True):
+        assert view_a.observation.sample_id == repeated.observation.sample_id
+        assert view_a.observation.sample_id != view_b.observation.sample_id
+        assert view_a.provenance["parent_subject_id"] == view_b.provenance["parent_subject_id"]
+        assert view_a.provenance["channel_sample_id"] == view_b.provenance["channel_sample_id"]
+        assert view_a.provenance["receiver_view_kind"] == "standardized_pusch_noise_view"
+        assert view_a.provenance["pusch_transmit_seed"] == view_b.provenance["pusch_transmit_seed"]
+        assert view_a.provenance["noise_seed"] != view_b.provenance["noise_seed"]
+        assert (
+            view_a.provenance["receiver_view_identity_sha256"]
+            != view_b.provenance["receiver_view_identity_sha256"]
+        )
+        torch.testing.assert_close(
+            view_a.targets["channel_cfr"], view_b.targets["channel_cfr"], rtol=0, atol=0
+        )
+        torch.testing.assert_close(
+            view_a.observation.received_grid,
+            repeated.observation.received_grid,
+            rtol=0,
+            atol=0,
+        )
+        assert not torch.equal(view_a.observation.received_grid, view_b.observation.received_grid)
+        for view in (view_a, view_b):
+            restored = read_nr_record(tmp_path, write_nr_record(tmp_path, view))
+            assert restored.observation.sample_id == view.observation.sample_id
+            assert restored.provenance["parent_subject_id"] == view.provenance["parent_subject_id"]
+            assert restored.provenance["receiver_view_kind"] == "standardized_pusch_noise_view"
+            np.testing.assert_array_equal(
+                restored.targets["channel_cfr"], view.targets["channel_cfr"].cpu().numpy()
+            )
