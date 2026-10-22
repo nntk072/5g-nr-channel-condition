@@ -1,0 +1,4901 @@
+{
+  "budgets_samples_per_source": {
+    "low": 20000,
+    "reference": 1000000
+  },
+  "comparisons": [
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 1,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 1,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        23
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 3,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        24
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 3,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        90
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 4,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        107
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 4,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0005986322548778844,
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        193
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 9,
+      "low_to_reference_cfr_mean_power_ratio": 1.0000003649275437,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9999997423296253,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        276
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 9,
+      "relative_complex_cfr_l2": 2.318199903147807e-06,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.030247804261307465,
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        459
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 20,
+      "low_to_reference_cfr_mean_power_ratio": 0.9985626152466032,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0002550950256726,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        851
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 20,
+      "relative_complex_cfr_l2": 0.01948834759118918,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 9.459867555960955,
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        807
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 37,
+      "low_to_reference_cfr_mean_power_ratio": 0.2227286918284007,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.4621206617327291,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        2102
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 56,
+      "relative_complex_cfr_l2": 0.5294627873327756,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 14.82411171593867,
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1184
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 54,
+      "low_to_reference_cfr_mean_power_ratio": 0.09538348540865883,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.3007788168528894,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        4880
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 114,
+      "relative_complex_cfr_l2": 0.6924654463061194,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 23.978920182798902,
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1468
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 63,
+      "low_to_reference_cfr_mean_power_ratio": 0.014645930264368204,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.11697974519366247,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        9401
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 212,
+      "relative_complex_cfr_l2": 0.8796055099687321,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 29.41634846820307,
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1732
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 71,
+      "low_to_reference_cfr_mean_power_ratio": 0.003169172104137408,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.054304193171190444,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        15676
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 330,
+      "relative_complex_cfr_l2": 0.9440136404351771,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 23.080922062490572,
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1929
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 76,
+      "low_to_reference_cfr_mean_power_ratio": 0.003701690802728991,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.05954644115200785,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        22655
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 449,
+      "relative_complex_cfr_l2": 0.9392954955985314,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 25.15779762291004,
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        2119
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 82,
+      "low_to_reference_cfr_mean_power_ratio": 0.0015060121131908904,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.03796276531907709,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        28975
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 570,
+      "relative_complex_cfr_l2": 0.9612819491391146,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 1,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 1,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        23
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 3,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        24
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 3,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        89
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 4,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        107
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 4,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0006554756737386924,
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        191
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 9,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9999998282197354,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        278
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 9,
+      "relative_complex_cfr_l2": 1.8535392062904468e-06,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.050743409474307555,
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        458
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 21,
+      "low_to_reference_cfr_mean_power_ratio": 0.9989877257614975,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0002045372249209,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        848
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 20,
+      "relative_complex_cfr_l2": 0.010496333999301513,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 2.3582238384278753,
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        794
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 38,
+      "low_to_reference_cfr_mean_power_ratio": 0.997473785009147,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9996004836045174,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        2136
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 54,
+      "relative_complex_cfr_l2": 0.02945880135072627,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 10.434298758354998,
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1173
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 51,
+      "low_to_reference_cfr_mean_power_ratio": 0.12803154040353287,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.3524493548181567,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        4938
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 119,
+      "relative_complex_cfr_l2": 0.6429041841862583,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 7.308534222261187,
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1494
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 64,
+      "low_to_reference_cfr_mean_power_ratio": 0.12030862585038309,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.3440713976272169,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        9502
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 204,
+      "relative_complex_cfr_l2": 0.65339912793092,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 10.280227336068037,
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1774
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 73,
+      "low_to_reference_cfr_mean_power_ratio": 0.04033581311364651,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.19922362586183895,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        15777
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 326,
+      "relative_complex_cfr_l2": 0.7992675548150316,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 15.801021824302097,
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1981
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 78,
+      "low_to_reference_cfr_mean_power_ratio": 0.008867250578961346,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.09311618064414282,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        22623
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 468,
+      "relative_complex_cfr_l2": 0.9059115862592514,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 17.59439971493748,
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        2146
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 82,
+      "low_to_reference_cfr_mean_power_ratio": 0.0039821999405725925,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.06237679478945704,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        29110
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 597,
+      "relative_complex_cfr_l2": 0.9369483678773951,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 1,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 1,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        23
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 3,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        24
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 3,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        91
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 4,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        108
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 4,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 1.0658141036401503e-05,
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        210
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 9,
+      "low_to_reference_cfr_mean_power_ratio": 1.0000003649275437,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0000000858901323,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        281
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 9,
+      "relative_complex_cfr_l2": 1.1706159455959057e-06,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.9119247579292278,
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        495
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 20,
+      "low_to_reference_cfr_mean_power_ratio": 0.9997860382455026,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9995837654526862,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        848
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 21,
+      "relative_complex_cfr_l2": 0.014976963850933866,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 10.155366325648174,
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        865
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 38,
+      "low_to_reference_cfr_mean_power_ratio": 0.22345428214276822,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.4623737656327737,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        2124
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 59,
+      "relative_complex_cfr_l2": 0.5289487173232732,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 3.619694766143766,
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1274
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 58,
+      "low_to_reference_cfr_mean_power_ratio": 0.3111689136219875,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.5533960407907129,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        4931
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 119,
+      "relative_complex_cfr_l2": 0.4426556916569695,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 7.25941795565177,
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1587
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 65,
+      "low_to_reference_cfr_mean_power_ratio": 0.10471751751580066,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.3206613701710287,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        9461
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 219,
+      "relative_complex_cfr_l2": 0.6766387914304247,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 11.842104186143843,
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1865
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 72,
+      "low_to_reference_cfr_mean_power_ratio": 0.029655768372892605,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.17033276860230762,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        15729
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 350,
+      "relative_complex_cfr_l2": 0.8279377485191789,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 11.374126529517525,
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        2084
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 81,
+      "low_to_reference_cfr_mean_power_ratio": 0.023434098224162685,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.15169164541886238,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        22572
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 473,
+      "relative_complex_cfr_l2": 0.8470088564293788,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 14.272023562966751,
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        2267
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 82,
+      "low_to_reference_cfr_mean_power_ratio": 0.007731938887648909,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.08707530522184152,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        29030
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 597,
+      "relative_complex_cfr_l2": 0.9121234468470522,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": null,
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 0,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 0,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": null,
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        10
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 0,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        10
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 0,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        46
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 2,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        53
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 2,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 1.0916565429397451,
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        144
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 12,
+      "low_to_reference_cfr_mean_power_ratio": 0.9970341586341389,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.998994985753212,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        199
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 13,
+      "relative_complex_cfr_l2": 0.03523985751635527,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 1.5717418477834144,
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        403
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 26,
+      "low_to_reference_cfr_mean_power_ratio": 1.0004484893708019,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.995819405811249,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        736
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 31,
+      "relative_complex_cfr_l2": 0.05729020464758258,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 8.35597546711142,
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        753
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 38,
+      "low_to_reference_cfr_mean_power_ratio": 0.9225234395654246,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9799272848370557,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        2107
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 61,
+      "relative_complex_cfr_l2": 0.13837340182465033,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 23.360961165508343,
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1111
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 46,
+      "low_to_reference_cfr_mean_power_ratio": 1.0463618628388416,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9420737583643058,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        4865
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 111,
+      "relative_complex_cfr_l2": 0.18217008768599388,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 32.64098324962106,
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1388
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 50,
+      "low_to_reference_cfr_mean_power_ratio": 0.9938414662934068,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9219625962624732,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        9106
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 190,
+      "relative_complex_cfr_l2": 0.3403226340452122,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 35.414011279044644,
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1615
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 57,
+      "low_to_reference_cfr_mean_power_ratio": 1.0183312433442229,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9187747646458528,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        14771
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 296,
+      "relative_complex_cfr_l2": 0.296730737630553,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 38.92136390959422,
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1783
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 61,
+      "low_to_reference_cfr_mean_power_ratio": 1.0365211576769442,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9150088100788046,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        20664
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 399,
+      "relative_complex_cfr_l2": 0.2968090595475829,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 39.68183648339618,
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1913
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 63,
+      "low_to_reference_cfr_mean_power_ratio": 1.0343435568642187,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9139382048917966,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        25847
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 476,
+      "relative_complex_cfr_l2": 0.29415578663632497,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": null,
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 0,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 0,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": null,
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        10
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 0,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        10
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 0,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        44
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 2,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        53
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 2,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 1.4210854715202004e-05,
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        141
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 13,
+      "low_to_reference_cfr_mean_power_ratio": 1.000581372924758,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0000000790105477,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        200
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 13,
+      "relative_complex_cfr_l2": 0.0005391592094897994,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 6.307971034402726,
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        427
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 26,
+      "low_to_reference_cfr_mean_power_ratio": 1.0214510549423443,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9924117910373038,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        736
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 31,
+      "relative_complex_cfr_l2": 0.0856096524796883,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 11.768193530770077,
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        772
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 40,
+      "low_to_reference_cfr_mean_power_ratio": 0.9794958224739391,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9838222047053108,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        2104
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 61,
+      "relative_complex_cfr_l2": 0.1058071096535291,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 22.478587879959377,
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1125
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 53,
+      "low_to_reference_cfr_mean_power_ratio": 1.0033701639386512,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9579021383938034,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        4873
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 108,
+      "relative_complex_cfr_l2": 0.17977448932546902,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 32.27675193784307,
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1448
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 66,
+      "low_to_reference_cfr_mean_power_ratio": 0.9548820208205443,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9362708904682875,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        9133
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 187,
+      "relative_complex_cfr_l2": 0.27015779200786405,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 34.97851253086992,
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1665
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 73,
+      "low_to_reference_cfr_mean_power_ratio": 0.9660476722367222,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.932588166456852,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        14846
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 288,
+      "relative_complex_cfr_l2": 0.28015750332257877,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 38.527979029368,
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1829
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 76,
+      "low_to_reference_cfr_mean_power_ratio": 0.9781961926385719,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9290347927436831,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        20716
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 394,
+      "relative_complex_cfr_l2": 0.2579101413396693,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 39.921289385347336,
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1964
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 79,
+      "low_to_reference_cfr_mean_power_ratio": 0.9799286464801237,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9282635753085374,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        26052
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 494,
+      "relative_complex_cfr_l2": 0.2599304266461805,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": null,
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 0,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 0,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": null,
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        9
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 0,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        10
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 0,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        46
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 2,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        55
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 2,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 1.0916565429397451,
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        150
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 12,
+      "low_to_reference_cfr_mean_power_ratio": 0.9976167032311208,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.998994985753212,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        202
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 13,
+      "relative_complex_cfr_l2": 0.035241668379979316,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 8.1950304320344,
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        415
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 24,
+      "low_to_reference_cfr_mean_power_ratio": 0.9930105248122945,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9883042102090587,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        737
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 32,
+      "relative_complex_cfr_l2": 0.12249860122930134,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 12.898063062039,
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        785
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 39,
+      "low_to_reference_cfr_mean_power_ratio": 0.9260486077722714,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9731537935977725,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        2114
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 63,
+      "relative_complex_cfr_l2": 0.18808718181296502,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 19.771043469063443,
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1142
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 51,
+      "low_to_reference_cfr_mean_power_ratio": 1.0185951523809949,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9563421891899259,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        4876
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 112,
+      "relative_complex_cfr_l2": 0.1759126801508181,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 33.09259000161546,
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1407
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 58,
+      "low_to_reference_cfr_mean_power_ratio": 1.0013120978414893,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9355580887396364,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        9156
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 197,
+      "relative_complex_cfr_l2": 0.1939024974283035,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 35.36139558946161,
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1644
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 65,
+      "low_to_reference_cfr_mean_power_ratio": 1.0253703792537865,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9313866988181688,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        14809
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 291,
+      "relative_complex_cfr_l2": 0.21853276358910056,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 36.575315220943594,
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1827
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 74,
+      "low_to_reference_cfr_mean_power_ratio": 1.0400983907460297,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9292320146408395,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        20759
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 404,
+      "relative_complex_cfr_l2": 0.21490427076730476,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 37.079416870255955,
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1974
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 75,
+      "low_to_reference_cfr_mean_power_ratio": 1.0402225978538118,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9289658819842503,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        26018
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 487,
+      "relative_complex_cfr_l2": 0.21749736038674675,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 1,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 1,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        21
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 4,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        22
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 4,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        82
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 6,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        98
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 6,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 1.3918377561594752,
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        193
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 10,
+      "low_to_reference_cfr_mean_power_ratio": 0.9990124362041598,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9996371628570571,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        269
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 11,
+      "relative_complex_cfr_l2": 0.019515153160108403,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 2.2544917044342583,
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        472
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 19,
+      "low_to_reference_cfr_mean_power_ratio": 0.35453621431134835,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.6755781776090918,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        858
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 24,
+      "relative_complex_cfr_l2": 0.4251611382874189,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 1.7215313619090011,
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        847
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 28,
+      "low_to_reference_cfr_mean_power_ratio": 0.35583679360622494,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.6754076195259635,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        2346
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 49,
+      "relative_complex_cfr_l2": 0.4239234296369451,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 2.2980621849910676,
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1289
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 37,
+      "low_to_reference_cfr_mean_power_ratio": 0.17717951436123663,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.51056949328936,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        5563
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 88,
+      "relative_complex_cfr_l2": 0.598612415631697,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 9.075485252196813,
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1673
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 45,
+      "low_to_reference_cfr_mean_power_ratio": 0.06959071574817774,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.34335934382141053,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        10568
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 150,
+      "relative_complex_cfr_l2": 0.7515600376573336,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 21.627581503480542,
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1995
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 51,
+      "low_to_reference_cfr_mean_power_ratio": 0.009602382137754498,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.13882253404888495,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        17300
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 222,
+      "relative_complex_cfr_l2": 0.9089424283859711,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 21.557754692480557,
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        2237
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 58,
+      "low_to_reference_cfr_mean_power_ratio": 0.005317480611666026,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.09355304995138311,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        24470
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 321,
+      "relative_complex_cfr_l2": 0.9289015630116603,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 19.402707884808024,
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        2455
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 61,
+      "low_to_reference_cfr_mean_power_ratio": 0.005192822942667779,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.08697785772229365,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        31347
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 397,
+      "relative_complex_cfr_l2": 0.9288304033162896,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 1,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 1,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        21
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 4,
+      "low_to_reference_cfr_mean_power_ratio": 0.9999998291386881,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9999998627991766,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        22
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 4,
+      "relative_complex_cfr_l2": 1.180615506735967e-07,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        77
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 6,
+      "low_to_reference_cfr_mean_power_ratio": 0.9999998563819276,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9999998641696152,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        96
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 6,
+      "relative_complex_cfr_l2": 1.0971987243687196e-07,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 1.3918359798026358,
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        190
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 10,
+      "low_to_reference_cfr_mean_power_ratio": 0.999012365347719,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9996370276201282,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        268
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 11,
+      "relative_complex_cfr_l2": 0.019515148499670208,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 1.8790977662774822,
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        468
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 20,
+      "low_to_reference_cfr_mean_power_ratio": 1.003808219289961,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9990611609761257,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        855
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 23,
+      "relative_complex_cfr_l2": 0.02855737511752779,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 4.067086223358274,
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        860
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 32,
+      "low_to_reference_cfr_mean_power_ratio": 0.35520722679038436,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.6765655662809541,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        2335
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 49,
+      "relative_complex_cfr_l2": 0.42393601925497515,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.903852992450993,
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1310
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 39,
+      "low_to_reference_cfr_mean_power_ratio": 0.35495505376123654,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.6758526123440866,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        5551
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 87,
+      "relative_complex_cfr_l2": 0.42442674221097915,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 3.049219543527215,
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1675
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 45,
+      "low_to_reference_cfr_mean_power_ratio": 0.27974676625503075,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.5768687718421396,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        10617
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 150,
+      "relative_complex_cfr_l2": 0.47454496160435006,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 6.036243505036509,
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1966
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 51,
+      "low_to_reference_cfr_mean_power_ratio": 0.16007679783905332,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.4324050041764933,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        17380
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 220,
+      "relative_complex_cfr_l2": 0.6011683278325901,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 13.530582876342123,
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        2200
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 56,
+      "low_to_reference_cfr_mean_power_ratio": 0.0308308406004237,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.19610726500489337,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        24651
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 313,
+      "relative_complex_cfr_l2": 0.8251664940721226,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 14.092012889932448,
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        2417
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 60,
+      "low_to_reference_cfr_mean_power_ratio": 0.02032389851137182,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.15741182385848343,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        31479
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 384,
+      "relative_complex_cfr_l2": 0.8578894042365234,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 1,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 1,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        21
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 4,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        21
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 4,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        80
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 6,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        95
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 6,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 1.0658141036401503e-05,
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        198
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 11,
+      "low_to_reference_cfr_mean_power_ratio": 0.9999866526282608,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9999999323569922,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        266
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 11,
+      "relative_complex_cfr_l2": 3.374807892381152e-05,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.3375113521997264,
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        479
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 21,
+      "low_to_reference_cfr_mean_power_ratio": 1.0028771652571795,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9997804838706852,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        853
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 23,
+      "relative_complex_cfr_l2": 0.016010347737545793,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 1.6997852014810633,
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        884
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 34,
+      "low_to_reference_cfr_mean_power_ratio": 0.35536238206630355,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.6763002383780585,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        2316
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 51,
+      "relative_complex_cfr_l2": 0.4239421151453687,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 1.1217231588034338,
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1329
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 45,
+      "low_to_reference_cfr_mean_power_ratio": 0.2969698823008276,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.606945036145835,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        5530
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 91,
+      "relative_complex_cfr_l2": 0.4620069230826761,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 11.393796128800204,
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1701
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 54,
+      "low_to_reference_cfr_mean_power_ratio": 0.06400300495182201,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.3066909654291969,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        10547
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 156,
+      "relative_complex_cfr_l2": 0.7521063544434842,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 19.68895446680108,
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        2020
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 59,
+      "low_to_reference_cfr_mean_power_ratio": 0.01343573229743945,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.14686912677216088,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        17451
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 225,
+      "relative_complex_cfr_l2": 0.8868512986021438,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 23.881405297743186,
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        2251
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 62,
+      "low_to_reference_cfr_mean_power_ratio": 0.004704760999704836,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.08830179916458954,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        24752
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 325,
+      "relative_complex_cfr_l2": 0.9331311695078598,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 25.29267373319044,
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        2466
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 68,
+      "low_to_reference_cfr_mean_power_ratio": 0.0030930239300604565,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.07191466603622525,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        31582
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 398,
+      "relative_complex_cfr_l2": 0.9458012705356381,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": null,
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 0,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 0,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        9
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 1,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        10
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 1,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 3.552713678800501e-06,
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        48
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 5,
+      "low_to_reference_cfr_mean_power_ratio": 0.9994318423188648,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.00000028420029,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        57
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 5,
+      "relative_complex_cfr_l2": 0.0006433791483575189,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.27554847292776685,
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        127
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 13,
+      "low_to_reference_cfr_mean_power_ratio": 0.9518171213480711,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9984180443183833,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        174
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 14,
+      "relative_complex_cfr_l2": 0.07981977163852844,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 6.113673123309127,
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        334
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 24,
+      "low_to_reference_cfr_mean_power_ratio": 1.1222187818336324,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.98280017357712,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        601
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 30,
+      "relative_complex_cfr_l2": 0.25719946941495003,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 12.23882151180078,
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        607
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 37,
+      "low_to_reference_cfr_mean_power_ratio": 1.1963017007704433,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9745539200851816,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        1745
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 59,
+      "relative_complex_cfr_l2": 0.29137593794951866,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 21.089910262617195,
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        934
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 47,
+      "low_to_reference_cfr_mean_power_ratio": 1.1147451743401346,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9606446551641136,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        4122
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 116,
+      "relative_complex_cfr_l2": 0.3463728425201366,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 23.04624757698548,
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1197
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 60,
+      "low_to_reference_cfr_mean_power_ratio": 1.1179318749285025,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9609231783077516,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        7762
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 223,
+      "relative_complex_cfr_l2": 0.30355884286990403,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 25.082513843699417,
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1405
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 62,
+      "low_to_reference_cfr_mean_power_ratio": 1.4490204904941133,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.97786092990288,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        12463
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 307,
+      "relative_complex_cfr_l2": 0.45284578180855745,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 25.525729085984494,
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1561
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 67,
+      "low_to_reference_cfr_mean_power_ratio": 1.4522789514834942,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9774786608847289,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        17363
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 378,
+      "relative_complex_cfr_l2": 0.4511768820817612,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 25.764769873148907,
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1676
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 69,
+      "low_to_reference_cfr_mean_power_ratio": 1.4607146475316466,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9773561086083076,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        21978
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 442,
+      "relative_complex_cfr_l2": 0.44522986875983195,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": null,
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 0,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 0,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        9
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 1,
+      "low_to_reference_cfr_mean_power_ratio": 0.9999984077017978,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.999998726161303,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        10
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 1,
+      "relative_complex_cfr_l2": 0.0009774551087274076,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 5.329070518200751e-06,
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        48
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 5,
+      "low_to_reference_cfr_mean_power_ratio": 0.9985440162037601,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9999991474000997,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        56
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 5,
+      "relative_complex_cfr_l2": 0.0013855225654625266,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0015631940186722204,
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        131
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 14,
+      "low_to_reference_cfr_mean_power_ratio": 0.999240746258718,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9999984650943092,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        172
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 14,
+      "relative_complex_cfr_l2": 0.0011195942520155315,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 1.3754046790381835,
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        347
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 26,
+      "low_to_reference_cfr_mean_power_ratio": 1.1503785462250185,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9892734281991269,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        597
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 30,
+      "relative_complex_cfr_l2": 0.2188814064638277,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 9.543249746002402,
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        643
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 41,
+      "low_to_reference_cfr_mean_power_ratio": 1.167098449622524,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9824880578839321,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        1722
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 60,
+      "relative_complex_cfr_l2": 0.24149416347181454,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 18.33323182154345,
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        956
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 51,
+      "low_to_reference_cfr_mean_power_ratio": 1.1277543842700102,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9699810204928435,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        4068
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 120,
+      "relative_complex_cfr_l2": 0.30193853771963647,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 20.941705258792354,
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1214
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 62,
+      "low_to_reference_cfr_mean_power_ratio": 1.1161817860234158,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9681275313661414,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        7684
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 223,
+      "relative_complex_cfr_l2": 0.32695604253674027,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 21.987574427839718,
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1418
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 65,
+      "low_to_reference_cfr_mean_power_ratio": 1.1170123244182768,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9669805741456717,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        12374
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 307,
+      "relative_complex_cfr_l2": 0.3289607773836675,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 22.61695186689394,
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1578
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 72,
+      "low_to_reference_cfr_mean_power_ratio": 1.1290119345166556,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9664483268448147,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        17368
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 383,
+      "relative_complex_cfr_l2": 0.320049429798915,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 22.854841574826423,
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1712
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 76,
+      "low_to_reference_cfr_mean_power_ratio": 1.1309596190955693,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9663045423486155,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        21901
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 451,
+      "relative_complex_cfr_l2": 0.3060565077393926,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": null,
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 0,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 0,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        9
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 1,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        9
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 1,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        48
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 5,
+      "low_to_reference_cfr_mean_power_ratio": 1.0000001134210699,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        57
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 5,
+      "relative_complex_cfr_l2": 7.199566341594862e-08,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 3.552713678800501e-06,
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        136
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 14,
+      "low_to_reference_cfr_mean_power_ratio": 0.9999998654738049,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9999999332649299,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        173
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 14,
+      "relative_complex_cfr_l2": 1.132214940090338e-06,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 1.324821141679422,
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        354
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 27,
+      "low_to_reference_cfr_mean_power_ratio": 1.141279523103041,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9896049757544515,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        602
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 30,
+      "relative_complex_cfr_l2": 0.20228439335588305,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 13.940343990270776,
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        671
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 43,
+      "low_to_reference_cfr_mean_power_ratio": 1.1384563121677997,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9814400844355973,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        1720
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 61,
+      "relative_complex_cfr_l2": 0.30541614121758753,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 21.690752305403294,
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        963
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 56,
+      "low_to_reference_cfr_mean_power_ratio": 1.1079001847611591,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9709769345913513,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        4087
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 120,
+      "relative_complex_cfr_l2": 0.31792849704632403,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 24.96127393669667,
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1233
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 71,
+      "low_to_reference_cfr_mean_power_ratio": 1.095981972969299,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9670910081936092,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        7730
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 233,
+      "relative_complex_cfr_l2": 0.35378678554397675,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 26.171520062234777,
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1460
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 74,
+      "low_to_reference_cfr_mean_power_ratio": 1.0975808163401233,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9658256329153876,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        12484
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 329,
+      "relative_complex_cfr_l2": 0.3496370800142901,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 26.263663244208146,
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1613
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 76,
+      "low_to_reference_cfr_mean_power_ratio": 1.1014067778301266,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9656608476238674,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        17442
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 406,
+      "relative_complex_cfr_l2": 0.34579332373182176,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 26.482631199087336,
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1752
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 78,
+      "low_to_reference_cfr_mean_power_ratio": 1.10008468773022,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9655645937000086,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        21919
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 470,
+      "relative_complex_cfr_l2": 0.3374152756000307,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 1,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 1,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        15
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 3,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        19
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 3,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        65
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 4,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        88
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 4,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        158
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 8,
+      "low_to_reference_cfr_mean_power_ratio": 1.0000011299380411,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        236
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 8,
+      "relative_complex_cfr_l2": 9.180868109483231e-07,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.6779323769023904,
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        377
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 19,
+      "low_to_reference_cfr_mean_power_ratio": 1.005044362048407,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9994111406856886,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        691
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 20,
+      "relative_complex_cfr_l2": 0.023901682952140405,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 4.6700776579200465,
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        699
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 32,
+      "low_to_reference_cfr_mean_power_ratio": 1.001863247370407,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.997352434599435,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        1804
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 42,
+      "relative_complex_cfr_l2": 0.05586686783537758,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 5.040055484073491,
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1040
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 44,
+      "low_to_reference_cfr_mean_power_ratio": 0.9965838701228286,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9976788424915556,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        4101
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 74,
+      "relative_complex_cfr_l2": 0.04989608253320277,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 6.871822222365154,
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1356
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 58,
+      "low_to_reference_cfr_mean_power_ratio": 0.11550564936715707,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.3797381845018077,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        8101
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 130,
+      "relative_complex_cfr_l2": 0.6731041319586626,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 7.095017018343697,
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1624
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 63,
+      "low_to_reference_cfr_mean_power_ratio": 0.07691372636177429,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.3038541556620985,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        13578
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 201,
+      "relative_complex_cfr_l2": 0.726865566497197,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 9.346960538891835,
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1823
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 67,
+      "low_to_reference_cfr_mean_power_ratio": 0.03674356282570729,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.21275684987651794,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        19363
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 292,
+      "relative_complex_cfr_l2": 0.8115560077878463,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 11.25789061973137,
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1971
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 71,
+      "low_to_reference_cfr_mean_power_ratio": 0.018098337245280663,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.15065358730516062,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        24803
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 361,
+      "relative_complex_cfr_l2": 0.8679038045571547,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 1,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 1,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        15
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 3,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        19
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 3,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        67
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 4,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        88
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 4,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 1.7763568394002505e-06,
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        162
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 8,
+      "low_to_reference_cfr_mean_power_ratio": 1.0000011927123766,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        233
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 8,
+      "relative_complex_cfr_l2": 9.262824935935873e-07,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 2.2251072095968993,
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        382
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 19,
+      "low_to_reference_cfr_mean_power_ratio": 0.9973333188142364,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9994450117164918,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        695
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 20,
+      "relative_complex_cfr_l2": 0.023204325061814548,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 6.118412443356647,
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        686
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 33,
+      "low_to_reference_cfr_mean_power_ratio": 0.9953865595180015,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9977214749747423,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        1800
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 42,
+      "relative_complex_cfr_l2": 0.06352293697853462,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 7.846642446907026,
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1039
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 42,
+      "low_to_reference_cfr_mean_power_ratio": 0.10956592663665897,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.3582223389728953,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        4116
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 76,
+      "relative_complex_cfr_l2": 0.7526071351374684,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 13.10707808954703,
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1326
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 51,
+      "low_to_reference_cfr_mean_power_ratio": 0.03629030451270361,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.2183287604782339,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        8143
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 123,
+      "relative_complex_cfr_l2": 0.8656370203472109,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 16.858127338537088,
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1571
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 55,
+      "low_to_reference_cfr_mean_power_ratio": 0.01465761915794156,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.14357957811363187,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        13612
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 182,
+      "relative_complex_cfr_l2": 0.9170574888807178,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 20.178171133977685,
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1768
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 61,
+      "low_to_reference_cfr_mean_power_ratio": 0.006109146055979144,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.09486662262916641,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        19437
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 264,
+      "relative_complex_cfr_l2": 0.9474428282561571,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 23.742616761524005,
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1934
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 64,
+      "low_to_reference_cfr_mean_power_ratio": 0.001952203101348227,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.05467429146431222,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        25015
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 336,
+      "relative_complex_cfr_l2": 0.9707258956499453,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 1,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 1,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        15
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 3,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        19
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 3,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        64
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 4,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        89
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 4,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.00013677947663381929,
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        158
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 8,
+      "low_to_reference_cfr_mean_power_ratio": 1.0000002510973425,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9999996719752874,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        235
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 8,
+      "relative_complex_cfr_l2": 1.92102587588041e-06,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 9.592326932761353e-05,
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        376
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 20,
+      "low_to_reference_cfr_mean_power_ratio": 1.0000003165512827,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9999996084279105,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        700
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 20,
+      "relative_complex_cfr_l2": 1.863235208475096e-06,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 3.1692763968749205,
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        683
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 36,
+      "low_to_reference_cfr_mean_power_ratio": 1.0004845546102634,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9983221416468218,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        1785
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 42,
+      "relative_complex_cfr_l2": 0.042060967622897495,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 4.915225559898317,
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1023
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 46,
+      "low_to_reference_cfr_mean_power_ratio": 0.9885385792384911,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9972872150137979,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        4083
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 73,
+      "relative_complex_cfr_l2": 0.07363694197672975,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 3.349709842837001,
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1345
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 52,
+      "low_to_reference_cfr_mean_power_ratio": 0.2806789508681457,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.5718693394105874,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        8120
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 122,
+      "relative_complex_cfr_l2": 0.5014984683492569,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 1.7945236407967968,
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1614
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 56,
+      "low_to_reference_cfr_mean_power_ratio": 0.6456036529991857,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.8230662553642495,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        13582
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 184,
+      "relative_complex_cfr_l2": 0.20217464611056335,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 10.768954616935389,
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1822
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 59,
+      "low_to_reference_cfr_mean_power_ratio": 0.033206175001754344,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.20624097934863858,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        19392
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 281,
+      "relative_complex_cfr_l2": 0.8225842854623145,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 11.3484945885034,
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1988
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 62,
+      "low_to_reference_cfr_mean_power_ratio": 0.0202415540593431,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.15913005258446114,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        24848
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 353,
+      "relative_complex_cfr_l2": 0.8602527924487046,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": null,
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 0,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 0,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        7
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 1,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        10
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 1,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        39
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 5,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        57
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 5,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.00031441516057384433,
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        122
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 13,
+      "low_to_reference_cfr_mean_power_ratio": 1.0000367796232417,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0000009125048839,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        183
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 13,
+      "relative_complex_cfr_l2": 2.5218387529087076e-05,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 6.413561237650356,
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        332
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 23,
+      "low_to_reference_cfr_mean_power_ratio": 0.9971742834784559,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9986690268233903,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        591
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 26,
+      "relative_complex_cfr_l2": 0.024508158668508785,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 11.077638362166908,
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        609
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 33,
+      "low_to_reference_cfr_mean_power_ratio": 1.0023331095014234,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9954786989320803,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        1626
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 49,
+      "relative_complex_cfr_l2": 0.053605553117343836,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 14.153933136640262,
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        886
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 45,
+      "low_to_reference_cfr_mean_power_ratio": 0.9952805201928068,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.993460711178209,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        3793
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 87,
+      "relative_complex_cfr_l2": 0.07923681825898661,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 15.078992277040015,
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1129
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 58,
+      "low_to_reference_cfr_mean_power_ratio": 0.9943381715852371,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9929364532140709,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        7332
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 149,
+      "relative_complex_cfr_l2": 0.07818483842303307,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 15.798836017211215,
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1364
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 63,
+      "low_to_reference_cfr_mean_power_ratio": 0.9948636540286262,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9928039080235801,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        12089
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 207,
+      "relative_complex_cfr_l2": 0.07947111558321887,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 13.905967932714702,
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1538
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 67,
+      "low_to_reference_cfr_mean_power_ratio": 0.9927477053889112,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9949965633265854,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        16944
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 282,
+      "relative_complex_cfr_l2": 0.06815578816195124,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 14.23950735102153,
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1671
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 73,
+      "low_to_reference_cfr_mean_power_ratio": 0.9926355196416132,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9949108095621635,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        21555
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 369,
+      "relative_complex_cfr_l2": 0.07115887393866877,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": null,
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 0,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 0,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        7
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 1,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        10
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 1,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        43
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 5,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        58
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 5,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.8811493756866184,
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        124
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 12,
+      "low_to_reference_cfr_mean_power_ratio": 0.9982701758252014,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9996504276744481,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        181
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 13,
+      "relative_complex_cfr_l2": 0.012853404814926143,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 7.43052375185016,
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        329
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 22,
+      "low_to_reference_cfr_mean_power_ratio": 0.9954809478443455,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9982823915410838,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        593
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 26,
+      "relative_complex_cfr_l2": 0.028452611997673263,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 12.023754436540912,
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        585
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 30,
+      "low_to_reference_cfr_mean_power_ratio": 0.9982492829761905,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9950393704403656,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        1627
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 48,
+      "relative_complex_cfr_l2": 0.04965149392290057,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 15.345889892159903,
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        886
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 39,
+      "low_to_reference_cfr_mean_power_ratio": 0.9909299857243066,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9928218122866024,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        3827
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 83,
+      "relative_complex_cfr_l2": 0.08265416612641957,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 18.257669154309042,
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1151
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 43,
+      "low_to_reference_cfr_mean_power_ratio": 0.9866850420722602,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.991274253158708,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        7362
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 143,
+      "relative_complex_cfr_l2": 0.08836381380148892,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 20.614443485555967,
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1358
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 47,
+      "low_to_reference_cfr_mean_power_ratio": 0.9888995207399998,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9905217529154804,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        12169
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 205,
+      "relative_complex_cfr_l2": 0.0846433687589389,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 21.240250447362996,
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1522
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 51,
+      "low_to_reference_cfr_mean_power_ratio": 0.9885065446460883,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9903372177693441,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        17155
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 284,
+      "relative_complex_cfr_l2": 0.08767414685086763,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 21.348089518369306,
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1666
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 53,
+      "low_to_reference_cfr_mean_power_ratio": 0.9883536955806994,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9903229262312685,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        21828
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 358,
+      "relative_complex_cfr_l2": 0.08796138972053381,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": null,
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 0,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 0,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        7
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 1,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        10
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 1,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0,
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        40
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 5,
+      "low_to_reference_cfr_mean_power_ratio": 1.0,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        59
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 5,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.00020605739337042905,
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        124
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 13,
+      "low_to_reference_cfr_mean_power_ratio": 1.0000189772694659,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0000005806849743,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        182
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 13,
+      "relative_complex_cfr_l2": 0.00013667109177454504,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.14778933632442204,
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        339
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 23,
+      "low_to_reference_cfr_mean_power_ratio": 1.0052783632270923,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9999317216731014,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        591
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 26,
+      "relative_complex_cfr_l2": 0.006104206684959369,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 7.251593103774212,
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        623
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 34,
+      "low_to_reference_cfr_mean_power_ratio": 1.0089436873129496,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.996174503090162,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        1617
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 47,
+      "relative_complex_cfr_l2": 0.04939626711871219,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 10.457569032951142,
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        908
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 43,
+      "low_to_reference_cfr_mean_power_ratio": 1.0040952759413533,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9935814590167031,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        3796
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 82,
+      "relative_complex_cfr_l2": 0.08330070097401378,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 13.08803376787182,
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1176
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 48,
+      "low_to_reference_cfr_mean_power_ratio": 0.9981874927487234,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9923091617189629,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        7339
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 146,
+      "relative_complex_cfr_l2": 0.0938601443917516,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 14.321333452471663,
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1382
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 51,
+      "low_to_reference_cfr_mean_power_ratio": 1.0005724843319048,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9918312521886915,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        12016
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 209,
+      "relative_complex_cfr_l2": 0.08904141476644728,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 15.018088106444338,
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1554
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 55,
+      "low_to_reference_cfr_mean_power_ratio": 0.9994212452485359,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9916244369656575,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        16898
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 289,
+      "relative_complex_cfr_l2": 0.09294836231668886,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 15.265310793211029,
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1693
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 59,
+      "low_to_reference_cfr_mean_power_ratio": 0.9991083378140152,
+      "low_to_reference_diffuse_path_power_ratio": 1.0,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9915688419037689,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        21533
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 364,
+      "relative_complex_cfr_l2": 0.09499817280545579,
+      "seed": 47,
+      "valid_path_count_equal": false
+    }
+  ],
+  "compatibility": {
+    "package_source_sha256_equal": true,
+    "runtime_versions_equal_excluding_git_revision": true,
+    "scene_tree_sha256_equal": true,
+    "solver_script_sha256_equal": true
+  },
+  "evidence_grade": "matched synthetic-scene solver sensitivity; larger budget is a finite comparison reference, not truth",
+  "limitations": [
+    "A finite larger ray budget is not proven ground truth.",
+    "The experiment covers only the recorded synthetic scene, links, materials, frequencies, and backend.",
+    "This audit measures solver sensitivity; it does not establish propagation-model accuracy or release acceptance."
+  ],
+  "reports": [
+    {
+      "path": "docs/research/results/rt-city43-spatial-los-nlos-depth10-s0-20k-20261022.json",
+      "revision": "9693ed172df53f9c733bff9794f30d1f38dd09e0",
+      "sha256": "d8798321f12964b9e86987f56c595af3703df62f348bf45403b67e91fc1559d8"
+    },
+    {
+      "path": "docs/research/results/rt-city43-spatial-los-nlos-depth10-s0-1m-20261022.json",
+      "revision": "9693ed172df53f9c733bff9794f30d1f38dd09e0",
+      "sha256": "ed66ae82f5b8034d844e14862b6cd310845968cc102d954908e0261b86a929ef"
+    }
+  ],
+  "schema": "loslab.rt_solver_ray_budget_comparison.v1",
+  "summary": {
+    "grouped_by_depth_and_geometric_condition": [
+      {
+        "absolute_rms_delay_spread_difference_ns_median": null,
+        "condition": "NLOS",
+        "low_to_reference_cfr_mean_power_ratio_median": 1.0,
+        "low_to_reference_diffuse_path_power_ratio_median": 1.0,
+        "low_to_reference_non_diffuse_path_power_ratio_median": 1.0,
+        "matched_runs": 9,
+        "max_depth": 0,
+        "path_count_changes": 0,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.0,
+        "relative_complex_cfr_l2_median": 0.0,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "absolute_rms_delay_spread_difference_ns_median": 0.0,
+        "condition": "LOS",
+        "low_to_reference_cfr_mean_power_ratio_median": 1.0,
+        "low_to_reference_diffuse_path_power_ratio_median": 1.0,
+        "low_to_reference_non_diffuse_path_power_ratio_median": 1.0,
+        "matched_runs": 9,
+        "max_depth": 0,
+        "path_count_changes": 0,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.0,
+        "relative_complex_cfr_l2_median": 0.0,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "absolute_rms_delay_spread_difference_ns_median": 0.0,
+        "condition": "NLOS",
+        "low_to_reference_cfr_mean_power_ratio_median": 1.0,
+        "low_to_reference_diffuse_path_power_ratio_median": 1.0,
+        "low_to_reference_non_diffuse_path_power_ratio_median": 1.0,
+        "matched_runs": 9,
+        "max_depth": 1,
+        "path_count_changes": 0,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.0009774551087274076,
+        "relative_complex_cfr_l2_median": 0.0,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "absolute_rms_delay_spread_difference_ns_median": 0.0,
+        "condition": "LOS",
+        "low_to_reference_cfr_mean_power_ratio_median": 1.0,
+        "low_to_reference_diffuse_path_power_ratio_median": 1.0,
+        "low_to_reference_non_diffuse_path_power_ratio_median": 1.0,
+        "matched_runs": 9,
+        "max_depth": 1,
+        "path_count_changes": 0,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 1.180615506735967e-07,
+        "relative_complex_cfr_l2_median": 0.0,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "absolute_rms_delay_spread_difference_ns_median": 0.0,
+        "condition": "NLOS",
+        "low_to_reference_cfr_mean_power_ratio_median": 1.0,
+        "low_to_reference_diffuse_path_power_ratio_median": 1.0,
+        "low_to_reference_non_diffuse_path_power_ratio_median": 1.0,
+        "matched_runs": 9,
+        "max_depth": 2,
+        "path_count_changes": 0,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.0013855225654625266,
+        "relative_complex_cfr_l2_median": 0.0,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "absolute_rms_delay_spread_difference_ns_median": 0.0,
+        "condition": "LOS",
+        "low_to_reference_cfr_mean_power_ratio_median": 1.0,
+        "low_to_reference_diffuse_path_power_ratio_median": 1.0,
+        "low_to_reference_non_diffuse_path_power_ratio_median": 1.0,
+        "matched_runs": 9,
+        "max_depth": 2,
+        "path_count_changes": 0,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 1.0971987243687196e-07,
+        "relative_complex_cfr_l2_median": 0.0,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "absolute_rms_delay_spread_difference_ns_median": 0.0015631940186722204,
+        "condition": "NLOS",
+        "low_to_reference_cfr_mean_power_ratio_median": 0.999240746258718,
+        "low_to_reference_diffuse_path_power_ratio_median": 1.0,
+        "low_to_reference_non_diffuse_path_power_ratio_median": 0.9999984650943092,
+        "matched_runs": 9,
+        "max_depth": 3,
+        "path_count_changes": 4,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.07981977163852844,
+        "relative_complex_cfr_l2_median": 0.0011195942520155315,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "absolute_rms_delay_spread_difference_ns_median": 0.00013677947663381929,
+        "condition": "LOS",
+        "low_to_reference_cfr_mean_power_ratio_median": 1.0000002510973425,
+        "low_to_reference_diffuse_path_power_ratio_median": 1.0,
+        "low_to_reference_non_diffuse_path_power_ratio_median": 0.9999998282197354,
+        "matched_runs": 9,
+        "max_depth": 3,
+        "path_count_changes": 2,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.019515153160108403,
+        "relative_complex_cfr_l2_median": 1.92102587588041e-06,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "absolute_rms_delay_spread_difference_ns_median": 6.113673123309127,
+        "condition": "NLOS",
+        "low_to_reference_cfr_mean_power_ratio_median": 1.0052783632270923,
+        "low_to_reference_diffuse_path_power_ratio_median": 1.0,
+        "low_to_reference_non_diffuse_path_power_ratio_median": 0.9924117910373038,
+        "matched_runs": 9,
+        "max_depth": 4,
+        "path_count_changes": 9,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.25719946941495003,
+        "relative_complex_cfr_l2_median": 0.0856096524796883,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "absolute_rms_delay_spread_difference_ns_median": 0.6779323769023904,
+        "condition": "LOS",
+        "low_to_reference_cfr_mean_power_ratio_median": 0.9997860382455026,
+        "low_to_reference_diffuse_path_power_ratio_median": 1.0,
+        "low_to_reference_non_diffuse_path_power_ratio_median": 0.9995837654526862,
+        "matched_runs": 9,
+        "max_depth": 4,
+        "path_count_changes": 7,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.4251611382874189,
+        "relative_complex_cfr_l2_median": 0.01948834759118918,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "absolute_rms_delay_spread_difference_ns_median": 11.768193530770077,
+        "condition": "NLOS",
+        "low_to_reference_cfr_mean_power_ratio_median": 1.0023331095014234,
+        "low_to_reference_diffuse_path_power_ratio_median": 1.0,
+        "low_to_reference_non_diffuse_path_power_ratio_median": 0.9824880578839321,
+        "matched_runs": 9,
+        "max_depth": 5,
+        "path_count_changes": 9,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.30541614121758753,
+        "relative_complex_cfr_l2_median": 0.13837340182465033,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "absolute_rms_delay_spread_difference_ns_median": 4.067086223358274,
+        "condition": "LOS",
+        "low_to_reference_cfr_mean_power_ratio_median": 0.35583679360622494,
+        "low_to_reference_diffuse_path_power_ratio_median": 1.0,
+        "low_to_reference_non_diffuse_path_power_ratio_median": 0.6765655662809541,
+        "matched_runs": 9,
+        "max_depth": 5,
+        "path_count_changes": 9,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.5294627873327756,
+        "relative_complex_cfr_l2_median": 0.4239234296369451,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "absolute_rms_delay_spread_difference_ns_median": 19.771043469063443,
+        "condition": "NLOS",
+        "low_to_reference_cfr_mean_power_ratio_median": 1.0185951523809949,
+        "low_to_reference_diffuse_path_power_ratio_median": 1.0,
+        "low_to_reference_non_diffuse_path_power_ratio_median": 0.9699810204928435,
+        "matched_runs": 9,
+        "max_depth": 6,
+        "path_count_changes": 9,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.3463728425201366,
+        "relative_complex_cfr_l2_median": 0.17977448932546902,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "absolute_rms_delay_spread_difference_ns_median": 4.915225559898317,
+        "condition": "LOS",
+        "low_to_reference_cfr_mean_power_ratio_median": 0.2969698823008276,
+        "low_to_reference_diffuse_path_power_ratio_median": 1.0,
+        "low_to_reference_non_diffuse_path_power_ratio_median": 0.5533960407907129,
+        "matched_runs": 9,
+        "max_depth": 6,
+        "path_count_changes": 9,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.7526071351374684,
+        "relative_complex_cfr_l2_median": 0.4620069230826761,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "absolute_rms_delay_spread_difference_ns_median": 23.04624757698548,
+        "condition": "NLOS",
+        "low_to_reference_cfr_mean_power_ratio_median": 0.9981874927487234,
+        "low_to_reference_diffuse_path_power_ratio_median": 1.0,
+        "low_to_reference_non_diffuse_path_power_ratio_median": 0.9670910081936092,
+        "matched_runs": 9,
+        "max_depth": 7,
+        "path_count_changes": 9,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.35378678554397675,
+        "relative_complex_cfr_l2_median": 0.27015779200786405,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "absolute_rms_delay_spread_difference_ns_median": 7.308534222261187,
+        "condition": "LOS",
+        "low_to_reference_cfr_mean_power_ratio_median": 0.10471751751580066,
+        "low_to_reference_diffuse_path_power_ratio_median": 1.0,
+        "low_to_reference_non_diffuse_path_power_ratio_median": 0.34335934382141053,
+        "matched_runs": 9,
+        "max_depth": 7,
+        "path_count_changes": 9,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.8796055099687321,
+        "relative_complex_cfr_l2_median": 0.6766387914304247,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "absolute_rms_delay_spread_difference_ns_median": 25.082513843699417,
+        "condition": "NLOS",
+        "low_to_reference_cfr_mean_power_ratio_median": 1.0183312433442229,
+        "low_to_reference_diffuse_path_power_ratio_median": 1.0,
+        "low_to_reference_non_diffuse_path_power_ratio_median": 0.9669805741456717,
+        "matched_runs": 9,
+        "max_depth": 8,
+        "path_count_changes": 9,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.45284578180855745,
+        "relative_complex_cfr_l2_median": 0.28015750332257877,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "absolute_rms_delay_spread_difference_ns_median": 11.842104186143843,
+        "condition": "LOS",
+        "low_to_reference_cfr_mean_power_ratio_median": 0.029655768372892605,
+        "low_to_reference_diffuse_path_power_ratio_median": 1.0,
+        "low_to_reference_non_diffuse_path_power_ratio_median": 0.17033276860230762,
+        "matched_runs": 9,
+        "max_depth": 8,
+        "path_count_changes": 9,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.9440136404351771,
+        "relative_complex_cfr_l2_median": 0.8279377485191789,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "absolute_rms_delay_spread_difference_ns_median": 25.525729085984494,
+        "condition": "NLOS",
+        "low_to_reference_cfr_mean_power_ratio_median": 1.0365211576769442,
+        "low_to_reference_diffuse_path_power_ratio_median": 1.0,
+        "low_to_reference_non_diffuse_path_power_ratio_median": 0.9664483268448147,
+        "matched_runs": 9,
+        "max_depth": 9,
+        "path_count_changes": 9,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.4511768820817612,
+        "relative_complex_cfr_l2_median": 0.2579101413396693,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "absolute_rms_delay_spread_difference_ns_median": 15.801021824302097,
+        "condition": "LOS",
+        "low_to_reference_cfr_mean_power_ratio_median": 0.008867250578961346,
+        "low_to_reference_diffuse_path_power_ratio_median": 1.0,
+        "low_to_reference_non_diffuse_path_power_ratio_median": 0.09486662262916641,
+        "matched_runs": 9,
+        "max_depth": 9,
+        "path_count_changes": 9,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.9474428282561571,
+        "relative_complex_cfr_l2_median": 0.9059115862592514,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "absolute_rms_delay_spread_difference_ns_median": 25.764769873148907,
+        "condition": "NLOS",
+        "low_to_reference_cfr_mean_power_ratio_median": 1.0343435568642187,
+        "low_to_reference_diffuse_path_power_ratio_median": 1.0,
+        "low_to_reference_non_diffuse_path_power_ratio_median": 0.9663045423486155,
+        "matched_runs": 9,
+        "max_depth": 10,
+        "path_count_changes": 9,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.44522986875983195,
+        "relative_complex_cfr_l2_median": 0.2599304266461805,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "absolute_rms_delay_spread_difference_ns_median": 17.59439971493748,
+        "condition": "LOS",
+        "low_to_reference_cfr_mean_power_ratio_median": 0.005192822942667779,
+        "low_to_reference_diffuse_path_power_ratio_median": 1.0,
+        "low_to_reference_non_diffuse_path_power_ratio_median": 0.08697785772229365,
+        "matched_runs": 9,
+        "max_depth": 10,
+        "path_count_changes": 9,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.9707258956499453,
+        "relative_complex_cfr_l2_median": 0.9288304033162896,
+        "zero_energy_comparisons": 0
+      }
+    ],
+    "matched_runs": 198,
+    "missing_reference_rows": 0
+  }
+}
