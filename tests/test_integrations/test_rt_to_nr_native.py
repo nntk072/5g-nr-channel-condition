@@ -248,6 +248,78 @@ def test_rt_direct_and_reflected_paths_sum_coherently_on_nr_grid():
 
 
 @pytest.mark.native_sionna
+@pytest.mark.parametrize("tx_azimuth_rad", [0.0, np.pi / 2.0])
+def test_explicit_array_delays_and_cfr_match_oriented_element_geometry(tx_azimuth_rad):
+    """Verify element ordering, orientation, spherical delay, and Friis phase."""
+    import mitsuba as mi
+
+    mi.set_variant("llvm_ad_mono_polarized")
+    rt = pytest.importorskip("sionna.rt")
+
+    carrier_hz = 3.5e9
+    wavelength_m = speed_of_light / carrier_hz
+    tx_center = np.asarray([0.0, 0.0, 0.0])
+    rx_position = np.asarray([10.0, 1.0, 0.0])
+    scene = rt.load_scene()
+    scene.frequency = carrier_hz
+    scene.tx_array = rt.PlanarArray(
+        num_rows=1,
+        num_cols=2,
+        horizontal_spacing=0.5,
+        pattern="iso",
+        polarization="V",
+    )
+    scene.rx_array = rt.PlanarArray(num_rows=1, num_cols=1, pattern="iso", polarization="V")
+    scene.add(rt.Transmitter("tx", tx_center.tolist(), orientation=[tx_azimuth_rad, 0.0, 0.0]))
+    scene.add(rt.Receiver("rx", rx_position.tolist()))
+    paths = rt.PathSolver(deterministic=True)(
+        scene,
+        max_depth=0,
+        los=True,
+        specular_reflection=False,
+        diffuse_reflection=False,
+        refraction=False,
+        diffraction=False,
+        synthetic_array=False,
+    )
+
+    valid = np.asarray(paths.valid.numpy(), dtype=bool)
+    assert valid.shape == (1, 1, 1, 2, 1)
+    assert valid.all()
+    local_element_positions = (
+        np.asarray([[0.0, -0.25, 0.0], [0.0, 0.25, 0.0]], dtype=np.float64) * wavelength_m
+    )
+    cosine = np.cos(tx_azimuth_rad)
+    sine = np.sin(tx_azimuth_rad)
+    rotation = np.asarray(
+        [[cosine, -sine, 0.0], [sine, cosine, 0.0], [0.0, 0.0, 1.0]],
+        dtype=np.float64,
+    )
+    element_positions = tx_center + local_element_positions @ rotation.T
+    distances_m = np.linalg.norm(rx_position - element_positions, axis=1)
+    expected_delays_s = distances_m / speed_of_light
+    expected_gains = wavelength_m / (4.0 * np.pi * distances_m)
+    expected_cfr = expected_gains * np.exp(-2j * np.pi * carrier_hz * expected_delays_s)
+
+    delays_s = np.asarray(paths.tau.numpy(), dtype=np.float64)[0, 0, 0, :, 0]
+    gains = (
+        np.asarray(paths.a[0].numpy())[0, 0, 0, :, 0]
+        + 1j * np.asarray(paths.a[1].numpy())[0, 0, 0, :, 0]
+    )
+    np.testing.assert_allclose(delays_s, expected_delays_s, rtol=0, atol=2e-12)
+    np.testing.assert_allclose(np.abs(gains), expected_gains, rtol=2e-5, atol=0)
+
+    cfr = paths.cfr(
+        frequencies=np.asarray([0.0]),
+        normalize_delays=False,
+        normalize=False,
+        out_type="numpy",
+    )
+    measured_cfr = cfr[0, 0, 0, :, 0, 0]
+    np.testing.assert_allclose(measured_cfr, expected_cfr, rtol=1e-4, atol=1e-9)
+
+
+@pytest.mark.native_sionna
 @pytest.mark.parametrize(("polarization", "fresnel_mode"), [("V", "TM"), ("H", "TE")])
 def test_rt_reflected_path_gain_matches_analytic_fresnel_slab(polarization, fresnel_mode):
     """V and H links match the analytic TM and TE slab coefficients, respectively."""
