@@ -90,9 +90,10 @@ def sionna_scene_to_network_episode(
 ) -> SionnaSceneNetwork:
     """Extract one static Sionna ``Scene`` as a multi-node UMCD episode.
 
-    Sionna device-axis order is retained exactly as exposed by the pinned
-    ``Scene.transmitters`` and ``Scene.receivers`` mappings. Array positions
-    are converted from wavelength-normalized local coordinates to meters;
+    UMCD node, array, and link records are ordered by device name so insertion
+    order cannot change the exported episode identity. Explicit device-axis
+    mappings retain each device's actual index in the pinned Sionna scene.
+    Array positions are converted from wavelength-normalized local coordinates to meters;
     each pattern/element feed becomes one explicitly ordered UMCD port. Names
     inferred for patterns (``pattern-N``) preserve Sionna pattern order but do
     not claim a physical polarization basis. Supply labels such as ``V`` and
@@ -135,7 +136,9 @@ def sionna_scene_to_network_episode(
         ("tx", tx_devices, tx_array, tx_labels, tx_array_specs, tx_ids, tx_device_indices),
         ("rx", rx_devices, rx_array, rx_labels, rx_array_specs, rx_ids, rx_device_indices),
     ):
-        for device_index, (name, device) in enumerate(items):
+        solver_indices = {name: index for index, (name, _) in enumerate(items)}
+        for name, device in sorted(items, key=lambda item: item[0]):
+            device_index = solver_indices[name]
             node_id = f"{axis}:{name}"
             _require_static_device(device, node_id)
             orientation = _orientation_matrix(getattr(device, "orientation", None), node_id)

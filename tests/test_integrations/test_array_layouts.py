@@ -46,7 +46,7 @@ def _scene(*, moving_tx: bool = False) -> SimpleNamespace:
     )
 
 
-def test_scene_extraction_preserves_geometry_feeds_roles_and_solver_axis_order():
+def test_scene_extraction_preserves_geometry_feeds_roles_and_solver_axis_mapping():
     result = sionna_scene_to_network_episode(
         _scene(),
         episode_id="episode",
@@ -73,24 +73,24 @@ def test_scene_extraction_preserves_geometry_feeds_roles_and_solver_axis_order()
     episode = result.episode
     assert episode.carrier_hz == pytest.approx(3.5e9)
     assert [node.node_id for node in episode.nodes] == [
-        "tx:tx-z",
         "tx:tx-a",
-        "rx:rx-z",
+        "tx:tx-z",
         "rx:rx-a",
+        "rx:rx-z",
     ]
     assert [link.link_id for link in episode.links] == [
-        "tx:tx-z->rx:rx-z",
-        "tx:tx-z->rx:rx-a",
-        "tx:tx-a->rx:rx-z",
         "tx:tx-a->rx:rx-a",
+        "tx:tx-a->rx:rx-z",
+        "tx:tx-z->rx:rx-a",
+        "tx:tx-z->rx:rx-z",
     ]
     assert [
         (item.tx_device_index, item.rx_device_index) for item in result.device_link_mappings
     ] == [
-        (0, 0),
-        (0, 1),
-        (1, 0),
         (1, 1),
+        (1, 0),
+        (0, 1),
+        (0, 0),
     ]
     tx = episode.array("tx:tx-z:array")
     np.testing.assert_allclose(
@@ -119,7 +119,16 @@ def test_scene_extraction_requires_explicit_rf_chain_counts_for_multiport_arrays
 def test_scene_extraction_rejects_motion_until_pose_timeline_is_supported():
     with pytest.raises(ValueError, match="trajectory-aware"):
         sionna_scene_to_network_episode(
-            _scene(moving_tx=True), episode_id="e", split_group_id="s", family_id="f"
+            _scene(moving_tx=True),
+            episode_id="e",
+            split_group_id="s",
+            family_id="f",
+            rf_chain_count_by_node={
+                "tx:tx-z": 2,
+                "tx:tx-a": 2,
+                "rx:rx-z": 2,
+                "rx:rx-a": 2,
+            },
         )
 
 
@@ -152,6 +161,63 @@ def test_scene_extraction_rejects_incomplete_pattern_labels_and_associations():
             },
             associations=(("rx:rx-z", "tx:tx-z"),),
         )
+
+
+def test_reordering_scene_device_insertion_preserves_named_episode_identity():
+    first_scene = _scene()
+    second_scene = _scene()
+    second_scene.transmitters = dict(reversed(tuple(second_scene.transmitters.items())))
+    second_scene.receivers = dict(reversed(tuple(second_scene.receivers.items())))
+    kwargs = {
+        "episode_id": "episode",
+        "split_group_id": "scene-family",
+        "family_id": "F03-RT-STATIC",
+        "subcarrier_offsets_hz": (-30e3, 0.0, 30e3),
+        "rf_chain_count_by_node": {
+            "tx:tx-z": 2,
+            "tx:tx-a": 2,
+            "rx:rx-z": 2,
+            "rx:rx-a": 2,
+        },
+        "tx_pattern_labels": ("V", "H"),
+        "rx_pattern_labels": ("V", "H"),
+        "direction": LinkDirection.DOWNLINK,
+        "link_role": LinkRole.SERVING,
+    }
+    first = sionna_scene_to_network_episode(first_scene, **kwargs)
+    second = sionna_scene_to_network_episode(second_scene, **kwargs)
+
+    assert first.episode.nodes == second.episode.nodes
+    assert first.episode.links == second.episode.links
+    assert [array.array_id for array in first.episode.arrays] == [
+        array.array_id for array in second.episode.arrays
+    ]
+    for first_array, second_array in zip(first.episode.arrays, second.episode.arrays, strict=True):
+        assert first_array.port_ids == second_array.port_ids
+        np.testing.assert_array_equal(
+            first_array.element_positions_local_m,
+            second_array.element_positions_local_m,
+        )
+        np.testing.assert_array_equal(
+            first_array.orientation_local_to_world,
+            second_array.orientation_local_to_world,
+        )
+        np.testing.assert_array_equal(
+            first_array.port_element_weights,
+            second_array.port_element_weights,
+        )
+
+    def check_scene_axis_mapping(result, scene):
+        tx_indices = {name: index for index, (name, _) in enumerate(scene.transmitters.items())}
+        rx_indices = {name: index for index, (name, _) in enumerate(scene.receivers.items())}
+        for mapping in result.device_link_mappings:
+            link = result.episode.link(mapping.link_id)
+            assert mapping.tx_device_index == tx_indices[link.tx_node_id.removeprefix("tx:")]
+            assert mapping.rx_device_index == rx_indices[link.rx_node_id.removeprefix("rx:")]
+
+    check_scene_axis_mapping(first, first_scene)
+    check_scene_axis_mapping(second, second_scene)
+    assert first.device_link_mappings != second.device_link_mappings
 
 
 @pytest.mark.native_sionna
@@ -208,19 +274,83 @@ def test_native_scene_and_paths_convert_together_without_manual_device_indices()
     assert [
         (item.tx_device_index, item.rx_device_index) for item in network.device_link_mappings
     ] == [
-        (0, 0),
-        (0, 1),
-        (1, 0),
         (1, 1),
+        (1, 0),
+        (0, 1),
+        (0, 0),
     ]
     np.testing.assert_allclose(
         table.delay_s,
         [
             np.asarray(paths.tau.numpy())[rx, tx, 0]
-            for tx, rx in ((0, 0), (0, 1), (1, 0), (1, 1))
+            for tx, rx in ((1, 1), (1, 0), (0, 1), (0, 0))
             for _ in range(16)
         ],
     )
+
+    reversed_scene = rt.load_scene()
+    reversed_scene.frequency = 3.5e9
+    reversed_scene.tx_array = rt.PlanarArray(
+        num_rows=1, num_cols=2, pattern="iso", polarization="VH"
+    )
+    reversed_scene.rx_array = rt.PlanarArray(
+        num_rows=1, num_cols=2, pattern="iso", polarization="VH"
+    )
+    reversed_scene.add(rt.Transmitter("tx-a", [2.0, 0.0, 1.0]))
+    reversed_scene.add(rt.Transmitter("tx-z", [0.0, 0.0, 1.0]))
+    reversed_scene.add(rt.Receiver("rx-a", [12.0, 0.0, 1.0]))
+    reversed_scene.add(rt.Receiver("rx-z", [10.0, 0.0, 1.0]))
+    reversed_paths = rt.PathSolver(deterministic=True)(
+        reversed_scene,
+        max_depth=0,
+        los=True,
+        specular_reflection=False,
+        diffuse_reflection=False,
+        refraction=False,
+        diffraction=False,
+        synthetic_array=True,
+    )
+    reversed_network = sionna_scene_to_network_episode(
+        reversed_scene,
+        episode_id="native-scene",
+        split_group_id="native-scene",
+        family_id="F03-RT-STATIC",
+        subcarrier_offsets_hz=(-15e3, 0.0, 15e3),
+        rf_chain_count_by_node={
+            "tx:tx-z": 4,
+            "tx:tx-a": 4,
+            "rx:rx-z": 4,
+            "rx:rx-a": 4,
+        },
+    )
+    reversed_bindings = reversed_network.bind_paths(
+        {link.link_id: reversed_paths for link in reversed_network.episode.links}
+    )
+    reversed_table = sionna_bindings_to_episode_oracle(reversed_network.episode, reversed_bindings)
+    assert reversed_network.episode.nodes == network.episode.nodes
+    assert reversed_network.episode.links == network.episode.links
+    assert reversed_table.link_ids == table.link_ids
+    for attribute in (
+        "frame_indices",
+        "rx_port_indices",
+        "tx_port_indices",
+        "path_offsets",
+        "delay_s",
+        "complex_gain",
+        "interaction_order",
+        "doppler_hz",
+        "aoa_azimuth_elevation_rad",
+        "aod_azimuth_elevation_rad",
+        "interaction_offsets",
+        "interaction_types",
+        "object_ids",
+        "primitive_ids",
+        "interaction_vertices_m",
+    ):
+        np.testing.assert_allclose(getattr(reversed_table, attribute), getattr(table, attribute))
+    assert reversed_table.solve_status == table.solve_status
+    assert reversed_table.path_kind == table.path_kind
+    assert reversed_table.interaction_vertex_frame == table.interaction_vertex_frame
 
 
 def test_scene_mapping_keeps_missing_solve_explicit():
