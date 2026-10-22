@@ -1,0 +1,4021 @@
+{
+  "budgets_samples_per_source": {
+    "low": 100000,
+    "reference": 1000000
+  },
+  "comparisons": [
+    {
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 1,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 1,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        7164
+      ],
+      "low_budget_diffuse_path_count": 7140,
+      "low_budget_valid_path_count": 7143,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        70811
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 70787,
+      "reference_budget_valid_path_count": 70790,
+      "relative_complex_cfr_l2": 0.19226864527429183,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        8907
+      ],
+      "low_budget_diffuse_path_count": 8793,
+      "low_budget_valid_path_count": 8797,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        87528
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 87400,
+      "reference_budget_valid_path_count": 87404,
+      "relative_complex_cfr_l2": 0.17524774245715738,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        9721
+      ],
+      "low_budget_diffuse_path_count": 9296,
+      "low_budget_valid_path_count": 9305,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        93045
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 92391,
+      "reference_budget_valid_path_count": 92400,
+      "relative_complex_cfr_l2": 0.17882534599629493,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        10960
+      ],
+      "low_budget_diffuse_path_count": 9764,
+      "low_budget_valid_path_count": 9789,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        98952
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 96499,
+      "reference_budget_valid_path_count": 96533,
+      "relative_complex_cfr_l2": 0.5227758413222343,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        12682
+      ],
+      "low_budget_diffuse_path_count": 10187,
+      "low_budget_valid_path_count": 10242,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        106427
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 99360,
+      "reference_budget_valid_path_count": 99435,
+      "relative_complex_cfr_l2": 0.40380625956311783,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        14622
+      ],
+      "low_budget_diffuse_path_count": 10593,
+      "low_budget_valid_path_count": 10673,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        117818
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 102611,
+      "reference_budget_valid_path_count": 102764,
+      "relative_complex_cfr_l2": 0.6726480098029181,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        16265
+      ],
+      "low_budget_diffuse_path_count": 10929,
+      "low_budget_valid_path_count": 11034,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        130010
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 105173,
+      "reference_budget_valid_path_count": 105442,
+      "relative_complex_cfr_l2": 0.7726769911658254,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        17679
+      ],
+      "low_budget_diffuse_path_count": 11198,
+      "low_budget_valid_path_count": 11323,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        141492
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 107501,
+      "reference_budget_valid_path_count": 107884,
+      "relative_complex_cfr_l2": 0.7787792489111762,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        18849
+      ],
+      "low_budget_diffuse_path_count": 11432,
+      "low_budget_valid_path_count": 11574,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        150818
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 109246,
+      "reference_budget_valid_path_count": 109720,
+      "relative_complex_cfr_l2": 0.7731449513895795,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        19739
+      ],
+      "low_budget_diffuse_path_count": 11590,
+      "low_budget_valid_path_count": 11737,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        158466
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 110752,
+      "reference_budget_valid_path_count": 111307,
+      "relative_complex_cfr_l2": 0.8109049210479854,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 1,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 1,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        7137
+      ],
+      "low_budget_diffuse_path_count": 7113,
+      "low_budget_valid_path_count": 7116,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        70322
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 70298,
+      "reference_budget_valid_path_count": 70301,
+      "relative_complex_cfr_l2": 0.20618435508100524,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        8927
+      ],
+      "low_budget_diffuse_path_count": 8810,
+      "low_budget_valid_path_count": 8814,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        87023
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 86894,
+      "reference_budget_valid_path_count": 86898,
+      "relative_complex_cfr_l2": 0.17416040232186694,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        9738
+      ],
+      "low_budget_diffuse_path_count": 9332,
+      "low_budget_valid_path_count": 9341,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        92454
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 91795,
+      "reference_budget_valid_path_count": 91804,
+      "relative_complex_cfr_l2": 0.18060756102688438,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        11012
+      ],
+      "low_budget_diffuse_path_count": 9801,
+      "low_budget_valid_path_count": 9823,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        98476
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 95958,
+      "reference_budget_valid_path_count": 95994,
+      "relative_complex_cfr_l2": 0.8147905895862095,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        12741
+      ],
+      "low_budget_diffuse_path_count": 10232,
+      "low_budget_valid_path_count": 10279,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        105858
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 98751,
+      "reference_budget_valid_path_count": 98835,
+      "relative_complex_cfr_l2": 0.7593327536144204,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        14697
+      ],
+      "low_budget_diffuse_path_count": 10638,
+      "low_budget_valid_path_count": 10712,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        117211
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 101820,
+      "reference_budget_valid_path_count": 101994,
+      "relative_complex_cfr_l2": 0.8003330548333606,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        16369
+      ],
+      "low_budget_diffuse_path_count": 10974,
+      "low_budget_valid_path_count": 11066,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        129259
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 104307,
+      "reference_budget_valid_path_count": 104587,
+      "relative_complex_cfr_l2": 0.8468094736463002,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        17738
+      ],
+      "low_budget_diffuse_path_count": 11231,
+      "low_budget_valid_path_count": 11342,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        140732
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 106604,
+      "reference_budget_valid_path_count": 106984,
+      "relative_complex_cfr_l2": 0.8418099471906882,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        18897
+      ],
+      "low_budget_diffuse_path_count": 11456,
+      "low_budget_valid_path_count": 11580,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        149980
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 108390,
+      "reference_budget_valid_path_count": 108853,
+      "relative_complex_cfr_l2": 0.8282220728713331,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        19777
+      ],
+      "low_budget_diffuse_path_count": 11610,
+      "low_budget_valid_path_count": 11742,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        157604
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 109841,
+      "reference_budget_valid_path_count": 110382,
+      "relative_complex_cfr_l2": 0.8405992105877637,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 1,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 1,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        7106
+      ],
+      "low_budget_diffuse_path_count": 7082,
+      "low_budget_valid_path_count": 7085,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        70565
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 70541,
+      "reference_budget_valid_path_count": 70544,
+      "relative_complex_cfr_l2": 0.24794271262800813,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        8884
+      ],
+      "low_budget_diffuse_path_count": 8767,
+      "low_budget_valid_path_count": 8771,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        87274
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 87143,
+      "reference_budget_valid_path_count": 87147,
+      "relative_complex_cfr_l2": 0.21659322182893326,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        9688
+      ],
+      "low_budget_diffuse_path_count": 9283,
+      "low_budget_valid_path_count": 9292,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        92730
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 92071,
+      "reference_budget_valid_path_count": 92080,
+      "relative_complex_cfr_l2": 0.22777655490954432,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        10950
+      ],
+      "low_budget_diffuse_path_count": 9765,
+      "low_budget_valid_path_count": 9787,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        98694
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 96229,
+      "reference_budget_valid_path_count": 96269,
+      "relative_complex_cfr_l2": 0.895104975578551,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        12691
+      ],
+      "low_budget_diffuse_path_count": 10167,
+      "low_budget_valid_path_count": 10219,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        106140
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 99073,
+      "reference_budget_valid_path_count": 99163,
+      "relative_complex_cfr_l2": 0.8177098841309576,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        14679
+      ],
+      "low_budget_diffuse_path_count": 10563,
+      "low_budget_valid_path_count": 10643,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        117422
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 102195,
+      "reference_budget_valid_path_count": 102373,
+      "relative_complex_cfr_l2": 0.7667331321783635,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        16414
+      ],
+      "low_budget_diffuse_path_count": 10901,
+      "low_budget_valid_path_count": 10993,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        129546
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 104734,
+      "reference_budget_valid_path_count": 105030,
+      "relative_complex_cfr_l2": 0.837142942998032,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        17799
+      ],
+      "low_budget_diffuse_path_count": 11173,
+      "low_budget_valid_path_count": 11279,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        141030
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 107079,
+      "reference_budget_valid_path_count": 107486,
+      "relative_complex_cfr_l2": 0.8666642207437334,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        19020
+      ],
+      "low_budget_diffuse_path_count": 11427,
+      "low_budget_valid_path_count": 11548,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        150304
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 108766,
+      "reference_budget_valid_path_count": 109245,
+      "relative_complex_cfr_l2": 0.8564860663508945,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "center-los",
+      "low_budget_candidate_path_counts_per_source": [
+        19932
+      ],
+      "low_budget_diffuse_path_count": 11588,
+      "low_budget_valid_path_count": 11714,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        157861
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 110198,
+      "reference_budget_valid_path_count": 110760,
+      "relative_complex_cfr_l2": 0.8754507140113141,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 0,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 0,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        700
+      ],
+      "low_budget_diffuse_path_count": 690,
+      "low_budget_valid_path_count": 690,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        7363
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 7353,
+      "reference_budget_valid_path_count": 7353,
+      "relative_complex_cfr_l2": 2.2411894775545367,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1185
+      ],
+      "low_budget_diffuse_path_count": 1123,
+      "low_budget_valid_path_count": 1125,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        11785
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 11712,
+      "reference_budget_valid_path_count": 11714,
+      "relative_complex_cfr_l2": 1.2848312158374398,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1857
+      ],
+      "low_budget_diffuse_path_count": 1556,
+      "low_budget_valid_path_count": 1567,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        16646
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 16155,
+      "reference_budget_valid_path_count": 16168,
+      "relative_complex_cfr_l2": 1.104831217337307,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        2895
+      ],
+      "low_budget_diffuse_path_count": 1936,
+      "low_budget_valid_path_count": 1962,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        21766
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 19739,
+      "reference_budget_valid_path_count": 19771,
+      "relative_complex_cfr_l2": 1.0425401326057981,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        4376
+      ],
+      "low_budget_diffuse_path_count": 2288,
+      "low_budget_valid_path_count": 2331,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        28199
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 22234,
+      "reference_budget_valid_path_count": 22296,
+      "relative_complex_cfr_l2": 0.990372347806743,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        5871
+      ],
+      "low_budget_diffuse_path_count": 2567,
+      "low_budget_valid_path_count": 2628,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        37249
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 24635,
+      "reference_budget_valid_path_count": 24741,
+      "relative_complex_cfr_l2": 0.9934488584067983,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        7170
+      ],
+      "low_budget_diffuse_path_count": 2807,
+      "low_budget_valid_path_count": 2888,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        46960
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 26803,
+      "reference_budget_valid_path_count": 26965,
+      "relative_complex_cfr_l2": 1.0068446940608533,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        8292
+      ],
+      "low_budget_diffuse_path_count": 3012,
+      "low_budget_valid_path_count": 3098,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        55993
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 28531,
+      "reference_budget_valid_path_count": 28743,
+      "relative_complex_cfr_l2": 1.01235985591072,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        9150
+      ],
+      "low_budget_diffuse_path_count": 3171,
+      "low_budget_valid_path_count": 3262,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        63232
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 29920,
+      "reference_budget_valid_path_count": 30167,
+      "relative_complex_cfr_l2": 1.0105348225931476,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        9800
+      ],
+      "low_budget_diffuse_path_count": 3276,
+      "low_budget_valid_path_count": 3370,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        69161
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 31062,
+      "reference_budget_valid_path_count": 31321,
+      "relative_complex_cfr_l2": 1.0107761281177519,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 0,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 0,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        724
+      ],
+      "low_budget_diffuse_path_count": 714,
+      "low_budget_valid_path_count": 714,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        7070
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 7060,
+      "reference_budget_valid_path_count": 7060,
+      "relative_complex_cfr_l2": 1.493623182770616,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1204
+      ],
+      "low_budget_diffuse_path_count": 1139,
+      "low_budget_valid_path_count": 1141,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        11502
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 11430,
+      "reference_budget_valid_path_count": 11432,
+      "relative_complex_cfr_l2": 1.0832553902425668,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1916
+      ],
+      "low_budget_diffuse_path_count": 1621,
+      "low_budget_valid_path_count": 1633,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        16268
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 15777,
+      "reference_budget_valid_path_count": 15790,
+      "relative_complex_cfr_l2": 0.9146320905255179,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        2992
+      ],
+      "low_budget_diffuse_path_count": 2039,
+      "low_budget_valid_path_count": 2066,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        21420
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 19395,
+      "reference_budget_valid_path_count": 19428,
+      "relative_complex_cfr_l2": 0.8972920035730017,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        4461
+      ],
+      "low_budget_diffuse_path_count": 2387,
+      "low_budget_valid_path_count": 2431,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        27891
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 21863,
+      "reference_budget_valid_path_count": 21928,
+      "relative_complex_cfr_l2": 0.8263393939064312,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        5976
+      ],
+      "low_budget_diffuse_path_count": 2688,
+      "low_budget_valid_path_count": 2745,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        36767
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 24114,
+      "reference_budget_valid_path_count": 24218,
+      "relative_complex_cfr_l2": 0.8153260159530643,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        7310
+      ],
+      "low_budget_diffuse_path_count": 2907,
+      "low_budget_valid_path_count": 2978,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        46325
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 26168,
+      "reference_budget_valid_path_count": 26330,
+      "relative_complex_cfr_l2": 0.8180684065441245,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        8303
+      ],
+      "low_budget_diffuse_path_count": 3069,
+      "low_budget_valid_path_count": 3146,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        55244
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 27924,
+      "reference_budget_valid_path_count": 28134,
+      "relative_complex_cfr_l2": 0.8164355617756427,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        9138
+      ],
+      "low_budget_diffuse_path_count": 3216,
+      "low_budget_valid_path_count": 3296,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        62552
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 29332,
+      "reference_budget_valid_path_count": 29573,
+      "relative_complex_cfr_l2": 0.8166323611255162,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        9756
+      ],
+      "low_budget_diffuse_path_count": 3329,
+      "low_budget_valid_path_count": 3412,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        68418
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 30418,
+      "reference_budget_valid_path_count": 30679,
+      "relative_complex_cfr_l2": 0.8165351496646966,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 0,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 0,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        725
+      ],
+      "low_budget_diffuse_path_count": 715,
+      "low_budget_valid_path_count": 715,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        7221
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 7211,
+      "reference_budget_valid_path_count": 7211,
+      "relative_complex_cfr_l2": 0.8047691315407162,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1229
+      ],
+      "low_budget_diffuse_path_count": 1165,
+      "low_budget_valid_path_count": 1167,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        11777
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 11704,
+      "reference_budget_valid_path_count": 11706,
+      "relative_complex_cfr_l2": 0.7495731766153106,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1895
+      ],
+      "low_budget_diffuse_path_count": 1602,
+      "low_budget_valid_path_count": 1614,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        16645
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 16165,
+      "reference_budget_valid_path_count": 16178,
+      "relative_complex_cfr_l2": 0.8691195585986452,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        2976
+      ],
+      "low_budget_diffuse_path_count": 2038,
+      "low_budget_valid_path_count": 2065,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        21811
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 19824,
+      "reference_budget_valid_path_count": 19857,
+      "relative_complex_cfr_l2": 0.806962876252737,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        4446
+      ],
+      "low_budget_diffuse_path_count": 2391,
+      "low_budget_valid_path_count": 2436,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        28266
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 22332,
+      "reference_budget_valid_path_count": 22399,
+      "relative_complex_cfr_l2": 0.7605418010763982,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        5979
+      ],
+      "low_budget_diffuse_path_count": 2691,
+      "low_budget_valid_path_count": 2754,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        37102
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 24683,
+      "reference_budget_valid_path_count": 24792,
+      "relative_complex_cfr_l2": 0.7644801688601012,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        7386
+      ],
+      "low_budget_diffuse_path_count": 2960,
+      "low_budget_valid_path_count": 3035,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        46741
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 26791,
+      "reference_budget_valid_path_count": 26955,
+      "relative_complex_cfr_l2": 0.7870630900608726,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        8394
+      ],
+      "low_budget_diffuse_path_count": 3154,
+      "low_budget_valid_path_count": 3236,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        55766
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 28533,
+      "reference_budget_valid_path_count": 28745,
+      "relative_complex_cfr_l2": 0.7857292055366172,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        9253
+      ],
+      "low_budget_diffuse_path_count": 3332,
+      "low_budget_valid_path_count": 3418,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        63037
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 29925,
+      "reference_budget_valid_path_count": 30176,
+      "relative_complex_cfr_l2": 0.7849580593955257,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "center-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        9881
+      ],
+      "low_budget_diffuse_path_count": 3450,
+      "low_budget_valid_path_count": 3541,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        68805
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 30965,
+      "reference_budget_valid_path_count": 31236,
+      "relative_complex_cfr_l2": 0.7860216945194005,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 1,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 1,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        6798
+      ],
+      "low_budget_diffuse_path_count": 6777,
+      "low_budget_valid_path_count": 6781,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        67583
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 67561,
+      "reference_budget_valid_path_count": 67565,
+      "relative_complex_cfr_l2": 0.29278921970293276,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        8494
+      ],
+      "low_budget_diffuse_path_count": 8390,
+      "low_budget_valid_path_count": 8396,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        84131
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 84008,
+      "reference_budget_valid_path_count": 84014,
+      "relative_complex_cfr_l2": 0.2852740646480405,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        9314
+      ],
+      "low_budget_diffuse_path_count": 8895,
+      "low_budget_valid_path_count": 8905,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        89462
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 88776,
+      "reference_budget_valid_path_count": 88787,
+      "relative_complex_cfr_l2": 0.2932625320592833,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        10580
+      ],
+      "low_budget_diffuse_path_count": 9328,
+      "low_budget_valid_path_count": 9350,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        95111
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 92461,
+      "reference_budget_valid_path_count": 92491,
+      "relative_complex_cfr_l2": 0.7100557386534083,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        12446
+      ],
+      "low_budget_diffuse_path_count": 9706,
+      "low_budget_valid_path_count": 9748,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        103013
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 95190,
+      "reference_budget_valid_path_count": 95254,
+      "relative_complex_cfr_l2": 0.641446941918841,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        14557
+      ],
+      "low_budget_diffuse_path_count": 10078,
+      "low_budget_valid_path_count": 10137,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        115226
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 98147,
+      "reference_budget_valid_path_count": 98276,
+      "relative_complex_cfr_l2": 0.7650566722711255,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        16414
+      ],
+      "low_budget_diffuse_path_count": 10379,
+      "low_budget_valid_path_count": 10461,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        128183
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 100568,
+      "reference_budget_valid_path_count": 100781,
+      "relative_complex_cfr_l2": 0.7972135148682835,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        17952
+      ],
+      "low_budget_diffuse_path_count": 10636,
+      "low_budget_valid_path_count": 10733,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        140246
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 102769,
+      "reference_budget_valid_path_count": 103073,
+      "relative_complex_cfr_l2": 0.812153437394717,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        19242
+      ],
+      "low_budget_diffuse_path_count": 10883,
+      "low_budget_valid_path_count": 10991,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        150158
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 104442,
+      "reference_budget_valid_path_count": 104815,
+      "relative_complex_cfr_l2": 0.8248514340529166,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        20163
+      ],
+      "low_budget_diffuse_path_count": 11021,
+      "low_budget_valid_path_count": 11137,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        158161
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 105878,
+      "reference_budget_valid_path_count": 106305,
+      "relative_complex_cfr_l2": 0.8390422512582546,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 1,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 1,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        6803
+      ],
+      "low_budget_diffuse_path_count": 6782,
+      "low_budget_valid_path_count": 6786,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        66846
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 66825,
+      "reference_budget_valid_path_count": 66829,
+      "relative_complex_cfr_l2": 0.2689330651780686,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        8539
+      ],
+      "low_budget_diffuse_path_count": 8429,
+      "low_budget_valid_path_count": 8435,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        83329
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 83208,
+      "reference_budget_valid_path_count": 83214,
+      "relative_complex_cfr_l2": 0.3468699597389179,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        9364
+      ],
+      "low_budget_diffuse_path_count": 8937,
+      "low_budget_valid_path_count": 8948,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        88756
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 88080,
+      "reference_budget_valid_path_count": 88091,
+      "relative_complex_cfr_l2": 0.3329479677921237,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        10662
+      ],
+      "low_budget_diffuse_path_count": 9377,
+      "low_budget_valid_path_count": 9398,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        94486
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 91855,
+      "reference_budget_valid_path_count": 91888,
+      "relative_complex_cfr_l2": 0.8866969128005676,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        12505
+      ],
+      "low_budget_diffuse_path_count": 9738,
+      "low_budget_valid_path_count": 9774,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        102250
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 94485,
+      "reference_budget_valid_path_count": 94546,
+      "relative_complex_cfr_l2": 0.7532590848301863,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        14601
+      ],
+      "low_budget_diffuse_path_count": 10136,
+      "low_budget_valid_path_count": 10191,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        114519
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 97500,
+      "reference_budget_valid_path_count": 97619,
+      "relative_complex_cfr_l2": 0.7845027394044847,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        16387
+      ],
+      "low_budget_diffuse_path_count": 10444,
+      "low_budget_valid_path_count": 10509,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        127550
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 99937,
+      "reference_budget_valid_path_count": 100133,
+      "relative_complex_cfr_l2": 0.8610246879946559,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        17865
+      ],
+      "low_budget_diffuse_path_count": 10708,
+      "low_budget_valid_path_count": 10775,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        139685
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 102113,
+      "reference_budget_valid_path_count": 102384,
+      "relative_complex_cfr_l2": 0.91778434375001,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        19088
+      ],
+      "low_budget_diffuse_path_count": 10940,
+      "low_budget_valid_path_count": 11017,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        149357
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 103827,
+      "reference_budget_valid_path_count": 104158,
+      "relative_complex_cfr_l2": 0.9139361684439428,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        20027
+      ],
+      "low_budget_diffuse_path_count": 11090,
+      "low_budget_valid_path_count": 11174,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        157354
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 105201,
+      "reference_budget_valid_path_count": 105598,
+      "relative_complex_cfr_l2": 0.9046459571354636,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 1,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 1,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        6643
+      ],
+      "low_budget_diffuse_path_count": 6622,
+      "low_budget_valid_path_count": 6626,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        67365
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 67344,
+      "reference_budget_valid_path_count": 67348,
+      "relative_complex_cfr_l2": 0.14354390511034137,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        8400
+      ],
+      "low_budget_diffuse_path_count": 8296,
+      "low_budget_valid_path_count": 8302,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        83691
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 83569,
+      "reference_budget_valid_path_count": 83575,
+      "relative_complex_cfr_l2": 0.13109463714543904,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        9231
+      ],
+      "low_budget_diffuse_path_count": 8791,
+      "low_budget_valid_path_count": 8801,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        89142
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 88468,
+      "reference_budget_valid_path_count": 88479,
+      "relative_complex_cfr_l2": 0.12791231433438616,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        10523
+      ],
+      "low_budget_diffuse_path_count": 9237,
+      "low_budget_valid_path_count": 9260,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        94830
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 92190,
+      "reference_budget_valid_path_count": 92224,
+      "relative_complex_cfr_l2": 0.684633726783976,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        12375
+      ],
+      "low_budget_diffuse_path_count": 9613,
+      "low_budget_valid_path_count": 9655,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        102748
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 94925,
+      "reference_budget_valid_path_count": 94995,
+      "relative_complex_cfr_l2": 0.6434887790742105,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        14491
+      ],
+      "low_budget_diffuse_path_count": 10013,
+      "low_budget_valid_path_count": 10071,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        114991
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 97872,
+      "reference_budget_valid_path_count": 98000,
+      "relative_complex_cfr_l2": 0.7516848055422919,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        16285
+      ],
+      "low_budget_diffuse_path_count": 10340,
+      "low_budget_valid_path_count": 10418,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        127915
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 100322,
+      "reference_budget_valid_path_count": 100536,
+      "relative_complex_cfr_l2": 0.8272474494695125,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        17807
+      ],
+      "low_budget_diffuse_path_count": 10611,
+      "low_budget_valid_path_count": 10700,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        140115
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 102576,
+      "reference_budget_valid_path_count": 102862,
+      "relative_complex_cfr_l2": 0.8480400921481258,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        19063
+      ],
+      "low_budget_diffuse_path_count": 10853,
+      "low_budget_valid_path_count": 10954,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        149979
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 104296,
+      "reference_budget_valid_path_count": 104654,
+      "relative_complex_cfr_l2": 0.851908788580269,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "east-los",
+      "low_budget_candidate_path_counts_per_source": [
+        20013
+      ],
+      "low_budget_diffuse_path_count": 10991,
+      "low_budget_valid_path_count": 11102,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        158104
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 105701,
+      "reference_budget_valid_path_count": 106105,
+      "relative_complex_cfr_l2": 0.8347598936401036,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 0,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 0,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        3293
+      ],
+      "low_budget_diffuse_path_count": 3284,
+      "low_budget_valid_path_count": 3285,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        33183
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 33173,
+      "reference_budget_valid_path_count": 33174,
+      "relative_complex_cfr_l2": 0.30269915797624913,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        4209
+      ],
+      "low_budget_diffuse_path_count": 4145,
+      "low_budget_valid_path_count": 4150,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        41840
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 41771,
+      "reference_budget_valid_path_count": 41776,
+      "relative_complex_cfr_l2": 0.5792241305273006,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        4743
+      ],
+      "low_budget_diffuse_path_count": 4468,
+      "low_budget_valid_path_count": 4482,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        45261
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 44851,
+      "reference_budget_valid_path_count": 44865,
+      "relative_complex_cfr_l2": 0.4939837278176469,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        5621
+      ],
+      "low_budget_diffuse_path_count": 4750,
+      "low_budget_valid_path_count": 4779,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        48973
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 47243,
+      "reference_budget_valid_path_count": 47277,
+      "relative_complex_cfr_l2": 0.5072263631633858,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        6954
+      ],
+      "low_budget_diffuse_path_count": 5047,
+      "low_budget_valid_path_count": 5093,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        54375
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 49133,
+      "reference_budget_valid_path_count": 49197,
+      "relative_complex_cfr_l2": 0.5065700244114512,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        8375
+      ],
+      "low_budget_diffuse_path_count": 5329,
+      "low_budget_valid_path_count": 5394,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        62662
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 51324,
+      "reference_budget_valid_path_count": 51438,
+      "relative_complex_cfr_l2": 0.5151103385968809,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        9603
+      ],
+      "low_budget_diffuse_path_count": 5534,
+      "low_budget_valid_path_count": 5620,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        71412
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 53115,
+      "reference_budget_valid_path_count": 53305,
+      "relative_complex_cfr_l2": 0.5134509892495451,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        10612
+      ],
+      "low_budget_diffuse_path_count": 5702,
+      "low_budget_valid_path_count": 5794,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        79528
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 54661,
+      "reference_budget_valid_path_count": 54892,
+      "relative_complex_cfr_l2": 0.5340032631862923,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        11462
+      ],
+      "low_budget_diffuse_path_count": 5870,
+      "low_budget_valid_path_count": 5966,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        86269
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 55857,
+      "reference_budget_valid_path_count": 56113,
+      "relative_complex_cfr_l2": 0.5337411347995299,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        12059
+      ],
+      "low_budget_diffuse_path_count": 5972,
+      "low_budget_valid_path_count": 6070,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        91606
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 56796,
+      "reference_budget_valid_path_count": 57064,
+      "relative_complex_cfr_l2": 0.53386288635486,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 0,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 0,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        3252
+      ],
+      "low_budget_diffuse_path_count": 3243,
+      "low_budget_valid_path_count": 3244,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        32736
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 32727,
+      "reference_budget_valid_path_count": 32728,
+      "relative_complex_cfr_l2": 0.4913831329709982,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        4154
+      ],
+      "low_budget_diffuse_path_count": 4089,
+      "low_budget_valid_path_count": 4094,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        41374
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 41304,
+      "reference_budget_valid_path_count": 41309,
+      "relative_complex_cfr_l2": 1.1187912006872287,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        4683
+      ],
+      "low_budget_diffuse_path_count": 4410,
+      "low_budget_valid_path_count": 4424,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        44846
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 44428,
+      "reference_budget_valid_path_count": 44442,
+      "relative_complex_cfr_l2": 0.918495662057178,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        5582
+      ],
+      "low_budget_diffuse_path_count": 4709,
+      "low_budget_valid_path_count": 4738,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        48556
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 46846,
+      "reference_budget_valid_path_count": 46877,
+      "relative_complex_cfr_l2": 0.9990001636169039,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        6857
+      ],
+      "low_budget_diffuse_path_count": 4983,
+      "low_budget_valid_path_count": 5030,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        53935
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 48706,
+      "reference_budget_valid_path_count": 48769,
+      "relative_complex_cfr_l2": 1.0006121021026966,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        8317
+      ],
+      "low_budget_diffuse_path_count": 5276,
+      "low_budget_valid_path_count": 5339,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        62232
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 50861,
+      "reference_budget_valid_path_count": 50971,
+      "relative_complex_cfr_l2": 0.9712932231089715,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        9550
+      ],
+      "low_budget_diffuse_path_count": 5506,
+      "low_budget_valid_path_count": 5591,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        71020
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 52640,
+      "reference_budget_valid_path_count": 52813,
+      "relative_complex_cfr_l2": 0.9620402846736285,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        10519
+      ],
+      "low_budget_diffuse_path_count": 5681,
+      "low_budget_valid_path_count": 5771,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        79009
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 54173,
+      "reference_budget_valid_path_count": 54387,
+      "relative_complex_cfr_l2": 0.9596246725780103,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        11393
+      ],
+      "low_budget_diffuse_path_count": 5850,
+      "low_budget_valid_path_count": 5947,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        85563
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 55399,
+      "reference_budget_valid_path_count": 55646,
+      "relative_complex_cfr_l2": 0.9596932469291042,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        11997
+      ],
+      "low_budget_diffuse_path_count": 5959,
+      "low_budget_valid_path_count": 6061,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        90912
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 56323,
+      "reference_budget_valid_path_count": 56591,
+      "relative_complex_cfr_l2": 0.9602390327966921,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 0,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 0,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        3291
+      ],
+      "low_budget_diffuse_path_count": 3282,
+      "low_budget_valid_path_count": 3283,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        32787
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 32778,
+      "reference_budget_valid_path_count": 32779,
+      "relative_complex_cfr_l2": 0.4764105483774777,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        4219
+      ],
+      "low_budget_diffuse_path_count": 4161,
+      "low_budget_valid_path_count": 4166,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        41527
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 41457,
+      "reference_budget_valid_path_count": 41462,
+      "relative_complex_cfr_l2": 0.8740084839507525,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        4768
+      ],
+      "low_budget_diffuse_path_count": 4495,
+      "low_budget_valid_path_count": 4509,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        44952
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 44545,
+      "reference_budget_valid_path_count": 44559,
+      "relative_complex_cfr_l2": 0.8641308960526951,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        5662
+      ],
+      "low_budget_diffuse_path_count": 4785,
+      "low_budget_valid_path_count": 4813,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        48619
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 46886,
+      "reference_budget_valid_path_count": 46917,
+      "relative_complex_cfr_l2": 0.8905601361188938,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        6988
+      ],
+      "low_budget_diffuse_path_count": 5080,
+      "low_budget_valid_path_count": 5125,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        54141
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 48855,
+      "reference_budget_valid_path_count": 48916,
+      "relative_complex_cfr_l2": 0.8778407761013377,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        8397
+      ],
+      "low_budget_diffuse_path_count": 5372,
+      "low_budget_valid_path_count": 5436,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        62402
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 50973,
+      "reference_budget_valid_path_count": 51082,
+      "relative_complex_cfr_l2": 0.8510576671353122,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        9609
+      ],
+      "low_budget_diffuse_path_count": 5633,
+      "low_budget_valid_path_count": 5718,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        71074
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 52720,
+      "reference_budget_valid_path_count": 52899,
+      "relative_complex_cfr_l2": 0.8399952386778522,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        10609
+      ],
+      "low_budget_diffuse_path_count": 5810,
+      "low_budget_valid_path_count": 5900,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        79145
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 54303,
+      "reference_budget_valid_path_count": 54521,
+      "relative_complex_cfr_l2": 0.8379124815504442,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        11439
+      ],
+      "low_budget_diffuse_path_count": 5982,
+      "low_budget_valid_path_count": 6077,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        85859
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 55608,
+      "reference_budget_valid_path_count": 55854,
+      "relative_complex_cfr_l2": 0.8381735907893484,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "east-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        12050
+      ],
+      "low_budget_diffuse_path_count": 6081,
+      "low_budget_valid_path_count": 6178,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        91307
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 56572,
+      "reference_budget_valid_path_count": 56829,
+      "relative_complex_cfr_l2": 0.8373023638785058,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 1,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 1,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        6458
+      ],
+      "low_budget_diffuse_path_count": 6441,
+      "low_budget_valid_path_count": 6444,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        64881
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 64862,
+      "reference_budget_valid_path_count": 64865,
+      "relative_complex_cfr_l2": 0.11886619755150882,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        8175
+      ],
+      "low_budget_diffuse_path_count": 8084,
+      "low_budget_valid_path_count": 8088,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        81595
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 81491,
+      "reference_budget_valid_path_count": 81495,
+      "relative_complex_cfr_l2": 0.16644623812842788,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        8851
+      ],
+      "low_budget_diffuse_path_count": 8505,
+      "low_budget_valid_path_count": 8513,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        86272
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 85728,
+      "reference_budget_valid_path_count": 85736,
+      "relative_complex_cfr_l2": 0.21129050371595678,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        9897
+      ],
+      "low_budget_diffuse_path_count": 8856,
+      "low_budget_valid_path_count": 8876,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        90913
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 88831,
+      "reference_budget_valid_path_count": 88858,
+      "relative_complex_cfr_l2": 0.8685247846825855,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        11512
+      ],
+      "low_budget_diffuse_path_count": 9196,
+      "low_budget_valid_path_count": 9236,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        97292
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 91153,
+      "reference_budget_valid_path_count": 91210,
+      "relative_complex_cfr_l2": 0.8267575483085048,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        13414
+      ],
+      "low_budget_diffuse_path_count": 9557,
+      "low_budget_valid_path_count": 9622,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        107752
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 93822,
+      "reference_budget_valid_path_count": 93915,
+      "relative_complex_cfr_l2": 0.7003128480255505,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        15055
+      ],
+      "low_budget_diffuse_path_count": 9855,
+      "low_budget_valid_path_count": 9938,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        119395
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 96147,
+      "reference_budget_valid_path_count": 96309,
+      "relative_complex_cfr_l2": 0.7914402478784786,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        16384
+      ],
+      "low_budget_diffuse_path_count": 10106,
+      "low_budget_valid_path_count": 10199,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        130111
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 98198,
+      "reference_budget_valid_path_count": 98428,
+      "relative_complex_cfr_l2": 0.8381927644677377,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        17459
+      ],
+      "low_budget_diffuse_path_count": 10317,
+      "low_budget_valid_path_count": 10417,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        138809
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 99831,
+      "reference_budget_valid_path_count": 100129,
+      "relative_complex_cfr_l2": 0.8558368706425483,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        18268
+      ],
+      "low_budget_diffuse_path_count": 10445,
+      "low_budget_valid_path_count": 10550,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        145901
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 101197,
+      "reference_budget_valid_path_count": 101541,
+      "relative_complex_cfr_l2": 0.8772536039268941,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 1,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 1,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        6528
+      ],
+      "low_budget_diffuse_path_count": 6511,
+      "low_budget_valid_path_count": 6514,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        64824
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 64805,
+      "reference_budget_valid_path_count": 64808,
+      "relative_complex_cfr_l2": 0.2653490789742145,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        8265
+      ],
+      "low_budget_diffuse_path_count": 8175,
+      "low_budget_valid_path_count": 8179,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        81779
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 81670,
+      "reference_budget_valid_path_count": 81674,
+      "relative_complex_cfr_l2": 0.37907486134968243,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        9010
+      ],
+      "low_budget_diffuse_path_count": 8655,
+      "low_budget_valid_path_count": 8663,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        86436
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 85892,
+      "reference_budget_valid_path_count": 85900,
+      "relative_complex_cfr_l2": 0.35338719005786373,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        10115
+      ],
+      "low_budget_diffuse_path_count": 9041,
+      "low_budget_valid_path_count": 9062,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        91153
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 89058,
+      "reference_budget_valid_path_count": 89083,
+      "relative_complex_cfr_l2": 0.6268879568631062,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        11655
+      ],
+      "low_budget_diffuse_path_count": 9352,
+      "low_budget_valid_path_count": 9393,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        97433
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 91276,
+      "reference_budget_valid_path_count": 91330,
+      "relative_complex_cfr_l2": 0.6161082064708344,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        13491
+      ],
+      "low_budget_diffuse_path_count": 9722,
+      "low_budget_valid_path_count": 9773,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        107717
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 93871,
+      "reference_budget_valid_path_count": 93963,
+      "relative_complex_cfr_l2": 0.6867684622193824,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        15060
+      ],
+      "low_budget_diffuse_path_count": 10010,
+      "low_budget_valid_path_count": 10079,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        119198
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 96182,
+      "reference_budget_valid_path_count": 96329,
+      "relative_complex_cfr_l2": 0.7460445953006215,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        16376
+      ],
+      "low_budget_diffuse_path_count": 10238,
+      "low_budget_valid_path_count": 10320,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        129940
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 98216,
+      "reference_budget_valid_path_count": 98429,
+      "relative_complex_cfr_l2": 0.8002344515381139,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        17445
+      ],
+      "low_budget_diffuse_path_count": 10461,
+      "low_budget_valid_path_count": 10551,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        138607
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 99836,
+      "reference_budget_valid_path_count": 100108,
+      "relative_complex_cfr_l2": 0.8290278796111193,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        18255
+      ],
+      "low_budget_diffuse_path_count": 10604,
+      "low_budget_valid_path_count": 10698,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        145771
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 101117,
+      "reference_budget_valid_path_count": 101440,
+      "relative_complex_cfr_l2": 0.8430387346912935,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 1,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        1
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 1,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        6385
+      ],
+      "low_budget_diffuse_path_count": 6368,
+      "low_budget_valid_path_count": 6371,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        65348
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 65329,
+      "reference_budget_valid_path_count": 65332,
+      "relative_complex_cfr_l2": 0.2985256627461418,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        8117
+      ],
+      "low_budget_diffuse_path_count": 8025,
+      "low_budget_valid_path_count": 8029,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        82158
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 82047,
+      "reference_budget_valid_path_count": 82051,
+      "relative_complex_cfr_l2": 0.2605344914185568,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        8810
+      ],
+      "low_budget_diffuse_path_count": 8461,
+      "low_budget_valid_path_count": 8469,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        86932
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 86393,
+      "reference_budget_valid_path_count": 86401,
+      "relative_complex_cfr_l2": 0.268840780283692,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        9864
+      ],
+      "low_budget_diffuse_path_count": 8810,
+      "low_budget_valid_path_count": 8831,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        91539
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 89462,
+      "reference_budget_valid_path_count": 89490,
+      "relative_complex_cfr_l2": 0.6838172987878892,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        11405
+      ],
+      "low_budget_diffuse_path_count": 9136,
+      "low_budget_valid_path_count": 9179,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        97866
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 91756,
+      "reference_budget_valid_path_count": 91814,
+      "relative_complex_cfr_l2": 0.7203629815295152,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        13239
+      ],
+      "low_budget_diffuse_path_count": 9483,
+      "low_budget_valid_path_count": 9539,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        108102
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 94365,
+      "reference_budget_valid_path_count": 94480,
+      "relative_complex_cfr_l2": 0.8494345725303913,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        14810
+      ],
+      "low_budget_diffuse_path_count": 9774,
+      "low_budget_valid_path_count": 9844,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        119705
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 96527,
+      "reference_budget_valid_path_count": 96701,
+      "relative_complex_cfr_l2": 0.8504278082863121,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        16059
+      ],
+      "low_budget_diffuse_path_count": 9997,
+      "low_budget_valid_path_count": 10071,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        130288
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 98522,
+      "reference_budget_valid_path_count": 98753,
+      "relative_complex_cfr_l2": 0.887212876716095,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        17169
+      ],
+      "low_budget_diffuse_path_count": 10221,
+      "low_budget_valid_path_count": 10305,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        139039
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 100131,
+      "reference_budget_valid_path_count": 100424,
+      "relative_complex_cfr_l2": 0.8868262410840431,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": true,
+      "link_id": "west-los",
+      "low_budget_candidate_path_counts_per_source": [
+        17961
+      ],
+      "low_budget_diffuse_path_count": 10368,
+      "low_budget_valid_path_count": 10457,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        146058
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 101412,
+      "reference_budget_valid_path_count": 101747,
+      "relative_complex_cfr_l2": 0.880214886597603,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 0,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 0,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1941
+      ],
+      "low_budget_diffuse_path_count": 1933,
+      "low_budget_valid_path_count": 1934,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        19397
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 19387,
+      "reference_budget_valid_path_count": 19388,
+      "relative_complex_cfr_l2": 1.2043807828394246,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        2776
+      ],
+      "low_budget_diffuse_path_count": 2720,
+      "low_budget_valid_path_count": 2725,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        27580
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 27509,
+      "reference_budget_valid_path_count": 27514,
+      "relative_complex_cfr_l2": 0.7966044017350661,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        3362
+      ],
+      "low_budget_diffuse_path_count": 3099,
+      "low_budget_valid_path_count": 3112,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        31651
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 31252,
+      "reference_budget_valid_path_count": 31265,
+      "relative_complex_cfr_l2": 0.7854207992965927,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        4220
+      ],
+      "low_budget_diffuse_path_count": 3422,
+      "low_budget_valid_path_count": 3446,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        35538
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 33896,
+      "reference_budget_valid_path_count": 33922,
+      "relative_complex_cfr_l2": 0.811754144297833,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        5547
+      ],
+      "low_budget_diffuse_path_count": 3761,
+      "low_budget_valid_path_count": 3799,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        40803
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 35895,
+      "reference_budget_valid_path_count": 35942,
+      "relative_complex_cfr_l2": 0.8132261341488621,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        6968
+      ],
+      "low_budget_diffuse_path_count": 4052,
+      "low_budget_valid_path_count": 4105,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        49061
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 38158,
+      "reference_budget_valid_path_count": 38239,
+      "relative_complex_cfr_l2": 0.8151265462326199,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        8222
+      ],
+      "low_budget_diffuse_path_count": 4321,
+      "low_budget_valid_path_count": 4383,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        58153
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 40215,
+      "reference_budget_valid_path_count": 40343,
+      "relative_complex_cfr_l2": 0.8132692097254037,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        9227
+      ],
+      "low_budget_diffuse_path_count": 4528,
+      "low_budget_valid_path_count": 4596,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        66544
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 41981,
+      "reference_budget_valid_path_count": 42136,
+      "relative_complex_cfr_l2": 0.8180445484472041,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        10030
+      ],
+      "low_budget_diffuse_path_count": 4695,
+      "low_budget_valid_path_count": 4771,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        73304
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 43388,
+      "reference_budget_valid_path_count": 43569,
+      "relative_complex_cfr_l2": 0.8177607642096967,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        10650
+      ],
+      "low_budget_diffuse_path_count": 4821,
+      "low_budget_valid_path_count": 4898,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        78826
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 44557,
+      "reference_budget_valid_path_count": 44754,
+      "relative_complex_cfr_l2": 0.8171485728890943,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 0,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 0,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1918
+      ],
+      "low_budget_diffuse_path_count": 1910,
+      "low_budget_valid_path_count": 1911,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        19517
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 19507,
+      "reference_budget_valid_path_count": 19508,
+      "relative_complex_cfr_l2": 0.3920941318890712,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        2837
+      ],
+      "low_budget_diffuse_path_count": 2783,
+      "low_budget_valid_path_count": 2788,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        27799
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 27727,
+      "reference_budget_valid_path_count": 27732,
+      "relative_complex_cfr_l2": 0.2883436023815851,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        3465
+      ],
+      "low_budget_diffuse_path_count": 3217,
+      "low_budget_valid_path_count": 3230,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        31975
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 31570,
+      "reference_budget_valid_path_count": 31583,
+      "relative_complex_cfr_l2": 0.2872997699546156,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        4350
+      ],
+      "low_budget_diffuse_path_count": 3536,
+      "low_budget_valid_path_count": 3560,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        35995
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 34335,
+      "reference_budget_valid_path_count": 34362,
+      "relative_complex_cfr_l2": 0.2678704727731932,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        5617
+      ],
+      "low_budget_diffuse_path_count": 3834,
+      "low_budget_valid_path_count": 3873,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        41285
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 36381,
+      "reference_budget_valid_path_count": 36432,
+      "relative_complex_cfr_l2": 0.2689354248176025,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        7005
+      ],
+      "low_budget_diffuse_path_count": 4149,
+      "low_budget_valid_path_count": 4200,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        49449
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 38678,
+      "reference_budget_valid_path_count": 38762,
+      "relative_complex_cfr_l2": 0.268982190198162,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        8258
+      ],
+      "low_budget_diffuse_path_count": 4395,
+      "low_budget_valid_path_count": 4459,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        58390
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 40728,
+      "reference_budget_valid_path_count": 40854,
+      "relative_complex_cfr_l2": 0.275531518271017,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        9266
+      ],
+      "low_budget_diffuse_path_count": 4573,
+      "low_budget_valid_path_count": 4642,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        66766
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 42420,
+      "reference_budget_valid_path_count": 42576,
+      "relative_complex_cfr_l2": 0.2749275008809752,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        10084
+      ],
+      "low_budget_diffuse_path_count": 4752,
+      "low_budget_valid_path_count": 4827,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        73460
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 43826,
+      "reference_budget_valid_path_count": 44011,
+      "relative_complex_cfr_l2": 0.27550788775539375,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        10674
+      ],
+      "low_budget_diffuse_path_count": 4866,
+      "low_budget_valid_path_count": 4943,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        79082
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 44970,
+      "reference_budget_valid_path_count": 45169,
+      "relative_complex_cfr_l2": 0.2751242037674848,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "low_budget_diffuse_path_count": 0,
+      "low_budget_valid_path_count": 0,
+      "max_depth": 0,
+      "reference_budget_candidate_path_counts_per_source": [
+        0
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 0,
+      "reference_budget_valid_path_count": 0,
+      "relative_complex_cfr_l2": 0.0,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        1969
+      ],
+      "low_budget_diffuse_path_count": 1961,
+      "low_budget_valid_path_count": 1962,
+      "max_depth": 1,
+      "reference_budget_candidate_path_counts_per_source": [
+        19445
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 19435,
+      "reference_budget_valid_path_count": 19436,
+      "relative_complex_cfr_l2": 0.841629320241517,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        2841
+      ],
+      "low_budget_diffuse_path_count": 2784,
+      "low_budget_valid_path_count": 2789,
+      "max_depth": 2,
+      "reference_budget_candidate_path_counts_per_source": [
+        27793
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 27719,
+      "reference_budget_valid_path_count": 27724,
+      "relative_complex_cfr_l2": 0.30406514998474965,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        3453
+      ],
+      "low_budget_diffuse_path_count": 3207,
+      "low_budget_valid_path_count": 3220,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        31952
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 31558,
+      "reference_budget_valid_path_count": 31571,
+      "relative_complex_cfr_l2": 0.2655223840923957,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        4351
+      ],
+      "low_budget_diffuse_path_count": 3539,
+      "low_budget_valid_path_count": 3564,
+      "max_depth": 4,
+      "reference_budget_candidate_path_counts_per_source": [
+        35945
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 34291,
+      "reference_budget_valid_path_count": 34317,
+      "relative_complex_cfr_l2": 0.28567545927591903,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        5646
+      ],
+      "low_budget_diffuse_path_count": 3877,
+      "low_budget_valid_path_count": 3917,
+      "max_depth": 5,
+      "reference_budget_candidate_path_counts_per_source": [
+        41284
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 36365,
+      "reference_budget_valid_path_count": 36415,
+      "relative_complex_cfr_l2": 0.3010979327462142,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        7069
+      ],
+      "low_budget_diffuse_path_count": 4180,
+      "low_budget_valid_path_count": 4235,
+      "max_depth": 6,
+      "reference_budget_candidate_path_counts_per_source": [
+        49450
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 38631,
+      "reference_budget_valid_path_count": 38718,
+      "relative_complex_cfr_l2": 0.30182717102582557,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        8299
+      ],
+      "low_budget_diffuse_path_count": 4430,
+      "low_budget_valid_path_count": 4493,
+      "max_depth": 7,
+      "reference_budget_candidate_path_counts_per_source": [
+        58390
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 40571,
+      "reference_budget_valid_path_count": 40709,
+      "relative_complex_cfr_l2": 0.3089871213992833,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        9213
+      ],
+      "low_budget_diffuse_path_count": 4604,
+      "low_budget_valid_path_count": 4672,
+      "max_depth": 8,
+      "reference_budget_candidate_path_counts_per_source": [
+        66790
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 42369,
+      "reference_budget_valid_path_count": 42536,
+      "relative_complex_cfr_l2": 0.31106520879762023,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        10041
+      ],
+      "low_budget_diffuse_path_count": 4784,
+      "low_budget_valid_path_count": 4855,
+      "max_depth": 9,
+      "reference_budget_candidate_path_counts_per_source": [
+        73569
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 43754,
+      "reference_budget_valid_path_count": 43952,
+      "relative_complex_cfr_l2": 0.3111799589789339,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "geometric_los": false,
+      "link_id": "west-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        10649
+      ],
+      "low_budget_diffuse_path_count": 4914,
+      "low_budget_valid_path_count": 4986,
+      "max_depth": 10,
+      "reference_budget_candidate_path_counts_per_source": [
+        79036
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 44852,
+      "reference_budget_valid_path_count": 45062,
+      "relative_complex_cfr_l2": 0.3098264608335164,
+      "seed": 47,
+      "valid_path_count_equal": false
+    }
+  ],
+  "compatibility": {
+    "package_source_sha256_equal": true,
+    "runtime_versions_equal_excluding_git_revision": true,
+    "scene_tree_sha256_equal": true,
+    "solver_script_sha256_equal": true
+  },
+  "evidence_grade": "matched synthetic-scene solver sensitivity; larger budget is a finite comparison reference, not truth",
+  "limitations": [
+    "A finite larger ray budget is not proven ground truth.",
+    "The experiment covers only the recorded synthetic scene, links, materials, frequencies, and backend.",
+    "This audit measures solver sensitivity; it does not establish propagation-model accuracy or release acceptance."
+  ],
+  "reports": [
+    {
+      "path": "docs/research/results/rt-city43-spatial-los-nlos-depth10-s05-20k-100k-20261022.json",
+      "revision": "990820cc49a9de6f70c33966b67a29035c812d62",
+      "sha256": "a2663e9d11c8bfd2c41b31225f3cb12612e91a20f2bca1231263f3553403e6c9"
+    },
+    {
+      "path": "docs/research/results/rt-city43-spatial-los-nlos-depth10-s05-1m-20261022.json.gz",
+      "revision": "469837f8b51fd3c6966506aa7b7180654dfedd74",
+      "sha256": "69bbe01078c16b5b4c1709415fee36319dec084b95138975c00c8a861a37e9b6"
+    }
+  ],
+  "schema": "loslab.rt_solver_ray_budget_comparison.v1",
+  "summary": {
+    "grouped_by_depth_and_geometric_condition": [
+      {
+        "condition": "NLOS",
+        "matched_runs": 9,
+        "max_depth": 0,
+        "path_count_changes": 0,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.0,
+        "relative_complex_cfr_l2_median": 0.0,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "condition": "LOS",
+        "matched_runs": 9,
+        "max_depth": 0,
+        "path_count_changes": 0,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.0,
+        "relative_complex_cfr_l2_median": 0.0,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "condition": "NLOS",
+        "matched_runs": 9,
+        "max_depth": 1,
+        "path_count_changes": 9,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 2.2411894775545367,
+        "relative_complex_cfr_l2_median": 0.8047691315407162,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "condition": "LOS",
+        "matched_runs": 9,
+        "max_depth": 1,
+        "path_count_changes": 9,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.2985256627461418,
+        "relative_complex_cfr_l2_median": 0.24794271262800813,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "condition": "NLOS",
+        "matched_runs": 9,
+        "max_depth": 2,
+        "path_count_changes": 9,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 1.2848312158374398,
+        "relative_complex_cfr_l2_median": 0.7966044017350661,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "condition": "LOS",
+        "matched_runs": 9,
+        "max_depth": 2,
+        "path_count_changes": 9,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.37907486134968243,
+        "relative_complex_cfr_l2_median": 0.21659322182893326,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "condition": "NLOS",
+        "matched_runs": 9,
+        "max_depth": 3,
+        "path_count_changes": 9,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 1.104831217337307,
+        "relative_complex_cfr_l2_median": 0.8641308960526951,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "condition": "LOS",
+        "matched_runs": 9,
+        "max_depth": 3,
+        "path_count_changes": 9,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.35338719005786373,
+        "relative_complex_cfr_l2_median": 0.22777655490954432,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "condition": "NLOS",
+        "matched_runs": 9,
+        "max_depth": 4,
+        "path_count_changes": 9,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 1.0425401326057981,
+        "relative_complex_cfr_l2_median": 0.811754144297833,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "condition": "LOS",
+        "matched_runs": 9,
+        "max_depth": 4,
+        "path_count_changes": 9,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.895104975578551,
+        "relative_complex_cfr_l2_median": 0.7100557386534083,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "condition": "NLOS",
+        "matched_runs": 9,
+        "max_depth": 5,
+        "path_count_changes": 9,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 1.0006121021026966,
+        "relative_complex_cfr_l2_median": 0.8132261341488621,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "condition": "LOS",
+        "matched_runs": 9,
+        "max_depth": 5,
+        "path_count_changes": 9,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.8267575483085048,
+        "relative_complex_cfr_l2_median": 0.7203629815295152,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "condition": "NLOS",
+        "matched_runs": 9,
+        "max_depth": 6,
+        "path_count_changes": 9,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.9934488584067983,
+        "relative_complex_cfr_l2_median": 0.8151265462326199,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "condition": "LOS",
+        "matched_runs": 9,
+        "max_depth": 6,
+        "path_count_changes": 9,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.8494345725303913,
+        "relative_complex_cfr_l2_median": 0.7650566722711255,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "condition": "NLOS",
+        "matched_runs": 9,
+        "max_depth": 7,
+        "path_count_changes": 9,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 1.0068446940608533,
+        "relative_complex_cfr_l2_median": 0.8132692097254037,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "condition": "LOS",
+        "matched_runs": 9,
+        "max_depth": 7,
+        "path_count_changes": 9,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.8610246879946559,
+        "relative_complex_cfr_l2_median": 0.8272474494695125,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "condition": "NLOS",
+        "matched_runs": 9,
+        "max_depth": 8,
+        "path_count_changes": 9,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 1.01235985591072,
+        "relative_complex_cfr_l2_median": 0.8164355617756427,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "condition": "LOS",
+        "matched_runs": 9,
+        "max_depth": 8,
+        "path_count_changes": 9,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.91778434375001,
+        "relative_complex_cfr_l2_median": 0.8418099471906882,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "condition": "NLOS",
+        "matched_runs": 9,
+        "max_depth": 9,
+        "path_count_changes": 9,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 1.0105348225931476,
+        "relative_complex_cfr_l2_median": 0.8166323611255162,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "condition": "LOS",
+        "matched_runs": 9,
+        "max_depth": 9,
+        "path_count_changes": 9,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.9139361684439428,
+        "relative_complex_cfr_l2_median": 0.851908788580269,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "condition": "NLOS",
+        "matched_runs": 9,
+        "max_depth": 10,
+        "path_count_changes": 9,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 1.0107761281177519,
+        "relative_complex_cfr_l2_median": 0.8165351496646966,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "condition": "LOS",
+        "matched_runs": 9,
+        "max_depth": 10,
+        "path_count_changes": 9,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.9046459571354636,
+        "relative_complex_cfr_l2_median": 0.8430387346912935,
+        "zero_energy_comparisons": 0
+      }
+    ],
+    "matched_runs": 198,
+    "missing_reference_rows": 0
+  }
+}
