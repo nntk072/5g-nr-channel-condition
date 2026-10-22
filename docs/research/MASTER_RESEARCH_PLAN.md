@@ -2263,5 +2263,7 @@ or RF-chain calibration is implied.
 the static extraction suite passes including native Sionna RT. Ruff check and
 formatting pass across the 236-file maintained scope, mypy passes across 149
 source files, `uv lock --check`, `uv build`, and `git diff --check` pass.
-The hosted workflow does not install native Sionna RT, so the scene/Paths
-assertions remain local-backend evidence.
+GitHub Actions [run 39734750590](https://github.com/nntk072/5g-nr-channel-condition/actions/runs/39734750590)
+passes all four software jobs for `f23a308`; the hosted workflow does not
+install native Sionna RT, so the scene/Paths assertions remain local-backend
+evidence.
