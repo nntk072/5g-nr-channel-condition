@@ -69,6 +69,7 @@ no zero-interaction direct path, and full CFR equal to the masked order-wise
 complex sum. The full local suite passes with 625 passed, 3 skipped, and 88.12%
 coverage. Ruff check/format (224 maintained Python files), mypy (140 source
 files), `uv lock --check`, `uv build`, and `git diff --check` also pass. Hosted
-CI for this added test is pending push; the most recent hosted run covers the
-preceding implementation commit. This test improves one synthetic geometry
-gate but does not qualify real material, polarization, or solver behavior.
+CI [run 39717796831](https://github.com/nntk072/5g-nr-channel-condition/actions/runs/39717796831)
+passes all four jobs for code commit `9e10b32`; it does not install native RT.
+This test improves one synthetic geometry gate but does not qualify real
+material, polarization, or solver behavior.
