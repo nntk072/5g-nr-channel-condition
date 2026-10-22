@@ -3,6 +3,7 @@ import pytest
 torch = pytest.importorskip("torch")
 pytest.importorskip("sionna")
 
+from integrations.sionna.noise import proper_complex_awgn  # noqa: E402
 from integrations.sionna.nr_pusch import SionnaPUSCHLSReceiver  # noqa: E402
 from receivers.nr import NRPUSCHConfig  # noqa: E402
 
@@ -74,6 +75,63 @@ def test_pusch_ls_pilot_estimate_is_unbiased_with_analytical_awgn_variance_on_cp
     assert float(empirical_bias.abs()) < 0.02
     assert float(predicted_variance) == pytest.approx(0.025, rel=1e-6)
     assert float(empirical_variance / predicted_variance) == pytest.approx(1.0, abs=0.15)
+
+
+@pytest.mark.native_sionna
+def test_sionna_lmmse_effective_noise_matches_analytical_correlated_noise_fixture():
+    from sionna.phy.mimo import lmmse_equalizer
+
+    num_samples = 32_768
+    channel = torch.tensor(
+        [[1.0 + 0.2j, 0.1 - 0.3j], [0.4 + 0.1j, 0.9 + 0.2j], [0.2 - 0.1j, -0.3 + 0.8j]],
+        dtype=torch.complex64,
+    )
+    noise_covariance = torch.tensor(
+        [
+            [0.8 + 0j, 0.12 + 0.08j, 0.0 + 0j],
+            [0.12 - 0.08j, 0.9 + 0j, 0.05 - 0.04j],
+            [0.0 + 0j, 0.05 + 0.04j, 0.7 + 0j],
+        ],
+        dtype=torch.complex64,
+    )
+    cholesky = torch.linalg.cholesky(noise_covariance)
+    generator = torch.Generator().manual_seed(6917)
+    symbols = proper_complex_awgn(
+        torch.zeros((num_samples, 2), dtype=torch.complex64), 1.0, generator=generator
+    )
+    white_noise = proper_complex_awgn(
+        torch.zeros((num_samples, 3), dtype=torch.complex64), 1.0, generator=generator
+    )
+    noise = white_noise @ cholesky.transpose(-2, -1)
+    received = symbols @ channel.transpose(-2, -1) + noise
+
+    equalized, effective_variance = lmmse_equalizer(received, channel, noise_covariance)
+
+    inverse_noise_covariance = torch.linalg.inv(noise_covariance)
+    linear_mmse_filter = torch.linalg.solve(
+        channel.mH @ inverse_noise_covariance @ channel + torch.eye(2, dtype=torch.complex64),
+        channel.mH @ inverse_noise_covariance,
+    )
+    unbiased_filter = linear_mmse_filter / torch.diagonal(linear_mmse_filter @ channel).unsqueeze(
+        -1
+    )
+    expected_equalized = received @ unbiased_filter.transpose(-2, -1)
+    residual_channel = unbiased_filter @ channel - torch.eye(2, dtype=torch.complex64)
+    analytical_error_covariance = (
+        residual_channel @ residual_channel.mH
+        + unbiased_filter @ noise_covariance @ unbiased_filter.mH
+    )
+    analytical_variance = torch.diagonal(analytical_error_covariance).real
+    empirical_variance = (equalized - symbols).abs().square().mean(dim=0)
+
+    torch.testing.assert_close(equalized, expected_equalized, atol=2e-5, rtol=2e-5)
+    torch.testing.assert_close(effective_variance, analytical_variance, atol=2e-5, rtol=2e-5)
+    torch.testing.assert_close(
+        empirical_variance / analytical_variance,
+        torch.ones_like(analytical_variance),
+        atol=0.025,
+        rtol=0,
+    )
 
 
 @pytest.mark.native_sionna
