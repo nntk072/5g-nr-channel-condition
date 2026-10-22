@@ -43,6 +43,10 @@ def _write_report(
             "seed": seed,
             "link_id": "los",
             "valid_path_count": path_count + (seed - 11) // 12,
+            "candidate_path_count_before_path_validation": min(
+                cap, path_count + 10 + (seed - 11) // 12
+            ),
+            "candidate_path_cap_filled": path_count + 10 >= cap,
             "valid_diffuse_reflection_path_count": path_count - 2 + (seed - 11) // 12,
             "valid_path_power_sum": 0.25,
             "power_weighted_rms_delay_spread_ns": 12.0 + seed / 10,
@@ -94,6 +98,12 @@ def test_cap_summary_checks_matched_rows_and_summarizes_seed_range(tmp_path: Pat
         "min": None,
         "max": None,
     }
+    assert low_summary["metrics"]["candidate_path_count_before_path_validation"] == {
+        "median": 1000.0,
+        "min": 1000.0,
+        "max": 1000.0,
+    }
+    assert low_summary["candidate_path_cap_filled_fraction"] == 1.0
 
 
 def test_cap_summary_rejects_scene_mismatch(tmp_path: Path):

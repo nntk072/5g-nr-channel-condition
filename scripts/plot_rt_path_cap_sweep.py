@@ -13,6 +13,11 @@ from artifacts.provenance import atomic_json, sha256_file
 
 METRICS = (
     ("valid_path_count", "Valid paths", "linear"),
+    (
+        "candidate_path_count_before_path_validation",
+        "Candidates stored before path validation",
+        "linear",
+    ),
     ("valid_diffuse_reflection_path_count", "Diffuse paths", "linear"),
     ("valid_path_power_sum", "Path coefficient power sum", "log"),
     ("power_weighted_rms_delay_spread_ns", "Power-weighted RMS delay spread (ns)", "linear"),
@@ -114,7 +119,12 @@ def summarize_cap_reports(
                     "link_id": link_id,
                     "seed": seed,
                     "relative_cfr_l2_error_to_max_path_cap": None,
-                    **{name: row[name] for name, _, _ in METRICS[:-1]},
+                    **{name: row[name] for name, _, _ in METRICS[:-1] if name in row},
+                    **(
+                        {"candidate_path_cap_filled": row["candidate_path_cap_filled"]}
+                        if "candidate_path_cap_filled" in row
+                        else {}
+                    ),
                     "power_weighted_arrival_angular_spread_deg": (
                         None
                         if row["power_weighted_arrival_angular_spread_rad_3d"] is None
@@ -153,6 +163,11 @@ def summarize_cap_reports(
                     "link_id": link_id,
                     "geometric_visibility_state": link["geometric_visibility_state"],
                     "seed_count": len(rows),
+                    "candidate_path_cap_filled_fraction": (
+                        float(np.mean([bool(row["candidate_path_cap_filled"]) for row in rows]))
+                        if rows and all("candidate_path_cap_filled" in row for row in rows)
+                        else None
+                    ),
                     "metrics": {
                         metric: {
                             "median": float(np.median(values)) if values else None,
@@ -166,7 +181,7 @@ def summarize_cap_reports(
                         )
                         if (
                             values := [
-                                float(row[metric]) for row in rows if row[metric] is not None
+                                float(row[metric]) for row in rows if row.get(metric) is not None
                             ]
                         )
                         or metric == "relative_cfr_l2_error_to_max_path_cap"
@@ -214,8 +229,13 @@ def plot_cap_sweep(summary: dict[str, Any], output_prefix: Path) -> dict[str, An
     caps = sorted({int(row["max_num_paths_per_src"]) for row in summary["summaries"]})
     link_ids = list(dict.fromkeys(row["link_id"] for row in summary["summaries"]))
     colors = {link_id: plt.get_cmap("tab10")(index) for index, link_id in enumerate(link_ids)}
-    fig, axes = plt.subplots(2, 3, figsize=(16, 9), constrained_layout=True)
-    for axis, (metric, label, scale) in zip(list(axes.flat)[: len(METRICS)], METRICS, strict=True):
+    metrics_to_plot = [
+        item for item in METRICS if all(item[0] in row["metrics"] for row in summary["summaries"])
+    ]
+    fig, axes = plt.subplots(2, 4, figsize=(20, 9), constrained_layout=True)
+    for axis, (metric, label, scale) in zip(
+        list(axes.flat)[: len(metrics_to_plot)], metrics_to_plot, strict=True
+    ):
         for link_id in link_ids:
             rows = [row for row in summary["summaries"] if row["link_id"] == link_id]
             rows.sort(key=lambda row: row["max_num_paths_per_src"])
@@ -239,6 +259,8 @@ def plot_cap_sweep(summary: dict[str, Any], output_prefix: Path) -> dict[str, An
                 color=colors[link_id],
                 label=link_id,
             )
+        if metric == "candidate_path_count_before_path_validation":
+            axis.plot(caps, caps, linestyle="--", color="#555555", label="configured cap")
         axis.set_xscale("log")
         axis.set_xticks(caps, labels=[f"{cap:,}" for cap in caps])
         if scale == "log":
@@ -263,7 +285,7 @@ def plot_cap_sweep(summary: dict[str, Any], output_prefix: Path) -> dict[str, An
         f"{summary['configuration']['samples_per_src']:,} samples",
         fontsize=14,
     )
-    context_axis = axes.flat[len(METRICS)]
+    context_axis = axes.flat[len(metrics_to_plot)]
     context_axis.set_axis_off()
     context_axis.text(
         0.04,

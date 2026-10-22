@@ -17,6 +17,21 @@ relative_l2_error_if_defined = RUNNER["relative_l2_error_if_defined"]
 path_observables = RUNNER["path_observables"]
 count_paths_with_interaction = RUNNER["count_paths_with_interaction"]
 ConvergenceLink = RUNNER["ConvergenceLink"]
+CandidatePathCounter = RUNNER["_CandidatePathCounter"]
+
+
+def test_candidate_path_counter_records_buffer_before_path_validation():
+    pytest.importorskip("drjit")
+    mi = pytest.importorskip("mitsuba")
+
+    class CandidateBuffer:
+        paths_counter = mi.UInt(17)
+
+    sentinel = CandidateBuffer()
+    recorder = CandidatePathCounter(lambda: sentinel)
+
+    assert recorder() is sentinel
+    assert recorder.last_candidate_path_count == 17
 
 
 def test_provenance_runner_requires_source_to_match_committed_git_head(tmp_path):
@@ -187,6 +202,11 @@ def test_convergence_matrix_labels_los_and_blocked_links_independently():
     assert {row["link_id"] for row in result["runs"]} == set(by_id)
     assert all("power_weighted_rms_delay_spread_ns" in row for row in result["runs"])
     assert all(row["valid_diffuse_reflection_path_count"] == 0 for row in result["runs"])
+    assert all("candidate_path_count_before_path_validation" in row for row in result["runs"])
+    assert all("candidate_path_cap_filled" in row for row in result["runs"])
+    assert result["configuration"]["candidate_path_count_stage"] == (
+        "after_candidate_generation_before_invalid_path_filter"
+    )
 
     scattered = run_convergence(
         scene_name="box_one_screen",
@@ -207,4 +227,8 @@ def test_convergence_matrix_labels_los_and_blocked_links_independently():
     assert scattered["configuration"]["cfr_vectors_included"] is True
     assert all(len(row["cfr_vector_real"]) == 8 for row in scattered["runs"])
     assert all(len(row["cfr_vector_imag"]) == 8 for row in scattered["runs"])
+    assert all(
+        row["candidate_path_count_before_path_validation"] >= row["valid_path_count"]
+        for row in scattered["runs"]
+    )
     assert max(row["valid_diffuse_reflection_path_count"] for row in scattered["runs"]) > 0

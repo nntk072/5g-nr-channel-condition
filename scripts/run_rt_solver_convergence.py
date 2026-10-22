@@ -40,6 +40,25 @@ class ConvergenceLink:
             object.__setattr__(self, name, cast(tuple[float, float, float], position))
 
 
+class _CandidatePathCounter:
+    """Record the candidate buffer size before PathSolver filters invalid paths."""
+
+    def __init__(self, delegate: Any) -> None:
+        self._delegate = delegate
+        self.last_candidate_path_count: int | None = None
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        import drjit as dr
+
+        paths_buffer = self._delegate(*args, **kwargs)
+        dr.eval(paths_buffer.paths_counter)
+        count = np.asarray(paths_buffer.paths_counter.numpy(), dtype=np.int64).reshape(-1)
+        if count.size == 0 or np.any(count < 0):
+            raise RuntimeError("Sionna returned an invalid candidate path counter")
+        self.last_candidate_path_count = int(np.max(count))
+        return paths_buffer
+
+
 def relative_l2_error(value: np.ndarray, reference: np.ndarray) -> float:
     """Return relative complex L2 error, rejecting incompatible or zero references."""
     value = np.asarray(value)
@@ -263,6 +282,8 @@ def run_convergence(
     scene.add(rt.Transmitter(name="convergence_tx", position=list(tx_position)))
     scene.add(rt.Receiver(name="convergence_rx", position=list(rx_position)))
     solver = rt.PathSolver(deterministic=True)
+    candidate_path_counter = _CandidatePathCounter(solver._candidate_generator)
+    solver._candidate_generator = candidate_path_counter
     grid = GridConfig(
         n_subcarriers=n_subcarriers,
         spacing_hz=subcarrier_spacing_hz,
@@ -292,6 +313,9 @@ def run_convergence(
             samples_per_src=samples,
             seed=seed,
         )
+        candidate_path_count = candidate_path_counter.last_candidate_path_count
+        if candidate_path_count is None:
+            raise RuntimeError("Sionna did not expose its pre-filter candidate path count")
         cfr = rt_cfr(paths, grid).reshape(-1)
         valid = np.asarray(paths.valid.numpy(), dtype=bool).reshape(-1)
         gain_real, gain_imag = paths.a
@@ -323,6 +347,8 @@ def run_convergence(
             "max_depth": depth,
             "samples_per_src": samples,
             "valid_path_count": count_valid_paths(paths),
+            "candidate_path_count_before_path_validation": candidate_path_count,
+            "candidate_path_cap_filled": candidate_path_count >= max_num_paths_per_src,
             "valid_diffuse_reflection_path_count": int(np.count_nonzero(valid_diffuse)),
             "valid_non_diffuse_path_count": int(np.count_nonzero(valid_non_diffuse)),
             "valid_path_power_sum": float(np.sum(np.abs(gains[valid]) ** 2)),
@@ -392,6 +418,8 @@ def run_convergence(
             "samples_per_src_values": list(samples_per_src_values),
             "reference_samples_per_src": reference_samples,
             "max_num_paths_per_src": max_num_paths_per_src,
+            "candidate_path_count_stage": "after_candidate_generation_before_invalid_path_filter",
+            "candidate_path_count_scope": "single_transmitter_source",
             "seeds": list(seeds),
             "links": [
                 {
