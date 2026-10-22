@@ -131,6 +131,41 @@ def path_observables(
     }
 
 
+def count_paths_with_interaction(
+    interactions: np.ndarray,
+    valid: np.ndarray,
+    interaction_bit: int,
+) -> int:
+    """Count valid SISO paths containing a selected Sionna interaction bit."""
+    interaction_values = np.asarray(interactions)
+    valid_values = np.asarray(valid)
+    if valid_values.dtype != np.bool_:
+        raise TypeError("valid must be a boolean path mask")
+    valid_values = valid_values.reshape(-1)
+    if interaction_values.ndim != 4 or interaction_values.shape[-1] != len(valid_values):
+        raise ValueError("interactions must have [depth, rx, tx, path] axes aligned to valid")
+    if isinstance(interaction_bit, bool) or interaction_bit <= 0:
+        raise ValueError("interaction_bit must be a positive bit mask")
+    has_interaction = np.any(
+        np.bitwise_and(interaction_values, interaction_bit) != 0, axis=(0, 1, 2)
+    )
+    return int(np.count_nonzero(valid_values & has_interaction))
+
+
+def _material_metadata(scene: Any) -> dict[str, dict[str, Any]]:
+    """Record actual per-scene scattering values and pattern classes."""
+    material_records: dict[str, dict[str, Any]] = {}
+    for name, material in sorted(scene.radio_materials.items()):
+        scattering = np.asarray(material.scattering_coefficient).reshape(-1)
+        xpd = np.asarray(material.xpd_coefficient).reshape(-1)
+        material_records[str(name)] = {
+            "scattering_coefficient": scattering.astype(float).tolist(),
+            "xpd_coefficient": xpd.astype(float).tolist(),
+            "scattering_pattern": type(material.scattering_pattern).__name__,
+        }
+    return material_records
+
+
 def run_convergence(
     *,
     scene_name: str,
@@ -144,6 +179,8 @@ def run_convergence(
     carrier_hz: float = 3.5e9,
     mitsuba_variant: str = "auto",
     link_cases: Sequence[ConvergenceLink] | None = None,
+    material_scattering_overrides: dict[str, float] | None = None,
+    max_num_paths_per_src: int = 1_000_000,
 ) -> dict[str, Any]:
     """Compare ray budgets and interaction depths for named fixed links."""
     if max_depth < 1:
@@ -154,6 +191,17 @@ def run_convergence(
         raise ValueError("samples_per_src_values must be unique")
     if not seeds or len(set(seeds)) != len(seeds):
         raise ValueError("seeds must be nonempty and unique")
+    if (
+        isinstance(max_num_paths_per_src, bool)
+        or not isinstance(max_num_paths_per_src, int)
+        or max_num_paths_per_src < 1
+    ):
+        raise ValueError("max_num_paths_per_src must be a positive integer")
+    for name, coefficient in (material_scattering_overrides or {}).items():
+        if not name or isinstance(coefficient, bool) or not math.isfinite(coefficient):
+            raise ValueError("material scattering overrides require names and finite coefficients")
+        if coefficient < 0.0 or coefficient > 1.0:
+            raise ValueError("material scattering coefficients must be in [0, 1]")
     if len(tx_position) != 3 or len(rx_position) != 3:
         raise ValueError("transmitter and receiver positions must have three coordinates")
     links = (
@@ -184,6 +232,7 @@ def run_convergence(
         backend_selection = select_rt_backend(mitsuba_variant)
         activate_rt_backend(backend_selection)
         import sionna.rt as rt
+        from sionna.rt.constants import InteractionType
     except (ImportError, RuntimeError) as error:
         raise RuntimeError(f"Could not initialize a usable Sionna RT backend: {error}") from error
 
@@ -192,6 +241,12 @@ def run_convergence(
     if not scene_xml.is_file():
         raise FileNotFoundError(f"Sionna scene XML not found: {scene_xml}")
     scene = rt.load_scene(str(scene_xml))
+    unknown_materials = set(material_scattering_overrides or {}) - set(scene.radio_materials)
+    if unknown_materials:
+        raise ValueError(f"unknown scene radio materials: {sorted(unknown_materials)}")
+    for name, coefficient in (material_scattering_overrides or {}).items():
+        scene.radio_materials[name].scattering_coefficient = coefficient
+    material_records = _material_metadata(scene)
     scene.frequency = carrier_hz
     scene.bandwidth = n_subcarriers * subcarrier_spacing_hz
     scene.tx_array = rt.PlanarArray(num_rows=1, num_cols=1, pattern="iso", polarization="V")
@@ -219,6 +274,7 @@ def run_convergence(
         paths = solver(
             scene,
             max_depth=depth,
+            max_num_paths_per_src=max_num_paths_per_src,
             los=True,
             specular_reflection=True,
             diffuse_reflection=True,
@@ -234,10 +290,18 @@ def run_convergence(
         delays = np.asarray(paths.tau.numpy()).reshape(-1)
         theta_r = np.asarray(paths.theta_r.numpy()).reshape(-1)
         phi_r = np.asarray(paths.phi_r.numpy()).reshape(-1)
+        interaction_types = np.asarray(paths.interactions.numpy(), dtype=np.uint32)
+        diffuse_interaction_mask = np.any(
+            np.bitwise_and(interaction_types, InteractionType.DIFFUSE) != 0, axis=(0, 1, 2)
+        )
         if any(len(value) != len(valid) for value in (gains, delays, theta_r, phi_r)):
             raise RuntimeError(
                 "Sionna path mask, coefficients, delays, and angles do not align for SISO"
             )
+        valid_diffuse = valid & diffuse_interaction_mask
+        valid_non_diffuse = valid & ~diffuse_interaction_mask
+        diffuse_observables = path_observables(gains, delays, theta_r, phi_r, valid_diffuse)
+        non_diffuse_observables = path_observables(gains, delays, theta_r, phi_r, valid_non_diffuse)
         if link.link_id not in link_geometry:
             link_geometry[link.link_id] = segment_visibility(
                 scene, link.tx_position_m, link.rx_position_m
@@ -250,9 +314,15 @@ def run_convergence(
             "max_depth": depth,
             "samples_per_src": samples,
             "valid_path_count": count_valid_paths(paths),
+            "valid_diffuse_reflection_path_count": int(np.count_nonzero(valid_diffuse)),
+            "valid_non_diffuse_path_count": int(np.count_nonzero(valid_non_diffuse)),
             "valid_path_power_sum": float(np.sum(np.abs(gains[valid]) ** 2)),
+            "diffuse_path_power_sum": float(np.sum(np.abs(gains[valid_diffuse]) ** 2)),
+            "non_diffuse_path_power_sum": float(np.sum(np.abs(gains[valid_non_diffuse]) ** 2)),
             "valid_path_delays_ns_sorted": sorted((delays[valid] * 1e9).tolist()),
             **path_observables(gains, delays, theta_r, phi_r, valid),
+            **{f"diffuse_{key}": value for key, value in diffuse_observables.items()},
+            **{f"non_diffuse_{key}": value for key, value in non_diffuse_observables.items()},
             "cfr_mean_power": float(np.mean(np.abs(cfr) ** 2)),
             "cfr_sha256": hashlib.sha256(np.ascontiguousarray(cfr).tobytes()).hexdigest(),
             "runtime_seconds": time.perf_counter() - started,
@@ -290,7 +360,7 @@ def run_convergence(
 
     runtime = versions()
     return {
-        "schema": "loslab.sionna_rt_solver_convergence.v2",
+        "schema": "loslab.sionna_rt_solver_convergence.v3",
         "evidence_grade": "SINGLE_SCENE_GEOMETRY_LABELED_SOLVER_DIAGNOSTIC",
         "scene": {
             "name": scene_name,
@@ -305,6 +375,7 @@ def run_convergence(
             "max_depth_values": list(range(max_depth + 1)),
             "samples_per_src_values": list(samples_per_src_values),
             "reference_samples_per_src": reference_samples,
+            "max_num_paths_per_src": max_num_paths_per_src,
             "seeds": list(seeds),
             "links": [
                 {
@@ -336,6 +407,8 @@ def run_convergence(
                 "refraction": True,
                 "diffraction": False,
             },
+            "materials": material_records,
+            "material_scattering_overrides": material_scattering_overrides or {},
         },
         "source_revision": runtime.get("git_sha"),
         "package_source_sha256": package_source_sha256(),
@@ -345,6 +418,8 @@ def run_convergence(
         "limitations": [
             "One built-in scene and one SISO link do not qualify solver convergence across geometries.",
             "The maximum requested sample count is a comparison reference, not proven ground truth.",
+            "Diffuse reflection is only generated when an interacting material has a nonzero scattering coefficient; actual per-material coefficients and diffuse-path counts are recorded.",
+            "The path cap is recorded but cap sensitivity requires a separate audit.",
             "CFR retains absolute path delays and unnormalized received power.",
             "Delay spread is coefficient-power weighted; angular spread is the spherical mean-direction statistic documented in the runner.",
             "Backend selection validates one minimal native trace, not scene-material realism, convergence, or production throughput.",
@@ -367,6 +442,14 @@ def main() -> None:
     parser.add_argument("--subcarrier-spacing-hz", type=float, default=30_000.0)
     parser.add_argument("--carrier-hz", type=float, default=3.5e9)
     parser.add_argument("--mitsuba-variant", default="auto")
+    parser.add_argument("--max-num-paths-per-src", type=int, default=1_000_000)
+    parser.add_argument(
+        "--material-scattering",
+        action="append",
+        default=[],
+        metavar="NAME=COEFFICIENT",
+        help="override one scene material's scattering coefficient in [0,1]; repeat as needed",
+    )
     parser.add_argument(
         "--link-case",
         action="append",
@@ -377,6 +460,15 @@ def main() -> None:
     args = parser.parse_args()
     if args.output.exists():
         parser.error(f"refusing to overwrite existing output: {args.output}")
+    material_overrides: dict[str, float] = {}
+    for assignment in args.material_scattering:
+        name, separator, raw_coefficient = assignment.partition("=")
+        if not separator or not name or name in material_overrides:
+            parser.error(f"invalid or duplicate --material-scattering value: {assignment}")
+        try:
+            material_overrides[name] = float(raw_coefficient)
+        except ValueError:
+            parser.error(f"invalid scattering coefficient: {assignment}")
     try:
         result = run_convergence(
             scene_name=args.scene,
@@ -389,6 +481,8 @@ def main() -> None:
             subcarrier_spacing_hz=args.subcarrier_spacing_hz,
             carrier_hz=args.carrier_hz,
             mitsuba_variant=args.mitsuba_variant,
+            material_scattering_overrides=material_overrides,
+            max_num_paths_per_src=args.max_num_paths_per_src,
             link_cases=(
                 tuple(
                     ConvergenceLink(

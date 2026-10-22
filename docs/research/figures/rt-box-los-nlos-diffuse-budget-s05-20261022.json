@@ -1,0 +1,152 @@
+{
+  "configuration": {
+    "carrier_hz": 3500000000.0,
+    "deterministic_solver": true,
+    "links": [
+      {
+        "boundary_probe_blocked": [
+          false,
+          false,
+          false,
+          false
+        ],
+        "first_intersection_distance_m": null,
+        "geometric_los": true,
+        "geometric_visibility_state": "visible",
+        "incidence_cosine": null,
+        "link_id": "same-side-los",
+        "rx_position_m": [
+          -1.0,
+          0.0,
+          2.5
+        ],
+        "segment_length_m": 1.0,
+        "tx_position_m": [
+          -2.0,
+          0.0,
+          2.5
+        ]
+      },
+      {
+        "boundary_probe_blocked": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "first_intersection_distance_m": 1.9999998807907104,
+        "geometric_los": false,
+        "geometric_visibility_state": "blocked",
+        "incidence_cosine": 0.9999999999999991,
+        "link_id": "through-screen-nlos",
+        "rx_position_m": [
+          2.0,
+          0.0,
+          2.5
+        ],
+        "segment_length_m": 4.0,
+        "tx_position_m": [
+          -2.0,
+          0.0,
+          2.5
+        ]
+      }
+    ],
+    "material_scattering_overrides": {
+      "screen-mat": 0.5
+    },
+    "materials": {
+      "box-mat": {
+        "scattering_coefficient": [
+          0.0
+        ],
+        "scattering_pattern": "LambertianPattern",
+        "xpd_coefficient": [
+          0.0
+        ]
+      },
+      "screen-mat": {
+        "scattering_coefficient": [
+          0.5
+        ],
+        "scattering_pattern": "LambertianPattern",
+        "xpd_coefficient": [
+          0.0
+        ]
+      }
+    },
+    "max_depth_values": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "max_num_paths_per_src": 1000000,
+    "mitsuba_variant": "llvm_ad_mono_polarized",
+    "n_subcarriers": 256,
+    "normalize_cfr_power": false,
+    "normalize_delays_for_cfr": false,
+    "reference_samples_per_src": 100000,
+    "rt_backend_selection": {
+      "available_variants": [
+        "scalar_rgb",
+        "scalar_spectral",
+        "scalar_spectral_polarized",
+        "llvm_ad_rgb",
+        "llvm_ad_mono",
+        "llvm_ad_mono_polarized",
+        "llvm_ad_spectral",
+        "llvm_ad_spectral_polarized",
+        "cuda_ad_rgb",
+        "cuda_ad_mono",
+        "cuda_ad_mono_polarized",
+        "cuda_ad_spectral",
+        "cuda_ad_spectral_polarized"
+      ],
+      "backend": "llvm_cpu",
+      "fallback_reason": "cuda_ad_mono_polarized: native RT probe failed (1): RuntimeError: [parser.cpp:1718] At dictionary node \"root\": failed to instantiate scene plugin of type \"scene\": Could not initialize OptiX!",
+      "probe_passed": true,
+      "probe_summary": "one direct path traced with llvm_ad_mono_polarized",
+      "requested": "auto",
+      "runtime_versions": {
+        "drjit": "1.5.0",
+        "mitsuba": "3.9.1",
+        "sionna-rt": "2.2.0"
+      },
+      "variant": "llvm_ad_mono_polarized"
+    },
+    "samples_per_src_values": [
+      200,
+      2000,
+      20000,
+      100000
+    ],
+    "seeds": [
+      11,
+      23,
+      47
+    ],
+    "solver_flags": {
+      "diffraction": false,
+      "diffuse_reflection": true,
+      "los": true,
+      "refraction": true,
+      "specular_reflection": true
+    },
+    "subcarrier_spacing_hz": 30000.0
+  },
+  "input": {
+    "path": "/home/nguyenl37/5g-nr-channel-condition/docs/research/results/rt-box-los-nlos-diffuse-budget-sweep-s05-components-20261022.json",
+    "sha256": "64f706ea689bc20001a00331dd75d159d4c86800d7625c72488ca8827eb1c022"
+  },
+  "png": {
+    "path": "docs/research/figures/rt-box-los-nlos-diffuse-budget-s05-20261022.png",
+    "sha256": "923c7d98148e582a8639ec5b4af3edfa4ed69faad0a48af69f4d36071f39cd21"
+  },
+  "schema": "loslab.rt_scattering_budget_plot.v1",
+  "summary": "Lines show the median across seeds; bands show the observed min/max and may use fewer seeds when a budget produces no diffuse paths. In the log-scaled diffuse-power panel, exact zero lower bounds are clipped to 10% of the median for visibility. The synthetic S=0.5 override demonstrates solver mechanics, not calibrated material scattering.",
+  "svg": {
+    "path": "docs/research/figures/rt-box-los-nlos-diffuse-budget-s05-20261022.svg",
+    "sha256": "a00d919d9c9af334f629948a6835a28cd06c4dabbcd7b9e17724074d34c7f7a1"
+  }
+}

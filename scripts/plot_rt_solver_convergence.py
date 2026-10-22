@@ -50,7 +50,10 @@ def load_reports(paths: Sequence[Path]) -> list[dict[str, Any]]:
     reports = []
     for path in paths:
         data = json.loads(path.read_text(encoding="utf-8"))
-        if data.get("schema") != "loslab.sionna_rt_solver_convergence.v2":
+        if data.get("schema") not in {
+            "loslab.sionna_rt_solver_convergence.v2",
+            "loslab.sionna_rt_solver_convergence.v3",
+        }:
             raise ValueError(f"unsupported convergence report schema in {path}")
         if data.get("configuration", {}).get("normalize_delays_for_cfr") is not False:
             raise ValueError(f"report does not preserve absolute delay in {path}")
@@ -58,6 +61,14 @@ def load_reports(paths: Sequence[Path]) -> list[dict[str, Any]]:
     if not reports:
         raise ValueError("at least one convergence report is required")
     return reports
+
+
+def _material_label(configuration: dict[str, Any]) -> str:
+    """Describe explicit scattering overrides so curves remain identifiable."""
+    overrides = configuration.get("material_scattering_overrides", {})
+    if not overrides:
+        return "scene-default scattering"
+    return ", ".join(f"S({name})={value:g}" for name, value in sorted(overrides.items()))
 
 
 def plot_reports(report_paths: Sequence[Path], output_prefix: Path) -> dict[str, Any]:
@@ -77,9 +88,10 @@ def plot_reports(report_paths: Sequence[Path], output_prefix: Path) -> dict[str,
         for link_index, link in enumerate(config["links"]):
             link_id = link["link_id"]
             label = (
-                f"{scene_name} / {link_id} ({link['geometric_visibility_state']}; "
-                f"depth {max(config['max_depth_values'])}, "
-                f"reference {config['reference_samples_per_src']:,})"
+                f"{scene_name}/{link_id} [{link['geometric_visibility_state']}; "
+                f"d{max(config['max_depth_values'])}; "
+                f"{config['reference_samples_per_src'] // 1000}k; "
+                f"{_material_label(config)}]"
             )
             color = colors(link_index % 10)
             line_style = line_styles[report_index % len(line_styles)]
@@ -172,17 +184,20 @@ def plot_reports(report_paths: Sequence[Path], output_prefix: Path) -> dict[str,
 
     ax_budget.set_xscale("log")
     ax_budget.set_yscale("log")
-    ax_budget.set_xlabel("Diffuse-ray samples per source")
+    ax_budget.set_xlabel("Path-solver ray samples per source")
     ax_budget.set_ylabel("Relative complex CFR L2 error")
-    ax_budget.set_title("Ray-budget sensitivity at maximum depth")
+    ax_budget.set_title("Ray-sample sensitivity at maximum depth")
 
     ax_depth.set_yscale("log")
+    ax_depth.set_xlim(
+        0, max(max(report["data"]["configuration"]["max_depth_values"]) for report in reports)
+    )
     ax_depth.set_xlabel("Maximum interaction depth")
     ax_depth.set_ylabel("Relative complex CFR L2 error")
     ax_depth.set_title("Interaction-depth sensitivity at reference budget")
 
     ax_delay.set_xscale("log")
-    ax_delay.set_xlabel("Diffuse-ray samples per source")
+    ax_delay.set_xlabel("Path-solver ray samples per source")
     ax_delay.set_ylabel("Power-weighted RMS delay spread (ns)")
     ax_delay.set_title("Delay-spread stability at maximum depth")
 
@@ -201,7 +216,10 @@ def plot_reports(report_paths: Sequence[Path], output_prefix: Path) -> dict[str,
             loc="outside lower center",
             ncols=2,
         )
-    fig.suptitle("Sionna RT solver-budget convergence diagnostics", fontsize=15)
+    fig.suptitle(
+        "Sionna RT convergence diagnostics; synthetic scattering overrides are not calibrated",
+        fontsize=13,
+    )
     output_prefix.parent.mkdir(parents=True, exist_ok=True)
     png_path = output_prefix.with_suffix(".png")
     svg_path = output_prefix.with_suffix(".svg")
@@ -224,7 +242,7 @@ def plot_reports(report_paths: Sequence[Path], output_prefix: Path) -> dict[str,
         ],
         "png": {"path": str(png_path), "sha256": sha256_file(png_path)},
         "svg": {"path": str(svg_path), "sha256": sha256_file(svg_path)},
-        "summary": "Error bars show min-to-max across deterministic seeds. Exact zero relative errors (identical to the selected reference CFR) are omitted from log-scale panels. The high-budget CFR is a comparison reference, not proven ground truth.",
+        "summary": "Error bars show min-to-max across deterministic seeds. Exact zero relative errors (identical to the selected reference CFR) are omitted from log-scale panels. The high-budget CFR is a comparison reference, not proven ground truth. Ray-sample counts do not imply diffuse scattering: inspect each report's per-material scattering coefficients; schema v2 reports omit them.",
     }
     atomic_json(output_prefix.with_suffix(".json"), sidecar)
     return sidecar

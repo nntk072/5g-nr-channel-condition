@@ -13,6 +13,7 @@ RUNNER = runpy.run_path(str(ROOT / "scripts" / "run_rt_solver_convergence.py"))
 relative_l2_error = RUNNER["relative_l2_error"]
 relative_l2_error_if_defined = RUNNER["relative_l2_error_if_defined"]
 path_observables = RUNNER["path_observables"]
+count_paths_with_interaction = RUNNER["count_paths_with_interaction"]
 ConvergenceLink = RUNNER["ConvergenceLink"]
 
 
@@ -60,9 +61,46 @@ def test_path_observables_leave_empty_path_targets_undefined():
     assert all(value is None for value in result.values())
 
 
+def test_count_paths_with_interaction_uses_valid_paths_and_interaction_bits():
+    interactions = np.asarray(
+        [[[[0, 2, 1, 4]]], [[[0, 0, 2, 0]]]],
+        dtype=np.uint32,
+    )
+    valid = np.asarray([True, True, False, True])
+    assert count_paths_with_interaction(interactions, valid, 2) == 1
+
+
 def test_convergence_link_requires_finite_xyz_positions():
     with pytest.raises(ValueError, match="three finite coordinates"):
         ConvergenceLink("bad", (0.0, 0.0, float("nan")), (1.0, 0.0, 0.0))
+
+
+def test_material_scattering_override_is_range_checked_before_runtime_setup():
+    run_convergence = RUNNER["run_convergence"]
+    with pytest.raises(ValueError, match=r"coefficients must be in \[0, 1\]"):
+        run_convergence(
+            scene_name="box_one_screen",
+            tx_position=(-2.0, 0.0, 2.5),
+            rx_position=(-1.0, 0.0, 2.5),
+            max_depth=1,
+            samples_per_src_values=(10,),
+            seeds=(11,),
+            material_scattering_overrides={"screen-mat": 1.1},
+        )
+
+
+def test_path_cap_must_be_a_positive_integer():
+    run_convergence = RUNNER["run_convergence"]
+    with pytest.raises(ValueError, match="max_num_paths_per_src must be a positive integer"):
+        run_convergence(
+            scene_name="box_one_screen",
+            tx_position=(-2.0, 0.0, 2.5),
+            rx_position=(-1.0, 0.0, 2.5),
+            max_depth=1,
+            samples_per_src_values=(10,),
+            seeds=(11,),
+            max_num_paths_per_src=0,
+        )
 
 
 @pytest.mark.native_sionna
@@ -74,11 +112,12 @@ def test_convergence_matrix_labels_los_and_blocked_links_independently():
         scene_name="box_one_screen",
         tx_position=(-2.0, 0.0, 2.5),
         rx_position=(-1.0, 0.0, 2.5),
-        max_depth=1,
-        samples_per_src_values=(64,),
+        max_depth=3,
+        samples_per_src_values=(1000,),
         seeds=(11,),
         n_subcarriers=8,
         mitsuba_variant="llvm_ad_mono_polarized",
+        max_num_paths_per_src=1000,
         link_cases=(
             ConvergenceLink("same-side", (-2.0, 0.0, 2.5), (-1.0, 0.0, 2.5)),
             ConvergenceLink("through-screen", (-2.0, 0.0, 2.5), (2.0, 0.0, 2.5)),
@@ -88,6 +127,25 @@ def test_convergence_matrix_labels_los_and_blocked_links_independently():
     assert by_id["same-side"]["geometric_visibility_state"] == "visible"
     assert by_id["through-screen"]["geometric_visibility_state"] == "blocked"
     assert result["configuration"]["normalize_delays_for_cfr"] is False
-    assert result["schema"].endswith(".v2")
+    assert result["schema"].endswith(".v3")
+    assert result["configuration"]["max_num_paths_per_src"] == 1000
+    assert result["configuration"]["materials"]["screen-mat"]["scattering_coefficient"] == [0.0]
     assert {row["link_id"] for row in result["runs"]} == set(by_id)
     assert all("power_weighted_rms_delay_spread_ns" in row for row in result["runs"])
+    assert all(row["valid_diffuse_reflection_path_count"] == 0 for row in result["runs"])
+
+    scattered = run_convergence(
+        scene_name="box_one_screen",
+        tx_position=(-2.0, 0.0, 2.5),
+        rx_position=(2.0, 0.0, 2.5),
+        max_depth=3,
+        samples_per_src_values=(1000,),
+        seeds=(11,),
+        n_subcarriers=8,
+        mitsuba_variant="llvm_ad_mono_polarized",
+        link_cases=(ConvergenceLink("through-screen", (-2.0, 0.0, 2.5), (2.0, 0.0, 2.5)),),
+        material_scattering_overrides={"screen-mat": 0.5},
+        max_num_paths_per_src=1000,
+    )
+    assert scattered["configuration"]["materials"]["screen-mat"]["scattering_coefficient"] == [0.5]
+    assert max(row["valid_diffuse_reflection_path_count"] for row in scattered["runs"]) > 0

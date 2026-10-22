@@ -358,12 +358,12 @@
   ],
   "png": {
     "path": "docs/research/figures/rt-box-los-nlos-convergence-20261022.png",
-    "sha256": "11a7f4d89b1ef9391e8a6d735d53801c3b91a3b1ecdf701c57ce5eb98fef23db"
+    "sha256": "1f0e17e51039e5ad91b02c05aa677fedc75907c2cabcd3afa165fbd281bca0d7"
   },
   "schema": "loslab.rt_solver_convergence_plot.v1",
-  "summary": "Error bars show min-to-max across deterministic seeds. Exact zero relative errors (identical to the selected reference CFR) are omitted from log-scale panels. The high-budget CFR is a comparison reference, not proven ground truth.",
+  "summary": "Error bars show min-to-max across deterministic seeds. Exact zero relative errors (identical to the selected reference CFR) are omitted from log-scale panels. The high-budget CFR is a comparison reference, not proven ground truth. Ray-sample counts do not imply diffuse scattering: inspect each report's per-material scattering coefficients; schema v2 reports omit them.",
   "svg": {
     "path": "docs/research/figures/rt-box-los-nlos-convergence-20261022.svg",
-    "sha256": "ba1808705a419c149640a8023c290e33f3f7e0902c705d39c02f7e769724f5bf"
+    "sha256": "12d3901dc28ddf82c8db76251b2981d2f022e830859305d9a636c4918c6f20f4"
   }
 }
