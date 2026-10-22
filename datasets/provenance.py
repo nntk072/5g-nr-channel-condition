@@ -68,6 +68,7 @@ class UMCDRunProvenance:
     physical_config: Mapping[str, Any]
     solver_config: Mapping[str, Any]
     material_config: Mapping[str, Any]
+    run_identity_sha256: str | None = None
 
     def __post_init__(self) -> None:
         for name in ("record_id", "subject_layer", "source_family", "producer"):
@@ -78,6 +79,8 @@ class UMCDRunProvenance:
             raise ValueError("subject_layer is not a supported UMCD data layer")
         if not _SHA256.fullmatch(self.package_source_sha256):
             raise ValueError("package_source_sha256 must be a lowercase SHA256 digest")
+        if self.run_identity_sha256 is not None and not _SHA256.fullmatch(self.run_identity_sha256):
+            raise ValueError("run_identity_sha256 must be a lowercase SHA256 digest")
         if isinstance(self.seed, bool) or (
             self.seed is not None and not isinstance(self.seed, (int, str))
         ):
@@ -140,6 +143,7 @@ class UMCDRunProvenance:
             "physical_config": _thaw(self.physical_config),
             "solver_config": _thaw(self.solver_config),
             "material_config": _thaw(self.material_config),
+            "run_identity_sha256": self.run_identity_sha256,
         }
         return {**core, "record_sha256": hashlib.sha256(_canonical(core)).hexdigest()}
 
@@ -164,6 +168,7 @@ class UMCDRunProvenance:
             physical_config=value["physical_config"],
             solver_config=value["solver_config"],
             material_config=value["material_config"],
+            run_identity_sha256=value["run_identity_sha256"],
         )
         if record.to_dict() != dict(value):
             raise ValueError("UMCD provenance representation is not canonical")

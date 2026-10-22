@@ -8,6 +8,7 @@ import subprocess
 from typing import Any, Mapping
 
 from artifacts.provenance import canonical_hash
+from datasets.provenance import UMCDRunProvenance
 
 
 def rt_runtime_fingerprint(base_versions: Mapping[str, str]) -> dict[str, str]:
@@ -104,6 +105,68 @@ def rt_run_identity(
         "cache_key_sha256": canonical_hash(inputs),
         "inputs": inputs,
     }
+
+
+def umcd_provenance_from_rt_identity(
+    identity: Mapping[str, Any],
+    *,
+    record_id: str,
+    subject_layer: str,
+    source_family: str,
+    producer: str,
+    material_config: Mapping[str, Any],
+) -> UMCDRunProvenance:
+    """Convert a complete RT cache identity into a layer provenance record.
+
+    Material state is supplied explicitly because the generic RT identity only
+    includes materials when the caller placed them in its physical config.
+    This adapter refuses incomplete or internally inconsistent identities.
+    """
+    if identity.get("schema") != "loslab.rt_run_identity.v1" or not identity.get("complete"):
+        raise ValueError("only complete RT run identities can become UMCD provenance")
+    inputs = identity.get("inputs")
+    cache_key = identity.get("cache_key_sha256")
+    if not isinstance(inputs, Mapping) or not isinstance(cache_key, str):
+        raise ValueError("complete RT identity must contain inputs and a cache key")
+    if canonical_hash(dict(inputs)) != cache_key:
+        raise ValueError("RT identity inputs do not match their cache key")
+    asset_hash = inputs.get("scene_asset_set_sha256")
+    backend = inputs.get("backend")
+    versions = inputs.get("runtime_versions")
+    physical_config = inputs.get("physical_config")
+    solver_config = inputs.get("solver_config")
+    package_sha = inputs.get("package_source_sha256")
+    seed = inputs.get("seed")
+    if (
+        not isinstance(asset_hash, str)
+        or not isinstance(backend, Mapping)
+        or not isinstance(versions, Mapping)
+        or not isinstance(physical_config, Mapping)
+        or not isinstance(solver_config, Mapping)
+        or not isinstance(package_sha, str)
+        or isinstance(seed, bool)
+        or not isinstance(seed, int)
+    ):
+        raise ValueError("RT identity is missing required reproducibility inputs")
+    if any(
+        not isinstance(key, str) or not isinstance(value, str) for key, value in versions.items()
+    ):
+        raise ValueError("RT runtime versions must be string-valued")
+    return UMCDRunProvenance(
+        record_id=record_id,
+        subject_layer=subject_layer,
+        source_family=source_family,
+        producer=producer,
+        package_source_sha256=package_sha,
+        software_versions=versions,
+        backend=backend,
+        scene_asset_sha256={"asset_set": asset_hash},
+        seed=seed,
+        physical_config=physical_config,
+        solver_config=solver_config,
+        material_config=material_config,
+        run_identity_sha256=cache_key,
+    )
 
 
 def static_rt_solver_config(max_depth: int) -> dict[str, object]:

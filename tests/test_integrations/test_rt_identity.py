@@ -4,6 +4,7 @@ from integrations.sionna.rt_identity import (
     rt_run_identity,
     rt_runtime_fingerprint,
     static_rt_solver_config,
+    umcd_provenance_from_rt_identity,
 )
 
 
@@ -133,3 +134,54 @@ def test_static_rt_solver_config_validates_and_records_all_switches():
             pass
         else:
             raise AssertionError(f"invalid max_depth accepted: {invalid!r}")
+
+
+def test_complete_rt_identity_converts_to_layer_specific_umcd_provenance():
+    inputs = _inputs()
+    inputs["scene_asset_manifest"]["asset_set_sha256"] = "a" * 64
+    inputs["package_source_sha256"] = "b" * 64
+    identity = rt_run_identity(**inputs)
+
+    record = umcd_provenance_from_rt_identity(
+        identity,
+        record_id="rt-generation-1",
+        subject_layer="oracle_paths",
+        source_family="F03-RT-STATIC",
+        producer="Sionna 2.2 PathSolver",
+        material_config={"wall": {"scattering_coefficient": 0.0}},
+    )
+
+    assert record.run_identity_sha256 == identity["cache_key_sha256"]
+    assert record.scene_asset_sha256["asset_set"] == "a" * 64
+    assert record.software_versions["python"] == "3.12.0"
+    assert record.solver_config["max_depth"] == 2
+
+
+def test_rt_identity_provenance_adapter_rejects_incomplete_or_tampered_identity():
+    kwargs = {
+        "record_id": "rt-generation-1",
+        "subject_layer": "oracle_paths",
+        "source_family": "F03-RT-STATIC",
+        "producer": "Sionna 2.2 PathSolver",
+        "material_config": {},
+    }
+    incomplete = rt_run_identity(**_inputs())
+    incomplete["complete"] = False
+    try:
+        umcd_provenance_from_rt_identity(incomplete, **kwargs)
+    except ValueError as error:
+        assert "complete RT" in str(error)
+    else:
+        raise AssertionError("incomplete RT identity must be rejected")
+
+    inputs = _inputs()
+    inputs["scene_asset_manifest"]["asset_set_sha256"] = "a" * 64
+    inputs["package_source_sha256"] = "b" * 64
+    identity = rt_run_identity(**inputs)
+    identity["inputs"]["solver_config"]["max_depth"] = 99
+    try:
+        umcd_provenance_from_rt_identity(identity, **kwargs)
+    except ValueError as error:
+        assert "cache key" in str(error)
+    else:
+        raise AssertionError("tampered RT identity must be rejected")
