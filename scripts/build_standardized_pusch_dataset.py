@@ -5,14 +5,37 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
+import tempfile
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
+from artifacts.provenance import package_source_sha256, sha256_file, versions
 from datasets.nr_store import write_nr_record
 from datasets.standardized import StandardizedFamily, standardized_run_from_channel
 from integrations.sionna.standardized_pusch import build_standardized_pusch_dmrs_records
 from receivers.nr import NRPUSCHConfig
+
+
+def _publish_immutable_json(path: Path, value: dict[str, Any]) -> None:
+    """Atomically publish one immutable report, accepting exact replays only."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = (json.dumps(value, indent=2, sort_keys=True, allow_nan=False) + "\n").encode()
+    descriptor, temporary_name = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.")
+    temporary = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "wb") as stream:
+            stream.write(payload)
+            stream.flush()
+            os.fsync(stream.fileno())
+        try:
+            os.link(temporary, path)
+        except FileExistsError:
+            if path.read_bytes() != payload:
+                raise ValueError(f"refusing to replace an immutable build report: {path}")
+    finally:
+        temporary.unlink(missing_ok=True)
 
 
 def main() -> None:
@@ -27,8 +50,8 @@ def main() -> None:
     args = parser.parse_args()
     if args.samples <= 0:
         parser.error("--samples must be positive")
-    if args.seed < 0:
-        parser.error("--seed must be nonnegative")
+    if args.seed < 0 or args.seed > 2**63 - 3:
+        parser.error("--seed must be in [0, 2**63 - 3]")
 
     common = {
         "model": args.profile,
@@ -69,6 +92,14 @@ def main() -> None:
         "snr_db": args.snr_db,
         "device": args.device,
         "output": str(args.output.resolve()),
+        "channel_generator_metadata": channel.metadata,
+        "receiver_config": asdict(NRPUSCHConfig(n_size_bwp=6, subcarrier_spacing_khz=30)),
+        "provenance": {
+            "source_revision": versions()["git_sha"],
+            "package_source_sha256": package_source_sha256(),
+            "runner_sha256": sha256_file(__file__),
+            "runtime_versions": versions(),
+        },
         "record_manifests": [
             {
                 **asdict(manifest),
@@ -80,9 +111,8 @@ def main() -> None:
         ],
         "link_model": "ideal frequency-domain static channel; no ICI/ISI or impairments",
     }
-    args.output.mkdir(parents=True, exist_ok=True)
     report_path = args.output / "build-report.json"
-    report_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    _publish_immutable_json(report_path, report)
     print(json.dumps(report, indent=2, sort_keys=True))
 
 

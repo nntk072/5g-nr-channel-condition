@@ -163,6 +163,7 @@ def build_standardized_pusch_dmrs_records(
                     "profile_los_component": record.profile_los_component,
                     "geometric_los_label": None,
                     "snr_db": snr_db,
+                    "pusch_transmit_seed": child_seed,
                     "noise_variance_per_complex_dimension": float(noise_variance),
                     "noise_seed": child_seed + 1,
                     "subcarrier_spacing_hz": receiver_config.subcarrier_spacing_khz * 1_000,

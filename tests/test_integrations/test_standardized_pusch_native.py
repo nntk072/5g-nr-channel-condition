@@ -75,6 +75,7 @@ def test_standardized_tdl_cdl_to_pusch_dmrs_is_seeded_and_target_is_separate(
         assert record.targets["profile_los_proxy"].tolist() == [profile_label]
         assert record.target_masks["profile_los_proxy"].tolist() == [True]
         assert record.provenance["geometric_los_label"] is None
+        assert record.provenance["pusch_transmit_seed"] == record.provenance["noise_seed"] - 1
         assert record.provenance["receiver_link_model"] == (
             "ideal frequency-domain channel; no ICI/ISI"
         )
