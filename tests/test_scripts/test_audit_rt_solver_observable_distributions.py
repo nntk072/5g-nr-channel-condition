@@ -22,6 +22,7 @@ def _row(seed: int, budget: int, *, los: bool = True, power: float = 2.0) -> dic
         "max_depth": 3,
         "samples_per_src": budget,
         "geometric_los": los,
+        "relative_cfr_l2_to_max_budget_and_depth": 0.25 if budget == 100 else 0.0,
         "valid_path_count": budget // 100,
         "valid_non_diffuse_path_count": 10,
         "valid_diffuse_reflection_path_count": budget // 200,
@@ -86,6 +87,11 @@ def test_summarizes_component_distributions_with_seed_bootstrap(tmp_path: Path):
     assert diffuse_power["paired_median_relative_delta"] == pytest.approx(-0.5)
     assert result["configuration"]["resampling_unit"].startswith("paired solver seed")
     assert result["auditor"]["sha256"]
+
+    cfr_error = next(
+        row for row in result["summaries"] if row["metric"] == "cfr_relative_l2_to_reference"
+    )
+    assert cfr_error["paired_median_delta_low_minus_reference"] == pytest.approx(0.25)
 
 
 def test_path_rates_are_normalized_by_budget_and_seed(tmp_path: Path):

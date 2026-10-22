@@ -1,7 +1,7 @@
 {
   "auditor": {
     "script": "audit_rt_solver_observable_distributions.py",
-    "sha256": "ade0af01e408ff78a0f8b002ca7d24da5e009e2ea3c1b20d117be86943341ef0"
+    "sha256": "e299171b59c282c7aa8f4cc4528f6f6b52490d469754352248ec9978c7ae2684"
   },
   "configuration": {
     "bootstrap_draws": 10000,
@@ -40,6 +40,42 @@
       "paired_median_delta_low_minus_reference": -1.6653345369377348e-16,
       "paired_median_relative_delta": -1.008945987758122e-07,
       "reference_budget_median": 1.6505685707102202e-09,
+      "seeds": [
+        11,
+        23,
+        47,
+        59,
+        71,
+        83,
+        97,
+        101,
+        103,
+        107,
+        109,
+        113,
+        127,
+        131,
+        137,
+        139,
+        149,
+        151,
+        157,
+        163
+      ],
+      "valid_link_seed_pairs": 60,
+      "valid_seed_pairs": 20
+    },
+    {
+      "condition": "NLOS",
+      "low_budget_median": 1.7120960819738684e-05,
+      "metric": "cfr_relative_l2_to_reference",
+      "paired_median_delta_bootstrap_ci95": [
+        3.4914146453957073e-06,
+        3.444284448050894e-05
+      ],
+      "paired_median_delta_low_minus_reference": 1.7120960819738684e-05,
+      "paired_median_relative_delta": null,
+      "reference_budget_median": 0.0,
       "seeds": [
         11,
         23,
@@ -364,6 +400,42 @@
       "paired_median_delta_low_minus_reference": -3.552713678800501e-15,
       "paired_median_relative_delta": -1.41993336536703e-07,
       "reference_budget_median": 2.5020284510901547e-08,
+      "seeds": [
+        11,
+        23,
+        47,
+        59,
+        71,
+        83,
+        97,
+        101,
+        103,
+        107,
+        109,
+        113,
+        127,
+        131,
+        137,
+        139,
+        149,
+        151,
+        157,
+        163
+      ],
+      "valid_link_seed_pairs": 60,
+      "valid_seed_pairs": 20
+    },
+    {
+      "condition": "LOS",
+      "low_budget_median": 3.128873444779856e-07,
+      "metric": "cfr_relative_l2_to_reference",
+      "paired_median_delta_bootstrap_ci95": [
+        9.778350218425658e-08,
+        9.269551810575649e-07
+      ],
+      "paired_median_delta_low_minus_reference": 3.128873444779856e-07,
+      "paired_median_relative_delta": null,
+      "reference_budget_median": 0.0,
       "seeds": [
         11,
         23,

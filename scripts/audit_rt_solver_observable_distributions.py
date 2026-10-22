@@ -20,6 +20,10 @@ SCHEMAS = {
     "loslab.sionna_rt_solver_convergence.v4",
 }
 METRICS = {
+    "cfr_relative_l2_to_reference": (
+        "relative_cfr_l2_to_max_budget_and_depth",
+        "value",
+    ),
     "valid_path_rate_per_1000_samples": ("valid_path_count", "rate"),
     "non_diffuse_path_count": ("valid_non_diffuse_path_count", "value"),
     "diffuse_path_rate_per_1000_samples": ("valid_diffuse_reflection_path_count", "rate"),
