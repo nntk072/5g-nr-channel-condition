@@ -44,6 +44,39 @@ def test_pusch_dmrs_estimator_recovers_frequency_selective_noiseless_channel_on_
 
 
 @pytest.mark.native_sionna
+def test_pusch_ls_pilot_estimate_is_unbiased_with_analytical_awgn_variance_on_cpu():
+    receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(n_size_bwp=2, subcarrier_spacing_khz=30), device="cpu"
+    )
+    batch_size = 1024
+    transmit_grid, _ = receiver.transmit(batch_size, seed=4801)
+    channel = torch.tensor(0.6 - 0.2j, dtype=torch.complex64)
+    clean_grid = transmit_grid[:, 0, 0].unsqueeze(1).unsqueeze(1) * channel
+    complex_noise_variance = 0.05
+    noise_generator = torch.Generator().manual_seed(15)
+    noise = (
+        torch.complex(
+            torch.randn(clean_grid.shape, generator=noise_generator),
+            torch.randn(clean_grid.shape, generator=noise_generator),
+        )
+        * (complex_noise_variance / 2.0) ** 0.5
+    )
+    estimate = receiver.estimate(clean_grid + noise, complex_noise_variance)
+
+    pilot_symbol, pilot_subcarrier = (
+        int(index) for index in torch.nonzero(receiver.pilot_mask[0, 0].bool())[0]
+    )
+    samples = estimate.h_hat[:, 0, 0, 0, 0, pilot_symbol, pilot_subcarrier]
+    predicted_variance = estimate.error_variance[0, 0, 0, 0, 0, pilot_symbol, pilot_subcarrier]
+    empirical_bias = samples.mean() - channel
+    empirical_variance = (samples - samples.mean()).abs().square().mean()
+
+    assert float(empirical_bias.abs()) < 0.02
+    assert float(predicted_variance) == pytest.approx(0.025, rel=1e-6)
+    assert float(empirical_variance / predicted_variance) == pytest.approx(1.0, abs=0.15)
+
+
+@pytest.mark.native_sionna
 def test_pusch_dmrs_estimator_runs_on_cuda_with_named_axes():
     if not torch.cuda.is_available():
         pytest.skip("CUDA is not available")
