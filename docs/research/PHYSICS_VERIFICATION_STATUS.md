@@ -95,5 +95,7 @@ does not yet include measured transmitter EIRP/antenna gain, receiver noise
 calibration, synchronization error, or full waveform/link-budget validation.
 The full local suite passes at 88.14% coverage; Ruff check/format across 224
 maintained files, mypy across 140 source files, `uv lock --check`, and `uv build`
-pass. Hosted CI for this change is pending; hosted CI does not install native RT
-or exercise the CUDA-only PHY test.
+pass. Hosted CI
+[39721406035](https://github.com/nntk072/5g-nr-channel-condition/actions/runs/39721406035)
+passes all four software jobs; it does not install native RT or exercise the
+CUDA-only PHY regression.
