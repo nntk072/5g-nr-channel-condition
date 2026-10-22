@@ -215,7 +215,13 @@ def test_rt_direct_and_reflected_paths_sum_coherently_on_nr_grid():
 
 @pytest.mark.native_sionna
 @pytest.mark.parametrize("synthetic_array", [True, False])
-def test_same_paths_direct_indirect_partition_preserves_mimo_axes(synthetic_array):
+@pytest.mark.parametrize(
+    ("tx_polarization", "rx_polarization"),
+    [("V", "V"), ("V", "VH"), ("VH", "V"), ("VH", "VH")],
+)
+def test_same_paths_direct_indirect_partition_preserves_mimo_axes(
+    synthetic_array, tx_polarization, rx_polarization
+):
     import mitsuba as mi
 
     mi.set_variant("llvm_ad_mono_polarized")
@@ -223,8 +229,12 @@ def test_same_paths_direct_indirect_partition_preserves_mimo_axes(synthetic_arra
     from integrations.sionna.adapter import GridConfig, direct_path_mask, rt_cfr
 
     scene = rt.load_scene(rt.scene.simple_reflector, merge_shapes=False)
-    scene.tx_array = rt.PlanarArray(num_rows=1, num_cols=2, pattern="iso", polarization="V")
-    scene.rx_array = rt.PlanarArray(num_rows=1, num_cols=3, pattern="iso", polarization="V")
+    scene.tx_array = rt.PlanarArray(
+        num_rows=1, num_cols=2, pattern="iso", polarization=tx_polarization
+    )
+    scene.rx_array = rt.PlanarArray(
+        num_rows=1, num_cols=3, pattern="iso", polarization=rx_polarization
+    )
     scene.add(rt.Transmitter("tx", [-10.0, 0.0, 10.0]))
     scene.add(rt.Receiver("rx", [10.0, 0.0, 10.0]))
     scene.get("tx").look_at([0.0, 0.0, 0.0])
@@ -244,7 +254,9 @@ def test_same_paths_direct_indirect_partition_preserves_mimo_axes(synthetic_arra
     valid = np.asarray(paths.valid.numpy(), dtype=bool)
     direct_mask = direct_path_mask(paths)
     indirect_mask = valid & ~direct_mask
-    assert paths.a[0].shape[:4] == (1, 3, 1, 2)
+    num_tx_antennas = 2 * (2 if tx_polarization == "VH" else 1)
+    num_rx_antennas = 3 * (2 if rx_polarization == "VH" else 1)
+    assert paths.a[0].shape[:4] == (1, num_rx_antennas, 1, num_tx_antennas)
     assert direct_mask.shape == valid.shape
     assert direct_mask.any() and indirect_mask.any()
 
@@ -252,7 +264,7 @@ def test_same_paths_direct_indirect_partition_preserves_mimo_axes(synthetic_arra
     full = rt_cfr(paths, grid)
     direct = rt_cfr(paths, grid, path_mask=direct_mask)
     indirect = rt_cfr(paths, grid, path_mask=indirect_mask)
-    assert full.shape == (1, 6, 24)
+    assert full.shape == (1, num_tx_antennas * num_rx_antennas, 24)
     np.testing.assert_allclose(full, direct + indirect, rtol=1e-5, atol=1e-8)
 
 

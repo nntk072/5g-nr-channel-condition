@@ -108,3 +108,13 @@
   Ruff lint/format, mypy, lock validation, build, and diff checks pass. Hosted
   CI run 39712795569 passes all four software jobs for commit 70421a6; native
   RT tests remain locally verified because hosted CI omits Sionna RT.
+
+## Polarized MIMO partition coverage — 2026-10-22
+
+- The native 2×3 array conservation test now covers synthetic and explicit
+  arrays for all TX/RX polarization-port combinations: V/V, V/VH, VH/V, and
+  VH/VH. All eight cases preserve their full link axes and satisfy complex
+  `H_full = H_direct + H_indirect`.
+- All 30 focused adapter/mock/native tests pass; Ruff lint/format and mypy pass.
+  The full suite passed at 88.11% coverage before this test-only expansion.
+  Hosted CI is pending for this revision; it does not install native Sionna RT.
