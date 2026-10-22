@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nntk072.github.io/5g-nr-channel-condition/schema/umcd-bundle-v1.schema.json",
+  "title": "UMCD immutable episode bundle manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "schema_version", "episode_id", "layers", "bundle_sha256"],
+  "properties": {
+    "schema": {"const": "umcd.bundle.v1"},
+    "schema_version": {"const": 1},
+    "episode_id": {"type": "string", "minLength": 1},
+    "bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "layers": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["layer", "sha256", "path"],
+        "properties": {
+          "layer": {
+            "enum": ["episode", "oracle_paths", "oracle_channels", "targets"]
+          },
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "path": {
+            "type": "string",
+            "pattern": "^objects/(episode|oracle_paths|oracle_channels|targets)/[0-9a-f]{2}/[0-9a-f]{64}\\.npz$"
+          }
+        }
+      }
+    }
+  }
+}

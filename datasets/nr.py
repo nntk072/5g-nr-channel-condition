@@ -10,6 +10,8 @@ from typing import Any, Mapping
 import numpy as np
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
+from .targets import TargetDefinition
+
 
 def _freeze_mapping(values: Mapping[str, Any]) -> Mapping[str, Any]:
     return MappingProxyType(dict(values))
@@ -100,21 +102,6 @@ class NRObservation:
             fft_bin_indices=self.fft_bin_indices,
             receiver_config=self.receiver_config,
         )
-
-
-@dataclass(frozen=True, slots=True)
-class TargetDefinition:
-    """Machine-readable meaning, unit, and origin for one private target."""
-
-    semantic: str
-    units: str
-    source: str
-
-    def __post_init__(self) -> None:
-        for name in ("semantic", "units", "source"):
-            value = getattr(self, name)
-            if not isinstance(value, str) or not value.strip():
-                raise ValueError(f"target definition {name} must be a non-empty string")
 
 
 @dataclass(frozen=True, slots=True)
