@@ -93,6 +93,9 @@ def write_nr_record(root: str | Path, record: NRChannelRecord) -> NRStoredRecord
     base = Path(root)
     arrays: dict[str, np.ndarray] = {
         "received_grid": _as_numpy(record.observation.received_grid, field="received_grid"),
+        "received_grid_mask": _as_numpy(
+            record.observation.received_grid_mask, field="received_grid_mask"
+        ),
         "h_hat": _as_numpy(record.observation.channel_estimate.h_hat, field="h_hat"),
         "error_variance": _as_numpy(
             record.observation.channel_estimate.error_variance, field="error_variance"
@@ -175,6 +178,9 @@ def read_nr_record(root: str | Path, manifest: NRStoredRecord | str | Path) -> N
             channel_estimate=estimate,
             fft_bin_indices=tuple(metadata["fft_bin_indices"]),
             receiver_config=NRPUSCHConfig(**metadata["receiver_config"]),
+            received_grid_mask=(
+                archive["received_grid_mask"] if "received_grid_mask" in archive.files else None
+            ),
         )
         targets: Mapping[str, np.ndarray] = {
             name: archive[key] for name, key in metadata["targets"].items()

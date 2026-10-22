@@ -27,6 +27,7 @@ class NRModelInputs:
     pilot_mask: Any
     fft_bin_indices: tuple[int, ...]
     receiver_config: NRPUSCHConfig
+    received_grid_mask: Any | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -38,6 +39,7 @@ class NRObservation:
     channel_estimate: NRChannelEstimate
     fft_bin_indices: tuple[int, ...]
     receiver_config: NRPUSCHConfig
+    received_grid_mask: Any | None = None
 
     def __post_init__(self) -> None:
         if not self.sample_id.strip():
@@ -48,6 +50,34 @@ class NRObservation:
             raise ValueError("received_grid must have [batch, rx, rx_ant, symbol, fft_bin] axes")
         if any(size <= 0 for size in grid_shape):
             raise ValueError("received_grid axes must be non-empty")
+        torch_module: Any = None
+        try:
+            import torch as torch_module
+        except ImportError:
+            pass
+        mask = self.received_grid_mask
+        if mask is None:
+            mask = (
+                torch_module.ones(
+                    grid_shape, dtype=torch_module.bool, device=self.received_grid.device
+                )
+                if torch_module is not None and torch_module.is_tensor(self.received_grid)
+                else np.ones(grid_shape, dtype=bool)
+            )
+            object.__setattr__(self, "received_grid_mask", mask)
+        mask_shape = tuple(getattr(mask, "shape", ()))
+        if mask_shape != grid_shape:
+            raise ValueError("received_grid_mask must match the received_grid axes exactly")
+        mask_dtype = getattr(mask, "dtype", None)
+        if str(mask_dtype) not in {"bool", "torch.bool"}:
+            raise TypeError("received_grid_mask must have boolean dtype")
+        if (
+            torch_module is not None
+            and torch_module.is_tensor(self.received_grid)
+            and torch_module.is_tensor(mask)
+            and mask.device != self.received_grid.device
+        ):
+            raise ValueError("received_grid_mask must be on the same device as received_grid")
         if len(estimate_shape) != 7:
             raise ValueError("channel estimate must have seven named axes")
         if estimate_shape[:3] != grid_shape[:3] or estimate_shape[5] != grid_shape[3]:
@@ -76,6 +106,7 @@ class NRObservation:
         channel_estimate: NRChannelEstimate,
         effective_subcarrier_indices: Any,
         receiver_config: NRPUSCHConfig,
+        received_grid_mask: Any | None = None,
     ) -> NRObservation:
         """Build an observation using the receiver's effective FFT-bin mapping.
 
@@ -90,12 +121,14 @@ class NRObservation:
             channel_estimate=channel_estimate,
             fft_bin_indices=indices,
             receiver_config=receiver_config,
+            received_grid_mask=received_grid_mask,
         )
 
     def model_inputs(self) -> NRModelInputs:
         """Return the inference payload without IDs, target values, or provenance."""
         return NRModelInputs(
             received_grid=self.received_grid,
+            received_grid_mask=self.received_grid_mask,
             h_hat=self.channel_estimate.h_hat,
             error_variance=self.channel_estimate.error_variance,
             pilot_mask=self.channel_estimate.pilot_mask,
