@@ -121,6 +121,7 @@ def test_static_rt_solver_config_validates_and_records_all_switches():
     assert static_rt_solver_config(2) == {
         "deterministic": True,
         "max_depth": 2,
+        "max_num_paths_per_src": 1_000_000,
         "los": True,
         "specular_reflection": True,
         "diffuse_reflection": True,
@@ -134,6 +135,13 @@ def test_static_rt_solver_config_validates_and_records_all_switches():
             pass
         else:
             raise AssertionError(f"invalid max_depth accepted: {invalid!r}")
+    for invalid in (0, -1, True, 2.0):
+        try:
+            static_rt_solver_config(2, invalid)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError(f"invalid path cap accepted: {invalid!r}")
 
 
 def test_complete_rt_identity_converts_to_layer_specific_umcd_provenance():

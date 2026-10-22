@@ -169,13 +169,22 @@ def umcd_provenance_from_rt_identity(
     )
 
 
-def static_rt_solver_config(max_depth: int) -> dict[str, object]:
+def static_rt_solver_config(
+    max_depth: int, max_num_paths_per_src: int = 1_000_000
+) -> dict[str, object]:
     """Return the complete solver switches used by static RT dataset generation."""
     if isinstance(max_depth, bool) or not isinstance(max_depth, int) or max_depth < 0:
         raise ValueError("max_depth must be a nonnegative integer")
+    if (
+        isinstance(max_num_paths_per_src, bool)
+        or not isinstance(max_num_paths_per_src, int)
+        or max_num_paths_per_src < 1
+    ):
+        raise ValueError("max_num_paths_per_src must be a positive integer")
     return {
         "deterministic": True,
         "max_depth": max_depth,
+        "max_num_paths_per_src": max_num_paths_per_src,
         "los": True,
         "specular_reflection": True,
         "diffuse_reflection": True,

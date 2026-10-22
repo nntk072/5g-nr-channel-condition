@@ -22,6 +22,7 @@ def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
     force_geometry_error = False
     force_all_los = False
     force_visibility_disagreement = False
+    force_candidate_cap = False
 
     class FakeScene:
         def __init__(self):
@@ -55,9 +56,15 @@ def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
             gain = self._a_real.sum() + 1j * self._a_imag.sum()
             return np.full((1, 1, 1, 1, 1, n), gain, dtype=np.complex64)
 
+    class FakeCandidateBuffer:
+        def __init__(self, count):
+            self.paths_counter = np.asarray([count])
+
     class FakeSolver:
         def __init__(self, **kw):
-            pass
+            self._candidate_generator = lambda **kwargs: FakeCandidateBuffer(
+                kwargs["max_num_paths_per_src"] if force_candidate_cap else 3
+            )
 
         def __call__(self, scene, **kw):
             nonlocal empty_path_class, full_solver_calls
@@ -73,6 +80,7 @@ def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
                 return FakePaths(1 if visible else 0)
             if force_solver_error:
                 raise ValueError("mock full solver failure")
+            self._candidate_generator(max_num_paths_per_src=kw["max_num_paths_per_src"])
             full_solver_calls += 1
             if full_solver_calls == 1:
                 empty_path_class = (
@@ -110,6 +118,7 @@ def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
     dr = types.ModuleType("drjit")
     dr.arange = lambda dtype, n: np.arange(n, dtype=float)
     dr.select = np.where
+    dr.eval = lambda *args: None
     monkeypatch.setitem(sys.modules, "sionna", sionna)
     monkeypatch.setitem(sys.modules, "sionna.rt", scene_module)
     monkeypatch.setitem(sys.modules, "mitsuba", mi)
@@ -195,6 +204,8 @@ def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
     assert "Empty full-solver path outcomes are counted" in report["selection_note"]
     assert all(m["los_plus_indirect_paths"] for m, y in zip(d.metadata, d.y) if y == 1)
     assert all(m["valid_paths_full"] >= 2 for m in d.metadata)
+    assert all(m["candidate_paths_before_validation"] == 3 for m in d.metadata)
+    assert all(not m["candidate_path_cap_filled"] for m in d.metadata)
     assert all(m["geometry_oracle"]["state"] in {"visible", "blocked"} for m in d.metadata)
     assert all(len(m["geometry_oracle"]["boundary_probe_blocked"]) == 0 for m in d.metadata)
     assert all(
@@ -333,3 +344,26 @@ def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
         assert report["attempt_counts"]["attempts_started"] == 2
     else:
         raise AssertionError("insufficient class quota should carry an RT generation report")
+
+    force_all_los = False
+    force_candidate_cap = True
+    try:
+        generate_raytraced(
+            RayScene(
+                name="mock",
+                per_class=1,
+                max_attempts=2,
+                max_num_paths_per_src=3,
+            ),
+            grid=GridConfig(n_subcarriers=32),
+            seed=23,
+        )
+    except RaytraceGenerationError as error:
+        report = error.generation_report
+        assert report["status"] == "insufficient_samples"
+        assert report["attempt_counts"]["full_solver_candidate_cap_filled"] == 2
+        assert report["attempt_counts"]["full_solver_candidate_cap_rejections"] == 2
+        assert report["full_solver_outcomes"]["candidate_cap_filled_rejected"] == 2
+        assert report["accepted_counts"]["total"] == 0
+    else:
+        raise AssertionError("cap-filled candidates must be rejected from generated datasets")

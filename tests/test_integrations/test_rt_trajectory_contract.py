@@ -37,6 +37,8 @@ def test_rt_trajectory_config_generates_ordered_constant_velocity_route() -> Non
         {"max_depth": -1},
         {"max_depth": True},
         {"samples_per_src": 0},
+        {"max_num_paths_per_src": 0},
+        {"max_num_paths_per_src": True},
         {"no_path_policy": "zero_is_ground_truth"},
         {"seed": True},
         {"receiver_velocity_mps": (float("nan"), 0.0, 0.0)},

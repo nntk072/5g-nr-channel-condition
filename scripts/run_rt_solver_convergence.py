@@ -19,6 +19,7 @@ from artifacts.provenance import (
     versions,
 )
 from integrations.sionna.adapter import GridConfig, count_valid_paths, rt_cfr
+from integrations.sionna.candidate_audit import instrument_path_solver_candidate_counter
 from integrations.sionna.los_oracle import SegmentVisibilityResult, segment_visibility
 
 
@@ -38,25 +39,6 @@ class ConvergenceLink:
             if len(position) != 3 or not all(math.isfinite(value) for value in position):
                 raise ValueError(f"{name} must contain three finite coordinates")
             object.__setattr__(self, name, cast(tuple[float, float, float], position))
-
-
-class _CandidatePathCounter:
-    """Record the candidate buffer size before PathSolver filters invalid paths."""
-
-    def __init__(self, delegate: Any) -> None:
-        self._delegate = delegate
-        self.last_candidate_path_count: int | None = None
-
-    def __call__(self, *args: Any, **kwargs: Any) -> Any:
-        import drjit as dr
-
-        paths_buffer = self._delegate(*args, **kwargs)
-        dr.eval(paths_buffer.paths_counter)
-        count = np.asarray(paths_buffer.paths_counter.numpy(), dtype=np.int64).reshape(-1)
-        if count.size == 0 or np.any(count < 0):
-            raise RuntimeError("Sionna returned an invalid candidate path counter")
-        self.last_candidate_path_count = int(np.max(count))
-        return paths_buffer
 
 
 def relative_l2_error(value: np.ndarray, reference: np.ndarray) -> float:
@@ -282,8 +264,7 @@ def run_convergence(
     scene.add(rt.Transmitter(name="convergence_tx", position=list(tx_position)))
     scene.add(rt.Receiver(name="convergence_rx", position=list(rx_position)))
     solver = rt.PathSolver(deterministic=True)
-    candidate_path_counter = _CandidatePathCounter(solver._candidate_generator)
-    solver._candidate_generator = candidate_path_counter
+    candidate_path_counter = instrument_path_solver_candidate_counter(solver)
     grid = GridConfig(
         n_subcarriers=n_subcarriers,
         spacing_hz=subcarrier_spacing_hz,

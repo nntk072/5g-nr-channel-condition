@@ -34,6 +34,7 @@ from datasets.nr_store import (
 from datasets.targets import TargetValidity, TargetValue, definition_digest
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
+from integrations.sionna.candidate_audit import instrument_path_solver_candidate_counter
 from integrations.sionna.rt_identity import rt_run_identity, rt_runtime_fingerprint
 
 
@@ -130,6 +131,7 @@ class RTTrajectoryConfig:
     n_size_bwp: int = 6
     max_depth: int = 2
     samples_per_src: int = 200
+    max_num_paths_per_src: int = 1_000_000
     snr_db: float | None = 12.0
     tx_power_per_re_w: float | None = None
     noise_figure_db: float = 7.0
@@ -172,12 +174,14 @@ class RTTrajectoryConfig:
             raise ValueError("noise_figure_db must be finite and nonnegative")
         if not math.isfinite(self.temperature_k) or self.temperature_k <= 0.0:
             raise ValueError("temperature_k must be finite and positive")
-        for name in ("max_depth", "samples_per_src"):
+        for name in ("max_depth", "samples_per_src", "max_num_paths_per_src"):
             value = getattr(self, name)
             if isinstance(value, bool) or not isinstance(value, int):
                 raise TypeError(f"{name} must be an integer")
         if self.max_depth < 0 or self.samples_per_src < 1:
             raise ValueError("max_depth must be nonnegative and samples_per_src positive")
+        if self.max_num_paths_per_src < 1:
+            raise ValueError("max_num_paths_per_src must be positive")
         if self.no_path_policy not in {
             "reject",
             "noise_only_mixed_episode",
@@ -322,6 +326,7 @@ def generate_rt_nr_trajectory(
         "deterministic": True,
         "max_depth": config.max_depth,
         "samples_per_src": config.samples_per_src,
+        "max_num_paths_per_src": config.max_num_paths_per_src,
         "los": True,
         "specular_reflection": True,
         "diffuse_reflection": True,
@@ -411,11 +416,13 @@ def generate_rt_nr_trajectory(
     rx.velocity = list(config.receiver_velocity_mps)
 
     full_solver = PathSolver(deterministic=True)
+    full_candidate_counter = instrument_path_solver_candidate_counter(full_solver)
     direct_solver = PathSolver(deterministic=True)
     channels: list[np.ndarray] = []
     waveform_channels: list[np.ndarray] = []
     direct_path_counts: list[int] = []
     total_path_counts: list[int] = []
+    candidate_path_counts: list[int] = []
     geometric_los: list[bool] = []
     geometric_los_states: list[str] = []
     umcd_path_bindings: list[SionnaPathBinding] = []
@@ -460,8 +467,17 @@ def generate_rt_nr_trajectory(
             refraction=True,
             diffraction=False,
             samples_per_src=config.samples_per_src,
+            max_num_paths_per_src=config.max_num_paths_per_src,
             seed=seed,
         )
+        candidate_path_count = full_candidate_counter.last_candidate_path_count
+        if candidate_path_count is None:
+            raise RuntimeError("RT trajectory solve did not expose its candidate path count")
+        if candidate_path_count >= config.max_num_paths_per_src:
+            raise RuntimeError(
+                "RT trajectory candidate path cap filled before invalid-path filtering "
+                f"at step {index}: {candidate_path_count}/{config.max_num_paths_per_src}"
+            )
         if umcd_store_root is not None:
             umcd_path_bindings.extend(
                 scene_network.bind_paths({episode_link_id: paths}, frame_index=index)
@@ -517,6 +533,7 @@ def generate_rt_nr_trajectory(
         waveform_channels.append(channel_series.astype(np.complex64))
         direct_path_counts.append(direct_count)
         total_path_counts.append(path_count)
+        candidate_path_counts.append(candidate_path_count)
         geometric_los.append(bool(visibility.visible))
         geometric_los_states.append(visibility.state.value)
 
@@ -645,6 +662,9 @@ def generate_rt_nr_trajectory(
             },
             "direct_path_count": direct_path_counts[index],
             "full_path_count": total_path_counts[index],
+            "candidate_paths_before_validation": candidate_path_counts[index],
+            "max_num_paths_per_src": config.max_num_paths_per_src,
+            "candidate_path_cap_filled": False,
             "channel_truth_valid": total_path_counts[index] > 0,
             "no_path_policy": config.no_path_policy,
             "rt_seed": config.seed,

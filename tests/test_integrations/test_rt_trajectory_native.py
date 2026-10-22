@@ -45,6 +45,10 @@ def test_cpu_rt_path_retraces_and_stores_receiver_only_trajectory(tmp_path, monk
     assert len(trajectory.records) == 2
     assert {record.provenance["rt_seed"] for record in trajectory.records} == {config.seed}
     for record in trajectory.records:
+        assert record.provenance["candidate_paths_before_validation"] < (
+            config.max_num_paths_per_src
+        )
+        assert record.provenance["candidate_path_cap_filled"] is False
         model_inputs = record.observation.model_inputs()
         assert tuple(model_inputs.received_grid.shape)[0] == 1
         assert tuple(model_inputs.h_hat.shape)[0] == 1
@@ -515,3 +519,22 @@ def test_llvm_rt_common_random_numbers_remove_static_scene_sampling_jitter(tmp_p
     second = trajectory.records[1].targets["channel_cfr"]
     np.testing.assert_allclose(first, second, rtol=0.0, atol=1e-10)
     assert {record.provenance["rt_seed"] for record in trajectory.records} == {config.seed}
+
+
+@pytest.mark.native_sionna
+def test_trajectory_rejects_candidate_cap_filled_before_invalid_path_filter(tmp_path):
+    config = RTTrajectoryConfig(
+        trajectory_id="native-candidate-cap-rejection",
+        scene="simple_reflector",
+        transmitter_position_m=(-10.0, 0.0, 10.0),
+        receiver_start_m=(10.0, 0.0, 10.0),
+        receiver_velocity_mps=(0.1, 0.0, 0.0),
+        num_steps=2,
+        max_depth=1,
+        samples_per_src=200,
+        max_num_paths_per_src=1,
+        device="cpu",
+    )
+
+    with pytest.raises(RuntimeError, match="candidate path cap filled.*1/1"):
+        generate_rt_nr_trajectory(config, tmp_path)

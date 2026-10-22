@@ -31,6 +31,7 @@ from datasets.observations import (
 )
 from propagation.physics import add_estimation_noise, frequency_response, subcarrier_frequencies
 
+from integrations.sionna.candidate_audit import instrument_path_solver_candidate_counter
 from integrations.sionna.los_oracle import SegmentVisibilityState, segment_visibility
 from integrations.sionna.random import call_with_sionna_seed
 from integrations.sionna.rt_identity import (
@@ -373,12 +374,21 @@ class RayScene:
     block_size_m: float = 30.0
     max_depth: int = 3
     samples_per_src: int = 120_000
+    max_num_paths_per_src: int = 1_000_000
     mitsuba_variant: str = "auto"
     per_class: int = 16
     max_attempts: int = 2000
     require_los_multipath: bool = True
     transmitter_id: str | None = None
     # built-in 'munich', 'etoile', or a valid user-supplied scene path
+
+    def __post_init__(self) -> None:
+        if (
+            isinstance(self.max_num_paths_per_src, bool)
+            or not isinstance(self.max_num_paths_per_src, int)
+            or self.max_num_paths_per_src < 1
+        ):
+            raise ValueError("max_num_paths_per_src must be a positive integer")
 
 
 class RaytraceGenerationError(RuntimeError):
@@ -427,7 +437,9 @@ def _publish_static_rt_sample_umcd(
             "rx_position_m": list(rx_position),
             "material_state": dict(material_manifest),
         },
-        solver_config=static_rt_solver_config(scene_config.max_depth),
+        solver_config=static_rt_solver_config(
+            scene_config.max_depth, scene_config.max_num_paths_per_src
+        ),
         seed=seed,
         backend_selection=selection.as_dict(),
         runtime_versions=runtime_fingerprint,
@@ -600,7 +612,7 @@ def generate_raytraced(
         )
     )
     package_sha256 = package_source_sha256()
-    solver_config = static_rt_solver_config(cfg.max_depth)
+    solver_config = static_rt_solver_config(cfg.max_depth, cfg.max_num_paths_per_src)
     if umcd_store_root is not None and not scene_assets["complete"]:
         raise ValueError("UMCD RT publication requires a complete scene-asset closure")
     scene.tx_array = PlanarArray(num_rows=1, num_cols=1, pattern="iso", polarization="V")
@@ -609,6 +621,7 @@ def generate_raytraced(
     receiver = Receiver(name="research_rx", position=list(cfg.rx_center))
     scene.add(receiver)
     full_solver = PathSolver(deterministic=True)
+    full_candidate_counter = instrument_path_solver_candidate_counter(full_solver)
     los_oracle = PathSolver(deterministic=True)
     rng = np.random.default_rng(seed)
     hits = {0: 0, 1: 0}
@@ -630,6 +643,8 @@ def generate_raytraced(
         "full_solver_attempts": 0,
         "full_solver_calls": 0,
         "full_solver_errors": 0,
+        "full_solver_candidate_cap_filled": 0,
+        "full_solver_candidate_cap_rejections": 0,
         "full_solver_empty_paths": 0,
         "los_direct_only_rejections": 0,
         "cfr_conversion_failures": 0,
@@ -642,6 +657,7 @@ def generate_raytraced(
             "empty_paths": 0,
             "los_direct_only_rejected": 0,
             "cfr_conversion_failures": 0,
+            "candidate_cap_filled_rejected": 0,
             "accepted": 0,
         }
         for class_name in ("geometric_nlos", "geometric_los")
@@ -736,6 +752,7 @@ def generate_raytraced(
                 refraction=True,
                 diffraction=False,
                 samples_per_src=cfg.samples_per_src,
+                max_num_paths_per_src=cfg.max_num_paths_per_src,
                 seed=seed + attempt,
             )
         except Exception as error:
@@ -750,6 +767,14 @@ def generate_raytraced(
             break
         attempt_counts["full_solver_calls"] += 1
         class_outcomes["calls"] += 1
+        candidate_path_count = full_candidate_counter.last_candidate_path_count
+        if candidate_path_count is None:
+            raise RuntimeError("RT solver did not expose its pre-validation candidate count")
+        if candidate_path_count >= cfg.max_num_paths_per_src:
+            attempt_counts["full_solver_candidate_cap_filled"] += 1
+            attempt_counts["full_solver_candidate_cap_rejections"] += 1
+            class_outcomes["candidate_cap_filled_rejected"] += 1
+            continue
         n_paths = count_valid_paths(full)
         if n_paths == 0:
             class_outcomes["empty_paths"] += 1
@@ -812,6 +837,9 @@ def generate_raytraced(
                 "transmitter_id": cfg.transmitter_id,
                 "rx": [x, y, z],
                 "valid_paths_full": n_paths,
+                "candidate_paths_before_validation": candidate_path_count,
+                "max_num_paths_per_src": cfg.max_num_paths_per_src,
+                "candidate_path_cap_filled": False,
                 "valid_paths_direct_oracle": n_direct,
                 "valid_paths_direct_component": direct_count,
                 "los_plus_indirect_paths": mixed,
@@ -824,6 +852,7 @@ def generate_raytraced(
                 "grid_config": asdict(grid),
                 "solver_config": {
                     "deterministic": True,
+                    "max_num_paths_per_src": cfg.max_num_paths_per_src,
                     "los": True,
                     "specular_reflection": True,
                     "diffuse_reflection": True,
@@ -857,6 +886,7 @@ def generate_raytraced(
         class_outcomes["accepted"] += 1
     full_solver_outcomes = {
         "empty_paths": attempt_counts["full_solver_empty_paths"],
+        "candidate_cap_filled_rejected": attempt_counts["full_solver_candidate_cap_rejections"],
         "los_direct_only_rejected": attempt_counts["los_direct_only_rejections"],
         "cfr_conversion_failures": attempt_counts["cfr_conversion_failures"],
         "accepted": len(samples),
@@ -890,6 +920,11 @@ def generate_raytraced(
         attempt_counts["full_solver_calls"] + attempt_counts["full_solver_errors"]
     ):
         raise RuntimeError("RT generation report does not account for every full-solver attempt")
+    if (
+        attempt_counts["full_solver_candidate_cap_filled"]
+        != (attempt_counts["full_solver_candidate_cap_rejections"])
+    ):
+        raise RuntimeError("RT generation report does not account for every cap-filled solve")
     if sum(full_solver_outcomes.values()) != attempt_counts["full_solver_calls"]:
         raise RuntimeError("RT generation report does not account for every full-solver outcome")
     if (
@@ -910,6 +945,7 @@ def generate_raytraced(
     for class_name, item in full_solver_outcomes_by_geometric_class.items():
         terminal_outcomes = (
             item["empty_paths"]
+            + item["candidate_cap_filled_rejected"]
             + item["los_direct_only_rejected"]
             + item["cfr_conversion_failures"]
             + item["accepted"]
@@ -949,6 +985,11 @@ def generate_raytraced(
         "scene_asset_manifest": scene_assets,
         "grid_config": asdict(grid),
         "solver_config": solver_config,
+        "candidate_path_audit": {
+            "counter_stage": "after_candidate_generation_before_invalid_path_filter",
+            "counter_scope": "single_transmitter_source",
+            "saturated_samples_are_rejected": True,
+        },
         "seed": seed,
         "requested_per_class": cfg.per_class,
         "attempt_counts": attempt_counts,
@@ -962,8 +1003,9 @@ def generate_raytraced(
         },
         "selection_note": (
             "Balanced accepted records are conditional on the recorded scene, candidate sampler, "
-            "solver, class quotas, and LOS-multipath filter. Empty full-solver path outcomes are "
-            "counted but are not exported as channel observations."
+            "solver, class quotas, and LOS-multipath filter. Candidate-cap-filled samples are "
+            "rejected before data export. Empty full-solver path outcomes are counted but "
+            "not exported as channel observations."
         ),
         "umcd_bundle_refs": [dict(item) for item in umcd_bundle_refs],
     }
@@ -1045,7 +1087,7 @@ def generate_raytraced_cached(
     identity = rt_run_identity(
         scene_asset_manifest=assets,
         physical_config={"scene": asdict(cfg), "grid": asdict(grid)},
-        solver_config=static_rt_solver_config(cfg.max_depth),
+        solver_config=static_rt_solver_config(cfg.max_depth, cfg.max_num_paths_per_src),
         seed=seed,
         backend_selection=selection.as_dict(),
         runtime_versions=runtime_fingerprint,

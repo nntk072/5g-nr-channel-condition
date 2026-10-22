@@ -9,6 +9,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 from artifacts.provenance import require_file_matches_git_head
+from integrations.sionna.candidate_audit import CandidatePathCounter
 
 ROOT = Path(__file__).resolve().parents[2]
 RUNNER = runpy.run_path(str(ROOT / "scripts" / "run_rt_solver_convergence.py"))
@@ -17,7 +18,6 @@ relative_l2_error_if_defined = RUNNER["relative_l2_error_if_defined"]
 path_observables = RUNNER["path_observables"]
 count_paths_with_interaction = RUNNER["count_paths_with_interaction"]
 ConvergenceLink = RUNNER["ConvergenceLink"]
-CandidatePathCounter = RUNNER["_CandidatePathCounter"]
 
 
 def test_candidate_path_counter_records_buffer_before_path_validation():
