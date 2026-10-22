@@ -136,3 +136,40 @@ def test_native_multi_node_rt_channel_matches_single_link_and_composes_sources()
         for tx_index in range(2)
     ]
     torch.testing.assert_close(joint.received_grid, individual[0] + individual[1])
+
+
+@pytest.mark.native_sionna
+def test_free_space_isotropic_link_is_reciprocal_when_tx_and_rx_are_swapped():
+    import mitsuba as mi
+
+    mi.set_variant("llvm_ad_mono_polarized")
+    rt = pytest.importorskip("sionna.rt")
+    from types import SimpleNamespace
+
+    from integrations.sionna.rt_to_nr import paths_to_nr_ofdm_channel
+
+    grid = SimpleNamespace(fft_size=32, num_ofdm_symbols=1, subcarrier_spacing=30e3)
+    point_a = (0.0, 0.0, 1.0)
+    point_b = (13.0, 4.0, 2.0)
+    responses = []
+    for tx_position, rx_position in ((point_a, point_b), (point_b, point_a)):
+        scene = rt.load_scene()
+        scene.frequency = 3.5e9
+        scene.tx_array = rt.PlanarArray(num_rows=1, num_cols=1, pattern="iso", polarization="V")
+        scene.rx_array = rt.PlanarArray(num_rows=1, num_cols=1, pattern="iso", polarization="V")
+        scene.add(rt.Transmitter("tx", list(tx_position)))
+        scene.add(rt.Receiver("rx", list(rx_position)))
+        paths = rt.PathSolver(deterministic=True)(
+            scene,
+            max_depth=0,
+            los=True,
+            specular_reflection=False,
+            diffuse_reflection=False,
+            refraction=False,
+            diffraction=False,
+            synthetic_array=True,
+            seed=1606,
+        )
+        responses.append(paths_to_nr_ofdm_channel(paths, grid).channel)
+
+    torch.testing.assert_close(responses[0], responses[1], rtol=2e-5, atol=1e-8)
