@@ -1,0 +1,237 @@
+{
+  "analysis_script_sha256": "7323d1319a3195d8f0335149a730e9c680b531744dc6e5cac4aed6fde25e2aea",
+  "comparison": {
+    "candidate_paths_before_validation": {
+      "cap_filled": false,
+      "high": 29110,
+      "low": 6831
+    },
+    "cfr_delta_decomposition_norm_relative_to_total": {
+      "additive_closure_error": 6.746534797428017e-07,
+      "lost_path_contributions": 0.0007148746618784142,
+      "matched_path_coefficient_geometry_change": 3.401297976291389e-06,
+      "new_path_contributions": 0.9999654425152974
+    },
+    "channel_change": {
+      "cfr_mean_power_ratio_high_over_low": 59.96163176839047,
+      "coherent_to_incoherent_power_ratio": {
+        "high": 75.84626551811913,
+        "low": 9.847838121557702
+      },
+      "high_cfr_mean_power": 0.00013926910227768098,
+      "high_incoherent_path_power": 1.8362024989142095e-06,
+      "low_cfr_mean_power": 2.322636962510057e-06,
+      "low_incoherent_path_power": 2.358524717649064e-07,
+      "path_order_contributions": {
+        "high": {
+          "0": {
+            "coherent_component_power": 0.00013638656240720198,
+            "incoherent_path_power": 1.8184874987626935e-06,
+            "path_count": 75
+          },
+          "1": {
+            "coherent_component_power": 1.6046984081205968e-08,
+            "incoherent_path_power": 1.6801304186459888e-08,
+            "path_count": 2
+          },
+          "10": {
+            "coherent_component_power": 2.309665824785876e-12,
+            "incoherent_path_power": 2.224652378900091e-12,
+            "path_count": 105
+          },
+          "2": {
+            "coherent_component_power": 9.886138138438713e-12,
+            "incoherent_path_power": 9.886138138438713e-12,
+            "path_count": 1
+          },
+          "3": {
+            "coherent_component_power": 3.2626513936420066e-10,
+            "incoherent_path_power": 3.057846238380916e-10,
+            "path_count": 5
+          },
+          "4": {
+            "coherent_component_power": 3.1899914923809854e-10,
+            "incoherent_path_power": 2.365407266581001e-10,
+            "path_count": 11
+          },
+          "5": {
+            "coherent_component_power": 4.25872573276405e-10,
+            "incoherent_path_power": 1.6822751592902047e-10,
+            "path_count": 34
+          },
+          "6": {
+            "coherent_component_power": 8.783542977374726e-11,
+            "incoherent_path_power": 1.1103423363298149e-10,
+            "path_count": 60
+          },
+          "7": {
+            "coherent_component_power": 2.7365837528681043e-11,
+            "incoherent_path_power": 5.103137840894708e-11,
+            "path_count": 79
+          },
+          "8": {
+            "coherent_component_power": 1.74598560445643e-11,
+            "incoherent_path_power": 2.2819498212493138e-11,
+            "path_count": 105
+          },
+          "9": {
+            "coherent_component_power": 3.1425497494652056e-12,
+            "incoherent_path_power": 6.14719785863825e-12,
+            "path_count": 120
+          }
+        },
+        "low": {
+          "0": {
+            "coherent_component_power": 1.9639664986637083e-06,
+            "incoherent_path_power": 2.182184998515232e-07,
+            "path_count": 9
+          },
+          "1": {
+            "coherent_component_power": 1.604663104716424e-08,
+            "incoherent_path_power": 1.6801305431173493e-08,
+            "path_count": 2
+          },
+          "10": {
+            "coherent_component_power": 1.3878196894118485e-14,
+            "incoherent_path_power": 1.3121702044997366e-14,
+            "path_count": 15
+          },
+          "2": {
+            "coherent_component_power": 9.886138138438713e-12,
+            "incoherent_path_power": 9.886138138438713e-12,
+            "path_count": 1
+          },
+          "3": {
+            "coherent_component_power": 3.262650421574958e-10,
+            "incoherent_path_power": 3.0578456051449874e-10,
+            "path_count": 5
+          },
+          "4": {
+            "coherent_component_power": 3.328249259292694e-10,
+            "incoherent_path_power": 2.5497085803557473e-10,
+            "path_count": 12
+          },
+          "5": {
+            "coherent_component_power": 4.09149560358236e-10,
+            "incoherent_path_power": 1.675405012841385e-10,
+            "path_count": 29
+          },
+          "6": {
+            "coherent_component_power": 9.716319186105578e-11,
+            "incoherent_path_power": 6.355935918671266e-11,
+            "path_count": 35
+          },
+          "7": {
+            "coherent_component_power": 2.0403037578356655e-11,
+            "incoherent_path_power": 2.5299869424117076e-11,
+            "path_count": 42
+          },
+          "8": {
+            "coherent_component_power": 4.990328824345296e-12,
+            "incoherent_path_power": 5.2314369379285785e-12,
+            "path_count": 28
+          },
+          "9": {
+            "coherent_component_power": 4.1106887567800627e-13,
+            "incoherent_path_power": 3.8063698657728034e-13,
+            "path_count": 16
+          }
+        }
+      },
+      "relative_cfr_l2": 0.8708894955487899
+    },
+    "high_samples_per_src": 1000000,
+    "interpretation_limit": "A matched finite-budget diagnostic; the high-budget result is not ground truth, and path matching is not a universal path identity.",
+    "link_id": "center-los",
+    "low_samples_per_src": 100000,
+    "matched_path_variation": {
+      "absolute_delay_error_ns": {
+        "max": 0.00011368683772161603,
+        "median": 0.0,
+        "p95": 5.6843418860808015e-05
+      },
+      "maximum_arrival_departure_direction_error_rad": {
+        "max": 1.3486604623140367e-05,
+        "median": 1.4901161193847656e-08,
+        "p95": 3.7703753580493927e-06
+      },
+      "maximum_interaction_vertex_displacement_m": {
+        "max": 0.0007863310768341752,
+        "median": 0.0,
+        "p95": 0.0002861664572782532
+      },
+      "symmetric_complex_coefficient_relative_error": {
+        "max": 7.877266272471693e-05,
+        "median": 0.0,
+        "p95": 2.4833118295933217e-05
+      }
+    },
+    "max_depth": 10,
+    "maximum_match_cost_m": 0.02,
+    "path_counts": {
+      "discovered_at_high_budget": 440,
+      "high": 597,
+      "interaction_order_high": {
+        "0": 75,
+        "1": 2,
+        "10": 105,
+        "2": 1,
+        "3": 5,
+        "4": 11,
+        "5": 34,
+        "6": 60,
+        "7": 79,
+        "8": 105,
+        "9": 120
+      },
+      "interaction_order_low": {
+        "0": 9,
+        "1": 2,
+        "10": 15,
+        "2": 1,
+        "3": 5,
+        "4": 12,
+        "5": 29,
+        "6": 35,
+        "7": 42,
+        "8": 28,
+        "9": 16
+      },
+      "low": 194,
+      "matched": 157,
+      "present_only_at_low_budget": 37,
+      "zero_interaction_path_records": {
+        "high": {
+          "path_count": 75,
+          "unique_coefficients_at_1e-12_resolution": 1,
+          "unique_delays_at_1_ps_resolution": 1,
+          "unique_geometry_fingerprints": 1,
+          "zero_transmitter_angle_records": 74
+        },
+        "low": {
+          "path_count": 9,
+          "unique_coefficients_at_1e-12_resolution": 1,
+          "unique_delays_at_1_ps_resolution": 1,
+          "unique_geometry_fingerprints": 1,
+          "zero_transmitter_angle_records": 8
+        }
+      }
+    },
+    "seed": 23
+  },
+  "package_source_sha256": "84bdd32cea59cceab66b527b677a563550a67b7a2c12eb01fa491248b0682657",
+  "schema": "loslab.rt_path_budget_attribution.v1",
+  "source_report": "docs/research/results/rt-city43-center-los-seed23-depth10-s0-path-attribution-100k-vs-1m-20261022.json.gz",
+  "source_report_revision": "0bc55f1b6813d827d6235eb08c3324b29dcf9aa6",
+  "source_report_sha256": "2aac0458f9a5da69fa9d99ee11b6c0947b6e3ec01380ff60e92d18bceed064a0",
+  "versions": {
+    "git_sha": "d369ff80315a9cf0d75c14f3bef62cda42e54439",
+    "numpy": "2.5.4",
+    "python": "3.12.3",
+    "scikit-learn": "1.9.1",
+    "sionna": "2.2.0",
+    "sionna-phy": "not installed",
+    "sionna-rt": "2.2.0",
+    "torch": "2.11.0+cu128"
+  }
+}
