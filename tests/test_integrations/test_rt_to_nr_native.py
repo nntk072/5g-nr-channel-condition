@@ -320,6 +320,65 @@ def test_explicit_array_delays_and_cfr_match_oriented_element_geometry(tx_azimut
 
 
 @pytest.mark.native_sionna
+def test_synthetic_array_matches_explicit_in_far_field_but_not_near_field():
+    """Bound Sionna's synthetic-array approximation against element tracing."""
+    import mitsuba as mi
+
+    mi.set_variant("llvm_ad_mono_polarized")
+    rt = pytest.importorskip("sionna.rt")
+    carrier_hz = 3.5e9
+
+    def trace_cfr(distance_m: float, *, synthetic_array: bool) -> np.ndarray:
+        scene = rt.load_scene()
+        scene.frequency = carrier_hz
+        scene.tx_array = rt.PlanarArray(
+            num_rows=1,
+            num_cols=8,
+            horizontal_spacing=0.5,
+            pattern="iso",
+            polarization="V",
+        )
+        scene.rx_array = rt.PlanarArray(num_rows=1, num_cols=1, pattern="iso", polarization="V")
+        scene.add(rt.Transmitter("tx", [0.0, 0.0, 0.0]))
+        scene.add(rt.Receiver("rx", [distance_m, 0.7, 0.0]))
+        paths = rt.PathSolver(deterministic=True)(
+            scene,
+            max_depth=0,
+            los=True,
+            specular_reflection=False,
+            diffuse_reflection=False,
+            refraction=False,
+            diffraction=False,
+            synthetic_array=synthetic_array,
+            seed=19,
+        )
+        expected_valid_paths = 1 if synthetic_array else 8
+        assert np.count_nonzero(np.asarray(paths.valid.numpy())) == expected_valid_paths
+        response = paths.cfr(
+            frequencies=np.asarray([0.0]),
+            normalize_delays=False,
+            normalize=False,
+            out_type="numpy",
+        )
+        return np.asarray(response[0, 0, 0, :, 0, 0], dtype=np.complex128)
+
+    def relative_error(first: np.ndarray, reference: np.ndarray) -> float:
+        return float(np.linalg.norm(first - reference) / np.linalg.norm(reference))
+
+    farfield_distance_m = 100.0
+    farfield_synthetic = trace_cfr(farfield_distance_m, synthetic_array=True)
+    farfield_explicit = trace_cfr(farfield_distance_m, synthetic_array=False)
+    farfield_error = relative_error(farfield_synthetic, farfield_explicit)
+    assert farfield_error < 0.01
+
+    nearfield_distance_m = 1.0
+    nearfield_synthetic = trace_cfr(nearfield_distance_m, synthetic_array=True)
+    nearfield_explicit = trace_cfr(nearfield_distance_m, synthetic_array=False)
+    nearfield_error = relative_error(nearfield_synthetic, nearfield_explicit)
+    assert nearfield_error > 0.1
+
+
+@pytest.mark.native_sionna
 @pytest.mark.parametrize(("polarization", "fresnel_mode"), [("V", "TM"), ("H", "TE")])
 def test_rt_reflected_path_gain_matches_analytic_fresnel_slab(polarization, fresnel_mode):
     """V and H links match the analytic TM and TE slab coefficients, respectively."""
