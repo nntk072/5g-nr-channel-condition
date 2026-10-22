@@ -9,6 +9,7 @@ torch = pytest.importorskip("torch")
 pytest.importorskip("mitsuba")
 pytest.importorskip("sionna")
 
+from datasets.episode_store import StoredEpisodeBundle, read_episode_bundle  # noqa: E402
 from datasets.nr_store import read_nr_trajectory  # noqa: E402
 from integrations.sionna.rt_trajectory import (  # noqa: E402
     RTTrajectoryConfig,
@@ -32,7 +33,8 @@ def test_cpu_rt_path_retraces_and_stores_receiver_only_trajectory(tmp_path, monk
         device="cpu",
     )
 
-    stored = generate_rt_nr_trajectory(config, tmp_path)
+    umcd_root = tmp_path / "umcd"
+    stored = generate_rt_nr_trajectory(config, tmp_path, umcd_store_root=umcd_root)
     trajectory = read_nr_trajectory(tmp_path, stored)
 
     assert trajectory.trajectory_id == config.trajectory_id
@@ -57,6 +59,39 @@ def test_cpu_rt_path_retraces_and_stores_receiver_only_trajectory(tmp_path, monk
 
     sidecar = tmp_path / "manifests" / "trajectories" / f"{stored.content_sha256}.generation.json"
     assert sidecar.is_file()
+    import json
+
+    generation = json.loads(sidecar.read_text(encoding="utf-8"))
+    umcd_ref = StoredEpisodeBundle(**generation["umcd_bundle"])
+    bundle = read_episode_bundle(umcd_root, umcd_ref)
+    assert bundle.episode.family_id == "F04-RT-DYNAMIC"
+    assert bundle.episode.frame_times_s == (0.0, 0.1)
+    assert bundle.path_oracle.group_count == 2
+    assert bundle.path_oracle.path_count > 0
+    assert len(bundle.receiver_observations) == 2
+    assert len(bundle.channel_views) == 1
+    assert bundle.channel_views[0].delay_reference.value == "absolute_propagation_delay"
+    assert [target.definition.semantic for target in bundle.targets] == [
+        "geometric direct-path visibility"
+    ]
+    assert {record.subject_layer for record in bundle.provenance_records} == {
+        "oracle_paths",
+        "oracle_channels",
+        "targets",
+        "receiver_observations",
+    }
+    assert bundle.provenance_records[0].material_config["materials"]
+    assert (
+        bundle.provenance_records[0].run_identity_sha256
+        == generation["rt_run_identity"]["cache_key_sha256"]
+    )
+    material_state = generation["rt_run_identity"]["inputs"]["physical_config"]["material_state"]
+    assert material_state["schema"] == "sionna_rt_material_state.v1"
+    assert material_state["materials"]["reflector-mat"]["properties"]["scattering_coefficient"] == [
+        0.0
+    ]
+    assert "reflector-mat" in material_state["object_material_bindings"].values()
+    assert material_state["materials"]["reflector-mat"]["frequency_update_callback"]["code_sha256"]
     import sionna.rt as rt
 
     def unexpected_trace(*args, **kwargs):

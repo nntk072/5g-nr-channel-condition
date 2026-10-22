@@ -10,13 +10,26 @@ from pathlib import Path
 
 import numpy as np
 from artifacts.provenance import canonical_hash, package_source_sha256, versions
-from datasets.nr import NRChannelRecord, NRObservation, NRTrajectory, TargetDefinition
+from datasets.channel_view import (
+    ChannelDelayReference,
+    ChannelPowerScale,
+    PhysicalChannelView,
+)
+from datasets.network import LinkDirection, LinkRole, NodePoseTimeline, NodeRole
+from datasets.nr import (
+    LinkedNRObservation,
+    NRChannelRecord,
+    NRObservation,
+    NRTrajectory,
+    TargetDefinition,
+)
 from datasets.nr_store import (
     NRStoredTrajectory,
     _publish_immutable,
     read_nr_trajectory,
     write_nr_trajectory,
 )
+from datasets.targets import TargetValidity, TargetValue, definition_digest
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
 from integrations.sionna.rt_identity import rt_run_identity, rt_runtime_fingerprint
@@ -160,12 +173,17 @@ class RTTrajectoryConfig:
 def generate_rt_nr_trajectory(
     config: RTTrajectoryConfig,
     store_root: str | Path,
+    *,
+    umcd_store_root: str | Path | None = None,
 ) -> NRStoredTrajectory:
     """Retrace each route snapshot and store the resulting DMRS trajectory.
 
     Ray traces are recomputed at every route position with deterministic solver
-    seeds. Channel/path truth is stored only as targets and provenance; the model
-    input consists solely of the noisy received grid and receiver estimate.
+    seeds. The legacy NR trajectory remains available. When ``umcd_store_root``
+    is supplied, the same solves also publish their per-path truth, absolute
+    channel views, geometric LOS targets, and receiver observations as separate
+    UMCD layers with run provenance. Active material state and object bindings
+    are captured from the loaded scene at the configured carrier frequency.
     """
     try:
         import torch
@@ -177,7 +195,10 @@ def generate_rt_nr_trajectory(
     if config.device.startswith("cuda") and not torch.cuda.is_available():
         raise RuntimeError(f"CUDA device requested but unavailable: {config.device}")
     from integrations.sionna.backend import activate_rt_backend, select_rt_backend
-    from integrations.sionna.scene_assets import scene_asset_manifest
+    from integrations.sionna.scene_assets import (
+        scene_asset_manifest,
+        sionna_scene_material_manifest,
+    )
 
     selection = select_rt_backend(config.mitsuba_variant)
     activate_rt_backend(selection)
@@ -188,6 +209,9 @@ def generate_rt_nr_trajectory(
         raise RuntimeError("Sionna RT, Sionna PHY, Mitsuba, and PyTorch are required") from exc
 
     scene_ref = getattr(rt.scene, config.scene, config.scene)
+    scene = rt.load_scene(str(scene_ref) if isinstance(scene_ref, Path) else scene_ref)
+    scene.frequency = config.carrier_hz
+    material_manifest = sionna_scene_material_manifest(scene)
     scene_path = Path(str(scene_ref)).expanduser()
     if scene_path.is_file():
         scene_asset_hashes = scene_asset_manifest(scene_path)
@@ -222,6 +246,7 @@ def generate_rt_nr_trajectory(
         physical_config={
             "trajectory": asdict(config),
             "positions_m": [list(position) for position in positions],
+            "material_state": material_manifest,
         },
         solver_config=solver_config,
         seed=config.seed,
@@ -229,15 +254,16 @@ def generate_rt_nr_trajectory(
         runtime_versions=runtime_fingerprint,
         package_source_sha256=source_sha256,
     )
-    if run_identity["complete"]:
+    if run_identity["complete"] and umcd_store_root is None:
         cached = _load_cached_trajectory(store_root, config.trajectory_id, run_identity)
         if cached is not None:
             return cached
+    if umcd_store_root is not None and not run_identity["complete"]:
+        raise ValueError("UMCD publication requires a complete scene and RT run identity")
     try:
-        from sionna.rt import PathSolver, PlanarArray, Receiver, Transmitter, load_scene
+        from sionna.rt import PathSolver, PlanarArray, Receiver, Transmitter
     except ImportError as exc:
         raise RuntimeError("Sionna RT, Sionna PHY, Mitsuba, and PyTorch are required") from exc
-    scene = load_scene(str(scene_ref) if isinstance(scene_ref, Path) else scene_ref)
     receiver_config = NRPUSCHConfig(
         n_size_bwp=config.n_size_bwp,
         subcarrier_spacing_khz=config.subcarrier_spacing_khz,
@@ -259,12 +285,43 @@ def generate_rt_nr_trajectory(
     tx = scene.get("trajectory_tx")
     tx.look_at(rx)
 
+    from integrations.sionna.array_layouts import (
+        sionna_device_pose,
+        sionna_scene_to_network_episode,
+    )
+    from integrations.sionna.rt_network import (
+        SionnaPathBinding,
+        write_sionna_rt_episode_bundle,
+    )
+
+    fft_size = grid.fft_size
+    first_bin = -(fft_size // 2)
+    stop_bin = fft_size // 2 if fft_size % 2 == 0 else fft_size // 2 + 1
+    subcarrier_offsets_hz = (
+        np.arange(first_bin, stop_bin, dtype=np.float64) * config.subcarrier_spacing_khz * 1e3
+    )
+    scene_network = sionna_scene_to_network_episode(
+        scene,
+        episode_id=config.trajectory_id,
+        split_group_id=config.trajectory_id,
+        family_id="F04-RT-DYNAMIC",
+        subcarrier_offsets_hz=tuple(float(value) for value in subcarrier_offsets_hz),
+        node_roles={"tx:trajectory_tx": NodeRole.GNB, "rx:trajectory_rx": NodeRole.UE},
+        associations=(("tx:trajectory_tx", "rx:trajectory_rx"),),
+        direction=LinkDirection.DOWNLINK,
+        link_role=LinkRole.SERVING,
+    )
+    episode_link_id = scene_network.episode.links[0].link_id
+
     full_solver = PathSolver(deterministic=True)
     direct_solver = PathSolver(deterministic=True)
     channels: list[np.ndarray] = []
     direct_path_counts: list[int] = []
     total_path_counts: list[int] = []
     geometric_los: list[bool] = []
+    umcd_path_bindings: list[SionnaPathBinding] = []
+    pose_positions: list[np.ndarray] = []
+    pose_orientations: list[np.ndarray] = []
     for index, position in enumerate(positions):
         rx.position = list(position)
         tx.look_at(rx)
@@ -293,6 +350,14 @@ def generate_rt_nr_trajectory(
             samples_per_src=config.samples_per_src,
             seed=seed,
         )
+        if umcd_store_root is not None:
+            umcd_path_bindings.extend(
+                scene_network.bind_paths({episode_link_id: paths}, frame_index=index)
+            )
+            tx_position, tx_orientation = sionna_device_pose(tx, node_id="tx:trajectory_tx")
+            rx_position, rx_orientation = sionna_device_pose(rx, node_id="rx:trajectory_rx")
+            pose_positions.append(np.stack((tx_position, rx_position)))
+            pose_orientations.append(np.stack((tx_orientation, rx_orientation)))
         direct_count = count_valid_paths(direct)
         path_count = count_valid_paths(paths)
         if path_count == 0:
@@ -417,6 +482,75 @@ def generate_rt_nr_trajectory(
         )
 
     trajectory = NRTrajectory(config.trajectory_id, times, tuple(records))
+    stored_umcd: dict[str, object] | None = None
+    if umcd_store_root is not None:
+        from datasets.episode_store import StoredEpisodeBundle
+
+        base_episode = scene_network.episode
+        pose_timeline = NodePoseTimeline(
+            node_ids=tuple(node.node_id for node in base_episode.nodes),
+            frame_times_s=times,
+            positions_world_m=np.stack(pose_positions),
+            orientations_local_to_world=np.stack(pose_orientations),
+        )
+        episode = replace(
+            base_episode,
+            frame_times_s=times,
+            pose_timeline=pose_timeline,
+        )
+        link = episode.links[0]
+        tx_array = episode.array(episode.node(link.tx_node_id).array_id)
+        rx_array = episode.array(episode.node(link.rx_node_id).array_id)
+        channel_view = PhysicalChannelView(
+            view_id=f"{config.trajectory_id}:absolute-cfr",
+            link_id=link.link_id,
+            channel=np.stack(channels).reshape(config.num_steps, 1, 1, fft_size),
+            frame_times_s=times,
+            rx_port_ids=tuple(rx_array.port_ids[index] for index in link.rx_port_indices),
+            tx_port_ids=tuple(tx_array.port_ids[index] for index in link.tx_port_indices),
+            carrier_hz=config.carrier_hz,
+            subcarrier_offsets_hz=subcarrier_offsets_hz,
+            delay_reference=ChannelDelayReference.ABSOLUTE_PROPAGATION,
+            power_scale=ChannelPowerScale.ABSOLUTE,
+        )
+        target_definition = TargetDefinition(
+            semantic="geometric direct-path visibility",
+            units="boolean",
+            source="sionna_rt_depth_zero_oracle",
+            reference=(
+                "depth-zero LOS-only PathSolver solve for the same RT scene and endpoint poses"
+            ),
+            definition_sha256=definition_digest(
+                "UMCD:F04-RT-DYNAMIC:geometric_direct_path_visibility:v1"
+            ),
+        )
+        los_target = TargetValue(
+            entity_id=link.link_id,
+            definition=target_definition,
+            values=np.asarray(geometric_los, dtype=np.uint8),
+            valid_mask=np.ones(config.num_steps, dtype=np.bool_),
+            reason_codes=(TargetValidity.VALID,) * config.num_steps,
+            confidence="simulator_geometry_oracle",
+        )
+        linked_observations = tuple(
+            LinkedNRObservation(link.link_id, frame_index, record.observation)
+            for frame_index, record in enumerate(records)
+        )
+        stored_bundle = write_sionna_rt_episode_bundle(
+            umcd_store_root,
+            episode,
+            umcd_path_bindings,
+            run_identity=run_identity,
+            material_config=material_manifest,
+            source_family="F04-RT-DYNAMIC",
+            producer="Sionna 2.2 PathSolver and PUSCH receiver",
+            channel_views=(channel_view,),
+            targets=(los_target,),
+            receiver_observations=linked_observations,
+        )
+        if not isinstance(stored_bundle, StoredEpisodeBundle):
+            raise TypeError("UMCD publisher returned an invalid stored-bundle reference")
+        stored_umcd = asdict(stored_bundle)
     stored = write_nr_trajectory(store_root, trajectory)
     # Emit a compact sidecar alongside the stored trajectory manifest for audit.
     manifest_path = Path(store_root) / stored.manifest_relative_path
@@ -433,8 +567,11 @@ def generate_rt_nr_trajectory(
         "runtime_versions": runtime_versions,
         "package_source_sha256": source_sha256,
         "rt_run_identity": run_identity,
+        "umcd_bundle": stored_umcd,
         "limitations": [
             "Each timestamp is a separately retraced quasi-static RT snapshot.",
+            "This producer moves the UE through a static scene; it does not move obstacles.",
+            "Doppler is not a validated temporal target; path births/deaths are represented only by retraced snapshots.",
             "The synthetic scene materials and ray solver are not field calibrated.",
             "Outage snapshots are rejected pending a declared zero-power receiver policy.",
         ],

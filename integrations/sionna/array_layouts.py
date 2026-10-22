@@ -66,6 +66,13 @@ class SionnaSceneNetwork:
         )
 
 
+def sionna_device_pose(device: object, *, node_id: str) -> tuple[np.ndarray, np.ndarray]:
+    """Read one Sionna device's current world position and array orientation."""
+    position = _vector3(getattr(device, "position", None), name=f"{node_id}.position")
+    orientation = _orientation_matrix(getattr(device, "orientation", None), node_id)
+    return position, orientation
+
+
 def sionna_scene_to_network_episode(
     scene: object,
     *,
