@@ -77,6 +77,15 @@ def test_rt_absolute_delay_cfr_maps_to_nr_baseband_bins():
         atol=1e-8,
     )
     np.testing.assert_allclose(delays_s[0, 0, 0], distance_m / speed_of_light, atol=1e-12)
+    path_gain = paths.a
+    path_gain = np.asarray(path_gain[0].numpy()) + 1j * np.asarray(path_gain[1].numpy())
+    valid_paths = np.asarray(paths.valid.numpy(), dtype=bool)
+    wavelength_m = float(np.asarray(scene.wavelength.numpy()).reshape(-1)[0])
+    valid_gains = path_gain[valid_paths]
+    friis_amplitude = wavelength_m / (4 * np.pi * distance_m)
+    assert valid_gains.size == 1
+    np.testing.assert_allclose(np.abs(valid_gains[0]), friis_amplitude, rtol=1e-5, atol=0)
+    assert abs(np.angle(valid_gains[0])) < 1e-5
     assert result.metadata["normalize_delays"] is False
     assert result.metadata["frequency_reference"] == "NR baseband subcarrier offsets"
     assert np.allclose(

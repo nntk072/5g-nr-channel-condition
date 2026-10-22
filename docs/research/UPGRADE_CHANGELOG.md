@@ -84,3 +84,12 @@
   jobs for commit 00928a3; the hosted matrix does not install Sionna RT, so the
   native cases remain locally verified. Canonical dataset regeneration remains
   gated on the remaining physics checks.
+
+## Friis power check — 2026-10-22
+
+- The native 10 m isotropic direct-path test now checks the coefficient
+  magnitude against `λ/(4πd)` and phase against the pinned Friis convention,
+  plus the existing `τ=d/c` assertion.
+- All 21 focused adapter/mock/native integration tests, Ruff lint/format, and
+  mypy pass locally. The newly added assertion is pending hosted CI; broader
+  receiver link-budget, polarization, and material qualification remain open.
