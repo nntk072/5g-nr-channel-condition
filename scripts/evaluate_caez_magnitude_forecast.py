@@ -9,6 +9,10 @@ from typing import Any
 
 import numpy as np
 from datasets.caez import _numeric_member, audit
+from evaluation.caez_forecast import (
+    align_forecast_pairs,
+    score_summary_predictions,
+)
 from sklearn.linear_model import Ridge
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
@@ -33,7 +37,7 @@ def forecast_pairs(
     if not 0 < test_fraction < 1:
         raise ValueError("test_fraction must be between zero and one")
 
-    anchors, targets, history = _aligned_pairs(
+    anchors, targets, history = align_forecast_pairs(
         times,
         horizon_s=horizon_s,
         lookback_s=lookback_s,
@@ -42,61 +46,6 @@ def forecast_pairs(
     test_start = int(np.floor(times.size * (1.0 - test_fraction)))
     valid = (anchors >= test_start) & (history >= test_start)
     return anchors[valid], targets[valid], history[valid]
-
-
-def _aligned_pairs(
-    times: np.ndarray,
-    *,
-    horizon_s: float,
-    lookback_s: float,
-    tolerance_s: float,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Align every valid past/target pair to the nearest time samples."""
-    anchors = np.arange(times.size, dtype=np.int64)
-    targets_right = np.searchsorted(times, times[anchors] + horizon_s, side="left")
-    right_valid = targets_right < times.size
-    left = np.clip(targets_right - 1, 0, times.size - 1)
-    right = np.clip(targets_right, 0, times.size - 1)
-    choose_right = np.abs(times[right] - (times[anchors] + horizon_s)) < np.abs(
-        times[left] - (times[anchors] + horizon_s)
-    )
-    targets = np.where(choose_right, right, left)
-    errors = np.abs(times[targets] - (times[anchors] + horizon_s))
-    history = np.searchsorted(times, times[anchors] - lookback_s, side="right") - 1
-    valid = right_valid & (targets > anchors) & (errors <= tolerance_s) & (history < anchors)
-    return anchors[valid], targets[valid], history[valid]
-
-
-def _score_summary_predictions(
-    prediction: np.ndarray,
-    target: np.ndarray,
-    *,
-    n_orus: int,
-    n_rx: int,
-) -> dict[str, Any]:
-    scores = []
-    for oru in range(n_orus):
-        feature_slice = slice(oru * n_rx, (oru + 1) * n_rx)
-        actual = target[:, feature_slice]
-        error = prediction[:, feature_slice] - actual
-        squared_error = float(np.square(error, dtype=np.float64).sum())
-        rmse = float(np.sqrt(squared_error / actual.size))
-        target_std = float(np.std(actual, dtype=np.float64))
-        scores.append(
-            {
-                "rmse_db": rmse,
-                "mae_db": float(np.abs(error).mean()),
-                "nrmse_by_target_std": rmse / target_std if target_std > 0 else None,
-                "features": int(actual.size),
-            }
-        )
-    normalized = [item["nrmse_by_target_std"] for item in scores]
-    return {
-        "per_oru": scores,
-        "macro_nrmse_by_target_std": float(
-            np.mean([value for value in normalized if value is not None])
-        ),
-    }
 
 
 def _accumulate(
@@ -201,7 +150,7 @@ def evaluate(
         summary_db[start:stop] = 20.0 * np.log10(
             np.maximum(magnitude_mean.reshape(stop - start, -1), 1e-8)
         )
-    all_anchors, all_targets, all_history = _aligned_pairs(
+    all_anchors, all_targets, all_history = align_forecast_pairs(
         timestamps,
         horizon_s=horizon_s,
         lookback_s=lookback_s,
@@ -232,13 +181,13 @@ def evaluate(
         horizon_s / lookback_s
     )
     compact_scores = {
-        "ridge": _score_summary_predictions(
+        "ridge": score_summary_predictions(
             ridge_prediction, test_targets_db, n_orus=n_orus, n_rx=channel.shape[2]
         ),
-        "persistence": _score_summary_predictions(
+        "persistence": score_summary_predictions(
             persistence_summary, test_targets_db, n_orus=n_orus, n_rx=channel.shape[2]
         ),
-        "linear_trend": _score_summary_predictions(
+        "linear_trend": score_summary_predictions(
             trend_summary, test_targets_db, n_orus=n_orus, n_rx=channel.shape[2]
         ),
     }
