@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import gzip
 import json
+import lzma
 import math
 import statistics
 from collections import defaultdict
@@ -47,9 +48,18 @@ def _load_report(path: Path) -> dict[str, Any]:
         if path.suffix == ".gz":
             with gzip.open(path, "rt", encoding="utf-8") as stream:
                 report = json.load(stream)
+        elif path.suffix == ".xz":
+            with lzma.open(path, "rt", encoding="utf-8") as stream:
+                report = json.load(stream)
         else:
             report = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, EOFError, gzip.BadGzipFile, json.JSONDecodeError) as error:
+    except (
+        OSError,
+        EOFError,
+        gzip.BadGzipFile,
+        lzma.LZMAError,
+        json.JSONDecodeError,
+    ) as error:
         raise ValueError(f"cannot read convergence report {path}: {error}") from error
     if not isinstance(report, dict) or report.get("schema") not in SCHEMAS:
         raise ValueError(f"report must use a supported convergence schema: {path}")

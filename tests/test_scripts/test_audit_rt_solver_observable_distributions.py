@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import lzma
 import runpy
 from pathlib import Path
 from typing import Any
@@ -130,6 +131,18 @@ def test_accepts_compact_v3_reports_without_cfr_vectors(tmp_path: Path):
     report.write_text(json.dumps(content), encoding="utf-8")
 
     result = audit(report, low_budget=100, reference_budget=1000, depth=3, bootstrap_draws=200)
+
+    assert result["matched_link_seed_pairs"] == 2
+
+
+def test_reads_xz_compressed_reports(tmp_path: Path):
+    rows = [_row(seed, budget) for seed in (1, 2) for budget in (100, 1000)]
+    report = _write(tmp_path / "report.json", rows)
+    compressed = tmp_path / "report.json.xz"
+    with lzma.open(compressed, "wt", encoding="utf-8") as stream:
+        json.dump(json.loads(report.read_text(encoding="utf-8")), stream)
+
+    result = audit(compressed, low_budget=100, reference_budget=1000, depth=3, bootstrap_draws=200)
 
     assert result["matched_link_seed_pairs"] == 2
 
