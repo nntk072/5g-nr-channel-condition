@@ -43,7 +43,7 @@ def test_reused_pusch_dmrs_estimates_sum_of_serving_and_interfering_channels():
     )
     desired_estimate = receiver.estimate(desired_only.received_grid, 0.0)
     contaminated_estimate = receiver.estimate(both_users.received_grid, 0.0)
-    pilot_mask = receiver.pilot_mask[0, 0]
+    pilot_mask = receiver.pilot_mask[0, 0].bool()
     desired_channel_hat = desired_estimate.h_hat[0, 0, 0, 0, 0]
     contaminated_channel_hat = contaminated_estimate.h_hat[0, 0, 0, 0, 0]
 
@@ -136,6 +136,73 @@ def test_native_multi_node_rt_channel_matches_single_link_and_composes_sources()
         for tx_index in range(2)
     ]
     torch.testing.assert_close(joint.received_grid, individual[0] + individual[1])
+
+
+@pytest.mark.native_sionna
+def test_native_rt_cochannel_pusch_dmrs_estimate_matches_two_cross_links():
+    """Exercise native RT links, the network composer, and the NR estimator together."""
+    import mitsuba as mi
+
+    mi.set_variant("llvm_ad_mono_polarized")
+    rt = pytest.importorskip("sionna.rt")
+
+    from integrations.sionna.rt_to_nr import paths_to_nr_ofdm_channel
+
+    receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(n_size_bwp=6, subcarrier_spacing_khz=30), device="cpu"
+    )
+    resource_grid = receiver.resource_grid
+    scene = rt.load_scene()
+    scene.frequency = 3.5e9
+    scene.tx_array = rt.PlanarArray(num_rows=1, num_cols=1, pattern="iso", polarization="V")
+    scene.rx_array = rt.PlanarArray(num_rows=1, num_cols=1, pattern="iso", polarization="V")
+    scene.add(rt.Transmitter("tx_serving", [0.0, 0.0, 1.0]))
+    scene.add(rt.Transmitter("tx_interferer", [0.0, 3.0, 1.0]))
+    scene.add(rt.Receiver("rx", [10.0, 0.0, 1.0]))
+    paths = rt.PathSolver(deterministic=True)(
+        scene,
+        max_depth=0,
+        los=True,
+        specular_reflection=False,
+        diffuse_reflection=False,
+        refraction=False,
+        diffraction=False,
+        synthetic_array=True,
+        seed=1607,
+    )
+    channel = paths_to_nr_ofdm_channel(paths, resource_grid).channel
+
+    single_tx_grid, _ = receiver.transmit(1, seed=1608)
+    single_tx_grid = single_tx_grid[:, :1]
+    cochannel_grid = torch.cat((single_tx_grid, single_tx_grid), dim=1)
+    tx_power = float(single_tx_grid[:, 0].abs().square().sum(dim=1).mean().item())
+    powers = (tx_power, tx_power)
+
+    serving_only = compose_downlink_resource_grids(
+        channel[:, :, :, :1], single_tx_grid, (tx_power,)
+    )
+    both_sources = compose_downlink_resource_grids(channel, cochannel_grid, powers)
+    serving_estimate = receiver.estimate(serving_only.received_grid, 0.0)
+    cochannel_estimate = receiver.estimate(both_sources.received_grid, 0.0)
+
+    pilot_mask = receiver.pilot_mask[0, 0].bool()
+    truth = channel.sum(dim=3)
+    serving_channel_hat = serving_estimate.h_hat[0, 0, 0, 0, 0]
+    cochannel_channel_hat = cochannel_estimate.h_hat[0, 0, 0, 0, 0]
+    serving_truth = channel[0, 0, 0, 0, 0]
+    combined_truth = truth[0, 0, 0, 0]
+    torch.testing.assert_close(
+        serving_channel_hat[pilot_mask],
+        serving_truth[pilot_mask],
+        rtol=1e-2,
+        atol=1e-7,
+    )
+    torch.testing.assert_close(
+        cochannel_channel_hat[pilot_mask],
+        combined_truth[pilot_mask],
+        rtol=1e-2,
+        atol=1e-7,
+    )
 
 
 @pytest.mark.native_sionna
