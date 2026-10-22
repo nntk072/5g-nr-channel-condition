@@ -92,6 +92,40 @@ def test_rt_absolute_delay_cfr_maps_to_nr_baseband_bins():
         result.channel[0, 0, 0, 0, 0, 0].numpy(), result.channel[0, 0, 0, 0, 0, 13].numpy()
     )
 
+    # A common physical timing-origin shift must remain visible in the
+    # absolute-delay response, including both carrier phase and the baseband
+    # subcarrier phase slope. Delay normalization deliberately removes it.
+    delay_shift_s = 0.37e-9
+    original_tau = paths.tau
+    paths._tau = original_tau + delay_shift_s
+    shifted_result = paths_to_nr_ofdm_channel(paths, grid)
+    carrier_frequency_hz = float(np.asarray(scene.frequency.numpy()).item())
+    expected_shift = np.exp(-2j * np.pi * (carrier_frequency_hz + frequencies_hz) * delay_shift_s)
+    shifted_ratio = (
+        shifted_result.channel[0, 0, 0, 0, 0, 0].numpy() / result.channel[0, 0, 0, 0, 0, 0].numpy()
+    )
+    np.testing.assert_allclose(shifted_ratio, expected_shift, rtol=2e-4, atol=2e-5)
+    _, shifted_delays_s = paths.cir(normalize_delays=False, out_type="numpy")
+    np.testing.assert_allclose(
+        shifted_delays_s[0, 0, 0], delays_s[0, 0, 0] + delay_shift_s, atol=2e-13
+    )
+    normalized_before = paths.cfr(
+        frequencies=frequencies_hz,
+        num_time_steps=1,
+        normalize_delays=True,
+        normalize=False,
+        out_type="numpy",
+    )
+    paths._tau = original_tau
+    normalized_after = paths.cfr(
+        frequencies=frequencies_hz,
+        num_time_steps=1,
+        normalize_delays=True,
+        normalize=False,
+        out_type="numpy",
+    )
+    np.testing.assert_allclose(normalized_before, normalized_after, rtol=1e-5, atol=1e-8)
+
     # The legacy dataset adapter must use the same absolute-delay convention
     # as the canonical NR bridge, rather than silently removing the ToA slope.
     adapter_channel = rt_cfr(paths, GridConfig(n_subcarriers=24, spacing_hz=30e3))
