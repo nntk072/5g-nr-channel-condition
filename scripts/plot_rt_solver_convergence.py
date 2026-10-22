@@ -83,6 +83,7 @@ def plot_reports(report_paths: Sequence[Path], output_prefix: Path) -> dict[str,
         len(reports) == 1
         and len(reports[0]["data"]["configuration"]["samples_per_src_values"]) == 1
     )
+    compact_legend = sum(len(report["data"]["configuration"]["links"]) for report in reports) > 4
     colors = plt.get_cmap("tab10")
     line_styles = ("-", "--", ":", "-.")
 
@@ -92,12 +93,17 @@ def plot_reports(report_paths: Sequence[Path], output_prefix: Path) -> dict[str,
         config = data["configuration"]
         for link_index, link in enumerate(config["links"]):
             link_id = link["link_id"]
-            label = (
-                f"{scene_name}/{link_id} [{link['geometric_visibility_state']}; "
-                f"d{max(config['max_depth_values'])}; "
-                f"{config['reference_samples_per_src'] // 1000}k; "
-                f"{_material_label(config)}]"
-            )
+            if compact_legend:
+                label = f"{link_id} [{link['geometric_visibility_state']}]"
+                if len(reports) > 1:
+                    label = f"{Path(scene_name).stem}/{label} (report {report_index + 1})"
+            else:
+                label = (
+                    f"{scene_name}/{link_id} [{link['geometric_visibility_state']}; "
+                    f"d{max(config['max_depth_values'])}; "
+                    f"{config['reference_samples_per_src'] // 1000}k; "
+                    f"{_material_label(config)}]"
+                )
             color = colors(link_index % 10)
             line_style = line_styles[report_index % len(line_styles)]
             rows = [row for row in data["runs"] if row["link_id"] == link_id]
@@ -233,7 +239,8 @@ def plot_reports(report_paths: Sequence[Path], output_prefix: Path) -> dict[str,
             list(legend_items.values()),
             list(legend_items),
             loc="outside lower center",
-            ncols=2,
+            ncols=min(3, len(legend_items)),
+            fontsize=8,
         )
     fig.suptitle(
         "Sionna RT convergence diagnostics; synthetic scattering overrides are not calibrated",
@@ -242,8 +249,8 @@ def plot_reports(report_paths: Sequence[Path], output_prefix: Path) -> dict[str,
     output_prefix.parent.mkdir(parents=True, exist_ok=True)
     png_path = output_prefix.with_suffix(".png")
     svg_path = output_prefix.with_suffix(".svg")
-    fig.savefig(png_path, dpi=180)
-    fig.savefig(svg_path)
+    fig.savefig(png_path, dpi=180, bbox_inches="tight")
+    fig.savefig(svg_path, bbox_inches="tight")
     plt.close(fig)
     svg_lines = svg_path.read_text(encoding="utf-8").splitlines()
     svg_path.write_text("\n".join(line.rstrip() for line in svg_lines) + "\n", encoding="utf-8")

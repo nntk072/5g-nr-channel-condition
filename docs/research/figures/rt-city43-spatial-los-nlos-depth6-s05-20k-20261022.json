@@ -1,0 +1,266 @@
+{
+  "inputs": [
+    {
+      "configuration": {
+        "candidate_path_count_scope": "per_transmitter_source_from_buffer_source_indices",
+        "candidate_path_count_stage": "after_candidate_generation_before_invalid_path_filter",
+        "carrier_hz": 3500000000.0,
+        "cfr_vector_encoding": "float64-real-imaginary-lists",
+        "cfr_vectors_included": true,
+        "deterministic_solver": true,
+        "links": [
+          {
+            "boundary_probe_blocked": [
+              false,
+              false,
+              false,
+              false
+            ],
+            "first_intersection_distance_m": null,
+            "geometric_los": true,
+            "geometric_visibility_state": "visible",
+            "incidence_cosine": null,
+            "link_id": "west-los",
+            "rx_position_m": [
+              -65.11846340832628,
+              18.638113470521038,
+              1.5
+            ],
+            "segment_length_m": 75.63742739649271,
+            "tx_position_m": [
+              -60.0,
+              -55.0,
+              18.0
+            ]
+          },
+          {
+            "boundary_probe_blocked": [
+              true,
+              true,
+              true,
+              true
+            ],
+            "first_intersection_distance_m": 33.898353576660156,
+            "geometric_los": false,
+            "geometric_visibility_state": "blocked",
+            "incidence_cosine": 0.2698200071674632,
+            "link_id": "west-nlos",
+            "rx_position_m": [
+              -77.43486882328378,
+              4.992404967302439,
+              1.5
+            ],
+            "segment_length_m": 64.6166642952569,
+            "tx_position_m": [
+              -60.0,
+              -55.0,
+              18.0
+            ]
+          },
+          {
+            "boundary_probe_blocked": [
+              false,
+              false,
+              false,
+              false
+            ],
+            "first_intersection_distance_m": null,
+            "geometric_los": true,
+            "geometric_visibility_state": "visible",
+            "incidence_cosine": null,
+            "link_id": "center-los",
+            "rx_position_m": [
+              -8.590140794952246,
+              -15.375005963836855,
+              1.5
+            ],
+            "segment_length_m": 43.774200977779905,
+            "tx_position_m": [
+              0.0,
+              -55.0,
+              18.0
+            ]
+          },
+          {
+            "boundary_probe_blocked": [
+              true,
+              true,
+              true,
+              true
+            ],
+            "first_intersection_distance_m": 23.739953994750977,
+            "geometric_los": false,
+            "geometric_visibility_state": "blocked",
+            "incidence_cosine": 0.42176618492534124,
+            "link_id": "center-nlos",
+            "rx_position_m": [
+              24.35684045332106,
+              -5.3057960716627575,
+              1.5
+            ],
+            "segment_length_m": 57.74962840520886,
+            "tx_position_m": [
+              0.0,
+              -55.0,
+              18.0
+            ]
+          },
+          {
+            "boundary_probe_blocked": [
+              false,
+              false,
+              false,
+              false
+            ],
+            "first_intersection_distance_m": null,
+            "geometric_los": true,
+            "geometric_visibility_state": "visible",
+            "incidence_cosine": null,
+            "link_id": "east-los",
+            "rx_position_m": [
+              57.62307002102318,
+              3.4122560099501418,
+              1.5
+            ],
+            "segment_length_m": 60.74447668962928,
+            "tx_position_m": [
+              60.0,
+              -55.0,
+              18.0
+            ]
+          },
+          {
+            "boundary_probe_blocked": [
+              true,
+              true,
+              true,
+              true
+            ],
+            "first_intersection_distance_m": 38.791324615478516,
+            "geometric_los": false,
+            "geometric_visibility_state": "blocked",
+            "incidence_cosine": 0.26405835240805375,
+            "link_id": "east-nlos",
+            "rx_position_m": [
+              79.4695681841155,
+              14.174443605354421,
+              1.5
+            ],
+            "segment_length_m": 73.7320671986503,
+            "tx_position_m": [
+              60.0,
+              -55.0,
+              18.0
+            ]
+          }
+        ],
+        "material_scattering_overrides": {
+          "itu_concrete": 0.5,
+          "itu_glass": 0.5,
+          "itu_metal": 0.5
+        },
+        "materials": {
+          "itu_concrete": {
+            "scattering_coefficient": [
+              0.5
+            ],
+            "scattering_pattern": "LambertianPattern",
+            "xpd_coefficient": [
+              0.0
+            ]
+          },
+          "itu_glass": {
+            "scattering_coefficient": [
+              0.5
+            ],
+            "scattering_pattern": "LambertianPattern",
+            "xpd_coefficient": [
+              0.0
+            ]
+          },
+          "itu_metal": {
+            "scattering_coefficient": [
+              0.5
+            ],
+            "scattering_pattern": "LambertianPattern",
+            "xpd_coefficient": [
+              0.0
+            ]
+          }
+        },
+        "max_depth_values": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "max_num_paths_per_src": 1000000,
+        "mitsuba_variant": "llvm_ad_mono_polarized",
+        "n_subcarriers": 256,
+        "normalize_cfr_power": false,
+        "normalize_delays_for_cfr": false,
+        "reference_samples_per_src": 20000,
+        "rt_backend_selection": {
+          "available_variants": [
+            "scalar_rgb",
+            "scalar_spectral",
+            "scalar_spectral_polarized",
+            "llvm_ad_rgb",
+            "llvm_ad_mono",
+            "llvm_ad_mono_polarized",
+            "llvm_ad_spectral",
+            "llvm_ad_spectral_polarized",
+            "cuda_ad_rgb",
+            "cuda_ad_mono",
+            "cuda_ad_mono_polarized",
+            "cuda_ad_spectral",
+            "cuda_ad_spectral_polarized"
+          ],
+          "backend": "llvm_cpu",
+          "fallback_reason": "cuda_ad_mono_polarized: native RT probe failed (1): RuntimeError: [parser.cpp:1718] At dictionary node \"root\": failed to instantiate scene plugin of type \"scene\": Could not initialize OptiX!",
+          "probe_passed": true,
+          "probe_summary": "one direct path traced with llvm_ad_mono_polarized",
+          "requested": "auto",
+          "runtime_versions": {
+            "drjit": "1.5.0",
+            "mitsuba": "3.9.1",
+            "sionna-rt": "2.2.0"
+          },
+          "variant": "llvm_ad_mono_polarized"
+        },
+        "samples_per_src_values": [
+          20000
+        ],
+        "seeds": [
+          11,
+          23,
+          47
+        ],
+        "solver_flags": {
+          "diffraction": false,
+          "diffuse_reflection": true,
+          "los": true,
+          "refraction": true,
+          "specular_reflection": true
+        },
+        "subcarrier_spacing_hz": 30000.0
+      },
+      "path": "/home/nguyenl37/5g-nr-channel-condition/docs/research/results/rt-city43-spatial-los-nlos-depth6-s05-20k-20261022.json",
+      "scene": "scenes/generated/research_scenes/city43/urban_00043.xml",
+      "sha256": "2d1e4a1c92cae739e32db4eddcbe853e5de02ca9f754709d68ea03ae3fdb6e51"
+    }
+  ],
+  "png": {
+    "path": "docs/research/figures/rt-city43-spatial-los-nlos-depth6-s05-20k-20261022.png",
+    "sha256": "50a4cb0de60f95ef21a7bd2d7f22ae99106664b8c46b98c6d48d6dd8d37611f0"
+  },
+  "schema": "loslab.rt_solver_convergence_plot.v1",
+  "summary": "Error bars show min-to-max across deterministic seeds. Exact zero relative errors (identical to the selected reference CFR) are omitted from log-scale panels. The high-budget CFR is a comparison reference, not proven ground truth. Ray-sample counts do not imply diffuse scattering: inspect each report's per-material scattering coefficients; schema v2 reports omit them.",
+  "svg": {
+    "path": "docs/research/figures/rt-city43-spatial-los-nlos-depth6-s05-20k-20261022.svg",
+    "sha256": "8cd17d93ca5418550efb192f9f2915b72ad33316eb7d2ebffd74f1d3ad2a4eb2"
+  }
+}
