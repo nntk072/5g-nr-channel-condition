@@ -214,7 +214,8 @@ def test_rt_direct_and_reflected_paths_sum_coherently_on_nr_grid():
 
 
 @pytest.mark.native_sionna
-def test_same_paths_direct_indirect_partition_preserves_explicit_mimo_axes():
+@pytest.mark.parametrize("synthetic_array", [True, False])
+def test_same_paths_direct_indirect_partition_preserves_mimo_axes(synthetic_array):
     import mitsuba as mi
 
     mi.set_variant("llvm_ad_mono_polarized")
@@ -236,7 +237,7 @@ def test_same_paths_direct_indirect_partition_preserves_explicit_mimo_axes():
         diffuse_reflection=False,
         refraction=False,
         diffraction=False,
-        synthetic_array=False,
+        synthetic_array=synthetic_array,
         seed=1,
     )
 
@@ -253,6 +254,46 @@ def test_same_paths_direct_indirect_partition_preserves_explicit_mimo_axes():
     indirect = rt_cfr(paths, grid, path_mask=indirect_mask)
     assert full.shape == (1, 6, 24)
     np.testing.assert_allclose(full, direct + indirect, rtol=1e-5, atol=1e-8)
+
+
+@pytest.mark.native_sionna
+@pytest.mark.parametrize("synthetic_array", [True, False])
+def test_empty_paths_produce_finite_zero_cfr_for_both_array_modes(synthetic_array):
+    import mitsuba as mi
+
+    mi.set_variant("llvm_ad_mono_polarized")
+    rt = pytest.importorskip("sionna.rt")
+    from integrations.sionna.adapter import GridConfig, direct_path_mask, rt_cfr
+
+    scene = rt.load_scene()
+    scene.tx_array = rt.PlanarArray(num_rows=1, num_cols=2, pattern="iso", polarization="V")
+    scene.rx_array = rt.PlanarArray(num_rows=1, num_cols=3, pattern="iso", polarization="V")
+    scene.add(rt.Transmitter("tx", [0.0, 0.0, 1.0]))
+    scene.add(rt.Receiver("rx", [10.0, 0.0, 1.0]))
+    paths = rt.PathSolver(deterministic=True)(
+        scene,
+        los=False,
+        specular_reflection=False,
+        diffuse_reflection=False,
+        refraction=False,
+        diffraction=False,
+        synthetic_array=synthetic_array,
+    )
+
+    valid = np.asarray(paths.valid.numpy(), dtype=bool)
+    direct_mask = direct_path_mask(paths)
+    assert valid.size == 0
+    assert direct_mask.shape == valid.shape
+    assert not direct_mask.any()
+
+    grid = GridConfig(n_subcarriers=24, spacing_hz=30e3)
+    full = rt_cfr(paths, grid)
+    direct = rt_cfr(paths, grid, path_mask=direct_mask)
+    indirect = rt_cfr(paths, grid, path_mask=valid & ~direct_mask)
+    assert full.shape == direct.shape == indirect.shape == (1, 6, 24)
+    assert np.all(np.isfinite(full))
+    assert np.count_nonzero(full) == 0
+    np.testing.assert_array_equal(full, direct + indirect)
 
 
 @pytest.mark.native_sionna

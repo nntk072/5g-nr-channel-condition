@@ -93,3 +93,17 @@
 - All 21 focused adapter/mock/native integration tests, Ruff lint/format, and
   mypy pass locally. The newly added assertion is pending hosted CI; broader
   receiver link-budget, polarization, and material qualification remain open.
+
+## Empty-path and synthetic-array mask correction — 2026-10-22
+
+- Native zero-path tests exposed that Dr.Jit rejects scalar-zero selection on
+  empty coefficient tensors. The adapter now preserves an empty copied
+  `Paths` object without attempting that invalid operation.
+- Synthetic-array masks now broadcast over antenna-pattern axes before
+  coefficient masking. Previously, 2×3 synthetic arrays failed mask-shape
+  validation even though their link-level validity mask was correct.
+- Native LLVM tests pass for empty synthetic and explicit arrays and for
+  direct/indirect conservation with 2×3 synthetic and explicit arrays. The
+  complete local suite passes at 88.11% coverage; 24 focused integration tests,
+  Ruff lint/format, mypy, lock validation, build, and diff checks pass. Hosted
+  CI for this adapter correction is pending.

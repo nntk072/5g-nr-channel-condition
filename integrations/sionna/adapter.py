@@ -261,11 +261,24 @@ def _mask_path_coefficients(paths: RTPaths, path_mask: np.ndarray) -> RTPaths:
     if mask.shape != coefficient_shape:
         if bool(getattr(paths, "synthetic_array", False)) and len(coefficient_shape) == 5:
             mask = mask[:, None, :, None, :]
-        if mask.shape != coefficient_shape:
+            try:
+                mask = np.broadcast_to(mask, coefficient_shape)
+            except ValueError as error:
+                raise ValueError(
+                    "Path mask axes do not match coefficient axes: "
+                    f"mask={mask.shape}, coefficients={coefficient_shape}"
+                ) from error
+        else:
             raise ValueError(
                 "Path mask axes do not match coefficient axes: "
                 f"mask={mask.shape}, coefficients={coefficient_shape}"
             )
+
+    # Dr.Jit cannot broadcast a scalar over a zero-length tensor. An empty
+    # Paths object already has no valid coefficients to remove, so copying it
+    # is exactly the requested empty subset.
+    if mask.size == 0:
+        return copy(paths)
 
     masked: Any = copy(paths)
     selector = cast(Any, mi.TensorXb)(mask.tolist())
