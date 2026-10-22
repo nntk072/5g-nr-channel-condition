@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
+from pathlib import Path
 
 
 def main() -> None:
@@ -149,7 +151,14 @@ def main() -> None:
         print(f"3GPP PROFILE-PROXY LABELS: saved {len(d.y)} to {args.output}")
         return
     if args.command == "rt-data":
-        from .sionna2 import RayScene, generate_raytraced, generate_raytraced_cached
+        from artifacts.provenance import atomic_json
+
+        from .sionna2 import (
+            RayScene,
+            RaytraceGenerationError,
+            generate_raytraced,
+            generate_raytraced_cached,
+        )
 
         cfg = RayScene(
             name=args.scene,
@@ -165,17 +174,25 @@ def main() -> None:
             require_los_multipath=not args.allow_direct_only,
             mitsuba_variant=args.mitsuba_variant,
         )
-        d = (
-            generate_raytraced_cached(cfg, cache_directory=args.cache_dir, seed=args.seed)
-            if args.cache_dir
-            else generate_raytraced(cfg, seed=args.seed)
-        )
+        try:
+            d = (
+                generate_raytraced_cached(cfg, cache_directory=args.cache_dir, seed=args.seed)
+                if args.cache_dir
+                else generate_raytraced(cfg, seed=args.seed)
+            )
+        except RaytraceGenerationError as error:
+            failure_path = Path(args.output).with_suffix(Path(args.output).suffix + ".failure.json")
+            if failure_path.exists():
+                raise FileExistsError(
+                    f"refusing to overwrite RT generation failure report: {failure_path}"
+                ) from error
+            atomic_json(failure_path, error.generation_report)
+            print(f"RT generation failed; attempt report saved to {failure_path}", file=sys.stderr)
+            raise
         d.save(args.output)
         print(f"GEOMETRY-LABELED RT: saved {len(d.y)} to {args.output}")
         return
     if args.command == "nr-observe":
-        from pathlib import Path
-
         from datasets.channel import ChannelDataset
         from integrations.sionna.rt_dmrs import build_rt_dmrs_observation_dataset
 

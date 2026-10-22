@@ -267,7 +267,13 @@ def make_figure(run_root: Path, output: Path) -> None:
     )
     output.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output, dpi=220, bbox_inches="tight")
-    fig.savefig(output.with_suffix(".svg"), bbox_inches="tight")
+    svg_output = output.with_suffix(".svg")
+    fig.savefig(svg_output, bbox_inches="tight")
+    svg_text = svg_output.read_text(encoding="utf-8")
+    svg_output.write_text(
+        "\n".join(line.rstrip() for line in svg_text.splitlines()) + "\n",
+        encoding="utf-8",
+    )
     plt.close(fig)
 
 

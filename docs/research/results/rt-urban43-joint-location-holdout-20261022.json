@@ -1,0 +1,323 @@
+{
+  "configuration": {
+    "bootstrap": 200,
+    "capacity": "medium",
+    "cnn_input_representation": "per-link real/imaginary channels over ordered subcarriers",
+    "coral_penalty": 0.1,
+    "cvnn_input_representation": "complex convolution, phase-equivariant encoding, magnitude-invariant classifier",
+    "device": "cpu",
+    "feature_version": "logmag+pdp+moments-v1",
+    "include_phase": false,
+    "methods": [
+      "logreg",
+      "rf",
+      "raw_mlp"
+    ],
+    "observation": "precomputed",
+    "observation_seed": 2026,
+    "pilot_snr_db": 12.0,
+    "pilot_spacing": 4,
+    "raw_mlp_input_representation": "flattened real/imaginary CFR channels",
+    "seeds": [
+      11,
+      23,
+      47,
+      59,
+      71,
+      83,
+      97
+    ]
+  },
+  "domains": [
+    "rt_urban_00043_center_x0",
+    "rt_urban_00043_east_x3",
+    "rt_urban_00043_west_x3"
+  ],
+  "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
+  "folds": [
+    {
+      "class_counts": {
+        "geometric_los": 20,
+        "geometric_nlos": 20
+      },
+      "held_out_domain": "rt_urban_00043_center_x0",
+      "manifest_sha256": "fe4f6ae9ea4d61c81cd84b7029960eb5e5fc59bf79e7e00fdd9bfbc95d914535",
+      "methods": {
+        "logreg": {
+          "mean_test_auroc_across_seeds": 0.47821428571428565,
+          "n_seeds": 7,
+          "n_test_samples": 40,
+          "std_test_auroc_across_seeds": 0.039702336331808974
+        },
+        "raw_mlp": {
+          "mean_test_auroc_across_seeds": 0.5985714285714285,
+          "n_seeds": 7,
+          "n_test_samples": 40,
+          "std_test_auroc_across_seeds": 0.09765881884376439
+        },
+        "rf": {
+          "mean_test_auroc_across_seeds": 0.5653571428571428,
+          "n_seeds": 7,
+          "n_test_samples": 40,
+          "std_test_auroc_across_seeds": 0.03571785696430357
+        }
+      },
+      "n_samples": 40,
+      "n_spatial_groups": 11,
+      "results_sha256": "10c92937abf431693dba9d40e74cba2f947cf03f2360fe23043f645db61c029e",
+      "split_hashes_by_seed": {
+        "11": "fe9069bbeefe26e3d5d82b85afd02639cfdb566aab2d597696dba07395c2fce3",
+        "23": "d626178632d51d72968363d8f930e46bb1535098dbce1902efa30b228074dcef",
+        "47": "fc87e9ee88c32b989869d2fe78ea67fd430d23a78db62516d4874ccb9356a68e",
+        "59": "841787b03d3bc75eb95e59ee1c2ee6628e983d37f30125b6d379c1dc123a1e06",
+        "71": "b55fabc280ffe77bc9fa096a013a5cc4561ec19c57f587da4fad6ba470474753",
+        "83": "0e42c2fa78c987291f5a24e1501849b4407f73579a5aae892ec280f2ac9c75a6",
+        "97": "797d9433b2e7d63280896eaa3a6934e0bd37dd75517d0dbe3c8a18d6783f58dd"
+      },
+      "summary_sha256": "fc8ecb9abe82d5b9e1e9a95fbe0bd06c0a3e6ece33d373526ef783f093d92da1",
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "class_counts": {
+        "geometric_los": 20,
+        "geometric_nlos": 20
+      },
+      "held_out_domain": "rt_urban_00043_east_x3",
+      "manifest_sha256": "55d7a59a7ccac1146ac89241d594291817780923dd96124025198a1e42d301c0",
+      "methods": {
+        "logreg": {
+          "mean_test_auroc_across_seeds": 0.6921428571428571,
+          "n_seeds": 7,
+          "n_test_samples": 40,
+          "std_test_auroc_across_seeds": 0.026940031665208745
+        },
+        "raw_mlp": {
+          "mean_test_auroc_across_seeds": 0.48321428571428576,
+          "n_seeds": 7,
+          "n_test_samples": 40,
+          "std_test_auroc_across_seeds": 0.08290177369412943
+        },
+        "rf": {
+          "mean_test_auroc_across_seeds": 0.8578571428571428,
+          "n_seeds": 7,
+          "n_test_samples": 40,
+          "std_test_auroc_across_seeds": 0.02848648086087039
+        }
+      },
+      "n_samples": 40,
+      "n_spatial_groups": 8,
+      "results_sha256": "dce5511719b69e10664d89656c2e35344d669bf0b7d10a75bc4249c355c97650",
+      "split_hashes_by_seed": {
+        "11": "29357e0670a6c2f5e0de5edea213eb5e1ce59d49bac4858424762e718d442f83",
+        "23": "b90ee53c122f929347456e98023fd2ad633bf0918c50479ebe1a253f6cd52b9f",
+        "47": "051861bbe04bf899a0f383209356eb3eac109d7c27ec2c073f902a3e77a013cc",
+        "59": "079e837ea54ba5ceea34d84ff746ff4b0cdc12f6e8777ea5e485960526268f38",
+        "71": "b96c1df9550047847acdde4372d599fffad0b354a60cc16666054675320a383d",
+        "83": "d27b741efb82fb0fc21b312726d70889ebaadcf64813a9f2e0c04f7a6aba45e2",
+        "97": "337e9703294e9b950656189131913c0f8c9b5e9b6850c46eba15623636cbf4bc"
+      },
+      "summary_sha256": "2265d945c614a963887ff0fb6d3fc3adb8190732c8da6958daecd7ca672d6ce0",
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "class_counts": {
+        "geometric_los": 20,
+        "geometric_nlos": 20
+      },
+      "held_out_domain": "rt_urban_00043_west_x3",
+      "manifest_sha256": "a369d746902755905abb0ac21aa794f1f5ab92cdb690584754f6e6881630c502",
+      "methods": {
+        "logreg": {
+          "mean_test_auroc_across_seeds": 0.6942857142857142,
+          "n_seeds": 7,
+          "n_test_samples": 40,
+          "std_test_auroc_across_seeds": 0.04965441797554165
+        },
+        "raw_mlp": {
+          "mean_test_auroc_across_seeds": 0.6375000000000001,
+          "n_seeds": 7,
+          "n_test_samples": 40,
+          "std_test_auroc_across_seeds": 0.08792244959540847
+        },
+        "rf": {
+          "mean_test_auroc_across_seeds": 0.8142857142857143,
+          "n_seeds": 7,
+          "n_test_samples": 40,
+          "std_test_auroc_across_seeds": 0.036048436802701554
+        }
+      },
+      "n_samples": 40,
+      "n_spatial_groups": 7,
+      "results_sha256": "e69aecc680bd626178da6dc51c10dbc334423f95c36f20ddcda1f93eac4c8764",
+      "split_hashes_by_seed": {
+        "11": "375916cca91fa038c1a8892c95ac83e79b1c3d06b900d05d20b57c9f0302e4e1",
+        "23": "1152e2b1e6c7b40d7ad8c855d81dd8c59cf83caee9ed29f4afa72dac298c44b1",
+        "47": "bd67c49348ea338cde2dd6b41a24b14cde17968e5411a122245912cd184f3e84",
+        "59": "07438e55b3580c7bdef0a4e0e03c660b01e0e4c698d4bdebb525f40b2d5d01d1",
+        "71": "2a199c86921bb296c8c69af0888f6df1bf1b5483bf543cea6bed690f8dbf5065",
+        "83": "0ca70436d362d143f76c794fadb83e083264d20800ee01b8281707b037e2d784",
+        "97": "158010edb1aa9b2a54fd1523ec6947c863e65e0d5f8c1d1f7ea7e0b8f55b2051"
+      },
+      "summary_sha256": "29ed720f326ffe75cc6987f2d1bc60cfa77f04a96d870db26ac5debe6c059acc",
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    }
+  ],
+  "limitations": [
+    "One synthetic RT scene and three transmitter locations only.",
+    "TX and RX regions move together, so this experiment cannot isolate transmitter-only effects.",
+    "Disjoint receiver regions reduce spatial overlap but do not replace independent-scene or measured-data evaluation.",
+    "Forty balanced links per held-out TX and seven training seeds do not support a benchmark or independent-scene inference.",
+    "The scene geometry/materials are not independently qualified; results are not measured radio evidence."
+  ],
+  "mean_across_heldout_tx_locations": {
+    "logreg": {
+      "descriptive_mean_auroc": 0.6215476190476189,
+      "descriptive_std_across_three_tx_locations": 0.10135574738683875,
+      "per_tx_means": [
+        0.47821428571428565,
+        0.6921428571428571,
+        0.6942857142857142
+      ]
+    },
+    "raw_mlp": {
+      "descriptive_mean_auroc": 0.5730952380952381,
+      "descriptive_std_across_three_tx_locations": 0.06551232769002395,
+      "per_tx_means": [
+        0.5985714285714285,
+        0.48321428571428576,
+        0.6375000000000001
+      ]
+    },
+    "rf": {
+      "descriptive_mean_auroc": 0.7458333333333332,
+      "descriptive_std_across_three_tx_locations": 0.1288496768681433,
+      "per_tx_means": [
+        0.5653571428571428,
+        0.8578571428571428,
+        0.8142857142857143
+      ]
+    }
+  },
+  "methods": [
+    "logreg",
+    "rf",
+    "raw_mlp"
+  ],
+  "minimum_receiver_region_separation_m": {
+    "center_x0__east_x3": 30.0,
+    "center_x0__west_x3": 30.0,
+    "east_x3__west_x3": 110.0
+  },
+  "observation_dataset": {
+    "channel_shape": [
+      120,
+      1,
+      72
+    ],
+    "label_semantics": "geometric_direct_path_oracle",
+    "path": "nr-dmrs-observations.npz",
+    "sample_count": 120,
+    "sha256": "9d9e0bf9f3d5fd5344c64944e83af2f3f54be446c7f9fcfc2525fe43a1c177c4",
+    "source_datasets": [
+      {
+        "path": "center_x0.npz",
+        "sha256": "0fa8458215f0dc6ca78c9a8f03cb043a48cf4fde9171df510ed0b6f2a97d5d32"
+      },
+      {
+        "path": "east_x3.npz",
+        "sha256": "ddae160b406170b43f7a7ec4d9f74469e3edc24f6779870899adb132c73bcc03"
+      },
+      {
+        "path": "west_x3.npz",
+        "sha256": "69572ee17080ce60195f2c48f3e4f8b7d030acc1849f9804b8587dd211138a8e"
+      }
+    ]
+  },
+  "package_source_sha256": "65b91aa0df3c5819bf775aad9caa5db4d6e426270b7f3b582097d2fd2ac7da0e",
+  "receiver_position_overlap_diagnostic": {
+    "center_x0__east_x3": {
+      "median_nearest_rx_distance_m": 63.44764700627742,
+      "minimum_nearest_rx_distance_m": 33.89352091179736,
+      "rx_samples_with_other_tx_within_1m": 0
+    },
+    "center_x0__west_x3": {
+      "median_nearest_rx_distance_m": 52.465375549947126,
+      "minimum_nearest_rx_distance_m": 33.98990288546968,
+      "rx_samples_with_other_tx_within_1m": 0
+    },
+    "east_x3__west_x3": {
+      "median_nearest_rx_distance_m": 132.5706796661517,
+      "minimum_nearest_rx_distance_m": 114.98118899971638,
+      "rx_samples_with_other_tx_within_1m": 0
+    }
+  },
+  "receiver_regions": {
+    "center_x0": {
+      "center_m": [
+        0.0,
+        0.0,
+        1.5
+      ],
+      "radius_m": 25.0
+    },
+    "east_x3": {
+      "center_m": [
+        80.0,
+        0.0,
+        1.5
+      ],
+      "radius_m": 25.0
+    },
+    "west_x3": {
+      "center_m": [
+        -80.0,
+        0.0,
+        1.5
+      ],
+      "radius_m": 25.0
+    }
+  },
+  "run_root": "outputs/rt-urban43-tx-spatial-holdout-20261022-v3",
+  "runtime_versions": {
+    "git_sha": "faf8d33b250a64b5c25f069273b85337b99b06b8",
+    "numpy": "2.5.4",
+    "python": "3.12.3",
+    "scikit-learn": "1.9.1",
+    "sionna": "2.2.0",
+    "sionna-phy": "not installed",
+    "sionna-rt": "2.2.0",
+    "torch": "2.11.0+cu128"
+  },
+  "scene_asset_set_sha256": [
+    "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c"
+  ],
+  "scene_id": "urban_00043",
+  "schema": "loslab.rt_transmitter_holdout_summary.v1",
+  "seeds": [
+    11,
+    23,
+    47,
+    59,
+    71,
+    83,
+    97
+  ],
+  "study_scope": "joint within-scene transmitter-and-receiver location holdout",
+  "summarizer_sha256": "e247602890361aaf1df0c3815a8448ddbe2eb22b3035c04689ad7ef8b2a6162a",
+  "transmitter_count": 3
+}

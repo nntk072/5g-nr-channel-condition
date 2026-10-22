@@ -113,6 +113,51 @@ def test_rt_data_cli_defaults_to_native_capability_detection(monkeypatch, capsys
     assert "GEOMETRY-LABELED RT" in capsys.readouterr().out
 
 
+def test_rt_data_cli_persists_generation_failure_report_without_writing_dataset(
+    tmp_path, monkeypatch, capsys
+) -> None:
+    import loslab.sionna2 as sionna2
+
+    output_path = tmp_path / "failed.npz"
+    failure_path = tmp_path / "failed.npz.failure.json"
+    report = {
+        "status": "insufficient_samples",
+        "attempt_counts": {"candidate_geometric_los": 20, "candidate_geometric_nlos": 0},
+    }
+
+    def fail_generation(config, *, seed):
+        raise sionna2.RaytraceGenerationError("No NLOS samples", report)
+
+    monkeypatch.setattr(sionna2, "generate_raytraced", fail_generation)
+    monkeypatch.setattr("sys.argv", ["loslab", "rt-data", "--output", str(output_path)])
+
+    with pytest.raises(sionna2.RaytraceGenerationError, match="No NLOS samples"):
+        main()
+
+    assert not output_path.exists()
+    assert json.loads(failure_path.read_text(encoding="utf-8")) == report
+    assert str(failure_path) in capsys.readouterr().err
+
+
+def test_rt_data_cli_does_not_overwrite_existing_failure_report(monkeypatch, tmp_path) -> None:
+    import loslab.sionna2 as sionna2
+
+    output_path = tmp_path / "failed.npz"
+    failure_path = tmp_path / "failed.npz.failure.json"
+    failure_path.write_text("preserve", encoding="utf-8")
+
+    def fail_generation(config, *, seed):
+        raise sionna2.RaytraceGenerationError("No NLOS samples", {"status": "failed"})
+
+    monkeypatch.setattr(sionna2, "generate_raytraced", fail_generation)
+    monkeypatch.setattr("sys.argv", ["loslab", "rt-data", "--output", str(output_path)])
+
+    with pytest.raises(FileExistsError, match="refusing to overwrite"):
+        main()
+
+    assert failure_path.read_text(encoding="utf-8") == "preserve"
+
+
 def test_rt_data_cli_dispatches_to_content_addressed_cache_when_requested(
     monkeypatch, capsys, tmp_path
 ) -> None:
