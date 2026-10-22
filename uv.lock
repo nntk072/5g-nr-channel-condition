@@ -31,6 +31,9 @@ dev = [
     { name = "pytest-cov" },
     { name = "ruff" },
 ]
+plots = [
+    { name = "matplotlib" },
+]
 sionna = [
     { name = "sionna" },
     { name = "torch" },
@@ -38,6 +41,7 @@ sionna = [
 
 [package.metadata]
 requires-dist = [
+    { name = "matplotlib", marker = "extra == 'plots'", specifier = ">=3.8,<4" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.10" },
     { name = "numpy", specifier = ">=1.26,<3" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8" },
@@ -50,7 +54,7 @@ requires-dist = [
     { name = "torch", marker = "extra == 'sionna'", specifier = ">=2.9" },
     { name = "xgboost-cpu", marker = "extra == 'boosting'", specifier = ">=2.1,<4" },
 ]
-provides-extras = ["dev", "sionna", "boosting"]
+provides-extras = ["dev", "sionna", "boosting", "plots"]
 
 [[package]]
 name = "ast-serialize"
