@@ -47,5 +47,8 @@ after it. Ruff check and formatting, mypy (139 source files), `uv lock --check`,
 passes all four jobs for that commit. Follow-up local focused adapter/mock/native
 integration checks pass after adding even/odd-grid frequency mapping and raw
 coefficient/delay reconstruction for a two-path scene; Ruff lint/format and
-mypy pass. A follow-up hosted run will cover these additions. The design-level
-gates above remain open despite these software checks.
+mypy pass. Hosted CI run
+[39711191556](https://github.com/nntk072/5g-nr-channel-condition/actions/runs/39711191556)
+passes all four jobs for commit `00928a3`; hosted CI does not install the native
+Sionna RT stack, so those new native regressions are verified locally. The
+design-level gates above remain open despite these software checks.

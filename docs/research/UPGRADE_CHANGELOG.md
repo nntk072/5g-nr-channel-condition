@@ -80,6 +80,7 @@
   it against the same-path full CFR within tolerance for pinned single-
   precision path coefficients.
 - All 21 focused adapter/mock/native integration tests pass locally, as do
-  Ruff lint/format and mypy. Hosted CI for these follow-up regressions is
-  pending; canonical
-  dataset regeneration remains gated on the remaining physics checks.
+  Ruff lint/format and mypy. Hosted CI run 39711191556 passes all four software
+  jobs for commit 00928a3; the hosted matrix does not install Sionna RT, so the
+  native cases remain locally verified. Canonical dataset regeneration remains
+  gated on the remaining physics checks.
