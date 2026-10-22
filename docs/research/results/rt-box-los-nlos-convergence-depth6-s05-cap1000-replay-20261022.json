@@ -1,0 +1,458 @@
+{
+  "comparisons": [
+    {
+      "cfr_sha256_equal": true,
+      "link_id": "same-side-los",
+      "max_depth": 0,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 0.0,
+      "samples_per_src": 100000,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "same-side-los",
+      "max_depth": 1,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 1.2037992396411933e-07,
+      "samples_per_src": 100000,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "same-side-los",
+      "max_depth": 2,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 8.538294361747742e-08,
+      "samples_per_src": 100000,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "same-side-los",
+      "max_depth": 3,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 1.398188120718834e-07,
+      "samples_per_src": 100000,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "same-side-los",
+      "max_depth": 4,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 8.861674514603986e-08,
+      "samples_per_src": 100000,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "same-side-los",
+      "max_depth": 5,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 1.2623969936571872e-07,
+      "samples_per_src": 100000,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "same-side-los",
+      "max_depth": 6,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 9.4445052204202e-08,
+      "samples_per_src": 100000,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": true,
+      "link_id": "same-side-los",
+      "max_depth": 0,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 0.0,
+      "samples_per_src": 100000,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "same-side-los",
+      "max_depth": 1,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 1.3988907496652046e-07,
+      "samples_per_src": 100000,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "same-side-los",
+      "max_depth": 2,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 8.152214988908861e-08,
+      "samples_per_src": 100000,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "same-side-los",
+      "max_depth": 3,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 7.788829297027462e-08,
+      "samples_per_src": 100000,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "same-side-los",
+      "max_depth": 4,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 8.254924119841843e-08,
+      "samples_per_src": 100000,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "same-side-los",
+      "max_depth": 5,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 9.665465015939797e-08,
+      "samples_per_src": 100000,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": true,
+      "link_id": "same-side-los",
+      "max_depth": 6,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 0.0,
+      "samples_per_src": 100000,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": true,
+      "link_id": "same-side-los",
+      "max_depth": 0,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 0.0,
+      "samples_per_src": 100000,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "same-side-los",
+      "max_depth": 1,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 7.931329984048333e-08,
+      "samples_per_src": 100000,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "same-side-los",
+      "max_depth": 2,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 1.3559201271167685e-07,
+      "samples_per_src": 100000,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "same-side-los",
+      "max_depth": 3,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 9.285130728672197e-08,
+      "samples_per_src": 100000,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "same-side-los",
+      "max_depth": 4,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 1.1074225970904918e-07,
+      "samples_per_src": 100000,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "same-side-los",
+      "max_depth": 5,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 1.2202789879007246e-07,
+      "samples_per_src": 100000,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "same-side-los",
+      "max_depth": 6,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 9.755511273372406e-08,
+      "samples_per_src": 100000,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": true,
+      "link_id": "through-screen-nlos",
+      "max_depth": 0,
+      "reference_cfr_zero_energy": true,
+      "relative_cfr_l2_error": 0.0,
+      "samples_per_src": 100000,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": true,
+      "link_id": "through-screen-nlos",
+      "max_depth": 1,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 0.0,
+      "samples_per_src": 100000,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "through-screen-nlos",
+      "max_depth": 2,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 1.1414995678481483e-07,
+      "samples_per_src": 100000,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "through-screen-nlos",
+      "max_depth": 3,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 1.3715804147079582e-07,
+      "samples_per_src": 100000,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "through-screen-nlos",
+      "max_depth": 4,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 2.4851382874104404e-07,
+      "samples_per_src": 100000,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "through-screen-nlos",
+      "max_depth": 5,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 3.0816414718215696e-07,
+      "samples_per_src": 100000,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "through-screen-nlos",
+      "max_depth": 6,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 1.5436577528948767e-07,
+      "samples_per_src": 100000,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": true,
+      "link_id": "through-screen-nlos",
+      "max_depth": 0,
+      "reference_cfr_zero_energy": true,
+      "relative_cfr_l2_error": 0.0,
+      "samples_per_src": 100000,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": true,
+      "link_id": "through-screen-nlos",
+      "max_depth": 1,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 0.0,
+      "samples_per_src": 100000,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": true,
+      "link_id": "through-screen-nlos",
+      "max_depth": 2,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 0.0,
+      "samples_per_src": 100000,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": true,
+      "link_id": "through-screen-nlos",
+      "max_depth": 3,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 0.0,
+      "samples_per_src": 100000,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "through-screen-nlos",
+      "max_depth": 4,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 2.366242819637865e-07,
+      "samples_per_src": 100000,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "through-screen-nlos",
+      "max_depth": 5,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 2.59452577882414e-07,
+      "samples_per_src": 100000,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "through-screen-nlos",
+      "max_depth": 6,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 2.585247176406229e-07,
+      "samples_per_src": 100000,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": true,
+      "link_id": "through-screen-nlos",
+      "max_depth": 0,
+      "reference_cfr_zero_energy": true,
+      "relative_cfr_l2_error": 0.0,
+      "samples_per_src": 100000,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": true,
+      "link_id": "through-screen-nlos",
+      "max_depth": 1,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 0.0,
+      "samples_per_src": 100000,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": true,
+      "link_id": "through-screen-nlos",
+      "max_depth": 2,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 0.0,
+      "samples_per_src": 100000,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "through-screen-nlos",
+      "max_depth": 3,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 2.3053148276426149e-07,
+      "samples_per_src": 100000,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "through-screen-nlos",
+      "max_depth": 4,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 2.843246660542005e-07,
+      "samples_per_src": 100000,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "through-screen-nlos",
+      "max_depth": 5,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 3.834493015549027e-07,
+      "samples_per_src": 100000,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "through-screen-nlos",
+      "max_depth": 6,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 4.257514919312152e-07,
+      "samples_per_src": 100000,
+      "seed": 47,
+      "valid_path_count_equal": true
+    }
+  ],
+  "configuration": {
+    "cfr_subcarriers": 256,
+    "cfr_vectors_included": true,
+    "max_num_paths_per_src": 1000,
+    "mitsuba_variant": "llvm_ad_mono_polarized",
+    "scene": "box_one_screen",
+    "scene_tree_sha256": "04c273c697fcd569106d03e93db875d7f14ed0e13f8d6a35b260e2fb3aa9a5e6"
+  },
+  "failed_cases": [],
+  "limitations": [
+    "A passing tolerance applies only to the exact scene, solver settings, backend, and replayed cases in these reports.",
+    "Numerical agreement within tolerance is not bitwise identity and does not establish physical-model accuracy."
+  ],
+  "reference": {
+    "path": "docs/research/results/rt-box-los-nlos-convergence-depth6-s05-cap1000-cfr-20261022.json",
+    "sha256": "52bc5b261ceacee5774753e906f63eab25a0ece1c8d7739a3a00a8ea653833bf"
+  },
+  "replay": {
+    "path": "docs/research/results/rt-box-los-nlos-convergence-depth6-s05-cap1000-cfr-repeat-20261022.json",
+    "sha256": "b50723082e2ac4957c66212f9c86f2a2558ff0efb3e4a8bd45883b4b8f53730a"
+  },
+  "schema": "loslab.rt_solver_replay_audit.v1",
+  "summary": {
+    "case_count": 42,
+    "exact_cfr_hash_matches": 13,
+    "max_relative_cfr_l2_error": 4.257514919312152e-07,
+    "median_relative_cfr_l2_error": 9.554985118179999e-08,
+    "passed": true,
+    "path_count_matches": 42
+  },
+  "tolerance": {
+    "max_relative_cfr_l2_error": 1e-06,
+    "path_counts_must_match": true
+  }
+}
