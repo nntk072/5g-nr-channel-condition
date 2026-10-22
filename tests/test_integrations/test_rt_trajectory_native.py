@@ -174,12 +174,12 @@ def test_moving_scene_object_is_retraced_and_recorded_per_frame(tmp_path):
         receiver_start_m=(2.0, 0.0, 2.5),
         receiver_velocity_mps=(0.0, 0.0, 0.0),
         num_steps=2,
-        sample_interval_s=0.1,
+        sample_interval_s=1.0,
         max_depth=2,
         samples_per_src=200,
         seed=20261021,
         device="cpu",
-        moving_scene_objects=(RTSceneObjectMotion("screen", (0.0, 100.0, 0.0)),),
+        moving_scene_objects=(RTSceneObjectMotion("screen", (0.0, 10.0, 0.0)),),
     )
 
     stored = generate_rt_nr_trajectory(config, tmp_path)
@@ -188,7 +188,7 @@ def test_moving_scene_object_is_retraced_and_recorded_per_frame(tmp_path):
     poses = [record.provenance["moving_scene_objects"]["screen"] for record in trajectory.records]
     assert poses[0]["position_m"] == [0.0, 0.0, 2.5]
     assert poses[1]["position_m"] == [0.0, 10.0, 2.5]
-    assert all(pose["velocity_mps"] == [0.0, 100.0, 0.0] for pose in poses)
+    assert all(pose["velocity_mps"] == [0.0, 10.0, 0.0] for pose in poses)
     assert [record.provenance["geometric_los_oracle"] for record in trajectory.records] == [
         False,
         True,
@@ -199,6 +199,11 @@ def test_moving_scene_object_is_retraced_and_recorded_per_frame(tmp_path):
         "blocked",
         "visible",
     ]
+    assert [record.provenance["direct_path_count"] for record in trajectory.records] == [0, 1]
+    assert all(record.provenance["full_path_count"] > 0 for record in trajectory.records)
+    first_cfr = trajectory.records[0].targets["channel_cfr"]
+    second_cfr = trajectory.records[1].targets["channel_cfr"]
+    assert not np.allclose(first_cfr, second_cfr, rtol=1e-4, atol=1e-7)
 
 
 @pytest.mark.native_sionna
