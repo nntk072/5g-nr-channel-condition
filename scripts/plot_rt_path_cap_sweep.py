@@ -21,6 +21,7 @@ METRICS = (
     ("valid_diffuse_reflection_path_count", "Diffuse paths", "linear"),
     ("valid_path_power_sum", "Path coefficient power sum", "log"),
     ("power_weighted_rms_delay_spread_ns", "Power-weighted RMS delay spread (ns)", "linear"),
+    ("candidate_path_cap_filled_fraction", "Fraction of seeds at candidate cap", "linear"),
     ("relative_cfr_l2_error_to_max_path_cap", "Complex CFR relative L2 error vs max cap", "linear"),
 )
 
@@ -157,35 +158,43 @@ def summarize_cap_reports(
                 for row in summary_rows
                 if row["max_num_paths_per_src"] == cap and row["link_id"] == link_id
             ]
+            cap_filled_fraction = (
+                float(np.mean([bool(row["candidate_path_cap_filled"]) for row in rows]))
+                if rows and all("candidate_path_cap_filled" in row for row in rows)
+                else None
+            )
+            metrics = {
+                metric: {
+                    "median": float(np.median(values)) if values else None,
+                    "min": min(values) if values else None,
+                    "max": max(values) if values else None,
+                }
+                for metric in (
+                    *(
+                        metric
+                        for metric, _, _ in METRICS
+                        if metric != "candidate_path_cap_filled_fraction"
+                    ),
+                    "power_weighted_arrival_angular_spread_deg",
+                    "relative_cfr_l2_error_to_max_path_cap",
+                )
+                if (values := [float(row[metric]) for row in rows if row.get(metric) is not None])
+                or metric == "relative_cfr_l2_error_to_max_path_cap"
+            }
+            if cap_filled_fraction is not None:
+                metrics["candidate_path_cap_filled_fraction"] = {
+                    "median": cap_filled_fraction,
+                    "min": cap_filled_fraction,
+                    "max": cap_filled_fraction,
+                }
             cap_summaries.append(
                 {
                     "max_num_paths_per_src": cap,
                     "link_id": link_id,
                     "geometric_visibility_state": link["geometric_visibility_state"],
                     "seed_count": len(rows),
-                    "candidate_path_cap_filled_fraction": (
-                        float(np.mean([bool(row["candidate_path_cap_filled"]) for row in rows]))
-                        if rows and all("candidate_path_cap_filled" in row for row in rows)
-                        else None
-                    ),
-                    "metrics": {
-                        metric: {
-                            "median": float(np.median(values)) if values else None,
-                            "min": min(values) if values else None,
-                            "max": max(values) if values else None,
-                        }
-                        for metric in (
-                            *(metric for metric, _, _ in METRICS),
-                            "power_weighted_arrival_angular_spread_deg",
-                            "relative_cfr_l2_error_to_max_path_cap",
-                        )
-                        if (
-                            values := [
-                                float(row[metric]) for row in rows if row.get(metric) is not None
-                            ]
-                        )
-                        or metric == "relative_cfr_l2_error_to_max_path_cap"
-                    },
+                    "candidate_path_cap_filled_fraction": cap_filled_fraction,
+                    "metrics": metrics,
                 }
             )
 
@@ -232,7 +241,7 @@ def plot_cap_sweep(summary: dict[str, Any], output_prefix: Path) -> dict[str, An
     metrics_to_plot = [
         item for item in METRICS if all(item[0] in row["metrics"] for row in summary["summaries"])
     ]
-    fig, axes = plt.subplots(2, 4, figsize=(20, 9), constrained_layout=True)
+    fig, axes = plt.subplots(3, 3, figsize=(17, 13))
     for axis, (metric, label, scale) in zip(
         list(axes.flat)[: len(metrics_to_plot)], metrics_to_plot, strict=True
     ):
@@ -259,14 +268,15 @@ def plot_cap_sweep(summary: dict[str, Any], output_prefix: Path) -> dict[str, An
                 color=colors[link_id],
                 label=link_id,
             )
-        if metric == "candidate_path_count_before_path_validation":
-            axis.plot(caps, caps, linestyle="--", color="#555555", label="configured cap")
         axis.set_xscale("log")
         axis.set_xticks(caps, labels=[f"{cap:,}" for cap in caps])
         if scale == "log":
             axis.set_yscale("log")
         axis.set_xlabel("Maximum paths per source")
         axis.set_ylabel(label)
+        if metric == "candidate_path_cap_filled_fraction":
+            axis.set_ylim(-0.05, 1.05)
+            axis.set_yticks((0.0, 0.5, 1.0))
         axis.grid(True, which="both", alpha=0.25)
         if axis.has_data():
             axis.legend()
@@ -291,18 +301,21 @@ def plot_cap_sweep(summary: dict[str, Any], output_prefix: Path) -> dict[str, An
         0.04,
         0.96,
         "Experiment notes\n\n"
-        f"Scene: {scene_label}\n"
-        f"Depth: {summary['configuration']['max_depth']} | "
-        f"Samples/source: {summary['configuration']['samples_per_src']:,}\n"
-        f"Seeds: {', '.join(str(seed) for seed in summary['configuration']['seeds'])}\n"
-        f"Material scattering: {override_text or 'scene defaults'}\n\n"
-        f"Points are seed medians; bars show the seed range. {cfr_explanation}",
+        f"{scene_label}; depth {summary['configuration']['max_depth']}; "
+        f"{summary['configuration']['samples_per_src']:,} samples/source\n"
+        f"Seeds: {', '.join(str(seed) for seed in summary['configuration']['seeds'])}; "
+        f"scattering: {override_text or 'scene defaults'}\n\n"
+        "Markers show medians and bars show seed ranges. Cap-fill fraction is the share of seeds "
+        "that reached the stored candidate budget.\n\n"
+        f"{cfr_explanation}",
         transform=context_axis.transAxes,
         va="top",
         fontsize=9,
         color="#40484d",
         wrap=True,
     )
+    axes.flat[-1].set_axis_off()
+    fig.subplots_adjust(left=0.07, right=0.98, bottom=0.08, top=0.92, wspace=0.38, hspace=0.38)
     output_prefix.parent.mkdir(parents=True, exist_ok=True)
     png_path = output_prefix.with_suffix(".png")
     svg_path = output_prefix.with_suffix(".svg")
