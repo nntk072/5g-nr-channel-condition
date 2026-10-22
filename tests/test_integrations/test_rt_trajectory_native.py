@@ -207,6 +207,81 @@ def test_moving_scene_object_is_retraced_and_recorded_per_frame(tmp_path):
 
 
 @pytest.mark.native_sionna
+def test_moving_scene_object_doppler_matches_geometric_delay_derivative(tmp_path):
+    config = RTTrajectoryConfig(
+        trajectory_id="native-moving-screen-doppler-route",
+        scene="box_one_screen",
+        transmitter_position_m=(-2.0, -2.0, 2.5),
+        receiver_start_m=(-2.0, 2.0, 2.5),
+        receiver_velocity_mps=(0.0, 0.0, 0.0),
+        num_steps=3,
+        sample_interval_s=0.1,
+        max_depth=2,
+        samples_per_src=200,
+        seed=20261021,
+        device="cpu",
+        moving_scene_objects=(RTSceneObjectMotion("screen", (1.0, 0.0, 0.0)),),
+    )
+    stored = generate_rt_nr_trajectory(config, tmp_path, umcd_store_root=tmp_path / "umcd")
+    generation_path = (tmp_path / stored.manifest_relative_path).with_name(
+        f"{stored.content_sha256}.generation.json"
+    )
+    import json
+
+    generation = json.loads(generation_path.read_text(encoding="utf-8"))
+    bundle = read_episode_bundle(
+        tmp_path / "umcd", StoredEpisodeBundle(**generation["umcd_bundle"])
+    )
+    table = bundle.path_oracle
+    assert table.doppler_hz is not None
+    assert table.interaction_offsets is not None
+    assert table.interaction_vertices_m is not None
+
+    transmitter = np.asarray(config.transmitter_position_m)
+    receiver = np.asarray(config.receiver_start_m)
+    object_velocity = np.asarray(config.moving_scene_objects[0].velocity_mps)
+    path_indices: list[int] = []
+    for frame_index in range(config.num_steps):
+        group_index = int(np.flatnonzero(table.frame_indices == frame_index)[0])
+        group = table.group_slice(group_index)
+        expected_object_position = np.asarray((0.0, 0.0, 2.5)) + object_velocity * (
+            frame_index * config.sample_interval_s
+        )
+        candidates = []
+        for path_index in range(group.start, group.stop):
+            if table.interaction_order[path_index] != 1:
+                continue
+            interaction_index = int(table.interaction_offsets[path_index])
+            point = table.interaction_vertices_m[interaction_index]
+            if np.linalg.norm(point - expected_object_position) < 0.02:
+                candidates.append(path_index)
+        assert len(candidates) == 1, f"expected one screen reflection, found {candidates}"
+        path_index = candidates[0]
+        path_indices.append(path_index)
+
+        interaction_index = int(table.interaction_offsets[path_index])
+        point = table.interaction_vertices_m[interaction_index]
+        incoming = point - transmitter
+        incoming /= np.linalg.norm(incoming)
+        outgoing = receiver - point
+        outgoing /= np.linalg.norm(outgoing)
+        expected_doppler_hz = float(
+            np.dot(outgoing - incoming, object_velocity) * config.carrier_hz / speed_of_light
+        )
+        np.testing.assert_allclose(
+            table.doppler_hz[path_index], expected_doppler_hz, rtol=2e-2, atol=0.1
+        )
+
+    delays = table.delay_s[path_indices]
+    finite_difference_doppler_hz = -config.carrier_hz * float(
+        (delays[2] - delays[0]) / (2.0 * config.sample_interval_s)
+    )
+    np.testing.assert_allclose(
+        table.doppler_hz[path_indices[1]], finite_difference_doppler_hz, rtol=2e-2, atol=0.1
+    )
+
+
+@pytest.mark.native_sionna
 def test_reflected_path_doppler_matches_finite_difference_of_geometric_delay(tmp_path):
     config = RTTrajectoryConfig(
         trajectory_id="native-reflected-doppler-route",

@@ -706,7 +706,7 @@ def generate_rt_nr_trajectory(
         "limitations": [
             "Each timestamp is a separately retraced quasi-static RT snapshot.",
             "Configured scene-object translations are retraced at each timestamp; rotations and deformation are unsupported.",
-            "Doppler is not a validated temporal target; path births/deaths are represented only by retraced snapshots.",
+            "Moving-object Doppler is validated only for one reflective-screen scene; other moving interactions and path births/deaths are not qualified.",
             "The synthetic scene materials and ray solver are not field calibrated.",
             "Outage snapshots are rejected pending a declared zero-power receiver policy.",
         ],
