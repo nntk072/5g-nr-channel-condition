@@ -1,12 +1,6 @@
 # MVP implementation status
 
-**Status: simulation-only software MVP complete.** The latest implementation
-commit is `a73a341`; hosted CI run
-[39694168089](https://github.com/nntk072/5g-nr-channel-condition/actions/runs/39694168089)
-passed all four jobs. The local full suite passes (423 passed, 16 skipped, 80.29%
-coverage), Ruff and formatting pass across the maintained tree, mypy passes on
-135 source files, and lock/build checks pass. This is an MVP implementation
-and evaluation workflow, not a validated channel-condition benchmark.
+**Status: simulation-only software MVP complete; broader research plan remains open.** The latest implementation commit is 3319700; hosted CI run [39697604971](https://github.com/nntk072/5g-nr-channel-condition/actions/runs/39697604971) passed all jobs. The latest complete local suite passed (425 passed, 16 skipped, 80.41% coverage); Ruff check/format, mypy (137 configured source files), lock check, and package build passed. These are software gates, not validation of a general channel-condition benchmark.
 
 The different model targets and channel-family roles are summarized in
 [`OUTPUT_TASKS_AND_CHANNELS.md`](OUTPUT_TASKS_AND_CHANNELS.md) to keep
@@ -41,7 +35,7 @@ results honestly.
 
 | Requirement | State | Evidence and limitation |
 |---|---|---|
-| Package, CLI, dependency lock, lint, typing, and tests | Complete locally and hosted CI | Pinned GPU-enabled suite: 423 passed, 16 skipped, 80.29% coverage. Ruff check/format pass across maintained source, test, and script directories; mypy passes on 135 source files; `uv lock --check` and `uv build` pass. Hosted CI [39694168089](https://github.com/nntk072/5g-nr-channel-condition/actions/runs/39694168089) passed all four jobs. |
+| Package, CLI, dependency lock, lint, typing, and tests | Complete locally and hosted CI | Pinned GPU-enabled suite: 425 passed, 16 skipped, 80.41% coverage. Ruff check/format pass across maintained source, test, and script directories; mypy passes on 137 configured source files; uv lock --check and uv build pass. Hosted CI [39697604971](https://github.com/nntk072/5g-nr-channel-condition/actions/runs/39697604971) passed all jobs. |
 | Environment-aware RT backend | Implemented and locally verified | Mitsuba 3.9.1 / Dr.Jit 1.5.0 LLVM variant traces natively in this WSL Linux environment. Automatic selection rejects this host's failed CUDA/OptiX probe and falls back to LLVM. No separate LLVM-project download is needed here; OptiX remains an optional runtime path for a later supported host. |
 | Geometric RT data and provenance | MVP data path exercised across six scene families | Six balanced datasets (40 links each) carry geometric direct-path labels and scene/runtime provenance. Scene asset identities are recorded, but geometry/material realism is not independently qualified. |
 | PUSCH/DMRS observation adapter | Implemented and exercised across all six scenes | `loslab nr-observe` produced 240 observations of shape `[240, 1, 72]`, preserving group IDs and canonical label semantics. Configuration: 12 dB, seed 20261022, ideal synchronization. The adapter records its link-path-loss normalization assumption. |
@@ -49,7 +43,7 @@ results honestly.
 | Classical multipath and learning baselines | Implemented | Grouped classifiers and the unknown-order sparse CFR estimator are available. The multipath-order stress report is analytical/synthetic and is not geometric RT evidence. |
 | Locked independent-scene MVP evaluation | Completed at implementation-smoke scale | All six scene families were held out once with seven seeds and matched inputs; fold/split auditing and per-scene metrics are in [`mvp-six-scene-dmrs-losso-seed20261022.json`](results/mvp-six-scene-dmrs-losso-seed20261022.json). Scene-macro AUROCs were 0.560 (logistic), 0.554 (RF), and 0.782 (raw MLP). Six selected scenes and 40 links/scene remain too small for benchmark claims; held-out fold sizes range from 4 to 20 spatial groups. The earlier three-seed Etoile-only report remains available for exact fixed-fold replay. |
 | Linux reproduction and release instructions | Complete for the MVP scope | The six-scene generation script, `nr-observe`, and `experiment` commands form the reproduction route. Hosted Linux CI passed from clean checkouts; native Sionna RT was exercised locally on LLVM. |
-| Measured-data extension beyond MVP | CAEZ indoor CSI audited and one bounded forecast pilot completed | The user accepted the CAEZ license. The local preprocessed file passes CRC/SHA/schema checks and is kept Git-ignored. A one-second full-tensor magnitude forecast favors persistence over linear trend. A separate Ridge regressor improves a compact per-antenna mean-magnitude dB target over persistence on the same final chronological block. A zero-shot indoor-to-outdoor/hallway evaluator is implemented, but its external archives are downloaded and pending audit/evaluation; CAEZ provides no LOS/NLOS labels. See `docs/research/results/caez-indoor-audit.json` and `caez-indoor-magnitude-forecast.json`. |
+| Measured-data extension beyond MVP | Three-campaign CAEZ exploratory magnitude-forecast pilot completed | The user accepted the license. Indoor/outdoor/hallway archives pass CRC/schema/timestamp-order checks and remain Git-ignored. Source-trained Ridge beats persistence on the compact one-second mean-magnitude target indoors and outdoors, but loses substantially in hallway; the separate full-tensor indoor baseline favors persistence over trend. One tail per campaign, campaign/device confounding, unresolved published-vs-file sample-count discrepancies, and no LOS/NLOS truth prevent broad transfer claims. See docs/research/results/caez-cross-environment-summary-forecast.json and MEASURED_DATA_CANDIDATES.md. |
 
 ## MVP exit checklist
 

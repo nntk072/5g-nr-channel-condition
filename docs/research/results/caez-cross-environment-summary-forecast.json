@@ -1,0 +1,441 @@
+{
+  "horizon_s": 1.0,
+  "inputs": "target-domain current summary and summary nearest lookback_s in the past",
+  "interpretation_limits": [
+    "Zero-shot means no target labels or target-domain fitting; observed target-domain CSI at the forecast anchor is an allowed input shared with persistence and trend.",
+    "The compact target averages away subcarrier-selective detail and phase.",
+    "CAEZ positions do not provide geometric LOS/NLOS labels; this is not LOS/NLOS validation.",
+    "Environment, UE, trajectory, and measurement-session changes are confounded in this cross-dataset comparison.",
+    "Each target is one measurement campaign with a chronological tail holdout, not multiple independent sites or trajectories.",
+    "The paired 10-second time-block bootstrap describes uncertainty within each held-out campaign; it is not across-site or across-trajectory uncertainty."
+  ],
+  "license": "CAEZ Dataset License v1.0; attribution required; raw data and subsets must not be redistributed.",
+  "lookback_s": 0.5,
+  "model": "StandardScaler fit on source training block + Ridge(alpha=1.0)",
+  "provenance": {
+    "git_revision": "3319700aa369ab9536f7f27bbcafe7ea2274d2be",
+    "numpy": "2.5.4",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "scikit_learn": "1.9.1",
+    "source_sha256": {
+      "evaluation/caez_forecast.py": "39a7789988be2a48168705b077d3a304eb47c92c4b166c7313677a70b720a22c",
+      "scripts/evaluate_caez_cross_environment.py": "ad52d9ae1eb91d3186931aecb58f270a96828c0c92e0c1b7ca7d47f45348aaab"
+    }
+  },
+  "required_citation": "R. Wiesmayr, F. Zumegen, S. Taner, C. Dick, and C. Studer, CSI-Based User Positioning, Channel Charting, and Device Classification with an NVIDIA 5G Testbed, Asilomar Conference, 2025.",
+  "schema": "caez-cross-environment-magnitude-summary.v1",
+  "target": "per-O-RU, per-Rx-antenna subcarrier-mean absolute CSI magnitude in dB",
+  "target_domains": [
+    {
+      "archive_bytes": 5957915148,
+      "archive_sha256": "706e710cc30a96bbe4386e705d9361497e9c2e5df13c00fba77d9318e915c2cc",
+      "channel_feature_shape": [
+        4,
+        4,
+        273
+      ],
+      "environment_id": "caez_5g_indoor_full",
+      "first_test_anchor": 1759589003.862,
+      "integrity": "passed",
+      "last_test_target": 1759590289.832,
+      "sample_count": 338980,
+      "scores": {
+        "linear_trend": {
+          "macro_nrmse_by_target_std": 2.576970370308748,
+          "per_oru": [
+            {
+              "features": 270868,
+              "mae_db": 7.712162017822266,
+              "nrmse_by_target_std": 2.545312812656079,
+              "rmse_db": 10.901026966426981
+            },
+            {
+              "features": 270868,
+              "mae_db": 7.812744617462158,
+              "nrmse_by_target_std": 2.2463957517696014,
+              "rmse_db": 11.0590437705128
+            },
+            {
+              "features": 270868,
+              "mae_db": 7.924003601074219,
+              "nrmse_by_target_std": 2.4040423898870693,
+              "rmse_db": 11.210578578915012
+            },
+            {
+              "features": 270868,
+              "mae_db": 7.545202732086182,
+              "nrmse_by_target_std": 3.112130526922242,
+              "rmse_db": 10.833409186898479
+            }
+          ]
+        },
+        "persistence": {
+          "macro_nrmse_by_target_std": 1.0470538930583935,
+          "per_oru": [
+            {
+              "features": 270868,
+              "mae_db": 3.2115132808685303,
+              "nrmse_by_target_std": 1.0354113699978265,
+              "rmse_db": 4.434444053229425
+            },
+            {
+              "features": 270868,
+              "mae_db": 3.321167469024658,
+              "nrmse_by_target_std": 0.9256845600695586,
+              "rmse_db": 4.55716053568601
+            },
+            {
+              "features": 270868,
+              "mae_db": 3.3425092697143555,
+              "nrmse_by_target_std": 0.9854500710759018,
+              "rmse_db": 4.595370490914155
+            },
+            {
+              "features": 270868,
+              "mae_db": 3.100957155227661,
+              "nrmse_by_target_std": 1.2416695710902867,
+              "rmse_db": 4.322284821339018
+            }
+          ]
+        },
+        "ridge_source_trained": {
+          "macro_nrmse_by_target_std": 0.8072790855670082,
+          "per_oru": [
+            {
+              "features": 270868,
+              "mae_db": 2.6451851418736787,
+              "nrmse_by_target_std": 0.8023082626465774,
+              "rmse_db": 3.436113613623361
+            },
+            {
+              "features": 270868,
+              "mae_db": 2.7563932889804375,
+              "nrmse_by_target_std": 0.7262214694295523,
+              "rmse_db": 3.5752004121183294
+            },
+            {
+              "features": 270868,
+              "mae_db": 2.746649447380158,
+              "nrmse_by_target_std": 0.7677709406511032,
+              "rmse_db": 3.5802848140215238
+            },
+            {
+              "features": 270868,
+              "mae_db": 2.4877339672151724,
+              "nrmse_by_target_std": 0.9328156695408001,
+              "rmse_db": 3.2471561705607894
+            }
+          ]
+        }
+      },
+      "test_pairs": 67717,
+      "uncertainty": {
+        "block_count": 135,
+        "block_duration_seconds_nominal": 10.0,
+        "block_rows": 500,
+        "contrasts": {
+          "ridge_source_trained_minus_linear_trend": {
+            "bootstrap_95_percentile_interval": [
+              -1.8599463838533816,
+              -1.684274228817058
+            ],
+            "bootstrap_mean_difference": -1.7682142170680961,
+            "point_difference": -1.765752997463863
+          },
+          "ridge_source_trained_minus_persistence": {
+            "bootstrap_95_percentile_interval": [
+              -0.2578130787598503,
+              -0.22208976780036424
+            ],
+            "bootstrap_mean_difference": -0.239460277105613,
+            "point_difference": -0.2390656535163912
+          }
+        },
+        "dropped_incomplete_block_rows": 242,
+        "method": "paired moving time-block bootstrap of macro RMSE / held-out target standard deviation",
+        "n_bootstrap": 1000,
+        "seed": 20261022
+      }
+    },
+    {
+      "archive_bytes": 5328553768,
+      "archive_sha256": "04c4256a323709bc45aba34890fa91839dc491023140f8a3a6afb1c53e23829e",
+      "channel_feature_shape": [
+        4,
+        4,
+        273
+      ],
+      "environment_id": "caez_5g_outdoor_full",
+      "first_test_anchor": 1760217664.682,
+      "integrity": "passed",
+      "last_test_target": 1760218853.462,
+      "sample_count": 303172,
+      "scores": {
+        "linear_trend": {
+          "macro_nrmse_by_target_std": 2.034809158314324,
+          "per_oru": [
+            {
+              "features": 242216,
+              "mae_db": 7.247890472412109,
+              "nrmse_by_target_std": 1.6622170260749036,
+              "rmse_db": 9.388516167846594
+            },
+            {
+              "features": 242216,
+              "mae_db": 7.302031993865967,
+              "nrmse_by_target_std": 1.6424028429519548,
+              "rmse_db": 9.579789090821619
+            },
+            {
+              "features": 242216,
+              "mae_db": 6.733377933502197,
+              "nrmse_by_target_std": 1.6277969098687515,
+              "rmse_db": 8.570882872282453
+            },
+            {
+              "features": 242216,
+              "mae_db": 5.795839309692383,
+              "nrmse_by_target_std": 3.206819854361687,
+              "rmse_db": 7.416821531464223
+            }
+          ]
+        },
+        "persistence": {
+          "macro_nrmse_by_target_std": 0.9153256280355493,
+          "per_oru": [
+            {
+              "features": 242216,
+              "mae_db": 3.331183433532715,
+              "nrmse_by_target_std": 0.7591613336428564,
+              "rmse_db": 4.287886806057034
+            },
+            {
+              "features": 242216,
+              "mae_db": 3.5878095626831055,
+              "nrmse_by_target_std": 0.8166572277706607,
+              "rmse_db": 4.763389222754078
+            },
+            {
+              "features": 242216,
+              "mae_db": 3.3021838665008545,
+              "nrmse_by_target_std": 0.79819593611901,
+              "rmse_db": 4.202762541280096
+            },
+            {
+              "features": 242216,
+              "mae_db": 2.3391730785369873,
+              "nrmse_by_target_std": 1.2872880146096704,
+              "rmse_db": 2.977275275056967
+            }
+          ]
+        },
+        "ridge_source_trained": {
+          "macro_nrmse_by_target_std": 0.7996364631611492,
+          "per_oru": [
+            {
+              "features": 242216,
+              "mae_db": 3.1723456377384216,
+              "nrmse_by_target_std": 0.7038054766500915,
+              "rmse_db": 3.9752264553272627
+            },
+            {
+              "features": 242216,
+              "mae_db": 3.4027475804418903,
+              "nrmse_by_target_std": 0.7499157076727077,
+              "rmse_db": 4.374100024380518
+            },
+            {
+              "features": 242216,
+              "mae_db": 3.0461447090040923,
+              "nrmse_by_target_std": 0.7289301545832425,
+              "rmse_db": 3.838055557871438
+            },
+            {
+              "features": 242216,
+              "mae_db": 1.8960547093181848,
+              "nrmse_by_target_std": 1.0158945137385553,
+              "rmse_db": 2.3495888903595015
+            }
+          ]
+        }
+      },
+      "test_pairs": 60554,
+      "uncertainty": {
+        "block_count": 120,
+        "block_duration_seconds_nominal": 10.0,
+        "block_rows": 500,
+        "contrasts": {
+          "ridge_source_trained_minus_linear_trend": {
+            "bootstrap_95_percentile_interval": [
+              -1.2996528225394175,
+              -1.1723474560984941
+            ],
+            "bootstrap_mean_difference": -1.2380399821503234,
+            "point_difference": -1.235874641617234
+          },
+          "ridge_source_trained_minus_persistence": {
+            "bootstrap_95_percentile_interval": [
+              -0.13100865843908951,
+              -0.10188325964807961
+            ],
+            "bootstrap_mean_difference": -0.11662791246151284,
+            "point_difference": -0.1165454150716152
+          }
+        },
+        "dropped_incomplete_block_rows": 558,
+        "method": "paired moving time-block bootstrap of macro RMSE / held-out target standard deviation",
+        "n_bootstrap": 1000,
+        "seed": 20261022
+      }
+    },
+    {
+      "archive_bytes": 5097883916,
+      "archive_sha256": "5f8b0f572954395f243ffda849eecc2ccd5a77fbc90439ba7bd923e22b009d22",
+      "channel_feature_shape": [
+        4,
+        4,
+        273
+      ],
+      "environment_id": "caez_5g_hallway_full",
+      "first_test_anchor": 1765650454.912,
+      "integrity": "passed",
+      "last_test_target": 1765651652.302,
+      "sample_count": 290180,
+      "scores": {
+        "linear_trend": {
+          "macro_nrmse_by_target_std": 0.5679956835572061,
+          "per_oru": [
+            {
+              "features": 221240,
+              "mae_db": 4.091604232788086,
+              "nrmse_by_target_std": 0.6410969194933585,
+              "rmse_db": 5.958825696956461
+            },
+            {
+              "features": 221240,
+              "mae_db": 4.340366363525391,
+              "nrmse_by_target_std": 0.31956222823609687,
+              "rmse_db": 6.486811764014011
+            },
+            {
+              "features": 221240,
+              "mae_db": 3.922654151916504,
+              "nrmse_by_target_std": 0.6470690715349303,
+              "rmse_db": 5.638381298083112
+            },
+            {
+              "features": 221240,
+              "mae_db": 4.114503383636475,
+              "nrmse_by_target_std": 0.6642545149644387,
+              "rmse_db": 6.028492641023629
+            }
+          ]
+        },
+        "persistence": {
+          "macro_nrmse_by_target_std": 0.27497506380886244,
+          "per_oru": [
+            {
+              "features": 221240,
+              "mae_db": 2.052863836288452,
+              "nrmse_by_target_std": 0.32119645205757025,
+              "rmse_db": 2.9854357650079484
+            },
+            {
+              "features": 221240,
+              "mae_db": 2.1009151935577393,
+              "nrmse_by_target_std": 0.1540288960456572,
+              "rmse_db": 3.1266412816750986
+            },
+            {
+              "features": 221240,
+              "mae_db": 1.9659745693206787,
+              "nrmse_by_target_std": 0.3216892505920733,
+              "rmse_db": 2.803111343322495
+            },
+            {
+              "features": 221240,
+              "mae_db": 1.9134831428527832,
+              "nrmse_by_target_std": 0.30298565654014903,
+              "rmse_db": 2.7497694929266485
+            }
+          ]
+        },
+        "ridge_source_trained": {
+          "macro_nrmse_by_target_std": 0.9448823351370248,
+          "per_oru": [
+            {
+              "features": 221240,
+              "mae_db": 6.98940580699686,
+              "nrmse_by_target_std": 1.1040115979256602,
+              "rmse_db": 10.26149475910177
+            },
+            {
+              "features": 221240,
+              "mae_db": 5.408806959201103,
+              "nrmse_by_target_std": 0.34350196077125905,
+              "rmse_db": 6.972765750170681
+            },
+            {
+              "features": 221240,
+              "mae_db": 8.595195070816018,
+              "nrmse_by_target_std": 1.2544126674888445,
+              "rmse_db": 10.930605766197312
+            },
+            {
+              "features": 221240,
+              "mae_db": 6.707676945222112,
+              "nrmse_by_target_std": 1.0776031143623357,
+              "rmse_db": 9.779869460466173
+            }
+          ]
+        }
+      },
+      "test_pairs": 55310,
+      "uncertainty": {
+        "block_count": 101,
+        "block_duration_seconds_nominal": 10.0,
+        "block_rows": 500,
+        "contrasts": {
+          "ridge_source_trained_minus_linear_trend": {
+            "bootstrap_95_percentile_interval": [
+              0.05159599144878115,
+              0.30665100909984294
+            ],
+            "bootstrap_mean_difference": 0.18851361791455365,
+            "point_difference": 0.1944946060685363
+          },
+          "ridge_source_trained_minus_persistence": {
+            "bootstrap_95_percentile_interval": [
+              0.44519612885589505,
+              0.6179475571308282
+            ],
+            "bootstrap_mean_difference": 0.5345807615935483,
+            "point_difference": 0.5364633545173356
+          }
+        },
+        "dropped_incomplete_block_rows": 4849,
+        "method": "paired moving time-block bootstrap of macro RMSE / held-out target standard deviation",
+        "n_bootstrap": 1000,
+        "seed": 20261022
+      }
+    }
+  ],
+  "test_start_fraction": 0.8,
+  "timestamp_tolerance_s": 0.02,
+  "training_domain": {
+    "archive_bytes": 5957915148,
+    "archive_sha256": "706e710cc30a96bbe4386e705d9361497e9c2e5df13c00fba77d9318e915c2cc",
+    "channel_feature_shape": [
+      4,
+      4,
+      273
+    ],
+    "environment_id": "caez_5g_indoor_full",
+    "integrity": "passed",
+    "sample_count": 338980,
+    "train_pairs": 237235,
+    "train_target_before_sample_fraction": 0.7
+  },
+  "unused_source_temporal_gap_fraction": 0.10000000000000009
+}
