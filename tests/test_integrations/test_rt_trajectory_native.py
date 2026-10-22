@@ -13,6 +13,7 @@ pytest.importorskip("sionna")
 from datasets.episode_store import StoredEpisodeBundle, read_episode_bundle  # noqa: E402
 from datasets.nr_store import read_nr_trajectory  # noqa: E402
 from integrations.sionna.rt_trajectory import (  # noqa: E402
+    RTSceneObjectMotion,
     RTTrajectoryConfig,
     generate_rt_nr_trajectory,
 )
@@ -55,8 +56,13 @@ def test_cpu_rt_path_retraces_and_stores_receiver_only_trajectory(tmp_path, monk
         assert not np.allclose(symbol_channels, symbol_channels[0:1], rtol=0.0, atol=1e-8)
         assert bool(np.asarray(record.target_masks["channel_cfr"]).all())
         assert bool(np.asarray(record.target_masks["geometric_los"]).all())
-        assert record.provenance["target_semantics"]["geometric_los"].startswith("depth-zero")
-        assert record.target_definitions["geometric_los"].source == "sionna_rt_depth_zero_oracle"
+        assert record.provenance["target_semantics"]["geometric_los"].startswith(
+            "independent Mitsuba"
+        )
+        assert (
+            record.target_definitions["geometric_los"].source
+            == "mitsuba_segment_intersection_oracle"
+        )
         assert record.target_definitions["channel_cfr"].units.startswith("complex channel gain")
         assert not hasattr(model_inputs, "targets")
         assert not hasattr(model_inputs, "provenance")
@@ -144,6 +150,42 @@ def test_cpu_rt_path_retraces_and_stores_receiver_only_trajectory(tmp_path, monk
 
     with pytest.raises(ValueError, match="different RT run identity"):
         generate_rt_nr_trajectory(replace(config, snr_db=config.snr_db + 1.0), tmp_path)
+
+
+@pytest.mark.native_sionna
+def test_moving_scene_object_is_retraced_and_recorded_per_frame(tmp_path):
+    config = RTTrajectoryConfig(
+        trajectory_id="native-moving-screen-route",
+        scene="box_one_screen",
+        transmitter_position_m=(-2.0, 0.0, 2.5),
+        receiver_start_m=(2.0, 0.0, 2.5),
+        receiver_velocity_mps=(0.0, 0.0, 0.0),
+        num_steps=2,
+        sample_interval_s=0.1,
+        max_depth=2,
+        samples_per_src=200,
+        seed=20261021,
+        device="cpu",
+        moving_scene_objects=(RTSceneObjectMotion("screen", (0.0, 100.0, 0.0)),),
+    )
+
+    stored = generate_rt_nr_trajectory(config, tmp_path)
+    trajectory = read_nr_trajectory(tmp_path, stored)
+
+    poses = [record.provenance["moving_scene_objects"]["screen"] for record in trajectory.records]
+    assert poses[0]["position_m"] == [0.0, 0.0, 2.5]
+    assert poses[1]["position_m"] == [0.0, 10.0, 2.5]
+    assert all(pose["velocity_mps"] == [0.0, 100.0, 0.0] for pose in poses)
+    assert [record.provenance["geometric_los_oracle"] for record in trajectory.records] == [
+        False,
+        True,
+    ]
+    assert [
+        record.provenance["geometric_los_geometry_oracle_state"] for record in trajectory.records
+    ] == [
+        "blocked",
+        "visible",
+    ]
 
 
 @pytest.mark.native_sionna

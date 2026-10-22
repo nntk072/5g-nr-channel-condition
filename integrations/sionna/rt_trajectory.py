@@ -5,8 +5,10 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass, replace
 from pathlib import Path
+from typing import Any, cast
 
 import numpy as np
 from artifacts.provenance import canonical_hash, package_source_sha256, versions
@@ -97,6 +99,22 @@ def _load_cached_trajectory(
 
 
 @dataclass(frozen=True, slots=True)
+class RTSceneObjectMotion:
+    """Constant-velocity translation for one movable Sionna scene object."""
+
+    object_name: str
+    velocity_mps: tuple[float, float, float]
+
+    def __post_init__(self) -> None:
+        if not self.object_name.strip():
+            raise ValueError("moving scene object name must be non-empty")
+        if len(self.velocity_mps) != 3 or any(
+            not math.isfinite(float(value)) for value in self.velocity_mps
+        ):
+            raise ValueError("moving scene-object velocity must have three finite coordinates")
+
+
+@dataclass(frozen=True, slots=True)
 class RTTrajectoryConfig:
     """Physical scene, route, and receiver settings for one RT trajectory."""
 
@@ -116,6 +134,7 @@ class RTTrajectoryConfig:
     seed: int = 20261021
     device: str = "cpu"
     mitsuba_variant: str = "auto"
+    moving_scene_objects: tuple[RTSceneObjectMotion, ...] = ()
 
     def __post_init__(self) -> None:
         if not self.trajectory_id.strip() or not self.scene.strip():
@@ -144,6 +163,9 @@ class RTTrajectoryConfig:
             raise TypeError("seed must be an integer")
         if self.seed < 0 or self.seed + self.num_steps > 2**63 - 1:
             raise ValueError("seed and derived per-step seeds must fit in [0, 2**63 - 1]")
+        object_names = tuple(motion.object_name for motion in self.moving_scene_objects)
+        if len(object_names) != len(set(object_names)):
+            raise ValueError("moving scene-object names must be unique")
 
     def positions_and_times(
         self,
@@ -204,6 +226,7 @@ def generate_rt_nr_trajectory(
     activate_rt_backend(selection)
     config = replace(config, mitsuba_variant=selection.variant)
     try:
+        import mitsuba as mi
         import sionna.rt as rt
     except ImportError as exc:
         raise RuntimeError("Sionna RT, Sionna PHY, Mitsuba, and PyTorch are required") from exc
@@ -212,6 +235,23 @@ def generate_rt_nr_trajectory(
     scene = rt.load_scene(str(scene_ref) if isinstance(scene_ref, Path) else scene_ref)
     scene.frequency = config.carrier_hz
     material_manifest = sionna_scene_material_manifest(scene)
+    raw_scene_objects = getattr(scene, "objects", None)
+    if raw_scene_objects is None or not hasattr(raw_scene_objects, "__getitem__"):
+        raise TypeError("Sionna scene must expose its objects as a mapping")
+    scene_objects = cast(Mapping[str, Any], raw_scene_objects)
+    missing_objects = sorted(
+        motion.object_name
+        for motion in config.moving_scene_objects
+        if motion.object_name not in scene_objects
+    )
+    if missing_objects:
+        raise ValueError(f"moving scene objects are absent from scene: {missing_objects}")
+    initial_object_positions = {
+        motion.object_name: np.asarray(
+            scene_objects[motion.object_name].position.numpy(), dtype=np.float64
+        ).reshape(3)
+        for motion in config.moving_scene_objects
+    }
     scene_path = Path(str(scene_ref)).expanduser()
     if scene_path.is_file():
         scene_asset_hashes = scene_asset_manifest(scene_path)
@@ -323,10 +363,24 @@ def generate_rt_nr_trajectory(
     direct_path_counts: list[int] = []
     total_path_counts: list[int] = []
     geometric_los: list[bool] = []
+    geometric_los_states: list[str] = []
     umcd_path_bindings: list[SionnaPathBinding] = []
+    moving_object_poses: list[dict[str, dict[str, list[float]]]] = []
     pose_positions: list[np.ndarray] = []
     pose_orientations: list[np.ndarray] = []
     for index, position in enumerate(positions):
+        object_poses: dict[str, dict[str, list[float]]] = {}
+        for motion in config.moving_scene_objects:
+            object_position = initial_object_positions[motion.object_name] + (
+                np.asarray(motion.velocity_mps, dtype=np.float64) * times[index]
+            )
+            scene_objects[motion.object_name].position = mi.Point3f(*object_position.tolist())
+            scene_objects[motion.object_name].velocity = mi.Vector3f(*motion.velocity_mps)
+            object_poses[motion.object_name] = {
+                "position_m": object_position.tolist(),
+                "velocity_mps": list(motion.velocity_mps),
+            }
+        moving_object_poses.append(object_poses)
         rx.position = list(position)
         tx.look_at(rx)
         rx.look_at(tx)
@@ -364,6 +418,19 @@ def generate_rt_nr_trajectory(
             pose_orientations.append(np.stack((tx_orientation, rx_orientation)))
         direct_count = count_valid_paths(direct)
         path_count = count_valid_paths(paths)
+        from .los_oracle import segment_visibility
+
+        visibility = segment_visibility(scene, config.transmitter_position_m, position)
+        if visibility.visible is None:
+            raise RuntimeError(
+                f"geometric LOS oracle is {visibility.state.value} at trajectory step {index}; "
+                "ambiguous labels must be resolved before dataset publication"
+            )
+        if (direct_count > 0) != visibility.visible:
+            raise RuntimeError(
+                "depth-zero PathSolver and independent geometry LOS oracle disagree at "
+                f"step {index}: direct_paths={direct_count}, geometry={visibility.state.value}"
+            )
         if path_count == 0:
             raise RuntimeError(
                 f"No valid RT paths at trajectory step {index}; outages need an explicit receiver policy"
@@ -390,7 +457,8 @@ def generate_rt_nr_trajectory(
         waveform_channels.append(channel_series.astype(np.complex64))
         direct_path_counts.append(direct_count)
         total_path_counts.append(path_count)
-        geometric_los.append(direct_count > 0)
+        geometric_los.append(bool(visibility.visible))
+        geometric_los_states.append(visibility.state.value)
 
     channel_tensor = torch.as_tensor(
         np.stack(waveform_channels), dtype=torch.complex64, device=config.device
@@ -442,6 +510,8 @@ def generate_rt_nr_trajectory(
             "timestamp_s": timestamp,
             "receiver_position_m": list(position),
             "transmitter_position_m": list(config.transmitter_position_m),
+            "moving_scene_objects": moving_object_poses[index],
+            "geometric_los_geometry_oracle_state": geometric_los_states[index],
             "geometric_los_oracle": geometric_los[index],
             "target_semantics": {
                 "channel_cfr": "absolute-delay full-path complex CFR on effective PUSCH subcarriers",
@@ -449,7 +519,7 @@ def generate_rt_nr_trajectory(
                     "absolute-delay full-path CFR including Sionna path-Doppler phase evolution "
                     "across PUSCH OFDM-symbol samples"
                 ),
-                "geometric_los": "depth-zero LOS-only PathSolver visibility oracle",
+                "geometric_los": "independent Mitsuba segment-intersection geometry oracle",
             },
             "target_units": {
                 "channel_cfr": "complex channel gain (dimensionless)",
@@ -509,9 +579,9 @@ def generate_rt_nr_trajectory(
                         source="sionna_rt_paths_cfr_doppler",
                     ),
                     "geometric_los": TargetDefinition(
-                        semantic="depth-zero LOS-only PathSolver visibility oracle",
+                        semantic="independent Mitsuba segment-intersection geometry oracle",
                         units="boolean",
-                        source="sionna_rt_depth_zero_oracle",
+                        source="mitsuba_segment_intersection_oracle",
                     ),
                 },
                 provenance=record_provenance,
@@ -553,12 +623,12 @@ def generate_rt_nr_trajectory(
         target_definition = TargetDefinition(
             semantic="geometric direct-path visibility",
             units="boolean",
-            source="sionna_rt_depth_zero_oracle",
+            source="mitsuba_segment_intersection_oracle",
             reference=(
-                "depth-zero LOS-only PathSolver solve for the same RT scene and endpoint poses"
+                "independent finite-segment Mitsuba geometry query for the RT scene and poses"
             ),
             definition_sha256=definition_digest(
-                "UMCD:F04-RT-DYNAMIC:geometric_direct_path_visibility:v1"
+                "UMCD:F04-RT-DYNAMIC:geometric_direct_path_visibility:v2"
             ),
         )
         los_target = TargetValue(
@@ -596,6 +666,7 @@ def generate_rt_nr_trajectory(
         "positions_m": [list(position) for position in positions],
         "sample_times_s": list(times),
         "geometric_los": geometric_los,
+        "geometric_los_geometry_oracle_states": geometric_los_states,
         "direct_path_counts": direct_path_counts,
         "full_path_counts": total_path_counts,
         "receiver_metadata": receiver.metadata,
@@ -607,7 +678,7 @@ def generate_rt_nr_trajectory(
         "umcd_bundle": stored_umcd,
         "limitations": [
             "Each timestamp is a separately retraced quasi-static RT snapshot.",
-            "This producer moves the UE through a static scene; it does not move obstacles.",
+            "Configured scene-object translations are retraced at each timestamp; rotations and deformation are unsupported.",
             "Doppler is not a validated temporal target; path births/deaths are represented only by retraced snapshots.",
             "The synthetic scene materials and ray solver are not field calibrated.",
             "Outage snapshots are rejected pending a declared zero-power receiver policy.",
