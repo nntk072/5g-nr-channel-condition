@@ -7,7 +7,7 @@ dataset generation or model runs remain deferred.
 
 - `MASTER_RESEARCH_PLAN_5G_MULTIPATH_SIONNA_2026-10-21.md`, named by the goal,
   is not present in this checkout. Its current maintained successor is
-  [`MASTER_RESEARCH_PLAN.md`](MASTER_RESEARCH_PLAN.md), edition 3.125.
+  [`MASTER_RESEARCH_PLAN.md`](MASTER_RESEARCH_PLAN.md), edition 3.128.
 - [`UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md`](UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md)
   is now tracked here. The ignored source copy under `outputs/` has SHA256
   `4554b6b6a478a5828881a42f41080f7951c59ee042c3883c9819f231fa17d626`; the
@@ -169,3 +169,5 @@ and have not been rewritten.
 **Edition 3.126 verification:** The complete local suite passes with 547 passed, 3 skipped, and 87.69% coverage. Maintained-scope Ruff check/format (241 files), mypy (151 source files), lock validation, package build, and whitespace checks pass. Native Sionna evidence is CPU/LLVM-specific; hosted CI results must be recorded separately after pushing the code revision.
 
 **Edition 3.127 path-cap stress (partial):** A matched depth-6, 100k-sample, three-seed comparison used caps 1k/10k/1M and the synthetic screen S=0.5 fixture. At cap 1k, valid paths fall to 999 LOS and 537–539 blocked NLOS, with lower diffuse power and smaller delay/angular spreads. At cap 10k, blocked-link metrics match the 1M reference exactly for all three seeds, while LOS remains at 8,210–8,245 paths versus 10,748–10,850 at 1M and delay spread 22.8–23.0 ns versus 28.9 ns. This shows the cap can materially shape sampled diffuse outcomes. It does not prove 10k is sufficient elsewhere or establish CFR equivalence; G3.03 remains open. The cap reports and comparison figure are in `results/rt-box-los-nlos-convergence-depth6-s05-cap{1000,10000}-20261022.json` and `figures/rt-box-los-nlos-path-cap-sweep-s05-20261022.png`.
+
+**Edition 3.128 spatial-label and figure correction:** The dataset generator's contract is `label = int(visibility.visible)`, so label 1 is clear geometric LOS and label 0 is blocked geometric NLOS. A native LLVM rerun of the independent segment-visibility oracle over all 120 saved City43 spatial-holdout links found 60/60 LOS clear, 60/60 NLOS blocked, zero mismatches, and zero ambiguous links. The saved data were correct; the earlier figure had the class names/colors reversed. The plot mapping and image are corrected, with label semantics, sample counts, input/scene hashes, and image hashes recorded in `figures/rt-urban43-spatial-holdout-20261022.json`. Reproduce the exhaustive check with `scripts/audit_rt_spatial_holdout_labels.py <run>/nr-dmrs-observations.npz <new-report.json> --mitsuba-variant llvm_ad_mono_polarized`; its 120 per-link visibility outcomes are recorded in `results/rt-urban43-spatial-label-audit-20261022.json`. This verifies geometric labels for this saved synthetic dataset, not measured propagation or channel-coefficient correctness.

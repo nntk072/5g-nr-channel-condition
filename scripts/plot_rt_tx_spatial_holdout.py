@@ -17,13 +17,16 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+from artifacts.provenance import atomic_json, sha256_file
 from datasets.channel import ChannelDataset
 from matplotlib.lines import Line2D
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 matplotlib.rcParams["svg.hashsalt"] = "5g-nr-channel-condition"
 
-CLASS_COLORS = {0: "#168a83", 1: "#e27a32"}
+# `generate_rt_dataset` stores `int(visibility.visible)`: 1 means clear LOS.
+CLASS_NAMES = {0: "Geometric NLOS", 1: "Geometric LOS"}
+CLASS_COLORS = {0: "#e27a32", 1: "#168a83"}
 TX_COLORS = {"west_x3": "#5b4b9a", "center_x0": "#2773a8", "east_x3": "#b54c6b"}
 TX_LABELS = {"west_x3": "West", "center_x0": "Center", "east_x3": "East"}
 
@@ -155,7 +158,7 @@ def make_figure(run_root: Path, output: Path) -> None:
             fontsize=8,
         )
 
-    class_names = {0: "Geometric LOS", 1: "Geometric NLOS"}
+    class_names = CLASS_NAMES
     for label, color in CLASS_COLORS.items():
         mask = labels == label
         ax3d.scatter(
@@ -275,6 +278,35 @@ def make_figure(run_root: Path, output: Path) -> None:
     svg_output.write_text(
         "\n".join(line.rstrip() for line in svg_text.splitlines()) + "\n",
         encoding="utf-8",
+    )
+    label_counts = {
+        CLASS_NAMES[label]: int(np.count_nonzero(labels == label)) for label in CLASS_NAMES
+    }
+    atomic_json(
+        output.with_suffix(".json"),
+        {
+            "schema": "loslab.rt_tx_spatial_holdout_plot.v1",
+            "input": {
+                "path": str((run_root / "nr-dmrs-observations.npz").resolve()),
+                "sha256": sha256_file(run_root / "nr-dmrs-observations.npz"),
+                "label_semantics": dataset.label_semantics,
+                "label_counts": label_counts,
+            },
+            "scene": {
+                "path": str(scene_path.resolve()),
+                "manifest_sha256": sha256_file(scene_path.with_suffix(".manifest.json")),
+            },
+            "label_mapping": {
+                str(label): {"name": CLASS_NAMES[label], "color": CLASS_COLORS[label]}
+                for label in CLASS_NAMES
+            },
+            "png": {"path": str(output.resolve()), "sha256": sha256_file(output)},
+            "svg": {"path": str(svg_output.resolve()), "sha256": sha256_file(svg_output)},
+            "limitations": [
+                "Buildings are procedural cuboids from the scene manifest; the site is synthetic.",
+                "LOS/NLOS labels are geometric direct-segment visibility, not measured RF truth.",
+            ],
+        },
     )
     plt.close(fig)
 

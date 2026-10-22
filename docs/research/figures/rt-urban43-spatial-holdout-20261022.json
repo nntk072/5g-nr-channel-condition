@@ -1,0 +1,38 @@
+{
+  "input": {
+    "label_counts": {
+      "Geometric LOS": 60,
+      "Geometric NLOS": 60
+    },
+    "label_semantics": "geometric_direct_path_oracle",
+    "path": "/home/nguyenl37/5g-nr-channel-condition/outputs/rt-urban43-tx-spatial-holdout-20261022-v3/nr-dmrs-observations.npz",
+    "sha256": "9d9e0bf9f3d5fd5344c64944e83af2f3f54be446c7f9fcfc2525fe43a1c177c4"
+  },
+  "label_mapping": {
+    "0": {
+      "color": "#e27a32",
+      "name": "Geometric NLOS"
+    },
+    "1": {
+      "color": "#168a83",
+      "name": "Geometric LOS"
+    }
+  },
+  "limitations": [
+    "Buildings are procedural cuboids from the scene manifest; the site is synthetic.",
+    "LOS/NLOS labels are geometric direct-segment visibility, not measured RF truth."
+  ],
+  "png": {
+    "path": "/home/nguyenl37/5g-nr-channel-condition/docs/research/figures/rt-urban43-spatial-holdout-20261022.png",
+    "sha256": "ea49e89811b87a7d2cb43c0c12914a4a465f0cdd69c36045a37e895c36a97e10"
+  },
+  "scene": {
+    "manifest_sha256": "781d56f84a84836c5fe520d0cc8ba8193ca0e61bef3cc902449ec6611d382e2a",
+    "path": "/home/nguyenl37/5g-nr-channel-condition/scenes/generated/research_scenes/city43/urban_00043.xml"
+  },
+  "schema": "loslab.rt_tx_spatial_holdout_plot.v1",
+  "svg": {
+    "path": "/home/nguyenl37/5g-nr-channel-condition/docs/research/figures/rt-urban43-spatial-holdout-20261022.svg",
+    "sha256": "7b2047c466ebdd091cbc6ef3313abbcf59f5eb5280e168dd676e47108af45272"
+  }
+}

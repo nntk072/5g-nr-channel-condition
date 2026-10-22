@@ -1,0 +1,3437 @@
+{
+  "audit_passed": true,
+  "counts": {
+    "ambiguous": 0,
+    "mismatches": 0,
+    "recorded_vs_oracle": {
+      "geometric_los__geometric_los": 60,
+      "geometric_nlos__geometric_nlos": 60
+    },
+    "total": 120
+  },
+  "input": {
+    "label_semantics": "geometric_direct_path_oracle",
+    "path": "/home/nguyenl37/5g-nr-channel-condition/outputs/rt-urban43-tx-spatial-holdout-20261022-v3/nr-dmrs-observations.npz",
+    "sample_count": 120,
+    "sha256": "9d9e0bf9f3d5fd5344c64944e83af2f3f54be446c7f9fcfc2525fe43a1c177c4"
+  },
+  "label_contract": {
+    "0": "geometric_nlos (blocked direct segment)",
+    "1": "geometric_los (clear direct segment)",
+    "source": "int(SegmentVisibilityResult.visible)"
+  },
+  "limitations": [
+    "This audits geometric direct-segment labels only; it is not measured propagation truth.",
+    "It does not validate solver convergence, material calibration, or channel coefficients."
+  ],
+  "records": [
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 33.898353576660156,
+      "incidence_cosine": 0.2698200071674632,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        -77.43486882328378,
+        4.992404967302439,
+        1.5
+      ],
+      "sample_index": 0,
+      "segment_length_m": 64.6166642952569,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -65.11846340832628,
+        18.638113470521038,
+        1.5
+      ],
+      "sample_index": 1,
+      "segment_length_m": 75.63742739649271,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 19.732601165771484,
+      "incidence_cosine": 0.4635198383218479,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        -85.4426727469673,
+        -9.246871110418773,
+        1.5
+      ],
+      "sample_index": 2,
+      "segment_length_m": 54.89014847580488,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 22.145132064819336,
+      "incidence_cosine": 0.4130232051422217,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        -87.35689660034141,
+        3.0217470572186778,
+        1.5
+      ],
+      "sample_index": 3,
+      "segment_length_m": 66.23573750758449,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 38.942134857177734,
+      "incidence_cosine": 0.23487295976258157,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        -73.31546209803285,
+        -2.42193707424836,
+        1.5
+      ],
+      "sample_index": 4,
+      "segment_length_m": 56.69218845580446,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 35.129966735839844,
+      "incidence_cosine": 0.2603604611057911,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        -78.38222410902712,
+        11.140943813645867,
+        1.5
+      ],
+      "sample_index": 5,
+      "segment_length_m": 70.60297877394662,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 36.495269775390625,
+      "incidence_cosine": 0.25062021253203987,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        -77.54766627666233,
+        10.743475630116261,
+        1.5
+      ],
+      "sample_index": 6,
+      "segment_length_m": 70.0169635137429,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 22.216154098510742,
+      "incidence_cosine": 0.4117028436690969,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        -83.144199144416,
+        -6.499374300853224,
+        1.5
+      ],
+      "sample_index": 7,
+      "segment_length_m": 56.21578645936676,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 39.16365432739258,
+      "incidence_cosine": 0.23354440914449207,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        -74.9881039386698,
+        5.180997968404548,
+        1.5
+      ],
+      "sample_index": 8,
+      "segment_length_m": 64.17667626287202,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 17.885005950927734,
+      "incidence_cosine": 0.5114034058287489,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        -93.31420557415069,
+        -1.5071328534547817,
+        1.5
+      ],
+      "sample_index": 9,
+      "segment_length_m": 65.14271354951917,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -60.267766054327296,
+        -10.53580929828894,
+        1.5
+      ],
+      "sample_index": 10,
+      "segment_length_m": 47.42769184156001,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -58.869560654375704,
+        7.71646666370939,
+        1.5
+      ],
+      "sample_index": 11,
+      "segment_length_m": 64.86048938987669,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 36.69495391845703,
+      "incidence_cosine": 0.24925647614746035,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        -73.94713737761354,
+        -3.3842518451533956,
+        1.5
+      ],
+      "sample_index": 12,
+      "segment_length_m": 55.95496491478281,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 14.9412202835083,
+      "incidence_cosine": 0.6121623042211184,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        -104.30484514460615,
+        -0.20149312691173038,
+        1.5
+      ],
+      "sample_index": 13,
+      "segment_length_m": 72.37434392661142,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 15.510309219360352,
+      "incidence_cosine": 0.5897015277744483,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        -95.34373065473137,
+        -9.494299847127943,
+        1.5
+      ],
+      "sample_index": 14,
+      "segment_length_m": 59.934948427418355,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -59.18155844805986,
+        4.996989137793062,
+        1.5
+      ],
+      "sample_index": 15,
+      "segment_length_m": 62.22988471927617,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -70.78051407834721,
+        9.26186186201556,
+        1.5
+      ],
+      "sample_index": 16,
+      "segment_length_m": 67.21648885330305,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -72.779363500283,
+        8.06741934356538,
+        1.5
+      ],
+      "sample_index": 17,
+      "segment_length_m": 66.43087771608538,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -70.14223317886233,
+        12.3218309756888,
+        1.5
+      ],
+      "sample_index": 18,
+      "segment_length_m": 70.05243621583497,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -62.32967020221899,
+        -1.1144116799803883,
+        1.5
+      ],
+      "sample_index": 19,
+      "segment_length_m": 56.403315433099685,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 32.27147674560547,
+      "incidence_cosine": 0.2834222709629569,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        -75.18941027353777,
+        -6.325298886769818,
+        1.5
+      ],
+      "sample_index": 20,
+      "segment_length_m": 53.59286065251739,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 19.658571243286133,
+      "incidence_cosine": 0.4652653816925644,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        -93.22090910377234,
+        6.011278535169956,
+        1.5
+      ],
+      "sample_index": 21,
+      "segment_length_m": 71.40206516745293,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 23.472740173339844,
+      "incidence_cosine": 0.3896627951181568,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        -83.63192819247416,
+        -1.6393803931652136,
+        1.5
+      ],
+      "sample_index": 22,
+      "segment_length_m": 60.64712486935862,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 14.717496871948242,
+      "incidence_cosine": 0.699132081449418,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        -96.80425624458186,
+        -15.561059450450209,
+        1.5
+      ],
+      "sample_index": 23,
+      "segment_length_m": 56.41128707437693,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -69.97476120859103,
+        -5.877709711984299,
+        1.5
+      ],
+      "sample_index": 24,
+      "segment_length_m": 52.770685653196644,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 40.1392822265625,
+      "incidence_cosine": 0.2278679332858049,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        -73.50882189344098,
+        0.3154771141641666,
+        1.5
+      ],
+      "sample_index": 25,
+      "segment_length_m": 59.28355823764571,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 17.021249771118164,
+      "incidence_cosine": 0.5373549742300258,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        -98.91342172216702,
+        3.801870450452416,
+        1.5
+      ],
+      "sample_index": 26,
+      "segment_length_m": 72.41660278278047,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 32.566532135009766,
+      "incidence_cosine": 0.2808543488321179,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        -77.01953585500154,
+        0.7704476371618694,
+        1.5
+      ],
+      "sample_index": 27,
+      "segment_length_m": 60.59915371000735,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 22.704055786132812,
+      "incidence_cosine": 0.40285550695018685,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        -87.25127558138112,
+        4.674136457017298,
+        1.5
+      ],
+      "sample_index": 28,
+      "segment_length_m": 67.64528499979211,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -57.08301770435385,
+        -4.536785600622061,
+        1.5
+      ],
+      "sample_index": 29,
+      "segment_length_m": 53.17231228027137,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -71.73792879260729,
+        10.98341218938852,
+        1.5
+      ],
+      "sample_index": 30,
+      "segment_length_m": 69.02057415361789,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -63.512083372830745,
+        -0.20714221998385046,
+        1.5
+      ],
+      "sample_index": 31,
+      "segment_length_m": 57.33098632780349,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -59.21136083724504,
+        -3.4203254090556334,
+        1.5
+      ],
+      "sample_index": 32,
+      "segment_length_m": 54.160269410673564,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -66.42586620104265,
+        3.956349242057889,
+        1.5
+      ],
+      "sample_index": 33,
+      "segment_length_m": 61.558044741408104,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -68.6411290719433,
+        14.093964019503895,
+        1.5
+      ],
+      "sample_index": 34,
+      "segment_length_m": 71.56042883861501,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -62.350631688207564,
+        0.8397313637162647,
+        1.5
+      ],
+      "sample_index": 35,
+      "segment_length_m": 58.27393129097782,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -59.92787095613852,
+        -9.155930955000724,
+        1.5
+      ],
+      "sample_index": 36,
+      "segment_length_m": 48.72303222503326,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -68.39939541295622,
+        3.727552847682224,
+        1.5
+      ],
+      "sample_index": 37,
+      "segment_length_m": 61.576986827714286,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -61.85069174936009,
+        10.834592319048566,
+        1.5
+      ],
+      "sample_index": 38,
+      "segment_length_m": 67.89601318020432,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -60.599660204908744,
+        4.958420989631145,
+        1.5
+      ],
+      "sample_index": 39,
+      "segment_length_m": 62.19020694555688,
+      "transmitter_id": "west_x3",
+      "tx_position_m": [
+        -60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -8.590140794952246,
+        -15.375005963836855,
+        1.5
+      ],
+      "sample_index": 40,
+      "segment_length_m": 43.774200977779905,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 23.739953994750977,
+      "incidence_cosine": 0.42176618492534124,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        24.35684045332106,
+        -5.3057960716627575,
+        1.5
+      ],
+      "sample_index": 41,
+      "segment_length_m": 57.74962840520886,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -13.08661317083682,
+        1.1857096504341245,
+        1.5
+      ],
+      "sample_index": 42,
+      "segment_length_m": 60.002861708471926,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -1.5614897089562323,
+        7.293649531498285,
+        1.5
+      ],
+      "sample_index": 43,
+      "segment_length_m": 64.46074016069248,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -12.596913318091106,
+        14.127642184222402,
+        1.5
+      ],
+      "sample_index": 44,
+      "segment_length_m": 72.1773034900403,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 42.53913116455078,
+      "incidence_cosine": 0.30764777058088155,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        -19.463267921856236,
+        2.890960804709641,
+        1.5
+      ],
+      "sample_index": 45,
+      "segment_length_m": 63.264778045057476,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -5.222211565540582,
+        4.822928133594352,
+        1.5
+      ],
+      "sample_index": 46,
+      "segment_length_m": 62.276032501376164,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 38.660011291503906,
+      "incidence_cosine": 0.2589939720836261,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        15.25074489971128,
+        -0.5706361813817112,
+        1.5
+      ],
+      "sample_index": 47,
+      "segment_length_m": 58.88455540883011,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 36.883941650390625,
+      "incidence_cosine": 0.27146533857622135,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        20.020468115864745,
+        14.035778358474658,
+        1.5
+      ],
+      "sample_index": 48,
+      "segment_length_m": 73.74962940339968,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        6.95226199899784,
+        -13.50693536460114,
+        1.5
+      ],
+      "sample_index": 49,
+      "segment_length_m": 45.19135270978395,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -6.295737224592754,
+        -13.151734213741857,
+        1.5
+      ],
+      "sample_index": 50,
+      "segment_length_m": 45.42206134158187,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 24.858539581298828,
+      "incidence_cosine": 0.40278753095938064,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        23.413152214759066,
+        -4.419221067534982,
+        1.5
+      ],
+      "sample_index": 51,
+      "segment_length_m": 58.1277979459602,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -7.372154071971581,
+        12.299875876703073,
+        1.5
+      ],
+      "sample_index": 52,
+      "segment_length_m": 69.68408676793094,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -10.357959148147629,
+        -6.733435658843812,
+        1.5
+      ],
+      "sample_index": 53,
+      "segment_length_m": 52.04996206543925,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -6.88311204160379,
+        -9.743083323150639,
+        1.5
+      ],
+      "sample_index": 54,
+      "segment_length_m": 48.66020693002195,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -4.943023603565481,
+        8.717601118058985,
+        1.5
+      ],
+      "sample_index": 55,
+      "segment_length_m": 66.0046678242189,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -9.158199168476617,
+        21.19929742689742,
+        1.5
+      ],
+      "sample_index": 56,
+      "segment_length_m": 78.5013091633653,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 40.36479187011719,
+      "incidence_cosine": 0.24805552308413004,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        16.32673872918984,
+        6.5898826102457235,
+        1.5
+      ],
+      "sample_index": 57,
+      "segment_length_m": 65.81888815131319,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 43.497154235839844,
+      "incidence_cosine": 0.3008718304438152,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        -20.05458562431913,
+        6.387629020409792,
+        1.5
+      ],
+      "sample_index": 58,
+      "segment_length_m": 66.65491280701376,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -0.9323107302593567,
+        -15.185443974706276,
+        1.5
+      ],
+      "sample_index": 59,
+      "segment_length_m": 43.10821354207351,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -5.280627399937752,
+        -11.222965305755357,
+        1.5
+      ],
+      "sample_index": 60,
+      "segment_length_m": 47.08039711342793,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        -8.809031021820559,
+        22.358577121170725,
+        1.5
+      ],
+      "sample_index": 61,
+      "segment_length_m": 79.5876779517754,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        4.25735324557065,
+        -4.986501221316407,
+        1.5
+      ],
+      "sample_index": 62,
+      "segment_length_m": 52.83677806928575,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        6.037239155144363,
+        -7.669476176210663,
+        1.5
+      ],
+      "sample_index": 63,
+      "segment_length_m": 50.4864015557724,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 41.343109130859375,
+      "incidence_cosine": 0.31654775781977257,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        -16.951659028796346,
+        -6.956562085183235,
+        1.5
+      ],
+      "sample_index": 64,
+      "segment_length_m": 53.551663564294856,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        8.192115409034132,
+        23.434030674176988,
+        1.5
+      ],
+      "sample_index": 65,
+      "segment_length_m": 80.56834317939442,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        1.2355711342034965,
+        -22.044508593529866,
+        1.5
+      ],
+      "sample_index": 66,
+      "segment_length_m": 36.87602269591453,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 41.4345817565918,
+      "incidence_cosine": 0.24165106236584225,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        16.5147229688505,
+        9.230313677623755,
+        1.5
+      ],
+      "sample_index": 67,
+      "segment_length_m": 68.34119745705236,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        9.273307096804542,
+        -10.592663187338564,
+        1.5
+      ],
+      "sample_index": 68,
+      "segment_length_m": 48.27272301522673,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 37.3577880859375,
+      "incidence_cosine": 0.3503170172666204,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        -23.65164222489365,
+        6.046054169059803,
+        1.5
+      ],
+      "sample_index": 69,
+      "segment_length_m": 67.51496804076972,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 32.60026168823242,
+      "incidence_cosine": 0.3071358704060598,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        18.699384482943607,
+        0.541291955754231,
+        1.5
+      ],
+      "sample_index": 70,
+      "segment_length_m": 60.88310186049395,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 40.859962463378906,
+      "incidence_cosine": 0.320290773775639,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        -16.34299675356639,
+        -9.565893120448818,
+        1.5
+      ],
+      "sample_index": 71,
+      "segment_length_m": 51.02549961371825,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 35.730342864990234,
+      "incidence_cosine": 0.3662732670137159,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        -24.348418486477104,
+        4.615236700959333,
+        1.5
+      ],
+      "sample_index": 72,
+      "segment_length_m": 66.47610043996283,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 35.75239562988281,
+      "incidence_cosine": 0.36604728218156474,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        -23.620478429853993,
+        2.7386268910059397,
+        1.5
+      ],
+      "sample_index": 73,
+      "segment_length_m": 64.52849011494065,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 39.1268310546875,
+      "incidence_cosine": 0.2559039372646177,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        15.553785056218933,
+        1.3915902430638105,
+        1.5
+      ],
+      "sample_index": 74,
+      "segment_length_m": 60.779780188123986,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 46.89693832397461,
+      "incidence_cosine": 0.2790601691934438,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        -14.26121068875267,
+        -8.78278930512543,
+        1.5
+      ],
+      "sample_index": 75,
+      "segment_length_m": 51.1044293063079,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 31.665441513061523,
+      "incidence_cosine": 0.31620307485165305,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        15.797396584190196,
+        -10.568486339603275,
+        1.5
+      ],
+      "sample_index": 76,
+      "segment_length_m": 49.95965517287129,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 41.83974075317383,
+      "incidence_cosine": 0.31279031791993883,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        -16.061284288058033,
+        -9.103987511069658,
+        1.5
+      ],
+      "sample_index": 77,
+      "segment_length_m": 51.34840616188461,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 25.94759178161621,
+      "incidence_cosine": 0.38588205916325113,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        23.858191393288156,
+        -0.39964860870952007,
+        1.5
+      ],
+      "sample_index": 78,
+      "segment_length_m": 61.82767720536786,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 33.64794158935547,
+      "incidence_cosine": 0.38894110027182927,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        -20.977244954731304,
+        -8.132014356771379,
+        1.5
+      ],
+      "sample_index": 79,
+      "segment_length_m": 53.9342459309916,
+      "transmitter_id": "center_x0",
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 38.791324615478516,
+      "incidence_cosine": 0.26405835240805375,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        79.4695681841155,
+        14.174443605354421,
+        1.5
+      ],
+      "sample_index": 80,
+      "segment_length_m": 73.7320671986503,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        57.62307002102318,
+        3.4122560099501418,
+        1.5
+      ],
+      "sample_index": 81,
+      "segment_length_m": 60.74447668962928,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 23.523157119750977,
+      "incidence_cosine": 0.43545051804560025,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        90.9526654686997,
+        6.824946419799928,
+        1.5
+      ],
+      "sample_index": 82,
+      "segment_length_m": 71.08193511313804,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 28.985809326171875,
+      "incidence_cosine": 0.3533857309310652,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        82.26885793541877,
+        1.5935466858910519,
+        1.5
+      ],
+      "sample_index": 83,
+      "segment_length_m": 63.015724706108024,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 19.849679946899414,
+      "incidence_cosine": 0.7027289192284171,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        95.93363399547366,
+        -15.94430631061298,
+        1.5
+      ],
+      "sample_index": 84,
+      "segment_length_m": 55.577182923209456,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 22.95899200439453,
+      "incidence_cosine": 0.4461507549636634,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        86.95612463758276,
+        -3.5062002500944662,
+        1.5
+      ],
+      "sample_index": 85,
+      "segment_length_m": 60.419318666799505,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 25.834251403808594,
+      "incidence_cosine": 0.396495826158542,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        86.99695705529967,
+        5.291044126687178,
+        1.5
+      ],
+      "sample_index": 86,
+      "segment_length_m": 68.08888082596039,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        60.447729146810914,
+        -14.5902360314912,
+        1.5
+      ],
+      "sample_index": 87,
+      "segment_length_m": 43.650881839654694,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        67.24380534726366,
+        -13.352077945707284,
+        1.5
+      ],
+      "sample_index": 88,
+      "segment_length_m": 45.379203687917304,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 26.34416961669922,
+      "incidence_cosine": 0.3888211385056727,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        86.74889090351775,
+        6.196224305259021,
+        1.5
+      ],
+      "sample_index": 89,
+      "segment_length_m": 68.79484743632963,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        65.36557786714478,
+        -2.071886512652877,
+        1.5
+      ],
+      "sample_index": 90,
+      "segment_length_m": 55.69941313135975,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 28.785381317138672,
+      "incidence_cosine": 0.35584628219952963,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        81.4767358470502,
+        -1.0639126896938356,
+        1.5
+      ],
+      "sample_index": 91,
+      "segment_length_m": 60.35397001845811,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        63.922394181525505,
+        16.998615862218397,
+        1.5
+      ],
+      "sample_index": 92,
+      "segment_length_m": 73.96915480246176,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 22.234094619750977,
+      "incidence_cosine": 0.4606965846427972,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        88.49092371130449,
+        -2.649342700804128,
+        1.5
+      ],
+      "sample_index": 93,
+      "segment_length_m": 61.84314071569476,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 25.106273651123047,
+      "incidence_cosine": 0.4079924740556121,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        87.96614492040602,
+        5.366901786971197,
+        1.5
+      ],
+      "sample_index": 94,
+      "segment_length_m": 68.5457372348345,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 24.50485610961914,
+      "incidence_cosine": 0.4180058035645008,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        90.78876572636133,
+        9.846388847228669,
+        1.5
+      ],
+      "sample_index": 95,
+      "segment_length_m": 73.65631162010995,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        66.12503683730438,
+        -17.05103936665449,
+        1.5
+      ],
+      "sample_index": 96,
+      "segment_length_m": 41.831682842189636,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        58.094608205238046,
+        -2.060216475326409,
+        1.5
+      ],
+      "sample_index": 97,
+      "segment_length_m": 55.48424278595544,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        64.9604701968889,
+        4.72760126756557,
+        1.5
+      ],
+      "sample_index": 98,
+      "segment_length_m": 62.163032565597405,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 19.49639129638672,
+      "incidence_cosine": 0.5253879866440081,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        100.21221572847469,
+        7.998520198826421,
+        1.5
+      ],
+      "sample_index": 99,
+      "segment_length_m": 76.53813324765197,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        63.216439290120064,
+        1.6434269098686238,
+        1.5
+      ],
+      "sample_index": 100,
+      "segment_length_m": 59.08530522727844,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        71.93993770245793,
+        10.29366028041617,
+        1.5
+      ],
+      "sample_index": 101,
+      "segment_length_m": 68.39644862968377,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 17.90774154663086,
+      "incidence_cosine": 0.7789337789111757,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        103.00225197625149,
+        2.2104291979648782,
+        1.5
+      ],
+      "sample_index": 102,
+      "segment_length_m": 73.44710262525253,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 33.62643814086914,
+      "incidence_cosine": 0.30461656710587437,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        75.24105873818917,
+        -10.291838525285394,
+        1.5
+      ],
+      "sample_index": 103,
+      "segment_length_m": 50.03358445994138,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 19.353845596313477,
+      "incidence_cosine": 0.7207324473146849,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        95.95017705449382,
+        -13.873866905676207,
+        1.5
+      ],
+      "sample_index": 104,
+      "segment_length_m": 57.06158123940738,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 32.72084426879883,
+      "incidence_cosine": 0.3130472682351393,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        78.0648239426151,
+        -2.736837262210512,
+        1.5
+      ],
+      "sample_index": 105,
+      "segment_length_m": 57.70637784018633,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 18.728160858154297,
+      "incidence_cosine": 0.7448112083409754,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        104.1147383462905,
+        -2.427671723704197,
+        1.5
+      ],
+      "sample_index": 106,
+      "segment_length_m": 70.58477059360811,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 28.845884323120117,
+      "incidence_cosine": 0.35509993889685915,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        82.9411228166567,
+        3.096655182413005,
+        1.5
+      ],
+      "sample_index": 107,
+      "segment_length_m": 64.6046937882467,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 18.49493980407715,
+      "incidence_cosine": 0.7542031796301671,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        104.03724786925889,
+        -0.9859650917136469,
+        1.5
+      ],
+      "sample_index": 108,
+      "segment_length_m": 71.61735241526402,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "first_intersection_distance_m": 42.62135696411133,
+      "incidence_cosine": 0.24032960377783005,
+      "label": 0,
+      "matches": true,
+      "oracle_label": "geometric_nlos",
+      "oracle_visibility": "blocked",
+      "recorded_label": "geometric_nlos",
+      "rx_position_m": [
+        72.31569837769277,
+        -8.073174638424163,
+        1.5
+      ],
+      "sample_index": 109,
+      "segment_length_m": 51.24503258898506,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        66.83620049166103,
+        11.872990549729845,
+        1.5
+      ],
+      "sample_index": 110,
+      "segment_length_m": 69.21690907738112,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        74.35182635801134,
+        2.540631490585027,
+        1.5
+      ],
+      "sample_index": 111,
+      "segment_length_m": 61.556065437500266,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        75.61130344941897,
+        13.037956984585414,
+        1.5
+      ],
+      "sample_index": 112,
+      "segment_length_m": 71.7295363572506,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        72.85712138298807,
+        5.903099749259198,
+        1.5
+      ],
+      "sample_index": 113,
+      "segment_length_m": 64.39521045330238,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        62.05235434263689,
+        10.945244021706399,
+        1.5
+      ],
+      "sample_index": 114,
+      "segment_length_m": 68.00909768134072,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        71.21053574898116,
+        5.710379313576272,
+        1.5
+      ],
+      "sample_index": 115,
+      "segment_length_m": 63.90364831664537,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        74.25114727486559,
+        14.398763338280864,
+        1.5
+      ],
+      "sample_index": 116,
+      "segment_length_m": 72.74292784547941,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        71.80863315348816,
+        -4.151322258532936,
+        1.5
+      ],
+      "sample_index": 117,
+      "segment_length_m": 54.74743688072737,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        58.722826689121575,
+        -3.4568633300463634,
+        1.5
+      ],
+      "sample_index": 118,
+      "segment_length_m": 54.13479573660124,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    },
+    {
+      "boundary_probe_blocked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "first_intersection_distance_m": null,
+      "incidence_cosine": null,
+      "label": 1,
+      "matches": true,
+      "oracle_label": "geometric_los",
+      "oracle_visibility": "visible",
+      "recorded_label": "geometric_los",
+      "rx_position_m": [
+        63.41173980992011,
+        -6.695286530683937,
+        1.5
+      ],
+      "sample_index": 119,
+      "segment_length_m": 51.15892211416615,
+      "transmitter_id": "east_x3",
+      "tx_position_m": [
+        60.0,
+        -55.0,
+        18.0
+      ]
+    }
+  ],
+  "runtime": {
+    "rt_backend_selection": {
+      "available_variants": [
+        "scalar_rgb",
+        "scalar_spectral",
+        "scalar_spectral_polarized",
+        "llvm_ad_rgb",
+        "llvm_ad_mono",
+        "llvm_ad_mono_polarized",
+        "llvm_ad_spectral",
+        "llvm_ad_spectral_polarized",
+        "cuda_ad_rgb",
+        "cuda_ad_mono",
+        "cuda_ad_mono_polarized",
+        "cuda_ad_spectral",
+        "cuda_ad_spectral_polarized"
+      ],
+      "backend": "llvm_cpu",
+      "fallback_reason": null,
+      "probe_passed": true,
+      "probe_summary": "one direct path traced with llvm_ad_mono_polarized",
+      "requested": "llvm_ad_mono_polarized",
+      "runtime_versions": {
+        "drjit": "1.5.0",
+        "mitsuba": "3.9.1",
+        "sionna-rt": "2.2.0"
+      },
+      "variant": "llvm_ad_mono_polarized"
+    },
+    "script_sha256": "63bf8e94831b317d3efcb060361b7b55e4a9bd0d2b5fef92e8379219cbb258a6",
+    "source_sha256": "393e6a9e285f914b4f0d80582f3b89b34d5a8a84d0dec5b67609943d6a0afc25",
+    "versions": {
+      "git_sha": "e4adee0e046df29e8647f4c3a4393fd606f530ce",
+      "numpy": "2.5.4",
+      "python": "3.12.3",
+      "scikit-learn": "1.9.1",
+      "sionna": "2.2.0",
+      "sionna-phy": "not installed",
+      "sionna-rt": "2.2.0",
+      "torch": "2.11.0+cu128"
+    }
+  },
+  "scene": {
+    "scene_tree_sha256": "9b8864831654336ac34e363e1cc92d7208b50c66bfcbdff1a873e3b2be635bbb",
+    "xml_path": "/home/nguyenl37/5g-nr-channel-condition/scenes/generated/research_scenes/city43/urban_00043.xml",
+    "xml_sha256": "3d716ff2e759230469eae6ca0537fb56c741c7ba2a12f5ed3bfb2966b5f38131"
+  },
+  "schema": "loslab.rt_spatial_holdout_label_audit.v1"
+}
