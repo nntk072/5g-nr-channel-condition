@@ -2,7 +2,7 @@
 ## Physically Grounded, Identifiability-Aware Multipath State Learning for 5G NR
 ### From LOS/NLOS classification to channel-state reconstruction, uncertainty, and forecasting
 
-**Document edition:** 3.151 — 2026-10-22 (CP-aware NR trajectory symbol timing)
+**Document edition:** 3.152 — 2026-10-22 (reflected-path Doppler cross-check)
 **Status:** execution specification and scientific decision record; **not** a completed study, not experimental evidence, and not a claim of top-tier acceptance.
 **Repository inspected:** live checkout /home/nguyenl37/5g-nr-channel-condition, branch main, initial implementation commit ffe199c80c1caf40dea91a406fe02124b3ff05ec (built from baseline cc43a5544036578a6bb57ce52b66436d8acb6c1b); local reference /home/nguyenl37/sionna at Sionna v2.2.0, commit 2f0a3820269b53fd022780a6f2f5f720f7ceb9b4, RT submodule commit 15b5ee036917a4c2a9b6420e05570b77717e2fcc.
 **Legacy work:** Long Nguyen, *5G Physical Layer Channel Conditions Classification Using Machine Learning Techniques*, Tampere University, July 2025, embedded in `docs/thesis/NguyenLong.pdf`.
@@ -1521,14 +1521,15 @@ Every command should return a nonzero exit code on physics/schema/provenance fai
 # Pseudocode / type design, not existing runnable code.
 @dataclass(frozen=True)
 class ReceiverObservation:
-    pilot_y: ComplexTensor             # measured LS input or received pilot symbols
-    pilot_x: ComplexTensor             # known reference pilot symbols
+    pilot_y: ComplexTensor  # measured LS input or received pilot symbols
+    pilot_x: ComplexTensor  # known reference pilot symbols
     pilot_mask: BoolTensor
-    observed_grid: ComplexTensor       # only observed or estimated CSI
+    observed_grid: ComplexTensor  # only observed or estimated CSI
     known_grid_config: NRGridConfig
     known_array_config: ArrayConfig
     available_covariance: FloatTensor | None
     receiver_calibration: CalibrationState | None
+
 
 @dataclass(frozen=True)
 class PrivateOracle:
@@ -1536,6 +1537,7 @@ class PrivateOracle:
     geometric_los: BoolTensor | None
     geometry: GeometryTruth | None
     full_ideal_channel: ComplexTensor | None
+
 
 # Trainer receives two separately scoped objects.
 # Model.forward(...) must NOT accept PrivateOracle.
@@ -2338,3 +2340,5 @@ Repeated the identical cap-1k box sweep as a numerical determinism check: all 42
 **Edition 3.150 moving-object RT retracing and independent LOS oracle:** The NR trajectory producer supports named constant-velocity scene-object translations, restores each pose from the captured initial center at every timestamp, sets Sionna RT object velocity, and retraces the scene to expose path and visibility changes. Per-frame object positions and velocities are recorded and included in run identity. Geometric LOS labels now come from an independent finite-segment Mitsuba query and are checked against the depth-zero PathSolver result; ambiguous labels and oracle disagreements stop publication. A native LLVM box-scene test moves a screen out of the TX–RX line and verifies the NLOS-to-LOS transition and pose provenance. Rotation, deformation, and CP-accurate within-slot geometry remain open.
 
 **Edition 3.151 CP-aware OFDM-symbol timing:** Doppler-evolved PUSCH channel samples now use the pinned Sionna 2.2 `ResourceGrid.ofdm_symbol_duration`, which includes its configured scalar cyclic prefix, rather than `1/Δf`. Per-record provenance stores CP samples, symbol interval, and sample rate. Native LLVM trajectory tests verify these values against the Sionna resource-grid equation. Sionna 2.2 deliberately repeats one scalar CP duration across a slot, so exact TS 38.211 per-symbol CP variation and geometry evolution within a slot remain open.
+
+**Edition 3.152 reflected-path Doppler cross-check:** A three-snapshot, native LLVM `box_one_screen` trajectory now matches each persistent first-order reflection by scene object and checks Sionna's path Doppler against `-f_c dτ/dt` from a centered finite difference of absolute geometric delay. This extends the LOS Doppler check to two reflected interactions in one synthetic scene. It does not yet validate object-motion Doppler against independent measurements, path births/deaths during a slot, or varied materials and geometries.

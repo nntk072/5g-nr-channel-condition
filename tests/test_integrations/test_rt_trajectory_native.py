@@ -204,6 +204,87 @@ def test_moving_scene_object_is_retraced_and_recorded_per_frame(tmp_path):
 
 
 @pytest.mark.native_sionna
+def test_reflected_path_doppler_matches_finite_difference_of_geometric_delay(tmp_path):
+    config = RTTrajectoryConfig(
+        trajectory_id="native-reflected-doppler-route",
+        scene="box_one_screen",
+        transmitter_position_m=(-2.0, 0.0, 2.5),
+        receiver_start_m=(2.0, 0.0, 2.5),
+        receiver_velocity_mps=(0.2, 0.0, 0.0),
+        num_steps=3,
+        sample_interval_s=0.1,
+        max_depth=2,
+        samples_per_src=200,
+        seed=20261021,
+        device="cpu",
+    )
+
+    stored = generate_rt_nr_trajectory(config, tmp_path, umcd_store_root=tmp_path / "umcd")
+    generation_path = (tmp_path / stored.manifest_relative_path).with_name(
+        f"{stored.content_sha256}.generation.json"
+    )
+    import json
+
+    generation = json.loads(generation_path.read_text(encoding="utf-8"))
+    from datasets.episode_store import StoredEpisodeBundle, read_episode_bundle
+
+    bundle = read_episode_bundle(
+        tmp_path / "umcd", StoredEpisodeBundle(**generation["umcd_bundle"])
+    )
+    table = bundle.path_oracle
+    assert table.doppler_hz is not None
+    assert table.interaction_offsets is not None
+    assert table.object_ids is not None
+    assert table.primitive_ids is not None
+
+    assert table.interaction_vertices_m is not None
+    reflected_by_frame: list[dict[int, list[int]]] = []
+    for frame_index in range(config.num_steps):
+        group_index = int(np.flatnonzero(table.frame_indices == frame_index)[0])
+        group = table.group_slice(group_index)
+        frame_paths: dict[int, list[int]] = {}
+        for path_index in range(group.start, group.stop):
+            if table.interaction_order[path_index] != 1:
+                continue
+            first_interaction = int(table.interaction_offsets[path_index])
+            key = int(table.object_ids[first_interaction])
+            frame_paths.setdefault(key, []).append(path_index)
+        reflected_by_frame.append(frame_paths)
+
+    common_reflections = set.intersection(*(set(paths) for paths in reflected_by_frame))
+    assert common_reflections, f"no persistent reflections across frames: {reflected_by_frame}"
+    for reflection_key in common_reflections:
+        from itertools import product
+
+        candidates = product(*(paths[reflection_key] for paths in reflected_by_frame))
+
+        def interaction_point(path_index: int) -> np.ndarray:
+            interaction_index = int(table.interaction_offsets[path_index])
+            return table.interaction_vertices_m[interaction_index]
+
+        path_indices = list(
+            min(
+                candidates,
+                key=lambda indices: sum(
+                    float(np.linalg.norm(interaction_point(right) - interaction_point(left)))
+                    for left, right in zip(indices, indices[1:])
+                ),
+            )
+        )
+        delays = table.delay_s[path_indices]
+        center_doppler_hz = float(table.doppler_hz[path_indices[1]])
+        finite_difference_doppler_hz = -config.carrier_hz * float(
+            (delays[2] - delays[0]) / (2.0 * config.sample_interval_s)
+        )
+        np.testing.assert_allclose(
+            center_doppler_hz,
+            finite_difference_doppler_hz,
+            rtol=2e-2,
+            atol=0.05,
+        )
+
+
+@pytest.mark.native_sionna
 def test_llvm_rt_common_random_numbers_remove_static_scene_sampling_jitter(tmp_path):
     config = RTTrajectoryConfig(
         trajectory_id="native-static-common-random-route",
