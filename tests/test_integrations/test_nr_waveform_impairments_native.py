@@ -18,6 +18,60 @@ from receivers.nr import NRPUSCHConfig  # noqa: E402
 
 
 @pytest.mark.native_sionna
+def test_pusch_diagonal_ofdm_channel_is_valid_inside_cp_and_fails_beyond_cp_on_cpu():
+    from sionna.phy.ofdm import OFDMDemodulator, OFDMModulator
+
+    receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(n_size_bwp=6, subcarrier_spacing_khz=30), device="cpu"
+    )
+    grid = receiver.resource_grid
+    transmit_grid, _ = receiver.transmit(2, seed=34_017)
+    modulator = OFDMModulator(
+        cyclic_prefix_length=grid.cyclic_prefix_length,
+        device="cpu",
+    )
+    demodulator = OFDMDemodulator(
+        fft_size=grid.fft_size,
+        l_min=0,
+        cyclic_prefix_length=grid.cyclic_prefix_length,
+        device="cpu",
+    )
+    waveform = modulator(transmit_grid)
+    direct_gain = 0.85 + 0.0j
+    echo_gain = 0.48 + 0.12j
+    frequencies = torch.arange(grid.fft_size, dtype=torch.float32) - grid.fft_size // 2
+    effective_bins = torch.as_tensor(grid.effective_subcarrier_ind, dtype=torch.long)
+
+    def pass_through_two_tap(delay_samples: int):
+        delayed = torch.cat(
+            (torch.zeros_like(waveform[..., :delay_samples]), waveform[..., :-delay_samples]),
+            dim=-1,
+        )
+        received = direct_gain * waveform + echo_gain * delayed
+        received_grid = demodulator(received)
+        response = direct_gain + echo_gain * torch.exp(
+            -2j * torch.pi * frequencies * delay_samples / grid.fft_size
+        )
+        expected = transmit_grid * response.reshape(1, 1, 1, 1, grid.fft_size)
+        return received_grid.index_select(-1, effective_bins), expected.index_select(
+            -1, effective_bins
+        )
+
+    inside, inside_frequency_domain = pass_through_two_tap(grid.cyclic_prefix_length - 1)
+    beyond, beyond_frequency_domain = pass_through_two_tap(grid.cyclic_prefix_length + 1)
+    inside_nmse = torch.mean(torch.abs(inside - inside_frequency_domain) ** 2) / torch.mean(
+        torch.abs(inside_frequency_domain) ** 2
+    )
+    beyond_nmse = torch.mean(torch.abs(beyond - beyond_frequency_domain) ** 2) / torch.mean(
+        torch.abs(beyond_frequency_domain) ** 2
+    )
+
+    assert grid.num_effective_subcarriers == grid.fft_size
+    assert float(inside_nmse) < 1e-6
+    assert float(beyond_nmse) > float(inside_nmse) + 1e-3
+
+
+@pytest.mark.native_sionna
 def test_ofdm_roundtrip_and_residual_cfo_timing_errors_reach_dmrs_estimator():
     if not torch.cuda.is_available():
         pytest.skip("CUDA is not available")
