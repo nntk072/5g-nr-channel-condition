@@ -84,6 +84,7 @@ def test_cap_summary_rejects_scene_mismatch(tmp_path: Path):
 
 
 def test_cap_figure_writes_image_and_provenance_sidecar(tmp_path: Path):
+    pytest.importorskip("matplotlib")
     low = tmp_path / "low.json"
     high = tmp_path / "high.json"
     _write_report(low, cap=1000, path_count=998)
