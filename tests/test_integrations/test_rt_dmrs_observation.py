@@ -5,7 +5,11 @@ from __future__ import annotations
 import numpy as np
 import pytest
 from datasets.channel import ChannelDataset
-from integrations.sionna.rt_dmrs import _label_semantics, resample_centered_cfr
+from integrations.sionna.rt_dmrs import (
+    _label_semantics,
+    resample_centered_cfr,
+    thermal_noise_variance_w,
+)
 
 
 def _labelled_dataset(*, labels, declared="unspecified_legacy"):
@@ -61,6 +65,35 @@ def test_centered_cfr_resampling_preserves_overlapping_subcarriers():
     )
 
     np.testing.assert_array_equal(actual, channels[:, 0, 28:100])
+
+
+def test_thermal_noise_variance_uses_temperature_bandwidth_and_noise_figure():
+    actual = thermal_noise_variance_w(
+        temperature_k=290.0,
+        noise_figure_db=7.0,
+        bandwidth_hz=30_000.0,
+    )
+    expected = 1.380649e-23 * 290.0 * 30_000.0 * 10.0**0.7
+    assert actual == pytest.approx(expected, rel=1e-15)
+
+
+@pytest.mark.parametrize(
+    ("temperature_k", "noise_figure_db", "bandwidth_hz"),
+    [
+        (0.0, 7.0, 30_000.0),
+        (290.0, -1.0, 30_000.0),
+        (290.0, 7.0, float("inf")),
+    ],
+)
+def test_thermal_noise_variance_rejects_invalid_physical_inputs(
+    temperature_k, noise_figure_db, bandwidth_hz
+):
+    with pytest.raises(ValueError):
+        thermal_noise_variance_w(
+            temperature_k=temperature_k,
+            noise_figure_db=noise_figure_db,
+            bandwidth_hz=bandwidth_hz,
+        )
 
 
 @pytest.mark.parametrize(

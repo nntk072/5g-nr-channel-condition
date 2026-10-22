@@ -12,6 +12,20 @@ from receivers.nr import NRPUSCHConfig
 from .nr_pusch import SionnaPUSCHLSReceiver
 
 
+def thermal_noise_variance_w(
+    *, temperature_k: float, noise_figure_db: float, bandwidth_hz: float
+) -> float:
+    """Return complex-baseband thermal-noise power ``k T B F`` in watts."""
+    for name, value in (("temperature_k", temperature_k), ("bandwidth_hz", bandwidth_hz)):
+        if not math.isfinite(value) or value <= 0:
+            raise ValueError(f"{name} must be finite and positive")
+    if not math.isfinite(noise_figure_db) or noise_figure_db < 0:
+        raise ValueError("noise_figure_db must be finite and nonnegative")
+    boltzmann_j_per_k = 1.380649e-23
+    noise_factor = 10.0 ** (noise_figure_db / 10.0)
+    return boltzmann_j_per_k * temperature_k * bandwidth_hz * noise_factor
+
+
 def resample_centered_cfr(
     channels: np.ndarray,
     *,
@@ -65,7 +79,10 @@ def resample_centered_cfr(
 def build_rt_dmrs_observation_dataset(
     datasets: list[ChannelDataset],
     *,
-    snr_db: float = 12.0,
+    snr_db: float | None = 12.0,
+    tx_power_per_re_w: float | None = None,
+    noise_figure_db: float = 7.0,
+    temperature_k: float = 290.0,
     seed: int = 20261031,
     device: str = "cuda:0",
     n_size_bwp: int = 6,
@@ -73,15 +90,33 @@ def build_rt_dmrs_observation_dataset(
 ) -> ChannelDataset:
     """Apply a native Sionna PUSCH/DMRS receiver to saved RT CFR samples.
 
-    Each sample is normalized to unit mean channel power, then receives seeded
-    AWGN at the requested per-link SNR. This isolates CFR shape from path loss.
-    Timing, CFO, and inter-symbol channel variation are idealized; the method is
-    an NR receiver-observation stress test, not a complete link simulation.
+    By default, each sample is normalized to unit mean channel power and receives
+    AWGN at the requested per-link SNR. To preserve absolute path loss instead,
+    set ``snr_db=None`` and ``tx_power_per_re_w``; this scales each active
+    resource element to the supplied average transmit power and adds thermal
+    noise ``k T B F`` using the subcarrier spacing as the noise bandwidth. The
+    resulting LS estimate is divided by the transmit-amplitude scale so its
+    values remain channel gains, with physical SNR differences retained.
+
+    Both modes idealize timing, CFO, and inter-symbol channel variation; neither
+    is a complete NR link simulation.
     """
     if not datasets:
         raise ValueError("at least one RT dataset is required")
-    if not math.isfinite(snr_db):
-        raise ValueError("snr_db must be finite")
+    physical_power_mode = tx_power_per_re_w is not None
+    if tx_power_per_re_w is not None:
+        if snr_db is not None:
+            raise ValueError("snr_db must be None when tx_power_per_re_w is set")
+        if (
+            isinstance(tx_power_per_re_w, bool)
+            or not math.isfinite(tx_power_per_re_w)
+            or tx_power_per_re_w <= 0
+        ):
+            raise ValueError("tx_power_per_re_w must be finite and positive")
+    else:
+        if snr_db is None or not math.isfinite(snr_db):
+            raise ValueError("snr_db must be finite unless absolute-power mode is selected")
+        noise_variance_w = None
     if isinstance(seed, bool) or not isinstance(seed, int) or not 0 <= seed <= 2**63 - 2:
         raise ValueError("seed must be an integer in [0, 2**63 - 2]")
     if isinstance(n_size_bwp, bool) or not isinstance(n_size_bwp, int) or n_size_bwp < 1:
@@ -92,6 +127,12 @@ def build_rt_dmrs_observation_dataset(
         or subcarrier_spacing_khz <= 0
     ):
         raise ValueError("subcarrier_spacing_khz must be a positive integer")
+    if tx_power_per_re_w is not None:
+        noise_variance_w = thermal_noise_variance_w(
+            temperature_k=temperature_k,
+            noise_figure_db=noise_figure_db,
+            bandwidth_hz=subcarrier_spacing_khz * 1_000.0,
+        )
 
     data = ChannelDataset.concatenate(datasets)
     metadata_grid = datasets[0].metadata[0].get("grid_config", {})
@@ -135,18 +176,25 @@ def build_rt_dmrs_observation_dataset(
         target_subcarriers=resource_grid.fft_size,
         target_spacing_hz=subcarrier_spacing_khz * 1_000.0,
     )
-    channel_power = np.mean(np.abs(cfr) ** 2, axis=-1, keepdims=True)
-    if np.any(channel_power <= np.finfo(np.float32).tiny):
-        raise ValueError("every RT channel must have positive power on the PUSCH bandwidth")
-    cfr = cfr / np.sqrt(channel_power)
+    if not physical_power_mode:
+        channel_power = np.mean(np.abs(cfr) ** 2, axis=-1, keepdims=True)
+        if np.any(channel_power <= np.finfo(np.float32).tiny):
+            raise ValueError("every RT channel must have positive power on the PUSCH bandwidth")
+        cfr = cfr / np.sqrt(channel_power)
 
     transmit_grid, _ = receiver.transmit(1, seed=seed)
     transmit_grid = transmit_grid.expand(len(data.y), *transmit_grid.shape[1:])
+    transmit_amplitude = math.sqrt(tx_power_per_re_w) if tx_power_per_re_w is not None else 1.0
+    transmit_grid = transmit_grid * transmit_amplitude
     channel_tensor = torch.as_tensor(cfr, dtype=torch.complex64, device=device).reshape(
         len(data.y), 1, 1, 1, resource_grid.fft_size
     )
     noiseless = transmit_grid * channel_tensor
-    noise_variance = noiseless.abs().square().mean() * (10.0 ** (-snr_db / 10.0))
+    if noise_variance_w is None:
+        assert snr_db is not None
+        noise_variance = noiseless.abs().square().mean() * (10.0 ** (-snr_db / 10.0))
+    else:
+        noise_variance = torch.as_tensor(noise_variance_w, dtype=torch.float32, device=device)
     noise_generator = torch.Generator(device=device).manual_seed(seed + 1)
     noise = torch.complex(
         torch.randn(noiseless.shape, dtype=torch.float32, device=device, generator=noise_generator),
@@ -155,6 +203,8 @@ def build_rt_dmrs_observation_dataset(
     with torch.no_grad():
         estimate = receiver.estimate(noiseless + noise, noise_variance)
     observed_cfr = estimate.h_hat.mean(dim=5)[:, 0, 0, 0, 0, :].detach().cpu().numpy()
+    if tx_power_per_re_w is not None:
+        observed_cfr /= transmit_amplitude
 
     receiver_metadata = receiver.metadata
     observation_metadata = tuple(
@@ -162,6 +212,8 @@ def build_rt_dmrs_observation_dataset(
             **item,
             "receiver_observation": "Sionna PUSCH DMRS LS channel estimate",
             "receiver_snr_db": snr_db,
+            "tx_power_per_re_w": tx_power_per_re_w,
+            "noise_variance_w": noise_variance_w,
             "receiver_ideal_synchronization": True,
         }
         for item in data.metadata
@@ -184,16 +236,39 @@ def build_rt_dmrs_observation_dataset(
                 "spacing_hz": source_spacing_hz,
             },
             "resampling": "linear interpolation of centered complex CFR onto full PUSCH grid",
-            "normalization": "unit mean channel power per link before AWGN",
+            "power_mode": (
+                "absolute_tx_power_thermal_noise"
+                if physical_power_mode
+                else "normalized_per_link_snr"
+            ),
+            "normalization": (
+                "none; LS output divided by sqrt(tx_power_per_re_w)"
+                if physical_power_mode
+                else "unit mean channel power per link before AWGN"
+            ),
             "snr_db": snr_db,
+            "tx_power_per_re_w": tx_power_per_re_w,
+            "noise_figure_db": noise_figure_db if physical_power_mode else None,
+            "temperature_k": temperature_k if physical_power_mode else None,
+            "noise_bandwidth_hz": subcarrier_spacing_khz * 1_000.0 if physical_power_mode else None,
+            "noise_variance_w": noise_variance_w,
+            "noise_variance_semantics": (
+                "k_B * temperature_k * noise_bandwidth_hz * 10**(noise_figure_db/10)"
+                if physical_power_mode
+                else "per-link signal power divided by requested linear SNR"
+            ),
             "seed": seed,
             "noise_seed": seed + 1,
             "sample_count": len(data.y),
             "channel_condition_label_semantics": label_semantics,
             "limitations": [
                 "No timing/CFO error, inter-symbol channel variation, or CP violation is simulated.",
-                "Per-link power normalization removes path-loss information.",
                 "RT labels are geometric depth-zero direct-path oracles, not measured LOS/NLOS labels.",
+                *(
+                    []
+                    if physical_power_mode
+                    else ["Per-link power normalization removes path-loss information."]
+                ),
             ],
             "package_source_sha256": package_source_sha256(),
         },
