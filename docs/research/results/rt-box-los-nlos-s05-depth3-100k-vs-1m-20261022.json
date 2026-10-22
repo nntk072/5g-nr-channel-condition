@@ -1,0 +1,205 @@
+{
+  "budgets_samples_per_source": {
+    "low": 100000,
+    "reference": 1000000
+  },
+  "comparisons": [
+    {
+      "absolute_rms_delay_spread_difference_ns": 2.8421709430404007e-05,
+      "geometric_los": true,
+      "link_id": "same-side-los",
+      "low_budget_candidate_path_counts_per_source": [
+        5687
+      ],
+      "low_budget_diffuse_path_count": 5502,
+      "low_budget_valid_path_count": 5550,
+      "low_to_reference_cfr_mean_power_ratio": 0.9204723572784644,
+      "low_to_reference_diffuse_path_power_ratio": 0.9750953686361395,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        55419
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 55230,
+      "reference_budget_valid_path_count": 55278,
+      "relative_complex_cfr_l2": 0.2130657036813536,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.011658229936983844,
+      "geometric_los": true,
+      "link_id": "same-side-los",
+      "low_budget_candidate_path_counts_per_source": [
+        5750
+      ],
+      "low_budget_diffuse_path_count": 5564,
+      "low_budget_valid_path_count": 5612,
+      "low_to_reference_cfr_mean_power_ratio": 1.5704487651791186,
+      "low_to_reference_diffuse_path_power_ratio": 1.0043336763730708,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9999998812727043,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        55090
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 54899,
+      "reference_budget_valid_path_count": 54947,
+      "relative_complex_cfr_l2": 0.42160029479990735,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.015368151196071267,
+      "geometric_los": true,
+      "link_id": "same-side-los",
+      "low_budget_candidate_path_counts_per_source": [
+        5830
+      ],
+      "low_budget_diffuse_path_count": 5644,
+      "low_budget_valid_path_count": 5692,
+      "low_to_reference_cfr_mean_power_ratio": 1.410604912943484,
+      "low_to_reference_diffuse_path_power_ratio": 0.9959223793496157,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        55129
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 54939,
+      "reference_budget_valid_path_count": 54987,
+      "relative_complex_cfr_l2": 0.26625028386833066,
+      "seed": 47,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0007354117315117037,
+      "geometric_los": false,
+      "link_id": "through-screen-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        336
+      ],
+      "low_budget_diffuse_path_count": 135,
+      "low_budget_valid_path_count": 167,
+      "low_to_reference_cfr_mean_power_ratio": 0.9819736335135261,
+      "low_to_reference_diffuse_path_power_ratio": 0.9787488584747729,
+      "low_to_reference_non_diffuse_path_power_ratio": 0.9999999275517033,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        1256
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 1054,
+      "reference_budget_valid_path_count": 1086,
+      "relative_complex_cfr_l2": 0.01628545541057267,
+      "seed": 11,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0021103119252074976,
+      "geometric_los": false,
+      "link_id": "through-screen-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        335
+      ],
+      "low_budget_diffuse_path_count": 134,
+      "low_budget_valid_path_count": 166,
+      "low_to_reference_cfr_mean_power_ratio": 0.9931009761987034,
+      "low_to_reference_diffuse_path_power_ratio": 1.1309272478780688,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        1199
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 997,
+      "reference_budget_valid_path_count": 1029,
+      "relative_complex_cfr_l2": 0.008314637806462659,
+      "seed": 23,
+      "valid_path_count_equal": false
+    },
+    {
+      "absolute_rms_delay_spread_difference_ns": 0.0027551294579097885,
+      "geometric_los": false,
+      "link_id": "through-screen-nlos",
+      "low_budget_candidate_path_counts_per_source": [
+        328
+      ],
+      "low_budget_diffuse_path_count": 127,
+      "low_budget_valid_path_count": 159,
+      "low_to_reference_cfr_mean_power_ratio": 0.999125262594797,
+      "low_to_reference_diffuse_path_power_ratio": 1.1571743407087807,
+      "low_to_reference_non_diffuse_path_power_ratio": 1.0,
+      "max_depth": 3,
+      "reference_budget_candidate_path_counts_per_source": [
+        1169
+      ],
+      "reference_budget_cap_filled": false,
+      "reference_budget_diffuse_path_count": 967,
+      "reference_budget_valid_path_count": 999,
+      "relative_complex_cfr_l2": 0.04276984136410214,
+      "seed": 47,
+      "valid_path_count_equal": false
+    }
+  ],
+  "compatibility": {
+    "package_source_sha256_equal": true,
+    "runtime_versions_equal_excluding_git_revision": true,
+    "scene_tree_sha256_equal": true,
+    "solver_script_sha256_equal": true
+  },
+  "evidence_grade": "matched synthetic-scene solver sensitivity; larger budget is a finite comparison reference, not truth",
+  "limitations": [
+    "A finite larger ray budget is not proven ground truth.",
+    "The experiment covers only the recorded synthetic scene, links, materials, frequencies, and backend.",
+    "This audit measures solver sensitivity; it does not establish propagation-model accuracy or release acceptance."
+  ],
+  "reports": [
+    {
+      "path": "docs/research/results/rt-box-los-nlos-depth0-3-s05-100k-1m-20261022.json",
+      "revision": "5c61f72336017801ab4b22f1b7e5001675d26a3d",
+      "sha256": "41829530920e330d6240b30286d410dce4cd4a0576db90ee8103a78f453d387f"
+    },
+    {
+      "path": "docs/research/results/rt-box-los-nlos-depth0-3-s05-100k-1m-20261022.json",
+      "revision": "5c61f72336017801ab4b22f1b7e5001675d26a3d",
+      "sha256": "41829530920e330d6240b30286d410dce4cd4a0576db90ee8103a78f453d387f"
+    }
+  ],
+  "schema": "loslab.rt_solver_ray_budget_comparison.v1",
+  "summary": {
+    "grouped_by_depth_and_geometric_condition": [
+      {
+        "absolute_rms_delay_spread_difference_ns_median": 0.0021103119252074976,
+        "condition": "NLOS",
+        "low_to_reference_cfr_mean_power_ratio_median": 0.9931009761987034,
+        "low_to_reference_diffuse_path_power_ratio_median": 1.1309272478780688,
+        "low_to_reference_non_diffuse_path_power_ratio_median": 1.0,
+        "matched_runs": 3,
+        "max_depth": 3,
+        "path_count_changes": 3,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.04276984136410214,
+        "relative_complex_cfr_l2_median": 0.01628545541057267,
+        "zero_energy_comparisons": 0
+      },
+      {
+        "absolute_rms_delay_spread_difference_ns_median": 0.011658229936983844,
+        "condition": "LOS",
+        "low_to_reference_cfr_mean_power_ratio_median": 1.410604912943484,
+        "low_to_reference_diffuse_path_power_ratio_median": 0.9959223793496157,
+        "low_to_reference_non_diffuse_path_power_ratio_median": 1.0,
+        "matched_runs": 3,
+        "max_depth": 3,
+        "path_count_changes": 3,
+        "reference_cap_filled_runs": 0,
+        "relative_complex_cfr_l2_max": 0.42160029479990735,
+        "relative_complex_cfr_l2_median": 0.26625028386833066,
+        "zero_energy_comparisons": 0
+      }
+    ],
+    "matched_runs": 6,
+    "missing_reference_rows": 0
+  }
+}
