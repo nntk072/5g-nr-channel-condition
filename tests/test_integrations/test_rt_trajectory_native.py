@@ -47,6 +47,12 @@ def test_cpu_rt_path_retraces_and_stores_receiver_only_trajectory(tmp_path, monk
         assert tuple(model_inputs.received_grid.shape)[0] == 1
         assert tuple(model_inputs.h_hat.shape)[0] == 1
         assert tuple(record.targets["channel_cfr"].shape) == (72,)
+        symbol_channels = record.targets["channel_cfr_ofdm_symbols"]
+        assert symbol_channels.shape == (
+            record.observation.received_grid.shape[-2],
+            record.observation.received_grid.shape[-1],
+        )
+        assert not np.allclose(symbol_channels, symbol_channels[0:1], rtol=0.0, atol=1e-8)
         assert bool(np.asarray(record.target_masks["channel_cfr"]).all())
         assert bool(np.asarray(record.target_masks["geometric_los"]).all())
         assert record.provenance["target_semantics"]["geometric_los"].startswith("depth-zero")

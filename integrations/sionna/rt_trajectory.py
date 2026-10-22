@@ -319,6 +319,7 @@ def generate_rt_nr_trajectory(
     full_solver = PathSolver(deterministic=True)
     direct_solver = PathSolver(deterministic=True)
     channels: list[np.ndarray] = []
+    waveform_channels: list[np.ndarray] = []
     direct_path_counts: list[int] = []
     total_path_counts: list[int] = []
     geometric_los: list[bool] = []
@@ -370,25 +371,34 @@ def generate_rt_nr_trajectory(
         mapped = paths_to_nr_ofdm_channel(
             paths,
             grid,
+            sampling_frequency_hz=config.subcarrier_spacing_khz * 1_000.0,
+            num_time_steps=grid.num_ofdm_symbols,
             normalize_delays=False,
             normalize=False,
             device=config.device,
         )
-        channel = mapped.channel[0, 0, 0, 0, 0, 0].detach().cpu().numpy()
-        if channel.shape != (grid.fft_size,) or not np.isfinite(channel).all():
+        channel_series = mapped.channel[0, 0, 0, 0, 0].detach().cpu().numpy()
+        if (
+            channel_series.shape != (grid.num_ofdm_symbols, grid.fft_size)
+            or not np.isfinite(channel_series).all()
+        ):
             raise RuntimeError(f"Unexpected or nonfinite RT channel at trajectory step {index}")
+        channel = channel_series[0]
         if float(np.mean(np.abs(channel) ** 2)) <= np.finfo(np.float32).tiny:
             raise RuntimeError(f"RT channel has no usable power at trajectory step {index}")
         channels.append(channel.astype(np.complex64))
+        waveform_channels.append(channel_series.astype(np.complex64))
         direct_path_counts.append(direct_count)
         total_path_counts.append(path_count)
         geometric_los.append(direct_count > 0)
 
     channel_tensor = torch.as_tensor(
-        np.stack(channels), dtype=torch.complex64, device=config.device
+        np.stack(waveform_channels), dtype=torch.complex64, device=config.device
     )
     tx_grid, _ = receiver.transmit(config.num_steps, seed=config.seed)
-    channel_tensor = channel_tensor.reshape(config.num_steps, 1, 1, 1, grid.fft_size)
+    channel_tensor = channel_tensor.reshape(
+        config.num_steps, 1, 1, grid.num_ofdm_symbols, grid.fft_size
+    )
     noiseless = tx_grid * channel_tensor
     noise_variance = noiseless.abs().square().mean() * (10.0 ** (-config.snr_db / 10.0))
     noise_generator = torch.Generator(device=config.device).manual_seed(
@@ -435,11 +445,23 @@ def generate_rt_nr_trajectory(
             "geometric_los_oracle": geometric_los[index],
             "target_semantics": {
                 "channel_cfr": "absolute-delay full-path complex CFR on effective PUSCH subcarriers",
+                "channel_cfr_ofdm_symbols": (
+                    "absolute-delay full-path CFR including Sionna path-Doppler phase evolution "
+                    "across PUSCH OFDM-symbol samples"
+                ),
                 "geometric_los": "depth-zero LOS-only PathSolver visibility oracle",
             },
             "target_units": {
                 "channel_cfr": "complex channel gain (dimensionless)",
+                "channel_cfr_ofdm_symbols": "complex channel gain (dimensionless)",
                 "geometric_los": "boolean",
+            },
+            "channel_time_evolution": {
+                "model": "Sionna RT Paths.cfr Doppler phase evolution",
+                "num_time_steps": grid.num_ofdm_symbols,
+                "sampling_frequency_hz": config.subcarrier_spacing_khz * 1_000.0,
+                "sample_interval_approximation": "1/subcarrier_spacing; cyclic prefix omitted",
+                "moving_geometry_within_slot": False,
             },
             "direct_path_count": direct_path_counts[index],
             "full_path_count": total_path_counts[index],
@@ -462,10 +484,14 @@ def generate_rt_nr_trajectory(
                 observation=observation,
                 targets={
                     "channel_cfr": channels[index],
+                    "channel_cfr_ofdm_symbols": waveform_channels[index],
                     "geometric_los": np.asarray(geometric_los[index], dtype=np.bool_),
                 },
                 target_masks={
                     "channel_cfr": np.ones(grid.fft_size, dtype=np.bool_),
+                    "channel_cfr_ofdm_symbols": np.ones_like(
+                        waveform_channels[index], dtype=np.bool_
+                    ),
                     "geometric_los": np.asarray(True, dtype=np.bool_),
                 },
                 target_definitions={
@@ -473,6 +499,14 @@ def generate_rt_nr_trajectory(
                         semantic="absolute-delay full-path complex CFR on effective PUSCH subcarriers",
                         units="complex channel gain (dimensionless)",
                         source="sionna_rt_pathsolver",
+                    ),
+                    "channel_cfr_ofdm_symbols": TargetDefinition(
+                        semantic=(
+                            "absolute-delay full-path CFR with path-Doppler phase evolution "
+                            "sampled at PUSCH OFDM symbols"
+                        ),
+                        units="complex channel gain (dimensionless)",
+                        source="sionna_rt_paths_cfr_doppler",
                     ),
                     "geometric_los": TargetDefinition(
                         semantic="depth-zero LOS-only PathSolver visibility oracle",
