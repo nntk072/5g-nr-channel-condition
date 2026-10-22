@@ -1,0 +1,468 @@
+{
+  "configuration": {
+    "material_scattering_overrides": {
+      "itu_concrete": 0.5,
+      "itu_glass": 0.5,
+      "itu_metal": 0.5
+    },
+    "materials": {
+      "itu_concrete": {
+        "scattering_coefficient": [
+          0.5
+        ],
+        "scattering_pattern": "LambertianPattern",
+        "xpd_coefficient": [
+          0.0
+        ]
+      },
+      "itu_glass": {
+        "scattering_coefficient": [
+          0.5
+        ],
+        "scattering_pattern": "LambertianPattern",
+        "xpd_coefficient": [
+          0.0
+        ]
+      },
+      "itu_metal": {
+        "scattering_coefficient": [
+          0.5
+        ],
+        "scattering_pattern": "LambertianPattern",
+        "xpd_coefficient": [
+          0.0
+        ]
+      }
+    },
+    "max_depth": 3,
+    "mitsuba_variant": "llvm_ad_mono_polarized",
+    "samples_per_src": 20000,
+    "seeds": [
+      11,
+      23,
+      47
+    ]
+  },
+  "figure": {
+    "png": {
+      "path": "docs/research/figures/rt-city43-los-nlos-path-cap-sweep-s05-20261022.png",
+      "sha256": "5180479cfe898ed1421e44975eb901b06960470ced4a95e8c71738c702a67ae2"
+    },
+    "svg": {
+      "path": "docs/research/figures/rt-city43-los-nlos-path-cap-sweep-s05-20261022.svg",
+      "sha256": "d07e71191f2c618d19d1b3d815529dde6ef88b3aabd4d1fc1093c89928d9487a"
+    }
+  },
+  "inputs": [
+    {
+      "max_num_paths_per_src": 1000,
+      "path": "/home/nguyenl37/5g-nr-channel-condition/docs/research/results/rt-city43-los-nlos-depth3-s05-cap1000-20261022.json",
+      "sha256": "798f74829283dd8a82966ceabbcebbebda405d2916f0cf3554aa0342a92239af"
+    },
+    {
+      "max_num_paths_per_src": 10000,
+      "path": "/home/nguyenl37/5g-nr-channel-condition/docs/research/results/rt-city43-los-nlos-depth3-s05-cap10000-20261022.json",
+      "sha256": "f9d67d91acacca1adb6820c8468f7909c49ad7a9d64738730b1514b1c350e584"
+    },
+    {
+      "max_num_paths_per_src": 1000000,
+      "path": "/home/nguyenl37/5g-nr-channel-condition/docs/research/results/rt-city43-los-nlos-depth3-s05-cap1000000-20261022.json",
+      "sha256": "d73cea157d36f510583ebce1d0ffb25d943a471a5a94c6a4c528a40402133c40"
+    }
+  ],
+  "limitations": [
+    "The largest path cap is a finite comparison reference, not ground truth.",
+    "Only one synthetic thin-screen scene, one scattering override, and one depth/budget are compared.",
+    "CFR vectors are not stored in the convergence reports, so this audit compares path and aggregate observables, not cross-cap complex CFR error.",
+    "The S=0.5 material override is for mechanism testing, not calibrated material realism."
+  ],
+  "per_seed": [
+    {
+      "link_id": "center-los",
+      "max_num_paths_per_src": 1000,
+      "power_weighted_arrival_angular_spread_deg": 19.153281266150454,
+      "power_weighted_rms_delay_spread_ns": 22.26174977693063,
+      "seed": 11,
+      "valid_diffuse_reflection_path_count": 978,
+      "valid_path_count": 981,
+      "valid_path_power_sum": 3.892707667318973e-08
+    },
+    {
+      "link_id": "center-los",
+      "max_num_paths_per_src": 1000,
+      "power_weighted_arrival_angular_spread_deg": 20.18621989715157,
+      "power_weighted_rms_delay_spread_ns": 20.849615367524166,
+      "seed": 23,
+      "valid_diffuse_reflection_path_count": 978,
+      "valid_path_count": 981,
+      "valid_path_power_sum": 3.9565076548342404e-08
+    },
+    {
+      "link_id": "center-los",
+      "max_num_paths_per_src": 1000,
+      "power_weighted_arrival_angular_spread_deg": 19.19256698118434,
+      "power_weighted_rms_delay_spread_ns": 22.365147955838438,
+      "seed": 47,
+      "valid_diffuse_reflection_path_count": 978,
+      "valid_path_count": 981,
+      "valid_path_power_sum": 3.898374600908028e-08
+    },
+    {
+      "link_id": "center-nlos",
+      "max_num_paths_per_src": 1000,
+      "power_weighted_arrival_angular_spread_deg": 40.490671305261195,
+      "power_weighted_rms_delay_spread_ns": 85.53799801802597,
+      "seed": 11,
+      "valid_diffuse_reflection_path_count": 328,
+      "valid_path_count": 340,
+      "valid_path_power_sum": 1.6264117830289138e-09
+    },
+    {
+      "link_id": "center-nlos",
+      "max_num_paths_per_src": 1000,
+      "power_weighted_arrival_angular_spread_deg": 40.44479782264099,
+      "power_weighted_rms_delay_spread_ns": 80.73622126403279,
+      "seed": 23,
+      "valid_diffuse_reflection_path_count": 338,
+      "valid_path_count": 349,
+      "valid_path_power_sum": 1.6183450135542898e-09
+    },
+    {
+      "link_id": "center-nlos",
+      "max_num_paths_per_src": 1000,
+      "power_weighted_arrival_angular_spread_deg": 41.21982462556585,
+      "power_weighted_rms_delay_spread_ns": 81.93145362156429,
+      "seed": 47,
+      "valid_diffuse_reflection_path_count": 323,
+      "valid_path_count": 335,
+      "valid_path_power_sum": 1.6341066277902883e-09
+    },
+    {
+      "link_id": "center-los",
+      "max_num_paths_per_src": 10000,
+      "power_weighted_arrival_angular_spread_deg": 20.34723836274484,
+      "power_weighted_rms_delay_spread_ns": 34.05083859320257,
+      "seed": 11,
+      "valid_diffuse_reflection_path_count": 1843,
+      "valid_path_count": 1852,
+      "valid_path_power_sum": 3.9408035945598385e-08
+    },
+    {
+      "link_id": "center-los",
+      "max_num_paths_per_src": 10000,
+      "power_weighted_arrival_angular_spread_deg": 21.367316234024003,
+      "power_weighted_rms_delay_spread_ns": 33.05934015429557,
+      "seed": 23,
+      "valid_diffuse_reflection_path_count": 1857,
+      "valid_path_count": 1866,
+      "valid_path_power_sum": 4.0044206173206476e-08
+    },
+    {
+      "link_id": "center-los",
+      "max_num_paths_per_src": 10000,
+      "power_weighted_arrival_angular_spread_deg": 20.53954188717459,
+      "power_weighted_rms_delay_spread_ns": 34.249890035198405,
+      "seed": 47,
+      "valid_diffuse_reflection_path_count": 1876,
+      "valid_path_count": 1885,
+      "valid_path_power_sum": 3.949854132656583e-08
+    },
+    {
+      "link_id": "center-nlos",
+      "max_num_paths_per_src": 10000,
+      "power_weighted_arrival_angular_spread_deg": 40.490671305261195,
+      "power_weighted_rms_delay_spread_ns": 85.53799801802597,
+      "seed": 11,
+      "valid_diffuse_reflection_path_count": 328,
+      "valid_path_count": 340,
+      "valid_path_power_sum": 1.6264117830289138e-09
+    },
+    {
+      "link_id": "center-nlos",
+      "max_num_paths_per_src": 10000,
+      "power_weighted_arrival_angular_spread_deg": 40.44479782264099,
+      "power_weighted_rms_delay_spread_ns": 80.73622126403279,
+      "seed": 23,
+      "valid_diffuse_reflection_path_count": 338,
+      "valid_path_count": 349,
+      "valid_path_power_sum": 1.6183450135542898e-09
+    },
+    {
+      "link_id": "center-nlos",
+      "max_num_paths_per_src": 10000,
+      "power_weighted_arrival_angular_spread_deg": 41.219834990830215,
+      "power_weighted_rms_delay_spread_ns": 81.93144651613693,
+      "seed": 47,
+      "valid_diffuse_reflection_path_count": 323,
+      "valid_path_count": 335,
+      "valid_path_power_sum": 1.6341068498348932e-09
+    },
+    {
+      "link_id": "center-los",
+      "max_num_paths_per_src": 1000000,
+      "power_weighted_arrival_angular_spread_deg": 20.34723836274484,
+      "power_weighted_rms_delay_spread_ns": 34.05083859320257,
+      "seed": 11,
+      "valid_diffuse_reflection_path_count": 1843,
+      "valid_path_count": 1852,
+      "valid_path_power_sum": 3.9408035945598385e-08
+    },
+    {
+      "link_id": "center-los",
+      "max_num_paths_per_src": 1000000,
+      "power_weighted_arrival_angular_spread_deg": 21.367316234024003,
+      "power_weighted_rms_delay_spread_ns": 33.05934370700925,
+      "seed": 23,
+      "valid_diffuse_reflection_path_count": 1857,
+      "valid_path_count": 1866,
+      "valid_path_power_sum": 4.0044206173206476e-08
+    },
+    {
+      "link_id": "center-los",
+      "max_num_paths_per_src": 1000000,
+      "power_weighted_arrival_angular_spread_deg": 20.539532153501906,
+      "power_weighted_rms_delay_spread_ns": 34.249890035198405,
+      "seed": 47,
+      "valid_diffuse_reflection_path_count": 1876,
+      "valid_path_count": 1885,
+      "valid_path_power_sum": 3.949853777385215e-08
+    },
+    {
+      "link_id": "center-nlos",
+      "max_num_paths_per_src": 1000000,
+      "power_weighted_arrival_angular_spread_deg": 40.490671305261195,
+      "power_weighted_rms_delay_spread_ns": 85.53799091259862,
+      "seed": 11,
+      "valid_diffuse_reflection_path_count": 328,
+      "valid_path_count": 340,
+      "valid_path_power_sum": 1.6264118940512162e-09
+    },
+    {
+      "link_id": "center-nlos",
+      "max_num_paths_per_src": 1000000,
+      "power_weighted_arrival_angular_spread_deg": 40.44480835143577,
+      "power_weighted_rms_delay_spread_ns": 80.73621415860543,
+      "seed": 23,
+      "valid_diffuse_reflection_path_count": 338,
+      "valid_path_count": 349,
+      "valid_path_power_sum": 1.6183450135542898e-09
+    },
+    {
+      "link_id": "center-nlos",
+      "max_num_paths_per_src": 1000000,
+      "power_weighted_arrival_angular_spread_deg": 41.219834990830215,
+      "power_weighted_rms_delay_spread_ns": 81.93144651613693,
+      "seed": 47,
+      "valid_diffuse_reflection_path_count": 323,
+      "valid_path_count": 335,
+      "valid_path_power_sum": 1.6341068498348932e-09
+    }
+  ],
+  "scene": {
+    "name": "scenes/generated/research_scenes/city43/urban_00043.xml",
+    "scene_tree_sha256": "9b8864831654336ac34e363e1cc92d7208b50c66bfcbdff1a873e3b2be635bbb",
+    "xml_path": "/home/nguyenl37/5g-nr-channel-condition/scenes/generated/research_scenes/city43/urban_00043.xml",
+    "xml_sha256": "3d716ff2e759230469eae6ca0537fb56c741c7ba2a12f5ed3bfb2966b5f38131"
+  },
+  "schema": "loslab.rt_path_cap_sweep.v1",
+  "summaries": [
+    {
+      "geometric_visibility_state": "visible",
+      "link_id": "center-los",
+      "max_num_paths_per_src": 1000,
+      "metrics": {
+        "power_weighted_arrival_angular_spread_deg": {
+          "max": 20.18621989715157,
+          "median": 19.19256698118434,
+          "min": 19.153281266150454
+        },
+        "power_weighted_rms_delay_spread_ns": {
+          "max": 22.365147955838438,
+          "median": 22.26174977693063,
+          "min": 20.849615367524166
+        },
+        "valid_diffuse_reflection_path_count": {
+          "max": 978.0,
+          "median": 978.0,
+          "min": 978.0
+        },
+        "valid_path_count": {
+          "max": 981.0,
+          "median": 981.0,
+          "min": 981.0
+        },
+        "valid_path_power_sum": {
+          "max": 3.9565076548342404e-08,
+          "median": 3.898374600908028e-08,
+          "min": 3.892707667318973e-08
+        }
+      },
+      "seed_count": 3
+    },
+    {
+      "geometric_visibility_state": "blocked",
+      "link_id": "center-nlos",
+      "max_num_paths_per_src": 1000,
+      "metrics": {
+        "power_weighted_arrival_angular_spread_deg": {
+          "max": 41.21982462556585,
+          "median": 40.490671305261195,
+          "min": 40.44479782264099
+        },
+        "power_weighted_rms_delay_spread_ns": {
+          "max": 85.53799801802597,
+          "median": 81.93145362156429,
+          "min": 80.73622126403279
+        },
+        "valid_diffuse_reflection_path_count": {
+          "max": 338.0,
+          "median": 328.0,
+          "min": 323.0
+        },
+        "valid_path_count": {
+          "max": 349.0,
+          "median": 340.0,
+          "min": 335.0
+        },
+        "valid_path_power_sum": {
+          "max": 1.6341066277902883e-09,
+          "median": 1.6264117830289138e-09,
+          "min": 1.6183450135542898e-09
+        }
+      },
+      "seed_count": 3
+    },
+    {
+      "geometric_visibility_state": "visible",
+      "link_id": "center-los",
+      "max_num_paths_per_src": 10000,
+      "metrics": {
+        "power_weighted_arrival_angular_spread_deg": {
+          "max": 21.367316234024003,
+          "median": 20.53954188717459,
+          "min": 20.34723836274484
+        },
+        "power_weighted_rms_delay_spread_ns": {
+          "max": 34.249890035198405,
+          "median": 34.05083859320257,
+          "min": 33.05934015429557
+        },
+        "valid_diffuse_reflection_path_count": {
+          "max": 1876.0,
+          "median": 1857.0,
+          "min": 1843.0
+        },
+        "valid_path_count": {
+          "max": 1885.0,
+          "median": 1866.0,
+          "min": 1852.0
+        },
+        "valid_path_power_sum": {
+          "max": 4.0044206173206476e-08,
+          "median": 3.949854132656583e-08,
+          "min": 3.9408035945598385e-08
+        }
+      },
+      "seed_count": 3
+    },
+    {
+      "geometric_visibility_state": "blocked",
+      "link_id": "center-nlos",
+      "max_num_paths_per_src": 10000,
+      "metrics": {
+        "power_weighted_arrival_angular_spread_deg": {
+          "max": 41.219834990830215,
+          "median": 40.490671305261195,
+          "min": 40.44479782264099
+        },
+        "power_weighted_rms_delay_spread_ns": {
+          "max": 85.53799801802597,
+          "median": 81.93144651613693,
+          "min": 80.73622126403279
+        },
+        "valid_diffuse_reflection_path_count": {
+          "max": 338.0,
+          "median": 328.0,
+          "min": 323.0
+        },
+        "valid_path_count": {
+          "max": 349.0,
+          "median": 340.0,
+          "min": 335.0
+        },
+        "valid_path_power_sum": {
+          "max": 1.6341068498348932e-09,
+          "median": 1.6264117830289138e-09,
+          "min": 1.6183450135542898e-09
+        }
+      },
+      "seed_count": 3
+    },
+    {
+      "geometric_visibility_state": "visible",
+      "link_id": "center-los",
+      "max_num_paths_per_src": 1000000,
+      "metrics": {
+        "power_weighted_arrival_angular_spread_deg": {
+          "max": 21.367316234024003,
+          "median": 20.539532153501906,
+          "min": 20.34723836274484
+        },
+        "power_weighted_rms_delay_spread_ns": {
+          "max": 34.249890035198405,
+          "median": 34.05083859320257,
+          "min": 33.05934370700925
+        },
+        "valid_diffuse_reflection_path_count": {
+          "max": 1876.0,
+          "median": 1857.0,
+          "min": 1843.0
+        },
+        "valid_path_count": {
+          "max": 1885.0,
+          "median": 1866.0,
+          "min": 1852.0
+        },
+        "valid_path_power_sum": {
+          "max": 4.0044206173206476e-08,
+          "median": 3.949853777385215e-08,
+          "min": 3.9408035945598385e-08
+        }
+      },
+      "seed_count": 3
+    },
+    {
+      "geometric_visibility_state": "blocked",
+      "link_id": "center-nlos",
+      "max_num_paths_per_src": 1000000,
+      "metrics": {
+        "power_weighted_arrival_angular_spread_deg": {
+          "max": 41.219834990830215,
+          "median": 40.490671305261195,
+          "min": 40.44480835143577
+        },
+        "power_weighted_rms_delay_spread_ns": {
+          "max": 85.53799091259862,
+          "median": 81.93144651613693,
+          "min": 80.73621415860543
+        },
+        "valid_diffuse_reflection_path_count": {
+          "max": 338.0,
+          "median": 328.0,
+          "min": 323.0
+        },
+        "valid_path_count": {
+          "max": 349.0,
+          "median": 340.0,
+          "min": 335.0
+        },
+        "valid_path_power_sum": {
+          "max": 1.6341068498348932e-09,
+          "median": 1.6264118940512162e-09,
+          "min": 1.6183450135542898e-09
+        }
+      },
+      "seed_count": 3
+    }
+  ]
+}
