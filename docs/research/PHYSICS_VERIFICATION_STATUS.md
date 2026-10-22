@@ -99,3 +99,15 @@ pass. Hosted CI
 [39721406035](https://github.com/nntk072/5g-nr-channel-condition/actions/runs/39721406035)
 passes all four software jobs; it does not install native RT or exercise the
 CUDA-only PHY regression.
+
+**Edition 3.117 follow-up:** Added typed UMCD v1 episode, explicit antenna
+element/port maps, directed links, ragged path-oracle, named-axis physical
+channel, and reason-coded target contracts. The immutable episode store writes
+separate content-addressed NPZ layers for metadata, path truth, channels, and
+targets and publishes a versioned manifest last. Dataset tests, the complete
+local suite (87.77% coverage), Ruff, mypy, lock validation, and package build
+pass. Hosted CI
+[39723486090](https://github.com/nntk072/5g-nr-channel-condition/actions/runs/39723486090)
+passes all four jobs. This does not yet include receiver-view linkage, motion,
+full solver/material provenance, a locked split registry, or production-scale
+columnar/chunked storage.
