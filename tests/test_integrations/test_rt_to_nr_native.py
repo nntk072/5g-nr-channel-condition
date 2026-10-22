@@ -379,6 +379,82 @@ def test_synthetic_array_matches_explicit_in_far_field_but_not_near_field():
 
 
 @pytest.mark.native_sionna
+def test_explicit_2x2_los_channel_and_spatial_correlation_match_geometry():
+    """Check MIMO device axes and correlation against all four LOS distances."""
+    import mitsuba as mi
+
+    mi.set_variant("llvm_ad_mono_polarized")
+    rt = pytest.importorskip("sionna.rt")
+
+    carrier_hz = 3.5e9
+    wavelength_m = speed_of_light / carrier_hz
+    tx_center = np.asarray([0.0, 0.0, 0.0])
+    rx_center = np.asarray([10.0, 1.0, 0.0])
+    local_positions = (
+        np.asarray([[0.0, -0.25, 0.0], [0.0, 0.25, 0.0]], dtype=np.float64) * wavelength_m
+    )
+    scene = rt.load_scene()
+    scene.frequency = carrier_hz
+    scene.tx_array = rt.PlanarArray(
+        num_rows=1, num_cols=2, horizontal_spacing=0.5, pattern="iso", polarization="V"
+    )
+    scene.rx_array = rt.PlanarArray(
+        num_rows=1, num_cols=2, horizontal_spacing=0.5, pattern="iso", polarization="V"
+    )
+    scene.add(rt.Transmitter("tx", tx_center.tolist()))
+    scene.add(rt.Receiver("rx", rx_center.tolist()))
+    paths = rt.PathSolver(deterministic=True)(
+        scene,
+        max_depth=0,
+        los=True,
+        specular_reflection=False,
+        diffuse_reflection=False,
+        refraction=False,
+        diffraction=False,
+        synthetic_array=False,
+        seed=19,
+    )
+
+    valid = np.asarray(paths.valid.numpy(), dtype=bool)
+    assert valid.shape == (1, 2, 1, 2, 1)
+    assert valid.all()
+    tx_positions = tx_center + local_positions
+    rx_positions = rx_center + local_positions
+    distances_m = np.linalg.norm(rx_positions[:, None, :] - tx_positions[None, :, :], axis=-1)
+    delays_s = np.asarray(paths.tau.numpy(), dtype=np.float64)[0, :, 0, :, 0]
+    np.testing.assert_allclose(delays_s, distances_m / speed_of_light, rtol=0, atol=2e-12)
+
+    expected_channel = (
+        wavelength_m
+        / (4.0 * np.pi * distances_m)
+        * np.exp(-2j * np.pi * carrier_hz * distances_m / speed_of_light)
+    )
+    response = paths.cfr(
+        frequencies=np.asarray([0.0]),
+        normalize_delays=False,
+        normalize=False,
+        out_type="numpy",
+    )
+    measured_channel = response[0, :, 0, :, 0, 0]
+    relative_error = np.linalg.norm(measured_channel - expected_channel) / np.linalg.norm(
+        expected_channel
+    )
+    assert relative_error < 1e-4
+
+    def normalized_spatial_correlation(channel: np.ndarray) -> np.ndarray:
+        covariance = channel @ channel.conj().T
+        powers = np.real(np.diag(covariance))
+        return covariance / np.sqrt(powers[:, None] * powers[None, :])
+
+    np.testing.assert_allclose(
+        normalized_spatial_correlation(measured_channel),
+        normalized_spatial_correlation(expected_channel),
+        rtol=1e-4,
+        atol=1e-5,
+    )
+
+
+@pytest.mark.native_sionna
 @pytest.mark.parametrize(("polarization", "fresnel_mode"), [("V", "TM"), ("H", "TE")])
 def test_rt_reflected_path_gain_matches_analytic_fresnel_slab(polarization, fresnel_mode):
     """V and H links match the analytic TM and TE slab coefficients, respectively."""
