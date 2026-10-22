@@ -389,15 +389,21 @@ def test_convergence_matrix_labels_los_and_blocked_links_independently():
         include_cfr_vectors=True,
         include_path_diagnostics=True,
         path_diagnostics_max_depth_only=True,
+        only_max_depth=True,
+        include_path_lineage_diagnostics=True,
     )
     assert scattered["configuration"]["materials"]["screen-mat"]["scattering_coefficient"] == [0.5]
-    assert scattered["schema"].endswith(".v5")
+    assert scattered["schema"].endswith(".v6")
     assert scattered["configuration"]["cfr_vectors_included"] is True
     assert scattered["configuration"]["path_diagnostics_included"] is True
     assert scattered["configuration"]["path_diagnostics_depths"] == [3]
+    assert scattered["configuration"]["max_depth_values"] == [3]
+    assert scattered["configuration"]["only_max_depth"] is True
+    assert scattered["configuration"]["path_lineage_diagnostics_included"] is True
     assert all(len(row["cfr_vector_real"]) == 8 for row in scattered["runs"])
     assert all(len(row["cfr_vector_imag"]) == 8 for row in scattered["runs"])
-    diagnostic_runs = [row for row in scattered["runs"] if row["max_depth"] == 3]
+    diagnostic_runs = list(scattered["runs"])
+    assert {row["max_depth"] for row in diagnostic_runs} == {3}
     assert all(len(row["path_diagnostics"]) == row["valid_path_count"] for row in diagnostic_runs)
     assert all(row["path_cfr_reconstruction_within_tolerance"] for row in diagnostic_runs)
     assert all("path_diagnostics" not in row for row in scattered["runs"] if row["max_depth"] != 3)
@@ -414,3 +420,16 @@ def test_convergence_matrix_labels_los_and_blocked_links_independently():
         for row in scattered["runs"]
     )
     assert max(row["valid_diffuse_reflection_path_count"] for row in scattered["runs"]) > 0
+    assert all(row["path_lineage_stages"] for row in diagnostic_runs)
+    assert all(
+        {stage["stage"] for stage in row["path_lineage_stages"]}
+        >= {
+            "after_los",
+            "after_shoot_and_bounce",
+            "after_image_method",
+            "after_field_calculator",
+            "after_discard_invalid",
+            "final_paths_tensor",
+        }
+        for row in diagnostic_runs
+    )

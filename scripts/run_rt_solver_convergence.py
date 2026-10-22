@@ -348,6 +348,8 @@ def run_convergence(
     include_cfr_vectors: bool = False,
     include_path_diagnostics: bool = False,
     path_diagnostics_max_depth_only: bool = False,
+    only_max_depth: bool = False,
+    include_path_lineage_diagnostics: bool = False,
 ) -> dict[str, Any]:
     """Compare ray budgets and interaction depths for named fixed links."""
     if max_depth < 1:
@@ -370,8 +372,18 @@ def run_convergence(
         raise TypeError("include_path_diagnostics must be a boolean")
     if not isinstance(path_diagnostics_max_depth_only, bool):
         raise TypeError("path_diagnostics_max_depth_only must be a boolean")
+    if not isinstance(only_max_depth, bool):
+        raise TypeError("only_max_depth must be a boolean")
+    if not isinstance(include_path_lineage_diagnostics, bool):
+        raise TypeError("include_path_lineage_diagnostics must be a boolean")
     if path_diagnostics_max_depth_only and not include_path_diagnostics:
         raise ValueError("max-depth-only diagnostics require include_path_diagnostics")
+    if include_path_lineage_diagnostics and not (
+        only_max_depth and include_path_diagnostics and include_cfr_vectors
+    ):
+        raise ValueError(
+            "path-lineage diagnostics require only_max_depth, path diagnostics, and CFR vectors"
+        )
     for name, coefficient in (material_scattering_overrides or {}).items():
         if not name or isinstance(coefficient, bool) or not math.isfinite(coefficient):
             raise ValueError("material scattering overrides require names and finite coefficients")
@@ -431,6 +443,12 @@ def run_convergence(
     scene.add(rt.Receiver(name="convergence_rx", position=list(rx_position)))
     solver = rt.PathSolver(deterministic=True)
     candidate_path_counter = instrument_path_solver_candidate_counter(solver)
+    lineage_observer = None
+    if include_path_lineage_diagnostics:
+        from integrations.sionna.path_lineage import PathLineageObserver
+
+        lineage_observer = PathLineageObserver()
+        lineage_observer.attach(solver)
     grid = GridConfig(
         n_subcarriers=n_subcarriers,
         spacing_hz=subcarrier_spacing_hz,
@@ -448,6 +466,10 @@ def run_convergence(
         key = (link.link_id, seed, depth, samples)
         if key in records_by_key:
             return records_by_key[key]
+        if lineage_observer is not None:
+            lineage_observer.begin_case(
+                link_id=link.link_id, seed=seed, depth=depth, samples=samples
+            )
         scene.transmitters["convergence_tx"].position = list(link.tx_position_m)
         scene.receivers["convergence_rx"].position = list(link.rx_position_m)
         started = time.perf_counter()
@@ -469,6 +491,7 @@ def run_convergence(
         candidate_path_counts_per_source = (
             candidate_path_counter.last_candidate_path_counts_per_source
         )
+        path_lineage = lineage_observer.finish_case() if lineage_observer is not None else None
         if candidate_path_counts_per_source is None:
             raise RuntimeError("Sionna did not expose per-source candidate path counts")
         cfr = rt_cfr(paths, grid).reshape(-1)
@@ -529,6 +552,8 @@ def run_convergence(
         if include_cfr_vectors:
             row["cfr_vector_real"] = cfr.real.astype(np.float64).tolist()
             row["cfr_vector_imag"] = cfr.imag.astype(np.float64).tolist()
+        if path_lineage is not None:
+            row["path_lineage_stages"] = path_lineage
         if include_path_diagnostics and (not path_diagnostics_max_depth_only or depth == max_depth):
             if valid_path_mask.ndim != 3 or valid_path_mask.shape[0:2] != (1, 1):
                 raise RuntimeError("path diagnostics currently require exactly one SISO link")
@@ -594,7 +619,7 @@ def run_convergence(
             cases.update(
                 {
                     (depth, reference_samples): evaluate(link, seed, depth, reference_samples)
-                    for depth in range(max_depth + 1)
+                    for depth in ((max_depth,) if only_max_depth else range(max_depth + 1))
                 }
             )
             for (depth, samples), row in sorted(cases.items()):
@@ -608,7 +633,9 @@ def run_convergence(
     runtime = versions()
     return {
         "schema": (
-            "loslab.sionna_rt_solver_convergence.v5"
+            "loslab.sionna_rt_solver_convergence.v6"
+            if include_path_lineage_diagnostics
+            else "loslab.sionna_rt_solver_convergence.v5"
             if include_path_diagnostics
             else (
                 "loslab.sionna_rt_solver_convergence.v4"
@@ -627,7 +654,7 @@ def run_convergence(
             "mitsuba_variant": backend_selection.variant,
             "rt_backend_selection": backend_selection.as_dict(),
             "deterministic_solver": True,
-            "max_depth_values": list(range(max_depth + 1)),
+            "max_depth_values": [max_depth] if only_max_depth else list(range(max_depth + 1)),
             "samples_per_src_values": list(samples_per_src_values),
             "reference_samples_per_src": reference_samples,
             "max_num_paths_per_src": max_num_paths_per_src,
@@ -660,6 +687,8 @@ def run_convergence(
             "cfr_vectors_included": include_cfr_vectors,
             "cfr_vector_encoding": "float64-real-imaginary-lists" if include_cfr_vectors else None,
             "path_diagnostics_included": include_path_diagnostics,
+            "only_max_depth": only_max_depth,
+            "path_lineage_diagnostics_included": include_path_lineage_diagnostics,
             "path_diagnostics_depths": (
                 [max_depth]
                 if include_path_diagnostics and path_diagnostics_max_depth_only
@@ -737,6 +766,16 @@ def main() -> None:
         help="limit per-path CFR diagnostics to rows at the configured maximum depth",
     )
     parser.add_argument(
+        "--only-max-depth",
+        action="store_true",
+        help="run only the configured maximum interaction depth, without the 0..max-depth sweep",
+    )
+    parser.add_argument(
+        "--include-path-lineage-diagnostics",
+        action="store_true",
+        help="snapshot zero-interaction path records after each native solver pipeline stage",
+    )
+    parser.add_argument(
         "--material-scattering",
         action="append",
         default=[],
@@ -783,6 +822,8 @@ def main() -> None:
             include_cfr_vectors=args.include_cfr_vectors,
             include_path_diagnostics=args.include_path_diagnostics,
             path_diagnostics_max_depth_only=args.path_diagnostics_max_depth_only,
+            only_max_depth=args.only_max_depth,
+            include_path_lineage_diagnostics=args.include_path_lineage_diagnostics,
             link_cases=(
                 tuple(
                     ConvergenceLink(
