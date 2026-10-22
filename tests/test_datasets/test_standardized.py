@@ -215,6 +215,22 @@ def test_noisy_cfr_observation_and_profile_proxy_target_are_separate() -> None:
         standardized_learning_example_from_record(record, snr_db=20.0, seed=404, time_index=2)
 
 
+def test_seeded_complex_awgn_matches_declared_noise_variance() -> None:
+    run = standardized_run_from_channel(_channel(), family=StandardizedFamily.TDL)
+    record = run.records[0]
+    noiseless = np.asarray(record.cfr[0, :, 0, :, 0, :], dtype=np.complex128)
+    noise_samples = []
+    expected_variances = []
+    for seed in range(240):
+        example = standardized_learning_example_from_record(record, snr_db=12.0, seed=seed)
+        noise_samples.append(example.model_inputs().observed_cfr.astype(np.complex128) - noiseless)
+        expected_variances.append(example.model_inputs().noise_variance)
+
+    empirical_variance = float(np.mean(np.abs(np.stack(noise_samples)) ** 2))
+    expected_variance = float(np.mean(expected_variances))
+    assert empirical_variance == pytest.approx(expected_variance, rel=0.08)
+
+
 def test_learning_run_persists_observation_and_target_layers_separately(tmp_path) -> None:
     channels = standardized_run_from_channel(
         _channel(), family=StandardizedFamily.TDL, run_id="tdl-a-learning"
