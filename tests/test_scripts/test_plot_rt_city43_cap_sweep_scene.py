@@ -69,6 +69,7 @@ def test_city43_figure_uses_building_meshes_and_audited_link_endpoints(tmp_path:
 
 
 def test_city43_obj_reader_preserves_mesh_geometry():
+    pytest.importorskip("matplotlib")
     module = runpy.run_path(str(ROOT / "scripts" / "plot_rt_city43_cap_sweep_scene.py"))
     mesh_path = ROOT / "scenes/generated/research_scenes/city43/meshes_00043/building_r01_c02.obj"
 
