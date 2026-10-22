@@ -123,8 +123,9 @@ zero-path outcomes, and an explicitly selected pair in a multi-device scene.
 All 11 focused cases pass. The complete local suite passes with 518 passed,
 3 skipped, and 87.75% coverage; Ruff check/format pass across 231 maintained
 files, mypy passes across 146 source files, and `uv lock --check`, `uv build`,
-and `git diff --check` pass. Hosted CI has not yet run for this change and
-does not install native RT. This is a path-field bridge, not completion of
+and `git diff --check` pass. Hosted CI
+[run 39725668192](https://github.com/nntk072/5g-nr-channel-condition/actions/runs/39725668192)
+passes all four jobs but does not install native RT. This is a path-field bridge, not completion of
 Stage S2: object/primitive/vertex extraction, device/link enumeration,
 geometry-derived direct visibility, solver convergence and power-budget
 convergence remain open.
