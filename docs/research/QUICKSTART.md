@@ -16,6 +16,9 @@ and [figure metadata](figures/rt-urban43-spatial-holdout-3d-20261022.json).
 The separate [RT depth-convergence plot](figures/rt-box-los-nlos-convergence-depth20-100k-20261022.png)
 shows a controlled thin-screen box experiment; its increasing path and delay
 statistics through depth 20 are a solver diagnostic, not the building scene.
+The [matched scattering-budget plot](figures/rt-box-los-nlos-scattering-budget-verified-20261022.png)
+compares zero and synthetic nonzero screen scattering. Its ray-budget response
+is still material and the coefficient is not calibrated.
 
 ## Build a small receiver-visible PUSCH/DMRS dataset
 

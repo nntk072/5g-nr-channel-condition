@@ -1,0 +1,300 @@
+{
+  "inputs": [
+    {
+      "configuration": {
+        "carrier_hz": 3500000000.0,
+        "cfr_vector_encoding": "float64-real-imaginary-lists",
+        "cfr_vectors_included": true,
+        "deterministic_solver": true,
+        "links": [
+          {
+            "boundary_probe_blocked": [
+              false,
+              false,
+              false,
+              false
+            ],
+            "first_intersection_distance_m": null,
+            "geometric_los": true,
+            "geometric_visibility_state": "visible",
+            "incidence_cosine": null,
+            "link_id": "same-side-los",
+            "rx_position_m": [
+              -1.0,
+              0.0,
+              2.5
+            ],
+            "segment_length_m": 1.0,
+            "tx_position_m": [
+              -2.0,
+              0.0,
+              2.5
+            ]
+          },
+          {
+            "boundary_probe_blocked": [
+              true,
+              true,
+              true,
+              true
+            ],
+            "first_intersection_distance_m": 1.9999998807907104,
+            "geometric_los": false,
+            "geometric_visibility_state": "blocked",
+            "incidence_cosine": 0.9999999999999991,
+            "link_id": "through-screen-nlos",
+            "rx_position_m": [
+              2.0,
+              0.0,
+              2.5
+            ],
+            "segment_length_m": 4.0,
+            "tx_position_m": [
+              -2.0,
+              0.0,
+              2.5
+            ]
+          }
+        ],
+        "material_scattering_overrides": {
+          "screen-mat": 0.0
+        },
+        "materials": {
+          "box-mat": {
+            "scattering_coefficient": [
+              0.0
+            ],
+            "scattering_pattern": "LambertianPattern",
+            "xpd_coefficient": [
+              0.0
+            ]
+          },
+          "screen-mat": {
+            "scattering_coefficient": [
+              0.0
+            ],
+            "scattering_pattern": "LambertianPattern",
+            "xpd_coefficient": [
+              0.0
+            ]
+          }
+        },
+        "max_depth_values": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "max_num_paths_per_src": 1000000,
+        "mitsuba_variant": "llvm_ad_mono_polarized",
+        "n_subcarriers": 256,
+        "normalize_cfr_power": false,
+        "normalize_delays_for_cfr": false,
+        "reference_samples_per_src": 100000,
+        "rt_backend_selection": {
+          "available_variants": [
+            "scalar_rgb",
+            "scalar_spectral",
+            "scalar_spectral_polarized",
+            "llvm_ad_rgb",
+            "llvm_ad_mono",
+            "llvm_ad_mono_polarized",
+            "llvm_ad_spectral",
+            "llvm_ad_spectral_polarized",
+            "cuda_ad_rgb",
+            "cuda_ad_mono",
+            "cuda_ad_mono_polarized",
+            "cuda_ad_spectral",
+            "cuda_ad_spectral_polarized"
+          ],
+          "backend": "llvm_cpu",
+          "fallback_reason": null,
+          "probe_passed": true,
+          "probe_summary": "one direct path traced with llvm_ad_mono_polarized",
+          "requested": "llvm_ad_mono_polarized",
+          "runtime_versions": {
+            "drjit": "1.5.0",
+            "mitsuba": "3.9.1",
+            "sionna-rt": "2.2.0"
+          },
+          "variant": "llvm_ad_mono_polarized"
+        },
+        "samples_per_src_values": [
+          200,
+          2000,
+          20000,
+          100000
+        ],
+        "seeds": [
+          11,
+          23,
+          47
+        ],
+        "solver_flags": {
+          "diffraction": false,
+          "diffuse_reflection": true,
+          "los": true,
+          "refraction": true,
+          "specular_reflection": true
+        },
+        "subcarrier_spacing_hz": 30000.0
+      },
+      "path": "/home/nguyenl37/5g-nr-channel-condition/docs/research/results/rt-box-los-nlos-diffuse-budget-zero-verified-20261022.json",
+      "scene": "box_one_screen",
+      "sha256": "ef92c91dc5dfb24e9711cd34bc1c7855675258b36a9452cc6f5f9de3342ece6f"
+    },
+    {
+      "configuration": {
+        "carrier_hz": 3500000000.0,
+        "cfr_vector_encoding": "float64-real-imaginary-lists",
+        "cfr_vectors_included": true,
+        "deterministic_solver": true,
+        "links": [
+          {
+            "boundary_probe_blocked": [
+              false,
+              false,
+              false,
+              false
+            ],
+            "first_intersection_distance_m": null,
+            "geometric_los": true,
+            "geometric_visibility_state": "visible",
+            "incidence_cosine": null,
+            "link_id": "same-side-los",
+            "rx_position_m": [
+              -1.0,
+              0.0,
+              2.5
+            ],
+            "segment_length_m": 1.0,
+            "tx_position_m": [
+              -2.0,
+              0.0,
+              2.5
+            ]
+          },
+          {
+            "boundary_probe_blocked": [
+              true,
+              true,
+              true,
+              true
+            ],
+            "first_intersection_distance_m": 1.9999998807907104,
+            "geometric_los": false,
+            "geometric_visibility_state": "blocked",
+            "incidence_cosine": 0.9999999999999991,
+            "link_id": "through-screen-nlos",
+            "rx_position_m": [
+              2.0,
+              0.0,
+              2.5
+            ],
+            "segment_length_m": 4.0,
+            "tx_position_m": [
+              -2.0,
+              0.0,
+              2.5
+            ]
+          }
+        ],
+        "material_scattering_overrides": {
+          "screen-mat": 0.5
+        },
+        "materials": {
+          "box-mat": {
+            "scattering_coefficient": [
+              0.0
+            ],
+            "scattering_pattern": "LambertianPattern",
+            "xpd_coefficient": [
+              0.0
+            ]
+          },
+          "screen-mat": {
+            "scattering_coefficient": [
+              0.5
+            ],
+            "scattering_pattern": "LambertianPattern",
+            "xpd_coefficient": [
+              0.0
+            ]
+          }
+        },
+        "max_depth_values": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "max_num_paths_per_src": 1000000,
+        "mitsuba_variant": "llvm_ad_mono_polarized",
+        "n_subcarriers": 256,
+        "normalize_cfr_power": false,
+        "normalize_delays_for_cfr": false,
+        "reference_samples_per_src": 100000,
+        "rt_backend_selection": {
+          "available_variants": [
+            "scalar_rgb",
+            "scalar_spectral",
+            "scalar_spectral_polarized",
+            "llvm_ad_rgb",
+            "llvm_ad_mono",
+            "llvm_ad_mono_polarized",
+            "llvm_ad_spectral",
+            "llvm_ad_spectral_polarized",
+            "cuda_ad_rgb",
+            "cuda_ad_mono",
+            "cuda_ad_mono_polarized",
+            "cuda_ad_spectral",
+            "cuda_ad_spectral_polarized"
+          ],
+          "backend": "llvm_cpu",
+          "fallback_reason": null,
+          "probe_passed": true,
+          "probe_summary": "one direct path traced with llvm_ad_mono_polarized",
+          "requested": "llvm_ad_mono_polarized",
+          "runtime_versions": {
+            "drjit": "1.5.0",
+            "mitsuba": "3.9.1",
+            "sionna-rt": "2.2.0"
+          },
+          "variant": "llvm_ad_mono_polarized"
+        },
+        "samples_per_src_values": [
+          200,
+          2000,
+          20000,
+          100000
+        ],
+        "seeds": [
+          11,
+          23,
+          47
+        ],
+        "solver_flags": {
+          "diffraction": false,
+          "diffuse_reflection": true,
+          "los": true,
+          "refraction": true,
+          "specular_reflection": true
+        },
+        "subcarrier_spacing_hz": 30000.0
+      },
+      "path": "/home/nguyenl37/5g-nr-channel-condition/docs/research/results/rt-box-los-nlos-diffuse-budget-s05-verified-20261022.json",
+      "scene": "box_one_screen",
+      "sha256": "9f374bfda51bfeed338cb20d48a35e07993b1a26f1d1a127403bd5f25f4de500"
+    }
+  ],
+  "png": {
+    "path": "docs/research/figures/rt-box-los-nlos-scattering-budget-verified-20261022.png",
+    "sha256": "591a5d8b6aea5e3337c48c512e8abf845c5fce78844ecca9d7bc22be393d9e1a"
+  },
+  "schema": "loslab.rt_solver_convergence_plot.v1",
+  "summary": "Error bars show min-to-max across deterministic seeds. Exact zero relative errors (identical to the selected reference CFR) are omitted from log-scale panels. The high-budget CFR is a comparison reference, not proven ground truth. Ray-sample counts do not imply diffuse scattering: inspect each report's per-material scattering coefficients; schema v2 reports omit them.",
+  "svg": {
+    "path": "docs/research/figures/rt-box-los-nlos-scattering-budget-verified-20261022.svg",
+    "sha256": "b027c22e429a1059947410a9c3507861cb77a8cc3bd4d2039e2d0b14e57c13dd"
+  }
+}
