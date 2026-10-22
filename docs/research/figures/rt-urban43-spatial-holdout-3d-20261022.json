@@ -1,0 +1,101 @@
+{
+  "audit": {
+    "label_counts": {
+      "geometric_los": 60,
+      "geometric_nlos": 60
+    },
+    "path": "docs/research/results/rt-urban43-spatial-holdout-label-audit-20261022.json",
+    "sample_count": 120,
+    "sha256": "e6594fd73f31c6b900ac9644eb6b3a9b492fe7eadc46dc9865dc728faf4557b7"
+  },
+  "figure": {
+    "png": {
+      "path": "docs/research/figures/rt-urban43-spatial-holdout-3d-20261022.png",
+      "sha256": "326e390758fbe81aa01614310f199d40cee602da5b7028a36e2239ce88c4bec3"
+    },
+    "svg": {
+      "path": "docs/research/figures/rt-urban43-spatial-holdout-3d-20261022.svg",
+      "sha256": "cd7f82678cfebd49b1c710dbc4a136809cb733fc7583cc00c7afa92f2475e358"
+    }
+  },
+  "limitations": [
+    "This is one procedural City43 scene, not independent-scene or measured-channel evidence.",
+    "Each site has one fixed TX and 40 sampled RX positions; it does not yet test TX-position holdout.",
+    "Only six representative direct segments are drawn to keep the 3D figure readable."
+  ],
+  "receiver_samples_per_site": {
+    "center_x0": 40,
+    "east_x3": 40,
+    "west_x3": 40
+  },
+  "representative_links": [
+    {
+      "label": "geometric_los",
+      "rx_position_m": [
+        -8.590140794952246,
+        -15.375005963836855,
+        1.5
+      ],
+      "sample_index": 40,
+      "transmitter_id": "center_x0"
+    },
+    {
+      "label": "geometric_nlos",
+      "rx_position_m": [
+        24.35684045332106,
+        -5.3057960716627575,
+        1.5
+      ],
+      "sample_index": 41,
+      "transmitter_id": "center_x0"
+    },
+    {
+      "label": "geometric_los",
+      "rx_position_m": [
+        57.62307002102318,
+        3.4122560099501418,
+        1.5
+      ],
+      "sample_index": 81,
+      "transmitter_id": "east_x3"
+    },
+    {
+      "label": "geometric_nlos",
+      "rx_position_m": [
+        79.4695681841155,
+        14.174443605354421,
+        1.5
+      ],
+      "sample_index": 80,
+      "transmitter_id": "east_x3"
+    },
+    {
+      "label": "geometric_los",
+      "rx_position_m": [
+        -65.11846340832628,
+        18.638113470521038,
+        1.5
+      ],
+      "sample_index": 1,
+      "transmitter_id": "west_x3"
+    },
+    {
+      "label": "geometric_nlos",
+      "rx_position_m": [
+        -77.43486882328378,
+        4.992404967302439,
+        1.5
+      ],
+      "sample_index": 0,
+      "transmitter_id": "west_x3"
+    }
+  ],
+  "scene": {
+    "building_mesh_count": 16,
+    "manifest_sha256": "781d56f84a84836c5fe520d0cc8ba8193ca0e61bef3cc902449ec6611d382e2a",
+    "scene_tree_sha256": "9b8864831654336ac34e363e1cc92d7208b50c66bfcbdff1a873e3b2be635bbb",
+    "xml_path": "/home/nguyenl37/5g-nr-channel-condition/scenes/generated/research_scenes/city43/urban_00043.xml"
+  },
+  "schema": "loslab.urban43_spatial_holdout_3d_figure.v1",
+  "transmitter_site_count": 3
+}
