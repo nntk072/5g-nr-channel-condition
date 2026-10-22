@@ -30,6 +30,7 @@ from datasets.network import (
 )
 from datasets.nr import LinkedNRObservation, NRObservation
 from datasets.path_oracle import PathOracleTable, PathSolveStatus
+from datasets.provenance import UMCDRunProvenance
 from datasets.targets import TargetDefinition, TargetValidity, TargetValue, definition_digest
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
@@ -522,8 +523,29 @@ def _receiver_binding() -> LinkedNRObservation:
     return LinkedNRObservation("gNB-1-to-UE-1", 0, observation)
 
 
+def _provenance_record() -> UMCDRunProvenance:
+    return UMCDRunProvenance(
+        record_id="rt-solve-1",
+        subject_layer="oracle_paths",
+        source_family="F03-RT-STATIC",
+        producer="Sionna RT PathSolver",
+        package_source_sha256="a" * 64,
+        software_versions={"python": "3.12.3", "sionna-rt": "2.2.0"},
+        backend={"backend": "llvm", "variant": "llvm_ad_mono_polarized"},
+        scene_asset_sha256={"city.xml": "b" * 64},
+        seed=17,
+        physical_config={"carrier_hz": 3.5e9},
+        solver_config={"max_depth": 3, "deterministic": True},
+        material_config={"building-concrete": {"scattering_coefficient": 0.0}},
+    )
+
+
 def test_receiver_view_roundtrip_isolated_from_oracle_and_targets(tmp_path):
-    bundle = replace(_bundle(), receiver_observations=(_receiver_binding(),))
+    bundle = replace(
+        _bundle(),
+        receiver_observations=(_receiver_binding(),),
+        provenance_records=(_provenance_record(),),
+    )
     stored = write_episode_bundle(tmp_path, bundle)
 
     inference = read_receiver_model_inputs(tmp_path, stored)
@@ -541,8 +563,14 @@ def test_receiver_view_roundtrip_isolated_from_oracle_and_targets(tmp_path):
     loaded = read_episode_bundle(tmp_path, stored)
     assert loaded.receiver_observations[0].link_id == "gNB-1-to-UE-1"
     assert loaded.receiver_observations[0].observation.sample_id == "sample-1"
+    assert loaded.provenance_records[0].record_id == "rt-solve-1"
+    assert (
+        loaded.provenance_records[0].material_config["building-concrete"]["scattering_coefficient"]
+        == 0.0
+    )
     manifest = json.loads((tmp_path / stored.relative_path).read_text())
     assert "receiver_observations" in {item["layer"] for item in manifest["layers"]}
+    assert "provenance" in {item["layer"] for item in manifest["layers"]}
 
     oracle_ref = next(item for item in manifest["layers"] if item["layer"] == "oracle_paths")
     oracle_path = tmp_path / oracle_ref["path"]
@@ -552,3 +580,29 @@ def test_receiver_view_roundtrip_isolated_from_oracle_and_targets(tmp_path):
     assert len(read_receiver_model_inputs(tmp_path, stored)) == 1
     with pytest.raises(ValueError, match="content hash"):
         read_episode_bundle(tmp_path, stored)
+
+
+def test_provenance_record_snapshots_nested_configuration_and_checks_its_hash():
+    material_config = {"wall": {"permittivity": 4.2, "roughness": [0.1, 0.2]}}
+    record = _provenance_record()
+    original = UMCDRunProvenance(
+        record_id="material-snapshot",
+        subject_layer="oracle_paths",
+        source_family="F03-RT-STATIC",
+        producer="test",
+        package_source_sha256="c" * 64,
+        software_versions={"sionna-rt": "2.2.0"},
+        backend={"backend": "llvm"},
+        scene_asset_sha256={},
+        seed=None,
+        physical_config={},
+        solver_config={},
+        material_config=material_config,
+    )
+    material_config["wall"]["permittivity"] = 99.0
+    assert original.material_config["wall"]["permittivity"] == 4.2
+    assert UMCDRunProvenance.from_dict(record.to_dict()).to_dict() == record.to_dict()
+    tampered = record.to_dict()
+    tampered["solver_config"]["max_depth"] = 99
+    with pytest.raises(ValueError, match="hash is invalid"):
+        UMCDRunProvenance.from_dict(tampered)

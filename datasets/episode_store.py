@@ -27,6 +27,7 @@ from .network import (
 )
 from .nr import LinkedNRObservation, NRModelInputs, NRObservation
 from .path_oracle import PathOracleTable, PathSolveStatus
+from .provenance import UMCDRunProvenance
 from .targets import TargetDefinition, TargetValidity, TargetValue
 
 
@@ -39,10 +40,12 @@ class EpisodeBundle:
     channel_views: tuple[PhysicalChannelView, ...]
     targets: tuple[TargetValue, ...]
     receiver_observations: tuple[LinkedNRObservation, ...] = ()
+    provenance_records: tuple[UMCDRunProvenance, ...] = ()
 
     def __post_init__(self) -> None:
         channels, targets = tuple(self.channel_views), tuple(self.targets)
         observations = tuple(self.receiver_observations)
+        provenance = tuple(self.provenance_records)
         self.path_oracle.validate_for(self.episode)
         for view in channels:
             view.validate_for(self.episode)
@@ -68,9 +71,23 @@ class EpisodeBundle:
             raise ValueError("receiver observations must be unique per link and frame")
         if len(set(sample_ids)) != len(sample_ids):
             raise ValueError("receiver observation sample IDs must be unique")
+        if any(not isinstance(item, UMCDRunProvenance) for item in provenance):
+            raise TypeError("provenance_records must contain UMCDRunProvenance values")
+        if len({item.record_id for item in provenance}) != len(provenance):
+            raise ValueError("provenance record IDs must be unique within a bundle")
+        available_layers = {"episode", "oracle_paths"}
+        if channels:
+            available_layers.add("oracle_channels")
+        if targets:
+            available_layers.add("targets")
+        if observations:
+            available_layers.add("receiver_observations")
+        if any(item.subject_layer not in available_layers for item in provenance):
+            raise ValueError("provenance subject_layer must identify a populated bundle layer")
         object.__setattr__(self, "channel_views", channels)
         object.__setattr__(self, "targets", targets)
         object.__setattr__(self, "receiver_observations", observations)
+        object.__setattr__(self, "provenance_records", provenance)
 
 
 @dataclass(frozen=True, slots=True)
@@ -297,6 +314,10 @@ def _receiver_payload(binding: LinkedNRObservation) -> bytes:
     )
 
 
+def _provenance_payload(record: UMCDRunProvenance) -> bytes:
+    return _pack_npz(record.to_dict())
+
+
 def _read_receiver(metadata: dict[str, Any], arrays: dict[str, np.ndarray]) -> LinkedNRObservation:
     if metadata.get("schema") != "umcd.receiver_observation.v1":
         raise ValueError("unsupported receiver-observation layer schema")
@@ -330,6 +351,9 @@ def write_episode_bundle(root: str | Path, bundle: EpisodeBundle) -> StoredEpiso
     payloads.extend(
         ("receiver_observations", _receiver_payload(binding))
         for binding in bundle.receiver_observations
+    )
+    payloads.extend(
+        ("provenance", _provenance_payload(record)) for record in bundle.provenance_records
     )
     references: list[dict[str, str]] = []
     for layer, payload in payloads:
@@ -419,6 +443,7 @@ def read_receiver_model_inputs(
         "oracle_channels",
         "targets",
         "receiver_observations",
+        "provenance",
     }
     episode_refs: list[dict[str, str]] = []
     observation_refs: list[dict[str, str]] = []
@@ -524,6 +549,7 @@ def read_episode_bundle(
         "oracle_channels",
         "targets",
         "receiver_observations",
+        "provenance",
     }
     for reference in references:
         layer = reference.get("layer")
@@ -629,6 +655,17 @@ def read_episode_bundle(
         _read_receiver(receiver_metadata, arrays)
         for receiver_metadata, arrays in grouped.get("receiver_observations", [])
     ]
+    provenance_records = [
+        UMCDRunProvenance.from_dict(provenance_metadata)
+        for provenance_metadata, _ in grouped.get("provenance", [])
+    ]
     if metadata["episode_id"] != episode.episode_id:
         raise ValueError("manifest and episode payload IDs differ")
-    return EpisodeBundle(episode, paths, tuple(channels), tuple(targets), tuple(observations))
+    return EpisodeBundle(
+        episode,
+        paths,
+        tuple(channels),
+        tuple(targets),
+        tuple(observations),
+        tuple(provenance_records),
+    )

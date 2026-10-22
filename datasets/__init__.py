@@ -42,6 +42,7 @@ from .nr_store import (
     write_nr_trajectory,
 )
 from .path_oracle import PathOracleTable, PathSolveStatus
+from .provenance import UMCDRunProvenance
 from .splits import (
     EpisodeSplitRegistry,
     audit_episode_split_registry,
@@ -71,6 +72,7 @@ __all__ = [
     "PathOracleTable",
     "PathSolveStatus",
     "EpisodeSplitRegistry",
+    "UMCDRunProvenance",
     "AnalyticalMultipathSample",
     "AnalyticalModelInputs",
     "AnalyticalPathOracle",
