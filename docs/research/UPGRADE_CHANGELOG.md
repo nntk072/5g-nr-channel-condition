@@ -106,4 +106,5 @@
   direct/indirect conservation with 2×3 synthetic and explicit arrays. The
   complete local suite passes at 88.11% coverage; 24 focused integration tests,
   Ruff lint/format, mypy, lock validation, build, and diff checks pass. Hosted
-  CI for this adapter correction is pending.
+  CI run 39712795569 passes all four software jobs for commit 70421a6; native
+  RT tests remain locally verified because hosted CI omits Sionna RT.

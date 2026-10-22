@@ -53,7 +53,8 @@ lint/format and mypy pass. Hosted CI run
 [39711191556](https://github.com/nntk072/5g-nr-channel-condition/actions/runs/39711191556)
 passes all four jobs for commit `00928a3`; run
 [39711520188](https://github.com/nntk072/5g-nr-channel-condition/actions/runs/39711520188)
-passes all four jobs for commit `dac545c`. Hosted CI does not install the native
-Sionna RT stack, so native regressions are verified locally; the latest empty-
-path adapter fix is pending hosted CI. The design-level gates above remain
-open despite these checks.
+passes all four jobs for commit `dac545c`; and run
+[39712795569](https://github.com/nntk072/5g-nr-channel-condition/actions/runs/39712795569)
+passes all four jobs for commit `70421a6`. Hosted CI does not install the native
+Sionna RT stack, so native regressions are verified locally. The design-level
+gates above remain open despite these checks.
