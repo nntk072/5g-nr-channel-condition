@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import math
 import time
 from dataclasses import dataclass
@@ -21,6 +22,8 @@ from artifacts.provenance import (
 from integrations.sionna.adapter import GridConfig, count_valid_paths, rt_cfr
 from integrations.sionna.candidate_audit import instrument_path_solver_candidate_counter
 from integrations.sionna.los_oracle import SegmentVisibilityResult, segment_visibility
+
+PATH_CFR_RECONSTRUCTION_RELATIVE_TOLERANCE = 1e-4
 
 
 @dataclass(frozen=True, slots=True)
@@ -159,6 +162,145 @@ def count_paths_with_interaction(
     return int(np.count_nonzero(valid_values & has_interaction))
 
 
+def path_level_diagnostics(
+    *,
+    link_id: str,
+    scene_tree_sha256: str,
+    gains: np.ndarray,
+    delays_s: np.ndarray,
+    theta_r_rad: np.ndarray,
+    phi_r_rad: np.ndarray,
+    theta_t_rad: np.ndarray,
+    phi_t_rad: np.ndarray,
+    interactions: np.ndarray,
+    objects: np.ndarray,
+    primitives: np.ndarray,
+    vertices_m: np.ndarray,
+    valid: np.ndarray,
+    frequencies_hz: np.ndarray,
+    carrier_hz: float,
+    reference_cfr: np.ndarray,
+) -> tuple[list[dict[str, Any]], float | None]:
+    """Serialize every valid SISO path and verify its CFR contribution sum.
+
+    Path fingerprints identify geometry within one scene/link. They use the
+    ordered interaction codes, object/primitive IDs, and interaction vertices
+    quantized to 1 mm; the full-precision fields are retained alongside them.
+    A fingerprint is a matching aid, not a claim that paths are physically
+    identical across different scenes or material configurations.
+    """
+    gain_values = np.asarray(gains, dtype=np.complex128).reshape(-1)
+    delay_values = np.asarray(delays_s, dtype=np.float64).reshape(-1)
+    valid_values = np.asarray(valid)
+    if valid_values.dtype != np.bool_ or valid_values.ndim != 1:
+        raise TypeError("valid must be a one-dimensional boolean path mask")
+    n_paths = len(valid_values)
+    angular_values = [
+        np.asarray(value, dtype=np.float64).reshape(-1)
+        for value in (theta_r_rad, phi_r_rad, theta_t_rad, phi_t_rad)
+    ]
+    interaction_values = np.asarray(interactions)
+    object_values = np.asarray(objects)
+    primitive_values = np.asarray(primitives)
+    vertex_values = np.asarray(vertices_m, dtype=np.float64)
+    if any(len(value) != n_paths for value in (gain_values, delay_values, *angular_values)):
+        raise ValueError("path coefficients, delays, angles, and validity mask must align")
+    if (
+        interaction_values.ndim != 2
+        or interaction_values.shape[1] != n_paths
+        or object_values.shape != interaction_values.shape
+        or primitive_values.shape != interaction_values.shape
+        or vertex_values.shape != (*interaction_values.shape, 3)
+    ):
+        raise ValueError("interaction, object, primitive, and vertex path axes must align")
+    frequencies = np.asarray(frequencies_hz, dtype=np.float64).reshape(-1)
+    reference = np.asarray(reference_cfr).reshape(-1)
+    if not math.isfinite(carrier_hz) or carrier_hz <= 0.0:
+        raise ValueError("carrier_hz must be finite and positive")
+    if not np.iscomplexobj(reference) or len(reference) != len(frequencies):
+        raise ValueError("reference CFR must be complex and align with frequency samples")
+    if not np.isfinite(frequencies).all() or not np.isfinite(reference).all():
+        raise ValueError("frequencies and reference CFR must be finite")
+    if (
+        not np.isfinite(gain_values[valid_values]).all()
+        or not np.isfinite(delay_values[valid_values]).all()
+    ):
+        raise ValueError("valid path coefficients and delays must be finite")
+    if any(not np.isfinite(value[valid_values]).all() for value in angular_values):
+        raise ValueError("valid path angles must be finite")
+
+    records: list[dict[str, Any]] = []
+    contributions: list[np.ndarray] = []
+    for path_index in np.flatnonzero(valid_values):
+        signature_steps: list[dict[str, Any]] = []
+        for step_index, code_value in enumerate(interaction_values[:, path_index]):
+            code = int(code_value)
+            if code == 0:
+                continue
+            vertex = vertex_values[step_index, path_index]
+            if not np.isfinite(vertex).all():
+                raise ValueError("valid path interaction vertices must be finite")
+            signature_steps.append(
+                {
+                    "interaction_type_mask": code,
+                    "object_id": int(object_values[step_index, path_index]),
+                    "primitive_id": int(primitive_values[step_index, path_index]),
+                    "vertex_mm": [int(np.rint(value * 1000.0)) for value in vertex],
+                }
+            )
+        signature = {
+            "version": "scene-link-interaction-geometry-v1",
+            "scene_tree_sha256": scene_tree_sha256,
+            "link_id": link_id,
+            "interaction_sequence": signature_steps,
+        }
+        fingerprint = hashlib.sha256(
+            json.dumps(signature, sort_keys=True, separators=(",", ":")).encode("utf8")
+        ).hexdigest()
+        delay = float(delay_values[path_index])
+        coefficient = complex(gain_values[path_index])
+        baseband_coefficient = coefficient * np.exp(-2j * np.pi * carrier_hz * delay)
+        contribution = baseband_coefficient * np.exp(-2j * np.pi * frequencies * delay)
+        contributions.append(contribution)
+        records.append(
+            {
+                "path_index": int(path_index),
+                "valid": True,
+                "path_fingerprint": fingerprint,
+                "coefficient_real": float(coefficient.real),
+                "coefficient_imag": float(coefficient.imag),
+                "baseband_coefficient_real": float(baseband_coefficient.real),
+                "baseband_coefficient_imag": float(baseband_coefficient.imag),
+                "coefficient_power": float(abs(coefficient) ** 2),
+                "absolute_delay_s": delay,
+                "theta_r_rad": float(angular_values[0][path_index]),
+                "phi_r_rad": float(angular_values[1][path_index]),
+                "theta_t_rad": float(angular_values[2][path_index]),
+                "phi_t_rad": float(angular_values[3][path_index]),
+                "interaction_type_masks": [
+                    int(value) for value in interaction_values[:, path_index]
+                ],
+                "object_ids": [int(value) for value in object_values[:, path_index]],
+                "primitive_ids": [int(value) for value in primitive_values[:, path_index]],
+                "interaction_vertices_m": vertex_values[:, path_index, :].tolist(),
+                "cfr_contribution_real": contribution.real.tolist(),
+                "cfr_contribution_imag": contribution.imag.tolist(),
+            }
+        )
+
+    reconstructed = (
+        np.sum(np.stack(contributions, axis=0), axis=0)
+        if contributions
+        else np.zeros(len(frequencies), dtype=np.complex128)
+    )
+    denominator = float(np.linalg.norm(reference))
+    numerator = float(np.linalg.norm(reconstructed - reference))
+    reconstruction_error = (
+        numerator / denominator if denominator > 0.0 else (0.0 if numerator == 0.0 else None)
+    )
+    return records, reconstruction_error
+
+
 def _material_metadata(scene: Any) -> dict[str, dict[str, Any]]:
     """Record actual per-scene scattering values and pattern classes."""
     material_records: dict[str, dict[str, Any]] = {}
@@ -189,6 +331,7 @@ def run_convergence(
     material_scattering_overrides: dict[str, float] | None = None,
     max_num_paths_per_src: int = 1_000_000,
     include_cfr_vectors: bool = False,
+    include_path_diagnostics: bool = False,
 ) -> dict[str, Any]:
     """Compare ray budgets and interaction depths for named fixed links."""
     if max_depth < 1:
@@ -207,6 +350,8 @@ def run_convergence(
         raise ValueError("max_num_paths_per_src must be a positive integer")
     if not isinstance(include_cfr_vectors, bool):
         raise TypeError("include_cfr_vectors must be a boolean")
+    if not isinstance(include_path_diagnostics, bool):
+        raise TypeError("include_path_diagnostics must be a boolean")
     for name, coefficient in (material_scattering_overrides or {}).items():
         if not name or isinstance(coefficient, bool) or not math.isfinite(coefficient):
             raise ValueError("material scattering overrides require names and finite coefficients")
@@ -250,6 +395,7 @@ def run_convergence(
     scene_xml = Path(str(scene_reference)).resolve()
     if not scene_xml.is_file():
         raise FileNotFoundError(f"Sionna scene XML not found: {scene_xml}")
+    scene_tree_sha256 = _scene_tree_sha256(scene_xml)
     scene = rt.load_scene(str(scene_xml))
     unknown_materials = set(material_scattering_overrides or {}) - set(scene.radio_materials)
     if unknown_materials:
@@ -270,6 +416,9 @@ def run_convergence(
         spacing_hz=subcarrier_spacing_hz,
         carrier_hz=carrier_hz,
     )
+    frequencies_hz = (
+        np.arange(n_subcarriers, dtype=np.float64) - n_subcarriers // 2
+    ) * subcarrier_spacing_hz
 
     runs: list[dict[str, Any]] = []
     records_by_key: dict[tuple[str, int, int, int], dict[str, Any]] = {}
@@ -303,12 +452,15 @@ def run_convergence(
         if candidate_path_counts_per_source is None:
             raise RuntimeError("Sionna did not expose per-source candidate path counts")
         cfr = rt_cfr(paths, grid).reshape(-1)
-        valid = np.asarray(paths.valid.numpy(), dtype=bool).reshape(-1)
+        valid_path_mask = np.asarray(paths.valid.numpy(), dtype=bool)
+        valid = valid_path_mask.reshape(-1)
         gain_real, gain_imag = paths.a
         gains = (np.asarray(gain_real.numpy()) + 1j * np.asarray(gain_imag.numpy())).reshape(-1)
         delays = np.asarray(paths.tau.numpy()).reshape(-1)
         theta_r = np.asarray(paths.theta_r.numpy()).reshape(-1)
         phi_r = np.asarray(paths.phi_r.numpy()).reshape(-1)
+        theta_t = np.asarray(paths.theta_t.numpy()).reshape(-1)
+        phi_t = np.asarray(paths.phi_t.numpy()).reshape(-1)
         interaction_types = np.asarray(paths.interactions.numpy(), dtype=np.uint32)
         diffuse_interaction_mask = np.any(
             np.bitwise_and(interaction_types, InteractionType.DIFFUSE) != 0, axis=(0, 1, 2)
@@ -357,6 +509,34 @@ def run_convergence(
         if include_cfr_vectors:
             row["cfr_vector_real"] = cfr.real.astype(np.float64).tolist()
             row["cfr_vector_imag"] = cfr.imag.astype(np.float64).tolist()
+        if include_path_diagnostics:
+            if valid_path_mask.ndim != 3 or valid_path_mask.shape[0:2] != (1, 1):
+                raise RuntimeError("path diagnostics currently require exactly one SISO link")
+            path_rows, reconstruction_error = path_level_diagnostics(
+                link_id=link.link_id,
+                scene_tree_sha256=scene_tree_sha256,
+                gains=gains,
+                delays_s=delays,
+                theta_r_rad=theta_r,
+                phi_r_rad=phi_r,
+                theta_t_rad=theta_t,
+                phi_t_rad=phi_t,
+                interactions=interaction_types[:, 0, 0, :],
+                objects=np.asarray(paths.objects.numpy(), dtype=np.uint32)[:, 0, 0, :],
+                primitives=np.asarray(paths.primitives.numpy(), dtype=np.uint32)[:, 0, 0, :],
+                vertices_m=np.asarray(paths.vertices.numpy(), dtype=np.float64)[:, 0, 0, :, :],
+                valid=valid,
+                frequencies_hz=frequencies_hz,
+                carrier_hz=carrier_hz,
+                reference_cfr=cfr,
+            )
+            row["path_diagnostics"] = path_rows
+            row["path_cfr_reconstruction_relative_l2"] = reconstruction_error
+            row["path_cfr_reconstruction_within_tolerance"] = (
+                None
+                if reconstruction_error is None
+                else reconstruction_error <= PATH_CFR_RECONSTRUCTION_RELATIVE_TOLERANCE
+            )
         records_by_key[key] = row
         return row
 
@@ -390,16 +570,20 @@ def run_convergence(
     runtime = versions()
     return {
         "schema": (
-            "loslab.sionna_rt_solver_convergence.v4"
-            if include_cfr_vectors
-            else "loslab.sionna_rt_solver_convergence.v3"
+            "loslab.sionna_rt_solver_convergence.v5"
+            if include_path_diagnostics
+            else (
+                "loslab.sionna_rt_solver_convergence.v4"
+                if include_cfr_vectors
+                else "loslab.sionna_rt_solver_convergence.v3"
+            )
         ),
         "evidence_grade": "SINGLE_SCENE_GEOMETRY_LABELED_SOLVER_DIAGNOSTIC",
         "scene": {
             "name": scene_name,
             "xml_path": str(scene_xml),
             "xml_sha256": sha256_file(scene_xml),
-            "scene_tree_sha256": _scene_tree_sha256(scene_xml),
+            "scene_tree_sha256": scene_tree_sha256,
         },
         "configuration": {
             "mitsuba_variant": backend_selection.variant,
@@ -437,6 +621,16 @@ def run_convergence(
             "normalize_cfr_power": False,
             "cfr_vectors_included": include_cfr_vectors,
             "cfr_vector_encoding": "float64-real-imaginary-lists" if include_cfr_vectors else None,
+            "path_diagnostics_included": include_path_diagnostics,
+            "path_diagnostics_encoding": (
+                "valid-siso-paths-with-geometry-fingerprints-and-per-path-complex-baseband-cfr"
+                if include_path_diagnostics
+                else None
+            ),
+            "path_cfr_reconstruction_relative_tolerance": (
+                PATH_CFR_RECONSTRUCTION_RELATIVE_TOLERANCE if include_path_diagnostics else None
+            ),
+            "path_fingerprint_scope": "scene-tree-and-link-local; quantized interaction vertices at 1 mm",
             "solver_flags": {
                 "los": True,
                 "specular_reflection": True,
@@ -459,6 +653,7 @@ def run_convergence(
             "The path cap is recorded but cap sensitivity requires a separate audit.",
             "CFR retains absolute path delays and unnormalized received power.",
             "Complex CFR vectors are only stored when include_cfr_vectors is enabled.",
+            "Per-path geometry and CFR contributions are only stored when include_path_diagnostics is enabled; fingerprints are scene/link-local matching aids, not universal physical IDs.",
             "Delay spread is coefficient-power weighted; angular spread is the spherical mean-direction statistic documented in the runner.",
             "Backend selection validates one minimal native trace, not scene-material realism, convergence, or production throughput.",
         ],
@@ -485,6 +680,11 @@ def main() -> None:
         "--include-cfr-vectors",
         action="store_true",
         help="store each complex CFR sample for direct error analysis across reports",
+    )
+    parser.add_argument(
+        "--include-path-diagnostics",
+        action="store_true",
+        help="store valid-path geometry, interactions, coefficients, fingerprints, and CFR contributions",
     )
     parser.add_argument(
         "--material-scattering",
@@ -531,6 +731,7 @@ def main() -> None:
             material_scattering_overrides=material_overrides,
             max_num_paths_per_src=args.max_num_paths_per_src,
             include_cfr_vectors=args.include_cfr_vectors,
+            include_path_diagnostics=args.include_path_diagnostics,
             link_cases=(
                 tuple(
                     ConvergenceLink(

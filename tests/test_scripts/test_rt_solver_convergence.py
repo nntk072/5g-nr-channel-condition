@@ -17,6 +17,7 @@ relative_l2_error = RUNNER["relative_l2_error"]
 relative_l2_error_if_defined = RUNNER["relative_l2_error_if_defined"]
 path_observables = RUNNER["path_observables"]
 count_paths_with_interaction = RUNNER["count_paths_with_interaction"]
+path_level_diagnostics = RUNNER["path_level_diagnostics"]
 ConvergenceLink = RUNNER["ConvergenceLink"]
 
 
@@ -175,6 +176,90 @@ def test_count_paths_with_interaction_uses_valid_paths_and_interaction_bits():
     assert count_paths_with_interaction(interactions, valid, 2) == 1
 
 
+def test_path_level_diagnostics_reconstruct_cfr_and_keep_valid_zero_gain_paths():
+    gains = np.asarray([1.0 + 0.25j, -0.2 + 0.4j, 0.0 + 0.0j])
+    delays = np.asarray([10e-9, 25e-9, 30e-9])
+    frequencies = np.asarray([-30e3, 0.0, 30e3])
+    carrier_hz = 3.5e9
+    interactions = np.asarray([[0, 1, 0], [0, 4, 0]], dtype=np.uint32)
+    objects = np.asarray([[0, 12, 0], [0, 13, 0]], dtype=np.uint32)
+    primitives = np.asarray([[0, 8, 0], [0, 9, 0]], dtype=np.uint32)
+    vertices = np.zeros((2, 3, 3), dtype=np.float64)
+    vertices[0, 1] = [1.25, 2.5, 3.75]
+    vertices[1, 1] = [4.0, 5.0, 6.0]
+    valid = np.asarray([True, True, True])
+    expected = np.sum(
+        gains[:, None]
+        * np.exp(-2j * np.pi * delays[:, None] * (carrier_hz + frequencies[None, :])),
+        axis=0,
+    )
+
+    rows, reconstruction_error = path_level_diagnostics(
+        link_id="center-nlos",
+        scene_tree_sha256="a" * 64,
+        gains=gains,
+        delays_s=delays,
+        theta_r_rad=np.asarray([0.1, 0.2, 0.3]),
+        phi_r_rad=np.asarray([0.4, 0.5, 0.6]),
+        theta_t_rad=np.asarray([0.7, 0.8, 0.9]),
+        phi_t_rad=np.asarray([1.0, 1.1, 1.2]),
+        interactions=interactions,
+        objects=objects,
+        primitives=primitives,
+        vertices_m=vertices,
+        valid=valid,
+        frequencies_hz=frequencies,
+        carrier_hz=carrier_hz,
+        reference_cfr=expected,
+    )
+
+    assert len(rows) == 3
+    assert [row["path_index"] for row in rows] == [0, 1, 2]
+    assert rows[2]["coefficient_power"] == 0.0
+    assert rows[1]["interaction_type_masks"] == [1, 4]
+    assert rows[1]["object_ids"] == [12, 13]
+    assert len(rows[1]["path_fingerprint"]) == 64
+    assert reconstruction_error == pytest.approx(0.0, abs=1e-12)
+
+
+def test_path_fingerprint_does_not_depend_on_solver_path_slot():
+    common = {
+        "link_id": "same-link",
+        "scene_tree_sha256": "b" * 64,
+        "delays_s": np.asarray([20e-9, 10e-9]),
+        "theta_r_rad": np.asarray([0.0, 0.0]),
+        "phi_r_rad": np.asarray([0.0, 0.0]),
+        "theta_t_rad": np.asarray([0.0, 0.0]),
+        "phi_t_rad": np.asarray([0.0, 0.0]),
+        "interactions": np.asarray([[2, 1]], dtype=np.uint32),
+        "objects": np.asarray([[22, 11]], dtype=np.uint32),
+        "primitives": np.asarray([[2, 1]], dtype=np.uint32),
+        "vertices_m": np.asarray([[[2.0, 0.0, 1.0], [1.0, 0.0, 1.0]]]),
+        "valid": np.asarray([True, True]),
+        "frequencies_hz": np.asarray([0.0]),
+        "carrier_hz": 3.5e9,
+        "reference_cfr": np.asarray([1.0 + 0j]),
+    }
+    original, _ = path_level_diagnostics(gains=np.asarray([0.5 + 0j, 1.0 + 0j]), **common)
+    reordered, _ = path_level_diagnostics(
+        gains=np.asarray([1.0 + 0j, 0.5 + 0j]),
+        **{
+            **common,
+            "delays_s": common["delays_s"][::-1],
+            "interactions": common["interactions"][:, ::-1],
+            "objects": common["objects"][:, ::-1],
+            "primitives": common["primitives"][:, ::-1],
+            "vertices_m": common["vertices_m"][:, ::-1, :],
+            "theta_r_rad": common["theta_r_rad"][::-1],
+            "phi_r_rad": common["phi_r_rad"][::-1],
+            "theta_t_rad": common["theta_t_rad"][::-1],
+            "phi_t_rad": common["phi_t_rad"][::-1],
+        },
+    )
+    assert original[0]["path_fingerprint"] == reordered[1]["path_fingerprint"]
+    assert original[1]["path_fingerprint"] == reordered[0]["path_fingerprint"]
+
+
 def test_convergence_link_requires_finite_xyz_positions():
     with pytest.raises(ValueError, match="three finite coordinates"):
         ConvergenceLink("bad", (0.0, 0.0, float("nan")), (1.0, 0.0, 0.0))
@@ -271,12 +356,24 @@ def test_convergence_matrix_labels_los_and_blocked_links_independently():
         material_scattering_overrides={"screen-mat": 0.5},
         max_num_paths_per_src=1000,
         include_cfr_vectors=True,
+        include_path_diagnostics=True,
     )
     assert scattered["configuration"]["materials"]["screen-mat"]["scattering_coefficient"] == [0.5]
-    assert scattered["schema"].endswith(".v4")
+    assert scattered["schema"].endswith(".v5")
     assert scattered["configuration"]["cfr_vectors_included"] is True
+    assert scattered["configuration"]["path_diagnostics_included"] is True
     assert all(len(row["cfr_vector_real"]) == 8 for row in scattered["runs"])
     assert all(len(row["cfr_vector_imag"]) == 8 for row in scattered["runs"])
+    assert all(len(row["path_diagnostics"]) == row["valid_path_count"] for row in scattered["runs"])
+    assert all(row["path_cfr_reconstruction_within_tolerance"] for row in scattered["runs"])
+    for row in scattered["runs"]:
+        summed = sum(
+            np.asarray(path["cfr_contribution_real"])
+            + 1j * np.asarray(path["cfr_contribution_imag"])
+            for path in row["path_diagnostics"]
+        )
+        recorded = np.asarray(row["cfr_vector_real"]) + 1j * np.asarray(row["cfr_vector_imag"])
+        assert np.allclose(summed, recorded, rtol=1e-4, atol=1e-8)
     assert all(
         row["candidate_path_count_before_path_validation"] >= row["valid_path_count"]
         for row in scattered["runs"]
