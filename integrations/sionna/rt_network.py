@@ -3,13 +3,24 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Sequence, cast
+from pathlib import Path
+from typing import Any, Mapping, Sequence, cast
 
 import numpy as np
+from datasets.channel_view import PhysicalChannelView
+from datasets.episode_store import (
+    EpisodeBundle,
+    StoredEpisodeBundle,
+    write_episode_bundle,
+)
 from datasets.network import NetworkEpisode
+from datasets.nr import LinkedNRObservation
 from datasets.path_oracle import PathOracleTable, PathSolveStatus
+from datasets.provenance import UMCDRunProvenance
+from datasets.targets import TargetValue
 
 from integrations.sionna.path_oracle import sionna_paths_to_oracle_table
+from integrations.sionna.rt_identity import umcd_provenance_from_rt_identity
 
 
 @dataclass(frozen=True, slots=True)
@@ -169,6 +180,85 @@ def sionna_bindings_to_episode_oracle(
     if actual_groups != expected_groups or combined.group_count != len(expected_groups):
         raise ValueError("assembled path oracle does not cover every link/frame/port pair exactly")
     return combined
+
+
+def build_sionna_rt_episode_bundle(
+    episode: NetworkEpisode,
+    bindings: Sequence[SionnaPathBinding],
+    *,
+    run_identity: Mapping[str, Any],
+    material_config: Mapping[str, Any],
+    source_family: str,
+    producer: str,
+    channel_views: Sequence[PhysicalChannelView] = (),
+    targets: Sequence[TargetValue] = (),
+    receiver_observations: Sequence[LinkedNRObservation] = (),
+) -> EpisodeBundle:
+    """Build a canonical RT episode bundle and provenance for every populated layer.
+
+    All outputs are bound to the same complete RT run identity. Receiver
+    observations remain a separate layer from simulator paths, channels, and
+    targets. Incomplete scene/run identities are rejected by the provenance
+    adapter before the bundle can be published.
+    """
+    oracle = sionna_bindings_to_episode_oracle(episode, bindings)
+    channels = tuple(channel_views)
+    target_values = tuple(targets)
+    observations = tuple(receiver_observations)
+    layers = ["oracle_paths"]
+    if channels:
+        layers.append("oracle_channels")
+    if target_values:
+        layers.append("targets")
+    if observations:
+        layers.append("receiver_observations")
+    provenance: tuple[UMCDRunProvenance, ...] = tuple(
+        umcd_provenance_from_rt_identity(
+            run_identity,
+            record_id=f"{episode.episode_id}:{layer}",
+            subject_layer=layer,
+            source_family=source_family,
+            producer=producer,
+            material_config=material_config,
+        )
+        for layer in layers
+    )
+    return EpisodeBundle(
+        episode=episode,
+        path_oracle=oracle,
+        channel_views=channels,
+        targets=target_values,
+        receiver_observations=observations,
+        provenance_records=provenance,
+    )
+
+
+def write_sionna_rt_episode_bundle(
+    store_root: str | Path,
+    episode: NetworkEpisode,
+    bindings: Sequence[SionnaPathBinding],
+    *,
+    run_identity: Mapping[str, Any],
+    material_config: Mapping[str, Any],
+    source_family: str,
+    producer: str,
+    channel_views: Sequence[PhysicalChannelView] = (),
+    targets: Sequence[TargetValue] = (),
+    receiver_observations: Sequence[LinkedNRObservation] = (),
+) -> StoredEpisodeBundle:
+    """Build and immutably publish a provenance-complete Sionna RT bundle."""
+    bundle = build_sionna_rt_episode_bundle(
+        episode,
+        bindings,
+        run_identity=run_identity,
+        material_config=material_config,
+        source_family=source_family,
+        producer=producer,
+        channel_views=channel_views,
+        targets=targets,
+        receiver_observations=receiver_observations,
+    )
+    return write_episode_bundle(store_root, bundle)
 
 
 def _empty_binding_table(

@@ -14,7 +14,11 @@ from datasets.network import (
     NodeRole,
 )
 from datasets.path_oracle import PathOracleTable, PathSolveStatus
-from integrations.sionna.rt_network import SionnaPathBinding, sionna_bindings_to_episode_oracle
+from integrations.sionna.rt_network import (
+    SionnaPathBinding,
+    sionna_bindings_to_episode_oracle,
+    write_sionna_rt_episode_bundle,
+)
 
 
 def _episode() -> NetworkEpisode:
@@ -190,6 +194,60 @@ def test_episode_mapping_rejects_missing_and_duplicate_link_frame_bindings(monke
     assert ordered.link_ids == reversed_order.link_ids
     np.testing.assert_array_equal(ordered.path_offsets, reversed_order.path_offsets)
     np.testing.assert_array_equal(ordered.complex_gain, reversed_order.complex_gain)
+
+
+def test_rt_episode_writer_publishes_layer_bound_provenance(monkeypatch, tmp_path):
+    from datasets.episode_store import read_episode_bundle
+    from integrations.sionna import rt_network
+    from integrations.sionna.rt_identity import rt_run_identity
+
+    monkeypatch.setattr(
+        rt_network,
+        "sionna_paths_to_oracle_table",
+        lambda paths, **kwargs: _fake_table(
+            link_id=kwargs["link_id"],
+            frame_index=kwargs["frame_index"],
+            rx_port_map=kwargs["rx_port_map"],
+            tx_port_map=kwargs["tx_port_map"],
+            solve_status=kwargs["solve_status"],
+        ),
+    )
+    identity = rt_run_identity(
+        scene_asset_manifest={"complete": True, "asset_set_sha256": "a" * 64},
+        physical_config={"carrier_hz": 3.5e9},
+        solver_config={"max_depth": 2},
+        seed=9,
+        backend_selection={
+            "backend": "llvm_cpu",
+            "variant": "llvm_ad_mono_polarized",
+            "runtime_versions": {"sionna-rt": "2.2.0"},
+        },
+        runtime_versions={"python": "3.12.0"},
+        package_source_sha256="b" * 64,
+    )
+    episode = _episode()
+    bindings = [
+        SionnaPathBinding(link.link_id, frame, link_index, 0, object())
+        for link_index, link in enumerate(episode.links)
+        for frame in range(len(episode.frame_times_s))
+    ]
+
+    stored = write_sionna_rt_episode_bundle(
+        tmp_path,
+        episode,
+        bindings,
+        run_identity=identity,
+        material_config={"wall": {"scattering_coefficient": 0.2}},
+        source_family="F03-RT-STATIC",
+        producer="Sionna 2.2 PathSolver",
+    )
+    loaded = read_episode_bundle(tmp_path, stored)
+
+    assert loaded.path_oracle.group_count == 16
+    assert [record.subject_layer for record in loaded.provenance_records] == ["oracle_paths"]
+    record = loaded.provenance_records[0]
+    assert record.run_identity_sha256 == identity["cache_key_sha256"]
+    assert record.material_config["wall"]["scattering_coefficient"] == 0.2
 
 
 @pytest.mark.native_sionna
