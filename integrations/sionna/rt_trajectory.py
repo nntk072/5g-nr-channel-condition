@@ -312,6 +312,9 @@ def generate_rt_nr_trajectory(
         link_role=LinkRole.SERVING,
     )
     episode_link_id = scene_network.episode.links[0].link_id
+    # The network adapter above intentionally accepts only a static snapshot;
+    # the trajectory producer owns the route and supplies its velocity to RT.
+    rx.velocity = list(config.receiver_velocity_mps)
 
     full_solver = PathSolver(deterministic=True)
     direct_solver = PathSolver(deterministic=True)

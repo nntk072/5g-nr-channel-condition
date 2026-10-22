@@ -4,6 +4,7 @@ from dataclasses import replace
 
 import numpy as np
 import pytest
+from scipy.constants import speed_of_light
 
 torch = pytest.importorskip("torch")
 pytest.importorskip("mitsuba")
@@ -24,7 +25,7 @@ def test_cpu_rt_path_retraces_and_stores_receiver_only_trajectory(tmp_path, monk
         scene="simple_reflector",
         transmitter_position_m=(-10.0, 0.0, 10.0),
         receiver_start_m=(10.0, 0.0, 10.0),
-        receiver_velocity_mps=(0.0, 0.2, 0.0),
+        receiver_velocity_mps=(0.2, 0.0, 0.0),
         num_steps=2,
         sample_interval_s=0.1,
         max_depth=1,
@@ -92,6 +93,40 @@ def test_cpu_rt_path_retraces_and_stores_receiver_only_trajectory(tmp_path, monk
     ]
     assert "reflector-mat" in material_state["object_material_bindings"].values()
     assert material_state["materials"]["reflector-mat"]["frequency_update_callback"]["code_sha256"]
+    path_table = bundle.path_oracle
+    assert path_table.doppler_hz is not None
+    direct_gains: list[complex] = []
+    direct_dopplers: list[float] = []
+    for frame_index, position in enumerate(config.positions_and_times()[0]):
+        group = int(np.flatnonzero(path_table.frame_indices == frame_index)[0])
+        path_slice = path_table.group_slice(group)
+        direct_indices = np.flatnonzero(path_table.interaction_order[path_slice] == 0)
+        assert direct_indices.size == 1
+        path_index = path_slice.start + int(direct_indices[0])
+        direction = np.asarray(position) - np.asarray(config.transmitter_position_m)
+        direction /= np.linalg.norm(direction)
+        expected_doppler_hz = (
+            -config.carrier_hz
+            / speed_of_light
+            * float(np.dot(direction, config.receiver_velocity_mps))
+        )
+        np.testing.assert_allclose(
+            path_table.doppler_hz[path_index], expected_doppler_hz, rtol=2e-3, atol=1e-4
+        )
+        direct_gains.append(
+            complex(path_table.complex_gain[path_index])
+            * np.exp(-2j * np.pi * config.carrier_hz * path_table.delay_s[path_index])
+        )
+        direct_dopplers.append(float(path_table.doppler_hz[path_index]))
+    phase_rate_hz = np.angle(direct_gains[1] / direct_gains[0]) / (
+        2.0 * np.pi * config.sample_interval_s
+    )
+    np.testing.assert_allclose(
+        phase_rate_hz,
+        np.mean(direct_dopplers),
+        rtol=2e-2,
+        atol=0.02,
+    )
     import sionna.rt as rt
 
     def unexpected_trace(*args, **kwargs):
