@@ -7,7 +7,7 @@ dataset generation or model runs remain deferred.
 
 - `MASTER_RESEARCH_PLAN_5G_MULTIPATH_SIONNA_2026-10-21.md`, named by the goal,
   is not present in this checkout. Its current maintained successor is
-  [`MASTER_RESEARCH_PLAN.md`](MASTER_RESEARCH_PLAN.md), edition 3.122.
+  [`MASTER_RESEARCH_PLAN.md`](MASTER_RESEARCH_PLAN.md), edition 3.123.
 - [`UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md`](UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md)
   is now tracked here. The ignored source copy under `outputs/` has SHA256
   `4554b6b6a478a5828881a42f41080f7951c59ee042c3883c9819f231fa17d626`; the
@@ -157,3 +157,5 @@ across 232 maintained Python files; mypy passes across 147 configured source
 files; `uv lock --check`, `uv build`, and `git diff --check` pass. Hosted CI is
 pending. Historical datasets and reports retain their recorded label provenance
 and have not been rewritten.
+
+**Edition 3.123 controlled-link convergence diagnostic:** A schema-v2 native LLVM Sionna 2.2 runner compares a same-scene visible LOS link and a segment-blocked geometric-NLOS link with absolute CFR delays, independent visibility records, multiple deterministic seeds, ray budgets, and interaction depths. Sample-budget changes at depth 7 are relatively small for several aggregate observables at this one thin-screen fixture, but the across-seed CFR and path-count spread is nonzero. Depth 3–7 materially changes path counts, CFR, delay spread, and angular spread, so G3.01 remains open. The largest finite budget is only a comparison reference. The [convergence diagnostic](figures/rt-box-los-nlos-convergence-20261022.png) has no building geometry; the separate [City43 spatial figure](figures/rt-urban43-spatial-holdout-20261022.png) displays the synthetic 4×4 building layout and three TX regions with 120 sampled links. Neither image represents measured buildings or field propagation. Full-suite and static verification for this snapshot are pending.

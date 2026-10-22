@@ -1647,6 +1647,8 @@ during legacy RT generation. Pose-timeline extraction, calibrated array/port
 semantics, solver convergence, and path-budget convergence plots are not
 complete; Stage S2 remains in progress.
 
+**Geometry visualization note:** [`rt-urban43-spatial-holdout-20261022.png`](figures/rt-urban43-spatial-holdout-20261022.png) shows the synthetic City43 4×4 axis-aligned building layout in 3D and top-down, with three TX locations and 120 sampled RX links (20 geometric LOS and 20 geometric NLOS per disjoint TX/RX region). This makes the spatial sampling visible; it is not surveyed urban geometry or measured channel ground truth. The separate [solver convergence plot](figures/rt-box-los-nlos-convergence-20261022.png) uses a controlled thin-screen fixture and therefore has no building geometry. New paired-link convergence results show material max-depth sensitivity through depth 7, so G3.01 is still open despite relatively small changes in some depth-7 ray-budget summaries.
+
 ### Stage S3: standardized and control families
 
 - Add factories for all **supported** TDL/CDL profiles and fixed conformance tables, analytic controls, flat/correlated fading and full 3GPP scenario-specific classes.
