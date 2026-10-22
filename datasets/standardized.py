@@ -1,0 +1,425 @@
+"""Validated and immutable records for standardized stochastic TDL/CDL channels.
+
+TDL taps and CDL clusters are profile-model entities, not geometric RT rays.
+This family store therefore preserves their native coefficient axes and model
+metadata without fabricating scene coordinates or geometric LOS labels.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import io
+import json
+import os
+import tempfile
+from dataclasses import dataclass
+from enum import StrEnum
+from pathlib import Path, PurePosixPath
+from types import MappingProxyType
+from typing import Any, Mapping, cast
+
+import numpy as np
+
+
+class StandardizedFamily(StrEnum):
+    """Pinned standardized channel families supported by these records."""
+
+    TDL = "tdl"
+    CDL = "cdl"
+
+
+def _numpy(value: Any, *, name: str, kind: str) -> np.ndarray:
+    if hasattr(value, "detach") and hasattr(value, "cpu"):
+        value = value.detach().cpu().numpy()
+    array = np.asarray(value)
+    if kind == "complex" and not np.iscomplexobj(array):
+        raise TypeError(f"{name} must be complex-valued")
+    if kind == "real" and array.dtype.kind not in "iuf":
+        raise TypeError(f"{name} must be real-valued")
+    if not np.isfinite(array).all():
+        raise ValueError(f"{name} must contain only finite values")
+    return np.array(array, copy=True, order="C")
+
+
+def _canonical_json(value: Any, *, name: str) -> bytes:
+    try:
+        return json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False).encode(
+            "utf-8"
+        )
+    except (TypeError, ValueError) as exc:
+        raise TypeError(f"{name} must be finite JSON-compatible data") from exc
+
+
+def _freeze_json(value: Any) -> Any:
+    if isinstance(value, dict):
+        return MappingProxyType({key: _freeze_json(item) for key, item in value.items()})
+    if isinstance(value, list):
+        return tuple(_freeze_json(item) for item in value)
+    return value
+
+
+def _plain_json(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        return {key: _plain_json(item) for key, item in value.items()}
+    if isinstance(value, (tuple, list)):
+        return [_plain_json(item) for item in value]
+    return value
+
+
+@dataclass(frozen=True, slots=True, eq=False)
+class StandardizedChannelRecord:
+    """One independent stochastic draw with oracle-only channel fields.
+
+    ``h_path`` axes are [rx, rx_ant, tx, tx_ant, cluster, time], ``tau_s``
+    axes are [rx, tx, cluster], and ``cfr`` axes are
+    [rx, rx_ant, tx, tx_ant, time, subcarrier]. Delays are profile-relative
+    excess delays, and ``profile_los_component`` is never geometric LOS truth.
+    """
+
+    sample_id: str
+    run_id: str
+    sample_index: int
+    family: StandardizedFamily
+    profile_model: str
+    profile_los_component: bool
+    h_path: np.ndarray
+    tau_s: np.ndarray
+    cfr: np.ndarray
+    subcarrier_offsets_hz: np.ndarray
+    metadata: Mapping[str, Any]
+
+    def __post_init__(self) -> None:
+        for name in ("sample_id", "run_id"):
+            value = getattr(self, name)
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError(f"{name} must be a non-empty string")
+        if isinstance(self.sample_index, bool) or not isinstance(self.sample_index, int):
+            raise TypeError("sample_index must be an integer")
+        if self.sample_index < 0:
+            raise ValueError("sample_index must be nonnegative")
+        if not isinstance(self.family, StandardizedFamily):
+            raise TypeError("family must use StandardizedFamily")
+        if self.profile_model not in {"A", "B", "C", "D", "E"}:
+            raise ValueError("profile_model must be one of A, B, C, D, or E")
+        if not isinstance(self.profile_los_component, bool):
+            raise TypeError("profile_los_component must be boolean")
+        if self.profile_los_component != (self.profile_model in {"D", "E"}):
+            raise ValueError("profile LOS category disagrees with the standardized profile family")
+
+        h_path = _numpy(self.h_path, name="h_path", kind="complex")
+        tau_s = _numpy(self.tau_s, name="tau_s", kind="real").astype(np.float64, copy=False)
+        cfr = _numpy(self.cfr, name="cfr", kind="complex")
+        offsets = _numpy(
+            self.subcarrier_offsets_hz, name="subcarrier_offsets_hz", kind="real"
+        ).astype(np.float64, copy=False)
+        if h_path.ndim != 6 or min(h_path.shape) < 1:
+            raise ValueError(
+                "h_path must have non-empty [rx, rx_ant, tx, tx_ant, cluster, time] axes"
+            )
+        if h_path.shape[0] != 1 or h_path.shape[2] != 1:
+            raise ValueError("pinned TDL/CDL adapters require one TX and one RX link")
+        if tau_s.shape != (1, 1, h_path.shape[-2]) or np.any(tau_s < 0):
+            raise ValueError("tau_s must be nonnegative [1, 1, cluster]")
+        expected_cfr_shape = (*h_path.shape[:4], h_path.shape[-1], len(offsets))
+        if cfr.shape != expected_cfr_shape:
+            raise ValueError(f"cfr must have shape {expected_cfr_shape}")
+        if len(offsets) < 8 or np.any(np.diff(offsets) <= 0) or not np.any(offsets == 0.0):
+            raise ValueError(
+                "subcarrier offsets must be increasing, include DC, and have length >= 8"
+            )
+
+        delays = tau_s[:, None, :, None, :, None, None]
+        frequencies = offsets.reshape(1, 1, 1, 1, 1, 1, -1)
+        expected_cfr = np.sum(
+            h_path[..., None] * np.exp(-2j * np.pi * delays * frequencies), axis=4
+        )
+        error = np.max(np.abs(cfr - expected_cfr))
+        scale = max(float(np.max(np.abs(expected_cfr))), 1e-8)
+        if error > 1e-7 + 5e-5 * scale:
+            raise ValueError("cfr does not match the stored path coefficients and delays")
+
+        raw_metadata = dict(self.metadata)
+        if raw_metadata.get("geometric_los_label") is not None:
+            raise ValueError("standardized profile records may not claim geometric LOS labels")
+        if raw_metadata.get("profile_los_component") is not self.profile_los_component:
+            raise ValueError("metadata profile LOS category disagrees with the record")
+        if (
+            raw_metadata.get("profile_model", raw_metadata.get("profile_proxy"))
+            != self.profile_model
+        ):
+            raise ValueError("metadata profile model disagrees with the record")
+        if raw_metadata.get("delay_reference") != "profile_excess_delay":
+            raise ValueError("standardized channels must declare profile-relative excess delays")
+        spacing = raw_metadata.get("subcarrier_spacing_hz")
+        if not isinstance(spacing, (int, float)) or spacing <= 0:
+            raise ValueError("metadata must declare a positive subcarrier spacing")
+        if not np.allclose(np.diff(offsets), spacing, rtol=1e-10, atol=1e-6):
+            raise ValueError("subcarrier offsets disagree with the declared spacing")
+        if raw_metadata.get("num_subcarriers") != len(offsets):
+            raise ValueError("metadata subcarrier count disagrees with the CFR axis")
+        if raw_metadata.get("num_time_steps") != h_path.shape[-1]:
+            raise ValueError("metadata time-step count disagrees with the channel axes")
+        snapshot = json.loads(_canonical_json(raw_metadata, name="metadata"))
+        h_path.setflags(write=False)
+        tau_s.setflags(write=False)
+        cfr.setflags(write=False)
+        offsets.setflags(write=False)
+        object.__setattr__(self, "h_path", h_path)
+        object.__setattr__(self, "tau_s", tau_s)
+        object.__setattr__(self, "cfr", cfr)
+        object.__setattr__(self, "subcarrier_offsets_hz", offsets)
+        object.__setattr__(self, "metadata", _freeze_json(snapshot))
+
+
+@dataclass(frozen=True, slots=True, eq=False)
+class StandardizedChannelRun:
+    """One reproducible generator run, grouped for leakage-safe splitting."""
+
+    run_id: str
+    records: tuple[StandardizedChannelRecord, ...]
+
+    def __post_init__(self) -> None:
+        records = tuple(self.records)
+        if not isinstance(self.run_id, str) or not self.run_id.strip():
+            raise ValueError("run_id must be a non-empty string")
+        if not records or any(record.run_id != self.run_id for record in records):
+            raise ValueError("a standardized run needs records that all share its run_id")
+        sample_ids = [record.sample_id for record in records]
+        indices = [record.sample_index for record in records]
+        if len(set(sample_ids)) != len(sample_ids) or len(set(indices)) != len(indices):
+            raise ValueError("standardized run sample IDs and indices must be unique")
+        if set(indices) != set(range(len(records))):
+            raise ValueError("sample_index values must cover the run's contiguous batch range")
+        first = records[0]
+        if any(
+            record.family is not first.family
+            or record.profile_model != first.profile_model
+            or record.metadata != first.metadata
+            for record in records[1:]
+        ):
+            raise ValueError("one standardized run cannot mix profile or generator metadata")
+        object.__setattr__(
+            self, "records", tuple(sorted(records, key=lambda item: item.sample_index))
+        )
+
+
+def standardized_run_from_channel(
+    channel: Any,
+    *,
+    family: StandardizedFamily,
+    run_id: str | None = None,
+) -> StandardizedChannelRun:
+    """Split a Sionna TDL/CDL adapter batch into immutable per-draw records."""
+    if not isinstance(family, StandardizedFamily):
+        raise TypeError("family must use StandardizedFamily")
+    metadata = dict(channel.metadata)
+    profile_model = metadata.get("profile_model", metadata.get("profile_proxy"))
+    if not isinstance(profile_model, str):
+        raise ValueError("adapter metadata must identify its standardized profile model")
+    if metadata.get("geometric_los_label") is not None:
+        raise ValueError("adapter output unexpectedly contains a geometric LOS label")
+    batch_size = int(metadata.get("batch_size", 0))
+    h_all = _numpy(channel.h_path, name="h_path", kind="complex")
+    tau_all = _numpy(channel.tau_s, name="tau_s", kind="real")
+    cfr_all = _numpy(
+        channel.channel_frequency_response, name="channel_frequency_response", kind="complex"
+    )
+    if batch_size < 1 or h_all.shape[0] != batch_size or tau_all.shape[0] != batch_size:
+        raise ValueError("adapter batch metadata and channel arrays disagree")
+    if cfr_all.shape[0] != batch_size:
+        raise ValueError("adapter batch metadata and CFR array disagree")
+    subcarrier_spacing = float(metadata["subcarrier_spacing_hz"])
+    subcarrier_count = int(metadata["num_subcarriers"])
+    offsets = (
+        np.arange(subcarrier_count, dtype=np.float64) - subcarrier_count // 2
+    ) * subcarrier_spacing
+    canonical_config = _canonical_json(metadata, name="adapter metadata")
+    resolved_run_id = run_id or (
+        f"{family.value}-{profile_model}-{hashlib.sha256(canonical_config).hexdigest()[:20]}"
+    )
+    profile_los = bool(metadata["profile_los_component"])
+    records = tuple(
+        StandardizedChannelRecord(
+            sample_id=f"{resolved_run_id}-sample-{index:08d}",
+            run_id=resolved_run_id,
+            sample_index=index,
+            family=family,
+            profile_model=profile_model,
+            profile_los_component=profile_los,
+            h_path=h_all[index],
+            tau_s=tau_all[index],
+            cfr=cfr_all[index],
+            subcarrier_offsets_hz=offsets,
+            metadata={
+                **metadata,
+                "delay_reference": "profile_excess_delay",
+            },
+        )
+        for index in range(batch_size)
+    )
+    return StandardizedChannelRun(resolved_run_id, records)
+
+
+@dataclass(frozen=True, slots=True)
+class StoredStandardizedRun:
+    """Immutable pointer to one manifest-last standardized channel run."""
+
+    run_id: str
+    content_sha256: str
+    relative_path: str
+    sample_ids: tuple[str, ...]
+    schema_version: int = 1
+
+
+def _publish_immutable(path: Path, payload: bytes) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temp_path: str | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="wb", dir=path.parent, prefix=f".{path.name}.", delete=False
+        ) as stream:
+            stream.write(payload)
+            stream.flush()
+            os.fsync(stream.fileno())
+            temp_path = stream.name
+        try:
+            os.link(temp_path, path)
+        except FileExistsError:
+            if path.read_bytes() != payload:
+                raise
+    finally:
+        if temp_path is not None:
+            Path(temp_path).unlink(missing_ok=True)
+
+
+def _record_bytes(record: StandardizedChannelRecord) -> bytes:
+    metadata = {
+        "schema": "standardized_channel_record.v1",
+        "sample_id": record.sample_id,
+        "run_id": record.run_id,
+        "sample_index": record.sample_index,
+        "family": record.family.value,
+        "profile_model": record.profile_model,
+        "profile_los_component": record.profile_los_component,
+        "metadata": _plain_json(record.metadata),
+    }
+    arrays: dict[str, np.ndarray] = {
+        "h_path": record.h_path,
+        "tau_s": record.tau_s,
+        "cfr": record.cfr,
+        "subcarrier_offsets_hz": record.subcarrier_offsets_hz,
+        "metadata_json": np.frombuffer(
+            _canonical_json(metadata, name="record metadata"), dtype=np.uint8
+        ),
+    }
+    stream = io.BytesIO()
+    np.savez_compressed(stream, **cast(Any, arrays))
+    return stream.getvalue()
+
+
+def write_standardized_run(root: str | Path, run: StandardizedChannelRun) -> StoredStandardizedRun:
+    """Store per-draw physical channels and atomically publish an immutable run index."""
+    base = Path(root)
+    record_refs: list[dict[str, str]] = []
+    for record in run.records:
+        payload = _record_bytes(record)
+        digest = hashlib.sha256(payload).hexdigest()
+        relative_path = f"records/{digest[:2]}/{digest}.npz"
+        _publish_immutable(base / relative_path, payload)
+        record_refs.append(
+            {
+                "sample_id": record.sample_id,
+                "content_sha256": digest,
+                "relative_path": relative_path,
+            }
+        )
+    core = {
+        "schema": "standardized_channel_run.v1",
+        "schema_version": 1,
+        "run_id": run.run_id,
+        "records": record_refs,
+    }
+    manifest_payload = _canonical_json(core, name="run manifest")
+    digest = hashlib.sha256(manifest_payload).hexdigest()
+    manifest = {**core, "content_sha256": digest}
+    relative_path = f"manifests/runs/{hashlib.sha256(run.run_id.encode()).hexdigest()}.json"
+    _publish_immutable(base / relative_path, _canonical_json(manifest, name="run manifest") + b"\n")
+    return StoredStandardizedRun(
+        run_id=run.run_id,
+        content_sha256=digest,
+        relative_path=relative_path,
+        sample_ids=tuple(record.sample_id for record in run.records),
+    )
+
+
+def read_standardized_run(
+    root: str | Path, manifest: StoredStandardizedRun | str | Path
+) -> StandardizedChannelRun:
+    """Load a standardized run with manifest, record hash, and schema validation."""
+    base = Path(root)
+    if isinstance(manifest, StoredStandardizedRun):
+        stored = manifest
+        relative = PurePosixPath(stored.relative_path)
+        if relative.is_absolute() or ".." in relative.parts:
+            raise ValueError("standardized manifest path must remain inside the store")
+        manifest_path = base.joinpath(*relative.parts)
+    else:
+        manifest_path = Path(manifest)
+        if not manifest_path.is_absolute():
+            manifest_path = base / manifest_path
+        raw = json.loads(manifest_path.read_text(encoding="utf-8"))
+        stored = StoredStandardizedRun(
+            run_id=raw["run_id"],
+            content_sha256=raw["content_sha256"],
+            relative_path=manifest_path.relative_to(base).as_posix(),
+            sample_ids=tuple(item["sample_id"] for item in raw["records"]),
+            schema_version=raw["schema_version"],
+        )
+    if stored.schema_version != 1:
+        raise ValueError(f"unsupported standardized run schema version: {stored.schema_version}")
+    raw_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if raw_manifest.get("schema") != "standardized_channel_run.v1":
+        raise ValueError("unsupported standardized run manifest")
+    core = {key: raw_manifest[key] for key in ("schema", "schema_version", "run_id", "records")}
+    digest = hashlib.sha256(_canonical_json(core, name="run manifest")).hexdigest()
+    if digest != raw_manifest.get("content_sha256") or digest != stored.content_sha256:
+        raise ValueError("standardized run manifest hash is invalid")
+    if raw_manifest["run_id"] != stored.run_id:
+        raise ValueError("standardized run ID does not match its manifest pointer")
+    records: list[StandardizedChannelRecord] = []
+    for reference in raw_manifest["records"]:
+        relative_record = PurePosixPath(reference["relative_path"])
+        if relative_record.is_absolute() or ".." in relative_record.parts:
+            raise ValueError("standardized record path must remain inside the store")
+        payload = base.joinpath(*relative_record.parts).read_bytes()
+        record_hash = hashlib.sha256(payload).hexdigest()
+        if (
+            record_hash != reference["content_sha256"]
+            or relative_record.name != f"{record_hash}.npz"
+        ):
+            raise ValueError("standardized record content hash is invalid")
+        with np.load(io.BytesIO(payload), allow_pickle=False) as archive:
+            metadata = json.loads(archive["metadata_json"].tobytes().decode("utf-8"))
+            if metadata.get("schema") != "standardized_channel_record.v1":
+                raise ValueError("unsupported standardized channel record")
+            if metadata.get("sample_id") != reference["sample_id"]:
+                raise ValueError("standardized record identity disagrees with run manifest")
+            record = StandardizedChannelRecord(
+                sample_id=metadata["sample_id"],
+                run_id=metadata["run_id"],
+                sample_index=metadata["sample_index"],
+                family=StandardizedFamily(metadata["family"]),
+                profile_model=metadata["profile_model"],
+                profile_los_component=metadata["profile_los_component"],
+                h_path=archive["h_path"],
+                tau_s=archive["tau_s"],
+                cfr=archive["cfr"],
+                subcarrier_offsets_hz=archive["subcarrier_offsets_hz"],
+                metadata=metadata["metadata"],
+            )
+            if record.sample_id != reference["sample_id"] or record.run_id != stored.run_id:
+                raise ValueError("standardized sample identity disagrees with run manifest")
+            records.append(record)
+    if tuple(record.sample_id for record in records) != stored.sample_ids:
+        raise ValueError("standardized sample order disagrees with run pointer")
+    return StandardizedChannelRun(stored.run_id, tuple(records))

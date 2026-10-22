@@ -379,7 +379,7 @@ Required environment doctor JSON: Python, platform/kernel, CUDA device/compute c
 | Tier | Data | Purpose | Required audits | Never claim |
 |---|---|---|---|---|
 | D0 | analytically solvable SISO/MIMO free space, two rays, known Doppler | mathematical unit tests, oracle validation | exact Fourier sum, path delay, phase, aperture, power | realistic field performance |
-| D1 | Sionna PHY TDL/CDL A–E (`spec_version="19.2"`) | standardized controls, profile recognition and source pretraining | balanced profile+delay/SNR, antenna, speed, profile masks | geometric visibility truth independent of model design |
+| D1 | Sionna PHY TDL/CDL A–E (`spec_version="19.2"`) | standardized controls, profile recognition and source pretraining | balanced profile+delay/SNR, antenna, speed, profile masks; immutable profile-faithful channel records in `datasets.standardized` | geometric visibility truth independent of model design |
 | D2 | scenario models UMi/UMa/RMa/InH/InF with actual LOS-state logic and spatial consistency | bridge from fixed-profile families to scenario distributions | scenario labels, geometry/statistical consistency, correlation lengths, blockers | equivalent to true detailed RT |
 | D3 | controlled RT canonical scenes | demonstrate causal mechanisms and sensor resolution | geometry/oracle cross-check, path solver sweeps, direct+multiple indirect paths | complete physical city fidelity |
 | D4 | independent high-fidelity urban/indoor/factory/campus RT scenes | primary held-out-scene generalization | material uncertainty, mesh QA, representative scene diversity | validated against the world without measurements |
