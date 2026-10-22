@@ -1,0 +1,278 @@
+{
+  "comparisons": [
+    {
+      "cfr_sha256_equal": true,
+      "link_id": "center-los",
+      "max_depth": 0,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 0.0,
+      "samples_per_src": 20000,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "center-los",
+      "max_depth": 1,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 2.035207340370544e-07,
+      "samples_per_src": 20000,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "center-los",
+      "max_depth": 2,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 2.477681961736574e-07,
+      "samples_per_src": 20000,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "center-los",
+      "max_depth": 3,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 2.578664116757461e-07,
+      "samples_per_src": 20000,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": true,
+      "link_id": "center-los",
+      "max_depth": 0,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 0.0,
+      "samples_per_src": 20000,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "center-los",
+      "max_depth": 1,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 2.0071673819286272e-07,
+      "samples_per_src": 20000,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "center-los",
+      "max_depth": 2,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 2.1854687371588005e-07,
+      "samples_per_src": 20000,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "center-los",
+      "max_depth": 3,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 2.519305821866632e-07,
+      "samples_per_src": 20000,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": true,
+      "link_id": "center-los",
+      "max_depth": 0,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 0.0,
+      "samples_per_src": 20000,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "center-los",
+      "max_depth": 1,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 2.6012207881281435e-07,
+      "samples_per_src": 20000,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "center-los",
+      "max_depth": 2,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 2.7920121709889356e-07,
+      "samples_per_src": 20000,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "center-los",
+      "max_depth": 3,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 2.615593090278718e-07,
+      "samples_per_src": 20000,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": true,
+      "link_id": "center-nlos",
+      "max_depth": 0,
+      "reference_cfr_zero_energy": true,
+      "relative_cfr_l2_error": 0.0,
+      "samples_per_src": 20000,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "center-nlos",
+      "max_depth": 1,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 1.8673792923237208e-07,
+      "samples_per_src": 20000,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "center-nlos",
+      "max_depth": 2,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 1.602434899983705e-07,
+      "samples_per_src": 20000,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "center-nlos",
+      "max_depth": 3,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 2.6644397107718254e-07,
+      "samples_per_src": 20000,
+      "seed": 11,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": true,
+      "link_id": "center-nlos",
+      "max_depth": 0,
+      "reference_cfr_zero_energy": true,
+      "relative_cfr_l2_error": 0.0,
+      "samples_per_src": 20000,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "center-nlos",
+      "max_depth": 1,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 1.9609177906519716e-07,
+      "samples_per_src": 20000,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "center-nlos",
+      "max_depth": 2,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 1.1799866785896221e-07,
+      "samples_per_src": 20000,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "center-nlos",
+      "max_depth": 3,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 2.39458378626934e-07,
+      "samples_per_src": 20000,
+      "seed": 23,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": true,
+      "link_id": "center-nlos",
+      "max_depth": 0,
+      "reference_cfr_zero_energy": true,
+      "relative_cfr_l2_error": 0.0,
+      "samples_per_src": 20000,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "center-nlos",
+      "max_depth": 1,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 1.3585876993633114e-07,
+      "samples_per_src": 20000,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "center-nlos",
+      "max_depth": 2,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 2.4621557013522454e-07,
+      "samples_per_src": 20000,
+      "seed": 47,
+      "valid_path_count_equal": true
+    },
+    {
+      "cfr_sha256_equal": false,
+      "link_id": "center-nlos",
+      "max_depth": 3,
+      "reference_cfr_zero_energy": false,
+      "relative_cfr_l2_error": 3.3462495101684746e-07,
+      "samples_per_src": 20000,
+      "seed": 47,
+      "valid_path_count_equal": true
+    }
+  ],
+  "configuration": {
+    "cfr_subcarriers": 256,
+    "cfr_vectors_included": true,
+    "max_num_paths_per_src": 1000000,
+    "mitsuba_variant": "llvm_ad_mono_polarized",
+    "scene": "scenes/generated/research_scenes/city43/urban_00043.xml",
+    "scene_tree_sha256": "9b8864831654336ac34e363e1cc92d7208b50c66bfcbdff1a873e3b2be635bbb"
+  },
+  "failed_cases": [],
+  "limitations": [
+    "A passing tolerance applies only to the exact scene, solver settings, backend, and replayed cases in these reports.",
+    "Numerical agreement within tolerance is not bitwise identity and does not establish physical-model accuracy."
+  ],
+  "reference": {
+    "path": "docs/research/results/rt-city43-scattering-replay-reference-v4-20261022.json",
+    "sha256": "bbda22a36b4afba2454085c2efe44a38b0230a76e74a39072edc3487a1f5261e"
+  },
+  "replay": {
+    "path": "docs/research/results/rt-city43-scattering-replay-repeat-v4-20261022.json",
+    "sha256": "a854c7956b8e072b0b44849261c448aa5b3b9b3808edb1376101572edc59cc44"
+  },
+  "schema": "loslab.rt_solver_replay_audit.v1",
+  "summary": {
+    "case_count": 24,
+    "exact_cfr_hash_matches": 6,
+    "max_relative_cfr_l2_error": 3.3462495101684746e-07,
+    "median_relative_cfr_l2_error": 2.0211873611495855e-07,
+    "passed": true,
+    "path_count_matches": 24
+  },
+  "tolerance": {
+    "max_relative_cfr_l2_error": 1e-06,
+    "path_counts_must_match": true
+  }
+}

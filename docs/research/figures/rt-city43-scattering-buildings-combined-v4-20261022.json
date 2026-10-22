@@ -1,0 +1,18 @@
+{
+  "description": "Top: all 16 building meshes and the audited LOS/NLOS links in the City43 scene. Bottom: diffuse-path count, power, delay spread, and angular spread versus ray budget. The concrete coefficient S=0.5 is a synthetic solver-mechanics control, not a calibrated material value.",
+  "inputs": [
+    {
+      "path": "docs/research/figures/rt-city43-los-nlos-cap-sweep-scene-20261022.png",
+      "sha256": "6732ac6a79ef184ec76edf5119a2738ea646e536233718e8d4f6f7c89066e529"
+    },
+    {
+      "path": "docs/research/figures/rt-city43-scattering-control-concrete-s05-v4-20261022.png",
+      "sha256": "4e170b049c05d51f2ec73f142443627f5d9d1717b5f5dcd4e782a233f0b4b5e5"
+    }
+  ],
+  "output": {
+    "path": "docs/research/figures/rt-city43-scattering-buildings-combined-v4-20261022.png",
+    "sha256": "8bb203af431a5ebaf9c822b0f39dfaa578a6745cca53da5c62f01a60cd128716"
+  },
+  "schema": "loslab.city43_scattering_figure.v1"
+}
