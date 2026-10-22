@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from collections import Counter
 from typing import Any, cast
 
@@ -10,6 +11,18 @@ import numpy as np
 
 def _numpy(value: Any) -> np.ndarray:
     return np.asarray(value.numpy() if hasattr(value, "numpy") else value)
+
+
+def _json_safe(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {str(key): _json_safe(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe(item) for item in value]
+    if isinstance(value, np.generic):
+        return _json_safe(value.item())
+    if isinstance(value, float) and not math.isfinite(value):
+        return None
+    return value
 
 
 class _CandidateGeneratorProxy:
@@ -140,7 +153,7 @@ class PathLineageObserver:
             }
             if "candidate_generator" in stage or stage in {"after_los", "after_shoot_and_bounce"}:
                 self._previous_zero_indices = zero_indices
-            self.records.append(record)
+            self.records.append(_json_safe(record))
         except Exception as error:
             raise RuntimeError(f"path-lineage snapshot failed at {stage}: {error}") from error
 
@@ -178,13 +191,15 @@ class PathLineageObserver:
                 for index in zero_indices
             ]
             self.records.append(
-                {
-                    **self.context,
-                    "stage": "final_paths_tensor",
-                    "buffer_count": int(valid.size),
-                    "zero_interaction_count": int(len(zero_indices)),
-                    "zero_interaction_records": rows,
-                }
+                _json_safe(
+                    {
+                        **self.context,
+                        "stage": "final_paths_tensor",
+                        "buffer_count": int(valid.size),
+                        "zero_interaction_count": int(len(zero_indices)),
+                        "zero_interaction_records": rows,
+                    }
+                )
             )
         except Exception as error:
             raise RuntimeError(f"path-lineage snapshot failed at final Paths: {error}") from error
