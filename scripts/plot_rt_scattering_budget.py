@@ -118,15 +118,16 @@ def plot_scattering_budget(report_path: Path, output_prefix: Path) -> dict[str, 
         axis.grid(True, which="both", alpha=0.25)
         axis.legend()
 
+    scene_name = Path(report["scene"]["name"]).stem
     figure_title = (
-        f"Diffuse-path sampling sensitivity | {report['scene']['name']} | "
+        f"Diffuse-path sampling sensitivity | {scene_name} | "
         f"max depth {depth} | scattering coefficients "
         + ", ".join(
             f"{name}:{','.join(str(x) for x in values['scattering_coefficient'])}"
             for name, values in configuration["materials"].items()
         )
     )
-    fig.suptitle(figure_title)
+    fig.suptitle(figure_title, fontsize=12)
     output_prefix.parent.mkdir(parents=True, exist_ok=True)
     png_path = output_prefix.with_suffix(".png")
     svg_path = output_prefix.with_suffix(".svg")

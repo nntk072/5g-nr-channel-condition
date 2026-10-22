@@ -1,0 +1,549 @@
+{
+  "comparisons": [
+    {
+      "link_id": "center-los",
+      "max_depth": 0,
+      "nonzero_scattering_diffuse_path_count": 0,
+      "nonzero_scattering_diffuse_power_sum": 0.0,
+      "nonzero_scattering_total_path_count": 1,
+      "relative_cfr_l2_error": 0.0,
+      "samples_per_src": 20000,
+      "seed": 11,
+      "zero_scattering_diffuse_path_count": 0,
+      "zero_scattering_total_path_count": 1
+    },
+    {
+      "link_id": "center-los",
+      "max_depth": 1,
+      "nonzero_scattering_diffuse_path_count": 927,
+      "nonzero_scattering_diffuse_power_sum": 1.672587623957611e-10,
+      "nonzero_scattering_total_path_count": 930,
+      "relative_cfr_l2_error": 0.028946223855459457,
+      "samples_per_src": 20000,
+      "seed": 11,
+      "zero_scattering_diffuse_path_count": 0,
+      "zero_scattering_total_path_count": 3
+    },
+    {
+      "link_id": "center-los",
+      "max_depth": 2,
+      "nonzero_scattering_diffuse_path_count": 1167,
+      "nonzero_scattering_diffuse_power_sum": 2.2799222232361416e-10,
+      "nonzero_scattering_total_path_count": 1171,
+      "relative_cfr_l2_error": 0.043037078878378154,
+      "samples_per_src": 20000,
+      "seed": 11,
+      "zero_scattering_diffuse_path_count": 0,
+      "zero_scattering_total_path_count": 4
+    },
+    {
+      "link_id": "center-los",
+      "max_depth": 3,
+      "nonzero_scattering_diffuse_path_count": 78,
+      "nonzero_scattering_diffuse_power_sum": 2.6606300496112567e-10,
+      "nonzero_scattering_total_path_count": 84,
+      "relative_cfr_l2_error": 0.05138544087309781,
+      "samples_per_src": 1000,
+      "seed": 11,
+      "zero_scattering_diffuse_path_count": 0,
+      "zero_scattering_total_path_count": 6
+    },
+    {
+      "link_id": "center-los",
+      "max_depth": 3,
+      "nonzero_scattering_diffuse_path_count": 1246,
+      "nonzero_scattering_diffuse_power_sum": 2.372602114775191e-10,
+      "nonzero_scattering_total_path_count": 1255,
+      "relative_cfr_l2_error": 0.043803696361101034,
+      "samples_per_src": 20000,
+      "seed": 11,
+      "zero_scattering_diffuse_path_count": 0,
+      "zero_scattering_total_path_count": 9
+    },
+    {
+      "link_id": "center-los",
+      "max_depth": 0,
+      "nonzero_scattering_diffuse_path_count": 0,
+      "nonzero_scattering_diffuse_power_sum": 0.0,
+      "nonzero_scattering_total_path_count": 1,
+      "relative_cfr_l2_error": 0.0,
+      "samples_per_src": 20000,
+      "seed": 23,
+      "zero_scattering_diffuse_path_count": 0,
+      "zero_scattering_total_path_count": 1
+    },
+    {
+      "link_id": "center-los",
+      "max_depth": 1,
+      "nonzero_scattering_diffuse_path_count": 971,
+      "nonzero_scattering_diffuse_power_sum": 1.4979158191597008e-10,
+      "nonzero_scattering_total_path_count": 974,
+      "relative_cfr_l2_error": 0.04037514104304632,
+      "samples_per_src": 20000,
+      "seed": 23,
+      "zero_scattering_diffuse_path_count": 0,
+      "zero_scattering_total_path_count": 3
+    },
+    {
+      "link_id": "center-los",
+      "max_depth": 2,
+      "nonzero_scattering_diffuse_path_count": 1183,
+      "nonzero_scattering_diffuse_power_sum": 2.4692486944033476e-10,
+      "nonzero_scattering_total_path_count": 1187,
+      "relative_cfr_l2_error": 0.07439614330901284,
+      "samples_per_src": 20000,
+      "seed": 23,
+      "zero_scattering_diffuse_path_count": 0,
+      "zero_scattering_total_path_count": 4
+    },
+    {
+      "link_id": "center-los",
+      "max_depth": 3,
+      "nonzero_scattering_diffuse_path_count": 66,
+      "nonzero_scattering_diffuse_power_sum": 1.736554233744414e-10,
+      "nonzero_scattering_total_path_count": 73,
+      "relative_cfr_l2_error": 0.04568818169460201,
+      "samples_per_src": 1000,
+      "seed": 23,
+      "zero_scattering_diffuse_path_count": 0,
+      "zero_scattering_total_path_count": 8
+    },
+    {
+      "link_id": "center-los",
+      "max_depth": 3,
+      "nonzero_scattering_diffuse_path_count": 1263,
+      "nonzero_scattering_diffuse_power_sum": 2.571840518328372e-10,
+      "nonzero_scattering_total_path_count": 1272,
+      "relative_cfr_l2_error": 0.07209638868319733,
+      "samples_per_src": 20000,
+      "seed": 23,
+      "zero_scattering_diffuse_path_count": 0,
+      "zero_scattering_total_path_count": 9
+    },
+    {
+      "link_id": "center-los",
+      "max_depth": 0,
+      "nonzero_scattering_diffuse_path_count": 0,
+      "nonzero_scattering_diffuse_power_sum": 0.0,
+      "nonzero_scattering_total_path_count": 1,
+      "relative_cfr_l2_error": 0.0,
+      "samples_per_src": 20000,
+      "seed": 47,
+      "zero_scattering_diffuse_path_count": 0,
+      "zero_scattering_total_path_count": 1
+    },
+    {
+      "link_id": "center-los",
+      "max_depth": 1,
+      "nonzero_scattering_diffuse_path_count": 970,
+      "nonzero_scattering_diffuse_power_sum": 1.4658606273254549e-10,
+      "nonzero_scattering_total_path_count": 973,
+      "relative_cfr_l2_error": 0.0623479572886579,
+      "samples_per_src": 20000,
+      "seed": 47,
+      "zero_scattering_diffuse_path_count": 0,
+      "zero_scattering_total_path_count": 3
+    },
+    {
+      "link_id": "center-los",
+      "max_depth": 2,
+      "nonzero_scattering_diffuse_path_count": 1179,
+      "nonzero_scattering_diffuse_power_sum": 2.0377077802891108e-10,
+      "nonzero_scattering_total_path_count": 1183,
+      "relative_cfr_l2_error": 0.07552425841632585,
+      "samples_per_src": 20000,
+      "seed": 47,
+      "zero_scattering_diffuse_path_count": 0,
+      "zero_scattering_total_path_count": 4
+    },
+    {
+      "link_id": "center-los",
+      "max_depth": 3,
+      "nonzero_scattering_diffuse_path_count": 58,
+      "nonzero_scattering_diffuse_power_sum": 1.4583749485819197e-10,
+      "nonzero_scattering_total_path_count": 64,
+      "relative_cfr_l2_error": 0.030341852270174472,
+      "samples_per_src": 1000,
+      "seed": 47,
+      "zero_scattering_diffuse_path_count": 0,
+      "zero_scattering_total_path_count": 6
+    },
+    {
+      "link_id": "center-los",
+      "max_depth": 3,
+      "nonzero_scattering_diffuse_path_count": 1256,
+      "nonzero_scattering_diffuse_power_sum": 2.1647059145202263e-10,
+      "nonzero_scattering_total_path_count": 1265,
+      "relative_cfr_l2_error": 0.07634035375382815,
+      "samples_per_src": 20000,
+      "seed": 47,
+      "zero_scattering_diffuse_path_count": 0,
+      "zero_scattering_total_path_count": 9
+    },
+    {
+      "link_id": "center-nlos",
+      "max_depth": 0,
+      "nonzero_scattering_diffuse_path_count": 0,
+      "nonzero_scattering_diffuse_power_sum": 0.0,
+      "nonzero_scattering_total_path_count": 0,
+      "relative_cfr_l2_error": null,
+      "samples_per_src": 20000,
+      "seed": 11,
+      "zero_scattering_diffuse_path_count": 0,
+      "zero_scattering_total_path_count": 0
+    },
+    {
+      "link_id": "center-nlos",
+      "max_depth": 1,
+      "nonzero_scattering_diffuse_path_count": 98,
+      "nonzero_scattering_diffuse_power_sum": 8.049199501369841e-11,
+      "nonzero_scattering_total_path_count": 98,
+      "relative_cfr_l2_error": null,
+      "samples_per_src": 20000,
+      "seed": 11,
+      "zero_scattering_diffuse_path_count": 0,
+      "zero_scattering_total_path_count": 0
+    },
+    {
+      "link_id": "center-nlos",
+      "max_depth": 2,
+      "nonzero_scattering_diffuse_path_count": 177,
+      "nonzero_scattering_diffuse_power_sum": 1.358794743389069e-10,
+      "nonzero_scattering_total_path_count": 179,
+      "relative_cfr_l2_error": 0.5302625963819102,
+      "samples_per_src": 20000,
+      "seed": 11,
+      "zero_scattering_diffuse_path_count": 0,
+      "zero_scattering_total_path_count": 2
+    },
+    {
+      "link_id": "center-nlos",
+      "max_depth": 3,
+      "nonzero_scattering_diffuse_path_count": 14,
+      "nonzero_scattering_diffuse_power_sum": 1.7504832305892393e-10,
+      "nonzero_scattering_total_path_count": 17,
+      "relative_cfr_l2_error": 0.3189336048717805,
+      "samples_per_src": 1000,
+      "seed": 11,
+      "zero_scattering_diffuse_path_count": 0,
+      "zero_scattering_total_path_count": 3
+    },
+    {
+      "link_id": "center-nlos",
+      "max_depth": 3,
+      "nonzero_scattering_diffuse_path_count": 259,
+      "nonzero_scattering_diffuse_power_sum": 1.5480736137440942e-10,
+      "nonzero_scattering_total_path_count": 271,
+      "relative_cfr_l2_error": 0.4065038096300997,
+      "samples_per_src": 20000,
+      "seed": 11,
+      "zero_scattering_diffuse_path_count": 0,
+      "zero_scattering_total_path_count": 12
+    },
+    {
+      "link_id": "center-nlos",
+      "max_depth": 0,
+      "nonzero_scattering_diffuse_path_count": 0,
+      "nonzero_scattering_diffuse_power_sum": 0.0,
+      "nonzero_scattering_total_path_count": 0,
+      "relative_cfr_l2_error": null,
+      "samples_per_src": 20000,
+      "seed": 23,
+      "zero_scattering_diffuse_path_count": 0,
+      "zero_scattering_total_path_count": 0
+    },
+    {
+      "link_id": "center-nlos",
+      "max_depth": 1,
+      "nonzero_scattering_diffuse_path_count": 75,
+      "nonzero_scattering_diffuse_power_sum": 4.982305540357501e-11,
+      "nonzero_scattering_total_path_count": 75,
+      "relative_cfr_l2_error": null,
+      "samples_per_src": 20000,
+      "seed": 23,
+      "zero_scattering_diffuse_path_count": 0,
+      "zero_scattering_total_path_count": 0
+    },
+    {
+      "link_id": "center-nlos",
+      "max_depth": 2,
+      "nonzero_scattering_diffuse_path_count": 151,
+      "nonzero_scattering_diffuse_power_sum": 1.1787679166097575e-10,
+      "nonzero_scattering_total_path_count": 153,
+      "relative_cfr_l2_error": 0.65811264917646,
+      "samples_per_src": 20000,
+      "seed": 23,
+      "zero_scattering_diffuse_path_count": 0,
+      "zero_scattering_total_path_count": 2
+    },
+    {
+      "link_id": "center-nlos",
+      "max_depth": 3,
+      "nonzero_scattering_diffuse_path_count": 15,
+      "nonzero_scattering_diffuse_power_sum": 1.158860715722021e-10,
+      "nonzero_scattering_total_path_count": 20,
+      "relative_cfr_l2_error": 0.33855155091724026,
+      "samples_per_src": 1000,
+      "seed": 23,
+      "zero_scattering_diffuse_path_count": 0,
+      "zero_scattering_total_path_count": 5
+    },
+    {
+      "link_id": "center-nlos",
+      "max_depth": 3,
+      "nonzero_scattering_diffuse_path_count": 246,
+      "nonzero_scattering_diffuse_power_sum": 1.3278668442584518e-10,
+      "nonzero_scattering_total_path_count": 258,
+      "relative_cfr_l2_error": 0.6377104715117509,
+      "samples_per_src": 20000,
+      "seed": 23,
+      "zero_scattering_diffuse_path_count": 0,
+      "zero_scattering_total_path_count": 13
+    },
+    {
+      "link_id": "center-nlos",
+      "max_depth": 0,
+      "nonzero_scattering_diffuse_path_count": 0,
+      "nonzero_scattering_diffuse_power_sum": 0.0,
+      "nonzero_scattering_total_path_count": 0,
+      "relative_cfr_l2_error": null,
+      "samples_per_src": 20000,
+      "seed": 47,
+      "zero_scattering_diffuse_path_count": 0,
+      "zero_scattering_total_path_count": 0
+    },
+    {
+      "link_id": "center-nlos",
+      "max_depth": 1,
+      "nonzero_scattering_diffuse_path_count": 86,
+      "nonzero_scattering_diffuse_power_sum": 6.266470675697633e-11,
+      "nonzero_scattering_total_path_count": 86,
+      "relative_cfr_l2_error": null,
+      "samples_per_src": 20000,
+      "seed": 47,
+      "zero_scattering_diffuse_path_count": 0,
+      "zero_scattering_total_path_count": 0
+    },
+    {
+      "link_id": "center-nlos",
+      "max_depth": 2,
+      "nonzero_scattering_diffuse_path_count": 174,
+      "nonzero_scattering_diffuse_power_sum": 1.5227009930729452e-10,
+      "nonzero_scattering_total_path_count": 176,
+      "relative_cfr_l2_error": 0.5327982356061232,
+      "samples_per_src": 20000,
+      "seed": 47,
+      "zero_scattering_diffuse_path_count": 0,
+      "zero_scattering_total_path_count": 2
+    },
+    {
+      "link_id": "center-nlos",
+      "max_depth": 3,
+      "nonzero_scattering_diffuse_path_count": 8,
+      "nonzero_scattering_diffuse_power_sum": 5.179321901915834e-11,
+      "nonzero_scattering_total_path_count": 13,
+      "relative_cfr_l2_error": 0.22127756785946756,
+      "samples_per_src": 1000,
+      "seed": 47,
+      "zero_scattering_diffuse_path_count": 0,
+      "zero_scattering_total_path_count": 5
+    },
+    {
+      "link_id": "center-nlos",
+      "max_depth": 3,
+      "nonzero_scattering_diffuse_path_count": 256,
+      "nonzero_scattering_diffuse_power_sum": 1.7485342340695098e-10,
+      "nonzero_scattering_total_path_count": 268,
+      "relative_cfr_l2_error": 0.4816793214311569,
+      "samples_per_src": 20000,
+      "seed": 47,
+      "zero_scattering_diffuse_path_count": 0,
+      "zero_scattering_total_path_count": 12
+    }
+  ],
+  "configuration": {
+    "material": "itu_concrete",
+    "nonzero_scattering_coefficients": {
+      "itu_concrete": 0.5,
+      "itu_glass": 0.0,
+      "itu_metal": 0.0
+    },
+    "solver": {
+      "carrier_hz": 3500000000.0,
+      "cfr_vector_encoding": "float64-real-imaginary-lists",
+      "cfr_vectors_included": true,
+      "deterministic_solver": true,
+      "links": [
+        {
+          "boundary_probe_blocked": [
+            false,
+            false,
+            false,
+            false
+          ],
+          "first_intersection_distance_m": null,
+          "geometric_los": true,
+          "geometric_visibility_state": "visible",
+          "incidence_cosine": null,
+          "link_id": "center-los",
+          "rx_position_m": [
+            -8.590140794952246,
+            -15.375005963836855,
+            1.5
+          ],
+          "segment_length_m": 43.774200977779905,
+          "tx_position_m": [
+            0.0,
+            -55.0,
+            18.0
+          ]
+        },
+        {
+          "boundary_probe_blocked": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "first_intersection_distance_m": 23.739953994750977,
+          "geometric_los": false,
+          "geometric_visibility_state": "blocked",
+          "incidence_cosine": 0.42176618492534124,
+          "link_id": "center-nlos",
+          "rx_position_m": [
+            24.35684045332106,
+            -5.3057960716627575,
+            1.5
+          ],
+          "segment_length_m": 57.74962840520886,
+          "tx_position_m": [
+            0.0,
+            -55.0,
+            18.0
+          ]
+        }
+      ],
+      "material_scattering_overrides": {},
+      "materials": {
+        "itu_concrete": {
+          "scattering_coefficient": [
+            0.0
+          ],
+          "scattering_pattern": "LambertianPattern",
+          "xpd_coefficient": [
+            0.0
+          ]
+        },
+        "itu_glass": {
+          "scattering_coefficient": [
+            0.0
+          ],
+          "scattering_pattern": "LambertianPattern",
+          "xpd_coefficient": [
+            0.0
+          ]
+        },
+        "itu_metal": {
+          "scattering_coefficient": [
+            0.0
+          ],
+          "scattering_pattern": "LambertianPattern",
+          "xpd_coefficient": [
+            0.0
+          ]
+        }
+      },
+      "max_depth_values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "max_num_paths_per_src": 1000000,
+      "mitsuba_variant": "llvm_ad_mono_polarized",
+      "n_subcarriers": 256,
+      "normalize_cfr_power": false,
+      "normalize_delays_for_cfr": false,
+      "reference_samples_per_src": 20000,
+      "rt_backend_selection": {
+        "available_variants": [
+          "scalar_rgb",
+          "scalar_spectral",
+          "scalar_spectral_polarized",
+          "llvm_ad_rgb",
+          "llvm_ad_mono",
+          "llvm_ad_mono_polarized",
+          "llvm_ad_spectral",
+          "llvm_ad_spectral_polarized",
+          "cuda_ad_rgb",
+          "cuda_ad_mono",
+          "cuda_ad_mono_polarized",
+          "cuda_ad_spectral",
+          "cuda_ad_spectral_polarized"
+        ],
+        "backend": "llvm_cpu",
+        "fallback_reason": "cuda_ad_mono_polarized: native RT probe failed (1): RuntimeError: [parser.cpp:1718] At dictionary node \"root\": failed to instantiate scene plugin of type \"scene\": Could not initialize OptiX!",
+        "probe_passed": true,
+        "probe_summary": "one direct path traced with llvm_ad_mono_polarized",
+        "requested": "auto",
+        "runtime_versions": {
+          "drjit": "1.5.0",
+          "mitsuba": "3.9.1",
+          "sionna-rt": "2.2.0"
+        },
+        "variant": "llvm_ad_mono_polarized"
+      },
+      "samples_per_src_values": [
+        1000,
+        20000
+      ],
+      "seeds": [
+        11,
+        23,
+        47
+      ],
+      "solver_flags": {
+        "diffraction": false,
+        "diffuse_reflection": true,
+        "los": true,
+        "refraction": true,
+        "specular_reflection": true
+      },
+      "subcarrier_spacing_hz": 30000.0
+    },
+    "zero_scattering_coefficients": {
+      "itu_concrete": 0.0,
+      "itu_glass": 0.0,
+      "itu_metal": 0.0
+    }
+  },
+  "limitations": [
+    "This verifies Sionna RT diffuse-path mechanics for the exact synthetic screen scene and settings, not calibrated material behavior.",
+    "One SISO scene family does not qualify scattering physics across materials, geometries, arrays, or external measurements.",
+    "The largest requested ray budget is a finite comparison setting, not physical ground truth."
+  ],
+  "nonzero_scattering_report": {
+    "path": "docs/research/results/rt-city43-scattering-control-concrete-s05-v4-20261022.json",
+    "sha256": "1c69142f5fd6b4622ff7b37a902a656cb63f648dbb3f86af016ac257a0ece0fc"
+  },
+  "scene": {
+    "name": "scenes/generated/research_scenes/city43/urban_00043.xml",
+    "scene_tree_sha256": "9b8864831654336ac34e363e1cc92d7208b50c66bfcbdff1a873e3b2be635bbb",
+    "xml_path": "/home/nguyenl37/5g-nr-channel-condition/scenes/generated/research_scenes/city43/urban_00043.xml",
+    "xml_sha256": "3d716ff2e759230469eae6ca0537fb56c741c7ba2a12f5ed3bfb2966b5f38131"
+  },
+  "schema": "loslab.rt_scattering_control_audit.v1",
+  "summary": {
+    "all_depth_zero_cases_have_no_diffuse_paths": true,
+    "matched_case_count": 30,
+    "max_relative_cfr_l2_error": 0.65811264917646,
+    "nonzero_scattering_cases_with_diffuse_paths": 24,
+    "nonzero_scattering_cases_with_diffuse_power": 24,
+    "passed": true,
+    "zero_scattering_cases_with_diffuse_paths": 0
+  },
+  "zero_scattering_report": {
+    "path": "docs/research/results/rt-city43-scattering-control-s0-v4-20261022.json",
+    "sha256": "b8e5f7c8216824828ae9322cc2563fd97815723fa7654cbc34ae62e54e42bc61"
+  }
+}

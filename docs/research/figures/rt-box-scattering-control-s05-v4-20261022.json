@@ -147,6 +147,6 @@
   "summary": "Lines show the median across seeds; bands show the observed min/max and may use fewer seeds when a budget produces no diffuse paths. In the log-scaled diffuse-power panel, exact zero lower bounds are clipped to 10% of the median for visibility. The synthetic S=0.5 override demonstrates solver mechanics, not calibrated material scattering.",
   "svg": {
     "path": "docs/research/figures/rt-box-scattering-control-s05-v4-20261022.svg",
-    "sha256": "318d663ecb78ef8e9166179586234514cf93f403070f3d48b816c388ed41fb49"
+    "sha256": "08bbf01aba6e8faf769fe4ec83bc835bc8398c68cfb71febaef1020f369cd53e"
   }
 }
