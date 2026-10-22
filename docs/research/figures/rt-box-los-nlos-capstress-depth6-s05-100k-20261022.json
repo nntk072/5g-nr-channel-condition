@@ -1,0 +1,608 @@
+{
+  "configuration": {
+    "cfr_vectors_included": true,
+    "material_scattering_overrides": {
+      "screen-mat": 0.5
+    },
+    "materials": {
+      "box-mat": {
+        "scattering_coefficient": [
+          0.0
+        ],
+        "scattering_pattern": "LambertianPattern",
+        "xpd_coefficient": [
+          0.0
+        ]
+      },
+      "screen-mat": {
+        "scattering_coefficient": [
+          0.5
+        ],
+        "scattering_pattern": "LambertianPattern",
+        "xpd_coefficient": [
+          0.0
+        ]
+      }
+    },
+    "max_depth": 6,
+    "mitsuba_variant": "llvm_ad_mono_polarized",
+    "samples_per_src": 100000,
+    "seeds": [
+      11,
+      23,
+      47
+    ]
+  },
+  "figure": {
+    "png": {
+      "path": "docs/research/figures/rt-box-los-nlos-capstress-depth6-s05-100k-20261022.png",
+      "sha256": "1a597d44310938c8c4384f2484020f01461ad19feb4c0aa5e8b2e254e92b680e"
+    },
+    "svg": {
+      "path": "docs/research/figures/rt-box-los-nlos-capstress-depth6-s05-100k-20261022.svg",
+      "sha256": "7dfa3b20c72ab865f5cd2d0f1b1d52f11bcf405a30d9e095e7bc4f600bbd2b7c"
+    }
+  },
+  "inputs": [
+    {
+      "max_num_paths_per_src": 1000,
+      "path": "/home/nguyenl37/5g-nr-channel-condition/docs/research/results/rt-box-los-nlos-capstress-depth6-s05-100k-cap1000-20261022.json",
+      "sha256": "07fcf2e02355570f430922f498096089103a3462fabbec1905a506d3ef83d04a"
+    },
+    {
+      "max_num_paths_per_src": 10000,
+      "path": "/home/nguyenl37/5g-nr-channel-condition/docs/research/results/rt-box-los-nlos-capstress-depth6-s05-100k-cap10000-20261022.json",
+      "sha256": "0cb582b659ed1b7cc4aea4f6cd2b44339130c163f41a8be40c858ccbddd0c14a"
+    },
+    {
+      "max_num_paths_per_src": 1000000,
+      "path": "/home/nguyenl37/5g-nr-channel-condition/docs/research/results/rt-box-los-nlos-capstress-depth6-s05-100k-cap1000000-20261022.json",
+      "sha256": "a764f981dba30329b61bdb56135513337ffb57544886c15251683d59cac46eea"
+    }
+  ],
+  "limitations": [
+    "The largest path cap is a finite comparison reference, not ground truth.",
+    "Only one scene, one scattering override, and one depth/budget are compared.",
+    "The maximum cap is a finite reference, not ground truth; cross-cap CFR error is unavailable when reports omit CFR vectors.",
+    "The S=0.5 material override is for mechanism testing, not calibrated material realism."
+  ],
+  "per_seed": [
+    {
+      "candidate_path_cap_filled": true,
+      "candidate_path_count_before_path_validation": 1000,
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 1000,
+      "power_weighted_arrival_angular_spread_deg": 29.148873717822124,
+      "power_weighted_rms_delay_spread_ns": 5.402613911797971,
+      "relative_cfr_l2_error_to_max_path_cap": 0.6373251314513636,
+      "seed": 11,
+      "valid_diffuse_reflection_path_count": 993,
+      "valid_path_count": 999,
+      "valid_path_power_sum": 5.237683217274025e-05
+    },
+    {
+      "candidate_path_cap_filled": true,
+      "candidate_path_count_before_path_validation": 1000,
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 1000,
+      "power_weighted_arrival_angular_spread_deg": 29.07308221188115,
+      "power_weighted_rms_delay_spread_ns": 5.402352787342579,
+      "relative_cfr_l2_error_to_max_path_cap": 0.38220626673416097,
+      "seed": 23,
+      "valid_diffuse_reflection_path_count": 993,
+      "valid_path_count": 999,
+      "valid_path_power_sum": 5.2356888772919774e-05
+    },
+    {
+      "candidate_path_cap_filled": true,
+      "candidate_path_count_before_path_validation": 1000,
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 1000,
+      "power_weighted_arrival_angular_spread_deg": 29.028943707749193,
+      "power_weighted_rms_delay_spread_ns": 5.402806202425836,
+      "relative_cfr_l2_error_to_max_path_cap": 0.41694947507464447,
+      "seed": 47,
+      "valid_diffuse_reflection_path_count": 993,
+      "valid_path_count": 999,
+      "valid_path_power_sum": 5.234488344285637e-05
+    },
+    {
+      "candidate_path_cap_filled": true,
+      "candidate_path_count_before_path_validation": 1000,
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 1000,
+      "power_weighted_arrival_angular_spread_deg": 73.83730581201422,
+      "power_weighted_rms_delay_spread_ns": 22.04591886822982,
+      "relative_cfr_l2_error_to_max_path_cap": 0.5464041343000031,
+      "seed": 11,
+      "valid_diffuse_reflection_path_count": 487,
+      "valid_path_count": 537,
+      "valid_path_power_sum": 7.453585567418486e-06
+    },
+    {
+      "candidate_path_cap_filled": true,
+      "candidate_path_count_before_path_validation": 1000,
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 1000,
+      "power_weighted_arrival_angular_spread_deg": 73.83916539796431,
+      "power_weighted_rms_delay_spread_ns": 22.054102544188936,
+      "relative_cfr_l2_error_to_max_path_cap": 0.6513325196213372,
+      "seed": 23,
+      "valid_diffuse_reflection_path_count": 487,
+      "valid_path_count": 537,
+      "valid_path_power_sum": 7.453758826159174e-06
+    },
+    {
+      "candidate_path_cap_filled": true,
+      "candidate_path_count_before_path_validation": 1000,
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 1000,
+      "power_weighted_arrival_angular_spread_deg": 73.83046288287588,
+      "power_weighted_rms_delay_spread_ns": 22.057655257867737,
+      "relative_cfr_l2_error_to_max_path_cap": 0.5647089772400582,
+      "seed": 47,
+      "valid_diffuse_reflection_path_count": 489,
+      "valid_path_count": 539,
+      "valid_path_power_sum": 7.455068043782376e-06
+    },
+    {
+      "candidate_path_cap_filled": true,
+      "candidate_path_count_before_path_validation": 10000,
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 10000,
+      "power_weighted_arrival_angular_spread_deg": 47.59589690671402,
+      "power_weighted_rms_delay_spread_ns": 23.04798840668809,
+      "relative_cfr_l2_error_to_max_path_cap": 0.28158795044121077,
+      "seed": 11,
+      "valid_diffuse_reflection_path_count": 8048,
+      "valid_path_count": 8210,
+      "valid_path_power_sum": 6.926993955858052e-05
+    },
+    {
+      "candidate_path_cap_filled": true,
+      "candidate_path_count_before_path_validation": 10000,
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 10000,
+      "power_weighted_arrival_angular_spread_deg": 47.48130157162574,
+      "power_weighted_rms_delay_spread_ns": 22.84848577005505,
+      "relative_cfr_l2_error_to_max_path_cap": 0.37140098330531984,
+      "seed": 23,
+      "valid_diffuse_reflection_path_count": 8061,
+      "valid_path_count": 8221,
+      "valid_path_power_sum": 6.91178283886984e-05
+    },
+    {
+      "candidate_path_cap_filled": true,
+      "candidate_path_count_before_path_validation": 10000,
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 10000,
+      "power_weighted_arrival_angular_spread_deg": 47.43873372942253,
+      "power_weighted_rms_delay_spread_ns": 22.75938904006125,
+      "relative_cfr_l2_error_to_max_path_cap": 0.29972391959295924,
+      "seed": 47,
+      "valid_diffuse_reflection_path_count": 8087,
+      "valid_path_count": 8245,
+      "valid_path_power_sum": 6.897556158946827e-05
+    },
+    {
+      "candidate_path_cap_filled": false,
+      "candidate_path_count_before_path_validation": 8470,
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 10000,
+      "power_weighted_arrival_angular_spread_deg": 80.57572033478638,
+      "power_weighted_rms_delay_spread_ns": 26.749399140157948,
+      "relative_cfr_l2_error_to_max_path_cap": 8.952772392848783e-07,
+      "seed": 11,
+      "valid_diffuse_reflection_path_count": 3378,
+      "valid_path_count": 3560,
+      "valid_path_power_sum": 1.2900723049824592e-05
+    },
+    {
+      "candidate_path_cap_filled": false,
+      "candidate_path_count_before_path_validation": 8354,
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 10000,
+      "power_weighted_arrival_angular_spread_deg": 80.58289401517737,
+      "power_weighted_rms_delay_spread_ns": 26.74420507275954,
+      "relative_cfr_l2_error_to_max_path_cap": 9.445335192599384e-07,
+      "seed": 23,
+      "valid_diffuse_reflection_path_count": 3291,
+      "valid_path_count": 3473,
+      "valid_path_power_sum": 1.2895887266495265e-05
+    },
+    {
+      "candidate_path_cap_filled": false,
+      "candidate_path_count_before_path_validation": 8417,
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 10000,
+      "power_weighted_arrival_angular_spread_deg": 80.59362613067091,
+      "power_weighted_rms_delay_spread_ns": 26.723013135665497,
+      "relative_cfr_l2_error_to_max_path_cap": 1.383671633839237e-06,
+      "seed": 47,
+      "valid_diffuse_reflection_path_count": 3358,
+      "valid_path_count": 3539,
+      "valid_path_power_sum": 1.2895517102151643e-05
+    },
+    {
+      "candidate_path_cap_filled": false,
+      "candidate_path_count_before_path_validation": 15889,
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 1000000,
+      "power_weighted_arrival_angular_spread_deg": 50.67267581605822,
+      "power_weighted_rms_delay_spread_ns": 28.918357486418245,
+      "relative_cfr_l2_error_to_max_path_cap": 0.0,
+      "seed": 11,
+      "valid_diffuse_reflection_path_count": 10449,
+      "valid_path_count": 10748,
+      "valid_path_power_sum": 7.360959716606885e-05
+    },
+    {
+      "candidate_path_cap_filled": false,
+      "candidate_path_count_before_path_validation": 16011,
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 1000000,
+      "power_weighted_arrival_angular_spread_deg": 50.6610680758337,
+      "power_weighted_rms_delay_spread_ns": 28.944198149361,
+      "relative_cfr_l2_error_to_max_path_cap": 0.0,
+      "seed": 23,
+      "valid_diffuse_reflection_path_count": 10546,
+      "valid_path_count": 10846,
+      "valid_path_power_sum": 7.360809831880033e-05
+    },
+    {
+      "candidate_path_cap_filled": false,
+      "candidate_path_count_before_path_validation": 16018,
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 1000000,
+      "power_weighted_arrival_angular_spread_deg": 50.63077467149059,
+      "power_weighted_rms_delay_spread_ns": 28.89897565694355,
+      "relative_cfr_l2_error_to_max_path_cap": 0.0,
+      "seed": 47,
+      "valid_diffuse_reflection_path_count": 10550,
+      "valid_path_count": 10850,
+      "valid_path_power_sum": 7.358597940765321e-05
+    },
+    {
+      "candidate_path_cap_filled": false,
+      "candidate_path_count_before_path_validation": 8470,
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 1000000,
+      "power_weighted_arrival_angular_spread_deg": 80.57572812387959,
+      "power_weighted_rms_delay_spread_ns": 26.749399140157948,
+      "relative_cfr_l2_error_to_max_path_cap": 0.0,
+      "seed": 11,
+      "valid_diffuse_reflection_path_count": 3378,
+      "valid_path_count": 3560,
+      "valid_path_power_sum": 1.2900723049824592e-05
+    },
+    {
+      "candidate_path_cap_filled": false,
+      "candidate_path_count_before_path_validation": 8354,
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 1000000,
+      "power_weighted_arrival_angular_spread_deg": 80.58289314974054,
+      "power_weighted_rms_delay_spread_ns": 26.74420507275954,
+      "relative_cfr_l2_error_to_max_path_cap": 0.0,
+      "seed": 23,
+      "valid_diffuse_reflection_path_count": 3291,
+      "valid_path_count": 3473,
+      "valid_path_power_sum": 1.2895887266495265e-05
+    },
+    {
+      "candidate_path_cap_filled": false,
+      "candidate_path_count_before_path_validation": 8417,
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 1000000,
+      "power_weighted_arrival_angular_spread_deg": 80.59363738100022,
+      "power_weighted_rms_delay_spread_ns": 26.723013135665497,
+      "relative_cfr_l2_error_to_max_path_cap": 0.0,
+      "seed": 47,
+      "valid_diffuse_reflection_path_count": 3358,
+      "valid_path_count": 3539,
+      "valid_path_power_sum": 1.2895517102151643e-05
+    }
+  ],
+  "scene": {
+    "name": "box_one_screen",
+    "scene_tree_sha256": "04c273c697fcd569106d03e93db875d7f14ed0e13f8d6a35b260e2fb3aa9a5e6",
+    "xml_path": "/home/nguyenl37/5g-nr-channel-condition/.venv/lib/python3.12/site-packages/sionna/rt/scenes/box_one_screen/box_one_screen.xml",
+    "xml_sha256": "1f172e8ad38d43af1589b246ef3edffd774d5b35006c9374e310ff807c117e5a"
+  },
+  "schema": "loslab.rt_path_cap_sweep.v1",
+  "summaries": [
+    {
+      "candidate_path_cap_filled_fraction": 1.0,
+      "geometric_visibility_state": "visible",
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 1000,
+      "metrics": {
+        "candidate_path_cap_filled_fraction": {
+          "max": 1.0,
+          "median": 1.0,
+          "min": 1.0
+        },
+        "candidate_path_count_before_path_validation": {
+          "max": 1000.0,
+          "median": 1000.0,
+          "min": 1000.0
+        },
+        "power_weighted_arrival_angular_spread_deg": {
+          "max": 29.148873717822124,
+          "median": 29.07308221188115,
+          "min": 29.028943707749193
+        },
+        "power_weighted_rms_delay_spread_ns": {
+          "max": 5.402806202425836,
+          "median": 5.402613911797971,
+          "min": 5.402352787342579
+        },
+        "relative_cfr_l2_error_to_max_path_cap": {
+          "max": 0.6373251314513636,
+          "median": 0.41694947507464447,
+          "min": 0.38220626673416097
+        },
+        "valid_diffuse_reflection_path_count": {
+          "max": 993.0,
+          "median": 993.0,
+          "min": 993.0
+        },
+        "valid_path_count": {
+          "max": 999.0,
+          "median": 999.0,
+          "min": 999.0
+        },
+        "valid_path_power_sum": {
+          "max": 5.237683217274025e-05,
+          "median": 5.2356888772919774e-05,
+          "min": 5.234488344285637e-05
+        }
+      },
+      "seed_count": 3
+    },
+    {
+      "candidate_path_cap_filled_fraction": 1.0,
+      "geometric_visibility_state": "blocked",
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 1000,
+      "metrics": {
+        "candidate_path_cap_filled_fraction": {
+          "max": 1.0,
+          "median": 1.0,
+          "min": 1.0
+        },
+        "candidate_path_count_before_path_validation": {
+          "max": 1000.0,
+          "median": 1000.0,
+          "min": 1000.0
+        },
+        "power_weighted_arrival_angular_spread_deg": {
+          "max": 73.83916539796431,
+          "median": 73.83730581201422,
+          "min": 73.83046288287588
+        },
+        "power_weighted_rms_delay_spread_ns": {
+          "max": 22.057655257867737,
+          "median": 22.054102544188936,
+          "min": 22.04591886822982
+        },
+        "relative_cfr_l2_error_to_max_path_cap": {
+          "max": 0.6513325196213372,
+          "median": 0.5647089772400582,
+          "min": 0.5464041343000031
+        },
+        "valid_diffuse_reflection_path_count": {
+          "max": 489.0,
+          "median": 487.0,
+          "min": 487.0
+        },
+        "valid_path_count": {
+          "max": 539.0,
+          "median": 537.0,
+          "min": 537.0
+        },
+        "valid_path_power_sum": {
+          "max": 7.455068043782376e-06,
+          "median": 7.453758826159174e-06,
+          "min": 7.453585567418486e-06
+        }
+      },
+      "seed_count": 3
+    },
+    {
+      "candidate_path_cap_filled_fraction": 1.0,
+      "geometric_visibility_state": "visible",
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 10000,
+      "metrics": {
+        "candidate_path_cap_filled_fraction": {
+          "max": 1.0,
+          "median": 1.0,
+          "min": 1.0
+        },
+        "candidate_path_count_before_path_validation": {
+          "max": 10000.0,
+          "median": 10000.0,
+          "min": 10000.0
+        },
+        "power_weighted_arrival_angular_spread_deg": {
+          "max": 47.59589690671402,
+          "median": 47.48130157162574,
+          "min": 47.43873372942253
+        },
+        "power_weighted_rms_delay_spread_ns": {
+          "max": 23.04798840668809,
+          "median": 22.84848577005505,
+          "min": 22.75938904006125
+        },
+        "relative_cfr_l2_error_to_max_path_cap": {
+          "max": 0.37140098330531984,
+          "median": 0.29972391959295924,
+          "min": 0.28158795044121077
+        },
+        "valid_diffuse_reflection_path_count": {
+          "max": 8087.0,
+          "median": 8061.0,
+          "min": 8048.0
+        },
+        "valid_path_count": {
+          "max": 8245.0,
+          "median": 8221.0,
+          "min": 8210.0
+        },
+        "valid_path_power_sum": {
+          "max": 6.926993955858052e-05,
+          "median": 6.91178283886984e-05,
+          "min": 6.897556158946827e-05
+        }
+      },
+      "seed_count": 3
+    },
+    {
+      "candidate_path_cap_filled_fraction": 0.0,
+      "geometric_visibility_state": "blocked",
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 10000,
+      "metrics": {
+        "candidate_path_cap_filled_fraction": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0
+        },
+        "candidate_path_count_before_path_validation": {
+          "max": 8470.0,
+          "median": 8417.0,
+          "min": 8354.0
+        },
+        "power_weighted_arrival_angular_spread_deg": {
+          "max": 80.59362613067091,
+          "median": 80.58289401517737,
+          "min": 80.57572033478638
+        },
+        "power_weighted_rms_delay_spread_ns": {
+          "max": 26.749399140157948,
+          "median": 26.74420507275954,
+          "min": 26.723013135665497
+        },
+        "relative_cfr_l2_error_to_max_path_cap": {
+          "max": 1.383671633839237e-06,
+          "median": 9.445335192599384e-07,
+          "min": 8.952772392848783e-07
+        },
+        "valid_diffuse_reflection_path_count": {
+          "max": 3378.0,
+          "median": 3358.0,
+          "min": 3291.0
+        },
+        "valid_path_count": {
+          "max": 3560.0,
+          "median": 3539.0,
+          "min": 3473.0
+        },
+        "valid_path_power_sum": {
+          "max": 1.2900723049824592e-05,
+          "median": 1.2895887266495265e-05,
+          "min": 1.2895517102151643e-05
+        }
+      },
+      "seed_count": 3
+    },
+    {
+      "candidate_path_cap_filled_fraction": 0.0,
+      "geometric_visibility_state": "visible",
+      "link_id": "same-side-los",
+      "max_num_paths_per_src": 1000000,
+      "metrics": {
+        "candidate_path_cap_filled_fraction": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0
+        },
+        "candidate_path_count_before_path_validation": {
+          "max": 16018.0,
+          "median": 16011.0,
+          "min": 15889.0
+        },
+        "power_weighted_arrival_angular_spread_deg": {
+          "max": 50.67267581605822,
+          "median": 50.6610680758337,
+          "min": 50.63077467149059
+        },
+        "power_weighted_rms_delay_spread_ns": {
+          "max": 28.944198149361,
+          "median": 28.918357486418245,
+          "min": 28.89897565694355
+        },
+        "relative_cfr_l2_error_to_max_path_cap": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0
+        },
+        "valid_diffuse_reflection_path_count": {
+          "max": 10550.0,
+          "median": 10546.0,
+          "min": 10449.0
+        },
+        "valid_path_count": {
+          "max": 10850.0,
+          "median": 10846.0,
+          "min": 10748.0
+        },
+        "valid_path_power_sum": {
+          "max": 7.360959716606885e-05,
+          "median": 7.360809831880033e-05,
+          "min": 7.358597940765321e-05
+        }
+      },
+      "seed_count": 3
+    },
+    {
+      "candidate_path_cap_filled_fraction": 0.0,
+      "geometric_visibility_state": "blocked",
+      "link_id": "through-screen-nlos",
+      "max_num_paths_per_src": 1000000,
+      "metrics": {
+        "candidate_path_cap_filled_fraction": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0
+        },
+        "candidate_path_count_before_path_validation": {
+          "max": 8470.0,
+          "median": 8417.0,
+          "min": 8354.0
+        },
+        "power_weighted_arrival_angular_spread_deg": {
+          "max": 80.59363738100022,
+          "median": 80.58289314974054,
+          "min": 80.57572812387959
+        },
+        "power_weighted_rms_delay_spread_ns": {
+          "max": 26.749399140157948,
+          "median": 26.74420507275954,
+          "min": 26.723013135665497
+        },
+        "relative_cfr_l2_error_to_max_path_cap": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0
+        },
+        "valid_diffuse_reflection_path_count": {
+          "max": 3378.0,
+          "median": 3358.0,
+          "min": 3291.0
+        },
+        "valid_path_count": {
+          "max": 3560.0,
+          "median": 3539.0,
+          "min": 3473.0
+        },
+        "valid_path_power_sum": {
+          "max": 1.2900723049824592e-05,
+          "median": 1.2895887266495265e-05,
+          "min": 1.2895517102151643e-05
+        }
+      },
+      "seed_count": 3
+    }
+  ]
+}

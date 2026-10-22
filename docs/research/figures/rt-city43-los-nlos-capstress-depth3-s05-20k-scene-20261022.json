@@ -1,0 +1,51 @@
+{
+  "figure": {
+    "png": {
+      "path": "docs/research/figures/rt-city43-los-nlos-capstress-depth3-s05-20k-scene-20261022.png",
+      "sha256": "6732ac6a79ef184ec76edf5119a2738ea646e536233718e8d4f6f7c89066e529"
+    },
+    "svg": {
+      "path": "docs/research/figures/rt-city43-los-nlos-capstress-depth3-s05-20k-scene-20261022.svg",
+      "sha256": "638d8ea2d63df2e4c101555447b091b9394f0f50ee276f16c3fcf361ae535433"
+    }
+  },
+  "input_summary": {
+    "path": "docs/research/figures/rt-city43-los-nlos-capstress-depth3-s05-20k-20261022.json",
+    "sha256": "59b16e82a90a2b87884033e18e46ec1b5685a1421e28abda8f627f58900a686f"
+  },
+  "links": {
+    "center-los": {
+      "geometric_visibility_state": "visible",
+      "rx_position_m": [
+        -8.590140794952246,
+        -15.375005963836855,
+        1.5
+      ],
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    },
+    "center-nlos": {
+      "geometric_visibility_state": "blocked",
+      "rx_position_m": [
+        24.3568404533211,
+        -5.3057960716627575,
+        1.5
+      ],
+      "tx_position_m": [
+        0.0,
+        -55.0,
+        18.0
+      ]
+    }
+  },
+  "scene": {
+    "building_mesh_count": 16,
+    "manifest_sha256": "781d56f84a84836c5fe520d0cc8ba8193ca0e61bef3cc902449ec6611d382e2a",
+    "path": "scenes/generated/research_scenes/city43/urban_00043.xml",
+    "scene_tree_sha256": "9b8864831654336ac34e363e1cc92d7208b50c66bfcbdff1a873e3b2be635bbb"
+  },
+  "schema": "loslab.rt_city43_cap_sweep_scene_figure.v1"
+}
