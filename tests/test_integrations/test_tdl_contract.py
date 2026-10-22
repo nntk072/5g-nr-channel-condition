@@ -11,6 +11,7 @@ from integrations.sionna.tdl import generate_tdl_frequency_response
         ({"batch_size": 0}, "batch_size"),
         ({"num_time_steps": 0}, "num_time_steps"),
         ({"subcarrier_spacing_hz": 0}, "subcarrier_spacing_hz"),
+        ({"los_angle_of_arrival_rad": float("nan")}, "los_angle_of_arrival_rad"),
         ({"seed": -1}, "seed"),
     ],
 )

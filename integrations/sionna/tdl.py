@@ -39,6 +39,7 @@ def generate_tdl_frequency_response(
     sampling_frequency_hz: float = 1.0,
     num_rx_ant: int = 1,
     num_tx_ant: int = 1,
+    los_angle_of_arrival_rad: float = math.acos(0.7),
     min_speed_mps: float = 0.0,
     max_speed_mps: float | None = None,
     num_sinusoids: int = 20,
@@ -78,6 +79,8 @@ def generate_tdl_frequency_response(
     ):
         if scalar_value <= 0 or not math.isfinite(scalar_value):
             raise ValueError(f"{name} must be finite and positive")
+    if not math.isfinite(los_angle_of_arrival_rad):
+        raise ValueError("los_angle_of_arrival_rad must be finite")
     if delay_spread_s is not None and (delay_spread_s < 0 or not math.isfinite(delay_spread_s)):
         raise ValueError("delay_spread_s must be finite and nonnegative")
     if min_speed_mps < 0 or not math.isfinite(min_speed_mps):
@@ -86,6 +89,7 @@ def generate_tdl_frequency_response(
         max_speed_mps < min_speed_mps or not math.isfinite(max_speed_mps)
     ):
         raise ValueError("max_speed_mps must be finite and >= min_speed_mps")
+    effective_max_speed_mps = min_speed_mps if max_speed_mps is None else max_speed_mps
     if device != "cpu" and not device.startswith("cuda"):
         raise ValueError("device must be cpu or a CUDA device such as cuda:0")
 
@@ -105,6 +109,7 @@ def generate_tdl_frequency_response(
         carrier_frequency=carrier_frequency_hz,
         min_speed=min_speed_mps,
         max_speed=max_speed_mps,
+        los_angle_of_arrival=los_angle_of_arrival_rad,
         num_rx_ant=num_rx_ant,
         num_tx_ant=num_tx_ant,
         spec_version=spec_version,
@@ -136,6 +141,7 @@ def generate_tdl_frequency_response(
         sionna_version = version("sionna")
     except PackageNotFoundError:
         sionna_version = "unknown"
+    k_factor_linear = float(tdl.k_factor.detach().cpu()) if tdl.los else None
     return SionnaTDLChannel(
         h_path=h_path,
         tau_s=tau_s,
@@ -148,9 +154,15 @@ def generate_tdl_frequency_response(
             "num_profile_taps": int(tdl.num_clusters),
             "nominal_tap_delays_s": tdl.delays.detach().cpu().tolist(),
             "mean_tap_powers": tdl.mean_powers.detach().cpu().tolist(),
+            "k_factor_linear": k_factor_linear,
+            "los_angle_of_arrival_rad": los_angle_of_arrival_rad,
             "geometric_los_label": None,
             "geometric_los_label_provided": False,
             "carrier_frequency_hz": carrier_frequency_hz,
+            "min_speed_mps": min_speed_mps,
+            "max_speed_mps": effective_max_speed_mps,
+            "maximum_doppler_hz": effective_max_speed_mps * carrier_frequency_hz / 299_792_458.0,
+            "num_sinusoids": num_sinusoids,
             "subcarrier_spacing_hz": subcarrier_spacing_hz,
             "num_subcarriers": num_subcarriers,
             "batch_size": batch_size,

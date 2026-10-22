@@ -1,3 +1,5 @@
+import math
+
 import pytest
 
 torch = pytest.importorskip("torch")
@@ -53,6 +55,7 @@ def test_pinned_tr38901_tdl_gpu_taps_map_to_centered_nr_cfr(model):
     assert channel.metadata["profile_proxy"] == model
     assert channel.metadata["geometric_los_label"] is None
     assert channel.metadata["geometric_los_label_provided"] is False
+    assert channel.metadata["los_angle_of_arrival_rad"] == pytest.approx(math.acos(0.7))
     torch.testing.assert_close(channel.channel_frequency_response, expected)
     torch.testing.assert_close(
         channel.channel_frequency_response, repeated.channel_frequency_response
@@ -93,5 +96,67 @@ def test_tdl_a_temporal_correlation_matches_maximum_doppler_jakes_reference(devi
         torch.tensor(2.0 * torch.pi * maximum_doppler_hz * lag_s, device=device)
     )
 
+    assert channel.metadata["k_factor_linear"] is None
+    assert channel.metadata["maximum_doppler_hz"] == pytest.approx(maximum_doppler_hz)
+    assert channel.metadata["num_sinusoids"] == 20
     torch.testing.assert_close(observed.real, expected, rtol=0.0, atol=0.04)
     torch.testing.assert_close(observed.imag, torch.zeros_like(observed.imag), rtol=0.0, atol=0.04)
+
+
+@pytest.mark.native_sionna
+@pytest.mark.parametrize("device", ["cpu", "cuda:0"] if torch.cuda.is_available() else ["cpu"])
+@pytest.mark.parametrize("los_angle_rad", [0.0, math.pi / 2.0])
+def test_tdl_d_los_temporal_correlation_includes_specular_doppler(device, los_angle_rad):
+    """Check Rician LOS phase rotation plus diffuse Jakes correlation."""
+    carrier_frequency_hz = 3.5e9
+    speed_mps = 30.0
+    maximum_doppler_hz = speed_mps * carrier_frequency_hz / 299_792_458.0
+    lag_s = 1.0 / (4.0 * maximum_doppler_hz)
+    channel = generate_tdl_frequency_response(
+        model="D",
+        seed=9047,
+        carrier_frequency_hz=carrier_frequency_hz,
+        subcarrier_spacing_hz=30_000.0,
+        num_subcarriers=8,
+        batch_size=8192,
+        delay_spread_s=100e-9,
+        num_time_steps=2,
+        sampling_frequency_hz=1.0 / lag_s,
+        los_angle_of_arrival_rad=los_angle_rad,
+        min_speed_mps=speed_mps,
+        max_speed_mps=speed_mps,
+        spec_version="19.2",
+        device=device,
+    )
+
+    tap = channel.h_path[:, 0, 0, 0, 0, 0, :]
+    observed = torch.mean(tap[:, 0].conj() * tap[:, 1]) / torch.mean(torch.abs(tap[:, 0]) ** 2)
+    k_factor = channel.metadata["k_factor_linear"]
+    assert isinstance(k_factor, float) and k_factor > 0.0
+    from sionna.phy.channel.tr38901 import models as profile_resources
+
+    parameters = profile_resources.load_json(profile_resources.parameter_file("TDL-D.json", "19.2"))
+    expected_k_factor = 10.0 ** ((parameters["powers"][0] - parameters["powers"][1]) / 10.0)
+    assert k_factor == pytest.approx(expected_k_factor)
+    diffuse_fraction = 1.0 / (1.0 + k_factor)
+    specular_fraction = 1.0 - diffuse_fraction
+    phase_rotation = torch.exp(
+        torch.tensor(
+            1j * 2.0 * torch.pi * maximum_doppler_hz * math.cos(los_angle_rad) * lag_s,
+            dtype=channel.h_path.dtype,
+            device=device,
+        )
+    )
+    diffuse_correlation = torch.special.bessel_j0(
+        torch.tensor(2.0 * torch.pi * maximum_doppler_hz * lag_s, device=device)
+    )
+    expected = specular_fraction * phase_rotation + diffuse_fraction * diffuse_correlation.to(
+        dtype=phase_rotation.dtype
+    )
+
+    assert channel.metadata["max_speed_mps"] == speed_mps
+    assert channel.metadata["maximum_doppler_hz"] == pytest.approx(maximum_doppler_hz)
+    assert channel.metadata["los_angle_of_arrival_rad"] == los_angle_rad
+    assert channel.metadata["min_speed_mps"] == speed_mps
+    assert channel.metadata["num_sinusoids"] == 20
+    torch.testing.assert_close(observed, expected, rtol=0.0, atol=0.04)
