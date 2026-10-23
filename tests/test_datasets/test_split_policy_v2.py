@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from dataclasses import replace
 
 import numpy as np
@@ -644,6 +645,44 @@ def test_registry_lock_rejects_duplicate_json_keys(tmp_path):
     path.write_text(encoded, encoding="utf-8")
 
     with pytest.raises(ValueError, match="duplicate JSON object key: schema"):
+        read_split_policy_registry(path)
+
+
+def test_registry_lock_rejects_symlink_alias_for_freeze_and_read(tmp_path):
+    _, registry = _four_way_registry(_unlinked_subjects())
+    target = tmp_path / "canonical.json"
+    freeze_split_policy_registry(target, registry)
+    alias = tmp_path / "symlink.json"
+    alias.symlink_to(target)
+
+    with pytest.raises(ValueError, match="must not be a symlink"):
+        freeze_split_policy_registry(alias, registry)
+    with pytest.raises(ValueError, match="must not be a symlink"):
+        read_split_policy_registry(alias)
+
+
+def test_registry_lock_rejects_hardlink_alias_for_freeze_and_read(tmp_path):
+    _, registry = _four_way_registry(_unlinked_subjects())
+    target = tmp_path / "canonical.json"
+    freeze_split_policy_registry(target, registry)
+    alias = tmp_path / "hardlink.json"
+    os.link(target, alias)
+
+    with pytest.raises(ValueError, match="single-link regular file"):
+        freeze_split_policy_registry(alias, registry)
+    with pytest.raises(ValueError, match="single-link regular file"):
+        read_split_policy_registry(alias)
+
+
+@pytest.mark.skipif(not hasattr(os, "mkfifo"), reason="FIFO files are unavailable")
+def test_registry_lock_rejects_fifo_without_blocking(tmp_path):
+    _, registry = _four_way_registry(_unlinked_subjects())
+    path = tmp_path / "fifo.json"
+    os.mkfifo(path)
+
+    with pytest.raises(ValueError, match="single-link regular file"):
+        freeze_split_policy_registry(path, registry)
+    with pytest.raises(ValueError, match="single-link regular file"):
         read_split_policy_registry(path)
 
 

@@ -63,3 +63,23 @@ def test_failed_fixture_keeps_conditional_interpretation():
     assert result["interpretation"]["status"] == "conditional_fixture_fail"
     assert result["interpretation"]["deployment_qualification"] is False
     assert result["interpretation"]["g5_09_closed"] is False
+
+
+def test_full_cpu_replay_matches_the_original_frozen_fixture():
+    repository = Path(__file__).resolve().parents[2]
+    results = repository / "experiments" / "results"
+    original = json.loads(
+        (results / "g5_ordered_impairments_cpu_fixture_2026-10-23.json").read_text(encoding="utf-8")
+    )
+    replay = json.loads(
+        (results / "g5_ordered_impairments_cpu_replay_2026-10-23.json").read_text(encoding="utf-8")
+    )
+    source = Path(experiment.__file__).resolve()
+
+    assert experiment.verify_hash_bound_result(original)
+    assert experiment.verify_hash_bound_result(replay)
+    assert replay["experiment"] == original["experiment"]
+    assert replay["provenance"]["source_sha256"] == hashlib.sha256(source.read_bytes()).hexdigest()
+    assert replay["provenance"]["source_matches_git_revision"] is True
+    assert replay["interpretation"]["deployment_qualification"] is False
+    assert replay["interpretation"]["g5_09_closed"] is False

@@ -7,10 +7,12 @@ their parent's assignment through ``split_for_child``.
 
 from __future__ import annotations
 
+import errno
 import hashlib
 import json
 import math
 import os
+import stat
 import tempfile
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -52,6 +54,27 @@ def _reject_duplicate_json_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
             raise ValueError(f"duplicate JSON object key: {key}")
         result[key] = value
     return result
+
+
+def _read_immutable_lock_bytes(path: Path) -> bytes:
+    """Read one regular, single-link lock without following a leaf symlink."""
+    flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
+    try:
+        descriptor = os.open(path, flags)
+    except OSError as exc:
+        if exc.errno == errno.ELOOP:
+            raise ValueError("split-policy lock must not be a symlink") from exc
+        raise
+    try:
+        metadata = os.fstat(descriptor)
+        if not stat.S_ISREG(metadata.st_mode) or metadata.st_nlink != 1:
+            raise ValueError("split-policy lock must be a single-link regular file")
+        with os.fdopen(descriptor, "rb") as stream:
+            descriptor = -1
+            return stream.read()
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
 
 
 class LeakageNamespace(StrEnum):
@@ -842,7 +865,7 @@ def freeze_split_policy_registry(path: str | Path, registry: SplitPolicyRegistry
     destination.parent.mkdir(parents=True, exist_ok=True)
     encoded = (json.dumps(registry.to_dict(), indent=2, sort_keys=True) + "\n").encode()
     if destination.exists():
-        if destination.read_bytes() != encoded:
+        if _read_immutable_lock_bytes(destination) != encoded:
             raise FileExistsError(f"refusing to modify existing split-policy lock: {destination}")
         return hashlib.sha256(encoded).hexdigest()
     temp_path: str | None = None
@@ -857,7 +880,7 @@ def freeze_split_policy_registry(path: str | Path, registry: SplitPolicyRegistry
         try:
             os.link(temp_path, destination)
         except FileExistsError:
-            if destination.read_bytes() != encoded:
+            if _read_immutable_lock_bytes(destination) != encoded:
                 raise FileExistsError(
                     f"refusing to modify existing split-policy lock: {destination}"
                 )
@@ -870,7 +893,8 @@ def freeze_split_policy_registry(path: str | Path, registry: SplitPolicyRegistry
 def read_split_policy_registry(path: str | Path) -> SplitPolicyRegistry:
     """Read a v2 lock and independently reconstruct its frozen assignment."""
     payload = json.loads(
-        Path(path).read_text(encoding="utf-8"), object_pairs_hook=_reject_duplicate_json_keys
+        _read_immutable_lock_bytes(Path(path)).decode("utf-8"),
+        object_pairs_hook=_reject_duplicate_json_keys,
     )
     if payload.get("schema") != "umcd.split_registry.v2" or payload.get("schema_version") != 2:
         raise ValueError("unsupported UMCD split registry schema")

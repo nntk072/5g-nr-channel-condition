@@ -3,7 +3,8 @@
 This module is deliberately separate from the G3.03 evaluator. It uses no
 measurement data and can never qualify material performance. It computes
 distribution-free Hoeffding planning bounds for three per-unit quantile
-criteria and the bounded per-unit interval-coverage mean. The evaluator's
+criteria and the bounded per-unit interval-coverage mean, plus an exact
+binomial design for the frozen complex-CSI cluster-failure criterion. The evaluator's
 maximum-over-units angular-KS criterion is not covered: boundedness in [0, 1]
 alone is insufficient for a population-maximum guarantee; a preregistered tail
 model or a changed tolerated-exceedance estimand is needed. Consequently this
@@ -15,6 +16,9 @@ from __future__ import annotations
 import math
 from collections.abc import Mapping
 from typing import Any
+
+import numpy as np
+from scipy.stats import binom
 
 # Mirrored from the G3.03 evaluator's frozen project-defined margins. Kept
 # local so this data-free planner has no dependency on evaluator code/data.
@@ -32,6 +36,9 @@ _QUANTILE_TARGETS: dict[str, tuple[float, float]] = {
     "median_prediction_interval_width_db": (0.50, MAX_MEDIAN_INTERVAL_WIDTH_DB),
 }
 _COMPARISONS_PER_STRATUM = 5
+_COMPLEX_CSI_FAILURE_LIMIT = 0.05
+_EXACT_BINOMIAL_SEARCH_LIMIT = 10_000_000
+_EXACT_BINOMIAL_CHUNK_SIZE = 16_384
 
 
 def _probability(value: Any, name: str) -> float:
@@ -91,11 +98,89 @@ def _required_bounded_mean_units(
     return math.ceil(deviations**2 / (2.0 * slack**2))
 
 
+def _exact_binomial_critical_failures(
+    cluster_counts: np.ndarray,
+    *,
+    per_stratum_alpha: float,
+) -> np.ndarray:
+    """Return the largest accepted failure count under a one-sided exact test.
+
+    A failure count ``x`` is accepted exactly when its one-sided
+    Clopper-Pearson upper bound is at most 0.05, equivalently when the
+    null-tail probability ``P(Binomial(n, 0.05) <= x)`` is no greater than
+    the allocated alpha. SciPy's binomial CDF/quantile use stable special
+    functions; the CDF checks correct the quantile boundary explicitly.
+    """
+    quantile = np.asarray(binom.ppf(per_stratum_alpha, cluster_counts, _COMPLEX_CSI_FAILURE_LIMIT))
+    critical = quantile.astype(np.int64) - 1
+
+    valid = critical >= 0
+    if np.any(valid):
+        upper_tail = np.asarray(
+            binom.cdf(critical[valid], cluster_counts[valid], _COMPLEX_CSI_FAILURE_LIMIT)
+        )
+        critical[valid] -= (upper_tail > per_stratum_alpha).astype(np.int64)
+
+    next_count = critical + 1
+    valid = next_count <= cluster_counts
+    if np.any(valid):
+        next_tail = np.asarray(
+            binom.cdf(next_count[valid], cluster_counts[valid], _COMPLEX_CSI_FAILURE_LIMIT)
+        )
+        critical[valid] += (next_tail <= per_stratum_alpha).astype(np.int64)
+    return critical
+
+
+def _exact_binomial_failure_design(
+    *,
+    planned_failure_probability: float,
+    per_stratum_alpha: float,
+    per_stratum_power: float,
+) -> dict[str, int | float | bool | str | None]:
+    """Find the first exact-binomial design meeting the allocated power."""
+    start = 1
+    while start <= _EXACT_BINOMIAL_SEARCH_LIMIT:
+        stop = min(start + _EXACT_BINOMIAL_CHUNK_SIZE, _EXACT_BINOMIAL_SEARCH_LIMIT + 1)
+        counts = np.arange(start, stop, dtype=np.int64)
+        critical = _exact_binomial_critical_failures(
+            counts,
+            per_stratum_alpha=per_stratum_alpha,
+        )
+        powers = np.zeros(counts.shape, dtype=np.float64)
+        admissible = critical >= 0
+        if np.any(admissible):
+            powers[admissible] = binom.cdf(
+                critical[admissible], counts[admissible], planned_failure_probability
+            )
+        passing = np.flatnonzero(powers >= per_stratum_power)
+        if passing.size:
+            index = int(passing[0])
+            return {
+                "sample_size_found": True,
+                "required_independent_outer_clusters_per_stratum": int(counts[index]),
+                "maximum_admissible_observed_failures_per_stratum": int(critical[index]),
+                "achieved_per_stratum_power": float(powers[index]),
+                "search_limit_per_stratum": _EXACT_BINOMIAL_SEARCH_LIMIT,
+                "search_status": "EXACT_BINOMIAL_DESIGN_FOUND",
+            }
+        start = stop
+
+    return {
+        "sample_size_found": False,
+        "required_independent_outer_clusters_per_stratum": None,
+        "maximum_admissible_observed_failures_per_stratum": None,
+        "achieved_per_stratum_power": None,
+        "search_limit_per_stratum": _EXACT_BINOMIAL_SEARCH_LIMIT,
+        "search_status": "SEARCH_LIMIT_REACHED_NO_DESIGN_RETURNED",
+    }
+
+
 def plan_g3_independent_acquisition_units(
     *,
     stratum_count: int,
     planned_quantile_pass_probabilities: Mapping[str, float],
     planned_interval_coverage: float,
+    planned_complex_csi_failure_probability: float,
     familywise_alpha: float = 0.05,
     familywise_power: float = 0.80,
 ) -> dict[str, Any]:
@@ -109,7 +194,10 @@ def plan_g3_independent_acquisition_units(
     interval-coverage input is the planned mean of independent-unit coverage
     summaries. A Bonferroni allocation covers all five G3.03 metric claims in
     every declared stratum; familywise power is conservatively Bonferroni
-    allocated in the same way.
+    allocated in the same way. The complex-CSI cluster-failure claim is
+    separately Bonferroni-allocated over the requested strata; this does not
+    claim joint familywise control across that claim and the five existing
+    metric claims.
 
     Interpreting these inputs as population quantities requires a representative
     sampling frame or an explicit common-distribution assumption across the
@@ -141,6 +229,49 @@ def plan_g3_independent_acquisition_units(
     comparison_count = stratum_count * _COMPARISONS_PER_STRATUM
     alpha_per_comparison = alpha / comparison_count
     beta_per_comparison = beta / comparison_count
+
+    failure_alpha_per_stratum = alpha / stratum_count
+    failure_beta_per_stratum = beta / stratum_count
+    planned_failure_probability = _probability(
+        planned_complex_csi_failure_probability,
+        "planned_complex_csi_failure_probability",
+    )
+    if planned_failure_probability >= _COMPLEX_CSI_FAILURE_LIMIT:
+        raise ValueError(
+            "planned_complex_csi_failure_probability must be below the frozen 0.05 limit"
+        )
+    complex_csi_failure_plan = _exact_binomial_failure_design(
+        planned_failure_probability=planned_failure_probability,
+        per_stratum_alpha=failure_alpha_per_stratum,
+        per_stratum_power=1.0 - failure_beta_per_stratum,
+    )
+    complex_csi_failure_plan.update(
+        {
+            "criterion": (
+                "For each independent outer cluster, failure is any episode whose e_H exceeds 0.05; "
+                "the stratum failure probability's one-sided exact upper bound must be <= 0.05."
+            ),
+            "failure_probability_limit": _COMPLEX_CSI_FAILURE_LIMIT,
+            "one_sided_confidence_level_per_stratum": 1.0 - failure_alpha_per_stratum,
+            "familywise_alpha": alpha,
+            "familywise_power_target": power,
+            "stratum_count": stratum_count,
+            "per_stratum_alpha_bonferroni": failure_alpha_per_stratum,
+            "per_stratum_power_target_bonferroni": 1.0 - failure_beta_per_stratum,
+            "planned_failure_probability": planned_failure_probability,
+            "sampling_assumption": (
+                "Outer clusters are independent and representative of the target population, "
+                "or follow a preregistered common distribution within each stratum."
+            ),
+            "failure_count_rule": (
+                "Accept only observed failure counts whose one-sided Clopper-Pearson upper "
+                "bound is <= 0.05 at the Bonferroni-adjusted per-stratum confidence level."
+            ),
+            "single_stratum_one_sided_95pct_zero_failure_minimum_clusters": 59,
+            "admission_possible": False,
+            "is_complete_g3_03_design": False,
+        }
+    )
 
     quantile_plans: dict[str, dict[str, float | int]] = {}
     for metric, (quantile, margin) in _QUANTILE_TARGETS.items():
@@ -183,6 +314,7 @@ def plan_g3_independent_acquisition_units(
         "stratum_count": stratum_count,
         "familywise_alpha": alpha,
         "familywise_power_target": power,
+        "complex_csi_cluster_failure_plan": complex_csi_failure_plan,
         "comparisons_per_stratum": _COMPARISONS_PER_STRATUM,
         "bonferroni_comparison_count": comparison_count,
         "per_comparison_alpha": alpha_per_comparison,
