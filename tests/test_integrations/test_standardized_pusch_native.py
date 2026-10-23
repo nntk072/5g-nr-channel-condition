@@ -246,6 +246,43 @@ def test_short_cp_time_channel_changes_pusch_observation_vs_ideal_cfr_control() 
 
 
 @pytest.mark.native_sionna
+def test_standardized_time_domain_tdl_pusch_decodes_with_dmrs_estimate_on_cpu() -> None:
+    from integrations.sionna.nr_pusch import SionnaPUSCHLSReceiver
+    from sionna.phy.nr import PUSCHReceiver
+
+    run = _standardized_run(StandardizedFamily.TDL)
+    config = NRPUSCHConfig(n_size_bwp=24, subcarrier_spacing_khz=30)
+    record = build_standardized_pusch_dmrs_records(
+        run,
+        snr_db=60.0,
+        seed=9401,
+        noise_seed=9402,
+        receiver_config=config,
+        device="cpu",
+    )[0]
+    tx_receiver = SionnaPUSCHLSReceiver(config, device="cpu")
+    _, transmitted_bits = tx_receiver.transmit(
+        1, seed=record.provenance["pusch_transmit_seed"]
+    )
+    decoder = PUSCHReceiver(
+        tx_receiver._transmitter,
+        channel_estimator="perfect",
+        return_tb_crc_status=True,
+        input_domain="freq",
+        device="cpu",
+    )
+    decoded_bits, crc_ok = decoder(
+        record.observation.received_grid,
+        torch.tensor(record.provenance["noise_variance_per_complex_dimension"]),
+        h=record.observation.channel_estimate.h_hat,
+    )
+
+    assert record.provenance["sampled_time_channel"]["tap_span_fits_cyclic_prefix"] is True
+    torch.testing.assert_close(decoded_bits, transmitted_bits)
+    assert bool(crc_ok.all())
+
+
+@pytest.mark.native_sionna
 def test_standardized_tdl_simo_keeps_receive_antenna_axis() -> None:
     from integrations.sionna.tdl import generate_tdl_frequency_response
 
