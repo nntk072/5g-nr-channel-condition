@@ -598,6 +598,53 @@ def test_pusch_dmrs_estimator_recovers_frequency_selective_noiseless_channel_on_
 
 
 @pytest.mark.native_sionna
+def test_pusch_linear_dmrs_interpolation_tracks_analytical_two_tap_channel_on_all_res():
+    """Check linear DM-RS interpolation against known delay-domain channel truth."""
+    receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(
+            n_size_bwp=4,
+            subcarrier_spacing_khz=30,
+            interpolation_type="lin",
+        ),
+        device="cpu",
+    )
+    grid = receiver.resource_grid
+    transmitted_grid, _ = receiver.transmit(batch_size=1, seed=5_302)
+    centered_bins = torch.arange(grid.fft_size, dtype=torch.float32) - grid.fft_size // 2
+    direct = 0.9 + 0.1j
+    echo = 0.25 - 0.18j
+    delay_samples = 3
+    channel = direct + echo * torch.exp(
+        -2j * torch.pi * centered_bins * delay_samples / grid.fft_size
+    )
+    received_grid = transmitted_grid[:, 0, 0].unsqueeze(1).unsqueeze(1) * channel.reshape(
+        1, 1, 1, 1, grid.fft_size
+    )
+
+    estimate = receiver.estimate(received_grid, noise_variance=0.0).h_hat
+    expected = channel.reshape(1, 1, 1, 1, 1, 1, grid.fft_size).expand_as(estimate)
+    normalized_mse = torch.mean(torch.abs(estimate - expected) ** 2) / torch.mean(
+        torch.abs(expected) ** 2
+    )
+    nearest_receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(
+            n_size_bwp=4,
+            subcarrier_spacing_khz=30,
+            interpolation_type="nn",
+        ),
+        device="cpu",
+    )
+    nearest_estimate = nearest_receiver.estimate(received_grid, noise_variance=0.0).h_hat
+    nearest_nmse = torch.mean(torch.abs(nearest_estimate - expected) ** 2) / torch.mean(
+        torch.abs(expected) ** 2
+    )
+
+    assert tuple(estimate.shape[-2:]) == (grid.num_ofdm_symbols, grid.fft_size)
+    assert float(normalized_mse) < 0.02
+    assert float(normalized_mse) < float(nearest_nmse)
+
+
+@pytest.mark.native_sionna
 def test_pusch_ls_pilot_estimate_is_unbiased_with_analytical_awgn_variance_on_cpu():
     receiver = SionnaPUSCHLSReceiver(
         NRPUSCHConfig(n_size_bwp=2, subcarrier_spacing_khz=30), device="cpu"
