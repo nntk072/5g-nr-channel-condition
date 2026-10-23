@@ -17,6 +17,25 @@ _TDL_19_2_RESOURCE_SHA256 = {
     "E": "5d9cf8519179a183ccfc5020efb02cf48358f5d67a5bf40520636e44a0e2f045",
 }
 
+_FIXED_TDL_RESOURCE_SHA256 = {
+    "A10": "c0028fddf6057d3a303fc52966a8b068c0f6184dfe78645a7131544b5f4fb700",
+    "A30": "827bb27528cbf9bf48ff38fdfbff086b8344e282927daf6e4f3aa4357ada7838",
+    "B100": "2beb0cd6086565dca852199b891b9d840d8dfa5ad2cc7157dad25a48bd1c0d52",
+    "C60": "db819280768e447a7847721ebaff314cd5a9177315d1a80bc2cce49062d09be8",
+    "C300": "4985dee6def0e486c6c4b33debe618d0c3565d29e9d231707a9a4f4adc0c8004",
+    "D10": "4ff96632bf508813492f0e34168ab1b09981afc25760cfed0031013e662c6e73",
+    "D30": "6da72f15e0da4fb972cf6a2c9c4ec2d2c1330f598f15e71c83cfbb324b59353c",
+}
+_FIXED_TDL_RMS_NS = {
+    "A10": 10.0,
+    "A30": 30.0,
+    "B100": 100.0,
+    "C60": 60.0,
+    "C300": 300.0,
+    "D10": 10.0,
+    "D30": 30.0,
+}
+
 
 @pytest.mark.native_sionna
 @pytest.mark.parametrize("model", ["A", "B", "C", "D", "E"])
@@ -61,6 +80,73 @@ def test_tdl_19_2_nominal_parameters_match_hash_pinned_resource_table(model):
 
 
 @pytest.mark.native_sionna
+@pytest.mark.parametrize("model", ["A10", "A30", "B100", "C60", "C300", "D10", "D30"])
+def test_fixed_tdl_38_101_4_profiles_preserve_absolute_delays_and_powers(model):
+    """Fixed TS 38.101-4 resources are not scaled as TR 38.901 TDL-A–E."""
+    resource = models.fixed_tdl_parameter_file(f"TDL-{model}.json")
+    resource_bytes = resource.read_bytes()
+    assert hashlib.sha256(resource_bytes).hexdigest() == _FIXED_TDL_RESOURCE_SHA256[model]
+    parameters = json.loads(resource_bytes)
+
+    is_fr2_profile = model in {"A10", "C60", "D10"}
+    is_fr2_wideband_profile = model in {"A10", "D10"}
+    channel = generate_tdl_frequency_response(
+        model=model,
+        seed=71_000 + len(model),
+        carrier_frequency_hz=28.0e9 if is_fr2_profile else 3.5e9,
+        subcarrier_spacing_hz=120_000.0 if is_fr2_wideband_profile else 30_000.0,
+        num_subcarriers=2048 if is_fr2_wideband_profile else 8,
+        delay_spread_s=None,
+        spec_version="19.2",
+        device="cpu",
+    )
+
+    table_delays_s = torch.as_tensor(parameters["delays"], dtype=torch.float64) * 1e-9
+    table_powers = torch.pow(
+        10.0,
+        torch.as_tensor(parameters["powers"], dtype=torch.float64) / 10.0,
+    )
+    if parameters["los"]:
+        expected_delays_s = table_delays_s[1:]
+        expected_powers = torch.cat((table_powers[:1] + table_powers[1:2], table_powers[2:]))
+    else:
+        expected_delays_s = table_delays_s
+        expected_powers = table_powers
+    expected_powers /= torch.sum(expected_powers)
+
+    torch.testing.assert_close(
+        torch.as_tensor(channel.metadata["nominal_tap_delays_s"], dtype=torch.float64),
+        expected_delays_s,
+        rtol=0.0,
+        atol=1e-12,
+    )
+    torch.testing.assert_close(
+        torch.as_tensor(channel.metadata["mean_tap_powers"], dtype=torch.float64),
+        expected_powers,
+        rtol=1e-6,
+        atol=1e-7,
+    )
+    assert channel.metadata["delay_profile_semantics"] == "fixed_ts_38_101_4_absolute_tap_delays"
+    assert channel.metadata["profile_rms_delay_spread_s"] == pytest.approx(
+        _FIXED_TDL_RMS_NS[model] * 1e-9, rel=1e-6
+    )
+
+
+@pytest.mark.parametrize("model", ["A10", "A30", "B100", "C60", "C300", "D10", "D30"])
+def test_fixed_tdl_adapter_rejects_delay_spread_rescaling(model):
+    with pytest.raises(ValueError, match="fixed-delay.*absolute.*omit delay_spread_s"):
+        generate_tdl_frequency_response(
+            model=model,
+            seed=1,
+            carrier_frequency_hz=3.5e9,
+            subcarrier_spacing_hz=30_000.0,
+            num_subcarriers=8,
+            delay_spread_s=100e-9,
+            device="cpu",
+        )
+
+
+@pytest.mark.native_sionna
 @pytest.mark.parametrize("model", ["A", "B", "C", "D", "E"])
 def test_scalable_tdl_delays_have_configured_power_weighted_rms(model):
     """All scalable profiles preserve their normalized PDP shape as delays scale."""
@@ -81,6 +167,13 @@ def test_scalable_tdl_delays_have_configured_power_weighted_rms(model):
 
     powers = torch.as_tensor(channels[0].metadata["mean_tap_powers"]).real.to(torch.float64)
     assert torch.sum(powers).item() == pytest.approx(1.0, abs=1e-6)
+    assert all(
+        channel.metadata["delay_profile_semantics"] == "scalable_tr_38_901_profile"
+        for channel in channels
+    )
+    assert [
+        channel.metadata["profile_rms_delay_spread_s"] for channel in channels
+    ] == pytest.approx(delay_spreads_s, rel=1e-6)
     nominal_delays = [channel.tau_s[0, 0, 0].to(torch.float64) for channel in channels]
 
     rms_spreads_s = []

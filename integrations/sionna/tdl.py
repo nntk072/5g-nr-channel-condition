@@ -9,6 +9,9 @@ from typing import Any, Sequence
 
 from .random import call_with_sionna_seed
 
+_SCALABLE_TDL_MODELS = frozenset({"A", "B", "C", "D", "E"})
+_FIXED_TDL_MODELS = frozenset({"A10", "A30", "B100", "C60", "C300", "D10", "D30"})
+
 
 @dataclass(frozen=True, slots=True)
 class SionnaTDLChannel:
@@ -122,6 +125,14 @@ def generate_tdl_frequency_response(
         if bool((torch.linalg.eigvalsh(rx_corr_tensor).min() <= 1e-7).item()):
             raise ValueError("rx_corr_mat must be positive definite")
 
+    if model in _FIXED_TDL_MODELS and delay_spread_s is not None:
+        raise ValueError(
+            f"fixed-delay TDL-{model} uses absolute TS 38.101-4 tap delays; "
+            "omit delay_spread_s instead of requesting a rescale"
+        )
+    if model in _SCALABLE_TDL_MODELS and delay_spread_s is None:
+        raise ValueError(f"scalable TDL-{model} requires delay_spread_s")
+
     tdl = TDL(
         model=model,
         delay_spread=delay_spread_s,
@@ -170,6 +181,12 @@ def generate_tdl_frequency_response(
             "sionna_version": sionna_version,
             "spec_version": spec_version,
             "profile_proxy": model,
+            "delay_profile_semantics": (
+                "fixed_ts_38_101_4_absolute_tap_delays"
+                if model in _FIXED_TDL_MODELS
+                else "scalable_tr_38_901_profile"
+            ),
+            "profile_rms_delay_spread_s": float(tdl.delay_spread.detach().cpu()),
             "profile_los_component": bool(tdl.los),
             "num_profile_taps": int(tdl.num_clusters),
             "nominal_tap_delays_s": tdl.delays.detach().cpu().tolist(),
