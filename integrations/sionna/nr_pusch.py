@@ -77,6 +77,11 @@ class SionnaPUSCHLSReceiver:
             **asdict(config),
             "sionna_version": sionna_version,
             "receiver": "PUSCHLSChannelEstimator",
+            "error_variance_semantics": (
+                "sionna_linear_interpolated_marginal_variance_not_exact_covariance"
+                if config.interpolation_type in {"lin", "lin_time_avg"}
+                else "sionna_nearest_neighbor_pilot_error_variance"
+            ),
             "device": device,
             "resource_grid": {
                 "num_ofdm_symbols": self._resource_grid.num_ofdm_symbols,

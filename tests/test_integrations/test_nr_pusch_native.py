@@ -963,6 +963,87 @@ def test_pusch_linear_dmrs_interpolation_tracks_analytical_two_tap_channel_on_al
 
 @pytest.mark.native_sionna
 @pytest.mark.parametrize(
+    (
+        "dmrs_config_type",
+        "dmrs_length",
+        "dmrs_additional_position",
+        "delay_samples",
+    ),
+    (
+        (1, 1, 0, 3),
+        (1, 1, 1, 3),
+        (1, 2, 0, 5),
+        (2, 1, 0, 5),
+        (2, 1, 1, 5),
+        (2, 2, 0, 5),
+    ),
+)
+@pytest.mark.parametrize("complex_noise_variance", (0.01, 0.05, 0.2))
+def test_pusch_interpolation_reported_variance_is_conservative_under_monte_carlo(
+    dmrs_config_type: int,
+    dmrs_length: int,
+    dmrs_additional_position: int,
+    delay_samples: int,
+    complex_noise_variance: float,
+) -> None:
+    """Measure Sionna's linear-interpolated variance against all-RE Monte Carlo."""
+    receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(
+            n_size_bwp=4,
+            subcarrier_spacing_khz=30,
+            dmrs_config_type=dmrs_config_type,
+            dmrs_length=dmrs_length,
+            dmrs_additional_position=dmrs_additional_position,
+            num_cdm_groups_without_data=1,
+            interpolation_type="lin",
+        ),
+        device="cpu",
+    )
+    assert (
+        receiver.metadata["error_variance_semantics"]
+        == "sionna_linear_interpolated_marginal_variance_not_exact_covariance"
+    )
+    batch_size = 1024
+    transmitted_grid, _ = receiver.transmit(batch_size, seed=73491)
+    fft_size = receiver.resource_grid.fft_size
+    centered_bins = torch.arange(fft_size, dtype=torch.float32) - fft_size // 2
+    channel = (
+        0.9
+        + 0.1j
+        + (0.25 - 0.18j) * torch.exp(-2j * torch.pi * centered_bins * delay_samples / fft_size)
+    )
+    clean_grid = transmitted_grid[:, 0, 0].unsqueeze(1).unsqueeze(1) * channel.reshape(
+        1, 1, 1, 1, fft_size
+    )
+    noise_generator = torch.Generator().manual_seed(23917)
+    noise = (
+        torch.complex(
+            torch.randn(clean_grid.shape, generator=noise_generator),
+            torch.randn(clean_grid.shape, generator=noise_generator),
+        )
+        * (complex_noise_variance / 2.0) ** 0.5
+    )
+
+    noisy_estimate = receiver.estimate(clean_grid + noise, complex_noise_variance)
+    noiseless_estimate = receiver.estimate(clean_grid[:1], 0.0).h_hat[0, 0, 0, 0, 0]
+    samples = noisy_estimate.h_hat[:, 0, 0, 0, 0]
+    empirical_mean = samples.mean(dim=0)
+    empirical_variance = (samples - empirical_mean).abs().square().mean(dim=0)
+    predicted_variance = noisy_estimate.error_variance[0, 0, 0, 0, 0]
+    valid = predicted_variance > 0
+    mean_bias = (empirical_mean - noiseless_estimate).abs()
+    bias_tolerance = 6.0 * torch.sqrt(predicted_variance / batch_size)
+    variance_ratio = empirical_variance[valid].sum() / predicted_variance[valid].sum()
+
+    assert bool(valid.any())
+    assert bool((mean_bias[valid] < bias_tolerance[valid]).all())
+    # Sionna linearly interpolates marginal variances; it does not propagate
+    # the full covariance using squared interpolation weights.
+    assert 0.6 <= float(variance_ratio) <= 1.05
+
+
+@pytest.mark.native_sionna
+@pytest.mark.parametrize(
     ("dmrs_config_type", "dmrs_length", "num_cdm_groups_without_data", "n_size_bwp"),
     (
         (1, 1, 1, 2),
