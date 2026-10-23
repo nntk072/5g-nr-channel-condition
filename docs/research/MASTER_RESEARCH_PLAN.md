@@ -2,7 +2,7 @@
 ## Physically Grounded, Identifiability-Aware Multipath State Learning for 5G NR
 ### From LOS/NLOS classification to channel-state reconstruction, uncertainty, and forecasting
 
-**Document edition:** 3.193 — 2026-10-23 (PUSCH BWP placement matrix across numerologies)
+**Document edition:** 3.194 — 2026-10-23 (end-to-end PUSCH BWP placement matrix decoding)
 **Status:** execution specification and scientific decision record; **not** a completed study, not experimental evidence, and not a claim of top-tier acceptance.
 **Repository inspected:** live checkout /home/nguyenl37/5g-nr-channel-condition, branch main, initial implementation commit ffe199c80c1caf40dea91a406fe02124b3ff05ec (built from baseline cc43a5544036578a6bb57ce52b66436d8acb6c1b); local reference /home/nguyenl37/sionna at Sionna v2.2.0, commit 2f0a3820269b53fd022780a6f2f5f720f7ceb9b4, RT submodule commit 15b5ee036917a4c2a9b6420e05570b77717e2fcc.
 **Legacy work:** Long Nguyen, *5G Physical Layer Channel Conditions Classification Using Machine Learning Techniques*, Tampere University, July 2025, embedded in `docs/thesis/NguyenLong.pdf`.
@@ -2426,3 +2426,5 @@ Repeated the identical cap-1k box sweep as a numerical determinism check: all 42
 **Edition 3.192 carrier-relative BWP placement (G5.02 partial):** Added explicit carrier-grid size/start and BWP start parameters, preserving the existing full-band default. A native CPU 6-RB BWP at CRB 7 in a 24-RB carrier starting at CRB 2 maps to carrier-relative bins 60–131. Full-carrier OFDM modulation/demodulation reconstructs the placed grid and the cropped PUSCH decodes with exact payload/CRC. This validates one integer-CRB offset and 30-kHz SCS; guard/DC conventions, additional offsets, and fractional allocations remain open.
 
 **Edition 3.193 BWP placement matrix across numerologies (G5.02 partial):** Native CPU regression cases now verify selected lower, interior, and upper BWP positions for 4/6/12-RB allocations in a 24-RB carrier at 15/30/60/120-kHz SCS. Each case checks carrier-relative active bins, zero fill, inverse BWP extraction, and a full-carrier OFDM modulation/demodulation round-trip using CP scaled from the BWP grid. The separate 6-RB offset case still provides payload/CRC decode evidence. This does not establish standardized guard/DC conventions, all width/offset combinations, fractional allocations, or decoding across the matrix; G5.02 remains partial.
+
+**Edition 3.194 end-to-end BWP placement matrix decode (G5.02 partial):** Extended the selected 16 width/offset/numerology cases to generate seeded PUSCH grids, map them into the carrier, run full-carrier OFDM modulation/demodulation and BWP extraction, and recover the exact transmitted payload with valid transport-block CRC in each case. This demonstrates end-to-end decoding for the tested configurations; guard/DC conventions, the full width/offset cross-product, and fractional allocations remain unqualified, so G5.02 remains partial.

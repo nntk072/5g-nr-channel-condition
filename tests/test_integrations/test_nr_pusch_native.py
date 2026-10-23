@@ -153,9 +153,10 @@ def test_bwp_allocation_mapping_roundtrips_at_carrier_grid_edges(
     n_size_bwp: int, bwp_start_in_grid: int, subcarrier_spacing_khz: int
 ) -> None:
     """Preserve allocation bins and OFDM round-trips across offsets and numerologies."""
+    from sionna.phy.nr import PUSCHReceiver
     from sionna.phy.ofdm import OFDMDemodulator
 
-    start_symbol, duration = 3, 4
+    start_symbol, duration = 3, 10
     n_size_grid = 24
     n_start_grid = 11
     receiver = SionnaPUSCHLSReceiver(
@@ -170,10 +171,9 @@ def test_bwp_allocation_mapping_roundtrips_at_carrier_grid_edges(
         ),
         device="cpu",
     )
-    allocation_grid = torch.full(
-        (1, 1, 1, duration, 12 * n_size_bwp),
-        complex(0.25, -0.75),
-        dtype=torch.complex64,
+    allocation_grid, transmitted_bits = receiver.transmit(
+        batch_size=1,
+        seed=60421 + 1000 * subcarrier_spacing_khz + 100 * n_size_bwp + bwp_start_in_grid,
     )
 
     carrier_slot_grid = receiver.place_bwp_allocation_in_carrier_slot(allocation_grid)
@@ -197,7 +197,18 @@ def test_bwp_allocation_mapping_roundtrips_at_carrier_grid_edges(
         cyclic_prefix_length=cp_samples,
         device="cpu",
     )
-    torch.testing.assert_close(demodulator(waveform), carrier_slot_grid, rtol=1e-5, atol=1e-6)
+    recovered_carrier_grid = demodulator(waveform)
+    torch.testing.assert_close(recovered_carrier_grid, carrier_slot_grid, rtol=1e-5, atol=1e-6)
+    recovered_allocation = receiver.extract_bwp_allocation_from_carrier_slot(recovered_carrier_grid)
+    decoder = PUSCHReceiver(
+        receiver._transmitter,
+        return_tb_crc_status=True,
+        input_domain="freq",
+        device="cpu",
+    )
+    decoded_bits, crc_ok = decoder(recovered_allocation, torch.tensor(1e-7))
+    torch.testing.assert_close(decoded_bits, transmitted_bits)
+    assert bool(crc_ok.all())
     assert torch.count_nonzero(carrier_slot_grid[..., :start_bin]) == 0
     assert torch.count_nonzero(carrier_slot_grid[..., stop_bin:]) == 0
     assert torch.count_nonzero(carrier_slot_grid[..., :start_symbol, :]) == 0
