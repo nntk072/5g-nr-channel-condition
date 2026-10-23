@@ -1,0 +1,78 @@
+{
+  "schema": "umcd.odbl_osm_scene_release_policy.v1",
+  "policy_date": "2026-10-23",
+  "decision": "approved_for_research_use_subject_to_odbl_compliance",
+  "distribution_status": "not_cleared_for_public_dataset_or_asset_redistribution",
+  "source_database": {
+    "name": "OpenStreetMap",
+    "license": "Open Database License v1.0",
+    "license_url": "https://opendatacommons.org/licenses/odbl/1-0/",
+    "copyright_notice_url": "https://www.openstreetmap.org/copyright",
+    "required_credit": "© OpenStreetMap contributors"
+  },
+  "software_source": {
+    "name": "NVIDIA Sionna RT",
+    "version": "2.2.0",
+    "source_commit": "2f0a3820269b53fd022780a6f2f5f720f7ceb9b4",
+    "rt_submodule_commit": "15b5ee036917a4c2a9b6420e05570b77717e2fcc",
+    "software_license": "Apache-2.0",
+    "software_license_applies_to_scene_data": false
+  },
+  "scene_bindings": [
+    {
+      "scene_id": "etoile",
+      "geographic_site": "Paris, France; Arc de Triomphe area",
+      "source_scene_xml": "src/sionna/rt/scenes/etoile/etoile.xml",
+      "asset_count": 566,
+      "asset_tree_sha256": "d0b6ee5c9406e8b75c5fc17388e16037e988b5057d37bc40fe55699fefba115d",
+      "data_license": "ODbL-1.0",
+      "osm_extract_or_update_timestamp": null,
+      "osm_object_or_change_set_ids": null,
+      "conversion_recipe": null,
+      "third_party_content_license_closure": "not independently recorded"
+    },
+    {
+      "scene_id": "florence",
+      "geographic_site": "Florence, Italy; cathedral area",
+      "source_scene_xml": "src/sionna/rt/scenes/florence/florence.xml",
+      "asset_count": 2640,
+      "asset_tree_sha256": "f5bb0decbe1806daecd10455d846db86a9590f29ff334398d07c18876f038651",
+      "data_license": "ODbL-1.0",
+      "osm_extract_or_update_timestamp": null,
+      "osm_object_or_change_set_ids": null,
+      "conversion_recipe": null,
+      "third_party_content_license_closure": "not independently recorded"
+    },
+    {
+      "scene_id": "munich",
+      "geographic_site": "Munich, Germany; Frauenkirche area",
+      "source_scene_xml": "src/sionna/rt/scenes/munich/munich.xml",
+      "asset_count": 2368,
+      "asset_tree_sha256": "df2ea477117f85ce9abffbc46ba30130d49789b3576cb28363350c2b1996670b",
+      "data_license": "ODbL-1.0",
+      "osm_extract_or_update_timestamp": null,
+      "osm_object_or_change_set_ids": null,
+      "conversion_recipe": null,
+      "third_party_content_license_closure": "not independently recorded"
+    }
+  ],
+  "release_gates": [
+    "Record the exact artifact set and classify each artifact under the applicable ODbL category before public release.",
+    "Include © OpenStreetMap contributors and a working ODbL notice in a medium-appropriate location.",
+    "For data-form redistribution, name and link ODbL v1.0 directly and satisfy applicable share-alike/access obligations.",
+    "Do not assume simulated paths, channel data, or models are exempt without a documented release-specific classification.",
+    "Keep Sionna software licensing separate from OSM-derived scene data licensing."
+  ],
+  "unresolved_provenance": [
+    "OSM extract/update timestamps and upstream object/change-set identifiers were not included in the inspected Sionna scene assets.",
+    "Original scene-conversion recipes and per-file third-party content/license closure were not independently established.",
+    "License classification for future RT path/channel/model datasets depends on the exact contents and intended release and has not been determined."
+  ],
+  "evidence": {
+    "asset_material_audit": "docs/research/results/g3-scene-asset-material-audit-20261023.json",
+    "license_audit": "docs/research/G3_SCENE_FAMILY_LICENSE_AUDIT_2026-10-23.md",
+    "official_osm_copyright": "https://www.openstreetmap.org/copyright",
+    "official_odbl_1_0": "https://opendatacommons.org/licenses/odbl/1-0/",
+    "osmf_produced_work_guideline": "https://osmfoundation.org/wiki/Licence/Community_Guidelines/Produced_Work_-_Guideline"
+  }
+}
