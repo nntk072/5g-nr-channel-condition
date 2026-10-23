@@ -5,6 +5,7 @@ import pytest
 
 torch = pytest.importorskip("torch")
 
+from integrations.sionna.nr_timing import nr_normal_cp_symbol_start_times  # noqa: E402
 from integrations.sionna.rt_to_nr import (  # noqa: E402
     paths_to_nr_ofdm_channel,
     paths_to_nr_ofdm_channel_at_times,
@@ -104,6 +105,28 @@ def test_rt_paths_evaluate_at_explicit_times_with_invalid_paths_masked():
     )
     assert result.metadata["sample_times_s"] == [0.0, 1e-3]
     assert result.metadata["normalize_delays"] is False
+
+
+def test_rt_doppler_uses_cp_aware_nr_symbol_start_times_in_seconds():
+    slot_index = 0
+    times_s = nr_normal_cp_symbol_start_times(
+        30_000.0,
+        14,
+        slot_index_in_subframe=slot_index,
+    )
+    doppler_hz = 2_400.0
+    paths = FakeTimedPaths()
+    paths.doppler = torch.tensor([[[doppler_hz, float("nan")]]])
+    grid = SimpleNamespace(fft_size=8, num_ofdm_symbols=14, subcarrier_spacing=30e3)
+
+    result = paths_to_nr_ofdm_channel_at_times(paths, grid, times_s)
+
+    center_bin = grid.fft_size // 2
+    observed = result.channel.numpy()[0, 0, 0, 0, 0, :, center_bin]
+    expected = np.exp(2j * np.pi * doppler_hz * np.asarray(times_s))
+    assert not np.allclose(np.diff(times_s), 1.0 / 30_000.0, rtol=0.0, atol=1e-15)
+    assert result.metadata["sample_times_s"] == list(times_s)
+    np.testing.assert_allclose(observed, expected, rtol=2e-6, atol=2e-6)
 
 
 @pytest.mark.parametrize(
