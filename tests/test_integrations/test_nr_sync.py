@@ -32,6 +32,58 @@ def test_sss_generates_distinct_sequences_for_all_nid1_values() -> None:
     )
 
 
+def test_pss_sss_sequences_and_ssb_mapping_match_ts_38211_v19_1() -> None:
+    def reference_m_sequence(initial: tuple[int, ...], tap_offset: int) -> list[int]:
+        sequence = list(initial)
+        for index in range(127):
+            sequence.append((sequence[index + tap_offset] + sequence[index]) % 2)
+        return sequence
+
+    pss_binary = reference_m_sequence((0, 1, 1, 0, 1, 1, 1), 4)
+    sss_x0 = reference_m_sequence((1, 0, 0, 0, 0, 0, 0), 4)
+    sss_x1 = reference_m_sequence((1, 0, 0, 0, 0, 0, 0), 1)
+    indexes = np.arange(127)
+
+    for nid2 in range(3):
+        expected_pss = np.asarray(
+            [1 - 2 * pss_binary[(int(n) + 43 * nid2) % 127] for n in indexes],
+            dtype=np.int8,
+        )
+        np.testing.assert_array_equal(nr_pss_sequence(nid2), expected_pss)
+        for nid1 in range(336):
+            m0 = 15 * (nid1 // 112) + 5 * nid2
+            m1 = nid1 % 112
+            expected_sss = np.asarray(
+                [
+                    (1 - 2 * sss_x0[(int(n) + m0) % 127]) * (1 - 2 * sss_x1[(int(n) + m1) % 127])
+                    for n in indexes
+                ],
+                dtype=np.int8,
+            )
+            np.testing.assert_array_equal(nr_sss_sequence(nid1, nid2), expected_sss)
+
+    fft_size = 256
+    cp_length = 32
+    nid1, nid2 = 335, 2
+    burst = make_nr_sync_burst(
+        nid1,
+        nid2,
+        fft_size=fft_size,
+        cyclic_prefix_length=cp_length,
+    ).reshape(4, fft_size + cp_length)
+    subcarriers = np.arange(56, 183)
+    fft_bins = (subcarriers - 120) % fft_size
+    for symbol_index, sequence in (
+        (0, nr_pss_sequence(nid2)),
+        (2, nr_sss_sequence(nid1, nid2)),
+    ):
+        expected = np.zeros(fft_size, dtype=np.complex128)
+        expected[fft_bins] = sequence
+        actual = np.fft.fft(burst[symbol_index, cp_length:])
+        np.testing.assert_allclose(actual, expected, atol=1e-12, rtol=0.0)
+    np.testing.assert_array_equal(burst[[1, 3]], 0.0)
+
+
 def test_blind_pss_sss_acquisition_recovers_timing_cfo_and_cell_id() -> None:
     nid1 = 237
     nid2 = 2
