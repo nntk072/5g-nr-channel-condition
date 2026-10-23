@@ -79,7 +79,10 @@ class NRPUSCHConfig:
             raise ValueError("num_cdm_groups_without_data must be in [1, 3]")
         if self.mapping_type not in {"A", "B"}:
             raise ValueError("mapping_type must be A or B")
-        if not isinstance(self.symbol_allocation, (tuple, list)) or len(self.symbol_allocation) != 2:
+        if (
+            not isinstance(self.symbol_allocation, (tuple, list))
+            or len(self.symbol_allocation) != 2
+        ):
             raise TypeError("symbol_allocation must be a two-element tuple or list")
         allocation = tuple(self.symbol_allocation)
         if any(isinstance(value, bool) or not isinstance(value, int) for value in allocation):
