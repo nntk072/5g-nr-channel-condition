@@ -58,6 +58,10 @@ def _reject_duplicate_json_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
 
 def _read_immutable_lock_bytes(path: Path) -> bytes:
     """Read one regular, single-link lock without following a leaf symlink."""
+    path_metadata_before = os.lstat(path)
+    if stat.S_ISLNK(path_metadata_before.st_mode):
+        raise ValueError("split-policy lock must not be a symlink")
+
     flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
     try:
         descriptor = os.open(path, flags)
@@ -67,7 +71,25 @@ def _read_immutable_lock_bytes(path: Path) -> bytes:
         raise
     try:
         metadata = os.fstat(descriptor)
-        if not stat.S_ISREG(metadata.st_mode) or metadata.st_nlink != 1:
+        path_metadata_after = os.lstat(path)
+        if stat.S_ISLNK(path_metadata_after.st_mode):
+            raise ValueError("split-policy lock must not be a symlink")
+        same_open_file = (
+            (metadata.st_dev, metadata.st_ino)
+            == (
+                path_metadata_after.st_dev,
+                path_metadata_after.st_ino,
+            )
+            == (path_metadata_before.st_dev, path_metadata_before.st_ino)
+        )
+        if not same_open_file:
+            raise ValueError("split-policy lock path changed while opening")
+        if (
+            not stat.S_ISREG(metadata.st_mode)
+            or metadata.st_nlink != 1
+            or not stat.S_ISREG(path_metadata_after.st_mode)
+            or path_metadata_after.st_nlink != 1
+        ):
             raise ValueError("split-policy lock must be a single-link regular file")
         with os.fdopen(descriptor, "rb") as stream:
             descriptor = -1

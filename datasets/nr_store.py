@@ -123,7 +123,7 @@ def _nr_record_memory_estimate(
     *,
     max_shard_bytes: int,
 ) -> int:
-    """Estimate two payload buffers plus two decoded-array copies."""
+    """Estimate two compressed buffers plus two uncompressed-member equivalents."""
     try:
         with _open_store_record(base, stored.relative_path) as record_stream:
             compressed_size = os.fstat(record_stream.fileno()).st_size
@@ -165,9 +165,9 @@ def _nr_record_memory_estimate(
                             raise ValueError("NR record NPY header size does not match its member")
     except zipfile.BadZipFile as exc:
         raise ValueError("NR record is not a readable NPZ archive") from exc
-    # The reader may briefly retain the NPZ payload and archive arrays while
-    # immutable domain objects own their copied arrays. This bound excludes
-    # small Python/allocator overhead and is documented as an estimate.
+    # This conservative accounting charges two whole uncompressed-member
+    # equivalents. It does not assert that domain objects retain a second copy
+    # of each decoded array. Python/allocator overhead is excluded.
     return estimated_bytes
 
 
@@ -180,9 +180,10 @@ def iter_nr_record_shards(
 
     Manifest metadata for the full store is inventoried and sorted, so that
     metadata memory scales with corpus size. NPZ payloads are opened one shard
-    at a time. The byte estimate includes two compressed payload buffers and
-    two copies of header-validated uncompressed members; it excludes Python
-    and allocator overhead and therefore is not an RSS guarantee.
+    at a time. The byte estimate charges two compressed-buffer equivalents and
+    two uncompressed-member equivalents, including NPY headers. This is
+    conservative accounting rather than a measured allocation model; it
+    excludes Python and allocator overhead and is not an RSS guarantee.
     An individual record above the budget fails before its arrays are loaded.
     """
     if isinstance(max_shard_bytes, bool) or not isinstance(max_shard_bytes, int):

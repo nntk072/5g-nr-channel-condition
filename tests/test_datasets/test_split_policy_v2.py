@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 from dataclasses import replace
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -659,6 +660,51 @@ def test_registry_lock_rejects_symlink_alias_for_freeze_and_read(tmp_path):
         freeze_split_policy_registry(alias, registry)
     with pytest.raises(ValueError, match="must not be a symlink"):
         read_split_policy_registry(alias)
+
+
+def test_registry_lock_rejects_symlink_when_nofollow_is_unavailable(tmp_path, monkeypatch):
+    _, registry = _four_way_registry(_unlinked_subjects())
+    target = tmp_path / "canonical.json"
+    freeze_split_policy_registry(target, registry)
+    alias = tmp_path / "symlink.json"
+    alias.symlink_to(target)
+    original_open = os.open
+    open_called = False
+
+    def track_open(path, flags, *args, **kwargs):
+        nonlocal open_called
+        open_called = True
+        nofollow = getattr(os, "O_NOFOLLOW", 0)
+        return original_open(path, flags & ~nofollow, *args, **kwargs)
+
+    monkeypatch.setattr(os, "open", track_open)
+    with pytest.raises(ValueError, match="must not be a symlink"):
+        read_split_policy_registry(alias)
+    assert not open_called
+
+
+def test_registry_lock_rejects_leaf_symlink_swap_during_open(tmp_path, monkeypatch):
+    _, registry = _four_way_registry(_unlinked_subjects())
+    target = tmp_path / "canonical.json"
+    freeze_split_policy_registry(target, registry)
+    alias = tmp_path / "replace-me.json"
+    alias.write_text(target.read_text(encoding="utf-8"), encoding="utf-8")
+    original_open = os.open
+    swapped = False
+
+    def swap_then_open(path, flags, *args, **kwargs):
+        nonlocal swapped
+        if Path(path) == alias and not swapped:
+            swapped = True
+            alias.unlink()
+            alias.symlink_to(target)
+        nofollow = getattr(os, "O_NOFOLLOW", 0)
+        return original_open(path, flags & ~nofollow, *args, **kwargs)
+
+    monkeypatch.setattr(os, "open", swap_then_open)
+    with pytest.raises(ValueError, match="must not be a symlink"):
+        read_split_policy_registry(alias)
+    assert swapped
 
 
 def test_registry_lock_rejects_hardlink_alias_for_freeze_and_read(tmp_path):

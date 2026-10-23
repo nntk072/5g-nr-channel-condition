@@ -8,6 +8,27 @@ from experiments.g5_time_varying_multipath_receiver import (
     exact_paired_binomial_p_value,
     wilson_interval,
 )
+from scipy.stats import binomtest
+
+# Frozen in Unified Plan editions 3.241 and 3.244. Keep these values
+# independent of the experiment module so producer changes cannot redefine
+# the criteria used to audit its saved report.
+MAXIMUM_REFERENCE_BLER = 0.05
+MINIMUM_TOTAL_DOPPLER_BLER_INCREASE = 0.20
+MAXIMUM_TOTAL_PAIRED_P_VALUE = 0.01
+MINIMUM_INTRA_SYMBOL_BLER_INCREASE = 0.10
+MAXIMUM_INTRA_SYMBOL_PAIRED_P_VALUE = 0.01
+
+
+def _paired_binomial_reference(reference: list[bool], comparison: list[bool]) -> float:
+    """Independent exact two-sided McNemar/binomial reference from discordant pairs."""
+    assert len(reference) == len(comparison)
+    reference_only = sum(a and not b for a, b in zip(reference, comparison, strict=True))
+    comparison_only = sum(not a and b for a, b in zip(reference, comparison, strict=True))
+    discordant = reference_only + comparison_only
+    if discordant == 0:
+        return 1.0
+    return float(binomtest(reference_only, discordant, p=0.5, alternative="two-sided").pvalue)
 
 
 def test_wilson_interval_handles_extreme_and_balanced_outcomes():
@@ -46,24 +67,35 @@ def test_saved_mobility_receiver_report_is_hash_bound_and_meets_frozen_fixture_c
     assert report["runtime"]["device"] == "cpu"
     assert report["configuration"]["independent_channel_draws"] == 0
     assert report["configuration"]["waveform_awgn_injected"] is False
-    assert report["acceptance"]["pass"] is True
-    assert report["acceptance"]["observed_absolute_bler_increase"] >= 0.20
-    assert report["acceptance"]["observed_paired_exact_p_value"] <= 0.01
-    assert report["intra_symbol_acceptance"]["pass"] is False
     assert len(report["paired_batch_outcomes"]) == 12 * 5
 
-    def outcomes_for(condition: str) -> list[bool]:
-        doppler_text, channel_model = condition.split("_", maxsplit=1)
-        doppler_hz = float(doppler_text.removesuffix("hz"))
-        return [
-            passed
-            for record in report["paired_batch_outcomes"]
-            if record["echo_doppler_hz"] == doppler_hz and record["channel_model"] == channel_model
-            for passed in record["crc_pass_by_block"]
-        ]
+    # Build each observation by its saved payload-batch seed and within-batch
+    # block index. The report's record order must not determine the pairing.
+    by_condition: dict[str, dict[tuple[int, int], bool]] = {}
+    for record in report["paired_batch_outcomes"]:
+        condition = f"{record['echo_doppler_hz']:g}hz_{record['channel_model']}"
+        observations = by_condition.setdefault(condition, {})
+        for block_index, passed in enumerate(record["crc_pass_by_block"]):
+            key = (record["batch_seed"], block_index)
+            assert key not in observations
+            observations[key] = passed
+
+    expected_batch_seeds = set(report["configuration"]["batch_seeds"])
+    assert len(expected_batch_seeds) == len(report["configuration"]["batch_seeds"])
+    assert set(by_condition) == set(report["summary_by_condition"])
+    for condition, observations in by_condition.items():
+        assert {seed for seed, _ in observations} == expected_batch_seeds
+        assert (
+            len(observations)
+            == len(expected_batch_seeds) * report["configuration"]["blocks_per_seed"]
+        )
+
+    def outcomes_for(condition: str) -> dict[tuple[int, int], bool]:
+        return by_condition[condition]
 
     for condition, summary in report["summary_by_condition"].items():
-        passes = outcomes_for(condition)
+        keyed_passes = outcomes_for(condition)
+        passes = list(keyed_passes.values())
         failures = len(passes) - sum(passes)
         total_bits = len(passes) * report["configuration"]["bits_per_block"]
         bit_errors = sum(
@@ -81,12 +113,37 @@ def test_saved_mobility_receiver_report_is_hash_bound_and_meets_frozen_fixture_c
     continuous_zero = outcomes_for("0hz_continuous")
     continuous_750 = outcomes_for("750hz_continuous")
     symbol_static_750 = outcomes_for("750hz_symbol_static")
-    assert report["summary_by_condition"]["0hz_continuous"]["bler"] <= 0.05
-    assert report["acceptance"]["observed_paired_exact_p_value"] == pytest.approx(
-        exact_paired_binomial_p_value(continuous_zero, continuous_750)
+    paired_keys = set(continuous_zero)
+    assert paired_keys == set(continuous_750) == set(symbol_static_750)
+    ordered_keys = sorted(paired_keys)
+    zero_outcomes = [continuous_zero[key] for key in ordered_keys]
+    mobile_outcomes = [continuous_750[key] for key in ordered_keys]
+    symbol_static_outcomes = [symbol_static_750[key] for key in ordered_keys]
+    baseline_bler = report["summary_by_condition"]["0hz_continuous"]["bler"]
+    continuous_bler = report["summary_by_condition"]["750hz_continuous"]["bler"]
+    symbol_static_bler = report["summary_by_condition"]["750hz_symbol_static"]["bler"]
+    acceptance = report["acceptance"]
+    observed_effect = continuous_bler - baseline_bler
+    observed_p = _paired_binomial_reference(zero_outcomes, mobile_outcomes)
+    assert acceptance["maximum_reference_bler"] == MAXIMUM_REFERENCE_BLER
+    assert acceptance["minimum_absolute_bler_increase"] == MINIMUM_TOTAL_DOPPLER_BLER_INCREASE
+    assert acceptance["maximum_two_sided_exact_p_value"] == MAXIMUM_TOTAL_PAIRED_P_VALUE
+    assert acceptance["observed_absolute_bler_increase"] == pytest.approx(observed_effect)
+    assert acceptance["observed_paired_exact_p_value"] == pytest.approx(observed_p)
+    assert acceptance["pass"] is (
+        baseline_bler <= MAXIMUM_REFERENCE_BLER
+        and observed_effect >= MINIMUM_TOTAL_DOPPLER_BLER_INCREASE
+        and observed_p <= MAXIMUM_TOTAL_PAIRED_P_VALUE
     )
-    assert report["intra_symbol_acceptance"]["observed_paired_exact_p_value"] == pytest.approx(
-        exact_paired_binomial_p_value(symbol_static_750, continuous_750)
+
+    intra = report["intra_symbol_acceptance"]
+    intra_effect = continuous_bler - symbol_static_bler
+    intra_p = _paired_binomial_reference(symbol_static_outcomes, mobile_outcomes)
+    assert intra["minimum_absolute_bler_increase"] == MINIMUM_INTRA_SYMBOL_BLER_INCREASE
+    assert intra["maximum_two_sided_exact_p_value"] == MAXIMUM_INTRA_SYMBOL_PAIRED_P_VALUE
+    assert intra["observed_absolute_bler_increase"] == pytest.approx(intra_effect)
+    assert intra["observed_paired_exact_p_value"] == pytest.approx(intra_p)
+    assert intra["pass"] is (
+        intra_effect >= MINIMUM_INTRA_SYMBOL_BLER_INCREASE
+        and intra_p <= MAXIMUM_INTRA_SYMBOL_PAIRED_P_VALUE
     )
-    assert report["intra_symbol_acceptance"]["observed_absolute_bler_increase"] < 0.10
-    assert report["intra_symbol_acceptance"]["observed_paired_exact_p_value"] > 0.01

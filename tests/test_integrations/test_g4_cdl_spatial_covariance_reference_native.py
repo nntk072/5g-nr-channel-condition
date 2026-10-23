@@ -1,15 +1,13 @@
-"""Independent 3GPP ray-level check of a bounded CDL spatial covariance case.
+"""Independent 3GPP ray-level checks of bounded CDL spatial covariance cases.
 
-Before examining the estimate, this test fixes the qualification case and rule:
-CDL-A, a two-element half-wavelength UT ULA, vertical omnidirectional elements,
-and a stationary 3.5-GHz downlink. With 4,096 independent channel draws, the
-four unique real covariance components must contain the independent TR 38.901
-ray reference in two-sided Bonferroni 99% confidence intervals. Every interval
-must also have half-width at most 0.05 of the unit normalized mean power. The
-reference averages the Table 7.5-3 ray offsets and all independent azimuth/
-zenith ray pairings, so it does not reuse channel-output covariance or adapter
-profile metadata as its expected answer.
-"""
+CDL-A and CDL-B each use a two-element half-wavelength UT ULA with vertical
+omnidirectional elements on a stationary 3.5-GHz downlink. For each profile,
+4,096 independent channel draws produce four unique real covariance components
+that must contain the reference in two-sided Bonferroni 99% confidence
+intervals. Each interval has a half-width at most 0.05 of unit normalized mean
+power. The reference averages the Table 7.5-3 ray offsets and all independent
+azimuth/zenith ray pairings, rather than reusing channel output or adapter
+profile metadata as its expected answer."""
 
 from __future__ import annotations
 
@@ -53,9 +51,9 @@ _RAY_ANGLE_OFFSETS = (
 )
 
 
-def _independent_cdl_a_spatial_covariance_reference() -> tuple[Any, str]:
-    """Evaluate the ray sum directly from the versioned table and 38.901 rule."""
-    table_path = profile_resources.parameter_file("CDL-A.json", "19.2")
+def _independent_cdl_spatial_covariance_reference(model: str) -> tuple[Any, str]:
+    """Evaluate one profile ray sum directly from its pinned table."""
+    table_path = profile_resources.parameter_file(f"CDL-{model}.json", "19.2")
     parameters = profile_resources.load_json(table_path)
     powers = torch.as_tensor(
         [10.0 ** (float(power_db) / 10.0) for power_db in parameters["powers"]],
@@ -91,10 +89,11 @@ def _independent_cdl_a_spatial_covariance_reference() -> tuple[Any, str]:
 
 
 @pytest.mark.native_sionna
-def test_cdl_a_spatial_covariance_matches_independent_38901_ray_reference() -> None:
-    expected, source_digest = _independent_cdl_a_spatial_covariance_reference()
+@pytest.mark.parametrize("model", ("A", "B"))
+def test_cdl_spatial_covariance_matches_independent_38901_ray_reference(model: str) -> None:
+    expected, source_digest = _independent_cdl_spatial_covariance_reference(model)
     channel = generate_cdl_frequency_response(
-        model="A",
+        model=model,
         seed=1321,
         carrier_frequency_hz=3.5e9,
         subcarrier_spacing_hz=30_000.0,
@@ -144,6 +143,7 @@ def test_cdl_a_spatial_covariance_matches_independent_38901_ray_reference() -> N
     assert float(half_width.max()) <= _MAX_INTERVAL_HALF_WIDTH
     torch.testing.assert_close(empirical, empirical.mH, rtol=0.0, atol=1e-7)
 
+    assert channel.metadata["profile_model"] == model
     assert channel.metadata["profile_los_component"] is False
     assert channel.metadata["batch_axis_semantics"] == "independent_stochastic_channel_draws"
     assert channel.metadata["parameter_table_sha256"] == source_digest

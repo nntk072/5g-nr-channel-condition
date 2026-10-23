@@ -24,6 +24,7 @@ from evaluation.g3_material_calibration import (
 from evaluation.g3_material_calibration import (
     MIN_INTERVAL_COVERAGE as EVALUATOR_MIN_INTERVAL_COVERAGE,
 )
+from evaluation.g3_material_calibration import _cluster_bootstrap_intervals
 from evaluation.g3_sample_size_planning import (
     MAX_INTERVAL_COVERAGE,
     MAX_MEDIAN_INTERVAL_WIDTH_DB,
@@ -32,6 +33,7 @@ from evaluation.g3_sample_size_planning import (
     MIN_INDEPENDENT_MEASUREMENT_UNITS,
     MIN_INTERVAL_COVERAGE,
     _exact_binomial_critical_failures,
+    _maximum_angular_units_for_pass_probability,
     _required_bounded_mean_units,
     _required_quantile_units,
     plan_g3_independent_acquisition_units,
@@ -64,12 +66,17 @@ def test_planner_is_data_free_bonferroni_adjusted_and_never_admits() -> None:
         planned_complex_csi_failure_probability=0.01,
     )
 
+    assert result["schema"] == "loslab.g3_sample_size_planning.v2"
     assert result["status"] == "PLANNING_ONLY_NOT_QUALIFICATION"
     assert result["uses_measurement_or_pilot_data"] is False
     assert result["admission_possible"] is False
     assert result["complete_g3_03_sample_size"] is None
-    assert result["complete_design_status"] == "UNRESOLVED_UNSUPPORTED_MAXIMUM_ANGULAR_ESTIMAND"
+    assert (
+        result["complete_design_status"] == "UNRESOLVED_MISSING_ANGULAR_PASS_PROBABILITY_ASSUMPTION"
+    )
     assert "not a sample-size guarantee" in result["evaluation_alignment"]
+    assert result["angular_maximum_metric_plan"]["assumption_supplied"] is False
+    assert result["angular_maximum_metric_plan"]["maximum_independent_units_per_stratum"] is None
     assert "weakest stratum" in result["shared_assumptions_scope"]
     assert "represent the target population" in result["population_sampling_assumption"]
     assert result["bonferroni_comparison_count"] == 20
@@ -153,6 +160,84 @@ def test_bounded_mean_formula_uses_full_unit_range_and_interior_slack() -> None:
     )
 
     assert units == expected
+
+
+def test_angular_maximum_plan_is_an_upper_bound_under_exact_iid_pass_probability() -> None:
+    assert (
+        _maximum_angular_units_for_pass_probability(
+            planned_unit_pass_probability=0.90,
+            minimum_pass_probability=0.80,
+        )
+        == 2
+    )
+    assert 0.90**2 >= 0.80
+    assert 0.90**3 < 0.80
+    assert (
+        _maximum_angular_units_for_pass_probability(
+            planned_unit_pass_probability=0.90,
+            minimum_pass_probability=0.95,
+        )
+        == 0
+    )
+    assert (
+        _maximum_angular_units_for_pass_probability(
+            planned_unit_pass_probability=1.0,
+            minimum_pass_probability=0.95,
+        )
+        is None
+    )
+
+
+def test_bootstrap_maximum_cannot_exceed_the_observed_unit_maximum() -> None:
+    units = {
+        f"unit-{index:02d}": [
+            {
+                "absolute_power_error_db": 0.1,
+                "angular_cdf_ks": index / 100.0,
+                "interval_width_db": 1.0,
+                "covered": 1.0,
+            }
+        ]
+        for index in range(20)
+    }
+    report = _cluster_bootstrap_intervals(
+        units,
+        seed=41023,
+        replicates=2_000,
+        simultaneous_comparisons=5,
+    )
+    observed_maximum = max(rows[0]["angular_cdf_ks"] for rows in units.values())
+    bootstrap_upper = report["percentile_95_ci"]["maximum_angular_cdf_ks"][1]
+    assert bootstrap_upper <= observed_maximum
+
+
+def test_angular_maximum_plan_fails_closed_without_assumption_and_flags_conflict() -> None:
+    result = plan_g3_independent_acquisition_units(
+        stratum_count=1,
+        planned_quantile_pass_probabilities=_assumptions(),
+        planned_interval_coverage=0.95,
+        planned_complex_csi_failure_probability=0.01,
+        planned_angular_unit_pass_probability=0.90,
+    )
+    angular = result["angular_maximum_metric_plan"]
+    assert angular["maximum_independent_units_per_stratum"] == 0
+    assert angular["compatible_with_pilot_floor"] is False
+    assert angular["compatible_with_supported_metrics_lower_bound"] is False
+    assert result["complete_design_status"] == "INFEASIBLE_UNDER_SUPPLIED_ANGULAR_ASSUMPTION"
+    assert result["complete_g3_03_sample_size"] is None
+    assert result["admission_possible"] is False
+
+
+@pytest.mark.parametrize("value", [True, -0.1, 1.1, float("nan"), float("inf")])
+def test_angular_pass_probability_rejects_invalid_assumptions(value: float) -> None:
+    with pytest.raises(ValueError, match="planned_angular_unit_pass_probability"):
+        plan_g3_independent_acquisition_units(
+            stratum_count=1,
+            planned_quantile_pass_probabilities=_assumptions(),
+            planned_interval_coverage=0.95,
+            planned_complex_csi_failure_probability=0.01,
+            planned_angular_unit_pass_probability=value,
+        )
 
 
 def test_exact_one_sided_95_percent_bound_requires_59_zero_failure_clusters() -> None:
