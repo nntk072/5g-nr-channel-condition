@@ -88,18 +88,22 @@ def test_native_pusch_grid_axes_and_fft_mapping_across_numerologies(
 
 @pytest.mark.native_sionna
 @pytest.mark.parametrize(
-    ("additional_position", "expected_symbols"),
+    ("mapping_type", "additional_position", "expected_symbols"),
     (
-        (0, (2,)),
-        (1, (2, 11)),
-        (2, (2, 7, 11)),
-        (3, (2, 5, 8, 11)),
+        ("A", 0, (2,)),
+        ("A", 1, (2, 11)),
+        ("A", 2, (2, 7, 11)),
+        ("A", 3, (2, 5, 8, 11)),
+        ("B", 0, (0,)),
+        ("B", 1, (0, 10)),
+        ("B", 2, (0, 5, 10)),
+        ("B", 3, (0, 3, 6, 9)),
     ),
 )
 def test_pusch_type1_dmrs_positions_match_ts_38211_full_slot_reference(
-    additional_position: int, expected_symbols: tuple[int, ...]
+    mapping_type: str, additional_position: int, expected_symbols: tuple[int, ...]
 ) -> None:
-    """Check TS 38.211 V19.1.0 Table 6.4.1.1.3-3 positions for mapping A."""
+    """Check TS 38.211 V19.1.0 Table 6.4.1.1.3-3 for mapping A and B."""
     n_size_bwp = 2
     receiver = SionnaPUSCHLSReceiver(
         NRPUSCHConfig(
@@ -109,7 +113,7 @@ def test_pusch_type1_dmrs_positions_match_ts_38211_full_slot_reference(
             dmrs_length=1,
             dmrs_additional_position=additional_position,
             num_cdm_groups_without_data=1,
-            mapping_type="A",
+            mapping_type=mapping_type,
         ),
         device="cpu",
     )
