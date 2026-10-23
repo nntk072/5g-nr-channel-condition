@@ -102,6 +102,7 @@ def _standardized_record() -> StandardizedChannelRecord:
         metadata={
             "profile_model": "A",
             "profile_los_component": False,
+            "delay_profile_semantics": "scalable_tr_38_901_profile",
             "delay_reference": "profile_excess_delay",
             "seed": 19,
             "spec_version": "19.2",

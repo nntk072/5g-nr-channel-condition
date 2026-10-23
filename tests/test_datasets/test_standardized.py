@@ -31,6 +31,11 @@ def _metadata(
         "spec_version": "19.2",
         "profile_proxy": model,
         "profile_model": model,
+        "delay_profile_semantics": (
+            "fixed_ts_38_101_4_absolute_tap_delays"
+            if model in {"A10", "A30", "B100", "C60", "C300", "D10", "D30"}
+            else "scalable_tr_38_901_profile"
+        ),
         "profile_los_component": los,
         "geometric_los_label": None,
         "carrier_frequency_hz": carrier_hz,
@@ -181,6 +186,13 @@ def test_standardized_admission_rejects_mismatched_bandwidth_and_antenna_metadat
     channel = _channel()
     channel.metadata["rx_antenna_count"] = 2
     with pytest.raises(ValueError, match="antenna counts disagree"):
+        standardized_run_from_channel(channel, family=StandardizedFamily.TDL)
+
+
+def test_standardized_admission_rejects_delay_semantics_that_disagree_with_profile() -> None:
+    channel = _channel()
+    channel.metadata["delay_profile_semantics"] = "fixed_ts_38_101_4_absolute_tap_delays"
+    with pytest.raises(ValueError, match="delay profile semantics disagree"):
         standardized_run_from_channel(channel, family=StandardizedFamily.TDL)
 
 

@@ -32,6 +32,11 @@ class StandardizedFamily(StrEnum):
     CDL = "cdl"
 
 
+_SCALABLE_TDL_CDL_MODELS = frozenset({"A", "B", "C", "D", "E"})
+_FIXED_TDL_MODELS = frozenset({"A10", "A30", "B100", "C60", "C300", "D10", "D30"})
+_PROFILE_LOS_COMPONENT_MODELS = frozenset({"D", "E", "D10", "D30"})
+
+
 def _numpy(value: Any, *, name: str, kind: str) -> np.ndarray:
     if hasattr(value, "detach") and hasattr(value, "cpu"):
         value = value.detach().cpu().numpy()
@@ -88,8 +93,22 @@ def validate_standardized_channel_admission(
     prefix = "standardized channel admission rejected: "
     if not isinstance(family, StandardizedFamily):
         raise TypeError("family must use StandardizedFamily")
-    if profile_model not in {"A", "B", "C", "D", "E"}:
-        raise ValueError(prefix + "profile must be one of TDL/CDL A–E")
+    supported_models = (
+        _SCALABLE_TDL_CDL_MODELS | _FIXED_TDL_MODELS
+        if family is StandardizedFamily.TDL
+        else _SCALABLE_TDL_CDL_MODELS
+    )
+    if profile_model not in supported_models:
+        if family is StandardizedFamily.TDL:
+            raise ValueError(prefix + "TDL profile must be scalable A–E or fixed TS 38.101-4")
+        raise ValueError(prefix + "CDL profile must be one of A–E")
+    expected_delay_semantics = (
+        "fixed_ts_38_101_4_absolute_tap_delays"
+        if profile_model in _FIXED_TDL_MODELS
+        else "scalable_tr_38_901_profile"
+    )
+    if metadata.get("delay_profile_semantics") != expected_delay_semantics:
+        raise ValueError(prefix + "delay profile semantics disagree with the admitted profile")
     if metadata.get("spec_version") not in {"16.1", "19.2"}:
         raise ValueError(prefix + "unsupported TR 38.901 parameter-table version")
     if h_path.ndim != 6 or h_path.shape[0] != 1 or h_path.shape[2] != 1:
@@ -242,11 +261,18 @@ class StandardizedChannelRecord:
             raise ValueError("sample_index must be nonnegative")
         if not isinstance(self.family, StandardizedFamily):
             raise TypeError("family must use StandardizedFamily")
-        if self.profile_model not in {"A", "B", "C", "D", "E"}:
-            raise ValueError("profile_model must be one of A, B, C, D, or E")
+        allowed_models = (
+            _SCALABLE_TDL_CDL_MODELS | _FIXED_TDL_MODELS
+            if self.family is StandardizedFamily.TDL
+            else _SCALABLE_TDL_CDL_MODELS
+        )
+        if self.profile_model not in allowed_models:
+            if self.family is StandardizedFamily.TDL:
+                raise ValueError("TDL profile must be scalable A–E or fixed TS 38.101-4")
+            raise ValueError("CDL profile must be one of A–E")
         if not isinstance(self.profile_los_component, bool):
             raise TypeError("profile_los_component must be boolean")
-        if self.profile_los_component != (self.profile_model in {"D", "E"}):
+        if self.profile_los_component != (self.profile_model in _PROFILE_LOS_COMPONENT_MODELS):
             raise ValueError("profile LOS category disagrees with the standardized profile family")
 
         h_path = _numpy(self.h_path, name="h_path", kind="complex")
@@ -446,10 +472,12 @@ def standardized_learning_example_from_record(
     definition = TargetDefinition(
         semantic="standardized_profile_los_category_proxy",
         units="binary_class",
-        source="Sionna 3GPP TR 38.901 profile model",
-        reference="A/B/C map to 0 and D/E map to 1; not geometric LOS truth",
+        source="Sionna standardized TDL/CDL profile model",
+        reference=(
+            "profile_los_component false maps to 0 and true maps to 1; not geometric LOS truth"
+        ),
         definition_sha256=definition_digest(
-            "profile_los_proxy:v1; A/B/C=0; D/E=1; "
+            "profile_los_proxy:v2; profile_los_component=false:0,true:1; "
             "source=standardized_profile_model; not_geometric_visibility"
         ),
     )

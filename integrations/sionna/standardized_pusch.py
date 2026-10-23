@@ -433,8 +433,10 @@ def build_standardized_pusch_dmrs_records(
         profile_definition = TargetDefinition(
             semantic="standardized_profile_los_category_proxy",
             units="binary_class",
-            source="Sionna 3GPP TR 38.901 profile model",
-            reference="A/B/C map to 0 and D/E map to 1; not geometric LOS truth",
+            source="Sionna standardized TDL/CDL profile model",
+            reference=(
+                "profile_los_component false maps to 0 and true maps to 1; not geometric LOS truth"
+            ),
         )
         channel_definition = TargetDefinition(
             semantic="perfect_synchronized_effective_subcarrier_cfr",

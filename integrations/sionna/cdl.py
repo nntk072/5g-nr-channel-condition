@@ -325,6 +325,7 @@ def generate_cdl_frequency_response(
             "sionna_version": sionna_version,
             "spec_version": spec_version,
             "profile_model": model,
+            "delay_profile_semantics": "scalable_tr_38_901_profile",
             "geometric_los_label": None,
             "geometric_los_label_provided": False,
             "carrier_frequency_hz": carrier_frequency_hz,
