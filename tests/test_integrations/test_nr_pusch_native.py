@@ -9,6 +9,42 @@ from receivers.nr import NRPUSCHConfig  # noqa: E402
 
 
 @pytest.mark.native_sionna
+@pytest.mark.parametrize(
+    ("subcarrier_spacing_khz", "n_size_bwp"),
+    ((15, 2), (30, 6), (60, 12), (120, 24)),
+)
+def test_native_pusch_grid_axes_and_fft_mapping_across_numerologies(
+    subcarrier_spacing_khz: int, n_size_bwp: int
+) -> None:
+    receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(
+            n_size_bwp=n_size_bwp,
+            subcarrier_spacing_khz=subcarrier_spacing_khz,
+        ),
+        device="cpu",
+    )
+    grid = receiver.resource_grid
+    effective_bins = torch.as_tensor(grid.effective_subcarrier_ind, dtype=torch.long)
+    pilot_mask = receiver.pilot_mask
+
+    assert grid.fft_size == 12 * n_size_bwp
+    assert grid.num_effective_subcarriers == grid.fft_size
+    torch.testing.assert_close(effective_bins, torch.arange(grid.fft_size))
+    assert tuple(pilot_mask.shape) == (
+        1,
+        1,
+        grid.num_ofdm_symbols,
+        grid.num_effective_subcarriers,
+    )
+    assert bool(pilot_mask.any())
+    assert bool((~pilot_mask.bool()).any())
+    assert receiver.metadata["resource_grid"]["fft_size"] == 12 * n_size_bwp
+    assert receiver.metadata["resource_grid"]["subcarrier_spacing_hz"] == (
+        subcarrier_spacing_khz * 1_000
+    )
+
+
+@pytest.mark.native_sionna
 def test_pusch_dmrs_estimator_recovers_frequency_selective_noiseless_channel_on_cpu():
     receiver = SionnaPUSCHLSReceiver(
         NRPUSCHConfig(n_size_bwp=6, subcarrier_spacing_khz=30), device="cpu"
