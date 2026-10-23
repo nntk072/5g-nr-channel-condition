@@ -5,11 +5,14 @@ from __future__ import annotations
 import hashlib
 import io
 import json
+import math
 import os
+import stat
 import tempfile
+import zipfile
 from dataclasses import asdict, dataclass
-from pathlib import Path
-from typing import Any, Mapping, cast
+from pathlib import Path, PurePosixPath
+from typing import Any, BinaryIO, Iterator, Mapping, cast
 
 import numpy as np
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
@@ -60,6 +63,182 @@ def _json_bytes(value: Any) -> bytes:
         return json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
     except (TypeError, ValueError) as exc:
         raise TypeError("record metadata must be finite JSON-compatible values") from exc
+
+
+def _reject_duplicate_json_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON object key: {key}")
+        result[key] = value
+    return result
+
+
+def _open_store_record(base: Path, relative_path: str) -> BinaryIO:
+    """Open a regular record file without following store-internal symlinks."""
+    relative = PurePosixPath(relative_path)
+    if relative.is_absolute() or ".." in relative.parts or not relative.parts:
+        raise ValueError("manifest record path must remain inside the store")
+    resolved_base = base.resolve()
+    candidate = base.joinpath(*relative.parts)
+    resolved_candidate = candidate.resolve(strict=True)
+    if not resolved_candidate.is_relative_to(resolved_base):
+        raise ValueError("manifest record path resolves outside the store")
+
+    if os.name == "posix" and hasattr(os, "O_DIRECTORY") and hasattr(os, "O_NOFOLLOW"):
+        directory_fd = os.open(resolved_base, os.O_RDONLY | os.O_DIRECTORY)
+        try:
+            for part in relative.parts[:-1]:
+                next_fd = os.open(
+                    part,
+                    os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW,
+                    dir_fd=directory_fd,
+                )
+                os.close(directory_fd)
+                directory_fd = next_fd
+            descriptor = os.open(
+                relative.parts[-1],
+                os.O_RDONLY | os.O_NOFOLLOW | getattr(os, "O_NONBLOCK", 0),
+                dir_fd=directory_fd,
+            )
+        finally:
+            os.close(directory_fd)
+    else:
+        descriptor = os.open(
+            resolved_candidate,
+            os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0),
+        )
+    try:
+        if not stat.S_ISREG(os.fstat(descriptor).st_mode):
+            raise ValueError("NR record object must be a regular file")
+        return os.fdopen(descriptor, "rb")
+    except BaseException:
+        os.close(descriptor)
+        raise
+
+
+def _nr_record_memory_estimate(
+    base: Path,
+    stored: NRStoredRecord,
+    *,
+    max_shard_bytes: int,
+) -> int:
+    """Estimate two payload buffers plus two decoded-array copies."""
+    try:
+        with _open_store_record(base, stored.relative_path) as record_stream:
+            compressed_size = os.fstat(record_stream.fileno()).st_size
+            if compressed_size > max_shard_bytes:
+                raise ValueError(
+                    f"NR record {stored.sample_id!r} compressed size exceeds max_shard_bytes"
+                )
+            record_stream.seek(0)
+            with zipfile.ZipFile(record_stream) as archive:
+                members = archive.infolist()
+                names = [member.filename for member in members]
+                if not members or len(names) != len(set(names)):
+                    raise ValueError("NR record archive must have unique nonempty members")
+                uncompressed_size = sum(member.file_size for member in members)
+                estimated_bytes = 2 * compressed_size + 2 * uncompressed_size
+                if estimated_bytes > max_shard_bytes:
+                    raise ValueError(
+                        f"NR record {stored.sample_id!r} estimate ({estimated_bytes} bytes) "
+                        f"exceeds max_shard_bytes ({max_shard_bytes})"
+                    )
+                for member in members:
+                    if not member.filename.endswith(".npy"):
+                        raise ValueError("NR record archive members must be NPY arrays")
+                    with archive.open(member) as stream:
+                        version = np.lib.format.read_magic(stream)
+                        if version == (1, 0):
+                            shape, _, dtype = np.lib.format.read_array_header_1_0(stream)
+                        elif version == (2, 0):
+                            shape, _, dtype = np.lib.format.read_array_header_2_0(stream)
+                        else:
+                            raise ValueError(f"unsupported NPY format version: {version}")
+                        if dtype.hasobject or dtype.kind not in "biufc":
+                            raise ValueError(
+                                "NR record arrays must have numeric, non-object dtypes"
+                            )
+                        declared_size = math.prod(shape) * dtype.itemsize
+                        available_size = member.file_size - stream.tell()
+                        if declared_size != available_size:
+                            raise ValueError("NR record NPY header size does not match its member")
+    except zipfile.BadZipFile as exc:
+        raise ValueError("NR record is not a readable NPZ archive") from exc
+    # The reader may briefly retain the NPZ payload and archive arrays while
+    # immutable domain objects own their copied arrays. This bound excludes
+    # small Python/allocator overhead and is documented as an estimate.
+    return estimated_bytes
+
+
+def iter_nr_record_shards(
+    root: str | Path,
+    *,
+    max_shard_bytes: int,
+) -> Iterator[tuple[NRChannelRecord, ...]]:
+    """Load deterministic sample-ID-ordered batches within an estimated byte budget.
+
+    Manifest metadata for the full store is inventoried and sorted, so that
+    metadata memory scales with corpus size. NPZ payloads are opened one shard
+    at a time. The byte estimate includes two compressed payload buffers and
+    two copies of header-validated uncompressed members; it excludes Python
+    and allocator overhead and therefore is not an RSS guarantee.
+    An individual record above the budget fails before its arrays are loaded.
+    """
+    if isinstance(max_shard_bytes, bool) or not isinstance(max_shard_bytes, int):
+        raise TypeError("max_shard_bytes must be an integer")
+    if max_shard_bytes <= 0:
+        raise ValueError("max_shard_bytes must be positive")
+
+    base = Path(root).resolve()
+    manifest_dir = (base / "manifests").resolve()
+    if not manifest_dir.is_relative_to(base):
+        raise ValueError("NR manifest directory resolves outside the store")
+    if not manifest_dir.exists():
+        return
+
+    inventory: list[tuple[str, NRStoredRecord, int]] = []
+    seen_sample_ids: set[str] = set()
+    for manifest_path in sorted(manifest_dir.glob("*.json")):
+        resolved_manifest = manifest_path.resolve(strict=True)
+        if not resolved_manifest.is_relative_to(base):
+            raise ValueError("NR manifest path resolves outside the store")
+        payload = json.loads(
+            resolved_manifest.read_text(encoding="utf-8"),
+            object_pairs_hook=_reject_duplicate_json_keys,
+        )
+        if not isinstance(payload, dict):
+            raise ValueError("NR record manifest must be a JSON object")
+        stored = NRStoredRecord(**payload)
+        if not isinstance(stored.sample_id, str) or not stored.sample_id.strip():
+            raise ValueError("NR record manifest sample_id must be a nonempty string")
+        if stored.sample_id in seen_sample_ids:
+            raise ValueError(f"duplicate NR record manifest for sample_id {stored.sample_id!r}")
+        expected_manifest_name = f"{hashlib.sha256(stored.sample_id.encode()).hexdigest()}.json"
+        if resolved_manifest.name != expected_manifest_name:
+            raise ValueError("NR record manifest filename does not match its sample ID")
+        if stored.schema_version != 1:
+            raise ValueError(f"unsupported NR record schema version: {stored.schema_version}")
+        estimated_bytes = _nr_record_memory_estimate(
+            base,
+            stored,
+            max_shard_bytes=max_shard_bytes,
+        )
+        seen_sample_ids.add(stored.sample_id)
+        inventory.append((stored.sample_id, stored, estimated_bytes))
+
+    inventory.sort(key=lambda row: row[0])
+    pending: list[NRStoredRecord] = []
+    pending_bytes = 0
+    for _, stored, estimated_bytes in inventory:
+        if pending and pending_bytes + estimated_bytes > max_shard_bytes:
+            yield tuple(read_nr_record(base, item) for item in pending)
+            pending = []
+            pending_bytes = 0
+        pending.append(stored)
+        pending_bytes += estimated_bytes
+    if pending:
+        yield tuple(read_nr_record(base, item) for item in pending)
 
 
 def _publish_immutable(path: Path, data: bytes) -> None:
@@ -158,7 +337,8 @@ def read_nr_record(root: str | Path, manifest: NRStoredRecord | str | Path) -> N
     if Path(stored.relative_path).is_absolute() or ".." in Path(stored.relative_path).parts:
         raise ValueError("manifest record path must remain inside the store")
 
-    payload = (base / stored.relative_path).read_bytes()
+    with _open_store_record(base, stored.relative_path) as stream:
+        payload = stream.read()
     actual_hash = hashlib.sha256(payload).hexdigest()
     if actual_hash != stored.content_sha256:
         raise ValueError("NR record content hash does not match its manifest")

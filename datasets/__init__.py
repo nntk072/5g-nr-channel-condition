@@ -37,6 +37,7 @@ from .nr import (
 from .nr_store import (
     NRStoredRecord,
     NRStoredTrajectory,
+    iter_nr_record_shards,
     read_nr_record,
     read_nr_trajectory,
     write_nr_record,
@@ -162,6 +163,7 @@ __all__ = [
     "debug_multipath",
     "generate_analytical_multipath",
     "read_nr_record",
+    "iter_nr_record_shards",
     "read_nr_trajectory",
     "read_standardized_run",
     "read_standardized_learning_run",
