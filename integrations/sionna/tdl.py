@@ -36,6 +36,7 @@ def generate_tdl_frequency_response(
     carrier_frequency_hz: float,
     subcarrier_spacing_hz: float,
     num_subcarriers: int,
+    channel_bandwidth_hz: float | None = None,
     batch_size: int = 1,
     delay_spread_s: float | None = None,
     num_time_steps: int = 1,
@@ -57,6 +58,9 @@ def generate_tdl_frequency_response(
     waveform, CP, synchronization, or receiver model. ``rx_corr_mat`` is an
     optional Hermitian positive-definite unit-diagonal correlation matrix;
     its real and imaginary parts are retained in JSON-compatible metadata.
+    ``channel_bandwidth_hz`` is the nominal RF channel bandwidth, distinct
+    from the sampled subcarrier-grid span, and is required for fixed A10/D10
+    dataset admission.
     """
     if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
         raise ValueError("seed must be a nonnegative integer")
@@ -85,6 +89,13 @@ def generate_tdl_frequency_response(
     ):
         if scalar_value <= 0 or not math.isfinite(scalar_value):
             raise ValueError(f"{name} must be finite and positive")
+    if channel_bandwidth_hz is not None and (
+        isinstance(channel_bandwidth_hz, bool)
+        or not isinstance(channel_bandwidth_hz, (int, float))
+        or not math.isfinite(channel_bandwidth_hz)
+        or channel_bandwidth_hz <= 0
+    ):
+        raise ValueError("channel_bandwidth_hz must be finite and positive when provided")
     if not math.isfinite(los_angle_of_arrival_rad):
         raise ValueError("los_angle_of_arrival_rad must be finite")
     if delay_spread_s is not None and (delay_spread_s < 0 or not math.isfinite(delay_spread_s)):
@@ -180,6 +191,7 @@ def generate_tdl_frequency_response(
         metadata={
             "sionna_version": sionna_version,
             "spec_version": spec_version,
+            "fixed_profile_spec_version": "19.2.2" if model in _FIXED_TDL_MODELS else None,
             "profile_proxy": model,
             "delay_profile_semantics": (
                 "fixed_ts_38_101_4_absolute_tap_delays"
@@ -197,6 +209,7 @@ def generate_tdl_frequency_response(
             "geometric_los_label_provided": False,
             "carrier_frequency_hz": carrier_frequency_hz,
             "sampled_bandwidth_hz": num_subcarriers * subcarrier_spacing_hz,
+            "channel_bandwidth_hz": channel_bandwidth_hz,
             "rx_antenna_count": int(h_path.shape[2]),
             "tx_antenna_count": int(h_path.shape[4]),
             "rx_corr_mat_real": (

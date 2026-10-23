@@ -87,19 +87,26 @@ def test_out_of_scope_native_run_is_rejected_at_dataset_admission() -> None:
 
 @pytest.mark.native_sionna
 @pytest.mark.parametrize(
-    ("model", "carrier_hz", "spacing_hz", "num_subcarriers", "has_profile_los"),
     (
-        ("A10", 28e9, 120e3, 2048, False),
-        ("A30", 3.5e9, 30e3, 8, False),
-        ("B100", 3.5e9, 30e3, 8, False),
-        ("C60", 28e9, 30e3, 8, False),
-        ("C300", 3.5e9, 30e3, 8, False),
-        ("D10", 28e9, 120e3, 2048, True),
-        ("D30", 3.5e9, 30e3, 8, True),
+        "model",
+        "carrier_hz",
+        "spacing_hz",
+        "num_subcarriers",
+        "channel_bandwidth_hz",
+        "has_profile_los",
+    ),
+    (
+        ("A10", 28e9, 120e3, 2048, 400e6, False),
+        ("A30", 3.5e9, 30e3, 8, None, False),
+        ("B100", 3.5e9, 30e3, 8, None, False),
+        ("C60", 28e9, 30e3, 8, None, False),
+        ("C300", 3.5e9, 30e3, 8, None, False),
+        ("D10", 28e9, 120e3, 2048, 400e6, True),
+        ("D30", 3.5e9, 30e3, 8, None, True),
     ),
 )
 def test_fixed_delay_tdl_profiles_are_admitted_and_roundtrip(
-    tmp_path, model, carrier_hz, spacing_hz, num_subcarriers, has_profile_los
+    tmp_path, model, carrier_hz, spacing_hz, num_subcarriers, channel_bandwidth_hz, has_profile_los
 ) -> None:
     channel = generate_tdl_frequency_response(
         model=model,
@@ -107,6 +114,7 @@ def test_fixed_delay_tdl_profiles_are_admitted_and_roundtrip(
         carrier_frequency_hz=carrier_hz,
         subcarrier_spacing_hz=spacing_hz,
         num_subcarriers=num_subcarriers,
+        channel_bandwidth_hz=channel_bandwidth_hz,
         delay_spread_s=None,
         spec_version="19.2",
         device="cpu",
@@ -119,6 +127,7 @@ def test_fixed_delay_tdl_profiles_are_admitted_and_roundtrip(
         run.records[0].metadata["delay_profile_semantics"]
         == "fixed_ts_38_101_4_absolute_tap_delays"
     )
+    assert run.records[0].metadata["fixed_profile_spec_version"] == "19.2.2"
     stored = write_standardized_run(tmp_path, run)
     restored = read_standardized_run(tmp_path, stored)
     record = restored.records[0]
@@ -126,6 +135,35 @@ def test_fixed_delay_tdl_profiles_are_admitted_and_roundtrip(
     np.testing.assert_array_equal(record.tau_s, run.records[0].tau_s)
     example = standardized_learning_example_from_record(record, snr_db=30.0, seed=13_002)
     assert example.targets["profile_los_proxy"].values.tolist() == [int(has_profile_los)]
+
+
+@pytest.mark.native_sionna
+@pytest.mark.parametrize(
+    ("model", "carrier_hz", "channel_bandwidth_hz", "message"),
+    (
+        ("C60", 3.5e9, None, "not applicable in FR1"),
+        ("B100", 28e9, None, "not applicable in FR2"),
+        ("A30", 10e9, None, "require an FR1 or FR2 carrier"),
+        ("A10", 28e9, 200e6, "requires channel_bandwidth_hz > 200 MHz"),
+        ("D10", 28e9, None, "requires channel_bandwidth_hz > 200 MHz"),
+    ),
+)
+def test_fixed_delay_tdl_profile_frequency_and_bandwidth_admission(
+    model, carrier_hz, channel_bandwidth_hz, message
+) -> None:
+    channel = generate_tdl_frequency_response(
+        model=model,
+        seed=13_100,
+        carrier_frequency_hz=carrier_hz,
+        subcarrier_spacing_hz=30_000.0,
+        num_subcarriers=8,
+        channel_bandwidth_hz=channel_bandwidth_hz,
+        delay_spread_s=None,
+        spec_version="19.2",
+        device="cpu",
+    )
+    with pytest.raises(ValueError, match=message):
+        standardized_run_from_channel(channel, family=StandardizedFamily.TDL)
 
 
 @pytest.mark.native_sionna

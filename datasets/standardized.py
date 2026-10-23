@@ -35,6 +35,15 @@ class StandardizedFamily(StrEnum):
 _SCALABLE_TDL_CDL_MODELS = frozenset({"A", "B", "C", "D", "E"})
 _FIXED_TDL_MODELS = frozenset({"A10", "A30", "B100", "C60", "C300", "D10", "D30"})
 _PROFILE_LOS_COMPONENT_MODELS = frozenset({"D", "E", "D10", "D30"})
+_FIXED_TDL_FREQUENCY_RANGES = {
+    "A10": {"FR2"},
+    "A30": {"FR1", "FR2"},
+    "B100": {"FR1"},
+    "C60": {"FR2"},
+    "C300": {"FR1"},
+    "D10": {"FR2"},
+    "D30": {"FR1", "FR2"},
+}
 
 
 def _numpy(value: Any, *, name: str, kind: str) -> np.ndarray:
@@ -109,8 +118,16 @@ def validate_standardized_channel_admission(
     )
     if metadata.get("delay_profile_semantics") != expected_delay_semantics:
         raise ValueError(prefix + "delay profile semantics disagree with the admitted profile")
-    if metadata.get("spec_version") not in {"16.1", "19.2"}:
+    if profile_model in _SCALABLE_TDL_CDL_MODELS and metadata.get("spec_version") not in {
+        "16.1",
+        "19.2",
+    }:
         raise ValueError(prefix + "unsupported TR 38.901 parameter-table version")
+    if (
+        profile_model in _FIXED_TDL_MODELS
+        and metadata.get("fixed_profile_spec_version") != "19.2.2"
+    ):
+        raise ValueError(prefix + "fixed TDL profile table must identify TS 38.101-4 V19.2.2")
     if h_path.ndim != 6 or h_path.shape[0] != 1 or h_path.shape[2] != 1:
         raise ValueError(prefix + "the supported TDL/CDL model requires one RX and one TX link")
 
@@ -122,6 +139,19 @@ def validate_standardized_channel_admission(
         or not 0.5e9 <= carrier_hz <= 100e9
     ):
         raise ValueError(prefix + "carrier_frequency_hz must be within 0.5–100 GHz")
+    if profile_model in _FIXED_TDL_MODELS:
+        if 0.5e9 <= carrier_hz <= 7.125e9:
+            frequency_range = "FR1"
+        elif 24.25e9 <= carrier_hz <= 71e9:
+            frequency_range = "FR2"
+        else:
+            raise ValueError(
+                prefix + "fixed TS 38.101-4 TDL profiles require an FR1 or FR2 carrier frequency"
+            )
+        if frequency_range not in _FIXED_TDL_FREQUENCY_RANGES[profile_model]:
+            raise ValueError(
+                prefix + f"fixed TDL-{profile_model} is not applicable in {frequency_range}"
+            )
 
     subcarrier_count = metadata.get("num_subcarriers")
     spacing_hz = metadata.get("subcarrier_spacing_hz")
@@ -143,7 +173,18 @@ def validate_standardized_channel_admission(
     if not math.isclose(sampled_bandwidth_hz, expected_bandwidth_hz, rel_tol=1e-12, abs_tol=1e-6):
         raise ValueError(prefix + "sampled_bandwidth_hz disagrees with subcarrier grid")
     if sampled_bandwidth_hz > 2e9:
-        raise ValueError(prefix + "TR 38.901 scalable-model bandwidth must be at most 2 GHz")
+        raise ValueError(prefix + "standardized dataset sampled bandwidth must be at most 2 GHz")
+    if profile_model in {"A10", "D10"}:
+        channel_bandwidth_hz = metadata.get("channel_bandwidth_hz")
+        if (
+            isinstance(channel_bandwidth_hz, bool)
+            or not isinstance(channel_bandwidth_hz, (int, float))
+            or not math.isfinite(channel_bandwidth_hz)
+            or channel_bandwidth_hz <= 200e6
+        ):
+            raise ValueError(
+                prefix + f"fixed TDL-{profile_model} requires channel_bandwidth_hz > 200 MHz"
+            )
 
     rx_antennas = int(h_path.shape[1])
     tx_antennas = int(h_path.shape[3])
