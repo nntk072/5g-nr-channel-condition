@@ -538,8 +538,13 @@ def decode_standardized_pusch_records_for_diagnostic(
     *,
     receiver_config: NRPUSCHConfig,
     estimate_source: Literal["dmrs_ls", "diagonal_cfr_oracle"],
-) -> tuple[tuple[bool, ...], int]:
-    """Decode fixed diagnostic records and return CRC outcomes and bit mismatches.
+) -> tuple[bool, ...]:
+    """Decode diagnostic records and return transport-block CRC outcomes.
+
+    Receiver records do not persist the transmitted payload. Regenerating bits
+    from a seed is not a valid independent BLER cross-check unless the exact
+    transmitter draw is retained with each record, so TB CRC is the sole block
+    error outcome returned by this diagnostic.
 
     ``diagonal_cfr_oracle`` is an analysis-only control for separating channel
     estimation error from off-diagonal ISI/ICI. It must not be exposed as a
@@ -562,19 +567,16 @@ def decode_standardized_pusch_records_for_diagnostic(
         device="cpu",
     )
     crc_pass: list[bool] = []
-    payload_mismatches = 0
     for record in records:
         estimate = (
             record.observation.channel_estimate.h_hat
             if estimate_source == "dmrs_ls"
             else record.targets["channel_cfr"]
         )
-        decoded, crc = decoder(
+        _, crc = decoder(
             record.observation.received_grid,
             torch.tensor(record.provenance["noise_variance_per_complex_dimension"]),
             h=estimate,
         )
-        _, transmitted = transmitter.transmit(1, seed=record.provenance["pusch_transmit_seed"])
         crc_pass.append(bool(crc.all()))
-        payload_mismatches += int(not torch.equal(decoded, transmitted))
-    return tuple(crc_pass), payload_mismatches
+    return tuple(crc_pass)

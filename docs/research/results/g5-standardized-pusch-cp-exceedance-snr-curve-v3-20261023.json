@@ -1,0 +1,625 @@
+{
+  "configuration": {
+    "channel_family": "Sionna TDL-A stochastic channel draws",
+    "channel_seed": 20261023,
+    "independent_parent_count": 16,
+    "noise_seed": 92002,
+    "samples_per_snr": 16,
+    "snr_db": [
+      60.0,
+      80.0,
+      100.0
+    ],
+    "snr_definition": "post-channel, pre-beamforming receive-grid mean complex power divided by proper-complex AWGN variance; noise seeds are held fixed across SNR points",
+    "transmit_seed": 91002,
+    "trial_unit": "one independent standardized channel parent, reused across SNR points"
+  },
+  "configuration_sha256": "464ab6a5e2a041a3372e5fb6d018fd580bc0e69aa1799219867a82a9037894d1",
+  "interpretation": [
+    "All SNR points use identical standardized channel truth, parent IDs, transmit seeds, and noise seeds.",
+    "Different SNRs change the noise variance; they are paired receiver views, not independent channel evidence.",
+    "Parent-cluster intervals are conditional on the sampled TDL-A family and do not support scene/site generalization.",
+    "The finite sinc-discretized time-domain TDL and ideal-CFR control are diagnostics, not physical truth.",
+    "This is not a deployment BLER curve, standards certification, G5 pass, or G3 receiver qualification."
+  ],
+  "parent_lineage": [
+    {
+      "channel_truth_sha256": "095c100a49ae045dc2c9bb16a054d1e70ba9f9b94d40738ac39d54cd191c7887",
+      "noise_seed": 6823061262876013467,
+      "parent_subject_id": "tdl-A-ab23373923397f25cbfc-sample-00000000",
+      "pusch_transmit_seed": 1070169594
+    },
+    {
+      "channel_truth_sha256": "ba696e5589a0bec2721f9d3ff2b2935878ae4ad5340d1021e8f033ce191412f4",
+      "noise_seed": 11411367419674876731,
+      "parent_subject_id": "tdl-A-ab23373923397f25cbfc-sample-00000001",
+      "pusch_transmit_seed": 4229994657
+    },
+    {
+      "channel_truth_sha256": "21cb8d846b2976fb23ae198dc3992b3c5d50b48ff38101df858bbf3f4e2b2cd9",
+      "noise_seed": 6287974871625171617,
+      "parent_subject_id": "tdl-A-ab23373923397f25cbfc-sample-00000002",
+      "pusch_transmit_seed": 2936126726
+    },
+    {
+      "channel_truth_sha256": "d9522160ea76cc070371f9f95063654d841bcb3345c4d9582eedc8604a524439",
+      "noise_seed": 13404864190467069562,
+      "parent_subject_id": "tdl-A-ab23373923397f25cbfc-sample-00000003",
+      "pusch_transmit_seed": 972934350
+    },
+    {
+      "channel_truth_sha256": "eab87e20c07f93b3b4275fc7b47074b00fe2907e379eb4d263668fb5c04a07a7",
+      "noise_seed": 670254619837796526,
+      "parent_subject_id": "tdl-A-ab23373923397f25cbfc-sample-00000004",
+      "pusch_transmit_seed": 74014979
+    },
+    {
+      "channel_truth_sha256": "976bb134c62a1faed089f17e462db14e4baac69d36c04a7482b1f5128bcbfc87",
+      "noise_seed": 1123677109098919545,
+      "parent_subject_id": "tdl-A-ab23373923397f25cbfc-sample-00000005",
+      "pusch_transmit_seed": 464067158
+    },
+    {
+      "channel_truth_sha256": "f5aef7c65e354e2599138cfb677899bff2074f6499abc639297c1a541a3e013b",
+      "noise_seed": 10877039079303764134,
+      "parent_subject_id": "tdl-A-ab23373923397f25cbfc-sample-00000006",
+      "pusch_transmit_seed": 4047112705
+    },
+    {
+      "channel_truth_sha256": "cd41b7e44b764789939189263c114d92192bd615008e7877a388d9998b047804",
+      "noise_seed": 9240025226441754451,
+      "parent_subject_id": "tdl-A-ab23373923397f25cbfc-sample-00000007",
+      "pusch_transmit_seed": 3338008059
+    },
+    {
+      "channel_truth_sha256": "09ee2287000182330e308eb7357a846935cdfcc8aa868632b8a06f265ce3a96a",
+      "noise_seed": 17051736353344285703,
+      "parent_subject_id": "tdl-A-ab23373923397f25cbfc-sample-00000008",
+      "pusch_transmit_seed": 3607452422
+    },
+    {
+      "channel_truth_sha256": "d83873de54905943351548bf114085038c5e02e76b5cd94b8538ba28fbb0d026",
+      "noise_seed": 10065821349514678,
+      "parent_subject_id": "tdl-A-ab23373923397f25cbfc-sample-00000009",
+      "pusch_transmit_seed": 153810521
+    },
+    {
+      "channel_truth_sha256": "0f391b5f9b8efcd8033b40bd1b6c8d26becfadb863dbeacb53ed15c05e06775b",
+      "noise_seed": 2464018452091287191,
+      "parent_subject_id": "tdl-A-ab23373923397f25cbfc-sample-00000010",
+      "pusch_transmit_seed": 795500014
+    },
+    {
+      "channel_truth_sha256": "134bafffb843a59140f50cb50952eb472200266388e3c4c9c5eca355b6215331",
+      "noise_seed": 17908851040094564838,
+      "parent_subject_id": "tdl-A-ab23373923397f25cbfc-sample-00000011",
+      "pusch_transmit_seed": 2681415809
+    },
+    {
+      "channel_truth_sha256": "ad7bed6bfeb65b1ed65de2faf059df8449b976d0964e4cd8d3b3dce1764d06a8",
+      "noise_seed": 5358294248079671066,
+      "parent_subject_id": "tdl-A-ab23373923397f25cbfc-sample-00000012",
+      "pusch_transmit_seed": 1446127467
+    },
+    {
+      "channel_truth_sha256": "6889f1862c24374af897792690bf61fa89f8e9df5dbccbf18414b0d0f501ec2e",
+      "noise_seed": 14753253915786001412,
+      "parent_subject_id": "tdl-A-ab23373923397f25cbfc-sample-00000013",
+      "pusch_transmit_seed": 2575444877
+    },
+    {
+      "channel_truth_sha256": "3925317e4be880eef523451fdfb00f206b57fc7bcb895038dd4003d6ef623349",
+      "noise_seed": 5011162236829556751,
+      "parent_subject_id": "tdl-A-ab23373923397f25cbfc-sample-00000014",
+      "pusch_transmit_seed": 1265316506
+    },
+    {
+      "channel_truth_sha256": "06725e4dd495d618a6cc65ec9a4e99ba0f15c5d29b97454e9814697eb84a4f2d",
+      "noise_seed": 10036666634379733595,
+      "parent_subject_id": "tdl-A-ab23373923397f25cbfc-sample-00000015",
+      "pusch_transmit_seed": 232352567
+    }
+  ],
+  "point_report_sha256": [
+    "b65a13a0ed9bdc7feeac947b57b15228d3cd97186c39d967667540ca4c3c5025",
+    "b99d2f7e361f8efdb8cbfdeed48b148842ffdbe5cb32393f4a125616e280fca9",
+    "399a07495f98343b29b2cbb5160c907a2e1c3da8abf2bd55a68e9a8f1a77bc5a"
+  ],
+  "points": [
+    {
+      "outcomes": {
+        "ideal_cfr.diagonal_cfr_oracle": {
+          "bler": 0.0,
+          "block_errors": 0,
+          "crc_pass_by_draw": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "independent_channel_draws": 16,
+          "wilson_95_percent_interval": [
+            0.0,
+            0.1936076805344365
+          ]
+        },
+        "ideal_cfr.dmrs_ls": {
+          "bler": 0.5625,
+          "block_errors": 9,
+          "crc_pass_by_draw": [
+            false,
+            true,
+            true,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            true,
+            true,
+            true,
+            false,
+            false,
+            true,
+            false
+          ],
+          "independent_channel_draws": 16,
+          "wilson_95_percent_interval": [
+            0.331785563988119,
+            0.7690134759450765
+          ]
+        },
+        "time_domain.diagonal_cfr_oracle": {
+          "bler": 0.4375,
+          "block_errors": 7,
+          "crc_pass_by_draw": [
+            false,
+            true,
+            true,
+            true,
+            false,
+            false,
+            true,
+            false,
+            false,
+            true,
+            true,
+            true,
+            true,
+            false,
+            true,
+            false
+          ],
+          "independent_channel_draws": 16,
+          "wilson_95_percent_interval": [
+            0.23098652405492354,
+            0.6682144360118811
+          ]
+        },
+        "time_domain.dmrs_ls": {
+          "bler": 0.6875,
+          "block_errors": 11,
+          "crc_pass_by_draw": [
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            true,
+            false,
+            true,
+            false,
+            false,
+            true,
+            false
+          ],
+          "independent_channel_draws": 16,
+          "wilson_95_percent_interval": [
+            0.44404355834740666,
+            0.8583535614521796
+          ]
+        }
+      },
+      "paired_pass_table": {
+        "diagonal_cfr_oracle": {
+          "both_fail": 0,
+          "both_pass": 9,
+          "left_only_pass": 0,
+          "right_only_pass": 7
+        },
+        "dmrs_ls": {
+          "both_fail": 9,
+          "both_pass": 5,
+          "left_only_pass": 0,
+          "right_only_pass": 2
+        }
+      },
+      "paired_time_domain_minus_ideal_cfr_bler": {
+        "diagonal_cfr_oracle": {
+          "bootstrap_draws": 5000,
+          "bootstrap_seed": 20261023,
+          "cluster_bootstrap_ci95": [
+            0.1875,
+            0.6875
+          ],
+          "control_error_rate": 0.0,
+          "independent_groups": 16,
+          "paired_trials": 16,
+          "sampling_unit": "independent group; all paired trials within each sampled group",
+          "treatment_error_rate": 0.4375,
+          "treatment_minus_control_error_rate": 0.4375,
+          "warning": "Cluster bootstrap inference is conditional on the supplied groups; it does not replace independent-site or external-data validation."
+        },
+        "dmrs_ls": {
+          "bootstrap_draws": 5000,
+          "bootstrap_seed": 20261023,
+          "cluster_bootstrap_ci95": [
+            0.0,
+            0.3125
+          ],
+          "control_error_rate": 0.5625,
+          "independent_groups": 16,
+          "paired_trials": 16,
+          "sampling_unit": "independent group; all paired trials within each sampled group",
+          "treatment_error_rate": 0.6875,
+          "treatment_minus_control_error_rate": 0.125,
+          "warning": "Cluster bootstrap inference is conditional on the supplied groups; it does not replace independent-site or external-data validation."
+        }
+      },
+      "snr_db": 60.0
+    },
+    {
+      "outcomes": {
+        "ideal_cfr.diagonal_cfr_oracle": {
+          "bler": 0.0,
+          "block_errors": 0,
+          "crc_pass_by_draw": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "independent_channel_draws": 16,
+          "wilson_95_percent_interval": [
+            0.0,
+            0.1936076805344365
+          ]
+        },
+        "ideal_cfr.dmrs_ls": {
+          "bler": 0.5625,
+          "block_errors": 9,
+          "crc_pass_by_draw": [
+            false,
+            true,
+            true,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            true,
+            true,
+            true,
+            false,
+            false,
+            true,
+            false
+          ],
+          "independent_channel_draws": 16,
+          "wilson_95_percent_interval": [
+            0.331785563988119,
+            0.7690134759450765
+          ]
+        },
+        "time_domain.diagonal_cfr_oracle": {
+          "bler": 0.4375,
+          "block_errors": 7,
+          "crc_pass_by_draw": [
+            false,
+            true,
+            true,
+            true,
+            false,
+            false,
+            true,
+            false,
+            false,
+            true,
+            true,
+            true,
+            true,
+            false,
+            true,
+            false
+          ],
+          "independent_channel_draws": 16,
+          "wilson_95_percent_interval": [
+            0.23098652405492354,
+            0.6682144360118811
+          ]
+        },
+        "time_domain.dmrs_ls": {
+          "bler": 0.5625,
+          "block_errors": 9,
+          "crc_pass_by_draw": [
+            true,
+            false,
+            true,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            true,
+            false,
+            true,
+            false,
+            false,
+            true,
+            true
+          ],
+          "independent_channel_draws": 16,
+          "wilson_95_percent_interval": [
+            0.331785563988119,
+            0.7690134759450765
+          ]
+        }
+      },
+      "paired_pass_table": {
+        "diagonal_cfr_oracle": {
+          "both_fail": 0,
+          "both_pass": 9,
+          "left_only_pass": 0,
+          "right_only_pass": 7
+        },
+        "dmrs_ls": {
+          "both_fail": 7,
+          "both_pass": 5,
+          "left_only_pass": 2,
+          "right_only_pass": 2
+        }
+      },
+      "paired_time_domain_minus_ideal_cfr_bler": {
+        "diagonal_cfr_oracle": {
+          "bootstrap_draws": 5000,
+          "bootstrap_seed": 20261023,
+          "cluster_bootstrap_ci95": [
+            0.1875,
+            0.6875
+          ],
+          "control_error_rate": 0.0,
+          "independent_groups": 16,
+          "paired_trials": 16,
+          "sampling_unit": "independent group; all paired trials within each sampled group",
+          "treatment_error_rate": 0.4375,
+          "treatment_minus_control_error_rate": 0.4375,
+          "warning": "Cluster bootstrap inference is conditional on the supplied groups; it does not replace independent-site or external-data validation."
+        },
+        "dmrs_ls": {
+          "bootstrap_draws": 5000,
+          "bootstrap_seed": 20261023,
+          "cluster_bootstrap_ci95": [
+            -0.25,
+            0.25
+          ],
+          "control_error_rate": 0.5625,
+          "independent_groups": 16,
+          "paired_trials": 16,
+          "sampling_unit": "independent group; all paired trials within each sampled group",
+          "treatment_error_rate": 0.5625,
+          "treatment_minus_control_error_rate": 0.0,
+          "warning": "Cluster bootstrap inference is conditional on the supplied groups; it does not replace independent-site or external-data validation."
+        }
+      },
+      "snr_db": 80.0
+    },
+    {
+      "outcomes": {
+        "ideal_cfr.diagonal_cfr_oracle": {
+          "bler": 0.0,
+          "block_errors": 0,
+          "crc_pass_by_draw": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "independent_channel_draws": 16,
+          "wilson_95_percent_interval": [
+            0.0,
+            0.1936076805344365
+          ]
+        },
+        "ideal_cfr.dmrs_ls": {
+          "bler": 0.375,
+          "block_errors": 6,
+          "crc_pass_by_draw": [
+            false,
+            true,
+            true,
+            false,
+            false,
+            false,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            false,
+            false,
+            true,
+            true
+          ],
+          "independent_channel_draws": 16,
+          "wilson_95_percent_interval": [
+            0.18481232558863633,
+            0.6135895945449727
+          ]
+        },
+        "time_domain.diagonal_cfr_oracle": {
+          "bler": 0.1875,
+          "block_errors": 3,
+          "crc_pass_by_draw": [
+            false,
+            true,
+            true,
+            true,
+            true,
+            false,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            false
+          ],
+          "independent_channel_draws": 16,
+          "wilson_95_percent_interval": [
+            0.06591599071428142,
+            0.4300888096197414
+          ]
+        },
+        "time_domain.dmrs_ls": {
+          "bler": 0.125,
+          "block_errors": 2,
+          "crc_pass_by_draw": [
+            true,
+            false,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            false,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "independent_channel_draws": 16,
+          "wilson_95_percent_interval": [
+            0.03497748774324047,
+            0.36022827265758695
+          ]
+        }
+      },
+      "paired_pass_table": {
+        "diagonal_cfr_oracle": {
+          "both_fail": 0,
+          "both_pass": 13,
+          "left_only_pass": 0,
+          "right_only_pass": 3
+        },
+        "dmrs_ls": {
+          "both_fail": 0,
+          "both_pass": 8,
+          "left_only_pass": 6,
+          "right_only_pass": 2
+        }
+      },
+      "paired_time_domain_minus_ideal_cfr_bler": {
+        "diagonal_cfr_oracle": {
+          "bootstrap_draws": 5000,
+          "bootstrap_seed": 20261023,
+          "cluster_bootstrap_ci95": [
+            0.0,
+            0.375
+          ],
+          "control_error_rate": 0.0,
+          "independent_groups": 16,
+          "paired_trials": 16,
+          "sampling_unit": "independent group; all paired trials within each sampled group",
+          "treatment_error_rate": 0.1875,
+          "treatment_minus_control_error_rate": 0.1875,
+          "warning": "Cluster bootstrap inference is conditional on the supplied groups; it does not replace independent-site or external-data validation."
+        },
+        "dmrs_ls": {
+          "bootstrap_draws": 5000,
+          "bootstrap_seed": 20261023,
+          "cluster_bootstrap_ci95": [
+            -0.5625,
+            0.0625
+          ],
+          "control_error_rate": 0.375,
+          "independent_groups": 16,
+          "paired_trials": 16,
+          "sampling_unit": "independent group; all paired trials within each sampled group",
+          "treatment_error_rate": 0.125,
+          "treatment_minus_control_error_rate": -0.25,
+          "warning": "Cluster bootstrap inference is conditional on the supplied groups; it does not replace independent-site or external-data validation."
+        }
+      },
+      "snr_db": 100.0
+    }
+  ],
+  "repository_commit_at_run": "327e47e1259480d1dc47a586f87e28ccc963587a",
+  "run_date": "2026-10-23",
+  "runtime": {
+    "numpy": "2.5.4",
+    "python": "3.12.3",
+    "sionna": "2.2.0",
+    "torch": "2.11.0+cu128"
+  },
+  "schema": "umcd.g5_cp_exceedance_snr_curve.v3",
+  "source_files_sha256": {
+    "datasets/standardized.py": "c6d1977323a90d4a4e0f7ce8feed36ed1c8b02d01b43394ba300d9d1ee085d68",
+    "evaluation/statistics.py": "a203fa4ea2e620f3660728bf75a1de8b155f6a6e82066819d917a454ddcec395",
+    "experiments/standardized_pusch_cp_exceedance.py": "b013da224155e17192062f791f780c6c58552e3d682ef6fcbf7303624bafc2f1",
+    "integrations/sionna/nr_pusch.py": "598ae23e9e1c332959e44dc2038d6b94654aa5507e058028e455ca3366f1d0b7",
+    "integrations/sionna/standardized_pusch.py": "e788c0ef6e6d885cecf678b20146ca3e2099327b945159b7b0a8a7ff19fbd926",
+    "integrations/sionna/tdl.py": "7b1b9fa2c87243dad260feaa05c19d6ff3463250e7f013c57dc7657cbfbc465e"
+  },
+  "status": "exploratory; does not pass G5 or approve production data"
+}
