@@ -979,37 +979,39 @@ def test_pusch_linear_dmrs_interpolation_tracks_analytical_two_tap_channel_on_al
     ),
 )
 @pytest.mark.parametrize("complex_noise_variance", (0.01, 0.05, 0.2))
-@pytest.mark.parametrize("interpolation_type", ("nn", "lin"))
-def test_pusch_interpolation_variance_semantics_match_monte_carlo(
+def test_pusch_interpolation_bias_variance_tradeoff_matches_monte_carlo(
     dmrs_config_type: int,
     dmrs_length: int,
     dmrs_additional_position: int,
     delay_samples: int,
     complex_noise_variance: float,
-    interpolation_type: str,
 ) -> None:
-    """Compare Sionna's all-RE variance semantics against Monte Carlo."""
-    receiver = SionnaPUSCHLSReceiver(
-        NRPUSCHConfig(
-            n_size_bwp=4,
-            subcarrier_spacing_khz=30,
-            dmrs_config_type=dmrs_config_type,
-            dmrs_length=dmrs_length,
-            dmrs_additional_position=dmrs_additional_position,
-            num_cdm_groups_without_data=1,
-            interpolation_type=interpolation_type,
-        ),
-        device="cpu",
+    """Compare interpolation bias and reported uncertainty on paired channels."""
+    common_config = {
+        "n_size_bwp": 4,
+        "subcarrier_spacing_khz": 30,
+        "dmrs_config_type": dmrs_config_type,
+        "dmrs_length": dmrs_length,
+        "dmrs_additional_position": dmrs_additional_position,
+        "num_cdm_groups_without_data": 1,
+    }
+    linear_receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(**common_config, interpolation_type="lin"), device="cpu"
     )
-    expected_semantics = (
-        "sionna_linear_interpolated_marginal_variance_not_exact_covariance"
-        if interpolation_type == "lin"
-        else "sionna_nearest_neighbor_pilot_error_variance"
+    nearest_receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(**common_config, interpolation_type="nn"), device="cpu"
     )
-    assert receiver.metadata["error_variance_semantics"] == expected_semantics
+    assert (
+        linear_receiver.metadata["error_variance_semantics"]
+        == "sionna_linear_interpolated_marginal_variance_not_exact_covariance"
+    )
+    assert (
+        nearest_receiver.metadata["error_variance_semantics"]
+        == "sionna_nearest_neighbor_pilot_error_variance"
+    )
     batch_size = 1024
-    transmitted_grid, _ = receiver.transmit(batch_size, seed=73491)
-    fft_size = receiver.resource_grid.fft_size
+    transmitted_grid, _ = linear_receiver.transmit(batch_size, seed=73491)
+    fft_size = linear_receiver.resource_grid.fft_size
     centered_bins = torch.arange(fft_size, dtype=torch.float32) - fft_size // 2
     channel = (
         0.9
@@ -1028,25 +1030,38 @@ def test_pusch_interpolation_variance_semantics_match_monte_carlo(
         * (complex_noise_variance / 2.0) ** 0.5
     )
 
-    noisy_estimate = receiver.estimate(clean_grid + noise, complex_noise_variance)
-    noiseless_estimate = receiver.estimate(clean_grid[:1], 0.0).h_hat[0, 0, 0, 0, 0]
-    samples = noisy_estimate.h_hat[:, 0, 0, 0, 0]
-    empirical_mean = samples.mean(dim=0)
-    empirical_variance = (samples - empirical_mean).abs().square().mean(dim=0)
-    predicted_variance = noisy_estimate.error_variance[0, 0, 0, 0, 0]
-    valid = predicted_variance > 0
-    mean_bias = (empirical_mean - noiseless_estimate).abs()
-    bias_tolerance = 6.0 * torch.sqrt(predicted_variance / batch_size)
-    variance_ratio = empirical_variance[valid].sum() / predicted_variance[valid].sum()
+    linear_noisy = linear_receiver.estimate(clean_grid + noise, complex_noise_variance)
+    nearest_noisy = nearest_receiver.estimate(clean_grid + noise, complex_noise_variance)
+    linear_reference = linear_receiver.estimate(clean_grid[:1], 0.0).h_hat[0, 0, 0, 0, 0]
+    nearest_reference = nearest_receiver.estimate(clean_grid[:1], 0.0).h_hat[0, 0, 0, 0, 0]
+    true_channel = channel.reshape(1, fft_size).expand_as(linear_reference)
+    linear_bias_nmse = torch.mean(torch.abs(linear_reference - true_channel) ** 2) / torch.mean(
+        torch.abs(true_channel) ** 2
+    )
+    nearest_bias_nmse = torch.mean(torch.abs(nearest_reference - true_channel) ** 2) / torch.mean(
+        torch.abs(true_channel) ** 2
+    )
 
-    assert bool(valid.any())
-    assert bool((mean_bias[valid] < bias_tolerance[valid]).all())
-    if interpolation_type == "nn":
-        assert float(variance_ratio) == pytest.approx(1.0, abs=0.12)
-    else:
-        # Sionna linearly interpolates marginal variances; it does not propagate
-        # the full covariance using squared interpolation weights.
-        assert 0.6 <= float(variance_ratio) <= 1.05
+    ratios = []
+    for noisy_estimate in (linear_noisy, nearest_noisy):
+        samples = noisy_estimate.h_hat[:, 0, 0, 0, 0]
+        empirical_mean = samples.mean(dim=0)
+        empirical_variance = (samples - empirical_mean).abs().square().mean(dim=0)
+        predicted_variance = noisy_estimate.error_variance[0, 0, 0, 0, 0]
+        valid = predicted_variance > 0
+        reference = linear_reference if noisy_estimate is linear_noisy else nearest_reference
+        mean_bias = (empirical_mean - reference).abs()
+        bias_tolerance = 6.0 * torch.sqrt(predicted_variance / batch_size)
+        assert bool(valid.any())
+        assert bool((mean_bias[valid] < bias_tolerance[valid]).all())
+        ratios.append(empirical_variance[valid].sum() / predicted_variance[valid].sum())
+
+    # The linear estimate should reduce two-tap channel bias in this bounded
+    # resolution regime; nearest-neighbor variance remains the calibrated mode.
+    assert float(linear_bias_nmse) < float(nearest_bias_nmse)
+    assert float(ratios[0]) <= 1.05
+    assert float(ratios[0]) >= 0.6
+    assert float(ratios[1]) == pytest.approx(1.0, abs=0.12)
 
 
 @pytest.mark.native_sionna
