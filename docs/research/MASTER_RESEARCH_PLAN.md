@@ -1,5 +1,5 @@
 # MASTER RESEARCH & ENGINEERING PLAN
-**Current execution snapshot (edition 3.250, 2026-10-23):** G3 now has separate data-free Hoeffding and exact-binomial planning outputs for frozen metrics, but neither is a complete design or qualification result; the angular-maximum estimand and bootstrap precision remain unresolved. G4 adds bounded CDL-D/E LOS-plus-diffuse temporal references and fixed TDL FR2 checks, not broad external validation. G5 adds an exact replay of the ordered synthetic fixture, not independent-channel or deployment qualification. Split Policy v2 lock reads reject symlink/hard-link aliases and FIFOs without changing assignment semantics. The NR shard loader groups records against a two-compressed-buffer plus two-decoded-copy estimate; manifest metadata grows with store size and the estimate is not an RSS cap. Scientific gates and production RT remain open.
+**Current execution snapshot (edition 3.251, 2026-10-23):** G3 has data-free Hoeffding/exact-binomial planning and an explicit-IID angular-maximum pass-probability calculation; the latter can impose an upper sample-count bound that conflicts with precision-driven lower bounds, so the complete multi-estimand design remains unresolved. G4 adds a pinned CDL-B spatial-covariance reference alongside bounded CDL-D/E temporal references and fixed TDL FR2 checks, not broad external validation. G5 saved-report tests recompute frozen decisions, while the underlying Doppler evidence remains fixed-channel synthetic and does not qualify independent-channel or deployment impact. Split Policy v2 lock reads check pre/post-open inode identity and reject symlink/hard-link aliases and FIFOs without changing assignments. The NR shard loader conservatively budgets two compressed-buffer equivalents plus two uncompressed-member equivalents; manifest metadata grows with store size, and this accounting is not an RSS cap. A static pinned-source City43 review narrows the unresolved zero-interaction rows to candidate storage/indexing or capture attribution; it does not establish a solver defect. Scientific gates and production RT remain open.
 **Edition numbering:** This document and the Unified Multipath Superdataset Plan maintain independent edition sequences.
 **Edition 3.247 implementation finalization tranche (2026-10-23):** Target writers now emit v2 schemas and v1 records load through a migration that marks unavailable reference/aggregation/version details as unrecorded. G3.03 rejects malformed or duplicate split-manifest strata and remains unconditionally pilot-only pending external independence/provenance verification and a precision-powered design. Cross-split complex-CFR similarity avoids overflow for finite extreme inputs; provenance JSON duplicate keys are rejected; SSB Case-A timing accepts both inclusive FR1 endpoints but still does not map PBCH. Ordered-impairment PUSCH evidence remains a bounded fixed-synthetic regression without a hash-bound experiment report. These changes harden implementation and do not close research gates.
 **Edition 3.248 dependency-ready work (2026-10-23):** G3 adds a non-admitting sample-size planner; G4 adds bounded profile references; G5 adds a hash-bound synthetic receiver report; and G7 adds deterministic NR shard loading. These artifacts and their limitations are detailed in the Unified Multipath Superdataset Plan and MVP status ledger. They do not close G3/G4/G5/G7 gates or authorize production RT.
@@ -7,7 +7,7 @@
 ## Physically Grounded, Identifiability-Aware Multipath State Learning for 5G NR
 ### From LOS/NLOS classification to channel-state reconstruction, uncertainty, and forecasting
 
-**Document edition:** 3.247 — 2026-10-23 (bounded G3/G4/G5/G7 implementation hardening; gates remain open)
+**Document edition:** 3.251 — 2026-10-23 (current execution snapshot; simulation-only software MVP complete, research and dataset gates remain open)
 **Status:** execution specification and scientific decision record; **not** a completed study, not experimental evidence, and not a claim of top-tier acceptance.
 **Repository inspected:** live checkout /home/nguyenl37/5g-nr-channel-condition, branch main, initial implementation commit ffe199c80c1caf40dea91a406fe02124b3ff05ec (built from baseline cc43a5544036578a6bb57ce52b66436d8acb6c1b); local reference /home/nguyenl37/sionna at Sionna v2.2.0, commit 2f0a3820269b53fd022780a6f2f5f720f7ceb9b4, RT submodule commit 15b5ee036917a4c2a9b6420e05570b77717e2fcc.
 **Legacy work:** Long Nguyen, *5G Physical Layer Channel Conditions Classification Using Machine Learning Techniques*, Tampere University, July 2025, embedded in `docs/thesis/NguyenLong.pdf`.
@@ -62,9 +62,9 @@
 
 **Gate for a genuinely new method:** propose a mechanism that has testable mathematical properties beyond known complex convolutions, equivariance, CORAL, ordinary multitask heads, or generic path-token transformers; provide a theorem/proposition where possible, rigorous simulation falsification tests otherwise, and compare a same-backbone model **with that mechanism off**.
 
-### 0.2 Live WSL status and environment-specific execution decision
+### 0.2 Historical WSL environment and verification snapshot (edition 3.247)
 
-This live snapshot supersedes older statements that the GPU or native Sionna is unavailable.
+The table below is retained as historical evidence from the earlier 3.247 snapshot. Its environment details and test totals are not the current repository status; use §0.3 and docs/research/MVP_STATUS.md for the authoritative current ledger.
 
 | Item | Verified state | Consequence |
 |---|---|---|
@@ -81,9 +81,23 @@ The upstream WSL OptiX workaround requires extracting matching driver files and 
 
 **Local source evidence:** PHY contracts are in `/home/nguyenl37/sionna/src/sionna/phy/nr/pusch_channel_estimation.py`, `pusch_transmitter.py`, and `pusch_dmrs_config.py`; profile version selection is in `src/sionna/phy/channel/tr38901/tdl.py` and `cdl.py` (default table selector `19.2`). RT controls are in `ext/sionna-rt/src/sionna/rt/path_solvers/path_solver.py`; `path_solvers/paths.py` defines CIR/CFR/taps, whose `normalize_delays` defaults true. The upstream PUSCH test reference is `test/unit/nr/test_channel_estimation.py`; the upstream RT test reference is `test/unit/test_path_solver.py::test_los_friis_sanity`.
 
-### 0.3 Revised implementation state and next gates
+### 0.3 Authoritative execution and research-gate ledger
 
-| Gate | Current state | Next evidence |
+This ledger separates implementation completion from scientific qualification. The integrated implementation tree passes **1,260 tests, with 3 skipped and 85.82% coverage**; CI-scoped Ruff/format, mypy, lock validation, and package build also pass. Hosted CI has not run on this tree. Detailed current gate criteria and evidence remain in the Unified Multipath Superdataset Plan; this status summary does not change them.
+
+| Area | Authoritative status | Remaining evidence to close |
+|---|---|---|
+| Simulation-only software MVP | **Complete within its implementation-smoke boundary:** six RT scene families, DMRS observations, six leave-one-scene-family-out folds, matched classifiers, reproducibility records, and hosted CI. This is not a qualified dataset or a scientific performance result. | Preserve reproducibility and CI; qualify the underlying propagation, receiver, and evaluation evidence before making broader claims. |
+| G0–G2 foundations | **Partial; gate sign-off open.** Components and bounded checks exist, while all 33 gate checklist items remain unchecked. | Complete the specified environment, geometry/LOS, path extraction, absolute-delay CFR, and conservation evidence against the frozen criteria. |
+| G3 propagation and path truth | **Partial; all 12 checks open; production D1 RT generation remains gated.** City43 Phase-0 diagnostics are bounded evidence only. The exact-binomial planner covers the frozen complex-CSI failure criterion, but the angular-maximum estimand and cluster-bootstrap precision design remain unresolved. | Meet the frozen complex-CSI, delay/angular-statistics, path-truth, and NR-impact criteria; establish calibrated angle-resolved material evidence and independent acquisition units; finish the complete power design before qualification runs. |
+| G4 standardized channel references | **Scoped checks complete (9/9) for the named pinned CPU profile configurations.** This does not qualify arbitrary arrays, geometric RT, or physical channel accuracy. | Broaden only where required by the plan; keep standards-profile reference evidence distinct from external physical validation. |
+| G5 NR receiver and impairment qualification | **Partial (12/15 checks); G5.01, G5.09, and G5.14 remain open.** The ordered-impairment replay is a synthetic reproducibility check, not independent-channel or deployment qualification. | Complete standards-conformance evidence, frozen multi-channel receiver-impact qualification, and independently validated PRS/SRS/SSB behavior. |
+| G6–G8 dataset, evaluation, and external validity | **Foundations exist; all 30 gate checklist items remain unchecked.** Forecasting, release integrity, powered independent evaluation, and external measured evaluation are not qualified. | Complete trajectory/intervention evidence, corpus-scale integrity, powered held-out evaluation, and independently verified measured evaluation. |
+| Qualified research result or release | **Not complete.** There is no production D1 RT corpus, completed qualified Unified superdataset, public qualified release, or validated main-paper result. | Close applicable gates and preregistered evaluation requirements before describing a result or dataset as qualified. |
+
+### Historical implementation detail retained from edition 3.247 (superseded status snapshot)
+
+| Gate | Recorded state at edition 3.247 | Next evidence |
 |---|---|---|
 | P0 repo baseline/cleanup | Core gates pass; cache-only tests_research/ and stale egg-info removed; research plan, clean CI and packaging are maintained | Keep implementation revisions committed and pushed; preserve archival thesis assets unchanged. |
 | P1 CUDA PHY | PUSCH/Rayleigh, TDL→PUSCH, flat-channel DMRS, impairment/decoder sanity, sample-domain TDL-A–E curves, exact same-channel 1-vs-2-RX diversity/correlation studies at 12-PRB/30-kHz and CP-contained 24-PRB/15-kHz, plus a phase-resolved CUDA memory profile pass in the pinned environment | Extend resource/receiver profiling to further delay spreads and link configurations; test broader correlation matrices and calibrated/measured arrays. Synthetic correlation is not array calibration. |
