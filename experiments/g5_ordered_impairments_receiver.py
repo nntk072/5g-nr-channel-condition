@@ -9,8 +9,16 @@ corrected before DMRS channel estimation and PUSCH decoding.
 from __future__ import annotations
 
 import argparse
+import hashlib
+import importlib.metadata
 import json
 import math
+import os
+import platform
+import subprocess
+import tempfile
+from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
 
 import torch
@@ -27,6 +35,7 @@ from integrations.sionna.ofdm_impairments import (
 from receivers.nr import NRPUSCHConfig
 
 SCHEMA = "umcd.g5_ordered_impairments_receiver.v1"
+RESULT_SCHEMA = "umcd.g5_ordered_impairments_result.v1"
 PAYLOAD_SEEDS = tuple(range(73_501, 73_509))
 BLOCKS_PER_SEED = 16
 NOISE_SEED_OFFSET = 200_000
@@ -342,17 +351,168 @@ def run_ordered_impairment_probe(
         torch.set_num_threads(original_torch_threads)
 
 
+def _canonical_json_bytes(value: Any) -> bytes:
+    """Return the single canonical byte representation used for result hashes."""
+    return json.dumps(
+        value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
+    ).encode("utf-8")
+
+
+def _sha256(value: bytes) -> str:
+    return hashlib.sha256(value).hexdigest()
+
+
+def _git_revision(repo_root: Path) -> str | None:
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(repo_root), "rev-parse", "HEAD"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    return completed.stdout.strip()
+
+
+def _source_matches_git_revision(repo_root: Path, source_name: str, source: bytes) -> bool | None:
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(repo_root), "show", f"HEAD:{source_name}"],
+            check=True,
+            capture_output=True,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    return source == completed.stdout
+
+
+def build_hash_bound_result(
+    report: dict[str, Any], *, created_utc: str | None = None
+) -> dict[str, Any]:
+    """Bind a probe report to its exact source, protocol, and runtime provenance."""
+    source_path = Path(__file__).resolve()
+    repo_root = source_path.parent.parent
+    protocol = {
+        "experiment_schema": report["schema"],
+        "config": report["config"],
+        "acceptance_criteria": report["acceptance"]["criteria_frozen_before_run"],
+    }
+    source_bytes = source_path.read_bytes()
+    try:
+        source_name = source_path.relative_to(repo_root).as_posix()
+    except ValueError:
+        source_name = source_path.name
+    packages: dict[str, str | None] = {}
+    for distribution in ("torch", "sionna", "sionna-phy", "sionna-rt"):
+        try:
+            packages[distribution] = importlib.metadata.version(distribution)
+        except importlib.metadata.PackageNotFoundError:
+            packages[distribution] = None
+
+    bound: dict[str, Any] = {
+        "schema": RESULT_SCHEMA,
+        "interpretation": {
+            "criterion_scope": "This verdict applies only to the declared deterministic synthetic CPU fixture.",
+            "deployment_qualification": False,
+            "g5_09_closed": False,
+            "status": "conditional_fixture_pass"
+            if report["acceptance"]["pass"]
+            else "conditional_fixture_fail",
+        },
+        "experiment": report,
+        "provenance": {
+            "created_utc": created_utc or datetime.now(UTC).isoformat(),
+            "git_revision": _git_revision(repo_root),
+            "source_path": source_name,
+            "source_sha256": _sha256(source_bytes),
+            "source_matches_git_revision": _source_matches_git_revision(
+                repo_root, source_name, source_bytes
+            ),
+            "protocol": protocol,
+            "protocol_sha256": _sha256(_canonical_json_bytes(protocol)),
+            "runtime": {
+                "python": platform.python_version(),
+                "platform": platform.platform(),
+                "packages": packages,
+                "torch_device": "cpu",
+            },
+        },
+    }
+    bound["result_sha256"] = _sha256(_canonical_json_bytes(bound))
+    return bound
+
+
+def verify_hash_bound_result(result: dict[str, Any]) -> bool:
+    """Check internal result/config digests without asserting scientific validity."""
+    if result.get("schema") != RESULT_SCHEMA:
+        return False
+    provenance = result.get("provenance")
+    experiment = result.get("experiment")
+    if not isinstance(provenance, dict) or not isinstance(experiment, dict):
+        return False
+    protocol = provenance.get("protocol")
+    if not isinstance(protocol, dict):
+        return False
+    expected_protocol = {
+        "experiment_schema": experiment.get("schema"),
+        "config": experiment.get("config"),
+        "acceptance_criteria": experiment.get("acceptance", {}).get("criteria_frozen_before_run"),
+    }
+    if protocol != expected_protocol:
+        return False
+    try:
+        if provenance.get("protocol_sha256") != _sha256(_canonical_json_bytes(protocol)):
+            return False
+        unhashed = dict(result)
+        supplied_digest = unhashed.pop("result_sha256", None)
+        return supplied_digest == _sha256(_canonical_json_bytes(unhashed))
+    except (TypeError, ValueError):
+        return False
+
+
+def write_hash_bound_result(path: str | Path, result: dict[str, Any]) -> None:
+    """Write a verified result atomically as canonical, human-readable JSON."""
+    if not verify_hash_bound_result(result):
+        raise ValueError("refusing to write a result with invalid hash bindings")
+    destination = Path(path)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    payload = (json.dumps(result, indent=2, sort_keys=True, allow_nan=False) + "\n").encode("utf-8")
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{destination.name}.", suffix=".tmp", dir=destination.parent
+    )
+    try:
+        with os.fdopen(descriptor, "wb") as temporary_file:
+            temporary_file.write(payload)
+            temporary_file.flush()
+            os.fsync(temporary_file.fileno())
+        Path(temporary_name).replace(destination)
+    except BaseException:
+        Path(temporary_name).unlink(missing_ok=True)
+        raise
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--seed-count", type=int, default=len(PAYLOAD_SEEDS))
     parser.add_argument("--blocks-per-seed", type=int, default=BLOCKS_PER_SEED)
+    parser.add_argument(
+        "--output",
+        type=Path,
+        help="write a hash-bound local result JSON to this path",
+    )
     args = parser.parse_args()
     if not 1 <= args.seed_count <= len(PAYLOAD_SEEDS):
         parser.error(f"--seed-count must be in [1, {len(PAYLOAD_SEEDS)}]")
     report = run_ordered_impairment_probe(
         payload_seeds=PAYLOAD_SEEDS[: args.seed_count], blocks_per_seed=args.blocks_per_seed
     )
-    print(json.dumps(report, indent=2, sort_keys=True))
+    if args.output is not None:
+        result = build_hash_bound_result(report)
+        write_hash_bound_result(args.output, result)
+        print(json.dumps(result, indent=2, sort_keys=True))
+    else:
+        print(json.dumps(report, indent=2, sort_keys=True))
 
 
 if __name__ == "__main__":
