@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
+from importlib import import_module
 from types import MappingProxyType
 from typing import Any, Mapping
 
@@ -52,7 +53,7 @@ class NRObservation:
             raise ValueError("received_grid axes must be non-empty")
         torch_module: Any = None
         try:
-            import torch as torch_module
+            torch_module = import_module("torch")
         except ImportError:
             pass
         mask = self.received_grid_mask

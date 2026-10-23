@@ -557,15 +557,19 @@ def run_convergence(
         if include_path_diagnostics and (not path_diagnostics_max_depth_only or depth == max_depth):
             if valid_path_mask.ndim != 3 or valid_path_mask.shape[0:2] != (1, 1):
                 raise RuntimeError("path diagnostics currently require exactly one SISO link")
+
+            def single_path_mask(path_index: int) -> np.ndarray:
+                mask = np.zeros((1, 1, len(valid)), dtype=np.bool_)
+                mask[0, 0, path_index] = True
+                return mask
+
             native_path_contributions = (
                 np.stack(
                     [
                         rt_cfr(
                             paths,
                             grid,
-                            path_mask=np.eye(1, len(valid), path_index, dtype=bool).reshape(
-                                1, 1, len(valid)
-                            ),
+                            path_mask=single_path_mask(int(path_index)),
                         ).reshape(-1)
                         for path_index in np.flatnonzero(valid)
                     ],

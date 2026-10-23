@@ -188,12 +188,11 @@ def analyze_pair(
         vertex_errors_m.append(float(np.max(np.linalg.norm(va - vb, axis=1))) if len(va) else 0.0)
         angular_errors = []
         for theta, phi in (("theta_r_rad", "phi_r_rad"), ("theta_t_rad", "phi_t_rad")):
-            dot = float(
-                np.clip(
-                    np.dot(_direction(a[theta], a[phi]), _direction(b[theta], b[phi])), -1.0, 1.0
-                )
-            )
-            angular_errors.append(math.acos(dot))
+            direction_a = _direction(a[theta], a[phi])
+            direction_b = _direction(b[theta], b[phi])
+            dot = float(np.dot(direction_a, direction_b))
+            cross_norm = float(np.linalg.norm(np.cross(direction_a, direction_b)))
+            angular_errors.append(math.atan2(cross_norm, dot))
         direction_errors_rad.append(max(angular_errors))
 
     def order_counts(paths: list[dict[str, Any]]) -> dict[str, int]:
