@@ -187,6 +187,50 @@ def test_pusch_type2_single_symbol_partial_allocation_matches_ts_38211(
 
 @pytest.mark.native_sionna
 @pytest.mark.parametrize(
+    ("mapping_type", "symbol_allocation", "additional_position", "expected_symbols"),
+    (
+        ("A", (0, 10), 0, (2, 3)),
+        ("A", (0, 10), 1, (2, 3, 8, 9)),
+        ("B", (3, 10), 0, (0, 1)),
+        ("B", (3, 10), 1, (0, 1, 7, 8)),
+    ),
+)
+def test_pusch_type2_double_symbol_partial_allocation_matches_ts_38211(
+    mapping_type: str,
+    symbol_allocation: tuple[int, int],
+    additional_position: int,
+    expected_symbols: tuple[int, ...],
+) -> None:
+    """Check partial double-symbol DM-RS positions from TS 38.211 Table 6.4.1.1.3-4."""
+    receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(
+            n_size_bwp=2,
+            subcarrier_spacing_khz=30,
+            dmrs_config_type=2,
+            dmrs_length=2,
+            dmrs_additional_position=additional_position,
+            num_cdm_groups_without_data=1,
+            mapping_type=mapping_type,
+            symbol_allocation=symbol_allocation,
+        ),
+        device="cpu",
+    )
+    mask = receiver.pilot_mask[0, 0].bool()
+    actual_symbols = tuple(
+        int(index) for index in torch.nonzero(mask.any(dim=-1), as_tuple=False).flatten()
+    )
+    expected_subcarriers = tuple(12 * rb + offset for rb in range(2) for offset in (0, 1, 6, 7))
+
+    assert actual_symbols == expected_symbols
+    for symbol in expected_symbols:
+        actual_subcarriers = tuple(
+            int(index) for index in torch.nonzero(mask[symbol], as_tuple=False).flatten()
+        )
+        assert actual_subcarriers == expected_subcarriers
+
+
+@pytest.mark.native_sionna
+@pytest.mark.parametrize(
     ("mapping_type", "additional_position", "expected_symbols"),
     (
         ("A", 0, (2, 3)),
