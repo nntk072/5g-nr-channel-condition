@@ -189,25 +189,23 @@ def test_composed_cpu_rf_impairments_increase_pusch_ls_channel_error():
 
 
 @pytest.mark.native_sionna
-def test_ofdm_roundtrip_and_residual_cfo_timing_errors_reach_dmrs_estimator():
-    if not torch.cuda.is_available():
-        pytest.skip("CUDA is not available")
+def test_cpu_ofdm_roundtrip_and_residual_cfo_timing_acquisition_and_correction():
     from sionna.phy.ofdm import OFDMDemodulator, OFDMModulator
 
     receiver = SionnaPUSCHLSReceiver(
         NRPUSCHConfig(n_size_bwp=2, subcarrier_spacing_khz=30),
-        device="cuda:0",
+        device="cpu",
     )
     grid = receiver.resource_grid
     modulator = OFDMModulator(
         cyclic_prefix_length=grid.cyclic_prefix_length,
-        device="cuda:0",
+        device="cpu",
     )
     demodulator = OFDMDemodulator(
         fft_size=grid.fft_size,
         l_min=0,
         cyclic_prefix_length=grid.cyclic_prefix_length,
-        device="cuda:0",
+        device="cpu",
     )
     transmit_grid, _ = receiver.transmit(16, seed=821)
     waveform = modulator(transmit_grid)
@@ -255,7 +253,7 @@ def test_ofdm_roundtrip_and_residual_cfo_timing_errors_reach_dmrs_estimator():
 
     def estimated_channel_nmse(observed_grid):
         observation = observed_grid[:, 0, 0].unsqueeze(1).unsqueeze(1)
-        estimate = receiver.estimate(observation, torch.tensor(0.0, device="cuda:0")).h_hat
+        estimate = receiver.estimate(observation, torch.tensor(0.0, device="cpu")).h_hat
         return torch.mean(torch.abs(estimate - 1.0) ** 2)
 
     ideal_nmse = estimated_channel_nmse(recovered_grid)
