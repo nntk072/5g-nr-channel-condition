@@ -72,6 +72,57 @@ def test_pusch_diagonal_ofdm_channel_is_valid_inside_cp_and_fails_beyond_cp_on_c
 
 
 @pytest.mark.native_sionna
+def test_pusch_cpu_waveform_roundtrip_decodes_noiseless_payload():
+    from sionna.phy.nr import PUSCHReceiver
+    from sionna.phy.ofdm import OFDMDemodulator, OFDMModulator
+
+    transmitter = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(n_size_bwp=6, subcarrier_spacing_khz=30),
+        device="cpu",
+    )
+    grid = transmitter.resource_grid
+    tx_grid, tx_bits = transmitter.transmit(8, seed=34_018)
+    modulator = OFDMModulator(
+        cyclic_prefix_length=grid.cyclic_prefix_length,
+        device="cpu",
+    )
+    demodulator = OFDMDemodulator(
+        fft_size=grid.fft_size,
+        l_min=0,
+        cyclic_prefix_length=grid.cyclic_prefix_length,
+        device="cpu",
+    )
+    received_grid = demodulator(modulator(tx_grid))
+    decoder = PUSCHReceiver(
+        transmitter._transmitter,
+        channel_estimator="perfect",
+        return_tb_crc_status=True,
+        input_domain="freq",
+        device="cpu",
+    )
+
+    channel_truth = torch.ones(
+        (
+            tx_grid.shape[0],
+            1,
+            1,
+            1,
+            1,
+            grid.num_ofdm_symbols,
+            grid.fft_size,
+        ),
+        dtype=tx_grid.dtype,
+    )
+    # Keep the ideal waveform noise-free; the small positive detector variance avoids a singular LMMSE solve.
+    rx_bits, tb_crc_status = decoder(received_grid, torch.tensor(1e-8), h=channel_truth)
+
+    assert received_grid.shape == tx_grid.shape
+    torch.testing.assert_close(received_grid, tx_grid, atol=1e-5, rtol=1e-5)
+    torch.testing.assert_close(rx_bits, tx_bits)
+    assert bool(tb_crc_status.all())
+
+
+@pytest.mark.native_sionna
 def test_ofdm_roundtrip_and_residual_cfo_timing_errors_reach_dmrs_estimator():
     if not torch.cuda.is_available():
         pytest.skip("CUDA is not available")
