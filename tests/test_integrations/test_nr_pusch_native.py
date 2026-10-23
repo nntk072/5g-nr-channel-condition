@@ -285,6 +285,36 @@ def test_pusch_type2_double_symbol_dmrs_time_positions_match_ts_38211(
 
 
 @pytest.mark.native_sionna
+def test_pusch_type1_two_port_dmrs_pilots_are_orthogonal() -> None:
+    """Check Type-1 two-stream CDM orthogonality from TS 38.211 Table 6.4.1.1.3-1."""
+    receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(
+            n_size_bwp=4,
+            subcarrier_spacing_khz=30,
+            num_antenna_ports=2,
+            num_layers=2,
+            dmrs_config_type=1,
+            num_cdm_groups_without_data=2,
+        ),
+        device="cpu",
+    )
+    pattern = receiver.resource_grid.pilot_pattern
+    masks = receiver.pilot_mask[0].bool()
+    pilots = pattern.pilots[0].to(torch.complex128)
+
+    assert tuple(masks.shape) == (2, 14, 48)
+    assert torch.equal(masks[0], masks[1])
+    assert tuple(pilots.shape) == (2, 48)
+    assert bool((torch.linalg.vector_norm(pilots, dim=-1) > 0).all())
+    torch.testing.assert_close(
+        torch.vdot(pilots[0], pilots[1]),
+        torch.zeros((), dtype=torch.complex128),
+        rtol=0,
+        atol=1e-6,
+    )
+
+
+@pytest.mark.native_sionna
 @pytest.mark.parametrize(
     ("num_cdm_groups", "offsets_per_rb"),
     (
