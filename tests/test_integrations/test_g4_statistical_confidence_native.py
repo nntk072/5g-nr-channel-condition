@@ -7,6 +7,7 @@ antenna, and time coordinates within a draw are treated as paired values.
 from __future__ import annotations
 
 import math
+from statistics import NormalDist
 from typing import Any
 
 import pytest
@@ -203,6 +204,54 @@ def test_receive_spatial_covariance_confidence_intervals_match_configured_matrix
         rtol=0.0,
         atol=1e-7,
     )
+
+
+@pytest.mark.native_sionna
+def test_four_element_tdl_covariance_uses_simultaneous_draw_level_intervals() -> None:
+    """Check a nontrivial complex 4x4 RX covariance with familywise intervals."""
+    batch_size = 8192
+    rho = 0.45
+    phase_rad = 0.23
+    rx_corr_mat = tuple(
+        tuple(
+            rho ** abs(row - col)
+            * complex(math.cos(phase_rad * (row - col)), math.sin(phase_rad * (row - col)))
+            for col in range(4)
+        )
+        for row in range(4)
+    )
+    channel = generate_tdl_frequency_response(
+        model="A",
+        seed=5217,
+        carrier_frequency_hz=3.5e9,
+        subcarrier_spacing_hz=30_000.0,
+        num_subcarriers=8,
+        batch_size=batch_size,
+        delay_spread_s=100e-9,
+        num_rx_ant=4,
+        rx_corr_mat=rx_corr_mat,
+        spec_version="19.2",
+        device="cpu",
+    )
+    # Antenna elements remain paired within each independent channel draw.
+    samples = channel.h_path[:, 0, :, 0, 0, 0, 0]
+    outer_products = samples[:, :, None] * samples[:, None, :].conj()
+    empirical = outer_products.mean(dim=0)
+    real_se = outer_products.real.std(dim=0, unbiased=True) / math.sqrt(batch_size)
+    imag_se = outer_products.imag.std(dim=0, unbiased=True) / math.sqrt(batch_size)
+    expected = float(channel.metadata["mean_tap_powers"][0]) * torch.as_tensor(
+        rx_corr_mat, dtype=torch.complex64
+    )
+
+    # Bonferroni controls the familywise two-sided error across 32 real/imag
+    # components at 1%; each interval is asymptotic under independent draws.
+    component_count = 2 * expected.numel()
+    z_simultaneous = NormalDist().inv_cdf(1.0 - 0.01 / (2.0 * component_count))
+    assert bool((torch.abs(empirical.real - expected.real) <= z_simultaneous * real_se).all())
+    assert bool((torch.abs(empirical.imag - expected.imag) <= z_simultaneous * imag_se).all())
+    torch.testing.assert_close(empirical, empirical.mH, rtol=0.0, atol=1e-7)
+    assert float(torch.linalg.eigvalsh(empirical).min()) >= -1e-7
+    assert channel.metadata["batch_axis_semantics"] == "independent_stochastic_channel_draws"
 
 
 @pytest.mark.native_sionna
