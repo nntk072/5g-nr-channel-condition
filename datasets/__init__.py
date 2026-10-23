@@ -49,6 +49,7 @@ from .observations import (
 )
 from .path_oracle import PathOracleTable, PathSolveStatus
 from .provenance import UMCDRunProvenance
+from .public_release import export_public_release, validate_public_release_manifest
 from .split_policy import (
     LeakageNamespace,
     LeakageRelation,
@@ -100,6 +101,8 @@ __all__ = [
     "EpisodeBundle",
     "LinkedNRObservation",
     "StoredEpisodeBundle",
+    "export_public_release",
+    "validate_public_release_manifest",
     "AntennaArraySpec",
     "DirectedLink",
     "FrequencyDomainModelInputs",
