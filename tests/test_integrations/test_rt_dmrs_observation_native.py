@@ -60,8 +60,6 @@ def test_rt_cfr_becomes_deterministic_pusch_dmrs_receiver_observations():
 
 @pytest.mark.native_sionna
 def test_absolute_power_dmrs_mode_preserves_link_gain_with_fixed_thermal_noise():
-    if not torch.cuda.is_available():
-        pytest.skip("CUDA is not available")
     channels = np.stack([np.ones(128), np.full(128, 0.5)]).astype(np.complex64)
     dataset = ChannelDataset(
         h=channels[:, None, :],
@@ -85,13 +83,13 @@ def test_absolute_power_dmrs_mode_preserves_link_gain_with_fixed_thermal_noise()
         noise_figure_db=7.0,
         temperature_k=290.0,
         seed=20261031,
-        device="cuda:0",
+        device="cpu",
     )
     normalized_unit = build_rt_dmrs_observation_dataset(
-        [dataset.select(np.asarray([0]))], snr_db=12.0, seed=20261031, device="cuda:0"
+        [dataset.select(np.asarray([0]))], snr_db=12.0, seed=20261031, device="cpu"
     )
     normalized_half = build_rt_dmrs_observation_dataset(
-        [dataset.select(np.asarray([1]))], snr_db=12.0, seed=20261031, device="cuda:0"
+        [dataset.select(np.asarray([1]))], snr_db=12.0, seed=20261031, device="cpu"
     )
 
     np.testing.assert_allclose(physical.h[1], physical.h[0] * 0.5, rtol=2e-3, atol=2e-5)
