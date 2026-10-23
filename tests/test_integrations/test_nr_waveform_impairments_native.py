@@ -15,6 +15,7 @@ from integrations.sionna.ofdm_impairments import (  # noqa: E402
     apply_iq_imbalance,
     apply_phase_noise,
     apply_residual_cfo,
+    apply_time_varying_multipath,
     estimate_integer_timing_offset_from_cp,
     estimate_residual_cfo_from_cp,
     generate_wiener_phase_noise_rad,
@@ -74,6 +75,52 @@ def test_pusch_diagonal_ofdm_channel_is_valid_inside_cp_and_fails_beyond_cp_on_c
     assert grid.num_effective_subcarriers == grid.fft_size
     assert float(inside_nmse) < 1e-6
     assert float(beyond_nmse) > float(inside_nmse) + 1e-3
+
+
+@pytest.mark.native_sionna
+def test_per_path_doppler_creates_intra_symbol_ici_against_diagonal_cfr():
+    fft_size = 64
+    cp_length = 16
+    spacing_hz = 15_000.0
+    sample_rate_hz = fft_size * spacing_hz
+    tone_bin = 9
+    delay_samples = 3
+    echo = 0.4 + 0.2j
+    sample_index = torch.arange(-cp_length, fft_size, dtype=torch.float64)
+    one_tone = torch.polar(
+        torch.ones_like(sample_index),
+        2.0 * torch.pi * tone_bin * sample_index / fft_size,
+    )
+
+    static = apply_time_varying_multipath(
+        one_tone,
+        path_coefficients=[1.0 + 0j, echo],
+        path_delays_samples=[0, delay_samples],
+        path_dopplers_hz=[0.0, 0.0],
+        sampling_frequency_hz=sample_rate_hz,
+    )
+    delayed = torch.cat(
+        (torch.zeros(delay_samples, dtype=torch.complex128), one_tone[:-delay_samples])
+    )
+    torch.testing.assert_close(static, one_tone + echo * delayed)
+    static_spectrum = torch.fft.fft(static[cp_length:])
+    static_off_tone = (
+        torch.sum(torch.abs(static_spectrum) ** 2) - torch.abs(static_spectrum[tone_bin]) ** 2
+    )
+    assert static_off_tone / torch.sum(torch.abs(static_spectrum) ** 2) < 1e-24
+
+    time_varying = apply_time_varying_multipath(
+        one_tone,
+        path_coefficients=[1.0 + 0j, echo],
+        path_delays_samples=[0, delay_samples],
+        path_dopplers_hz=[0.0, 0.2 * spacing_hz],
+        sampling_frequency_hz=sample_rate_hz,
+    )
+    dynamic_spectrum = torch.fft.fft(time_varying[cp_length:])
+    dynamic_off_tone = (
+        torch.sum(torch.abs(dynamic_spectrum) ** 2) - torch.abs(dynamic_spectrum[tone_bin]) ** 2
+    )
+    assert dynamic_off_tone / torch.sum(torch.abs(dynamic_spectrum) ** 2) > 1e-2
 
 
 @pytest.mark.native_sionna

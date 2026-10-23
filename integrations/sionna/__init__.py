@@ -16,6 +16,7 @@ from .ofdm_impairments import (
     NRWaveformImpairments,
     apply_integer_timing_offset,
     apply_residual_cfo,
+    apply_time_varying_multipath,
 )
 from .path_oracle import sionna_paths_to_oracle_table
 from .rt_cache import RTCacheConflictError, load_rt_dataset, store_rt_dataset
@@ -38,6 +39,7 @@ __all__ = [
     "SionnaTDLPUSCHBatch",
     "apply_integer_timing_offset",
     "apply_residual_cfo",
+    "apply_time_varying_multipath",
     "activate_rt_backend",
     "generate_raytraced",
     "generate_raytraced_cached",

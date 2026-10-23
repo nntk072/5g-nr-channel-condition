@@ -121,6 +121,73 @@ def apply_phase_noise(waveform: Any, *, phase_noise_rad: Any) -> Any:
     return waveform * rotation
 
 
+def apply_time_varying_multipath(
+    waveform: Any,
+    *,
+    path_coefficients: Any,
+    path_delays_samples: Any,
+    path_dopplers_hz: Any,
+    sampling_frequency_hz: float,
+) -> Any:
+    """Apply causal integer-delay paths with per-path Doppler over RF samples.
+
+    For receive sample ``n`` this evaluates
+    ``y[n] = sum_l a_l exp(j 2π f_l n/Fs) x[n-d_l]`` with zero-valued
+    samples before the waveform. This preserves intra-symbol channel change
+    and resulting ICI, unlike multiplying an OFDM grid by one CFR per symbol.
+    The helper is a bounded baseband model: path gains are frequency-flat,
+    delays are integer samples, and each Doppler is constant for the waveform.
+    Fractional delays, path birth/death, and wideband Doppler scaling are not
+    modeled.
+    """
+    torch = _validate_waveform(waveform)
+    if (
+        isinstance(sampling_frequency_hz, bool)
+        or not isinstance(sampling_frequency_hz, (int, float))
+        or not math.isfinite(sampling_frequency_hz)
+        or sampling_frequency_hz <= 0
+    ):
+        raise ValueError("sampling_frequency_hz must be finite and positive")
+    delays_raw = torch.as_tensor(path_delays_samples, device=waveform.device)
+    if delays_raw.dtype == torch.bool or delays_raw.is_complex():
+        raise TypeError("path_delays_samples must contain integers")
+    if delays_raw.ndim != 1 or delays_raw.numel() == 0:
+        raise ValueError("path_delays_samples must be a non-empty one-dimensional sequence")
+    if delays_raw.dtype.is_floating_point and not bool(
+        torch.equal(delays_raw, torch.round(delays_raw))
+    ):
+        raise ValueError("path_delays_samples must contain integers")
+    delays = delays_raw.to(dtype=torch.int64)
+    if bool(torch.any(delays < 0)):
+        raise ValueError("path delays must be nonnegative")
+
+    coefficients = torch.as_tensor(path_coefficients, device=waveform.device)
+    if not coefficients.is_complex():
+        raise TypeError("path_coefficients must be complex-valued")
+    coefficients = coefficients.to(dtype=waveform.dtype)
+    dopplers = torch.as_tensor(path_dopplers_hz, dtype=waveform.real.dtype, device=waveform.device)
+    path_count = int(delays.numel())
+    if coefficients.ndim != 1 or dopplers.ndim != 1:
+        raise ValueError("path coefficients and Dopplers must be one-dimensional")
+    if coefficients.numel() != path_count or dopplers.numel() != path_count:
+        raise ValueError("path coefficients, delays, and Dopplers must have equal lengths")
+    if not bool(torch.isfinite(coefficients).all()) or not bool(torch.isfinite(dopplers).all()):
+        raise ValueError("path coefficients and Dopplers must be finite")
+
+    sample_axis = torch.arange(
+        waveform.shape[-1], dtype=waveform.real.dtype, device=waveform.device
+    )
+    result = torch.zeros_like(waveform)
+    for coefficient, delay, doppler in zip(coefficients, delays, dopplers):
+        delay_samples = int(delay.item())
+        if delay_samples >= waveform.shape[-1]:
+            continue
+        delayed = torch.nn.functional.pad(waveform, (delay_samples, 0))[..., : waveform.shape[-1]]
+        phase = 2.0 * math.pi * doppler * sample_axis / sampling_frequency_hz
+        result = result + coefficient * torch.polar(torch.ones_like(phase), phase) * delayed
+    return result
+
+
 def generate_wiener_phase_noise_rad(
     sample_count: int,
     *,
