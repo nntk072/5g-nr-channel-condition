@@ -162,9 +162,11 @@ def standardized_draw_subject(
 ) -> SplitSubject:
     """Adapt one draw without ranking on profile/category/target metadata.
 
-    The default opaque key is derived from the channel-generation seed and
-    sample index. Callers creating a new statistical parent without that seed
-    must supply a stable opaque ``partition_id`` explicitly.
+    The default opaque key is derived from the generation seed and sample
+    index, never profile, target, or source-family labels. If independent
+    generator streams reuse that seed/index pair, callers must provide a
+    stable opaque ``partition_id`` for each draw; registry construction rejects
+    collisions instead of silently joining unrelated parents.
     """
     if not isinstance(record, StandardizedChannelRecord):
         raise TypeError("record must be a StandardizedChannelRecord")

@@ -384,7 +384,7 @@ def test_standardized_profile_and_family_metadata_do_not_change_opaque_partition
     )
 
 
-def test_standardized_parent_requires_unique_opaque_identity_when_seed_is_missing():
+def test_standardized_parent_requires_opaque_identity_when_seed_is_missing():
     record = _standardized_record()
     without_seed = replace(
         record,
@@ -401,6 +401,40 @@ def test_standardized_parent_requires_unique_opaque_identity_when_seed_is_missin
             [explicit, collision, *_unlinked_subjects(4)],
             policy=SplitPolicy.release_v2(seed="partition-collision"),
         )
+
+
+def test_seed_index_collision_fails_closed_and_explicit_ids_separate_generator_runs():
+    record_a = _standardized_record()
+    record_b = replace(
+        record_a,
+        sample_id="draw-from-independent-run",
+        run_id="independent-generator-run",
+        family=StandardizedFamily.CDL,
+        profile_model="D",
+        profile_los_component=True,
+        metadata={
+            **record_a.metadata,
+            "profile_model": "D",
+            "profile_los_component": True,
+        },
+    )
+    subject_a = standardized_draw_subject(record_a)
+    subject_b = standardized_draw_subject(record_b)
+    assert subject_a.partition_id == subject_b.partition_id
+
+    policy = SplitPolicy.release_v2(seed="same-seed-independent-runs")
+    with pytest.raises(ValueError, match="partition_id values must uniquely identify"):
+        make_split_policy_registry([subject_a, subject_b, *_unlinked_subjects(8)], policy=policy)
+
+    subject_a = standardized_draw_subject(record_a, partition_id="opaque-tdl-parent-0")
+    subject_b = standardized_draw_subject(record_b, partition_id="opaque-cdl-parent-0")
+    registry = make_split_policy_registry(
+        [subject_a, subject_b, *_unlinked_subjects(8)], policy=policy
+    )
+    assert (
+        registry.subject_to_component[subject_a.subject_id]
+        != registry.subject_to_component[subject_b.subject_id]
+    )
 
 
 def test_audit_rejects_any_frozen_lineage_change():
