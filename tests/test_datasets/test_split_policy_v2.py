@@ -20,6 +20,7 @@ from datasets.network import (
 from datasets.split_policy import (
     LeakageNamespace,
     LeakageRelation,
+    SpatiotemporalFootprint,
     SplitChildBinding,
     SplitParentType,
     SplitPolicy,
@@ -27,6 +28,7 @@ from datasets.split_policy import (
     SplitSubject,
     audit_split_policy_registry,
     bind_split_children,
+    derive_spatiotemporal_leakage_relations,
     freeze_split_policy_registry,
     make_split_policy_registry,
     network_episode_subject,
@@ -184,6 +186,67 @@ def test_connected_components_are_transitive_across_relation_types():
     ]
     _, registry = _four_way_registry(subjects)
     assert len({registry.subject_to_component[item] for item in ("a", "b", "c")}) == 1
+
+
+def test_spatial_buffer_relations_link_nearby_subjects_within_coordinate_frame():
+    footprints = (
+        SpatiotemporalFootprint("a", ((0.0, 0.0, 0.0),), "local-map"),
+        SpatiotemporalFootprint("b", ((1.0, 0.0, 0.0),), "local-map"),
+        SpatiotemporalFootprint("c", ((2.1, 0.0, 0.0),), "local-map"),
+        SpatiotemporalFootprint("other-frame", ((0.2, 0.0, 0.0),), "other-map"),
+    )
+    relations = derive_spatiotemporal_leakage_relations(footprints, spatial_buffer_m=1.0)
+
+    assert relations["a"] == relations["b"]
+    assert relations["a"][0].namespace is LeakageNamespace.SPATIAL_BUFFER
+    assert relations["c"] == ()
+    assert relations["other-frame"] == ()
+
+    subjects = [
+        _subject(
+            footprint.subject_id,
+            *(
+                (relation.namespace, relation.identity)
+                for relation in relations[footprint.subject_id]
+            ),
+        )
+        for footprint in footprints
+    ]
+    subjects.extend(_unlinked_subjects())
+    _, registry = _four_way_registry(subjects)
+    assert registry.split_for_parent("a") == registry.split_for_parent("b")
+
+
+def test_overlapping_time_windows_are_half_open_and_scope_qualified():
+    footprints = (
+        SpatiotemporalFootprint("a", time_scope_id="clock-1", start_time_s=0, end_time_s=2),
+        SpatiotemporalFootprint("b", time_scope_id="clock-1", start_time_s=1.5, end_time_s=3),
+        SpatiotemporalFootprint("c", time_scope_id="clock-1", start_time_s=2.5, end_time_s=4),
+        SpatiotemporalFootprint("touching", time_scope_id="clock-1", start_time_s=4, end_time_s=5),
+        SpatiotemporalFootprint(
+            "other-clock", time_scope_id="clock-2", start_time_s=1, end_time_s=3
+        ),
+    )
+    relations = derive_spatiotemporal_leakage_relations(footprints, spatial_buffer_m=0)
+
+    assert relations["a"] == relations["b"] == relations["c"]
+    assert relations["a"][0].namespace is LeakageNamespace.OVERLAPPING_TIME_WINDOW
+    assert relations["touching"] == ()
+    assert relations["other-clock"] == ()
+
+
+def test_spatiotemporal_footprints_reject_invalid_geometry():
+    with pytest.raises(ValueError):
+        SpatiotemporalFootprint("bad-coordinate", ((float("nan"), 0, 0),), "map")
+    with pytest.raises(ValueError, match="coordinate_frame_id is required"):
+        SpatiotemporalFootprint("missing-frame", ((0, 0, 0),))
+
+
+def test_spatiotemporal_footprints_require_valid_half_open_time_windows():
+    with pytest.raises(ValueError, match="start_time_s < end_time_s"):
+        SpatiotemporalFootprint("empty", time_scope_id="clock", start_time_s=2, end_time_s=2)
+    with pytest.raises(ValueError, match="both start_time_s and end_time_s"):
+        SpatiotemporalFootprint("partial", time_scope_id="clock", start_time_s=1)
 
 
 def test_registry_rejects_manually_split_shared_relation():

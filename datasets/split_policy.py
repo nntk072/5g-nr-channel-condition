@@ -32,6 +32,8 @@ _NAMESPACE_ORDER = (
     "counterfactual_family",
     "material_realization",
     "equipment_family",
+    "spatial_buffer",
+    "overlapping_time_window",
 )
 _SPLIT_ORDER = ("train", "validation", "calibration", "test")
 _DEFAULT_FOUR_WAY = {"train": 0.7, "validation": 0.1, "calibration": 0.1, "test": 0.1}
@@ -52,6 +54,8 @@ class LeakageNamespace(StrEnum):
     COUNTERFACTUAL_FAMILY = "counterfactual_family"
     MATERIAL_REALIZATION = "material_realization"
     EQUIPMENT_FAMILY = "equipment_family"
+    SPATIAL_BUFFER = "spatial_buffer"
+    OVERLAPPING_TIME_WINDOW = "overlapping_time_window"
 
 
 class SplitParentType(StrEnum):
@@ -127,6 +131,212 @@ class SplitSubject:
             "partition_id": self.partition_id,
             "relations": [item.to_dict() for item in self.relations],
         }
+
+
+@dataclass(frozen=True, slots=True)
+class SpatiotemporalFootprint:
+    """Comparable 3D sample positions and an optional half-open time window.
+
+    Positions must use meters in a shared, named coordinate frame. Time
+    windows must use seconds on a shared, named clock. These identifiers keep
+    unrelated coordinate systems and clock domains from being joined.
+    """
+
+    subject_id: str
+    positions_m: tuple[tuple[float, float, float], ...] = ()
+    coordinate_frame_id: str | None = None
+    time_scope_id: str | None = None
+    start_time_s: float | None = None
+    end_time_s: float | None = None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.subject_id, str) or not self.subject_id.strip():
+            raise ValueError("subject_id must be a non-empty string")
+        object.__setattr__(self, "subject_id", self.subject_id.strip())
+        if any(isinstance(value, bool) for point in self.positions_m for value in point):
+            raise TypeError("positions_m coordinates must be real numbers, not booleans")
+        positions = tuple(tuple(float(value) for value in point) for point in self.positions_m)
+        if any(len(point) != 3 for point in positions):
+            raise ValueError("positions_m must contain 3D points")
+        if any(not math.isfinite(value) for point in positions for value in point):
+            raise ValueError("positions_m coordinates must be finite")
+        object.__setattr__(self, "positions_m", positions)
+        if positions:
+            if (
+                not isinstance(self.coordinate_frame_id, str)
+                or not self.coordinate_frame_id.strip()
+            ):
+                raise ValueError("coordinate_frame_id is required when positions_m are present")
+            object.__setattr__(self, "coordinate_frame_id", self.coordinate_frame_id.strip())
+        elif self.coordinate_frame_id is not None:
+            raise ValueError("coordinate_frame_id requires at least one position")
+
+        time_values = (self.time_scope_id, self.start_time_s, self.end_time_s)
+        if all(value is None for value in time_values):
+            return
+        if not isinstance(self.time_scope_id, str) or not self.time_scope_id.strip():
+            raise ValueError("time_scope_id is required when a time window is present")
+        if self.start_time_s is None or self.end_time_s is None:
+            raise ValueError("time windows require both start_time_s and end_time_s")
+        if isinstance(self.start_time_s, bool) or isinstance(self.end_time_s, bool):
+            raise TypeError("time window endpoints must be real numbers, not booleans")
+        start, end = float(self.start_time_s), float(self.end_time_s)
+        if not math.isfinite(start) or not math.isfinite(end) or start >= end:
+            raise ValueError("time window must be finite and satisfy start_time_s < end_time_s")
+        object.__setattr__(self, "time_scope_id", self.time_scope_id.strip())
+        object.__setattr__(self, "start_time_s", start)
+        object.__setattr__(self, "end_time_s", end)
+
+
+def derive_spatiotemporal_leakage_relations(
+    footprints: Sequence[SpatiotemporalFootprint], *, spatial_buffer_m: float
+) -> Mapping[str, tuple[LeakageRelation, ...]]:
+    """Derive connected leakage relations before assigning release splits.
+
+    Spatially linked subjects have at least one pair of sampled positions at
+    Euclidean distance ``<= spatial_buffer_m`` in the same coordinate frame.
+    Time windows are half-open, so touching endpoints do not overlap. Spatial
+    and temporal links are transitively grouped; this can conservatively merge
+    a chain of pairwise-related subjects into one split component.
+    """
+    if isinstance(spatial_buffer_m, bool) or not isinstance(spatial_buffer_m, (float, int)):
+        raise TypeError("spatial_buffer_m must be a real number")
+    buffer_m = float(spatial_buffer_m)
+    if not math.isfinite(buffer_m) or buffer_m < 0:
+        raise ValueError("spatial_buffer_m must be finite and non-negative")
+    buffer_squared = buffer_m * buffer_m
+    if not math.isfinite(buffer_squared):
+        raise ValueError("spatial_buffer_m is too large for squared-distance comparisons")
+    by_id: dict[str, SpatiotemporalFootprint] = {}
+    for footprint in footprints:
+        if not isinstance(footprint, SpatiotemporalFootprint):
+            raise TypeError("footprints must contain SpatiotemporalFootprint values")
+        if footprint.subject_id in by_id:
+            raise ValueError(f"duplicate spatiotemporal footprint: {footprint.subject_id}")
+        by_id[footprint.subject_id] = footprint
+
+    def cell(point: tuple[float, float, float]) -> tuple[int, int, int]:
+        if buffer_m == 0:
+            raise RuntimeError("zero-radius points use exact-coordinate lookup")
+        return (
+            math.floor(point[0] / buffer_m),
+            math.floor(point[1] / buffer_m),
+            math.floor(point[2] / buffer_m),
+        )
+
+    spatial_buckets: dict[
+        tuple[str, tuple[int, int, int] | tuple[float, float, float]],
+        list[tuple[str, tuple[float, float, float]]],
+    ] = {}
+    neighbor_offsets = tuple((x, y, z) for x in (-1, 0, 1) for y in (-1, 0, 1) for z in (-1, 0, 1))
+    spatial_component_parent = {subject_id: subject_id for subject_id in by_id}
+
+    def find_spatial(subject_id: str) -> str:
+        while spatial_component_parent[subject_id] != subject_id:
+            spatial_component_parent[subject_id] = spatial_component_parent[
+                spatial_component_parent[subject_id]
+            ]
+            subject_id = spatial_component_parent[subject_id]
+        return subject_id
+
+    def union_spatial(left: str, right: str) -> None:
+        left_root, right_root = find_spatial(left), find_spatial(right)
+        if left_root != right_root:
+            spatial_component_parent[max(left_root, right_root)] = min(left_root, right_root)
+
+    for subject_id in sorted(by_id):
+        footprint = by_id[subject_id]
+        if not footprint.positions_m:
+            continue
+        assert footprint.coordinate_frame_id is not None
+        for point in footprint.positions_m:
+            candidate_keys: tuple[tuple[int, int, int] | tuple[float, float, float], ...]
+            if buffer_m == 0:
+                key: tuple[int, int, int] | tuple[float, float, float] = point
+                candidate_keys = (key,)
+            else:
+                current = cell(point)
+                candidate_keys = tuple(
+                    (
+                        current[0] + offset[0],
+                        current[1] + offset[1],
+                        current[2] + offset[2],
+                    )
+                    for offset in neighbor_offsets
+                )
+            for candidate_key in candidate_keys:
+                bucket_key = (footprint.coordinate_frame_id, candidate_key)
+                for other_id, other_point in spatial_buckets.get(bucket_key, ()):
+                    if other_id == subject_id:
+                        continue
+                    squared_distance = sum(
+                        (a - b) ** 2 for a, b in zip(point, other_point, strict=True)
+                    )
+                    if squared_distance <= buffer_squared:
+                        union_spatial(subject_id, other_id)
+            own_key: tuple[int, int, int] | tuple[float, float, float]
+            own_key = point if buffer_m == 0 else cell(point)
+            spatial_buckets.setdefault((footprint.coordinate_frame_id, own_key), []).append(
+                (subject_id, point)
+            )
+
+    spatial_members: dict[str, list[str]] = {}
+    for subject_id in sorted(by_id):
+        if by_id[subject_id].positions_m:
+            spatial_members.setdefault(find_spatial(subject_id), []).append(subject_id)
+
+    time_scopes: dict[str, list[tuple[float, float, str]]] = {}
+    for subject_id, footprint in by_id.items():
+        if footprint.time_scope_id is not None:
+            assert footprint.start_time_s is not None and footprint.end_time_s is not None
+            time_scopes.setdefault(footprint.time_scope_id, []).append(
+                (footprint.start_time_s, footprint.end_time_s, subject_id)
+            )
+
+    time_groups: list[tuple[str, list[str]]] = []
+    for scope_id, intervals in sorted(time_scopes.items()):
+        intervals.sort()
+        group: list[str] = []
+        group_end = -math.inf
+        for start, end, subject_id in intervals:
+            if group and start >= group_end:
+                if len(group) > 1:
+                    time_groups.append((scope_id, group))
+                group = []
+                group_end = -math.inf
+            group.append(subject_id)
+            group_end = max(group_end, end)
+        if len(group) > 1:
+            time_groups.append((scope_id, group))
+
+    result: dict[str, list[LeakageRelation]] = {subject_id: [] for subject_id in by_id}
+
+    def add_component_relations(
+        namespace: LeakageNamespace, scope_id: str, members: Sequence[str]
+    ) -> None:
+        if len(members) < 2:
+            return
+        canonical = json.dumps(
+            {"scope": scope_id, "subjects": sorted(members)},
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+        identity = hashlib.sha256(canonical).hexdigest()
+        relation = LeakageRelation(namespace, f"{scope_id}:{identity}")
+        for subject_id in members:
+            result[subject_id].append(relation)
+
+    for component in spatial_members.values():
+        if len(component) > 1:
+            scope = by_id[component[0]].coordinate_frame_id
+            assert scope is not None
+            add_component_relations(LeakageNamespace.SPATIAL_BUFFER, scope, component)
+    for scope, component in time_groups:
+        add_component_relations(LeakageNamespace.OVERLAPPING_TIME_WINDOW, scope, component)
+
+    return MappingProxyType(
+        {subject_id: tuple(sorted(relations)) for subject_id, relations in sorted(result.items())}
+    )
 
 
 def network_episode_subject(
