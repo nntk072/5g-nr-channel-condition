@@ -76,6 +76,63 @@ def apply_phase_noise(waveform: Any, *, phase_noise_rad: Any) -> Any:
     return waveform * rotation
 
 
+def generate_wiener_phase_noise_rad(
+    sample_count: int,
+    *,
+    sampling_frequency_hz: float,
+    linewidth_hz: float,
+    generator: Any,
+    leading_shape: tuple[int, ...] = (),
+    initial_phase_rad: float = 0.0,
+    device: str = "cpu",
+) -> Any:
+    """Draw seeded Wiener phase noise with a Lorentzian linewidth model.
+
+    Independent phase increments have variance ``2*pi*linewidth_hz/Fs``
+    radians squared. This is a white-frequency-noise model; it does not model
+    PLL shaping, a measured oscillator PSD, or filtering of the phase-noisy
+    waveform. A relative Tx/Rx oscillator can use the sum of their linewidths.
+    """
+    try:
+        import torch
+    except ImportError as exc:
+        raise RuntimeError("Install PyTorch to generate oscillator phase noise") from exc
+
+    if isinstance(sample_count, bool) or not isinstance(sample_count, int) or sample_count < 1:
+        raise ValueError("sample_count must be a positive integer")
+    if (
+        isinstance(sampling_frequency_hz, bool)
+        or not math.isfinite(sampling_frequency_hz)
+        or sampling_frequency_hz <= 0
+    ):
+        raise ValueError("sampling_frequency_hz must be finite and positive")
+    if isinstance(linewidth_hz, bool) or not math.isfinite(linewidth_hz) or linewidth_hz < 0:
+        raise ValueError("linewidth_hz must be finite and nonnegative")
+    if isinstance(initial_phase_rad, bool) or not math.isfinite(initial_phase_rad):
+        raise ValueError("initial_phase_rad must be finite")
+    if not isinstance(generator, torch.Generator):
+        raise TypeError("generator must be an explicitly seeded torch.Generator")
+    if not isinstance(leading_shape, tuple) or any(
+        isinstance(size, bool) or not isinstance(size, int) or size < 1 for size in leading_shape
+    ):
+        raise ValueError("leading_shape must contain positive integer dimensions")
+    if not isinstance(device, str) or not device:
+        raise ValueError("device must be a non-empty PyTorch device string")
+
+    increment_std = math.sqrt(2.0 * math.pi * linewidth_hz / sampling_frequency_hz)
+    increments = (
+        torch.randn(
+            (*leading_shape, sample_count - 1),
+            dtype=torch.float32,
+            device=device,
+            generator=generator,
+        )
+        * increment_std
+    )
+    initial = torch.full((*leading_shape, 1), initial_phase_rad, dtype=torch.float32, device=device)
+    return torch.cat((initial, initial + torch.cumsum(increments, dim=-1)), dim=-1)
+
+
 def apply_iq_imbalance(
     waveform: Any,
     *,

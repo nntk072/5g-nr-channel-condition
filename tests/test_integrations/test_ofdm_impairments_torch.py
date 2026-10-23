@@ -14,6 +14,7 @@ from integrations.sionna.ofdm_impairments import (  # noqa: E402
     apply_residual_cfo,
     estimate_integer_timing_offset_from_cp,
     estimate_residual_cfo_from_cp,
+    generate_wiener_phase_noise_rad,
 )
 
 
@@ -112,6 +113,48 @@ def test_phase_noise_and_iq_imbalance_reject_invalid_parameters() -> None:
         apply_iq_imbalance(waveform, gain_imbalance_db=True)
     with pytest.raises(ValueError, match="finite"):
         apply_iq_imbalance(waveform, phase_imbalance_rad=float("inf"))
+
+
+def test_seeded_wiener_phase_noise_matches_linewidth_increment_variance() -> None:
+    sample_count = 6
+    realization_count = 16_384
+    sampling_frequency_hz = 1_000_000.0
+    linewidth_hz = 20_000.0
+    generator = torch.Generator().manual_seed(20_231_023)
+    phase = generate_wiener_phase_noise_rad(
+        sample_count,
+        sampling_frequency_hz=sampling_frequency_hz,
+        linewidth_hz=linewidth_hz,
+        generator=generator,
+        leading_shape=(realization_count,),
+        initial_phase_rad=0.3,
+    )
+    replay = generate_wiener_phase_noise_rad(
+        sample_count,
+        sampling_frequency_hz=sampling_frequency_hz,
+        linewidth_hz=linewidth_hz,
+        generator=torch.Generator().manual_seed(20_231_023),
+        leading_shape=(realization_count,),
+        initial_phase_rad=0.3,
+    )
+    increments = torch.diff(phase, dim=-1)
+    expected_increment_variance = 2.0 * math.pi * linewidth_hz / sampling_frequency_hz
+    lag = 4
+    expected_phasor_correlation = math.exp(-math.pi * linewidth_hz * lag / sampling_frequency_hz)
+    observed_phasor_correlation = torch.exp(1j * (phase[:, lag] - phase[:, 0])).mean()
+
+    torch.testing.assert_close(phase, replay, rtol=0, atol=0)
+    torch.testing.assert_close(
+        increments.var(unbiased=False),
+        torch.tensor(expected_increment_variance),
+        rtol=0.02,
+        atol=0,
+    )
+    assert abs(float(increments.mean())) < 0.002
+    assert observed_phasor_correlation.real.item() == pytest.approx(
+        expected_phasor_correlation, abs=0.02
+    )
+    assert observed_phasor_correlation.imag.item() == pytest.approx(0.0, abs=0.02)
 
 
 def test_fractional_timing_offset_has_bandlimited_tone_phase_response() -> None:
