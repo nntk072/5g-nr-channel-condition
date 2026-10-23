@@ -973,7 +973,7 @@ These criteria make a finite-budget robustness decision for the named MVP scope;
 ### Gate G4 — analytical and standardized model conformance
 
 - [ ] **G4.01** TDL A–E nominal tap delays and powers match pinned resource tables.
-- [ ] **G4.02** scalable TDL tap delays change correctly with configured RMS delay spread.
+- [x] **G4.02** scalable TDL tap delays change correctly with configured RMS delay spread (CPU-native Sionna 2.2.0 regression for TDL-A/B/C checks the power-weighted RMS of generated nominal delays against 30/100/300/1000 ns and verifies linear delay scaling; `tests/test_integrations/test_tdl_profile_tables_native.py::test_scalable_tdl_delays_have_configured_power_weighted_rms`; this closes the scalable nominal-PDP delay contract only, not full TDL conformance or D/E fixed-profile semantics).
 - [ ] **G4.03** CDL A–E angular/delay nominal params match pinned tables and defined array orientations.
 - [ ] **G4.04** model-D/E specular/scattered power partition and configured K settings produce expected empirical behavior.
 - [ ] **G4.05** 3GPP scenario state and profile category not written into `geometric_los` target field.
