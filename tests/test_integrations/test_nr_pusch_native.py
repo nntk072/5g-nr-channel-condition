@@ -45,6 +45,49 @@ def test_native_pusch_grid_axes_and_fft_mapping_across_numerologies(
 
 
 @pytest.mark.native_sionna
+@pytest.mark.parametrize(
+    ("additional_position", "expected_symbols"),
+    (
+        (0, (2,)),
+        (1, (2, 11)),
+        (2, (2, 7, 11)),
+        (3, (2, 5, 8, 11)),
+    ),
+)
+def test_pusch_type1_dmrs_positions_match_ts_38211_full_slot_reference(
+    additional_position: int, expected_symbols: tuple[int, ...]
+) -> None:
+    """Check TS 38.211 V19.1.0 Table 6.4.1.1.3-3 positions for mapping A."""
+    n_size_bwp = 2
+    receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(
+            n_size_bwp=n_size_bwp,
+            subcarrier_spacing_khz=30,
+            dmrs_config_type=1,
+            dmrs_length=1,
+            dmrs_additional_position=additional_position,
+            num_cdm_groups_without_data=1,
+            mapping_type="A",
+        ),
+        device="cpu",
+    )
+    mask = receiver.pilot_mask[0, 0].bool()
+    actual_symbols = tuple(
+        int(index) for index in torch.nonzero(mask.any(dim=-1), as_tuple=False).flatten()
+    )
+    expected_subcarriers = tuple(
+        12 * rb + offset for rb in range(n_size_bwp) for offset in (0, 2, 4, 6, 8, 10)
+    )
+
+    assert actual_symbols == expected_symbols
+    for symbol in expected_symbols:
+        actual_subcarriers = tuple(
+            int(index) for index in torch.nonzero(mask[symbol], as_tuple=False).flatten()
+        )
+        assert actual_subcarriers == expected_subcarriers
+
+
+@pytest.mark.native_sionna
 def test_pusch_dmrs_estimator_recovers_frequency_selective_noiseless_channel_on_cpu():
     receiver = SionnaPUSCHLSReceiver(
         NRPUSCHConfig(n_size_bwp=6, subcarrier_spacing_khz=30), device="cpu"
