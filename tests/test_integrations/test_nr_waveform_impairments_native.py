@@ -402,6 +402,80 @@ def test_cp_cfo_acquisition_is_robust_across_independent_in_cp_channels():
 
 
 @pytest.mark.native_sionna
+def test_cp_timing_acquisition_handles_independent_in_cp_channels_and_awgn():
+    from sionna.phy.ofdm import OFDMModulator
+
+    batch_size = 32
+    receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(n_size_bwp=6, subcarrier_spacing_khz=30), device="cpu"
+    )
+    grid = receiver.resource_grid
+    transmit_grid, _ = receiver.transmit(batch_size, seed=821_201)
+    waveform = OFDMModulator(
+        cyclic_prefix_length=grid.cyclic_prefix_length,
+        device="cpu",
+    )(transmit_grid)
+
+    # Independent static three-tap channels; echo delays are within the CP.
+    channel_generator = torch.Generator(device="cpu").manual_seed(821_202)
+    coefficients = torch.complex(
+        torch.randn((batch_size, 3), generator=channel_generator),
+        torch.randn((batch_size, 3), generator=channel_generator),
+    ) / torch.sqrt(torch.tensor(2.0))
+    coefficients[:, 0] += 1.5
+    channel_output = coefficients[:, 0, None, None, None] * waveform
+    for tap_index, delay_samples in enumerate((2, 4), start=1):
+        delayed = torch.nn.functional.pad(waveform, (delay_samples, 0))
+        delayed = delayed[..., : waveform.shape[-1]]
+        channel_output = channel_output + (coefficients[:, tap_index, None, None, None] * delayed)
+
+    max_offset_samples = 4
+    timing_offset_samples = 2
+    # Keep enough trailing zeros that applying and then correcting the delay
+    # does not truncate any samples from the original channel response.
+    capture = torch.cat(
+        (
+            channel_output,
+            torch.zeros_like(channel_output[..., : max_offset_samples + timing_offset_samples]),
+        ),
+        dim=-1,
+    )
+    delayed_capture = apply_integer_timing_offset(capture, offset_samples=timing_offset_samples)
+
+    snr_db = 20.0
+    signal_power = torch.mean(torch.abs(delayed_capture) ** 2, dim=-1, keepdim=True)
+    noise_variance = signal_power / (10.0 ** (snr_db / 10.0))
+    noise_generator = torch.Generator(device="cpu").manual_seed(821_203)
+    noise = torch.complex(
+        torch.randn(delayed_capture.shape, generator=noise_generator),
+        torch.randn(delayed_capture.shape, generator=noise_generator),
+    ) * torch.sqrt(noise_variance / 2.0)
+    noisy_capture = delayed_capture + noise
+
+    estimate = estimate_integer_timing_offset_from_cp(
+        noisy_capture,
+        fft_size=grid.fft_size,
+        cyclic_prefix_length=grid.cyclic_prefix_length,
+        max_offset_samples=max_offset_samples,
+        guard_samples=4,
+    )
+    torch.testing.assert_close(
+        estimate,
+        torch.full_like(estimate, timing_offset_samples),
+    )
+
+    corrected_capture = apply_integer_timing_offset(
+        noisy_capture, offset_samples=-timing_offset_samples
+    )[..., : waveform.shape[-1]]
+    reference = channel_output
+    per_draw_nmse = torch.mean(torch.abs(corrected_capture - reference) ** 2, dim=-1) / torch.mean(
+        torch.abs(reference) ** 2, dim=-1
+    )
+    assert per_draw_nmse.shape == (batch_size, 1, 1)
+    assert torch.max(per_draw_nmse) < 0.015
+
+
+@pytest.mark.native_sionna
 def test_waveform_impairment_helpers_preserve_shape_and_validate_units():
     waveform = torch.ones((2, 32), dtype=torch.complex64)
     delayed = apply_integer_timing_offset(waveform, offset_samples=3)
