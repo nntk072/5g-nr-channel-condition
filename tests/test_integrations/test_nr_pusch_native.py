@@ -178,6 +178,34 @@ def test_pusch_double_symbol_dmrs_positions_match_ts_38211_full_slot_reference(
 
 @pytest.mark.native_sionna
 @pytest.mark.parametrize(
+    ("additional_position", "expected_symbols"),
+    ((0, (0,)), (1, (0, 8))),
+)
+def test_pusch_mapping_b_partial_allocation_dmrs_positions_match_ts_38211(
+    additional_position: int, expected_symbols: tuple[int, ...]
+) -> None:
+    """Check allocation-relative mapping-B DM-RS for a 10-symbol PUSCH."""
+    receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(
+            n_size_bwp=2,
+            subcarrier_spacing_khz=30,
+            dmrs_additional_position=additional_position,
+            mapping_type="B",
+            symbol_allocation=(3, 10),
+        ),
+        device="cpu",
+    )
+    mask = receiver.pilot_mask[0, 0].bool()
+    actual_symbols = tuple(
+        int(index) for index in torch.nonzero(mask.any(dim=-1), as_tuple=False).flatten()
+    )
+
+    assert actual_symbols == expected_symbols
+    assert receiver.metadata["symbol_allocation"] == (3, 10)
+
+
+@pytest.mark.native_sionna
+@pytest.mark.parametrize(
     ("num_cdm_groups", "offsets_per_rb"),
     (
         (1, (0, 1, 6, 7)),

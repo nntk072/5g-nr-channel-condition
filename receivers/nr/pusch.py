@@ -27,6 +27,7 @@ class NRPUSCHConfig:
     dmrs_additional_position: int = 0
     num_cdm_groups_without_data: int = 1
     mapping_type: str = "A"
+    symbol_allocation: tuple[int, int] = (0, 14)
     precoding: str = "non-codebook"
     interpolation_type: str = "nn"
 
@@ -78,6 +79,17 @@ class NRPUSCHConfig:
             raise ValueError("num_cdm_groups_without_data must be in [1, 3]")
         if self.mapping_type not in {"A", "B"}:
             raise ValueError("mapping_type must be A or B")
+        if not isinstance(self.symbol_allocation, (tuple, list)) or len(self.symbol_allocation) != 2:
+            raise TypeError("symbol_allocation must be a two-element tuple or list")
+        allocation = tuple(self.symbol_allocation)
+        if any(isinstance(value, bool) or not isinstance(value, int) for value in allocation):
+            raise TypeError("symbol_allocation values must be integers")
+        object.__setattr__(self, "symbol_allocation", allocation)
+        start_symbol, duration = allocation
+        if not 0 <= start_symbol < 14 or not 1 <= duration <= 14 - start_symbol:
+            raise ValueError("symbol_allocation must fit within the 14-symbol slot")
+        if self.mapping_type == "A" and start_symbol != 0:
+            raise ValueError("PUSCH mapping type A requires symbol allocation to start at 0")
         if self.precoding not in {"codebook", "non-codebook"}:
             raise ValueError("precoding must be codebook or non-codebook")
         if self.interpolation_type not in {"nn", "lin", "lin_time_avg"}:

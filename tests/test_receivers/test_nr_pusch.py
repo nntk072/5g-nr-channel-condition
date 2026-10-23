@@ -14,6 +14,12 @@ def test_pusch_config_accepts_valid_dmrs_configuration():
     assert config.n_size_bwp == 24
 
 
+def test_pusch_config_normalizes_json_symbol_allocation_to_immutable_tuple():
+    config = NRPUSCHConfig(mapping_type="B", symbol_allocation=[3, 10])
+    assert config.symbol_allocation == (3, 10)
+    assert isinstance(config.symbol_allocation, tuple)
+
+
 @pytest.mark.parametrize(
     "kwargs",
     [
@@ -30,6 +36,11 @@ def test_pusch_config_accepts_valid_dmrs_configuration():
         {"dmrs_n_id": (1, 65536)},
         {"dmrs_n_scid": 2},
         {"mapping_type": "C"},
+        {"symbol_allocation": (3,)},
+        {"symbol_allocation": (False, 10)},
+        {"symbol_allocation": (-1, 10)},
+        {"symbol_allocation": (3, 12)},
+        {"mapping_type": "A", "symbol_allocation": (1, 13)},
         {"precoding": "unknown"},
         {"interpolation_type": "spline"},
         {"n_size_bwp": True},

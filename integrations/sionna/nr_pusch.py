@@ -48,6 +48,7 @@ class SionnaPUSCHLSReceiver:
         pusch_config.dmrs.n_id = config.dmrs_n_id
         pusch_config.dmrs.n_scid = config.dmrs_n_scid
         pusch_config.mapping_type = config.mapping_type
+        pusch_config.symbol_allocation = list(config.symbol_allocation)
         pusch_config.precoding = config.precoding
 
         self.config = config
