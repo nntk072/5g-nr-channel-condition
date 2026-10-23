@@ -495,6 +495,34 @@ def test_waveform_impairment_helpers_preserve_shape_and_validate_units():
 
 
 @pytest.mark.native_sionna
+@pytest.mark.parametrize("delay_samples", (-0.35, 0.35))
+def test_fractional_timing_offset_matches_bandlimited_tone_reference(delay_samples: float):
+    sample_count = 512
+    frequencies_cycles_per_sample = torch.tensor((1.0 / 64.0, 0.125, 0.4), dtype=torch.float64)
+    sample_index = torch.arange(sample_count, dtype=torch.float64)
+    phase = 2.0 * torch.pi * frequencies_cycles_per_sample[:, None] * sample_index
+    waveform = torch.polar(torch.ones_like(phase), phase)
+
+    delayed = apply_fractional_timing_offset(
+        waveform, offset_samples=delay_samples, kernel_radius=16
+    )
+    expected = (
+        waveform
+        * torch.polar(
+            torch.ones_like(frequencies_cycles_per_sample),
+            -2.0 * torch.pi * frequencies_cycles_per_sample * delay_samples,
+        )[:, None]
+    )
+    interior = slice(16, sample_count - 16)
+    relative_rmse = torch.sqrt(
+        torch.mean(torch.abs(delayed[:, interior] - expected[:, interior]) ** 2, dim=-1)
+        / torch.mean(torch.abs(expected[:, interior]) ** 2, dim=-1)
+    )
+
+    assert torch.max(relative_rmse) < 3e-4
+
+
+@pytest.mark.native_sionna
 def test_pusch_frequency_grid_decoder_has_correct_high_vs_low_snr_trend():
     from sionna.phy.nr import PUSCHReceiver
 
