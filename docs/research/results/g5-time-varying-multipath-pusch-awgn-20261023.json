@@ -16,9 +16,8 @@
   },
   "command": [
     "/home/nguyenl37/5g-nr-channel-condition/.venv/bin/python3",
-    "experiments/g5_doppler_awgn_receiver.py",
-    "--output",
-    "docs/research/results/g5-time-varying-multipath-pusch-awgn-20261023.json"
+    "-m",
+    "experiments.g5_doppler_awgn_receiver"
   ],
   "config_sha256": "d161bc38ead99b4f5b691cbfbae8d1efdbacddebea06e31253e9081fd5a75627",
   "configuration": {
@@ -84,8 +83,8 @@
       129072
     ]
   },
-  "created_utc": "2026-10-23T13:50:55.511792+00:00",
-  "git_revision": "a04d2e9f61e9cc7469b8d57c03692cdf2bf1b0d0",
+  "created_utc": "2026-10-23T20:14:05.001339+00:00",
+  "git_revision": "78491760212bd68b5fcbff11b357f9f67bc8a4e3",
   "intra_symbol_acceptance": {
     "inference_scope": "conditional on this fixed synthetic channel and sampled payloads; the symbol-static model is a diagnostic control, not a deployment channel",
     "interpretation": "continuous sample-time Doppler versus equal Doppler frozen at each OFDM-symbol start; both include inter-symbol aging and identical waveform AWGN",
@@ -2569,7 +2568,7 @@
       "waveform_noise_seed": 129072
     }
   ],
-  "result_sha256": "c01ef82537fdc4ee1acbc853e43925ac3e3c2bbaca49768fc61b2f5166453dc6",
+  "result_sha256": "c3aef704ab7bab9775e9124f3db9931823239fa3418406ef9eeacf358d00c504",
   "runtime": {
     "device": "cpu",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
@@ -2580,7 +2579,7 @@
   "schema": "umcd.g5_doppler_awgn_receiver.v1",
   "source_sha256": {
     "experiments/g5_doppler_awgn_receiver.py": "9dc1b6ba19231cce399e8d19b69f3f8aec1345b179790016d7d0ffa5eea8b44a",
-    "integrations/sionna/nr_pusch.py": "82ed5812bab673bf0bebf2be40b06ce0b4cf6ab75c7153d995ba838b1de8f783",
+    "integrations/sionna/nr_pusch.py": "073fb321bd69547478c6c6862a0e355ae1f708f8895a5951423a16ee24f64a41",
     "integrations/sionna/ofdm_impairments.py": "d8e30d81ce895bf55c7ed5a470089ae596e648940eaa2719896cc50e1ed0d49d",
     "receivers/nr/pusch.py": "f00a94da21f925c7366a36072fb63dd2dd68669bd2414064e797a97d8fd8464d"
   },

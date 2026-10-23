@@ -117,7 +117,9 @@ class SionnaPUSCHLSReceiver:
         """Return DMRS-based LS channel estimates and interpolator error variance.
 
         received_grid has complex axes [batch, rx, rx antenna, OFDM symbol, FFT bin].
-        noise_variance is a nonnegative AWGN variance scalar or broadcastable tensor.
+        noise_variance is a nonnegative AWGN variance scalar or a tensor broadcastable
+        over ``[batch, rx, rx_ant]``. A one-dimensional tensor is per batch item;
+        higher-rank tensors may add receive and receive-antenna dimensions.
         """
         torch = self._torch
         if not torch.is_tensor(received_grid):
@@ -142,6 +144,16 @@ class SionnaPUSCHLSReceiver:
         noise = torch.as_tensor(noise_variance, dtype=torch.float32, device=self.device)
         if not bool(torch.isfinite(noise).all()) or bool((noise < 0).any()):
             raise ValueError("noise_variance must be finite and nonnegative")
+        if noise.ndim > 3:
+            raise ValueError("noise_variance must broadcast over [batch, rx, rx_ant]")
+        leading_shape = tuple(int(size) for size in received_grid.shape[:3])
+        noise_shape = (*noise.shape, *((1,) * (3 - noise.ndim)))
+        noise = noise.reshape(noise_shape)
+        if any(
+            noise_size not in (1, grid_size)
+            for noise_size, grid_size in zip(noise.shape, leading_shape, strict=True)
+        ):
+            raise ValueError("noise_variance must broadcast over [batch, rx, rx_ant]")
 
         h_hat, error_variance = self._estimator(received_grid, noise)
         return NRChannelEstimate(

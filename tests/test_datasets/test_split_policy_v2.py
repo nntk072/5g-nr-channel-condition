@@ -720,6 +720,28 @@ def test_registry_lock_rejects_hardlink_alias_for_freeze_and_read(tmp_path):
         read_split_policy_registry(alias)
 
 
+def test_registry_lock_rejects_hardlink_added_during_read(tmp_path, monkeypatch):
+    _, registry = _four_way_registry(_unlinked_subjects())
+    path = tmp_path / "canonical.json"
+    freeze_split_policy_registry(path, registry)
+    alias = tmp_path / "concurrent-hardlink.json"
+    original_fdopen = os.fdopen
+    linked = False
+
+    def add_hardlink_before_read(descriptor, mode="r", *args, **kwargs):
+        nonlocal linked
+        if not linked:
+            os.link(path, alias)
+            linked = True
+        return original_fdopen(descriptor, mode, *args, **kwargs)
+
+    monkeypatch.setattr(os, "fdopen", add_hardlink_before_read)
+    with pytest.raises(ValueError, match="single-link regular file"):
+        read_split_policy_registry(path)
+    assert linked
+    assert alias.exists()
+
+
 @pytest.mark.skipif(not hasattr(os, "mkfifo"), reason="FIFO files are unavailable")
 def test_registry_lock_rejects_fifo_without_blocking(tmp_path):
     _, registry = _four_way_registry(_unlinked_subjects())

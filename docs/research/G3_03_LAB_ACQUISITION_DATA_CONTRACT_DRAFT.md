@@ -97,14 +97,30 @@ Complex-field/CSI claims require phase-referenced held-out measurements and the 
 
 This draft's proposed location is `docs/research/G3_03_LAB_ACQUISITION_DATA_CONTRACT_DRAFT.md`.
 
+### Proposed acquisition-package interface (v0.1; not frozen or accepted)
+
+This is an explicit wire-format proposal for review. It does not change the evaluator, frozen acceptance criteria, admission state, or authorization for measurements or RT generation. Do not describe this proposal as an agreed acquisition contract.
+
+- Schema: `datasets/schema/g3.03-acquisition-package.v0.1.schema.json` (JSON Schema Draft 2020-12); fictional illustrative fixture: `datasets/schema/examples/g3.03-acquisition-package.v0.1.example.json`.
+- IDs are stable, case-sensitive ASCII tokens; file IDs use the `file.` prefix. References point to top-level records. Paths are package-relative POSIX paths without `..` segments. Hashes are lowercase SHA-256.
+- Quantities use explicit SI units: frequency Hz, length m, UTC ISO-8601 time, power W, angles degrees, solid angle sr, phase radians, and dimensionless complex channel gain. The 3D grid uses zenith theta `[0,180]` degrees and azimuth phi `[-180,180)` degrees, with arrays ordered `[theta_bin][phi_bin]`; power is integrated per cell, and solid-angle measure is recorded for each cell.
+- CSI values are flattened `[real, imaginary]` pairs in C row-major order over `rx_port, tx_port, subcarrier, ofdm_symbol`. Records bind exact resource indices and frequency offsets, symbol indices, absolute delay reference, carrier phase reference/convention, and linear-amplitude `H_floor` method and noise inputs.
+- File, specimen, acquisition-unit, calibration, fit, angular-observation, CSI, rights and attestation records are separate and linked by stable IDs. Fit records carry named parameter estimates, units and standard uncertainties; optional covariance is preserved by file reference.
+- External signatures, physical independence, calibration truth/validity, ownership and rights sufficiency remain attestations. JSON Schema can check shape, syntax and local consistency but cannot prove those external facts or validate the attestations.
+
+The schema and fixture do not add an evaluator loader or validate measurement results. Before freezing any interface, reviewers still need to decide whether the proposed angular and phase conventions suit all intended labs, resolve detailed calibration/covariance fields and signature trust policy, define rights/status vocabularies, and reconcile CSI fields with the separate frozen scoring contract. The fixture contains fictional values only and is not measurement evidence.
+
+**Known v0.1 scope gap:** This proposal is not yet a complete G3 qualification package. It does not serialize full campaign/instrument configuration records, the complete preregistered split and expected-strata manifest, scored prediction/interval rows, or a binding to an evaluator output. Those items remain required by the acquisition checklist and frozen evaluator contract; do not use v0.1 alone to claim package completeness or admission readiness. A successor must add or explicitly bind these structures before an acquisition-package loader is implemented.
+
 For later implementation/review:
 
-- `evaluation/g3_material_calibration.py` — evaluator/interface; consider a versioned acquisition-manifest loader after field agreement.
-- `tests/test_evaluation/test_g3_material_calibration.py` — schema, consistency and fail-closed tests.
-- `datasets/schema/` — proposed new versioned G3 acquisition-package JSON Schema; none exists today.
+- `evaluation/g3_material_calibration.py` — existing frozen evaluator; unchanged by this proposal.
+- `tests/test_evaluation/test_g3_material_calibration.py` — evaluator schema, consistency and fail-closed tests.
+- `tests/test_datasets/test_g3_acquisition_package_schema.py` — proposal-schema and fixture checks.
+- `datasets/schema/g3.03-acquisition-package.v0.1.schema.json` — versioned proposal-only JSON Schema.
 - `docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md` — frozen G3.03 criteria, independence, holdout, bootstrap and release gates; this draft does not revise them.
 - `docs/research/G3_SCENE_FAMILY_LICENSE_AUDIT_2026-10-23.md` — literature/material evidence and current G3.03 disposition.
 - `docs/research/licenses/ODBL_OSM_SCENE_RELEASE_POLICY_2026-10-23.md`, `docs/research/licenses/odbl-osm-scene-release-policy-20261023.json`, `datasets/public_release.py`, and `tests/test_datasets/test_public_release.py` — separate scene-lineage/public-release rights gate.
 - `docs/research/MVP_STATUS.md` — update only when evidence changes; this checklist alone is not gate progress.
 
-Any later schema addition should cover raw/calibrated file inventory, sample-file dependencies, specimen/acquisition provenance, calibration chain, geometry/uncertainty, fitted material parameters, 3D angular coverage, the separate complex-CSI evidence package and rights, while preserving the frozen evaluator behavior.
+The v0.1 proposal is reviewable scaffolding only. Any accepted successor must cover raw/calibrated file inventory, sample-file dependencies, specimen/acquisition provenance, calibration chain, geometry/uncertainty, fitted material parameters, 3D angular coverage, the separate complex-CSI evidence package and rights, while preserving frozen evaluator behavior unless a separately reviewed versioned change is approved.

@@ -1,0 +1,49 @@
+{
+  "schema_version": "g3.03-acquisition-package.v0.1",
+  "package_id": "pkg.illustrative.v01",
+  "study_id": "study.example.v01",
+  "created_utc": "2026-01-01T12:00:00Z",
+  "package_description": "ILLUSTRATIVE ONLY: every entry and number is fictional; this fixture is not measurement data and is not evidence.",
+  "files": [
+    {"file_id": "file.raw.scan1", "path": "files/raw-scan1.dat", "size_bytes": 120, "media_type": "application/octet-stream", "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "role": "raw", "dependency_file_ids": [], "sample_ids": ["sample.example.1"], "specimen_ids": ["specimen.example.1"], "calibration_ids": []},
+    {"file_id": "file.cal.standard", "path": "files/cal-standard.dat", "size_bytes": 80, "media_type": "application/octet-stream", "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "role": "calibration", "dependency_file_ids": [], "sample_ids": [], "specimen_ids": [], "calibration_ids": ["cal.example.1"]},
+    {"file_id": "file.cal.run", "path": "files/cal-run.dat", "size_bytes": 96, "media_type": "application/octet-stream", "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "role": "calibration", "dependency_file_ids": ["file.cal.standard"], "sample_ids": ["sample.example.1"], "specimen_ids": [], "calibration_ids": ["cal.example.1"]},
+    {"file_id": "file.specimen.record", "path": "records/specimen.json", "size_bytes": 64, "media_type": "application/json", "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd", "role": "specimen_provenance", "dependency_file_ids": [], "sample_ids": [], "specimen_ids": ["specimen.example.1"], "calibration_ids": []},
+    {"file_id": "file.unit.record", "path": "records/unit.json", "size_bytes": 64, "media_type": "application/json", "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", "role": "unit_provenance", "dependency_file_ids": [], "sample_ids": ["sample.example.1"], "specimen_ids": ["specimen.example.1"], "calibration_ids": []},
+    {"file_id": "file.phase.ref", "path": "files/phase-reference.dat", "size_bytes": 40, "media_type": "application/octet-stream", "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "role": "phase_reference", "dependency_file_ids": [], "sample_ids": ["sample.example.1"], "specimen_ids": [], "calibration_ids": ["cal.example.1"]},
+    {"file_id": "file.noise.input", "path": "files/noise-input.dat", "size_bytes": 32, "media_type": "application/octet-stream", "sha256": "1111111111111111111111111111111111111111111111111111111111111111", "role": "reference", "dependency_file_ids": ["file.cal.run"], "sample_ids": ["sample.example.1"], "specimen_ids": [], "calibration_ids": ["cal.example.1"]},
+    {"file_id": "file.rights.record", "path": "records/rights.json", "size_bytes": 48, "media_type": "application/json", "sha256": "2222222222222222222222222222222222222222222222222222222222222222", "role": "rights", "dependency_file_ids": [], "sample_ids": [], "specimen_ids": [], "calibration_ids": []},
+    {"file_id": "file.attestation.record", "path": "records/attestations.json", "size_bytes": 72, "media_type": "application/json", "sha256": "3333333333333333333333333333333333333333333333333333333333333333", "role": "attestation", "dependency_file_ids": [], "sample_ids": [], "specimen_ids": [], "calibration_ids": ["cal.example.1"]},
+    {"file_id": "file.fit.config", "path": "records/fit-config.json", "size_bytes": 56, "media_type": "application/json", "sha256": "4444444444444444444444444444444444444444444444444444444444444444", "role": "fit", "dependency_file_ids": [], "sample_ids": ["sample.example.1"], "specimen_ids": ["specimen.example.1"], "calibration_ids": []}
+  ],
+  "specimens": [
+    {"specimen_id": "specimen.example.1", "material_claim": "illustrative dielectric panel", "composition": "fictional example composition", "thickness_m": 0.01, "dimensions_m": [0.2, 0.2], "preparation": "illustrative prepared surface", "condition": "illustrative conditioned specimen", "provenance_file_ids": ["file.specimen.record"]}
+  ],
+  "acquisition_units": [
+    {"unit_id": "unit.example.1", "specimen_id": "specimen.example.1", "unit_kind": "independent_specimen_acquisition", "provenance_file_ids": ["file.unit.record"], "independence_attestation_id": "attest.independent"}
+  ],
+  "calibrations": [
+    {"calibration_id": "cal.example.1", "method": "illustrative full two-port calibration", "reference_plane": "illustrative antenna feed plane", "valid_from_utc": "2026-01-01T09:00:00Z", "valid_to_utc": "2026-01-01T15:00:00Z", "standard_file_ids": ["file.cal.standard"], "run_file_ids": ["file.cal.run"], "processing_file_ids": ["file.fit.config"], "truth_attestation_id": "attest.calibration"}
+  ],
+  "samples": [
+    {"sample_id": "sample.example.1", "specimen_id": "specimen.example.1", "unit_id": "unit.example.1", "calibration_id": "cal.example.1", "acquired_utc": "2026-01-01T12:30:00Z", "polarization": "V", "incidence_zenith_deg": 30.0, "frequency_hz": 3500000000.0, "measured_integrated_power_w": 0.000001, "file_ids": ["file.raw.scan1", "file.cal.run"]}
+  ],
+  "fits": [
+    {"fit_id": "fit.example.1", "specimen_id": "specimen.example.1", "model_id": "model.example.1", "model_sha256": "5555555555555555555555555555555555555555555555555555555555555555", "method": "illustrative weighted least squares", "software_file_ids": ["file.fit.config"], "parameters": [{"name": "scattering_coefficient_S", "estimate": 0.25, "unit": "1", "standard_uncertainty": 0.03}, {"name": "angular_exponent", "estimate": 1.2, "unit": "1", "standard_uncertainty": 0.2}]}
+  ],
+  "angular_measurements": [
+    {"angular_id": "angular.example.1", "sample_id": "sample.example.1", "theta_edges_deg": [0, 90, 180], "phi_edges_deg": [-180, 0, 180], "array_order": ["theta_bin", "phi_bin; azimuth varies fastest"], "power_semantics": "integrated_power_per_bin", "power_per_bin_w": [[0.0000002, 0.0000003], [0.0000001, 0.0000004]], "solid_angle_sr": [[3.141592653589793, 3.141592653589793], [3.141592653589793, 3.141592653589793]], "missing_bin_indices": []}
+  ],
+  "csi_measurements": [
+    {"csi_id": "csi.example.1", "sample_id": "sample.example.1", "axes": ["rx_port", "tx_port", "subcarrier", "ofdm_symbol"], "shape": [1, 1, 2, 2], "rx_port_ids": ["rx.port.0"], "tx_port_ids": ["tx.port.0"], "subcarrier_indices": [-1, 0], "subcarrier_frequency_offsets_hz": [-15000, 0], "ofdm_symbol_indices": [2, 3], "complex_order": "C row-major; last axis varies fastest; each value is [real, imaginary]", "measured_complex": [[0.8, 0.1], [0.7, 0.2], [0.6, 0.1], [0.5, 0.0]], "predicted_complex": [[0.79, 0.1], [0.69, 0.2], [0.59, 0.1], [0.49, 0.0]], "delay_reference": "illustrative first-path time zero", "phase_reference": "file.phase.ref; illustrative coherent LO reference", "phase_convention": "exp(+j omega t)", "h_floor": {"amplitude_linear": 0.001, "method": "illustrative noise RMS mapped to channel amplitude", "noise_input_file_ids": ["file.noise.input"]}, "file_ids": ["file.raw.scan1", "file.phase.ref"]}
+  ],
+  "rights": [
+    {"rights_id": "rights.example.1", "rights_holder": "illustrative fictional holder", "scope": ["raw", "calibrated", "derived"], "redistribution": "restricted", "publication": "allowed", "restrictions": ["Illustrative fixture only; no actual license claim."], "evidence_file_ids": ["file.rights.record"], "attestation_id": "attest.rights"}
+  ],
+  "attestations": {
+    "external_signature": {"attestation_id": "attest.signature", "claim": "Illustrative external signer identity and signature verification record.", "signer_id": "signer.example", "signed_utc": "2026-01-01T12:00:00Z", "evidence_file_ids": ["file.attestation.record"]},
+    "physical_independence": {"attestation_id": "attest.independent", "claim": "Illustrative statement that the declared acquisition unit is physically independent.", "signer_id": "signer.example", "signed_utc": "2026-01-01T12:00:00Z", "evidence_file_ids": ["file.unit.record", "file.attestation.record"]},
+    "calibration_truth": {"attestation_id": "attest.calibration", "claim": "Illustrative statement that calibration is traceable and valid for the stated interval.", "signer_id": "signer.example", "signed_utc": "2026-01-01T12:00:00Z", "evidence_file_ids": ["file.cal.standard", "file.cal.run", "file.attestation.record"]},
+    "rights_sufficiency": {"attestation_id": "attest.rights", "claim": "Illustrative rights review record; makes no actual legal claim.", "signer_id": "signer.example", "signed_utc": "2026-01-01T12:00:00Z", "evidence_file_ids": ["file.rights.record", "file.attestation.record"]}
+  }
+}

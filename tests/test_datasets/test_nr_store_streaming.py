@@ -5,6 +5,7 @@ import io
 import os
 import shutil
 import zipfile
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -97,6 +98,61 @@ def test_records_are_grouped_until_the_declared_memory_budget(tmp_path):
 
     assert len(shards) == 1
     assert tuple(record.observation.sample_id for record in shards[0]) == ("a", "b", "c")
+
+
+def test_closing_shard_generator_removes_temporary_inventory(tmp_path, monkeypatch):
+    stored_records = [write_nr_record(tmp_path, _record(sample_id)) for sample_id in ("a", "b")]
+    budget = max(_estimated_budget(tmp_path, stored) for stored in stored_records)
+
+    import datasets.nr_store as nr_store
+
+    temporary_dirs = []
+    real_temporary_directory = nr_store.tempfile.TemporaryDirectory
+
+    def tracked_temporary_directory(*args, **kwargs):
+        temporary_dir = real_temporary_directory(*args, **kwargs)
+        temporary_dirs.append(Path(temporary_dir.name))
+        return temporary_dir
+
+    monkeypatch.setattr(nr_store.tempfile, "TemporaryDirectory", tracked_temporary_directory)
+    shards = iter_nr_record_shards(tmp_path, max_shard_bytes=budget)
+
+    assert tuple(record.observation.sample_id for record in next(shards)) == ("a",)
+    assert len(temporary_dirs) == 1
+    assert temporary_dirs[0].is_dir()
+
+    shards.close()
+
+    assert not temporary_dirs[0].exists()
+
+
+def test_reader_exception_removes_temporary_inventory_and_propagates(tmp_path, monkeypatch):
+    write_nr_record(tmp_path, _record("reader-error"))
+
+    import datasets.nr_store as nr_store
+
+    temporary_dirs = []
+    real_temporary_directory = nr_store.tempfile.TemporaryDirectory
+
+    def tracked_temporary_directory(*args, **kwargs):
+        temporary_dir = real_temporary_directory(*args, **kwargs)
+        temporary_dirs.append(Path(temporary_dir.name))
+        return temporary_dir
+
+    monkeypatch.setattr(nr_store.tempfile, "TemporaryDirectory", tracked_temporary_directory)
+    error = RuntimeError("record reader failed")
+
+    def failing_reader(*_args, **_kwargs):
+        raise error
+
+    monkeypatch.setattr(nr_store, "read_nr_record", failing_reader)
+
+    with pytest.raises(RuntimeError, match="record reader failed") as raised:
+        next(iter_nr_record_shards(tmp_path, max_shard_bytes=10_000_000))
+
+    assert raised.value is error
+    assert len(temporary_dirs) == 1
+    assert not temporary_dirs[0].exists()
 
 
 def test_oversized_record_fails_before_arrays_are_loaded(tmp_path, monkeypatch):

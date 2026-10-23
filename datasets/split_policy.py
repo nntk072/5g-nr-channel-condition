@@ -93,7 +93,26 @@ def _read_immutable_lock_bytes(path: Path) -> bytes:
             raise ValueError("split-policy lock must be a single-link regular file")
         with os.fdopen(descriptor, "rb") as stream:
             descriptor = -1
-            return stream.read()
+            contents = stream.read()
+            metadata_after_read = os.fstat(stream.fileno())
+            path_metadata_after_read = os.lstat(path)
+            if stat.S_ISLNK(path_metadata_after_read.st_mode):
+                raise ValueError("split-policy lock must not be a symlink")
+            same_open_file_after_read = (
+                (metadata_after_read.st_dev, metadata_after_read.st_ino)
+                == (metadata.st_dev, metadata.st_ino)
+                == (path_metadata_after_read.st_dev, path_metadata_after_read.st_ino)
+            )
+            if not same_open_file_after_read:
+                raise ValueError("split-policy lock path changed while reading")
+            if (
+                not stat.S_ISREG(metadata_after_read.st_mode)
+                or metadata_after_read.st_nlink != 1
+                or not stat.S_ISREG(path_metadata_after_read.st_mode)
+                or path_metadata_after_read.st_nlink != 1
+            ):
+                raise ValueError("split-policy lock must be a single-link regular file")
+            return contents
     finally:
         if descriptor >= 0:
             os.close(descriptor)

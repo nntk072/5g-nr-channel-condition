@@ -1209,6 +1209,52 @@ def test_pusch_ls_pilot_bias_and_variance_match_analysis_across_dmrs_and_snr(
 
 
 @pytest.mark.native_sionna
+def test_pusch_dmrs_uncertainty_tracks_distinct_per_batch_noise_variances():
+    """Check batch noise broadcasting against realized pilot-estimation errors."""
+    receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(n_size_bwp=2, subcarrier_spacing_khz=30), device="cpu"
+    )
+    batch_per_level = 256
+    noise_levels = torch.tensor((0.01, 0.05, 0.2), dtype=torch.float32)
+    noise_variance = noise_levels.repeat_interleave(batch_per_level)
+    batch_size = noise_variance.numel()
+    transmit_grid, _ = receiver.transmit(batch_size, seed=58_311)
+    channel = torch.tensor(0.63 - 0.27j, dtype=torch.complex64)
+    clean_grid = transmit_grid[:, 0, 0].unsqueeze(1).unsqueeze(1) * channel
+    generator = torch.Generator().manual_seed(91_227)
+    white_noise = torch.complex(
+        torch.randn(clean_grid.shape, generator=generator),
+        torch.randn(clean_grid.shape, generator=generator),
+    )
+    received_grid = clean_grid + white_noise * torch.sqrt(
+        noise_variance.reshape(batch_size, 1, 1, 1, 1) / 2
+    )
+
+    estimate = receiver.estimate(received_grid, noise_variance)
+    pilot_mask = receiver.pilot_mask[0, 0].bool()
+    channel_errors = estimate.h_hat[:, 0, 0, 0, 0][:, pilot_mask] - channel
+    predicted_variance = estimate.error_variance[:, 0, 0, 0, 0][:, pilot_mask]
+
+    assert estimate.error_variance.shape[0] == batch_size
+    for level_index, expected_noise in enumerate(noise_levels):
+        start = level_index * batch_per_level
+        stop = start + batch_per_level
+        empirical_variance = channel_errors[start:stop].abs().square().mean()
+        predicted = predicted_variance[start:stop].mean()
+        torch.testing.assert_close(
+            predicted,
+            expected_noise / 2,
+            atol=1e-7,
+            rtol=1e-6,
+        )
+        assert float(empirical_variance / predicted) == pytest.approx(1.0, abs=0.08)
+
+    unsupported_per_re_variance = noise_variance[:1].reshape(1, 1, 1, 1, 1, 1, 1)
+    with pytest.raises(ValueError, match=r"\[batch, rx, rx_ant\]"):
+        receiver.estimate(received_grid[:1], unsupported_per_re_variance)
+
+
+@pytest.mark.native_sionna
 def test_sionna_lmmse_effective_noise_matches_analytical_correlated_noise_fixture():
     from sionna.phy.mimo import lmmse_equalizer
 
