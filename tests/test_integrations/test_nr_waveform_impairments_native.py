@@ -10,9 +10,12 @@ from integrations.sionna.nr_pusch import SionnaPUSCHLSReceiver  # noqa: E402
 from integrations.sionna.ofdm_impairments import (  # noqa: E402
     apply_fractional_timing_offset,
     apply_integer_timing_offset,
+    apply_iq_imbalance,
+    apply_phase_noise,
     apply_residual_cfo,
     estimate_integer_timing_offset_from_cp,
     estimate_residual_cfo_from_cp,
+    generate_wiener_phase_noise_rad,
 )
 from receivers.nr import NRPUSCHConfig  # noqa: E402
 
@@ -120,6 +123,69 @@ def test_pusch_cpu_waveform_roundtrip_decodes_noiseless_payload():
     torch.testing.assert_close(received_grid, tx_grid, atol=1e-5, rtol=1e-5)
     torch.testing.assert_close(rx_bits, tx_bits)
     assert bool(tb_crc_status.all())
+
+
+@pytest.mark.native_sionna
+def test_composed_cpu_rf_impairments_increase_pusch_ls_channel_error():
+    from sionna.phy.ofdm import OFDMDemodulator, OFDMModulator
+
+    receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(n_size_bwp=2, subcarrier_spacing_khz=30),
+        device="cpu",
+    )
+    grid = receiver.resource_grid
+    tx_grid, _ = receiver.transmit(8, seed=34_019)
+    modulator = OFDMModulator(
+        cyclic_prefix_length=grid.cyclic_prefix_length,
+        device="cpu",
+    )
+    demodulator = OFDMDemodulator(
+        fft_size=grid.fft_size,
+        l_min=0,
+        cyclic_prefix_length=grid.cyclic_prefix_length,
+        device="cpu",
+    )
+    sample_rate_hz = grid.fft_size * receiver.config.subcarrier_spacing_khz * 1_000.0
+    channel_gain = 0.75 + 0.2j
+    waveform = modulator(tx_grid)
+    ideal_grid = demodulator(waveform * channel_gain)
+    tx_iq = apply_iq_imbalance(
+        waveform,
+        gain_imbalance_db=0.5,
+        phase_imbalance_rad=0.02,
+    )
+    through_channel = tx_iq * channel_gain
+    with_cfo = apply_residual_cfo(
+        through_channel,
+        cfo_hz=0.05 * receiver.config.subcarrier_spacing_khz * 1_000.0,
+        sampling_frequency_hz=sample_rate_hz,
+    )
+    phase_noise = generate_wiener_phase_noise_rad(
+        waveform.shape[-1],
+        sampling_frequency_hz=sample_rate_hz,
+        linewidth_hz=25.0,
+        generator=torch.Generator().manual_seed(34_020),
+    )
+    with_phase_noise = apply_phase_noise(with_cfo, phase_noise_rad=phase_noise)
+    rx_iq = apply_iq_imbalance(
+        with_phase_noise,
+        gain_imbalance_db=-0.5,
+        phase_imbalance_rad=-0.02,
+    )
+    impaired_waveform = apply_integer_timing_offset(rx_iq, offset_samples=1)
+    impaired_grid = demodulator(impaired_waveform)
+
+    def estimate_nmse(received_grid):
+        receiver_grid = received_grid[:, 0, 0].unsqueeze(1).unsqueeze(1)
+        estimate = receiver.estimate(receiver_grid, torch.tensor(1e-6)).h_hat
+        expected = torch.full_like(estimate, channel_gain)
+        return torch.mean(torch.abs(estimate - expected) ** 2) / abs(channel_gain) ** 2
+
+    ideal_nmse = estimate_nmse(ideal_grid)
+    impaired_nmse = estimate_nmse(impaired_grid)
+
+    assert ideal_nmse < 1e-8
+    assert impaired_nmse > ideal_nmse + 1e-2
 
 
 @pytest.mark.native_sionna
