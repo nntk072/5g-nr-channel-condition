@@ -279,6 +279,81 @@ def test_pss_fractional_timing_refinement_is_continuous(fractional_timing: float
     assert result.nid2 == 1
 
 
+def test_fractional_timing_acquisition_recovers_cell_under_multipath_and_awgn() -> None:
+    fft_size = 256
+    cp_length = 32
+    sample_rate_hz = 7_680_000.0
+    nid1 = 119
+    nid2 = 1
+    fractional_offsets = (-0.44, -0.31, -0.17, -0.06, 0.08, 0.19, 0.33, 0.44)
+    timing_errors = []
+    cfo_errors = []
+
+    for seed in range(32):
+        rng = np.random.default_rng(9000 + seed)
+        fractional_offset = fractional_offsets[seed % len(fractional_offsets)]
+        echo_delay = int(rng.integers(3, 15))
+        echo_gain = rng.uniform(0.2, 0.65) * np.exp(1j * rng.uniform(-np.pi, np.pi))
+        channel = np.zeros(echo_delay + 1, dtype=np.complex128)
+        channel[0] = 1.0
+        channel[-1] = echo_gain
+        burst = make_nr_sync_burst(
+            nid1,
+            nid2,
+            fft_size=fft_size,
+            cyclic_prefix_length=cp_length,
+            fractional_delay_samples=fractional_offset,
+        )
+        received = np.convolve(burst, channel)
+        integer_offset = int(rng.integers(7, 24))
+        capture = np.concatenate(
+            (
+                np.zeros(integer_offset, dtype=np.complex128),
+                received,
+                np.zeros(2 * (fft_size + cp_length), dtype=np.complex128),
+            )
+        )
+        cfo_hz = float(rng.uniform(-4_500.0, 4_500.0))
+        time_s = np.arange(capture.size) / sample_rate_hz
+        capture *= np.exp(2j * np.pi * cfo_hz * time_s)
+        # Define SNR over the complete captured buffer, including its guard zeros.
+        signal_power = np.mean(np.abs(capture) ** 2)
+        noise_power = signal_power / 10 ** (15.0 / 10.0)
+        capture += np.sqrt(noise_power / 2) * (
+            rng.standard_normal(capture.size) + 1j * rng.standard_normal(capture.size)
+        )
+
+        result = acquire_nr_cell(
+            capture,
+            fft_size=fft_size,
+            cyclic_prefix_length=cp_length,
+            sampling_frequency_hz=sample_rate_hz,
+            cfo_hypotheses_hz=tuple(float(value) for value in range(-6_000, 6_001, 1_000)),
+            fractional_timing_hypotheses_samples=(-0.375, -0.1875, 0.0, 0.1875, 0.375),
+            cfo_guard_samples=echo_delay,
+        )
+
+        timing_errors.append(
+            abs(
+                result.sample_offset
+                + result.fractional_sample_offset
+                - integer_offset
+                - fractional_offset
+            )
+        )
+        cfo_errors.append(abs(result.cfo_hz - cfo_hz))
+        assert result.nid1 == nid1
+        assert result.nid2 == nid2
+        assert result.physical_cell_id == 3 * nid1 + nid2
+        assert result.pss_score > 0.7
+        assert result.sss_score > 0.9
+
+    assert np.quantile(timing_errors, 0.95) < 0.14
+    assert max(timing_errors) < 0.15
+    assert np.quantile(cfo_errors, 0.95) < 200.0
+    assert max(cfo_errors) < 300.0
+
+
 @pytest.mark.parametrize("hypotheses", [(), (-0.5, 0.5), (0.0, 0.0), (np.nan,)])
 def test_pss_search_rejects_invalid_fractional_timing_hypotheses(hypotheses) -> None:
     with pytest.raises(ValueError, match="fractional timing hypotheses"):
