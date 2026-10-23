@@ -306,8 +306,9 @@ def test_pusch_mapping_b_partial_allocation_dmrs_positions_match_ts_38211(
 
 @pytest.mark.native_sionna
 def test_partial_mapping_b_pusch_allocation_places_and_decodes_at_slot_offset() -> None:
-    """Embed an allocation-local grid at its slot offset, then decode that slice."""
+    """Place, OFDM-modulate, demodulate, and decode a scheduled partial allocation."""
     from sionna.phy.nr import PUSCHReceiver
+    from sionna.phy.ofdm import OFDMDemodulator
 
     receiver = SionnaPUSCHLSReceiver(
         NRPUSCHConfig(
@@ -322,12 +323,24 @@ def test_partial_mapping_b_pusch_allocation_places_and_decodes_at_slot_offset() 
     allocation_grid, transmitted_bits = receiver.transmit(batch_size=1, seed=9031)
 
     slot_grid = receiver.place_allocation_in_slot(allocation_grid)
-    received_allocation = receiver.extract_allocation_from_slot(slot_grid)
-
     assert slot_grid.shape[-2] == 14
     assert not bool(slot_grid[..., :3, :].any())
     assert not bool(slot_grid[..., 13:, :].any())
-    torch.testing.assert_close(received_allocation, allocation_grid, rtol=0, atol=0)
+
+    waveform = receiver.modulate_slot_grid(slot_grid)
+    cyclic_prefix_length = int(receiver.resource_grid.cyclic_prefix_length)
+    expected_samples = 14 * (receiver.resource_grid.fft_size + cyclic_prefix_length)
+    assert waveform.shape[-1] == expected_samples
+    demodulator = OFDMDemodulator(
+        fft_size=receiver.resource_grid.fft_size,
+        l_min=0,
+        cyclic_prefix_length=cyclic_prefix_length,
+        device="cpu",
+    )
+    recovered_slot_grid = demodulator(waveform)
+    torch.testing.assert_close(recovered_slot_grid, slot_grid, rtol=1e-5, atol=1e-6)
+    received_allocation = receiver.extract_allocation_from_slot(recovered_slot_grid)
+    torch.testing.assert_close(received_allocation, allocation_grid, rtol=1e-5, atol=1e-6)
 
     decoder = PUSCHReceiver(
         receiver._transmitter,

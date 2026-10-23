@@ -204,3 +204,18 @@ class SionnaPUSCHLSReceiver:
 
         start_symbol, duration = self.config.symbol_allocation
         return grid[..., start_symbol : start_symbol + duration, :]
+
+    def modulate_slot_grid(self, slot_grid: Any) -> Any:
+        """OFDM-modulate a full-slot frequency grid with the configured Sionna CP."""
+        try:
+            from sionna.phy.ofdm import OFDMModulator
+        except ImportError as exc:
+            raise RuntimeError("Install the optional Sionna 2.2 PHY dependencies") from exc
+
+        grid = self._torch.as_tensor(slot_grid, device=self.device)
+        self.extract_allocation_from_slot(grid)  # Validate axes, dtype, and finite values.
+        modulator = OFDMModulator(
+            cyclic_prefix_length=self._resource_grid.cyclic_prefix_length,
+            device=self.device,
+        )
+        return modulator(grid)
