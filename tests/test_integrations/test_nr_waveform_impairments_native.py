@@ -337,6 +337,71 @@ def test_cp_cfo_acquisition_handles_known_in_cp_multipath_and_awgn():
 
 
 @pytest.mark.native_sionna
+def test_cp_cfo_acquisition_is_robust_across_independent_in_cp_channels():
+    from sionna.phy.ofdm import OFDMModulator
+
+    batch_size = 32
+    receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(n_size_bwp=6, subcarrier_spacing_khz=30), device="cpu"
+    )
+    grid = receiver.resource_grid
+    transmit_grid, _ = receiver.transmit(batch_size, seed=821_101)
+    waveform = OFDMModulator(
+        cyclic_prefix_length=grid.cyclic_prefix_length,
+        device="cpu",
+    )(transmit_grid)
+
+    # Independent static three-tap channels with randomized complex gains.
+    # Every echo lies inside the CP guard used by the acquisition estimator.
+    channel_generator = torch.Generator(device="cpu").manual_seed(821_102)
+    coefficients = torch.complex(
+        torch.randn((batch_size, 3), generator=channel_generator),
+        torch.randn((batch_size, 3), generator=channel_generator),
+    ) / torch.sqrt(torch.tensor(2.0))
+    coefficients[:, 0] += 1.5
+    channel_output = coefficients[:, 0, None, None, None] * waveform
+    for tap_index, delay_samples in enumerate((2, 4), start=1):
+        delayed = torch.nn.functional.pad(waveform, (delay_samples, 0))
+        delayed = delayed[..., : waveform.shape[-1]]
+        channel_output = channel_output + (coefficients[:, tap_index, None, None, None] * delayed)
+
+    sample_rate_hz = grid.fft_size * receiver.config.subcarrier_spacing_khz * 1_000.0
+    cfo_hz = 0.08 * receiver.config.subcarrier_spacing_khz * 1_000.0
+    impaired = apply_residual_cfo(
+        channel_output,
+        cfo_hz=cfo_hz,
+        sampling_frequency_hz=sample_rate_hz,
+    )
+    snr_db = 20.0
+    signal_power = torch.mean(torch.abs(impaired) ** 2, dim=-1, keepdim=True)
+    noise_variance = signal_power / (10.0 ** (snr_db / 10.0))
+    noise_generator = torch.Generator(device="cpu").manual_seed(821_103)
+    noise = torch.complex(
+        torch.randn(impaired.shape, generator=noise_generator),
+        torch.randn(impaired.shape, generator=noise_generator),
+    ) * torch.sqrt(noise_variance / 2.0)
+    noisy = impaired + noise
+
+    estimate_hz = estimate_residual_cfo_from_cp(
+        noisy,
+        fft_size=grid.fft_size,
+        cyclic_prefix_length=grid.cyclic_prefix_length,
+        sampling_frequency_hz=sample_rate_hz,
+        guard_samples=4,
+    )
+    assert estimate_hz.shape == (batch_size, 1, 1)
+    absolute_error_hz = torch.abs(estimate_hz - cfo_hz)
+
+    # The channel draw is the statistical unit; repeated OFDM symbols within
+    # a realization improve its estimator but do not inflate the sample count.
+    assert absolute_error_hz.shape == (batch_size, 1, 1)
+    # 150 Hz is 0.5% of SCS; the wider max bound accommodates the finite
+    # 32-channel batch without hiding a gross acquisition failure.
+    assert torch.quantile(absolute_error_hz, 0.95) < 150.0
+    assert torch.max(absolute_error_hz) < 250.0
+
+
+@pytest.mark.native_sionna
 def test_waveform_impairment_helpers_preserve_shape_and_validate_units():
     waveform = torch.ones((2, 32), dtype=torch.complex64)
     delayed = apply_integer_timing_offset(waveform, offset_samples=3)
