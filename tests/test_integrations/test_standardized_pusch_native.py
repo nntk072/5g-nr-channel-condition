@@ -246,17 +246,23 @@ def test_short_cp_time_channel_changes_pusch_observation_vs_ideal_cfr_control() 
 
 
 @pytest.mark.native_sionna
-def test_standardized_time_domain_tdl_pusch_decodes_with_dmrs_estimate_on_cpu() -> None:
+@pytest.mark.parametrize(
+    ("n_size_bwp", "seed", "tap_span_fits_cp"),
+    ((6, 9346, False), (24, 9401, True)),
+)
+def test_standardized_time_domain_tdl_pusch_decodes_with_dmrs_estimate_on_cpu(
+    n_size_bwp: int, seed: int, tap_span_fits_cp: bool
+) -> None:
     from integrations.sionna.nr_pusch import SionnaPUSCHLSReceiver
     from sionna.phy.nr import PUSCHReceiver
 
     run = _standardized_run(StandardizedFamily.TDL)
-    config = NRPUSCHConfig(n_size_bwp=24, subcarrier_spacing_khz=30)
+    config = NRPUSCHConfig(n_size_bwp=n_size_bwp, subcarrier_spacing_khz=30)
     record = build_standardized_pusch_dmrs_records(
         run,
-        snr_db=60.0,
-        seed=9401,
-        noise_seed=9402,
+        snr_db=100.0,
+        seed=seed,
+        noise_seed=seed + 1,
         receiver_config=config,
         device="cpu",
     )[0]
@@ -277,7 +283,10 @@ def test_standardized_time_domain_tdl_pusch_decodes_with_dmrs_estimate_on_cpu() 
         h=record.observation.channel_estimate.h_hat,
     )
 
-    assert record.provenance["sampled_time_channel"]["tap_span_fits_cyclic_prefix"] is True
+    assert (
+        record.provenance["sampled_time_channel"]["tap_span_fits_cyclic_prefix"]
+        is tap_span_fits_cp
+    )
     torch.testing.assert_close(decoded_bits, transmitted_bits)
     assert bool(crc_ok.all())
 
