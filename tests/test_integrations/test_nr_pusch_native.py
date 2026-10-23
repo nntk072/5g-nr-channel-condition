@@ -358,6 +358,46 @@ def test_pusch_type2_multiport_dmrs_pilots_are_orthogonal(num_layers: int) -> No
 
 
 @pytest.mark.native_sionna
+def test_type2_four_layer_estimator_separates_known_flat_mimo_channel() -> None:
+    """Recover a known 4x4 channel through Type-2 multiport DM-RS on every RE."""
+    receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(
+            n_size_bwp=4,
+            subcarrier_spacing_khz=30,
+            num_antenna_ports=4,
+            num_layers=4,
+            dmrs_config_type=2,
+            dmrs_length=1,
+            dmrs_additional_position=0,
+            num_cdm_groups_without_data=2,
+        ),
+        device="cpu",
+    )
+    transmitted_grid, _ = receiver.transmit(batch_size=1, seed=7)
+    channel = torch.tensor(
+        [
+            [1.0 + 0.0j, 0.2 + 0.1j, 0.0 - 0.1j, 0.3 + 0.0j],
+            [0.0 + 0.1j, 0.8 + 0.0j, 0.2 + 0.0j, 0.1 - 0.1j],
+            [0.2 + 0.0j, 0.0 + 0.1j, 0.9 + 0.0j, 0.15 + 0.0j],
+            [0.05 + 0.0j, 0.2 + 0.0j, 0.0 + 0.1j, 1.1 + 0.0j],
+        ],
+        dtype=torch.complex64,
+    )
+    received_grid = torch.einsum("rl,btlsf->btrsf", channel, transmitted_grid)
+
+    estimate = receiver.estimate(received_grid, noise_variance=0.0)
+    estimated_channel = estimate.h_hat[0, 0, :, 0]
+
+    assert tuple(estimated_channel.shape) == (4, 4, 14, 48)
+    torch.testing.assert_close(
+        estimated_channel,
+        channel[:, :, None, None].expand_as(estimated_channel),
+        rtol=0,
+        atol=1e-6,
+    )
+
+
+@pytest.mark.native_sionna
 @pytest.mark.parametrize(
     ("num_cdm_groups", "offsets_per_rb"),
     (
