@@ -217,6 +217,31 @@ def test_spatial_buffer_relations_link_nearby_subjects_within_coordinate_frame()
     assert registry.split_for_parent("a") == registry.split_for_parent("b")
 
 
+def test_spatial_buffer_comparison_does_not_underflow_and_create_false_leakage():
+    footprints = (
+        SpatiotemporalFootprint("origin", ((0.0, 0.0, 0.0),), "tiny-scale-map"),
+        SpatiotemporalFootprint("inside", ((2e-201, 0.0, 0.0),), "tiny-scale-map"),
+        SpatiotemporalFootprint("outside", ((1e-200, 0.0, 0.0),), "tiny-scale-map"),
+    )
+
+    relations = derive_spatiotemporal_leakage_relations(footprints, spatial_buffer_m=5e-201)
+
+    assert relations["origin"] == relations["inside"]
+    assert relations["outside"] == ()
+
+
+def test_spatial_buffer_cell_lookup_handles_finite_coordinate_to_radius_overflow():
+    footprints = (
+        SpatiotemporalFootprint("left", ((1e100, 0.0, 0.0),), "large-scale-map"),
+        SpatiotemporalFootprint("right", ((1e100, 0.0, 0.0),), "large-scale-map"),
+    )
+
+    relations = derive_spatiotemporal_leakage_relations(footprints, spatial_buffer_m=1e-200)
+
+    assert relations["left"] == relations["right"]
+    assert relations["left"][0].namespace is LeakageNamespace.SPATIAL_BUFFER
+
+
 def test_overlapping_time_windows_are_half_open_and_scope_qualified():
     footprints = (
         SpatiotemporalFootprint("a", time_scope_id="clock-1", start_time_s=0, end_time_s=2),
@@ -240,6 +265,8 @@ def test_spatiotemporal_footprints_reject_invalid_geometry():
         SpatiotemporalFootprint("bad-coordinate", ((float("nan"), 0, 0),), "map")
     with pytest.raises(ValueError, match="coordinate_frame_id is required"):
         SpatiotemporalFootprint("missing-frame", ((0, 0, 0),))
+    with pytest.raises(TypeError, match="coordinates must be real numbers"):
+        SpatiotemporalFootprint("string-coordinate", (("0", 0, 0),), "map")
 
 
 def test_spatiotemporal_footprints_require_valid_half_open_time_windows():
@@ -247,6 +274,10 @@ def test_spatiotemporal_footprints_require_valid_half_open_time_windows():
         SpatiotemporalFootprint("empty", time_scope_id="clock", start_time_s=2, end_time_s=2)
     with pytest.raises(ValueError, match="both start_time_s and end_time_s"):
         SpatiotemporalFootprint("partial", time_scope_id="clock", start_time_s=1)
+    with pytest.raises(TypeError, match="endpoints must be real numbers"):
+        SpatiotemporalFootprint(
+            "string-time", time_scope_id="clock", start_time_s="0", end_time_s=1
+        )
 
 
 def test_registry_rejects_manually_split_shared_relation():
@@ -598,6 +629,22 @@ def test_registry_lock_is_canonical_immutable_and_detects_registry_or_policy_tam
     )
     with pytest.raises(FileExistsError, match="refusing to modify"):
         freeze_split_policy_registry(path, other)
+
+
+def test_registry_lock_rejects_duplicate_json_keys(tmp_path):
+    _, registry = _four_way_registry(_unlinked_subjects())
+    path = tmp_path / "duplicate-key.json"
+    freeze_split_policy_registry(path, registry)
+    encoded = path.read_text(encoding="utf-8")
+    encoded = encoded.replace(
+        '"schema": "umcd.split_registry.v2"',
+        '"schema": "ambiguous",\n  "schema": "umcd.split_registry.v2"',
+        1,
+    )
+    path.write_text(encoded, encoding="utf-8")
+
+    with pytest.raises(ValueError, match="duplicate JSON object key: schema"):
+        read_split_policy_registry(path)
 
 
 def _rehash_registry_payload(payload: dict) -> dict:

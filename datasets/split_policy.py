@@ -14,6 +14,7 @@ import os
 import tempfile
 from dataclasses import dataclass, field
 from enum import StrEnum
+from numbers import Real
 from pathlib import Path
 from types import MappingProxyType
 from typing import Any, Mapping, Sequence
@@ -41,6 +42,16 @@ _DEFAULT_FOUR_WAY = {"train": 0.7, "validation": 0.1, "calibration": 0.1, "test"
 
 def _canonical_json(value: Any) -> bytes:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False).encode("utf-8")
+
+
+def _reject_duplicate_json_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    """Reject ambiguous JSON objects instead of silently keeping the last key."""
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON object key: {key}")
+        result[key] = value
+    return result
 
 
 class LeakageNamespace(StrEnum):
@@ -153,8 +164,12 @@ class SpatiotemporalFootprint:
         if not isinstance(self.subject_id, str) or not self.subject_id.strip():
             raise ValueError("subject_id must be a non-empty string")
         object.__setattr__(self, "subject_id", self.subject_id.strip())
-        if any(isinstance(value, bool) for point in self.positions_m for value in point):
-            raise TypeError("positions_m coordinates must be real numbers, not booleans")
+        if any(
+            isinstance(value, bool) or not isinstance(value, Real)
+            for point in self.positions_m
+            for value in point
+        ):
+            raise TypeError("positions_m coordinates must be real numbers")
         positions = tuple(tuple(float(value) for value in point) for point in self.positions_m)
         if any(len(point) != 3 for point in positions):
             raise ValueError("positions_m must contain 3D points")
@@ -178,8 +193,11 @@ class SpatiotemporalFootprint:
             raise ValueError("time_scope_id is required when a time window is present")
         if self.start_time_s is None or self.end_time_s is None:
             raise ValueError("time windows require both start_time_s and end_time_s")
-        if isinstance(self.start_time_s, bool) or isinstance(self.end_time_s, bool):
-            raise TypeError("time window endpoints must be real numbers, not booleans")
+        if any(
+            isinstance(value, bool) or not isinstance(value, Real)
+            for value in (self.start_time_s, self.end_time_s)
+        ):
+            raise TypeError("time window endpoints must be real numbers")
         start, end = float(self.start_time_s), float(self.end_time_s)
         if not math.isfinite(start) or not math.isfinite(end) or start >= end:
             raise ValueError("time window must be finite and satisfy start_time_s < end_time_s")
@@ -204,9 +222,6 @@ def derive_spatiotemporal_leakage_relations(
     buffer_m = float(spatial_buffer_m)
     if not math.isfinite(buffer_m) or buffer_m < 0:
         raise ValueError("spatial_buffer_m must be finite and non-negative")
-    buffer_squared = buffer_m * buffer_m
-    if not math.isfinite(buffer_squared):
-        raise ValueError("spatial_buffer_m is too large for squared-distance comparisons")
     by_id: dict[str, SpatiotemporalFootprint] = {}
     for footprint in footprints:
         if not isinstance(footprint, SpatiotemporalFootprint):
@@ -218,10 +233,19 @@ def derive_spatiotemporal_leakage_relations(
     def cell(point: tuple[float, float, float]) -> tuple[int, int, int]:
         if buffer_m == 0:
             raise RuntimeError("zero-radius points use exact-coordinate lookup")
+
+        def coordinate_cell(coordinate: float) -> int:
+            quotient = coordinate / buffer_m
+            if math.isfinite(quotient):
+                return math.floor(quotient)
+            numerator, denominator = coordinate.as_integer_ratio()
+            buffer_numerator, buffer_denominator = buffer_m.as_integer_ratio()
+            return (numerator * buffer_denominator) // (denominator * buffer_numerator)
+
         return (
-            math.floor(point[0] / buffer_m),
-            math.floor(point[1] / buffer_m),
-            math.floor(point[2] / buffer_m),
+            coordinate_cell(point[0]),
+            coordinate_cell(point[1]),
+            coordinate_cell(point[2]),
         )
 
     spatial_buckets: dict[
@@ -269,10 +293,7 @@ def derive_spatiotemporal_leakage_relations(
                 for other_id, other_point in spatial_buckets.get(bucket_key, ()):
                     if other_id == subject_id:
                         continue
-                    squared_distance = sum(
-                        (a - b) ** 2 for a, b in zip(point, other_point, strict=True)
-                    )
-                    if squared_distance <= buffer_squared:
+                    if math.dist(point, other_point) <= buffer_m:
                         union_spatial(subject_id, other_id)
             own_key: tuple[int, int, int] | tuple[float, float, float]
             own_key = point if buffer_m == 0 else cell(point)
@@ -848,7 +869,9 @@ def freeze_split_policy_registry(path: str | Path, registry: SplitPolicyRegistry
 
 def read_split_policy_registry(path: str | Path) -> SplitPolicyRegistry:
     """Read a v2 lock and independently reconstruct its frozen assignment."""
-    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    payload = json.loads(
+        Path(path).read_text(encoding="utf-8"), object_pairs_hook=_reject_duplicate_json_keys
+    )
     if payload.get("schema") != "umcd.split_registry.v2" or payload.get("schema_version") != 2:
         raise ValueError("unsupported UMCD split registry schema")
     core = {key: value for key, value in payload.items() if key != "registry_sha256"}

@@ -37,7 +37,13 @@ from datasets.observations import (
 )
 from datasets.path_oracle import PathOracleTable, PathSolveStatus
 from datasets.provenance import UMCDRunProvenance
-from datasets.targets import TargetDefinition, TargetValidity, TargetValue, definition_digest
+from datasets.targets import (
+    TargetDefinition,
+    TargetValidity,
+    TargetValue,
+    migrate_legacy_target_definition_v1,
+    target_definition_digest,
+)
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
 
@@ -360,12 +366,17 @@ def test_physical_channel_view_requires_named_axes_and_explicit_normalization():
 
 
 def test_target_values_require_definition_hash_and_reasoned_element_masks():
+    fields = {
+        "semantic": "rms_delay_spread",
+        "units": "s",
+        "source": "path_oracle",
+        "reference": "absolute_physical_channel_path_oracle",
+        "aggregation_rule": "RMS over valid paths after power normalization",
+        "definition_version": "umcd.rms_delay_spread.v1",
+    }
     definition = TargetDefinition(
-        semantic="rms_delay_spread",
-        units="s",
-        source="path_oracle",
-        reference="absolute_physical_channel_path_oracle",
-        definition_sha256=definition_digest("rms-delay-spread:v1"),
+        **fields,
+        definition_sha256=target_definition_digest(**fields),
     )
     target = TargetValue(
         entity_id="link-1",
@@ -386,6 +397,79 @@ def test_target_values_require_definition_hash_and_reasoned_element_masks():
             reason_codes=(TargetValidity.VALID, TargetValidity.NOT_OBSERVABLE),
             confidence="rt_solver_truth",
         )
+
+
+@pytest.mark.parametrize(
+    "changed_field,changed_value",
+    [
+        ("semantic", "rms_delay_spread_changed"),
+        ("units", "ns"),
+        ("source", "different_oracle"),
+        ("reference", "different_gauge"),
+        ("aggregation_rule", "maximum over paths"),
+        ("definition_version", "umcd.rms_delay_spread.v2"),
+    ],
+)
+def test_target_definition_digest_binds_every_canonical_field(changed_field, changed_value):
+    fields = {
+        "semantic": "rms_delay_spread",
+        "units": "s",
+        "source": "path_oracle",
+        "reference": "absolute_physical_channel_path_oracle",
+        "aggregation_rule": "RMS over valid paths after power normalization",
+        "definition_version": "umcd.rms_delay_spread.v1",
+    }
+    definition = TargetDefinition(
+        **fields,
+        definition_sha256=target_definition_digest(**fields),
+    )
+    changed = {**fields, changed_field: changed_value}
+    tampered = TargetDefinition(
+        **changed,
+        definition_sha256=definition.definition_sha256,
+    )
+    with pytest.raises(ValueError, match="does not match its canonical fields"):
+        TargetValue(
+            entity_id="link-1",
+            definition=tampered,
+            values=np.asarray([1.0]),
+            valid_mask=np.asarray([True]),
+            reason_codes=(TargetValidity.VALID,),
+            confidence="verified",
+        )
+
+
+def test_legacy_definition_defaults_remain_constructible_but_not_canonical_targets():
+    legacy = TargetDefinition(semantic="legacy_label", units="class", source="legacy_source")
+    assert legacy.reference == "unspecified_legacy"
+    assert legacy.aggregation_rule == "unspecified_legacy"
+    assert legacy.definition_version == "unversioned_legacy"
+    with pytest.raises(ValueError, match="SHA-256 digest"):
+        TargetValue(
+            entity_id="link-1",
+            definition=legacy,
+            values=np.asarray([1.0]),
+            valid_mask=np.asarray([True]),
+            reason_codes=(TargetValidity.VALID,),
+            confidence="legacy",
+        )
+
+
+def test_v1_target_definition_migrates_with_explicitly_unknown_contract_fields():
+    migrated = migrate_legacy_target_definition_v1(
+        {
+            "semantic": "legacy_delay",
+            "units": "s",
+            "source": "old_path_solver",
+            "reference": "unspecified_legacy",
+            "definition_sha256": "old-format-digest",
+        }
+    )
+
+    assert migrated.reference == "not recorded by legacy target schema v1"
+    assert migrated.aggregation_rule == "not recorded by legacy target schema v1"
+    assert migrated.definition_version == "migrated_from_legacy_target_v1"
+    migrated.require_versioned()
 
 
 def _bundle() -> EpisodeBundle:
@@ -420,11 +504,20 @@ def _bundle() -> EpisodeBundle:
         power_scale=ChannelPowerScale.ABSOLUTE,
     )
     definition = TargetDefinition(
-        "geometric_direct_path",
-        "boolean",
-        "path_geometry_oracle",
-        "3d_segment_visibility",
-        definition_digest("geometric_direct_path:v1"),
+        semantic="geometric_direct_path",
+        units="boolean",
+        source="path_geometry_oracle",
+        reference="3d_segment_visibility",
+        aggregation_rule="one visibility value per link and frame; no pooling",
+        definition_version="umcd.geometric_direct_path.v1",
+        definition_sha256=target_definition_digest(
+            semantic="geometric_direct_path",
+            units="boolean",
+            source="path_geometry_oracle",
+            reference="3d_segment_visibility",
+            aggregation_rule="one visibility value per link and frame; no pooling",
+            definition_version="umcd.geometric_direct_path.v1",
+        ),
     )
     target = TargetValue(
         "gNB-1-to-UE-1",
@@ -452,6 +545,13 @@ def test_episode_bundle_roundtrip_keeps_layers_content_addressed_and_pickle_free
         loaded.path_oracle.interaction_vertices_m, bundle.path_oracle.interaction_vertices_m
     )
     assert loaded.path_oracle.interaction_vertex_frame == "test_scene_xyz_m"
+    assert loaded.targets[0].definition.aggregation_rule == (
+        "one visibility value per link and frame; no pooling"
+    )
+    assert loaded.targets[0].definition.definition_version == "umcd.geometric_direct_path.v1"
+    assert loaded.targets[0].definition.definition_sha256 == (
+        bundle.targets[0].definition.definition_sha256
+    )
     np.testing.assert_array_equal(loaded.channel_views[0].channel, bundle.channel_views[0].channel)
     np.testing.assert_array_equal(loaded.targets[0].valid_mask, bundle.targets[0].valid_mask)
     assert (tmp_path / "objects/oracle_paths").is_dir()

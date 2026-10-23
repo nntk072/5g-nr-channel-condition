@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import math
 from dataclasses import dataclass
 from enum import StrEnum
@@ -36,9 +37,19 @@ class TargetDefinition:
     source: str
     reference: str = "unspecified_legacy"
     definition_sha256: str = "unversioned_legacy"
+    aggregation_rule: str = "unspecified_legacy"
+    definition_version: str = "unversioned_legacy"
 
     def __post_init__(self) -> None:
-        for name in ("semantic", "units", "source", "reference", "definition_sha256"):
+        for name in (
+            "semantic",
+            "units",
+            "source",
+            "reference",
+            "definition_sha256",
+            "aggregation_rule",
+            "definition_version",
+        ):
             value = getattr(self, name)
             if not isinstance(value, str) or not value.strip():
                 raise ValueError(f"target definition {name} must be a non-empty string")
@@ -50,6 +61,20 @@ class TargetDefinition:
             raise ValueError("canonical target definitions need a lowercase SHA-256 digest")
         if self.reference == "unspecified_legacy":
             raise ValueError("canonical target definitions need an explicit physical reference")
+        if self.aggregation_rule == "unspecified_legacy":
+            raise ValueError("canonical target definitions need an explicit aggregation rule")
+        if self.definition_version == "unversioned_legacy":
+            raise ValueError("canonical target definitions need an explicit version")
+        expected_digest = target_definition_digest(
+            semantic=self.semantic,
+            units=self.units,
+            reference=self.reference,
+            aggregation_rule=self.aggregation_rule,
+            source=self.source,
+            definition_version=self.definition_version,
+        )
+        if digest != expected_digest:
+            raise ValueError("target definition SHA-256 does not match its canonical fields")
 
 
 @dataclass(frozen=True, slots=True, eq=False)
@@ -122,3 +147,64 @@ def definition_digest(canonical_definition: str) -> str:
     if not isinstance(canonical_definition, str) or not canonical_definition.strip():
         raise ValueError("canonical_definition must be a non-empty string")
     return hashlib.sha256(canonical_definition.encode("utf-8")).hexdigest()
+
+
+def target_definition_digest(
+    *,
+    semantic: str,
+    units: str,
+    reference: str,
+    aggregation_rule: str,
+    source: str,
+    definition_version: str,
+) -> str:
+    """Hash every field in a versioned target-definition contract."""
+    fields = {
+        "aggregation_rule": aggregation_rule,
+        "definition_version": definition_version,
+        "reference": reference,
+        "semantic": semantic,
+        "source": source,
+        "units": units,
+    }
+    if any(not isinstance(value, str) or not value.strip() for value in fields.values()):
+        raise ValueError("canonical target-definition fields must be non-empty strings")
+    canonical = json.dumps(fields, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def migrate_legacy_target_definition_v1(payload: dict[str, object]) -> TargetDefinition:
+    """Upgrade a v1 definition while marking fields absent from that schema unknown."""
+    semantic_value = payload.get("semantic")
+    units_value = payload.get("units")
+    source_value = payload.get("source")
+    required_values = (semantic_value, units_value, source_value)
+    if any(not isinstance(value, str) or not value.strip() for value in required_values):
+        raise ValueError("legacy v1 target definitions require semantic, units, and source strings")
+    semantic, units, source = str(semantic_value), str(units_value), str(source_value)
+    reference_value = payload.get("reference", "")
+    reference = (
+        str(reference_value)
+        if isinstance(reference_value, str) and reference_value.strip()
+        else "not recorded by legacy target schema v1"
+    )
+    if reference == "unspecified_legacy":
+        reference = "not recorded by legacy target schema v1"
+    aggregation_rule = "not recorded by legacy target schema v1"
+    definition_version = "migrated_from_legacy_target_v1"
+    return TargetDefinition(
+        semantic=semantic,
+        units=units,
+        source=source,
+        reference=reference,
+        aggregation_rule=aggregation_rule,
+        definition_version=definition_version,
+        definition_sha256=target_definition_digest(
+            semantic=semantic,
+            units=units,
+            reference=reference,
+            aggregation_rule=aggregation_rule,
+            source=source,
+            definition_version=definition_version,
+        ),
+    )

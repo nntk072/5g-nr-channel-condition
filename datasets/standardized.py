@@ -22,7 +22,13 @@ from typing import Any, Mapping, cast
 import numpy as np
 
 from .observations import FrequencyDomainModelInputs, FrequencyDomainObservation
-from .targets import TargetDefinition, TargetValidity, TargetValue, definition_digest
+from .targets import (
+    TargetDefinition,
+    TargetValidity,
+    TargetValue,
+    migrate_legacy_target_definition_v1,
+    target_definition_digest,
+)
 
 
 class StandardizedFamily(StrEnum):
@@ -517,9 +523,17 @@ def standardized_learning_example_from_record(
         reference=(
             "profile_los_component false maps to 0 and true maps to 1; not geometric LOS truth"
         ),
-        definition_sha256=definition_digest(
-            "profile_los_proxy:v2; profile_los_component=false:0,true:1; "
-            "source=standardized_profile_model; not_geometric_visibility"
+        aggregation_rule="single standardized profile category; false=0, true=1",
+        definition_version="profile_los_proxy.v2",
+        definition_sha256=target_definition_digest(
+            semantic="standardized_profile_los_category_proxy",
+            units="binary_class",
+            reference=(
+                "profile_los_component false maps to 0 and true maps to 1; not geometric LOS truth"
+            ),
+            aggregation_rule="single standardized profile category; false=0, true=1",
+            source="Sionna standardized TDL/CDL profile model",
+            definition_version="profile_los_proxy.v2",
         ),
     )
     target = TargetValue(
@@ -660,7 +674,7 @@ def _publish_immutable(path: Path, payload: bytes) -> None:
 
 
 def _target_bytes(targets: Mapping[str, TargetValue]) -> bytes:
-    payload: dict[str, Any] = {"schema": "standardized_targets.v1", "targets": {}}
+    payload: dict[str, Any] = {"schema": "standardized_targets.v2", "targets": {}}
     for name, target in sorted(targets.items()):
         definition = target.definition
         payload["targets"][name] = {
@@ -671,6 +685,8 @@ def _target_bytes(targets: Mapping[str, TargetValue]) -> bytes:
                 "source": definition.source,
                 "reference": definition.reference,
                 "definition_sha256": definition.definition_sha256,
+                "aggregation_rule": definition.aggregation_rule,
+                "definition_version": definition.definition_version,
             },
             "values": target.values.tolist(),
             "valid_mask": target.valid_mask.tolist(),
@@ -824,11 +840,16 @@ def read_standardized_learning_run(
         if target_hash != target_ref["content_sha256"] or target_path.name != f"{target_hash}.json":
             raise ValueError("standardized target content hash is invalid")
         target_payload = json.loads(target_bytes.decode("utf-8"))
-        if target_payload.get("schema") != "standardized_targets.v1":
+        target_schema = target_payload.get("schema")
+        if target_schema not in {"standardized_targets.v1", "standardized_targets.v2"}:
             raise ValueError("unsupported standardized target schema")
         targets: dict[str, TargetValue] = {}
         for name, item in target_payload["targets"].items():
-            definition = TargetDefinition(**item["definition"])
+            definition_payload = item["definition"]
+            if target_schema == "standardized_targets.v1":
+                definition = migrate_legacy_target_definition_v1(definition_payload)
+            else:
+                definition = TargetDefinition(**definition_payload)
             targets[name] = TargetValue(
                 entity_id=item["entity_id"],
                 definition=definition,

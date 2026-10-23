@@ -419,7 +419,12 @@ def _publish_static_rt_sample_umcd(
     material_manifest: Mapping[str, Any],
 ) -> Mapping[str, object]:
     """Publish one static RT path solve and its direct noisy-CFR observation."""
-    from datasets.targets import TargetDefinition, TargetValidity, TargetValue, definition_digest
+    from datasets.targets import (
+        TargetDefinition,
+        TargetValidity,
+        TargetValue,
+        target_definition_digest,
+    )
 
     from integrations.sionna.array_layouts import sionna_scene_to_network_episode
     from integrations.sionna.rt_network import SionnaPathBinding, write_sionna_rt_episode_bundle
@@ -510,8 +515,15 @@ def _publish_static_rt_sample_umcd(
         units="boolean",
         source="independent_segment_visibility_oracle",
         reference="finite scene-segment visibility cross-checked by depth-zero PathSolver",
-        definition_sha256=definition_digest(
-            "UMCD:F03-RT-STATIC:geometric_direct_path_visibility:v1"
+        aggregation_rule="one direct-path visibility label per link; no temporal or port pooling",
+        definition_version="umcd.f03_rt_static.direct_visibility.v1",
+        definition_sha256=target_definition_digest(
+            semantic="geometric direct-path visibility",
+            units="boolean",
+            source="independent_segment_visibility_oracle",
+            reference="finite scene-segment visibility cross-checked by depth-zero PathSolver",
+            aggregation_rule="one direct-path visibility label per link; no temporal or port pooling",
+            definition_version="umcd.f03_rt_static.direct_visibility.v1",
         ),
     )
     target = TargetValue(

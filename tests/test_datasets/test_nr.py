@@ -58,6 +58,7 @@ def test_nr_observation_builds_inference_payload_without_sample_oracle_ids():
     assert model_inputs.fft_bin_indices == tuple(range(24))
     assert not hasattr(model_inputs, "sample_id")
     assert not hasattr(model_inputs, "targets")
+    assert not hasattr(model_inputs, "target_definitions")
 
 
 def test_receiver_output_factory_preserves_the_authoritative_fft_bin_mapping():

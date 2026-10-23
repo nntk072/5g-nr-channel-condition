@@ -31,7 +31,7 @@ from datasets.nr_store import (
     read_nr_trajectory,
     write_nr_trajectory,
 )
-from datasets.targets import TargetValidity, TargetValue, definition_digest
+from datasets.targets import TargetValidity, TargetValue, target_definition_digest
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
 from integrations.sionna.candidate_audit import instrument_path_solver_candidate_counter
@@ -787,8 +787,17 @@ def generate_rt_nr_trajectory(
             reference=(
                 "independent finite-segment Mitsuba geometry query for the RT scene and poses"
             ),
-            definition_sha256=definition_digest(
-                "UMCD:F04-RT-DYNAMIC:geometric_direct_path_visibility:v2"
+            aggregation_rule="one visibility value per trajectory frame; no spatial or temporal pooling",
+            definition_version="umcd.f04_rt_dynamic.direct_visibility.v2",
+            definition_sha256=target_definition_digest(
+                semantic="geometric direct-path visibility",
+                units="boolean",
+                source="mitsuba_segment_intersection_oracle",
+                reference=(
+                    "independent finite-segment Mitsuba geometry query for the RT scene and poses"
+                ),
+                aggregation_rule="one visibility value per trajectory frame; no spatial or temporal pooling",
+                definition_version="umcd.f04_rt_dynamic.direct_visibility.v2",
             ),
         )
         los_target = TargetValue(

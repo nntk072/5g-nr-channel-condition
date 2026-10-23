@@ -33,7 +33,12 @@ from .observations import (
 )
 from .path_oracle import PathOracleTable, PathSolveStatus
 from .provenance import UMCDRunProvenance
-from .targets import TargetDefinition, TargetValidity, TargetValue
+from .targets import (
+    TargetDefinition,
+    TargetValidity,
+    TargetValue,
+    migrate_legacy_target_definition_v1,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -309,7 +314,7 @@ def _channel_payload(view: PhysicalChannelView) -> bytes:
 
 def _target_payload(target: TargetValue) -> bytes:
     metadata = {
-        "schema": "umcd.target.v1",
+        "schema": "umcd.target.v2",
         "entity_id": target.entity_id,
         "definition": asdict(target.definition),
         "reason_codes": [reason.value for reason in target.reason_codes],
@@ -762,12 +767,18 @@ def read_episode_bundle(
         )
     targets: list[TargetValue] = []
     for target_metadata, arrays in grouped.get("targets", []):
-        if target_metadata.get("schema") != "umcd.target.v1":
+        target_schema = target_metadata.get("schema")
+        if target_schema not in {"umcd.target.v1", "umcd.target.v2"}:
             raise ValueError("unsupported target layer schema")
+        definition_payload = target_metadata["definition"]
+        if target_schema == "umcd.target.v1":
+            definition = migrate_legacy_target_definition_v1(definition_payload)
+        else:
+            definition = TargetDefinition(**definition_payload)
         targets.append(
             TargetValue(
                 entity_id=target_metadata["entity_id"],
-                definition=TargetDefinition(**target_metadata["definition"]),
+                definition=definition,
                 values=arrays["values"],
                 valid_mask=arrays["valid_mask"],
                 reason_codes=tuple(
