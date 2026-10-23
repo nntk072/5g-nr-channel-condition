@@ -1,5 +1,7 @@
 """Native PUSCH waveform synchronization impairment checks."""
 
+import math
+
 import pytest
 
 torch = pytest.importorskip("torch")
@@ -492,6 +494,55 @@ def test_waveform_impairment_helpers_preserve_shape_and_validate_units():
         apply_residual_cfo(waveform, cfo_hz=100.0, sampling_frequency_hz=0.0)
     with pytest.raises(ValueError, match="smaller"):
         apply_integer_timing_offset(waveform, offset_samples=32)
+
+
+@pytest.mark.native_sionna
+def test_iq_imbalance_matches_analytic_image_rejection_for_complex_tone():
+    sample_count = 256
+    tone_bin = 17
+    gain_imbalance_db = 1.5
+    phase_imbalance_rad = 0.08
+    sample_index = torch.arange(sample_count, dtype=torch.float64)
+    phase = 2.0 * torch.pi * tone_bin * sample_index / sample_count
+    tone = torch.polar(torch.ones_like(phase), phase)
+
+    impaired = apply_iq_imbalance(
+        tone,
+        gain_imbalance_db=gain_imbalance_db,
+        phase_imbalance_rad=phase_imbalance_rad,
+    )
+    spectrum = torch.fft.fft(impaired) / sample_count
+    i_gain = 10.0 ** (gain_imbalance_db / 40.0)
+    q_gain = 10.0 ** (-gain_imbalance_db / 40.0)
+    direct_gain = 0.5 * (
+        i_gain
+        + q_gain * math.cos(phase_imbalance_rad)
+        + 1j * q_gain * math.sin(phase_imbalance_rad)
+    )
+    image_gain = 0.5 * (
+        i_gain
+        - q_gain * math.cos(phase_imbalance_rad)
+        - 1j * q_gain * math.sin(phase_imbalance_rad)
+    )
+
+    torch.testing.assert_close(
+        spectrum[tone_bin],
+        torch.tensor(direct_gain, dtype=torch.complex128),
+        rtol=0,
+        atol=1e-12,
+    )
+    torch.testing.assert_close(
+        spectrum[-tone_bin],
+        torch.tensor(image_gain, dtype=torch.complex128),
+        rtol=0,
+        atol=1e-12,
+    )
+    image_rejection_db = 20.0 * math.log10(abs(direct_gain / image_gain))
+    assert image_rejection_db > 20.0
+    other_bins = torch.cat(
+        (spectrum[:tone_bin], spectrum[tone_bin + 1 : -tone_bin], spectrum[-tone_bin + 1 :])
+    )
+    assert float(torch.max(torch.abs(other_bins))) < 1e-12
 
 
 @pytest.mark.native_sionna
