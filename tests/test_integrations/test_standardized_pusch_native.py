@@ -309,3 +309,52 @@ def test_zero_standardized_pusch_impairments_match_ideal_link() -> None:
         torch.testing.assert_close(
             candidate.targets["channel_cfr"], reference.targets["channel_cfr"], rtol=0, atol=0
         )
+
+
+@pytest.mark.native_sionna
+def test_combined_waveform_impairments_increase_standardized_dmrs_ls_error() -> None:
+    run = _standardized_run(StandardizedFamily.TDL)
+    config = NRPUSCHConfig(n_size_bwp=6, subcarrier_spacing_khz=30)
+    common = {
+        "snr_db": 60.0,
+        "seed": 1207,
+        "noise_seed": 8101,
+        "receiver_config": config,
+        "device": "cpu",
+    }
+    ideal = build_standardized_pusch_dmrs_records(run, **common)
+    impaired = build_standardized_pusch_dmrs_records(
+        run,
+        **common,
+        impairments=NRWaveformImpairments(
+            cfo_hz=75.0,
+            tx_iq_gain_imbalance_db=0.5,
+            tx_iq_phase_imbalance_rad=0.03,
+            tx_phase_noise_linewidth_hz=10.0,
+            rx_iq_gain_imbalance_db=-0.4,
+            rx_iq_phase_imbalance_rad=-0.02,
+            rx_phase_noise_linewidth_hz=15.0,
+            integer_timing_offset_samples=1,
+            fractional_timing_offset_samples=0.2,
+        ),
+        impairment_seed=9101,
+    )
+
+    def ls_nmse(record):
+        estimate = record.observation.channel_estimate.h_hat
+        truth = record.targets["channel_cfr"]
+        return torch.mean(torch.abs(estimate - truth) ** 2) / torch.mean(torch.abs(truth) ** 2)
+
+    ideal_nmse = torch.stack([ls_nmse(record) for record in ideal])
+    impaired_nmse = torch.stack([ls_nmse(record) for record in impaired])
+    for reference, candidate in zip(ideal, impaired, strict=True):
+        assert (
+            reference.provenance["parent_subject_id"] == candidate.provenance["parent_subject_id"]
+        )
+        torch.testing.assert_close(
+            reference.targets["channel_cfr"], candidate.targets["channel_cfr"], rtol=0, atol=0
+        )
+    assert bool((impaired_nmse > ideal_nmse).all()), (
+        f"combined impairments should increase paired LS NMSE: "
+        f"ideal={ideal_nmse.tolist()}, impaired={impaired_nmse.tolist()}"
+    )
