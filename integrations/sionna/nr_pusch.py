@@ -37,6 +37,7 @@ class SionnaPUSCHLSReceiver:
         pusch_config = PUSCHConfig()
         pusch_config.carrier.subcarrier_spacing = config.subcarrier_spacing_khz
         pusch_config.carrier.n_size_grid = config.n_size_bwp
+        pusch_config.carrier.n_cell_id = config.n_cell_id
         pusch_config.n_size_bwp = config.n_size_bwp
         pusch_config.num_antenna_ports = config.num_antenna_ports
         pusch_config.num_layers = config.num_layers
@@ -44,6 +45,8 @@ class SionnaPUSCHLSReceiver:
         pusch_config.dmrs.length = config.dmrs_length
         pusch_config.dmrs.additional_position = config.dmrs_additional_position
         pusch_config.dmrs.num_cdm_groups_without_data = config.num_cdm_groups_without_data
+        pusch_config.dmrs.n_id = config.dmrs_n_id
+        pusch_config.dmrs.n_scid = config.dmrs_n_scid
         pusch_config.mapping_type = config.mapping_type
         pusch_config.precoding = config.precoding
 

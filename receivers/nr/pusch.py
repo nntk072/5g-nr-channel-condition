@@ -19,6 +19,9 @@ class NRPUSCHConfig:
     subcarrier_spacing_khz: int = 30
     num_antenna_ports: int = 1
     num_layers: int = 1
+    n_cell_id: int = 1
+    dmrs_n_id: tuple[int, int] | None = None
+    dmrs_n_scid: int = 0
     dmrs_config_type: int = 1
     dmrs_length: int = 1
     dmrs_additional_position: int = 0
@@ -33,6 +36,8 @@ class NRPUSCHConfig:
             "subcarrier_spacing_khz",
             "num_antenna_ports",
             "num_layers",
+            "n_cell_id",
+            "dmrs_n_scid",
             "dmrs_config_type",
             "dmrs_length",
             "dmrs_additional_position",
@@ -50,6 +55,18 @@ class NRPUSCHConfig:
             raise ValueError("num_antenna_ports must be 1, 2, or 4")
         if not 1 <= self.num_layers <= self.num_antenna_ports:
             raise ValueError("num_layers must be between 1 and num_antenna_ports")
+        if not 0 <= self.n_cell_id <= 1007:
+            raise ValueError("n_cell_id must be in [0, 1007]")
+        if self.dmrs_n_id is not None:
+            if not isinstance(self.dmrs_n_id, tuple) or len(self.dmrs_n_id) != 2:
+                raise TypeError("dmrs_n_id must be a two-element tuple or None")
+            if any(
+                isinstance(value, bool) or not isinstance(value, int) or not 0 <= value <= 65535
+                for value in self.dmrs_n_id
+            ):
+                raise ValueError("each dmrs_n_id value must be an integer in [0, 65535]")
+        if self.dmrs_n_scid not in {0, 1}:
+            raise ValueError("dmrs_n_scid must be 0 or 1")
         if self.dmrs_config_type not in {1, 2}:
             raise ValueError("dmrs_config_type must be 1 or 2")
         if self.dmrs_length not in {1, 2}:

@@ -1,3 +1,5 @@
+import math
+
 import pytest
 
 torch = pytest.importorskip("torch")
@@ -6,6 +8,46 @@ pytest.importorskip("sionna")
 from integrations.sionna.noise import proper_complex_awgn  # noqa: E402
 from integrations.sionna.nr_pusch import SionnaPUSCHLSReceiver  # noqa: E402
 from receivers.nr import NRPUSCHConfig  # noqa: E402
+
+
+def _pusch_dmrs_gold_reference(
+    *,
+    cell_id: int,
+    dmrs_n_id: tuple[int, int] | None,
+    n_scid: int,
+    slot: int,
+    symbol: int,
+    count: int,
+) -> torch.Tensor:
+    """Independent TS 38.211 5.2.1/6.4.1.1.1 Gold-sequence reference.
+
+    For transform-precoding-disabled PUSCH, use
+    ``c_init = 2^17(14*n_slot + l + 1)(2*N_ID^nSCID + 1)
+    + 2*N_ID^nSCID + n_SCID (mod 2^31)`` and map consecutive Gold chips to
+    ``(1-2*c(2n) + j*(1-2*c(2n+1)))/sqrt(2)``.
+    """
+    n_id = cell_id if dmrs_n_id is None else dmrs_n_id[n_scid]
+    c_init = (2**17 * (14 * slot + symbol + 1) * (2 * n_id + 1) + 2 * n_id + n_scid) % 2**31
+    n_c = 1600
+    sequence_length = 2 * count
+    state_length = n_c + sequence_length + 31
+    x1 = [0] * state_length
+    x2 = [0] * state_length
+    x1[0] = 1
+    for index in range(31):
+        x2[index] = (c_init >> index) & 1
+    for index in range(n_c + sequence_length):
+        x1[index + 31] = (x1[index + 3] + x1[index]) & 1
+        x2[index + 31] = (x2[index + 3] + x2[index + 2] + x2[index + 1] + x2[index]) & 1
+    chips = [(x1[index + n_c] + x2[index + n_c]) & 1 for index in range(sequence_length)]
+    scale = 1.0 / math.sqrt(2.0)
+    return torch.tensor(
+        [
+            complex(scale * (1 - 2 * chips[2 * index]), scale * (1 - 2 * chips[2 * index + 1]))
+            for index in range(count)
+        ],
+        dtype=torch.complex128,
+    )
 
 
 @pytest.mark.native_sionna
@@ -85,6 +127,41 @@ def test_pusch_type1_dmrs_positions_match_ts_38211_full_slot_reference(
             int(index) for index in torch.nonzero(mask[symbol], as_tuple=False).flatten()
         )
         assert actual_subcarriers == expected_subcarriers
+
+
+@pytest.mark.native_sionna
+@pytest.mark.parametrize(
+    ("cell_id", "dmrs_n_id", "n_scid"),
+    ((1, None, 0), (37, (17, 29), 1)),
+)
+def test_pusch_dmrs_values_match_independent_ts_38211_gold_sequence(
+    cell_id: int, dmrs_n_id: tuple[int, int] | None, n_scid: int
+) -> None:
+    """Validate actual Sionna DMRS pilots against TS 38.211 Gold equations."""
+    receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(
+            n_size_bwp=2,
+            subcarrier_spacing_khz=30,
+            n_cell_id=cell_id,
+            dmrs_n_id=dmrs_n_id,
+            dmrs_n_scid=n_scid,
+        ),
+        device="cpu",
+    )
+    pilots = receiver.resource_grid.pilot_pattern.pilots[0, 0]
+    assert receiver.metadata["n_cell_id"] == cell_id
+    assert receiver.metadata["dmrs_n_id"] == dmrs_n_id
+    assert receiver.metadata["dmrs_n_scid"] == n_scid
+    expected = _pusch_dmrs_gold_reference(
+        cell_id=cell_id,
+        dmrs_n_id=dmrs_n_id,
+        n_scid=n_scid,
+        slot=0,
+        symbol=2,
+        count=int(pilots.numel()),
+    )
+
+    torch.testing.assert_close(pilots.to(torch.complex128), expected, rtol=0, atol=1e-7)
 
 
 @pytest.mark.native_sionna
