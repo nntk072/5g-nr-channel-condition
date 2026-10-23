@@ -354,6 +354,60 @@ def test_partial_mapping_b_pusch_allocation_places_and_decodes_at_slot_offset() 
 
 
 @pytest.mark.native_sionna
+def test_partial_mapping_b_slot_waveform_decodes_static_in_cp_echo() -> None:
+    """Decode a scheduled slot waveform after a seeded two-tap in-CP channel."""
+    from sionna.phy.nr import PUSCHReceiver
+    from sionna.phy.ofdm import OFDMDemodulator
+
+    receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(
+            n_size_bwp=6,
+            subcarrier_spacing_khz=30,
+            dmrs_additional_position=1,
+            mapping_type="B",
+            symbol_allocation=(3, 10),
+        ),
+        device="cpu",
+    )
+    allocation_grid, transmitted_bits = receiver.transmit(batch_size=1, seed=9031)
+    slot_grid = receiver.place_allocation_in_slot(allocation_grid)
+    transmit_waveform = receiver.modulate_slot_grid(slot_grid)
+    received_waveform = transmit_waveform.clone()
+    echo_delay_samples = 2
+    echo_gain = 0.2 + 0.1j
+    received_waveform[..., echo_delay_samples:] += (
+        echo_gain * transmit_waveform[..., :-echo_delay_samples]
+    )
+    noise_variance = 1e-5
+    generator = torch.Generator(device="cpu").manual_seed(5221)
+    received_waveform += proper_complex_awgn(
+        received_waveform,
+        noise_variance,
+        generator=generator,
+    )
+
+    demodulator = OFDMDemodulator(
+        fft_size=receiver.resource_grid.fft_size,
+        l_min=0,
+        cyclic_prefix_length=int(receiver.resource_grid.cyclic_prefix_length),
+        device="cpu",
+    )
+    received_slot_grid = demodulator(received_waveform)
+    received_allocation = receiver.extract_allocation_from_slot(received_slot_grid)
+    decoder = PUSCHReceiver(
+        receiver._transmitter,
+        return_tb_crc_status=True,
+        input_domain="freq",
+        device="cpu",
+    )
+    decoded_bits, crc_ok = decoder(received_allocation, torch.tensor(noise_variance))
+
+    assert echo_delay_samples < receiver.resource_grid.cyclic_prefix_length
+    torch.testing.assert_close(decoded_bits, transmitted_bits)
+    assert bool(crc_ok.all())
+
+
+@pytest.mark.native_sionna
 @pytest.mark.parametrize(
     ("additional_position", "expected_symbols"),
     (
