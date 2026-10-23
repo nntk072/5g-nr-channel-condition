@@ -1,0 +1,207 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:loslab:schema:g3-material-calibration-predictions.v1",
+  "title": "LoSLab G3 material calibration predictions v1",
+  "description": "Structural schema for the frozen evaluator input. Cross-record consistency, canonical hash verification, semantic numeric checks, and scoring criteria are enforced by evaluation/g3_material_calibration.py, not this schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "target_frequency_hz",
+    "model_id",
+    "model_sha256",
+    "measurement_calibration_id",
+    "material_mapping_id",
+    "surface_description",
+    "uncertainty_description",
+    "measurement_unit_independence_description",
+    "cluster_bootstrap_seed",
+    "cluster_bootstrap_replicates",
+    "expected_strata",
+    "full_split_manifest",
+    "full_split_manifest_sha256",
+    "split_manifest_external_verification_id",
+    "incidence_groups",
+    "test_predictions"
+  ],
+  "properties": {
+    "schema": { "const": "loslab.g3_material_calibration_predictions.v1" },
+    "target_frequency_hz": { "type": "number" },
+    "model_id": { "type": "string", "minLength": 1 },
+    "model_sha256": { "$ref": "#/$defs/sha256" },
+    "measurement_calibration_id": { "type": "string", "minLength": 1 },
+    "material_mapping_id": { "type": "string", "minLength": 1 },
+    "surface_description": { "type": "string", "minLength": 1 },
+    "uncertainty_description": { "type": "string", "minLength": 1 },
+    "measurement_unit_independence_description": { "type": "string", "minLength": 1 },
+    "cluster_bootstrap_seed": { "type": "integer" },
+    "cluster_bootstrap_replicates": { "type": "integer" },
+    "expected_strata": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/stratum" }
+    },
+    "full_split_manifest": { "$ref": "#/$defs/fullSplitManifest" },
+    "full_split_manifest_sha256": { "$ref": "#/$defs/sha256" },
+    "split_manifest_external_verification_id": { "type": "string", "minLength": 1 },
+    "incidence_groups": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/incidenceGroup" }
+    },
+    "test_predictions": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/testPrediction" }
+    }
+  },
+  "$defs": {
+    "nonemptyString": { "type": "string", "minLength": 1 },
+    "numberArray": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "number" }
+    },
+    "sampleIds": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/nonemptyString" }
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{64}$"
+    },
+    "stratum": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["material_id", "polarization", "incidence_stratum_id"],
+      "properties": {
+        "material_id": { "$ref": "#/$defs/nonemptyString" },
+        "polarization": { "$ref": "#/$defs/nonemptyString" },
+        "incidence_stratum_id": { "$ref": "#/$defs/nonemptyString" }
+      }
+    },
+    "splitGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["incidence_group_id", "split", "sample_ids"],
+      "properties": {
+        "incidence_group_id": { "$ref": "#/$defs/nonemptyString" },
+        "split": { "enum": ["train", "validation", "test"] },
+        "sample_ids": { "$ref": "#/$defs/sampleIds" }
+      }
+    },
+    "testSampleAssignment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sample_id",
+        "incidence_group_id",
+        "incidence_stratum_id",
+        "incidence_angle_deg",
+        "material_id",
+        "polarization",
+        "measurement_unit_id",
+        "measurement_unit_provenance_id"
+      ],
+      "properties": {
+        "sample_id": { "$ref": "#/$defs/nonemptyString" },
+        "incidence_group_id": { "$ref": "#/$defs/nonemptyString" },
+        "incidence_stratum_id": { "$ref": "#/$defs/nonemptyString" },
+        "incidence_angle_deg": { "type": "number" },
+        "material_id": { "$ref": "#/$defs/nonemptyString" },
+        "polarization": { "$ref": "#/$defs/nonemptyString" },
+        "measurement_unit_id": { "$ref": "#/$defs/nonemptyString" },
+        "measurement_unit_provenance_id": { "$ref": "#/$defs/nonemptyString" }
+      }
+    },
+    "fullSplitManifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "expected_strata", "groups", "test_sample_assignments"],
+      "properties": {
+        "schema": { "const": "loslab.g3_material_calibration_split_manifest.v1" },
+        "expected_strata": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/stratum" }
+        },
+        "groups": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/splitGroup" }
+        },
+        "test_sample_assignments": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/testSampleAssignment" }
+        }
+      }
+    },
+    "incidenceGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "incidence_group_id",
+        "measurement_unit_id",
+        "measurement_unit_provenance_id",
+        "incidence_stratum_id",
+        "incidence_angle_deg",
+        "split",
+        "sample_ids"
+      ],
+      "properties": {
+        "incidence_group_id": { "$ref": "#/$defs/nonemptyString" },
+        "measurement_unit_id": { "$ref": "#/$defs/nonemptyString" },
+        "measurement_unit_provenance_id": { "$ref": "#/$defs/nonemptyString" },
+        "incidence_stratum_id": { "$ref": "#/$defs/nonemptyString" },
+        "incidence_angle_deg": { "type": "number" },
+        "split": { "const": "test" },
+        "sample_ids": { "$ref": "#/$defs/sampleIds" }
+      }
+    },
+    "testPrediction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sample_id",
+        "incidence_group_id",
+        "incidence_stratum_id",
+        "incidence_angle_deg",
+        "split",
+        "material_id",
+        "polarization",
+        "measured_integrated_power_db",
+        "predicted_integrated_power_db",
+        "prediction_interval_95_db",
+        "measured_angular_power",
+        "predicted_angular_power",
+        "angular_bin_edges_deg"
+      ],
+      "properties": {
+        "sample_id": { "$ref": "#/$defs/nonemptyString" },
+        "incidence_group_id": { "$ref": "#/$defs/nonemptyString" },
+        "incidence_stratum_id": { "$ref": "#/$defs/nonemptyString" },
+        "incidence_angle_deg": { "type": "number" },
+        "split": { "const": "test" },
+        "material_id": { "$ref": "#/$defs/nonemptyString" },
+        "polarization": { "$ref": "#/$defs/nonemptyString" },
+        "measured_integrated_power_db": { "type": "number" },
+        "predicted_integrated_power_db": { "type": "number" },
+        "prediction_interval_95_db": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": { "type": "number" }
+        },
+        "measured_angular_power": { "$ref": "#/$defs/numberArray" },
+        "predicted_angular_power": { "$ref": "#/$defs/numberArray" },
+        "angular_bin_edges_deg": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "type": "number" }
+        }
+      }
+    }
+  }
+}

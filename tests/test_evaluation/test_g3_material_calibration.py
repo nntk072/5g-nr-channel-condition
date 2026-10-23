@@ -4,13 +4,18 @@ from __future__ import annotations
 
 import hashlib
 import json
+import sys
 from copy import deepcopy
+from pathlib import Path
 
 import pytest
 from evaluation.g3_material_calibration import (
     SCHEMA,
     SPLIT_MANIFEST_SCHEMA,
     evaluate_g3_material_calibration,
+)
+from evaluation.g3_material_calibration import (
+    main as material_calibration_main,
 )
 
 
@@ -213,6 +218,73 @@ def _assessable_payload(*, failing_coverage: bool = False) -> dict[str, object]:
     payload["full_split_manifest"] = split_manifest
     _refresh_split_manifest_hash(payload)
     return payload
+
+
+def _material_calibration_payload_validator():
+    jsonschema = pytest.importorskip(
+        "jsonschema", reason="jsonschema is a declared repository test dependency"
+    )
+    schema_path = (
+        Path(__file__).parents[2]
+        / "datasets"
+        / "schema"
+        / "g3-material-calibration-predictions.v1.schema.json"
+    )
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    jsonschema.Draft202012Validator.check_schema(schema)
+    return jsonschema.Draft202012Validator(schema)
+
+
+def test_synthetic_payload_matches_draft_2020_12_schema():
+    validator = _material_calibration_payload_validator()
+
+    assert validator.is_valid(_payload())
+
+
+@pytest.mark.parametrize(
+    "mutate",
+    [
+        lambda payload: payload.pop("model_id"),
+        lambda payload: payload.update(unrecognized_field="extra"),
+        lambda payload: payload.update(model_sha256="not-a-sha256"),
+        lambda payload: payload["test_predictions"][0].update(prediction_interval_95_db=[1.0]),
+        lambda payload: payload["incidence_groups"].__setitem__(0, "not-an-object"),
+    ],
+)
+def test_schema_rejects_malformed_payload_shape(mutate):
+    validator = _material_calibration_payload_validator()
+    malformed = deepcopy(_payload())
+    mutate(malformed)
+
+    assert not validator.is_valid(malformed)
+
+
+@pytest.mark.parametrize("source", ['{"schema":', '{"schema": "x" trailing}'])
+def test_cli_rejects_invalid_json(tmp_path, monkeypatch, source):
+    input_path = tmp_path / "predictions.json"
+    input_path.write_text(source, encoding="utf-8")
+    monkeypatch.setattr(sys, "argv", ["evaluate-g3-material-calibration", str(input_path)])
+
+    with pytest.raises(json.JSONDecodeError):
+        material_calibration_main()
+
+
+@pytest.mark.parametrize(
+    "mutate",
+    [
+        lambda payload: payload.update(cluster_bootstrap_replicates=999),
+        lambda payload: payload.update(full_split_manifest_sha256="f" * 64),
+        lambda payload: payload["test_predictions"][0].update(sample_id="unbound-sample"),
+    ],
+)
+def test_schema_leaves_semantic_threshold_hash_and_join_checks_to_evaluator(mutate):
+    validator = _material_calibration_payload_validator()
+    payload = deepcopy(_payload())
+    mutate(payload)
+
+    assert validator.is_valid(payload)
+    with pytest.raises(ValueError):
+        evaluate_g3_material_calibration(payload)
 
 
 def test_synthetic_fixture_meets_numeric_contract_but_never_qualifies_scene():
