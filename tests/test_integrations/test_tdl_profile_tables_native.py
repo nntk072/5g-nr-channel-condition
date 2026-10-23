@@ -111,6 +111,52 @@ def test_scalable_tdl_delays_have_configured_power_weighted_rms(model):
 
 
 @pytest.mark.native_sionna
+@pytest.mark.parametrize(("model", "seed"), [("D", 83_041), ("E", 83_051)])
+def test_tdl_los_specular_and_diffuse_power_partition_matches_rician_moments(model, seed):
+    """Check the LOS tap's Rician power split and finite-sinusoid moments."""
+    batch_size = 16_384
+    num_sinusoids = 20
+    channel = generate_tdl_frequency_response(
+        model=model,
+        seed=seed,
+        carrier_frequency_hz=3.5e9,
+        subcarrier_spacing_hz=30_000.0,
+        num_subcarriers=8,
+        batch_size=batch_size,
+        delay_spread_s=100e-9,
+        spec_version="19.2",
+        num_sinusoids=num_sinusoids,
+        device="cpu",
+    )
+    parameters = models.load_json(models.parameter_file(f"TDL-{model}.json", "19.2"))
+    table_powers = torch.pow(
+        10.0,
+        torch.as_tensor(parameters["powers"], dtype=torch.float64) / 10.0,
+    )
+    table_powers /= torch.sum(table_powers)
+    expected_k_factor = (table_powers[0] / table_powers[1]).item()
+    assert channel.metadata["k_factor_linear"] == pytest.approx(expected_k_factor, rel=1e-6)
+
+    path_coefficients = channel.h_path[:, 0, 0, 0, 0, :, 0]
+    empirical_powers = torch.mean(torch.abs(path_coefficients) ** 2, dim=0)
+    expected_powers = torch.as_tensor(
+        channel.metadata["mean_tap_powers"], dtype=empirical_powers.dtype
+    )
+    torch.testing.assert_close(empirical_powers, expected_powers, rtol=0.04, atol=0.001)
+
+    first_tap_power = expected_powers[0].item()
+    diffuse_power = first_tap_power / (1.0 + expected_k_factor)
+    specular_power = first_tap_power - diffuse_power
+    expected_fourth_moment = (
+        specular_power**2
+        + 4.0 * specular_power * diffuse_power
+        + (2.0 - 1.0 / num_sinusoids) * diffuse_power**2
+    )
+    observed_fourth_moment = torch.mean(torch.abs(path_coefficients[:, 0]) ** 4).item()
+    assert observed_fourth_moment == pytest.approx(expected_fourth_moment, rel=0.025)
+
+
+@pytest.mark.native_sionna
 @pytest.mark.parametrize("model", ["A", "B", "C", "D", "E"])
 def test_tdl_19_2_profile_delays_and_average_tap_powers_match_sionna(model):
     if not torch.cuda.is_available():
