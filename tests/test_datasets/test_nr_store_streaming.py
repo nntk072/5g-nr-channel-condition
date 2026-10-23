@@ -187,5 +187,23 @@ def test_duplicate_manifest_json_keys_are_rejected(tmp_path):
         next(iter_nr_record_shards(tmp_path, max_shard_bytes=10_000_000))
 
 
+def test_duplicate_sample_id_manifests_are_rejected(tmp_path, monkeypatch):
+    stored = write_nr_record(tmp_path, _record("duplicate-sample"))
+    manifest_key = hashlib.sha256(stored.sample_id.encode()).hexdigest()
+    manifest_dir = tmp_path / "manifests"
+    original = manifest_dir / f"{manifest_key}.json"
+    alias = manifest_dir / "alias.json"
+    try:
+        alias.symlink_to(original)
+    except OSError as exc:
+        pytest.skip(f"symlink creation is unavailable: {exc}")
+
+    import datasets.nr_store as nr_store
+
+    monkeypatch.setattr(nr_store, "_nr_record_memory_estimate", lambda *_args, **_kwargs: 1)
+    with pytest.raises(ValueError, match="duplicate NR record manifest"):
+        next(iter_nr_record_shards(tmp_path, max_shard_bytes=10_000_000))
+
+
 def test_empty_store_yields_no_shards(tmp_path):
     assert tuple(iter_nr_record_shards(tmp_path, max_shard_bytes=10_000_000)) == ()

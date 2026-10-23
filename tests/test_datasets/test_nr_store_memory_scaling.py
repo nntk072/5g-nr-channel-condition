@@ -101,17 +101,19 @@ def test_bounded_synthetic_profile_separates_payload_and_inventory_memory(tmp_pa
     )
 
     inventory_peaks: dict[int, int] = {}
-    for count in (0, 8, 32, 128):
+    for count in (0, 8, 128, 8192):
         root = tmp_path / f"inventory-{count}"
         root.mkdir()
         _write_synthetic_store(root, count)
         inventory_peaks[count] = _inventory_scan_peak(root)
 
-    assert inventory_peaks[128] > inventory_peaks[8]
+    traced_growth = inventory_peaks[8192] - inventory_peaks[8]
+    assert traced_growth < 1024 * 1024
     report = {
         "label": "synthetic non-production NR store memory profile",
         "manifest_counts": list(inventory_peaks),
         "manifest_scan_peak_traced_python_bytes": inventory_peaks,
+        "traced_python_growth_8_to_8192_manifests_bytes": traced_growth,
         **payload,
         "scope": (
             "Payload values are byte accounting and conservative modeled equivalents; "
@@ -121,3 +123,30 @@ def test_bounded_synthetic_profile_separates_payload_and_inventory_memory(tmp_pa
         ),
     }
     print(json.dumps(report, sort_keys=True))
+
+
+def test_sqlite_inventory_order_matches_python_sample_id_order(tmp_path, monkeypatch):
+    import datasets.nr_store as nr_store
+
+    sample_ids = ("z", "A", "a", "a2", "ä", "Å", "a10", "sample-0001")
+    manifest_dir = tmp_path / "manifests"
+    manifest_dir.mkdir()
+    for sample_id in sample_ids:
+        payload = {
+            "sample_id": sample_id,
+            "content_sha256": "0" * 64,
+            "relative_path": "unused.npz",
+            "schema_version": 1,
+        }
+        key = hashlib.sha256(sample_id.encode()).hexdigest()
+        (manifest_dir / f"{key}.json").write_text(json.dumps(payload), encoding="utf-8")
+
+    monkeypatch.setattr(nr_store, "_nr_record_memory_estimate", lambda *_args, **_kwargs: 1)
+    monkeypatch.setattr(nr_store, "read_nr_record", lambda _root, manifest: manifest.sample_id)
+    shard_ids = tuple(
+        sample_id
+        for shard in nr_store.iter_nr_record_shards(tmp_path, max_shard_bytes=3)
+        for sample_id in shard
+    )
+
+    assert shard_ids == tuple(sorted(sample_ids))

@@ -7,6 +7,7 @@ import io
 import json
 import math
 import os
+import sqlite3
 import stat
 import tempfile
 import zipfile
@@ -171,6 +172,14 @@ def _nr_record_memory_estimate(
     return estimated_bytes
 
 
+def _iter_manifest_paths(manifest_dir: Path) -> Iterator[Path]:
+    """Yield JSON manifest paths without materializing the directory listing."""
+    with os.scandir(manifest_dir) as entries:
+        for entry in entries:
+            if entry.name.endswith(".json"):
+                yield Path(entry.path)
+
+
 def iter_nr_record_shards(
     root: str | Path,
     *,
@@ -178,10 +187,10 @@ def iter_nr_record_shards(
 ) -> Iterator[tuple[NRChannelRecord, ...]]:
     """Load deterministic sample-ID-ordered batches within an estimated byte budget.
 
-    Manifest metadata for the full store is inventoried and sorted, so that
-    metadata memory scales with corpus size. NPZ payloads are opened one shard
-    at a time. The byte estimate charges two compressed-buffer equivalents and
-    two uncompressed-member equivalents, including NPY headers. This is
+    Manifest metadata is staged in a temporary disk-backed SQLite index with
+    a bounded page cache. NPZ payloads are opened one shard at a time. The byte
+    estimate charges two compressed-buffer equivalents and two
+    uncompressed-member equivalents, including NPY headers. This is
     conservative accounting rather than a measured allocation model; it
     excludes Python and allocator overhead and is not an RSS guarantee.
     An individual record above the budget fails before its arrays are loaded.
@@ -198,48 +207,96 @@ def iter_nr_record_shards(
     if not manifest_dir.exists():
         return
 
-    inventory: list[tuple[str, NRStoredRecord, int]] = []
-    seen_sample_ids: set[str] = set()
-    for manifest_path in sorted(manifest_dir.glob("*.json")):
-        resolved_manifest = manifest_path.resolve(strict=True)
-        if not resolved_manifest.is_relative_to(base):
-            raise ValueError("NR manifest path resolves outside the store")
-        payload = json.loads(
-            resolved_manifest.read_text(encoding="utf-8"),
-            object_pairs_hook=_reject_duplicate_json_keys,
-        )
-        if not isinstance(payload, dict):
-            raise ValueError("NR record manifest must be a JSON object")
-        stored = NRStoredRecord(**payload)
-        if not isinstance(stored.sample_id, str) or not stored.sample_id.strip():
-            raise ValueError("NR record manifest sample_id must be a nonempty string")
-        if stored.sample_id in seen_sample_ids:
-            raise ValueError(f"duplicate NR record manifest for sample_id {stored.sample_id!r}")
-        expected_manifest_name = f"{hashlib.sha256(stored.sample_id.encode()).hexdigest()}.json"
-        if resolved_manifest.name != expected_manifest_name:
-            raise ValueError("NR record manifest filename does not match its sample ID")
-        if stored.schema_version != 1:
-            raise ValueError(f"unsupported NR record schema version: {stored.schema_version}")
-        estimated_bytes = _nr_record_memory_estimate(
-            base,
-            stored,
-            max_shard_bytes=max_shard_bytes,
-        )
-        seen_sample_ids.add(stored.sample_id)
-        inventory.append((stored.sample_id, stored, estimated_bytes))
+    with tempfile.TemporaryDirectory(prefix="nr-manifest-inventory-") as temporary_dir:
+        database_path = Path(temporary_dir) / "inventory.sqlite3"
+        connection = sqlite3.connect(database_path)
+        try:
+            # SQLite interprets a negative cache size as a kibibyte limit.
+            connection.execute("PRAGMA cache_size = -256")
+            connection.execute("PRAGMA temp_store = FILE")
+            connection.execute("PRAGMA journal_mode = OFF")
+            connection.execute(
+                "CREATE TABLE inventory ("
+                "sample_id TEXT PRIMARY KEY COLLATE BINARY, "
+                "content_sha256 TEXT NOT NULL, "
+                "relative_path TEXT NOT NULL, "
+                "schema_version INTEGER NOT NULL, "
+                "estimated_bytes INTEGER NOT NULL"
+                ") WITHOUT ROWID"
+            )
+            for manifest_path in _iter_manifest_paths(manifest_dir):
+                resolved_manifest = manifest_path.resolve(strict=True)
+                if not resolved_manifest.is_relative_to(base):
+                    raise ValueError("NR manifest path resolves outside the store")
+                payload = json.loads(
+                    resolved_manifest.read_text(encoding="utf-8"),
+                    object_pairs_hook=_reject_duplicate_json_keys,
+                )
+                if not isinstance(payload, dict):
+                    raise ValueError("NR record manifest must be a JSON object")
+                stored = NRStoredRecord(**payload)
+                if not isinstance(stored.sample_id, str) or not stored.sample_id.strip():
+                    raise ValueError("NR record manifest sample_id must be a nonempty string")
+                expected_manifest_name = (
+                    f"{hashlib.sha256(stored.sample_id.encode()).hexdigest()}.json"
+                )
+                if resolved_manifest.name != expected_manifest_name:
+                    raise ValueError("NR record manifest filename does not match its sample ID")
+                if stored.schema_version != 1:
+                    raise ValueError(
+                        f"unsupported NR record schema version: {stored.schema_version}"
+                    )
+                try:
+                    connection.execute(
+                        "INSERT INTO inventory VALUES (?, ?, ?, ?, 0)",
+                        (
+                            stored.sample_id,
+                            stored.content_sha256,
+                            stored.relative_path,
+                            stored.schema_version,
+                        ),
+                    )
+                except sqlite3.IntegrityError as exc:
+                    if "UNIQUE constraint failed" not in str(exc):
+                        raise
+                    raise ValueError(
+                        f"duplicate NR record manifest for sample_id {stored.sample_id!r}"
+                    ) from exc
+                estimated_bytes = _nr_record_memory_estimate(
+                    base,
+                    stored,
+                    max_shard_bytes=max_shard_bytes,
+                )
+                connection.execute(
+                    "UPDATE inventory SET estimated_bytes = ? WHERE sample_id = ?",
+                    (estimated_bytes, stored.sample_id),
+                )
 
-    inventory.sort(key=lambda row: row[0])
-    pending: list[NRStoredRecord] = []
-    pending_bytes = 0
-    for _, stored, estimated_bytes in inventory:
-        if pending and pending_bytes + estimated_bytes > max_shard_bytes:
-            yield tuple(read_nr_record(base, item) for item in pending)
-            pending = []
+            connection.commit()
+            pending: list[NRStoredRecord] = []
             pending_bytes = 0
-        pending.append(stored)
-        pending_bytes += estimated_bytes
-    if pending:
-        yield tuple(read_nr_record(base, item) for item in pending)
+            cursor = connection.execute(
+                "SELECT sample_id, content_sha256, relative_path, schema_version, "
+                "estimated_bytes FROM inventory ORDER BY sample_id COLLATE BINARY"
+            )
+            for sample_id, content_sha256, relative_path, schema_version, estimated_bytes in cursor:
+                if pending and pending_bytes + estimated_bytes > max_shard_bytes:
+                    yield tuple(read_nr_record(base, item) for item in pending)
+                    pending = []
+                    pending_bytes = 0
+                pending.append(
+                    NRStoredRecord(
+                        sample_id=sample_id,
+                        content_sha256=content_sha256,
+                        relative_path=relative_path,
+                        schema_version=schema_version,
+                    )
+                )
+                pending_bytes += estimated_bytes
+            if pending:
+                yield tuple(read_nr_record(base, item) for item in pending)
+        finally:
+            connection.close()
 
 
 def _publish_immutable(path: Path, data: bytes) -> None:
