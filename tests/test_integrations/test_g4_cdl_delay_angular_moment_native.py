@@ -1,21 +1,24 @@
-"""Bounded CDL-A delay/arrival-angle moment check against a ray reference.
+"""Bounded CDL NLOS delay/arrival-angle moment checks against ray references.
 
-Frozen case: TR 38.901 CDL-A, 3.5 GHz carrier, 100 ns delay spread, 30 kHz
-subcarrier spacing, 8 subcarriers, one vertical omnidirectional UT element,
-zero UT orientation/velocity, CPU, seed 90317, and 4,096 independent channel
-draws. The statistic is the PDP/ray-weighted correlation between normalized
-cluster excess delay and cluster-mean cos(AoA), with each cluster's angle
-feature averaged over its 20 TR 38.901 azimuth ray offsets. The estimate must
-be within 0.05 of the independently calculated ray reference, and its
-two-sided 99% normal-approximation interval must have half-width no greater
-than 0.05.
+Frozen cases: TR 38.901 CDL-A/B/C, 3.5 GHz carrier, 100 ns delay spread,
+30 kHz subcarrier spacing, 8 subcarriers, one vertical omnidirectional UT
+element, zero UT orientation/velocity, CPU, profile-derived seeds, and 4,096
+independent channel draws per profile. The statistic is the PDP/ray-weighted
+correlation between normalized cluster excess delay and cluster-mean
+cos(AoA), with each cluster's angle feature averaged over its 20 TR 38.901
+azimuth ray offsets. Each estimate must be within 0.05 of the independently
+calculated ray reference. Bonferroni-adjusted two-sided normal intervals
+provide 99% family-wise confidence across the three profiles, with each
+half-width no greater than 0.05.
 
-This single standardized-profile statistic does not qualify geometric RT,
-other CDL profiles, other angular dimensions, complex CSI, or receiver impact.
+These NLOS standardized-profile statistics do not qualify CDL-D/E's combined
+LOS/diffuse zero-delay path, geometric RT, other angular dimensions, complex
+CSI, or receiver impact.
 """
 
 from __future__ import annotations
 
+import hashlib
 import math
 from statistics import NormalDist
 from typing import Any, Iterator
@@ -35,6 +38,12 @@ _DELAY_SPREAD_S = 100e-9
 _FAMILYWISE_ALPHA = 0.01
 _MAX_CI_HALF_WIDTH = 0.05
 _MAX_ABSOLUTE_REFERENCE_ERROR = 0.05
+_NLOS_PROFILES = ("A", "B", "C")
+_CDL_TABLE_SHA256 = {
+    "A": "b96f8a179646ee468717c615e8061103d1e66eb1ff1ea78301de243740254cb7",
+    "B": "7c87c092cb2bb44891d301ee3c1991cdda1c6b64094a03f18746ec5fa14ee2a2",
+    "C": "f2044ecc3b72a1967221805ba70b1f0dab9634bb831478c1337b737ced6e4a28",
+}
 _RAY_ANGLE_OFFSETS = (
     0.0447,
     -0.0447,
@@ -69,9 +78,11 @@ def _limit_torch_threads() -> Iterator[None]:
         torch.set_num_threads(original)
 
 
-def _ray_reference_and_cluster_scores() -> tuple[float, Any]:
+def _ray_reference_and_cluster_scores(model: str) -> tuple[float, Any]:
     """Compute the delay/cos(AoA) correlation directly from the profile table."""
-    table_path = profile_resources.parameter_file("CDL-A.json", "19.2")
+    table_path = profile_resources.parameter_file(f"CDL-{model}.json", "19.2")
+    table_bytes = table_path.read_bytes()
+    assert hashlib.sha256(table_bytes).hexdigest() == _CDL_TABLE_SHA256[model]
     parameters = profile_resources.load_json(table_path)
     assert not bool(parameters["los"])
 
@@ -108,11 +119,12 @@ def _ray_reference_and_cluster_scores() -> tuple[float, Any]:
 
 
 @pytest.mark.native_sionna
-def test_cdl_a_delay_angular_moment_matches_independent_ray_reference() -> None:
-    reference, cluster_scores = _ray_reference_and_cluster_scores()
+@pytest.mark.parametrize("model", _NLOS_PROFILES)
+def test_cdl_nlos_delay_angular_moment_matches_independent_ray_reference(model: str) -> None:
+    reference, cluster_scores = _ray_reference_and_cluster_scores(model)
     channel = generate_cdl_frequency_response(
-        model="A",
-        seed=_SEED,
+        model=model,
+        seed=_SEED + ord(model),
         carrier_frequency_hz=_CARRIER_FREQUENCY_HZ,
         subcarrier_spacing_hz=30_000.0,
         num_subcarriers=8,
@@ -130,10 +142,12 @@ def test_cdl_a_delay_angular_moment_matches_independent_ray_reference() -> None:
     observations = (cluster_power * cluster_scores).sum(dim=1)
     estimate = observations.mean()
     standard_error = observations.std(unbiased=True) / math.sqrt(_BATCH_SIZE)
-    z_99 = NormalDist().inv_cdf(1.0 - _FAMILYWISE_ALPHA / 2.0)
+    z_99 = NormalDist().inv_cdf(1.0 - _FAMILYWISE_ALPHA / (2.0 * len(_NLOS_PROFILES)))
     half_width = z_99 * standard_error
 
     assert abs(float(estimate) - reference) <= _MAX_ABSOLUTE_REFERENCE_ERROR
     assert float(half_width) <= _MAX_CI_HALF_WIDTH
     assert channel.metadata["batch_axis_semantics"] == "independent_stochastic_channel_draws"
+    assert channel.metadata["profile_model"] == model
+    assert channel.metadata["parameter_table_sha256"] == _CDL_TABLE_SHA256[model]
     assert channel.metadata["profile_los_component"] is False
