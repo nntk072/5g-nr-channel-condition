@@ -109,12 +109,23 @@ def test_record_validation_rejects_geometric_los_and_inconsistent_cfr() -> None:
         standardized_run_from_channel(channel, family=StandardizedFamily.TDL)
 
 
-def test_profile_los_is_not_geometric_los_and_family_category_is_checked() -> None:
+@pytest.mark.parametrize(
+    ("model", "los", "proxy_label"),
+    [("A", False, 0), ("D", True, 1)],
+)
+def test_profile_los_is_not_geometric_los_and_family_category_is_checked(
+    model: str, los: bool, proxy_label: int
+) -> None:
     run = standardized_run_from_channel(
-        _channel(model="D", los=True), family=StandardizedFamily.CDL
+        _channel(model=model, los=los), family=StandardizedFamily.CDL
     )
-    assert run.records[0].profile_los_component
+    assert run.records[0].profile_los_component is los
     assert run.records[0].metadata["geometric_los_label"] is None
+    example = standardized_learning_example_from_record(run.records[0], snr_db=20.0, seed=410)
+    assert set(example.targets) == {"profile_los_proxy"}
+    assert "geometric_los" not in example.targets
+    assert example.targets["profile_los_proxy"].values.tolist() == [proxy_label]
+    assert "not geometric LOS" in example.targets["profile_los_proxy"].definition.reference
 
     record = run.records[0]
     with pytest.raises(ValueError, match="profile LOS category"):
@@ -134,7 +145,7 @@ def test_profile_los_is_not_geometric_los_and_family_category_is_checked() -> No
                     "metadata",
                 )
             },
-            profile_los_component=False,
+            profile_los_component=not los,
         )
 
 

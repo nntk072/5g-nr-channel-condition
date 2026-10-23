@@ -72,6 +72,8 @@ def test_standardized_tdl_cdl_to_pusch_dmrs_is_seeded_and_target_is_separate(
         observation = record.observation
         estimate = observation.channel_estimate
         truth = record.targets["channel_cfr"]
+        assert set(record.targets) == {"channel_cfr", "profile_los_proxy"}
+        assert "geometric_los" not in record.targets
         assert observation.received_grid.shape == (1, 1, 1, 14, 72)
         assert estimate.h_hat.shape == (1, 1, 1, 1, 1, 14, 72)
         assert truth.shape == estimate.h_hat.shape
