@@ -179,7 +179,7 @@ def test_pusch_double_symbol_dmrs_positions_match_ts_38211_full_slot_reference(
 @pytest.mark.native_sionna
 @pytest.mark.parametrize(
     ("additional_position", "expected_symbols"),
-    ((0, (0,)), (1, (0, 8))),
+    ((0, (0,)), (1, (0, 8)), (2, (0, 4, 8)), (3, (0, 3, 6, 9))),
 )
 def test_pusch_mapping_b_partial_allocation_dmrs_positions_match_ts_38211(
     additional_position: int, expected_symbols: tuple[int, ...]
