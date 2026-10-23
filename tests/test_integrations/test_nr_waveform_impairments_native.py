@@ -277,6 +277,66 @@ def test_cpu_ofdm_roundtrip_and_residual_cfo_timing_acquisition_and_correction()
 
 
 @pytest.mark.native_sionna
+def test_cp_cfo_acquisition_handles_known_in_cp_multipath_and_awgn():
+    from sionna.phy.ofdm import OFDMModulator
+
+    receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(n_size_bwp=2, subcarrier_spacing_khz=30), device="cpu"
+    )
+    grid = receiver.resource_grid
+    transmit_grid, _ = receiver.transmit(16, seed=821)
+    waveform = OFDMModulator(
+        cyclic_prefix_length=grid.cyclic_prefix_length,
+        device="cpu",
+    )(transmit_grid)
+
+    # A causal two-tap channel with its delayed path inside the cyclic prefix.
+    path_delay_samples = 2
+    delayed = torch.cat(
+        (torch.zeros_like(waveform[..., :path_delay_samples]), waveform[..., :-path_delay_samples]),
+        dim=-1,
+    )
+    multipath = waveform + (0.35 + 0.2j) * delayed
+    sample_rate_hz = grid.fft_size * receiver.config.subcarrier_spacing_khz * 1_000.0
+    cfo_hz = 0.03 * receiver.config.subcarrier_spacing_khz * 1_000.0
+    impaired = apply_residual_cfo(
+        multipath,
+        cfo_hz=cfo_hz,
+        sampling_frequency_hz=sample_rate_hz,
+    )
+
+    noise_snr_db = 45.0
+    signal_power = torch.mean(torch.abs(impaired) ** 2)
+    noise_variance = signal_power / (10.0 ** (noise_snr_db / 10.0))
+    generator = torch.Generator(device="cpu").manual_seed(821_001)
+    noise = torch.complex(
+        torch.randn(impaired.shape, generator=generator),
+        torch.randn(impaired.shape, generator=generator),
+    ) * torch.sqrt(noise_variance / 2.0)
+    noisy = impaired + noise
+
+    estimate_hz = estimate_residual_cfo_from_cp(
+        noisy,
+        fft_size=grid.fft_size,
+        cyclic_prefix_length=grid.cyclic_prefix_length,
+        sampling_frequency_hz=sample_rate_hz,
+        guard_samples=path_delay_samples,
+    )
+    corrected = apply_residual_cfo(
+        noisy,
+        cfo_hz=-estimate_hz,
+        sampling_frequency_hz=sample_rate_hz,
+    )
+
+    def normalized_error(value):
+        return torch.mean(torch.abs(value - multipath) ** 2) / torch.mean(torch.abs(multipath) ** 2)
+
+    assert torch.max(torch.abs(estimate_hz - cfo_hz)) < 20.0
+    assert normalized_error(corrected) < 0.002
+    assert normalized_error(noisy) > 0.1
+
+
+@pytest.mark.native_sionna
 def test_waveform_impairment_helpers_preserve_shape_and_validate_units():
     waveform = torch.ones((2, 32), dtype=torch.complex64)
     delayed = apply_integer_timing_offset(waveform, offset_samples=3)
