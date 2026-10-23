@@ -160,3 +160,47 @@ class SionnaPUSCHLSReceiver:
             seed,
             lambda: self._transmitter(batch_size),
         )
+
+    def place_allocation_in_slot(self, allocation_grid: Any) -> Any:
+        """Place this allocation-local frequency grid at its configured slot symbols.
+
+        The result has a 14-symbol slot axis. Unscheduled symbols are zero-filled;
+        this helper does not multiplex other physical channels into those symbols.
+        """
+        torch = self._torch
+        grid = torch.as_tensor(allocation_grid, device=self.device)
+        if not torch.is_complex(grid):
+            raise ValueError("allocation_grid must have a complex dtype")
+        if grid.ndim != 5:
+            raise ValueError("allocation_grid must have [batch, tx, stream, symbol, fft] axes")
+        expected = (self._resource_grid.num_ofdm_symbols, self._resource_grid.fft_size)
+        if tuple(grid.shape[-2:]) != expected:
+            raise ValueError(f"allocation_grid must end with {expected} symbol/FFT axes")
+        if not bool(torch.isfinite(grid).all()):
+            raise ValueError("allocation_grid must be finite")
+
+        start_symbol, duration = self.config.symbol_allocation
+        slot_grid = torch.zeros(
+            (*grid.shape[:-2], 14, self._resource_grid.fft_size),
+            dtype=grid.dtype,
+            device=self.device,
+        )
+        slot_grid[..., start_symbol : start_symbol + duration, :] = grid
+        return slot_grid
+
+    def extract_allocation_from_slot(self, slot_grid: Any) -> Any:
+        """Extract the configured PUSCH symbol interval from a 14-symbol slot grid."""
+        torch = self._torch
+        grid = torch.as_tensor(slot_grid, device=self.device)
+        if not torch.is_complex(grid):
+            raise ValueError("slot_grid must have a complex dtype")
+        if grid.ndim != 5:
+            raise ValueError("slot_grid must have [batch, rx, rx_ant, symbol, fft] axes")
+        expected = (14, self._resource_grid.fft_size)
+        if tuple(grid.shape[-2:]) != expected:
+            raise ValueError(f"slot_grid must end with {expected} symbol/FFT axes")
+        if not bool(torch.isfinite(grid).all()):
+            raise ValueError("slot_grid must be finite")
+
+        start_symbol, duration = self.config.symbol_allocation
+        return grid[..., start_symbol : start_symbol + duration, :]

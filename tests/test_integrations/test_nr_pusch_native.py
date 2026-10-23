@@ -261,6 +261,42 @@ def test_pusch_mapping_b_partial_allocation_dmrs_positions_match_ts_38211(
 
 
 @pytest.mark.native_sionna
+def test_partial_mapping_b_pusch_allocation_places_and_decodes_at_slot_offset() -> None:
+    """Embed an allocation-local grid at its slot offset, then decode that slice."""
+    from sionna.phy.nr import PUSCHReceiver
+
+    receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(
+            n_size_bwp=6,
+            subcarrier_spacing_khz=30,
+            dmrs_additional_position=1,
+            mapping_type="B",
+            symbol_allocation=(3, 10),
+        ),
+        device="cpu",
+    )
+    allocation_grid, transmitted_bits = receiver.transmit(batch_size=1, seed=9031)
+
+    slot_grid = receiver.place_allocation_in_slot(allocation_grid)
+    received_allocation = receiver.extract_allocation_from_slot(slot_grid)
+
+    assert slot_grid.shape[-2] == 14
+    assert not bool(slot_grid[..., :3, :].any())
+    assert not bool(slot_grid[..., 13:, :].any())
+    torch.testing.assert_close(received_allocation, allocation_grid, rtol=0, atol=0)
+
+    decoder = PUSCHReceiver(
+        receiver._transmitter,
+        return_tb_crc_status=True,
+        input_domain="freq",
+        device="cpu",
+    )
+    decoded_bits, crc_ok = decoder(received_allocation, torch.tensor(1e-7))
+    torch.testing.assert_close(decoded_bits, transmitted_bits)
+    assert bool(crc_ok.all())
+
+
+@pytest.mark.native_sionna
 @pytest.mark.parametrize(
     ("additional_position", "expected_symbols"),
     (
