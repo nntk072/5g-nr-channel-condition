@@ -30,11 +30,16 @@ class NRPUSCHConfig:
     symbol_allocation: tuple[int, int] = (0, 14)
     precoding: str = "non-codebook"
     interpolation_type: str = "nn"
+    n_size_grid: int | None = None
+    n_start_grid: int = 0
+    n_start_bwp: int = 0
 
     def __post_init__(self) -> None:
         integer_fields = (
             "n_size_bwp",
             "subcarrier_spacing_khz",
+            "n_start_grid",
+            "n_start_bwp",
             "num_antenna_ports",
             "num_layers",
             "n_cell_id",
@@ -50,6 +55,21 @@ class NRPUSCHConfig:
                 raise TypeError(f"{name} must be an integer")
         if not 1 <= self.n_size_bwp <= 275:
             raise ValueError("n_size_bwp must be in [1, 275]")
+        n_size_grid = self.n_size_grid
+        if n_size_grid is None:
+            n_size_grid = self.n_size_bwp
+            object.__setattr__(self, "n_size_grid", n_size_grid)
+        elif isinstance(n_size_grid, bool) or not isinstance(n_size_grid, int):
+            raise TypeError("n_size_grid must be an integer or None")
+        if not 1 <= n_size_grid <= 275:
+            raise ValueError("n_size_grid must be in [1, 275]")
+        if not 0 <= self.n_start_grid <= 2199:
+            raise ValueError("n_start_grid must be in [0, 2199]")
+        if not 0 <= self.n_start_bwp <= 2473:
+            raise ValueError("n_start_bwp must be in [0, 2473]")
+        bwp_start_in_grid = self.n_start_bwp - self.n_start_grid
+        if bwp_start_in_grid < 0 or bwp_start_in_grid + self.n_size_bwp > n_size_grid:
+            raise ValueError("BWP must lie within the configured carrier resource grid")
         if self.subcarrier_spacing_khz not in {15, 30, 60, 120, 240, 480, 960}:
             raise ValueError("Unsupported NR subcarrier spacing")
         if self.num_antenna_ports not in {1, 2, 4}:
@@ -97,6 +117,11 @@ class NRPUSCHConfig:
             raise ValueError("precoding must be codebook or non-codebook")
         if self.interpolation_type not in {"nn", "lin", "lin_time_avg"}:
             raise ValueError("Unsupported Sionna PUSCH interpolation type")
+
+    @property
+    def carrier_grid_size(self) -> int:
+        """Carrier resource-block count, defaulting to the complete configured BWP."""
+        return self.n_size_bwp if self.n_size_grid is None else self.n_size_grid
 
 
 @dataclass(frozen=True, slots=True)

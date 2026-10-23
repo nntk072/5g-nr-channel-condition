@@ -12,6 +12,24 @@ def test_pusch_config_accepts_valid_dmrs_configuration():
         num_cdm_groups_without_data=2,
     )
     assert config.n_size_bwp == 24
+    assert config.n_size_grid == 24
+
+
+def test_pusch_config_accepts_bwp_offset_inside_wider_carrier_grid():
+    config = NRPUSCHConfig(
+        n_size_bwp=6,
+        n_size_grid=24,
+        n_start_grid=2,
+        n_start_bwp=7,
+    )
+    assert config.n_start_bwp - config.n_start_grid == 5
+
+
+def test_pusch_config_keeps_legacy_positional_field_order():
+    config = NRPUSCHConfig(6, 15)
+    assert config.n_size_bwp == 6
+    assert config.subcarrier_spacing_khz == 15
+    assert config.carrier_grid_size == 6
 
 
 def test_pusch_config_normalizes_json_symbol_allocation_to_immutable_tuple():
@@ -44,6 +62,15 @@ def test_pusch_config_normalizes_json_symbol_allocation_to_immutable_tuple():
         {"precoding": "unknown"},
         {"interpolation_type": "spline"},
         {"n_size_bwp": True},
+        {"n_size_grid": 0},
+        {"n_size_grid": 276},
+        {"n_size_grid": True},
+        {"n_start_grid": -1},
+        {"n_start_grid": True},
+        {"n_start_bwp": -1},
+        {"n_start_bwp": 2474},
+        {"n_start_bwp": 1, "n_start_grid": 2},
+        {"n_size_bwp": 6, "n_size_grid": 24, "n_start_bwp": 19},
     ],
 )
 def test_pusch_config_rejects_invalid_values(kwargs):

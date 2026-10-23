@@ -36,9 +36,11 @@ class SionnaPUSCHLSReceiver:
         phy_config.device = device
         pusch_config = PUSCHConfig()
         pusch_config.carrier.subcarrier_spacing = config.subcarrier_spacing_khz
-        pusch_config.carrier.n_size_grid = config.n_size_bwp
+        pusch_config.carrier.n_size_grid = config.carrier_grid_size
+        pusch_config.carrier.n_start_grid = config.n_start_grid
         pusch_config.carrier.n_cell_id = config.n_cell_id
         pusch_config.n_size_bwp = config.n_size_bwp
+        pusch_config.n_start_bwp = config.n_start_bwp
         pusch_config.num_antenna_ports = config.num_antenna_ports
         pusch_config.num_layers = config.num_layers
         pusch_config.dmrs.config_type = config.dmrs_config_type
@@ -80,6 +82,13 @@ class SionnaPUSCHLSReceiver:
                 "num_ofdm_symbols": self._resource_grid.num_ofdm_symbols,
                 "fft_size": self._resource_grid.fft_size,
                 "subcarrier_spacing_hz": config.subcarrier_spacing_khz * 1000,
+            },
+            "carrier_grid": {
+                "n_size_grid": config.carrier_grid_size,
+                "n_start_grid": config.n_start_grid,
+                "n_start_bwp": config.n_start_bwp,
+                "bwp_start_rb_in_grid": config.n_start_bwp - config.n_start_grid,
+                "fft_size": 12 * config.carrier_grid_size,
             },
         }
 
@@ -204,6 +213,66 @@ class SionnaPUSCHLSReceiver:
 
         start_symbol, duration = self.config.symbol_allocation
         return grid[..., start_symbol : start_symbol + duration, :]
+
+    def place_bwp_allocation_in_carrier_slot(self, allocation_grid: Any) -> Any:
+        """Place a BWP-local allocation in a full-carrier, 14-symbol grid.
+
+        Carrier bins follow the CRB ordering: the BWP begins at
+        ``n_start_bwp - n_start_grid`` resource blocks within the carrier grid.
+        Unscheduled symbols and subcarriers outside the BWP are zero-filled.
+        """
+        slot_grid = self.place_allocation_in_slot(allocation_grid)
+        carrier_fft_size = 12 * self.config.carrier_grid_size
+        start_rb = self.config.n_start_bwp - self.config.n_start_grid
+        start_bin = 12 * start_rb
+        stop_bin = start_bin + 12 * self.config.n_size_bwp
+        carrier_slot_grid = self._torch.zeros(
+            (*slot_grid.shape[:-1], carrier_fft_size),
+            dtype=slot_grid.dtype,
+            device=self.device,
+        )
+        carrier_slot_grid[..., start_bin:stop_bin] = slot_grid
+        return carrier_slot_grid
+
+    def extract_bwp_allocation_from_carrier_slot(self, carrier_slot_grid: Any) -> Any:
+        """Extract this BWP's scheduled symbols from a full-carrier slot grid."""
+        torch = self._torch
+        grid = torch.as_tensor(carrier_slot_grid, device=self.device)
+        expected = (14, 12 * self.config.carrier_grid_size)
+        if not torch.is_complex(grid):
+            raise ValueError("carrier_slot_grid must have a complex dtype")
+        if grid.ndim != 5 or tuple(grid.shape[-2:]) != expected:
+            raise ValueError(
+                "carrier_slot_grid must have [batch, rx, rx_ant, "
+                f"{expected[0]} symbols, {expected[1]} carrier FFT bins] shape"
+            )
+        if not bool(torch.isfinite(grid).all()):
+            raise ValueError("carrier_slot_grid must be finite")
+
+        start_rb = self.config.n_start_bwp - self.config.n_start_grid
+        start_bin = 12 * start_rb
+        stop_bin = start_bin + 12 * self.config.n_size_bwp
+        bwp_slot_grid = grid[..., start_bin:stop_bin]
+        return self.extract_allocation_from_slot(bwp_slot_grid)
+
+    def modulate_carrier_slot_grid(self, carrier_slot_grid: Any) -> Any:
+        """OFDM-modulate a full-carrier grid using the configured CP duration."""
+        try:
+            from sionna.phy.ofdm import OFDMModulator
+        except ImportError as exc:
+            raise RuntimeError("Install the optional Sionna 2.2 PHY dependencies") from exc
+
+        grid = self._torch.as_tensor(carrier_slot_grid, device=self.device)
+        self.extract_bwp_allocation_from_carrier_slot(grid)
+        cp_bwp_samples = int(self._resource_grid.cyclic_prefix_length)
+        cp_carrier_samples = round(
+            cp_bwp_samples * self.config.carrier_grid_size / self.config.n_size_bwp
+        )
+        modulator = OFDMModulator(
+            cyclic_prefix_length=cp_carrier_samples,
+            device=self.device,
+        )
+        return modulator(grid)
 
     def modulate_slot_grid(self, slot_grid: Any) -> Any:
         """OFDM-modulate a full-slot frequency grid with the configured Sionna CP."""
