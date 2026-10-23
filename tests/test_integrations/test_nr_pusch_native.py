@@ -962,15 +962,40 @@ def test_pusch_linear_dmrs_interpolation_tracks_analytical_two_tap_channel_on_al
 
 
 @pytest.mark.native_sionna
-def test_pusch_ls_pilot_estimate_is_unbiased_with_analytical_awgn_variance_on_cpu():
+@pytest.mark.parametrize(
+    ("dmrs_config_type", "dmrs_length", "num_cdm_groups_without_data", "n_size_bwp"),
+    (
+        (1, 1, 1, 2),
+        (1, 1, 2, 4),
+        (2, 1, 1, 4),
+        (2, 1, 2, 6),
+        (1, 2, 1, 4),
+        (2, 2, 1, 4),
+    ),
+)
+@pytest.mark.parametrize("complex_noise_variance", (0.01, 0.05, 0.2))
+def test_pusch_ls_pilot_bias_and_variance_match_analysis_across_dmrs_and_snr(
+    dmrs_config_type: int,
+    dmrs_length: int,
+    num_cdm_groups_without_data: int,
+    n_size_bwp: int,
+    complex_noise_variance: float,
+) -> None:
+    """Check all pilot REs against their analytical LS variance across regimes."""
     receiver = SionnaPUSCHLSReceiver(
-        NRPUSCHConfig(n_size_bwp=2, subcarrier_spacing_khz=30), device="cpu"
+        NRPUSCHConfig(
+            n_size_bwp=n_size_bwp,
+            subcarrier_spacing_khz=30,
+            dmrs_config_type=dmrs_config_type,
+            dmrs_length=dmrs_length,
+            num_cdm_groups_without_data=num_cdm_groups_without_data,
+        ),
+        device="cpu",
     )
     batch_size = 1024
     transmit_grid, _ = receiver.transmit(batch_size, seed=4801)
     channel = torch.tensor(0.6 - 0.2j, dtype=torch.complex64)
     clean_grid = transmit_grid[:, 0, 0].unsqueeze(1).unsqueeze(1) * channel
-    complex_noise_variance = 0.05
     noise_generator = torch.Generator().manual_seed(15)
     noise = (
         torch.complex(
@@ -980,18 +1005,28 @@ def test_pusch_ls_pilot_estimate_is_unbiased_with_analytical_awgn_variance_on_cp
         * (complex_noise_variance / 2.0) ** 0.5
     )
     estimate = receiver.estimate(clean_grid + noise, complex_noise_variance)
+    pilot_mask = receiver.pilot_mask[0, 0].bool()
+    samples = estimate.h_hat[:, 0, 0, 0, 0][:, pilot_mask]
+    predicted_variance = estimate.error_variance[0, 0, 0, 0, 0][pilot_mask]
+    empirical_bias = (samples.mean(dim=0) - channel).abs()
+    empirical_variance = (samples - samples.mean(dim=0)).abs().square().mean()
+    mean_predicted_variance = predicted_variance.mean()
+    bias_tolerance = 5.0 * torch.sqrt(predicted_variance / batch_size)
 
-    pilot_symbol, pilot_subcarrier = (
-        int(index) for index in torch.nonzero(receiver.pilot_mask[0, 0].bool())[0]
+    assert samples.shape[1] == int(pilot_mask.sum())
+    assert bool(torch.isfinite(predicted_variance).all())
+    assert bool((predicted_variance > 0).all())
+    torch.testing.assert_close(
+        predicted_variance,
+        torch.full_like(
+            predicted_variance,
+            complex_noise_variance / (2 * dmrs_length * num_cdm_groups_without_data),
+        ),
+        rtol=1e-6,
+        atol=1e-7,
     )
-    samples = estimate.h_hat[:, 0, 0, 0, 0, pilot_symbol, pilot_subcarrier]
-    predicted_variance = estimate.error_variance[0, 0, 0, 0, 0, pilot_symbol, pilot_subcarrier]
-    empirical_bias = samples.mean() - channel
-    empirical_variance = (samples - samples.mean()).abs().square().mean()
-
-    assert float(empirical_bias.abs()) < 0.02
-    assert float(predicted_variance) == pytest.approx(0.025, rel=1e-6)
-    assert float(empirical_variance / predicted_variance) == pytest.approx(1.0, abs=0.15)
+    assert bool((empirical_bias < bias_tolerance).all())
+    assert float(empirical_variance / mean_predicted_variance) == pytest.approx(1.0, abs=0.12)
 
 
 @pytest.mark.native_sionna
