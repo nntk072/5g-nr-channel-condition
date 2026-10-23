@@ -46,6 +46,8 @@ def _apply_phase_noise(
         return waveform
     import torch
 
+    if waveform.ndim < 3:
+        raise ValueError("PUSCH waveform must keep node and antenna axes before time")
     noise_generator = torch.Generator(device=device)
     noise_generator.manual_seed(seed)
     phase = generate_wiener_phase_noise_rad(
@@ -53,7 +55,9 @@ def _apply_phase_noise(
         sampling_frequency_hz=sampling_frequency_hz,
         linewidth_hz=linewidth_hz,
         generator=noise_generator,
-        leading_shape=tuple(waveform.shape[:-1]),
+        # One oscillator trajectory per node and batch draw, shared by that
+        # node's antenna elements. The final waveform axis is continuous time.
+        leading_shape=(*waveform.shape[:-2], 1),
         device=device,
     )
     return apply_phase_noise(waveform, phase_noise_rad=phase)
@@ -195,8 +199,6 @@ def build_standardized_pusch_dmrs_records(
             tx_phase_noise_seed = _derive_impairment_seed(impairment_seed, record.sample_index, 0)
             rx_phase_noise_seed = _derive_impairment_seed(impairment_seed, record.sample_index, 1)
             tx_waveform = modulator(transmit_grid)
-            tx_waveform_shape = tx_waveform.shape
-            tx_waveform = tx_waveform.reshape(*tx_waveform.shape[:-2], -1)
             tx_waveform = apply_iq_imbalance(
                 tx_waveform,
                 gain_imbalance_db=impairments.tx_iq_gain_imbalance_db,
@@ -209,7 +211,6 @@ def build_standardized_pusch_dmrs_records(
                 sampling_frequency_hz=sampling_frequency_hz,
                 device=device,
             )
-            tx_waveform = tx_waveform.reshape(tx_waveform_shape)
             transmit_grid = demodulator(tx_waveform)
         h = torch.as_tensor(cfr[0], dtype=torch.complex64, device=device)
         # [batch, rx antenna, OFDM symbol, FFT bin], followed by the RX-node axis.
@@ -220,8 +221,6 @@ def build_standardized_pusch_dmrs_records(
         if impairments is not None:
             assert rx_phase_noise_seed is not None
             received_waveform = modulator(received_clean)
-            received_waveform_shape = received_waveform.shape
-            received_waveform = received_waveform.reshape(*received_waveform.shape[:-2], -1)
             received_waveform = apply_residual_cfo(
                 received_waveform,
                 cfo_hz=impairments.cfo_hz,
@@ -247,7 +246,6 @@ def build_standardized_pusch_dmrs_records(
                 received_waveform,
                 offset_samples=impairments.fractional_timing_offset_samples,
             )
-            received_waveform = received_waveform.reshape(received_waveform_shape)
             received_clean = demodulator(received_waveform)
         signal_power = received_clean.abs().square().mean()
         if not bool(torch.isfinite(signal_power)) or float(signal_power) <= 0:

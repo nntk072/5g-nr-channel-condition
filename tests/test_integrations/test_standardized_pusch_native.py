@@ -17,6 +17,7 @@ from datasets.standardized import (  # noqa: E402
 )
 from integrations.sionna.ofdm_impairments import NRWaveformImpairments  # noqa: E402
 from integrations.sionna.standardized_pusch import (  # noqa: E402
+    _apply_phase_noise,
     build_standardized_pusch_dmrs_records,
 )
 from receivers.nr import NRPUSCHConfig  # noqa: E402
@@ -48,6 +49,60 @@ def _standardized_run(family: StandardizedFamily):
             batch_size=2,
         )
     return standardized_run_from_channel(channel, family=family)
+
+
+@pytest.mark.native_sionna
+def test_receiver_phase_noise_uses_shared_continuous_time_across_antennas() -> None:
+    waveform = torch.ones((2, 1, 2, 256), dtype=torch.complex64)
+    impaired = _apply_phase_noise(
+        waveform,
+        linewidth_hz=25.0,
+        seed=9341,
+        sampling_frequency_hz=1.92e6,
+        device="cpu",
+    )
+    phase_ratio = impaired / waveform
+
+    torch.testing.assert_close(phase_ratio[:, :, 0], phase_ratio[:, :, 1], rtol=0, atol=0)
+    assert not torch.equal(phase_ratio[0], phase_ratio[1])
+
+
+@pytest.mark.native_sionna
+def test_simo_pusch_impairment_view_preserves_receive_antenna_axis() -> None:
+    from integrations.sionna.tdl import generate_tdl_frequency_response
+
+    channel = generate_tdl_frequency_response(
+        model="A",
+        seed=9342,
+        carrier_frequency_hz=3.5e9,
+        subcarrier_spacing_hz=30_000.0,
+        num_subcarriers=24,
+        delay_spread_s=100e-9,
+        batch_size=1,
+        num_rx_ant=2,
+        rx_corr_mat=((1.0, 0.25), (0.25, 1.0)),
+        device="cpu",
+    )
+    run = standardized_run_from_channel(channel, family=StandardizedFamily.TDL)
+    views = build_standardized_pusch_dmrs_records(
+        run,
+        snr_db=40.0,
+        seed=9343,
+        noise_seed=9344,
+        impairments=NRWaveformImpairments(
+            cfo_hz=75.0,
+            rx_phase_noise_linewidth_hz=20.0,
+            integer_timing_offset_samples=1,
+        ),
+        impairment_seed=9345,
+        receiver_config=NRPUSCHConfig(n_size_bwp=2, subcarrier_spacing_khz=30),
+        device="cpu",
+    )
+
+    assert len(views) == 1
+    assert tuple(views[0].observation.received_grid.shape) == (1, 1, 2, 14, 24)
+    assert tuple(views[0].observation.channel_estimate.h_hat.shape) == (1, 1, 2, 1, 1, 14, 24)
+    assert torch.isfinite(views[0].observation.received_grid).all()
 
 
 @pytest.mark.native_sionna
