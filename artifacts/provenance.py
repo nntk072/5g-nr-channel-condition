@@ -64,7 +64,7 @@ def canonical_hash(data: dict[str, Any]) -> str:
     ).hexdigest()
 
 
-def atomic_json(path: str | Path, data: Any) -> None:
+def atomic_json(path: str | Path, data: Any, *, overwrite: bool = True) -> None:
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, tmp = tempfile.mkstemp(dir=path.parent, prefix="." + path.name + ".")
@@ -74,7 +74,10 @@ def atomic_json(path: str | Path, data: Any) -> None:
             fh.write("\n")
             fh.flush()
             os.fsync(fh.fileno())
-        os.replace(tmp, path)
+        if overwrite:
+            os.replace(tmp, path)
+        else:
+            os.link(tmp, path)
     finally:
         if os.path.exists(tmp):
             os.remove(tmp)

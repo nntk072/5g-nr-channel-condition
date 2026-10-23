@@ -7,7 +7,7 @@ if [[ ! -x "${default_python}" ]]; then
   default_python="python3"
 fi
 python_bin="${SIONNA_PYTHON:-${default_python}}"
-output_dir="${1:-outputs/rt-urban43-tx-spatial-holdout-20261022-v3}"
+output_dir="${1:-/tmp/loslab-pilot/rt-urban43-tx-spatial-holdout-20261022-v3}"
 observation_device="${OBSERVATION_DEVICE:-cuda:0}"
 if [[ "${output_dir}" != /* ]]; then
   output_dir="${repo_root}/${output_dir}"
@@ -31,7 +31,7 @@ run_tx() {
   local rx_x="$3"
   local seed="$4"
   local dataset="${output_dir}/${transmitter_id}.npz"
-  "${python_bin}" -m loslab rt-data \
+  "${python_bin}" -m loslab rt-data --pilot \
     --output "${dataset}" \
     --seed "${seed}" \
     --scene "${scene}" \
@@ -58,7 +58,7 @@ run_tx center_x0 0 0 43112
 run_tx east_x3 60 80 43113
 
 observation="${output_dir}/nr-dmrs-observations.npz"
-"${python_bin}" -m loslab nr-observe \
+"${python_bin}" -m loslab nr-observe --pilot \
   --input "${datasets[@]}" \
   --output "${observation}" \
   --snr-db 12 \

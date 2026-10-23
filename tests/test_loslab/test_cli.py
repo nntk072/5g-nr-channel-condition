@@ -98,13 +98,14 @@ def test_rt_data_cli_defaults_to_native_capability_detection(monkeypatch, capsys
         def save(self, path):
             captured["output"] = path
 
-    def fake_generate(config, *, seed):
+    def fake_generate(config, *, seed, **_kwargs):
         captured["config"] = config
         captured["seed"] = seed
         return FakeDataset()
 
     monkeypatch.setattr(sionna2, "generate_raytraced", fake_generate)
-    monkeypatch.setattr("sys.argv", ["loslab", "rt-data", "--output", "unused.npz"])
+    monkeypatch.setattr(sionna2, "authorize_rt_data_generation", lambda *_args, **_kwargs: object())
+    monkeypatch.setattr("sys.argv", ["loslab", "rt-data", "--pilot", "--output", "unused.npz"])
 
     main()
 
@@ -125,11 +126,12 @@ def test_rt_data_cli_persists_generation_failure_report_without_writing_dataset(
         "attempt_counts": {"candidate_geometric_los": 20, "candidate_geometric_nlos": 0},
     }
 
-    def fail_generation(config, *, seed):
+    def fail_generation(config, *, seed, **_kwargs):
         raise sionna2.RaytraceGenerationError("No NLOS samples", report)
 
     monkeypatch.setattr(sionna2, "generate_raytraced", fail_generation)
-    monkeypatch.setattr("sys.argv", ["loslab", "rt-data", "--output", str(output_path)])
+    monkeypatch.setattr(sionna2, "authorize_rt_data_generation", lambda *_args, **_kwargs: object())
+    monkeypatch.setattr("sys.argv", ["loslab", "rt-data", "--pilot", "--output", str(output_path)])
 
     with pytest.raises(sionna2.RaytraceGenerationError, match="No NLOS samples"):
         main()
@@ -146,11 +148,12 @@ def test_rt_data_cli_does_not_overwrite_existing_failure_report(monkeypatch, tmp
     failure_path = tmp_path / "failed.npz.failure.json"
     failure_path.write_text("preserve", encoding="utf-8")
 
-    def fail_generation(config, *, seed):
+    def fail_generation(config, *, seed, **_kwargs):
         raise sionna2.RaytraceGenerationError("No NLOS samples", {"status": "failed"})
 
     monkeypatch.setattr(sionna2, "generate_raytraced", fail_generation)
-    monkeypatch.setattr("sys.argv", ["loslab", "rt-data", "--output", str(output_path)])
+    monkeypatch.setattr(sionna2, "authorize_rt_data_generation", lambda *_args, **_kwargs: object())
+    monkeypatch.setattr("sys.argv", ["loslab", "rt-data", "--pilot", "--output", str(output_path)])
 
     with pytest.raises(FileExistsError, match="refusing to overwrite"):
         main()
@@ -174,17 +177,19 @@ def test_rt_data_cli_dispatches_to_content_addressed_cache_when_requested(
     def unexpected_uncached(*args, **kwargs):
         raise AssertionError("cache option should use the cache-aware RT entry point")
 
-    def cached(config, *, cache_directory, seed):
+    def cached(config, *, cache_directory, seed, **_kwargs):
         captured.update({"config": config, "cache_directory": cache_directory, "seed": seed})
         return FakeDataset()
 
     monkeypatch.setattr(sionna2, "generate_raytraced", unexpected_uncached)
     monkeypatch.setattr(sionna2, "generate_raytraced_cached", cached)
+    monkeypatch.setattr(sionna2, "authorize_rt_data_generation", lambda *_args, **_kwargs: object())
     monkeypatch.setattr(
         "sys.argv",
         [
             "loslab",
             "rt-data",
+            "--pilot",
             "--output",
             "unused.npz",
             "--cache-dir",
@@ -245,6 +250,7 @@ def test_nr_observe_cli_builds_an_immutable_dmrs_input_dataset(
         [
             "loslab",
             "nr-observe",
+            "--pilot",
             "--input",
             str(source_path),
             "--output",
@@ -261,13 +267,13 @@ def test_nr_observe_cli_builds_an_immutable_dmrs_input_dataset(
     main()
 
     assert len(captured["datasets"]) == 1
-    assert captured["options"] == {
-        "snr_db": 8.0,
-        "seed": 31,
-        "device": "cuda:0",
-        "n_size_bwp": 6,
-        "subcarrier_spacing_khz": 30,
-    }
+    assert captured["options"]["snr_db"] == 8.0
+    assert captured["options"]["seed"] == 31
+    assert captured["options"]["device"] == "cuda:0"
+    assert captured["options"]["n_size_bwp"] == 6
+    assert captured["options"]["subcarrier_spacing_khz"] == 30
+    assert captured["options"]["authorization"].mode == "pilot"
+    assert len(captured["options"]["source_artifacts"]) == 1
     assert ChannelDataset.load(output_path).label_semantics == "geometric_direct_path_oracle"
     assert json.loads(capsys.readouterr().out)["evidence_grade"] == "SIMULATION_ONLY_UNVALIDATED"
 

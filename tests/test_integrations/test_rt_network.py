@@ -232,6 +232,22 @@ def test_rt_episode_writer_publishes_layer_bound_provenance(monkeypatch, tmp_pat
         for frame in range(len(episode.frame_times_s))
     ]
 
+    from integrations.sionna.d1_generation_gate import authorize_d1_generation
+
+    authorization = authorize_d1_generation(
+        {
+            "operation": "rt_data",
+            "config": {
+                "per_class": 1,
+                "max_attempts": 2,
+                "samples_per_src": 1,
+                "max_depth": 1,
+                "total_work_units": 2,
+            },
+            "destinations": [str(tmp_path.resolve())],
+        },
+        pilot=True,
+    )
     stored = write_sionna_rt_episode_bundle(
         tmp_path,
         episode,
@@ -240,6 +256,7 @@ def test_rt_episode_writer_publishes_layer_bound_provenance(monkeypatch, tmp_pat
         material_config={"wall": {"scattering_coefficient": 0.2}},
         source_family="F03-RT-STATIC",
         producer="Sionna 2.2 PathSolver",
+        authorization=authorization,
     )
     loaded = read_episode_bundle(tmp_path, stored)
 

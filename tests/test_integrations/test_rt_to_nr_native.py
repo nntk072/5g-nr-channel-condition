@@ -940,6 +940,8 @@ def test_rt_cpu_box_scene_generates_balanced_geometry_labeled_records(tmp_path):
         ),
         grid=GridConfig(n_subcarriers=16),
         seed=42,
+        pilot=True,
+        output_destination=tmp_path / "pilot-dataset.npz",
         umcd_store_root=tmp_path / "umcd",
     )
 

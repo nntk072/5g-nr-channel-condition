@@ -68,6 +68,21 @@ def main() -> None:
         "--cache-dir",
         help="optional immutable RT dataset cache; incomplete scene asset manifests bypass caching",
     )
+    rt_policy = rt.add_mutually_exclusive_group()
+    rt_policy.add_argument(
+        "--pilot",
+        action="store_true",
+        help="allow bounded exploratory work with outputs under the OS temp directory",
+    )
+    rt_policy.add_argument(
+        "--qualification-approval",
+        type=Path,
+        help="reserved; production stays disabled until a trusted signature keyring is configured",
+    )
+    rt.add_argument(
+        "--qualification-approval-sha256",
+        help="reserved while production authorization is disabled",
+    )
     nr_observe = sub.add_parser(
         "nr-observe",
         help="Apply a Sionna PUSCH/DMRS receiver to saved RT CFR datasets",
@@ -79,6 +94,15 @@ def main() -> None:
     nr_observe.add_argument("--device", default="cpu")
     nr_observe.add_argument("--n-size-bwp", type=int, default=6)
     nr_observe.add_argument("--subcarrier-spacing-khz", type=int, default=30)
+    nr_policy = nr_observe.add_mutually_exclusive_group()
+    nr_policy.add_argument("--pilot", action="store_true")
+    nr_policy.add_argument(
+        "--qualification-approval", type=Path, help="reserved; production authorization is disabled"
+    )
+    nr_observe.add_argument(
+        "--qualification-approval-sha256",
+        help="reserved while production authorization is disabled",
+    )
     exp = sub.add_parser("experiment", help="Evaluate channel-condition baselines")
     exp.add_argument("--config", help="Versioned YAML/JSON experiment configuration")
     exp.add_argument("--input", nargs="+", help="One or more dataset NPZs")
@@ -135,7 +159,7 @@ def main() -> None:
         d = debug_multipath(
             n_scenes=args.scenes, links_per_scene=args.links_per_scene, seed=args.seed
         )
-        d.save(args.output)
+        d.save(args.output, exclusive=True)
         print(f"DEBUG DATA (not research evidence): saved {len(d.y)} to {args.output}")
         return
     if args.command == "phy-data":
@@ -156,6 +180,7 @@ def main() -> None:
         from .sionna2 import (
             RayScene,
             RaytraceGenerationError,
+            authorize_rt_data_generation,
             generate_raytraced,
             generate_raytraced_cached,
         )
@@ -174,43 +199,127 @@ def main() -> None:
             require_los_multipath=not args.allow_direct_only,
             mitsuba_variant=args.mitsuba_variant,
         )
+        if args.pilot and (
+            args.per_class > 20
+            or args.max_attempts > 2000
+            or args.samples_per_src > 5_000_000
+            or args.max_depth > 3
+        ):
+            parser.error(
+                "pilot RT generation is bounded to 20 samples/class, 2,000 attempts, "
+                "5,000,000 samples/source, and depth 3"
+            )
+        if not args.pilot and (
+            args.qualification_approval is None or args.qualification_approval_sha256 is None
+        ):
+            parser.error(
+                "production RT generation requires a validated qualification approval manifest "
+                "(--qualification-approval) and --qualification-approval-sha256"
+            )
+        if not args.pilot and not args.qualification_approval_sha256:
+            parser.error("--qualification-approval-sha256 is required with production approval")
         try:
+            destinations = [args.output]
+            failure_path = Path(args.output).with_suffix(Path(args.output).suffix + ".failure.json")
+            destinations.append(failure_path)
+            if args.cache_dir:
+                destinations.append(args.cache_dir)
+            authorization = authorize_rt_data_generation(
+                cfg,
+                seed=args.seed,
+                destinations=destinations,
+                pilot=args.pilot,
+                approval_manifest=args.qualification_approval,
+                expected_approval_sha256=args.qualification_approval_sha256,
+            )
             d = (
-                generate_raytraced_cached(cfg, cache_directory=args.cache_dir, seed=args.seed)
+                generate_raytraced_cached(
+                    cfg,
+                    cache_directory=args.cache_dir,
+                    seed=args.seed,
+                    authorization=authorization,
+                    output_destination=args.output,
+                    failure_report_destination=failure_path,
+                )
                 if args.cache_dir
-                else generate_raytraced(cfg, seed=args.seed)
+                else generate_raytraced(
+                    cfg,
+                    seed=args.seed,
+                    authorization=authorization,
+                    output_destination=args.output,
+                    failure_report_destination=failure_path,
+                )
             )
         except RaytraceGenerationError as error:
-            failure_path = Path(args.output).with_suffix(Path(args.output).suffix + ".failure.json")
             if failure_path.exists():
                 raise FileExistsError(
                     f"refusing to overwrite RT generation failure report: {failure_path}"
                 ) from error
-            atomic_json(failure_path, error.generation_report)
-            print(f"RT generation failed; attempt report saved to {failure_path}", file=sys.stderr)
+            try:
+                atomic_json(failure_path, error.generation_report, overwrite=False)
+                print(
+                    f"RT generation failed; attempt report saved to {failure_path}", file=sys.stderr
+                )
+            except OSError as report_error:
+                print(
+                    f"RT generation failed; attempt report could not be saved to {failure_path}: "
+                    f"{report_error}",
+                    file=sys.stderr,
+                )
             raise
+        except (PermissionError, ValueError, RuntimeError) as error:
+            parser.error(str(error))
         d.save(args.output)
         print(f"GEOMETRY-LABELED RT: saved {len(d.y)} to {args.output}")
         return
     if args.command == "nr-observe":
         from datasets.channel import ChannelDataset
-        from integrations.sionna.rt_dmrs import build_rt_dmrs_observation_dataset
+        from integrations.sionna.d1_generation_gate import authorize_d1_generation
+        from integrations.sionna.rt_dmrs import (
+            build_rt_dmrs_generation_request,
+            build_rt_dmrs_observation_dataset,
+            read_stable_input_artifact,
+        )
 
         output_path = Path(args.output)
         if output_path.exists():
             raise FileExistsError(
                 f"refusing to overwrite existing observation dataset: {output_path}"
             )
-        sources = [ChannelDataset.load(path) for path in args.input]
-        observed = build_rt_dmrs_observation_dataset(
+        input_payloads = [read_stable_input_artifact(path) for path in args.input]
+        sources = [ChannelDataset.load_bytes(payload) for payload, _ in input_payloads]
+        source_artifacts = [artifact for _, artifact in input_payloads]
+        request = build_rt_dmrs_generation_request(
             sources,
+            source_artifacts=source_artifacts,
             snr_db=args.snr_db,
             seed=args.seed,
             device=args.device,
             n_size_bwp=args.n_size_bwp,
             subcarrier_spacing_khz=args.subcarrier_spacing_khz,
+            destination=output_path,
         )
-        observed.save(output_path)
+        try:
+            authorization = authorize_d1_generation(
+                request,
+                pilot=args.pilot,
+                approval_manifest=args.qualification_approval,
+                expected_approval_sha256=args.qualification_approval_sha256,
+            )
+        except (OSError, TypeError, ValueError) as error:
+            parser.error(str(error))
+        observed = build_rt_dmrs_observation_dataset(
+            sources,
+            authorization=authorization,
+            source_artifacts=source_artifacts,
+            snr_db=args.snr_db,
+            seed=args.seed,
+            device=args.device,
+            n_size_bwp=args.n_size_bwp,
+            subcarrier_spacing_khz=args.subcarrier_spacing_khz,
+            destination=output_path,
+        )
+        observed.save(output_path, exclusive=True)
         print(
             json.dumps(
                 {

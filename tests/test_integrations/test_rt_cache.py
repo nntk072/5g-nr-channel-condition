@@ -152,7 +152,7 @@ def test_cache_aware_rt_generator_reuses_dataset_without_retracing(tmp_path, mon
 
     calls = []
 
-    def generate(config, *, grid, seed, _backend_selection, _runtime_fingerprint):
+    def generate(config, *, grid, seed, _backend_selection, _runtime_fingerprint, **_kwargs):
         calls.append(config)
         identity = rt_run_identity(
             scene_asset_manifest=scene_asset_manifest(scene_xml),
@@ -166,9 +166,13 @@ def test_cache_aware_rt_generator_reuses_dataset_without_retracing(tmp_path, mon
         return _dataset(identity)
 
     monkeypatch.setattr(adapter, "generate_raytraced", generate)
-    config = RayScene(name="mock_scene", per_class=1, max_attempts=2)
-    first = adapter.generate_raytraced_cached(config, cache_directory=tmp_path / "cache", seed=12)
-    second = adapter.generate_raytraced_cached(config, cache_directory=tmp_path / "cache", seed=12)
+    config = RayScene(name="mock_scene", per_class=1, max_attempts=2, samples_per_src=100)
+    first = adapter.generate_raytraced_cached(
+        config, cache_directory=tmp_path / "cache", seed=12, pilot=True
+    )
+    second = adapter.generate_raytraced_cached(
+        config, cache_directory=tmp_path / "cache", seed=12, pilot=True
+    )
 
     assert len(calls) == 1
     np.testing.assert_array_equal(first.h, second.h)
@@ -213,7 +217,7 @@ def test_cache_aware_rt_generator_bypasses_unresolved_scene_assets(tmp_path, mon
     )
     generated = []
 
-    def generate(config, *, grid, seed, _backend_selection, _runtime_fingerprint):
+    def generate(config, *, grid, seed, _backend_selection, _runtime_fingerprint, **_kwargs):
         generated.append(config)
         identity = rt_run_identity(
             scene_asset_manifest={"complete": False, "asset_set_sha256": "partial"},
@@ -229,8 +233,9 @@ def test_cache_aware_rt_generator_bypasses_unresolved_scene_assets(tmp_path, mon
     monkeypatch.setattr(adapter, "generate_raytraced", generate)
     cache_directory = tmp_path / "cache"
     result = adapter.generate_raytraced_cached(
-        RayScene(name="mock_scene", per_class=1, max_attempts=2),
+        RayScene(name="mock_scene", per_class=1, max_attempts=2, samples_per_src=100),
         cache_directory=cache_directory,
+        pilot=True,
     )
 
     assert len(generated) == 1

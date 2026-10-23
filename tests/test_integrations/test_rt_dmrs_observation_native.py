@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import tempfile
+from pathlib import Path
+
 import numpy as np
 import pytest
 
@@ -9,7 +12,20 @@ torch = pytest.importorskip("torch")
 pytest.importorskip("sionna")
 
 from datasets.channel import ChannelDataset  # noqa: E402
-from integrations.sionna.rt_dmrs import build_rt_dmrs_observation_dataset  # noqa: E402
+from integrations.sionna.d1_generation_gate import authorize_d1_generation  # noqa: E402
+from integrations.sionna.rt_dmrs import (  # noqa: E402
+    build_rt_dmrs_generation_request,
+)
+from integrations.sionna.rt_dmrs import (  # noqa: E402
+    build_rt_dmrs_observation_dataset as _build_rt_dmrs_observation_dataset,
+)
+
+
+def build_rt_dmrs_observation_dataset(datasets, **options):
+    options.setdefault("destination", Path(tempfile.gettempdir()) / "loslab-native-dmrs-pilot")
+    request = build_rt_dmrs_generation_request(datasets, **options)
+    authorization = authorize_d1_generation(request, pilot=True)
+    return _build_rt_dmrs_observation_dataset(datasets, authorization=authorization, **options)
 
 
 @pytest.mark.native_sionna

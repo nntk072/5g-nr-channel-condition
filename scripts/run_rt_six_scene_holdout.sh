@@ -4,7 +4,7 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 python_bin="${SIONNA_PYTHON:-python}"
 samples_per_src_override="${SAMPLES_PER_SRC:-}"
-output_dir="${1:-outputs/rt-six-scene-holdout-20261021}"
+output_dir="${1:-/tmp/loslab-pilot/rt-six-scene-holdout-20261021}"
 if [[ "${output_dir}" != /* ]]; then
   output_dir="${repo_root}/${output_dir}"
 fi
@@ -38,7 +38,7 @@ run_scene() {
     echo "Scene ray budget must be a positive integer: ${scene_samples_per_src}" >&2
     exit 2
   fi
-  "${python_bin}" -m loslab rt-data \
+  "${python_bin}" -m loslab rt-data --pilot \
     --output "${output_dir}/${output_name}.npz" \
     --seed "${seed}" --scene "${scene}" \
     --tx "${tx_x}" "${tx_y}" "${tx_z}" \

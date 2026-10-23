@@ -35,6 +35,7 @@ from datasets.targets import TargetValidity, TargetValue, target_definition_dige
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
 from integrations.sionna.candidate_audit import instrument_path_solver_candidate_counter
+from integrations.sionna.d1_generation_gate import D1GenerationAuthorization
 from integrations.sionna.rt_identity import rt_run_identity, rt_runtime_fingerprint
 
 
@@ -248,6 +249,11 @@ def generate_rt_nr_trajectory(
     store_root: str | Path,
     *,
     umcd_store_root: str | Path | None = None,
+    authorization: D1GenerationAuthorization | None = None,
+    pilot: bool = False,
+    approval_manifest: str | Path | None = None,
+    expected_approval_sha256: str | None = None,
+    spec_sha256: str | None = None,
 ) -> NRStoredTrajectory:
     """Retrace each route snapshot and store the resulting DMRS trajectory.
 
@@ -258,6 +264,8 @@ def generate_rt_nr_trajectory(
     UMCD layers with run provenance. Active material state and object bindings
     are captured from the loaded scene at the configured carrier frequency.
     """
+    if authorization is None and not pilot and approval_manifest is None:
+        raise PermissionError("direct RT trajectory generation requires D1 authorization")
     try:
         import torch
     except ImportError as exc:
@@ -283,7 +291,72 @@ def generate_rt_nr_trajectory(
         raise RuntimeError("Sionna RT, Sionna PHY, Mitsuba, and PyTorch are required") from exc
 
     scene_ref = getattr(rt.scene, config.scene, config.scene)
+    scene_path = Path(str(scene_ref)).expanduser()
+    if scene_path.is_file():
+        scene_asset_hashes = scene_asset_manifest(scene_path)
+    else:
+        scene_xml = scene_ref if isinstance(scene_ref, str) else repr(scene_ref)
+        scene_asset_hashes = {
+            "scene_xml_path": scene_xml,
+            "asset_count": 0,
+            "assets": [],
+            "asset_set_sha256": hashlib.sha256(scene_xml.encode()).hexdigest(),
+            "unresolved_references": [scene_xml],
+            "complete": False,
+        }
+    runtime_versions = versions()
+    from integrations.sionna.d1_generation_gate import (
+        authorize_d1_generation,
+        require_d1_authorization,
+    )
+
+    request = {
+        "operation": "rt_nr_trajectory",
+        "spec_sha256": spec_sha256,
+        "config": {**asdict(config), "total_work_units": config.num_steps * config.samples_per_src},
+        "store": str(Path(store_root).expanduser().resolve()),
+        "umcd_store": str(Path(umcd_store_root).expanduser().resolve())
+        if umcd_store_root is not None
+        else None,
+        "package_source_sha256": package_source_sha256(),
+        "backend": selection.as_dict(),
+        "scene_asset_identity": {
+            "scene_reference": str(scene_ref),
+            "asset_set_sha256": scene_asset_hashes["asset_set_sha256"],
+            "asset_count": scene_asset_hashes["asset_count"],
+            "complete": scene_asset_hashes["complete"],
+            "runtime_versions": runtime_versions,
+        },
+        "destinations": [
+            str(Path(value).expanduser().resolve())
+            for value in (store_root, umcd_store_root)
+            if value is not None
+        ],
+    }
+    if authorization is None:
+        authorization = authorize_d1_generation(
+            request,
+            pilot=pilot,
+            approval_manifest=approval_manifest,
+            expected_approval_sha256=expected_approval_sha256,
+        )
+    require_d1_authorization(authorization, request, expected_operation="rt_nr_trajectory")  # type: ignore[arg-type]
+    if pilot:
+        from integrations.sionna.d1_generation_gate import require_pilot_destination
+
+        require_pilot_destination(authorization, store_root, publisher="trajectory_store")  # type: ignore[arg-type]
+        if umcd_store_root is not None:
+            require_pilot_destination(authorization, umcd_store_root, publisher="umcd_bundle")  # type: ignore[arg-type]
+
     scene = rt.load_scene(str(scene_ref) if isinstance(scene_ref, Path) else scene_ref)
+    if scene_path.is_file():
+        loaded_scene_assets = scene_asset_manifest(scene_path)
+        if loaded_scene_assets.get("asset_set_sha256") != scene_asset_hashes.get(
+            "asset_set_sha256"
+        ):
+            raise PermissionError(
+                "RT trajectory scene assets changed between authorization and scene load"
+            )
     scene.frequency = config.carrier_hz
     material_manifest = sionna_scene_material_manifest(scene)
     raw_scene_objects = getattr(scene, "objects", None)
@@ -303,21 +376,7 @@ def generate_rt_nr_trajectory(
         ).reshape(3)
         for motion in config.moving_scene_objects
     }
-    scene_path = Path(str(scene_ref)).expanduser()
-    if scene_path.is_file():
-        scene_asset_hashes = scene_asset_manifest(scene_path)
-    else:
-        scene_xml = scene_ref if isinstance(scene_ref, str) else repr(scene_ref)
-        scene_asset_hashes = {
-            "scene_xml_path": scene_xml,
-            "asset_count": 0,
-            "assets": [],
-            "asset_set_sha256": hashlib.sha256(scene_xml.encode()).hexdigest(),
-            "unresolved_references": [scene_xml],
-            "complete": False,
-        }
     positions, times = config.positions_and_times()
-    runtime_versions = versions()
     source_sha256 = package_source_sha256()
     runtime_fingerprint = rt_runtime_fingerprint(
         {key: value for key, value in runtime_versions.items() if key != "git_sha"}
@@ -823,6 +882,7 @@ def generate_rt_nr_trajectory(
             channel_views=(channel_view,),
             targets=(los_target,),
             receiver_observations=linked_observations,
+            authorization=authorization,
         )
         if not isinstance(stored_bundle, StoredEpisodeBundle):
             raise TypeError("UMCD publisher returned an invalid stored-bundle reference")

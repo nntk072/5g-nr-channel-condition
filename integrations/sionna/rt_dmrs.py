@@ -2,15 +2,55 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import math
+import os
+import stat
+from collections.abc import Mapping, Sequence
+from pathlib import Path
+from typing import Any
 
 import numpy as np
 from artifacts.provenance import package_source_sha256
 from datasets.channel import ChannelDataset
 from receivers.nr import NRPUSCHConfig
 
+from .d1_generation_gate import D1GenerationAuthorization, require_d1_authorization
 from .noise import proper_complex_awgn
 from .nr_pusch import SionnaPUSCHLSReceiver
+
+
+def read_stable_input_artifact(path: str | Path) -> tuple[bytes, dict[str, str]]:
+    """Read and identify one regular input file through the same open descriptor."""
+    source = Path(path)
+    descriptor = os.open(source, os.O_RDONLY | getattr(os, "O_CLOEXEC", 0))
+    try:
+        before = os.fstat(descriptor)
+        if not stat.S_ISREG(before.st_mode):
+            raise ValueError(f"DM-RS input must be a regular file: {source}")
+        proc_path = Path(f"/proc/self/fd/{descriptor}")
+        canonical_path = os.readlink(proc_path) if proc_path.exists() else str(source.absolute())
+        if canonical_path.endswith(" (deleted)"):
+            raise ValueError(f"DM-RS input was unlinked while open: {source}")
+        with os.fdopen(os.dup(descriptor), "rb") as stream:
+            payload = stream.read()
+        after = os.fstat(descriptor)
+        identity_before = (before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns)
+        identity_after = (after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns)
+        if identity_before != identity_after or len(payload) != after.st_size:
+            raise PermissionError(f"DM-RS input changed while being read: {source}")
+        artifact = {
+            "path": canonical_path,
+            "sha256": hashlib.sha256(payload).hexdigest(),
+            "device": str(after.st_dev),
+            "inode": str(after.st_ino),
+            "size": str(after.st_size),
+            "mtime_ns": str(after.st_mtime_ns),
+        }
+        return payload, artifact
+    finally:
+        os.close(descriptor)
 
 
 def thermal_noise_variance_w(
@@ -79,9 +119,10 @@ def resample_centered_cfr(
     return resampled.astype(np.complex64)
 
 
-def build_rt_dmrs_observation_dataset(
-    datasets: list[ChannelDataset],
+def build_rt_dmrs_generation_request(
+    datasets: Sequence[ChannelDataset],
     *,
+    source_artifacts: Sequence[Mapping[str, str]] = (),
     snr_db: float | None = 12.0,
     tx_power_per_re_w: float | None = None,
     noise_figure_db: float = 7.0,
@@ -90,6 +131,76 @@ def build_rt_dmrs_observation_dataset(
     device: str = "cuda:0",
     n_size_bwp: int = 6,
     subcarrier_spacing_khz: int = 30,
+    destination: str | Path | None = None,
+) -> dict[str, Any]:
+    """Bind input channel bytes and receiver settings into one approval request."""
+    inputs = []
+    sample_count = 0
+    for dataset in datasets:
+        arrays = {}
+        for name in ("h", "y", "group", "domain", "source"):
+            value = np.ascontiguousarray(getattr(dataset, name))
+            arrays[name] = {
+                "dtype": str(value.dtype),
+                "shape": list(value.shape),
+                "sha256": hashlib.sha256(value.view(np.uint8)).hexdigest(),
+            }
+        metadata_bytes = json.dumps(
+            {
+                "metadata": dataset.metadata,
+                "generation_report": dataset.generation_report,
+                "label_semantics": dataset.label_semantics,
+            },
+            ensure_ascii=False,
+            allow_nan=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+        inputs.append(
+            {
+                "sample_count": int(len(dataset.y)),
+                "array_hashes": arrays,
+                "provenance_sha256": hashlib.sha256(metadata_bytes).hexdigest(),
+            }
+        )
+        sample_count += len(dataset.y)
+    artifacts = [dict(item) for item in source_artifacts]
+    return {
+        "operation": "rt_dmrs_observations",
+        "input_datasets": inputs,
+        "input_artifacts": artifacts,
+        "input_artifact_count": len(artifacts),
+        "sample_count": int(sample_count),
+        "total_work_units": int(sample_count),
+        "destinations": [str(Path(destination).expanduser().resolve())] if destination else [],
+        "receiver_parameters": {
+            "snr_db": snr_db,
+            "tx_power_per_re_w": tx_power_per_re_w,
+            "noise_figure_db": noise_figure_db,
+            "temperature_k": temperature_k,
+            "seed": seed,
+            "device": device,
+            "n_size_bwp": n_size_bwp,
+            "subcarrier_spacing_khz": subcarrier_spacing_khz,
+        },
+        "package_source_sha256": package_source_sha256(),
+    }
+
+
+def build_rt_dmrs_observation_dataset(
+    datasets: list[ChannelDataset],
+    *,
+    authorization: D1GenerationAuthorization | None = None,
+    source_artifacts: Sequence[Mapping[str, str]] = (),
+    snr_db: float | None = 12.0,
+    tx_power_per_re_w: float | None = None,
+    noise_figure_db: float = 7.0,
+    temperature_k: float = 290.0,
+    seed: int = 20261031,
+    device: str = "cuda:0",
+    n_size_bwp: int = 6,
+    subcarrier_spacing_khz: int = 30,
+    destination: str | Path | None = None,
 ) -> ChannelDataset:
     """Apply a native Sionna PUSCH/DMRS receiver to saved RT CFR samples.
 
@@ -104,8 +215,29 @@ def build_rt_dmrs_observation_dataset(
     Both modes idealize timing, CFO, and inter-symbol channel variation; neither
     is a complete NR link simulation.
     """
+    if destination is None:
+        raise PermissionError("DM-RS pilot authorization must bind a scratch output destination")
     if not datasets:
         raise ValueError("at least one RT dataset is required")
+    request = build_rt_dmrs_generation_request(
+        datasets,
+        source_artifacts=source_artifacts,
+        snr_db=snr_db,
+        tx_power_per_re_w=tx_power_per_re_w,
+        noise_figure_db=noise_figure_db,
+        temperature_k=temperature_k,
+        seed=seed,
+        device=device,
+        n_size_bwp=n_size_bwp,
+        subcarrier_spacing_khz=subcarrier_spacing_khz,
+        destination=destination,
+    )
+    require_d1_authorization(authorization, request, expected_operation="rt_dmrs_observations")
+    if getattr(authorization, "mode", None) == "pilot":
+        from integrations.sionna.d1_generation_gate import require_pilot_destination
+
+        for output in request["destinations"]:
+            require_pilot_destination(authorization, output, publisher="dmrs_dataset")  # type: ignore[arg-type]
     physical_power_mode = tx_power_per_re_w is not None
     if tx_power_per_re_w is not None:
         if snr_db is not None:

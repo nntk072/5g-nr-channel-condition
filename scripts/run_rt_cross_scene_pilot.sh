@@ -2,7 +2,7 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-output_dir="${1:-outputs/rt-cross-scene-repro-20261021}"
+output_dir="${1:-/tmp/loslab-pilot/rt-cross-scene-repro-20261021}"
 if [[ "${output_dir}" != /* ]]; then
   output_dir="${repo_root}/${output_dir}"
 fi
@@ -13,19 +13,19 @@ fi
 mkdir -p "${output_dir}"
 cd "${repo_root}"
 
-python -m loslab rt-data \
+python -m loslab rt-data --pilot \
   --output "${output_dir}/box_one_screen.npz" \
   --seed 42 --scene box_one_screen --tx -2 0 2.5 --center 0 0 2.5 \
   --radius 4 --per-class 20 --max-attempts 600 --samples-per-src 200 \
   --block-size 5 --max-depth 2 --mitsuba-variant llvm_ad_mono_polarized
 
-python -m loslab rt-data \
+python -m loslab rt-data --pilot \
   --output "${output_dir}/simple_street_canyon.npz" \
   --seed 142 --scene simple_street_canyon --tx 0 0 25 --center 0 0 1.5 \
   --radius 30 --per-class 20 --max-attempts 600 --samples-per-src 200 \
   --block-size 20 --max-depth 2 --mitsuba-variant llvm_ad_mono_polarized
 
-python -m loslab rt-data \
+python -m loslab rt-data --pilot \
   --output "${output_dir}/etoile.npz" \
   --seed 1021 --scene etoile --tx 232.8 -95.5 17 --center 211 -180 1.5 \
   --radius 60 --per-class 20 --max-attempts 600 --samples-per-src 200 \

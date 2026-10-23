@@ -8,6 +8,12 @@ from integrations.sionna.adapter import GridConfig, RayScene, generate_raytraced
 from integrations.sionna.los_oracle import SegmentVisibilityResult, SegmentVisibilityState
 
 
+def _generate_raytraced_pilot(*args, **kwargs):
+    kwargs.setdefault("pilot", True)
+    kwargs.setdefault("output_destination", "/tmp/loslab-static-mock-test.npz")
+    return generate_raytraced(*args, **kwargs)
+
+
 def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
     scene_module = types.ModuleType("sionna.rt")
     sionna = types.ModuleType("sionna")
@@ -130,7 +136,7 @@ def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
         "probe_native_rt_variant",
         lambda variant: (True, f"mock RT probe passed: {variant}"),
     )
-    d = generate_raytraced(
+    d = _generate_raytraced_pilot(
         RayScene(
             name="mock",
             transmitter_id="tx-a",
@@ -216,7 +222,7 @@ def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
     assert set(d.source) == {"sionna_rt"}
     assert set(d.domain) == {"rt_mock_tx-a"}
     assert {row["transmitter_id"] for row in d.metadata} == {"tx-a"}
-    other_tx = generate_raytraced(
+    other_tx = _generate_raytraced_pilot(
         RayScene(
             name="mock",
             transmitter_id="tx-b",
@@ -246,7 +252,7 @@ def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
 
     force_oracle_error = True
     try:
-        generate_raytraced(
+        _generate_raytraced_pilot(
             RayScene(name="mock", per_class=1, max_attempts=2),
             grid=GridConfig(n_subcarriers=32),
             seed=20,
@@ -264,7 +270,7 @@ def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
 
     force_geometry_error = True
     try:
-        generate_raytraced(
+        _generate_raytraced_pilot(
             RayScene(name="mock", per_class=1, max_attempts=2),
             grid=GridConfig(n_subcarriers=32),
             seed=19,
@@ -280,7 +286,7 @@ def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
 
     force_visibility_disagreement = True
     try:
-        generate_raytraced(
+        _generate_raytraced_pilot(
             RayScene(name="mock", per_class=1, max_attempts=2),
             grid=GridConfig(n_subcarriers=32),
             seed=18,
@@ -296,7 +302,7 @@ def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
 
     force_solver_error = True
     try:
-        generate_raytraced(
+        _generate_raytraced_pilot(
             RayScene(name="mock", per_class=1, max_attempts=2),
             grid=GridConfig(n_subcarriers=32),
             seed=21,
@@ -327,7 +333,7 @@ def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
     force_solver_error = False
     force_all_los = True
     try:
-        generate_raytraced(
+        _generate_raytraced_pilot(
             RayScene(name="mock", per_class=1, max_attempts=2),
             grid=GridConfig(n_subcarriers=32),
             seed=22,
@@ -349,7 +355,7 @@ def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
     force_all_los = False
     force_candidate_cap = True
     try:
-        generate_raytraced(
+        _generate_raytraced_pilot(
             RayScene(
                 name="mock",
                 per_class=1,

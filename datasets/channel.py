@@ -6,6 +6,7 @@ Each channel observation is [receive_antenna_links, subcarriers].
 
 from __future__ import annotations
 
+import io
 import json
 import os
 import tempfile
@@ -100,7 +101,7 @@ class ChannelDataset:
             datasets[0].label_semantics,
         )
 
-    def save(self, path: str | Path) -> None:
+    def save(self, path: str | Path, *, exclusive: bool = False) -> None:
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
         fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.", suffix=".npz")
@@ -119,14 +120,22 @@ class ChannelDataset:
                 ),
                 label_semantics_json=np.asarray(self.label_semantics),
             )
-            os.replace(tmp, path)
+            if exclusive:
+                os.link(tmp, path)
+            else:
+                os.replace(tmp, path)
         finally:
             if os.path.exists(tmp):
                 os.unlink(tmp)
 
     @classmethod
     def load(cls, path: str | Path) -> "ChannelDataset":
-        with np.load(path, allow_pickle=False) as z:
+        return cls.load_bytes(Path(path).read_bytes())
+
+    @classmethod
+    def load_bytes(cls, payload: bytes) -> "ChannelDataset":
+        """Parse exactly the immutable byte sequence used for provenance hashing."""
+        with np.load(io.BytesIO(payload), allow_pickle=False) as z:
             metadata = tuple(json.loads(str(z["metadata_json"].item())))
             report = (
                 json.loads(str(z["generation_report_json"].item()))

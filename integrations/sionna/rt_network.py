@@ -20,6 +20,7 @@ from datasets.path_oracle import PathOracleTable, PathSolveStatus
 from datasets.provenance import UMCDRunProvenance
 from datasets.targets import TargetValue
 
+from integrations.sionna.d1_generation_gate import D1GenerationAuthorization
 from integrations.sionna.path_oracle import sionna_paths_to_oracle_table
 from integrations.sionna.rt_identity import umcd_provenance_from_rt_identity
 
@@ -246,8 +247,16 @@ def write_sionna_rt_episode_bundle(
     channel_views: Sequence[PhysicalChannelView] = (),
     targets: Sequence[TargetValue] = (),
     receiver_observations: Sequence[LinkedNRObservation | LinkedFrequencyDomainObservation] = (),
+    authorization: D1GenerationAuthorization | None = None,
 ) -> StoredEpisodeBundle:
     """Build and immutably publish a provenance-complete Sionna RT bundle."""
+    from integrations.sionna.d1_generation_gate import require_pilot_destination
+
+    require_pilot_destination(
+        authorization,
+        store_root,
+        publisher="umcd_bundle",
+    )  # type: ignore[arg-type]
     bundle = build_sionna_rt_episode_bundle(
         episode,
         bindings,

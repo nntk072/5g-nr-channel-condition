@@ -32,6 +32,7 @@ from datasets.observations import (
 from propagation.physics import add_estimation_noise, frequency_response, subcarrier_frequencies
 
 from integrations.sionna.candidate_audit import instrument_path_solver_candidate_counter
+from integrations.sionna.d1_generation_gate import D1GenerationAuthorization
 from integrations.sionna.los_oracle import SegmentVisibilityState, segment_visibility
 from integrations.sionna.random import call_with_sionna_seed
 from integrations.sionna.rt_identity import (
@@ -391,6 +392,90 @@ class RayScene:
             raise ValueError("max_num_paths_per_src must be a positive integer")
 
 
+def build_rt_data_generation_request(
+    scene_config: RayScene,
+    grid: GridConfig,
+    seed: int,
+    *,
+    selection: Any,
+    scene_ref: object,
+    scene_assets: Mapping[str, Any],
+    destinations: Sequence[str | Path] = (),
+) -> dict[str, Any]:
+    """Build the canonical request from effective runtime and resolved scene facts."""
+    return {
+        "operation": "rt_data",
+        "scene": scene_config.name,
+        "seed": seed,
+        "config": {
+            **asdict(scene_config),
+            "total_work_units": scene_config.max_attempts * scene_config.samples_per_src,
+        },
+        "grid": asdict(grid),
+        "package_source_sha256": package_source_sha256(),
+        "backend": selection.as_dict(),
+        "scene_asset_identity": {
+            "scene_reference": str(scene_ref),
+            "asset_set_sha256": scene_assets["asset_set_sha256"],
+            "asset_count": scene_assets["asset_count"],
+            "complete": scene_assets["complete"],
+            "runtime_versions": versions(),
+        },
+        "destinations": sorted(str(Path(value).expanduser().resolve()) for value in destinations),
+    }
+
+
+def authorize_rt_data_generation(
+    scene_config: RayScene,
+    *,
+    grid: GridConfig = GridConfig(),
+    seed: int = 42,
+    destinations: Sequence[str | Path] = (),
+    pilot: bool = False,
+    approval_manifest: str | Path | None = None,
+    expected_approval_sha256: str | None = None,
+) -> D1GenerationAuthorization:
+    """Resolve the effective RT inputs and authorize their canonical request."""
+    from integrations.sionna.backend import activate_rt_backend, select_rt_backend
+    from integrations.sionna.d1_generation_gate import authorize_d1_generation
+    from integrations.sionna.scene_assets import scene_asset_manifest
+
+    selection = select_rt_backend(scene_config.mitsuba_variant)
+    activate_rt_backend(selection)
+    try:
+        import sionna.rt as rt
+    except ImportError as exc:
+        raise RuntimeError("Sionna RT 2.2 not installed; install sionna==2.2.0") from exc
+    effective = replace(scene_config, mitsuba_variant=selection.variant)
+    scene_ref = getattr(rt.scene, effective.name, effective.name)
+    scene_path = Path(str(scene_ref)).expanduser()
+    if scene_path.is_file():
+        assets = scene_asset_manifest(scene_path)
+    else:
+        ref = str(scene_ref)
+        assets = {
+            "scene_xml_path": ref,
+            "asset_count": 0,
+            "asset_set_sha256": hashlib.sha256(ref.encode()).hexdigest(),
+            "complete": False,
+        }
+    request = build_rt_data_generation_request(
+        effective,
+        grid,
+        seed,
+        selection=selection,
+        scene_ref=scene_ref,
+        scene_assets=assets,
+        destinations=destinations,
+    )
+    return authorize_d1_generation(
+        request,
+        pilot=pilot,
+        approval_manifest=approval_manifest,
+        expected_approval_sha256=expected_approval_sha256,
+    )
+
+
 class RaytraceGenerationError(RuntimeError):
     """RT generation failure that preserves the complete attempt report."""
 
@@ -417,6 +502,7 @@ def _publish_static_rt_sample_umcd(
     package_sha256: str,
     scene_assets: Mapping[str, Any],
     material_manifest: Mapping[str, Any],
+    authorization: D1GenerationAuthorization | None,
 ) -> Mapping[str, object]:
     """Publish one static RT path solve and its direct noisy-CFR observation."""
     from datasets.targets import (
@@ -545,6 +631,7 @@ def _publish_static_rt_sample_umcd(
         channel_views=(channel_view,),
         targets=(target,),
         receiver_observations=(receiver_observation,),
+        authorization=authorization,
     )
     return asdict(stored)
 
@@ -557,6 +644,14 @@ def generate_raytraced(
     umcd_store_root: str | Path | None = None,
     _backend_selection: RTBackendSelection | None = None,
     _runtime_fingerprint: Mapping[str, str] | None = None,
+    authorization: D1GenerationAuthorization | None = None,
+    pilot: bool = False,
+    approval_manifest: str | Path | None = None,
+    expected_approval_sha256: str | None = None,
+    _scene_assets_override: Mapping[str, Any] | None = None,
+    output_destination: str | Path | None = None,
+    failure_report_destination: str | Path | None = None,
+    _authorization_destinations: Sequence[str | Path] = (),
 ) -> ChannelDataset:
     """Balanced physical LOS/NLOS ray tracing. Fail closed when insufficient examples.
 
@@ -566,6 +661,8 @@ def generate_raytraced(
     Report how often LOS really contains >=2 valid paths; default rejects
     direct-only LOS. NLOS must contain at least one observable indirect path.
     """
+    if authorization is None and not pilot and approval_manifest is None:
+        raise PermissionError("direct RT dataset generation requires D1 authorization")
     try:
         from integrations.sionna.backend import activate_rt_backend, select_rt_backend
 
@@ -612,7 +709,55 @@ def generate_raytraced(
             "unresolved_references": [scene_reference],
             "complete": False,
         }
+    from integrations.sionna.d1_generation_gate import (
+        authorize_d1_generation,
+        require_d1_authorization,
+    )
+
+    destinations = [*(_authorization_destinations or ())]
+    destinations.extend(
+        value
+        for value in (output_destination, umcd_store_root, failure_report_destination)
+        if value is not None
+    )
+    request = build_rt_data_generation_request(
+        cfg,
+        grid,
+        seed,
+        selection=selection,
+        scene_ref=scene_ref,
+        scene_assets=scene_assets,
+        destinations=destinations,
+    )
+    if authorization is None:
+        authorization = authorize_d1_generation(
+            request,
+            pilot=pilot,
+            approval_manifest=approval_manifest,
+            expected_approval_sha256=expected_approval_sha256,
+        )
+    require_d1_authorization(authorization, request, expected_operation="rt_data")  # type: ignore[arg-type]
+    if getattr(authorization, "mode", None) == "pilot":
+        from integrations.sionna.d1_generation_gate import require_pilot_destination
+
+        if output_destination is not None:
+            require_pilot_destination(authorization, output_destination, publisher="rt_dataset")  # type: ignore[arg-type]
+        if umcd_store_root is not None:
+            require_pilot_destination(authorization, umcd_store_root, publisher="umcd_bundle")  # type: ignore[arg-type]
+        if failure_report_destination is not None:
+            require_pilot_destination(
+                authorization, failure_report_destination, publisher="failure_report"
+            )  # type: ignore[arg-type]
+        if _authorization_destinations:
+            for destination in _authorization_destinations:
+                require_pilot_destination(authorization, destination, publisher="rt_cache")  # type: ignore[arg-type]
     scene = load_scene(scene_ref)
+    if scene_xml_path.is_file():
+        loaded_scene_assets = scene_asset_manifest(scene_xml_path)
+        if loaded_scene_assets.get("asset_set_sha256") != scene_assets.get("asset_set_sha256"):
+            raise PermissionError(
+                "RT scene asset closure changed between authorization and scene load"
+            )
     scene.frequency = grid.carrier_hz
     scene.bandwidth = grid.n_subcarriers * grid.spacing_hz
     material_manifest = sionna_scene_material_manifest(scene)
@@ -895,6 +1040,7 @@ def generate_raytraced(
                     package_sha256=package_sha256,
                     scene_assets=scene_assets,
                     material_manifest=material_manifest,
+                    authorization=authorization,
                 )
             )
         hits[label] += 1
@@ -1068,8 +1214,17 @@ def generate_raytraced_cached(
     cache_directory: str | Path,
     grid: GridConfig = GridConfig(),
     seed: int = 42,
+    authorization: D1GenerationAuthorization | None = None,
+    pilot: bool = False,
+    approval_manifest: str | Path | None = None,
+    expected_approval_sha256: str | None = None,
+    output_destination: str | Path | None = None,
+    failure_report_destination: str | Path | None = None,
+    umcd_store_root: str | Path | None = None,
 ) -> ChannelDataset:
     """Return a verified cached RT dataset or generate and publish it immutably."""
+    if authorization is None and not pilot and approval_manifest is None:
+        raise PermissionError("cached RT dataset access requires D1 authorization")
     from integrations.sionna.backend import activate_rt_backend, select_rt_backend
     from integrations.sionna.rt_cache import load_rt_dataset, store_rt_dataset
     from integrations.sionna.scene_assets import scene_asset_manifest
@@ -1095,6 +1250,46 @@ def generate_raytraced_cached(
             "unresolved_references": [reference],
             "complete": False,
         }
+    from integrations.sionna.d1_generation_gate import (
+        authorize_d1_generation,
+        require_d1_authorization,
+    )
+
+    destinations = [cache_directory]
+    destinations.extend(
+        value
+        for value in (output_destination, umcd_store_root, failure_report_destination)
+        if value is not None
+    )
+    request = build_rt_data_generation_request(
+        cfg,
+        grid,
+        seed,
+        selection=selection,
+        scene_ref=scene_ref,
+        scene_assets=assets,
+        destinations=destinations,
+    )
+    if authorization is None:
+        authorization = authorize_d1_generation(
+            request,
+            pilot=pilot,
+            approval_manifest=approval_manifest,
+            expected_approval_sha256=expected_approval_sha256,
+        )
+    require_d1_authorization(authorization, request, expected_operation="rt_data")  # type: ignore[arg-type]
+    if getattr(authorization, "mode", None) == "pilot":
+        from integrations.sionna.d1_generation_gate import require_pilot_destination
+
+        require_pilot_destination(authorization, cache_directory, publisher="rt_cache")  # type: ignore[arg-type]
+        if output_destination is not None:
+            require_pilot_destination(authorization, output_destination, publisher="rt_dataset")  # type: ignore[arg-type]
+        if umcd_store_root is not None:
+            require_pilot_destination(authorization, umcd_store_root, publisher="umcd_bundle")  # type: ignore[arg-type]
+        if failure_report_destination is not None:
+            require_pilot_destination(
+                authorization, failure_report_destination, publisher="failure_report"
+            )  # type: ignore[arg-type]
     package_hash = package_source_sha256()
     runtime_fingerprint = rt_runtime_fingerprint(
         {key: value for key, value in versions().items() if key != "git_sha"}
@@ -1119,6 +1314,12 @@ def generate_raytraced_cached(
         seed=seed,
         _backend_selection=selection,
         _runtime_fingerprint=runtime_fingerprint,
+        authorization=authorization,
+        _scene_assets_override=assets,
+        output_destination=output_destination,
+        failure_report_destination=failure_report_destination,
+        umcd_store_root=umcd_store_root,
+        _authorization_destinations=(cache_directory,),
     )
     if identity["complete"]:
         store_rt_dataset(cache_directory, dataset, identity)

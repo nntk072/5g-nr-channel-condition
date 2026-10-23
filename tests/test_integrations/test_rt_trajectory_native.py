@@ -37,7 +37,9 @@ def test_cpu_rt_path_retraces_and_stores_receiver_only_trajectory(tmp_path, monk
     )
 
     umcd_root = tmp_path / "umcd"
-    stored = generate_rt_nr_trajectory(config, tmp_path, umcd_store_root=umcd_root)
+    stored = generate_rt_nr_trajectory(
+        config, tmp_path, pilot=True, umcd_store_root=umcd_root, spec_sha256="0" * 64
+    )
     trajectory = read_nr_trajectory(tmp_path, stored)
 
     assert trajectory.trajectory_id == config.trajectory_id
@@ -165,11 +167,13 @@ def test_cpu_rt_path_retraces_and_stores_receiver_only_trajectory(tmp_path, monk
         raise AssertionError("matching trajectory cache entry should avoid retracing")
 
     monkeypatch.setattr(rt, "PathSolver", unexpected_trace)
-    cached = generate_rt_nr_trajectory(config, tmp_path)
+    cached = generate_rt_nr_trajectory(config, tmp_path, pilot=True, spec_sha256="0" * 64)
     assert cached == stored
 
     with pytest.raises(ValueError, match="different RT run identity"):
-        generate_rt_nr_trajectory(replace(config, snr_db=config.snr_db + 1.0), tmp_path)
+        generate_rt_nr_trajectory(
+            replace(config, snr_db=config.snr_db + 1.0), tmp_path, pilot=True, spec_sha256="0" * 64
+        )
 
 
 @pytest.mark.native_sionna
@@ -189,7 +193,7 @@ def test_moving_scene_object_is_retraced_and_recorded_per_frame(tmp_path):
         moving_scene_objects=(RTSceneObjectMotion("screen", (0.0, 10.0, 0.0)),),
     )
 
-    stored = generate_rt_nr_trajectory(config, tmp_path)
+    stored = generate_rt_nr_trajectory(config, tmp_path, pilot=True, spec_sha256="0" * 64)
     trajectory = read_nr_trajectory(tmp_path, stored)
 
     poses = [record.provenance["moving_scene_objects"]["screen"] for record in trajectory.records]
@@ -238,16 +242,22 @@ def test_mixed_outage_trajectory_uses_noise_only_and_masks_channel_truth(tmp_pat
         no_path_policy="reject",
     )
     with pytest.raises(RuntimeError, match="no_path_policy='noise_only_mixed_episode'"):
-        generate_rt_nr_trajectory(reject_config, tmp_path / "reject")
+        generate_rt_nr_trajectory(
+            reject_config, tmp_path / "reject", pilot=True, spec_sha256="0" * 64
+        )
     all_outage_config = replace(
         reject_config,
         trajectory_id="native-all-screen-outage-route",
         no_path_policy="noise_only_mixed_episode",
     )
     with pytest.raises(RuntimeError, match="requires at least one path-bearing snapshot"):
-        generate_rt_nr_trajectory(all_outage_config, tmp_path / "all-outage")
+        generate_rt_nr_trajectory(
+            all_outage_config, tmp_path / "all-outage", pilot=True, spec_sha256="0" * 64
+        )
 
-    stored = generate_rt_nr_trajectory(config, tmp_path, umcd_store_root=umcd_root)
+    stored = generate_rt_nr_trajectory(
+        config, tmp_path, pilot=True, umcd_store_root=umcd_root, spec_sha256="0" * 64
+    )
     trajectory = read_nr_trajectory(tmp_path, stored)
 
     assert [record.provenance["full_path_count"] for record in trajectory.records] == [0, 1]
@@ -307,7 +317,9 @@ def test_absolute_power_policy_generates_all_no_path_noise_only_episode(tmp_path
         no_path_policy="noise_only_absolute_power",
     )
     umcd_root = tmp_path / "umcd"
-    stored = generate_rt_nr_trajectory(config, tmp_path, umcd_store_root=umcd_root)
+    stored = generate_rt_nr_trajectory(
+        config, tmp_path, pilot=True, umcd_store_root=umcd_root, spec_sha256="0" * 64
+    )
     trajectory = read_nr_trajectory(tmp_path, stored)
     record = trajectory.records[0]
 
@@ -370,7 +382,9 @@ def test_moving_scene_object_doppler_matches_geometric_delay_derivative(tmp_path
         device="cpu",
         moving_scene_objects=(RTSceneObjectMotion("screen", (1.0, 0.0, 0.0)),),
     )
-    stored = generate_rt_nr_trajectory(config, tmp_path, umcd_store_root=tmp_path / "umcd")
+    stored = generate_rt_nr_trajectory(
+        config, tmp_path, pilot=True, umcd_store_root=tmp_path / "umcd", spec_sha256="0" * 64
+    )
     generation_path = (tmp_path / stored.manifest_relative_path).with_name(
         f"{stored.content_sha256}.generation.json"
     )
@@ -445,7 +459,9 @@ def test_reflected_path_doppler_matches_finite_difference_of_geometric_delay(tmp
         device="cpu",
     )
 
-    stored = generate_rt_nr_trajectory(config, tmp_path, umcd_store_root=tmp_path / "umcd")
+    stored = generate_rt_nr_trajectory(
+        config, tmp_path, pilot=True, umcd_store_root=tmp_path / "umcd", spec_sha256="0" * 64
+    )
     generation_path = (tmp_path / stored.manifest_relative_path).with_name(
         f"{stored.content_sha256}.generation.json"
     )
@@ -526,7 +542,7 @@ def test_llvm_rt_common_random_numbers_remove_static_scene_sampling_jitter(tmp_p
         device="cpu",
     )
 
-    stored = generate_rt_nr_trajectory(config, tmp_path)
+    stored = generate_rt_nr_trajectory(config, tmp_path, pilot=True, spec_sha256="0" * 64)
     trajectory = read_nr_trajectory(tmp_path, stored)
 
     first = trajectory.records[0].targets["channel_cfr"]
@@ -551,4 +567,4 @@ def test_trajectory_rejects_candidate_cap_filled_before_invalid_path_filter(tmp_
     )
 
     with pytest.raises(RuntimeError, match="candidate path cap filled.*1/1"):
-        generate_rt_nr_trajectory(config, tmp_path)
+        generate_rt_nr_trajectory(config, tmp_path, pilot=True, spec_sha256="0" * 64)
