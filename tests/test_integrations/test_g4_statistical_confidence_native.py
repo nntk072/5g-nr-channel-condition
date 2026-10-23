@@ -19,6 +19,7 @@ from integrations.sionna.cdl import CDLArrayConfig, generate_cdl_frequency_respo
 from integrations.sionna.tdl import generate_tdl_frequency_response  # noqa: E402
 
 _Z_SIMULTANEOUS = 3.5
+_FIXED_TDL_MODELS = ("A10", "A30", "B100", "C60", "C300", "D10", "D30")
 
 
 def _within_interval(estimate: Any, standard_error: Any, target: Any) -> bool:
@@ -28,12 +29,13 @@ def _within_interval(estimate: Any, standard_error: Any, target: Any) -> bool:
 @pytest.mark.native_sionna
 @pytest.mark.parametrize(
     ("family", "model"),
-    tuple((family, model) for family in ("TDL", "CDL") for model in "ABCDE"),
+    tuple((family, model) for family in ("TDL", "CDL") for model in "ABCDE")
+    + tuple(("TDL", model) for model in _FIXED_TDL_MODELS),
 )
 def test_delay_profile_and_rms_have_draw_level_confidence_intervals(
     family: str, model: str
 ) -> None:
-    """Check profile PDP and RMS-delay estimates with batch-draw intervals."""
+    """Check scalable and fixed profile PDP/RMS delay with draw-level intervals."""
     batch_size = 4096
     channel: Any
     if family == "TDL":
@@ -44,7 +46,7 @@ def test_delay_profile_and_rms_have_draw_level_confidence_intervals(
             subcarrier_spacing_hz=30_000.0,
             num_subcarriers=8,
             batch_size=batch_size,
-            delay_spread_s=100e-9,
+            delay_spread_s=None if model in _FIXED_TDL_MODELS else 100e-9,
             spec_version="19.2",
             device="cpu",
         )
@@ -104,12 +106,14 @@ def test_delay_profile_and_rms_have_draw_level_confidence_intervals(
 @pytest.mark.parametrize(
     ("model", "los_angle_rad"),
     tuple((model, math.acos(0.7)) for model in "ABC")
-    + tuple((model, angle) for model in "DE" for angle in (0.0, math.pi / 2.0)),
+    + tuple((model, angle) for model in "DE" for angle in (0.0, math.pi / 2.0))
+    + tuple((model, math.acos(0.7)) for model in _FIXED_TDL_MODELS if model not in {"D10", "D30"})
+    + tuple((model, angle) for model in ("D10", "D30") for angle in (0.0, math.pi / 2.0)),
 )
 def test_doppler_correlation_confidence_interval_uses_paired_independent_draws(
     model: str, los_angle_rad: float
 ) -> None:
-    carrier_frequency_hz = 3.5e9
+    carrier_frequency_hz = 28e9 if model in {"A10", "C60", "D10"} else 3.5e9
     speed_mps = 30.0
     maximum_doppler_hz = speed_mps * carrier_frequency_hz / 299_792_458.0
     lag_s = 1.0 / (4.0 * maximum_doppler_hz)
@@ -121,7 +125,7 @@ def test_doppler_correlation_confidence_interval_uses_paired_independent_draws(
         subcarrier_spacing_hz=30_000.0,
         num_subcarriers=8,
         batch_size=batch_size,
-        delay_spread_s=100e-9,
+        delay_spread_s=None if model in _FIXED_TDL_MODELS else 100e-9,
         num_time_steps=2,
         sampling_frequency_hz=1.0 / lag_s,
         min_speed_mps=speed_mps,
@@ -142,7 +146,7 @@ def test_doppler_correlation_confidence_interval_uses_paired_independent_draws(
     real_se = influence.real.std(unbiased=True) / denominator
     imag_se = influence.imag.std(unbiased=True) / denominator
     diffuse = torch.special.bessel_j0(torch.tensor(math.pi / 2.0, dtype=torch.float64))
-    if model in "ABC":
+    if channel.metadata["k_factor_linear"] is None:
         expected = diffuse.to(torch.complex128)
     else:
         k_factor = float(channel.metadata["k_factor_linear"])
