@@ -165,9 +165,19 @@ def test_pusch_dmrs_values_match_independent_ts_38211_gold_sequence(
 
 
 @pytest.mark.native_sionna
-def test_pusch_dmrs_estimator_recovers_frequency_selective_noiseless_channel_on_cpu():
+@pytest.mark.parametrize(
+    ("subcarrier_spacing_khz", "n_size_bwp"),
+    ((15, 2), (30, 6), (60, 12), (120, 24)),
+)
+def test_pusch_dmrs_estimator_recovers_frequency_selective_noiseless_channel_on_cpu(
+    subcarrier_spacing_khz: int, n_size_bwp: int
+) -> None:
     receiver = SionnaPUSCHLSReceiver(
-        NRPUSCHConfig(n_size_bwp=6, subcarrier_spacing_khz=30), device="cpu"
+        NRPUSCHConfig(
+            n_size_bwp=n_size_bwp,
+            subcarrier_spacing_khz=subcarrier_spacing_khz,
+        ),
+        device="cpu",
     )
     grid = receiver.resource_grid
     transmit_grid, _ = receiver.transmit(2, seed=5302)
