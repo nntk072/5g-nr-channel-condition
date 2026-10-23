@@ -979,14 +979,16 @@ def test_pusch_linear_dmrs_interpolation_tracks_analytical_two_tap_channel_on_al
     ),
 )
 @pytest.mark.parametrize("complex_noise_variance", (0.01, 0.05, 0.2))
-def test_pusch_interpolation_reported_variance_is_conservative_under_monte_carlo(
+@pytest.mark.parametrize("interpolation_type", ("nn", "lin"))
+def test_pusch_interpolation_variance_semantics_match_monte_carlo(
     dmrs_config_type: int,
     dmrs_length: int,
     dmrs_additional_position: int,
     delay_samples: int,
     complex_noise_variance: float,
+    interpolation_type: str,
 ) -> None:
-    """Measure Sionna's linear-interpolated variance against all-RE Monte Carlo."""
+    """Compare Sionna's all-RE variance semantics against Monte Carlo."""
     receiver = SionnaPUSCHLSReceiver(
         NRPUSCHConfig(
             n_size_bwp=4,
@@ -995,14 +997,16 @@ def test_pusch_interpolation_reported_variance_is_conservative_under_monte_carlo
             dmrs_length=dmrs_length,
             dmrs_additional_position=dmrs_additional_position,
             num_cdm_groups_without_data=1,
-            interpolation_type="lin",
+            interpolation_type=interpolation_type,
         ),
         device="cpu",
     )
-    assert (
-        receiver.metadata["error_variance_semantics"]
-        == "sionna_linear_interpolated_marginal_variance_not_exact_covariance"
+    expected_semantics = (
+        "sionna_linear_interpolated_marginal_variance_not_exact_covariance"
+        if interpolation_type == "lin"
+        else "sionna_nearest_neighbor_pilot_error_variance"
     )
+    assert receiver.metadata["error_variance_semantics"] == expected_semantics
     batch_size = 1024
     transmitted_grid, _ = receiver.transmit(batch_size, seed=73491)
     fft_size = receiver.resource_grid.fft_size
@@ -1037,9 +1041,12 @@ def test_pusch_interpolation_reported_variance_is_conservative_under_monte_carlo
 
     assert bool(valid.any())
     assert bool((mean_bias[valid] < bias_tolerance[valid]).all())
-    # Sionna linearly interpolates marginal variances; it does not propagate
-    # the full covariance using squared interpolation weights.
-    assert 0.6 <= float(variance_ratio) <= 1.05
+    if interpolation_type == "nn":
+        assert float(variance_ratio) == pytest.approx(1.0, abs=0.12)
+    else:
+        # Sionna linearly interpolates marginal variances; it does not propagate
+        # the full covariance using squared interpolation weights.
+        assert 0.6 <= float(variance_ratio) <= 1.05
 
 
 @pytest.mark.native_sionna
