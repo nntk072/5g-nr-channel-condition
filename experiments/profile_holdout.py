@@ -87,6 +87,41 @@ def _profile_rows(data: ChannelDataset) -> dict[str, np.ndarray]:
     return {profile: np.asarray(indices, dtype=np.int64) for profile, indices in rows.items()}
 
 
+def _metadata_only_profile_control(data: ChannelDataset) -> dict[str, Any]:
+    """Measure the label-definition shortcut using profile metadata alone.
+
+    This control is intentionally an oracle for the PROFILE_PROXY target: the
+    target is defined by whether a standardized profile is A/B/C or D/E. A
+    perfect score demonstrates metadata recoverability, not geometric LOS
+    inference or receiver-observable performance.
+    """
+    prediction = np.fromiter(
+        (int(str(metadata["profile"]).upper() in "DE") for metadata in data.metadata),
+        dtype=np.int64,
+        count=len(data.metadata),
+    )
+    truth = np.asarray(data.y, dtype=np.int64)
+    true_negative = int(np.sum((truth == 0) & (prediction == 0)))
+    false_positive = int(np.sum((truth == 0) & (prediction == 1)))
+    false_negative = int(np.sum((truth == 1) & (prediction == 0)))
+    true_positive = int(np.sum((truth == 1) & (prediction == 1)))
+    return {
+        "feature_fields": ["metadata.profile"],
+        "n_samples": int(len(truth)),
+        "accuracy": float(np.mean(prediction == truth)),
+        "confusion_matrix_labels_0_1": [
+            [true_negative, false_positive],
+            [false_negative, true_positive],
+        ],
+        "label_semantics": "PROFILE_PROXY: A/B/C=0, D/E=1",
+        "physical_geometric_los_inference": False,
+        "interpretation": (
+            "This recovers the profile-proxy label definition from simulator metadata; "
+            "it is not geometric LOS detection or receiver-observable performance."
+        ),
+    }
+
+
 def _group_validation_split(
     y: np.ndarray, groups: np.ndarray, *, seed: int, fraction: float
 ) -> tuple[np.ndarray, np.ndarray]:
@@ -202,7 +237,8 @@ def run_profile_holdout(
     Each outer test fold contains one profile and therefore only one proxy class.
     The output reports within-profile recall and macro averages over profiles;
     it intentionally does not pool scores from separately fitted folds into an
-    AUROC or claim generalization to geometric LOS/NLOS.
+    AUROC or claim generalization to geometric LOS/NLOS. A metadata-only control
+    reports how directly the declared profile metadata recovers the proxy label.
     """
     if not methods or len(set(methods)) != len(methods):
         raise ValueError("methods must be a non-empty sequence without duplicates")
@@ -336,6 +372,7 @@ def run_profile_holdout(
     return {
         "schema": "loslab.profile_proxy_leave_one_profile_out.v1",
         "label_semantics": "PROFILE_PROXY: A/B/C=0, D/E=1",
+        "metadata_only_profile_control": _metadata_only_profile_control(data),
         "feature_semantics": "global-gain-and-phase-normalized CFR real/imaginary samples",
         "validation_fraction_of_training_groups": validation_fraction,
         "seed": seed,

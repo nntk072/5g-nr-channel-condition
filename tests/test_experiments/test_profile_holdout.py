@@ -68,6 +68,13 @@ def test_profile_holdout_keeps_outer_profiles_and_validation_groups_disjoint():
 
     assert len(result["folds"]) == 10
     assert set(result["summary"]["logreg"]["per_profile"]) == set("ABCDE")
+    metadata_control = result["metadata_only_profile_control"]
+    assert metadata_control["feature_fields"] == ["metadata.profile"]
+    assert metadata_control["accuracy"] == 1.0
+    assert metadata_control["confusion_matrix_labels_0_1"] == [[120, 0], [0, 80]]
+    assert metadata_control["label_semantics"] == "PROFILE_PROXY: A/B/C=0, D/E=1"
+    assert metadata_control["physical_geometric_los_inference"] is False
+    assert "not geometric LOS detection" in metadata_control["interpretation"]
     for method in ("logreg", "mlp"):
         assert np.isfinite(result["predictions"][method]).all()
         assert np.isfinite(result["thresholds"][method]).all()
