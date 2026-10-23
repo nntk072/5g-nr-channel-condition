@@ -135,6 +135,58 @@ def test_pusch_type1_dmrs_positions_match_ts_38211_full_slot_reference(
 
 @pytest.mark.native_sionna
 @pytest.mark.parametrize(
+    ("mapping_type", "additional_position", "expected_symbols", "symbol_allocation"),
+    (
+        ("A", 0, (2,), (0, 10)),
+        ("A", 1, (2, 9), (0, 10)),
+        ("A", 2, (2, 6, 9), (0, 10)),
+        ("A", 3, (2, 6, 9), (0, 10)),
+        ("B", 0, (0,), (3, 10)),
+        ("B", 1, (0, 8), (3, 10)),
+        ("B", 2, (0, 4, 8), (3, 10)),
+        ("B", 3, (0, 3, 6, 9), (3, 10)),
+    ),
+)
+def test_pusch_type2_single_symbol_partial_allocation_matches_ts_38211(
+    mapping_type: str,
+    additional_position: int,
+    expected_symbols: tuple[int, ...],
+    symbol_allocation: tuple[int, int],
+) -> None:
+    """Check Type-2 DM-RS timing/comb for 10-symbol A/B allocations."""
+    n_size_bwp = 2
+    receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(
+            n_size_bwp=n_size_bwp,
+            subcarrier_spacing_khz=30,
+            dmrs_config_type=2,
+            dmrs_length=1,
+            dmrs_additional_position=additional_position,
+            num_cdm_groups_without_data=1,
+            mapping_type=mapping_type,
+            symbol_allocation=symbol_allocation,
+        ),
+        device="cpu",
+    )
+    mask = receiver.pilot_mask[0, 0].bool()
+    actual_symbols = tuple(
+        int(index) for index in torch.nonzero(mask.any(dim=-1), as_tuple=False).flatten()
+    )
+    expected_subcarriers = tuple(
+        12 * rb + offset for rb in range(n_size_bwp) for offset in (0, 1, 6, 7)
+    )
+
+    assert actual_symbols == expected_symbols
+    assert receiver.metadata["symbol_allocation"] == symbol_allocation
+    for symbol in expected_symbols:
+        actual_subcarriers = tuple(
+            int(index) for index in torch.nonzero(mask[symbol], as_tuple=False).flatten()
+        )
+        assert actual_subcarriers == expected_subcarriers
+
+
+@pytest.mark.native_sionna
+@pytest.mark.parametrize(
     ("mapping_type", "additional_position", "expected_symbols"),
     (
         ("A", 0, (2, 3)),
