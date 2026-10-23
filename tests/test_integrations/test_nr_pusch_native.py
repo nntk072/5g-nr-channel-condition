@@ -202,6 +202,10 @@ def test_pusch_mapping_b_partial_allocation_dmrs_positions_match_ts_38211(
 
     assert actual_symbols == expected_symbols
     assert receiver.metadata["symbol_allocation"] == (3, 10)
+    transmitted_grid, _ = receiver.transmit(batch_size=1, seed=17)
+    assert transmitted_grid.shape[-2] == 10
+    estimate = receiver.estimate(transmitted_grid, noise_variance=0.0)
+    assert estimate.h_hat.shape[-2] == 10
 
 
 @pytest.mark.native_sionna
