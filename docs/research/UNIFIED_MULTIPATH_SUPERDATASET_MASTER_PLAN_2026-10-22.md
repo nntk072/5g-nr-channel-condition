@@ -972,8 +972,8 @@ These criteria make a finite-budget robustness decision for the named MVP scope;
 
 ### Gate G4 — analytical and standardized model conformance
 
-- [ ] **G4.01** TDL A–E nominal tap delays and powers match pinned resource tables.
-- [x] **G4.02** scalable TDL tap delays change correctly with configured RMS delay spread (CPU-native Sionna 2.2.0 regression for TDL-A/B/C checks the power-weighted RMS of generated nominal delays against 30/100/300/1000 ns and verifies linear delay scaling; `tests/test_integrations/test_tdl_profile_tables_native.py::test_scalable_tdl_delays_have_configured_power_weighted_rms`; this closes the scalable nominal-PDP delay contract only, not full TDL conformance or D/E fixed-profile semantics).
+- [x] **G4.01** TDL A–E nominal tap delays and powers match pinned resource tables (CPU-native Sionna 2.2.0/TR 38.901 19.2 check verifies SHA-256 digests for all five versioned resources, independently converts tabulated dB powers to normalized linear PDPs, combines the colocated specular/diffuse first tap for D/E, and compares expected powers and scaled delays with the model; `tests/test_integrations/test_tdl_profile_tables_native.py::test_tdl_19_2_nominal_parameters_match_hash_pinned_resource_table`).
+- [x] **G4.02** scalable TDL A–E tap delays change correctly with configured RMS delay spread (CPU-native Sionna 2.2.0 test checks the generated weighted RMS and every tap delay scale linearly at 30/100/300/1000 ns for A–E; the normalized resource-table RMS ratio is retained, including the small D-profile deviation from rounded tabulated values; `tests/test_integrations/test_tdl_profile_tables_native.py::test_scalable_tdl_delays_have_configured_power_weighted_rms`). Fixed-delay TS 38.101-4 profiles A10/A30/B100/C60/C300/D10/D30 are outside these scalable A–E checks.
 - [ ] **G4.03** CDL A–E angular/delay nominal params match pinned tables and defined array orientations.
 - [ ] **G4.04** model-D/E specular/scattered power partition and configured K settings produce expected empirical behavior.
 - [ ] **G4.05** 3GPP scenario state and profile category not written into `geometric_los` target field.
