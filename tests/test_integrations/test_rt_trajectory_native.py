@@ -326,6 +326,17 @@ def test_absolute_power_policy_generates_all_no_path_noise_only_episode(tmp_path
     received = record.observation.received_grid
     assert np.any(received != 0.0)
     assert np.mean(np.abs(received) ** 2) == pytest.approx(expected_noise_w, rel=0.15)
+    normalized_noise = np.asarray(received, dtype=np.complex128).reshape(-1) / np.sqrt(
+        expected_noise_w
+    )
+    assert np.mean(normalized_noise.real**2) == pytest.approx(0.5, abs=0.06)
+    assert np.mean(normalized_noise.imag**2) == pytest.approx(0.5, abs=0.06)
+    assert abs(np.mean(normalized_noise**2)) < 0.1
+    noise_grid = normalized_noise.reshape(record.observation.received_grid.shape[-2:])
+    adjacent_frequency_covariance = np.mean(noise_grid[:, :-1] * noise_grid[:, 1:].conj())
+    adjacent_symbol_covariance = np.mean(noise_grid[:-1, :] * noise_grid[1:, :].conj())
+    assert abs(adjacent_frequency_covariance) < 0.1
+    assert abs(adjacent_symbol_covariance) < 0.1
     estimate = record.observation.channel_estimate
     assert np.isfinite(estimate.h_hat).all()
     assert np.isfinite(estimate.error_variance).all()
