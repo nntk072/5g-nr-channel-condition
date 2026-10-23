@@ -1066,6 +1066,82 @@ def test_pusch_interpolation_bias_variance_tradeoff_matches_monte_carlo(
 
 @pytest.mark.native_sionna
 @pytest.mark.parametrize(
+    ("doppler_hz", "dmrs_additional_position"),
+    ((35.0, 1), (350.0, 1), (35.0, 2), (350.0, 2)),
+)
+def test_pusch_interpolation_tracks_cp_timed_doppler_with_declared_variance(
+    doppler_hz: float, dmrs_additional_position: int
+) -> None:
+    """Check temporal interpolation on a symbol-static Doppler CFR model."""
+    from integrations.sionna.nr_timing import nr_normal_cp_symbol_start_times
+
+    common_config = {
+        "n_size_bwp": 4,
+        "subcarrier_spacing_khz": 30,
+        "dmrs_additional_position": dmrs_additional_position,
+    }
+    linear_receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(**common_config, interpolation_type="lin"), device="cpu"
+    )
+    nearest_receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(**common_config, interpolation_type="nn"), device="cpu"
+    )
+    batch_size = 1024
+    noise_variance = 0.05
+    transmitted_grid, _ = linear_receiver.transmit(batch_size, seed=88107)
+    fft_size = linear_receiver.resource_grid.fft_size
+    centered_bins = torch.arange(fft_size, dtype=torch.float32) - fft_size // 2
+    symbol_times = torch.tensor(nr_normal_cp_symbol_start_times(30_000.0, 14), dtype=torch.float32)
+    delayed_echo = (0.25 - 0.18j) * torch.exp(-2j * torch.pi * centered_bins * 3 / fft_size)
+    channel = (0.9 + 0.1j) + torch.exp(2j * torch.pi * doppler_hz * symbol_times).reshape(
+        14, 1
+    ) * delayed_echo.reshape(1, fft_size)
+    clean_grid = transmitted_grid[:, 0, 0].unsqueeze(1).unsqueeze(1) * channel.reshape(
+        1, 1, 1, 14, fft_size
+    )
+    noise_generator = torch.Generator().manual_seed(19733)
+    noise = (
+        torch.complex(
+            torch.randn(clean_grid.shape, generator=noise_generator),
+            torch.randn(clean_grid.shape, generator=noise_generator),
+        )
+        * (noise_variance / 2.0) ** 0.5
+    )
+
+    linear_noisy = linear_receiver.estimate(clean_grid + noise, noise_variance)
+    nearest_noisy = nearest_receiver.estimate(clean_grid + noise, noise_variance)
+    linear_reference = linear_receiver.estimate(clean_grid[:1], 0.0).h_hat[0, 0, 0, 0, 0]
+    nearest_reference = nearest_receiver.estimate(clean_grid[:1], 0.0).h_hat[0, 0, 0, 0, 0]
+    linear_nmse = torch.mean(torch.abs(linear_reference - channel) ** 2) / torch.mean(
+        torch.abs(channel) ** 2
+    )
+    nearest_nmse = torch.mean(torch.abs(nearest_reference - channel) ** 2) / torch.mean(
+        torch.abs(channel) ** 2
+    )
+
+    ratios = []
+    for noisy_estimate, reference in (
+        (linear_noisy, linear_reference),
+        (nearest_noisy, nearest_reference),
+    ):
+        samples = noisy_estimate.h_hat[:, 0, 0, 0, 0]
+        empirical_mean = samples.mean(dim=0)
+        empirical_variance = (samples - empirical_mean).abs().square().mean(dim=0)
+        predicted_variance = noisy_estimate.error_variance[0, 0, 0, 0, 0]
+        valid = predicted_variance > 0
+        mean_bias = (empirical_mean - reference).abs()
+        bias_tolerance = 6.0 * torch.sqrt(predicted_variance / batch_size)
+        assert bool(valid.any())
+        assert bool((mean_bias[valid] < bias_tolerance[valid]).all())
+        ratios.append(empirical_variance[valid].sum() / predicted_variance[valid].sum())
+
+    assert float(linear_nmse) < float(nearest_nmse)
+    assert 0.6 <= float(ratios[0]) <= 1.05
+    assert float(ratios[1]) == pytest.approx(1.0, abs=0.12)
+
+
+@pytest.mark.native_sionna
+@pytest.mark.parametrize(
     ("dmrs_config_type", "dmrs_length", "num_cdm_groups_without_data", "n_size_bwp"),
     (
         (1, 1, 1, 2),
