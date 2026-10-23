@@ -173,8 +173,7 @@ def validate_standardized_channel_admission(
         )
         values = [array.get(field) for field in integer_fields]
         if any(
-            isinstance(value, bool) or not isinstance(value, int) or value <= 0
-            for value in values
+            isinstance(value, bool) or not isinstance(value, int) or value <= 0 for value in values
         ):
             raise ValueError(prefix + f"CDL {key} has invalid panel dimensions")
         polarization = array.get("polarization")

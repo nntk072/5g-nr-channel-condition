@@ -6,7 +6,7 @@ import hashlib
 import json
 import math
 from dataclasses import asdict
-from typing import Any, Literal
+from typing import Any, Literal, Sequence
 
 import numpy as np
 from datasets.nr import NRChannelRecord, TargetDefinition
@@ -114,17 +114,21 @@ def _apply_sampled_time_channel(
     )(transmit_waveform, h_time)
     channel_cfr = time_to_ofdm_channel(h_time, resource_grid, l_min)[0, 0, :, 0, 0]
     cyclic_prefix_length = int(resource_grid.cyclic_prefix_length)
-    return received_waveform, channel_cfr, {
-        "sampling_frequency_hz": sampling_frequency_hz,
-        "maximum_path_delay_s": maximum_delay_s,
-        "first_discrete_time_lag": l_min,
-        "last_discrete_time_lag": l_max,
-        "discrete_time_channel_tap_count": l_tot,
-        "cyclic_prefix_length_samples": cyclic_prefix_length,
-        "tap_span_fits_cyclic_prefix": (l_max - l_min) <= cyclic_prefix_length,
-        "path_delay_reference": "standardized profile-relative excess delay",
-        "fractional_delay_interpolation": "Sionna cir_to_time_channel sinc pulse shaping",
-    }
+    return (
+        received_waveform,
+        channel_cfr,
+        {
+            "sampling_frequency_hz": sampling_frequency_hz,
+            "maximum_path_delay_s": maximum_delay_s,
+            "first_discrete_time_lag": l_min,
+            "last_discrete_time_lag": l_max,
+            "discrete_time_channel_tap_count": l_tot,
+            "cyclic_prefix_length_samples": cyclic_prefix_length,
+            "tap_span_fits_cyclic_prefix": (l_max - l_min) <= cyclic_prefix_length,
+            "path_delay_reference": "standardized profile-relative excess delay",
+            "fractional_delay_interpolation": "Sionna cir_to_time_channel sinc pulse shaping",
+        },
+    )
 
 
 def _apply_receiver_impairments(
@@ -527,3 +531,50 @@ def build_standardized_pusch_dmrs_records(
             )
         )
     return tuple(records)
+
+
+def decode_standardized_pusch_records_for_diagnostic(
+    records: Sequence[NRChannelRecord],
+    *,
+    receiver_config: NRPUSCHConfig,
+    estimate_source: Literal["dmrs_ls", "diagonal_cfr_oracle"],
+) -> tuple[tuple[bool, ...], int]:
+    """Decode fixed diagnostic records and return CRC outcomes and bit mismatches.
+
+    ``diagonal_cfr_oracle`` is an analysis-only control for separating channel
+    estimation error from off-diagonal ISI/ICI. It must not be exposed as a
+    model input or interpreted as a general receiver configuration.
+    """
+    if not records:
+        raise ValueError("records must not be empty")
+    if estimate_source not in {"dmrs_ls", "diagonal_cfr_oracle"}:
+        raise ValueError("unsupported diagnostic estimate source")
+
+    import torch
+    from sionna.phy.nr import PUSCHReceiver
+
+    transmitter = SionnaPUSCHLSReceiver(receiver_config, device="cpu")
+    decoder = PUSCHReceiver(
+        transmitter._transmitter,
+        channel_estimator="perfect",
+        return_tb_crc_status=True,
+        input_domain="freq",
+        device="cpu",
+    )
+    crc_pass: list[bool] = []
+    payload_mismatches = 0
+    for record in records:
+        estimate = (
+            record.observation.channel_estimate.h_hat
+            if estimate_source == "dmrs_ls"
+            else record.targets["channel_cfr"]
+        )
+        decoded, crc = decoder(
+            record.observation.received_grid,
+            torch.tensor(record.provenance["noise_variance_per_complex_dimension"]),
+            h=estimate,
+        )
+        _, transmitted = transmitter.transmit(1, seed=record.provenance["pusch_transmit_seed"])
+        crc_pass.append(bool(crc.all()))
+        payload_mismatches += int(not torch.equal(decoded, transmitted))
+    return tuple(crc_pass), payload_mismatches

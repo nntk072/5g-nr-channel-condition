@@ -1,0 +1,173 @@
+{
+  "configuration": {
+    "carrier_frequency_hz": 3500000000.0,
+    "channel_family": "Sionna TDL-A stochastic channel draws",
+    "channel_seed": 20261023,
+    "cyclic_prefix_duration_s": 3.2407407407407406e-06,
+    "cyclic_prefix_samples": 7,
+    "delay_spread_s": 1e-06,
+    "max_excess_delay_s": 9.658599992690142e-06,
+    "noise_seed": 92002,
+    "pusch_resource_blocks": 6,
+    "receiver_estimate": "DMRS LS or diagnostic diagonal-CFR oracle; oracle excluded from model inputs",
+    "samples": 16,
+    "sampling_frequency_hz": 2160000.0,
+    "snr_db": 60.0,
+    "source_cfr_subcarriers": 128,
+    "subcarrier_spacing_hz": 30000.0,
+    "transmit_seed": 91002,
+    "trial_unit": "independent TDL draw; receiver views are paired descendants"
+  },
+  "configuration_sha256": "9b8834c90b9749724815c55cf930af16e06513af8a431de6c5a54d23194d2f7f",
+  "interpretation": [
+    "One independent standardized channel draw is the trial unit; paired views are not extra trials.",
+    "ideal_cfr removes time-domain CP spillover by construction; it is a diagnostic control, not propagation truth.",
+    "diagonal_cfr_oracle separates DMRS-estimation error from diagonal-model mismatch; it is not a model input.",
+    "Intervals are wide at this sample count; the probe does not qualify general NR receiver performance or close G5.09."
+  ],
+  "outcomes": {
+    "ideal_cfr.diagonal_cfr_oracle": {
+      "bler": 0.0,
+      "block_errors": 0,
+      "crc_pass_by_draw": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "independent_channel_draws": 16,
+      "payload_mismatches": 0,
+      "wilson_95_percent_interval": [
+        0.0,
+        0.1936076805344365
+      ]
+    },
+    "ideal_cfr.dmrs_ls": {
+      "bler": 0.5625,
+      "block_errors": 9,
+      "crc_pass_by_draw": [
+        false,
+        true,
+        true,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        true,
+        true,
+        true,
+        false,
+        false,
+        true,
+        false
+      ],
+      "independent_channel_draws": 16,
+      "payload_mismatches": 9,
+      "wilson_95_percent_interval": [
+        0.331785563988119,
+        0.7690134759450765
+      ]
+    },
+    "time_domain.diagonal_cfr_oracle": {
+      "bler": 0.4375,
+      "block_errors": 7,
+      "crc_pass_by_draw": [
+        false,
+        true,
+        true,
+        true,
+        false,
+        false,
+        true,
+        false,
+        false,
+        true,
+        true,
+        true,
+        true,
+        false,
+        true,
+        false
+      ],
+      "independent_channel_draws": 16,
+      "payload_mismatches": 7,
+      "wilson_95_percent_interval": [
+        0.23098652405492354,
+        0.6682144360118811
+      ]
+    },
+    "time_domain.dmrs_ls": {
+      "bler": 0.6875,
+      "block_errors": 11,
+      "crc_pass_by_draw": [
+        false,
+        false,
+        true,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        true,
+        false,
+        true,
+        false,
+        false,
+        true,
+        false
+      ],
+      "independent_channel_draws": 16,
+      "payload_mismatches": 11,
+      "wilson_95_percent_interval": [
+        0.44404355834740666,
+        0.8583535614521796
+      ]
+    }
+  },
+  "paired_pass_table": {
+    "diagonal_cfr_oracle": {
+      "both_fail": 0,
+      "both_pass": 9,
+      "left_only_pass": 0,
+      "right_only_pass": 7
+    },
+    "dmrs_ls": {
+      "both_fail": 9,
+      "both_pass": 5,
+      "left_only_pass": 0,
+      "right_only_pass": 2
+    }
+  },
+  "repository_commit_at_run": "1048233bae969eaec0e1d44db34d9c230baa116c",
+  "run_date": "2026-10-23",
+  "runtime": {
+    "numpy": "2.5.4",
+    "python": "3.12.3",
+    "sionna": "2.2.0",
+    "torch": "2.11.0+cu128"
+  },
+  "schema": "umcd.g5_cp_exceedance_receiver_probe.v1",
+  "source_files_sha256": {
+    "datasets/standardized.py": "c6d1977323a90d4a4e0f7ce8feed36ed1c8b02d01b43394ba300d9d1ee085d68",
+    "experiments/standardized_pusch_cp_exceedance.py": "f41ae958036ee918c8dfa9209b303866d6932e31e9219009d7a5d18544cd8345",
+    "integrations/sionna/nr_pusch.py": "598ae23e9e1c332959e44dc2038d6b94654aa5507e058028e455ca3366f1d0b7",
+    "integrations/sionna/standardized_pusch.py": "3e89bb411b3096b475e4881c09ac841a2019bf97efc73ff66e6949c81055294a",
+    "integrations/sionna/tdl.py": "7b1b9fa2c87243dad260feaa05c19d6ff3463250e7f013c57dc7657cbfbc465e"
+  },
+  "status": "exploratory; does not pass G5 or approve production data"
+}

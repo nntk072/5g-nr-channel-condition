@@ -69,7 +69,9 @@ def test_delay_profile_and_rms_have_draw_level_confidence_intervals(
     )
     expected_power = torch.as_tensor(expected_values, dtype=torch.float64)
     delays = torch.as_tensor(
-        channel.metadata.get("nominal_tap_delays_s", channel.metadata.get("nominal_cluster_delays_s")),
+        channel.metadata.get(
+            "nominal_tap_delays_s", channel.metadata.get("nominal_cluster_delays_s")
+        ),
         dtype=torch.float64,
     )
     assert empirical_power.shape == expected_power.shape == delays.shape
@@ -90,8 +92,7 @@ def test_delay_profile_and_rms_have_draw_level_confidence_intervals(
     # Delta-method influence values are computed per independent realization;
     # this gives a CI for the RMS delay spread of the ensemble mean PDP.
     influence = (
-        (tap_power * (delays - mean_delay).square()).sum(dim=1)
-        - rms_variance * total_power
+        (tap_power * (delays - mean_delay).square()).sum(dim=1) - rms_variance * total_power
     ) / (2.0 * empirical_rms * mean_power)
     rms_se = influence.std(unbiased=True) / math.sqrt(batch_size)
     assert abs(float(empirical_rms - expected_rms)) <= _Z_SIMULTANEOUS * float(rms_se)

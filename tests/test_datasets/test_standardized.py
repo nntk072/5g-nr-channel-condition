@@ -91,9 +91,7 @@ def _channel(
         h_path=h_path,
         tau_s=tau_s,
         channel_frequency_response=cfr,
-        metadata=_metadata(
-            model=model, los=los, carrier_hz=carrier_hz, spacing_hz=spacing_hz
-        ),
+        metadata=_metadata(model=model, los=los, carrier_hz=carrier_hz, spacing_hz=spacing_hz),
     )
 
 

@@ -162,12 +162,8 @@ def test_standardized_tdl_cdl_to_pusch_dmrs_is_seeded_and_target_is_separate(
         from integrations.sionna.nr_pusch import SionnaPUSCHLSReceiver
 
         transmitter = SionnaPUSCHLSReceiver(config, device="cpu")
-        transmit_grid, _ = transmitter.transmit(
-            1, seed=record.provenance["pusch_transmit_seed"]
-        )
-        diagonal_prediction = transmit_grid[:, 0, 0].unsqueeze(1) * truth[0, 0, :, 0, 0][
-            None, ...
-        ]
+        transmit_grid, _ = transmitter.transmit(1, seed=record.provenance["pusch_transmit_seed"])
+        diagonal_prediction = transmit_grid[:, 0, 0].unsqueeze(1) * truth[0, 0, :, 0, 0][None, ...]
         diagonal_error = torch.mean(
             torch.abs(observation.received_grid[:, 0] - diagonal_prediction) ** 2
         ) / torch.mean(torch.abs(diagonal_prediction) ** 2)
@@ -218,9 +214,7 @@ def test_short_cp_time_channel_changes_pusch_observation_vs_ideal_cfr_control() 
         "device": "cpu",
     }
     time_domain = build_standardized_pusch_dmrs_records(run, **common)
-    ideal_cfr = build_standardized_pusch_dmrs_records(
-        run, **common, channel_mode="ideal_cfr"
-    )
+    ideal_cfr = build_standardized_pusch_dmrs_records(run, **common, channel_mode="ideal_cfr")
 
     time_observation = time_domain[0].observation.received_grid
     ideal_observation = ideal_cfr[0].observation.received_grid
@@ -267,9 +261,7 @@ def test_standardized_time_domain_tdl_pusch_decodes_with_dmrs_estimate_on_cpu(
         device="cpu",
     )[0]
     tx_receiver = SionnaPUSCHLSReceiver(config, device="cpu")
-    _, transmitted_bits = tx_receiver.transmit(
-        1, seed=record.provenance["pusch_transmit_seed"]
-    )
+    _, transmitted_bits = tx_receiver.transmit(1, seed=record.provenance["pusch_transmit_seed"])
     decoder = PUSCHReceiver(
         tx_receiver._transmitter,
         channel_estimator="perfect",
@@ -284,8 +276,7 @@ def test_standardized_time_domain_tdl_pusch_decodes_with_dmrs_estimate_on_cpu(
     )
 
     assert (
-        record.provenance["sampled_time_channel"]["tap_span_fits_cyclic_prefix"]
-        is tap_span_fits_cp
+        record.provenance["sampled_time_channel"]["tap_span_fits_cyclic_prefix"] is tap_span_fits_cp
     )
     torch.testing.assert_close(decoded_bits, transmitted_bits)
     assert bool(crc_ok.all())
