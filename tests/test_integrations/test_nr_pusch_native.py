@@ -135,11 +135,51 @@ def test_pusch_type1_dmrs_positions_match_ts_38211_full_slot_reference(
 
 @pytest.mark.native_sionna
 @pytest.mark.parametrize(
-    ("cell_id", "dmrs_n_id", "n_scid"),
-    ((1, None, 0), (37, (17, 29), 1)),
+    ("num_cdm_groups", "offsets_per_rb"),
+    (
+        (1, (0, 1, 6, 7)),
+        (2, (0, 1, 2, 3, 6, 7, 8, 9)),
+        (3, tuple(range(12))),
+    ),
+)
+def test_pusch_type2_dmrs_frequency_offsets_match_ts_38211_table(
+    num_cdm_groups: int, offsets_per_rb: tuple[int, ...]
+) -> None:
+    """Check Type-2 CDM-group frequency offsets from TS 38.211 Table 6.4.1.1.3-2."""
+    n_size_bwp = 3
+    receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(
+            n_size_bwp=n_size_bwp,
+            subcarrier_spacing_khz=30,
+            dmrs_config_type=2,
+            dmrs_length=1,
+            dmrs_additional_position=0,
+            num_cdm_groups_without_data=num_cdm_groups,
+        ),
+        device="cpu",
+    )
+    mask = receiver.pilot_mask[0, 0].bool()
+    actual_symbols = tuple(
+        int(index) for index in torch.nonzero(mask.any(dim=-1), as_tuple=False).flatten()
+    )
+    expected_subcarriers = tuple(
+        12 * rb + offset for rb in range(n_size_bwp) for offset in offsets_per_rb
+    )
+
+    assert actual_symbols == (2,)
+    actual_subcarriers = tuple(
+        int(index) for index in torch.nonzero(mask[2], as_tuple=False).flatten()
+    )
+    assert actual_subcarriers == expected_subcarriers
+
+
+@pytest.mark.native_sionna
+@pytest.mark.parametrize(
+    ("cell_id", "dmrs_n_id", "n_scid", "dmrs_config_type"),
+    ((1, None, 0, 1), (37, (17, 29), 1, 1), (81, None, 0, 2), (91, (7, 13), 1, 2)),
 )
 def test_pusch_dmrs_values_match_independent_ts_38211_gold_sequence(
-    cell_id: int, dmrs_n_id: tuple[int, int] | None, n_scid: int
+    cell_id: int, dmrs_n_id: tuple[int, int] | None, n_scid: int, dmrs_config_type: int
 ) -> None:
     """Validate actual Sionna DMRS pilots against TS 38.211 Gold equations."""
     receiver = SionnaPUSCHLSReceiver(
@@ -149,6 +189,7 @@ def test_pusch_dmrs_values_match_independent_ts_38211_gold_sequence(
             n_cell_id=cell_id,
             dmrs_n_id=dmrs_n_id,
             dmrs_n_scid=n_scid,
+            dmrs_config_type=dmrs_config_type,
         ),
         device="cpu",
     )
