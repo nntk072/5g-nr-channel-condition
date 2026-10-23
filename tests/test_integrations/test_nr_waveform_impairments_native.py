@@ -279,6 +279,111 @@ def test_cpu_ofdm_roundtrip_and_residual_cfo_timing_acquisition_and_correction()
 
 
 @pytest.mark.native_sionna
+def test_pusch_cp_acquisition_and_correction_decode_two_tap_payload_on_cpu():
+    """Validate CP timing/CFO acquisition through the matched PUSCH decoder."""
+    from sionna.phy.nr import PUSCHReceiver
+    from sionna.phy.ofdm import OFDMDemodulator, OFDMModulator
+
+    transmitter = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(n_size_bwp=6, subcarrier_spacing_khz=30), device="cpu"
+    )
+    grid = transmitter.resource_grid
+    tx_grid, tx_bits = transmitter.transmit(4, seed=82_019)
+    modulator = OFDMModulator(
+        cyclic_prefix_length=grid.cyclic_prefix_length,
+        device="cpu",
+    )
+    demodulator = OFDMDemodulator(
+        fft_size=grid.fft_size,
+        l_min=0,
+        cyclic_prefix_length=grid.cyclic_prefix_length,
+        device="cpu",
+    )
+    waveform = modulator(tx_grid)
+
+    direct = 0.9 - 0.1j
+    echo = 0.35 + 0.2j
+    delay_samples = 2
+    delayed = torch.cat(
+        (torch.zeros_like(waveform[..., :delay_samples]), waveform[..., :-delay_samples]),
+        dim=-1,
+    )
+    channel_waveform = direct * waveform + echo * delayed
+    sample_rate_hz = grid.fft_size * transmitter.config.subcarrier_spacing_khz * 1_000.0
+    cfo_hz = 0.025 * transmitter.config.subcarrier_spacing_khz * 1_000.0
+    cfo_waveform = apply_residual_cfo(
+        channel_waveform,
+        cfo_hz=cfo_hz,
+        sampling_frequency_hz=sample_rate_hz,
+    )
+    max_timing_offset = 2
+    timing_offset = 2
+    capture = torch.cat(
+        (cfo_waveform, torch.zeros_like(cfo_waveform[..., :max_timing_offset])),
+        dim=-1,
+    )
+    capture = apply_integer_timing_offset(capture, offset_samples=timing_offset)
+    signal_power = torch.mean(torch.abs(capture) ** 2)
+    noise_variance = signal_power / (10.0 ** (45.0 / 10.0))
+    generator = torch.Generator(device="cpu").manual_seed(82_020)
+    noise = torch.complex(
+        torch.randn(capture.shape, generator=generator),
+        torch.randn(capture.shape, generator=generator),
+    ) * torch.sqrt(noise_variance / 2.0)
+    noisy_capture = capture + noise
+
+    acquired_offset = estimate_integer_timing_offset_from_cp(
+        noisy_capture,
+        fft_size=grid.fft_size,
+        cyclic_prefix_length=grid.cyclic_prefix_length,
+        max_offset_samples=max_timing_offset,
+    )
+    assert torch.equal(acquired_offset, torch.full_like(acquired_offset, timing_offset))
+    aligned = apply_integer_timing_offset(
+        noisy_capture, offset_samples=-int(acquired_offset[0].item())
+    )[..., : waveform.shape[-1]]
+    estimated_cfo_hz = estimate_residual_cfo_from_cp(
+        aligned,
+        fft_size=grid.fft_size,
+        cyclic_prefix_length=grid.cyclic_prefix_length,
+        sampling_frequency_hz=sample_rate_hz,
+        guard_samples=delay_samples,
+    )
+    assert float(torch.max(torch.abs(estimated_cfo_hz - cfo_hz))) < 25.0
+    corrected = apply_residual_cfo(
+        aligned,
+        cfo_hz=-estimated_cfo_hz,
+        sampling_frequency_hz=sample_rate_hz,
+    )
+    received_grid = demodulator(corrected)
+
+    fft_bins = torch.arange(grid.fft_size, dtype=torch.float32)
+    channel_response = direct + echo * torch.exp(
+        -2j * torch.pi * fft_bins * delay_samples / grid.fft_size
+    )
+    channel_truth = channel_response.reshape(1, 1, 1, 1, 1, 1, grid.fft_size).expand(
+        tx_grid.shape[0],
+        1,
+        1,
+        1,
+        1,
+        grid.num_ofdm_symbols,
+        grid.fft_size,
+    )
+    decoder = PUSCHReceiver(
+        transmitter._transmitter,
+        channel_estimator="perfect",
+        return_tb_crc_status=True,
+        input_domain="freq",
+        device="cpu",
+    )
+    decoded_bits, crc_ok = decoder(received_grid, noise_variance, h=channel_truth)
+
+    torch.testing.assert_close(decoded_bits, tx_bits)
+    assert bool(crc_ok.all())
+
+
+@pytest.mark.native_sionna
 def test_cp_cfo_acquisition_handles_known_in_cp_multipath_and_awgn():
     from sionna.phy.ofdm import OFDMModulator
 
