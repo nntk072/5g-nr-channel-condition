@@ -239,6 +239,49 @@ def test_pusch_mapping_a_short_allocation_dmrs_positions_match_ts_38211(
 
 @pytest.mark.native_sionna
 @pytest.mark.parametrize(
+    ("mapping_type", "additional_position", "expected_symbols"),
+    (
+        ("A", 0, (2, 3)),
+        ("A", 1, (2, 3, 10, 11)),
+        ("B", 0, (0, 1)),
+        ("B", 1, (0, 1, 9, 10)),
+    ),
+)
+def test_pusch_type2_double_symbol_dmrs_time_positions_match_ts_38211(
+    mapping_type: str, additional_position: int, expected_symbols: tuple[int, ...]
+) -> None:
+    """Check Type-2 double-symbol timing and frequency comb against TS 38.211."""
+    n_size_bwp = 2
+    receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(
+            n_size_bwp=n_size_bwp,
+            subcarrier_spacing_khz=30,
+            dmrs_config_type=2,
+            dmrs_length=2,
+            dmrs_additional_position=additional_position,
+            num_cdm_groups_without_data=1,
+            mapping_type=mapping_type,
+        ),
+        device="cpu",
+    )
+    mask = receiver.pilot_mask[0, 0].bool()
+    actual_symbols = tuple(
+        int(index) for index in torch.nonzero(mask.any(dim=-1), as_tuple=False).flatten()
+    )
+    expected_subcarriers = tuple(
+        12 * rb + offset for rb in range(n_size_bwp) for offset in (0, 1, 6, 7)
+    )
+
+    assert actual_symbols == expected_symbols
+    for symbol in expected_symbols:
+        actual_subcarriers = tuple(
+            int(index) for index in torch.nonzero(mask[symbol], as_tuple=False).flatten()
+        )
+        assert actual_subcarriers == expected_subcarriers
+
+
+@pytest.mark.native_sionna
+@pytest.mark.parametrize(
     ("num_cdm_groups", "offsets_per_rb"),
     (
         (1, (0, 1, 6, 7)),
