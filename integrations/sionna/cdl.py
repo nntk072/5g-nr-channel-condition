@@ -330,6 +330,7 @@ def generate_cdl_frequency_response(
             "carrier_frequency_hz": carrier_frequency_hz,
             "subcarrier_spacing_hz": subcarrier_spacing_hz,
             "num_subcarriers": num_subcarriers,
+            "sampled_bandwidth_hz": num_subcarriers * subcarrier_spacing_hz,
             "batch_size": batch_size,
             "batch_axis_semantics": "independent_stochastic_channel_draws",
             "num_time_steps": num_time_steps,

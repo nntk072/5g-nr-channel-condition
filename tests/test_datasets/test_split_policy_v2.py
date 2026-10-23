@@ -104,9 +104,16 @@ def _standardized_record() -> StandardizedChannelRecord:
             "profile_los_component": False,
             "delay_reference": "profile_excess_delay",
             "seed": 19,
+            "spec_version": "19.2",
+            "carrier_frequency_hz": 3.5e9,
             "subcarrier_spacing_hz": 15_000.0,
             "num_subcarriers": 8,
+            "sampled_bandwidth_hz": 120_000.0,
             "num_time_steps": 1,
+            "rx_antenna_count": 1,
+            "tx_antenna_count": 1,
+            "rx_corr_mat_real": None,
+            "rx_corr_mat_imag": None,
         },
     )
 
@@ -367,6 +374,25 @@ def test_standardized_profile_and_family_metadata_do_not_change_opaque_partition
             "profile_model": "D",
             "profile_proxy": "D",
             "profile_los_component": True,
+            "direction": "downlink",
+            "ut_array": {
+                "num_rows_per_panel": 1,
+                "num_cols_per_panel": 1,
+                "num_rows": 1,
+                "num_cols": 1,
+                "polarization": "single",
+                "polarization_type": "V",
+                "antenna_pattern": "omni",
+            },
+            "bs_array": {
+                "num_rows_per_panel": 1,
+                "num_cols_per_panel": 1,
+                "num_rows": 1,
+                "num_cols": 1,
+                "polarization": "single",
+                "polarization_type": "V",
+                "antenna_pattern": "omni",
+            },
         },
     )
     subject_a = standardized_draw_subject(record_a)
@@ -416,6 +442,25 @@ def test_seed_index_collision_fails_closed_and_explicit_ids_separate_generator_r
             **record_a.metadata,
             "profile_model": "D",
             "profile_los_component": True,
+            "direction": "downlink",
+            "ut_array": {
+                "num_rows_per_panel": 1,
+                "num_cols_per_panel": 1,
+                "num_rows": 1,
+                "num_cols": 1,
+                "polarization": "single",
+                "polarization_type": "V",
+                "antenna_pattern": "omni",
+            },
+            "bs_array": {
+                "num_rows_per_panel": 1,
+                "num_cols_per_panel": 1,
+                "num_rows": 1,
+                "num_cols": 1,
+                "polarization": "single",
+                "polarization_type": "V",
+                "antenna_pattern": "omni",
+            },
         },
     )
     subject_a = standardized_draw_subject(record_a)

@@ -19,7 +19,13 @@ from datasets import (
 )
 
 
-def _metadata(*, model: str = "A", los: bool = False) -> dict[str, object]:
+def _metadata(
+    *,
+    model: str = "A",
+    los: bool = False,
+    carrier_hz: float = 3.5e9,
+    spacing_hz: float = 15_000.0,
+) -> dict[str, object]:
     return {
         "sionna_version": "2.2.0",
         "spec_version": "19.2",
@@ -27,23 +33,53 @@ def _metadata(*, model: str = "A", los: bool = False) -> dict[str, object]:
         "profile_model": model,
         "profile_los_component": los,
         "geometric_los_label": None,
-        "carrier_frequency_hz": 3.5e9,
+        "carrier_frequency_hz": carrier_hz,
         "batch_size": 2,
         "num_time_steps": 2,
         "num_subcarriers": 8,
-        "subcarrier_spacing_hz": 15_000.0,
+        "subcarrier_spacing_hz": spacing_hz,
+        "sampled_bandwidth_hz": 8 * spacing_hz,
+        "rx_antenna_count": 1,
+        "tx_antenna_count": 1,
+        "rx_corr_mat_real": None,
+        "rx_corr_mat_imag": None,
+        "direction": "downlink",
+        "ut_array": {
+            "num_rows_per_panel": 1,
+            "num_cols_per_panel": 1,
+            "num_rows": 1,
+            "num_cols": 1,
+            "polarization": "single",
+            "polarization_type": "V",
+            "antenna_pattern": "omni",
+        },
+        "bs_array": {
+            "num_rows_per_panel": 1,
+            "num_cols_per_panel": 1,
+            "num_rows": 1,
+            "num_cols": 1,
+            "polarization": "single",
+            "polarization_type": "V",
+            "antenna_pattern": "omni",
+        },
         "delay_reference": "profile_excess_delay",
         "seed": 11,
         "nested_config": {"values": [1, 2]},
     }
 
 
-def _channel(*, model: str = "A", los: bool = False) -> SimpleNamespace:
+def _channel(
+    *,
+    model: str = "A",
+    los: bool = False,
+    carrier_hz: float = 3.5e9,
+    spacing_hz: float = 15_000.0,
+) -> SimpleNamespace:
     h_path = np.zeros((2, 1, 1, 1, 1, 2, 2), dtype=np.complex64)
     h_path[:, 0, 0, 0, 0, 0, :] = (1.0 + 0.25j, 0.5 - 0.1j)
     h_path[:, 0, 0, 0, 0, 1, :] = (0.3 - 0.2j, 0.15 + 0.1j)
     tau_s = np.tile(np.asarray([0.0, 1.25e-6]), (2, 1, 1, 1)).astype(np.float64)
-    offsets = (np.arange(8) - 4) * 15_000.0
+    offsets = (np.arange(8) - 4) * spacing_hz
     phase = np.exp(
         -2j
         * np.pi
@@ -55,7 +91,9 @@ def _channel(*, model: str = "A", los: bool = False) -> SimpleNamespace:
         h_path=h_path,
         tau_s=tau_s,
         channel_frequency_response=cfr,
-        metadata=_metadata(model=model, los=los),
+        metadata=_metadata(
+            model=model, los=los, carrier_hz=carrier_hz, spacing_hz=spacing_hz
+        ),
     )
 
 
@@ -106,6 +144,81 @@ def test_record_validation_rejects_geometric_los_and_inconsistent_cfr() -> None:
     channel = _channel()
     channel.channel_frequency_response[0, 0, 0, 0, 0, 0] += 0.01
     with pytest.raises(ValueError, match="does not match"):
+        standardized_run_from_channel(channel, family=StandardizedFamily.TDL)
+
+
+@pytest.mark.parametrize("family", (StandardizedFamily.TDL, StandardizedFamily.CDL))
+@pytest.mark.parametrize("carrier_hz", (0.5e9, 100e9))
+def test_standardized_admission_accepts_tr38901_carrier_boundaries(
+    family: StandardizedFamily, carrier_hz: float
+) -> None:
+    run = standardized_run_from_channel(
+        _channel(carrier_hz=carrier_hz, spacing_hz=250e6), family=family
+    )
+    assert run.records[0].metadata["sampled_bandwidth_hz"] == 2e9
+
+
+@pytest.mark.parametrize(
+    ("carrier_hz", "spacing_hz", "message"),
+    (
+        (0.499e9, 15_000.0, "0.5–100 GHz"),
+        (100.001e9, 15_000.0, "0.5–100 GHz"),
+        (3.5e9, 250_000_001.0, "at most 2 GHz"),
+    ),
+)
+def test_standardized_admission_rejects_out_of_scope_frequency_or_bandwidth(
+    carrier_hz: float, spacing_hz: float, message: str
+) -> None:
+    channel = _channel(carrier_hz=carrier_hz, spacing_hz=spacing_hz)
+    with pytest.raises(ValueError, match=message):
+        standardized_run_from_channel(channel, family=StandardizedFamily.TDL)
+
+
+def test_standardized_admission_rejects_mismatched_bandwidth_and_antenna_metadata() -> None:
+    channel = _channel()
+    channel.metadata["sampled_bandwidth_hz"] += 1.0
+    with pytest.raises(ValueError, match="sampled_bandwidth_hz disagrees"):
+        standardized_run_from_channel(channel, family=StandardizedFamily.TDL)
+
+    channel = _channel()
+    channel.metadata["rx_antenna_count"] = 2
+    with pytest.raises(ValueError, match="antenna counts disagree"):
+        standardized_run_from_channel(channel, family=StandardizedFamily.TDL)
+
+
+def test_standardized_admission_checks_cdl_array_configuration_against_axes() -> None:
+    channel = _channel()
+    channel.metadata["ut_array"]["num_cols_per_panel"] = 2
+    with pytest.raises(ValueError, match="receive array configuration disagrees"):
+        standardized_run_from_channel(channel, family=StandardizedFamily.CDL)
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    (
+        ("antenna_pattern", "unregistered-pattern", "invalid antenna pattern"),
+        ("polarization_type", "cross", "invalid polarization type"),
+        ("element_horizontal_spacing", 0.0, "invalid antenna spacing"),
+    ),
+)
+def test_standardized_admission_rejects_invalid_cdl_array_metadata(
+    field: str, value: object, message: str
+) -> None:
+    channel = _channel()
+    channel.metadata["ut_array"][field] = value
+    with pytest.raises(ValueError, match=message):
+        standardized_run_from_channel(channel, family=StandardizedFamily.CDL)
+
+
+def test_standardized_admission_rejects_unsupported_table_version_and_incomplete_tdl_corr() -> None:
+    channel = _channel()
+    channel.metadata["spec_version"] = "18.0"
+    with pytest.raises(ValueError, match="unsupported TR 38.901"):
+        standardized_run_from_channel(channel, family=StandardizedFamily.TDL)
+
+    channel = _channel()
+    del channel.metadata["rx_corr_mat_imag"]
+    with pytest.raises(ValueError, match="provenance is required"):
         standardized_run_from_channel(channel, family=StandardizedFamily.TDL)
 
 

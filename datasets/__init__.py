@@ -85,6 +85,7 @@ from .standardized import (
     standardized_learning_example_from_record,
     standardized_learning_run_from_channel_run,
     standardized_run_from_channel,
+    validate_standardized_channel_admission,
     write_standardized_learning_run,
     write_standardized_run,
 )
@@ -164,6 +165,7 @@ __all__ = [
     "standardized_learning_example_from_record",
     "standardized_learning_run_from_channel_run",
     "standardized_run_from_channel",
+    "validate_standardized_channel_admission",
     "standardized_draw_subject",
     "write_nr_record",
     "write_nr_trajectory",

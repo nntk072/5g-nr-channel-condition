@@ -179,6 +179,9 @@ def generate_tdl_frequency_response(
             "geometric_los_label": None,
             "geometric_los_label_provided": False,
             "carrier_frequency_hz": carrier_frequency_hz,
+            "sampled_bandwidth_hz": num_subcarriers * subcarrier_spacing_hz,
+            "rx_antenna_count": int(h_path.shape[2]),
+            "tx_antenna_count": int(h_path.shape[4]),
             "rx_corr_mat_real": (
                 rx_corr_tensor.real.detach().cpu().tolist() if rx_corr_tensor is not None else None
             ),

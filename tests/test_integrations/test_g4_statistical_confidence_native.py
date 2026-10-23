@@ -14,7 +14,7 @@ import pytest
 torch = pytest.importorskip("torch")
 pytest.importorskip("sionna")
 
-from integrations.sionna.cdl import generate_cdl_frequency_response  # noqa: E402
+from integrations.sionna.cdl import CDLArrayConfig, generate_cdl_frequency_response  # noqa: E402
 from integrations.sionna.tdl import generate_tdl_frequency_response  # noqa: E402
 
 _Z_SIMULTANEOUS = 3.5
@@ -25,14 +25,19 @@ def _within_interval(estimate: Any, standard_error: Any, target: Any) -> bool:
 
 
 @pytest.mark.native_sionna
-@pytest.mark.parametrize("family", ("TDL", "CDL"))
-def test_delay_profile_and_rms_have_draw_level_confidence_intervals(family: str) -> None:
+@pytest.mark.parametrize(
+    ("family", "model"),
+    tuple((family, model) for family in ("TDL", "CDL") for model in "ABCDE"),
+)
+def test_delay_profile_and_rms_have_draw_level_confidence_intervals(
+    family: str, model: str
+) -> None:
     """Check profile PDP and RMS-delay estimates with batch-draw intervals."""
     batch_size = 4096
     channel: Any
     if family == "TDL":
         channel = generate_tdl_frequency_response(
-            model="A",
+            model=model,
             seed=7311,
             carrier_frequency_hz=3.5e9,
             subcarrier_spacing_hz=30_000.0,
@@ -44,7 +49,7 @@ def test_delay_profile_and_rms_have_draw_level_confidence_intervals(family: str)
         )
     else:
         channel = generate_cdl_frequency_response(
-            model="A",
+            model=model,
             seed=7311,
             carrier_frequency_hz=3.5e9,
             subcarrier_spacing_hz=30_000.0,
@@ -96,7 +101,8 @@ def test_delay_profile_and_rms_have_draw_level_confidence_intervals(family: str)
 @pytest.mark.native_sionna
 @pytest.mark.parametrize(
     ("model", "los_angle_rad"),
-    (("A", math.acos(0.7)), ("D", 0.0), ("D", math.pi / 2.0)),
+    tuple((model, math.acos(0.7)) for model in "ABC")
+    + tuple((model, angle) for model in "DE" for angle in (0.0, math.pi / 2.0)),
 )
 def test_doppler_correlation_confidence_interval_uses_paired_independent_draws(
     model: str, los_angle_rad: float
@@ -134,7 +140,7 @@ def test_doppler_correlation_confidence_interval_uses_paired_independent_draws(
     real_se = influence.real.std(unbiased=True) / denominator
     imag_se = influence.imag.std(unbiased=True) / denominator
     diffuse = torch.special.bessel_j0(torch.tensor(math.pi / 2.0, dtype=torch.float64))
-    if model == "A":
+    if model in "ABC":
         expected = diffuse.to(torch.complex128)
     else:
         k_factor = float(channel.metadata["k_factor_linear"])
@@ -155,8 +161,8 @@ def test_doppler_correlation_confidence_interval_uses_paired_independent_draws(
 @pytest.mark.native_sionna
 def test_receive_spatial_covariance_confidence_intervals_match_configured_matrix() -> None:
     batch_size = 8192
-    correlation = 0.6
-    rx_corr_mat = ((1.0, correlation), (correlation, 1.0))
+    correlation = 0.55 + 0.25j
+    rx_corr_mat = ((1.0 + 0.0j, correlation), (correlation.conjugate(), 1.0 + 0.0j))
     channel = generate_tdl_frequency_response(
         model="A",
         seed=9107,
@@ -183,13 +189,57 @@ def test_receive_spatial_covariance_confidence_intervals_match_configured_matrix
     assert _within_interval(empirical_covariance.real, covariance_real_se, target_real)
     assert _within_interval(empirical_covariance.imag, covariance_imag_se, target_imag)
     metadata_real = torch.as_tensor(channel.metadata["rx_corr_mat_real"])
+    metadata_imag = torch.as_tensor(channel.metadata["rx_corr_mat_imag"])
     torch.testing.assert_close(
         metadata_real,
-        torch.tensor([[1.0, correlation], [correlation, 1.0]]),
+        torch.tensor([[1.0, correlation.real], [correlation.real, 1.0]]),
         rtol=0.0,
         atol=1e-7,
     )
-    assert channel.metadata["rx_corr_mat_imag"] == [[0.0, 0.0], [0.0, 0.0]]
+    torch.testing.assert_close(
+        metadata_imag,
+        torch.tensor([[0.0, correlation.imag], [-correlation.imag, 0.0]]),
+        rtol=0.0,
+        atol=1e-7,
+    )
+
+
+@pytest.mark.native_sionna
+def test_cdl_array_spatial_covariance_has_draw_level_confidence_intervals() -> None:
+    """Estimate one CDL cluster's 2-element covariance with paired array draws."""
+    batch_size = 4096
+    channel = generate_cdl_frequency_response(
+        model="A",
+        seed=2381,
+        carrier_frequency_hz=3.5e9,
+        subcarrier_spacing_hz=30_000.0,
+        num_subcarriers=8,
+        batch_size=batch_size,
+        delay_spread_s=100e-9,
+        ut_array=CDLArrayConfig(
+            num_cols_per_panel=2,
+            num_cols=1,
+            element_horizontal_spacing=0.5,
+        ),
+        spec_version="19.2",
+        device="cpu",
+    )
+    # The receive antenna elements are paired within each independent draw.
+    samples = channel.h_path[:, 0, :, 0, 0, 0, 0]
+    outer_products = samples[:, :, None] * samples[:, None, :].conj()
+    covariance = outer_products.mean(dim=0)
+    real_se = outer_products.real.std(dim=0, unbiased=True) / math.sqrt(batch_size)
+    imag_se = outer_products.imag.std(dim=0, unbiased=True) / math.sqrt(batch_size)
+    assert covariance.shape == (2, 2)
+    torch.testing.assert_close(covariance, covariance.mH, rtol=0.0, atol=1e-7)
+    assert float(torch.linalg.eigvalsh(covariance).min()) >= -1e-7
+    assert float((_Z_SIMULTANEOUS * real_se).max()) < 0.1 * float(covariance.diagonal().real.mean())
+    assert float((_Z_SIMULTANEOUS * imag_se).max()) < 0.1 * float(covariance.diagonal().real.mean())
+
+    paired_power_difference = samples[:, 0].abs().square() - samples[:, 1].abs().square()
+    paired_se = paired_power_difference.std(unbiased=True) / math.sqrt(batch_size)
+    assert abs(float(paired_power_difference.mean())) <= _Z_SIMULTANEOUS * float(paired_se)
+    assert channel.metadata["batch_axis_semantics"] == "independent_stochastic_channel_draws"
 
 
 @pytest.mark.native_sionna
@@ -197,6 +247,7 @@ def test_receive_spatial_covariance_confidence_intervals_match_configured_matrix
     ("matrix", "message"),
     (
         (((1.0,),), "shape"),
+        (((1.0, math.nan), (math.nan, 1.0)), "finite"),
         (((1.0, 0.2), (0.1, 1.0)), "Hermitian"),
         (((1.0, 1.2), (1.2, 1.0)), "positive definite"),
         (((0.9, 0.0), (0.0, 1.0)), "unit diagonal"),

@@ -70,6 +70,146 @@ def _plain_json(value: Any) -> Any:
     return value
 
 
+def validate_standardized_channel_admission(
+    family: StandardizedFamily,
+    profile_model: str,
+    h_path: np.ndarray,
+    metadata: Mapping[str, Any],
+) -> None:
+    """Reject TDL/CDL records outside the pinned model's declared scope.
+
+    Sionna's scalable TR 38.901 models do not enforce the 0.5–100 GHz
+    carrier-frequency or 2 GHz maximum-bandwidth applicability limits. This
+    check runs at record construction so generated diagnostics cannot silently
+    become admitted dataset samples. Sampled bandwidth is defined here as the
+    subcarrier count times subcarrier spacing, not a separately inferred
+    occupied-RB bandwidth.
+    """
+    prefix = "standardized channel admission rejected: "
+    if not isinstance(family, StandardizedFamily):
+        raise TypeError("family must use StandardizedFamily")
+    if profile_model not in {"A", "B", "C", "D", "E"}:
+        raise ValueError(prefix + "profile must be one of TDL/CDL A–E")
+    if metadata.get("spec_version") not in {"16.1", "19.2"}:
+        raise ValueError(prefix + "unsupported TR 38.901 parameter-table version")
+    if h_path.ndim != 6 or h_path.shape[0] != 1 or h_path.shape[2] != 1:
+        raise ValueError(prefix + "the supported TDL/CDL model requires one RX and one TX link")
+
+    carrier_hz = metadata.get("carrier_frequency_hz")
+    if (
+        isinstance(carrier_hz, bool)
+        or not isinstance(carrier_hz, (int, float))
+        or not math.isfinite(carrier_hz)
+        or not 0.5e9 <= carrier_hz <= 100e9
+    ):
+        raise ValueError(prefix + "carrier_frequency_hz must be within 0.5–100 GHz")
+
+    subcarrier_count = metadata.get("num_subcarriers")
+    spacing_hz = metadata.get("subcarrier_spacing_hz")
+    sampled_bandwidth_hz = metadata.get("sampled_bandwidth_hz")
+    if (
+        isinstance(subcarrier_count, bool)
+        or not isinstance(subcarrier_count, int)
+        or subcarrier_count < 8
+        or isinstance(spacing_hz, bool)
+        or not isinstance(spacing_hz, (int, float))
+        or not math.isfinite(spacing_hz)
+        or spacing_hz <= 0
+        or isinstance(sampled_bandwidth_hz, bool)
+        or not isinstance(sampled_bandwidth_hz, (int, float))
+        or not math.isfinite(sampled_bandwidth_hz)
+    ):
+        raise ValueError(prefix + "subcarrier grid and sampled bandwidth metadata are required")
+    expected_bandwidth_hz = subcarrier_count * spacing_hz
+    if not math.isclose(sampled_bandwidth_hz, expected_bandwidth_hz, rel_tol=1e-12, abs_tol=1e-6):
+        raise ValueError(prefix + "sampled_bandwidth_hz disagrees with subcarrier grid")
+    if sampled_bandwidth_hz > 2e9:
+        raise ValueError(prefix + "TR 38.901 scalable-model bandwidth must be at most 2 GHz")
+
+    rx_antennas = int(h_path.shape[1])
+    tx_antennas = int(h_path.shape[3])
+    declared_rx = metadata.get("rx_antenna_count")
+    declared_tx = metadata.get("tx_antenna_count")
+    if declared_rx != rx_antennas or declared_tx != tx_antennas:
+        raise ValueError(prefix + "declared antenna counts disagree with channel axes")
+
+    if family is StandardizedFamily.TDL:
+        if "rx_corr_mat_real" not in metadata or "rx_corr_mat_imag" not in metadata:
+            raise ValueError(prefix + "TDL receive-correlation provenance is required")
+        matrix_real = metadata.get("rx_corr_mat_real")
+        matrix_imag = metadata.get("rx_corr_mat_imag")
+        if (matrix_real is None) != (matrix_imag is None):
+            raise ValueError(prefix + "receive correlation matrix real/imag metadata is incomplete")
+        if matrix_real is not None:
+            matrix = np.asarray(matrix_real, dtype=np.float64) + 1j * np.asarray(
+                matrix_imag, dtype=np.float64
+            )
+            if matrix.shape != (rx_antennas, rx_antennas) or not np.isfinite(matrix).all():
+                raise ValueError(prefix + "receive correlation matrix shape or values are invalid")
+            if not np.allclose(matrix, matrix.conj().T, rtol=0.0, atol=1e-6):
+                raise ValueError(prefix + "receive correlation matrix must be Hermitian")
+            if not np.allclose(np.diag(matrix), 1.0, rtol=0.0, atol=1e-6):
+                raise ValueError(prefix + "receive correlation matrix must have unit diagonal")
+            if np.linalg.eigvalsh(matrix).min() <= 1e-7:
+                raise ValueError(prefix + "receive correlation matrix must be positive definite")
+        return
+
+    direction = metadata.get("direction")
+    if direction not in {"downlink", "uplink"}:
+        raise ValueError(prefix + "CDL direction must be uplink or downlink")
+    rx_array_key, tx_array_key = (
+        ("ut_array", "bs_array") if direction == "downlink" else ("bs_array", "ut_array")
+    )
+
+    def declared_array_count(key: str) -> int:
+        array = metadata.get(key)
+        if not isinstance(array, Mapping):
+            raise ValueError(prefix + f"CDL metadata must declare {key}")
+        integer_fields = (
+            "num_rows_per_panel",
+            "num_cols_per_panel",
+            "num_rows",
+            "num_cols",
+        )
+        values = [array.get(field) for field in integer_fields]
+        if any(
+            isinstance(value, bool) or not isinstance(value, int) or value <= 0
+            for value in values
+        ):
+            raise ValueError(prefix + f"CDL {key} has invalid panel dimensions")
+        polarization = array.get("polarization")
+        if polarization not in {"single", "dual"}:
+            raise ValueError(prefix + f"CDL {key} has invalid polarization")
+        polarization_type = array.get("polarization_type")
+        allowed_types = {"V", "H"} if polarization == "single" else {"VH", "cross"}
+        if polarization_type not in allowed_types:
+            raise ValueError(prefix + f"CDL {key} has invalid polarization type")
+        if array.get("antenna_pattern") not in {"omni", "38.901", "38.901-handheld"}:
+            raise ValueError(prefix + f"CDL {key} has invalid antenna pattern")
+        for field in (
+            "panel_vertical_spacing",
+            "panel_horizontal_spacing",
+            "element_vertical_spacing",
+            "element_horizontal_spacing",
+        ):
+            spacing = array.get(field)
+            if spacing is not None and (
+                isinstance(spacing, bool)
+                or not isinstance(spacing, (int, float))
+                or not math.isfinite(spacing)
+                or spacing <= 0
+            ):
+                raise ValueError(prefix + f"CDL {key} has invalid antenna spacing")
+        polarization_count = 1 if polarization == "single" else 2
+        rows_per_panel, cols_per_panel, rows, cols = (cast(int, value) for value in values)
+        return rows_per_panel * cols_per_panel * rows * cols * polarization_count
+
+    if declared_array_count(rx_array_key) != rx_antennas:
+        raise ValueError(prefix + "CDL receive array configuration disagrees with channel axes")
+    if declared_array_count(tx_array_key) != tx_antennas:
+        raise ValueError(prefix + "CDL transmit array configuration disagrees with channel axes")
+
+
 @dataclass(frozen=True, slots=True, eq=False)
 class StandardizedChannelRecord:
     """One independent stochastic draw with oracle-only channel fields.
@@ -163,6 +303,9 @@ class StandardizedChannelRecord:
             raise ValueError("metadata subcarrier count disagrees with the CFR axis")
         if raw_metadata.get("num_time_steps") != h_path.shape[-1]:
             raise ValueError("metadata time-step count disagrees with the channel axes")
+        validate_standardized_channel_admission(
+            self.family, self.profile_model, h_path, raw_metadata
+        )
         snapshot = json.loads(_canonical_json(raw_metadata, name="metadata"))
         h_path.setflags(write=False)
         tau_s.setflags(write=False)
