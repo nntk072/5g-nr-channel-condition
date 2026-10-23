@@ -552,6 +552,47 @@ def test_pusch_dmrs_values_match_independent_ts_38211_gold_sequence(
 
 
 @pytest.mark.native_sionna
+def test_partial_mapping_b_dmrs_sequence_uses_absolute_slot_symbol_index() -> None:
+    """A nonzero mapping-B allocation start must affect the TS 38.211 DM-RS seed."""
+    receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(
+            n_size_bwp=2,
+            subcarrier_spacing_khz=30,
+            n_cell_id=37,
+            dmrs_n_id=(17, 29),
+            dmrs_n_scid=1,
+            dmrs_config_type=1,
+            dmrs_additional_position=0,
+            mapping_type="B",
+            symbol_allocation=(3, 10),
+        ),
+        device="cpu",
+    )
+    pilots = receiver.resource_grid.pilot_pattern.pilots[0, 0].to(torch.complex128)
+    expected_absolute_symbol = _pusch_dmrs_gold_reference(
+        cell_id=37,
+        dmrs_n_id=(17, 29),
+        n_scid=1,
+        slot=0,
+        symbol=3,
+        count=int(pilots.numel()),
+    )
+    incorrect_allocation_relative_symbol = _pusch_dmrs_gold_reference(
+        cell_id=37,
+        dmrs_n_id=(17, 29),
+        n_scid=1,
+        slot=0,
+        symbol=0,
+        count=int(pilots.numel()),
+    )
+
+    torch.testing.assert_close(pilots, expected_absolute_symbol, rtol=0, atol=1e-7)
+    assert not torch.equal(pilots, incorrect_allocation_relative_symbol)
+    assert receiver.resource_grid.num_ofdm_symbols == 10
+    assert receiver.metadata["symbol_allocation"] == (3, 10)
+
+
+@pytest.mark.native_sionna
 @pytest.mark.parametrize(
     ("subcarrier_spacing_khz", "n_size_bwp"),
     ((15, 2), (30, 6), (60, 12), (120, 24)),
