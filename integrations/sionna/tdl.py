@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 from importlib.metadata import PackageNotFoundError, version
-from typing import Any
+from typing import Any, Sequence
 
 from .random import call_with_sionna_seed
 
@@ -39,6 +39,7 @@ def generate_tdl_frequency_response(
     sampling_frequency_hz: float = 1.0,
     num_rx_ant: int = 1,
     num_tx_ant: int = 1,
+    rx_corr_mat: Sequence[Sequence[complex]] | None = None,
     los_angle_of_arrival_rad: float = math.acos(0.7),
     min_speed_mps: float = 0.0,
     max_speed_mps: float | None = None,
@@ -50,7 +51,9 @@ def generate_tdl_frequency_response(
 
     ``num_time_steps`` are channel coefficient samples spaced by
     ``1/sampling_frequency_hz``. This adapter does not claim a complete NR
-    waveform, CP, synchronization, or receiver model.
+    waveform, CP, synchronization, or receiver model. ``rx_corr_mat`` is an
+    optional Hermitian positive-definite unit-diagonal correlation matrix;
+    its real and imaginary parts are retained in JSON-compatible metadata.
     """
     if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
         raise ValueError("seed must be a nonnegative integer")
@@ -103,6 +106,22 @@ def generate_tdl_frequency_response(
     if device.startswith("cuda") and not torch.cuda.is_available():
         raise RuntimeError(f"CUDA device requested but unavailable: {device}")
 
+    rx_corr_tensor = None
+    if rx_corr_mat is not None:
+        rx_corr_tensor = torch.as_tensor(rx_corr_mat, dtype=torch.complex64, device=device)
+        expected_shape = (num_rx_ant, num_rx_ant)
+        if tuple(rx_corr_tensor.shape) != expected_shape:
+            raise ValueError(f"rx_corr_mat must have shape {expected_shape}")
+        if not bool(torch.isfinite(rx_corr_tensor).all()):
+            raise ValueError("rx_corr_mat must contain only finite values")
+        if not torch.allclose(rx_corr_tensor, rx_corr_tensor.mH, rtol=0.0, atol=1e-6):
+            raise ValueError("rx_corr_mat must be Hermitian")
+        diagonal = torch.diagonal(rx_corr_tensor)
+        if not torch.allclose(diagonal, torch.ones_like(diagonal), rtol=0.0, atol=1e-6):
+            raise ValueError("rx_corr_mat must have a unit diagonal")
+        if bool((torch.linalg.eigvalsh(rx_corr_tensor).min() <= 1e-7).item()):
+            raise ValueError("rx_corr_mat must be positive definite")
+
     tdl = TDL(
         model=model,
         delay_spread=delay_spread_s,
@@ -112,6 +131,7 @@ def generate_tdl_frequency_response(
         los_angle_of_arrival=los_angle_of_arrival_rad,
         num_rx_ant=num_rx_ant,
         num_tx_ant=num_tx_ant,
+        rx_corr_mat=rx_corr_tensor,
         spec_version=spec_version,
         device=device,
     )
@@ -159,6 +179,12 @@ def generate_tdl_frequency_response(
             "geometric_los_label": None,
             "geometric_los_label_provided": False,
             "carrier_frequency_hz": carrier_frequency_hz,
+            "rx_corr_mat_real": (
+                rx_corr_tensor.real.detach().cpu().tolist() if rx_corr_tensor is not None else None
+            ),
+            "rx_corr_mat_imag": (
+                rx_corr_tensor.imag.detach().cpu().tolist() if rx_corr_tensor is not None else None
+            ),
             "min_speed_mps": min_speed_mps,
             "max_speed_mps": effective_max_speed_mps,
             "maximum_doppler_hz": effective_max_speed_mps * carrier_frequency_hz / 299_792_458.0,
