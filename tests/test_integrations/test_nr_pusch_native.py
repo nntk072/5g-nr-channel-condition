@@ -410,8 +410,10 @@ def test_pusch_type2_multiport_dmrs_pilots_are_orthogonal(num_layers: int) -> No
 
 
 @pytest.mark.native_sionna
-def test_type2_four_layer_estimator_separates_known_flat_mimo_channel() -> None:
-    """Recover a known 4x4 channel through Type-2 multiport DM-RS on every RE."""
+def test_type2_four_layer_estimator_and_decoder_recover_known_flat_mimo_channel() -> None:
+    """Estimate and decode four layers through a known flat 4x4 MIMO channel."""
+    from sionna.phy.nr import PUSCHReceiver
+
     receiver = SionnaPUSCHLSReceiver(
         NRPUSCHConfig(
             n_size_bwp=4,
@@ -425,7 +427,7 @@ def test_type2_four_layer_estimator_separates_known_flat_mimo_channel() -> None:
         ),
         device="cpu",
     )
-    transmitted_grid, _ = receiver.transmit(batch_size=1, seed=7)
+    transmitted_grid, transmitted_bits = receiver.transmit(batch_size=1, seed=7)
     channel = torch.tensor(
         [
             [1.0 + 0.0j, 0.2 + 0.1j, 0.0 - 0.1j, 0.3 + 0.0j],
@@ -447,6 +449,30 @@ def test_type2_four_layer_estimator_separates_known_flat_mimo_channel() -> None:
         rtol=0,
         atol=1e-6,
     )
+
+    channel_truth = channel.reshape(1, 1, 4, 1, 4, 1, 1).expand(
+        1,
+        1,
+        4,
+        1,
+        4,
+        receiver.resource_grid.num_ofdm_symbols,
+        receiver.resource_grid.fft_size,
+    )
+    decoder = PUSCHReceiver(
+        receiver._transmitter,
+        channel_estimator="perfect",
+        return_tb_crc_status=True,
+        input_domain="freq",
+        device="cpu",
+    )
+    decoded_bits, crc_ok = decoder(
+        received_grid,
+        torch.tensor(1e-7),
+        h=channel_truth,
+    )
+    torch.testing.assert_close(decoded_bits, transmitted_bits)
+    assert bool(crc_ok.all())
 
 
 @pytest.mark.native_sionna
