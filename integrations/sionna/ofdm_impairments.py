@@ -54,6 +54,59 @@ def apply_residual_cfo(
     return waveform * rotation
 
 
+def apply_phase_noise(waveform: Any, *, phase_noise_rad: Any) -> Any:
+    """Apply a caller-supplied oscillator phase trajectory in radians.
+
+    The trajectory is broadcast over waveform axes and must identify its sample
+    time axis explicitly through its shape. This function applies a realization;
+    it does not generate or claim a particular oscillator PSD.
+    """
+    torch = _validate_waveform(waveform)
+    phase = torch.as_tensor(phase_noise_rad, device=waveform.device)
+    if torch.is_complex(phase) or phase.dtype == torch.bool:
+        raise TypeError("phase_noise_rad must be real-valued")
+    phase = phase.to(dtype=waveform.real.dtype)
+    if not bool(torch.isfinite(phase).all()):
+        raise ValueError("phase_noise_rad must contain only finite values")
+    try:
+        phase = torch.broadcast_to(phase, waveform.shape)
+    except RuntimeError as exc:
+        raise ValueError("phase_noise_rad must broadcast to the waveform shape") from exc
+    rotation = torch.polar(torch.ones_like(phase), phase)
+    return waveform * rotation
+
+
+def apply_iq_imbalance(
+    waveform: Any,
+    *,
+    gain_imbalance_db: float = 0.0,
+    phase_imbalance_rad: float = 0.0,
+) -> Any:
+    """Apply memoryless I/Q gain and quadrature-phase imbalance.
+
+    ``gain_imbalance_db`` is ``20 log10(g_I/g_Q)`` with reciprocal branch
+    gains around unity geometric mean. ``phase_imbalance_rad`` is the Q-branch
+    quadrature skew; no DC offset, frequency selectivity, or PA nonlinearity is
+    included.
+    """
+    torch = _validate_waveform(waveform)
+    for name, value in (
+        ("gain_imbalance_db", gain_imbalance_db),
+        ("phase_imbalance_rad", phase_imbalance_rad),
+    ):
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise TypeError(f"{name} must be a real number")
+        if not math.isfinite(value):
+            raise ValueError(f"{name} must be finite")
+    i_gain = 10.0 ** (gain_imbalance_db / 40.0)
+    q_gain = 10.0 ** (-gain_imbalance_db / 40.0)
+    phase_cos = math.cos(phase_imbalance_rad)
+    phase_sin = math.sin(phase_imbalance_rad)
+    real = i_gain * waveform.real - q_gain * phase_sin * waveform.imag
+    imag = q_gain * phase_cos * waveform.imag
+    return torch.complex(real, imag)
+
+
 def estimate_residual_cfo_from_cp(
     waveform: Any,
     *,
