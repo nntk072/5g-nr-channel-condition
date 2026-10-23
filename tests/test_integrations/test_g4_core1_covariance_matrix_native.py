@@ -9,11 +9,11 @@ existing independent ray-law references establish receive-angle covariance,
 not the joint departure-angle/polarization covariance needed to qualify it.
 
 Each estimate uses 16,384 independent channel draws. In each individual
-matrix cell, two-sided normal intervals with empirical standard errors give
-nominal asymptotic 99% family-wise confidence over that cell's unique real
-covariance components; the 99% level is not simultaneous across the 50
-cells. Every half-width is bounded by 0.05 of the normalized total channel
-power. References come from the analytic TDL
+matrix cell, two-sided normal intervals with empirical standard errors use a
+single Bonferroni family over all 50 profile-topology cells and every unique
+real covariance component. This gives nominal asymptotic 99% family-wise
+confidence across the full matrix. Every half-width is bounded by 0.05 of the
+normalized total channel power. References come from the analytic TDL
 correlation law or the pinned TR 38.901 CDL profile table, antenna-field
 equations, and Table 7.5-3 ray-offset/coupling rule, never from generated
 channel outputs.
@@ -40,6 +40,10 @@ _FAMILYWISE_ALPHA = 0.01
 _MAX_INTERVAL_HALF_WIDTH = 0.05
 _CARRIER_FREQUENCY_HZ = 3.5e9
 _TOPOLOGIES = ((1, 1), (2, 1), (1, 2), (2, 2), (4, 4))
+_CORE1_MATRIX_CELL_COUNT = 2 * len("ABCDE") * len(_TOPOLOGIES)
+_CORE1_MATRIX_COMPARISON_COUNT = len("ABCDE") * sum(
+    (num_rx_ant * num_tx_ant) ** 2 + num_rx_ant**2 for num_rx_ant, num_tx_ant in _TOPOLOGIES
+)
 _CDL_TABLE_SHA256 = {
     "A": "b96f8a179646ee468717c615e8061103d1e66eb1ff1ea78301de243740254cb7",
     "B": "7c87c092cb2bb44891d301ee3c1991cdda1c6b64094a03f18746ec5fa14ee2a2",
@@ -102,8 +106,12 @@ def _assert_simultaneous_covariance_match(samples: Any, expected: Any) -> None:
     expected_components = _covariance_components(expected)
     observations, estimate = _observed_covariance_components(samples)
     standard_error = observations.std(dim=0, unbiased=True) / math.sqrt(samples.shape[0])
-    component_count = expected_components.numel()
-    z_simultaneous = NormalDist().inv_cdf(1.0 - _FAMILYWISE_ALPHA / (2.0 * component_count))
+    assert observations.shape[1] == expected_components.numel()
+    assert _CORE1_MATRIX_CELL_COUNT == 50
+    assert _CORE1_MATRIX_COMPARISON_COUNT == 1535
+    z_simultaneous = NormalDist().inv_cdf(
+        1.0 - _FAMILYWISE_ALPHA / (2.0 * _CORE1_MATRIX_COMPARISON_COUNT)
+    )
     half_width = z_simultaneous * standard_error
     assert bool((torch.abs(estimate - expected_components) <= half_width).all())
     assert float(half_width.max()) <= _MAX_INTERVAL_HALF_WIDTH
