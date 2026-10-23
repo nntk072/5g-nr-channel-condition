@@ -315,6 +315,46 @@ def test_pusch_type1_two_port_dmrs_pilots_are_orthogonal() -> None:
 
 
 @pytest.mark.native_sionna
+def test_pusch_type2_two_port_dmrs_pilots_are_orthogonal() -> None:
+    """Check Type-2 two-stream CDM pilots and frequency groups against TS 38.211."""
+    n_size_bwp = 4
+    receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(
+            n_size_bwp=n_size_bwp,
+            subcarrier_spacing_khz=30,
+            num_antenna_ports=2,
+            num_layers=2,
+            dmrs_config_type=2,
+            dmrs_length=1,
+            dmrs_additional_position=0,
+            num_cdm_groups_without_data=2,
+        ),
+        device="cpu",
+    )
+    pattern = receiver.resource_grid.pilot_pattern
+    masks = receiver.pilot_mask[0].bool()
+    pilots = pattern.pilots[0].to(torch.complex128)
+
+    assert tuple(masks.shape) == (2, 14, 12 * n_size_bwp)
+    assert torch.equal(masks[0], masks[1])
+    expected_subcarriers = tuple(
+        12 * rb + offset for rb in range(n_size_bwp) for offset in (0, 1, 2, 3, 6, 7, 8, 9)
+    )
+    actual_subcarriers = tuple(
+        int(index) for index in torch.nonzero(masks[0, 2], as_tuple=False).flatten()
+    )
+    assert actual_subcarriers == expected_subcarriers
+    assert tuple(pilots.shape) == (2, len(expected_subcarriers))
+    assert bool((torch.linalg.vector_norm(pilots, dim=-1) > 0).all())
+    torch.testing.assert_close(
+        torch.vdot(pilots[0], pilots[1]),
+        torch.zeros((), dtype=torch.complex128),
+        rtol=0,
+        atol=1e-6,
+    )
+
+
+@pytest.mark.native_sionna
 @pytest.mark.parametrize(
     ("num_cdm_groups", "offsets_per_rb"),
     (
