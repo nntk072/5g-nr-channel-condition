@@ -19,6 +19,7 @@ from .ofdm_impairments import (
     apply_time_varying_multipath,
 )
 from .path_oracle import sionna_paths_to_oracle_table
+from .pbch_dmrs import PBCHDMRSResourceMap, nr_pbch_dmrs_ssb
 from .rt_cache import RTCacheConflictError, load_rt_dataset, store_rt_dataset
 from .rt_to_nr import NRGridChannel, paths_to_nr_ofdm_channel
 from .ssb_timing import ssb_case_a_candidate_symbols
@@ -35,6 +36,7 @@ __all__ = [
     "RTCacheConflictError",
     "SionnaPUSCHLSReceiver",
     "NRWaveformImpairments",
+    "PBCHDMRSResourceMap",
     "SionnaCDLChannel",
     "SionnaTDLChannel",
     "SionnaTDLPUSCHBatch",
@@ -54,6 +56,7 @@ __all__ = [
     "tdl_pusch_records",
     "store_rt_dataset",
     "paths_to_nr_ofdm_channel",
+    "nr_pbch_dmrs_ssb",
     "sionna_paths_to_oracle_table",
     "ssb_case_a_candidate_symbols",
 ]
