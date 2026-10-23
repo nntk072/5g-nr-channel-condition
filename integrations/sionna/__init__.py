@@ -21,6 +21,7 @@ from .ofdm_impairments import (
 from .path_oracle import sionna_paths_to_oracle_table
 from .rt_cache import RTCacheConflictError, load_rt_dataset, store_rt_dataset
 from .rt_to_nr import NRGridChannel, paths_to_nr_ofdm_channel
+from .ssb_timing import ssb_case_a_candidate_symbols
 from .tdl import SionnaTDLChannel, generate_tdl_frequency_response
 from .tdl_pusch import SionnaTDLPUSCHBatch, generate_tdl_pusch_batch, tdl_pusch_records
 
@@ -54,4 +55,5 @@ __all__ = [
     "store_rt_dataset",
     "paths_to_nr_ofdm_channel",
     "sionna_paths_to_oracle_table",
+    "ssb_case_a_candidate_symbols",
 ]

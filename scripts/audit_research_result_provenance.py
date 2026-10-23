@@ -17,6 +17,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Iterable
 from urllib.parse import urlparse
+from urllib.request import url2pathname
 
 _SHA256 = re.compile(r"^[0-9a-fA-F]{64}$")
 _COMMAND_KEYS = ("command", "command_line", "invocation", "argv")
@@ -47,6 +48,19 @@ _PATH_KEYS = ("path", "file", "filename", "uri", "location")
 _PATH_SUFFIXES = ("_path", "_file", "_filename", "_uri", "_location")
 
 
+class DuplicateJSONKeyError(ValueError):
+    """Raised when a JSON object contains ambiguous duplicate keys."""
+
+
+def _reject_duplicate_json_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise DuplicateJSONKeyError(f"duplicate JSON object key: {key}")
+        result[key] = value
+    return result
+
+
 def _first_present(record: dict[str, Any], keys: Iterable[str]) -> tuple[str, Any] | None:
     for key in keys:
         if key in record:
@@ -61,6 +75,22 @@ def _valid_command(value: Any) -> bool:
         isinstance(value, list)
         and bool(value)
         and all(isinstance(part, str) and bool(part.strip()) for part in value)
+    )
+
+
+def _valid_hash(value: Any) -> bool:
+    if isinstance(value, str):
+        return bool(_SHA256.fullmatch(value))
+    return (
+        isinstance(value, dict)
+        and bool(value)
+        and all(
+            isinstance(name, str)
+            and bool(name.strip())
+            and isinstance(digest, str)
+            and bool(_SHA256.fullmatch(digest))
+            for name, digest in value.items()
+        )
     )
 
 
@@ -83,14 +113,18 @@ def _looks_like_path(value: str) -> bool:
     return bool(parsed.scheme or "/" in value or "\\" in value or Path(value).suffix)
 
 
-def _reference_values(value: Any, label: str) -> list[tuple[str, str]]:
+def _reference_values(
+    value: Any, label: str, *, strings_are_paths: bool = False
+) -> list[tuple[str, str]]:
     """Extract (display name, path) references from declared input/output fields."""
     if isinstance(value, str):
-        return [(label, value)] if _looks_like_path(value) else []
+        return [(label, value)] if strings_are_paths or _looks_like_path(value) else []
     if isinstance(value, list):
         references: list[tuple[str, str]] = []
         for index, item in enumerate(value):
-            references.extend(_reference_values(item, f"{label}[{index}]"))
+            references.extend(
+                _reference_values(item, f"{label}[{index}]", strings_are_paths=strings_are_paths)
+            )
         return references
     if isinstance(value, dict):
         found: list[tuple[str, str]] = []
@@ -104,7 +138,9 @@ def _reference_values(value: Any, label: str) -> list[tuple[str, str]]:
                 and not key.endswith(_PATH_SUFFIXES)
                 and isinstance(item, (list, dict))
             ):
-                found.extend(_reference_values(item, f"{label}.{key}"))
+                found.extend(
+                    _reference_values(item, f"{label}.{key}", strings_are_paths=strings_are_paths)
+                )
         return found
     return []
 
@@ -135,7 +171,9 @@ def _resolve_reference(
     parsed = urlparse(reference)
     if parsed.scheme and parsed.scheme != "file":
         return None
-    candidate = Path(parsed.path if parsed.scheme == "file" else reference).expanduser()
+    candidate = Path(
+        url2pathname(parsed.path) if parsed.scheme == "file" else reference
+    ).expanduser()
     if candidate.is_absolute():
         return candidate
     for base in (result_file.parent, root, repository_root):
@@ -206,12 +244,12 @@ def audit_record(
                     "message": f"no recognized {label} SHA-256 field",
                 }
             )
-        elif not isinstance(item[1], str) or not _SHA256.fullmatch(item[1]):
+        elif not _valid_hash(item[1]):
             issues.append(
                 {
                     "code": f"invalid_{label}_hash",
                     "field": item[0],
-                    "message": "expected 64 hexadecimal SHA-256 characters",
+                    "message": "expected a SHA-256 string or a nonempty name-to-SHA-256 map",
                 }
             )
 
@@ -219,7 +257,12 @@ def audit_record(
         declared = _first_present(record, keys)
         if declared is None:
             continue
-        references = _reference_values(declared[1], declared[0])
+        references = _reference_values(
+            declared[1],
+            declared[0],
+            strings_are_paths=declared[0]
+            in {"input_files", "input_artifacts", "output_files", "output_artifacts"},
+        )
         if _has_invalid_reference(declared[1]):
             issues.append(
                 {
@@ -253,9 +296,9 @@ def audit_record(
 def _read_json(path: Path) -> Any:
     if path.name.endswith(".json.gz"):
         with gzip.open(path, "rt", encoding="utf-8") as handle:
-            return json.load(handle)
+            return json.load(handle, object_pairs_hook=_reject_duplicate_json_keys)
     with path.open("r", encoding="utf-8") as handle:
-        return json.load(handle)
+        return json.load(handle, object_pairs_hook=_reject_duplicate_json_keys)
 
 
 def audit_tree(root: Path) -> dict[str, Any]:
@@ -281,11 +324,15 @@ def audit_tree(root: Path) -> dict[str, Any]:
             EOFError,
             UnicodeDecodeError,
             json.JSONDecodeError,
+            DuplicateJSONKeyError,
             gzip.BadGzipFile,
             zlib.error,
         ) as error:
             malformed_count += 1
-            code = "malformed_gzip" if path.name.endswith(".json.gz") else "malformed_json"
+            if isinstance(error, DuplicateJSONKeyError):
+                code = "duplicate_json_key"
+            else:
+                code = "malformed_gzip" if path.name.endswith(".json.gz") else "malformed_json"
             issues = [{"code": code, "field": "$", "message": str(error)}]
         else:
             valid_count += 1

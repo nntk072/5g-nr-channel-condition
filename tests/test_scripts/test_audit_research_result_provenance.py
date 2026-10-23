@@ -182,6 +182,34 @@ def test_descriptive_input_text_and_hashes_are_not_treated_as_file_paths(tmp_pat
     assert not any(issue["code"].startswith("unresolved_") for issue in issues)
 
 
+def test_explicit_artifact_lists_check_bare_filenames(tmp_path: Path) -> None:
+    root = tmp_path / "results"
+    _write_json(
+        root / "run.json",
+        _valid_record(input_files=["capture"], output_artifacts=["derived-result"]),
+    )
+
+    issues = audit_tree(root)["files"][0]["issues"]
+
+    assert {issue["code"] for issue in issues} == {
+        "unresolved_input_reference",
+        "unresolved_output_reference",
+    }
+
+
+def test_local_file_uri_decodes_percent_escaped_filename(tmp_path: Path) -> None:
+    root = tmp_path / "results"
+    artifact = root / "capture 01.npz"
+    artifact.parent.mkdir(parents=True)
+    artifact.write_bytes(b"fixture")
+    _write_json(
+        root / "run.json",
+        _valid_record(input_artifacts=[{"uri": artifact.as_uri()}]),
+    )
+
+    assert audit_tree(root)["files_with_issues"] == 0
+
+
 def test_legacy_provenance_aliases_are_recognized(tmp_path: Path) -> None:
     root = tmp_path / "results"
     _write_json(
@@ -195,6 +223,53 @@ def test_legacy_provenance_aliases_are_recognized(tmp_path: Path) -> None:
     )
 
     assert audit_tree(root)["files"][0]["issues"] == []
+
+
+def test_per_source_hash_map_is_valid_provenance(tmp_path: Path) -> None:
+    root = tmp_path / "results"
+    _write_json(
+        root / "multi-source.json",
+        _valid_record(
+            source_sha256={
+                "experiments/runner.py": "a" * 64,
+                "integrations/adapter.py": "b" * 64,
+            }
+        ),
+    )
+
+    assert audit_tree(root)["files"][0]["issues"] == []
+
+
+def test_malformed_per_source_hash_map_is_rejected(tmp_path: Path) -> None:
+    root = tmp_path / "results"
+    _write_json(
+        root / "bad-source-map.json",
+        _valid_record(source_sha256={"runner.py": "not-a-hash"}),
+    )
+
+    codes = {issue["code"] for issue in audit_tree(root)["files"][0]["issues"]}
+
+    assert codes == {"invalid_source_hash"}
+
+
+def test_duplicate_source_hash_key_is_reported_instead_of_using_last_value(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "results"
+    root.mkdir(parents=True)
+    (root / "duplicate.json").write_text(
+        '{"command":"python run.py","generated_at_utc":"2026-10-23T12:34:56Z",'
+        '"source_sha256":"invalid","source_sha256":"'
+        + "a" * 64
+        + '","config_sha256":"'
+        + "b" * 64
+        + '"}',
+        encoding="utf-8",
+    )
+
+    report = audit_tree(root)
+
+    assert report["issue_counts"] == {"duplicate_json_key": 1}
 
 
 def test_malformed_declared_reference_is_reported(tmp_path: Path) -> None:
