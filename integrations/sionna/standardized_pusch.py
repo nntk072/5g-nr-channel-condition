@@ -6,7 +6,7 @@ import hashlib
 import json
 import math
 from dataclasses import asdict
-from typing import Any
+from typing import Any, Literal
 
 import numpy as np
 from datasets.nr import NRChannelRecord, TargetDefinition
@@ -63,6 +63,106 @@ def _apply_phase_noise(
     return apply_phase_noise(waveform, phase_noise_rad=phase)
 
 
+def _apply_sampled_time_channel(
+    transmit_waveform: Any,
+    record: Any,
+    *,
+    time_index: int,
+    sampling_frequency_hz: float,
+    resource_grid: Any,
+    device: str,
+) -> tuple[Any, Any, dict[str, Any]]:
+    """Apply one frozen standardized CIR as a sinc-discretized time channel."""
+    import torch
+    from sionna.phy.channel import (
+        ApplyTimeChannel,
+        cir_to_time_channel,
+        time_lag_discrete_time_channel,
+        time_to_ofdm_channel,
+    )
+
+    coefficients = torch.as_tensor(
+        np.array(record.h_path[..., time_index], copy=True),
+        dtype=torch.complex64,
+        device=device,
+    )
+    delays = torch.as_tensor(
+        np.array(record.tau_s, copy=True)[None, ...], dtype=torch.float32, device=device
+    )
+    maximum_delay_s = float(delays.max().item())
+    l_min, l_max = time_lag_discrete_time_channel(
+        sampling_frequency_hz, maximum_delay_spread=maximum_delay_s
+    )
+    l_tot = l_max - l_min + 1
+    num_time_samples = int(transmit_waveform.shape[-1])
+    channel_time_samples = num_time_samples + l_tot - 1
+    coefficients = coefficients[None, ..., None].expand(
+        1, *coefficients.shape, channel_time_samples
+    )
+    h_time = cir_to_time_channel(
+        sampling_frequency_hz,
+        coefficients,
+        delays,
+        l_min=l_min,
+        l_max=l_max,
+        normalize=False,
+    )
+    received_waveform = ApplyTimeChannel(
+        num_time_samples=num_time_samples,
+        l_tot=l_tot,
+        device=device,
+    )(transmit_waveform, h_time)
+    channel_cfr = time_to_ofdm_channel(h_time, resource_grid, l_min)[0, 0, :, 0, 0]
+    cyclic_prefix_length = int(resource_grid.cyclic_prefix_length)
+    return received_waveform, channel_cfr, {
+        "sampling_frequency_hz": sampling_frequency_hz,
+        "maximum_path_delay_s": maximum_delay_s,
+        "first_discrete_time_lag": l_min,
+        "last_discrete_time_lag": l_max,
+        "discrete_time_channel_tap_count": l_tot,
+        "cyclic_prefix_length_samples": cyclic_prefix_length,
+        "tap_span_fits_cyclic_prefix": (l_max - l_min) <= cyclic_prefix_length,
+        "path_delay_reference": "standardized profile-relative excess delay",
+        "fractional_delay_interpolation": "Sionna cir_to_time_channel sinc pulse shaping",
+    }
+
+
+def _apply_receiver_impairments(
+    waveform: Any,
+    impairments: NRWaveformImpairments,
+    *,
+    phase_noise_seed: int,
+    sampling_frequency_hz: float,
+    device: str,
+) -> Any:
+    """Apply one declared receiver impairment chain on the final sample axis."""
+    waveform = apply_residual_cfo(
+        waveform,
+        cfo_hz=impairments.cfo_hz,
+        sampling_frequency_hz=sampling_frequency_hz,
+    )
+    waveform = _apply_phase_noise(
+        waveform,
+        linewidth_hz=impairments.rx_phase_noise_linewidth_hz,
+        seed=phase_noise_seed,
+        sampling_frequency_hz=sampling_frequency_hz,
+        device=device,
+    )
+    waveform = apply_iq_imbalance(
+        waveform,
+        gain_imbalance_db=impairments.rx_iq_gain_imbalance_db,
+        phase_imbalance_rad=impairments.rx_iq_phase_imbalance_rad,
+    )
+    waveform = apply_integer_timing_offset(
+        waveform,
+        offset_samples=impairments.integer_timing_offset_samples,
+    )
+    return apply_fractional_timing_offset(
+        waveform,
+        offset_samples=impairments.fractional_timing_offset_samples,
+    )
+
+
 def build_standardized_pusch_dmrs_records(
     run: StandardizedChannelRun,
     *,
@@ -71,24 +171,25 @@ def build_standardized_pusch_dmrs_records(
     noise_seed: int | None = None,
     impairments: NRWaveformImpairments | None = None,
     impairment_seed: int | None = None,
+    channel_mode: Literal["time_domain", "ideal_cfr"] = "time_domain",
     receiver_config: NRPUSCHConfig = NRPUSCHConfig(),
     time_index: int = 0,
     device: str = "cpu",
 ) -> tuple[NRChannelRecord, ...]:
-    """Transmit PUSCH through static standardized CFR and estimate with DMRS.
+    """Transmit PUSCH through a frozen standardized channel and estimate with DMRS.
 
     Perfect synchronized CFR target, noisy PUSCH resource-grid observation,
     LS estimate, and profile-proxy label remain separate fields in each typed
-    training record. Without ``impairments``, this is an ideal frequency-domain
-    link with no ICI/ISI, synchronization error, RF impairment, absolute power
-    calibration, or geometric LOS label implied.
+    training record. By default, the standardized path coefficients and delays
+    are sinc-discretized and applied to the sample-domain waveform, so channel
+    delay can create CP spillover/ISI. ``channel_mode="ideal_cfr"`` selects the
+    explicit frequency-domain diagnostic control, which has no channel-induced
+    ICI/ISI.
 
-    With ``impairments``, transmitter impairments act on continuous sample-time
-    waveforms, the static CFR acts on the resulting frequency bins, and
-    receiver impairments act on the reconstructed continuous waveform. This
-    retains impairment-induced inter-carrier mixing for a static circular
-    channel model. Channel-delay-induced CP spillover and inter-symbol
-    interference are not modeled.
+    Transmitter impairments act on continuous sample-time waveforms before the
+    selected propagation channel, and receiver impairments act after it. The
+    ideal-CFR control retains impairment-induced inter-carrier mixing but not
+    channel-induced CP spillover.
 
     The current link supports one transmit antenna/port and one or more receive
     antennas (SISO/SIMO), with a channel held constant over one PUSCH allocation.
@@ -114,6 +215,8 @@ def build_standardized_pusch_dmrs_records(
         raise TypeError("impairments must be an NRWaveformImpairments value or None")
     if (impairments is None) != (impairment_seed is None):
         raise ValueError("impairments and impairment_seed must be provided together")
+    if channel_mode not in {"time_domain", "ideal_cfr"}:
+        raise ValueError("channel_mode must be 'time_domain' or 'ideal_cfr'")
     if impairment_seed is not None and (
         isinstance(impairment_seed, bool)
         or not isinstance(impairment_seed, int)
@@ -141,23 +244,27 @@ def build_standardized_pusch_dmrs_records(
 
     receiver = SionnaPUSCHLSReceiver(receiver_config, device=device)
     grid = receiver.resource_grid
-    if impairments is not None:
-        from sionna.phy.ofdm import OFDMDemodulator, OFDMModulator
+    from sionna.phy.ofdm import OFDMDemodulator, OFDMModulator
 
-        modulator = OFDMModulator(
-            cyclic_prefix_length=grid.cyclic_prefix_length,
-            device=device,
-        )
-        demodulator = OFDMDemodulator(
+    modulator = OFDMModulator(cyclic_prefix_length=grid.cyclic_prefix_length, device=device)
+    sampling_frequency_hz = grid.fft_size * receiver_config.subcarrier_spacing_khz * 1_000.0
+    receiver_l_min = -6 if channel_mode == "time_domain" else 0
+    demodulator = OFDMDemodulator(
+        fft_size=grid.fft_size,
+        l_min=receiver_l_min,
+        cyclic_prefix_length=grid.cyclic_prefix_length,
+        device=device,
+    )
+    ideal_demodulator = (
+        demodulator
+        if receiver_l_min == 0
+        else OFDMDemodulator(
             fft_size=grid.fft_size,
             l_min=0,
             cyclic_prefix_length=grid.cyclic_prefix_length,
             device=device,
         )
-        sampling_frequency_hz = grid.fft_size * receiver_config.subcarrier_spacing_khz * 1_000.0
-    else:
-        modulator = demodulator = None
-        sampling_frequency_hz = 0.0
+    )
     if grid.num_effective_subcarriers != grid.fft_size:
         raise ValueError("standardized PUSCH adapter currently requires a full-band grid")
     spacing_values = {float(record.metadata["subcarrier_spacing_hz"]) for record in run.records}
@@ -169,16 +276,6 @@ def build_standardized_pusch_dmrs_records(
     records: list[NRChannelRecord] = []
 
     for record in run.records:
-        source_cfr = np.asarray(
-            record.cfr[0, :, 0, 0, time_index, :][None, :, :], dtype=np.complex64
-        )
-        cfr = resample_centered_cfr(
-            source_cfr,
-            source_spacing_hz=source_spacing_hz,
-            target_subcarriers=int(grid.fft_size),
-            target_spacing_hz=receiver_config.subcarrier_spacing_khz * 1_000.0,
-        )
-        rx_antennas = cfr.shape[1]
         child_seed = int(
             np.random.SeedSequence([seed, record.sample_index]).generate_state(1, dtype=np.uint32)[
                 0
@@ -194,59 +291,95 @@ def build_standardized_pusch_dmrs_records(
         transmit_grid, _ = receiver.transmit(1, seed=child_seed)
         tx_phase_noise_seed = None
         rx_phase_noise_seed = None
+        transmit_waveform = None
+        if channel_mode == "time_domain" or impairments is not None:
+            transmit_waveform = modulator(transmit_grid)
         if impairments is not None:
             assert impairment_seed is not None
             tx_phase_noise_seed = _derive_impairment_seed(impairment_seed, record.sample_index, 0)
             rx_phase_noise_seed = _derive_impairment_seed(impairment_seed, record.sample_index, 1)
-            tx_waveform = modulator(transmit_grid)
-            tx_waveform = apply_iq_imbalance(
-                tx_waveform,
+            assert transmit_waveform is not None
+            transmit_waveform = apply_iq_imbalance(
+                transmit_waveform,
                 gain_imbalance_db=impairments.tx_iq_gain_imbalance_db,
                 phase_imbalance_rad=impairments.tx_iq_phase_imbalance_rad,
             )
-            tx_waveform = _apply_phase_noise(
-                tx_waveform,
+            transmit_waveform = _apply_phase_noise(
+                transmit_waveform,
                 linewidth_hz=impairments.tx_phase_noise_linewidth_hz,
                 seed=tx_phase_noise_seed,
                 sampling_frequency_hz=sampling_frequency_hz,
                 device=device,
             )
-            transmit_grid = demodulator(tx_waveform)
-        h = torch.as_tensor(cfr[0], dtype=torch.complex64, device=device)
-        # [batch, rx antenna, OFDM symbol, FFT bin], followed by the RX-node axis.
-        received_clean = transmit_grid[:, 0, 0].unsqueeze(1) * h[None, :, None, :]
-        received_clean = received_clean.unsqueeze(1)
-        if received_clean.shape[2] != rx_antennas:
-            raise RuntimeError("receive-antenna axis changed during PUSCH channel application")
-        if impairments is not None:
-            assert rx_phase_noise_seed is not None
-            received_waveform = modulator(received_clean)
-            received_waveform = apply_residual_cfo(
-                received_waveform,
-                cfo_hz=impairments.cfo_hz,
+
+        channel_metadata: dict[str, Any] = {"channel_mode": channel_mode}
+        if channel_mode == "time_domain":
+            assert transmit_waveform is not None
+            received_waveform, channel_response, channel_metadata = _apply_sampled_time_channel(
+                transmit_waveform,
+                record,
+                time_index=time_index,
                 sampling_frequency_hz=sampling_frequency_hz,
+                resource_grid=grid,
+                device=device,
             )
-            received_waveform = _apply_phase_noise(
+            rx_antennas = int(channel_response.shape[0])
+        else:
+            cfr_array = np.asarray(
+                record.cfr[0, :, 0, 0, time_index, :][None, :, :], dtype=np.complex64
+            )
+            cfr = resample_centered_cfr(
+                cfr_array,
+                source_spacing_hz=source_spacing_hz,
+                target_subcarriers=int(grid.fft_size),
+                target_spacing_hz=receiver_config.subcarrier_spacing_khz * 1_000.0,
+            )
+            h = torch.as_tensor(cfr[0], dtype=torch.complex64, device=device)
+            rx_antennas = int(h.shape[0])
+            if impairments is not None:
+                assert transmit_waveform is not None
+                transmit_grid = ideal_demodulator(transmit_waveform)
+            received_clean = transmit_grid[:, 0, 0].unsqueeze(1) * h[None, :, None, :]
+            received_clean = received_clean.unsqueeze(1)
+            if received_clean.shape[2] != rx_antennas:
+                raise RuntimeError("receive-antenna axis changed during PUSCH channel application")
+            channel_response = h[:, None, :].expand(
+                rx_antennas,
+                int(grid.num_ofdm_symbols),
+                int(grid.fft_size),
+            )
+            channel_metadata.update(
+                {
+                    "path_delay_reference": "frequency-domain CFR control",
+                    "tap_span_fits_cyclic_prefix": None,
+                }
+            )
+
+        if channel_mode == "time_domain":
+            # The sampled channel already returns continuous receiver samples.
+            if impairments is not None:
+                assert rx_phase_noise_seed is not None
+                received_waveform = _apply_receiver_impairments(
+                    received_waveform,
+                    impairments,
+                    phase_noise_seed=rx_phase_noise_seed,
+                    sampling_frequency_hz=sampling_frequency_hz,
+                    device=device,
+                )
+            received_clean = demodulator(received_waveform)
+        elif impairments is not None:
+            received_waveform = modulator(received_clean)
+            assert rx_phase_noise_seed is not None
+            received_waveform = _apply_receiver_impairments(
                 received_waveform,
-                linewidth_hz=impairments.rx_phase_noise_linewidth_hz,
-                seed=rx_phase_noise_seed,
+                impairments,
+                phase_noise_seed=rx_phase_noise_seed,
                 sampling_frequency_hz=sampling_frequency_hz,
                 device=device,
             )
-            received_waveform = apply_iq_imbalance(
-                received_waveform,
-                gain_imbalance_db=impairments.rx_iq_gain_imbalance_db,
-                phase_imbalance_rad=impairments.rx_iq_phase_imbalance_rad,
-            )
-            received_waveform = apply_integer_timing_offset(
-                received_waveform,
-                offset_samples=impairments.integer_timing_offset_samples,
-            )
-            received_waveform = apply_fractional_timing_offset(
-                received_waveform,
-                offset_samples=impairments.fractional_timing_offset_samples,
-            )
             received_clean = demodulator(received_waveform)
+
+        target_cfr = channel_response[None, None, :, None, None, :, :]
         signal_power = received_clean.abs().square().mean()
         if not bool(torch.isfinite(signal_power)) or float(signal_power) <= 0:
             raise ValueError(f"sample {record.sample_id} has zero or invalid PUSCH signal power")
@@ -265,6 +398,7 @@ def build_standardized_pusch_dmrs_records(
             "parent_sample_id": record.sample_id,
             "parent_sample_index": record.sample_index,
             "receiver_view_kind": receiver_view_kind,
+            "channel_mode": channel_mode,
             "receiver_config": asdict(receiver_config),
             "snr_db": snr_db,
             "transmit_seed": child_seed,
@@ -290,17 +424,7 @@ def build_standardized_pusch_dmrs_records(
         effective_bins = torch.as_tensor(
             grid.effective_subcarrier_ind, dtype=torch.long, device=device
         )
-        target_cfr = h.reshape(1, 1, rx_antennas, 1, 1, 1, int(grid.fft_size))
         target_cfr = torch.index_select(target_cfr, -1, effective_bins)
-        target_cfr = target_cfr.expand(
-            1,
-            1,
-            rx_antennas,
-            1,
-            1,
-            int(grid.num_ofdm_symbols),
-            int(grid.num_effective_subcarriers),
-        )
         profile_target = np.asarray([int(record.profile_los_component)], dtype=np.uint8)
         profile_definition = TargetDefinition(
             semantic="standardized_profile_los_category_proxy",
@@ -312,7 +436,12 @@ def build_standardized_pusch_dmrs_records(
             semantic="perfect_synchronized_effective_subcarrier_cfr",
             units="complex channel gain (dimensionless)",
             source="standardized Sionna TDL/CDL CFR adapter",
-            reference="profile-relative excess-delay CFR; static over this PUSCH allocation",
+            reference=(
+                "profile-relative excess-delay path truth sinc-discretized for this NR sample rate; "
+                "the static per-subcarrier target does not encode time-domain ISI/ICI"
+                if channel_mode == "time_domain"
+                else "profile-relative excess-delay CFR resampled to this resource grid"
+            ),
         )
         records.append(
             NRChannelRecord(
@@ -331,6 +460,8 @@ def build_standardized_pusch_dmrs_records(
                     "channel_sample_id": record.sample_id,
                     "parent_subject_id": record.sample_id,
                     "receiver_view_kind": receiver_view_kind,
+                    "channel_mode": channel_mode,
+                    "sampled_time_channel": channel_metadata,
                     "receiver_view_identity_sha256": view_digest,
                     "channel_family": record.family.value,
                     "profile_model": record.profile_model,
@@ -365,11 +496,16 @@ def build_standardized_pusch_dmrs_records(
                     "time_index": time_index,
                     "channel_time_variation": "frozen CFR across one PUSCH allocation",
                     "receiver_link_model": (
-                        "static diagonal frequency-domain CFR with sample-domain RF impairments; "
-                        "impairment-induced ICI is retained, channel-induced CP spillover and "
-                        "ISI are not modeled"
+                        "sampled time-domain standardized CIR; channel-induced CP spillover/ISI "
+                        "and impairment-induced ICI from sample-domain RF impairments are retained"
+                        if channel_mode == "time_domain" and impairments is not None
+                        else "sampled time-domain standardized CIR; channel-induced CP spillover/ISI "
+                        "is retained"
+                        if channel_mode == "time_domain"
+                        else "static circular frequency-domain CFR with sample-domain RF impairments; "
+                        "impairment-induced ICI is retained, channel-induced CP spillover/ISI is not modeled"
                         if impairments is not None
-                        else "ideal frequency-domain channel; no ICI/ISI"
+                        else "ideal diagonal frequency-domain CFR; no ICI/ISI"
                     ),
                     "waveform_impairments": (
                         asdict(impairments) if impairments is not None else None

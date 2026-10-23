@@ -114,7 +114,7 @@ def test_standardized_tdl_cdl_to_pusch_dmrs_is_seeded_and_target_is_separate(
     tmp_path, family: StandardizedFamily, profile_label: int
 ) -> None:
     run = _standardized_run(family)
-    config = NRPUSCHConfig(n_size_bwp=6, subcarrier_spacing_khz=30)
+    config = NRPUSCHConfig(n_size_bwp=24, subcarrier_spacing_khz=30)
     first = build_standardized_pusch_dmrs_records(
         run, snr_db=50.0, seed=8129, receiver_config=config, device="cpu"
     )
@@ -129,16 +129,22 @@ def test_standardized_tdl_cdl_to_pusch_dmrs_is_seeded_and_target_is_separate(
         truth = record.targets["channel_cfr"]
         assert set(record.targets) == {"channel_cfr", "profile_los_proxy"}
         assert "geometric_los" not in record.targets
-        assert observation.received_grid.shape == (1, 1, 1, 14, 72)
-        assert estimate.h_hat.shape == (1, 1, 1, 1, 1, 14, 72)
+        assert observation.received_grid.shape == (1, 1, 1, 14, 288)
+        assert estimate.h_hat.shape == (1, 1, 1, 1, 1, 14, 288)
         assert truth.shape == estimate.h_hat.shape
         assert record.targets["profile_los_proxy"].tolist() == [profile_label]
         assert record.target_masks["profile_los_proxy"].tolist() == [True]
         assert record.provenance["geometric_los_label"] is None
         assert record.provenance["pusch_transmit_seed"] == record.provenance["noise_seed"] - 1
-        assert record.provenance["receiver_link_model"] == (
-            "ideal frequency-domain channel; no ICI/ISI"
+        assert record.provenance["channel_mode"] == "time_domain"
+        assert record.provenance["receiver_link_model"].startswith(
+            "sampled time-domain standardized CIR"
         )
+        sampled_channel = record.provenance["sampled_time_channel"]
+        assert sampled_channel["fractional_delay_interpolation"].startswith(
+            "Sionna cir_to_time_channel"
+        )
+        assert sampled_channel["tap_span_fits_cyclic_prefix"] is True
         assert not hasattr(observation.model_inputs(), "targets")
         assert not hasattr(observation.model_inputs(), "channel_truth")
         torch.testing.assert_close(
@@ -163,7 +169,7 @@ def test_standardized_tdl_cdl_to_pusch_dmrs_is_seeded_and_target_is_separate(
         np.testing.assert_allclose(restored.targets["channel_cfr"], truth.cpu().numpy())
 
 
-def test_standardized_dmrs_rejects_source_bandwidth_that_cannot_cover_pusch() -> None:
+def test_time_channel_supports_grid_outside_source_cfr_bandwidth_but_control_rejects() -> None:
     from integrations.sionna.tdl import generate_tdl_frequency_response
 
     channel = generate_tdl_frequency_response(
@@ -176,14 +182,41 @@ def test_standardized_dmrs_rejects_source_bandwidth_that_cannot_cover_pusch() ->
     )
     run = standardized_run_from_channel(channel, family=StandardizedFamily.TDL)
 
+    common = {
+        "snr_db": 20.0,
+        "seed": 14,
+        "receiver_config": NRPUSCHConfig(n_size_bwp=6, subcarrier_spacing_khz=30),
+        "device": "cpu",
+    }
+    time_domain = build_standardized_pusch_dmrs_records(run, **common)
+    assert time_domain[0].provenance["channel_mode"] == "time_domain"
     with pytest.raises(ValueError, match="inside the source CFR bandwidth"):
-        build_standardized_pusch_dmrs_records(
-            run,
-            snr_db=20.0,
-            seed=14,
-            receiver_config=NRPUSCHConfig(n_size_bwp=6, subcarrier_spacing_khz=30),
-            device="cpu",
-        )
+        build_standardized_pusch_dmrs_records(run, **common, channel_mode="ideal_cfr")
+
+
+@pytest.mark.native_sionna
+def test_short_cp_time_channel_changes_pusch_observation_vs_ideal_cfr_control() -> None:
+    run = _standardized_run(StandardizedFamily.TDL)
+    common = {
+        "snr_db": 100.0,
+        "seed": 9346,
+        "noise_seed": 9347,
+        "receiver_config": NRPUSCHConfig(n_size_bwp=6, subcarrier_spacing_khz=30),
+        "device": "cpu",
+    }
+    time_domain = build_standardized_pusch_dmrs_records(run, **common)
+    ideal_cfr = build_standardized_pusch_dmrs_records(
+        run, **common, channel_mode="ideal_cfr"
+    )
+
+    time_observation = time_domain[0].observation.received_grid
+    ideal_observation = ideal_cfr[0].observation.received_grid
+    relative_difference = torch.linalg.vector_norm(time_observation - ideal_observation) / (
+        torch.linalg.vector_norm(ideal_observation) + 1e-12
+    )
+    channel_info = time_domain[0].provenance["sampled_time_channel"]
+    assert channel_info["tap_span_fits_cyclic_prefix"] is False
+    assert float(relative_difference) > 1e-2
 
 
 @pytest.mark.native_sionna
@@ -320,7 +353,7 @@ def test_standardized_pusch_impairment_views_persist_settings_and_seeded_replay(
         assert view_a.provenance["snr_reference"] == (
             "post-channel and post-RF-impairment, pre-AWGN, pre-beamforming receive grid"
         )
-        assert "impairment-induced ICI is retained" in view_a.provenance["receiver_link_model"]
+        assert "impairment-induced ICI" in view_a.provenance["receiver_link_model"]
         torch.testing.assert_close(
             view_a.observation.received_grid, repeated.observation.received_grid, rtol=0, atol=0
         )
