@@ -159,6 +159,19 @@ def test_standardized_tdl_cdl_to_pusch_dmrs_is_seeded_and_target_is_separate(
         # so this compares the full estimate to oracle CFR with a declared,
         # nonzero frequency-selective interpolation tolerance.
         assert float(estimate_nmse) < 0.01
+        from integrations.sionna.nr_pusch import SionnaPUSCHLSReceiver
+
+        transmitter = SionnaPUSCHLSReceiver(config, device="cpu")
+        transmit_grid, _ = transmitter.transmit(
+            1, seed=record.provenance["pusch_transmit_seed"]
+        )
+        diagonal_prediction = transmit_grid[:, 0, 0].unsqueeze(1) * truth[0, 0, :, 0, 0][
+            None, ...
+        ]
+        diagonal_error = torch.mean(
+            torch.abs(observation.received_grid[:, 0] - diagonal_prediction) ** 2
+        ) / torch.mean(torch.abs(diagonal_prediction) ** 2)
+        assert float(diagonal_error) < 1e-4
         restored = read_nr_record(tmp_path, write_nr_record(tmp_path, record))
         np.testing.assert_array_equal(
             restored.targets["profile_los_proxy"], record.targets["profile_los_proxy"]
@@ -217,6 +230,19 @@ def test_short_cp_time_channel_changes_pusch_observation_vs_ideal_cfr_control() 
     channel_info = time_domain[0].provenance["sampled_time_channel"]
     assert channel_info["tap_span_fits_cyclic_prefix"] is False
     assert float(relative_difference) > 1e-2
+
+    from integrations.sionna.nr_pusch import SionnaPUSCHLSReceiver
+
+    transmitter = SionnaPUSCHLSReceiver(common["receiver_config"], device="cpu")
+    transmit_grid, _ = transmitter.transmit(
+        1, seed=time_domain[0].provenance["pusch_transmit_seed"]
+    )
+    target = time_domain[0].targets["channel_cfr"]
+    diagonal_prediction = transmit_grid[:, 0, 0].unsqueeze(1) * target[0, 0, :, 0, 0][None, ...]
+    diagonal_error = torch.mean(
+        torch.abs(time_observation[:, 0] - diagonal_prediction) ** 2
+    ) / torch.mean(torch.abs(diagonal_prediction) ** 2)
+    assert float(diagonal_error) > 5e-4
 
 
 @pytest.mark.native_sionna
