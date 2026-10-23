@@ -148,10 +148,13 @@ def test_offset_bwp_maps_into_carrier_fft_bins_and_decodes() -> None:
     ("n_size_bwp", "bwp_start_in_grid"),
     ((4, 0), (6, 5), (12, 12), (4, 20)),
 )
+@pytest.mark.parametrize("subcarrier_spacing_khz", (15, 30, 60, 120))
 def test_bwp_allocation_mapping_roundtrips_at_carrier_grid_edges(
-    n_size_bwp: int, bwp_start_in_grid: int
+    n_size_bwp: int, bwp_start_in_grid: int, subcarrier_spacing_khz: int
 ) -> None:
-    """Preserve allocation bins at lower, interior, and upper carrier offsets."""
+    """Preserve allocation bins and OFDM round-trips across offsets and numerologies."""
+    from sionna.phy.ofdm import OFDMDemodulator
+
     start_symbol, duration = 3, 4
     n_size_grid = 24
     n_start_grid = 11
@@ -161,7 +164,7 @@ def test_bwp_allocation_mapping_roundtrips_at_carrier_grid_edges(
             n_size_grid=n_size_grid,
             n_start_grid=n_start_grid,
             n_start_bwp=n_start_grid + bwp_start_in_grid,
-            subcarrier_spacing_khz=30,
+            subcarrier_spacing_khz=subcarrier_spacing_khz,
             mapping_type="B",
             symbol_allocation=(start_symbol, duration),
         ),
@@ -186,6 +189,15 @@ def test_bwp_allocation_mapping_roundtrips_at_carrier_grid_edges(
         receiver.extract_bwp_allocation_from_carrier_slot(carrier_slot_grid),
         allocation_grid,
     )
+    waveform = receiver.modulate_carrier_slot_grid(carrier_slot_grid)
+    cp_samples = round(int(receiver.resource_grid.cyclic_prefix_length) * n_size_grid / n_size_bwp)
+    demodulator = OFDMDemodulator(
+        fft_size=12 * n_size_grid,
+        l_min=0,
+        cyclic_prefix_length=cp_samples,
+        device="cpu",
+    )
+    torch.testing.assert_close(demodulator(waveform), carrier_slot_grid, rtol=1e-5, atol=1e-6)
     assert torch.count_nonzero(carrier_slot_grid[..., :start_bin]) == 0
     assert torch.count_nonzero(carrier_slot_grid[..., stop_bin:]) == 0
     assert torch.count_nonzero(carrier_slot_grid[..., :start_symbol, :]) == 0
