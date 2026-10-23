@@ -61,6 +61,7 @@ class SionnaPUSCHLSReceiver:
         )
         self._resource_grid = self._transmitter.resource_grid
         self._pilot_mask = self._resource_grid.pilot_pattern.mask
+        self._decoder: Any | None = None
         self._estimator = PUSCHLSChannelEstimator(
             self._resource_grid,
             dmrs_length=config.dmrs_length,
@@ -293,3 +294,32 @@ class SionnaPUSCHLSReceiver:
             device=self.device,
         )
         return modulator(grid)
+
+    def demodulate_slot_waveform(self, waveform: Any) -> Any:
+        """OFDM-demodulate a full-slot waveform with the configured Sionna CP."""
+        try:
+            from sionna.phy.ofdm import OFDMDemodulator
+        except ImportError as exc:
+            raise RuntimeError("Install the optional Sionna 2.2 PHY dependencies") from exc
+
+        return OFDMDemodulator(
+            fft_size=self._resource_grid.fft_size,
+            l_min=0,
+            cyclic_prefix_length=self._resource_grid.cyclic_prefix_length,
+            device=self.device,
+        )(waveform)
+
+    def decode_pusch(self, received_grid: Any, noise_variance: Any) -> tuple[Any, Any]:
+        """Decode a received PUSCH grid and return bits with transport-block CRC status."""
+        if self._decoder is None:
+            try:
+                from sionna.phy.nr import PUSCHReceiver
+            except ImportError as exc:
+                raise RuntimeError("Install the optional Sionna 2.2 PHY dependencies") from exc
+            self._decoder = PUSCHReceiver(
+                self._transmitter,
+                return_tb_crc_status=True,
+                input_domain="freq",
+                device=self.device,
+            )
+        return self._decoder(received_grid, noise_variance)

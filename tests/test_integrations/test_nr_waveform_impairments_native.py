@@ -123,6 +123,26 @@ def test_per_path_doppler_creates_intra_symbol_ici_against_diagonal_cfr():
     assert dynamic_off_tone / torch.sum(torch.abs(dynamic_spectrum) ** 2) > 1e-2
 
 
+def test_symbol_static_doppler_preserves_symbol_aging_without_intra_symbol_rotation():
+    waveform = torch.ones(10, dtype=torch.complex128)
+    arguments = {
+        "path_coefficients": [1.0 + 0j],
+        "path_delays_samples": [0],
+        "path_dopplers_hz": [1.0],
+        "sampling_frequency_hz": 10.0,
+    }
+
+    continuous = apply_time_varying_multipath(waveform, **arguments)
+    symbol_static = apply_time_varying_multipath(waveform, symbol_length_samples=5, **arguments)
+
+    continuous_phase = 0.2 * torch.pi * torch.arange(10, dtype=torch.float64)
+    torch.testing.assert_close(
+        continuous, torch.polar(torch.ones(10, dtype=torch.float64), continuous_phase)
+    )
+    torch.testing.assert_close(symbol_static[:5], torch.ones(5, dtype=torch.complex128))
+    torch.testing.assert_close(symbol_static[5:], -torch.ones(5, dtype=torch.complex128))
+
+
 @pytest.mark.native_sionna
 def test_pusch_cpu_waveform_roundtrip_decodes_noiseless_payload():
     from sionna.phy.nr import PUSCHReceiver

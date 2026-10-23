@@ -20,6 +20,28 @@ from integrations.sionna.tdl import generate_tdl_frequency_response  # noqa: E40
 
 _Z_SIMULTANEOUS = 3.5
 _FIXED_TDL_MODELS = ("A10", "A30", "B100", "C60", "C300", "D10", "D30")
+_CDL_RAY_ANGLE_OFFSETS = (
+    0.0447,
+    -0.0447,
+    0.1413,
+    -0.1413,
+    0.2492,
+    -0.2492,
+    0.3715,
+    -0.3715,
+    0.5129,
+    -0.5129,
+    0.6797,
+    -0.6797,
+    0.8844,
+    -0.8844,
+    1.1481,
+    -1.1481,
+    1.5195,
+    -1.5195,
+    2.1551,
+    -2.1551,
+)
 
 
 def _within_interval(estimate: Any, standard_error: Any, target: Any) -> bool:
@@ -162,6 +184,71 @@ def test_doppler_correlation_confidence_interval_uses_paired_independent_draws(
     assert abs(float(correlation.real - expected.real)) <= _Z_SIMULTANEOUS * float(real_se)
     assert abs(float(correlation.imag - expected.imag)) <= _Z_SIMULTANEOUS * float(imag_se)
     assert float(real_se) < 0.02 and float(imag_se) < 0.02
+
+
+@pytest.mark.native_sionna
+@pytest.mark.parametrize("model", ("A", "B", "C"))
+def test_cdl_nlos_temporal_correlation_matches_independent_ray_doppler_reference(
+    model: str,
+) -> None:
+    """Check CDL A-C Doppler covariance against the 38.901 ray-phase equation."""
+    carrier_frequency_hz = 3.5e9
+    speed_mps = 30.0
+    lag_s = 0.7e-3
+    batch_size = 4096
+    channel = generate_cdl_frequency_response(
+        model=model,
+        seed=1984,
+        carrier_frequency_hz=carrier_frequency_hz,
+        subcarrier_spacing_hz=30_000.0,
+        num_subcarriers=8,
+        batch_size=batch_size,
+        delay_spread_s=100e-9,
+        num_time_steps=2,
+        sampling_frequency_hz=1.0 / lag_s,
+        ut_velocity_mps=(speed_mps, 0.0, 0.0),
+        spec_version="19.2",
+        device="cpu",
+    )
+    # Sum distinct delay clusters to form the narrowband channel. The two
+    # observations in each row share one independent CDL realization.
+    path = channel.h_path[:, 0, 0, 0, 0, :, :]
+    h0 = path[:, :, 0].sum(dim=1).to(torch.complex128)
+    h1 = path[:, :, 1].sum(dim=1).to(torch.complex128)
+    cross_product = h0.conj() * h1
+    reference_power = h0.abs().square()
+    mean_power = reference_power.mean()
+    empirical = cross_product.mean() / mean_power
+    influence = cross_product - empirical * reference_power
+    real_se = influence.real.std(unbiased=True) / (mean_power * math.sqrt(batch_size))
+    imag_se = influence.imag.std(unbiased=True) / (mean_power * math.sqrt(batch_size))
+
+    # Table 7.5-3 offsets are applied independently to azimuth and zenith
+    # rays by the CDL random-coupling step. Average over their Cartesian ray
+    # pairing, weighted by the profile's pinned cluster PDP.
+    metadata = channel.metadata
+    angles = metadata["nominal_cluster_angles_deg"]
+    spreads = metadata["cluster_angle_spreads_deg"]
+    powers = torch.as_tensor(metadata["normalized_cluster_powers"], dtype=torch.float64)
+    offsets = torch.tensor(_CDL_RAY_ANGLE_OFFSETS, dtype=torch.float64)
+    aoa = torch.deg2rad(
+        torch.as_tensor(angles["aoa"], dtype=torch.float64)[:, None]
+        + float(spreads["asa"]) * offsets
+    )
+    zoa = torch.deg2rad(
+        torch.as_tensor(angles["zoa"], dtype=torch.float64)[:, None]
+        + float(spreads["zsa"]) * offsets
+    )
+    x_direction = torch.sin(zoa)[:, :, None] * torch.cos(aoa)[:, None, :]
+    ray_phase = (
+        2.0 * math.pi * speed_mps * carrier_frequency_hz / 299_792_458.0 * lag_s * x_direction
+    )
+    expected = (powers * torch.exp(1j * ray_phase).mean(dim=(1, 2))).sum() / powers.sum()
+
+    assert metadata["profile_los_component"] is False
+    assert metadata["batch_axis_semantics"] == "independent_stochastic_channel_draws"
+    assert abs(float(empirical.real - expected.real)) <= _Z_SIMULTANEOUS * float(real_se)
+    assert abs(float(empirical.imag - expected.imag)) <= _Z_SIMULTANEOUS * float(imag_se)
 
 
 @pytest.mark.native_sionna

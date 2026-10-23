@@ -128,13 +128,17 @@ def apply_time_varying_multipath(
     path_delays_samples: Any,
     path_dopplers_hz: Any,
     sampling_frequency_hz: float,
+    symbol_length_samples: int | None = None,
 ) -> Any:
     """Apply causal integer-delay paths with per-path Doppler over RF samples.
 
     For receive sample ``n`` this evaluates
-    ``y[n] = sum_l a_l exp(j 2π f_l n/Fs) x[n-d_l]`` with zero-valued
-    samples before the waveform. This preserves intra-symbol channel change
-    and resulting ICI, unlike multiplying an OFDM grid by one CFR per symbol.
+    ``y[n] = sum_l a_l exp(j 2π f_l t[n]) x[n-d_l]`` with zero-valued
+    samples before the waveform. By default, ``t[n] = n/Fs``. If
+    ``symbol_length_samples`` is provided, ``t[n]`` is the start time of the
+    symbol containing sample ``n``. The latter is a diagnostic symbol-static
+    approximation that preserves inter-symbol aging while removing
+    intra-symbol channel change.
     The helper is a bounded baseband model: path gains are frequency-flat,
     delays are integer samples, and each Doppler is constant for the waveform.
     Fractional delays, path birth/death, and wideband Doppler scaling are not
@@ -148,6 +152,12 @@ def apply_time_varying_multipath(
         or sampling_frequency_hz <= 0
     ):
         raise ValueError("sampling_frequency_hz must be finite and positive")
+    if symbol_length_samples is not None and (
+        isinstance(symbol_length_samples, bool)
+        or not isinstance(symbol_length_samples, int)
+        or symbol_length_samples < 1
+    ):
+        raise ValueError("symbol_length_samples must be a positive integer when provided")
     delays_raw = torch.as_tensor(path_delays_samples, device=waveform.device)
     if delays_raw.dtype == torch.bool or delays_raw.is_complex():
         raise TypeError("path_delays_samples must contain integers")
@@ -177,6 +187,9 @@ def apply_time_varying_multipath(
     sample_axis = torch.arange(
         waveform.shape[-1], dtype=waveform.real.dtype, device=waveform.device
     )
+    if symbol_length_samples is not None:
+        sample_axis = torch.div(sample_axis, symbol_length_samples, rounding_mode="floor")
+        sample_axis = sample_axis * symbol_length_samples
     result = torch.zeros_like(waveform)
     for coefficient, delay, doppler in zip(coefficients, delays, dopplers):
         delay_samples = int(delay.item())
