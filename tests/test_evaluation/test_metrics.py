@@ -18,7 +18,11 @@ from evaluation.paired_link_curves import (
     compare_rx_correlation_curves,
     summarize_tdl_profile_sweep,
 )
-from evaluation.statistics import paired_binary_error_comparison, paired_seed_delta
+from evaluation.statistics import (
+    paired_binary_error_comparison,
+    paired_cluster_binary_error_comparison,
+    paired_seed_delta,
+)
 
 
 def test_group_split_no_leakage():
@@ -166,6 +170,45 @@ def test_paired_binary_error_comparison_detects_consistent_degradation():
 def test_paired_binary_error_comparison_rejects_unmatched_masks():
     with pytest.raises(ValueError, match="equal length"):
         paired_binary_error_comparison([False], [False, True])
+
+
+def test_paired_cluster_error_interval_resamples_independent_parents_not_rows():
+    groups = ["a", "b", "c", "d"]
+    control = [False, False, False, False]
+    treatment = [True, True, False, False]
+    result = paired_cluster_binary_error_comparison(control, treatment, groups, seed=17, draws=2000)
+
+    replicated = paired_cluster_binary_error_comparison(
+        [value for value in control for _ in range(10)],
+        [value for value in treatment for _ in range(10)],
+        [group for group in groups for _ in range(10)],
+        seed=17,
+        draws=2000,
+    )
+
+    assert result["independent_groups"] == 4
+    assert result["paired_trials"] == 4
+    assert result["treatment_minus_control_error_rate"] == pytest.approx(0.5)
+    assert result["cluster_bootstrap_ci95"] == replicated["cluster_bootstrap_ci95"]
+    assert replicated["independent_groups"] == 4
+    assert replicated["paired_trials"] == 40
+    assert result["sampling_unit"].startswith("independent group")
+
+
+@pytest.mark.parametrize(
+    ("control", "treatment", "groups", "message"),
+    [
+        ([False], [False, True], ["a"], "equally sized"),
+        ([False], [False], [""], "non-empty strings"),
+        ([False, False], [False, False], ["same", "same"], "at least two independent groups"),
+        ([0, 1], [False, True], ["a", "b"], "boolean outcomes"),
+    ],
+)
+def test_paired_cluster_error_comparison_rejects_invalid_inputs(
+    control, treatment, groups, message
+):
+    with pytest.raises(ValueError, match=message):
+        paired_cluster_binary_error_comparison(control, treatment, groups)
 
 
 def test_curve_comparator_requires_matching_bits_and_compares_masks(tmp_path):

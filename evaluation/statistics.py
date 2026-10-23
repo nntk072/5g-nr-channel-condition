@@ -167,6 +167,78 @@ def paired_binary_error_comparison(
     }
 
 
+def paired_cluster_binary_error_comparison(
+    control_errors: list[bool],
+    treatment_errors: list[bool],
+    groups: list[str],
+    *,
+    seed: int = 1,
+    draws: int = 5000,
+) -> dict:
+    """Compare paired binary outcomes by resampling independent clusters.
+
+    The point estimate is the pooled treatment-minus-control error-rate
+    difference. Each bootstrap replicate samples whole groups with replacement
+    and retains all paired trials within each sampled group. This prevents
+    repeated codewords or receiver views from being treated as independent
+    evidence. The interval remains conditional on the supplied group population
+    and does not establish generalization to unrepresented sites or families.
+    """
+    control = np.asarray(control_errors)
+    treatment = np.asarray(treatment_errors)
+    group_ids = np.asarray(groups)
+    if control.ndim != 1 or treatment.ndim != 1 or group_ids.ndim != 1:
+        raise ValueError("paired error masks and groups must be one-dimensional")
+    if control.size == 0 or control.shape != treatment.shape or control.shape != group_ids.shape:
+        raise ValueError("paired error masks and groups must be nonempty and equally sized")
+    if not all(isinstance(value, (bool, np.bool_)) for value in control.tolist()) or not all(
+        isinstance(value, (bool, np.bool_)) for value in treatment.tolist()
+    ):
+        raise ValueError("paired error masks must contain only boolean outcomes")
+    if not all(isinstance(group, str) and group.strip() for group in group_ids.tolist()):
+        raise ValueError("group IDs must be non-empty strings")
+    if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
+        raise ValueError("seed must be a nonnegative integer")
+    if isinstance(draws, bool) or not isinstance(draws, int) or draws <= 0:
+        raise ValueError("draws must be a positive integer")
+
+    control = control.astype(bool, copy=False)
+    treatment = treatment.astype(bool, copy=False)
+    group_ids = group_ids.astype(str, copy=False)
+    unique_groups, inverse = np.unique(group_ids, return_inverse=True)
+    if unique_groups.size < 2:
+        raise ValueError("at least two independent groups are required for cluster bootstrap")
+
+    control_errors_by_group = np.bincount(inverse, weights=control.astype(float))
+    treatment_errors_by_group = np.bincount(inverse, weights=treatment.astype(float))
+    trials_by_group = np.bincount(inverse).astype(np.float64)
+    rng = np.random.default_rng(seed)
+    sampled_groups = rng.integers(0, unique_groups.size, size=(draws, unique_groups.size))
+    sampled_trials = trials_by_group[sampled_groups].sum(axis=1)
+    control_rates = control_errors_by_group[sampled_groups].sum(axis=1) / sampled_trials
+    treatment_rates = treatment_errors_by_group[sampled_groups].sum(axis=1) / sampled_trials
+    delta_bootstrap = treatment_rates - control_rates
+    ci_low, ci_high = np.percentile(delta_bootstrap, [2.5, 97.5])
+
+    control_rate = float(control.mean())
+    treatment_rate = float(treatment.mean())
+    return {
+        "independent_groups": int(unique_groups.size),
+        "paired_trials": int(control.size),
+        "control_error_rate": control_rate,
+        "treatment_error_rate": treatment_rate,
+        "treatment_minus_control_error_rate": treatment_rate - control_rate,
+        "cluster_bootstrap_ci95": [float(ci_low), float(ci_high)],
+        "bootstrap_seed": seed,
+        "bootstrap_draws": draws,
+        "sampling_unit": "independent group; all paired trials within each sampled group",
+        "warning": (
+            "Cluster bootstrap inference is conditional on the supplied groups; "
+            "it does not replace independent-site or external-data validation."
+        ),
+    }
+
+
 def paired_group_regression_comparison(
     target: list[float],
     control_prediction: list[float],

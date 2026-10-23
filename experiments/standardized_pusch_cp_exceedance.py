@@ -17,8 +17,9 @@ from pathlib import Path
 from typing import Any, Sequence
 
 import numpy as np
+from evaluation.statistics import paired_cluster_binary_error_comparison
 
-SCHEMA = "umcd.g5_cp_exceedance_receiver_probe.v1"
+SCHEMA = "umcd.g5_cp_exceedance_receiver_probe.v2"
 
 
 def wilson_interval(
@@ -162,6 +163,16 @@ def run_cp_exceedance_probe(*, samples: int = 16) -> dict[str, Any]:
         )
         for estimate in ("dmrs_ls", "diagonal_cfr_oracle")
     }
+    parent_ids = [item.provenance["parent_subject_id"] for item in td_records]
+    paired_bler_comparisons = {
+        estimate: paired_cluster_binary_error_comparison(
+            control_errors=[not passed for passed in outcomes[f"ideal_cfr.{estimate}"]],
+            treatment_errors=[not passed for passed in outcomes[f"time_domain.{estimate}"]],
+            groups=parent_ids,
+            seed=channel_seed,
+        )
+        for estimate in ("dmrs_ls", "diagonal_cfr_oracle")
+    }
     configuration = {
         "channel_family": "Sionna TDL-A stochastic channel draws",
         "carrier_frequency_hz": 3.5e9,
@@ -191,6 +202,7 @@ def run_cp_exceedance_probe(*, samples: int = 16) -> dict[str, Any]:
         Path("integrations/sionna/tdl.py"),
         Path("datasets/standardized.py"),
         Path("integrations/sionna/nr_pusch.py"),
+        Path("evaluation/statistics.py"),
     )
     source_hashes = {
         str(path): hashlib.sha256((root / path).read_bytes()).hexdigest() for path in source_paths
@@ -199,7 +211,7 @@ def run_cp_exceedance_probe(*, samples: int = 16) -> dict[str, Any]:
         ["git", "rev-parse", "HEAD"], cwd=root, check=False, capture_output=True, text=True
     )
     return {
-        "schema": "umcd.g5_cp_exceedance_receiver_probe.v1",
+        "schema": SCHEMA,
         "status": "exploratory; does not pass G5 or approve production data",
         "run_date": date.today().isoformat(),
         "repository_commit_at_run": revision.stdout.strip()
@@ -216,8 +228,10 @@ def run_cp_exceedance_probe(*, samples: int = 16) -> dict[str, Any]:
         "configuration_sha256": config_hash,
         "outcomes": summaries,
         "paired_pass_table": paired,
+        "paired_time_domain_minus_ideal_cfr_bler": paired_bler_comparisons,
         "interpretation": [
             "One independent standardized channel draw is the trial unit; paired views are not extra trials.",
+            "Paired BLER intervals resample complete independent channel-parent groups, retaining paired receiver outcomes.",
             "ideal_cfr removes time-domain CP spillover by construction; it is a diagnostic control, not propagation truth.",
             "diagonal_cfr_oracle separates DMRS-estimation error from diagonal-model mismatch; it is not a model input.",
             "Intervals are wide at this sample count; the probe does not qualify general NR receiver performance or close G5.09.",
@@ -244,7 +258,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("docs/research/results/g5-standardized-pusch-cp-exceedance-20261023.json"),
+        default=Path(
+            "docs/research/results/g5-standardized-pusch-cp-exceedance-cluster-bootstrap-20261023.json"
+        ),
     )
     args = parser.parse_args(argv)
     report = run_cp_exceedance_probe(samples=args.samples)

@@ -34,6 +34,7 @@ def test_repeated_cp_exceedance_probe_keeps_parent_and_oracle_semantics() -> Non
 
     report = run_cp_exceedance_probe(samples=4)
 
+    assert report["schema"] == "umcd.g5_cp_exceedance_receiver_probe.v2"
     assert report["status"].startswith("exploratory")
     assert report["configuration"]["trial_unit"].startswith("independent TDL draw")
     assert (
@@ -49,3 +50,9 @@ def test_repeated_cp_exceedance_probe_keeps_parent_and_oracle_semantics() -> Non
         assert condition["wilson_95_percent_interval"][1] <= 1.0
     for paired in report["paired_pass_table"].values():
         assert sum(paired.values()) == 4
+    for comparison in report["paired_time_domain_minus_ideal_cfr_bler"].values():
+        assert comparison["independent_groups"] == 4
+        assert comparison["paired_trials"] == 4
+        assert comparison["sampling_unit"].startswith("independent group")
+        lower, upper = comparison["cluster_bootstrap_ci95"]
+        assert lower <= comparison["treatment_minus_control_error_rate"] <= upper

@@ -1,6 +1,6 @@
 # G3 candidate scene-family and license audit
 
-**Status:** candidate audit only; not a G3 qualification, not a production-scene approval, and not a license decision for dataset redistribution.
+**Status:** candidate audit only; not a G3 qualification or production-scene approval. Project policy is to use OSM-derived scenes subject to ODbL compliance; this does not itself certify any scene bundle or derivative release as compliant.
 
 ## Method and reproducibility
 
@@ -14,9 +14,9 @@ The source checkout is Sionna commit `2f0a3820269b53fd022780a6f2f5f720f7ceb9b4`,
 |---|---|---:|---|---|
 | `box_one_screen` | Controlled box-and-screen fixture; useful for solver mechanics, not an independent urban site | 3 | `0096663dfcaf8a1a1079ba1912b76c226dc927b4c67e691796b2222f43cc98d4` | Bundled Sionna RT scene; package source is Apache-2.0. No separate per-scene data notice was found in the inspected checkout. |
 | `simple_street_canyon` | Stylized rectangular-building fixture; useful for controlled geometry, not an independently sourced field site | 8 | `d2824c41043d248c8d3089fe8396b7cc225ad1c328a626ad70c897951797004b` | Bundled Sionna RT scene; package source is Apache-2.0. No separate per-scene data notice was found in the inspected checkout. |
-| `etoile` | Paris / Arc de Triomphe OSM-derived site; candidate geographic site | 566 | `d0b6ee5c9406e8b75c5fc17388e16037e988b5057d37bc40fe55699fefba115d` | Sionna RT documents the underlying map data as ODbL. Redistribution policy is unresolved. |
-| `florence` | Florence Cathedral OSM-derived site; candidate geographic site | 2,640 | `f5bb0decbe1806daecd10455d846db86a9590f29ff334398d07c18876f038651` | Sionna RT documents the underlying map data as ODbL. Redistribution policy is unresolved. |
-| `munich` | Frauenkirche OSM-derived site; candidate geographic site | 2,368 | `df2ea477117f85ce9abffbc46ba30130d49789b3576cb28363350c2b1996670b` | Sionna RT documents the underlying map data as ODbL. Redistribution policy is unresolved. |
+| `etoile` | Paris / Arc de Triomphe OSM-derived site; candidate geographic site | 566 | `d0b6ee5c9406e8b75c5fc17388e16037e988b5057d37bc40fe55699fefba115d` | Project policy permits use subject to ODbL compliance; source attribution and release-specific derivative/redistribution handling must be recorded before release. |
+| `florence` | Florence Cathedral OSM-derived site; candidate geographic site | 2,640 | `f5bb0decbe1806daecd10455d846db86a9590f29ff334398d07c18876f038651` | Project policy permits use subject to ODbL compliance; source attribution and release-specific derivative/redistribution handling must be recorded before release. |
+| `munich` | Frauenkirche OSM-derived site; candidate geographic site | 2,368 | `df2ea477117f85ce9abffbc46ba30130d49789b3576cb28363350c2b1996670b` | Project policy permits use subject to ODbL compliance; source attribution and release-specific derivative/redistribution handling must be recorded before release. |
 | `city41` | Procedurally generated 4×4 urban scene, seed 41 | 27 | `e16f963657b448a9ca6125661caf45c285165c377b497fdd0d92c7408e42d546` | Repository describes these as synthetic, without real-world geometric fidelity. No repository-level LICENSE file is tracked. |
 | `city42` | Procedurally generated 4×4 urban scene, seed 42 | 27 | `e0eff74870e0aa24023d399daa0db328ba3b4f906550c75300c899abcd5018d2` | Same generator and family as City41/43; no repository-level LICENSE file is tracked. |
 | `city43` | Procedurally generated 4×4 urban scene, seed 43 | 27 | `17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c` | Same generator and family as City41/42; no repository-level LICENSE file is tracked. |
@@ -31,4 +31,4 @@ At the audited 3.5-GHz frequency, the active Sionna material manifest reports a 
 
 ## Qualification consequence
 
-The three OSM city scenes are plausible geographic candidates for a later three-site campaign, subject to an explicit G3 family-independence rule and a user-approved data-license policy. No scene/material set is currently G3-ready: active scattering is zero, calibrated nonzero material evidence is absent, and the OSM redistribution conditions have not been adopted for this project. Keep any further scene tracing exploratory and do not produce production D1 RT data from this audit.
+The three OSM city scenes are plausible geographic candidates for a later three-site campaign, subject to an explicit G3 family-independence rule and documented ODbL compliance for the intended outputs. The user approved use under that policy. No scene/material set is currently G3-ready: active scattering is zero and calibrated nonzero material evidence is absent. Keep any further scene tracing exploratory and do not produce production D1 RT data from this audit.
