@@ -3,7 +3,52 @@
 from __future__ import annotations
 
 import math
+from dataclasses import dataclass
 from typing import Any
+
+
+@dataclass(frozen=True, slots=True)
+class NRWaveformImpairments:
+    """Deterministic RF and synchronization settings for one PUSCH view."""
+
+    cfo_hz: float = 0.0
+    tx_iq_gain_imbalance_db: float = 0.0
+    tx_iq_phase_imbalance_rad: float = 0.0
+    tx_phase_noise_linewidth_hz: float | None = None
+    rx_iq_gain_imbalance_db: float = 0.0
+    rx_iq_phase_imbalance_rad: float = 0.0
+    rx_phase_noise_linewidth_hz: float | None = None
+    integer_timing_offset_samples: int = 0
+    fractional_timing_offset_samples: float = 0.0
+
+    def __post_init__(self) -> None:
+        for name in (
+            "cfo_hz",
+            "tx_iq_gain_imbalance_db",
+            "tx_iq_phase_imbalance_rad",
+            "rx_iq_gain_imbalance_db",
+            "rx_iq_phase_imbalance_rad",
+            "fractional_timing_offset_samples",
+        ):
+            value = getattr(self, name)
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                raise TypeError(f"{name} must be a real number")
+            if not math.isfinite(value):
+                raise ValueError(f"{name} must be finite")
+        for name in ("tx_phase_noise_linewidth_hz", "rx_phase_noise_linewidth_hz"):
+            value = getattr(self, name)
+            if value is not None and (
+                isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or not math.isfinite(value)
+                or value < 0
+            ):
+                raise ValueError(f"{name} must be finite and nonnegative when provided")
+        offset = self.integer_timing_offset_samples
+        if isinstance(offset, bool) or not isinstance(offset, int):
+            raise TypeError("integer_timing_offset_samples must be an integer")
+        if abs(self.fractional_timing_offset_samples) >= 1.0:
+            raise ValueError("fractional_timing_offset_samples must have magnitude below one")
 
 
 def _validate_waveform(waveform: Any) -> Any:

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dataclasses import asdict
+
 import numpy as np
 import pytest
 
@@ -13,6 +15,7 @@ from datasets.standardized import (  # noqa: E402
     StandardizedFamily,
     standardized_run_from_channel,
 )
+from integrations.sionna.ofdm_impairments import NRWaveformImpairments  # noqa: E402
 from integrations.sionna.standardized_pusch import (  # noqa: E402
     build_standardized_pusch_dmrs_records,
 )
@@ -213,3 +216,96 @@ def test_independent_noise_views_keep_waveform_parent_and_channel_truth(tmp_path
             np.testing.assert_array_equal(
                 restored.targets["channel_cfr"], view.targets["channel_cfr"].cpu().numpy()
             )
+
+
+@pytest.mark.native_sionna
+def test_standardized_pusch_impairment_views_persist_settings_and_seeded_replay(tmp_path) -> None:
+    run = _standardized_run(StandardizedFamily.TDL)
+    config = NRPUSCHConfig(n_size_bwp=6, subcarrier_spacing_khz=30)
+    impairments = NRWaveformImpairments(
+        cfo_hz=75.0,
+        tx_iq_gain_imbalance_db=0.5,
+        tx_iq_phase_imbalance_rad=0.03,
+        tx_phase_noise_linewidth_hz=10.0,
+        rx_iq_gain_imbalance_db=-0.4,
+        rx_iq_phase_imbalance_rad=-0.02,
+        rx_phase_noise_linewidth_hz=15.0,
+        integer_timing_offset_samples=1,
+        fractional_timing_offset_samples=0.2,
+    )
+
+    def generate(impairment_seed: int):
+        return build_standardized_pusch_dmrs_records(
+            run,
+            snr_db=18.0,
+            seed=1207,
+            noise_seed=8101,
+            impairments=impairments,
+            impairment_seed=impairment_seed,
+            receiver_config=config,
+            device="cpu",
+        )
+
+    first = generate(9101)
+    replay = generate(9101)
+    changed = generate(9102)
+
+    for view_a, repeated, view_b in zip(first, replay, changed, strict=True):
+        assert view_a.observation.sample_id == repeated.observation.sample_id
+        assert view_a.observation.sample_id != view_b.observation.sample_id
+        assert view_a.provenance["receiver_view_kind"] == "standardized_pusch_impairment_view"
+        assert view_a.provenance["waveform_impairments"] == asdict(impairments)
+        assert view_a.provenance["impairment_seed"] == 9101
+        assert view_a.provenance["tx_phase_noise_seed"] != view_b.provenance["tx_phase_noise_seed"]
+        assert view_a.provenance["rx_phase_noise_seed"] != view_b.provenance["rx_phase_noise_seed"]
+        assert view_a.provenance["pusch_transmit_seed"] == view_b.provenance["pusch_transmit_seed"]
+        assert view_a.provenance["noise_seed"] == view_b.provenance["noise_seed"]
+        assert view_a.provenance["snr_reference"] == (
+            "post-channel and post-RF-impairment, pre-AWGN, pre-beamforming receive grid"
+        )
+        assert "impairment-induced ICI is retained" in view_a.provenance["receiver_link_model"]
+        torch.testing.assert_close(
+            view_a.observation.received_grid, repeated.observation.received_grid, rtol=0, atol=0
+        )
+        assert not torch.equal(view_a.observation.received_grid, view_b.observation.received_grid)
+        torch.testing.assert_close(
+            view_a.targets["channel_cfr"], view_b.targets["channel_cfr"], rtol=0, atol=0
+        )
+        restored = read_nr_record(tmp_path, write_nr_record(tmp_path, view_a))
+        assert (
+            restored.provenance["waveform_impairments"] == view_a.provenance["waveform_impairments"]
+        )
+        assert (
+            restored.provenance["tx_phase_noise_seed"] == view_a.provenance["tx_phase_noise_seed"]
+        )
+
+
+@pytest.mark.native_sionna
+def test_zero_standardized_pusch_impairments_match_ideal_link() -> None:
+    run = _standardized_run(StandardizedFamily.TDL)
+    config = NRPUSCHConfig(n_size_bwp=6, subcarrier_spacing_khz=30)
+    common = {
+        "snr_db": 18.0,
+        "seed": 1207,
+        "noise_seed": 8101,
+        "receiver_config": config,
+        "device": "cpu",
+    }
+    ideal = build_standardized_pusch_dmrs_records(run, **common)
+    zero_impairments = build_standardized_pusch_dmrs_records(
+        run,
+        **common,
+        impairments=NRWaveformImpairments(),
+        impairment_seed=9101,
+    )
+
+    for reference, candidate in zip(ideal, zero_impairments, strict=True):
+        torch.testing.assert_close(
+            candidate.observation.received_grid,
+            reference.observation.received_grid,
+            rtol=2e-5,
+            atol=2e-6,
+        )
+        torch.testing.assert_close(
+            candidate.targets["channel_cfr"], reference.targets["channel_cfr"], rtol=0, atol=0
+        )

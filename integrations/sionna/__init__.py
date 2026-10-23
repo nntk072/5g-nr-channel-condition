@@ -12,7 +12,11 @@ from .backend import RTBackendSelection, activate_rt_backend, select_rt_backend
 from .cdl import CDLArrayConfig, SionnaCDLChannel, generate_cdl_frequency_response
 from .cp_margin import run_static_cp_margin_experiment
 from .nr_pusch import SionnaPUSCHLSReceiver
-from .ofdm_impairments import apply_integer_timing_offset, apply_residual_cfo
+from .ofdm_impairments import (
+    NRWaveformImpairments,
+    apply_integer_timing_offset,
+    apply_residual_cfo,
+)
 from .path_oracle import sionna_paths_to_oracle_table
 from .rt_cache import RTCacheConflictError, load_rt_dataset, store_rt_dataset
 from .rt_to_nr import NRGridChannel, paths_to_nr_ofdm_channel
@@ -28,6 +32,7 @@ __all__ = [
     "RaytraceGenerationError",
     "RTCacheConflictError",
     "SionnaPUSCHLSReceiver",
+    "NRWaveformImpairments",
     "SionnaCDLChannel",
     "SionnaTDLChannel",
     "SionnaTDLPUSCHBatch",
