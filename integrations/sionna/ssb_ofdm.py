@@ -3,13 +3,17 @@
 from __future__ import annotations
 
 import math
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from numbers import Integral, Real
 from typing import SupportsFloat
 
 import numpy as np
 from numpy.typing import NDArray
+
+from .pbch_dmrs import PBCHDMRSResourceMap
+from .ssb_grid import NRSSBResourceGrid
+from .ssb_timing import ssb_candidate_symbols
 
 _SSB_SUBCARRIER_COUNT = 240
 _SSB_SYMBOL_COUNT = 4
@@ -34,6 +38,19 @@ class NRSSBWaveformConfig:
     sample_rate_hz: int
     candidate_start_symbol: int
     cyclic_prefix_lengths: tuple[int, int, int, int]
+
+
+@dataclass(frozen=True)
+class NRSSBHalfFrameWaveform:
+    """One sampled 5 ms half-frame with candidate-indexed SSB transmissions."""
+
+    waveform: NDArray[np.complex128]
+    subcarrier_spacing_hz: int
+    fft_size: int
+    sample_rate_hz: int
+    half_frame_index: int
+    candidate_start_symbols: tuple[int, ...]
+    transmitted_candidate_indices: tuple[int, ...]
 
 
 def nr_ssb_waveform_config(
@@ -97,6 +114,129 @@ def nr_ssb_waveform_config(
         sample_rate_hz=fft_length * scs_hz,
         candidate_start_symbol=start_symbol,
         cyclic_prefix_lengths=prefix_lengths,  # type: ignore[arg-type]
+    )
+
+
+def nr_ssb_ofdm_modulate_half_frame(
+    ssb_blocks: Mapping[int, NRSSBResourceGrid],
+    *,
+    case: str,
+    carrier_frequency_hz: SupportsFloat,
+    subcarrier_spacing_hz: SupportsFloat,
+    frequency_range: str,
+    fft_size: int,
+    paired_spectrum: bool = True,
+) -> NRSSBHalfFrameWaveform:
+    """Place candidate-indexed SSB grids in a standards-timed half-frame.
+
+    Only provided candidate indices are transmitted; all other symbols remain
+    zero. Candidate positions follow TS 38.213 and each symbol's normal CP is
+    derived from its absolute half-frame position under TS 38.211. Every input
+    grid must carry matching PBCH-DM-RS candidate, half-frame, and cell
+    metadata. The model uses the same centered-frequency placement as the
+    single-block OFDM adapter and does not place the SSB within a wider carrier.
+    """
+    if not isinstance(ssb_blocks, Mapping) or not ssb_blocks:
+        raise ValueError("ssb_blocks must be a non-empty candidate-index mapping")
+    positions = ssb_candidate_symbols(
+        case,
+        carrier_frequency_hz,
+        subcarrier_spacing_hz=subcarrier_spacing_hz,
+        frequency_range=frequency_range,
+        paired_spectrum=paired_spectrum,
+    )
+    fft_length = _fft_size(fft_size)
+    if isinstance(subcarrier_spacing_hz, (bool, np.bool_)) or not isinstance(
+        subcarrier_spacing_hz, Real
+    ):
+        raise TypeError("subcarrier_spacing_hz must be a real scalar in hertz")
+    scs_hz = int(float(subcarrier_spacing_hz))
+    mu = _SCS_TO_MU[scs_hz]
+    symbols_per_half_frame = 70 * (2**mu)
+    symbols_per_subframe = 14 * (2**mu)
+    long_cp_symbol = 7 * (2**mu)
+    short_numerator = 144 * fft_length
+    long_numerator = (144 + 16 * (2**mu)) * fft_length
+    if short_numerator % 2048 or long_numerator % 2048:
+        raise ValueError("fft_size cannot represent integer normal-CP lengths for this numerology")
+    short_cp = short_numerator // 2048
+    long_cp = long_numerator // 2048
+    cp_by_symbol = tuple(
+        long_cp if symbol % symbols_per_subframe in (0, long_cp_symbol) else short_cp
+        for symbol in range(symbols_per_half_frame)
+    )
+    symbol_lengths = tuple(fft_length + cp for cp in cp_by_symbol)
+    sample_offsets = np.empty(symbols_per_half_frame + 1, dtype=np.int64)
+    sample_offsets[0] = 0
+    np.cumsum(symbol_lengths, out=sample_offsets[1:])
+    sample_rate_hz = fft_length * scs_hz
+    if sample_offsets[-1] != sample_rate_hz * 0.005:
+        raise RuntimeError("normal-CP symbol lengths do not sum to a 5 ms half-frame")
+
+    candidate_count = len(positions)
+    indices: list[int] = []
+    for index in ssb_blocks:
+        if isinstance(index, (bool, np.bool_)) or not isinstance(index, Integral):
+            raise TypeError("SSB candidate indices must be integers")
+        normalized_index = int(index)
+        if not 0 <= normalized_index < candidate_count:
+            raise ValueError(f"SSB candidate indices must be in [0, {candidate_count - 1}]")
+        indices.append(normalized_index)
+    ordered_indices = tuple(sorted(indices))
+    if any(not isinstance(block, NRSSBResourceGrid) for block in ssb_blocks.values()):
+        raise TypeError("ssb_blocks values must be NRSSBResourceGrid instances")
+    first_block = ssb_blocks[ordered_indices[0]]
+    if not isinstance(first_block.pbch_dmrs, PBCHDMRSResourceMap):
+        raise TypeError("SSB grids must contain PBCH-DM-RS resource maps")
+    cell_id = first_block.physical_cell_id
+    half_frame_index = first_block.pbch_dmrs.half_frame_index
+    if half_frame_index not in (0, 1):
+        raise ValueError("PBCH-DM-RS half-frame index must be 0 or 1")
+    for candidate_index in ordered_indices:
+        block = ssb_blocks[candidate_index]
+        if not isinstance(block.pbch_dmrs, PBCHDMRSResourceMap):
+            raise TypeError("SSB grids must contain PBCH-DM-RS resource maps")
+        if block.physical_cell_id != 3 * block.nid1 + block.nid2:
+            raise ValueError("SSB grid identity fields are inconsistent")
+        if block.physical_cell_id != cell_id or block.pbch_dmrs.physical_cell_id != cell_id:
+            raise ValueError("all SSB blocks must use the same physical cell ID")
+        if block.pbch_dmrs.half_frame_index != half_frame_index:
+            raise ValueError("all SSB blocks must use the same half-frame index")
+        if block.pbch_dmrs.ssb_index_in_half_frame != int(candidate_index):
+            raise ValueError("mapping key must match the PBCH-DM-RS candidate index")
+        if block.pbch_dmrs.max_candidate_blocks_per_half_frame != candidate_count:
+            raise ValueError("PBCH-DM-RS candidate count must match the selected SSB timing case")
+        grid = np.asarray(block.grid)
+        if grid.shape != (_SSB_SYMBOL_COUNT, _SSB_SUBCARRIER_COUNT):
+            raise ValueError("SSB resource grids must have shape (4, 240)")
+        if grid.dtype.kind not in "iufc" or grid.dtype.kind == "b":
+            raise TypeError("SSB resource grids must be real or complex numeric arrays")
+        if not np.isfinite(grid.real).all() or not np.isfinite(grid.imag).all():
+            raise ValueError("SSB resource grids must be finite")
+
+    waveform = np.zeros(int(sample_offsets[-1]), dtype=np.complex128)
+    for candidate_index in ordered_indices:
+        start_symbol = positions[int(candidate_index)]
+        cp_lengths = cp_by_symbol[start_symbol : start_symbol + _SSB_SYMBOL_COUNT]
+        block_waveform = nr_ssb_ofdm_modulate(
+            ssb_blocks[candidate_index].grid,
+            fft_size=fft_length,
+            cyclic_prefix_lengths=cp_lengths,
+        )
+        start_sample = int(sample_offsets[start_symbol])
+        end_sample = int(sample_offsets[start_symbol + _SSB_SYMBOL_COUNT])
+        if block_waveform.shape != (end_sample - start_sample,):
+            raise RuntimeError("SSB block samples do not align with the half-frame symbol clock")
+        waveform[start_sample:end_sample] = block_waveform
+    waveform.setflags(write=False)
+    return NRSSBHalfFrameWaveform(
+        waveform=waveform,
+        subcarrier_spacing_hz=scs_hz,
+        fft_size=fft_length,
+        sample_rate_hz=sample_rate_hz,
+        half_frame_index=half_frame_index,
+        candidate_start_symbols=positions,
+        transmitted_candidate_indices=tuple(int(index) for index in ordered_indices),
     )
 
 

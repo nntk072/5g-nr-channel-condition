@@ -45,9 +45,11 @@ from .ssb_grid import (
     scale_nr_ssb_resource_grid_power,
 )
 from .ssb_ofdm import (
+    NRSSBHalfFrameWaveform,
     NRSSBWaveformConfig,
     nr_ssb_ofdm_demodulate,
     nr_ssb_ofdm_modulate,
+    nr_ssb_ofdm_modulate_half_frame,
     nr_ssb_waveform_config,
 )
 from .ssb_timing import ssb_candidate_symbols, ssb_case_a_candidate_symbols
@@ -65,6 +67,7 @@ __all__ = [
     "SionnaPUSCHLSReceiver",
     "NRWaveformImpairments",
     "NRSSBResourceGrid",
+    "NRSSBHalfFrameWaveform",
     "NRSSBWaveformConfig",
     "PBCHDMRSResourceMap",
     "PBCHPayloadRecovery",
@@ -108,6 +111,7 @@ __all__ = [
     "scale_nr_ssb_resource_grid_epre",
     "scale_nr_ssb_resource_grid_power",
     "nr_ssb_ofdm_demodulate",
+    "nr_ssb_ofdm_modulate_half_frame",
     "nr_ssb_ofdm_modulate",
     "nr_ssb_waveform_config",
     "sionna_paths_to_oracle_table",
