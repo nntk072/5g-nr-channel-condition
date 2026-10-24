@@ -778,6 +778,13 @@ def test_registry_lock_rejects_same_inode_rewrite_after_open(tmp_path, monkeypat
         nonlocal rewritten
         if not rewritten:
             path.write_bytes(b"{\t" + original[2:])
+            # Some filesystems expose coarse timestamp resolution. Force a
+            # distinguishable same-inode update instead of relying on the
+            # wall clock advancing between two same-length writes.
+            os.utime(
+                path,
+                ns=(original_stat.st_atime_ns, original_stat.st_mtime_ns + 1_000_000_000),
+            )
             rewritten = True
         return original_fdopen(descriptor, mode, *args, **kwargs)
 
