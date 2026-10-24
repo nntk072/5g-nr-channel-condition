@@ -1,11 +1,11 @@
-"""Bounded CDL-D/E delay/AoA moment references with a composed LOS tap.
+"""Bounded CDL-D/E delay/angular moment references with a composed LOS tap.
 
 The statistic is the PDP-weighted correlation between normalized excess
-delay and cluster-mean cos(AoA). For LOS profiles, the zero-delay sample
-combines a specular component with the first diffuse cluster. Its angular
-feature is defined by the power-weighted mixture of the specular AoA and the
-20 diffuse ray AoAs; this is an ensemble-power reference, not a claim that
-the simulator exposes geometric ray truth after coherent tap composition.
+delay and cluster-mean cosine of AoA, AoD, ZoA, or ZoD. For LOS profiles, the
+zero-delay sample combines a specular component with the first diffuse
+cluster. Its angular feature is defined by the power-weighted mixture of the
+specular angle and the 20 diffuse ray angles; this is an ensemble-power
+reference, not geometric ray truth after coherent tap composition.
 """
 
 from __future__ import annotations
@@ -29,7 +29,7 @@ _BATCH_SIZE = 8192
 _CARRIER_FREQUENCY_HZ = 3.5e9
 _DELAY_SPREAD_S = 100e-9
 _FAMILYWISE_ALPHA = 0.01
-_FAMILY_PROFILE_COUNT = 5
+_FAMILY_CLAIM_COUNT = 20
 _MAX_CI_HALF_WIDTH = 0.05
 _MAX_ABSOLUTE_REFERENCE_ERROR = 0.05
 _LOS_TABLE_SHA256 = {
@@ -61,6 +61,12 @@ _RAY_ANGLE_OFFSETS = np.asarray(
     ],
     dtype=np.float64,
 )
+_ANGLE_SPREAD_FIELDS = {
+    "aoa": "cASA",
+    "aod": "cASD",
+    "zoa": "cZSA",
+    "zod": "cZSD",
+}
 
 
 @pytest.fixture(autouse=True)
@@ -73,8 +79,8 @@ def _limit_torch_threads() -> Iterator[None]:
         torch.set_num_threads(original)
 
 
-def _los_ray_reference(model: str) -> tuple[float, np.ndarray]:
-    """Compute the composed-tap angular moment from the pinned CDL table."""
+def _los_ray_reference(model: str, angle_name: str) -> tuple[float, np.ndarray]:
+    """Compute one composed-tap angular moment from the pinned CDL table."""
     table_path = profile_resources.parameter_file(f"CDL-{model}.json", "19.2")
     table_bytes = table_path.read_bytes()
     expected_hash = _LOS_TABLE_SHA256[model]
@@ -89,32 +95,33 @@ def _los_ray_reference(model: str) -> tuple[float, np.ndarray]:
     specular_power = k_factor / (k_factor + 1.0)
 
     delays = _DELAY_SPREAD_S * np.asarray(parameters["delays"][1:], dtype=np.float64)
-    aoa_cluster_mean = np.asarray(parameters["aoa"][1:], dtype=np.float64)
-    ray_aoa = np.deg2rad(
-        aoa_cluster_mean[:, None] + float(parameters["cASA"]) * _RAY_ANGLE_OFFSETS[None, :]
+    angle_cluster_mean = np.asarray(parameters[angle_name][1:], dtype=np.float64)
+    ray_angles = np.deg2rad(
+        angle_cluster_mean[:, None]
+        + float(parameters[_ANGLE_SPREAD_FIELDS[angle_name]]) * _RAY_ANGLE_OFFSETS[None, :]
     )
-    cluster_cos_aoa = np.cos(ray_aoa).mean(axis=1)
-    los_cos_aoa = math.cos(math.radians(float(parameters["aoa"][0])))
+    cluster_cos_angle = np.cos(ray_angles).mean(axis=1)
+    los_cos_angle = math.cos(math.radians(float(parameters[angle_name][0])))
 
     cluster_powers = np.array(diffuse_powers, copy=True)
     cluster_powers[0] += specular_power
-    cluster_cos_aoa[0] = (
-        specular_power * los_cos_aoa + diffuse_powers[0] * cluster_cos_aoa[0]
+    cluster_cos_angle[0] = (
+        specular_power * los_cos_angle + diffuse_powers[0] * cluster_cos_angle[0]
     ) / cluster_powers[0]
 
     order = np.argsort(delays, kind="stable")
     delays = delays[order]
     cluster_powers = cluster_powers[order]
-    cluster_cos_aoa = cluster_cos_aoa[order]
+    cluster_cos_angle = cluster_cos_angle[order]
 
     mean_delay = float(np.dot(cluster_powers, delays))
-    mean_cos_aoa = float(np.dot(cluster_powers, cluster_cos_aoa))
+    mean_cos_angle = float(np.dot(cluster_powers, cluster_cos_angle))
     delay_variance = float(np.dot(cluster_powers, np.square(delays - mean_delay)))
-    angular_variance = float(np.dot(cluster_powers, np.square(cluster_cos_aoa - mean_cos_aoa)))
+    angular_variance = float(np.dot(cluster_powers, np.square(cluster_cos_angle - mean_cos_angle)))
     scores = (
         (delays - mean_delay)
         / math.sqrt(delay_variance)
-        * (cluster_cos_aoa - mean_cos_aoa)
+        * (cluster_cos_angle - mean_cos_angle)
         / math.sqrt(angular_variance)
     )
     reference = float(np.dot(cluster_powers, scores))
@@ -123,8 +130,11 @@ def _los_ray_reference(model: str) -> tuple[float, np.ndarray]:
 
 @pytest.mark.native_sionna
 @pytest.mark.parametrize("model", ["D", "E"])
-def test_cdl_los_delay_angular_moment_matches_composed_ray_reference(model: str) -> None:
-    reference, cluster_scores = _los_ray_reference(model)
+@pytest.mark.parametrize("angle_name", tuple(_ANGLE_SPREAD_FIELDS))
+def test_cdl_los_delay_angular_moment_matches_composed_ray_reference(
+    model: str, angle_name: str
+) -> None:
+    reference, cluster_scores = _los_ray_reference(model, angle_name)
     channel = generate_cdl_frequency_response(
         model=model,
         seed=_SEED + ord(model),
@@ -142,7 +152,7 @@ def test_cdl_los_delay_angular_moment_matches_composed_ray_reference(model: str)
     observations = (tap_powers * torch.as_tensor(cluster_scores)[None, :]).sum(dim=1)
     estimate = observations.mean()
     standard_error = observations.std(unbiased=True) / math.sqrt(_BATCH_SIZE)
-    z_99 = NormalDist().inv_cdf(1.0 - _FAMILYWISE_ALPHA / (2.0 * _FAMILY_PROFILE_COUNT))
+    z_99 = NormalDist().inv_cdf(1.0 - _FAMILYWISE_ALPHA / (2.0 * _FAMILY_CLAIM_COUNT))
     half_width = z_99 * standard_error
 
     assert abs(float(estimate) - reference) <= _MAX_ABSOLUTE_REFERENCE_ERROR
