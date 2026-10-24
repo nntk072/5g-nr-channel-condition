@@ -369,7 +369,11 @@ def test_blind_acquisition_recovers_ssb_from_candidate_timed_half_frame() -> Non
     ("case", "carrier_hz", "frequency_range", "scs_hz", "candidate_index"),
     [
         ("B", 3.5e9, "FR1", 30_000, 7),
+        ("C", 3.5e9, "FR1", 30_000, 7),
         ("D", 28e9, "FR2", 120_000, 63),
+        ("E", 28e9, "FR2-1", 240_000, 63),
+        ("F", 60e9, "FR2-2", 480_000, 63),
+        ("G", 60e9, "FR2-2", 960_000, 63),
     ],
 )
 def test_blind_acquisition_recovers_high_candidate_across_ssb_numerologies(
