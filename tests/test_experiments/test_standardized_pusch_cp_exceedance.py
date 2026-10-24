@@ -52,6 +52,10 @@ def test_repeated_cp_exceedance_probe_keeps_parent_and_oracle_semantics() -> Non
 
     assert report["schema"] == "umcd.g5_cp_exceedance_receiver_probe.v5"
     assert report["status"].startswith("exploratory")
+    assert report["generated_at_utc"].endswith("Z")
+    assert report["command"]
+    assert report["source_sha256"] == report["source_files_sha256"]
+    assert all(len(digest) == 64 for digest in report["source_sha256"].values())
     assert report["configuration"]["trial_unit"].startswith("independent TDL draw")
     assert (
         report["configuration"]["max_excess_delay_s"]
@@ -85,6 +89,10 @@ def test_cpu_snr_curve_reuses_exact_parents_and_pairs_receiver_outcomes() -> Non
 
     assert report["schema"] == "umcd.g5_cp_exceedance_snr_curve.v3"
     assert report["status"].startswith("exploratory")
+    assert report["generated_at_utc"].endswith("Z")
+    assert report["command"]
+    assert report["source_sha256"] == report["source_files_sha256"]
+    assert all(len(digest) == 64 for digest in report["source_sha256"].values())
     assert report["configuration"]["snr_db"] == [60.0, 80.0]
     assert report["configuration"]["independent_parent_count"] == 4
     assert len(report["parent_lineage"]) == 4

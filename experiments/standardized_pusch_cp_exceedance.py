@@ -11,7 +11,8 @@ import json
 import math
 import platform
 import subprocess
-from datetime import date
+import sys
+from datetime import date, datetime, timezone
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import Any, Sequence
@@ -73,6 +74,19 @@ def _package_version(name: str) -> str:
         return "not-installed"
 
 
+def _command_record(command: Sequence[str] | None) -> list[str]:
+    """Return a validated argv record for the experiment invocation."""
+    values = tuple(command) if command is not None else (sys.executable, *sys.argv)
+    if not values or any(not isinstance(part, str) or not part.strip() for part in values):
+        raise ValueError("command must contain nonempty string arguments")
+    return list(values)
+
+
+def _generated_at_utc() -> str:
+    """Return an ISO-8601 UTC timestamp for a generated result record."""
+    return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+
+
 def _validate_snr_grid(snr_db: Sequence[float]) -> tuple[float, ...]:
     """Validate an ordered SNR grid for matched receiver comparisons."""
     if isinstance(snr_db, (str, bytes)):
@@ -117,7 +131,9 @@ def _parent_lineage(run: Any, records: Sequence[Any]) -> list[dict[str, Any]]:
     return lineage
 
 
-def run_cp_exceedance_probe(*, samples: int = 16, snr_db: float = 60.0) -> dict[str, Any]:
+def run_cp_exceedance_probe(
+    *, samples: int = 16, snr_db: float = 60.0, command: Sequence[str] | None = None
+) -> dict[str, Any]:
     """Run paired receiver views, counting each independent TDL draw once."""
     if isinstance(samples, bool) or not isinstance(samples, int) or samples < 4:
         raise ValueError("samples must be an integer >= 4")
@@ -253,6 +269,8 @@ def run_cp_exceedance_probe(*, samples: int = 16, snr_db: float = 60.0) -> dict[
         "schema": SCHEMA,
         "status": "exploratory; does not pass G5 or approve production data",
         "run_date": date.today().isoformat(),
+        "generated_at_utc": _generated_at_utc(),
+        "command": _command_record(command),
         "repository_commit_at_run": revision.stdout.strip()
         if revision.returncode == 0
         else "unavailable",
@@ -263,6 +281,7 @@ def run_cp_exceedance_probe(*, samples: int = 16, snr_db: float = 60.0) -> dict[
             "sionna": _package_version("sionna"),
         },
         "source_files_sha256": source_hashes,
+        "source_sha256": source_hashes,
         "configuration": configuration,
         "configuration_sha256": config_hash,
         "outcomes": summaries,
@@ -280,7 +299,10 @@ def run_cp_exceedance_probe(*, samples: int = 16, snr_db: float = 60.0) -> dict[
 
 
 def run_cp_exceedance_snr_curve(
-    *, samples: int = 16, snr_db: Sequence[float] = (60.0, 80.0, 100.0)
+    *,
+    samples: int = 16,
+    snr_db: Sequence[float] = (60.0, 80.0, 100.0),
+    command: Sequence[str] | None = None,
 ) -> dict[str, Any]:
     """Run a matched CPU SNR curve over identical standardized channel parents.
 
@@ -292,7 +314,9 @@ def run_cp_exceedance_snr_curve(
     if isinstance(samples, bool) or not isinstance(samples, int) or samples < 4:
         raise ValueError("samples must be an integer >= 4")
     snr_values = _validate_snr_grid(snr_db)
-    reports = [run_cp_exceedance_probe(samples=samples, snr_db=snr) for snr in snr_values]
+    reports = [
+        run_cp_exceedance_probe(samples=samples, snr_db=snr, command=command) for snr in snr_values
+    ]
     reference = reports[0]
     reference_configuration = dict(reference["configuration"])
     reference_configuration.pop("snr_db")
@@ -352,11 +376,14 @@ def run_cp_exceedance_snr_curve(
         "schema": CURVE_SCHEMA,
         "status": "exploratory; does not pass G5 or approve production data",
         "run_date": date.today().isoformat(),
+        "generated_at_utc": _generated_at_utc(),
+        "command": _command_record(command),
         "repository_commit_at_run": revision.stdout.strip()
         if revision.returncode == 0
         else "unavailable",
         "runtime": reference["runtime"],
         "source_files_sha256": source_hashes,
+        "source_sha256": source_hashes,
         "configuration": curve_configuration,
         "configuration_sha256": curve_hash,
         "parent_lineage": reference_lineage,
@@ -391,14 +418,27 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--snr-db", type=float, nargs="+", default=[60.0])
     parser.add_argument("--output", type=Path, default=None)
     args = parser.parse_args(argv)
+    invocation = [
+        "uv",
+        "run",
+        "--no-sync",
+        "--locked",
+        "python",
+        "experiments/standardized_pusch_cp_exceedance.py",
+        *(list(argv) if argv is not None else sys.argv[1:]),
+    ]
     if len(args.snr_db) == 1:
-        report = run_cp_exceedance_probe(samples=args.samples, snr_db=args.snr_db[0])
+        report = run_cp_exceedance_probe(
+            samples=args.samples, snr_db=args.snr_db[0], command=invocation
+        )
         default_output = Path(
             "docs/research/results/g5-standardized-pusch-cp-exceedance-cluster-bootstrap-v5-20261023.json"
         )
         print_summary = report["outcomes"]
     else:
-        report = run_cp_exceedance_snr_curve(samples=args.samples, snr_db=args.snr_db)
+        report = run_cp_exceedance_snr_curve(
+            samples=args.samples, snr_db=args.snr_db, command=invocation
+        )
         default_output = Path(
             "docs/research/results/g5-standardized-pusch-cp-exceedance-snr-curve-v3-20261023.json"
         )
