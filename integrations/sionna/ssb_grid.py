@@ -135,3 +135,56 @@ def scale_nr_ssb_resource_grid_epre(
     result[0, 56:183] *= 10.0 ** (ratio_db / 20.0)
     result.setflags(write=False)
     return result
+
+
+def scale_nr_ssb_resource_grid_power(
+    ssb_grid: NDArray[np.generic],
+    *,
+    ss_pbch_block_power_dbm: float,
+    pss_to_sss_epre_db: float = 0.0,
+) -> NDArray[np.complex128]:
+    """Scale an SSB grid so its SSS REs have the configured EPRE in watts.
+
+    ``ss-PBCH-BlockPower`` is the average EPRE of SSS resource elements in
+    dBm. The returned complex samples use ``sqrt(W)`` units, so their squared
+    magnitudes are powers in watts under the complex-baseband convention. The
+    PSS-to-SSS ratio may be 0 or 3 dB; SSS, PBCH data, and PBCH DM-RS retain
+    equal EPRE. OFDM sample-average power also depends on occupied subcarriers,
+    FFT normalization, and cyclic-prefix overhead.
+    """
+    if isinstance(ss_pbch_block_power_dbm, (bool, np.bool_)) or not isinstance(
+        ss_pbch_block_power_dbm, Real
+    ):
+        raise TypeError("ss_pbch_block_power_dbm must be a real number")
+    block_power_dbm = float(ss_pbch_block_power_dbm)
+    if not np.isfinite(block_power_dbm) or not -60.0 <= block_power_dbm <= 50.0:
+        raise ValueError("ss_pbch_block_power_dbm must be finite and in [-60, 50] dBm")
+    if isinstance(pss_to_sss_epre_db, (bool, np.bool_)) or not isinstance(pss_to_sss_epre_db, Real):
+        raise TypeError("pss_to_sss_epre_db must be a real number")
+    ratio_db = float(pss_to_sss_epre_db)
+    if ratio_db not in (0.0, 3.0):
+        raise ValueError("pss_to_sss_epre_db must be 0 or 3 dB")
+
+    source = np.asarray(ssb_grid)
+    if source.shape != (_SSB_SYMBOL_COUNT, _SSB_SUBCARRIER_COUNT):
+        raise ValueError("ssb_grid must have shape (4, 240)")
+    if source.dtype.kind not in "iufc" or source.dtype.kind == "b":
+        raise TypeError("ssb_grid must be a real or complex numeric array")
+    result = np.asarray(source, dtype=np.complex128).copy()
+    if not np.isfinite(result.real).all() or not np.isfinite(result.imag).all():
+        raise ValueError("ssb_grid must be finite")
+    sss = result[2, 56:183]
+    with np.errstate(over="ignore", invalid="ignore", under="ignore"):
+        mean_sss_energy = float(np.mean(np.square(np.abs(sss))))
+    if not np.isfinite(mean_sss_energy) or mean_sss_energy <= 0.0:
+        raise ValueError("SSS resource elements must have positive finite mean energy")
+
+    target_sss_epre_w = 10.0 ** ((block_power_dbm - 30.0) / 10.0)
+    scale = np.sqrt(target_sss_epre_w) / np.sqrt(mean_sss_energy)
+    with np.errstate(over="ignore", invalid="ignore", under="ignore"):
+        result *= scale
+        result[0, 56:183] *= 10.0 ** (ratio_db / 20.0)
+    if not np.isfinite(result.real).all() or not np.isfinite(result.imag).all():
+        raise ValueError("power scaling produces nonfinite resource elements")
+    result.setflags(write=False)
+    return result

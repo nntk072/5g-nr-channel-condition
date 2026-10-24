@@ -42,6 +42,7 @@ from .ssb_grid import (
     NRSSBResourceGrid,
     map_nr_ssb_resource_grid,
     scale_nr_ssb_resource_grid_epre,
+    scale_nr_ssb_resource_grid_power,
 )
 from .ssb_ofdm import nr_ssb_ofdm_demodulate, nr_ssb_ofdm_modulate
 from .ssb_timing import ssb_case_a_candidate_symbols
@@ -99,6 +100,7 @@ __all__ = [
     "nr_pbch_scramble_bits",
     "map_nr_ssb_resource_grid",
     "scale_nr_ssb_resource_grid_epre",
+    "scale_nr_ssb_resource_grid_power",
     "nr_ssb_ofdm_demodulate",
     "nr_ssb_ofdm_modulate",
     "sionna_paths_to_oracle_table",
