@@ -1,5 +1,7 @@
 # MASTER RESEARCH & ENGINEERING PLAN
 
+**Edition 3.286 bounded G5.14 relative SSB EPRE scaling (2026-10-24):** Commit `271b5c3` adds the TS 38.213 V19.1 clause 4.1 PSS-to-SSS assumed EPRE profiles of 0 and 3 dB. It scales only PSS resource elements; SSS, PBCH data, and PBCH DM-RS stay at equal reference EPRE. Tests verify the amplitude-to-power conversion and preservation of all non-PSS resource elements. The focused PBCH/SSB/NR-sync suite passes 166 tests; Ruff/format and targeted mypy pass. This does not convert `ss-PBCH-BlockPower` to absolute waveform amplitude or close G5.14. Production D1 remains gated.
+
 **Edition 3.285 bounded G5.14 SSB OFDM waveform adapter (2026-10-24):** Commit `2c6cd43` adds reusable unscaled modulation/demodulation for a centered 4×240 SSB grid with explicit per-symbol cyclic prefixes and uses the shared demodulator in PBCH reception. The adapter matches Sionna 2.2.0 `OFDMModulator` at FFT sizes 256/512/1024 with unequal CP lengths and recovers the active grid. The PBCH/NR-sync focused suite passes 159 tests; Ruff/format and targeted mypy pass. Numerology/sample-rate selection, standardized CP derivation, power scaling, and burst placement are deliberately not implied by this single-block adapter. G5.14 remains open; production D1 remains gated.
 
 **Edition 3.284 bounded G5.14 blind PBCH index reconstruction (2026-10-24):** Commit `245612f` updates blind acquisition to test only the DM-RS-visible candidate-index values, then recover and range-check higher candidate-index bits from the CRC-valid PBCH payload for counts 10/20/64. It also checks the decoded half-frame against the hypothesis. Seeded 24-dB, five-sample-echo cases recover the highest candidate for counts 8/10/20/64, alongside the existing Lmax=4 timing/CFO test. The PBCH/NR-sync suite passes 156 tests; Ruff/format and targeted mypy pass. G5.14 remains open because this is bounded implementation evidence, not broad acquisition or receiver qualification. Production D1 remains gated.
@@ -49,7 +51,7 @@
 ## Physically Grounded, Identifiability-Aware Multipath State Learning for 5G NR
 ### From LOS/NLOS classification to channel-state reconstruction, uncertainty, and forecasting
 
-**Document edition:** 3.285 — 2026-10-24 (bounded G5.14 SSB OFDM waveform adapter; research and dataset gates remain open)
+**Document edition:** 3.286 — 2026-10-24 (bounded G5.14 relative SSB EPRE profile; research and dataset gates remain open)
 **Status:** execution specification and scientific decision record; **not** a completed study, not experimental evidence, and not a claim of top-tier acceptance.
 **Repository inspected:** live checkout /home/nguyenl37/5g-nr-channel-condition, branch main, initial implementation commit ffe199c80c1caf40dea91a406fe02124b3ff05ec (built from baseline cc43a5544036578a6bb57ce52b66436d8acb6c1b); local reference /home/nguyenl37/sionna at Sionna v2.2.0, commit 2f0a3820269b53fd022780a6f2f5f720f7ceb9b4, RT submodule commit 15b5ee036917a4c2a9b6420e05570b77717e2fcc.
 **Legacy work:** Long Nguyen, *5G Physical Layer Channel Conditions Classification Using Machine Learning Techniques*, Tampere University, July 2025, embedded in `docs/thesis/NguyenLong.pdf`.
