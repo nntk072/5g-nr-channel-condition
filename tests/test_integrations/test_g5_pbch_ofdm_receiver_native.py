@@ -9,6 +9,7 @@ pytest.importorskip("sionna.phy.fec.polar")
 
 from integrations.sionna import (  # noqa: E402
     PBCHMIB,
+    NRSSBResourceGrid,
     map_nr_ssb_resource_grid,
     nr_pbch_acquire_and_receive,
     nr_pbch_bch_encode,
@@ -19,6 +20,8 @@ from integrations.sionna import (  # noqa: E402
     nr_pbch_scramble_bits,
     nr_ssb_ofdm_demodulate,
     nr_ssb_ofdm_modulate,
+    nr_ssb_ofdm_modulate_half_frame,
+    nr_ssb_waveform_config,
 )
 
 _FFT_SIZE = 256
@@ -36,6 +39,25 @@ def _make_ssb_waveform(
     ssb_index: int = _SSB_INDEX,
     half_frame: int = _HALF_FRAME,
 ) -> tuple[np.ndarray, PBCHMIB]:
+    ssb, mib = _make_ssb_resource_grid(
+        sfn,
+        candidate_count=candidate_count,
+        ssb_index=ssb_index,
+        half_frame=half_frame,
+    )
+    return (
+        nr_ssb_ofdm_modulate(ssb.grid, fft_size=_FFT_SIZE, cyclic_prefix_lengths=_CP_LENGTHS),
+        mib,
+    )
+
+
+def _make_ssb_resource_grid(
+    sfn: int,
+    *,
+    candidate_count: int = _L_MAX,
+    ssb_index: int = _SSB_INDEX,
+    half_frame: int = _HALF_FRAME,
+) -> tuple[NRSSBResourceGrid, PBCHMIB]:
     mib = PBCHMIB(
         system_frame_number_msb=sfn >> 4,
         subcarrier_spacing_common="scs15or60",
@@ -73,10 +95,7 @@ def _make_ssb_waveform(
         half_frame_index=half_frame,
         max_candidate_blocks_per_half_frame=candidate_count,
     )
-    return (
-        nr_ssb_ofdm_modulate(ssb.grid, fft_size=_FFT_SIZE, cyclic_prefix_lengths=_CP_LENGTHS),
-        mib,
-    )
+    return ssb, mib
 
 
 def _apply_channel_and_noise(
@@ -276,6 +295,72 @@ def test_blind_pss_sss_and_candidate_search_decode_pbch_under_cfo_multipath_awgn
     assert result.pbch_reception.mib == expected_mib
     assert result.pbch_reception.payload_recovery is not None
     assert result.pbch_reception.payload_recovery.system_frame_number == sfn
+
+
+@pytest.mark.native_sionna
+def test_blind_acquisition_recovers_ssb_from_candidate_timed_half_frame() -> None:
+    sfn = 0b1010011010
+    candidate_count = 8
+    ssb_index = 3
+    half_frame_index = 1
+    ssb, expected_mib = _make_ssb_resource_grid(
+        sfn,
+        candidate_count=candidate_count,
+        ssb_index=ssb_index,
+        half_frame=half_frame_index,
+    )
+    burst = nr_ssb_ofdm_modulate_half_frame(
+        {ssb_index: ssb},
+        case="A",
+        carrier_frequency_hz=3.5e9,
+        subcarrier_spacing_hz=15_000,
+        frequency_range="FR1",
+        fft_size=_FFT_SIZE,
+    )
+    start_symbol = burst.candidate_start_symbols[ssb_index]
+    start_config = nr_ssb_waveform_config(
+        subcarrier_spacing_hz=15_000,
+        candidate_start_symbol=start_symbol,
+        fft_size=_FFT_SIZE,
+    )
+    expected_symbol_offset = sum(
+        _FFT_SIZE + (20 if symbol % 14 in (0, 7) else 18) for symbol in range(start_symbol)
+    )
+    assert start_config.cyclic_prefix_lengths == _CP_LENGTHS
+
+    sample_rate_hz = float(burst.sample_rate_hz)
+    timing_offset = 23
+    channelled, noise_variance, _ = _apply_channel_and_noise(
+        burst.waveform, seed=8123, delay=5, snr_db=24.0
+    )
+    capture = np.concatenate(
+        (
+            np.zeros(timing_offset, dtype=np.complex128),
+            channelled,
+            np.zeros(_FFT_SIZE + _CP_LENGTHS[-1], dtype=np.complex128),
+        )
+    )
+    time = np.arange(capture.size) / sample_rate_hz
+    capture *= np.exp(2j * np.pi * 2_500.0 * time)
+
+    result = nr_pbch_acquire_and_receive(
+        capture,
+        fft_size=_FFT_SIZE,
+        cyclic_prefix_lengths=_CP_LENGTHS,
+        sampling_frequency_hz=sample_rate_hz,
+        max_candidate_blocks_per_half_frame=candidate_count,
+        noise_variance=noise_variance,
+        cfo_hypotheses_hz=(-4_000.0, -2_000.0, 0.0, 2_000.0, 4_000.0),
+        cfo_guard_samples=5,
+    )
+
+    assert result.cell_detection.sample_offset == timing_offset + expected_symbol_offset
+    assert result.cell_detection.physical_cell_id == _CELL_ID
+    assert result.cell_detection.cfo_hz == pytest.approx(2_500.0, abs=100.0)
+    assert result.ssb_index_in_half_frame == ssb_index
+    assert result.half_frame_index == half_frame_index
+    assert result.pbch_reception.crc_valid
+    assert result.pbch_reception.mib == expected_mib
 
 
 @pytest.mark.native_sionna
