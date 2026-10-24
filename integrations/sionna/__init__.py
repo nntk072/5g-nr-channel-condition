@@ -44,7 +44,12 @@ from .ssb_grid import (
     scale_nr_ssb_resource_grid_epre,
     scale_nr_ssb_resource_grid_power,
 )
-from .ssb_ofdm import nr_ssb_ofdm_demodulate, nr_ssb_ofdm_modulate
+from .ssb_ofdm import (
+    NRSSBWaveformConfig,
+    nr_ssb_ofdm_demodulate,
+    nr_ssb_ofdm_modulate,
+    nr_ssb_waveform_config,
+)
 from .ssb_timing import ssb_candidate_symbols, ssb_case_a_candidate_symbols
 from .tdl import SionnaTDLChannel, generate_tdl_frequency_response
 from .tdl_pusch import SionnaTDLPUSCHBatch, generate_tdl_pusch_batch, tdl_pusch_records
@@ -60,6 +65,7 @@ __all__ = [
     "SionnaPUSCHLSReceiver",
     "NRWaveformImpairments",
     "NRSSBResourceGrid",
+    "NRSSBWaveformConfig",
     "PBCHDMRSResourceMap",
     "PBCHPayloadRecovery",
     "PBCHMIB",
@@ -103,6 +109,7 @@ __all__ = [
     "scale_nr_ssb_resource_grid_power",
     "nr_ssb_ofdm_demodulate",
     "nr_ssb_ofdm_modulate",
+    "nr_ssb_waveform_config",
     "sionna_paths_to_oracle_table",
     "ssb_case_a_candidate_symbols",
     "ssb_candidate_symbols",
