@@ -742,6 +742,34 @@ def test_registry_lock_rejects_hardlink_added_during_read(tmp_path, monkeypatch)
     assert alias.exists()
 
 
+def test_registry_lock_rejects_same_inode_rewrite_after_open(tmp_path, monkeypatch):
+    _, registry = _four_way_registry(_unlinked_subjects())
+    path = tmp_path / "canonical.json"
+    freeze_split_policy_registry(path, registry)
+    original = path.read_bytes()
+    original_stat = path.stat()
+    original_fdopen = os.fdopen
+    rewritten = False
+
+    def rewrite_before_read(descriptor, mode="r", *args, **kwargs):
+        nonlocal rewritten
+        if not rewritten:
+            path.write_bytes(b"{\t" + original[2:])
+            rewritten = True
+        return original_fdopen(descriptor, mode, *args, **kwargs)
+
+    monkeypatch.setattr(os, "fdopen", rewrite_before_read)
+    with pytest.raises(ValueError, match="changed while reading"):
+        read_split_policy_registry(path)
+
+    current_stat = path.stat()
+    assert rewritten
+    assert current_stat.st_ino == original_stat.st_ino
+    assert current_stat.st_size == original_stat.st_size
+    assert path.read_bytes() != original
+    assert json.loads(path.read_text(encoding="utf-8"))["schema"] == "umcd.split_registry.v2"
+
+
 @pytest.mark.skipif(not hasattr(os, "mkfifo"), reason="FIFO files are unavailable")
 def test_registry_lock_rejects_fifo_without_blocking(tmp_path):
     _, registry = _four_way_registry(_unlinked_subjects())

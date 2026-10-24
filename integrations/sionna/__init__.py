@@ -19,7 +19,23 @@ from .ofdm_impairments import (
     apply_time_varying_multipath,
 )
 from .path_oracle import sionna_paths_to_oracle_table
+from .pbch_acquisition import (
+    PBCHAcquisitionError,
+    PBCHAcquisitionReception,
+    nr_pbch_acquire_and_receive,
+)
+from .pbch_bch import nr_pbch_bch_decode, nr_pbch_bch_encode
+from .pbch_data import nr_pbch_qpsk_modulate, nr_pbch_scramble_bits
 from .pbch_dmrs import PBCHDMRSResourceMap, nr_pbch_dmrs_ssb
+from .pbch_mib import PBCHMIB, nr_pbch_mib_parse, nr_pbch_mib_serialize
+from .pbch_ofdm_receiver import PBCHOFDMReception, nr_pbch_receive_ofdm
+from .pbch_payload import (
+    PBCHPayloadRecovery,
+    nr_pbch_payload_descramble,
+    nr_pbch_payload_generate,
+    nr_pbch_payload_recover,
+    nr_pbch_payload_scramble,
+)
 from .rt_cache import RTCacheConflictError, load_rt_dataset, store_rt_dataset
 from .rt_to_nr import NRGridChannel, paths_to_nr_ofdm_channel
 from .ssb_grid import NRSSBResourceGrid, map_nr_ssb_resource_grid
@@ -39,6 +55,11 @@ __all__ = [
     "NRWaveformImpairments",
     "NRSSBResourceGrid",
     "PBCHDMRSResourceMap",
+    "PBCHPayloadRecovery",
+    "PBCHMIB",
+    "PBCHOFDMReception",
+    "PBCHAcquisitionError",
+    "PBCHAcquisitionReception",
     "SionnaCDLChannel",
     "SionnaTDLChannel",
     "SionnaTDLPUSCHBatch",
@@ -59,6 +80,18 @@ __all__ = [
     "store_rt_dataset",
     "paths_to_nr_ofdm_channel",
     "nr_pbch_dmrs_ssb",
+    "nr_pbch_payload_descramble",
+    "nr_pbch_payload_generate",
+    "nr_pbch_payload_recover",
+    "nr_pbch_payload_scramble",
+    "nr_pbch_mib_parse",
+    "nr_pbch_mib_serialize",
+    "nr_pbch_receive_ofdm",
+    "nr_pbch_acquire_and_receive",
+    "nr_pbch_bch_encode",
+    "nr_pbch_bch_decode",
+    "nr_pbch_qpsk_modulate",
+    "nr_pbch_scramble_bits",
     "map_nr_ssb_resource_grid",
     "sionna_paths_to_oracle_table",
     "ssb_case_a_candidate_symbols",

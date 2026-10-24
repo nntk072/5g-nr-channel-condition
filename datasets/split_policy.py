@@ -56,6 +56,19 @@ def _reject_duplicate_json_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
     return result
 
 
+def _lock_stat_signature(metadata: os.stat_result) -> tuple[int, int, int, int, int, int, int]:
+    """Return metadata fields that must remain stable during a lock read."""
+    return (
+        metadata.st_dev,
+        metadata.st_ino,
+        metadata.st_mode,
+        metadata.st_nlink,
+        metadata.st_size,
+        metadata.st_mtime_ns,
+        metadata.st_ctime_ns,
+    )
+
+
 def _read_immutable_lock_bytes(path: Path) -> bytes:
     """Read one regular, single-link lock without following a leaf symlink."""
     path_metadata_before = os.lstat(path)
@@ -91,6 +104,10 @@ def _read_immutable_lock_bytes(path: Path) -> bytes:
             or path_metadata_after.st_nlink != 1
         ):
             raise ValueError("split-policy lock must be a single-link regular file")
+        if _lock_stat_signature(metadata) != _lock_stat_signature(
+            path_metadata_before
+        ) or _lock_stat_signature(metadata) != _lock_stat_signature(path_metadata_after):
+            raise ValueError("split-policy lock changed while opening")
         with os.fdopen(descriptor, "rb") as stream:
             descriptor = -1
             contents = stream.read()
@@ -112,6 +129,12 @@ def _read_immutable_lock_bytes(path: Path) -> bytes:
                 or path_metadata_after_read.st_nlink != 1
             ):
                 raise ValueError("split-policy lock must be a single-link regular file")
+            if (
+                _lock_stat_signature(metadata_after_read) != _lock_stat_signature(metadata)
+                or _lock_stat_signature(path_metadata_after_read) != _lock_stat_signature(metadata)
+                or len(contents) != metadata.st_size
+            ):
+                raise ValueError("split-policy lock changed while reading")
             return contents
     finally:
         if descriptor >= 0:

@@ -50,9 +50,9 @@ def _integer_in_range(value: object, name: str, lower: int, upper: int) -> int:
     return integer
 
 
-def _gold_bits(c_init: int, count: int) -> NDArray[np.uint8]:
-    """Generate clause 5.2.1 Gold bits, including the 1600-chip offset."""
-    end = _GOLD_SEQUENCE_OFFSET + count
+def _gold_bits(c_init: int, count: int, *, sequence_offset: int = 0) -> NDArray[np.uint8]:
+    """Generate clause 5.2.1 Gold bits at an offset after the 1600-chip skip."""
+    end = _GOLD_SEQUENCE_OFFSET + sequence_offset + count
     x1 = np.zeros(end + 31, dtype=np.uint8)
     x2 = np.zeros(end + 31, dtype=np.uint8)
     x1[0] = 1
@@ -63,7 +63,8 @@ def _gold_bits(c_init: int, count: int) -> NDArray[np.uint8]:
         x1[index + 31] = x1[index + 3] ^ x1[index]
         x2[index + 31] = x2[index + 3] ^ x2[index + 2] ^ x2[index + 1] ^ x2[index]
 
-    return x1[_GOLD_SEQUENCE_OFFSET:end] ^ x2[_GOLD_SEQUENCE_OFFSET:end]
+    start = _GOLD_SEQUENCE_OFFSET + sequence_offset
+    return x1[start:end] ^ x2[start:end]
 
 
 def _pbch_dmrs_coordinates(physical_cell_id: int) -> tuple[NDArray[np.int16], NDArray[np.int8]]:

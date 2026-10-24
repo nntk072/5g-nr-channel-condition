@@ -32,10 +32,12 @@ from evaluation.g3_sample_size_planning import (
     MAX_POWER_ERROR_P95_DB,
     MIN_INDEPENDENT_MEASUREMENT_UNITS,
     MIN_INTERVAL_COVERAGE,
+    _bootstrap_acceptance_checks,
     _exact_binomial_critical_failures,
     _maximum_angular_units_for_pass_probability,
     _required_bounded_mean_units,
     _required_quantile_units,
+    plan_g3_bootstrap_assurance,
     plan_g3_independent_acquisition_units,
 )
 from scipy.stats import binom
@@ -47,6 +49,29 @@ def _assumptions() -> dict[str, float]:
         "p95_absolute_power_error_db": 0.99,
         "median_prediction_interval_width_db": 0.90,
     }
+
+
+def _bootstrap_atoms() -> list[dict[str, float]]:
+    return [
+        {
+            "median_absolute_power_error_db": 0.5,
+            "p95_absolute_power_error_db": 1.0,
+            "maximum_angular_cdf_ks": 0.05,
+            "nominal_95_interval_coverage": 0.95,
+            "median_prediction_interval_width_db": 1.0,
+        },
+        {
+            "median_absolute_power_error_db": 0.7,
+            "p95_absolute_power_error_db": 1.2,
+            "maximum_angular_cdf_ks": 0.06,
+            "nominal_95_interval_coverage": 0.96,
+            "median_prediction_interval_width_db": 1.2,
+        },
+    ]
+
+
+def _bootstrap_scenario(atoms: list[dict[str, float]]) -> dict[str, object]:
+    return {"assumed_unit_summaries": atoms, "probabilities": [0.5, 0.5]}
 
 
 def test_local_planning_contract_margins_match_evaluator_without_runtime_coupling() -> None:
@@ -104,6 +129,145 @@ def test_planner_is_data_free_bonferroni_adjusted_and_never_admits() -> None:
             ]
         ]
     )
+
+
+def test_bootstrap_assurance_is_scenario_conditional_and_never_qualifies() -> None:
+    scenarios = {
+        "brick-H-0-30": _bootstrap_scenario(_bootstrap_atoms()),
+        "concrete-V-30-60": _bootstrap_scenario(_bootstrap_atoms()),
+    }
+    result = plan_g3_bootstrap_assurance(
+        assumed_iid_scenarios_by_stratum=scenarios,
+        candidate_units_per_stratum=[20, 30],
+        bootstrap_replicates=1_000,
+        assurance_replicates=100,
+        target_assurance=0.80,
+        seed=701,
+    )
+
+    assert result["schema"] == "loslab.g3_bootstrap_assurance_planning.v1"
+    assert result["status"] == "SCENARIO_CONDITIONAL_PLANNING_ONLY_NOT_QUALIFICATION"
+    assert result["admission_possible"] is False
+    assert result["scenario_provenance_verified"] is False
+    assert result["complete_g3_03_sample_size"] is None
+    assert result["selected_units_per_stratum_among_evaluated_candidates"] == 20
+    first = result["candidate_designs"][0]
+    assert first["joint_assurance_lower_bound_union_bound"] >= 0.80
+    assert set(first["stratum_assurance"]) == set(scenarios)
+    assert all(
+        entry["joint_assurance_estimate"] == 1.0 for entry in first["stratum_assurance"].values()
+    )
+    assert (
+        result["scenario_distribution_sha256"]
+        == plan_g3_bootstrap_assurance(
+            assumed_iid_scenarios_by_stratum=scenarios,
+            candidate_units_per_stratum=[20, 30],
+            bootstrap_replicates=1_000,
+            assurance_replicates=100,
+            target_assurance=0.80,
+            seed=701,
+        )["scenario_distribution_sha256"]
+    )
+
+
+def test_bootstrap_assurance_does_not_select_a_design_for_failing_assumptions() -> None:
+    failing_atoms = _bootstrap_atoms()
+    failing_atoms[1] = {**failing_atoms[1], "p95_absolute_power_error_db": 4.0}
+    result = plan_g3_bootstrap_assurance(
+        assumed_iid_scenarios_by_stratum={"brick-H-0-30": _bootstrap_scenario(failing_atoms)},
+        candidate_units_per_stratum=[20],
+        bootstrap_replicates=1_000,
+        assurance_replicates=100,
+        target_assurance=0.80,
+        seed=702,
+    )
+
+    assert result["selected_units_per_stratum_among_evaluated_candidates"] is None
+    assert result["candidate_designs"][0]["meets_target_assurance"] is False
+
+
+def test_bootstrap_assurance_acceptance_rules_match_the_evaluator() -> None:
+    errors = np.linspace(0.2, 2.0, 20)
+    coverage = np.asarray([True] * 19 + [False])
+    values = np.column_stack(
+        (
+            errors,
+            errors,
+            np.linspace(0.01, 0.12, 20),
+            coverage.astype(np.float64),
+            np.linspace(0.5, 3.5, 20),
+        )
+    )
+    units = {
+        f"unit-{index:02d}": [
+            {
+                "absolute_power_error_db": float(errors[index]),
+                "angular_cdf_ks": float(values[index, 2]),
+                "interval_width_db": float(values[index, 4]),
+                "covered": bool(coverage[index]),
+            }
+        ]
+        for index in range(20)
+    }
+    seed = 812
+    replicates = 1_000
+    evaluator_result = _cluster_bootstrap_intervals(
+        units,
+        seed=seed,
+        replicates=replicates,
+        simultaneous_comparisons=5,
+    )
+    actual = _bootstrap_acceptance_checks(
+        values,
+        rng=np.random.default_rng(seed),
+        bootstrap_replicates=replicates,
+        per_comparison_alpha=0.05 / 5,
+    )
+    ci = evaluator_result["percentile_95_ci"]
+    expected = {
+        "median_absolute_power_error_db": np.median(errors) <= MAX_POWER_ERROR_MEDIAN_DB
+        and ci["median_absolute_power_error_db"][1] <= MAX_POWER_ERROR_MEDIAN_DB,
+        "p95_absolute_power_error_db": np.percentile(errors, 95) <= MAX_POWER_ERROR_P95_DB
+        and ci["p95_absolute_power_error_db"][1] <= MAX_POWER_ERROR_P95_DB,
+        "maximum_angular_cdf_ks": np.max(values[:, 2]) <= 0.10
+        and ci["maximum_angular_cdf_ks"][1] <= 0.10,
+        "nominal_95_interval_coverage": np.mean(coverage) >= MIN_INTERVAL_COVERAGE
+        and np.mean(coverage) <= MAX_INTERVAL_COVERAGE
+        and ci["nominal_95_interval_coverage"][0] >= MIN_INTERVAL_COVERAGE
+        and ci["nominal_95_interval_coverage"][1] <= MAX_INTERVAL_COVERAGE,
+        "median_prediction_interval_width_db": np.median(values[:, 4])
+        <= MAX_MEDIAN_INTERVAL_WIDTH_DB
+        and ci["median_prediction_interval_width_db"][1] <= MAX_MEDIAN_INTERVAL_WIDTH_DB,
+    }
+
+    assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ("scenarios", "counts", "error"),
+    [
+        ({}, [20], "nonempty mapping"),
+        ({"stratum": _bootstrap_scenario(_bootstrap_atoms())}, [19], "integers >= 20"),
+        (
+            {
+                "stratum": {
+                    "assumed_unit_summaries": _bootstrap_atoms(),
+                    "probabilities": [0.4, 0.4],
+                }
+            },
+            [20],
+            "sum to one",
+        ),
+    ],
+)
+def test_bootstrap_assurance_rejects_invalid_design_inputs(
+    scenarios: dict[str, object], counts: list[int], error: str
+) -> None:
+    with pytest.raises(ValueError, match=error):
+        plan_g3_bootstrap_assurance(
+            assumed_iid_scenarios_by_stratum=scenarios,
+            candidate_units_per_stratum=counts,
+        )
 
 
 def test_quantile_planning_formula_is_conservative_hoeffding_bound() -> None:

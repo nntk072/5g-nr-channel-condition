@@ -8,17 +8,21 @@ binomial design for the frozen complex-CSI cluster-failure criterion. The
 maximum-over-units angular-KS criterion is handled only under an explicit IID
 per-unit pass-probability assumption. Its literal finite-sample maximum gives
 an upper bound on n for a desired pass probability, not a population-maximum
-guarantee. This utility never returns a complete G3.03 sample size.
+guarantee. A separate nested simulation estimates evaluator-aligned bootstrap
+assurance only under explicit hypothetical finite-support distributions. These
+utilities never return a complete G3.03 sample size.
 """
 
 from __future__ import annotations
 
+import hashlib
+import json
 import math
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import Any
 
 import numpy as np
-from scipy.stats import binom
+from scipy.stats import beta, binom
 
 # Mirrored from the G3.03 evaluator's frozen project-defined margins. Kept
 # local so this data-free planner has no dependency on evaluator code/data.
@@ -39,6 +43,15 @@ _COMPARISONS_PER_STRATUM = 5
 _COMPLEX_CSI_FAILURE_LIMIT = 0.05
 _EXACT_BINOMIAL_SEARCH_LIMIT = 10_000_000
 _EXACT_BINOMIAL_CHUNK_SIZE = 16_384
+_BOOTSTRAP_METRICS = (
+    "median_absolute_power_error_db",
+    "p95_absolute_power_error_db",
+    "maximum_angular_cdf_ks",
+    "nominal_95_interval_coverage",
+    "median_prediction_interval_width_db",
+)
+_MAX_BOOTSTRAP_RESAMPLING_CELLS = 100_000_000
+_MAX_BOOTSTRAP_PEAK_CELLS = 2_000_000
 
 
 def _probability(value: Any, name: str) -> float:
@@ -474,4 +487,327 @@ def plan_g3_independent_acquisition_units(
             "multiplicity": "Bonferroni across five metric claims per expected stratum",
         },
         "assumptions_must_be_preregistered_and_not_estimated_from_pilot": True,
+    }
+
+
+def _bootstrap_acceptance_checks(
+    unit_values: np.ndarray,
+    *,
+    rng: np.random.Generator,
+    bootstrap_replicates: int,
+    per_comparison_alpha: float,
+) -> dict[str, bool]:
+    """Apply the G3.03 equal-unit point and percentile-bootstrap margins."""
+    unit_count = unit_values.shape[0]
+    point = np.asarray(
+        [
+            np.median(unit_values[:, 0]),
+            np.percentile(unit_values[:, 1], 95),
+            np.max(unit_values[:, 2]),
+            np.mean(unit_values[:, 3]),
+            np.median(unit_values[:, 4]),
+        ],
+        dtype=np.float64,
+    )
+    sampled = unit_values[rng.integers(0, unit_count, size=(bootstrap_replicates, unit_count))]
+    bootstrap_statistics = np.column_stack(
+        (
+            np.median(sampled[:, :, 0], axis=1),
+            np.percentile(sampled[:, :, 1], 95, axis=1),
+            np.max(sampled[:, :, 2], axis=1),
+            np.mean(sampled[:, :, 3], axis=1),
+            np.median(sampled[:, :, 4], axis=1),
+        )
+    )
+    tail_percent = 100.0 * per_comparison_alpha / 2.0
+    interval = np.percentile(
+        bootstrap_statistics,
+        [tail_percent, 100.0 - tail_percent],
+        axis=0,
+    )
+    return {
+        "median_absolute_power_error_db": bool(
+            point[0] <= MAX_POWER_ERROR_MEDIAN_DB and interval[1, 0] <= MAX_POWER_ERROR_MEDIAN_DB
+        ),
+        "p95_absolute_power_error_db": bool(
+            point[1] <= MAX_POWER_ERROR_P95_DB and interval[1, 1] <= MAX_POWER_ERROR_P95_DB
+        ),
+        "maximum_angular_cdf_ks": bool(point[2] <= 0.10 and interval[1, 2] <= 0.10),
+        "nominal_95_interval_coverage": bool(
+            MIN_INTERVAL_COVERAGE <= point[3] <= MAX_INTERVAL_COVERAGE
+            and interval[0, 3] >= MIN_INTERVAL_COVERAGE
+            and interval[1, 3] <= MAX_INTERVAL_COVERAGE
+        ),
+        "median_prediction_interval_width_db": bool(
+            point[4] <= MAX_MEDIAN_INTERVAL_WIDTH_DB
+            and interval[1, 4] <= MAX_MEDIAN_INTERVAL_WIDTH_DB
+        ),
+    }
+
+
+def _validate_g3_assumption_scenarios(
+    scenarios: Mapping[str, Mapping[str, Any]],
+) -> tuple[dict[str, tuple[np.ndarray, np.ndarray]], str]:
+    if not isinstance(scenarios, Mapping) or not scenarios:
+        raise ValueError("assumed_iid_scenarios_by_stratum must be a nonempty mapping")
+    if any(not isinstance(stratum, str) or not stratum.strip() for stratum in scenarios):
+        raise ValueError("scenario stratum names must be nonempty strings")
+    validated: dict[str, tuple[np.ndarray, np.ndarray]] = {}
+    canonical: dict[str, Any] = {}
+    for stratum in sorted(scenarios):
+        if not isinstance(stratum, str) or not stratum.strip():
+            raise ValueError("scenario stratum names must be nonempty strings")
+        scenario = scenarios[stratum]
+        if not isinstance(scenario, Mapping) or set(scenario) != {
+            "assumed_unit_summaries",
+            "probabilities",
+        }:
+            raise ValueError(
+                f"scenario {stratum!r} must contain exactly assumed_unit_summaries and probabilities"
+            )
+        atoms = scenario["assumed_unit_summaries"]
+        try:
+            raw_probabilities = np.asarray(scenario["probabilities"])
+        except (TypeError, ValueError) as error:
+            raise ValueError(
+                f"scenario {stratum!r} probabilities must be a numeric sequence"
+            ) from error
+        if raw_probabilities.dtype.kind == "b":
+            raise ValueError(f"scenario {stratum!r} probabilities must be numeric weights")
+        try:
+            probabilities = np.asarray(raw_probabilities, dtype=np.float64)
+        except (TypeError, ValueError) as error:
+            raise ValueError(
+                f"scenario {stratum!r} probabilities must be numeric weights"
+            ) from error
+        if (
+            isinstance(atoms, (str, bytes))
+            or not isinstance(atoms, Sequence)
+            or not atoms
+            or probabilities.ndim != 1
+            or probabilities.shape != (len(atoms),)
+        ):
+            raise ValueError(f"scenario {stratum!r} has incompatible atom and probability counts")
+        if (
+            not np.all(np.isfinite(probabilities))
+            or np.any(probabilities <= 0.0)
+            or not math.isclose(float(probabilities.sum()), 1.0, rel_tol=0.0, abs_tol=1e-12)
+        ):
+            raise ValueError(f"scenario {stratum!r} probabilities must be positive and sum to one")
+
+        rows: list[list[float]] = []
+        for atom_index, atom in enumerate(atoms):
+            if not isinstance(atom, Mapping) or set(atom) != set(_BOOTSTRAP_METRICS):
+                raise ValueError(
+                    f"scenario {stratum!r} atom {atom_index} must specify exactly the five G3 metrics"
+                )
+            values: list[float] = []
+            for metric in _BOOTSTRAP_METRICS:
+                value = atom[metric]
+                if isinstance(value, bool) or not isinstance(value, (int, float)):
+                    raise ValueError(f"scenario {stratum!r} {metric} must be a finite number")
+                numeric = float(value)
+                if not math.isfinite(numeric):
+                    raise ValueError(f"scenario {stratum!r} {metric} must be a finite number")
+                values.append(numeric)
+            if (
+                values[0] < 0.0
+                or values[1] < 0.0
+                or not 0.0 <= values[2] <= 1.0
+                or not 0.0 <= values[3] <= 1.0
+                or values[4] < 0.0
+            ):
+                raise ValueError(f"scenario {stratum!r} atom {atom_index} is outside metric ranges")
+            rows.append(values)
+
+        matrix = np.asarray(rows, dtype=np.float64)
+        weights = probabilities / probabilities.sum()
+        validated[stratum] = matrix, weights
+        canonical[stratum] = {
+            "assumed_unit_summaries": [
+                {
+                    metric: float(value)
+                    for metric, value in zip(_BOOTSTRAP_METRICS, row, strict=True)
+                }
+                for row in matrix
+            ],
+            "probabilities": [float(value) for value in weights],
+        }
+    digest = hashlib.sha256(
+        json.dumps(canonical, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
+    ).hexdigest()
+    return validated, digest
+
+
+def plan_g3_bootstrap_assurance(
+    *,
+    assumed_iid_scenarios_by_stratum: Mapping[str, Mapping[str, Any]],
+    candidate_units_per_stratum: Sequence[int],
+    bootstrap_replicates: int = 2_000,
+    assurance_replicates: int = 500,
+    target_assurance: float = 0.80,
+    familywise_alpha: float = 0.05,
+    monte_carlo_confidence: float = 0.95,
+    seed: int = 1,
+) -> dict[str, Any]:
+    """Estimate G3.03 bootstrap pass assurance under explicit discrete IID scenarios.
+
+    Each named stratum receives a caller-specified finite-support distribution of
+    *hypothetical independent-unit summaries*. One Monte Carlo study draws the
+    requested number of units from that distribution, then runs the same
+    equal-unit point statistics and Bonferroni percentile bootstrap checks as
+    the G3.03 evaluator. A one-sided Clopper-Pearson lower bound is computed for
+    each stratum/candidate; a union bound combines strata without assuming
+    cross-stratum independence. Bonferroni also covers searching the supplied
+    candidate counts.
+
+    This is conditional assurance for the supplied scenario distributions,
+    not power or precision evidence for an unknown physical population. Inputs
+    are assumptions, not measurements; their provenance cannot be verified
+    here. The result never qualifies a material, scene, or dataset and never
+    replaces external acquisition-unit, calibration, or legal review.
+    """
+    validated, scenario_digest = _validate_g3_assumption_scenarios(assumed_iid_scenarios_by_stratum)
+    if (
+        isinstance(candidate_units_per_stratum, (str, bytes))
+        or not isinstance(candidate_units_per_stratum, Sequence)
+        or not candidate_units_per_stratum
+    ):
+        raise ValueError("candidate_units_per_stratum must be a nonempty integer sequence")
+    candidates = list(candidate_units_per_stratum)
+    if any(
+        isinstance(count, bool)
+        or not isinstance(count, int)
+        or count < MIN_INDEPENDENT_MEASUREMENT_UNITS
+        for count in candidates
+    ):
+        raise ValueError(
+            f"candidate unit counts must be integers >= {MIN_INDEPENDENT_MEASUREMENT_UNITS}"
+        )
+    if len(set(candidates)) != len(candidates):
+        raise ValueError("candidate unit counts must be unique")
+    candidates.sort()
+    for name, value, minimum in (
+        ("bootstrap_replicates", bootstrap_replicates, 1_000),
+        ("assurance_replicates", assurance_replicates, 100),
+    ):
+        if isinstance(value, bool) or not isinstance(value, int) or value < minimum:
+            raise ValueError(f"{name} must be an integer >= {minimum}")
+    if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
+        raise ValueError("seed must be a nonnegative integer")
+
+    target = _probability(target_assurance, "target_assurance")
+    alpha = _probability(familywise_alpha, "familywise_alpha")
+    mc_confidence = _probability(monte_carlo_confidence, "monte_carlo_confidence")
+    resampling_cells = (
+        len(validated) * assurance_replicates * bootstrap_replicates * sum(candidates)
+    )
+    if resampling_cells > _MAX_BOOTSTRAP_RESAMPLING_CELLS:
+        raise ValueError(
+            "requested design exceeds the bounded bootstrap planning work limit; "
+            "reduce candidates or replication counts"
+        )
+    peak_bootstrap_cells = bootstrap_replicates * max(candidates)
+    if peak_bootstrap_cells > _MAX_BOOTSTRAP_PEAK_CELLS:
+        raise ValueError(
+            "a single bootstrap resample exceeds the bounded memory limit; "
+            "reduce the largest candidate count or bootstrap replicates"
+        )
+
+    per_comparison_alpha = alpha / (len(validated) * len(_BOOTSTRAP_METRICS))
+    candidate_alpha = (1.0 - mc_confidence) / (len(candidates) * len(validated))
+    candidate_results: list[dict[str, Any]] = []
+    for candidate_index, unit_count in enumerate(candidates):
+        stratum_results: dict[str, Any] = {}
+        lower_bounds: list[float] = []
+        for stratum_index, (stratum, (atoms, weights)) in enumerate(validated.items()):
+            rng = np.random.default_rng(
+                np.random.SeedSequence([seed, candidate_index, stratum_index])
+            )
+            metric_successes = {metric: 0 for metric in _BOOTSTRAP_METRICS}
+            joint_successes = 0
+            for _ in range(assurance_replicates):
+                sampled = atoms[
+                    rng.choice(atoms.shape[0], size=unit_count, replace=True, p=weights)
+                ]
+                checks = _bootstrap_acceptance_checks(
+                    sampled,
+                    rng=rng,
+                    bootstrap_replicates=bootstrap_replicates,
+                    per_comparison_alpha=per_comparison_alpha,
+                )
+                for metric, passed in checks.items():
+                    metric_successes[metric] += int(passed)
+                joint_successes += int(all(checks.values()))
+
+            lower = (
+                0.0
+                if joint_successes == 0
+                else float(
+                    beta.ppf(
+                        candidate_alpha, joint_successes, assurance_replicates - joint_successes + 1
+                    )
+                )
+            )
+            lower_bounds.append(lower)
+            stratum_results[stratum] = {
+                "assumed_support_atom_count": int(atoms.shape[0]),
+                "joint_pass_count": joint_successes,
+                "joint_assurance_estimate": joint_successes / assurance_replicates,
+                "joint_assurance_one_sided_exact_lower_bound": lower,
+                "metric_pass_probability_estimates": {
+                    metric: count / assurance_replicates
+                    for metric, count in metric_successes.items()
+                },
+            }
+        joint_lower_bound = max(0.0, 1.0 - sum(1.0 - bound for bound in lower_bounds))
+        candidate_results.append(
+            {
+                "independent_units_per_stratum": unit_count,
+                "stratum_assurance": stratum_results,
+                "joint_assurance_lower_bound_union_bound": joint_lower_bound,
+                "meets_target_assurance": joint_lower_bound >= target,
+            }
+        )
+
+    selected = next(
+        (
+            row["independent_units_per_stratum"]
+            for row in candidate_results
+            if row["meets_target_assurance"]
+        ),
+        None,
+    )
+    return {
+        "schema": "loslab.g3_bootstrap_assurance_planning.v1",
+        "status": "SCENARIO_CONDITIONAL_PLANNING_ONLY_NOT_QUALIFICATION",
+        "admission_possible": False,
+        "directly_reads_measurement_files": False,
+        "scenario_distribution_sha256": scenario_digest,
+        "assumption_model": (
+            "Within each stratum, independent acquisition-unit summaries are IID draws "
+            "from the supplied finite-support distribution. Cross-stratum dependence is "
+            "unrestricted; a union bound combines stratum pass probabilities."
+        ),
+        "scenario_provenance_verified": False,
+        "familywise_alpha": alpha,
+        "per_comparison_alpha": per_comparison_alpha,
+        "target_assurance": target,
+        "monte_carlo_confidence": mc_confidence,
+        "monte_carlo_bound": "one-sided exact Clopper-Pearson, Bonferroni across candidates and strata",
+        "assurance_replicates": assurance_replicates,
+        "bootstrap_replicates_per_study": bootstrap_replicates,
+        "candidate_designs": candidate_results,
+        "selected_units_per_stratum_among_evaluated_candidates": selected,
+        "selected_candidate_is_smallest_tested_not_global_minimum": True,
+        "complete_g3_03_sample_size": None,
+        "complete_design_status": "UNRESOLVED_EXTERNAL_POPULATION_AND_ACQUISITION_EVIDENCE",
+        "limitations": [
+            "Assurance applies only to the supplied hypothetical finite-support distributions.",
+            "Scenario assumptions and their representativeness are not externally verified.",
+            "Complex-CSI, path-truth, NR-impact, legal-rights, and independent-acquisition gates are not qualified here.",
+            "A candidate grid search does not establish the minimum over untested sample sizes.",
+        ],
+        "bounded_resampling_cell_count": resampling_cells,
+        "peak_bootstrap_sample_cell_count": peak_bootstrap_cells,
     }

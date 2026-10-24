@@ -8,11 +8,12 @@ correlation between normalized cluster excess delay and cluster-mean
 cos(AoA), with each cluster's angle feature averaged over its 20 TR 38.901
 azimuth ray offsets. Each estimate must be within 0.05 of the independently
 calculated ray reference. Bonferroni-adjusted two-sided normal intervals
-provide 99% family-wise confidence across the three profiles, with each
+provide 99% family-wise confidence across CDL-A–E, with each
 half-width no greater than 0.05.
 
-These NLOS standardized-profile statistics do not qualify CDL-D/E's combined
-LOS/diffuse zero-delay path, geometric RT, other angular dimensions, complex
+The CDL-A/B/C cases are the NLOS portion of a five-profile family-wise check;
+CDL-D/E's composed zero-delay LOS/diffuse taps are tested separately. Together
+these tests do not qualify geometric RT, other angular dimensions, complex
 CSI, or receiver impact.
 """
 
@@ -39,6 +40,7 @@ _FAMILYWISE_ALPHA = 0.01
 _MAX_CI_HALF_WIDTH = 0.05
 _MAX_ABSOLUTE_REFERENCE_ERROR = 0.05
 _NLOS_PROFILES = ("A", "B", "C")
+_FAMILY_PROFILE_COUNT = 5
 _CDL_TABLE_SHA256 = {
     "A": "b96f8a179646ee468717c615e8061103d1e66eb1ff1ea78301de243740254cb7",
     "B": "7c87c092cb2bb44891d301ee3c1991cdda1c6b64094a03f18746ec5fa14ee2a2",
@@ -142,7 +144,7 @@ def test_cdl_nlos_delay_angular_moment_matches_independent_ray_reference(model: 
     observations = (cluster_power * cluster_scores).sum(dim=1)
     estimate = observations.mean()
     standard_error = observations.std(unbiased=True) / math.sqrt(_BATCH_SIZE)
-    z_99 = NormalDist().inv_cdf(1.0 - _FAMILYWISE_ALPHA / (2.0 * len(_NLOS_PROFILES)))
+    z_99 = NormalDist().inv_cdf(1.0 - _FAMILYWISE_ALPHA / (2.0 * _FAMILY_PROFILE_COUNT))
     half_width = z_99 * standard_error
 
     assert abs(float(estimate) - reference) <= _MAX_ABSOLUTE_REFERENCE_ERROR
