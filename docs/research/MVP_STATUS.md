@@ -1,6 +1,6 @@
 # MVP implementation status
 
-**Validation note (2026-10-24):** A full-repository pytest run reached 84.69% coverage but reported one failure in the unrelated split-policy v2 same-inode rewrite test. The split-policy file passes 49 tests, and the isolated failing case passes 20 repeated runs. Treat full-suite status as unresolved until a clean full rerun.
+**Validation update (2026-10-24, commit `f0f6463`):** Stabilized the split-policy same-inode rewrite test by forcing a distinguishable modification timestamp. All 49 Split Policy v2 tests pass, and the full repository suite passes with 84.69% coverage (75% required). The earlier one-off failure did not recur. Scientific acceptance gates and production RT remain open.
 
 **G5.14 candidate-indexed SSB half-frame assembly (2026-10-24):** Sparse candidate grids now map into a complete 5 ms half-frame at Release 19 Case A-G timing positions with derived normal CP. Candidate/cell/half-frame metadata are checked, absent SSB occasions remain zero, and the waveform exposes an immutable candidate/sample-clock record. The 121-test focused PBCH/SSB slice passes with Ruff, format, and targeted mypy. Carrier placement, full radio-frame integration, broad channel/receiver qualification, and RF calibration remain open; production RT remains gated.
 
