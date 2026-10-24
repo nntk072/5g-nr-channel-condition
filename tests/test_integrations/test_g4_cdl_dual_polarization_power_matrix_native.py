@@ -29,12 +29,17 @@ _BATCH_SIZE = 4096
 _SEED = 407
 _FAMILYWISE_ALPHA = 0.01
 _PRECISION_FRACTION_OF_CROSS_POWER = 0.25
+_PRECISION_FRACTION_OF_LOS_TOTAL_POWER = 0.01
 _PROFILE_SHA256 = {
     "A": "b96f8a179646ee468717c615e8061103d1e66eb1ff1ea78301de243740254cb7",
     "B": "7c87c092cb2bb44891d301ee3c1991cdda1c6b64094a03f18746ec5fa14ee2a2",
     "C": "f2044ecc3b72a1967221805ba70b1f0dab9634bb831478c1337b737ced6e4a28",
 }
 _PROFILE_LETTERS = tuple(_PROFILE_SHA256)
+_LOS_PROFILE_SHA256 = {
+    "D": "a8960f176347de457c0cb90fbc8cf137ac98bb1c5295b096f004d8d5c6e40176",
+    "E": "04328f33d8d79b24aa3d0303fecb58b465ed7e13874930b05e76be0d97743480",
+}
 
 
 def _independent_nlos_cdl_port_power_reference(model: str) -> tuple[Any, str]:
@@ -114,6 +119,77 @@ def test_nlos_cdl_dual_vh_port_powers_match_independent_xpr_ray_law(model: str) 
         assert float(half_widths.max()) <= float(expected.min()) * (
             _PRECISION_FRACTION_OF_CROSS_POWER
         )
+        assert channel.metadata["parameter_table_sha256"] == source_digest
+        assert channel.metadata["batch_axis_semantics"] == "independent_stochastic_channel_draws"
+    finally:
+        torch.set_num_threads(previous_threads)
+
+
+@pytest.mark.native_sionna
+@pytest.mark.parametrize("model", tuple(_LOS_PROFILE_SHA256))
+def test_los_cdl_dual_vh_aggregate_power_matches_k_factor_reference(model: str) -> None:
+    """Check the LOS-plus-diffuse Frobenius power without assuming an LOS port basis.
+
+    For dual-VH omni ports, the LOS Jones/field transform is an orthogonal
+    two-port transform, so its total port-pair power is 2 independent of the
+    sampled LOS angles. The diffuse contribution has expected total power
+    2*(1 + 1/XPR). The table's first-cluster K-factor then gives the reference
+    below. This aggregate statistic deliberately does not claim per-port LOS
+    mixing qualification.
+    """
+    previous_threads = torch.get_num_threads()
+    torch.set_num_threads(1)
+    try:
+        table_path = profile_resources.parameter_file(f"CDL-{model}.json", "19.2")
+        table_bytes = table_path.read_bytes()
+        source_digest = hashlib.sha256(table_bytes).hexdigest()
+        assert source_digest == _LOS_PROFILE_SHA256[model]
+        parameters = profile_resources.load_json(table_path)
+        assert parameters["los"] == 1
+        first_power = 10.0 ** (float(parameters["powers"][0]) / 10.0)
+        diffuse_power = math.fsum(
+            10.0 ** (float(power_db) / 10.0) for power_db in parameters["powers"][1:]
+        )
+        k_factor = first_power / diffuse_power
+        xpr_linear = 10.0 ** (float(parameters["xpr"]) / 10.0)
+        expected_total_power = 2.0 * (k_factor + 1.0 + 1.0 / xpr_linear) / (k_factor + 1.0)
+
+        channel = generate_cdl_frequency_response(
+            model=model,
+            seed=_SEED + ord(model),
+            carrier_frequency_hz=3.5e9,
+            subcarrier_spacing_hz=30_000.0,
+            num_subcarriers=8,
+            batch_size=_BATCH_SIZE,
+            delay_spread_s=100e-9,
+            ut_array=CDLArrayConfig(
+                polarization="dual",
+                polarization_type="VH",
+                antenna_pattern="omni",
+            ),
+            bs_array=CDLArrayConfig(
+                polarization="dual",
+                polarization_type="VH",
+                antenna_pattern="omni",
+            ),
+            ut_orientation_rad=(0.0, 0.0, 0.0),
+            bs_orientation_rad=(0.0, 0.0, 0.0),
+            spec_version="19.2",
+            device="cpu",
+        )
+
+        # Sum RX/TX port-pair powers and profile clusters per independent draw.
+        per_draw_taps = channel.h_path[:, 0, :, 0, :, :, 0].to(torch.complex128)
+        observations = per_draw_taps.abs().square().sum(dim=(1, 2, 3))
+        estimate = observations.mean()
+        standard_error = observations.std(unbiased=True) / math.sqrt(_BATCH_SIZE)
+        z_simultaneous = NormalDist().inv_cdf(
+            1.0 - _FAMILYWISE_ALPHA / (2.0 * len(_LOS_PROFILE_SHA256))
+        )
+        half_width = z_simultaneous * standard_error
+
+        assert abs(float(estimate) - expected_total_power) <= float(half_width)
+        assert float(half_width) <= _PRECISION_FRACTION_OF_LOS_TOTAL_POWER * expected_total_power
         assert channel.metadata["parameter_table_sha256"] == source_digest
         assert channel.metadata["batch_axis_semantics"] == "independent_stochastic_channel_draws"
     finally:
