@@ -40,6 +40,7 @@ _QUANTILE_TARGETS: dict[str, tuple[float, float]] = {
     "median_prediction_interval_width_db": (0.50, MAX_MEDIAN_INTERVAL_WIDTH_DB),
 }
 _COMPARISONS_PER_STRATUM = 5
+_ALL_G3_CLAIMS_PER_STRATUM = _COMPARISONS_PER_STRATUM + 1
 _COMPLEX_CSI_FAILURE_LIMIT = 0.05
 _EXACT_BINOMIAL_SEARCH_LIMIT = 10_000_000
 _EXACT_BINOMIAL_CHUNK_SIZE = 16_384
@@ -149,7 +150,7 @@ def _maximum_angular_units_for_pass_probability(
 def _exact_binomial_critical_failures(
     cluster_counts: np.ndarray,
     *,
-    per_stratum_alpha: float,
+    per_comparison_alpha: float,
 ) -> np.ndarray:
     """Return the largest accepted failure count under a one-sided exact test.
 
@@ -159,7 +160,9 @@ def _exact_binomial_critical_failures(
     the allocated alpha. SciPy's binomial CDF/quantile use stable special
     functions; the CDF checks correct the quantile boundary explicitly.
     """
-    quantile = np.asarray(binom.ppf(per_stratum_alpha, cluster_counts, _COMPLEX_CSI_FAILURE_LIMIT))
+    quantile = np.asarray(
+        binom.ppf(per_comparison_alpha, cluster_counts, _COMPLEX_CSI_FAILURE_LIMIT)
+    )
     critical = quantile.astype(np.int64) - 1
 
     valid = critical >= 0
@@ -167,7 +170,7 @@ def _exact_binomial_critical_failures(
         upper_tail = np.asarray(
             binom.cdf(critical[valid], cluster_counts[valid], _COMPLEX_CSI_FAILURE_LIMIT)
         )
-        critical[valid] -= (upper_tail > per_stratum_alpha).astype(np.int64)
+        critical[valid] -= (upper_tail > per_comparison_alpha).astype(np.int64)
 
     next_count = critical + 1
     valid = next_count <= cluster_counts
@@ -175,15 +178,15 @@ def _exact_binomial_critical_failures(
         next_tail = np.asarray(
             binom.cdf(next_count[valid], cluster_counts[valid], _COMPLEX_CSI_FAILURE_LIMIT)
         )
-        critical[valid] += (next_tail <= per_stratum_alpha).astype(np.int64)
+        critical[valid] += (next_tail <= per_comparison_alpha).astype(np.int64)
     return critical
 
 
 def _exact_binomial_failure_design(
     *,
     planned_failure_probability: float,
-    per_stratum_alpha: float,
-    per_stratum_power: float,
+    per_comparison_alpha: float,
+    per_comparison_power: float,
 ) -> dict[str, int | float | bool | str | None]:
     """Find the first exact-binomial design meeting the allocated power."""
     start = 1
@@ -192,7 +195,7 @@ def _exact_binomial_failure_design(
         counts = np.arange(start, stop, dtype=np.int64)
         critical = _exact_binomial_critical_failures(
             counts,
-            per_stratum_alpha=per_stratum_alpha,
+            per_comparison_alpha=per_comparison_alpha,
         )
         powers = np.zeros(counts.shape, dtype=np.float64)
         admissible = critical >= 0
@@ -200,14 +203,14 @@ def _exact_binomial_failure_design(
             powers[admissible] = binom.cdf(
                 critical[admissible], counts[admissible], planned_failure_probability
             )
-        passing = np.flatnonzero(powers >= per_stratum_power)
+        passing = np.flatnonzero(powers >= per_comparison_power)
         if passing.size:
             index = int(passing[0])
             return {
                 "sample_size_found": True,
                 "required_independent_outer_clusters_per_stratum": int(counts[index]),
                 "maximum_admissible_observed_failures_per_stratum": int(critical[index]),
-                "achieved_per_stratum_power": float(powers[index]),
+                "achieved_per_comparison_power": float(powers[index]),
                 "search_limit_per_stratum": _EXACT_BINOMIAL_SEARCH_LIMIT,
                 "search_status": "EXACT_BINOMIAL_DESIGN_FOUND",
             }
@@ -217,7 +220,7 @@ def _exact_binomial_failure_design(
         "sample_size_found": False,
         "required_independent_outer_clusters_per_stratum": None,
         "maximum_admissible_observed_failures_per_stratum": None,
-        "achieved_per_stratum_power": None,
+        "achieved_per_comparison_power": None,
         "search_limit_per_stratum": _EXACT_BINOMIAL_SEARCH_LIMIT,
         "search_status": "SEARCH_LIMIT_REACHED_NO_DESIGN_RETURNED",
     }
@@ -241,12 +244,11 @@ def plan_g3_independent_acquisition_units(
     the preregistered probability that an independent acquisition unit's
     already-defined summary is at or below that metric's frozen margin. The
     interval-coverage input is the planned mean of independent-unit coverage
-    summaries. A Bonferroni allocation covers all five G3.03 metric claims in
-    every declared stratum; familywise power is conservatively Bonferroni
-    allocated in the same way. The complex-CSI cluster-failure claim is
-    separately Bonferroni-allocated over the requested strata; this does not
-    claim joint familywise control across that claim and the five existing
-    metric claims.
+    summaries. One Bonferroni allocation covers all five distributional
+    metric claims and the complex-CSI cluster-failure claim in every declared
+    stratum. Familywise power is allocated across that same complete family.
+    The returned counts remain planning assumptions and cannot qualify
+    material performance.
 
     Interpreting these inputs as population quantities requires a representative
     sampling frame or an explicit common-distribution assumption across the
@@ -276,12 +278,10 @@ def plan_g3_independent_acquisition_units(
     if not MIN_INTERVAL_COVERAGE < coverage_target < MAX_INTERVAL_COVERAGE:
         raise ValueError("planned_interval_coverage must be strictly inside G3.03 margins")
 
-    comparison_count = stratum_count * _COMPARISONS_PER_STRATUM
+    comparison_count = stratum_count * _ALL_G3_CLAIMS_PER_STRATUM
     alpha_per_comparison = alpha / comparison_count
     beta_per_comparison = beta / comparison_count
 
-    failure_alpha_per_stratum = alpha / stratum_count
-    failure_beta_per_stratum = beta / stratum_count
     planned_failure_probability = _probability(
         planned_complex_csi_failure_probability,
         "planned_complex_csi_failure_probability",
@@ -292,8 +292,8 @@ def plan_g3_independent_acquisition_units(
         )
     complex_csi_failure_plan = _exact_binomial_failure_design(
         planned_failure_probability=planned_failure_probability,
-        per_stratum_alpha=failure_alpha_per_stratum,
-        per_stratum_power=1.0 - failure_beta_per_stratum,
+        per_comparison_alpha=alpha_per_comparison,
+        per_comparison_power=1.0 - beta_per_comparison,
     )
     complex_csi_failure_plan.update(
         {
@@ -302,12 +302,16 @@ def plan_g3_independent_acquisition_units(
                 "the stratum failure probability's one-sided exact upper bound must be <= 0.05."
             ),
             "failure_probability_limit": _COMPLEX_CSI_FAILURE_LIMIT,
-            "one_sided_confidence_level_per_stratum": 1.0 - failure_alpha_per_stratum,
+            "one_sided_confidence_level_per_comparison": 1.0 - alpha_per_comparison,
             "familywise_alpha": alpha,
             "familywise_power_target": power,
             "stratum_count": stratum_count,
-            "per_stratum_alpha_bonferroni": failure_alpha_per_stratum,
-            "per_stratum_power_target_bonferroni": 1.0 - failure_beta_per_stratum,
+            "per_comparison_alpha_bonferroni": alpha_per_comparison,
+            "per_comparison_power_target_bonferroni": 1.0 - beta_per_comparison,
+            "familywise_claim_count": comparison_count,
+            "familywise_scope": (
+                "five distributional metrics and complex-CSI cluster failure across all strata"
+            ),
             "planned_failure_probability": planned_failure_probability,
             "sampling_assumption": (
                 "Outer clusters are independent and representative of the target population, "
@@ -315,7 +319,7 @@ def plan_g3_independent_acquisition_units(
             ),
             "failure_count_rule": (
                 "Accept only observed failure counts whose one-sided Clopper-Pearson upper "
-                "bound is <= 0.05 at the Bonferroni-adjusted per-stratum confidence level."
+                "bound is <= 0.05 at the Bonferroni-adjusted family-wise confidence level."
             ),
             "single_stratum_one_sided_95pct_zero_failure_minimum_clusters": 59,
             "admission_possible": False,
@@ -355,7 +359,17 @@ def plan_g3_independent_acquisition_units(
         int(item["required_independent_units_per_stratum"]) for item in quantile_plans.values()
     ] + [coverage_units]
     supported_lower_bound = max(supported_counts)
-    measurement_unit_lower_bound = max(supported_lower_bound, MIN_INDEPENDENT_MEASUREMENT_UNITS)
+    csi_sample_size = complex_csi_failure_plan["required_independent_outer_clusters_per_stratum"]
+    all_claims_lower_bound = (
+        max(supported_lower_bound, int(csi_sample_size))
+        if isinstance(csi_sample_size, int)
+        else None
+    )
+    measurement_unit_lower_bound = (
+        max(all_claims_lower_bound, MIN_INDEPENDENT_MEASUREMENT_UNITS)
+        if all_claims_lower_bound is not None
+        else None
+    )
 
     angular_plan: dict[str, Any]
     if planned_angular_unit_pass_probability is None:
@@ -365,7 +379,7 @@ def plan_g3_independent_acquisition_units(
             "minimum_per_stratum_pass_probability_target": None,
             "maximum_independent_units_per_stratum": None,
             "maximum_units_status": "UNRESOLVED_MISSING_EXPLICIT_PASS_PROBABILITY",
-            "compatible_with_supported_metrics_lower_bound": None,
+            "compatible_with_combined_six_claim_lower_bound": None,
             "interpretation": (
                 "Supply an explicit IID probability that one independent unit's maximum "
                 "angular CDF KS is <= 0.10; no value is inferred from measurement or pilot data."
@@ -388,7 +402,10 @@ def plan_g3_independent_acquisition_units(
             minimum_pass_probability=angular_power_target,
         )
         angular_compatible = (
-            angular_maximum_units is None or angular_maximum_units >= measurement_unit_lower_bound
+            None
+            if measurement_unit_lower_bound is None
+            else angular_maximum_units is None
+            or angular_maximum_units >= measurement_unit_lower_bound
         )
         angular_plan = {
             "assumption_supplied": True,
@@ -407,13 +424,11 @@ def plan_g3_independent_acquisition_units(
                 angular_maximum_units is None
                 or angular_maximum_units >= MIN_INDEPENDENT_MEASUREMENT_UNITS
             ),
-            "compatible_with_supported_metrics_lower_bound": angular_compatible,
-            "minimum_units_for_bootstrap_eligible_joint_design": measurement_unit_lower_bound,
-            "compatible_with_bootstrap_eligible_joint_design": angular_compatible,
+            "minimum_units_for_combined_six_claim_lower_bound": measurement_unit_lower_bound,
+            "compatible_with_combined_six_claim_lower_bound": angular_compatible,
             "pass_probability_at_maximum_units": (
                 None
-                if angular_maximum_units is None
-                or angular_maximum_units < MIN_INDEPENDENT_MEASUREMENT_UNITS
+                if angular_maximum_units is None or angular_compatible is not True
                 else angular_pass_probability**angular_maximum_units
             ),
             "acceptance_event": (
@@ -433,13 +448,15 @@ def plan_g3_independent_acquisition_units(
             ),
         }
         complete_design_status = (
-            "INFEASIBLE_UNDER_SUPPLIED_ANGULAR_ASSUMPTION"
-            if not angular_compatible
-            else "PARTIAL_ONLY_BOOTSTRAP_PRECISION_COMPLEX_CSI_AND_EXTERNAL_GATES_REMAIN"
+            "UNRESOLVED_COMPLEX_CSI_SAMPLE_SIZE_SEARCH"
+            if measurement_unit_lower_bound is None
+            else "INFEASIBLE_UNDER_SUPPLIED_ANGULAR_ASSUMPTION"
+            if angular_compatible is False
+            else "PARTIAL_ONLY_EVALUATOR_ALIGNED_BOOTSTRAP_AND_EXTERNAL_GATES_REMAIN"
         )
 
     return {
-        "schema": "loslab.g3_sample_size_planning.v2",
+        "schema": "loslab.g3_sample_size_planning.v3",
         "status": "PLANNING_ONLY_NOT_QUALIFICATION",
         "uses_measurement_or_pilot_data": False,
         "admission_possible": False,
@@ -447,7 +464,8 @@ def plan_g3_independent_acquisition_units(
         "familywise_alpha": alpha,
         "familywise_power_target": power,
         "complex_csi_cluster_failure_plan": complex_csi_failure_plan,
-        "comparisons_per_stratum": _COMPARISONS_PER_STRATUM,
+        "distributional_metrics_per_stratum": _COMPARISONS_PER_STRATUM,
+        "all_claims_per_stratum": _ALL_G3_CLAIMS_PER_STRATUM,
         "bonferroni_comparison_count": comparison_count,
         "per_comparison_alpha": alpha_per_comparison,
         "per_comparison_beta": beta_per_comparison,
@@ -471,6 +489,8 @@ def plan_g3_independent_acquisition_units(
         },
         "angular_maximum_metric_plan": angular_plan,
         "hypothetical_required_units_per_stratum_for_supported_metrics": supported_lower_bound,
+        "hypothetical_required_units_per_stratum_for_all_six_claims": all_claims_lower_bound,
+        "minimum_units_for_all_six_claims_and_pilot_floor": measurement_unit_lower_bound,
         "pilot_floor_units_per_stratum": MIN_INDEPENDENT_MEASUREMENT_UNITS,
         "pilot_floor_is_not_qualification_sample_size": True,
         "complete_g3_03_sample_size": None,
@@ -484,7 +504,10 @@ def plan_g3_independent_acquisition_units(
         "methods": {
             "quantiles": "one-sided Hoeffding lower bound and power on independent-unit pass indicators",
             "coverage": "two-sided Hoeffding confidence interval with conservative power allocation",
-            "multiplicity": "Bonferroni across five metric claims per expected stratum",
+            "multiplicity": (
+                "Bonferroni across five distributional metrics and the complex-CSI claim "
+                "per expected stratum"
+            ),
         },
         "assumptions_must_be_preregistered_and_not_estimated_from_pilot": True,
     }

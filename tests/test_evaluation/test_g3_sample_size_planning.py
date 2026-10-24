@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from typing import Any
 
 import numpy as np
 import pytest
@@ -70,7 +71,7 @@ def _bootstrap_atoms() -> list[dict[str, float]]:
     ]
 
 
-def _bootstrap_scenario(atoms: list[dict[str, float]]) -> dict[str, object]:
+def _bootstrap_scenario(atoms: list[dict[str, float]]) -> dict[str, Any]:
     return {"assumed_unit_summaries": atoms, "probabilities": [0.5, 0.5]}
 
 
@@ -91,7 +92,7 @@ def test_planner_is_data_free_bonferroni_adjusted_and_never_admits() -> None:
         planned_complex_csi_failure_probability=0.01,
     )
 
-    assert result["schema"] == "loslab.g3_sample_size_planning.v2"
+    assert result["schema"] == "loslab.g3_sample_size_planning.v3"
     assert result["status"] == "PLANNING_ONLY_NOT_QUALIFICATION"
     assert result["uses_measurement_or_pilot_data"] is False
     assert result["admission_possible"] is False
@@ -104,17 +105,21 @@ def test_planner_is_data_free_bonferroni_adjusted_and_never_admits() -> None:
     assert result["angular_maximum_metric_plan"]["maximum_independent_units_per_stratum"] is None
     assert "weakest stratum" in result["shared_assumptions_scope"]
     assert "represent the target population" in result["population_sampling_assumption"]
-    assert result["bonferroni_comparison_count"] == 20
-    assert result["per_comparison_alpha"] == pytest.approx(0.05 / 20)
-    assert result["per_comparison_beta"] == pytest.approx(0.20 / 20)
+    assert result["distributional_metrics_per_stratum"] == 5
+    assert result["all_claims_per_stratum"] == 6
+    assert result["bonferroni_comparison_count"] == 24
+    assert result["per_comparison_alpha"] == pytest.approx(0.05 / 24)
+    assert result["per_comparison_beta"] == pytest.approx(0.20 / 24)
     failure_plan = result["complex_csi_cluster_failure_plan"]
     assert failure_plan["admission_possible"] is False
     assert failure_plan["is_complete_g3_03_design"] is False
     assert failure_plan["stratum_count"] == 4
-    assert failure_plan["per_stratum_alpha_bonferroni"] == pytest.approx(0.05 / 4)
-    assert failure_plan["per_stratum_power_target_bonferroni"] == pytest.approx(0.95)
+    assert failure_plan["per_comparison_alpha_bonferroni"] == pytest.approx(0.05 / 24)
+    assert failure_plan["per_comparison_power_target_bonferroni"] == pytest.approx(1.0 - 0.20 / 24)
+    assert failure_plan["familywise_claim_count"] == 24
+    assert "complex-CSI cluster failure" in failure_plan["familywise_scope"]
     assert failure_plan["sample_size_found"] is True
-    assert failure_plan["achieved_per_stratum_power"] >= 0.95
+    assert failure_plan["achieved_per_comparison_power"] >= 1.0 - 0.20 / 24
     assert failure_plan["single_stratum_one_sided_95pct_zero_failure_minimum_clusters"] == 59
     assert "independent and representative" in failure_plan["sampling_assumption"]
     assert "any episode" in failure_plan["criterion"]
@@ -128,6 +133,14 @@ def test_planner_is_data_free_bonferroni_adjusted_and_never_admits() -> None:
                 "required_independent_units_per_stratum"
             ]
         ]
+    )
+    assert result["hypothetical_required_units_per_stratum_for_all_six_claims"] == max(
+        result["hypothetical_required_units_per_stratum_for_supported_metrics"],
+        failure_plan["required_independent_outer_clusters_per_stratum"],
+    )
+    assert result["minimum_units_for_all_six_claims_and_pilot_floor"] == max(
+        result["hypothetical_required_units_per_stratum_for_all_six_claims"],
+        MIN_INDEPENDENT_MEASUREMENT_UNITS,
     )
 
 
@@ -261,7 +274,7 @@ def test_bootstrap_assurance_acceptance_rules_match_the_evaluator() -> None:
     ],
 )
 def test_bootstrap_assurance_rejects_invalid_design_inputs(
-    scenarios: dict[str, object], counts: list[int], error: str
+    scenarios: dict[str, dict[str, Any]], counts: list[int], error: str
 ) -> None:
     with pytest.raises(ValueError, match=error):
         plan_g3_bootstrap_assurance(
@@ -386,7 +399,7 @@ def test_angular_maximum_plan_fails_closed_without_assumption_and_flags_conflict
     angular = result["angular_maximum_metric_plan"]
     assert angular["maximum_independent_units_per_stratum"] == 0
     assert angular["compatible_with_pilot_floor"] is False
-    assert angular["compatible_with_supported_metrics_lower_bound"] is False
+    assert angular["compatible_with_combined_six_claim_lower_bound"] is False
     assert result["complete_design_status"] == "INFEASIBLE_UNDER_SUPPLIED_ANGULAR_ASSUMPTION"
     assert result["complete_g3_03_sample_size"] is None
     assert result["admission_possible"] is False
@@ -407,7 +420,7 @@ def test_angular_pass_probability_rejects_invalid_assumptions(value: float) -> N
 def test_exact_one_sided_95_percent_bound_requires_59_zero_failure_clusters() -> None:
     critical = _exact_binomial_critical_failures(
         np.array([58, 59], dtype=np.int64),
-        per_stratum_alpha=0.05,
+        per_comparison_alpha=0.05,
     )
 
     assert critical.tolist() == [-1, 0]
@@ -428,18 +441,20 @@ def test_exact_binomial_design_is_minimal_for_preregistered_power() -> None:
     assert result["sample_size_found"] is True
     assert isinstance(required, int)
     assert isinstance(cutoff, int)
-    assert result["achieved_per_stratum_power"] >= 0.80
-    assert binom.cdf(cutoff, required, 0.01) >= 0.80
+    assert (
+        result["achieved_per_comparison_power"] >= result["per_comparison_power_target_bonferroni"]
+    )
+    assert binom.cdf(cutoff, required, 0.01) >= result["per_comparison_power_target_bonferroni"]
     previous_cutoff = int(
         _exact_binomial_critical_failures(
             np.array([required - 1], dtype=np.int64),
-            per_stratum_alpha=0.05,
+            per_comparison_alpha=result["per_comparison_alpha_bonferroni"],
         )[0]
     )
     previous_power = (
         float(binom.cdf(previous_cutoff, required - 1, 0.01)) if previous_cutoff >= 0 else 0.0
     )
-    assert previous_power < 0.80
+    assert previous_power < result["per_comparison_power_target_bonferroni"]
     four_strata = plan_g3_independent_acquisition_units(
         stratum_count=4,
         planned_quantile_pass_probabilities=_assumptions(),
