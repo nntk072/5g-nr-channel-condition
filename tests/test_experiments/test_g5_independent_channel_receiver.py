@@ -68,7 +68,7 @@ def test_exact_channel_prevalence_bound_is_nonzero_for_zero_failures():
 def test_saved_independent_channel_report_has_cluster_level_reproducible_decision():
     report_path = (
         Path(__file__).resolve().parents[2]
-        / "docs/research/results/g5-independent-channel-pusch-ici-20261024.json"
+        / "docs/research/results/g5-independent-channel-pusch-doppler-stress-20261024.json"
     )
     report = json.loads(report_path.read_text(encoding="utf-8"))
     recorded_hash = report.pop("result_sha256")
@@ -76,7 +76,7 @@ def test_saved_independent_channel_report_has_cluster_level_reproducible_decisio
         json.dumps(report, sort_keys=True, separators=(",", ":")).encode("utf-8")
     ).hexdigest()
 
-    assert report["schema"] == "umcd.g5_independent_channel_receiver.v2"
+    assert report["schema"] == "umcd.g5_independent_channel_receiver.v3"
     assert recorded_hash == actual_hash
     assert report["source_sha256"] == _source_fingerprints()
     assert report["runtime"]["device"] == "cpu"
@@ -86,67 +86,84 @@ def test_saved_independent_channel_report_has_cluster_level_reproducible_decisio
     assert configuration["blocks_per_channel"] == 8
     assert configuration["bootstrap"]["resampling_unit"] == "independent_channel_draw"
     assert configuration["channel_distribution"]["echo_delay_samples_inclusive"] == [2, 8]
+    assert configuration["channel_distribution"]["echo_doppler_hz_conditions"] == [750.0, 1500.0]
 
     records = report["channel_draw_records"]
     assert [record["channel_seed"] for record in records] == configuration["channel_seeds"]
     reference_rates: list[float] = []
-    mobile_rates: list[float] = []
-    symbol_static_rates: list[float] = []
+    condition_names = (
+        "750hz_symbol_static",
+        "750hz_continuous",
+        "1500hz_symbol_static",
+        "1500hz_continuous",
+    )
+    rates = {condition: [] for condition in condition_names}
     for record in records:
         results = record["crc_pass_by_condition"]
-        assert set(results) == {"static", "750hz_symbol_static", "750hz_continuous"}
-        assert (
-            len(results["static"])
-            == len(results["750hz_symbol_static"])
-            == len(results["750hz_continuous"])
-            == 8
-        )
+        assert set(results) == {"static", *condition_names}
+        assert all(len(blocks) == 8 for blocks in results.values())
         reference_rates.append(1 - sum(results["static"]) / 8)
-        symbol_static_rates.append(1 - sum(results["750hz_symbol_static"]) / 8)
-        mobile_rates.append(1 - sum(results["750hz_continuous"]) / 8)
+        for condition in condition_names:
+            rates[condition].append(1 - sum(results[condition]) / 8)
 
-    differences = [mobile - reference for reference, mobile in zip(reference_rates, mobile_rates)]
-    per_interval_alpha = FAMILYWISE_ALPHA / 3
+    per_interval_alpha = FAMILYWISE_ALPHA / 5
     channels_with_failures = sum(rate > 0 for rate in reference_rates)
     assert channels_with_failures == 0
     reference_upper_bound = 1 - per_interval_alpha ** (1 / len(reference_rates))
-    difference_interval = _independent_cluster_interval(
-        differences, seed=BOOTSTRAP_SEED + 1, alpha=per_interval_alpha
-    )
-    intra_symbol_differences = [
-        continuous - symbol_static
-        for symbol_static, continuous in zip(symbol_static_rates, mobile_rates)
-    ]
-    intra_symbol_interval = _independent_cluster_interval(
-        intra_symbol_differences, seed=BOOTSTRAP_SEED + 2, alpha=per_interval_alpha
-    )
     result = report["acceptance"]
     reference_mean = sum(reference_rates) / len(reference_rates)
-    difference_mean = sum(differences) / len(differences)
-    intra_symbol_mean = sum(intra_symbol_differences) / len(intra_symbol_differences)
     assert result["reference_bler"] == pytest.approx(reference_mean)
-    assert result["paired_mean_bler_increase"] == pytest.approx(difference_mean)
     assert result["reference_channels_with_any_crc_failure"] == channels_with_failures
     assert result["reference_bler_upper_bound"] == pytest.approx(reference_upper_bound)
-    assert result["paired_increase_cluster_bootstrap_interval"] == pytest.approx(
-        difference_interval
-    )
-    assert result["symbol_static_bler"] == pytest.approx(
-        sum(symbol_static_rates) / len(symbol_static_rates)
-    )
-    assert result["intra_symbol_bler_increase"] == pytest.approx(intra_symbol_mean)
-    assert result["intra_symbol_increase_cluster_bootstrap_interval"] == pytest.approx(
-        intra_symbol_interval
-    )
     assert result["familywise_confidence"] == 0.99
-    assert result["interval_count"] == 3
-    assert result["mobile_effect_pass"] is (
+    assert result["interval_count"] == 5
+    mobile_effect_pass = True
+    intra_symbol_effect_pass = True
+    for index, doppler in enumerate((750, 1500)):
+        key = str(doppler)
+        mobile_rates = rates[f"{key}hz_continuous"]
+        symbol_static_rates = rates[f"{key}hz_symbol_static"]
+        differences = [mobile - ref for ref, mobile in zip(reference_rates, mobile_rates)]
+        difference_mean = sum(differences) / len(differences)
+        difference_interval = _independent_cluster_interval(
+            differences,
+            seed=BOOTSTRAP_SEED + 1 + 2 * index,
+            alpha=per_interval_alpha,
+        )
+        mobile = result["mobile_effect_by_doppler_hz"][key]
+        assert mobile["bler"] == pytest.approx(sum(mobile_rates) / len(mobile_rates))
+        assert mobile["paired_mean_bler_increase"] == pytest.approx(difference_mean)
+        assert mobile["paired_increase_cluster_bootstrap_interval"] == pytest.approx(
+            difference_interval
+        )
+        mobile_effect_pass &= (
+            difference_mean >= MINIMUM_MOBILE_BLER_INCREASE and difference_interval[0] > 0
+        )
+
+        ici_differences = [
+            continuous - symbol_static
+            for symbol_static, continuous in zip(symbol_static_rates, mobile_rates)
+        ]
+        ici_mean = sum(ici_differences) / len(ici_differences)
+        ici_interval = _independent_cluster_interval(
+            ici_differences,
+            seed=BOOTSTRAP_SEED + 2 + 2 * index,
+            alpha=per_interval_alpha,
+        )
+        ici = result["intra_symbol_effect_by_doppler_hz"][key]
+        assert ici["symbol_static_bler"] == pytest.approx(
+            sum(symbol_static_rates) / len(symbol_static_rates)
+        )
+        assert ici["bler_increase"] == pytest.approx(ici_mean)
+        assert ici["increase_cluster_bootstrap_interval"] == pytest.approx(ici_interval)
+        intra_symbol_effect_pass &= (
+            ici_mean >= MINIMUM_INTRA_SYMBOL_BLER_INCREASE and ici_interval[0] > 0
+        )
+
+    mobile_effect_pass &= (
         reference_mean <= MAXIMUM_REFERENCE_BLER
         and reference_upper_bound <= MAXIMUM_REFERENCE_UPPER_BOUND
-        and difference_mean >= MINIMUM_MOBILE_BLER_INCREASE
-        and difference_interval[0] > 0
     )
-    assert result["intra_symbol_effect_pass"] is (
-        intra_symbol_mean >= MINIMUM_INTRA_SYMBOL_BLER_INCREASE and intra_symbol_interval[0] > 0
-    )
-    assert result["pass"] is (result["mobile_effect_pass"] and result["intra_symbol_effect_pass"])
+    assert result["mobile_effect_pass"] is mobile_effect_pass
+    assert result["intra_symbol_effect_pass"] is intra_symbol_effect_pass
+    assert result["pass"] is (mobile_effect_pass and intra_symbol_effect_pass)

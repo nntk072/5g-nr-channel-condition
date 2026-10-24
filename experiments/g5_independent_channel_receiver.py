@@ -14,11 +14,12 @@ from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import Any
 
-SCHEMA = "umcd.g5_independent_channel_receiver.v2"
+SCHEMA = "umcd.g5_independent_channel_receiver.v3"
 CHANNEL_SEEDS = tuple(range(73_001, 73_065))
 BLOCKS_PER_CHANNEL = 8
 NOISE_VARIANCE = 0.01
 MOBILE_DOPPLER_HZ = 750.0
+DOPPLER_STRESS_HZ = 1500.0
 BOOTSTRAP_SEED = 73_999
 BOOTSTRAP_REPLICATES = 20_000
 FAMILYWISE_ALPHA = 0.01
@@ -140,7 +141,13 @@ def run_independent_channel_probe(
     receiver = SionnaPUSCHLSReceiver(config, device="cpu")
     grid = receiver.resource_grid
     sample_rate_hz = float(grid.fft_size * config.subcarrier_spacing_khz * 1_000)
-    conditions = ("static", "750hz_symbol_static", "750hz_continuous")
+    conditions = (
+        "static",
+        "750hz_symbol_static",
+        "750hz_continuous",
+        "1500hz_symbol_static",
+        "1500hz_continuous",
+    )
     records: list[dict[str, Any]] = []
     cluster_rates: dict[str, list[float]] = {condition: [] for condition in conditions}
 
@@ -164,8 +171,8 @@ def run_independent_channel_probe(
         by_condition: dict[str, list[bool]] = {}
 
         for condition in conditions:
-            doppler = 0.0 if condition == "static" else MOBILE_DOPPLER_HZ
-            symbol_static = condition == "750hz_symbol_static"
+            doppler = 0.0 if condition == "static" else float(condition.split("hz_", maxsplit=1)[0])
+            symbol_static = condition.endswith("_symbol_static")
             received = (
                 apply_time_varying_multipath(
                     tx_waveform,
@@ -196,71 +203,80 @@ def run_independent_channel_probe(
             }
         )
 
-    paired_differences = [
-        mobile - static
-        for static, mobile in zip(
-            cluster_rates["static"], cluster_rates["750hz_continuous"], strict=True
-        )
-    ]
     reference_rates = cluster_rates["static"]
-    mobile_rates = cluster_rates["750hz_continuous"]
-    symbol_static_rates = cluster_rates["750hz_symbol_static"]
-    per_interval_alpha = FAMILYWISE_ALPHA / 3.0
+    per_interval_alpha = FAMILYWISE_ALPHA / 5.0
     reference_channels_with_failures = sum(rate > 0.0 for rate in reference_rates)
     reference_upper_bound = clopper_pearson_upper_bound(
         reference_channels_with_failures,
         len(reference_rates),
         alpha=per_interval_alpha,
     )
-    difference_interval = cluster_bootstrap_interval(
-        paired_differences,
-        seed=BOOTSTRAP_SEED + 1,
-        alpha=per_interval_alpha,
-        replicates=BOOTSTRAP_REPLICATES,
-    )
-    intra_symbol_differences = [
-        continuous - symbol_static
-        for symbol_static, continuous in zip(symbol_static_rates, mobile_rates, strict=True)
-    ]
-    intra_symbol_interval = cluster_bootstrap_interval(
-        intra_symbol_differences,
-        seed=BOOTSTRAP_SEED + 2,
-        alpha=per_interval_alpha,
-        replicates=BOOTSTRAP_REPLICATES,
-    )
     reference_mean = sum(reference_rates) / len(reference_rates)
-    mobile_mean = sum(mobile_rates) / len(mobile_rates)
-    difference_mean = sum(paired_differences) / len(paired_differences)
-    intra_symbol_mean = sum(intra_symbol_differences) / len(intra_symbol_differences)
+    mobile_effects: dict[str, dict[str, Any]] = {}
+    intra_symbol_effects: dict[str, dict[str, Any]] = {}
+    for index, doppler_hz in enumerate((MOBILE_DOPPLER_HZ, DOPPLER_STRESS_HZ)):
+        doppler_key = str(int(doppler_hz))
+        mobile_rates = cluster_rates[f"{doppler_key}hz_continuous"]
+        symbol_static_rates = cluster_rates[f"{doppler_key}hz_symbol_static"]
+        paired_differences = [
+            mobile - static for static, mobile in zip(reference_rates, mobile_rates, strict=True)
+        ]
+        difference_interval = cluster_bootstrap_interval(
+            paired_differences,
+            seed=BOOTSTRAP_SEED + 1 + 2 * index,
+            alpha=per_interval_alpha,
+            replicates=BOOTSTRAP_REPLICATES,
+        )
+        difference_mean = sum(paired_differences) / len(paired_differences)
+        mobile_effects[doppler_key] = {
+            "bler": sum(mobile_rates) / len(mobile_rates),
+            "paired_mean_bler_increase": difference_mean,
+            "paired_increase_cluster_bootstrap_interval": list(difference_interval),
+            "pass": difference_mean >= MINIMUM_MOBILE_BLER_INCREASE
+            and difference_interval[0] > 0.0,
+        }
+
+        intra_symbol_differences = [
+            continuous - symbol_static
+            for symbol_static, continuous in zip(symbol_static_rates, mobile_rates, strict=True)
+        ]
+        intra_symbol_interval = cluster_bootstrap_interval(
+            intra_symbol_differences,
+            seed=BOOTSTRAP_SEED + 2 + 2 * index,
+            alpha=per_interval_alpha,
+            replicates=BOOTSTRAP_REPLICATES,
+        )
+        intra_symbol_mean = sum(intra_symbol_differences) / len(intra_symbol_differences)
+        intra_symbol_effects[doppler_key] = {
+            "symbol_static_bler": sum(symbol_static_rates) / len(symbol_static_rates),
+            "continuous_bler": sum(mobile_rates) / len(mobile_rates),
+            "bler_increase": intra_symbol_mean,
+            "increase_cluster_bootstrap_interval": list(intra_symbol_interval),
+            "pass": intra_symbol_mean >= MINIMUM_INTRA_SYMBOL_BLER_INCREASE
+            and intra_symbol_interval[0] > 0.0,
+        }
     mobile_effect_pass = (
         reference_mean <= MAXIMUM_REFERENCE_BLER
         and reference_upper_bound <= MAXIMUM_REFERENCE_UPPER_BOUND
-        and difference_mean >= MINIMUM_MOBILE_BLER_INCREASE
-        and difference_interval[0] > 0.0
+        and all(result["pass"] for result in mobile_effects.values())
     )
-    intra_symbol_effect_pass = (
-        intra_symbol_mean >= MINIMUM_INTRA_SYMBOL_BLER_INCREASE and intra_symbol_interval[0] > 0.0
-    )
+    intra_symbol_effect_pass = all(result["pass"] for result in intra_symbol_effects.values())
     acceptance = {
-        "protocol": "paired static, 750-Hz symbol-static, and 750-Hz continuous echo Doppler over independent seeded two-path channel draws; channel draw is the statistical unit; equal channel weighting",
+        "protocol": "paired static, symbol-static, and continuous echo Doppler at 750 and 1,500 Hz over independent seeded two-path channel draws; channel draw is the statistical unit; equal channel weighting",
         "familywise_confidence": 1.0 - FAMILYWISE_ALPHA,
-        "interval_count": 3,
+        "interval_count": 5,
         "per_interval_confidence": 1.0 - per_interval_alpha,
         "maximum_reference_bler_point_estimate": MAXIMUM_REFERENCE_BLER,
         "maximum_reference_bler_upper_bound": MAXIMUM_REFERENCE_UPPER_BOUND,
-        "minimum_mean_bler_increase": MINIMUM_MOBILE_BLER_INCREASE,
+        "minimum_mobile_bler_increase": MINIMUM_MOBILE_BLER_INCREASE,
         "reference_bler": reference_mean,
         "reference_channels_with_any_crc_failure": reference_channels_with_failures,
         "reference_bler_upper_bound": reference_upper_bound,
         "reference_bler_upper_bound_method": "one-sided Clopper-Pearson bound on channel-level any-failure prevalence; conservative upper bound for mean BLER",
-        "mobile_bler": mobile_mean,
-        "paired_mean_bler_increase": difference_mean,
-        "paired_increase_cluster_bootstrap_interval": list(difference_interval),
+        "mobile_effect_by_doppler_hz": mobile_effects,
         "minimum_intra_symbol_bler_increase": MINIMUM_INTRA_SYMBOL_BLER_INCREASE,
-        "symbol_static_bler": sum(symbol_static_rates) / len(symbol_static_rates),
-        "intra_symbol_bler_increase": intra_symbol_mean,
-        "intra_symbol_increase_cluster_bootstrap_interval": list(intra_symbol_interval),
-        "intra_symbol_control": "750-Hz echo Doppler frozen at OFDM-symbol starts; retains inter-symbol aging and removes within-symbol phase evolution",
+        "intra_symbol_effect_by_doppler_hz": intra_symbol_effects,
+        "intra_symbol_control": "echo Doppler frozen at OFDM-symbol starts; retains inter-symbol aging and removes within-symbol phase evolution",
         "mobile_effect_pass": mobile_effect_pass,
         "intra_symbol_effect_pass": intra_symbol_effect_pass,
         "pass": mobile_effect_pass and intra_symbol_effect_pass,
@@ -290,7 +306,7 @@ def run_independent_channel_probe(
                 "echo_delay_samples_inclusive": [2, 8],
                 "echo_amplitude_uniform": [0.20, 0.50],
                 "echo_phase_uniform_rad": [-math.pi, math.pi],
-                "echo_doppler_hz": MOBILE_DOPPLER_HZ,
+                "echo_doppler_hz_conditions": [MOBILE_DOPPLER_HZ, DOPPLER_STRESS_HZ],
                 "waveform_awgn_variance": NOISE_VARIANCE,
             },
             "symbol_static_control": {
@@ -304,8 +320,10 @@ def run_independent_channel_probe(
                 "familywise_alpha": FAMILYWISE_ALPHA,
                 "simultaneous_claims": [
                     "static-reference BLER upper bound",
-                    "continuous-Doppler paired BLER increase",
-                    "continuous versus symbol-static intra-symbol BLER increase",
+                    "continuous-Doppler paired BLER increase at 750 Hz",
+                    "continuous versus symbol-static intra-symbol BLER increase at 750 Hz",
+                    "continuous-Doppler paired BLER increase at 1,500 Hz",
+                    "continuous versus symbol-static intra-symbol BLER increase at 1,500 Hz",
                 ],
             },
         },
@@ -323,7 +341,9 @@ def main() -> None:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("docs/research/results/g5-independent-channel-pusch-ici-20261024.json"),
+        default=Path(
+            "docs/research/results/g5-independent-channel-pusch-doppler-stress-20261024.json"
+        ),
     )
     args = parser.parse_args()
     report = run_independent_channel_probe()
@@ -333,8 +353,8 @@ def main() -> None:
     print(
         f"wrote {args.output}: channels={report['configuration']['channel_draws']}, "
         f"baseline BLER={result['reference_bler']:.3f}, "
-        f"paired increase={result['paired_mean_bler_increase']:.3f}, "
-        f"intra-symbol increase={result['intra_symbol_bler_increase']:.3f}, "
+        f"mobile={result['mobile_effect_by_doppler_hz']}, "
+        f"intra-symbol={result['intra_symbol_effect_by_doppler_hz']}, "
         f"decision={'PASS' if result['pass'] else 'NOT MET'}"
     )
 
