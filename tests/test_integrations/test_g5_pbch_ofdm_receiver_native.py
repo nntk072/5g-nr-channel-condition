@@ -22,6 +22,7 @@ from integrations.sionna import (  # noqa: E402
     nr_ssb_ofdm_modulate,
     nr_ssb_ofdm_modulate_half_frame,
     nr_ssb_waveform_config,
+    ssb_candidate_symbols,
 )
 
 _FFT_SIZE = 256
@@ -358,6 +359,97 @@ def test_blind_acquisition_recovers_ssb_from_candidate_timed_half_frame() -> Non
     assert result.cell_detection.physical_cell_id == _CELL_ID
     assert result.cell_detection.cfo_hz == pytest.approx(2_500.0, abs=100.0)
     assert result.ssb_index_in_half_frame == ssb_index
+    assert result.half_frame_index == half_frame_index
+    assert result.pbch_reception.crc_valid
+    assert result.pbch_reception.mib == expected_mib
+
+
+@pytest.mark.native_sionna
+@pytest.mark.parametrize(
+    ("case", "carrier_hz", "frequency_range", "scs_hz", "candidate_index"),
+    [
+        ("B", 3.5e9, "FR1", 30_000, 7),
+        ("D", 28e9, "FR2", 120_000, 63),
+    ],
+)
+def test_blind_acquisition_recovers_high_candidate_across_ssb_numerologies(
+    case: str,
+    carrier_hz: float,
+    frequency_range: str,
+    scs_hz: int,
+    candidate_index: int,
+) -> None:
+    fft_size = _FFT_SIZE
+    half_frame_index = 0
+    sfn = 0b0110101101
+    candidate_positions = ssb_candidate_symbols(
+        case,
+        carrier_hz,
+        subcarrier_spacing_hz=scs_hz,
+        frequency_range=frequency_range,
+    )
+    candidate_count = len(candidate_positions)
+    ssb, expected_mib = _make_ssb_resource_grid(
+        sfn,
+        candidate_count=candidate_count,
+        ssb_index=candidate_index,
+        half_frame=half_frame_index,
+    )
+    burst = nr_ssb_ofdm_modulate_half_frame(
+        {candidate_index: ssb},
+        case=case,
+        carrier_frequency_hz=carrier_hz,
+        subcarrier_spacing_hz=scs_hz,
+        frequency_range=frequency_range,
+        fft_size=fft_size,
+    )
+    start_symbol = candidate_positions[candidate_index]
+    config = nr_ssb_waveform_config(
+        subcarrier_spacing_hz=scs_hz,
+        candidate_start_symbol=start_symbol,
+        fft_size=fft_size,
+    )
+    mu = int(np.log2(scs_hz / 15_000))
+    short_cp = 144 * fft_size // 2048
+    long_cp = (144 + 16 * (2**mu)) * fft_size // 2048
+    symbols_per_subframe = 14 * (2**mu)
+    long_cp_symbol = 7 * (2**mu)
+    symbol_offset = sum(
+        fft_size + (long_cp if symbol % symbols_per_subframe in (0, long_cp_symbol) else short_cp)
+        for symbol in range(start_symbol)
+    )
+    cp_lengths = config.cyclic_prefix_lengths
+
+    leading_samples = 11
+    channelled, noise_variance, _ = _apply_channel_and_noise(
+        burst.waveform, seed=9300 + candidate_index, delay=5, snr_db=24.0
+    )
+    capture = np.concatenate(
+        (
+            np.zeros(leading_samples, dtype=np.complex128),
+            channelled,
+            np.zeros(fft_size + cp_lengths[-1], dtype=np.complex128),
+        )
+    )
+    sample_rate_hz = float(fft_size * scs_hz)
+    cfo_hz = -1_500.0
+    capture *= np.exp(2j * np.pi * cfo_hz * np.arange(capture.size) / sample_rate_hz)
+
+    result = nr_pbch_acquire_and_receive(
+        capture,
+        fft_size=fft_size,
+        cyclic_prefix_lengths=cp_lengths,
+        sampling_frequency_hz=sample_rate_hz,
+        max_candidate_blocks_per_half_frame=candidate_count,
+        noise_variance=noise_variance,
+        cfo_hypotheses_hz=(-3_000.0, -1_500.0, 0.0, 1_500.0, 3_000.0),
+        cfo_guard_samples=5,
+    )
+
+    assert result.cell_detection.sample_offset == leading_samples + symbol_offset
+    assert result.cell_detection.physical_cell_id == _CELL_ID
+    assert result.cell_detection.cfo_hz == pytest.approx(cfo_hz, abs=100.0)
+    assert result.ssb_index_in_half_frame == candidate_index
     assert result.half_frame_index == half_frame_index
     assert result.pbch_reception.crc_valid
     assert result.pbch_reception.mib == expected_mib
