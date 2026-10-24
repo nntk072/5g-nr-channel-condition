@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from numbers import Real
 
 import numpy as np
 from numpy.typing import NDArray
@@ -105,3 +106,32 @@ def map_nr_ssb_resource_grid(
         grid=grid,
         pbch_dmrs=dmrs,
     )
+
+
+def scale_nr_ssb_resource_grid_epre(
+    ssb_grid: NDArray[np.generic], *, pss_to_sss_epre_db: float
+) -> NDArray[np.complex128]:
+    """Apply the TS 38.213 assumed PSS-to-SSS EPRE ratio of 0 or 3 dB.
+
+    SSS, PBCH data, and PBCH DM-RS remain at the same EPRE. The input is
+    treated as a relative resource grid; this function does not convert
+    ``ss-PBCH-BlockPower`` in dBm to absolute watts or waveform voltage.
+    """
+    if isinstance(pss_to_sss_epre_db, (bool, np.bool_)) or not isinstance(pss_to_sss_epre_db, Real):
+        raise TypeError("pss_to_sss_epre_db must be a real number")
+    ratio_db = float(pss_to_sss_epre_db)
+    if ratio_db not in (0.0, 3.0):
+        raise ValueError("pss_to_sss_epre_db must be 0 or 3 dB")
+
+    source = np.asarray(ssb_grid)
+    if source.shape != (_SSB_SYMBOL_COUNT, _SSB_SUBCARRIER_COUNT):
+        raise ValueError("ssb_grid must have shape (4, 240)")
+    if source.dtype.kind not in "iufc" or source.dtype.kind == "b":
+        raise TypeError("ssb_grid must be a real or complex numeric array")
+    result = np.asarray(source, dtype=np.complex128).copy()
+    if not np.isfinite(result.real).all() or not np.isfinite(result.imag).all():
+        raise ValueError("ssb_grid must be finite")
+
+    result[0, 56:183] *= 10.0 ** (ratio_db / 20.0)
+    result.setflags(write=False)
+    return result
