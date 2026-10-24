@@ -17,6 +17,8 @@ from integrations.sionna import (  # noqa: E402
     nr_pbch_qpsk_modulate,
     nr_pbch_receive_ofdm,
     nr_pbch_scramble_bits,
+    nr_ssb_ofdm_demodulate,
+    nr_ssb_ofdm_modulate,
 )
 
 _FFT_SIZE = 256
@@ -71,13 +73,10 @@ def _make_ssb_waveform(
         half_frame_index=half_frame,
         max_candidate_blocks_per_half_frame=candidate_count,
     )
-    waveform_symbols: list[np.ndarray] = []
-    for grid_symbol, cp_length in zip(ssb.grid, _CP_LENGTHS, strict=True):
-        centered = np.zeros(_FFT_SIZE, dtype=np.complex128)
-        centered[8:248] = grid_symbol
-        useful = np.fft.ifft(np.fft.ifftshift(centered), norm="ortho")
-        waveform_symbols.append(np.concatenate((useful[-cp_length:], useful)))
-    return np.concatenate(waveform_symbols), mib
+    return (
+        nr_ssb_ofdm_modulate(ssb.grid, fft_size=_FFT_SIZE, cyclic_prefix_lengths=_CP_LENGTHS),
+        mib,
+    )
 
 
 def _apply_channel_and_noise(
@@ -136,6 +135,41 @@ def test_pbch_receiver_decodes_seeded_awgn_and_cp_contained_multipath() -> None:
             np.broadcast_to(channel_reference, data_region.shape)[data_region]
         )
         assert relative_channel_error < 0.06
+
+
+@pytest.mark.native_sionna
+@pytest.mark.parametrize(
+    ("fft_size", "cyclic_prefix_lengths"),
+    [(256, (18, 20, 18, 20)), (512, (36, 40, 36, 40)), (1024, (72, 80, 72, 80))],
+)
+def test_ssb_ofdm_waveform_matches_sionna_22_and_roundtrips(
+    fft_size: int, cyclic_prefix_lengths: tuple[int, int, int, int]
+) -> None:
+    import torch
+    from sionna.phy.ofdm import OFDMModulator
+
+    rng = np.random.default_rng(4100 + fft_size)
+    ssb_grid = rng.standard_normal((4, 240)) + 1j * rng.standard_normal((4, 240))
+    waveform = nr_ssb_ofdm_modulate(
+        ssb_grid, fft_size=fft_size, cyclic_prefix_lengths=cyclic_prefix_lengths
+    )
+    recovered = nr_ssb_ofdm_demodulate(
+        waveform, fft_size=fft_size, cyclic_prefix_lengths=cyclic_prefix_lengths
+    )
+
+    full_grid = np.zeros((1, 4, fft_size), dtype=np.complex64)
+    active_start = fft_size // 2 - 120
+    full_grid[0, :, active_start : active_start + 240] = ssb_grid
+    native = OFDMModulator(
+        cyclic_prefix_length=np.asarray(cyclic_prefix_lengths, dtype=np.int32),
+        device="cpu",
+    )(torch.as_tensor(full_grid))
+
+    np.testing.assert_allclose(waveform, native[0].detach().cpu().numpy(), rtol=2e-6, atol=2e-6)
+    np.testing.assert_allclose(recovered, ssb_grid, rtol=1e-12, atol=1e-12)
+    assert waveform.shape == (sum(fft_size + cp for cp in cyclic_prefix_lengths),)
+    assert not waveform.flags.writeable
+    assert not recovered.flags.writeable
 
 
 @pytest.mark.native_sionna

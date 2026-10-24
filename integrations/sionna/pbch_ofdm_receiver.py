@@ -16,6 +16,7 @@ from .pbch_dmrs import nr_pbch_dmrs_ssb
 from .pbch_mib import PBCHMIB, nr_pbch_mib_parse
 from .pbch_payload import PBCHPayloadRecovery, nr_pbch_payload_recover
 from .ssb_grid import _pbch_data_coordinates
+from .ssb_ofdm import nr_ssb_ofdm_demodulate
 
 _SSB_SUBCARRIERS = 240
 _SSB_SYMBOLS = 4
@@ -70,7 +71,9 @@ def nr_pbch_receive_ofdm(
     if samples.shape != (expected_samples,):
         raise ValueError(f"received_samples must have shape ({expected_samples},)")
 
-    received_grid = _demodulate_known_ssb(samples, fft_length, cp_lengths)
+    received_grid = nr_ssb_ofdm_demodulate(
+        samples, fft_size=fft_length, cyclic_prefix_lengths=cp_lengths
+    )
     dmrs = nr_pbch_dmrs_ssb(
         physical_cell_id,
         ssb_index_in_half_frame,
@@ -134,22 +137,6 @@ def nr_pbch_receive_ofdm(
         equalized_pbch_symbols=equalized,
         descrambled_llrs=llrs,
     )
-
-
-def _demodulate_known_ssb(
-    samples: NDArray[np.generic], fft_size: int, cp_lengths: tuple[int, ...]
-) -> NDArray[np.complex128]:
-    grid = np.empty((_SSB_SYMBOLS, _SSB_SUBCARRIERS), dtype=np.complex128)
-    offset = 0
-    lower = fft_size // 2 - _SSB_SUBCARRIERS // 2
-    upper = lower + _SSB_SUBCARRIERS
-    for symbol, cp_length in enumerate(cp_lengths):
-        start = offset + cp_length
-        useful = np.asarray(samples[start : start + fft_size], dtype=np.complex128)
-        spectrum = np.fft.fftshift(np.fft.fft(useful, norm="ortho"))
-        grid[symbol] = spectrum[lower:upper]
-        offset += cp_length + fft_size
-    return grid
 
 
 def _interpolate_channel(

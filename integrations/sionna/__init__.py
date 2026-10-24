@@ -39,6 +39,7 @@ from .pbch_payload import (
 from .rt_cache import RTCacheConflictError, load_rt_dataset, store_rt_dataset
 from .rt_to_nr import NRGridChannel, paths_to_nr_ofdm_channel
 from .ssb_grid import NRSSBResourceGrid, map_nr_ssb_resource_grid
+from .ssb_ofdm import nr_ssb_ofdm_demodulate, nr_ssb_ofdm_modulate
 from .ssb_timing import ssb_case_a_candidate_symbols
 from .tdl import SionnaTDLChannel, generate_tdl_frequency_response
 from .tdl_pusch import SionnaTDLPUSCHBatch, generate_tdl_pusch_batch, tdl_pusch_records
@@ -93,6 +94,8 @@ __all__ = [
     "nr_pbch_qpsk_modulate",
     "nr_pbch_scramble_bits",
     "map_nr_ssb_resource_grid",
+    "nr_ssb_ofdm_demodulate",
+    "nr_ssb_ofdm_modulate",
     "sionna_paths_to_oracle_table",
     "ssb_case_a_candidate_symbols",
 ]
