@@ -14,7 +14,7 @@ from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import Any
 
-SCHEMA = "umcd.g5_independent_channel_receiver.v1"
+SCHEMA = "umcd.g5_independent_channel_receiver.v2"
 CHANNEL_SEEDS = tuple(range(73_001, 73_065))
 BLOCKS_PER_CHANNEL = 8
 NOISE_VARIANCE = 0.01
@@ -25,6 +25,7 @@ FAMILYWISE_ALPHA = 0.01
 MAXIMUM_REFERENCE_BLER = 0.05
 MAXIMUM_REFERENCE_UPPER_BOUND = 0.10
 MINIMUM_MOBILE_BLER_INCREASE = 0.10
+MINIMUM_INTRA_SYMBOL_BLER_INCREASE = 0.10
 
 
 def cluster_bootstrap_interval(
@@ -139,7 +140,7 @@ def run_independent_channel_probe(
     receiver = SionnaPUSCHLSReceiver(config, device="cpu")
     grid = receiver.resource_grid
     sample_rate_hz = float(grid.fft_size * config.subcarrier_spacing_khz * 1_000)
-    conditions = ("static", "750hz_continuous")
+    conditions = ("static", "750hz_symbol_static", "750hz_continuous")
     records: list[dict[str, Any]] = []
     cluster_rates: dict[str, list[float]] = {condition: [] for condition in conditions}
 
@@ -164,6 +165,7 @@ def run_independent_channel_probe(
 
         for condition in conditions:
             doppler = 0.0 if condition == "static" else MOBILE_DOPPLER_HZ
+            symbol_static = condition == "750hz_symbol_static"
             received = (
                 apply_time_varying_multipath(
                     tx_waveform,
@@ -171,6 +173,9 @@ def run_independent_channel_probe(
                     path_delays_samples=(0, delay_samples),
                     path_dopplers_hz=(0.0, doppler),
                     sampling_frequency_hz=sample_rate_hz,
+                    symbol_length_samples=(
+                        int(grid.fft_size + grid.cyclic_prefix_length) if symbol_static else None
+                    ),
                 )
                 + waveform_noise
             )
@@ -199,7 +204,8 @@ def run_independent_channel_probe(
     ]
     reference_rates = cluster_rates["static"]
     mobile_rates = cluster_rates["750hz_continuous"]
-    per_interval_alpha = FAMILYWISE_ALPHA / 2.0
+    symbol_static_rates = cluster_rates["750hz_symbol_static"]
+    per_interval_alpha = FAMILYWISE_ALPHA / 3.0
     reference_channels_with_failures = sum(rate > 0.0 for rate in reference_rates)
     reference_upper_bound = clopper_pearson_upper_bound(
         reference_channels_with_failures,
@@ -212,13 +218,33 @@ def run_independent_channel_probe(
         alpha=per_interval_alpha,
         replicates=BOOTSTRAP_REPLICATES,
     )
+    intra_symbol_differences = [
+        continuous - symbol_static
+        for symbol_static, continuous in zip(symbol_static_rates, mobile_rates, strict=True)
+    ]
+    intra_symbol_interval = cluster_bootstrap_interval(
+        intra_symbol_differences,
+        seed=BOOTSTRAP_SEED + 2,
+        alpha=per_interval_alpha,
+        replicates=BOOTSTRAP_REPLICATES,
+    )
     reference_mean = sum(reference_rates) / len(reference_rates)
     mobile_mean = sum(mobile_rates) / len(mobile_rates)
     difference_mean = sum(paired_differences) / len(paired_differences)
+    intra_symbol_mean = sum(intra_symbol_differences) / len(intra_symbol_differences)
+    mobile_effect_pass = (
+        reference_mean <= MAXIMUM_REFERENCE_BLER
+        and reference_upper_bound <= MAXIMUM_REFERENCE_UPPER_BOUND
+        and difference_mean >= MINIMUM_MOBILE_BLER_INCREASE
+        and difference_interval[0] > 0.0
+    )
+    intra_symbol_effect_pass = (
+        intra_symbol_mean >= MINIMUM_INTRA_SYMBOL_BLER_INCREASE and intra_symbol_interval[0] > 0.0
+    )
     acceptance = {
-        "protocol": "paired static versus 750-Hz echo Doppler over independent seeded two-path channel draws; channel draw is the statistical unit; equal channel weighting",
+        "protocol": "paired static, 750-Hz symbol-static, and 750-Hz continuous echo Doppler over independent seeded two-path channel draws; channel draw is the statistical unit; equal channel weighting",
         "familywise_confidence": 1.0 - FAMILYWISE_ALPHA,
-        "interval_count": 2,
+        "interval_count": 3,
         "per_interval_confidence": 1.0 - per_interval_alpha,
         "maximum_reference_bler_point_estimate": MAXIMUM_REFERENCE_BLER,
         "maximum_reference_bler_upper_bound": MAXIMUM_REFERENCE_UPPER_BOUND,
@@ -230,10 +256,14 @@ def run_independent_channel_probe(
         "mobile_bler": mobile_mean,
         "paired_mean_bler_increase": difference_mean,
         "paired_increase_cluster_bootstrap_interval": list(difference_interval),
-        "pass": reference_mean <= MAXIMUM_REFERENCE_BLER
-        and reference_upper_bound <= MAXIMUM_REFERENCE_UPPER_BOUND
-        and difference_mean >= MINIMUM_MOBILE_BLER_INCREASE
-        and difference_interval[0] > 0.0,
+        "minimum_intra_symbol_bler_increase": MINIMUM_INTRA_SYMBOL_BLER_INCREASE,
+        "symbol_static_bler": sum(symbol_static_rates) / len(symbol_static_rates),
+        "intra_symbol_bler_increase": intra_symbol_mean,
+        "intra_symbol_increase_cluster_bootstrap_interval": list(intra_symbol_interval),
+        "intra_symbol_control": "750-Hz echo Doppler frozen at OFDM-symbol starts; retains inter-symbol aging and removes within-symbol phase evolution",
+        "mobile_effect_pass": mobile_effect_pass,
+        "intra_symbol_effect_pass": intra_symbol_effect_pass,
+        "pass": mobile_effect_pass and intra_symbol_effect_pass,
         "inference_scope": "conditional on the preregistered synthetic two-path channel distribution, 6-RB/30-kHz PUSCH, injected AWGN, and tested payload generation; not field or deployment qualification",
     }
     result: dict[str, Any] = {
@@ -263,11 +293,20 @@ def run_independent_channel_probe(
                 "echo_doppler_hz": MOBILE_DOPPLER_HZ,
                 "waveform_awgn_variance": NOISE_VARIANCE,
             },
+            "symbol_static_control": {
+                "model": "freeze Doppler phase at each OFDM-symbol start, preserving inter-symbol aging",
+                "symbol_length_samples": int(grid.fft_size + grid.cyclic_prefix_length),
+            },
             "bootstrap": {
                 "resampling_unit": "independent_channel_draw",
                 "replicates": BOOTSTRAP_REPLICATES,
                 "seed": BOOTSTRAP_SEED,
                 "familywise_alpha": FAMILYWISE_ALPHA,
+                "simultaneous_claims": [
+                    "static-reference BLER upper bound",
+                    "continuous-Doppler paired BLER increase",
+                    "continuous versus symbol-static intra-symbol BLER increase",
+                ],
             },
         },
         "acceptance": acceptance,
@@ -284,7 +323,7 @@ def main() -> None:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("docs/research/results/g5-independent-channel-pusch-20261024.json"),
+        default=Path("docs/research/results/g5-independent-channel-pusch-ici-20261024.json"),
     )
     args = parser.parse_args()
     report = run_independent_channel_probe()
@@ -295,6 +334,7 @@ def main() -> None:
         f"wrote {args.output}: channels={report['configuration']['channel_draws']}, "
         f"baseline BLER={result['reference_bler']:.3f}, "
         f"paired increase={result['paired_mean_bler_increase']:.3f}, "
+        f"intra-symbol increase={result['intra_symbol_bler_increase']:.3f}, "
         f"decision={'PASS' if result['pass'] else 'NOT MET'}"
     )
 
