@@ -1,0 +1,2189 @@
+{
+  "acceptance": {
+    "familywise_confidence": 0.99,
+    "inference_scope": "conditional on the preregistered synthetic two-path channel distribution, 6-RB/30-kHz PUSCH, injected AWGN, and tested payload generation; not field or deployment qualification",
+    "interval_count": 2,
+    "maximum_reference_bler_point_estimate": 0.05,
+    "maximum_reference_bler_upper_bound": 0.1,
+    "minimum_mean_bler_increase": 0.1,
+    "mobile_bler": 0.39453125,
+    "paired_increase_cluster_bootstrap_interval": [
+      0.2421875,
+      0.552734375
+    ],
+    "paired_mean_bler_increase": 0.39453125,
+    "pass": true,
+    "per_interval_confidence": 0.995,
+    "protocol": "paired static versus 750-Hz echo Doppler over independent seeded two-path channel draws; channel draw is the statistical unit; equal channel weighting",
+    "reference_bler": 0.0,
+    "reference_bler_upper_bound": 0.07945206881725103,
+    "reference_bler_upper_bound_method": "one-sided Clopper-Pearson bound on channel-level any-failure prevalence; conservative upper bound for mean BLER",
+    "reference_channels_with_any_crc_failure": 0
+  },
+  "channel_draw_records": [
+    {
+      "channel_seed": 73001,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        -0.32626927340523115,
+        0.3521358699541196
+      ],
+      "echo_delay_samples": 5,
+      "payload_seed": 1073001,
+      "waveform_noise_seed": 2073001
+    },
+    {
+      "channel_seed": 73002,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        -0.17711717200889515,
+        0.17995561551355127
+      ],
+      "echo_delay_samples": 3,
+      "payload_seed": 1073002,
+      "waveform_noise_seed": 2073002
+    },
+    {
+      "channel_seed": 73003,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        0.04193425060291198,
+        0.4682368394065048
+      ],
+      "echo_delay_samples": 3,
+      "payload_seed": 1073003,
+      "waveform_noise_seed": 2073003
+    },
+    {
+      "channel_seed": 73004,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        -0.18189470557535822,
+        -0.23597692891637015
+      ],
+      "echo_delay_samples": 6,
+      "payload_seed": 1073004,
+      "waveform_noise_seed": 2073004
+    },
+    {
+      "channel_seed": 73005,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          false,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        0.1187674885597498,
+        -0.31713906302762634
+      ],
+      "echo_delay_samples": 3,
+      "payload_seed": 1073005,
+      "waveform_noise_seed": 2073005
+    },
+    {
+      "channel_seed": 73006,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        0.2537724715647923,
+        0.030818400062029284
+      ],
+      "echo_delay_samples": 8,
+      "payload_seed": 1073006,
+      "waveform_noise_seed": 2073006
+    },
+    {
+      "channel_seed": 73007,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        0.1879520235140472,
+        -0.15332185387041614
+      ],
+      "echo_delay_samples": 4,
+      "payload_seed": 1073007,
+      "waveform_noise_seed": 2073007
+    },
+    {
+      "channel_seed": 73008,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        -0.4262124269018559,
+        0.10124108052482003
+      ],
+      "echo_delay_samples": 5,
+      "payload_seed": 1073008,
+      "waveform_noise_seed": 2073008
+    },
+    {
+      "channel_seed": 73009,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        -0.41527331173596455,
+        -0.08297401430100332
+      ],
+      "echo_delay_samples": 2,
+      "payload_seed": 1073009,
+      "waveform_noise_seed": 2073009
+    },
+    {
+      "channel_seed": 73010,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          false,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        -0.2803452375184271,
+        0.19908345294880347
+      ],
+      "echo_delay_samples": 2,
+      "payload_seed": 1073010,
+      "waveform_noise_seed": 2073010
+    },
+    {
+      "channel_seed": 73011,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        0.20282720790974007,
+        -0.0560364723275656
+      ],
+      "echo_delay_samples": 5,
+      "payload_seed": 1073011,
+      "waveform_noise_seed": 2073011
+    },
+    {
+      "channel_seed": 73012,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        -0.0367349762896564,
+        0.3036443600091709
+      ],
+      "echo_delay_samples": 7,
+      "payload_seed": 1073012,
+      "waveform_noise_seed": 2073012
+    },
+    {
+      "channel_seed": 73013,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        0.08813351856230635,
+        -0.3189891941401162
+      ],
+      "echo_delay_samples": 5,
+      "payload_seed": 1073013,
+      "waveform_noise_seed": 2073013
+    },
+    {
+      "channel_seed": 73014,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        -0.3347087870076285,
+        0.34213586023141274
+      ],
+      "echo_delay_samples": 4,
+      "payload_seed": 1073014,
+      "waveform_noise_seed": 2073014
+    },
+    {
+      "channel_seed": 73015,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        -0.3639762755916958,
+        -0.2821352336327119
+      ],
+      "echo_delay_samples": 8,
+      "payload_seed": 1073015,
+      "waveform_noise_seed": 2073015
+    },
+    {
+      "channel_seed": 73016,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        0.3890527419071464,
+        0.3125682555102171
+      ],
+      "echo_delay_samples": 7,
+      "payload_seed": 1073016,
+      "waveform_noise_seed": 2073016
+    },
+    {
+      "channel_seed": 73017,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        -0.19822357484899555,
+        0.20010511032123166
+      ],
+      "echo_delay_samples": 6,
+      "payload_seed": 1073017,
+      "waveform_noise_seed": 2073017
+    },
+    {
+      "channel_seed": 73018,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        0.24864046324922606,
+        -0.22268827213458403
+      ],
+      "echo_delay_samples": 3,
+      "payload_seed": 1073018,
+      "waveform_noise_seed": 2073018
+    },
+    {
+      "channel_seed": 73019,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        -0.33743290307854207,
+        -0.2200835373597962
+      ],
+      "echo_delay_samples": 7,
+      "payload_seed": 1073019,
+      "waveform_noise_seed": 2073019
+    },
+    {
+      "channel_seed": 73020,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        -0.41646991128680577,
+        -0.05482255827404428
+      ],
+      "echo_delay_samples": 7,
+      "payload_seed": 1073020,
+      "waveform_noise_seed": 2073020
+    },
+    {
+      "channel_seed": 73021,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          false,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        -0.2382680187078159,
+        0.2720692830617722
+      ],
+      "echo_delay_samples": 3,
+      "payload_seed": 1073021,
+      "waveform_noise_seed": 2073021
+    },
+    {
+      "channel_seed": 73022,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        0.1553040987572989,
+        -0.22483291133131936
+      ],
+      "echo_delay_samples": 7,
+      "payload_seed": 1073022,
+      "waveform_noise_seed": 2073022
+    },
+    {
+      "channel_seed": 73023,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        0.15723688378097259,
+        -0.2902093037553457
+      ],
+      "echo_delay_samples": 5,
+      "payload_seed": 1073023,
+      "waveform_noise_seed": 2073023
+    },
+    {
+      "channel_seed": 73024,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          false,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        0.20544199093098078,
+        -0.20295693580755336
+      ],
+      "echo_delay_samples": 4,
+      "payload_seed": 1073024,
+      "waveform_noise_seed": 2073024
+    },
+    {
+      "channel_seed": 73025,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          false,
+          false,
+          true,
+          true,
+          false,
+          true,
+          true,
+          false
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        0.34508659196382624,
+        -0.14056010387515797
+      ],
+      "echo_delay_samples": 4,
+      "payload_seed": 1073025,
+      "waveform_noise_seed": 2073025
+    },
+    {
+      "channel_seed": 73026,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        0.21427337324012688,
+        -0.4300003202980112
+      ],
+      "echo_delay_samples": 5,
+      "payload_seed": 1073026,
+      "waveform_noise_seed": 2073026
+    },
+    {
+      "channel_seed": 73027,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        0.06289624946470605,
+        -0.35004515320147334
+      ],
+      "echo_delay_samples": 3,
+      "payload_seed": 1073027,
+      "waveform_noise_seed": 2073027
+    },
+    {
+      "channel_seed": 73028,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        0.22452473909276624,
+        -0.4372698460873266
+      ],
+      "echo_delay_samples": 7,
+      "payload_seed": 1073028,
+      "waveform_noise_seed": 2073028
+    },
+    {
+      "channel_seed": 73029,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        0.16112708380111365,
+        -0.16664040273540856
+      ],
+      "echo_delay_samples": 5,
+      "payload_seed": 1073029,
+      "waveform_noise_seed": 2073029
+    },
+    {
+      "channel_seed": 73030,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          false,
+          true,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        -0.15497305876666226,
+        0.3549385580302991
+      ],
+      "echo_delay_samples": 5,
+      "payload_seed": 1073030,
+      "waveform_noise_seed": 2073030
+    },
+    {
+      "channel_seed": 73031,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        -0.43205533715081645,
+        -0.20786493915147403
+      ],
+      "echo_delay_samples": 3,
+      "payload_seed": 1073031,
+      "waveform_noise_seed": 2073031
+    },
+    {
+      "channel_seed": 73032,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        -0.4894622165126805,
+        0.06081394719985876
+      ],
+      "echo_delay_samples": 6,
+      "payload_seed": 1073032,
+      "waveform_noise_seed": 2073032
+    },
+    {
+      "channel_seed": 73033,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        0.2307343728147319,
+        0.10848565521192852
+      ],
+      "echo_delay_samples": 6,
+      "payload_seed": 1073033,
+      "waveform_noise_seed": 2073033
+    },
+    {
+      "channel_seed": 73034,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        0.11041651015872339,
+        -0.28397903674306113
+      ],
+      "echo_delay_samples": 8,
+      "payload_seed": 1073034,
+      "waveform_noise_seed": 2073034
+    },
+    {
+      "channel_seed": 73035,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        -0.12729471325102493,
+        -0.2497955270123094
+      ],
+      "echo_delay_samples": 4,
+      "payload_seed": 1073035,
+      "waveform_noise_seed": 2073035
+    },
+    {
+      "channel_seed": 73036,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        0.3823422395142687,
+        -0.11976854593050285
+      ],
+      "echo_delay_samples": 7,
+      "payload_seed": 1073036,
+      "waveform_noise_seed": 2073036
+    },
+    {
+      "channel_seed": 73037,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        0.21600497933043253,
+        0.19841761062802368
+      ],
+      "echo_delay_samples": 6,
+      "payload_seed": 1073037,
+      "waveform_noise_seed": 2073037
+    },
+    {
+      "channel_seed": 73038,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        -0.25780160978427197,
+        0.3901031217275683
+      ],
+      "echo_delay_samples": 6,
+      "payload_seed": 1073038,
+      "waveform_noise_seed": 2073038
+    },
+    {
+      "channel_seed": 73039,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        -0.2964321952068132,
+        0.28907850523980444
+      ],
+      "echo_delay_samples": 4,
+      "payload_seed": 1073039,
+      "waveform_noise_seed": 2073039
+    },
+    {
+      "channel_seed": 73040,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        -0.014448824953935005,
+        0.45524362777079913
+      ],
+      "echo_delay_samples": 5,
+      "payload_seed": 1073040,
+      "waveform_noise_seed": 2073040
+    },
+    {
+      "channel_seed": 73041,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          false,
+          false,
+          true,
+          true,
+          false,
+          false,
+          false,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        0.3305267623615971,
+        -0.18520624794062518
+      ],
+      "echo_delay_samples": 2,
+      "payload_seed": 1073041,
+      "waveform_noise_seed": 2073041
+    },
+    {
+      "channel_seed": 73042,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        -0.2947263943568027,
+        -0.05914255221958478
+      ],
+      "echo_delay_samples": 4,
+      "payload_seed": 1073042,
+      "waveform_noise_seed": 2073042
+    },
+    {
+      "channel_seed": 73043,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        -0.010717563684648315,
+        -0.2525044436949296
+      ],
+      "echo_delay_samples": 8,
+      "payload_seed": 1073043,
+      "waveform_noise_seed": 2073043
+    },
+    {
+      "channel_seed": 73044,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        0.08875409000530048,
+        0.18183373216605545
+      ],
+      "echo_delay_samples": 8,
+      "payload_seed": 1073044,
+      "waveform_noise_seed": 2073044
+    },
+    {
+      "channel_seed": 73045,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        0.2175121208486977,
+        0.15610998647059096
+      ],
+      "echo_delay_samples": 7,
+      "payload_seed": 1073045,
+      "waveform_noise_seed": 2073045
+    },
+    {
+      "channel_seed": 73046,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        0.2693087181226636,
+        0.18629371942362366
+      ],
+      "echo_delay_samples": 6,
+      "payload_seed": 1073046,
+      "waveform_noise_seed": 2073046
+    },
+    {
+      "channel_seed": 73047,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        -0.4380828155303833,
+        -0.08805884899695139
+      ],
+      "echo_delay_samples": 6,
+      "payload_seed": 1073047,
+      "waveform_noise_seed": 2073047
+    },
+    {
+      "channel_seed": 73048,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        0.11290012128590847,
+        -0.37931984392633916
+      ],
+      "echo_delay_samples": 5,
+      "payload_seed": 1073048,
+      "waveform_noise_seed": 2073048
+    },
+    {
+      "channel_seed": 73049,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        -0.06989979488958692,
+        -0.22719572210215294
+      ],
+      "echo_delay_samples": 8,
+      "payload_seed": 1073049,
+      "waveform_noise_seed": 2073049
+    },
+    {
+      "channel_seed": 73050,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        -0.12865758499303664,
+        0.4388614322747184
+      ],
+      "echo_delay_samples": 6,
+      "payload_seed": 1073050,
+      "waveform_noise_seed": 2073050
+    },
+    {
+      "channel_seed": 73051,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          false,
+          true,
+          true,
+          false,
+          true,
+          false,
+          false
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        0.33077027142958293,
+        0.17081057250385345
+      ],
+      "echo_delay_samples": 6,
+      "payload_seed": 1073051,
+      "waveform_noise_seed": 2073051
+    },
+    {
+      "channel_seed": 73052,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        -0.04125813631145905,
+        0.2401056177702116
+      ],
+      "echo_delay_samples": 8,
+      "payload_seed": 1073052,
+      "waveform_noise_seed": 2073052
+    },
+    {
+      "channel_seed": 73053,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        0.05856175170791608,
+        -0.23902785496433138
+      ],
+      "echo_delay_samples": 5,
+      "payload_seed": 1073053,
+      "waveform_noise_seed": 2073053
+    },
+    {
+      "channel_seed": 73054,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          false,
+          true,
+          false
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        -0.21827587470689505,
+        0.2621756205731058
+      ],
+      "echo_delay_samples": 3,
+      "payload_seed": 1073054,
+      "waveform_noise_seed": 2073054
+    },
+    {
+      "channel_seed": 73055,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        0.23707024845181227,
+        -0.07219892159129586
+      ],
+      "echo_delay_samples": 3,
+      "payload_seed": 1073055,
+      "waveform_noise_seed": 2073055
+    },
+    {
+      "channel_seed": 73056,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        -0.030762586489688295,
+        0.2106037805567138
+      ],
+      "echo_delay_samples": 6,
+      "payload_seed": 1073056,
+      "waveform_noise_seed": 2073056
+    },
+    {
+      "channel_seed": 73057,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        -0.1250694044582595,
+        -0.1895138732562121
+      ],
+      "echo_delay_samples": 3,
+      "payload_seed": 1073057,
+      "waveform_noise_seed": 2073057
+    },
+    {
+      "channel_seed": 73058,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          false,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        -0.30344568409574124,
+        0.08094592470689306
+      ],
+      "echo_delay_samples": 8,
+      "payload_seed": 1073058,
+      "waveform_noise_seed": 2073058
+    },
+    {
+      "channel_seed": 73059,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        0.15004175394566793,
+        0.23050046816802539
+      ],
+      "echo_delay_samples": 3,
+      "payload_seed": 1073059,
+      "waveform_noise_seed": 2073059
+    },
+    {
+      "channel_seed": 73060,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        0.20531913695557044,
+        -0.09262032950651014
+      ],
+      "echo_delay_samples": 4,
+      "payload_seed": 1073060,
+      "waveform_noise_seed": 2073060
+    },
+    {
+      "channel_seed": 73061,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        -0.45110446028700746,
+        0.13586540396960992
+      ],
+      "echo_delay_samples": 7,
+      "payload_seed": 1073061,
+      "waveform_noise_seed": 2073061
+    },
+    {
+      "channel_seed": 73062,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          false,
+          true,
+          false,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        -0.00838316702802364,
+        -0.3013567763185201
+      ],
+      "echo_delay_samples": 3,
+      "payload_seed": 1073062,
+      "waveform_noise_seed": 2073062
+    },
+    {
+      "channel_seed": 73063,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        0.003069640191652861,
+        -0.3110164105822976
+      ],
+      "echo_delay_samples": 2,
+      "payload_seed": 1073063,
+      "waveform_noise_seed": 2073063
+    },
+    {
+      "channel_seed": 73064,
+      "crc_pass_by_condition": {
+        "750hz_continuous": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "static": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "echo_coefficient_real_imag": [
+        0.39863608186384464,
+        -0.019132031946631375
+      ],
+      "echo_delay_samples": 2,
+      "payload_seed": 1073064,
+      "waveform_noise_seed": 2073064
+    }
+  ],
+  "configuration": {
+    "blocks_per_channel": 8,
+    "bootstrap": {
+      "familywise_alpha": 0.01,
+      "replicates": 20000,
+      "resampling_unit": "independent_channel_draw",
+      "seed": 73999
+    },
+    "channel_distribution": {
+      "direct_path_coefficient": [
+        0.85,
+        0.0
+      ],
+      "echo_amplitude_uniform": [
+        0.2,
+        0.5
+      ],
+      "echo_delay_samples_inclusive": [
+        2,
+        8
+      ],
+      "echo_doppler_hz": 750.0,
+      "echo_phase_uniform_rad": [
+        -3.141592653589793,
+        3.141592653589793
+      ],
+      "waveform_awgn_variance": 0.01
+    },
+    "channel_draws": 64,
+    "channel_seeds": [
+      73001,
+      73002,
+      73003,
+      73004,
+      73005,
+      73006,
+      73007,
+      73008,
+      73009,
+      73010,
+      73011,
+      73012,
+      73013,
+      73014,
+      73015,
+      73016,
+      73017,
+      73018,
+      73019,
+      73020,
+      73021,
+      73022,
+      73023,
+      73024,
+      73025,
+      73026,
+      73027,
+      73028,
+      73029,
+      73030,
+      73031,
+      73032,
+      73033,
+      73034,
+      73035,
+      73036,
+      73037,
+      73038,
+      73039,
+      73040,
+      73041,
+      73042,
+      73043,
+      73044,
+      73045,
+      73046,
+      73047,
+      73048,
+      73049,
+      73050,
+      73051,
+      73052,
+      73053,
+      73054,
+      73055,
+      73056,
+      73057,
+      73058,
+      73059,
+      73060,
+      73061,
+      73062,
+      73063,
+      73064
+    ],
+    "n_size_bwp_rb": 6,
+    "sample_rate_hz": 2160000.0,
+    "subcarrier_spacing_hz": 30000
+  },
+  "created_utc": "2026-10-24T00:25:01.958815+00:00",
+  "git_revision": "31806c52ef288c3e37df483c2038ec2133e33a30",
+  "result_sha256": "60a26fc888b9216724d9e66d8447276e3eed078bb2f197064d7b147cc7d4de95",
+  "runtime": {
+    "device": "cpu",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "sionna": "2.2.0",
+    "torch": "2.11.0+cu128"
+  },
+  "schema": "umcd.g5_independent_channel_receiver.v1",
+  "source_sha256": {
+    "experiments/g5_independent_channel_receiver.py": "2e8d840898828a88f35e846729adf25af888fd5716e8102288a49467d370e40a",
+    "integrations/sionna/nr_pusch.py": "073fb321bd69547478c6c6862a0e355ae1f708f8895a5951423a16ee24f64a41",
+    "integrations/sionna/ofdm_impairments.py": "d8e30d81ce895bf55c7ed5a470089ae596e648940eaa2719896cc50e1ed0d49d",
+    "receivers/nr/pusch.py": "f00a94da21f925c7366a36072fb63dd2dd68669bd2414064e797a97d8fd8464d"
+  }
+}
