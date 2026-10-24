@@ -27,7 +27,13 @@ _SSB_INDEX = 2
 _HALF_FRAME = 1
 
 
-def _make_ssb_waveform(sfn: int) -> tuple[np.ndarray, PBCHMIB]:
+def _make_ssb_waveform(
+    sfn: int,
+    *,
+    candidate_count: int = _L_MAX,
+    ssb_index: int = _SSB_INDEX,
+    half_frame: int = _HALF_FRAME,
+) -> tuple[np.ndarray, PBCHMIB]:
     mib = PBCHMIB(
         system_frame_number_msb=sfn >> 4,
         subcarrier_spacing_common="scs15or60",
@@ -43,9 +49,9 @@ def _make_ssb_waveform(sfn: int) -> tuple[np.ndarray, PBCHMIB]:
         nr_pbch_mib_serialize(mib),
         _CELL_ID,
         sfn,
-        _HALF_FRAME,
-        _SSB_INDEX,
-        max_candidate_blocks_per_half_frame=_L_MAX,
+        half_frame,
+        ssb_index,
+        max_candidate_blocks_per_half_frame=candidate_count,
         k_ssb_msb=1,
         pdcch_repetition=0,
     )
@@ -53,17 +59,17 @@ def _make_ssb_waveform(sfn: int) -> tuple[np.ndarray, PBCHMIB]:
     physical_bits = nr_pbch_scramble_bits(
         coded_bits,
         _CELL_ID,
-        _SSB_INDEX,
-        max_candidate_blocks_per_half_frame=_L_MAX,
+        ssb_index,
+        max_candidate_blocks_per_half_frame=candidate_count,
     )
     pbch_symbols = nr_pbch_qpsk_modulate(physical_bits)
     ssb = map_nr_ssb_resource_grid(
         _CELL_ID // 3,
         _CELL_ID % 3,
         pbch_symbols,
-        ssb_index_in_half_frame=_SSB_INDEX,
-        half_frame_index=_HALF_FRAME,
-        max_candidate_blocks_per_half_frame=_L_MAX,
+        ssb_index_in_half_frame=ssb_index,
+        half_frame_index=half_frame,
+        max_candidate_blocks_per_half_frame=candidate_count,
     )
     waveform_symbols: list[np.ndarray] = []
     for grid_symbol, cp_length in zip(ssb.grid, _CP_LENGTHS, strict=True):
@@ -156,6 +162,42 @@ def test_pbch_receiver_decodes_noiseless_flat_channel() -> None:
     assert result.mib == expected_mib
     assert result.payload_recovery is not None
     assert result.payload_recovery.system_frame_number == sfn
+
+
+@pytest.mark.native_sionna
+@pytest.mark.parametrize(("candidate_count", "ssb_index"), [(10, 9), (20, 19), (64, 63)])
+def test_pbch_receiver_decodes_high_candidate_indices_for_all_supported_counts(
+    candidate_count: int, ssb_index: int
+) -> None:
+    sfn = 0b1011010110
+    half_frame = 1
+    waveform, expected_mib = _make_ssb_waveform(
+        sfn,
+        candidate_count=candidate_count,
+        ssb_index=ssb_index,
+        half_frame=half_frame,
+    )
+    result = nr_pbch_receive_ofdm(
+        waveform,
+        fft_size=_FFT_SIZE,
+        cyclic_prefix_lengths=_CP_LENGTHS,
+        physical_cell_id=_CELL_ID,
+        ssb_index_in_half_frame=ssb_index,
+        half_frame_index=half_frame,
+        max_candidate_blocks_per_half_frame=candidate_count,
+        noise_variance=1e-12,
+    )
+
+    assert result.crc_valid
+    assert result.mib == expected_mib
+    assert result.payload_recovery is not None
+    assert result.payload_recovery.system_frame_number == sfn
+    assert result.payload_recovery.half_frame_index == half_frame
+    index_bits = (candidate_count - 1).bit_length() - 3
+    assert result.payload_recovery.ssb_index_msb_bits == tuple(
+        (ssb_index >> bit) & 1 for bit in range((candidate_count - 1).bit_length() - 1, 2, -1)
+    )
+    assert len(result.payload_recovery.ssb_index_msb_bits) == index_bits
 
 
 @pytest.mark.native_sionna

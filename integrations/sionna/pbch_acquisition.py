@@ -13,6 +13,8 @@ from numpy.typing import NDArray
 from .nr_sync import NRCellDetection, acquire_nr_cell
 from .pbch_ofdm_receiver import PBCHOFDMReception, nr_pbch_receive_ofdm
 
+_SUPPORTED_CANDIDATE_COUNTS = (4, 8, 10, 20, 64)
+
 
 class PBCHAcquisitionError(RuntimeError):
     """Cell acquisition succeeded, but the supplied PBCH occasion set did not decode uniquely."""
@@ -63,8 +65,8 @@ def nr_pbch_acquire_and_receive(
     ):
         raise TypeError("max_candidate_blocks_per_half_frame must be an integer")
     candidate_count = int(max_candidate_blocks_per_half_frame)
-    if candidate_count not in (4, 8):
-        raise ValueError("max_candidate_blocks_per_half_frame must be 4 or 8")
+    if candidate_count not in _SUPPORTED_CANDIDATE_COUNTS:
+        raise ValueError("max_candidate_blocks_per_half_frame must be one of 4, 8, 10, 20, or 64")
 
     samples = np.asarray(capture)
     if samples.ndim != 1 or samples.dtype.kind != "c" or not np.isfinite(samples).all():

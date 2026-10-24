@@ -27,7 +27,15 @@ def _gold_reference(c_init: int, count: int, sequence_offset: int) -> np.ndarray
 
 @pytest.mark.parametrize(
     ("cell_id", "ssb_index", "candidate_count"),
-    [(0, 0, 4), (321, 3, 4), (42, 7, 8), (1007, 4, 8)],
+    [
+        (0, 0, 4),
+        (321, 3, 4),
+        (42, 7, 8),
+        (1007, 4, 8),
+        (42, 9, 10),
+        (321, 19, 20),
+        (1007, 63, 64),
+    ],
 )
 def test_pbch_scrambler_matches_scalar_gold_sequence_and_index_offset(
     cell_id: int,
@@ -41,7 +49,8 @@ def test_pbch_scrambler_matches_scalar_gold_sequence_and_index_offset(
         ssb_index,
         max_candidate_blocks_per_half_frame=candidate_count,
     )
-    expected = bits ^ _gold_reference(cell_id, 864, ssb_index * 864)
+    v = ssb_index % (4 if candidate_count == 4 else 8)
+    expected = bits ^ _gold_reference(cell_id, 864, v * 864)
 
     np.testing.assert_array_equal(actual, expected)
     assert actual.shape == (864,)
@@ -118,7 +127,7 @@ def test_scrambled_pbch_bits_flow_into_the_ssb_grid_mapper() -> None:
         (np.zeros(864, dtype=np.uint8), True, 0, 4, TypeError, "physical_cell_id"),
         (np.zeros(864, dtype=np.uint8), 1008, 0, 4, ValueError, "physical_cell_id"),
         (np.zeros(864, dtype=np.uint8), 1, 4, 4, ValueError, "ssb_index"),
-        (np.zeros(864, dtype=np.uint8), 1, 0, 64, ValueError, "candidate_blocks"),
+        (np.zeros(864, dtype=np.uint8), 1, 0, 3, ValueError, "candidate_blocks"),
     ],
 )
 def test_pbch_scrambler_rejects_invalid_inputs(

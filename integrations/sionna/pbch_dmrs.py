@@ -20,6 +20,7 @@ _SSB_SUBCARRIER_COUNT = 240
 _DMRS_SYMBOL_COUNT = 144
 _GOLD_SEQUENCE_OFFSET = 1600
 _PBCH_DMRS_SYMBOLS = (1, 2, 3)
+_SUPPORTED_CANDIDATE_COUNTS = (4, 8, 10, 20, 64)
 
 
 @dataclass(frozen=True)
@@ -100,9 +101,9 @@ def nr_pbch_dmrs_ssb(
             ``max_candidate_blocks_per_half_frame``.
         half_frame_index: 0 for the first half-frame in a frame, 1 for the
             second half-frame.
-        max_candidate_blocks_per_half_frame: Supported FR1 values are 4 and 8.
-            The caller must select the correct value for its carrier and
-            subcarrier-spacing configuration using TS 38.213.
+        max_candidate_blocks_per_half_frame: Supported values are 4, 8, 10,
+            20, and 64. Select the value for the carrier, SSB pattern, and
+            operation using TS 38.213.
 
     Returns:
         A frozen record containing the 144 QPSK reference symbols, their
@@ -122,8 +123,8 @@ def nr_pbch_dmrs_ssb(
     ):
         raise TypeError("max_candidate_blocks_per_half_frame must be an integer")
     candidate_count = int(max_candidate_blocks_per_half_frame)
-    if candidate_count not in (4, 8):
-        raise ValueError("max_candidate_blocks_per_half_frame must be 4 or 8")
+    if candidate_count not in _SUPPORTED_CANDIDATE_COUNTS:
+        raise ValueError("max_candidate_blocks_per_half_frame must be one of 4, 8, 10, 20, or 64")
     ssb_index = _integer_in_range(
         ssb_index_in_half_frame,
         "ssb_index_in_half_frame",
@@ -134,7 +135,7 @@ def nr_pbch_dmrs_ssb(
 
     # For L_max=4, the candidate index includes the half-frame offset. For
     # L_max>4, the three least-significant candidate-index bits are used.
-    i_bar_ssb = ssb_index + 4 * half_frame if candidate_count == 4 else ssb_index
+    i_bar_ssb = ssb_index + 4 * half_frame if candidate_count == 4 else ssb_index % 8
     c_init = (
         (1 << 11) * (i_bar_ssb + 1) * (cell_id // 4 + 1) + (1 << 6) * (i_bar_ssb + 1) + cell_id % 4
     )

@@ -11,6 +11,7 @@ from .pbch_dmrs import _gold_bits
 
 _PBCH_BIT_COUNT = 864
 _CELL_ID_MAX = 1007
+_SUPPORTED_CANDIDATE_COUNTS = (4, 8, 10, 20, 64)
 
 
 def _binary_vector(bits: NDArray[np.generic], *, name: str) -> NDArray[np.uint8]:
@@ -32,10 +33,10 @@ def nr_pbch_scramble_bits(
     """Scramble the 864 rate-matched PBCH bits for a known SSB candidate.
 
     Implements TS 38.211 clause 7.3.3.1. The candidate-index sequence offset
-    is ``v * M_bit`` (``M_bit=864``), with ``v`` selected from the two or
-    three least-significant SSB-index bits for candidate counts four or
-    eight, respectively. Half-frame index does not enter this data-scrambler
-    initialization or offset.
+    is ``v * M_bit`` (``M_bit=864``), with ``v`` selected from the two
+    least-significant SSB-index bits when the maximum candidate count is
+    four, and the three least-significant bits otherwise. Half-frame index
+    does not enter this data-scrambler initialization or offset.
     """
     source = _binary_vector(bits, name="bits")
     cell_id = _bounded_integer(physical_cell_id, "physical_cell_id", 0, _CELL_ID_MAX)
@@ -44,8 +45,8 @@ def nr_pbch_scramble_bits(
     ):
         raise TypeError("max_candidate_blocks_per_half_frame must be an integer")
     candidate_count = int(max_candidate_blocks_per_half_frame)
-    if candidate_count not in (4, 8):
-        raise ValueError("max_candidate_blocks_per_half_frame must be 4 or 8")
+    if candidate_count not in _SUPPORTED_CANDIDATE_COUNTS:
+        raise ValueError("max_candidate_blocks_per_half_frame must be one of 4, 8, 10, 20, or 64")
     ssb_index = _bounded_integer(
         ssb_index_in_half_frame,
         "ssb_index_in_half_frame",
@@ -56,7 +57,7 @@ def nr_pbch_scramble_bits(
     sequence = _gold_bits(
         cell_id,
         _PBCH_BIT_COUNT,
-        sequence_offset=ssb_index * _PBCH_BIT_COUNT,
+        sequence_offset=(ssb_index % (4 if candidate_count == 4 else 8)) * _PBCH_BIT_COUNT,
     )
     scrambled = np.bitwise_xor(source, sequence)
     scrambled.setflags(write=False)

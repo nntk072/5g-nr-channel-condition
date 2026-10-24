@@ -44,6 +44,9 @@ def _reference_coordinates(cell_id: int) -> list[tuple[int, int]]:
         (1, 3, 1, 4, 16897),
         (42, 7, 1, 8, 180738),
         (1007, 4, 0, 8, 2580803),
+        (42, 9, 1, 10, 45186),
+        (1, 19, 1, 20, 8449),
+        (1007, 63, 1, 64, 4129283),
     ],
 )
 def test_pbch_dmrs_initialization_and_sequence_match_scalar_reference(
@@ -97,7 +100,7 @@ def test_pbch_dmrs_mapping_matches_ts_38211_table_and_is_read_only(cell_id: int)
     )
 
 
-def test_lmax_four_includes_half_frame_in_sequence_index_but_lmax_eight_does_not() -> None:
+def test_lmax_four_includes_half_frame_but_larger_candidate_counts_use_three_lsb() -> None:
     first_half_lmax4 = nr_pbch_dmrs_ssb(
         321, 2, half_frame_index=0, max_candidate_blocks_per_half_frame=4
     )
@@ -110,9 +113,16 @@ def test_lmax_four_includes_half_frame_in_sequence_index_but_lmax_eight_does_not
     second_half_lmax8 = nr_pbch_dmrs_ssb(
         321, 2, half_frame_index=1, max_candidate_blocks_per_half_frame=8
     )
+    lmax10_index9 = nr_pbch_dmrs_ssb(
+        321, 9, half_frame_index=0, max_candidate_blocks_per_half_frame=10
+    )
+    lmax10_index1 = nr_pbch_dmrs_ssb(
+        321, 1, half_frame_index=1, max_candidate_blocks_per_half_frame=10
+    )
 
     assert first_half_lmax4.c_init != second_half_lmax4.c_init
     assert first_half_lmax8.c_init == second_half_lmax8.c_init
+    assert lmax10_index9.c_init == lmax10_index1.c_init
 
 
 def test_pbch_dmrs_public_export_is_the_native_implementation() -> None:
@@ -241,7 +251,7 @@ def test_ssb_grid_rejects_invalid_input(
             (1, 0),
             {"half_frame_index": 0, "max_candidate_blocks_per_half_frame": 5},
             ValueError,
-            "must be 4 or 8",
+            "one of 4, 8, 10, 20, or 64",
         ),
         (
             (1, 0),
