@@ -45,14 +45,16 @@ def nr_pbch_acquire_and_receive(
     device: str = "cpu",
     list_size: int = 8,
 ) -> PBCHAcquisitionReception:
-    """Acquire PCI/timing/CFO, then search all configured candidate/half-frame pairs.
+    """Acquire PCI/timing/CFO, then search DM-RS-visible candidate/half-frame pairs.
 
     The receiver assumes a single static channel over one four-symbol SSB,
     known FFT/CP/numerology, a supplied CFO search grid, and a capture that
-    contains the PSS and its later SSS/PBCH symbols. It searches all candidate
-    indices and both half-frames; exactly one CRC-valid result is required.
-    This does not locate an SSB in a continuous radio stream or qualify
-    operation across channels, numerologies, or antenna topologies.
+    contains the PSS and its later SSS/PBCH symbols. For candidate counts above
+    eight, DM-RS identifies only the three least-significant index bits; the
+    remaining bits are reconstructed from the CRC-valid PBCH payload. Exactly
+    one candidate/half-frame result is required. This does not locate an SSB in
+    a continuous radio stream or qualify operation across channels,
+    numerologies, or antenna topologies.
     """
     fft_length = _positive_integer(fft_size, "fft_size")
     cp_lengths = _validate_cp_lengths(cyclic_prefix_lengths, fft_length)
@@ -94,14 +96,15 @@ def nr_pbch_acquire_and_receive(
     )
 
     decoded: list[tuple[int, int, PBCHOFDMReception]] = []
+    dmrs_candidate_count = min(candidate_count, 8)
     for half_frame in (0, 1):
-        for candidate in range(candidate_count):
+        for candidate_lsb in range(dmrs_candidate_count):
             reception = nr_pbch_receive_ofdm(
                 aligned_ssb,
                 fft_size=fft_length,
                 cyclic_prefix_lengths=cp_lengths,
                 physical_cell_id=detection.physical_cell_id,
-                ssb_index_in_half_frame=candidate,
+                ssb_index_in_half_frame=candidate_lsb,
                 half_frame_index=half_frame,
                 max_candidate_blocks_per_half_frame=candidate_count,
                 noise_variance=noise_variance,
@@ -109,7 +112,14 @@ def nr_pbch_acquire_and_receive(
                 list_size=list_size,
             )
             if reception.crc_valid:
-                decoded.append((candidate, half_frame, reception))
+                recovery = reception.payload_recovery
+                if recovery is None or recovery.half_frame_index != half_frame:
+                    continue
+                candidate = _reconstruct_candidate_index(
+                    candidate_lsb, recovery.ssb_index_msb_bits, candidate_count
+                )
+                if candidate is not None:
+                    decoded.append((candidate, half_frame, reception))
 
     if not decoded:
         raise PBCHAcquisitionError("no candidate SSB index/half-frame hypothesis passed BCH CRC")
@@ -123,6 +133,24 @@ def nr_pbch_acquire_and_receive(
         half_frame_index=half_frame,
         pbch_reception=reception,
     )
+
+
+def _reconstruct_candidate_index(
+    candidate_lsb: int, candidate_msb_bits: tuple[int, ...], candidate_count: int
+) -> int | None:
+    """Join the DM-RS-visible low bits and PBCH-payload high bits."""
+    if candidate_count <= 8:
+        return candidate_lsb if not candidate_msb_bits else None
+    expected_msb_bits = (candidate_count - 1).bit_length() - 3
+    if len(candidate_msb_bits) != expected_msb_bits or any(
+        bit not in (0, 1) for bit in candidate_msb_bits
+    ):
+        return None
+    candidate_msb = 0
+    for bit in candidate_msb_bits:
+        candidate_msb = (candidate_msb << 1) | bit
+    candidate = (candidate_msb << 3) | candidate_lsb
+    return candidate if candidate < candidate_count else None
 
 
 def _positive_integer(value: object, name: str) -> int:

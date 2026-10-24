@@ -165,7 +165,7 @@ def test_pbch_receiver_decodes_noiseless_flat_channel() -> None:
 
 
 @pytest.mark.native_sionna
-@pytest.mark.parametrize(("candidate_count", "ssb_index"), [(10, 9), (20, 19), (64, 63)])
+@pytest.mark.parametrize(("candidate_count", "ssb_index"), [(8, 7), (10, 9), (20, 19), (64, 63)])
 def test_pbch_receiver_decodes_high_candidate_indices_for_all_supported_counts(
     candidate_count: int, ssb_index: int
 ) -> None:
@@ -238,6 +238,51 @@ def test_blind_pss_sss_and_candidate_search_decode_pbch_under_cfo_multipath_awgn
     assert result.cell_detection.sss_score > 0.7
     assert result.ssb_index_in_half_frame == _SSB_INDEX
     assert result.half_frame_index == _HALF_FRAME
+    assert result.pbch_reception.crc_valid
+    assert result.pbch_reception.mib == expected_mib
+    assert result.pbch_reception.payload_recovery is not None
+    assert result.pbch_reception.payload_recovery.system_frame_number == sfn
+
+
+@pytest.mark.native_sionna
+@pytest.mark.parametrize(("candidate_count", "ssb_index"), [(10, 9), (20, 19), (64, 63)])
+def test_blind_acquisition_reconstructs_high_ssb_index_from_pbch_payload(
+    candidate_count: int, ssb_index: int
+) -> None:
+    sfn = 0b1100101011
+    half_frame = 1
+    waveform, expected_mib = _make_ssb_waveform(
+        sfn,
+        candidate_count=candidate_count,
+        ssb_index=ssb_index,
+        half_frame=half_frame,
+    )
+    timing_offset = 23
+    sample_rate_hz = 3_840_000.0
+    channelled, noise_variance, _ = _apply_channel_and_noise(
+        waveform, seed=7300 + candidate_count, delay=5, snr_db=24.0
+    )
+    capture = np.concatenate(
+        (
+            np.zeros(timing_offset, dtype=np.complex128),
+            channelled,
+            np.zeros(_FFT_SIZE + _CP_LENGTHS[-1], dtype=np.complex128),
+        )
+    )
+
+    result = nr_pbch_acquire_and_receive(
+        capture,
+        fft_size=_FFT_SIZE,
+        cyclic_prefix_lengths=_CP_LENGTHS,
+        sampling_frequency_hz=sample_rate_hz,
+        max_candidate_blocks_per_half_frame=candidate_count,
+        noise_variance=noise_variance,
+    )
+
+    assert result.cell_detection.sample_offset == timing_offset
+    assert result.cell_detection.physical_cell_id == _CELL_ID
+    assert result.ssb_index_in_half_frame == ssb_index
+    assert result.half_frame_index == half_frame
     assert result.pbch_reception.crc_valid
     assert result.pbch_reception.mib == expected_mib
     assert result.pbch_reception.payload_recovery is not None
