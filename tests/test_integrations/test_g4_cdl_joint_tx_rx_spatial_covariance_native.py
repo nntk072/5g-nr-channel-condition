@@ -15,7 +15,7 @@ pytest.importorskip("sionna.phy")
 from integrations.sionna.cdl import CDLArrayConfig, generate_cdl_frequency_response  # noqa: E402
 from sionna.phy.channel.tr38901 import models as profile_resources  # noqa: E402
 
-_BATCH_SIZE = 8192
+_BATCH_SIZE = 16384
 _FAMILYWISE_ALPHA = 0.01
 _MAX_INTERVAL_HALF_WIDTH = 0.05
 _CDL_TABLE_SHA256 = {
@@ -74,7 +74,7 @@ def _one_end_covariance(
     return torch.exp(1j * math.pi * projection[..., None, None] * separation).mean(dim=(1, 2))
 
 
-def _independent_joint_covariance_reference(model: str) -> tuple[Any, str]:
+def _independent_joint_covariance_reference(model: str, antenna_count: int) -> tuple[Any, str]:
     table_path = profile_resources.parameter_file(f"CDL-{model}.json", "19.2")
     table_bytes = table_path.read_bytes()
     digest = hashlib.sha256(table_bytes).hexdigest()
@@ -90,17 +90,18 @@ def _independent_joint_covariance_reference(model: str) -> tuple[Any, str]:
     offsets = torch.as_tensor(_RAY_ANGLE_OFFSETS, dtype=torch.float64)
     diffuse_start = 1 if is_los else 0
 
-    joint = torch.zeros((4, 4), dtype=torch.complex128)
+    port_count = antenna_count**2
+    joint = torch.zeros((port_count, port_count), dtype=torch.complex128)
     if is_los:
         los_angles = {
             name: math.radians(float(parameters[name][0])) for name in ("aod", "aoa", "zod", "zoa")
         }
         rx_projection = math.sin(los_angles["zoa"]) * math.sin(los_angles["aoa"])
         tx_projection = math.sin(los_angles["zod"]) * math.sin(los_angles["aod"])
-        antenna_indices = torch.arange(2, dtype=torch.float64)
+        antenna_indices = torch.arange(antenna_count, dtype=torch.float64)
         rx_steering = torch.exp(1j * math.pi * rx_projection * antenna_indices)
         tx_steering = torch.exp(1j * math.pi * tx_projection * antenna_indices)
-        los_vector = (rx_steering[:, None] * tx_steering[None, :]).reshape(4)
+        los_vector = (rx_steering[:, None] * tx_steering[None, :]).reshape(port_count)
         joint += powers[0] * los_vector[:, None] * los_vector[None, :].conj()
 
     receive = _one_end_covariance(
@@ -109,7 +110,7 @@ def _independent_joint_covariance_reference(model: str) -> tuple[Any, str]:
         float(parameters["cASA"]),
         float(parameters["cZSA"]),
         offsets,
-        2,
+        antenna_count,
     )
     transmit = _one_end_covariance(
         torch.as_tensor(parameters["aod"][diffuse_start:], dtype=torch.float64),
@@ -117,19 +118,19 @@ def _independent_joint_covariance_reference(model: str) -> tuple[Any, str]:
         float(parameters["cASD"]),
         float(parameters["cZSD"]),
         offsets,
-        2,
+        antenna_count,
     )
 
     # For zero-oriented omni/V panels, diffuse field gain is one. Independent
     # azimuth/zenith coupling makes the endpoint ray-angle averages separable.
     # In LOS profiles, the specular steering outer product above is kept
     # distinct from the remaining diffuse cluster terms.
-    for rx in range(2):
-        for tx in range(2):
-            for rx_prime in range(2):
-                for tx_prime in range(2):
-                    row = 2 * rx + tx
-                    column = 2 * rx_prime + tx_prime
+    for rx in range(antenna_count):
+        for tx in range(antenna_count):
+            for rx_prime in range(antenna_count):
+                for tx_prime in range(antenna_count):
+                    row = antenna_count * rx + tx
+                    column = antenna_count * rx_prime + tx_prime
                     joint[row, column] += torch.sum(
                         powers[diffuse_start:]
                         * receive[:, rx, rx_prime]
@@ -140,13 +141,17 @@ def _independent_joint_covariance_reference(model: str) -> tuple[Any, str]:
 
 @pytest.mark.native_sionna
 @pytest.mark.parametrize(
-    ("model", "seed"),
-    [("A", 6721), ("B", 6722), ("C", 6723), ("D", 6724), ("E", 6725)],
+    ("model", "seed", "antenna_count"),
+    [
+        (model, 6721 + index, antenna_count)
+        for index, model in enumerate("ABCDE")
+        for antenna_count in (2, 4)
+    ],
 )
 def test_cdl_joint_tx_rx_spatial_covariance_matches_independent_ray_reference(
-    model: str, seed: int
+    model: str, seed: int, antenna_count: int
 ) -> None:
-    expected, source_digest = _independent_joint_covariance_reference(model)
+    expected, source_digest = _independent_joint_covariance_reference(model, antenna_count)
     channel = generate_cdl_frequency_response(
         model=model,
         seed=seed,
@@ -155,21 +160,22 @@ def test_cdl_joint_tx_rx_spatial_covariance_matches_independent_ray_reference(
         num_subcarriers=8,
         batch_size=_BATCH_SIZE,
         delay_spread_s=100e-9,
-        ut_array=CDLArrayConfig(num_cols_per_panel=2, element_horizontal_spacing=0.5),
-        bs_array=CDLArrayConfig(num_cols_per_panel=2, element_horizontal_spacing=0.5),
+        ut_array=CDLArrayConfig(num_cols_per_panel=antenna_count, element_horizontal_spacing=0.5),
+        bs_array=CDLArrayConfig(num_cols_per_panel=antenna_count, element_horizontal_spacing=0.5),
         ut_orientation_rad=(0.0, 0.0, 0.0),
         bs_orientation_rad=(0.0, 0.0, 0.0),
         spec_version="19.2",
         device="cpu",
     )
-    samples = channel.h_path[:, 0, :, 0, :, :, 0].sum(dim=-1).reshape(_BATCH_SIZE, 4)
+    samples = channel.h_path[:, 0, :, 0, :, :, 0].sum(dim=-1).reshape(_BATCH_SIZE, antenna_count**2)
     outer_products = samples[:, :, None] * samples[:, None, :].conj()
+    port_count = antenna_count**2
     observations = torch.stack(
-        [outer_products[:, index, index].real for index in range(4)]
+        [outer_products[:, index, index].real for index in range(port_count)]
         + [
             value
-            for row in range(4)
-            for column in range(row + 1, 4)
+            for row in range(port_count)
+            for column in range(row + 1, port_count)
             for value in (outer_products[:, row, column].real, outer_products[:, row, column].imag)
         ],
         dim=1,
@@ -177,17 +183,19 @@ def test_cdl_joint_tx_rx_spatial_covariance_matches_independent_ray_reference(
     estimate = observations.mean(dim=0)
     expected_components = _unique_hermitian_components(expected)
     standard_error = observations.std(dim=0, unbiased=True) / math.sqrt(_BATCH_SIZE)
-    comparison_count = _PROFILE_COUNT * expected_components.numel()
+    # One family covers all profiles, both array sizes and every unique
+    # Hermitian component: (5*16) 2x2 claims plus (5*256) 4x4 claims.
+    comparison_count = _PROFILE_COUNT * (16 + 256)
     z_simultaneous = NormalDist().inv_cdf(1.0 - _FAMILYWISE_ALPHA / (2.0 * comparison_count))
     half_width = z_simultaneous * standard_error
 
-    assert tuple(samples.shape) == (_BATCH_SIZE, 4)
-    assert expected_components.numel() == 16
+    assert tuple(samples.shape) == (_BATCH_SIZE, antenna_count**2)
+    assert expected_components.numel() == (16 if antenna_count == 2 else 256)
     assert channel.metadata["batch_axis_semantics"] == "independent_stochastic_channel_draws"
     assert channel.metadata["profile_model"] == model
     assert channel.metadata["profile_los_component"] is (model in {"D", "E"})
     assert channel.metadata["parameter_table_sha256"] == source_digest
-    assert channel.metadata["rx_antenna_count"] == 2
-    assert channel.metadata["tx_antenna_count"] == 2
+    assert channel.metadata["rx_antenna_count"] == antenna_count
+    assert channel.metadata["tx_antenna_count"] == antenna_count
     assert bool((torch.abs(estimate - expected_components) <= half_width).all())
     assert float(half_width.max()) <= _MAX_INTERVAL_HALF_WIDTH
