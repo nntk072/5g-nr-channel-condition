@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import stat
 from dataclasses import replace
 from pathlib import Path
 
@@ -631,6 +632,28 @@ def test_registry_lock_is_canonical_immutable_and_detects_registry_or_policy_tam
     )
     with pytest.raises(FileExistsError, match="refusing to modify"):
         freeze_split_policy_registry(path, other)
+
+
+@pytest.mark.skipif(
+    os.name != "posix" or not hasattr(os, "O_DIRECTORY"),
+    reason="directory fsync is unavailable on this platform",
+)
+def test_registry_lock_persists_link_and_temporary_link_removal(tmp_path, monkeypatch):
+    _, registry = _four_way_registry(_unlinked_subjects())
+    path = tmp_path / "durable-lock.json"
+    original_fsync = os.fsync
+    fsynced_file_kinds: list[str] = []
+
+    def record_fsync(descriptor: int) -> None:
+        mode = os.fstat(descriptor).st_mode
+        fsynced_file_kinds.append("directory" if stat.S_ISDIR(mode) else "file")
+        original_fsync(descriptor)
+
+    monkeypatch.setattr(os, "fsync", record_fsync)
+    freeze_split_policy_registry(path, registry)
+
+    assert fsynced_file_kinds == ["file", "directory", "directory"]
+    assert path.stat().st_nlink == 1
 
 
 def test_registry_lock_rejects_duplicate_json_keys(tmp_path):

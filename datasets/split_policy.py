@@ -69,6 +69,17 @@ def _lock_stat_signature(metadata: os.stat_result) -> tuple[int, int, int, int, 
     )
 
 
+def _fsync_directory(path: Path) -> None:
+    """Persist directory-entry changes on filesystems that expose directory fsync."""
+    if os.name != "posix" or not hasattr(os, "O_DIRECTORY"):
+        return
+    descriptor = os.open(path, os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+
+
 def _read_immutable_lock_bytes(path: Path) -> bytes:
     """Read one regular, single-link lock without following a leaf symlink."""
     path_metadata_before = os.lstat(path)
@@ -943,6 +954,7 @@ def freeze_split_policy_registry(path: str | Path, registry: SplitPolicyRegistry
             temp_path = stream.name
         try:
             os.link(temp_path, destination)
+            _fsync_directory(destination.parent)
         except FileExistsError:
             if _read_immutable_lock_bytes(destination) != encoded:
                 raise FileExistsError(
@@ -950,7 +962,10 @@ def freeze_split_policy_registry(path: str | Path, registry: SplitPolicyRegistry
                 )
     finally:
         if temp_path is not None:
-            Path(temp_path).unlink(missing_ok=True)
+            try:
+                Path(temp_path).unlink(missing_ok=True)
+            finally:
+                _fsync_directory(destination.parent)
     return hashlib.sha256(encoded).hexdigest()
 
 
