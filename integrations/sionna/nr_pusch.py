@@ -99,7 +99,9 @@ class SionnaPUSCHLSReceiver:
             pusch_config, return_bits=True, output_domain="freq", device=device
         )
         self._resource_grid = self._transmitter.resource_grid
-        self._pilot_mask = self._resource_grid.pilot_pattern.mask
+        # Sionna exposes this mask as an integer tensor, while the receiver
+        # contract and leak audit require an actual Boolean mask.
+        self._pilot_mask = self._resource_grid.pilot_pattern.mask.to(dtype=torch.bool)
         self._decoder: Any | None = None
         self._perfect_csi_decoder: Any | None = None
         self._estimator = PUSCHLSChannelEstimator(

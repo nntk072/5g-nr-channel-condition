@@ -66,6 +66,25 @@ probes Mitsuba's CUDA/OptiX path and uses LLVM on CPU when that path cannot run;
 check the actual host with `python -m loslab doctor --probe-rt`. Check
 `https://nvlabs.github.io/sionna/v2.2.0/installation.html` before deployment.
 
+For a Tesla V100 (compute capability 7.0), use a Volta-enabled wheel such as
+PyTorch 2.10.0 with CUDA 12.8; PyTorch 2.11 CUDA 12.8 wheels dropped Volta
+kernels. After installing the project extras, an isolated environment can be
+overridden with:
+
+```bash
+uv pip install --python .venv/bin/python \
+  --index-strategy unsafe-best-match \
+  --index-url https://download.pytorch.org/whl/cu128 \
+  --extra-index-url https://pypi.org/simple \
+  'torch==2.10.0+cu128'
+```
+
+Check `torch.cuda.get_arch_list()` includes `sm_70` and run a small CUDA tensor
+operation before native PHY work. This Torch wheel supports Sionna PHY on V100;
+the prebuilt Mitsuba CUDA variant still requires compute capability 7.5 or
+newer, so RT uses its LLVM CPU backend on this GPU. See the [PyTorch CUDA
+support matrix](https://github.com/pytorch/pytorch/blob/main/RELEASE.md#pytorch-cuda-support-matrix).
+
 ## 1. Run a zero-dependency end-to-end smoke experiment
 
 ```bash
