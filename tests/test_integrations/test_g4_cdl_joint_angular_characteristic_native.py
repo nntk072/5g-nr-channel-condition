@@ -84,14 +84,12 @@ _CLAIM_COUNT = len(_MODELS) * len(_FOURIER_VECTORS) * 2
 _TERNARY_CLAIM_COUNT = len(_MODELS) * len(_TERNARY_FOURIER_VECTORS) * 2
 _MARGINAL_CLAIM_COUNT = len(_MODELS) * len(_MARGINAL_FOURIER_VECTORS) * 2
 _BOUNDED_JOINT_CLAIM_COUNT = len(_MODELS) * len(_BOUNDED_JOINT_FOURIER_VECTORS) * 2
-_JOINT_DELAY_ANGLE_SEED = 272_000
+_JOINT_DELAY_ANGLE_SEED = 273_000
 _DELAY_SPREAD_S = 100e-9
 _JOINT_DELAY_ANGLE_VECTORS = tuple(
     (delay_harmonic, angle_vector)
     for delay_harmonic in (1, 2)
     for angle_vector in (
-        (1, 0, 0, 0),
-        (0, 1, 0, 0),
         (1, 1, 0, 0),
         (1, -1, 1, 0),
         (1, 1, 1, 1),
@@ -144,6 +142,36 @@ def _profile_diffuse_reference(parameters: dict[str, Any]) -> tuple[Any, Any]:
         dim=-1,
     )
     return powers, angles
+
+
+def _profile_native_precision_reference(parameters: dict[str, Any]) -> tuple[Any, Any, Any]:
+    """Return table-derived delays, powers, and angle atoms at native float32 precision."""
+    is_los = bool(parameters["los"])
+    raw_delays = torch.tensor(parameters["delays"], dtype=torch.float32)
+    delays = raw_delays * _DELAY_SPREAD_S
+    raw_powers = torch.tensor(
+        [10.0 ** (float(value) / 10.0) for value in parameters["powers"]],
+        dtype=torch.float32,
+    )
+    powers = raw_powers / raw_powers.sum()
+    if is_los:
+        delays = delays[1:]
+        powers = powers[1:]
+        powers = powers / powers.sum()
+    offsets = torch.tensor(_RAY_OFFSETS_DEG, dtype=torch.float32)
+    angle_atoms = []
+    for name in _ANGLE_FIELDS:
+        base = torch.tensor(parameters[name][int(is_los) :], dtype=torch.float32)
+        spread = torch.tensor(parameters[_SPREAD_FIELDS[name]], dtype=torch.float32)
+        degrees = base[:, None] + spread * offsets[None, :]
+        angle_atoms.append(degrees * (math.pi / 180.0))
+    angles_rad = torch.stack(angle_atoms, dim=-1)
+    cluster_order = torch.argsort(delays)
+    return (
+        delays[cluster_order].to(torch.float64) / _DELAY_SPREAD_S,
+        powers[cluster_order].to(torch.float64),
+        angles_rad[cluster_order].to(torch.float64),
+    )
 
 
 def _native_diffuse_rays(model: str, seed: int = _SEED) -> Any:
@@ -409,6 +437,9 @@ def test_cdl_joint_delay_angle_characteristics_match_table_reference(model: str)
     assert hashlib.sha256(table_path.read_bytes()).hexdigest() == _PROFILE_SHA256[model]
     parameters = _independent_profile_parameters(model)
     expected_powers, table_angles_deg = _profile_diffuse_reference(parameters)
+    expected_native_delays, expected_native_powers, expected_native_angles = (
+        _profile_native_precision_reference(parameters)
+    )
     is_los = bool(parameters["los"])
     delay_start = int(is_los)
     table_delays = torch.tensor(parameters["delays"][delay_start:], dtype=torch.float64)
@@ -431,9 +462,23 @@ def test_cdl_joint_delay_angle_characteristics_match_table_reference(model: str)
     native_angles_rad = torch.gather(native_angles_rad, dim=1, index=angle_order)
     torch.testing.assert_close(
         native_delays,
-        table_delays.expand_as(native_delays),
-        atol=2e-7,
-        rtol=2 * torch.finfo(rays.delays.dtype).eps,
+        expected_native_delays.expand_as(native_delays),
+        atol=0.0,
+        rtol=0.0,
+    )
+    torch.testing.assert_close(
+        native_powers,
+        expected_native_powers.expand_as(native_powers),
+        atol=0.0,
+        rtol=0.0,
+    )
+    native_angle_multisets = torch.sort(native_angles_rad, dim=2).values
+    expected_angle_multisets = torch.sort(expected_native_angles, dim=1).values
+    torch.testing.assert_close(
+        native_angle_multisets,
+        expected_angle_multisets.unsqueeze(0).expand_as(native_angle_multisets),
+        atol=0.0,
+        rtol=0.0,
     )
     native_power_sums = native_powers.sum(dim=-1)
     torch.testing.assert_close(

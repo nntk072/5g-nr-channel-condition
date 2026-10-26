@@ -1,0 +1,49 @@
+{
+  "schema": "loslab.g4_cdl_joint_delay_angle_result.v1",
+  "protocol": "G4_07_CDL_JOINT_DELAY_ANGLE_PROTOCOL_V4_2026-10-27",
+  "run_date": "2026-10-27",
+  "status": "PASS_WITHIN_BOUNDED_PROTOCOL_SCOPE",
+  "seed_collision_audit": {
+    "path": "g4-cdl-joint-delay-angle-v4-seed-collision-audit-20261027.json",
+    "sha256": "323038e2b04b11d6d28eaddbb7d7d543447659a30e85c837d01a7e2aebfd0cf7",
+    "status": "CLEAR_WITHIN_SCANNED_JSON_CORPUS",
+    "scanned_file_count": 2268
+  },
+  "design": {
+    "profiles": ["A", "B", "C", "D", "E"],
+    "samples_per_profile": 8192,
+    "seeds": [273065, 273066, 273067, 273068, 273069],
+    "delay_harmonics": [1, 2],
+    "stochastic_vectors": [[1, 1, 0, 0], [1, -1, 1, 0], [1, 1, 1, 1]],
+    "stochastic_claim_count": 60,
+    "familywise_alpha": 0.01,
+    "simultaneous_half_width_cap": 0.05
+  },
+  "runtime": {
+    "sionna": "2.2.0",
+    "torch": "2.10.0+cu128",
+    "torch_cuda": "12.8",
+    "device": "cpu",
+    "host_gpus": ["Tesla V100-PCIE-16GB", "Tesla V100-PCIE-16GB"],
+    "phy_only_import_shim": true
+  },
+  "command": "PYTHONPATH=/tmp/sionna_phy_only OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 .venv/bin/python -m pytest -q --no-cov --confcutdir=tests/test_integrations tests/test_integrations/test_g4_cdl_joint_angular_characteristic_native.py -k joint_delay_angle_characteristics",
+  "provenance": {
+    "protocol_sha256": "4a4db9d13a710b269c37e76506919435f8e1a6f758bfc046ed4c989296c80699",
+    "test_source_sha256": "38838b51af6db27200c1732e0390d0fcd13e4c6134cbe102e748a4f03c87c934",
+    "independent_reference_sha256": "24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090",
+    "test_log": {
+      "path": "g4-cdl-joint-delay-angle-v4-20261027.log",
+      "sha256": "80164e74b553cfe41d9bfee2d7d82b6c7fe25f3f0f7074029d8a8fc8c976cd50"
+    }
+  },
+  "outcome": {
+    "profile_cases_passed": ["A", "B", "C", "D", "E"],
+    "deterministic_native_precision_checks_passed": true,
+    "stochastic_joint_claims_passed": 60,
+    "stochastic_claims_failed": 0,
+    "claim_level_numeric_estimates_saved": false,
+    "warning": "PyTorch emitted a tensor-copy construction warning for the ray-offset fixture; it did not affect test results."
+  },
+  "scope": "This supports only the v4 deterministic ray-roster checks and selected joint delay/four-angle characteristics for CDL-A–E under the pinned setup. It does not establish the complete G4 conformance suite, full joint law, arbitrary arrays/orientations/patterns, geometric RT validity, measured-channel accuracy, G3 qualification, or production RT authorization."
+}

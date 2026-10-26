@@ -1,0 +1,11 @@
+.....                                                                    [100%]
+=============================== warnings summary ===============================
+tests/test_integrations/test_g4_cdl_joint_angular_characteristic_native.py::test_cdl_joint_delay_angle_characteristics_match_table_reference[A]
+tests/test_integrations/test_g4_cdl_joint_angular_characteristic_native.py::test_cdl_joint_delay_angle_characteristics_match_table_reference[B]
+tests/test_integrations/test_g4_cdl_joint_angular_characteristic_native.py::test_cdl_joint_delay_angle_characteristics_match_table_reference[C]
+tests/test_integrations/test_g4_cdl_joint_angular_characteristic_native.py::test_cdl_joint_delay_angle_characteristics_match_table_reference[D]
+tests/test_integrations/test_g4_cdl_joint_angular_characteristic_native.py::test_cdl_joint_delay_angle_characteristics_match_table_reference[E]
+  /home/l2nguyen/5g-nr-channel-condition/tests/test_integrations/test_g4_cdl_joint_angular_characteristic_native.py:161: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.detach().clone() or sourceTensor.detach().clone().requires_grad_(True), rather than torch.tensor(sourceTensor).
+    offsets = torch.tensor(_RAY_OFFSETS_DEG, dtype=torch.float32)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
