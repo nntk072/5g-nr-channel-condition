@@ -4,7 +4,14 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-from integrations.sionna import PBCHMIB, nr_pbch_mib_parse, nr_pbch_mib_serialize
+from integrations.sionna import (
+    PBCHMIB,
+    PBCHMessageClassExtension,
+    nr_bcch_bch_message_parse,
+    nr_bcch_bch_message_serialize,
+    nr_pbch_mib_parse,
+    nr_pbch_mib_serialize,
+)
 
 
 @pytest.mark.parametrize(
@@ -53,6 +60,43 @@ def test_mib_parser_rejects_non_mib_or_malformed_input(
 ) -> None:
     with pytest.raises(error):
         nr_pbch_mib_parse(bits)
+
+
+@pytest.mark.parametrize(
+    "trailing_bits",
+    [
+        (0,) * 23,
+        tuple(index % 2 for index in range(23)),
+    ],
+)
+def test_message_class_extension_choice_round_trips_opaque_trailing_bits(
+    trailing_bits: tuple[int, ...],
+) -> None:
+    message = PBCHMessageClassExtension(trailing_bits)
+
+    encoded = nr_bcch_bch_message_serialize(message)
+
+    assert encoded.shape == (24,)
+    assert encoded[0] == 1
+    assert not encoded.flags.writeable
+    assert nr_bcch_bch_message_parse(encoded) == message
+    with pytest.raises(ValueError, match="messageClassExtension"):
+        nr_pbch_mib_parse(encoded)
+
+
+@pytest.mark.parametrize(
+    "trailing_bits",
+    [
+        (0,) * 22,
+        (0,) * 22 + (2,),
+        (0,) * 22 + (True,),
+    ],
+)
+def test_message_class_extension_rejects_malformed_trailing_bits(
+    trailing_bits: tuple[int, ...],
+) -> None:
+    with pytest.raises(ValueError, match="trailing_bits"):
+        PBCHMessageClassExtension(trailing_bits)
 
 
 def test_mib_serializer_rejects_out_of_range_field() -> None:

@@ -8,6 +8,7 @@ from integrations.sionna import (
     map_nr_ssb_resource_grid,
     nr_ssb_ofdm_modulate,
     nr_ssb_ofdm_modulate_half_frame,
+    nr_ssb_ofdm_modulate_radio_frame,
     nr_ssb_waveform_config,
     ssb_candidate_symbols,
 )
@@ -116,6 +117,128 @@ def test_half_frame_builder_rejects_mismatched_candidate_count() -> None:
     with pytest.raises(ValueError, match="candidate count must match"):
         nr_ssb_ofdm_modulate_half_frame(
             {0: block},
+            case="A",
+            carrier_frequency_hz=3.5e9,
+            subcarrier_spacing_hz=15_000,
+            frequency_range="FR1",
+            fft_size=256,
+        )
+
+
+def test_radio_frame_builder_places_each_half_frame_and_tracks_transmissions() -> None:
+    fft_size = 256
+    candidate_count = len(
+        ssb_candidate_symbols(
+            "A", 3.5e9, subcarrier_spacing_hz=15_000, frequency_range="FR1"
+        )
+    )
+    blocks_by_half_frame = {
+        0: {0: _block(0, candidate_count, half_frame=0)},
+        1: {candidate_count - 1: _block(candidate_count - 1, candidate_count)},
+    }
+    frame = nr_ssb_ofdm_modulate_radio_frame(
+        blocks_by_half_frame,
+        case="A",
+        carrier_frequency_hz=3.5e9,
+        subcarrier_spacing_hz=15_000,
+        frequency_range="FR1",
+        fft_size=fft_size,
+    )
+    first = nr_ssb_ofdm_modulate_half_frame(
+        blocks_by_half_frame[0],
+        case="A",
+        carrier_frequency_hz=3.5e9,
+        subcarrier_spacing_hz=15_000,
+        frequency_range="FR1",
+        fft_size=fft_size,
+    )
+    second = nr_ssb_ofdm_modulate_half_frame(
+        blocks_by_half_frame[1],
+        case="A",
+        carrier_frequency_hz=3.5e9,
+        subcarrier_spacing_hz=15_000,
+        frequency_range="FR1",
+        fft_size=fft_size,
+    )
+
+    assert frame.waveform.shape == (frame.sample_rate_hz // 100,)
+    assert frame.transmitted_candidate_indices_by_half_frame == ((0,), (candidate_count - 1,))
+    np.testing.assert_array_equal(frame.waveform[: first.waveform.size], first.waveform)
+    np.testing.assert_array_equal(frame.waveform[first.waveform.size :], second.waveform)
+    assert not frame.waveform.flags.writeable
+
+
+def test_radio_frame_builder_represents_an_omitted_half_frame_as_silence() -> None:
+    frame = nr_ssb_ofdm_modulate_radio_frame(
+        {1: {0: _block(0, 8)}},
+        case="A",
+        carrier_frequency_hz=3.5e9,
+        subcarrier_spacing_hz=15_000,
+        frequency_range="FR1",
+        fft_size=256,
+    )
+
+    half_frame_samples = frame.sample_rate_hz // 200
+    np.testing.assert_array_equal(frame.waveform[:half_frame_samples], 0.0)
+    assert frame.transmitted_candidate_indices_by_half_frame == ((), (0,))
+
+
+def test_radio_frame_builder_supports_a_completely_silent_frame() -> None:
+    frame = nr_ssb_ofdm_modulate_radio_frame(
+        {},
+        case="A",
+        carrier_frequency_hz=3.5e9,
+        subcarrier_spacing_hz=15_000,
+        frequency_range="FR1",
+        fft_size=256,
+    )
+
+    assert frame.waveform.shape == (frame.sample_rate_hz // 100,)
+    np.testing.assert_array_equal(frame.waveform, 0.0)
+    assert frame.transmitted_candidate_indices_by_half_frame == ((), ())
+
+
+def test_radio_frame_builder_rejects_half_frame_metadata_mismatch() -> None:
+    with pytest.raises(ValueError, match="metadata must match"):
+        nr_ssb_ofdm_modulate_radio_frame(
+            {0: {0: _block(0, 8, half_frame=1)}},
+            case="A",
+            carrier_frequency_hz=3.5e9,
+            subcarrier_spacing_hz=15_000,
+            frequency_range="FR1",
+            fft_size=256,
+        )
+
+
+def test_radio_frame_builder_rejects_invalid_half_frame_index() -> None:
+    with pytest.raises(ValueError, match="must be 0 or 1"):
+        nr_ssb_ofdm_modulate_radio_frame(
+            {2: {}},
+            case="A",
+            carrier_frequency_hz=3.5e9,
+            subcarrier_spacing_hz=15_000,
+            frequency_range="FR1",
+            fft_size=256,
+        )
+
+
+def test_radio_frame_builder_rejects_different_cells_across_halves() -> None:
+    blocks = {
+        0: {0: _block(0, 8, half_frame=0)},
+        1: {
+            0: map_nr_ssb_resource_grid(
+                18,
+                0,
+                np.ones(432, dtype=np.complex128),
+                ssb_index_in_half_frame=0,
+                half_frame_index=1,
+                max_candidate_blocks_per_half_frame=8,
+            )
+        },
+    }
+    with pytest.raises(ValueError, match="same physical cell ID"):
+        nr_ssb_ofdm_modulate_radio_frame(
+            blocks,
             case="A",
             carrier_frequency_hz=3.5e9,
             subcarrier_spacing_hz=15_000,

@@ -14,15 +14,17 @@ single Bonferroni family over all 50 profile-topology cells and every unique
 real covariance component. This gives nominal asymptotic 99% family-wise
 confidence across the full matrix. Every half-width is bounded by 0.05 of the
 normalized total channel power. References come from the analytic TDL
-correlation law or the pinned TR 38.901 CDL profile table, antenna-field
-equations, and Table 7.5-3 ray-offset/coupling rule, never from generated
-channel outputs.
+correlation law or the byte-pinned ETSI-derived CDL component fixture,
+antenna-field equations, and Table 7.5-3 ray-offset/coupling rule, never from
+generated channel outputs.
 """
 
 from __future__ import annotations
 
 import hashlib
+import json
 import math
+from pathlib import Path
 from statistics import NormalDist
 from typing import Any
 
@@ -31,6 +33,9 @@ import pytest
 torch = pytest.importorskip("torch")
 pytest.importorskip("sionna.phy")
 
+from evaluation.g4_tdl_covariance_reference import (  # noqa: E402
+    scalable_tdl_first_tap_covariance_reference,
+)
 from integrations.sionna.cdl import CDLArrayConfig, generate_cdl_frequency_response  # noqa: E402
 from integrations.sionna.tdl import generate_tdl_frequency_response  # noqa: E402
 from sionna.phy.channel.tr38901 import models as profile_resources  # noqa: E402
@@ -51,6 +56,14 @@ _CDL_TABLE_SHA256 = {
     "D": "a8960f176347de457c0cb90fbc8cf137ac98bb1c5295b096f004d8d5c6e40176",
     "E": "04328f33d8d79b24aa3d0303fecb58b465ed7e13874930b05e76be0d97743480",
 }
+_CDL_ETSI_REFERENCE_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "docs"
+    / "research"
+    / "G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
+)
+_CDL_ETSI_REFERENCE_SHA256 = "24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090"
+_CDL_ETSI_SOURCE_SHA256 = "b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4"
 _RAY_ANGLE_OFFSETS = (
     0.0447,
     -0.0447,
@@ -141,33 +154,6 @@ def _tdl_rx_correlation(num_rx_ant: int) -> Any:
     )
 
 
-def _tdl_first_tap_covariance_reference(channel: Any, rx_corr: Any, num_tx_ant: int) -> Any:
-    """Derive the Sionna TDL first-tap covariance from its correlation law.
-
-    Diffuse coefficients have covariance ``P_diff * (R_rx kron I_tx)``.
-    For TDL-D/E the common specular phase is shared across antenna pairs, so
-    its contribution is ``P_los * (R_rx kron 11*)`` after receive filtering.
-    """
-    tap_power = float(channel.metadata["mean_tap_powers"][0])
-    k_factor = channel.metadata["k_factor_linear"]
-    diffuse_power = tap_power if k_factor is None else tap_power / (1.0 + float(k_factor))
-    los_power = 0.0 if k_factor is None else tap_power - diffuse_power
-    expected = diffuse_power * torch.kron(rx_corr, torch.eye(num_tx_ant, dtype=rx_corr.dtype))
-    if los_power:
-        # Sionna applies the receive Cholesky factor to its antenna-independent
-        # specular coefficient. Thus its array steering vector is L_rx * 1,
-        # rather than a physical-angle steering vector or simply R_rx.
-        los_receive_vector = torch.linalg.cholesky(rx_corr) @ torch.ones(
-            rx_corr.shape[0], dtype=rx_corr.dtype
-        )
-        los_receive_covariance = los_receive_vector[:, None] * los_receive_vector[None, :].conj()
-        expected = expected + los_power * torch.kron(
-            los_receive_covariance,
-            torch.ones((num_tx_ant, num_tx_ant), dtype=rx_corr.dtype),
-        )
-    return expected
-
-
 def _vertical_field_components(zenith: Any, azimuth: Any) -> tuple[Any, Any]:
     """Compute omni/V field components after the pinned basis rotation.
 
@@ -210,14 +196,43 @@ def _independent_cdl_receive_covariance_reference(model: str, num_rx_ant: int) -
     ``sionna/phy/channel/tr38901/antenna.py`` (``AntennaElement.field``) and
     ``channel_coefficients.py`` (``_compute_psi``,
     ``_step_11_phase_matrix``, ``_step_11_field_matrix``, and
-    ``_step_11_los``). The exact profile data are read from the pinned
-    ``models/v19_2/CDL-*.json`` table and checked against its frozen digest.
+    ``_step_11_los``). Profile values come from the byte-pinned ETSI-derived
+    fixture; the installed Sionna table is checked separately as generator
+    provenance.
     """
     table_path = profile_resources.parameter_file(f"CDL-{model}.json", "19.2")
     table_bytes = table_path.read_bytes()
     source_digest = hashlib.sha256(table_bytes).hexdigest()
     assert source_digest == _CDL_TABLE_SHA256[model]
-    parameters = profile_resources.load_json(table_path)
+    reference_bytes = _CDL_ETSI_REFERENCE_PATH.read_bytes()
+    assert hashlib.sha256(reference_bytes).hexdigest() == _CDL_ETSI_REFERENCE_SHA256
+    reference = json.loads(reference_bytes)
+    assert reference["source_sha256"] == _CDL_ETSI_SOURCE_SHA256
+    profile = next(row for row in reference["profiles"] if row["profile_model"] == model)
+    components = profile["components"]
+    is_los = profile["los"]
+    specular_components = [item for item in components if item["component"] == "specular"]
+    diffuse_components = [item for item in components if item["component"] == "diffuse"]
+    assert len(specular_components) == int(is_los)
+    if is_los:
+        assert components[0] is specular_components[0]
+        assert components[1:] == diffuse_components
+    else:
+        assert components == diffuse_components
+    assert len(diffuse_components) == profile["cluster_count"]
+    parameters = {
+        "los": is_los,
+        "powers": [item["power_db"] for item in components],
+        "aoa": [item["angles_deg"]["aoa"] for item in components],
+        "aod": [item["angles_deg"]["aod"] for item in components],
+        "zoa": [item["angles_deg"]["zoa"] for item in components],
+        "zod": [item["angles_deg"]["zod"] for item in components],
+        "cASA": profile["cluster_spreads_deg"]["asa"],
+        "cASD": profile["cluster_spreads_deg"]["asd"],
+        "cZSA": profile["cluster_spreads_deg"]["zsa"],
+        "cZSD": profile["cluster_spreads_deg"]["zsd"],
+        "xpr": profile["xpr_db"],
+    }
     raw_powers = torch.as_tensor(
         [10.0 ** (float(power_db) / 10.0) for power_db in parameters["powers"]],
         dtype=torch.float64,
@@ -307,7 +322,10 @@ def test_core1_tdl_first_tap_covariance_matches_analytic_correlation(
         device="cpu",
     )
     samples = channel.h_path[:, 0, :, 0, :, 0, 0].reshape(_BATCH_SIZE, -1)
-    expected = _tdl_first_tap_covariance_reference(channel, rx_corr, num_tx_ant)
+    expected = torch.as_tensor(
+        scalable_tdl_first_tap_covariance_reference(model, rx_corr.numpy(), num_tx_ant),
+        dtype=torch.complex128,
+    )
     assert tuple(samples.shape) == (_BATCH_SIZE, num_rx_ant * num_tx_ant)
     assert channel.metadata["profile_proxy"] == model
     assert channel.metadata["batch_axis_semantics"] == "independent_stochastic_channel_draws"

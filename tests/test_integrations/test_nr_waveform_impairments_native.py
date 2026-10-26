@@ -89,7 +89,7 @@ def test_per_path_doppler_creates_intra_symbol_ici_against_diagonal_cfr():
     sample_index = torch.arange(-cp_length, fft_size, dtype=torch.float64)
     one_tone = torch.polar(
         torch.ones_like(sample_index),
-        2.0 * torch.pi * tone_bin * sample_index / fft_size,
+        2.0 * math.pi * tone_bin * sample_index / fft_size,
     )
 
     static = apply_time_varying_multipath(
@@ -123,17 +123,68 @@ def test_per_path_doppler_creates_intra_symbol_ici_against_diagonal_cfr():
     assert dynamic_off_tone / torch.sum(torch.abs(dynamic_spectrum) ** 2) > 1e-2
 
 
+@pytest.mark.native_sionna
+@pytest.mark.parametrize("doppler_fraction", [0.0, 0.025, 0.1, 0.2])
+def test_per_path_doppler_spectrum_matches_finite_symbol_reference(doppler_fraction):
+    """Check the complete one-symbol spectrum against its finite-sum reference."""
+    import cmath
+
+    fft_size = 64
+    cp_length = 16
+    spacing_hz = 15_000.0
+    sample_rate_hz = fft_size * spacing_hz
+    tone_bin = 9
+    delay_samples = 3
+    echo = 0.4 + 0.2j
+    sample_index = torch.arange(-cp_length, fft_size, dtype=torch.float64)
+    one_tone = torch.polar(
+        torch.ones_like(sample_index),
+        2.0 * math.pi * tone_bin * sample_index / fft_size,
+    )
+
+    received = apply_time_varying_multipath(
+        one_tone,
+        path_coefficients=[echo],
+        path_delays_samples=[delay_samples],
+        path_dopplers_hz=[doppler_fraction * spacing_hz],
+        sampling_frequency_hz=sample_rate_hz,
+    )
+    observed = torch.fft.fft(received[cp_length:])
+
+    # Directly sum the finite OFDM symbol for every output bin. This reference
+    # does not call the channel helper or use its FFT output.
+    expected = []
+    doppler_phase = 2.0 * math.pi * doppler_fraction
+    for output_bin in range(fft_size):
+        symbol_sum = sum(
+            cmath.exp(2j * math.pi * (tone_bin + doppler_fraction - output_bin) * sample / fft_size)
+            for sample in range(fft_size)
+        )
+        cp_phase = cmath.exp(1j * doppler_phase * cp_length / fft_size)
+        delay_phase = cmath.exp(-2j * math.pi * tone_bin * delay_samples / fft_size)
+        expected.append(echo * cp_phase * delay_phase * symbol_sum)
+
+    expected_tensor = torch.tensor(expected, dtype=torch.complex128)
+    torch.testing.assert_close(observed, expected_tensor, atol=2e-12, rtol=2e-12)
+
+
 def test_symbol_static_doppler_preserves_symbol_aging_without_intra_symbol_rotation():
     waveform = torch.ones(10, dtype=torch.complex128)
-    arguments = {
-        "path_coefficients": [1.0 + 0j],
-        "path_delays_samples": [0],
-        "path_dopplers_hz": [1.0],
-        "sampling_frequency_hz": 10.0,
-    }
-
-    continuous = apply_time_varying_multipath(waveform, **arguments)
-    symbol_static = apply_time_varying_multipath(waveform, symbol_length_samples=5, **arguments)
+    continuous = apply_time_varying_multipath(
+        waveform,
+        path_coefficients=[1.0 + 0j],
+        path_delays_samples=[0],
+        path_dopplers_hz=[1.0],
+        sampling_frequency_hz=10.0,
+    )
+    symbol_static = apply_time_varying_multipath(
+        waveform,
+        path_coefficients=[1.0 + 0j],
+        path_delays_samples=[0],
+        path_dopplers_hz=[1.0],
+        sampling_frequency_hz=10.0,
+        symbol_length_samples=5,
+    )
 
     continuous_phase = 0.2 * torch.pi * torch.arange(10, dtype=torch.float64)
     torch.testing.assert_close(
@@ -448,6 +499,70 @@ def test_pusch_cp_acquisition_and_correction_decode_two_tap_payload_on_cpu():
 
     torch.testing.assert_close(decoded_bits, tx_bits)
     assert bool(crc_ok.all())
+
+
+@pytest.mark.native_sionna
+def test_time_varying_two_tap_channel_reaches_pusch_dmrs_decoder_on_cpu():
+    """Exercise continuous-time Doppler through the receiver's DM-RS path."""
+    from sionna.phy.nr import PUSCHReceiver
+    from sionna.phy.ofdm import OFDMDemodulator, OFDMModulator
+
+    transmitter = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(n_size_bwp=6, subcarrier_spacing_khz=30), device="cpu"
+    )
+    grid = transmitter.resource_grid
+    tx_grid, tx_bits = transmitter.transmit(16, seed=82_031)
+    modulator = OFDMModulator(
+        cyclic_prefix_length=grid.cyclic_prefix_length,
+        device="cpu",
+    )
+    demodulator = OFDMDemodulator(
+        fft_size=grid.fft_size,
+        l_min=0,
+        cyclic_prefix_length=grid.cyclic_prefix_length,
+        device="cpu",
+    )
+    waveform = modulator(tx_grid)
+    sample_rate_hz = grid.fft_size * transmitter.config.subcarrier_spacing_khz * 1_000.0
+    channel_waveform = apply_time_varying_multipath(
+        waveform,
+        path_coefficients=(0.9 - 0.1j, 0.32 + 0.18j),
+        path_delays_samples=(0, 2),
+        path_dopplers_hz=(35.0, 220.0),
+        sampling_frequency_hz=sample_rate_hz,
+    )
+
+    # The channel varies within OFDM symbols and across the slot. Verify the
+    # received samples differ from the symbol-static approximation before
+    # using the same DM-RS estimator and decoder as an ordinary PUSCH receive.
+    symbol_static = apply_time_varying_multipath(
+        waveform,
+        path_coefficients=(0.9 - 0.1j, 0.32 + 0.18j),
+        path_delays_samples=(0, 2),
+        path_dopplers_hz=(35.0, 220.0),
+        sampling_frequency_hz=sample_rate_hz,
+        symbol_length_samples=grid.fft_size + int(grid.cyclic_prefix_length),
+    )
+    assert not torch.equal(channel_waveform, symbol_static)
+
+    signal_power = torch.mean(torch.abs(channel_waveform) ** 2)
+    noise_variance = signal_power / (10.0 ** (35.0 / 10.0))
+    generator = torch.Generator(device="cpu").manual_seed(82_032)
+    noise = torch.complex(
+        torch.randn(channel_waveform.shape, generator=generator),
+        torch.randn(channel_waveform.shape, generator=generator),
+    ) * torch.sqrt(noise_variance / 2.0)
+    received_grid = demodulator(channel_waveform + noise)
+    decoder = PUSCHReceiver(
+        transmitter._transmitter,
+        return_tb_crc_status=True,
+        input_domain="freq",
+        device="cpu",
+    )
+    decoded_bits, crc_ok = decoder(received_grid, noise_variance)
+
+    assert decoded_bits.shape == tx_bits.shape
+    assert int(torch.count_nonzero(crc_ok)) >= 15
 
 
 @pytest.mark.native_sionna

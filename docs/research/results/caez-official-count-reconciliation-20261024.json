@@ -1,0 +1,78 @@
+{
+  "generated_utc": "2026-10-24T09:07:50.281431Z",
+  "interpretation": [
+    "Official preprocessing code documents timestamp-range filtering for all three environments and optional spatial filtering for indoor/outdoor. Those operations can explain some lower preprocessed counts, but no retained-row crosswalk or exact generator/input version binds these local archives to the official page totals.",
+    "The hallway archive has more rows than the published page count; filtering alone cannot explain that difference if both counts refer to the same input version. The page/archive release relationship remains unresolved.",
+    "No cause is inferred. Keep CAEZ use exploratory and do not treat these archives as G3 material/LOS qualification evidence."
+  ],
+  "license_handling": {
+    "raw_archives_are_not_copied_into_this_report": true,
+    "raw_archives_must_remain_local_and_non_redistributed": true,
+    "required_citation": "R. Wiesmayr et al., CSI-Based User Positioning, Channel Charting, and Device Classification with an NVIDIA 5G Testbed, Asilomar Conference, 2025."
+  },
+  "local_metadata_sources": {
+    "cross_environment_report_sha256": "2697498a6309a4c6fe16a8d11b3e397ae5db62b2bd604558c45d0b79726dd345",
+    "indoor_audit_sha256": "ca241335c191af74aead8bf5fbc3adfcd688ab8f099c7a190f6a705274741285"
+  },
+  "official_sources": {
+    "dataset_page": "https://iip.ethz.ch/datasets/caez.html",
+    "license_page": "https://iip.ethz.ch/datasets/caez/caez-dataset-license.html",
+    "preprocessed_directory": "https://iis-people.ee.ethz.ch/~iisdatasets/iip/caez/5g/csi_features/downsampled_ofdm_domain_absolutes/",
+    "processing_sources": {
+      "hallway": "https://github.com/IIP-Group/neural-positioning-transformer/blob/main/gen_dataset_hallway.py",
+      "indoor_outdoor": "https://github.com/IIP-Group/neural-positioning/blob/main/gen_dataset.py"
+    },
+    "remote_checksums_available": false
+  },
+  "reconciliation_source_sha256": "6b46da498a918e8022e0c420a8aae38613891d3501a672b292cca5bc67aafcdf",
+  "results": [
+    {
+      "archive_filename": "caez_5g_indoor_full.npz",
+      "count_match": false,
+      "environment_id": "caez_5g_indoor_full",
+      "local_archive_bytes": 5957915148,
+      "local_archive_sha256": "706e710cc30a96bbe4386e705d9361497e9c2e5df13c00fba77d9318e915c2cc",
+      "local_audited_sample_count": 338980,
+      "local_minus_official_sample_count": -1,
+      "official_preprocessed_listing": {
+        "displayed_size": "5.5G",
+        "last_modified": "2025-12-12 11:19"
+      },
+      "official_published_sample_count": 338981,
+      "reconciliation_status": "UNRESOLVED_COUNT_DIFFERENCE"
+    },
+    {
+      "archive_filename": "caez_5g_outdoor_full.npz",
+      "count_match": false,
+      "environment_id": "caez_5g_outdoor_full",
+      "local_archive_bytes": 5328553768,
+      "local_archive_sha256": "04c4256a323709bc45aba34890fa91839dc491023140f8a3a6afb1c53e23829e",
+      "local_audited_sample_count": 303172,
+      "local_minus_official_sample_count": -17,
+      "official_preprocessed_listing": {
+        "displayed_size": "5.0G",
+        "last_modified": "2025-12-12 11:22"
+      },
+      "official_published_sample_count": 303189,
+      "reconciliation_status": "UNRESOLVED_COUNT_DIFFERENCE"
+    },
+    {
+      "archive_filename": "caez_5g_hallway_full.npz",
+      "count_match": false,
+      "environment_id": "caez_5g_hallway_full",
+      "local_archive_bytes": 5097883916,
+      "local_archive_sha256": "5f8b0f572954395f243ffda849eecc2ccd5a77fbc90439ba7bd923e22b009d22",
+      "local_audited_sample_count": 290180,
+      "local_minus_official_sample_count": 2000,
+      "official_preprocessed_listing": {
+        "displayed_size": "4.7G",
+        "last_modified": "2026-08-05 15:58"
+      },
+      "official_published_sample_count": 288180,
+      "reconciliation_status": "UNRESOLVED_COUNT_DIFFERENCE"
+    }
+  ],
+  "retrieved_date": "2026-10-24",
+  "schema": "caez-sample-count-reconciliation.v1",
+  "status": "UNRESOLVED_PUBLISHED_VS_PREPROCESSED_COUNT_DIFFERENCES"
+}

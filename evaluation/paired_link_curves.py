@@ -8,14 +8,23 @@ from typing import Any
 
 from artifacts.provenance import package_source_sha256, sha256_file, versions
 
-from evaluation.statistics import paired_binary_error_comparison
+from evaluation.statistics import (
+    paired_binary_error_comparison,
+    paired_cluster_binary_error_comparison,
+    paired_cluster_binary_error_family_comparison,
+)
+
+_TIME_CURVE_SCHEMAS = {
+    "loslab.tdl_pusch_time_bler_curve.v1",
+    "loslab.tdl_pusch_time_bler_curve.v2",
+}
 
 
 def load_curve(path: str | Path) -> dict[str, Any]:
     """Load a supported, explicitly simulation-only sample-domain curve."""
     path = Path(path)
     result = json.loads(path.read_text(encoding="utf8"))
-    if result.get("schema") != "loslab.tdl_pusch_time_bler_curve.v1":
+    if result.get("schema") not in _TIME_CURVE_SCHEMAS:
         raise ValueError(f"unsupported sample-domain curve schema in {path}")
     if result.get("evidence_grade") != "SIMULATION_ONLY_UNVALIDATED":
         raise ValueError(f"unexpected evidence grade in {path}")
@@ -40,10 +49,11 @@ def compare_curves(
         "dmrs_additional_position",
         "delay_spread_s",
         "profile",
+        "channel_estimator",
     }:
         raise ValueError(
             "varying_config_field must be speed_mps, dmrs_additional_position, "
-            "delay_spread_s, or profile"
+            "delay_spread_s, profile, or channel_estimator"
         )
     varying = {
         varying_config_field,
@@ -61,6 +71,42 @@ def compare_curves(
         )
     if varying_config_field == "profile":
         varying.update({"channel_model"})
+    if varying_config_field == "channel_estimator":
+        control_estimator = control_config.get("channel_estimator")
+        treatment_estimator = treatment_config.get("channel_estimator")
+        supported_estimators = {"sionna_ls", "finite_delay_dft"}
+        if (
+            not isinstance(control_estimator, dict)
+            or not isinstance(treatment_estimator, dict)
+            or control_estimator.get("kind") not in supported_estimators
+            or treatment_estimator.get("kind") not in supported_estimators
+            or control_estimator.get("kind") == treatment_estimator.get("kind")
+            or {
+                control_estimator.get("kind"),
+                treatment_estimator.get("kind"),
+            }
+            != supported_estimators
+        ):
+            raise ValueError(
+                "channel-estimator comparison requires one Sionna LS and one finite-delay DFT curve"
+            )
+        for estimator in (control_estimator, treatment_estimator):
+            if set(estimator) != {"kind", "min_delay_samples", "max_delay_samples"}:
+                raise ValueError("channel-estimator metadata has an unsupported field roster")
+            minimum = estimator["min_delay_samples"]
+            maximum = estimator["max_delay_samples"]
+            if estimator["kind"] == "sionna_ls":
+                if minimum is not None or maximum is not None:
+                    raise ValueError("Sionna LS estimator must not declare DFT delay bounds")
+            elif (
+                isinstance(minimum, bool)
+                or not isinstance(minimum, int)
+                or isinstance(maximum, bool)
+                or not isinstance(maximum, int)
+                or minimum > maximum
+            ):
+                raise ValueError("finite-delay DFT estimator needs ordered integer delay bounds")
+        varying.add("channel_estimator")
     for key in set(control_config) | set(treatment_config):
         if key not in varying and control_config.get(key) != treatment_config.get(key):
             raise ValueError(f"curve configuration differs unexpectedly at {key}")
@@ -89,6 +135,26 @@ def compare_curves(
         )
     if varying_config_field == "speed_mps" and not same_bits:
         raise ValueError("transmitted bits differ for the matched mobility experiment")
+    if varying_config_field == "channel_estimator":
+        if not same_bits:
+            raise ValueError("transmitted bits differ for the matched estimator experiment")
+        if not same_channel:
+            raise ValueError("channel truth differs for the matched estimator experiment")
+        if any(
+            not isinstance(check.get("transmit_bits_sha256"), str)
+            or not check["transmit_bits_sha256"].strip()
+            or not isinstance(check.get("channel_truth_sha256"), str)
+            or not check["channel_truth_sha256"].strip()
+            or isinstance(check.get("noise_real_seed"), bool)
+            or not isinstance(check.get("noise_real_seed"), int)
+            or isinstance(check.get("noise_imag_seed"), bool)
+            or not isinstance(check.get("noise_imag_seed"), int)
+            or check["noise_real_seed"] == check["noise_imag_seed"]
+            for check in control_checks
+        ):
+            raise ValueError(
+                "estimator comparison requires payload/channel hashes and distinct real/imaginary noise seeds"
+            )
     if varying_config_field == "profile":
         if not same_bits:
             raise ValueError("transmitted bits differ for the matched channel-profile experiment")
@@ -131,36 +197,91 @@ def compare_curves(
     for left, right in zip(control_points, treatment_points, strict=True):
         if left["snr_db"] != right["snr_db"] or left["frames"] != right["frames"]:
             raise ValueError("SNR values or codeword counts differ")
-        comparisons.append(
-            {
-                "snr_db": left["snr_db"],
-                **paired_binary_error_comparison(
-                    left["frame_error_mask"],
-                    right["frame_error_mask"],
-                    seed=1,
-                    draws=20_000,
-                    control_bits_per_success=left["mean_transmitted_tb_bits_per_codeword"]
-                    if "mean_transmitted_tb_bits_per_codeword" in left
-                    else left["bits"] / left["frames"],
-                    treatment_bits_per_success=right["mean_transmitted_tb_bits_per_codeword"]
-                    if "mean_transmitted_tb_bits_per_codeword" in right
-                    else right["bits"] / right["frames"],
-                ),
-            }
+        if varying_config_field == "channel_estimator":
+            if (
+                control.get("schema") != "loslab.tdl_pusch_time_bler_curve.v2"
+                or treatment.get("schema") != "loslab.tdl_pusch_time_bler_curve.v2"
+            ):
+                raise ValueError(
+                    "estimator comparison requires v2 curves with retained batch-cluster IDs"
+                )
+            control_groups = left.get("frame_cluster_ids")
+            treatment_groups = right.get("frame_cluster_ids")
+            if (
+                not isinstance(control_groups, list)
+                or len(control_groups) != left["frames"]
+                or treatment_groups != control_groups
+                or any(not isinstance(group, str) or not group.strip() for group in control_groups)
+                or len(set(control_groups)) < 2
+                or set(control_groups)
+                != {str(check["seed"]) for check in control_checks}
+            ):
+                raise ValueError(
+                    "estimator curves need identical IDs for at least two declared batch clusters"
+                )
+            paired_result = paired_cluster_binary_error_comparison(
+                control_errors=left["frame_error_mask"],
+                treatment_errors=right["frame_error_mask"],
+                groups=control_groups,
+                seed=1,
+                draws=20_000,
+            )
+            comparisons.append(
+                {
+                    "snr_db": left["snr_db"],
+                    "cluster_paired_comparison": paired_result,
+                    "sampling_unit": "independent batch seed; codewords remain nested",
+                }
+            )
+        else:
+            comparisons.append(
+                {
+                    "snr_db": left["snr_db"],
+                    **paired_binary_error_comparison(
+                        left["frame_error_mask"],
+                        right["frame_error_mask"],
+                        seed=1,
+                        draws=20_000,
+                        control_bits_per_success=left[
+                            "mean_transmitted_tb_bits_per_codeword"
+                        ]
+                        if "mean_transmitted_tb_bits_per_codeword" in left
+                        else left["bits"] / left["frames"],
+                        treatment_bits_per_success=right[
+                            "mean_transmitted_tb_bits_per_codeword"
+                        ]
+                        if "mean_transmitted_tb_bits_per_codeword" in right
+                        else right["bits"] / right["frames"],
+                    ),
+                }
+            )
+    if varying_config_field != "channel_estimator":
+        ordered = sorted(
+            range(len(comparisons)),
+            key=lambda index: comparisons[index]["mcnemar_exact_two_sided_p_value"],
         )
-    ordered = sorted(
-        range(len(comparisons)),
-        key=lambda index: comparisons[index]["mcnemar_exact_two_sided_p_value"],
-    )
-    adjusted_max = 0.0
-    point_count = len(comparisons)
-    for rank, index in enumerate(ordered):
-        raw_p = comparisons[index]["mcnemar_exact_two_sided_p_value"]
-        adjusted_max = max(adjusted_max, (point_count - rank) * raw_p)
-        comparisons[index]["mcnemar_exact_two_sided_p_value_holm"] = min(1.0, adjusted_max)
+        adjusted_max = 0.0
+        point_count = len(comparisons)
+        for rank, index in enumerate(ordered):
+            raw_p = comparisons[index]["mcnemar_exact_two_sided_p_value"]
+            adjusted_max = max(adjusted_max, (point_count - rank) * raw_p)
+            comparisons[index]["mcnemar_exact_two_sided_p_value_holm"] = min(1.0, adjusted_max)
+
+    if varying_config_field == "channel_estimator":
+        family_comparisons = paired_cluster_binary_error_family_comparison(
+            [point["frame_error_mask"] for point in control_points],
+            [point["frame_error_mask"] for point in treatment_points],
+            [point["frame_cluster_ids"] for point in control_points],
+            seed=1,
+            draws=20_000,
+        )
+        for comparison, family_comparison in zip(comparisons, family_comparisons, strict=True):
+            comparison["familywise_cluster_comparison"] = family_comparison
 
     return {
-        "schema": "loslab.paired_tdl_pusch_time_bler.v1",
+        "schema": "loslab.paired_tdl_pusch_time_bler.v3"
+        if varying_config_field == "channel_estimator"
+        else "loslab.paired_tdl_pusch_time_bler.v1",
         "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
         "control": {
             "path": str(control_path),
@@ -170,6 +291,7 @@ def compare_curves(
             "dmrs_additional_position": control_config.get("dmrs_additional_position", 0),
             "delay_spread_s": control_config.get("delay_spread_s"),
             "profile": control_config.get("profile"),
+            "channel_estimator": control_config.get("channel_estimator"),
             "channel_memory_samples": control_config.get("channel_memory_samples"),
             "cp_covers_channel_memory": control_config.get("cp_covers_channel_memory"),
             "transmit_waveform_mean_power_by_batch": control_config.get(
@@ -184,6 +306,7 @@ def compare_curves(
             "dmrs_additional_position": treatment_config.get("dmrs_additional_position", 0),
             "delay_spread_s": treatment_config.get("delay_spread_s"),
             "profile": treatment_config.get("profile"),
+            "channel_estimator": treatment_config.get("channel_estimator"),
             "channel_memory_samples": treatment_config.get("channel_memory_samples"),
             "cp_covers_channel_memory": treatment_config.get("cp_covers_channel_memory"),
             "transmit_waveform_mean_power_by_batch": treatment_config.get(
@@ -205,7 +328,21 @@ def compare_curves(
             "same_transmitted_bits_by_seed": same_bits,
             "same_channel_truth_by_seed": same_channel,
             "same_batch_seeds_and_noise_seeds": True,
-            "statistic": "paired codeword bootstrap CI and Holm-adjusted exact McNemar tests",
+            "statistic": (
+                "paired independent-batch cluster bootstrap CI"
+                if varying_config_field == "channel_estimator"
+                else "paired codeword bootstrap CI and Holm-adjusted exact McNemar tests"
+            ),
+            "sampling_unit": (
+                "independent batch seed; codewords nested within batch"
+                if varying_config_field == "channel_estimator"
+                else "paired codeword outcomes; not independent-scene inference"
+            ),
+            "interval_scope": (
+                "pointwise plus simultaneous familywise 95% max-deviation cluster bootstrap across SNR"
+                if varying_config_field == "channel_estimator"
+                else "per-point paired intervals with Holm-adjusted McNemar tests"
+            ),
             "channel_truth_is_intentionally_changed": varying_config_field
             != "dmrs_additional_position",
             "input_environments": {
@@ -228,7 +365,15 @@ def compare_curves(
             ),
             "Codeword-paired uncertainty does not represent independent-scene uncertainty.",
             "The decoder and synchronization configuration are fixed; the result is not standards certification.",
-        ],
+        ]
+        + (
+            [
+                "Estimator comparison intervals resample batch-seed clusters and are conditional on the sampled TDL simulation configuration.",
+                "Estimator comparison intervals are pointwise and are not multiplicity-adjusted across the SNR grid."
+            ]
+            if varying_config_field == "channel_estimator"
+            else []
+        ),
     }
 
 

@@ -16,7 +16,14 @@ from typing import Any
 
 import numpy as np
 
-SCHEMA = "loslab.g3_material_calibration_predictions.v1"
+from evaluation.g3_joint_acceptance import (
+    MATERIAL_CLAIMS,
+    family_alpha_for_claim,
+    validate_g3_joint_acceptance_family,
+)
+from evaluation.g3_numeric import finite_real_array
+
+SCHEMA = "loslab.g3_material_calibration_predictions.v2"
 SPLIT_MANIFEST_SCHEMA = "loslab.g3_material_calibration_split_manifest.v1"
 TARGET_FREQUENCY_HZ = 3.5e9
 MAX_POWER_ERROR_MEDIAN_DB = 1.5
@@ -48,22 +55,50 @@ def _canonical_sha256(value: Any) -> str:
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
 
-def _angular_cdf_ks(measured: list[float], predicted: list[float]) -> float:
-    if len(measured) != len(predicted) or not measured:
-        raise ValueError("measured and predicted angular powers need equal nonzero lengths")
-    measured_array = np.asarray(measured, dtype=float)
-    predicted_array = np.asarray(predicted, dtype=float)
+def _spherical_cell_solid_angles(
+    theta_edges_deg: tuple[float, ...], phi_edges_deg: tuple[float, ...]
+) -> np.ndarray:
     if (
-        not np.all(np.isfinite(measured_array))
+        len(theta_edges_deg) < 2
+        or len(phi_edges_deg) < 2
+        or theta_edges_deg[0] != 0.0
+        or theta_edges_deg[-1] != 180.0
+        or phi_edges_deg[0] != -180.0
+        or phi_edges_deg[-1] != 180.0
+        or any(right <= left for left, right in zip(theta_edges_deg, theta_edges_deg[1:]))
+        or any(right <= left for left, right in zip(phi_edges_deg, phi_edges_deg[1:]))
+    ):
+        raise ValueError(
+            "angular grid must cover zenith [0, 180] and azimuth [-180, 180] with increasing edges"
+        )
+    theta = np.radians(np.asarray(theta_edges_deg, dtype=np.float64))
+    phi = np.radians(np.asarray(phi_edges_deg, dtype=np.float64))
+    theta_measure = np.cos(theta[:-1]) - np.cos(theta[1:])
+    phi_measure = np.diff(phi)
+    return theta_measure[:, None] * phi_measure[None, :]
+
+
+def _angular_joint_cdf_ks(measured: Any, predicted: Any) -> float:
+    measured_array = finite_real_array(measured, "measured angular powers", ndim=2)
+    predicted_array = finite_real_array(predicted, "predicted angular powers", ndim=2)
+    if (
+        measured_array.ndim != 2
+        or measured_array.shape != predicted_array.shape
+        or any(size == 0 for size in measured_array.shape)
+        or not np.all(np.isfinite(measured_array))
         or not np.all(np.isfinite(predicted_array))
         or np.any(measured_array < 0)
         or np.any(predicted_array < 0)
         or measured_array.sum() <= 0
         or predicted_array.sum() <= 0
     ):
-        raise ValueError("angular powers must be finite, nonnegative, and have positive sums")
-    measured_cdf = np.cumsum(measured_array / measured_array.sum())
-    predicted_cdf = np.cumsum(predicted_array / predicted_array.sum())
+        raise ValueError(
+            "angular bin powers must be same-shape 2D finite, nonnegative, and have positive sums"
+        )
+    measured_probability = measured_array / measured_array.sum()
+    predicted_probability = predicted_array / predicted_array.sum()
+    measured_cdf = np.cumsum(np.cumsum(measured_probability, axis=0), axis=1)
+    predicted_cdf = np.cumsum(np.cumsum(predicted_probability, axis=0), axis=1)
     return float(np.max(np.abs(measured_cdf - predicted_cdf)))
 
 
@@ -399,8 +434,9 @@ def evaluate_g3_material_calibration(payload: dict[str, Any]) -> dict[str, Any]:
     metrics_by_unit: dict[tuple[str, str, str], dict[str, list[dict[str, float]]]] = {}
     groups_by_stratum: dict[tuple[str, str, str], set[str]] = {}
     all_sample_ids: set[str] = set()
-    angular_bins_by_stratum: dict[tuple[str, str, str], int] = {}
-    angular_edges_by_stratum: dict[tuple[str, str, str], tuple[float, ...]] = {}
+    angular_grids_by_stratum: dict[
+        tuple[str, str, str], tuple[tuple[float, ...], tuple[float, ...], str]
+    ] = {}
     angles_by_stratum: dict[tuple[str, str, str], set[float]] = {}
     for row in rows:
         if not isinstance(row, dict):
@@ -453,25 +489,69 @@ def evaluate_g3_material_calibration(payload: dict[str, Any]) -> dict[str, Any]:
         upper = _finite_number(interval[1], "prediction interval upper bound")
         if lower > upper:
             raise ValueError("prediction interval lower bound exceeds upper bound")
-        measured_angular = row.get("measured_angular_power")
-        predicted_angular = row.get("predicted_angular_power")
-        if not isinstance(measured_angular, list) or not isinstance(predicted_angular, list):
-            raise ValueError("measured_angular_power and predicted_angular_power must be arrays")
-        angular_edges = row.get("angular_bin_edges_deg")
-        if not isinstance(angular_edges, list) or len(angular_edges) != len(measured_angular) + 1:
-            raise ValueError("angular_bin_edges_deg must define each angular-power bin")
-        edges = tuple(_finite_number(value, "angular bin edge") for value in angular_edges)
-        if any(right <= left for left, right in zip(edges, edges[1:])):
-            raise ValueError("angular_bin_edges_deg must be strictly increasing")
-        bin_count = len(measured_angular)
-        if stratum in angular_bins_by_stratum and angular_bins_by_stratum[stratum] != bin_count:
-            raise ValueError(f"angular bin count varies within stratum {stratum}")
-        angular_bins_by_stratum[stratum] = bin_count
-        if stratum in angular_edges_by_stratum and angular_edges_by_stratum[stratum] != edges:
-            raise ValueError(f"angular bin edges vary within stratum {stratum}")
-        angular_edges_by_stratum[stratum] = edges
+        if row.get("angular_power_semantics") != "integrated_power_per_bin":
+            raise ValueError("angular_power_semantics must be integrated_power_per_bin")
+        if row.get("angular_array_order") != ["theta_bin", "phi_bin; azimuth varies fastest"]:
+            raise ValueError("angular_array_order must declare theta rows and fastest-varying phi")
+        if row.get("missing_angular_bin_indices") != []:
+            raise ValueError(
+                "angular patterns with missing bins are unresolved and cannot be scored"
+            )
+        measured_angular = row.get("measured_angular_power_per_bin_w")
+        predicted_angular = row.get("predicted_angular_power_per_bin_w")
+        supplied_solid_angles = row.get("solid_angle_sr")
+        if not all(
+            isinstance(value, list)
+            for value in (measured_angular, predicted_angular, supplied_solid_angles)
+        ):
+            raise ValueError("angular powers and solid_angle_sr must be nested 2D arrays")
+        theta_payload = row.get("theta_edges_deg")
+        phi_payload = row.get("phi_edges_deg")
+        if not isinstance(theta_payload, list) or not isinstance(phi_payload, list):
+            raise ValueError("theta_edges_deg and phi_edges_deg must be arrays")
+        theta_edges = tuple(_finite_number(value, "theta edge") for value in theta_payload)
+        phi_edges = tuple(_finite_number(value, "phi edge") for value in phi_payload)
+        expected_solid_angles = _spherical_cell_solid_angles(theta_edges, phi_edges)
+        expected_shape = expected_solid_angles.shape
+        frame_id = _nonempty_string(
+            row.get("angular_coordinate_frame_id"), "angular_coordinate_frame_id"
+        )
+        for field_name, matrix in (
+            ("measured_angular_power_per_bin_w", measured_angular),
+            ("predicted_angular_power_per_bin_w", predicted_angular),
+            ("solid_angle_sr", supplied_solid_angles),
+        ):
+            array = finite_real_array(matrix, field_name, ndim=2)
+            if array.shape != expected_shape:
+                raise ValueError(f"{field_name} shape must match theta/phi angular bins")
+            if not np.all(np.isfinite(array)) or np.any(array < 0):
+                raise ValueError(f"{field_name} must contain finite nonnegative values")
+        if not np.allclose(
+            finite_real_array(supplied_solid_angles, "solid_angle_sr", ndim=2),
+            expected_solid_angles,
+            rtol=1e-9,
+            atol=1e-12,
+        ):
+            raise ValueError("solid_angle_sr does not match the spherical angular-bin geometry")
+        measured_angular_array = finite_real_array(
+            measured_angular, "measured_angular_power_per_bin_w", ndim=2
+        )
+        predicted_angular_array = finite_real_array(
+            predicted_angular, "predicted_angular_power_per_bin_w", ndim=2
+        )
+        if measured_angular_array.sum() <= 0 or predicted_angular_array.sum() <= 0:
+            raise ValueError(
+                "measured and predicted integrated angular powers must have positive sums"
+            )
+        angular_grid = (theta_edges, phi_edges, frame_id)
+        if (
+            stratum in angular_grids_by_stratum
+            and angular_grids_by_stratum[stratum] != angular_grid
+        ):
+            raise ValueError(f"angular grid or coordinate frame varies within stratum {stratum}")
+        angular_grids_by_stratum[stratum] = angular_grid
         angles_by_stratum.setdefault(stratum, set()).add(incidence_angle)
-        ks = _angular_cdf_ks(measured_angular, predicted_angular)
+        ks = _angular_joint_cdf_ks(measured_angular, predicted_angular)
         metrics = {
             "absolute_power_error_db": abs(predicted_power - measured_power),
             "covered": float(lower <= measured_power <= upper),
@@ -509,10 +589,26 @@ def evaluate_g3_material_calibration(payload: dict[str, Any]) -> dict[str, Any]:
     if actual_strata != expected_strata:
         raise ValueError("evaluated strata must exactly match expected_strata")
 
+    family_payload = payload.get("joint_acceptance_family")
+    if family_payload is None:
+        simultaneous_comparisons = len(expected_strata) * len(MATERIAL_CLAIMS)
+        family_reference = None
+    else:
+        normalized_family = validate_g3_joint_acceptance_family(family_payload)
+        _, simultaneous_comparisons = family_alpha_for_claim(
+            normalized_family,
+            evaluator="material_calibration",
+            expected_strata=sorted(expected_strata),
+        )
+        family_reference = {
+            "family_id": normalized_family["family_id"],
+            "family_sha256": normalized_family["family_sha256"],
+        }
+
     strata_reports: list[dict[str, Any]] = []
-    all_pass = True
+    all_pilot_margins_pass = True
+    all_admission_criteria_pass = True
     independence_verified_for_admission = False
-    simultaneous_comparisons = len(expected_strata) * 5
     for stratum_index, ((material, polarization, incidence_stratum), values) in enumerate(
         sorted(row_metrics.items())
     ):
@@ -595,10 +691,13 @@ def evaluate_g3_material_calibration(payload: dict[str, Any]) -> dict[str, Any]:
                 <= MAX_MEDIAN_INTERVAL_WIDTH_DB,
             }
         uncertainty_pass = uncertainty_checks is not None and all(uncertainty_checks.values())
+        angular_grid = angular_grids_by_stratum[(material, polarization, incidence_stratum)]
         # Independence is a physical/provenance claim this pure evaluator cannot verify.
         # Bootstrap and margin results remain diagnostic until an external evidence gate exists.
-        passed = point_margins_pass and uncertainty_pass and independence_verified_for_admission
-        all_pass = all_pass and passed
+        pilot_margins_pass = point_margins_pass and uncertainty_pass
+        admission_criteria_pass = pilot_margins_pass and independence_verified_for_admission
+        all_pilot_margins_pass = all_pilot_margins_pass and pilot_margins_pass
+        all_admission_criteria_pass = all_admission_criteria_pass and admission_criteria_pass
         strata_reports.append(
             {
                 "material_id": material,
@@ -607,9 +706,10 @@ def evaluate_g3_material_calibration(payload: dict[str, Any]) -> dict[str, Any]:
                 "incidence_angles_deg": sorted(
                     angles_by_stratum[(material, polarization, incidence_stratum)]
                 ),
-                "angular_bin_edges_deg": list(
-                    angular_edges_by_stratum[(material, polarization, incidence_stratum)]
-                ),
+                "angular_theta_edges_deg": list(angular_grid[0]),
+                "angular_phi_edges_deg": list(angular_grid[1]),
+                "angular_coordinate_frame_id": angular_grid[2],
+                "angular_grid_shape": [len(angular_grid[0]) - 1, len(angular_grid[1]) - 1],
                 "test_group_count": group_count,
                 "test_sample_count": len(values),
                 "independent_measurement_unit_count": measurement_unit_count,
@@ -634,12 +734,13 @@ def evaluate_g3_material_calibration(payload: dict[str, Any]) -> dict[str, Any]:
                 "point_estimate_margins_pass": point_margins_pass,
                 "uncertainty_checks": uncertainty_checks,
                 "uncertainty_margins_pass": uncertainty_pass,
-                "pilot_margins_pass": passed,
+                "pilot_margins_pass": pilot_margins_pass,
+                "admission_criteria_pass": admission_criteria_pass,
             }
         )
 
     return {
-        "schema": "loslab.g3_material_calibration_evaluation.v1",
+        "schema": "loslab.g3_material_calibration_evaluation.v2",
         "status": "MATERIAL_MEASUREMENT_PILOT_ONLY_NOT_RT_SCENE_QUALIFICATION",
         "qualification_status": "NOT_ASSESSABLE_UNVERIFIED_INDEPENDENCE_AND_NO_PRECISION_POWERED_PLAN",
         "target_frequency_hz": TARGET_FREQUENCY_HZ,
@@ -651,6 +752,15 @@ def evaluate_g3_material_calibration(payload: dict[str, Any]) -> dict[str, Any]:
             "nominal_95_prediction_interval_coverage_min": MIN_INTERVAL_COVERAGE,
             "nominal_95_prediction_interval_coverage_max": MAX_INTERVAL_COVERAGE,
             "median_prediction_interval_width_db_max": MAX_MEDIAN_INTERVAL_WIDTH_DB,
+        },
+        "angular_pattern_contract": {
+            "coordinate_order": "zenith theta rows, azimuth phi columns",
+            "coverage": "complete outgoing sphere: theta 0..180 degrees, phi -180..180 degrees",
+            "power_semantics": "integrated linear power per angular bin",
+            "solid_angle_validation": "each cell must match delta_phi * (cos(theta_low) - cos(theta_high))",
+            "distance": "supremum absolute difference of the normalized 2D cumulative power grids",
+            "missing_bins": "not scoreable; no missing bin is substituted with zero",
+            "acceptance_limit": MAX_ANGULAR_CDF_KS,
         },
         "material_mapping_id": payload["material_mapping_id"],
         "surface_description": payload["surface_description"],
@@ -686,17 +796,18 @@ def evaluate_g3_material_calibration(payload: dict[str, Any]) -> dict[str, Any]:
             "multiplicity_adjustment": "Bonferroni",
             "intervals_are_diagnostic_only": True,
             "qualification_requires_separate_precision_powered_preregistration": True,
+            "joint_acceptance_family": family_reference,
         },
         "strata": strata_reports,
         "numerical_margins_pass_all_reported_strata": all(
             row["point_estimate_margins_pass"] for row in strata_reports
         ),
-        "pilot_margins_pass_all_reported_strata": all_pass,
+        "pilot_margins_pass_all_reported_strata": all_pilot_margins_pass,
+        "admission_criteria_pass_all_reported_strata": all_admission_criteria_pass,
         "admission_is_not_assessable_without_minimum_independent_units": True,
         "pilot_margin_passes_are_not_qualification": True,
-        "measurement_margins_can_qualify_without_external_independence_review": (
-            independence_verified_for_admission
-        ),
+        "external_independence_review_verified_for_admission": independence_verified_for_admission,
+        "measurement_margins_can_qualify_without_external_independence_review": False,
         "complex_csi_qualification": "NOT_EVALUATED_REQUIRES_PHASE_REFERENCED_HELD_OUT_FIELD_DATA",
         "synthetic_fixture_data_can_qualify_scenes": False,
     }

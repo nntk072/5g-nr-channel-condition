@@ -43,12 +43,18 @@ def test_snr_grid_requires_ordered_distinct_finite_points() -> None:
         _validate_snr_grid((20.0, True))
 
 
+def test_cp_exceedance_probe_rejects_unknown_tdl_profile() -> None:
+    with pytest.raises(ValueError, match="model must be one of A, B, C, D, or E"):
+        run_cp_exceedance_probe(model="Z")
+
+
 @pytest.mark.native_sionna
-def test_repeated_cp_exceedance_probe_keeps_parent_and_oracle_semantics() -> None:
+@pytest.mark.parametrize("model", ("A", "C"))
+def test_repeated_cp_exceedance_probe_keeps_parent_and_oracle_semantics(model: str) -> None:
     pytest.importorskip("torch")
     pytest.importorskip("sionna.phy")
 
-    report = run_cp_exceedance_probe(samples=4)
+    report = run_cp_exceedance_probe(samples=4, model=model)
 
     assert report["schema"] == "umcd.g5_cp_exceedance_receiver_probe.v5"
     assert report["status"].startswith("exploratory")
@@ -57,6 +63,9 @@ def test_repeated_cp_exceedance_probe_keeps_parent_and_oracle_semantics() -> Non
     assert report["source_sha256"] == report["source_files_sha256"]
     assert all(len(digest) == 64 for digest in report["source_sha256"].values())
     assert report["configuration"]["trial_unit"].startswith("independent TDL draw")
+    assert (
+        report["configuration"]["channel_family"] == f"Sionna TDL-{model} stochastic channel draws"
+    )
     assert (
         report["configuration"]["max_excess_delay_s"]
         > report["configuration"]["cyclic_prefix_duration_s"]
@@ -81,19 +90,30 @@ def test_repeated_cp_exceedance_probe_keeps_parent_and_oracle_semantics() -> Non
 
 
 @pytest.mark.native_sionna
-def test_cpu_snr_curve_reuses_exact_parents_and_pairs_receiver_outcomes() -> None:
+@pytest.mark.parametrize("model", ("A", "C"))
+def test_cpu_snr_curve_reuses_exact_parents_and_pairs_receiver_outcomes(model: str) -> None:
     pytest.importorskip("torch")
     pytest.importorskip("sionna.phy")
 
-    report = run_cp_exceedance_snr_curve(samples=4, snr_db=(60.0, 80.0))
+    report = run_cp_exceedance_snr_curve(samples=4, snr_db=(60.0, 80.0), model=model)
 
-    assert report["schema"] == "umcd.g5_cp_exceedance_snr_curve.v3"
+    assert report["schema"] == "umcd.g5_cp_exceedance_snr_curve.v4"
     assert report["status"].startswith("exploratory")
     assert report["generated_at_utc"].endswith("Z")
     assert report["command"]
     assert report["source_sha256"] == report["source_files_sha256"]
     assert all(len(digest) == 64 for digest in report["source_sha256"].values())
     assert report["configuration"]["snr_db"] == [60.0, 80.0]
+    assert (
+        report["configuration"]["channel_family"] == f"Sionna TDL-{model} stochastic channel draws"
+    )
+    channel_configuration = report["configuration"]["channel_and_receiver_configuration"]
+    assert channel_configuration["channel_family"] == report["configuration"]["channel_family"]
+    assert (
+        channel_configuration["max_excess_delay_s"]
+        > channel_configuration["cyclic_prefix_duration_s"]
+    )
+    assert channel_configuration["delay_spread_s"] == 1.0e-6
     assert report["configuration"]["independent_parent_count"] == 4
     assert len(report["parent_lineage"]) == 4
     assert len(report["point_report_sha256"]) == 2

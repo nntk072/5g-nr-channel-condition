@@ -226,7 +226,12 @@ def _validate_pilot_request(request: Mapping[str, Any]) -> None:
             raise ValueError(
                 "pilot RT total_work_units must be in [1, 250000] (attempts × samples/source)"
             )
-        if values.get("total_work_units") != work:
+        declared_work = values.get("total_work_units")
+        if (
+            isinstance(declared_work, bool)
+            or not isinstance(declared_work, int)
+            or declared_work != work
+        ):
             raise ValueError("pilot RT total_work_units must equal max_attempts × samples_per_src")
     elif operation == "rt_nr_trajectory":
         trajectory_values = request.get("config")
@@ -269,7 +274,12 @@ def _validate_pilot_request(request: Mapping[str, Any]) -> None:
             raise ValueError(
                 "pilot trajectory total_work_units must be in [1, 250000] (steps × samples/source)"
             )
-        if trajectory_values.get("total_work_units") != work:
+        declared_work = trajectory_values.get("total_work_units")
+        if (
+            isinstance(declared_work, bool)
+            or not isinstance(declared_work, int)
+            or declared_work != work
+        ):
             raise ValueError(
                 "pilot trajectory total_work_units must equal num_steps × samples_per_src"
             )

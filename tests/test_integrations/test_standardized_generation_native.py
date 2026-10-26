@@ -32,6 +32,10 @@ def test_cdl_generation_is_reproducible_and_restores_rng_state():
 
     np.testing.assert_array_equal(first.h, second.h)
     np.testing.assert_array_equal(first.y, second.y)
+    assert all(
+        row["split_subject_id"] == str(group)
+        for row, group in zip(first.metadata, first.group, strict=True)
+    )
     assert all(row["generation_seed"] == 8123 for row in first.metadata)
     assert len({row["channel_seed"] for row in first.metadata}) == 1
 

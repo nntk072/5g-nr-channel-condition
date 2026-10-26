@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import math
+from pathlib import Path
 from statistics import NormalDist
 from typing import Any
 
@@ -13,9 +15,10 @@ torch = pytest.importorskip("torch")
 pytest.importorskip("sionna.phy")
 
 from integrations.sionna.cdl import CDLArrayConfig, generate_cdl_frequency_response  # noqa: E402
-from sionna.phy.channel.tr38901 import models as profile_resources  # noqa: E402
 
 _BATCH_SIZE = 4096
+_ALIGNED_LOS_CHUNK_SIZE = 32768
+_ALIGNED_LOS_BATCH_SIZE = {"D": 262144, "E": 16384}
 _SEED = 407
 _FAMILYWISE_ALPHA = 0.01
 _PRECISION_FRACTION_OF_CROSS_POWER = 0.25
@@ -30,8 +33,15 @@ _LOS_PROFILE_SHA256 = {
     "D": "a8960f176347de457c0cb90fbc8cf137ac98bb1c5295b096f004d8d5c6e40176",
     "E": "04328f33d8d79b24aa3d0303fecb58b465ed7e13874930b05e76be0d97743480",
 }
+_ZERO_ORIENTATION_RAD = (0.0, 0.0, 0.0)
 _LOS_TX_ORIENTATION_RAD = (-0.3, 0.25, 0.5)
 _LOS_RX_ORIENTATION_RAD = (0.6, 0.2, -0.4)
+_LOS_ORIENTATION_CASES = {
+    "tx_tilted": (_ZERO_ORIENTATION_RAD, _LOS_TX_ORIENTATION_RAD),
+    "rx_tilted": (_LOS_RX_ORIENTATION_RAD, _ZERO_ORIENTATION_RAD),
+    "both_tilted": (_LOS_RX_ORIENTATION_RAD, _LOS_TX_ORIENTATION_RAD),
+    "crossed": ((-0.2, 0.45, 0.8), (0.4, -0.3, 0.6)),
+}
 _RAY_BASIS_OFFSETS = (
     0.0447,
     -0.0447,
@@ -54,21 +64,49 @@ _RAY_BASIS_OFFSETS = (
     2.1551,
     -2.1551,
 )
+_ROOT = Path(__file__).resolve().parents[2]
+_TAP_ANGLE_REFERENCE_PATH = (
+    _ROOT / "docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
+)
+_PROFILE_SCALAR_REFERENCE_PATH = (
+    _ROOT / "docs/research/G4_CDL_PROFILE_SCALAR_REFERENCE_2026-10-26.json"
+)
+_TAP_ANGLE_REFERENCE_SHA256 = "24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090"
+_PROFILE_SCALAR_REFERENCE_SHA256 = (
+    "3b5920e7c12b0e36c8e09d1c7f14025cfbb23b6d805e1044124bfcf147185620"
+)
+_ETSI_SOURCE_SHA256 = "b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4"
 
 
-def _independent_nlos_cdl_port_power_reference(model: str) -> tuple[Any, str]:
-    """Calculate the four XPR-law expectations from the pinned table alone."""
-    table_path = profile_resources.parameter_file(f"CDL-{model}.json", "19.2")
-    table_bytes = table_path.read_bytes()
-    digest = hashlib.sha256(table_bytes).hexdigest()
-    assert digest == _PROFILE_SHA256[model]
+def _independent_profile_references(model: str) -> tuple[dict[str, Any], dict[str, Any]]:
+    tap_bytes = _TAP_ANGLE_REFERENCE_PATH.read_bytes()
+    scalar_bytes = _PROFILE_SCALAR_REFERENCE_PATH.read_bytes()
+    assert hashlib.sha256(tap_bytes).hexdigest() == _TAP_ANGLE_REFERENCE_SHA256
+    assert hashlib.sha256(scalar_bytes).hexdigest() == _PROFILE_SCALAR_REFERENCE_SHA256
+    tap_reference = json.loads(tap_bytes)
+    scalar_reference = json.loads(scalar_bytes)
+    assert tap_reference["source_sha256"] == _ETSI_SOURCE_SHA256
+    assert scalar_reference["source_sha256"] == _ETSI_SOURCE_SHA256
+    tap_profiles = {row["profile_model"]: row for row in tap_reference["profiles"]}
+    scalar_profiles = {row["profile_model"]: row for row in scalar_reference["profiles"]}
+    assert set(tap_profiles) == set(scalar_profiles) == set("ABCDE")
+    assert tap_profiles[model]["los"] == scalar_profiles[model]["los"]
+    assert tap_profiles[model]["xpr_db"] == scalar_profiles[model]["xpr_db"]
+    return tap_profiles[model], scalar_profiles[model]
 
-    parameters = profile_resources.load_json(table_path)
-    assert parameters["los"] == 0
-    cluster_powers = [10.0 ** (float(power_db) / 10.0) for power_db in parameters["powers"]]
+
+def _independent_nlos_cdl_port_power_reference(model: str) -> Any:
+    """Calculate the XPR expectations from the pinned ETSI table transcription."""
+    profile, _ = _independent_profile_references(model)
+    assert profile["los"] is False
+    cluster_powers = [
+        10.0 ** (float(component["power_db"]) / 10.0)
+        for component in profile["components"]
+        if component["component"] == "diffuse"
+    ]
     total_pdp_power = math.fsum(cluster_powers)
     normalized_pdp_sum = math.fsum(power / total_pdp_power for power in cluster_powers)
-    xpr_linear = 10.0 ** (float(parameters["xpr"]) / 10.0)
+    xpr_linear = 10.0 ** (float(profile["xpr_db"]) / 10.0)
 
     # For a dual-VH pair, the TR 38.901 ray Jones matrix has unit expected
     # co-polar power and 1/XPR expected cross-polar power. Independent ray
@@ -82,7 +120,7 @@ def _independent_nlos_cdl_port_power_reference(model: str) -> tuple[Any, str]:
         ),
         dtype=torch.float64,
     )
-    return expected, digest
+    return expected
 
 
 def _los_displacement_angle_reference(
@@ -130,30 +168,30 @@ def _mean_dual_vh_field_component_powers(
 
 def _independent_los_cdl_port_power_reference(
     model: str,
-) -> tuple[Any, str]:
-    """Calculate rotated dual-VH LOS-plus-diffuse powers from the profile table."""
-    table_path = profile_resources.parameter_file(f"CDL-{model}.json", "19.2")
-    table_bytes = table_path.read_bytes()
-    digest = hashlib.sha256(table_bytes).hexdigest()
-    assert digest == _LOS_PROFILE_SHA256[model]
-    parameters = profile_resources.load_json(table_path)
-    assert parameters["los"] == 1
-
-    first_power = 10.0 ** (float(parameters["powers"][0]) / 10.0)
-    diffuse_power = math.fsum(
-        10.0 ** (float(power_db) / 10.0) for power_db in parameters["powers"][1:]
+    *,
+    rx_orientation_rad: tuple[float, float, float],
+    tx_orientation_rad: tuple[float, float, float],
+) -> Any:
+    """Calculate rotated LOS-plus-diffuse powers from the pinned ETSI references."""
+    profile, scalar = _independent_profile_references(model)
+    assert profile["los"] is True
+    k_factor = 10.0 ** (float(scalar["los_k_factor_db"]) / 10.0)
+    xpr_linear = 10.0 ** (float(profile["xpr_db"]) / 10.0)
+    specular = next(
+        component
+        for component in profile["components"]
+        if component["component"] == "specular"
     )
-    k_factor = first_power / diffuse_power
-    xpr_linear = 10.0 ** (float(parameters["xpr"]) / 10.0)
+    specular_angles = specular["angles_deg"]
     tx_psi = _los_displacement_angle_reference(
-        _LOS_TX_ORIENTATION_RAD,
-        math.radians(float(parameters["zod"][0])),
-        math.radians(float(parameters["aod"][0])),
+        tx_orientation_rad,
+        math.radians(float(specular_angles["zod"])),
+        math.radians(float(specular_angles["aod"])),
     )
     rx_psi = _los_displacement_angle_reference(
-        _LOS_RX_ORIENTATION_RAD,
-        math.radians(float(parameters["zoa"][0])),
-        math.radians(float(parameters["aoa"][0])),
+        rx_orientation_rad,
+        math.radians(float(specular_angles["zoa"])),
+        math.radians(float(specular_angles["aoa"])),
     )
     cross_los_power = math.sin(rx_psi + tx_psi) ** 2
     co_los_power = math.cos(rx_psi + tx_psi) ** 2
@@ -161,25 +199,33 @@ def _independent_los_cdl_port_power_reference(
         ((co_los_power, cross_los_power), (cross_los_power, co_los_power)),
         dtype=torch.float64,
     )
+    diffuse_components = [
+        component
+        for component in profile["components"]
+        if component["component"] == "diffuse"
+    ]
     raw_diffuse_cluster_powers = [
-        10.0 ** (float(power_db) / 10.0) for power_db in parameters["powers"][1:]
+        10.0 ** (float(component["power_db"]) / 10.0)
+        for component in diffuse_components
     ]
     diffuse_cluster_power_sum = math.fsum(raw_diffuse_cluster_powers)
     diffuse_power_by_port_pair = [[0.0, 0.0], [0.0, 0.0]]
-    for cluster_index, raw_power in enumerate(raw_diffuse_cluster_powers, start=1):
+    spreads = profile["cluster_spreads_deg"]
+    for component, raw_power in zip(diffuse_components, raw_diffuse_cluster_powers, strict=True):
+        angles = component["angles_deg"]
         rx_component_powers = _mean_dual_vh_field_component_powers(
-            _LOS_RX_ORIENTATION_RAD,
-            float(parameters["aoa"][cluster_index]),
-            float(parameters["zoa"][cluster_index]),
-            float(parameters["cASA"]),
-            float(parameters["cZSA"]),
+            rx_orientation_rad,
+            float(angles["aoa"]),
+            float(angles["zoa"]),
+            float(spreads["asa"]),
+            float(spreads["zsa"]),
         )
         tx_component_powers = _mean_dual_vh_field_component_powers(
-            _LOS_TX_ORIENTATION_RAD,
-            float(parameters["aod"][cluster_index]),
-            float(parameters["zod"][cluster_index]),
-            float(parameters["cASD"]),
-            float(parameters["cZSD"]),
+            tx_orientation_rad,
+            float(angles["aod"]),
+            float(angles["zod"]),
+            float(spreads["asd"]),
+            float(spreads["zsd"]),
         )
         normalized_cluster_power = raw_power / diffuse_cluster_power_sum
         for rx_port in range(2):
@@ -196,7 +242,7 @@ def _independent_los_cdl_port_power_reference(
                 )
     diffuse_power_tensor = torch.tensor(diffuse_power_by_port_pair, dtype=torch.float64)
     expected = (k_factor * los_power + diffuse_power_tensor) / (k_factor + 1.0)
-    return expected, digest
+    return expected
 
 
 @pytest.mark.native_sionna
@@ -205,7 +251,7 @@ def test_nlos_cdl_dual_vh_port_powers_match_independent_xpr_ray_law(model: str) 
     previous_threads = torch.get_num_threads()
     torch.set_num_threads(1)
     try:
-        expected, source_digest = _independent_nlos_cdl_port_power_reference(model)
+        expected = _independent_nlos_cdl_port_power_reference(model)
         channel = generate_cdl_frequency_response(
             model=model,
             seed=_SEED + ord(model),
@@ -247,7 +293,7 @@ def test_nlos_cdl_dual_vh_port_powers_match_independent_xpr_ray_law(model: str) 
         assert float(half_widths.max()) <= float(expected.min()) * (
             _PRECISION_FRACTION_OF_CROSS_POWER
         )
-        assert channel.metadata["parameter_table_sha256"] == source_digest
+        assert channel.metadata["parameter_table_sha256"] == _PROFILE_SHA256[model]
         assert channel.metadata["batch_axis_semantics"] == "independent_stochastic_channel_draws"
     finally:
         torch.set_num_threads(previous_threads)
@@ -268,18 +314,9 @@ def test_los_cdl_dual_vh_aggregate_power_matches_k_factor_reference(model: str) 
     previous_threads = torch.get_num_threads()
     torch.set_num_threads(1)
     try:
-        table_path = profile_resources.parameter_file(f"CDL-{model}.json", "19.2")
-        table_bytes = table_path.read_bytes()
-        source_digest = hashlib.sha256(table_bytes).hexdigest()
-        assert source_digest == _LOS_PROFILE_SHA256[model]
-        parameters = profile_resources.load_json(table_path)
-        assert parameters["los"] == 1
-        first_power = 10.0 ** (float(parameters["powers"][0]) / 10.0)
-        diffuse_power = math.fsum(
-            10.0 ** (float(power_db) / 10.0) for power_db in parameters["powers"][1:]
-        )
-        k_factor = first_power / diffuse_power
-        xpr_linear = 10.0 ** (float(parameters["xpr"]) / 10.0)
+        profile, scalar = _independent_profile_references(model)
+        k_factor = 10.0 ** (float(scalar["los_k_factor_db"]) / 10.0)
+        xpr_linear = 10.0 ** (float(profile["xpr_db"]) / 10.0)
         expected_total_power = 2.0 * (k_factor + 1.0 + 1.0 / xpr_linear) / (k_factor + 1.0)
 
         channel = generate_cdl_frequency_response(
@@ -318,25 +355,31 @@ def test_los_cdl_dual_vh_aggregate_power_matches_k_factor_reference(model: str) 
 
         assert abs(float(estimate) - expected_total_power) <= float(half_width)
         assert float(half_width) <= _PRECISION_FRACTION_OF_LOS_TOTAL_POWER * expected_total_power
-        assert channel.metadata["parameter_table_sha256"] == source_digest
+        assert channel.metadata["parameter_table_sha256"] == _LOS_PROFILE_SHA256[model]
         assert channel.metadata["batch_axis_semantics"] == "independent_stochastic_channel_draws"
     finally:
         torch.set_num_threads(previous_threads)
 
 
 @pytest.mark.native_sionna
+@pytest.mark.parametrize("orientation_case", tuple(_LOS_ORIENTATION_CASES))
 @pytest.mark.parametrize("model", tuple(_LOS_PROFILE_SHA256))
 def test_los_cdl_rotated_dual_vh_port_powers_match_xpr_and_field_reference(
-    model: str,
+    model: str, orientation_case: str
 ) -> None:
-    """Check LOS port mixing and diffuse XPR under a frozen rotated topology."""
+    """Check LOS port mixing over a frozen orientation matrix and diffuse XPR."""
     previous_threads = torch.get_num_threads()
     torch.set_num_threads(1)
     try:
-        expected, source_digest = _independent_los_cdl_port_power_reference(model)
+        rx_orientation_rad, tx_orientation_rad = _LOS_ORIENTATION_CASES[orientation_case]
+        expected = _independent_los_cdl_port_power_reference(
+            model,
+            rx_orientation_rad=rx_orientation_rad,
+            tx_orientation_rad=tx_orientation_rad,
+        )
         channel = generate_cdl_frequency_response(
             model=model,
-            seed=_SEED + ord(model),
+            seed=_SEED + ord(model) + tuple(_LOS_ORIENTATION_CASES).index(orientation_case) * 10,
             carrier_frequency_hz=3.5e9,
             subcarrier_spacing_hz=30_000.0,
             num_subcarriers=8,
@@ -352,8 +395,8 @@ def test_los_cdl_rotated_dual_vh_port_powers_match_xpr_and_field_reference(
                 polarization_type="VH",
                 antenna_pattern="omni",
             ),
-            ut_orientation_rad=_LOS_RX_ORIENTATION_RAD,
-            bs_orientation_rad=_LOS_TX_ORIENTATION_RAD,
+            ut_orientation_rad=rx_orientation_rad,
+            bs_orientation_rad=tx_orientation_rad,
             spec_version="19.2",
             device="cpu",
         )
@@ -362,13 +405,72 @@ def test_los_cdl_rotated_dual_vh_port_powers_match_xpr_and_field_reference(
         observations = per_draw_taps.abs().square().sum(dim=-1)
         estimates = observations.mean(dim=0)
         standard_errors = observations.std(dim=0, unbiased=True) / math.sqrt(_BATCH_SIZE)
-        family_size = len(_LOS_PROFILE_SHA256) * expected.numel()
+        family_size = (
+            len(_LOS_PROFILE_SHA256) * (len(_LOS_ORIENTATION_CASES) + 1) * expected.numel()
+        )
         z_simultaneous = NormalDist().inv_cdf(1.0 - _FAMILYWISE_ALPHA / (2.0 * family_size))
         half_widths = z_simultaneous * standard_errors
 
         assert bool((torch.abs(estimates - expected) <= half_widths).all())
         assert float(half_widths.max()) <= 0.25 * float(expected.min())
-        assert channel.metadata["parameter_table_sha256"] == source_digest
+        assert channel.metadata["parameter_table_sha256"] == _LOS_PROFILE_SHA256[model]
+        assert channel.metadata["batch_axis_semantics"] == "independent_stochastic_channel_draws"
+    finally:
+        torch.set_num_threads(previous_threads)
+
+
+@pytest.mark.native_sionna
+@pytest.mark.parametrize("model", tuple(_LOS_PROFILE_SHA256))
+def test_los_cdl_aligned_dual_vh_port_powers_meet_familywise_precision(model: str) -> None:
+    """Qualify aligned LOS port powers at fixed, pilot-sized draw budgets."""
+    previous_threads = torch.get_num_threads()
+    torch.set_num_threads(1)
+    try:
+        expected = _independent_los_cdl_port_power_reference(
+            model,
+            rx_orientation_rad=_ZERO_ORIENTATION_RAD,
+            tx_orientation_rad=_ZERO_ORIENTATION_RAD,
+        )
+        draw_count = _ALIGNED_LOS_BATCH_SIZE[model]
+        observations_by_chunk = []
+        for chunk_index, start in enumerate(range(0, draw_count, _ALIGNED_LOS_CHUNK_SIZE)):
+            batch_size = min(_ALIGNED_LOS_CHUNK_SIZE, draw_count - start)
+            channel = generate_cdl_frequency_response(
+                model=model,
+                seed=1407 + ord(model) + chunk_index,
+                carrier_frequency_hz=3.5e9,
+                subcarrier_spacing_hz=30_000.0,
+                num_subcarriers=8,
+                batch_size=batch_size,
+                delay_spread_s=100e-9,
+                ut_array=CDLArrayConfig(
+                    polarization="dual", polarization_type="VH", antenna_pattern="omni"
+                ),
+                bs_array=CDLArrayConfig(
+                    polarization="dual", polarization_type="VH", antenna_pattern="omni"
+                ),
+                ut_orientation_rad=_ZERO_ORIENTATION_RAD,
+                bs_orientation_rad=_ZERO_ORIENTATION_RAD,
+                spec_version="19.2",
+                device="cpu",
+            )
+            observations_by_chunk.append(
+                channel.h_path[:, 0, :, 0, :, :, 0].to(torch.complex128).abs().square().sum(dim=-1)
+            )
+
+        observations = torch.cat(observations_by_chunk, dim=0)
+        estimates = observations.mean(dim=0)
+        standard_errors = observations.std(dim=0, unbiased=True) / math.sqrt(draw_count)
+        family_size = (
+            len(_LOS_PROFILE_SHA256) * (len(_LOS_ORIENTATION_CASES) + 1) * expected.numel()
+        )
+        z_simultaneous = NormalDist().inv_cdf(1.0 - _FAMILYWISE_ALPHA / (2.0 * family_size))
+        half_widths = z_simultaneous * standard_errors
+
+        assert observations.shape[0] == draw_count
+        assert bool((torch.abs(estimates - expected) <= half_widths).all())
+        assert float(half_widths.max()) <= 0.25 * float(expected.min())
+        assert channel.metadata["parameter_table_sha256"] == _LOS_PROFILE_SHA256[model]
         assert channel.metadata["batch_axis_semantics"] == "independent_stochastic_channel_draws"
     finally:
         torch.set_num_threads(previous_threads)

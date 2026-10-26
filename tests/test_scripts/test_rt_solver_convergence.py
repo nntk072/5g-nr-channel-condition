@@ -383,7 +383,10 @@ def test_convergence_matrix_labels_los_and_blocked_links_independently():
         seeds=(11,),
         n_subcarriers=8,
         mitsuba_variant="llvm_ad_mono_polarized",
-        link_cases=(ConvergenceLink("through-screen", (-2.0, 0.0, 2.5), (2.0, 0.0, 2.5)),),
+        link_cases=(
+            ConvergenceLink("same-side", (-2.0, 0.0, 2.5), (-1.0, 0.0, 2.5)),
+            ConvergenceLink("through-screen", (-2.0, 0.0, 2.5), (2.0, 0.0, 2.5)),
+        ),
         material_scattering_overrides={"screen-mat": 0.5},
         max_num_paths_per_src=1000,
         include_cfr_vectors=True,
@@ -421,6 +424,20 @@ def test_convergence_matrix_labels_los_and_blocked_links_independently():
     )
     assert max(row["valid_diffuse_reflection_path_count"] for row in scattered["runs"]) > 0
     assert all(row["path_lineage_stages"] for row in diagnostic_runs)
+    same_side = next(row for row in diagnostic_runs if row["link_id"] == "same-side")
+    candidate_stage = next(
+        stage
+        for stage in same_side["path_lineage_stages"]
+        if stage["stage"] == "candidate_generator_return"
+    )
+    assert candidate_stage["zero_interaction_records"]
+    assert all(
+        path["writer_stage"] == "direct_los"
+        and path["candidate_depth"] == 0
+        and path["candidate_valid_before_image_method"] is True
+        and path["buffer_write_active"] is True
+        for path in candidate_stage["zero_interaction_records"]
+    )
     assert all(
         {stage["stage"] for stage in row["path_lineage_stages"]}
         >= {

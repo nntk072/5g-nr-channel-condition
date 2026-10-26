@@ -1,4 +1,4 @@
-"""Unscaled OFDM modulation and demodulation for one NR SS/PBCH block."""
+"""NR SS/PBCH OFDM waveform construction from one block to a radio frame."""
 
 from __future__ import annotations
 
@@ -51,6 +51,18 @@ class NRSSBHalfFrameWaveform:
     half_frame_index: int
     candidate_start_symbols: tuple[int, ...]
     transmitted_candidate_indices: tuple[int, ...]
+
+
+@dataclass(frozen=True)
+class NRSSBRadioFrameWaveform:
+    """One 10 ms radio frame containing zero or more SSBs in each half-frame."""
+
+    waveform: NDArray[np.complex128]
+    subcarrier_spacing_hz: int
+    fft_size: int
+    sample_rate_hz: int
+    candidate_start_symbols: tuple[int, ...]
+    transmitted_candidate_indices_by_half_frame: tuple[tuple[int, ...], tuple[int, ...]]
 
 
 def nr_ssb_waveform_config(
@@ -237,6 +249,107 @@ def nr_ssb_ofdm_modulate_half_frame(
         half_frame_index=half_frame_index,
         candidate_start_symbols=positions,
         transmitted_candidate_indices=tuple(int(index) for index in ordered_indices),
+    )
+
+
+def nr_ssb_ofdm_modulate_radio_frame(
+    ssb_blocks_by_half_frame: Mapping[int, Mapping[int, NRSSBResourceGrid]],
+    *,
+    case: str,
+    carrier_frequency_hz: SupportsFloat,
+    subcarrier_spacing_hz: SupportsFloat,
+    frequency_range: str,
+    fft_size: int,
+    paired_spectrum: bool = True,
+) -> NRSSBRadioFrameWaveform:
+    """Build a standards-timed 10 ms frame with candidate-indexed SSB bursts.
+
+    The outer mapping uses absolute half-frame indices 0 and 1. An empty or
+    omitted half-frame is represented by zeros. An empty mapping produces a
+    silent radio frame. Timing-case selection and OFDM placement are delegated
+    to :func:`nr_ssb_ofdm_modulate_half_frame`.
+    """
+    if not isinstance(ssb_blocks_by_half_frame, Mapping):
+        raise TypeError("ssb_blocks_by_half_frame must be a mapping")
+    normalized: dict[int, Mapping[int, NRSSBResourceGrid]] = {}
+    for key, blocks in ssb_blocks_by_half_frame.items():
+        if isinstance(key, (bool, np.bool_)) or not isinstance(key, Integral):
+            raise TypeError("half-frame indices must be integers")
+        half_frame_index = int(key)
+        if half_frame_index not in (0, 1):
+            raise ValueError("half-frame indices must be 0 or 1")
+        if not isinstance(blocks, Mapping):
+            raise TypeError("each half-frame value must be a candidate-index mapping")
+        normalized[half_frame_index] = blocks
+
+    positions = ssb_candidate_symbols(
+        case,
+        carrier_frequency_hz,
+        subcarrier_spacing_hz=subcarrier_spacing_hz,
+        frequency_range=frequency_range,
+        paired_spectrum=paired_spectrum,
+    )
+    fft_length = _fft_size(fft_size)
+    if isinstance(subcarrier_spacing_hz, (bool, np.bool_)) or not isinstance(
+        subcarrier_spacing_hz, Real
+    ):
+        raise TypeError("subcarrier_spacing_hz must be a real scalar in hertz")
+    scs_value = float(subcarrier_spacing_hz)
+    if not math.isfinite(scs_value) or not scs_value.is_integer():
+        raise ValueError("subcarrier_spacing_hz must be a finite integer")
+    scs_hz = int(scs_value)
+    if scs_hz not in _SCS_TO_MU:
+        raise ValueError("unsupported SSB subcarrier spacing")
+    sample_rate_hz = fft_length * scs_hz
+    if sample_rate_hz % 200:
+        raise ValueError("sample rate must represent an exact 5 ms half-frame")
+    half_frame_samples = sample_rate_hz // 200
+
+    waveform = np.zeros(2 * half_frame_samples, dtype=np.complex128)
+    transmitted: list[tuple[int, ...]] = [(), ()]
+    radio_frame_cell_id: int | None = None
+    for half_frame_index in (0, 1):
+        blocks = normalized.get(half_frame_index, {})
+        if not blocks:
+            continue
+        for block in blocks.values():
+            if not isinstance(block, NRSSBResourceGrid):
+                raise TypeError("SSB grids must be NRSSBResourceGrid instances")
+            if radio_frame_cell_id is None:
+                radio_frame_cell_id = block.physical_cell_id
+            elif block.physical_cell_id != radio_frame_cell_id:
+                raise ValueError("all radio-frame SSB blocks must use the same physical cell ID")
+        half_frame = nr_ssb_ofdm_modulate_half_frame(
+            blocks,
+            case=case,
+            carrier_frequency_hz=carrier_frequency_hz,
+            subcarrier_spacing_hz=scs_hz,
+            frequency_range=frequency_range,
+            fft_size=fft_length,
+            paired_spectrum=paired_spectrum,
+        )
+        if half_frame.half_frame_index != half_frame_index:
+            raise ValueError("SSB grid half-frame metadata must match its mapping key")
+        if (
+            half_frame.subcarrier_spacing_hz != scs_hz
+            or half_frame.fft_size != fft_length
+            or half_frame.sample_rate_hz != sample_rate_hz
+            or half_frame.candidate_start_symbols != positions
+            or half_frame.waveform.shape != (half_frame_samples,)
+        ):
+            raise ValueError("half-frame waveform configuration is inconsistent")
+        start = half_frame_index * half_frame_samples
+        waveform[start : start + half_frame_samples] = half_frame.waveform
+        transmitted[half_frame_index] = half_frame.transmitted_candidate_indices
+
+    waveform.setflags(write=False)
+    return NRSSBRadioFrameWaveform(
+        waveform=waveform,
+        subcarrier_spacing_hz=scs_hz,
+        fft_size=fft_length,
+        sample_rate_hz=sample_rate_hz,
+        candidate_start_symbols=positions,
+        transmitted_candidate_indices_by_half_frame=(transmitted[0], transmitted[1]),
     )
 
 

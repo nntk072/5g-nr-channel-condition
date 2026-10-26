@@ -19,7 +19,9 @@ construct the reference.
 from __future__ import annotations
 
 import hashlib
+import json
 import math
+from pathlib import Path
 from statistics import NormalDist
 
 import pytest
@@ -35,29 +37,44 @@ _SEED = 4097
 _FAMILYWISE_ALPHA = 0.01
 _MAX_RELATIVE_INTERVAL_HALF_WIDTH = 0.015
 _PROFILE_SHA256 = "b96f8a179646ee468717c615e8061103d1e66eb1ff1ea78301de243740254cb7"
+_ETSI_REFERENCE_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "docs"
+    / "research"
+    / "G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
+)
+_ETSI_REFERENCE_SHA256 = "24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090"
+_ETSI_SOURCE_SHA256 = "b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4"
 
 
 def _cdl_a_dual_polarization_trace_reference() -> tuple[float, str, float]:
-    """Derive covariance trace from the pinned CDL-A PDP and XPR table."""
+    """Derive covariance trace from pinned ETSI CDL-A powers and XPR."""
     table_path = profile_resources.parameter_file("CDL-A.json", "19.2")
     table_bytes = table_path.read_bytes()
     digest = hashlib.sha256(table_bytes).hexdigest()
     assert digest == _PROFILE_SHA256
-    parameters = profile_resources.load_json(table_path)
-    assert parameters["los"] == 0
-    assert int(parameters["num_clusters"]) == len(parameters["powers"])
+    reference_bytes = _ETSI_REFERENCE_PATH.read_bytes()
+    assert hashlib.sha256(reference_bytes).hexdigest() == _ETSI_REFERENCE_SHA256
+    document = json.loads(reference_bytes)
+    assert document["source_sha256"] == _ETSI_SOURCE_SHA256
+    profile = next(item for item in document["profiles"] if item["profile_model"] == "A")
+    assert profile["los"] is False
+    components = profile["components"]
+    assert all(item["component"] == "diffuse" for item in components)
+    assert len(components) == profile["cluster_count"]
 
-    cluster_powers = [10.0 ** (float(power_db) / 10.0) for power_db in parameters["powers"]]
+    cluster_powers = [10.0 ** (float(item["power_db"]) / 10.0) for item in components]
     cluster_power_sum = math.fsum(cluster_powers)
     normalized_cluster_powers = [power / cluster_power_sum for power in cluster_powers]
-    xpr_linear = 10.0 ** (float(parameters["xpr"]) / 10.0)
+    xpr_db = float(profile["xpr_db"])
+    xpr_linear = 10.0 ** (xpr_db / 10.0)
 
     # Each of the 20 rays in a cluster has coefficient power P_cluster/20.
     # The ray's 2x2 Jones matrix contributes 1+1+1/XPR+1/XPR in squared
     # Frobenius norm in expectation. Summing the 20 ray expectations and all
     # normalized cluster powers gives the reference below.
     expected_trace = math.fsum(normalized_cluster_powers) * 2.0 * (1.0 + 1.0 / xpr_linear)
-    return expected_trace, digest, float(parameters["xpr"])
+    return expected_trace, digest, xpr_db
 
 
 @pytest.mark.native_sionna

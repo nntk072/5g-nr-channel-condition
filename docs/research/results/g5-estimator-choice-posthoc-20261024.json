@@ -1,0 +1,358 @@
+{
+  "blocks_per_channel": 8,
+  "confirmation_artifact": "docs/research/results/g5-doppler-dmrs-density-confirm-20261024.json",
+  "confirmation_artifact_sha256": "b0f43d2b04a93249147784c77e825eec21fb3de7125f213826cbb15bd2ffd033",
+  "created_utc": "2026-10-24T13:54:54.758327+00:00",
+  "independent_channel_count": 7,
+  "interpolators": [
+    "nn",
+    "lin",
+    "lin_time_avg"
+  ],
+  "interpretation": "This selected-failure replay compares estimator behavior only on channels chosen after the frozen outcome was observed. It is useful for receiver diagnosis, not population inference, estimator selection, protocol changes, or G5.09 closure. Any revised receiver requires a new preregistered protocol and disjoint channel seeds.",
+  "observations": [
+    {
+      "channel_seed": 85004,
+      "echo_delay_samples": 6,
+      "interpolators": {
+        "lin": {
+          "crc_passes": [
+            false,
+            false,
+            false,
+            true,
+            true,
+            true,
+            false,
+            true
+          ],
+          "noiseless_estimate_nmse": 0.05546591430902481
+        },
+        "lin_time_avg": {
+          "crc_passes": [
+            false,
+            false,
+            false,
+            true,
+            true,
+            true,
+            false,
+            true
+          ],
+          "noiseless_estimate_nmse": 0.05546591430902481
+        },
+        "nn": {
+          "crc_passes": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "noiseless_estimate_nmse": 0.0893089547753334
+        }
+      }
+    },
+    {
+      "channel_seed": 85014,
+      "echo_delay_samples": 8,
+      "interpolators": {
+        "lin": {
+          "crc_passes": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "noiseless_estimate_nmse": 0.09500399976968765
+        },
+        "lin_time_avg": {
+          "crc_passes": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "noiseless_estimate_nmse": 0.09500399976968765
+        },
+        "nn": {
+          "crc_passes": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "noiseless_estimate_nmse": 0.1258419156074524
+        }
+      }
+    },
+    {
+      "channel_seed": 85015,
+      "echo_delay_samples": 6,
+      "interpolators": {
+        "lin": {
+          "crc_passes": [
+            true,
+            false,
+            false,
+            true,
+            false,
+            true,
+            false,
+            false
+          ],
+          "noiseless_estimate_nmse": 0.05436042323708534
+        },
+        "lin_time_avg": {
+          "crc_passes": [
+            true,
+            false,
+            false,
+            true,
+            false,
+            true,
+            false,
+            false
+          ],
+          "noiseless_estimate_nmse": 0.05436042323708534
+        },
+        "nn": {
+          "crc_passes": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "noiseless_estimate_nmse": 0.08752895891666412
+        }
+      }
+    },
+    {
+      "channel_seed": 85016,
+      "echo_delay_samples": 7,
+      "interpolators": {
+        "lin": {
+          "crc_passes": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            false
+          ],
+          "noiseless_estimate_nmse": 0.048360057175159454
+        },
+        "lin_time_avg": {
+          "crc_passes": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            false
+          ],
+          "noiseless_estimate_nmse": 0.048360057175159454
+        },
+        "nn": {
+          "crc_passes": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            false,
+            false
+          ],
+          "noiseless_estimate_nmse": 0.07015344500541687
+        }
+      }
+    },
+    {
+      "channel_seed": 85059,
+      "echo_delay_samples": 7,
+      "interpolators": {
+        "lin": {
+          "crc_passes": [
+            true,
+            true,
+            false,
+            true,
+            true,
+            false,
+            false,
+            false
+          ],
+          "noiseless_estimate_nmse": 0.07258649170398712
+        },
+        "lin_time_avg": {
+          "crc_passes": [
+            true,
+            true,
+            false,
+            true,
+            true,
+            false,
+            false,
+            false
+          ],
+          "noiseless_estimate_nmse": 0.07258649170398712
+        },
+        "nn": {
+          "crc_passes": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "noiseless_estimate_nmse": 0.10529749095439911
+        }
+      }
+    },
+    {
+      "channel_seed": 85062,
+      "echo_delay_samples": 8,
+      "interpolators": {
+        "lin": {
+          "crc_passes": [
+            true,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false
+          ],
+          "noiseless_estimate_nmse": 0.0999722108244896
+        },
+        "lin_time_avg": {
+          "crc_passes": [
+            true,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false
+          ],
+          "noiseless_estimate_nmse": 0.0999722108244896
+        },
+        "nn": {
+          "crc_passes": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "noiseless_estimate_nmse": 0.1320798695087433
+        }
+      }
+    },
+    {
+      "channel_seed": 85063,
+      "echo_delay_samples": 8,
+      "interpolators": {
+        "lin": {
+          "crc_passes": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "noiseless_estimate_nmse": 0.09864087402820587
+        },
+        "lin_time_avg": {
+          "crc_passes": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "noiseless_estimate_nmse": 0.09864087402820587
+        },
+        "nn": {
+          "crc_passes": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "noiseless_estimate_nmse": 0.12956638634204865
+        }
+      }
+    }
+  ],
+  "result_sha256": "4946647aa8ef8a3c388417e135a45f4dc90ed43b0d3abb7ffe68a7380d935ee4",
+  "schema": "umcd.g5_estimator_choice_posthoc_diagnostic.v1",
+  "selection_is_outcome_dependent": true,
+  "selection_rule": "all channel draws with any frozen position-0 static CRC failure",
+  "source_sha256": {
+    "experiments/diagnose_g5_estimator_choice.py": "c1139044996c9429ad8aca0d23ddbfb2e7a64628cd7dd696e66bc36e00092f5c",
+    "integrations/sionna/nr_pusch.py": "b0f8a482eefc3460644a4000d38f6b3aad44336234b3bfd98e9b0d73f123ad86",
+    "integrations/sionna/ofdm_impairments.py": "d79e5b6cdd2280cad685bebc904bd6d345ce061621785944b02aff9fff62b751",
+    "receivers/nr/pusch.py": "d756599070c350e65d96b823738c98ad7be59d9188eb7eba98683d748716594d"
+  },
+  "status": "POST_HOC_DIAGNOSTIC_NOT_QUALIFICATION",
+  "totals": {
+    "lin": {
+      "blocks": 56,
+      "crc_passes": 22,
+      "mean_noiseless_estimate_nmse": 0.0749128530068057
+    },
+    "lin_time_avg": {
+      "blocks": 56,
+      "crc_passes": 22,
+      "mean_noiseless_estimate_nmse": 0.0749128530068057
+    },
+    "nn": {
+      "blocks": 56,
+      "crc_passes": 7,
+      "mean_noiseless_estimate_nmse": 0.10568243158715111
+    }
+  }
+}

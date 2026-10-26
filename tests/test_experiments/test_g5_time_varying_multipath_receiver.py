@@ -4,11 +4,11 @@ from pathlib import Path
 
 import pytest
 from experiments.g5_time_varying_multipath_receiver import (
-    _source_fingerprints,
     exact_paired_binomial_p_value,
     wilson_interval,
 )
 from scipy.stats import binomtest
+from tests.test_experiments.frozen_g5_source_manifest import assert_frozen_source_manifest
 
 # Frozen in Unified Plan editions 3.241 and 3.244. Keep these values
 # independent of the experiment module so producer changes cannot redefine
@@ -63,7 +63,15 @@ def test_saved_mobility_receiver_report_is_hash_bound_and_meets_frozen_fixture_c
 
     assert report["schema"] == "umcd.g5_time_varying_multipath_receiver.v2"
     assert recorded_hash == actual_hash
-    assert report["source_sha256"] == _source_fingerprints()
+    assert_frozen_source_manifest(
+        report,
+        expected_paths=(
+            "experiments/g5_time_varying_multipath_receiver.py",
+            "integrations/sionna/nr_pusch.py",
+            "integrations/sionna/ofdm_impairments.py",
+            "receivers/nr/pusch.py",
+        ),
+    )
     assert report["runtime"]["device"] == "cpu"
     assert report["configuration"]["independent_channel_draws"] == 0
     assert report["configuration"]["waveform_awgn_injected"] is False

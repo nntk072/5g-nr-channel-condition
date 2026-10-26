@@ -37,7 +37,7 @@ def nr_pbch_acquire_and_receive(
     cyclic_prefix_lengths: Sequence[int],
     sampling_frequency_hz: float,
     max_candidate_blocks_per_half_frame: int,
-    noise_variance: float,
+    noise_variance: float | Sequence[float] | NDArray[np.generic],
     cfo_hypotheses_hz: tuple[float, ...] = (0.0,),
     cfo_guard_samples: int = 0,
     minimum_pss_score: float = 0.3,
@@ -47,14 +47,19 @@ def nr_pbch_acquire_and_receive(
 ) -> PBCHAcquisitionReception:
     """Acquire PCI/timing/CFO, then search DM-RS-visible candidate/half-frame pairs.
 
-    The receiver assumes a single static channel over one four-symbol SSB,
-    known FFT/CP/numerology, a supplied CFO search grid, and a capture that
-    contains the PSS and its later SSS/PBCH symbols. For candidate counts above
-    eight, DM-RS identifies only the three least-significant index bits; the
-    remaining bits are reconstructed from the CRC-valid PBCH payload. Exactly
-    one candidate/half-frame result is required. This does not locate an SSB in
-    a continuous radio stream or qualify operation across channels,
-    numerologies, or antenna topologies.
+    A vector is one receive chain; a matrix is shaped ``[receive_chain, sample]``.
+    Matrix input combines PSS/SSS search energy noncoherently across branches
+    and uses inverse-noise weighting for PSS/SSS scoring and PBCH MRC.
+    ``noise_variance`` may be shared or provide one independent complex-sample
+    variance per receive chain. The receiver assumes a
+    static channel over one four-symbol SSB, known FFT/CP/numerology, a supplied
+    CFO search grid, and a capture that contains the PSS and its later
+    SSS/PBCH symbols. A complete 10 ms radio-frame capture is also supported
+    when the configured timing and CPs match that frame. For candidate counts above eight, DM-RS identifies only
+    the three least-significant index bits; the remaining bits are reconstructed
+    from the CRC-valid PBCH payload. Exactly one candidate/half-frame result is
+    required. This does not locate an SSB in a continuous radio stream or
+    qualify operation across channels, numerologies, or antenna topologies.
     """
     fft_length = _positive_integer(fft_size, "fft_size")
     cp_lengths = _validate_cp_lengths(cyclic_prefix_lengths, fft_length)
@@ -71,14 +76,18 @@ def nr_pbch_acquire_and_receive(
         raise ValueError("max_candidate_blocks_per_half_frame must be one of 4, 8, 10, 20, or 64")
 
     samples = np.asarray(capture)
-    if samples.ndim != 1 or samples.dtype.kind != "c" or not np.isfinite(samples).all():
-        raise ValueError("capture must be a finite one-dimensional complex array")
+    if samples.ndim not in (1, 2) or samples.dtype.kind != "c" or not np.isfinite(samples).all():
+        raise ValueError("capture must be a finite complex vector or receive-chain matrix")
+    single_receive_chain = samples.ndim == 1
     samples = np.asarray(samples, dtype=np.complex128)
+    if single_receive_chain:
+        samples = samples[None, :]
     detection = acquire_nr_cell(
         samples,
         fft_size=fft_length,
         cyclic_prefix_length=cp_lengths[0],
         sampling_frequency_hz=float(sampling_frequency_hz),
+        noise_variance=noise_variance,
         cfo_hypotheses_hz=cfo_hypotheses_hz,
         cfo_guard_samples=cfo_guard_samples,
         minimum_pss_score=minimum_pss_score,
@@ -88,12 +97,15 @@ def nr_pbch_acquire_and_receive(
     frame_samples = sum(fft_length + cp for cp in cp_lengths)
     frame_start = detection.sample_offset
     frame_end = frame_start + frame_samples
-    if frame_end > samples.size:
+    if frame_end > samples.shape[1]:
         raise ValueError("capture ends before the complete SS/PBCH block")
     frame_indexes = np.arange(frame_start, frame_end, dtype=np.float64)
-    aligned_ssb = samples[frame_start:frame_end] * np.exp(
-        -2j * np.pi * detection.cfo_hz * frame_indexes / sampling_frequency_hz
+    aligned_ssb = (
+        samples[:, frame_start:frame_end]
+        * np.exp(-2j * np.pi * detection.cfo_hz * frame_indexes / sampling_frequency_hz)[None, :]
     )
+    if single_receive_chain:
+        aligned_ssb = aligned_ssb[0]
 
     decoded: list[tuple[int, int, PBCHOFDMReception]] = []
     dmrs_candidate_count = min(candidate_count, 8)

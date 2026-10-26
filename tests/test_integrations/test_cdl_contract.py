@@ -8,6 +8,7 @@ from integrations.sionna.cdl import CDLArrayConfig, generate_cdl_frequency_respo
     ("values", "message"),
     [
         ({"model": "F"}, "model must be one of"),
+        ({"spec_version": "99.0"}, "unsupported 3GPP TR 38.901 profile-table version"),
         ({"seed": -1}, "seed must be a nonnegative integer"),
         ({"num_subcarriers": 4}, "num_subcarriers must be >= 8"),
         ({"batch_size": 0}, "batch_size must be positive"),

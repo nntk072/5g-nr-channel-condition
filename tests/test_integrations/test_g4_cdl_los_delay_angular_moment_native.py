@@ -11,9 +11,11 @@ reference, not geometric ray truth after coherent tap composition.
 from __future__ import annotations
 
 import hashlib
+import json
 import math
+from pathlib import Path
 from statistics import NormalDist
-from typing import Any, Iterator
+from typing import Iterator
 
 import numpy as np
 import pytest
@@ -22,7 +24,6 @@ torch = pytest.importorskip("torch")
 pytest.importorskip("sionna.phy")
 
 from integrations.sionna.cdl import generate_cdl_frequency_response  # noqa: E402
-from sionna.phy.channel.tr38901 import models as profile_resources  # noqa: E402
 
 _SEED = 241107
 _BATCH_SIZE = 8192
@@ -36,6 +37,14 @@ _LOS_TABLE_SHA256 = {
     "D": "a8960f176347de457c0cb90fbc8cf137ac98bb1c5295b096f004d8d5c6e40176",
     "E": "04328f33d8d79b24aa3d0303fecb58b465ed7e13874930b05e76be0d97743480",
 }
+_REFERENCE_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "docs"
+    / "research"
+    / "G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
+)
+_REFERENCE_SHA256 = "24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090"
+_ETSI_SOURCE_SHA256 = "b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4"
 _RAY_ANGLE_OFFSETS = np.asarray(
     [
         0.0447,
@@ -62,10 +71,10 @@ _RAY_ANGLE_OFFSETS = np.asarray(
     dtype=np.float64,
 )
 _ANGLE_SPREAD_FIELDS = {
-    "aoa": "cASA",
-    "aod": "cASD",
-    "zoa": "cZSA",
-    "zod": "cZSD",
+    "aoa": "asa",
+    "aod": "asd",
+    "zoa": "zsa",
+    "zod": "zsd",
 }
 
 
@@ -80,28 +89,41 @@ def _limit_torch_threads() -> Iterator[None]:
 
 
 def _los_ray_reference(model: str, angle_name: str) -> tuple[float, np.ndarray]:
-    """Compute one composed-tap angular moment from the pinned CDL table."""
-    table_path = profile_resources.parameter_file(f"CDL-{model}.json", "19.2")
-    table_bytes = table_path.read_bytes()
-    expected_hash = _LOS_TABLE_SHA256[model]
-    assert expected_hash
-    assert hashlib.sha256(table_bytes).hexdigest() == expected_hash
-    parameters: dict[str, Any] = profile_resources.load_json(table_path)
-    assert bool(parameters["los"])
+    """Compute a composed-tap angular moment from the pinned ETSI rows."""
+    reference_bytes = _REFERENCE_PATH.read_bytes()
+    assert hashlib.sha256(reference_bytes).hexdigest() == _REFERENCE_SHA256
+    document = json.loads(reference_bytes)
+    assert document["source_sha256"] == _ETSI_SOURCE_SHA256
+    profile = next(item for item in document["profiles"] if item["profile_model"] == model)
+    assert profile["los"] is True
+    components = profile["components"]
+    specular_components = [item for item in components if item["component"] == "specular"]
+    diffuse_components = [item for item in components if item["component"] == "diffuse"]
+    assert len(specular_components) == 1
+    assert components[0] is specular_components[0]
+    assert components[1:] == diffuse_components
+    assert len(diffuse_components) == len(components) - 1
+    assert min(item["normalized_delay"] for item in diffuse_components) == 0.0
 
-    raw_powers = np.power(10.0, np.asarray(parameters["powers"], dtype=np.float64) / 10.0)
-    k_factor = raw_powers[0] / raw_powers[1:].sum()
-    diffuse_powers = raw_powers[1:] / raw_powers[1:].sum() / (k_factor + 1.0)
-    specular_power = k_factor / (k_factor + 1.0)
-
-    delays = _DELAY_SPREAD_S * np.asarray(parameters["delays"][1:], dtype=np.float64)
-    angle_cluster_mean = np.asarray(parameters[angle_name][1:], dtype=np.float64)
+    raw_powers = np.power(
+        10.0,
+        np.asarray([item["power_db"] for item in components], dtype=np.float64) / 10.0,
+    )
+    specular_power = float(raw_powers[0] / raw_powers.sum())
+    diffuse_powers = raw_powers[1:] / raw_powers.sum()
+    delays = _DELAY_SPREAD_S * np.asarray(
+        [item["normalized_delay"] for item in diffuse_components], dtype=np.float64
+    )
+    angle_cluster_mean = np.asarray(
+        [item["angles_deg"][angle_name] for item in diffuse_components], dtype=np.float64
+    )
+    spread = float(profile["cluster_spreads_deg"][_ANGLE_SPREAD_FIELDS[angle_name]])
     ray_angles = np.deg2rad(
-        angle_cluster_mean[:, None]
-        + float(parameters[_ANGLE_SPREAD_FIELDS[angle_name]]) * _RAY_ANGLE_OFFSETS[None, :]
+        angle_cluster_mean[:, None] + spread * _RAY_ANGLE_OFFSETS[None, :]
     )
     cluster_cos_angle = np.cos(ray_angles).mean(axis=1)
-    los_cos_angle = math.cos(math.radians(float(parameters[angle_name][0])))
+    los_angle = float(specular_components[0]["angles_deg"][angle_name])
+    los_cos_angle = math.cos(math.radians(los_angle))
 
     cluster_powers = np.array(diffuse_powers, copy=True)
     cluster_powers[0] += specular_power
@@ -161,3 +183,73 @@ def test_cdl_los_delay_angular_moment_matches_composed_ray_reference(
     assert channel.metadata["profile_model"] == model
     assert channel.metadata["parameter_table_sha256"] == _LOS_TABLE_SHA256[model]
     assert channel.metadata["profile_los_component"] is True
+
+
+@pytest.mark.native_sionna
+@pytest.mark.parametrize("model", ["D", "E"])
+def test_cdl_los_complex_mean_and_diffuse_variance_match_k_factor_reference(model: str) -> None:
+    """Verify coherent LOS survives complex averaging while diffuse phase averages away."""
+    reference_bytes = _REFERENCE_PATH.read_bytes()
+    assert hashlib.sha256(reference_bytes).hexdigest() == _REFERENCE_SHA256
+    document = json.loads(reference_bytes)
+    assert document["source_sha256"] == _ETSI_SOURCE_SHA256
+    profile = next(item for item in document["profiles"] if item["profile_model"] == model)
+    assert profile["los"] is True
+    components = profile["components"]
+    specular_components = [item for item in components if item["component"] == "specular"]
+    diffuse_components = [item for item in components if item["component"] == "diffuse"]
+    assert len(specular_components) == 1
+    specular_power = 10.0 ** (float(specular_components[0]["power_db"]) / 10.0)
+    diffuse_powers = np.power(
+        10.0,
+        np.asarray([item["power_db"] for item in diffuse_components], dtype=np.float64) / 10.0,
+    )
+    diffuse_total = float(diffuse_powers.sum())
+    total_power = specular_power + diffuse_total
+    k_factor = float(specular_power / diffuse_total)
+    los_power = specular_power / total_power
+    diffuse_delays = np.asarray(
+        [item["normalized_delay"] for item in diffuse_components], dtype=np.float64
+    )
+    diffuse_order = np.argsort(diffuse_delays, kind="stable")
+    first_diffuse_power = float(diffuse_powers[diffuse_order[0]] / total_power)
+    seed = _SEED + 1_000 + ord(model)
+    channel = generate_cdl_frequency_response(
+        model=model,
+        seed=seed,
+        carrier_frequency_hz=3.5e9,
+        subcarrier_spacing_hz=30_000.0,
+        num_subcarriers=8,
+        batch_size=8192,
+        delay_spread_s=100e-9,
+        spec_version="19.2",
+        device="cpu",
+    )
+    los_tap = channel.h_path[:, 0, 0, 0, 0, 0, 0].to(torch.complex128)
+    sample_count = los_tap.numel()
+    sample_mean = los_tap.mean()
+    centered = los_tap - sample_mean
+
+    # Delta-method SE for |complex sample mean|^2, retaining real/imaginary
+    # covariance. The diffuse residual-power SE uses independent draws as units.
+    covariance = torch.stack((centered.real, centered.imag), dim=0)
+    covariance = covariance @ covariance.T / (sample_count - 1)
+    gradient = torch.stack((2.0 * sample_mean.real, 2.0 * sample_mean.imag))
+    los_mean_power = sample_mean.abs().square()
+    los_mean_power_se = torch.sqrt((gradient @ covariance @ gradient) / sample_count)
+    diffuse_power_samples = centered.abs().square()
+    diffuse_power = diffuse_power_samples.sum() / (sample_count - 1)
+    diffuse_power_se = diffuse_power_samples.std(unbiased=True) / math.sqrt(sample_count)
+    family_z = NormalDist().inv_cdf(1.0 - _FAMILYWISE_ALPHA / 8.0)
+    # A finite-sample complex mean retains diffuse variance / n in its power.
+    finite_sample_los_mean_reference = los_power + first_diffuse_power / sample_count
+
+    assert abs(float(los_mean_power) - finite_sample_los_mean_reference) <= (
+        family_z * float(los_mean_power_se) + 1e-6
+    )
+    assert abs(float(diffuse_power) - first_diffuse_power) <= (
+        family_z * float(diffuse_power_se) + 1e-6
+    )
+    assert channel.metadata["profile_k_factor_linear"] == pytest.approx(k_factor)
+    assert channel.metadata["parameter_table_sha256"] == _LOS_TABLE_SHA256[model]
+    assert channel.metadata["batch_axis_semantics"] == "independent_stochastic_channel_draws"

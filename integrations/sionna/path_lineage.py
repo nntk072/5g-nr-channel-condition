@@ -47,6 +47,7 @@ class PathLineageObserver:
         self.records: list[dict[str, Any]] = []
         self._case_start = 0
         self._previous_zero_indices: set[int] = set()
+        self._writer_stage: str | None = None
         self._patched = False
 
     def begin_case(self, *, link_id: str, seed: int, depth: int, samples: int) -> None:
@@ -100,6 +101,18 @@ class PathLineageObserver:
                 buffer.k_tx,
                 buffer.k_rx,
             )
+            lineage_arrays = [
+                getattr(buffer, name)
+                for name in (
+                    "_lineage_stage",
+                    "_lineage_depth",
+                    "_lineage_valid",
+                    "_lineage_written",
+                )
+                if hasattr(buffer, name)
+            ]
+            if lineage_arrays:
+                dr.eval(*lineage_arrays)
             interactions = _numpy(buffer.interaction_types.array).reshape(-1, depth_size)[:count]
             zero_indices = set(np.flatnonzero(np.all(interactions == 0, axis=1)).tolist())
             valid = self._array(buffer, "valid", count)
@@ -122,17 +135,23 @@ class PathLineageObserver:
                 self._array(buffer, axis, count) for axis in ("_k_rx_x", "_k_rx_y", "_k_rx_z")
             )
             lineage_depth = self._array(buffer, "_lineage_depth", count)
-            lineage_sample = self._array(buffer, "_lineage_sample", count)
-            lineage_interaction = self._array(buffer, "_lineage_interaction", count)
+            lineage_stage = self._array(buffer, "_lineage_stage", count)
             lineage_valid = self._array(buffer, "_lineage_valid", count)
-            lineage_new_specular = self._array(buffer, "_lineage_new_specular", count)
-            lineage_hash_0 = self._array(buffer, "_lineage_hash_0", count)
-            lineage_hash_1 = self._array(buffer, "_lineage_hash_1", count)
+            lineage_written = self._array(buffer, "_lineage_written", count)
             order_counts = Counter(int(np.count_nonzero(row)) for row in interactions)
             zero_rows = []
             for index in sorted(zero_indices):
                 candidate_depth = int(lineage_depth[index]) if lineage_depth is not None else None
-                lineage_written = candidate_depth is not None and candidate_depth > 0
+                has_writer_lineage = (
+                    lineage_stage is not None
+                    and lineage_written is not None
+                    and bool(lineage_written[index])
+                )
+                writer_stage = None
+                if has_writer_lineage and lineage_stage is not None:
+                    writer_stage = {1: "direct_los", 2: "shoot_and_bounce"}.get(
+                        int(lineage_stage[index])
+                    )
                 zero_rows.append(
                     {
                         "buffer_index": int(index),
@@ -148,34 +167,15 @@ class PathLineageObserver:
                         "vertices_m": vertices[index].astype(float).tolist(),
                         "k_tx": self._vector_at(k_tx, index),
                         "k_rx": self._vector_at(k_rx, index),
-                        "origin_sample_index": (
-                            int(lineage_sample[index])
-                            if lineage_written and lineage_sample is not None
-                            else None
-                        ),
-                        "candidate_depth": (candidate_depth if lineage_written else None),
-                        "sampled_interaction_type": (
-                            int(lineage_interaction[index])
-                            if lineage_written and lineage_interaction is not None
-                            else None
-                        ),
+                        "writer_stage": writer_stage,
+                        "candidate_depth": candidate_depth if has_writer_lineage else None,
                         "candidate_valid_before_image_method": (
                             bool(lineage_valid[index])
-                            if lineage_written and lineage_valid is not None
+                            if has_writer_lineage and lineage_valid is not None
                             else None
                         ),
-                        "specular_hash_winner": (
-                            bool(lineage_new_specular[index])
-                            if lineage_written and lineage_new_specular is not None
-                            else None
-                        ),
-                        "specular_hashes": [
-                            int(lineage_hash_0[index]),
-                            int(lineage_hash_1[index]),
-                        ]
-                        if lineage_written
-                        and lineage_hash_0 is not None
-                        and lineage_hash_1 is not None
+                        "buffer_write_active": bool(lineage_written[index])
+                        if lineage_written is not None
                         else None,
                     }
                 )
@@ -207,6 +207,10 @@ class PathLineageObserver:
             zero_indices = np.flatnonzero(np.all(interactions == 0, axis=0))
             source = _numpy(paths._paths_buffer.source_indices).astype(np.int64).reshape(-1)
             target = _numpy(paths._paths_buffer.target_indices).astype(np.int64).reshape(-1)
+            lineage_stage = self._array(paths._paths_buffer, "_lineage_stage", valid.size)
+            lineage_depth = self._array(paths._paths_buffer, "_lineage_depth", valid.size)
+            lineage_valid = self._array(paths._paths_buffer, "_lineage_valid", valid.size)
+            lineage_written = self._array(paths._paths_buffer, "_lineage_written", valid.size)
             tau = _numpy(paths.tau).reshape(-1)
             theta_t = _numpy(paths.theta_t).reshape(-1)
             phi_t = _numpy(paths.phi_t).reshape(-1)
@@ -225,6 +229,27 @@ class PathLineageObserver:
                     "coefficient_imag": float(gain[index].imag),
                     "theta_t_rad": float(theta_t[index]),
                     "phi_t_rad": float(phi_t[index]),
+                    "writer_stage": (
+                        {1: "direct_los", 2: "shoot_and_bounce"}.get(int(lineage_stage[index]))
+                        if lineage_stage is not None
+                        and lineage_written is not None
+                        and bool(lineage_written[index])
+                        else None
+                    ),
+                    "candidate_depth": (
+                        int(lineage_depth[index])
+                        if lineage_depth is not None
+                        and lineage_written is not None
+                        and bool(lineage_written[index])
+                        else None
+                    ),
+                    "candidate_valid_before_image_method": (
+                        bool(lineage_valid[index])
+                        if lineage_valid is not None
+                        and lineage_written is not None
+                        and bool(lineage_written[index])
+                        else None
+                    ),
                 }
                 for index in zero_indices
             ]
@@ -246,6 +271,8 @@ class PathLineageObserver:
         """Install temporary instance/class wrappers; run in a dedicated process."""
         if self._patched:
             raise RuntimeError("observer is already attached")
+        import drjit as dr
+        import mitsuba as mi
         from sionna.rt.path_solvers.paths import Paths
         from sionna.rt.path_solvers.paths_buffer import PathsBuffer
 
@@ -260,11 +287,70 @@ class PathLineageObserver:
             def wrapped(
                 *args: Any, _original: Any = original, _stage: str = stage, **kwargs: Any
             ) -> Any:
-                result = _original(*args, **kwargs)
+                previous_stage = self._writer_stage
+                self._writer_stage = _stage
+                try:
+                    result = _original(*args, **kwargs)
+                finally:
+                    self._writer_stage = previous_stage
                 self.capture_buffer(_stage, args[3])
                 return result
 
             setattr(generator, method_name, wrapped)
+
+        original_add_paths = PathsBuffer.add_paths
+
+        def wrapped_add_paths(
+            buffer: Any,
+            depth: Any,
+            indices: Any,
+            sample_data: Any,
+            valid: Any,
+            tgt_index: Any,
+            k_tx: Any,
+            k_rx: Any,
+            active: Any,
+        ) -> Any:
+            if not hasattr(buffer, "_lineage_stage"):
+                buffer._lineage_stage = dr.zeros(mi.UInt, buffer.buffer_size)
+                buffer._lineage_depth = dr.zeros(mi.UInt, buffer.buffer_size)
+                buffer._lineage_valid = dr.zeros(mi.Bool, buffer.buffer_size)
+                buffer._lineage_written = dr.zeros(mi.Bool, buffer.buffer_size)
+            lane_count = dr.width(active)
+            depth_values = (
+                dr.full(mi.UInt, depth, lane_count)
+                if dr.width(depth) == 1 and lane_count > 1
+                else depth
+            )
+            stage_code = {"after_los": 1, "after_shoot_and_bounce": 2}.get(
+                self._writer_stage or "", 0
+            )
+            dr.scatter(
+                buffer._lineage_stage,
+                dr.full(mi.UInt, stage_code, lane_count),
+                indices,
+                active=active,
+            )
+            dr.scatter(buffer._lineage_depth, depth_values, indices, active=active)
+            dr.scatter(buffer._lineage_valid, valid, indices, active=active)
+            dr.scatter(
+                buffer._lineage_written,
+                dr.full(mi.Bool, True, lane_count),
+                indices,
+                active=active,
+            )
+            result = original_add_paths(
+                buffer, depth, indices, sample_data, valid, tgt_index, k_tx, k_rx, active
+            )
+            dr.schedule(
+                buffer._lineage_stage,
+                buffer._lineage_depth,
+                buffer._lineage_valid,
+                buffer._lineage_written,
+            )
+            return result
+
+        PathsBuffer.add_paths = wrapped_add_paths
 
         counter._delegate = _CandidateGeneratorProxy(generator, self)
         for attribute, stage in (
@@ -296,7 +382,30 @@ class PathLineageObserver:
                 **kwargs: Any,
             ) -> Any:
                 self.capture_buffer(_before, buffer)
+                lineage_arrays: tuple[Any, ...] | None = None
+                valid_indices: Any = None
+                if _before == "before_discard_invalid" and hasattr(buffer, "_lineage_stage"):
+                    lineage_arrays = (
+                        buffer._lineage_stage,
+                        buffer._lineage_depth,
+                        buffer._lineage_valid,
+                        buffer._lineage_written,
+                    )
+                    valid_indices = dr.compress(buffer.valid)
+                    dr.eval(*lineage_arrays, valid_indices)
                 result = _original(buffer, *args, **kwargs)
+                if lineage_arrays is not None and valid_indices is not None:
+                    (
+                        buffer._lineage_stage,
+                        buffer._lineage_depth,
+                        buffer._lineage_valid,
+                        buffer._lineage_written,
+                    ) = (
+                        dr.gather(mi.UInt, array, valid_indices)
+                        if index in {0, 1}
+                        else dr.gather(mi.Bool, array, valid_indices)
+                        for index, array in enumerate(lineage_arrays)
+                    )
                 self.capture_buffer(_after, buffer)
                 return result
 

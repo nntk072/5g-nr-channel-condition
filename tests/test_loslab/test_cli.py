@@ -19,6 +19,28 @@ def test_doctor_reports_environment_without_running_simulation(monkeypatch, caps
     assert "rt_backend" not in report
 
 
+def test_g3_path_roster_audit_dispatches_to_packaged_evaluator(monkeypatch, tmp_path) -> None:
+    from evaluation import g3_path_equivalence_roster_cli
+
+    input_path = tmp_path / "roster.json"
+    captured: dict[str, object] = {}
+
+    def audit(argv):
+        captured["argv"] = argv
+        return 0
+
+    monkeypatch.setattr(g3_path_equivalence_roster_cli, "main", audit)
+    monkeypatch.setattr(
+        "sys.argv", ["loslab", "g3-path-roster-audit", str(input_path)]
+    )
+
+    with pytest.raises(SystemExit) as error:
+        main()
+
+    assert error.value.code == 0
+    assert captured["argv"] == [str(input_path)]
+
+
 def test_doctor_can_probe_and_report_resolved_rt_backend(monkeypatch, capsys) -> None:
     from types import SimpleNamespace
 
@@ -308,7 +330,9 @@ def test_experiment_config_dispatches_resolved_options(tmp_path, monkeypatch, ca
     config = tmp_path / "experiment.yaml"
     config.write_text(
         "schema: loslab.experiment.v1\ninputs: [data.npz]\noutput: run\n"
-        "methods: [logreg]\nseeds: [13]\nbootstrap: 10\ncapacity: large\n",
+        "methods: [logreg]\nseeds: [13]\nbootstrap: 10\ncapacity: large\n"
+        "split_lock_path: lock.json\nsplit_signature_path: lock.json.sig\n"
+        "trusted_split_signers_path: allowed_signers\nsplit_signer_id: custodian@example.org\n",
         encoding="utf-8",
     )
     calls = []
@@ -329,4 +353,8 @@ def test_experiment_config_dispatches_resolved_options(tmp_path, monkeypatch, ca
     assert options["seeds"] == [13]
     assert options["bootstrap"] == 10
     assert options["capacity"] == "large"
+    assert options["split_lock_path"] == "lock.json"
+    assert options["split_signature_path"] == "lock.json.sig"
+    assert options["trusted_split_signers_path"] == "allowed_signers"
+    assert options["split_signer_id"] == "custodian@example.org"
     assert json.loads(capsys.readouterr().out) == {"status": "ok"}

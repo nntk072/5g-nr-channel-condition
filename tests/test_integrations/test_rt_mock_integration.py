@@ -4,7 +4,13 @@ import sys
 import types
 
 import numpy as np
-from integrations.sionna.adapter import GridConfig, RayScene, generate_raytraced
+import pytest
+from integrations.sionna.adapter import (
+    GridConfig,
+    RayScene,
+    _rt_spatial_split_subject_id,
+    generate_raytraced,
+)
 from integrations.sionna.los_oracle import SegmentVisibilityResult, SegmentVisibilityState
 
 
@@ -12,6 +18,68 @@ def _generate_raytraced_pilot(*args, **kwargs):
     kwargs.setdefault("pilot", True)
     kwargs.setdefault("output_destination", "/tmp/loslab-static-mock-test.npz")
     return generate_raytraced(*args, **kwargs)
+
+
+def test_rt_split_parent_id_is_stable_across_scene_names_and_transmitters() -> None:
+    common_assets = {"asset_set_sha256": "a" * 64, "complete": True}
+    first, first_complete = _rt_spatial_split_subject_id(
+        scene_asset_set_sha256=common_assets["asset_set_sha256"],
+        scene_asset_manifest_complete=common_assets["complete"],
+        scene_name="scene-copy-a",
+        rx_position_m=(30.0, -1.0, 1.5),
+        block_size_m=10.0,
+    )
+    same_scene_other_run, second_complete = _rt_spatial_split_subject_id(
+        scene_asset_set_sha256=common_assets["asset_set_sha256"],
+        scene_asset_manifest_complete=common_assets["complete"],
+        scene_name="renamed-scene-copy",
+        rx_position_m=(30.5, -1.5, 8.0),
+        block_size_m=10.0,
+    )
+    different_scene, _ = _rt_spatial_split_subject_id(
+        scene_asset_set_sha256="b" * 64,
+        scene_asset_manifest_complete=True,
+        scene_name="scene-copy-a",
+        rx_position_m=(30.0, -1.0, 1.5),
+        block_size_m=10.0,
+    )
+
+    assert first_complete is second_complete is True
+    assert first == same_scene_other_run
+    assert first != different_scene
+    with pytest.raises(ValueError, match="block_size_m must be finite and positive"):
+        RayScene(block_size_m=float("inf"))
+    with pytest.raises(ValueError, match="block_size_m must be finite and positive"):
+        RayScene(block_size_m=True)
+
+
+def test_rt_split_identity_marks_unclosed_scenes_as_provisional() -> None:
+    first, complete = _rt_spatial_split_subject_id(
+        scene_asset_set_sha256="a" * 64,
+        scene_asset_manifest_complete=False,
+        scene_name="unresolved-scene-a",
+        rx_position_m=(0.0, 0.0, 1.5),
+        block_size_m=10.0,
+    )
+    renamed, _ = _rt_spatial_split_subject_id(
+        scene_asset_set_sha256="a" * 64,
+        scene_asset_manifest_complete=False,
+        scene_name="unresolved-scene-b",
+        rx_position_m=(0.0, 0.0, 1.5),
+        block_size_m=10.0,
+    )
+
+    assert complete is False
+    assert first.startswith("rt:unclosed-unresolved-scene-a:")
+    assert first != renamed
+    with pytest.raises(ValueError, match="lowercase SHA-256"):
+        _rt_spatial_split_subject_id(
+            scene_asset_set_sha256="not-a-digest",
+            scene_asset_manifest_complete=True,
+            scene_name="scene",
+            rx_position_m=(0.0, 0.0, 0.0),
+            block_size_m=10.0,
+        )
 
 
 def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
@@ -151,6 +219,10 @@ def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
         seed=13,
     )
     assert len(d.y) == 6 and sum(d.y) == 3
+    assert all(
+        row["split_subject_id"] == str(group)
+        for row, group in zip(d.metadata, d.group, strict=True)
+    )
     report = d.generation_report
     assert report["schema"] == "loslab.raytraced_generation_report.v3"
     assert report["label_semantics"] == "geometric_direct_path_oracle"
@@ -237,7 +309,7 @@ def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
         seed=13,
     )
     assert set(other_tx.domain) == {"rt_mock_tx-b"}
-    assert not set(d.group).intersection(other_tx.group)
+    assert set(d.group).intersection(other_tx.group)
     assert selected_variants == ["llvm_ad_mono_polarized"] * 2
     assert all(m["mitsuba_variant"] == "llvm_ad_mono_polarized" for m in d.metadata)
     assert all(m["scene_config"]["name"] == "mock" for m in d.metadata)

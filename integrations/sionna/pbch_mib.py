@@ -1,15 +1,10 @@
-"""Fixed-schema NR BCCH-BCH MIB bit parsing for PBCH payloads.
-
-This handles the MIB alternative of the 24-bit BCCH-BCH message (the leading
-one-bit CHOICE is zero) and the fixed 23-bit MIB sequence in TS 38.331. It is
-not a general ASN.1/PER decoder and rejects messageClassExtension.
-"""
+"""NR BCCH-BCH MIB and empty message-class alternative bit parsing."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from numbers import Integral
-from typing import Literal
+from typing import Literal, TypeAlias
 
 import numpy as np
 from numpy.typing import NDArray
@@ -32,6 +27,51 @@ class PBCHMIB:
     spare: int
 
 
+@dataclass(frozen=True, slots=True)
+class PBCHMessageClassExtension:
+    """Empty BCCH-BCH alternative with preserved uninterpreted trailing bits.
+
+    TS 38.331 defines this CHOICE alternative as an empty SEQUENCE. The
+    24-bit PBCH-side representation can still contain trailing bits; this
+    object preserves them without assigning ASN.1 field semantics.
+    """
+
+    trailing_bits: tuple[int, ...] = (0,) * (_BIT_COUNT - 1)
+
+    def __post_init__(self) -> None:
+        values = tuple(self.trailing_bits)
+        if len(values) != _BIT_COUNT - 1:
+            raise ValueError("trailing_bits must contain 23 bits")
+        if any(
+            isinstance(bit, (bool, np.bool_)) or not isinstance(bit, Integral) or int(bit) not in (0, 1)
+            for bit in values
+        ):
+            raise ValueError("trailing_bits must contain only integer binary values")
+        object.__setattr__(self, "trailing_bits", tuple(int(bit) for bit in values))
+
+
+PBCHBCCHMessage: TypeAlias = PBCHMIB | PBCHMessageClassExtension
+
+
+def nr_bcch_bch_message_parse(bits: NDArray[np.generic]) -> PBCHBCCHMessage:
+    """Parse the 24-bit BCCH-BCH CHOICE and retain its selected alternative."""
+    array = _binary_vector(bits)
+    if int(array[0]) == 0:
+        return nr_pbch_mib_parse(array)
+    return PBCHMessageClassExtension(tuple(int(bit) for bit in array[1:]))
+
+
+def nr_bcch_bch_message_serialize(message: PBCHBCCHMessage) -> NDArray[np.uint8]:
+    """Serialize either BCCH-BCH alternative into its 24-bit representation."""
+    if isinstance(message, PBCHMIB):
+        return nr_pbch_mib_serialize(message)
+    if not isinstance(message, PBCHMessageClassExtension):
+        raise TypeError("message must be PBCHMIB or PBCHMessageClassExtension")
+    bits = np.asarray((1, *message.trailing_bits), dtype=np.uint8)
+    bits.setflags(write=False)
+    return bits
+
+
 def nr_pbch_mib_parse(bcch_bch_bits: NDArray[np.generic]) -> PBCHMIB:
     """Parse a 24-bit BCCH-BCH message containing the MIB alternative.
 
@@ -42,7 +82,7 @@ def nr_pbch_mib_parse(bcch_bch_bits: NDArray[np.generic]) -> PBCHMIB:
     """
     bits = _binary_vector(bcch_bch_bits)
     if int(bits[0]) != 0:
-        raise ValueError("BCCH-BCH messageClassExtension is not supported")
+        raise ValueError("BCCH-BCH message selects messageClassExtension, not mib")
 
     return PBCHMIB(
         system_frame_number_msb=_read_uint(bits, 1, 6),

@@ -1,0 +1,378 @@
+{
+  "identity_derivation": {
+    "datasets_upgraded_in_memory": [
+      "center",
+      "east",
+      "west"
+    ],
+    "input_hashes_cover_original_bytes": true,
+    "mode": "opt_in_complete_rt_legacy_metadata",
+    "rows_upgraded_in_memory": 120
+  },
+  "input_completeness": {
+    "authority": "no frozen corpus inventory supplied",
+    "status": "unverified_input_scope"
+  },
+  "inputs": [
+    {
+      "bytes": 51392,
+      "name": "center",
+      "path": "outputs/rt-urban43-tx-spatial-holdout-20261022-v3/center_x0.npz",
+      "rows": 40,
+      "sha256": "0fa8458215f0dc6ca78c9a8f03cb043a48cf4fde9171df510ed0b6f2a97d5d32"
+    },
+    {
+      "bytes": 51381,
+      "name": "east",
+      "path": "outputs/rt-urban43-tx-spatial-holdout-20261022-v3/east_x3.npz",
+      "rows": 40,
+      "sha256": "ddae160b406170b43f7a7ec4d9f74469e3edc24f6779870899adb132c73bcc03"
+    },
+    {
+      "bytes": 51510,
+      "name": "west",
+      "path": "outputs/rt-urban43-tx-spatial-holdout-20261022-v3/west_x3.npz",
+      "rows": 40,
+      "sha256": "69572ee17080ce60195f2c48f3e4f8b7d030acc1849f9804b8587dd211138a8e"
+    }
+  ],
+  "interpretation": "This report covers only the listed input bytes. It does not prove corpus completeness, acquisition provenance, missing relations, independent review, or release qualification.",
+  "lineage": {
+    "dataset_count": 3,
+    "input_rows": 120,
+    "largest_leakage_component_subjects": 11,
+    "leakage_component_count": 3,
+    "leakage_component_sizes_descending": [
+      11,
+      8,
+      7
+    ],
+    "qualification_status": "NOT_QUALIFIED",
+    "schema": "loslab.channel_split_lineage_audit.v1",
+    "spatial_buffer_m": 30.0,
+    "spatially_linked_subjects": 26,
+    "status": "LINEAGE_DERIVED_NOT_RELEASE_QUALIFIED",
+    "subjects_reused_across_inputs": 0,
+    "subjects_with_provisional_split_identity": 0,
+    "subjects_without_spatial_or_time_footprints": 0,
+    "temporally_linked_subjects": 0,
+    "unique_split_subjects": 26
+  },
+  "schema": "loslab.channel_split_lineage_audit_bundle.v1",
+  "spatial_buffer_m": 30.0,
+  "status": "NOT_QUALIFIED",
+  "subjects": [
+    {
+      "parent_type": "network_episode",
+      "partition_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:-1:-1",
+      "relations": [
+        {
+          "identity": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:a5ddf27b75aa2718ac9962eb355aa7ec989e8353bdc0e6a61cc0c1b2b2dfe33e",
+          "namespace": "spatial_buffer"
+        }
+      ],
+      "source_family": "sionna_rt",
+      "subject_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:-1:-1"
+    },
+    {
+      "parent_type": "network_episode",
+      "partition_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:-1:0",
+      "relations": [
+        {
+          "identity": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:a5ddf27b75aa2718ac9962eb355aa7ec989e8353bdc0e6a61cc0c1b2b2dfe33e",
+          "namespace": "spatial_buffer"
+        }
+      ],
+      "source_family": "sionna_rt",
+      "subject_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:-1:0"
+    },
+    {
+      "parent_type": "network_episode",
+      "partition_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:-1:1",
+      "relations": [
+        {
+          "identity": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:a5ddf27b75aa2718ac9962eb355aa7ec989e8353bdc0e6a61cc0c1b2b2dfe33e",
+          "namespace": "spatial_buffer"
+        }
+      ],
+      "source_family": "sionna_rt",
+      "subject_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:-1:1"
+    },
+    {
+      "parent_type": "network_episode",
+      "partition_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:-2:-1",
+      "relations": [
+        {
+          "identity": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:a5ddf27b75aa2718ac9962eb355aa7ec989e8353bdc0e6a61cc0c1b2b2dfe33e",
+          "namespace": "spatial_buffer"
+        }
+      ],
+      "source_family": "sionna_rt",
+      "subject_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:-2:-1"
+    },
+    {
+      "parent_type": "network_episode",
+      "partition_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:-2:0",
+      "relations": [
+        {
+          "identity": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:a5ddf27b75aa2718ac9962eb355aa7ec989e8353bdc0e6a61cc0c1b2b2dfe33e",
+          "namespace": "spatial_buffer"
+        }
+      ],
+      "source_family": "sionna_rt",
+      "subject_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:-2:0"
+    },
+    {
+      "parent_type": "network_episode",
+      "partition_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:-3:-1",
+      "relations": [
+        {
+          "identity": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:0ddef264bbcbb4a4d605c167f0be2d1a27d47e59f135b4ae0042b2295acc1e20",
+          "namespace": "spatial_buffer"
+        }
+      ],
+      "source_family": "sionna_rt",
+      "subject_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:-3:-1"
+    },
+    {
+      "parent_type": "network_episode",
+      "partition_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:-3:0",
+      "relations": [
+        {
+          "identity": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:0ddef264bbcbb4a4d605c167f0be2d1a27d47e59f135b4ae0042b2295acc1e20",
+          "namespace": "spatial_buffer"
+        }
+      ],
+      "source_family": "sionna_rt",
+      "subject_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:-3:0"
+    },
+    {
+      "parent_type": "network_episode",
+      "partition_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:-4:-1",
+      "relations": [
+        {
+          "identity": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:0ddef264bbcbb4a4d605c167f0be2d1a27d47e59f135b4ae0042b2295acc1e20",
+          "namespace": "spatial_buffer"
+        }
+      ],
+      "source_family": "sionna_rt",
+      "subject_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:-4:-1"
+    },
+    {
+      "parent_type": "network_episode",
+      "partition_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:-4:0",
+      "relations": [
+        {
+          "identity": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:0ddef264bbcbb4a4d605c167f0be2d1a27d47e59f135b4ae0042b2295acc1e20",
+          "namespace": "spatial_buffer"
+        }
+      ],
+      "source_family": "sionna_rt",
+      "subject_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:-4:0"
+    },
+    {
+      "parent_type": "network_episode",
+      "partition_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:-5:-1",
+      "relations": [
+        {
+          "identity": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:0ddef264bbcbb4a4d605c167f0be2d1a27d47e59f135b4ae0042b2295acc1e20",
+          "namespace": "spatial_buffer"
+        }
+      ],
+      "source_family": "sionna_rt",
+      "subject_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:-5:-1"
+    },
+    {
+      "parent_type": "network_episode",
+      "partition_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:-5:0",
+      "relations": [
+        {
+          "identity": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:0ddef264bbcbb4a4d605c167f0be2d1a27d47e59f135b4ae0042b2295acc1e20",
+          "namespace": "spatial_buffer"
+        }
+      ],
+      "source_family": "sionna_rt",
+      "subject_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:-5:0"
+    },
+    {
+      "parent_type": "network_episode",
+      "partition_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:-6:-1",
+      "relations": [
+        {
+          "identity": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:0ddef264bbcbb4a4d605c167f0be2d1a27d47e59f135b4ae0042b2295acc1e20",
+          "namespace": "spatial_buffer"
+        }
+      ],
+      "source_family": "sionna_rt",
+      "subject_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:-6:-1"
+    },
+    {
+      "parent_type": "network_episode",
+      "partition_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:0:-1",
+      "relations": [
+        {
+          "identity": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:a5ddf27b75aa2718ac9962eb355aa7ec989e8353bdc0e6a61cc0c1b2b2dfe33e",
+          "namespace": "spatial_buffer"
+        }
+      ],
+      "source_family": "sionna_rt",
+      "subject_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:0:-1"
+    },
+    {
+      "parent_type": "network_episode",
+      "partition_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:0:-2",
+      "relations": [
+        {
+          "identity": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:a5ddf27b75aa2718ac9962eb355aa7ec989e8353bdc0e6a61cc0c1b2b2dfe33e",
+          "namespace": "spatial_buffer"
+        }
+      ],
+      "source_family": "sionna_rt",
+      "subject_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:0:-2"
+    },
+    {
+      "parent_type": "network_episode",
+      "partition_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:0:0",
+      "relations": [
+        {
+          "identity": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:a5ddf27b75aa2718ac9962eb355aa7ec989e8353bdc0e6a61cc0c1b2b2dfe33e",
+          "namespace": "spatial_buffer"
+        }
+      ],
+      "source_family": "sionna_rt",
+      "subject_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:0:0"
+    },
+    {
+      "parent_type": "network_episode",
+      "partition_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:0:1",
+      "relations": [
+        {
+          "identity": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:a5ddf27b75aa2718ac9962eb355aa7ec989e8353bdc0e6a61cc0c1b2b2dfe33e",
+          "namespace": "spatial_buffer"
+        }
+      ],
+      "source_family": "sionna_rt",
+      "subject_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:0:1"
+    },
+    {
+      "parent_type": "network_episode",
+      "partition_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:1:-1",
+      "relations": [
+        {
+          "identity": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:a5ddf27b75aa2718ac9962eb355aa7ec989e8353bdc0e6a61cc0c1b2b2dfe33e",
+          "namespace": "spatial_buffer"
+        }
+      ],
+      "source_family": "sionna_rt",
+      "subject_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:1:-1"
+    },
+    {
+      "parent_type": "network_episode",
+      "partition_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:1:0",
+      "relations": [
+        {
+          "identity": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:a5ddf27b75aa2718ac9962eb355aa7ec989e8353bdc0e6a61cc0c1b2b2dfe33e",
+          "namespace": "spatial_buffer"
+        }
+      ],
+      "source_family": "sionna_rt",
+      "subject_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:1:0"
+    },
+    {
+      "parent_type": "network_episode",
+      "partition_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:2:-1",
+      "relations": [
+        {
+          "identity": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:7bda1cf179dc9b46e418ec03da6c6c615da8a11bc9fb5bb493dc29ed72ef90bf",
+          "namespace": "spatial_buffer"
+        }
+      ],
+      "source_family": "sionna_rt",
+      "subject_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:2:-1"
+    },
+    {
+      "parent_type": "network_episode",
+      "partition_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:2:0",
+      "relations": [
+        {
+          "identity": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:7bda1cf179dc9b46e418ec03da6c6c615da8a11bc9fb5bb493dc29ed72ef90bf",
+          "namespace": "spatial_buffer"
+        }
+      ],
+      "source_family": "sionna_rt",
+      "subject_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:2:0"
+    },
+    {
+      "parent_type": "network_episode",
+      "partition_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:3:-1",
+      "relations": [
+        {
+          "identity": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:7bda1cf179dc9b46e418ec03da6c6c615da8a11bc9fb5bb493dc29ed72ef90bf",
+          "namespace": "spatial_buffer"
+        }
+      ],
+      "source_family": "sionna_rt",
+      "subject_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:3:-1"
+    },
+    {
+      "parent_type": "network_episode",
+      "partition_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:3:0",
+      "relations": [
+        {
+          "identity": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:7bda1cf179dc9b46e418ec03da6c6c615da8a11bc9fb5bb493dc29ed72ef90bf",
+          "namespace": "spatial_buffer"
+        }
+      ],
+      "source_family": "sionna_rt",
+      "subject_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:3:0"
+    },
+    {
+      "parent_type": "network_episode",
+      "partition_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:4:-1",
+      "relations": [
+        {
+          "identity": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:7bda1cf179dc9b46e418ec03da6c6c615da8a11bc9fb5bb493dc29ed72ef90bf",
+          "namespace": "spatial_buffer"
+        }
+      ],
+      "source_family": "sionna_rt",
+      "subject_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:4:-1"
+    },
+    {
+      "parent_type": "network_episode",
+      "partition_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:4:0",
+      "relations": [
+        {
+          "identity": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:7bda1cf179dc9b46e418ec03da6c6c615da8a11bc9fb5bb493dc29ed72ef90bf",
+          "namespace": "spatial_buffer"
+        }
+      ],
+      "source_family": "sionna_rt",
+      "subject_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:4:0"
+    },
+    {
+      "parent_type": "network_episode",
+      "partition_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:5:-1",
+      "relations": [
+        {
+          "identity": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:7bda1cf179dc9b46e418ec03da6c6c615da8a11bc9fb5bb493dc29ed72ef90bf",
+          "namespace": "spatial_buffer"
+        }
+      ],
+      "source_family": "sionna_rt",
+      "subject_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:5:-1"
+    },
+    {
+      "parent_type": "network_episode",
+      "partition_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:5:0",
+      "relations": [
+        {
+          "identity": "17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:7bda1cf179dc9b46e418ec03da6c6c615da8a11bc9fb5bb493dc29ed72ef90bf",
+          "namespace": "spatial_buffer"
+        }
+      ],
+      "source_family": "sionna_rt",
+      "subject_id": "rt:17e38ae4690fc34f6740d760284f09dc267fb0d2fda494ef9ed4132d97d1da2c:block:0x1.4000000000000p+4:5:0"
+    }
+  ]
+}

@@ -1,0 +1,1279 @@
+{
+  "schema": "loslab.g4_cdl_tap_angle_reference.v1",
+  "standard": "3GPP TR 38.901",
+  "version": "19.2.0",
+  "source_id": "tr-138901-v19.2.0",
+  "source_sha256": "b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4",
+  "source_url": "https://www.etsi.org/deliver/etsi_tr/138900_138999/138901/19.02.00_60/tr_138901v190200p.pdf",
+  "reference_scope": [
+    "Tables 7.7.1-1 through 7.7.1-5: cluster normalized delay, power, AOD/AOA/ZOD/ZOA, per-cluster angular spreads, and XPR for CDL-A through CDL-E",
+    "CDL-D/E specular LOS and diffuse first-cluster components are preserved separately at normalized delay zero"
+  ],
+  "status": "PER_CLUSTER_REFERENCE_ONLY_NOT_CONFORMANCE_QUALIFICATION",
+  "profiles": [
+    {
+      "profile_model": "A",
+      "source_table": "7.7.1-1",
+      "los": false,
+      "cluster_count": 23,
+      "cluster_spreads_deg": {
+        "asd": 5.0,
+        "asa": 11.0,
+        "zsd": 3.0,
+        "zsa": 3.0
+      },
+      "xpr_db": 10.0,
+      "components": [
+        {
+          "cluster_index": 1,
+          "component": "diffuse",
+          "normalized_delay": 0.0,
+          "power_db": -13.4,
+          "angles_deg": {
+            "aod": -178.1,
+            "aoa": 51.3,
+            "zod": 50.2,
+            "zoa": 125.4
+          }
+        },
+        {
+          "cluster_index": 2,
+          "component": "diffuse",
+          "normalized_delay": 0.3819,
+          "power_db": 0.0,
+          "angles_deg": {
+            "aod": -4.2,
+            "aoa": -152.7,
+            "zod": 93.2,
+            "zoa": 91.3
+          }
+        },
+        {
+          "cluster_index": 3,
+          "component": "diffuse",
+          "normalized_delay": 0.4025,
+          "power_db": -2.2,
+          "angles_deg": {
+            "aod": -4.2,
+            "aoa": -152.7,
+            "zod": 93.2,
+            "zoa": 91.3
+          }
+        },
+        {
+          "cluster_index": 4,
+          "component": "diffuse",
+          "normalized_delay": 0.5868,
+          "power_db": -4.0,
+          "angles_deg": {
+            "aod": -4.2,
+            "aoa": -152.7,
+            "zod": 93.2,
+            "zoa": 91.3
+          }
+        },
+        {
+          "cluster_index": 5,
+          "component": "diffuse",
+          "normalized_delay": 0.461,
+          "power_db": -6.0,
+          "angles_deg": {
+            "aod": 90.2,
+            "aoa": 76.6,
+            "zod": 122.0,
+            "zoa": 94.0
+          }
+        },
+        {
+          "cluster_index": 6,
+          "component": "diffuse",
+          "normalized_delay": 0.5375,
+          "power_db": -8.2,
+          "angles_deg": {
+            "aod": 90.2,
+            "aoa": 76.6,
+            "zod": 122.0,
+            "zoa": 94.0
+          }
+        },
+        {
+          "cluster_index": 7,
+          "component": "diffuse",
+          "normalized_delay": 0.6708,
+          "power_db": -9.9,
+          "angles_deg": {
+            "aod": 90.2,
+            "aoa": 76.6,
+            "zod": 122.0,
+            "zoa": 94.0
+          }
+        },
+        {
+          "cluster_index": 8,
+          "component": "diffuse",
+          "normalized_delay": 0.575,
+          "power_db": -10.5,
+          "angles_deg": {
+            "aod": 121.5,
+            "aoa": -1.8,
+            "zod": 150.2,
+            "zoa": 47.1
+          }
+        },
+        {
+          "cluster_index": 9,
+          "component": "diffuse",
+          "normalized_delay": 0.7618,
+          "power_db": -7.5,
+          "angles_deg": {
+            "aod": -81.7,
+            "aoa": -41.9,
+            "zod": 55.2,
+            "zoa": 56.0
+          }
+        },
+        {
+          "cluster_index": 10,
+          "component": "diffuse",
+          "normalized_delay": 1.5375,
+          "power_db": -15.9,
+          "angles_deg": {
+            "aod": 158.4,
+            "aoa": 94.2,
+            "zod": 26.4,
+            "zoa": 30.1
+          }
+        },
+        {
+          "cluster_index": 11,
+          "component": "diffuse",
+          "normalized_delay": 1.8978,
+          "power_db": -6.6,
+          "angles_deg": {
+            "aod": -83.0,
+            "aoa": 51.9,
+            "zod": 126.4,
+            "zoa": 58.8
+          }
+        },
+        {
+          "cluster_index": 12,
+          "component": "diffuse",
+          "normalized_delay": 2.2242,
+          "power_db": -16.7,
+          "angles_deg": {
+            "aod": 134.8,
+            "aoa": -115.9,
+            "zod": 171.6,
+            "zoa": 26.0
+          }
+        },
+        {
+          "cluster_index": 13,
+          "component": "diffuse",
+          "normalized_delay": 2.1718,
+          "power_db": -12.4,
+          "angles_deg": {
+            "aod": -153.0,
+            "aoa": 26.6,
+            "zod": 151.4,
+            "zoa": 49.2
+          }
+        },
+        {
+          "cluster_index": 14,
+          "component": "diffuse",
+          "normalized_delay": 2.4942,
+          "power_db": -15.2,
+          "angles_deg": {
+            "aod": -172.0,
+            "aoa": 76.6,
+            "zod": 157.2,
+            "zoa": 143.1
+          }
+        },
+        {
+          "cluster_index": 15,
+          "component": "diffuse",
+          "normalized_delay": 2.5119,
+          "power_db": -10.8,
+          "angles_deg": {
+            "aod": -129.9,
+            "aoa": -7.0,
+            "zod": 47.2,
+            "zoa": 117.4
+          }
+        },
+        {
+          "cluster_index": 16,
+          "component": "diffuse",
+          "normalized_delay": 3.0582,
+          "power_db": -11.3,
+          "angles_deg": {
+            "aod": -136.0,
+            "aoa": -23.0,
+            "zod": 40.4,
+            "zoa": 122.7
+          }
+        },
+        {
+          "cluster_index": 17,
+          "component": "diffuse",
+          "normalized_delay": 4.081,
+          "power_db": -12.7,
+          "angles_deg": {
+            "aod": 165.4,
+            "aoa": -47.2,
+            "zod": 43.3,
+            "zoa": 123.2
+          }
+        },
+        {
+          "cluster_index": 18,
+          "component": "diffuse",
+          "normalized_delay": 4.4579,
+          "power_db": -16.2,
+          "angles_deg": {
+            "aod": 148.4,
+            "aoa": 110.4,
+            "zod": 161.8,
+            "zoa": 32.6
+          }
+        },
+        {
+          "cluster_index": 19,
+          "component": "diffuse",
+          "normalized_delay": 4.5695,
+          "power_db": -18.3,
+          "angles_deg": {
+            "aod": 132.7,
+            "aoa": 144.5,
+            "zod": 10.8,
+            "zoa": 27.2
+          }
+        },
+        {
+          "cluster_index": 20,
+          "component": "diffuse",
+          "normalized_delay": 4.7966,
+          "power_db": -18.9,
+          "angles_deg": {
+            "aod": -118.6,
+            "aoa": 155.3,
+            "zod": 16.7,
+            "zoa": 15.2
+          }
+        },
+        {
+          "cluster_index": 21,
+          "component": "diffuse",
+          "normalized_delay": 5.0066,
+          "power_db": -16.6,
+          "angles_deg": {
+            "aod": -154.1,
+            "aoa": 102.0,
+            "zod": 171.7,
+            "zoa": 146.0
+          }
+        },
+        {
+          "cluster_index": 22,
+          "component": "diffuse",
+          "normalized_delay": 5.3043,
+          "power_db": -19.9,
+          "angles_deg": {
+            "aod": 126.5,
+            "aoa": -151.8,
+            "zod": 22.7,
+            "zoa": 150.7
+          }
+        },
+        {
+          "cluster_index": 23,
+          "component": "diffuse",
+          "normalized_delay": 9.6586,
+          "power_db": -29.7,
+          "angles_deg": {
+            "aod": -56.2,
+            "aoa": 55.2,
+            "zod": 144.9,
+            "zoa": 156.1
+          }
+        }
+      ]
+    },
+    {
+      "profile_model": "B",
+      "source_table": "7.7.1-2",
+      "los": false,
+      "cluster_count": 23,
+      "cluster_spreads_deg": {
+        "asd": 10.0,
+        "asa": 22.0,
+        "zsd": 3.0,
+        "zsa": 7.0
+      },
+      "xpr_db": 8.0,
+      "components": [
+        {
+          "cluster_index": 1,
+          "component": "diffuse",
+          "normalized_delay": 0.0,
+          "power_db": 0.0,
+          "angles_deg": {
+            "aod": 9.3,
+            "aoa": -173.3,
+            "zod": 105.8,
+            "zoa": 78.9
+          }
+        },
+        {
+          "cluster_index": 2,
+          "component": "diffuse",
+          "normalized_delay": 0.1072,
+          "power_db": -2.2,
+          "angles_deg": {
+            "aod": 9.3,
+            "aoa": -173.3,
+            "zod": 105.8,
+            "zoa": 78.9
+          }
+        },
+        {
+          "cluster_index": 3,
+          "component": "diffuse",
+          "normalized_delay": 0.2155,
+          "power_db": -4.0,
+          "angles_deg": {
+            "aod": 9.3,
+            "aoa": -173.3,
+            "zod": 105.8,
+            "zoa": 78.9
+          }
+        },
+        {
+          "cluster_index": 4,
+          "component": "diffuse",
+          "normalized_delay": 0.2095,
+          "power_db": -3.2,
+          "angles_deg": {
+            "aod": -34.1,
+            "aoa": 125.5,
+            "zod": 115.3,
+            "zoa": 63.3
+          }
+        },
+        {
+          "cluster_index": 5,
+          "component": "diffuse",
+          "normalized_delay": 0.287,
+          "power_db": -9.8,
+          "angles_deg": {
+            "aod": -65.4,
+            "aoa": -88.0,
+            "zod": 119.3,
+            "zoa": 59.9
+          }
+        },
+        {
+          "cluster_index": 6,
+          "component": "diffuse",
+          "normalized_delay": 0.2986,
+          "power_db": -1.2,
+          "angles_deg": {
+            "aod": -11.4,
+            "aoa": 155.1,
+            "zod": 103.2,
+            "zoa": 67.5
+          }
+        },
+        {
+          "cluster_index": 7,
+          "component": "diffuse",
+          "normalized_delay": 0.3752,
+          "power_db": -3.4,
+          "angles_deg": {
+            "aod": -11.4,
+            "aoa": 155.1,
+            "zod": 103.2,
+            "zoa": 67.5
+          }
+        },
+        {
+          "cluster_index": 8,
+          "component": "diffuse",
+          "normalized_delay": 0.5055,
+          "power_db": -5.2,
+          "angles_deg": {
+            "aod": -11.4,
+            "aoa": 155.1,
+            "zod": 103.2,
+            "zoa": 67.5
+          }
+        },
+        {
+          "cluster_index": 9,
+          "component": "diffuse",
+          "normalized_delay": 0.3681,
+          "power_db": -7.6,
+          "angles_deg": {
+            "aod": -67.2,
+            "aoa": -89.8,
+            "zod": 118.2,
+            "zoa": 82.6
+          }
+        },
+        {
+          "cluster_index": 10,
+          "component": "diffuse",
+          "normalized_delay": 0.3697,
+          "power_db": -3.0,
+          "angles_deg": {
+            "aod": 52.5,
+            "aoa": 132.1,
+            "zod": 102.0,
+            "zoa": 66.3
+          }
+        },
+        {
+          "cluster_index": 11,
+          "component": "diffuse",
+          "normalized_delay": 0.57,
+          "power_db": -8.9,
+          "angles_deg": {
+            "aod": -72.0,
+            "aoa": -83.6,
+            "zod": 100.4,
+            "zoa": 61.6
+          }
+        },
+        {
+          "cluster_index": 12,
+          "component": "diffuse",
+          "normalized_delay": 0.5283,
+          "power_db": -9.0,
+          "angles_deg": {
+            "aod": 74.3,
+            "aoa": 95.3,
+            "zod": 98.3,
+            "zoa": 58.0
+          }
+        },
+        {
+          "cluster_index": 13,
+          "component": "diffuse",
+          "normalized_delay": 1.1021,
+          "power_db": -4.8,
+          "angles_deg": {
+            "aod": -52.2,
+            "aoa": 103.7,
+            "zod": 103.4,
+            "zoa": 78.2
+          }
+        },
+        {
+          "cluster_index": 14,
+          "component": "diffuse",
+          "normalized_delay": 1.2756,
+          "power_db": -5.7,
+          "angles_deg": {
+            "aod": -50.5,
+            "aoa": -87.8,
+            "zod": 102.5,
+            "zoa": 82.0
+          }
+        },
+        {
+          "cluster_index": 15,
+          "component": "diffuse",
+          "normalized_delay": 1.5474,
+          "power_db": -7.5,
+          "angles_deg": {
+            "aod": 61.4,
+            "aoa": -92.5,
+            "zod": 101.4,
+            "zoa": 62.4
+          }
+        },
+        {
+          "cluster_index": 16,
+          "component": "diffuse",
+          "normalized_delay": 1.7842,
+          "power_db": -1.9,
+          "angles_deg": {
+            "aod": 30.6,
+            "aoa": -139.1,
+            "zod": 103.0,
+            "zoa": 78.0
+          }
+        },
+        {
+          "cluster_index": 17,
+          "component": "diffuse",
+          "normalized_delay": 2.0169,
+          "power_db": -7.6,
+          "angles_deg": {
+            "aod": -72.5,
+            "aoa": -90.6,
+            "zod": 100.0,
+            "zoa": 60.9
+          }
+        },
+        {
+          "cluster_index": 18,
+          "component": "diffuse",
+          "normalized_delay": 2.8294,
+          "power_db": -12.2,
+          "angles_deg": {
+            "aod": -90.6,
+            "aoa": 58.6,
+            "zod": 115.2,
+            "zoa": 82.9
+          }
+        },
+        {
+          "cluster_index": 19,
+          "component": "diffuse",
+          "normalized_delay": 3.0219,
+          "power_db": -9.8,
+          "angles_deg": {
+            "aod": -77.6,
+            "aoa": -79.0,
+            "zod": 100.5,
+            "zoa": 60.8
+          }
+        },
+        {
+          "cluster_index": 20,
+          "component": "diffuse",
+          "normalized_delay": 3.6187,
+          "power_db": -11.4,
+          "angles_deg": {
+            "aod": -82.6,
+            "aoa": 65.8,
+            "zod": 119.6,
+            "zoa": 57.3
+          }
+        },
+        {
+          "cluster_index": 21,
+          "component": "diffuse",
+          "normalized_delay": 4.1067,
+          "power_db": -14.9,
+          "angles_deg": {
+            "aod": -103.6,
+            "aoa": 52.7,
+            "zod": 118.7,
+            "zoa": 59.9
+          }
+        },
+        {
+          "cluster_index": 22,
+          "component": "diffuse",
+          "normalized_delay": 4.279,
+          "power_db": -9.2,
+          "angles_deg": {
+            "aod": 75.6,
+            "aoa": 88.7,
+            "zod": 117.8,
+            "zoa": 60.1
+          }
+        },
+        {
+          "cluster_index": 23,
+          "component": "diffuse",
+          "normalized_delay": 4.7834,
+          "power_db": -11.3,
+          "angles_deg": {
+            "aod": -77.6,
+            "aoa": -60.4,
+            "zod": 115.7,
+            "zoa": 62.3
+          }
+        }
+      ]
+    },
+    {
+      "profile_model": "C",
+      "source_table": "7.7.1-3",
+      "los": false,
+      "cluster_count": 24,
+      "cluster_spreads_deg": {
+        "asd": 2.0,
+        "asa": 15.0,
+        "zsd": 3.0,
+        "zsa": 7.0
+      },
+      "xpr_db": 7.0,
+      "components": [
+        {
+          "cluster_index": 1,
+          "component": "diffuse",
+          "normalized_delay": 0.0,
+          "power_db": -4.4,
+          "angles_deg": {
+            "aod": -46.6,
+            "aoa": -101.0,
+            "zod": 97.2,
+            "zoa": 87.6
+          }
+        },
+        {
+          "cluster_index": 2,
+          "component": "diffuse",
+          "normalized_delay": 0.2099,
+          "power_db": -1.2,
+          "angles_deg": {
+            "aod": -22.8,
+            "aoa": 120.0,
+            "zod": 98.6,
+            "zoa": 72.1
+          }
+        },
+        {
+          "cluster_index": 3,
+          "component": "diffuse",
+          "normalized_delay": 0.2219,
+          "power_db": -3.5,
+          "angles_deg": {
+            "aod": -22.8,
+            "aoa": 120.0,
+            "zod": 98.6,
+            "zoa": 72.1
+          }
+        },
+        {
+          "cluster_index": 4,
+          "component": "diffuse",
+          "normalized_delay": 0.2329,
+          "power_db": -5.2,
+          "angles_deg": {
+            "aod": -22.8,
+            "aoa": 120.0,
+            "zod": 98.6,
+            "zoa": 72.1
+          }
+        },
+        {
+          "cluster_index": 5,
+          "component": "diffuse",
+          "normalized_delay": 0.2176,
+          "power_db": -2.5,
+          "angles_deg": {
+            "aod": -40.7,
+            "aoa": -127.5,
+            "zod": 100.6,
+            "zoa": 70.1
+          }
+        },
+        {
+          "cluster_index": 6,
+          "component": "diffuse",
+          "normalized_delay": 0.6366,
+          "power_db": 0.0,
+          "angles_deg": {
+            "aod": 0.3,
+            "aoa": 170.4,
+            "zod": 99.2,
+            "zoa": 75.3
+          }
+        },
+        {
+          "cluster_index": 7,
+          "component": "diffuse",
+          "normalized_delay": 0.6448,
+          "power_db": -2.2,
+          "angles_deg": {
+            "aod": 0.3,
+            "aoa": 170.4,
+            "zod": 99.2,
+            "zoa": 75.3
+          }
+        },
+        {
+          "cluster_index": 8,
+          "component": "diffuse",
+          "normalized_delay": 0.656,
+          "power_db": -3.9,
+          "angles_deg": {
+            "aod": 0.3,
+            "aoa": 170.4,
+            "zod": 99.2,
+            "zoa": 75.3
+          }
+        },
+        {
+          "cluster_index": 9,
+          "component": "diffuse",
+          "normalized_delay": 0.6584,
+          "power_db": -7.4,
+          "angles_deg": {
+            "aod": 73.1,
+            "aoa": 55.4,
+            "zod": 105.2,
+            "zoa": 67.4
+          }
+        },
+        {
+          "cluster_index": 10,
+          "component": "diffuse",
+          "normalized_delay": 0.7935,
+          "power_db": -7.1,
+          "angles_deg": {
+            "aod": -64.5,
+            "aoa": 66.5,
+            "zod": 95.3,
+            "zoa": 63.8
+          }
+        },
+        {
+          "cluster_index": 11,
+          "component": "diffuse",
+          "normalized_delay": 0.8213,
+          "power_db": -10.7,
+          "angles_deg": {
+            "aod": 80.2,
+            "aoa": -48.1,
+            "zod": 106.1,
+            "zoa": 71.4
+          }
+        },
+        {
+          "cluster_index": 12,
+          "component": "diffuse",
+          "normalized_delay": 0.9336,
+          "power_db": -11.1,
+          "angles_deg": {
+            "aod": -97.1,
+            "aoa": 46.9,
+            "zod": 93.5,
+            "zoa": 60.5
+          }
+        },
+        {
+          "cluster_index": 13,
+          "component": "diffuse",
+          "normalized_delay": 1.2285,
+          "power_db": -5.1,
+          "angles_deg": {
+            "aod": -55.3,
+            "aoa": 68.1,
+            "zod": 103.7,
+            "zoa": 90.6
+          }
+        },
+        {
+          "cluster_index": 14,
+          "component": "diffuse",
+          "normalized_delay": 1.3083,
+          "power_db": -6.8,
+          "angles_deg": {
+            "aod": -64.3,
+            "aoa": -68.7,
+            "zod": 104.2,
+            "zoa": 60.1
+          }
+        },
+        {
+          "cluster_index": 15,
+          "component": "diffuse",
+          "normalized_delay": 2.1704,
+          "power_db": -8.7,
+          "angles_deg": {
+            "aod": -78.5,
+            "aoa": 81.5,
+            "zod": 93.0,
+            "zoa": 61.0
+          }
+        },
+        {
+          "cluster_index": 16,
+          "component": "diffuse",
+          "normalized_delay": 2.7105,
+          "power_db": -13.2,
+          "angles_deg": {
+            "aod": 102.7,
+            "aoa": 30.7,
+            "zod": 104.2,
+            "zoa": 100.7
+          }
+        },
+        {
+          "cluster_index": 17,
+          "component": "diffuse",
+          "normalized_delay": 4.2589,
+          "power_db": -13.9,
+          "angles_deg": {
+            "aod": 99.2,
+            "aoa": -16.4,
+            "zod": 94.9,
+            "zoa": 62.3
+          }
+        },
+        {
+          "cluster_index": 18,
+          "component": "diffuse",
+          "normalized_delay": 4.6003,
+          "power_db": -13.9,
+          "angles_deg": {
+            "aod": 88.8,
+            "aoa": 3.8,
+            "zod": 93.1,
+            "zoa": 66.7
+          }
+        },
+        {
+          "cluster_index": 19,
+          "component": "diffuse",
+          "normalized_delay": 5.4902,
+          "power_db": -15.8,
+          "angles_deg": {
+            "aod": -101.9,
+            "aoa": -13.7,
+            "zod": 92.2,
+            "zoa": 52.9
+          }
+        },
+        {
+          "cluster_index": 20,
+          "component": "diffuse",
+          "normalized_delay": 5.6077,
+          "power_db": -17.1,
+          "angles_deg": {
+            "aod": 92.2,
+            "aoa": 9.7,
+            "zod": 106.7,
+            "zoa": 61.8
+          }
+        },
+        {
+          "cluster_index": 21,
+          "component": "diffuse",
+          "normalized_delay": 6.3065,
+          "power_db": -16.0,
+          "angles_deg": {
+            "aod": 93.3,
+            "aoa": 5.6,
+            "zod": 93.0,
+            "zoa": 51.9
+          }
+        },
+        {
+          "cluster_index": 22,
+          "component": "diffuse",
+          "normalized_delay": 6.6374,
+          "power_db": -15.7,
+          "angles_deg": {
+            "aod": 106.6,
+            "aoa": 0.7,
+            "zod": 92.9,
+            "zoa": 61.7
+          }
+        },
+        {
+          "cluster_index": 23,
+          "component": "diffuse",
+          "normalized_delay": 7.0427,
+          "power_db": -21.6,
+          "angles_deg": {
+            "aod": 119.5,
+            "aoa": -21.9,
+            "zod": 105.2,
+            "zoa": 58.0
+          }
+        },
+        {
+          "cluster_index": 24,
+          "component": "diffuse",
+          "normalized_delay": 8.6523,
+          "power_db": -22.8,
+          "angles_deg": {
+            "aod": -123.8,
+            "aoa": 33.6,
+            "zod": 107.8,
+            "zoa": 57.0
+          }
+        }
+      ]
+    },
+    {
+      "profile_model": "D",
+      "source_table": "7.7.1-4",
+      "los": true,
+      "cluster_count": 13,
+      "cluster_spreads_deg": {
+        "asd": 5.0,
+        "asa": 8.0,
+        "zsd": 3.0,
+        "zsa": 3.0
+      },
+      "xpr_db": 11.0,
+      "components": [
+        {
+          "cluster_index": 1,
+          "component": "specular",
+          "normalized_delay": 0.0,
+          "power_db": -0.2,
+          "angles_deg": {
+            "aod": 0.0,
+            "aoa": -180.0,
+            "zod": 98.5,
+            "zoa": 81.5
+          }
+        },
+        {
+          "cluster_index": 1,
+          "component": "diffuse",
+          "normalized_delay": 0.0,
+          "power_db": -13.5,
+          "angles_deg": {
+            "aod": 0.0,
+            "aoa": -180.0,
+            "zod": 98.5,
+            "zoa": 81.5
+          }
+        },
+        {
+          "cluster_index": 2,
+          "component": "diffuse",
+          "normalized_delay": 0.035,
+          "power_db": -18.8,
+          "angles_deg": {
+            "aod": 89.2,
+            "aoa": 89.2,
+            "zod": 85.5,
+            "zoa": 86.9
+          }
+        },
+        {
+          "cluster_index": 3,
+          "component": "diffuse",
+          "normalized_delay": 0.612,
+          "power_db": -21.0,
+          "angles_deg": {
+            "aod": 89.2,
+            "aoa": 89.2,
+            "zod": 85.5,
+            "zoa": 86.9
+          }
+        },
+        {
+          "cluster_index": 4,
+          "component": "diffuse",
+          "normalized_delay": 1.363,
+          "power_db": -22.8,
+          "angles_deg": {
+            "aod": 89.2,
+            "aoa": 89.2,
+            "zod": 85.5,
+            "zoa": 86.9
+          }
+        },
+        {
+          "cluster_index": 5,
+          "component": "diffuse",
+          "normalized_delay": 1.405,
+          "power_db": -17.9,
+          "angles_deg": {
+            "aod": 13.0,
+            "aoa": 163.0,
+            "zod": 97.5,
+            "zoa": 79.4
+          }
+        },
+        {
+          "cluster_index": 6,
+          "component": "diffuse",
+          "normalized_delay": 1.804,
+          "power_db": -20.1,
+          "angles_deg": {
+            "aod": 13.0,
+            "aoa": 163.0,
+            "zod": 97.5,
+            "zoa": 79.4
+          }
+        },
+        {
+          "cluster_index": 7,
+          "component": "diffuse",
+          "normalized_delay": 2.596,
+          "power_db": -21.9,
+          "angles_deg": {
+            "aod": 13.0,
+            "aoa": 163.0,
+            "zod": 97.5,
+            "zoa": 79.4
+          }
+        },
+        {
+          "cluster_index": 8,
+          "component": "diffuse",
+          "normalized_delay": 1.775,
+          "power_db": -22.9,
+          "angles_deg": {
+            "aod": 34.6,
+            "aoa": -137.0,
+            "zod": 98.5,
+            "zoa": 78.2
+          }
+        },
+        {
+          "cluster_index": 9,
+          "component": "diffuse",
+          "normalized_delay": 4.042,
+          "power_db": -27.8,
+          "angles_deg": {
+            "aod": -64.5,
+            "aoa": 74.5,
+            "zod": 88.4,
+            "zoa": 73.6
+          }
+        },
+        {
+          "cluster_index": 10,
+          "component": "diffuse",
+          "normalized_delay": 7.937,
+          "power_db": -23.6,
+          "angles_deg": {
+            "aod": -32.9,
+            "aoa": 127.7,
+            "zod": 91.3,
+            "zoa": 78.3
+          }
+        },
+        {
+          "cluster_index": 11,
+          "component": "diffuse",
+          "normalized_delay": 9.424,
+          "power_db": -24.8,
+          "angles_deg": {
+            "aod": 52.6,
+            "aoa": -119.6,
+            "zod": 103.8,
+            "zoa": 87.0
+          }
+        },
+        {
+          "cluster_index": 12,
+          "component": "diffuse",
+          "normalized_delay": 9.708,
+          "power_db": -30.0,
+          "angles_deg": {
+            "aod": -132.1,
+            "aoa": -9.1,
+            "zod": 80.3,
+            "zoa": 70.6
+          }
+        },
+        {
+          "cluster_index": 13,
+          "component": "diffuse",
+          "normalized_delay": 12.525,
+          "power_db": -27.7,
+          "angles_deg": {
+            "aod": 77.2,
+            "aoa": -83.8,
+            "zod": 86.5,
+            "zoa": 72.9
+          }
+        }
+      ]
+    },
+    {
+      "profile_model": "E",
+      "source_table": "7.7.1-5",
+      "los": true,
+      "cluster_count": 14,
+      "cluster_spreads_deg": {
+        "asd": 5.0,
+        "asa": 11.0,
+        "zsd": 3.0,
+        "zsa": 7.0
+      },
+      "xpr_db": 8.0,
+      "components": [
+        {
+          "cluster_index": 1,
+          "component": "specular",
+          "normalized_delay": 0.0,
+          "power_db": -0.03,
+          "angles_deg": {
+            "aod": 0.0,
+            "aoa": -180.0,
+            "zod": 99.6,
+            "zoa": 80.4
+          }
+        },
+        {
+          "cluster_index": 1,
+          "component": "diffuse",
+          "normalized_delay": 0.0,
+          "power_db": -22.03,
+          "angles_deg": {
+            "aod": 0.0,
+            "aoa": -180.0,
+            "zod": 99.6,
+            "zoa": 80.4
+          }
+        },
+        {
+          "cluster_index": 2,
+          "component": "diffuse",
+          "normalized_delay": 0.5133,
+          "power_db": -15.8,
+          "angles_deg": {
+            "aod": 57.5,
+            "aoa": 18.2,
+            "zod": 104.2,
+            "zoa": 80.4
+          }
+        },
+        {
+          "cluster_index": 3,
+          "component": "diffuse",
+          "normalized_delay": 0.544,
+          "power_db": -18.1,
+          "angles_deg": {
+            "aod": 57.5,
+            "aoa": 18.2,
+            "zod": 104.2,
+            "zoa": 80.4
+          }
+        },
+        {
+          "cluster_index": 4,
+          "component": "diffuse",
+          "normalized_delay": 0.563,
+          "power_db": -19.8,
+          "angles_deg": {
+            "aod": 57.5,
+            "aoa": 18.2,
+            "zod": 104.2,
+            "zoa": 80.4
+          }
+        },
+        {
+          "cluster_index": 5,
+          "component": "diffuse",
+          "normalized_delay": 0.544,
+          "power_db": -22.9,
+          "angles_deg": {
+            "aod": -20.1,
+            "aoa": 101.8,
+            "zod": 99.4,
+            "zoa": 80.8
+          }
+        },
+        {
+          "cluster_index": 6,
+          "component": "diffuse",
+          "normalized_delay": 0.7112,
+          "power_db": -22.4,
+          "angles_deg": {
+            "aod": 16.2,
+            "aoa": 112.9,
+            "zod": 100.8,
+            "zoa": 86.3
+          }
+        },
+        {
+          "cluster_index": 7,
+          "component": "diffuse",
+          "normalized_delay": 1.9092,
+          "power_db": -18.6,
+          "angles_deg": {
+            "aod": 9.3,
+            "aoa": -155.5,
+            "zod": 98.8,
+            "zoa": 82.7
+          }
+        },
+        {
+          "cluster_index": 8,
+          "component": "diffuse",
+          "normalized_delay": 1.9293,
+          "power_db": -20.8,
+          "angles_deg": {
+            "aod": 9.3,
+            "aoa": -155.5,
+            "zod": 98.8,
+            "zoa": 82.7
+          }
+        },
+        {
+          "cluster_index": 9,
+          "component": "diffuse",
+          "normalized_delay": 1.9589,
+          "power_db": -22.6,
+          "angles_deg": {
+            "aod": 9.3,
+            "aoa": -155.5,
+            "zod": 98.8,
+            "zoa": 82.7
+          }
+        },
+        {
+          "cluster_index": 10,
+          "component": "diffuse",
+          "normalized_delay": 2.6426,
+          "power_db": -22.3,
+          "angles_deg": {
+            "aod": 19.0,
+            "aoa": -143.3,
+            "zod": 100.8,
+            "zoa": 82.9
+          }
+        },
+        {
+          "cluster_index": 11,
+          "component": "diffuse",
+          "normalized_delay": 3.7136,
+          "power_db": -25.6,
+          "angles_deg": {
+            "aod": 32.7,
+            "aoa": -94.7,
+            "zod": 96.4,
+            "zoa": 88.0
+          }
+        },
+        {
+          "cluster_index": 12,
+          "component": "diffuse",
+          "normalized_delay": 5.4524,
+          "power_db": -20.2,
+          "angles_deg": {
+            "aod": 0.5,
+            "aoa": 147.0,
+            "zod": 98.9,
+            "zoa": 81.0
+          }
+        },
+        {
+          "cluster_index": 13,
+          "component": "diffuse",
+          "normalized_delay": 12.0034,
+          "power_db": -29.8,
+          "angles_deg": {
+            "aod": 55.9,
+            "aoa": -36.2,
+            "zod": 95.6,
+            "zoa": 88.6
+          }
+        },
+        {
+          "cluster_index": 14,
+          "component": "diffuse",
+          "normalized_delay": 20.6419,
+          "power_db": -29.2,
+          "angles_deg": {
+            "aod": 57.6,
+            "aoa": -26.0,
+            "zod": 104.6,
+            "zoa": 78.3
+          }
+        }
+      ]
+    }
+  ],
+  "interpretation": "Values are transcribed from the exact ETSI PDF identified by source_sha256. LOS profiles retain specular and diffuse first-cluster components separately; adapter output cluster power aggregates them in linear power. These deterministic table checks do not qualify stochastic ray generation, covariance, temporal evolution, receiver impact, or physical-channel generalization."
+}

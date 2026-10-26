@@ -1,0 +1,24 @@
+{
+  "schema": "loslab.g4_cdl_profile_scalar_reference.v1",
+  "standard": "3GPP TR 38.901",
+  "version": "19.2.0",
+  "source_id": "tr-138901-v19.2.0",
+  "source_sha256": "b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4",
+  "source_url": "https://www.etsi.org/deliver/etsi_tr/138900_138999/138901/19.02.00_60/tr_138901v190200p.pdf",
+  "status": "SCALAR_REFERENCE_ONLY_NOT_CONFORMANCE_QUALIFICATION",
+  "derivation": {
+    "profile_table": "Tables 7.7.1-1 through 7.7.1-5",
+    "rms_delay_spread": "sqrt(sum_i(p_i*(tau_i-mean_tau)^2)); powers converted from dB and normalized; LOS specular and first diffuse entries both have zero delay",
+    "max_normalized_delay": "maximum tabulated normalized excess delay",
+    "los_k_factor": "10*log10(specular linear power / sum of all diffuse-cluster linear powers), from clause 7.7.6; LOS profiles D/E only",
+    "rounding_tolerances": {"rms_normalized_delay_abs":0.01,"max_normalized_delay_abs":0.00005,"angle_spread_deg_abs":0.05,"xpr_db_abs":0.05,"los_k_factor_db_abs":0.05}
+  },
+  "profiles": [
+    {"profile_model":"A","los":false,"source_component_count":23,"output_delay_cluster_count":23,"max_normalized_delay":9.6586,"rms_normalized_delay":1.0000579391604871,"angle_spreads_deg":{"asd":5,"asa":11,"zsd":3,"zsa":3},"xpr_db":10,"los_k_factor_db":null},
+    {"profile_model":"B","los":false,"source_component_count":23,"output_delay_cluster_count":23,"max_normalized_delay":4.7834,"rms_normalized_delay":0.9999886902664699,"angle_spreads_deg":{"asd":10,"asa":22,"zsd":3,"zsa":7},"xpr_db":8,"los_k_factor_db":null},
+    {"profile_model":"C","los":false,"source_component_count":24,"output_delay_cluster_count":24,"max_normalized_delay":8.6523,"rms_normalized_delay":0.9999958221386215,"angle_spreads_deg":{"asd":2,"asa":15,"zsd":3,"zsa":7},"xpr_db":7,"los_k_factor_db":null},
+    {"profile_model":"D","los":true,"source_component_count":14,"output_delay_cluster_count":13,"max_normalized_delay":12.525,"rms_normalized_delay":0.9937205668506314,"angle_spreads_deg":{"asd":5,"asa":8,"zsd":3,"zsa":3},"xpr_db":11,"los_k_factor_db":8.984647080037739},
+    {"profile_model":"E","los":true,"source_component_count":15,"output_delay_cluster_count":14,"max_normalized_delay":20.6419,"rms_normalized_delay":1.0000192777560268,"angle_spreads_deg":{"asd":5,"asa":11,"zsd":3,"zsa":7},"xpr_db":8,"los_k_factor_db":9.270724521245047}
+  ],
+  "interpretation": "This compact summary records independently transcribed normative scalars, not the copyrighted full profile tables. Rounded scalar agreement detects selected metadata drift only; it does not establish tap-law, angular-law, covariance, temporal, receiver, or physical-channel conformance."
+}

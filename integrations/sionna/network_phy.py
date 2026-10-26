@@ -6,6 +6,134 @@ from dataclasses import dataclass
 from typing import Any, Sequence
 
 
+def _contains_boolean(value: Any) -> bool:
+    if isinstance(value, bool):
+        return True
+    if isinstance(value, (list, tuple)):
+        return any(_contains_boolean(item) for item in value)
+    return False
+
+
+def _validated_nonnegative_vector(
+    torch: Any,
+    value: Any,
+    *,
+    size: int,
+    device: Any,
+    name: str,
+) -> Any:
+    """Validate real physical values before converting them to float64."""
+    if _contains_boolean(value):
+        raise ValueError(f"{name} must contain real numeric values, not Boolean values")
+    try:
+        probe = torch.as_tensor(value, device=device)
+    except (TypeError, ValueError, RuntimeError, OverflowError) as error:
+        raise ValueError(f"{name} must contain real numeric values") from error
+    integer_dtypes = {torch.uint8, torch.int8, torch.int16, torch.int32, torch.int64}
+    if probe.layout != torch.strided:
+        raise ValueError(f"{name} must be a dense real-valued vector")
+    if probe.dtype == torch.bool or probe.is_complex():
+        raise ValueError(f"{name} must contain real numeric values, not Boolean or complex")
+    if not (probe.is_floating_point() or probe.dtype in integer_dtypes):
+        raise ValueError(f"{name} must contain real numeric values")
+    try:
+        raw = torch.as_tensor(value, dtype=torch.float64, device=device)
+    except (TypeError, ValueError, RuntimeError, OverflowError) as error:
+        raise ValueError(f"{name} must contain real numeric values") from error
+    if raw.shape != (size,):
+        expected = (
+            "one power value per transmitter"
+            if name == "transmit_power_w_per_re"
+            else "one variance per receiver"
+        )
+        raise ValueError(f"{name} must provide {expected}")
+    if not bool(torch.isfinite(raw).all()) or bool((raw < 0).any()):
+        raise ValueError(f"{name} must be finite and nonnegative")
+    return raw
+
+
+def _validated_real_values(
+    torch: Any,
+    value: Any,
+    *,
+    shape: tuple[int, ...],
+    device: Any,
+    name: str,
+    nonnegative: bool = False,
+) -> Any:
+    """Validate finite dense real inputs before converting to float64."""
+    if _contains_boolean(value):
+        raise ValueError(f"{name} must contain real numeric values, not Boolean values")
+    try:
+        probe = torch.as_tensor(value, device=device)
+    except (TypeError, ValueError, RuntimeError, OverflowError) as error:
+        raise ValueError(f"{name} must contain real numeric values") from error
+    integer_dtypes = {torch.uint8, torch.int8, torch.int16, torch.int32, torch.int64}
+    if probe.layout != torch.strided:
+        raise ValueError(f"{name} must be a dense real-valued array")
+    if probe.dtype == torch.bool or probe.is_complex():
+        raise ValueError(f"{name} must contain real numeric values, not Boolean or complex")
+    if not (probe.is_floating_point() or probe.dtype in integer_dtypes):
+        raise ValueError(f"{name} must contain real numeric values")
+    try:
+        result = torch.as_tensor(value, dtype=torch.float64, device=device)
+    except (TypeError, ValueError, RuntimeError, OverflowError) as error:
+        raise ValueError(f"{name} must contain real numeric values") from error
+    if tuple(result.shape) != shape:
+        raise ValueError(f"{name} must have shape {shape}")
+    if not bool(torch.isfinite(result).all()):
+        raise ValueError(f"{name} must be finite")
+    if nonnegative and bool((result < 0).any()):
+        raise ValueError(f"{name} must be nonnegative")
+    return result
+
+
+def _validate_composition(torch: Any, composition: Any) -> tuple[Any, Any]:
+    contributions = getattr(composition, "source_contributions", None)
+    received = getattr(composition, "received_grid", None)
+    powers = getattr(composition, "transmit_power_w_per_re", None)
+    if not torch.is_tensor(contributions) or not torch.is_complex(contributions):
+        raise TypeError("composition must contain complex PyTorch source contributions")
+    if contributions.ndim != 6:
+        raise ValueError(
+            "source contributions must have [batch, rx, rx_port, tx, symbol, subcarrier] axes"
+        )
+    if not torch.is_tensor(received) or not torch.is_complex(received) or received.ndim != 5:
+        raise ValueError(
+            "composition received_grid must be complex [batch, rx, rx_port, symbol, subcarrier]"
+        )
+    expected_shape = (
+        contributions.shape[0],
+        contributions.shape[1],
+        contributions.shape[2],
+        contributions.shape[4],
+        contributions.shape[5],
+    )
+    if tuple(received.shape) != expected_shape:
+        raise ValueError("received_grid shape does not match source contributions")
+    if received.device != contributions.device or received.dtype != contributions.dtype:
+        raise ValueError("received_grid and source contributions must share device and dtype")
+    if not bool(torch.isfinite(received).all()) or not bool(torch.isfinite(contributions).all()):
+        raise ValueError("received_grid and source contributions must be finite")
+    summed = contributions.sum(dim=3)
+    if not torch.allclose(received, summed, rtol=1e-5, atol=1e-7):
+        raise ValueError("received_grid must equal the sum of source contributions")
+    if not torch.is_tensor(powers) or powers.shape != (contributions.shape[3],):
+        raise ValueError("transmit_power_w_per_re must provide one value per transmitter")
+    if powers.device != contributions.device or not powers.is_floating_point():
+        raise ValueError("transmit powers must be a real tensor on the contribution device")
+    if not bool(torch.isfinite(powers).all()) or bool((powers < 0).any()):
+        raise ValueError("transmit powers must be finite and nonnegative")
+    return contributions, received
+
+
+def _mean_complex_power(torch: Any, samples: Any) -> Any:
+    return (
+        samples.real.to(dtype=torch.float64).square()
+        + samples.imag.to(dtype=torch.float64).square()
+    ).mean()
+
+
 @dataclass(frozen=True, slots=True)
 class NetworkGridComposition:
     """Linear source contributions before receiver noise.
@@ -22,8 +150,48 @@ class NetworkGridComposition:
 
 
 @dataclass(frozen=True, slots=True)
+class NetworkLinkBudget:
+    """Large-scale per-link budget applied to unit-mean small-scale fading.
+
+    ``channel`` has the same seven axes as the input small-scale channel.
+    Power gain is ``10 ** ((G_tx + G_rx + G_tx_beam + G_rx_beam - L_path) / 10)``.
+    The reported mean received power assumes unit-mean small-scale fading; an
+    instantaneous received power is available only after channel composition.
+    """
+
+    channel: Any
+    path_loss_db: Any
+    tx_antenna_gain_dbi: Any
+    rx_antenna_gain_dbi: Any
+    tx_beam_gain_dbi: Any
+    rx_beam_gain_dbi: Any
+    net_gain_db: Any
+    power_gain_linear: Any
+    transmit_power_w_per_re: Any
+    mean_received_power_w_per_re: Any
+    input_channel_semantics: str
+    subcarrier_frequencies_hz: Any | None
+
+
+@dataclass(frozen=True, slots=True)
 class NetworkSINR:
     """Average desired, cochannel-interference, noise power, and linear SINR."""
+
+    desired_power_w_per_re: Any
+    interference_power_w_per_re: Any
+    noise_power_w_per_re: Any
+    sinr_linear: Any
+    valid: Any
+
+
+@dataclass(frozen=True, slots=True)
+class NetworkResourceSINR:
+    """Per-RE desired, interference, noise power, and linear SINR.
+
+    Power arrays have ``[rx, symbol, subcarrier]`` axes. Averages are over
+    independent batch draws and receive ports only, so resource-dependent
+    scheduling, notches, and frequency-selective link budgets remain visible.
+    """
 
     desired_power_w_per_re: Any
     interference_power_w_per_re: Any
@@ -40,6 +208,214 @@ class NoisyNetworkGrid:
     noise_grid: Any
     noise_variance_w_per_re: Any
     seed: int
+
+
+def apply_network_link_budget(
+    small_scale_channel: Any,
+    *,
+    path_loss_db: Any,
+    tx_antenna_gain_dbi: Any,
+    rx_antenna_gain_dbi: Any,
+    tx_beam_gain_dbi: Any,
+    rx_beam_gain_dbi: Any,
+    transmit_power_w_per_re: Any,
+    input_channel_semantics: str,
+    subcarrier_frequencies_hz: Any | None = None,
+) -> NetworkLinkBudget:
+    """Apply declared large-scale gains/loss to a normalized fading channel.
+
+    Link-budget inputs may be frequency-flat per ``[rx, tx]`` link or vary
+    over the channel's final subcarrier axis. Frequency-varying path loss and
+    beam gains use ``[rx, tx, subcarrier]``; frequency-varying antenna gains
+    use ``[tx, subcarrier]`` and ``[rx, subcarrier]``. Any frequency-varying
+    input requires the exact, strictly increasing absolute RF frequency grid
+    in ``subcarrier_frequencies_hz``. This applies caller-supplied profiles;
+    it does not derive propagation loss or antenna patterns. The required
+    semantics declaration prevents accidentally applying this large-scale
+    budget to a channel that already contains path loss.
+    """
+    try:
+        import torch
+    except ImportError as exc:
+        raise RuntimeError("Install PyTorch to apply network link budgets") from exc
+
+    if input_channel_semantics != "unit_mean_small_scale_fading":
+        raise ValueError(
+            "input_channel_semantics must be unit_mean_small_scale_fading; "
+            "large-scale loss must not be applied twice"
+        )
+    if not torch.is_tensor(small_scale_channel) or not torch.is_complex(small_scale_channel):
+        raise TypeError("small_scale_channel must be a complex PyTorch tensor")
+    if small_scale_channel.ndim != 7:
+        raise ValueError(
+            "small_scale_channel axes must be "
+            "[batch, rx, rx_port, tx, tx_port, symbol, subcarrier]"
+        )
+    if any(size <= 0 for size in small_scale_channel.shape):
+        raise ValueError("small_scale_channel axes must be non-empty")
+    if not bool(torch.isfinite(small_scale_channel).all()):
+        raise ValueError("small_scale_channel must be finite")
+    rx_count, tx_count = small_scale_channel.shape[1], small_scale_channel.shape[3]
+    device = small_scale_channel.device
+    subcarrier_count = small_scale_channel.shape[-1]
+    profiles = (
+        (
+            "path_loss_db",
+            path_loss_db,
+            (rx_count, tx_count),
+            (rx_count, tx_count, subcarrier_count),
+        ),
+        (
+            "tx_antenna_gain_dbi",
+            tx_antenna_gain_dbi,
+            (tx_count,),
+            (tx_count, subcarrier_count),
+        ),
+        (
+            "rx_antenna_gain_dbi",
+            rx_antenna_gain_dbi,
+            (rx_count,),
+            (rx_count, subcarrier_count),
+        ),
+        (
+            "tx_beam_gain_dbi",
+            tx_beam_gain_dbi,
+            (rx_count, tx_count),
+            (rx_count, tx_count, subcarrier_count),
+        ),
+        (
+            "rx_beam_gain_dbi",
+            rx_beam_gain_dbi,
+            (rx_count, tx_count),
+            (rx_count, tx_count, subcarrier_count),
+        ),
+    )
+    validated: dict[str, Any] = {}
+    frequency_dependent = False
+    for name, value, flat_shape, varying_shape in profiles:
+        try:
+            probe = torch.as_tensor(value, device=device)
+        except (TypeError, ValueError, RuntimeError, OverflowError) as error:
+            raise ValueError(f"{name} must contain real numeric values") from error
+        shape = tuple(probe.shape)
+        if shape == flat_shape:
+            selected_shape = flat_shape
+        elif shape == varying_shape:
+            selected_shape = varying_shape
+            frequency_dependent = True
+        else:
+            raise ValueError(f"{name} must have shape {flat_shape} or {varying_shape}")
+        validated[name] = _validated_real_values(
+            torch,
+            value,
+            shape=selected_shape,
+            device=device,
+            name=name,
+            nonnegative=name == "path_loss_db",
+        )
+    frequencies = None
+    if frequency_dependent and subcarrier_frequencies_hz is None:
+        raise ValueError(
+            "subcarrier_frequencies_hz is required for frequency-dependent link budgets"
+        )
+    if subcarrier_frequencies_hz is not None:
+        frequencies = _validated_real_values(
+            torch,
+            subcarrier_frequencies_hz,
+            shape=(subcarrier_count,),
+            device=device,
+            name="subcarrier_frequencies_hz",
+            nonnegative=True,
+        )
+        if bool((frequencies <= 0).any()):
+            raise ValueError("subcarrier_frequencies_hz must be strictly positive")
+        if subcarrier_count > 1 and bool((frequencies[1:] <= frequencies[:-1]).any()):
+            raise ValueError("subcarrier_frequencies_hz must be strictly increasing")
+
+    path_loss = validated["path_loss_db"]
+    tx_gain = validated["tx_antenna_gain_dbi"]
+    rx_gain = validated["rx_antenna_gain_dbi"]
+    tx_beam = validated["tx_beam_gain_dbi"]
+    rx_beam = validated["rx_beam_gain_dbi"]
+    tx_power = _validated_nonnegative_vector(
+        torch,
+        transmit_power_w_per_re,
+        size=tx_count,
+        device=device,
+        name="transmit_power_w_per_re",
+    )
+    if frequency_dependent:
+        def link_profile(value: Any, flat_shape: tuple[int, ...], mode: str) -> Any:
+            if tuple(value.shape) == flat_shape:
+                value = value.unsqueeze(-1)
+            if mode == "tx":
+                return value[None, :, :]
+            if mode == "rx":
+                return value[:, None, :]
+            return value
+
+        tx_link_gain = link_profile(tx_gain, (tx_count,), "tx")
+        rx_link_gain = link_profile(rx_gain, (rx_count,), "rx")
+        tx_link_beam = link_profile(tx_beam, (rx_count, tx_count), "link")
+        rx_link_beam = link_profile(rx_beam, (rx_count, tx_count), "link")
+        path_loss_profile = link_profile(path_loss, (rx_count, tx_count), "link")
+        net_gain_db = (
+            tx_link_gain
+            + rx_link_gain
+            + tx_link_beam
+            + rx_link_beam
+            - path_loss_profile
+        )
+    else:
+        net_gain_db = (
+            tx_gain[None, :]
+            + rx_gain[:, None]
+            + tx_beam
+            + rx_beam
+            - path_loss
+        )
+    amplitude_gain = torch.pow(
+        torch.tensor(10.0, dtype=torch.float64, device=device), net_gain_db / 20.0
+    )
+    power_gain = amplitude_gain.square()
+    if (
+        not bool(torch.isfinite(amplitude_gain).all())
+        or not bool(torch.isfinite(power_gain).all())
+        or bool(((amplitude_gain > 0) & (power_gain == 0)).any())
+    ):
+        raise ValueError("large-scale link-budget gain is not representable in float64")
+    output_gain = amplitude_gain.to(dtype=small_scale_channel.real.dtype)
+    if (
+        not bool(torch.isfinite(output_gain).all())
+        or bool(((amplitude_gain > 0) & (output_gain == 0)).any())
+    ):
+        raise ValueError("large-scale link-budget gain is not representable in channel dtype")
+    if frequency_dependent:
+        scaled_channel = small_scale_channel * output_gain[None, :, None, :, None, None, :]
+    else:
+        scaled_channel = small_scale_channel * output_gain[None, :, None, :, None, None, None]
+    if not bool(torch.isfinite(scaled_channel).all()):
+        raise ValueError("link-budget-scaled channel is not finite in channel dtype")
+    if frequency_dependent:
+        mean_received_power = power_gain * tx_power[None, :, None]
+    else:
+        mean_received_power = power_gain * tx_power[None, :]
+    if not bool(torch.isfinite(mean_received_power).all()):
+        raise ValueError("mean received link power is not representable in float64")
+    return NetworkLinkBudget(
+        channel=scaled_channel,
+        path_loss_db=path_loss,
+        tx_antenna_gain_dbi=tx_gain,
+        rx_antenna_gain_dbi=rx_gain,
+        tx_beam_gain_dbi=tx_beam,
+        rx_beam_gain_dbi=rx_beam,
+        net_gain_db=net_gain_db,
+        power_gain_linear=power_gain,
+        transmit_power_w_per_re=tx_power,
+        mean_received_power_w_per_re=mean_received_power,
+        input_channel_semantics=input_channel_semantics,
+        subcarrier_frequencies_hz=frequencies,
+    )
 
 
 def compose_downlink_resource_grids(
@@ -91,26 +467,43 @@ def compose_downlink_resource_grids(
         raise ValueError("channel and transmit grids must be finite")
 
     tx_count = transmit_grids.shape[1]
-    power = torch.as_tensor(
-        transmit_power_w_per_re, dtype=torch.float64, device=transmit_grids.device
+    power = _validated_nonnegative_vector(
+        torch,
+        transmit_power_w_per_re,
+        size=tx_count,
+        device=transmit_grids.device,
+        name="transmit_power_w_per_re",
     )
-    if power.shape != (tx_count,):
-        raise ValueError("transmit_power_w_per_re must provide one power value per transmitter")
-    if not bool(torch.isfinite(power).all()) or bool((power < 0).any()):
-        raise ValueError("transmit powers must be finite and nonnegative")
 
-    grid_power = transmit_grids.abs().to(torch.float64).square().sum(dim=2).mean(dim=(0, 2, 3))
+    real64 = transmit_grids.real.to(torch.float64)
+    imag64 = transmit_grids.imag.to(torch.float64)
+    grid_power = (real64.square() + imag64.square()).sum(dim=2).mean(dim=(0, 2, 3))
+    if not bool(torch.isfinite(grid_power).all()):
+        raise ValueError("transmit grid power is not representable in float64")
     enabled = power > 0
     if bool((enabled & (grid_power <= 0)).any()):
         raise ValueError("a positive-power transmitter must have nonzero grid energy")
     scale = torch.zeros_like(power)
     scale[enabled] = torch.sqrt(power[enabled] / grid_power[enabled])
-    scaled_grids = transmit_grids * scale.to(transmit_grids.real.dtype)[None, :, None, None, None]
+    output_scale = scale.to(transmit_grids.real.dtype)
+    if (
+        not bool(torch.isfinite(output_scale).all())
+        or bool((enabled & (scale > 0) & (output_scale == 0)).any())
+    ):
+        raise ValueError("transmit power scaling is not representable in the waveform dtype")
+    scaled_grids = transmit_grids * output_scale[None, :, None, None, None]
+    if not bool(torch.isfinite(scaled_grids).all()):
+        raise ValueError("scaled transmit grids are not finite in the waveform dtype")
 
     contributions = torch.einsum("bratpsf,btpsf->bratsf", channel, scaled_grids)
+    if not bool(torch.isfinite(contributions).all()):
+        raise ValueError("channel-filtered source contributions are not finite")
+    received_grid = contributions.sum(dim=3)
+    if not bool(torch.isfinite(received_grid).all()):
+        raise ValueError("superposed received grid is not finite")
     return NetworkGridComposition(
         source_contributions=contributions,
-        received_grid=contributions.sum(dim=3),
+        received_grid=received_grid,
         transmit_power_w_per_re=power,
     )
 
@@ -131,13 +524,7 @@ def network_sinr(
     except ImportError as exc:
         raise RuntimeError("Install PyTorch to measure network SINR") from exc
 
-    contributions = composition.source_contributions
-    if not torch.is_tensor(contributions) or not torch.is_complex(contributions):
-        raise TypeError("composition must contain complex PyTorch source contributions")
-    if contributions.ndim != 6:
-        raise ValueError(
-            "source contributions must have [batch, rx, rx_port, tx, symbol, subcarrier] axes"
-        )
+    contributions, _received = _validate_composition(torch, composition)
     rx_count, tx_count = contributions.shape[1], contributions.shape[3]
     if len(serving_tx_indices) != rx_count:
         raise ValueError("serving_tx_indices must provide one transmitter index per receiver")
@@ -147,13 +534,13 @@ def network_sinr(
         for index in serving
     ):
         raise ValueError("each serving transmitter index must address an existing transmitter")
-    noise = torch.as_tensor(
-        noise_variance_w_per_re, dtype=torch.float64, device=contributions.device
+    noise = _validated_nonnegative_vector(
+        torch,
+        noise_variance_w_per_re,
+        size=rx_count,
+        device=contributions.device,
+        name="noise_variance_w_per_re",
     )
-    if noise.shape != (rx_count,):
-        raise ValueError("noise_variance_w_per_re must provide one variance per receiver")
-    if not bool(torch.isfinite(noise).all()) or bool((noise < 0).any()):
-        raise ValueError("noise variances must be finite and nonnegative")
 
     desired_powers = []
     interference_powers = []
@@ -163,18 +550,127 @@ def network_sinr(
         interferer_indices = [index for index in range(tx_count) if index != serving_index]
         if interferer_indices:
             interference = per_tx[:, :, interferer_indices].sum(dim=2)
-            interference_power = interference.abs().square().mean(dtype=torch.float64)
+            interference_power = _mean_complex_power(torch, interference)
         else:
             interference_power = torch.zeros((), dtype=torch.float64, device=contributions.device)
-        desired_powers.append(desired.abs().square().mean(dtype=torch.float64))
+        desired_powers.append(_mean_complex_power(torch, desired))
         interference_powers.append(interference_power)
     desired_power = torch.stack(desired_powers)
     interference_power = torch.stack(interference_powers)
+    if not bool(torch.isfinite(desired_power).all()) or not bool(
+        torch.isfinite(interference_power).all()
+    ):
+        raise ValueError("measured network powers are not representable in float64")
     denominator = interference_power + noise
     valid = (desired_power > 0) | (denominator > 0)
     sinr = desired_power / denominator
+    if not bool(torch.isfinite(sinr[valid]).all()):
+        raise ValueError("network SINR is not representable in float64")
     sinr = torch.where(valid, sinr, torch.full_like(sinr, float("nan")))
     return NetworkSINR(desired_power, interference_power, noise, sinr, valid)
+
+
+def network_resource_sinr(
+    composition: NetworkGridComposition,
+    serving_tx_indices: Sequence[int] | Any,
+    noise_variance_w_per_re: Sequence[float] | Any,
+) -> NetworkResourceSINR:
+    """Measure receiver SINR for every OFDM symbol and subcarrier.
+
+    ``serving_tx_indices`` may provide one transmitter index per receiver or
+    an integer map with ``[rx, symbol, subcarrier]`` axes. Every non-serving
+    transmitter is summed coherently on each resource element before power is
+    measured, matching the aligned-grid signal equation. Independent batch
+    draws and receive ports are averaged; symbols and subcarriers are not.
+    Use this when a single receiver-wide mean would conceal interference
+    notches, occupied-resource differences, or frequency-selective link loss.
+    """
+    try:
+        import torch
+    except ImportError as exc:
+        raise RuntimeError("Install PyTorch to measure per-resource network SINR") from exc
+
+    contributions, _received = _validate_composition(torch, composition)
+    rx_count, tx_count = contributions.shape[1], contributions.shape[3]
+    symbol_count, subcarrier_count = contributions.shape[-2:]
+    try:
+        serving_probe = torch.as_tensor(serving_tx_indices, device=contributions.device)
+    except (TypeError, ValueError, RuntimeError, OverflowError) as error:
+        raise ValueError("serving_tx_indices must contain integer transmitter indices") from error
+    integer_dtypes = {torch.uint8, torch.int8, torch.int16, torch.int32, torch.int64}
+    if serving_probe.layout != torch.strided:
+        raise ValueError("serving_tx_indices must be a dense integer array")
+    if (
+        serving_probe.dtype == torch.bool
+        or serving_probe.is_floating_point()
+        or serving_probe.is_complex()
+        or serving_probe.dtype not in integer_dtypes
+    ):
+        raise ValueError("serving_tx_indices must contain integer transmitter indices")
+    if tuple(serving_probe.shape) == (rx_count,):
+        serving_map = serving_probe.to(torch.int64)[:, None, None].expand(
+            rx_count, symbol_count, subcarrier_count
+        )
+    elif tuple(serving_probe.shape) == (rx_count, symbol_count, subcarrier_count):
+        serving_map = serving_probe.to(torch.int64)
+    else:
+        raise ValueError(
+            "serving_tx_indices must have shape [rx] or [rx, symbol, subcarrier]"
+        )
+    if bool(((serving_map < 0) | (serving_map >= tx_count)).any()):
+        raise ValueError("each serving transmitter index must address an existing transmitter")
+    noise = _validated_nonnegative_vector(
+        torch,
+        noise_variance_w_per_re,
+        size=rx_count,
+        device=contributions.device,
+        name="noise_variance_w_per_re",
+    )
+
+    desired_rows = []
+    interference_rows = []
+    tx_indices = torch.arange(tx_count, device=contributions.device).reshape(
+        1, 1, tx_count, 1, 1
+    )
+    for rx_index in range(rx_count):
+        per_tx = contributions[:, rx_index]
+        serving = serving_map[rx_index]
+        desired = torch.gather(
+            per_tx,
+            dim=2,
+            index=serving[None, None, None, :, :].expand(
+                per_tx.shape[0], per_tx.shape[1], 1, symbol_count, subcarrier_count
+            ),
+        ).squeeze(2)
+        interferer_mask = tx_indices != serving[None, None, None, :, :]
+        interference = per_tx.masked_fill(~interferer_mask, 0).sum(dim=2)
+        interference_power = (
+            interference.real.to(torch.float64).square()
+            + interference.imag.to(torch.float64).square()
+        ).mean(dim=(0, 1))
+        desired_power = (
+            desired.real.to(torch.float64).square()
+            + desired.imag.to(torch.float64).square()
+        ).mean(dim=(0, 1))
+        desired_rows.append(desired_power)
+        interference_rows.append(interference_power)
+
+    desired_power = torch.stack(desired_rows)
+    interference_power = torch.stack(interference_rows)
+    noise_power = noise[:, None, None].expand_as(desired_power)
+    if not bool(torch.isfinite(desired_power).all()) or not bool(
+        torch.isfinite(interference_power).all()
+    ):
+        raise ValueError("measured per-resource network powers are not representable in float64")
+    denominator = interference_power + noise_power
+    valid = (desired_power > 0) | (denominator > 0)
+    sinr = desired_power / denominator
+    if not bool(torch.isfinite(sinr[valid]).all()):
+        raise ValueError("per-resource network SINR is not representable in float64")
+    sinr = torch.where(valid, sinr, torch.full_like(sinr, float("nan")))
+    return NetworkResourceSINR(
+        desired_power, interference_power, noise_power, sinr, valid
+    )
 
 
 def add_independent_receiver_awgn(
@@ -194,43 +690,32 @@ def add_independent_receiver_awgn(
     except ImportError as exc:
         raise RuntimeError("Install PyTorch to add network receiver noise") from exc
 
-    received = composition.received_grid
-    if not torch.is_tensor(received) or not torch.is_complex(received) or received.ndim != 5:
-        raise ValueError(
-            "composition received_grid must be complex [batch, rx, rx_port, symbol, subcarrier]"
-        )
+    from .noise import proper_complex_awgn
+
+    _contributions, received = _validate_composition(torch, composition)
     if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
         raise ValueError("seed must be a nonnegative integer")
     rx_count = received.shape[1]
     if seed + rx_count - 1 > 2**63 - 1:
         raise ValueError("seed and receiver-derived seeds must fit in [0, 2**63 - 1]")
-    noise_variance = torch.as_tensor(
-        noise_variance_w_per_re, dtype=torch.float64, device=received.device
+    noise_variance = _validated_nonnegative_vector(
+        torch,
+        noise_variance_w_per_re,
+        size=rx_count,
+        device=received.device,
+        name="noise_variance_w_per_re",
     )
-    if noise_variance.shape != (rx_count,):
-        raise ValueError("noise_variance_w_per_re must provide one variance per receiver")
-    if not bool(torch.isfinite(noise_variance).all()) or bool((noise_variance < 0).any()):
-        raise ValueError("noise variances must be finite and nonnegative")
 
     noise_parts = []
-    real_dtype = received.real.dtype
-    sample_shape = (received.shape[0], *received.shape[2:])
     for rx_index in range(rx_count):
         generator = torch.Generator(device=received.device).manual_seed(seed + rx_index)
-        real = torch.randn(
-            sample_shape,
-            dtype=real_dtype,
-            device=received.device,
-            generator=generator,
+        noise_parts.append(
+            proper_complex_awgn(
+                received[:, rx_index],
+                noise_variance[rx_index],
+                generator=generator,
+            )
         )
-        imag = torch.randn(
-            sample_shape,
-            dtype=real_dtype,
-            device=received.device,
-            generator=generator,
-        )
-        scale = torch.sqrt(noise_variance[rx_index].to(real_dtype) / 2.0)
-        noise_parts.append(torch.complex(real, imag) * scale)
     noise_grid = torch.stack(noise_parts, dim=1)
     return NoisyNetworkGrid(
         received_grid=received + noise_grid,

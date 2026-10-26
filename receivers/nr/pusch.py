@@ -29,7 +29,7 @@ class NRPUSCHConfig:
     mapping_type: str = "A"
     symbol_allocation: tuple[int, int] = (0, 14)
     precoding: str = "non-codebook"
-    interpolation_type: str = "nn"
+    interpolation_type: str = "lin"
     n_size_grid: int | None = None
     n_start_grid: int = 0
     n_start_bwp: int = 0

@@ -36,6 +36,13 @@ def main() -> None:
         action="store_true",
         help="allow an explicit channel-memory-over-CP stress run",
     )
+    parser.add_argument(
+        "--channel-estimator",
+        choices=("sionna_ls", "finite_delay_dft"),
+        default="sionna_ls",
+    )
+    parser.add_argument("--estimator-min-delay-samples", type=int)
+    parser.add_argument("--estimator-max-delay-samples", type=int)
     args = parser.parse_args()
 
     if args.output.exists():
@@ -54,6 +61,9 @@ def main() -> None:
         subcarrier_spacing_khz=args.subcarrier_spacing_khz,
         num_rx_ant=args.num_rx_ant,
         allow_cp_overrun=args.allow_cp_overrun,
+        channel_estimator_kind=args.channel_estimator,
+        estimator_min_delay_samples=args.estimator_min_delay_samples,
+        estimator_max_delay_samples=args.estimator_max_delay_samples,
     )
     atomic_json(args.output, result)
     print(json.dumps(result["points"], indent=2))

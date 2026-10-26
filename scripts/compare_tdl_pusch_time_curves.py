@@ -26,6 +26,7 @@ def main() -> None:
             "dmrs_additional_position",
             "delay_spread_s",
             "profile",
+            "channel_estimator",
         ),
         default="speed_mps",
     )

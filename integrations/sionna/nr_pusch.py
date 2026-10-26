@@ -12,6 +12,45 @@ from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 from .random import call_with_sionna_seed
 
 
+def _validated_noise_variance(torch: Any, value: Any, *, device: str) -> Any:
+    """Convert a real noise variance without silently discarding input data."""
+    try:
+        raw_probe = torch.as_tensor(value, device=device)
+    except (TypeError, ValueError, RuntimeError, OverflowError) as error:
+        raise ValueError("noise_variance must contain real numeric values") from error
+    if raw_probe.layout != torch.strided:
+        raise ValueError("noise_variance must be a dense real-valued tensor")
+    if raw_probe.dtype == torch.bool or raw_probe.is_complex():
+        raise ValueError("noise_variance must contain real numeric values, not Boolean or complex")
+    if not (
+        raw_probe.is_floating_point()
+        or raw_probe.dtype
+        in {
+            torch.uint8,
+            torch.int8,
+            torch.int16,
+            torch.int32,
+            torch.int64,
+        }
+    ):
+        raise ValueError("noise_variance must contain real numeric values")
+    if torch.is_tensor(value):
+        raw = raw_probe
+    else:
+        try:
+            raw = torch.as_tensor(value, dtype=torch.float64, device=device)
+        except (TypeError, ValueError, RuntimeError, OverflowError) as error:
+            raise ValueError("noise_variance must contain real numeric values") from error
+    if not bool(torch.isfinite(raw).all()) or bool((raw < 0).any()):
+        raise ValueError("noise_variance must be finite and nonnegative")
+    noise = raw.to(dtype=torch.float32)
+    if not bool(torch.isfinite(noise).all()):
+        raise ValueError("noise_variance values must be representable as finite float32")
+    if bool(((raw > 0) & (noise == 0)).any()):
+        raise ValueError("positive noise_variance values must not underflow to zero in float32")
+    return noise
+
+
 class SionnaPUSCHLSReceiver:
     """Estimate channels from a received PUSCH resource grid using NR DMRS.
 
@@ -62,6 +101,7 @@ class SionnaPUSCHLSReceiver:
         self._resource_grid = self._transmitter.resource_grid
         self._pilot_mask = self._resource_grid.pilot_pattern.mask
         self._decoder: Any | None = None
+        self._perfect_csi_decoder: Any | None = None
         self._estimator = PUSCHLSChannelEstimator(
             self._resource_grid,
             dmrs_length=config.dmrs_length,
@@ -141,9 +181,7 @@ class SionnaPUSCHLSReceiver:
         if not bool(torch.isfinite(received_grid).all()):
             raise ValueError("received_grid must be finite")
 
-        noise = torch.as_tensor(noise_variance, dtype=torch.float32, device=self.device)
-        if not bool(torch.isfinite(noise).all()) or bool((noise < 0).any()):
-            raise ValueError("noise_variance must be finite and nonnegative")
+        noise = _validated_noise_variance(torch, noise_variance, device=self.device)
         if noise.ndim > 3:
             raise ValueError("noise_variance must broadcast over [batch, rx, rx_ant]")
         leading_shape = tuple(int(size) for size in received_grid.shape[:3])
@@ -322,7 +360,7 @@ class SionnaPUSCHLSReceiver:
         )(waveform)
 
     def decode_pusch(self, received_grid: Any, noise_variance: Any) -> tuple[Any, Any]:
-        """Decode a received PUSCH grid and return bits with transport-block CRC status."""
+        """Decode with this receiver's configured DM-RS estimator and return CRC status."""
         if self._decoder is None:
             try:
                 from sionna.phy.nr import PUSCHReceiver
@@ -330,8 +368,43 @@ class SionnaPUSCHLSReceiver:
                 raise RuntimeError("Install the optional Sionna 2.2 PHY dependencies") from exc
             self._decoder = PUSCHReceiver(
                 self._transmitter,
+                channel_estimator=self._estimator,
                 return_tb_crc_status=True,
                 input_domain="freq",
                 device=self.device,
             )
         return self._decoder(received_grid, noise_variance)
+
+    def make_decoder_with_estimator(self, channel_estimator: Any) -> Any:
+        """Build a PUSCH decoder with a caller-supplied estimator inside the adapter boundary."""
+        try:
+            from sionna.phy.nr import PUSCHReceiver
+        except ImportError as exc:
+            raise RuntimeError("Install the optional Sionna 2.2 PHY dependencies") from exc
+        return PUSCHReceiver(
+            self._transmitter,
+            channel_estimator=channel_estimator,
+            return_tb_crc_status=True,
+            input_domain="freq",
+            device=self.device,
+        )
+
+    def decode_pusch_with_channel_truth(
+        self, received_grid: Any, noise_variance: Any, channel_truth: Any
+    ) -> tuple[Any, Any]:
+        """Diagnostic oracle-CSI decode, isolated behind the optional Sionna adapter."""
+        if self._perfect_csi_decoder is None:
+            try:
+                from sionna.phy.nr import PUSCHReceiver
+            except ImportError as exc:
+                raise RuntimeError(
+                    "Install the optional Sionna 2.2 PHY dependencies to use this receiver"
+                ) from exc
+            self._perfect_csi_decoder = PUSCHReceiver(
+                self._transmitter,
+                channel_estimator="perfect",
+                return_tb_crc_status=True,
+                input_domain="freq",
+                device=self.device,
+            )
+        return self._perfect_csi_decoder(received_grid, noise_variance, h=channel_truth)

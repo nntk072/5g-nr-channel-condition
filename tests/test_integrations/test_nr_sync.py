@@ -1,16 +1,20 @@
 """Standards-sequence and controlled blind NR cell-acquisition tests."""
 
+from typing import cast
+
 import numpy as np
 import pytest
 from integrations.sionna.nr_sync import (
     NRSyncNotFoundError,
     acquire_nr_cell,
     decode_nr_sss_symbol,
+    detect_nr_pss,
     make_nr_sync_burst,
     modulate_nr_sync_symbol,
     nr_pss_sequence,
     nr_sss_sequence,
 )
+from numpy.typing import NDArray
 
 
 def test_pss_sequences_are_distinct_and_have_m_sequence_correlation() -> None:
@@ -22,6 +26,72 @@ def test_pss_sequences_are_distinct_and_have_m_sequence_correlation() -> None:
         correlations = [int(np.dot(sequence, np.roll(sequence, shift))) for shift in range(127)]
         assert correlations[0] == 127
         assert set(correlations[1:]) == {-1}
+
+
+def test_pss_detection_whitens_a_high_energy_noisy_receive_chain() -> None:
+    fft_size = 256
+    cp_length = 32
+    wrong_nid2 = 0
+    expected_nid2 = 2
+    noisy_interferer = 10.0 * modulate_nr_sync_symbol(
+        nr_pss_sequence(wrong_nid2), fft_size=fft_size, cyclic_prefix_length=cp_length
+    )
+    clean_branch = modulate_nr_sync_symbol(
+        nr_pss_sequence(expected_nid2), fft_size=fft_size, cyclic_prefix_length=cp_length
+    )
+    capture = np.stack((noisy_interferer, clean_branch))
+
+    unweighted = detect_nr_pss(
+        capture,
+        fft_size=fft_size,
+        cyclic_prefix_length=cp_length,
+        sampling_frequency_hz=3_840_000.0,
+    )
+    weighted = detect_nr_pss(
+        capture,
+        fft_size=fft_size,
+        cyclic_prefix_length=cp_length,
+        sampling_frequency_hz=3_840_000.0,
+        noise_variance=(1e6, 1.0),
+    )
+
+    assert unweighted.nid2 == wrong_nid2
+    assert weighted.nid2 == expected_nid2
+
+
+def test_sss_detection_whitens_a_high_energy_noisy_receive_chain() -> None:
+    fft_size = 256
+    cp_length = 32
+    nid2 = 1
+    wrong_nid1 = 17
+    expected_nid1 = 251
+    noisy_interferer = 10.0 * modulate_nr_sync_symbol(
+        nr_sss_sequence(wrong_nid1, nid2), fft_size=fft_size, cyclic_prefix_length=cp_length
+    )
+    clean_branch = modulate_nr_sync_symbol(
+        nr_sss_sequence(expected_nid1, nid2), fft_size=fft_size, cyclic_prefix_length=cp_length
+    )
+    symbol = np.stack((noisy_interferer, clean_branch))
+    channel_estimate = np.stack((np.full(127, 10.0), np.ones(127))).astype(np.complex128)
+
+    unweighted, _ = decode_nr_sss_symbol(
+        symbol,
+        nid2=nid2,
+        fft_size=fft_size,
+        cyclic_prefix_length=cp_length,
+        channel_estimate=channel_estimate,
+    )
+    weighted, _ = decode_nr_sss_symbol(
+        symbol,
+        nid2=nid2,
+        fft_size=fft_size,
+        cyclic_prefix_length=cp_length,
+        noise_variance=(1e6, 1.0),
+        channel_estimate=channel_estimate,
+    )
+
+    assert unweighted == wrong_nid1
+    assert weighted == expected_nid1
 
 
 def test_sss_generates_distinct_sequences_for_all_nid1_values() -> None:
@@ -314,6 +384,7 @@ def test_pss_fractional_timing_refinement_is_continuous(fractional_timing: float
     capture = np.concatenate(
         (np.zeros(integer_timing), burst, np.zeros(2 * (fft_size + cp_length)))
     )
+    capture = cast(NDArray[np.complexfloating], np.asarray(capture, dtype=np.complex128))
 
     result = acquire_nr_cell(
         capture,

@@ -50,21 +50,39 @@ class TargetObservation:
 
 @dataclass(frozen=True, slots=True)
 class TargetRecord:
-    """A uniquely identified record assigned to an explicit split and family."""
+    """A record with frozen evaluation strata and an independent-group identity.
+
+    The stratum labels default to ``"unspecified"`` for compatibility with
+    older callers. They remain part of the inventory key: an unspecified row
+    cannot satisfy an inventory cell that names a scene, band, topology,
+    antenna configuration, or task.
+    """
 
     record_id: str
     split_id: str
     family_id: str
     targets: tuple[TargetObservation, ...]
+    independent_group_id: str
+    scene_id: str = "unspecified"
+    band_id: str = "unspecified"
+    topology_id: str = "unspecified"
+    antenna_config_id: str = "unspecified"
+    task_id: str = "unspecified"
 
 
 @dataclass(frozen=True, slots=True)
 class ExpectedInventoryCell:
-    """One required split × family × target coverage cell."""
+    """One required target/stratum cell and its independent-group minimum."""
 
     split_id: str
     family_id: str
     target_id: str
+    minimum_independent_groups: int
+    scene_id: str = "unspecified"
+    band_id: str = "unspecified"
+    topology_id: str = "unspecified"
+    antenna_config_id: str = "unspecified"
+    task_id: str = "unspecified"
 
 
 @dataclass(frozen=True, slots=True)
@@ -78,10 +96,17 @@ class CoverageCellResult:
     split_id: str
     family_id: str
     target_id: str
+    independent_group_count: int
+    minimum_independent_group_count: int
     valid_element_count: int
     unavailable_element_count: int
     unavailable_by_reason: tuple[ReasonCount, ...]
     coverage_fraction: float
+    scene_id: str = "unspecified"
+    band_id: str = "unspecified"
+    topology_id: str = "unspecified"
+    antenna_config_id: str = "unspecified"
+    task_id: str = "unspecified"
 
 
 @dataclass(frozen=True, slots=True)
@@ -150,8 +175,21 @@ def _require_nonempty(value: str, field_name: str) -> None:
         raise ValueError(f"{field_name} must be a nonempty string")
 
 
-def _cell_key(cell: ExpectedInventoryCell) -> tuple[str, str, str]:
-    return cell.split_id, cell.family_id, cell.target_id
+def _stratum_key(
+    value: TargetRecord | ExpectedInventoryCell,
+) -> tuple[str, str, str, str, str, str]:
+    return (
+        value.split_id,
+        value.family_id,
+        value.scene_id,
+        value.band_id,
+        value.topology_id,
+        value.antenna_config_id,
+    )
+
+
+def _cell_key(cell: ExpectedInventoryCell) -> tuple[str, str, str, str, str, str, str, str]:
+    return (*_stratum_key(cell), cell.task_id, cell.target_id)
 
 
 def _validate_definition(definition: TargetDefinition) -> None:
@@ -178,10 +216,12 @@ def audit_target_coverage(
 ) -> TargetCoverageReport:
     """Validate and summarize coverage for a complete declared inventory.
 
-    Every record must provide exactly the targets inventoried for its
-    split/family. Each target must contain exactly its declared number of
-    elements. Valid elements have finite numeric values and no reason code;
-    unavailable elements have ``None`` values and a nonempty reason code.
+    Every record must provide exactly the targets inventoried for its full
+    split/family/scene/band/topology/antenna/task assignment. Each target must
+    contain exactly its declared number of elements and meet the cell's
+    minimum distinct independent-group count. Valid elements have finite
+    numeric values and no reason code; unavailable elements have ``None``
+    values and a nonempty reason code.
     """
     if not records:
         raise ValueError("records must be nonempty")
@@ -197,33 +237,72 @@ def audit_target_coverage(
             raise ValueError(f"duplicate target definition {definition.target_id!r}")
         definitions[definition.target_id] = definition
 
-    inventory: dict[tuple[str, str, str], ExpectedInventoryCell] = {}
-    targets_by_assignment: dict[tuple[str, str], set[str]] = {}
+    inventory: dict[tuple[str, str, str, str, str, str, str, str], ExpectedInventoryCell] = {}
+    targets_by_assignment: dict[tuple[str, str, str, str, str, str, str], set[str]] = {}
     for cell in expected_inventory:
         _require_nonempty(cell.split_id, "inventory split_id")
         _require_nonempty(cell.family_id, "inventory family_id")
         _require_nonempty(cell.target_id, "inventory target_id")
+        for field_name in (
+            "scene_id",
+            "band_id",
+            "topology_id",
+            "antenna_config_id",
+            "task_id",
+        ):
+            _require_nonempty(getattr(cell, field_name), f"inventory {field_name}")
+        if (
+            isinstance(cell.minimum_independent_groups, bool)
+            or not isinstance(cell.minimum_independent_groups, int)
+            or cell.minimum_independent_groups < 1
+        ):
+            raise ValueError(
+                "minimum_independent_groups must be a positive integer for "
+                f"{(cell.split_id, cell.family_id, cell.target_id)!r}"
+            )
         if cell.target_id not in definitions:
             raise ValueError(f"inventory references unknown target {cell.target_id!r}")
         key = _cell_key(cell)
         if key in inventory:
             raise ValueError(f"duplicate expected inventory cell {key!r}")
         inventory[key] = cell
-        targets_by_assignment.setdefault((cell.split_id, cell.family_id), set()).add(cell.target_id)
+        assignment = (*_stratum_key(cell), cell.task_id)
+        targets_by_assignment.setdefault(assignment, set()).add(cell.target_id)
 
-    aggregates: dict[tuple[str, str, str], tuple[int, int, Counter[str]]] = {
+    aggregates: dict[tuple[str, str, str, str, str, str, str, str], tuple[int, int, Counter[str]]] = {
         key: (0, 0, Counter()) for key in inventory
+    }
+    independent_groups: dict[tuple[str, str, str, str, str, str, str, str], set[str]] = {
+        key: set() for key in inventory
     }
     seen_record_ids: set[str] = set()
     for record in records:
         _require_nonempty(record.record_id, "record_id")
         _require_nonempty(record.split_id, f"split_id for record {record.record_id!r}")
         _require_nonempty(record.family_id, f"family_id for record {record.record_id!r}")
+        for field_name in (
+            "scene_id",
+            "band_id",
+            "topology_id",
+            "antenna_config_id",
+            "task_id",
+        ):
+            _require_nonempty(
+                getattr(record, field_name),
+                f"{field_name} for record {record.record_id!r}",
+            )
         if record.record_id in seen_record_ids:
             raise ValueError(f"duplicate record_id {record.record_id!r}")
         seen_record_ids.add(record.record_id)
+        group_id = record.independent_group_id
+        if group_id is None:
+            raise ValueError(
+                f"record {record.record_id!r} lacks an explicit independent_group_id"
+            )
+        _require_nonempty(group_id, f"independent_group_id for record {record.record_id!r}")
+        group_id = group_id.strip()
 
-        assignment = (record.split_id, record.family_id)
+        assignment = (*_stratum_key(record), record.task_id)
         expected_targets = targets_by_assignment.get(assignment)
         if expected_targets is None:
             raise ValueError(f"record {record.record_id!r} has no declared inventory cells")
@@ -265,7 +344,8 @@ def audit_target_coverage(
             )
 
         for target_id, observation in observations.items():
-            key = (record.split_id, record.family_id, target_id)
+            key = (*assignment, target_id)
+            independent_groups[key].add(group_id)
             valid_count, unavailable_count, reasons = aggregates[key]
             for value, valid, reason in zip(
                 observation.values,
@@ -305,10 +385,20 @@ def audit_target_coverage(
     empty_cells = [key for key, counts in aggregates.items() if counts[0] + counts[1] == 0]
     if empty_cells:
         raise ValueError(f"expected inventory cells have no records: {sorted(empty_cells)!r}")
+    insufficient_cells = [
+        (key, len(independent_groups[key]), inventory[key].minimum_independent_groups)
+        for key in sorted(inventory)
+        if len(independent_groups[key]) < inventory[key].minimum_independent_groups
+    ]
+    if insufficient_cells:
+        raise ValueError(
+            "expected inventory cells do not meet their minimum independent-group support: "
+            f"{insufficient_cells!r}"
+        )
 
     results: list[CoverageCellResult] = []
     for key in sorted(inventory):
-        split_id, family_id, target_id = key
+        split_id, family_id, scene_id, band_id, topology_id, antenna_config_id, task_id, target_id = key
         valid_count, unavailable_count, reasons = aggregates[key]
         total = valid_count + unavailable_count
         results.append(
@@ -316,6 +406,8 @@ def audit_target_coverage(
                 split_id=split_id,
                 family_id=family_id,
                 target_id=target_id,
+                independent_group_count=len(independent_groups[key]),
+                minimum_independent_group_count=inventory[key].minimum_independent_groups,
                 valid_element_count=valid_count,
                 unavailable_element_count=unavailable_count,
                 unavailable_by_reason=tuple(
@@ -323,6 +415,11 @@ def audit_target_coverage(
                     for reason in sorted(reasons)
                 ),
                 coverage_fraction=valid_count / total,
+                scene_id=scene_id,
+                band_id=band_id,
+                topology_id=topology_id,
+                antenna_config_id=antenna_config_id,
+                task_id=task_id,
             )
         )
     return TargetCoverageReport(cells=tuple(results))

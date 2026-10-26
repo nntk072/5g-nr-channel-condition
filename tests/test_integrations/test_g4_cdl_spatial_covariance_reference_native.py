@@ -5,14 +5,16 @@ omnidirectional elements on a stationary 3.5-GHz downlink. For each profile,
 4,096 independent channel draws produce four unique real covariance components
 that must contain the reference in two-sided Bonferroni 99% confidence
 intervals. Each interval has a half-width at most 0.05 of unit normalized mean
-power. The reference averages the Table 7.5-3 ray offsets and all independent
-azimuth/zenith ray pairings, rather than reusing channel output or adapter
-profile metadata as its expected answer."""
+power. The reference averages byte-pinned ETSI cluster parameters, Table 7.5-3
+ray offsets, and all independent azimuth/zenith ray pairings rather than
+reusing channel output or adapter metadata as its expected answer."""
 
 from __future__ import annotations
 
 import hashlib
+import json
 import math
+from pathlib import Path
 from statistics import NormalDist
 from typing import Any
 
@@ -27,6 +29,18 @@ from sionna.phy.channel.tr38901 import models as profile_resources  # noqa: E402
 _BATCH_SIZE = 4096
 _FAMILYWISE_ALPHA = 0.01
 _MAX_INTERVAL_HALF_WIDTH = 0.05
+_PROFILE_SHA256 = {
+    "A": "b96f8a179646ee468717c615e8061103d1e66eb1ff1ea78301de243740254cb7",
+    "B": "7c87c092cb2bb44891d301ee3c1991cdda1c6b64094a03f18746ec5fa14ee2a2",
+}
+_ETSI_REFERENCE_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "docs"
+    / "research"
+    / "G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
+)
+_ETSI_REFERENCE_SHA256 = "24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090"
+_ETSI_SOURCE_SHA256 = "b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4"
 _RAY_ANGLE_OFFSETS = (
     0.0447,
     -0.0447,
@@ -52,22 +66,36 @@ _RAY_ANGLE_OFFSETS = (
 
 
 def _independent_cdl_spatial_covariance_reference(model: str) -> tuple[Any, str]:
-    """Evaluate one profile ray sum directly from its pinned table."""
+    """Evaluate one profile ray sum from pinned ETSI component rows."""
     table_path = profile_resources.parameter_file(f"CDL-{model}.json", "19.2")
-    parameters = profile_resources.load_json(table_path)
+    digest = hashlib.sha256(table_path.read_bytes()).hexdigest()
+    assert digest == _PROFILE_SHA256[model]
+    reference_bytes = _ETSI_REFERENCE_PATH.read_bytes()
+    assert hashlib.sha256(reference_bytes).hexdigest() == _ETSI_REFERENCE_SHA256
+    document = json.loads(reference_bytes)
+    assert document["source_sha256"] == _ETSI_SOURCE_SHA256
+    profile = next(item for item in document["profiles"] if item["profile_model"] == model)
+    assert profile["los"] is False
+    components = profile["components"]
+    assert all(item["component"] == "diffuse" for item in components)
+    assert len(components) == profile["cluster_count"]
     powers = torch.as_tensor(
-        [10.0 ** (float(power_db) / 10.0) for power_db in parameters["powers"]],
+        [10.0 ** (float(item["power_db"]) / 10.0) for item in components],
         dtype=torch.float64,
     )
     powers = powers / powers.sum()
     offsets = torch.as_tensor(_RAY_ANGLE_OFFSETS, dtype=torch.float64)
     aoa = torch.deg2rad(
-        torch.as_tensor(parameters["aoa"], dtype=torch.float64)[:, None]
-        + float(parameters["cASA"]) * offsets
+        torch.as_tensor(
+            [item["angles_deg"]["aoa"] for item in components], dtype=torch.float64
+        )[:, None]
+        + float(profile["cluster_spreads_deg"]["asa"]) * offsets
     )
     zoa = torch.deg2rad(
-        torch.as_tensor(parameters["zoa"], dtype=torch.float64)[:, None]
-        + float(parameters["cZSA"]) * offsets
+        torch.as_tensor(
+            [item["angles_deg"]["zoa"] for item in components], dtype=torch.float64
+        )[:, None]
+        + float(profile["cluster_spreads_deg"]["zsa"]) * offsets
     )
 
     # For a local-y ULA at zero UT orientation, the arrival-direction
@@ -84,7 +112,6 @@ def _independent_cdl_spatial_covariance_reference(model: str) -> tuple[Any, str]
             torch.stack((off_diagonal.conj(), torch.ones_like(off_diagonal.real))),
         )
     )
-    digest = hashlib.sha256(table_path.read_bytes()).hexdigest()
     return covariance, digest
 
 

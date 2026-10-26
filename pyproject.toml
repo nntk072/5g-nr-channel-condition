@@ -33,6 +33,9 @@ include = [
 ]
 exclude = ["tests*", "archive*", "notebooks*", "scripts*"]
 
+[tool.setuptools.package-data]
+datasets = ["schema/*.json", "schema/**/*.json"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = [

@@ -83,8 +83,8 @@
       129072
     ]
   },
-  "created_utc": "2026-10-23T20:14:05.001339+00:00",
-  "git_revision": "78491760212bd68b5fcbff11b357f9f67bc8a4e3",
+  "created_utc": "2026-10-24T07:25:03.405975+00:00",
+  "git_revision": "8ba3482539ccc4774175f86b4e9938081424a268",
   "intra_symbol_acceptance": {
     "inference_scope": "conditional on this fixed synthetic channel and sampled payloads; the symbol-static model is a diagnostic control, not a deployment channel",
     "interpretation": "continuous sample-time Doppler versus equal Doppler frozen at each OFDM-symbol start; both include inter-symbol aging and identical waveform AWGN",
@@ -2568,7 +2568,7 @@
       "waveform_noise_seed": 129072
     }
   ],
-  "result_sha256": "c3aef704ab7bab9775e9124f3db9931823239fa3418406ef9eeacf358d00c504",
+  "result_sha256": "0e9c8ae0e37ec2eb970822bb3429ca01bce20888df183b1b36dc858dba0d7c4d",
   "runtime": {
     "device": "cpu",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
@@ -2580,7 +2580,7 @@
   "source_sha256": {
     "experiments/g5_doppler_awgn_receiver.py": "9dc1b6ba19231cce399e8d19b69f3f8aec1345b179790016d7d0ffa5eea8b44a",
     "integrations/sionna/nr_pusch.py": "073fb321bd69547478c6c6862a0e355ae1f708f8895a5951423a16ee24f64a41",
-    "integrations/sionna/ofdm_impairments.py": "d8e30d81ce895bf55c7ed5a470089ae596e648940eaa2719896cc50e1ed0d49d",
+    "integrations/sionna/ofdm_impairments.py": "d79e5b6cdd2280cad685bebc904bd6d345ce061621785944b02aff9fff62b751",
     "receivers/nr/pusch.py": "f00a94da21f925c7366a36072fb63dd2dd68669bd2414064e797a97d8fd8464d"
   },
   "summary_by_condition": {

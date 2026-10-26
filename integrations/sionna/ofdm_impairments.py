@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+from numbers import Real
 from typing import Any
 
 
@@ -65,6 +66,17 @@ def _validate_waveform(waveform: Any) -> Any:
     return torch
 
 
+def _require_real_finite_scalar(value: Any, *, name: str, positive: bool = False) -> float:
+    if isinstance(value, bool) or not isinstance(value, Real):
+        raise TypeError(f"{name} must be a real numeric scalar")
+    result = float(value)
+    if not math.isfinite(result):
+        raise ValueError(f"{name} must be finite")
+    if positive and result <= 0:
+        raise ValueError(f"{name} must be finite and positive")
+    return result
+
+
 def apply_residual_cfo(
     waveform: Any,
     *,
@@ -78,11 +90,25 @@ def apply_residual_cfo(
     added to the receiver's model inputs unless an actual estimator exposes it.
     """
     torch = _validate_waveform(waveform)
-    if not math.isfinite(initial_phase_rad):
-        raise ValueError("initial_phase_rad must be finite")
-    if not math.isfinite(sampling_frequency_hz) or sampling_frequency_hz <= 0:
-        raise ValueError("sampling_frequency_hz must be finite and positive")
-    cfo = torch.as_tensor(cfo_hz, dtype=waveform.real.dtype, device=waveform.device)
+    initial_phase = _require_real_finite_scalar(
+        initial_phase_rad, name="initial_phase_rad"
+    )
+    sample_rate = _require_real_finite_scalar(
+        sampling_frequency_hz, name="sampling_frequency_hz", positive=True
+    )
+    try:
+        cfo_input = torch.as_tensor(cfo_hz, device=waveform.device)
+    except (TypeError, ValueError, RuntimeError, OverflowError) as exc:
+        raise TypeError("cfo_hz must contain real numeric values") from exc
+    integer_dtypes = {torch.uint8, torch.int8, torch.int16, torch.int32, torch.int64}
+    if (
+        cfo_input.layout != torch.strided
+        or cfo_input.dtype == torch.bool
+        or cfo_input.is_complex()
+        or not (cfo_input.is_floating_point() or cfo_input.dtype in integer_dtypes)
+    ):
+        raise TypeError("cfo_hz must contain dense real numeric values")
+    cfo = cfo_input.to(dtype=torch.float64)
     if not bool(torch.isfinite(cfo).all()):
         raise ValueError("cfo_hz must contain only finite values")
     leading_shape = waveform.shape[:-1]
@@ -90,13 +116,24 @@ def apply_residual_cfo(
         raise ValueError("cfo_hz dimensions must broadcast over waveform dimensions")
     cfo_shape = (*cfo.shape, *((1,) * (len(leading_shape) - cfo.ndim)))
     cfo = torch.broadcast_to(cfo.reshape(cfo_shape), leading_shape).unsqueeze(-1)
+    cfo_float64 = cfo
+    cfo = cfo_float64.to(dtype=waveform.real.dtype)
+    if not bool(torch.isfinite(cfo).all()):
+        raise ValueError("cfo_hz is not representable in the waveform precision")
+    if bool(((cfo_float64 != 0) & (cfo == 0)).any()):
+        raise ValueError("cfo_hz is not representable in the waveform precision")
     time_s = (
         torch.arange(waveform.shape[-1], dtype=waveform.real.dtype, device=waveform.device)
-        / sampling_frequency_hz
+        / sample_rate
     )
-    phase = (2.0 * math.pi * cfo) * time_s + initial_phase_rad
+    phase = (2.0 * math.pi * cfo) * time_s + initial_phase
+    if not bool(torch.isfinite(phase).all()):
+        raise ValueError("CFO phase trajectory is not representable in waveform precision")
     rotation = torch.polar(torch.ones_like(phase), phase)
-    return waveform * rotation
+    impaired = waveform * rotation
+    if not bool(torch.isfinite(impaired).all()):
+        raise ValueError("CFO-impaired waveform is not finite")
+    return impaired
 
 
 def apply_phase_noise(waveform: Any, *, phase_noise_rad: Any) -> Any:
@@ -129,6 +166,7 @@ def apply_time_varying_multipath(
     path_dopplers_hz: Any,
     sampling_frequency_hz: float,
     symbol_length_samples: int | None = None,
+    path_activity_trajectories: Any | None = None,
 ) -> Any:
     """Apply causal integer-delay paths with per-path Doppler over RF samples.
 
@@ -141,7 +179,10 @@ def apply_time_varying_multipath(
     intra-symbol channel change.
     The helper is a bounded baseband model: path gains are frequency-flat,
     delays are integer samples, and each Doppler is constant for the waveform.
-    Fractional delays, path birth/death, and wideband Doppler scaling are not
+    Optional real activity envelopes have shape ``[paths, samples]`` and scale
+    each path at receive time, allowing explicit path appearance/disappearance
+    or a caller-defined fade. They are shared across leading waveform axes and
+    must stay in [0, 1]. Fractional delays and wideband Doppler scaling are not
     modeled.
     """
     torch = _validate_waveform(waveform)
@@ -171,10 +212,10 @@ def apply_time_varying_multipath(
     if bool(torch.any(delays < 0)):
         raise ValueError("path delays must be nonnegative")
 
-    coefficients = torch.as_tensor(path_coefficients, device=waveform.device)
-    if not coefficients.is_complex():
+    raw_coefficients = torch.as_tensor(path_coefficients, device=waveform.device)
+    if not raw_coefficients.is_complex():
         raise TypeError("path_coefficients must be complex-valued")
-    coefficients = coefficients.to(dtype=waveform.dtype)
+    coefficients = torch.as_tensor(path_coefficients, dtype=waveform.dtype, device=waveform.device)
     dopplers = torch.as_tensor(path_dopplers_hz, dtype=waveform.real.dtype, device=waveform.device)
     path_count = int(delays.numel())
     if coefficients.ndim != 1 or dopplers.ndim != 1:
@@ -184,6 +225,23 @@ def apply_time_varying_multipath(
     if not bool(torch.isfinite(coefficients).all()) or not bool(torch.isfinite(dopplers).all()):
         raise ValueError("path coefficients and Dopplers must be finite")
 
+    if path_activity_trajectories is None:
+        activity = None
+    else:
+        activity = torch.as_tensor(path_activity_trajectories, device=waveform.device)
+        if activity.is_complex() or activity.dtype == torch.bool:
+            raise TypeError("path activity trajectories must be real-valued")
+        activity = activity.to(dtype=waveform.real.dtype)
+        expected_shape = (path_count, waveform.shape[-1])
+        if tuple(activity.shape) != expected_shape:
+            raise ValueError(
+                "path activity trajectories must have shape [paths, waveform samples]"
+            )
+        if not bool(torch.isfinite(activity).all()):
+            raise ValueError("path activity trajectories must be finite")
+        if bool(torch.any((activity < 0.0) | (activity > 1.0))):
+            raise ValueError("path activity trajectories must lie in [0, 1]")
+
     sample_axis = torch.arange(
         waveform.shape[-1], dtype=waveform.real.dtype, device=waveform.device
     )
@@ -191,13 +249,21 @@ def apply_time_varying_multipath(
         sample_axis = torch.div(sample_axis, symbol_length_samples, rounding_mode="floor")
         sample_axis = sample_axis * symbol_length_samples
     result = torch.zeros_like(waveform)
-    for coefficient, delay, doppler in zip(coefficients, delays, dopplers):
+    for path_index, (coefficient, delay, doppler) in enumerate(
+        zip(coefficients, delays, dopplers, strict=True)
+    ):
         delay_samples = int(delay.item())
         if delay_samples >= waveform.shape[-1]:
             continue
         delayed = torch.nn.functional.pad(waveform, (delay_samples, 0))[..., : waveform.shape[-1]]
         phase = 2.0 * math.pi * doppler * sample_axis / sampling_frequency_hz
-        result = result + coefficient * torch.polar(torch.ones_like(phase), phase) * delayed
+        path = coefficient * torch.polar(torch.ones_like(phase), phase) * delayed
+        if activity is not None:
+            envelope = activity[path_index].reshape(
+                *((1,) * (waveform.ndim - 1)), waveform.shape[-1]
+            )
+            path = path * envelope
+        result = result + path
     return result
 
 

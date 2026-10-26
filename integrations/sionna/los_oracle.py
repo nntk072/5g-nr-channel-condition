@@ -7,6 +7,11 @@ from enum import StrEnum
 from typing import Sequence
 
 import numpy as np
+from propagation.scene_visibility import (
+    SceneSegmentVisibility,
+    extract_scene_triangle_inventory,
+    query_scene_segment_visibility,
+)
 
 
 class SegmentVisibilityState(StrEnum):
@@ -145,3 +150,24 @@ def segment_visibility(
     else:
         state = SegmentVisibilityState.BLOCKED if hit else SegmentVisibilityState.VISIBLE
     return SegmentVisibilityResult(state, distance, first_distance, incidence_cosine, probe_blocked)
+
+
+def independent_mesh_segment_visibility(
+    scene: object,
+    source_position_m: Sequence[float],
+    target_position_m: Sequence[float],
+    *,
+    tolerance_m: float = 1e-8,
+) -> SceneSegmentVisibility:
+    """Query loaded scene triangles with the independent NumPy geometry oracle.
+
+    Unlike :func:`segment_visibility`, this route does not call Mitsuba's
+    ``ray_intersect`` or ``ray_test``. It extracts the loaded mesh buffers and
+    their object-to-world transforms, then applies the repository's explicit
+    segment/triangle predicate. All triangle surfaces are treated as opaque;
+    the result is an audit of geometric contact, not material-aware RF LOS.
+    """
+    inventory = extract_scene_triangle_inventory(scene)
+    return query_scene_segment_visibility(
+        inventory, source_position_m, target_position_m, tolerance_m=tolerance_m
+    )

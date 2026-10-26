@@ -1,0 +1,3884 @@
+{
+  "channel_draw_records": [
+    {
+      "channel_seed": 83001,
+      "echo_coefficient_real_imag": [
+        0.02003171414935515,
+        -0.4447292139780576
+      ],
+      "echo_delay_samples": 4,
+      "noise_seed": 2083001,
+      "outcomes_by_noise_variance": {
+        "0.001": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        "0.003": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        "0.01": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        "0.03": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ]
+        }
+      },
+      "payload_seed": 1083001
+    },
+    {
+      "channel_seed": 83002,
+      "echo_coefficient_real_imag": [
+        -0.0853601285700848,
+        -0.25124366835160866
+      ],
+      "echo_delay_samples": 3,
+      "noise_seed": 2083002,
+      "outcomes_by_noise_variance": {
+        "0.001": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            false,
+            true
+          ],
+          "750hz_symbol_static": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            false,
+            true
+          ]
+        },
+        "0.003": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            false,
+            true
+          ],
+          "750hz_symbol_static": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            false,
+            true
+          ]
+        },
+        "0.01": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            false,
+            true
+          ],
+          "750hz_symbol_static": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            false,
+            true
+          ]
+        },
+        "0.03": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "750hz_symbol_static": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        }
+      },
+      "payload_seed": 1083002
+    },
+    {
+      "channel_seed": 83003,
+      "echo_coefficient_real_imag": [
+        -0.2808943881091039,
+        0.34332805556178475
+      ],
+      "echo_delay_samples": 8,
+      "noise_seed": 2083003,
+      "outcomes_by_noise_variance": {
+        "0.001": {
+          "0hz_continuous": [
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        "0.003": {
+          "0hz_continuous": [
+            false,
+            true,
+            false,
+            false,
+            true,
+            false,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        "0.01": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        "0.03": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ]
+        }
+      },
+      "payload_seed": 1083003
+    },
+    {
+      "channel_seed": 83004,
+      "echo_coefficient_real_imag": [
+        0.3154396384160578,
+        -0.02786598827310599
+      ],
+      "echo_delay_samples": 2,
+      "noise_seed": 2083004,
+      "outcomes_by_noise_variance": {
+        "0.001": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            true,
+            true,
+            false,
+            true,
+            true,
+            true,
+            true,
+            false
+          ],
+          "750hz_symbol_static": [
+            true,
+            true,
+            false,
+            true,
+            true,
+            false,
+            true,
+            false
+          ]
+        },
+        "0.003": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            true,
+            true,
+            false,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "750hz_symbol_static": [
+            false,
+            true,
+            false,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        "0.01": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "750hz_symbol_static": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        "0.03": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "750hz_symbol_static": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        }
+      },
+      "payload_seed": 1083004
+    },
+    {
+      "channel_seed": 83005,
+      "echo_coefficient_real_imag": [
+        -0.22951484358252777,
+        0.16371713868732946
+      ],
+      "echo_delay_samples": 7,
+      "noise_seed": 2083005,
+      "outcomes_by_noise_variance": {
+        "0.001": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            false,
+            true,
+            true,
+            true,
+            false,
+            true,
+            true,
+            true
+          ],
+          "750hz_symbol_static": [
+            true,
+            true,
+            true,
+            true,
+            false,
+            true,
+            true,
+            true
+          ]
+        },
+        "0.003": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "750hz_symbol_static": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        "0.01": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            true,
+            true,
+            true,
+            false,
+            false,
+            true,
+            true,
+            false
+          ],
+          "1500hz_symbol_static": [
+            true,
+            true,
+            false,
+            false,
+            false,
+            true,
+            true,
+            false
+          ],
+          "750hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "750hz_symbol_static": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        "0.03": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            true,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "750hz_symbol_static": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        }
+      },
+      "payload_seed": 1083005
+    },
+    {
+      "channel_seed": 83006,
+      "echo_coefficient_real_imag": [
+        0.1972201001717856,
+        0.37514474684814497
+      ],
+      "echo_delay_samples": 4,
+      "noise_seed": 2083006,
+      "outcomes_by_noise_variance": {
+        "0.001": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        "0.003": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        "0.01": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        "0.03": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ]
+        }
+      },
+      "payload_seed": 1083006
+    },
+    {
+      "channel_seed": 83007,
+      "echo_coefficient_real_imag": [
+        -0.17408187324060476,
+        -0.2939588640865268
+      ],
+      "echo_delay_samples": 5,
+      "noise_seed": 2083007,
+      "outcomes_by_noise_variance": {
+        "0.001": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            true,
+            false,
+            true,
+            false
+          ],
+          "750hz_symbol_static": [
+            false,
+            true,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false
+          ]
+        },
+        "0.003": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            true,
+            true,
+            true,
+            false,
+            true,
+            false,
+            true,
+            false
+          ],
+          "750hz_symbol_static": [
+            false,
+            true,
+            true,
+            false,
+            true,
+            false,
+            true,
+            false
+          ]
+        },
+        "0.01": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "750hz_symbol_static": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        "0.03": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "750hz_symbol_static": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        }
+      },
+      "payload_seed": 1083007
+    },
+    {
+      "channel_seed": 83008,
+      "echo_coefficient_real_imag": [
+        0.3457266644543955,
+        -0.19705820673961616
+      ],
+      "echo_delay_samples": 7,
+      "noise_seed": 2083008,
+      "outcomes_by_noise_variance": {
+        "0.001": {
+          "0hz_continuous": [
+            false,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        "0.003": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        "0.01": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_symbol_static": [
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        "0.03": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ]
+        }
+      },
+      "payload_seed": 1083008
+    },
+    {
+      "channel_seed": 83009,
+      "echo_coefficient_real_imag": [
+        0.2706099626904303,
+        0.39540263144085647
+      ],
+      "echo_delay_samples": 6,
+      "noise_seed": 2083009,
+      "outcomes_by_noise_variance": {
+        "0.001": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        "0.003": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        "0.01": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        "0.03": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ]
+        }
+      },
+      "payload_seed": 1083009
+    },
+    {
+      "channel_seed": 83010,
+      "echo_coefficient_real_imag": [
+        0.2580443287714521,
+        0.30000833080873884
+      ],
+      "echo_delay_samples": 3,
+      "noise_seed": 2083010,
+      "outcomes_by_noise_variance": {
+        "0.001": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        "0.003": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        "0.01": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        "0.03": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ]
+        }
+      },
+      "payload_seed": 1083010
+    },
+    {
+      "channel_seed": 83011,
+      "echo_coefficient_real_imag": [
+        0.017535705364794475,
+        0.30527528672841225
+      ],
+      "echo_delay_samples": 2,
+      "noise_seed": 2083011,
+      "outcomes_by_noise_variance": {
+        "0.001": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            true,
+            true,
+            false,
+            false,
+            true,
+            true,
+            true,
+            true
+          ],
+          "750hz_symbol_static": [
+            true,
+            true,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false
+          ]
+        },
+        "0.003": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            true,
+            true,
+            true,
+            false,
+            true,
+            true,
+            true,
+            true
+          ],
+          "750hz_symbol_static": [
+            true,
+            true,
+            false,
+            false,
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        "0.01": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "750hz_symbol_static": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        "0.03": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "750hz_symbol_static": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        }
+      },
+      "payload_seed": 1083011
+    },
+    {
+      "channel_seed": 83012,
+      "echo_coefficient_real_imag": [
+        0.36323539901376717,
+        0.07443343855186417
+      ],
+      "echo_delay_samples": 4,
+      "noise_seed": 2083012,
+      "outcomes_by_noise_variance": {
+        "0.001": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        "0.003": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "750hz_symbol_static": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true
+          ]
+        },
+        "0.01": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            true,
+            false,
+            false,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "750hz_symbol_static": [
+            true,
+            false,
+            false,
+            true,
+            false,
+            true,
+            true,
+            true
+          ]
+        },
+        "0.03": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            true,
+            false,
+            false,
+            true,
+            false,
+            false,
+            true,
+            false
+          ],
+          "750hz_symbol_static": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true,
+            true
+          ]
+        }
+      },
+      "payload_seed": 1083012
+    },
+    {
+      "channel_seed": 83013,
+      "echo_coefficient_real_imag": [
+        0.01800409321123244,
+        0.22730381849768774
+      ],
+      "echo_delay_samples": 4,
+      "noise_seed": 2083013,
+      "outcomes_by_noise_variance": {
+        "0.001": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            true,
+            true,
+            false,
+            true,
+            false,
+            false,
+            true
+          ],
+          "1500hz_symbol_static": [
+            false,
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "750hz_symbol_static": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        "0.003": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            false,
+            true
+          ],
+          "1500hz_symbol_static": [
+            false,
+            true,
+            true,
+            true,
+            true,
+            true,
+            false,
+            true
+          ],
+          "750hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "750hz_symbol_static": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        "0.01": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            false,
+            true
+          ],
+          "1500hz_symbol_static": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            false,
+            true
+          ],
+          "750hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "750hz_symbol_static": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        "0.03": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_symbol_static": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            false,
+            true
+          ],
+          "750hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "750hz_symbol_static": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        }
+      },
+      "payload_seed": 1083013
+    },
+    {
+      "channel_seed": 83014,
+      "echo_coefficient_real_imag": [
+        0.1185160717792028,
+        -0.29576827512069354
+      ],
+      "echo_delay_samples": 3,
+      "noise_seed": 2083014,
+      "outcomes_by_noise_variance": {
+        "0.001": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            false,
+            true,
+            false,
+            true,
+            false,
+            false,
+            true,
+            true
+          ],
+          "750hz_symbol_static": [
+            false,
+            false,
+            false,
+            true,
+            false,
+            true,
+            true,
+            true
+          ]
+        },
+        "0.003": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            false,
+            true,
+            false,
+            false,
+            false,
+            true,
+            true,
+            true
+          ],
+          "750hz_symbol_static": [
+            false,
+            true,
+            true,
+            false,
+            false,
+            true,
+            true,
+            true
+          ]
+        },
+        "0.01": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            true,
+            true,
+            true,
+            false,
+            true,
+            true,
+            true,
+            true
+          ],
+          "750hz_symbol_static": [
+            true,
+            true,
+            true,
+            false,
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        "0.03": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "750hz_symbol_static": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        }
+      },
+      "payload_seed": 1083014
+    },
+    {
+      "channel_seed": 83015,
+      "echo_coefficient_real_imag": [
+        0.14539204450530818,
+        0.24463607743726012
+      ],
+      "echo_delay_samples": 3,
+      "noise_seed": 2083015,
+      "outcomes_by_noise_variance": {
+        "0.001": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            false,
+            true,
+            true,
+            true
+          ],
+          "750hz_symbol_static": [
+            true,
+            true,
+            true,
+            true,
+            false,
+            true,
+            true,
+            true
+          ]
+        },
+        "0.003": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            false,
+            true,
+            true,
+            true
+          ],
+          "750hz_symbol_static": [
+            true,
+            true,
+            true,
+            true,
+            false,
+            true,
+            true,
+            true
+          ]
+        },
+        "0.01": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "750hz_symbol_static": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        "0.03": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "750hz_symbol_static": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        }
+      },
+      "payload_seed": 1083015
+    },
+    {
+      "channel_seed": 83016,
+      "echo_coefficient_real_imag": [
+        0.3180501370784942,
+        0.22689950000685605
+      ],
+      "echo_delay_samples": 7,
+      "noise_seed": 2083016,
+      "outcomes_by_noise_variance": {
+        "0.001": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        "0.003": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        "0.01": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "750hz_symbol_static": [
+            true,
+            true,
+            false,
+            true,
+            true,
+            false,
+            false,
+            true
+          ]
+        },
+        "0.03": {
+          "0hz_continuous": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "1500hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "1500hz_symbol_static": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_continuous": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "750hz_symbol_static": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ]
+        }
+      },
+      "payload_seed": 1083016
+    }
+  ],
+  "command": [
+    "/home/nguyenl37/5g-nr-channel-condition/.venv/bin/python3",
+    "experiments/scan_g5_doppler_operating_point.py"
+  ],
+  "configuration": {
+    "blocks_per_channel": 8,
+    "channel_distribution": {
+      "direct_coefficient": [
+        0.85,
+        0.0
+      ],
+      "doppler_conditions": [
+        [
+          0.0,
+          "continuous"
+        ],
+        [
+          750.0,
+          "symbol_static"
+        ],
+        [
+          750.0,
+          "continuous"
+        ],
+        [
+          1500.0,
+          "symbol_static"
+        ],
+        [
+          1500.0,
+          "continuous"
+        ]
+      ],
+      "echo_amplitude_uniform": [
+        0.2,
+        0.5
+      ],
+      "echo_delay_samples_inclusive": [
+        2,
+        8
+      ],
+      "echo_phase_uniform_rad": [
+        -3.141592653589793,
+        3.141592653589793
+      ]
+    },
+    "channel_draws": 16,
+    "channel_seeds": [
+      83001,
+      83002,
+      83003,
+      83004,
+      83005,
+      83006,
+      83007,
+      83008,
+      83009,
+      83010,
+      83011,
+      83012,
+      83013,
+      83014,
+      83015,
+      83016
+    ],
+    "interpretation": "development-only descriptive scan; all reported BLER/effect values are selection diagnostics and cannot qualify G5 or act as confirmatory inference",
+    "noise_pairing": "one standard proper-complex Gaussian waveform per channel, scaled identically across Doppler conditions and noise levels",
+    "noise_seed_offset": 2000000,
+    "noise_variances": [
+      0.001,
+      0.003,
+      0.01,
+      0.03
+    ],
+    "nr_configuration": {
+      "cyclic_prefix_samples": 7,
+      "fft_size": 72,
+      "n_size_bwp_rb": 6,
+      "sample_rate_hz": 2160000.0,
+      "subcarrier_spacing_hz": 30000
+    },
+    "payload_seed_offset": 1000000
+  },
+  "created_utc": "2026-10-24T11:19:18.079621+00:00",
+  "git_revision": "8ba3482539ccc4774175f86b4e9938081424a268",
+  "result_sha256": "467f84777b88bf26474c8ef8381cfa4d362533f495ca70bf0f1f46dc236a1eb4",
+  "runtime": {
+    "device": "cpu",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "sionna": "2.2.0",
+    "torch": "2.11.0+cu128"
+  },
+  "schema": "umcd.g5_doppler_operating_point_scan.v1",
+  "source_sha256": {
+    "experiments/g5_independent_channel_receiver.py": "feaaa3f94b1dc25f21be63e8ab51242588fe735212d2253a495249553e18e5fd",
+    "experiments/scan_g5_doppler_operating_point.py": "18aba4d8a3e62c90b3aaa35d2c16279a368a2634e829259869668bfa34d29adc",
+    "integrations/sionna/nr_pusch.py": "073fb321bd69547478c6c6862a0e355ae1f708f8895a5951423a16ee24f64a41",
+    "integrations/sionna/ofdm_impairments.py": "d79e5b6cdd2280cad685bebc904bd6d345ce061621785944b02aff9fff62b751",
+    "receivers/nr/pusch.py": "f00a94da21f925c7366a36072fb63dd2dd68669bd2414064e797a97d8fd8464d"
+  },
+  "status": "DEVELOPMENT_ONLY_NOT_QUALIFIED",
+  "summary_by_noise_variance": {
+    "0.001": {
+      "paired_equal_channel_effects_descriptive": {
+        "1500": {
+          "continuous_minus_static_mean_bler_descriptive": 0.921875,
+          "continuous_minus_symbol_static_mean_bler_descriptive": -0.015625
+        },
+        "750": {
+          "continuous_minus_static_mean_bler_descriptive": 0.59375,
+          "continuous_minus_symbol_static_mean_bler_descriptive": -0.0234375
+        }
+      },
+      "summary_by_condition": {
+        "0hz_continuous": {
+          "blocks": 128,
+          "channel_bler_min_max": [
+            0.0,
+            0.625
+          ],
+          "crc_failures": 6,
+          "equal_channel_mean_bler_descriptive": 0.046875,
+          "pooled_bler_descriptive": 0.046875
+        },
+        "1500hz_continuous": {
+          "blocks": 128,
+          "channel_bler_min_max": [
+            0.5,
+            1.0
+          ],
+          "crc_failures": 124,
+          "equal_channel_mean_bler_descriptive": 0.96875,
+          "pooled_bler_descriptive": 0.96875
+        },
+        "1500hz_symbol_static": {
+          "blocks": 128,
+          "channel_bler_min_max": [
+            0.75,
+            1.0
+          ],
+          "crc_failures": 126,
+          "equal_channel_mean_bler_descriptive": 0.984375,
+          "pooled_bler_descriptive": 0.984375
+        },
+        "750hz_continuous": {
+          "blocks": 128,
+          "channel_bler_min_max": [
+            0.0,
+            1.0
+          ],
+          "crc_failures": 82,
+          "equal_channel_mean_bler_descriptive": 0.640625,
+          "pooled_bler_descriptive": 0.640625
+        },
+        "750hz_symbol_static": {
+          "blocks": 128,
+          "channel_bler_min_max": [
+            0.0,
+            1.0
+          ],
+          "crc_failures": 85,
+          "equal_channel_mean_bler_descriptive": 0.6640625,
+          "pooled_bler_descriptive": 0.6640625
+        }
+      }
+    },
+    "0.003": {
+      "paired_equal_channel_effects_descriptive": {
+        "1500": {
+          "continuous_minus_static_mean_bler_descriptive": 0.9140625,
+          "continuous_minus_symbol_static_mean_bler_descriptive": -0.0078125
+        },
+        "750": {
+          "continuous_minus_static_mean_bler_descriptive": 0.5390625,
+          "continuous_minus_symbol_static_mean_bler_descriptive": -0.015625
+        }
+      },
+      "summary_by_condition": {
+        "0hz_continuous": {
+          "blocks": 128,
+          "channel_bler_min_max": [
+            0.0,
+            0.5
+          ],
+          "crc_failures": 4,
+          "equal_channel_mean_bler_descriptive": 0.03125,
+          "pooled_bler_descriptive": 0.03125
+        },
+        "1500hz_continuous": {
+          "blocks": 128,
+          "channel_bler_min_max": [
+            0.125,
+            1.0
+          ],
+          "crc_failures": 121,
+          "equal_channel_mean_bler_descriptive": 0.9453125,
+          "pooled_bler_descriptive": 0.9453125
+        },
+        "1500hz_symbol_static": {
+          "blocks": 128,
+          "channel_bler_min_max": [
+            0.25,
+            1.0
+          ],
+          "crc_failures": 122,
+          "equal_channel_mean_bler_descriptive": 0.953125,
+          "pooled_bler_descriptive": 0.953125
+        },
+        "750hz_continuous": {
+          "blocks": 128,
+          "channel_bler_min_max": [
+            0.0,
+            1.0
+          ],
+          "crc_failures": 73,
+          "equal_channel_mean_bler_descriptive": 0.5703125,
+          "pooled_bler_descriptive": 0.5703125
+        },
+        "750hz_symbol_static": {
+          "blocks": 128,
+          "channel_bler_min_max": [
+            0.0,
+            1.0
+          ],
+          "crc_failures": 75,
+          "equal_channel_mean_bler_descriptive": 0.5859375,
+          "pooled_bler_descriptive": 0.5859375
+        }
+      }
+    },
+    "0.01": {
+      "paired_equal_channel_effects_descriptive": {
+        "1500": {
+          "continuous_minus_static_mean_bler_descriptive": 0.8984375,
+          "continuous_minus_symbol_static_mean_bler_descriptive": -0.0078125
+        },
+        "750": {
+          "continuous_minus_static_mean_bler_descriptive": 0.4375,
+          "continuous_minus_symbol_static_mean_bler_descriptive": 0.0078125
+        }
+      },
+      "summary_by_condition": {
+        "0hz_continuous": {
+          "blocks": 128,
+          "channel_bler_min_max": [
+            0.0,
+            0.0
+          ],
+          "crc_failures": 0,
+          "equal_channel_mean_bler_descriptive": 0.0,
+          "pooled_bler_descriptive": 0.0
+        },
+        "1500hz_continuous": {
+          "blocks": 128,
+          "channel_bler_min_max": [
+            0.125,
+            1.0
+          ],
+          "crc_failures": 115,
+          "equal_channel_mean_bler_descriptive": 0.8984375,
+          "pooled_bler_descriptive": 0.8984375
+        },
+        "1500hz_symbol_static": {
+          "blocks": 128,
+          "channel_bler_min_max": [
+            0.125,
+            1.0
+          ],
+          "crc_failures": 116,
+          "equal_channel_mean_bler_descriptive": 0.90625,
+          "pooled_bler_descriptive": 0.90625
+        },
+        "750hz_continuous": {
+          "blocks": 128,
+          "channel_bler_min_max": [
+            0.0,
+            1.0
+          ],
+          "crc_failures": 56,
+          "equal_channel_mean_bler_descriptive": 0.4375,
+          "pooled_bler_descriptive": 0.4375
+        },
+        "750hz_symbol_static": {
+          "blocks": 128,
+          "channel_bler_min_max": [
+            0.0,
+            1.0
+          ],
+          "crc_failures": 55,
+          "equal_channel_mean_bler_descriptive": 0.4296875,
+          "pooled_bler_descriptive": 0.4296875
+        }
+      }
+    },
+    "0.03": {
+      "paired_equal_channel_effects_descriptive": {
+        "1500": {
+          "continuous_minus_static_mean_bler_descriptive": 0.921875,
+          "continuous_minus_symbol_static_mean_bler_descriptive": -0.015625
+        },
+        "750": {
+          "continuous_minus_static_mean_bler_descriptive": 0.4765625,
+          "continuous_minus_symbol_static_mean_bler_descriptive": 0.0078125
+        }
+      },
+      "summary_by_condition": {
+        "0hz_continuous": {
+          "blocks": 128,
+          "channel_bler_min_max": [
+            0.0,
+            0.0
+          ],
+          "crc_failures": 0,
+          "equal_channel_mean_bler_descriptive": 0.0,
+          "pooled_bler_descriptive": 0.0
+        },
+        "1500hz_continuous": {
+          "blocks": 128,
+          "channel_bler_min_max": [
+            0.0,
+            1.0
+          ],
+          "crc_failures": 118,
+          "equal_channel_mean_bler_descriptive": 0.921875,
+          "pooled_bler_descriptive": 0.921875
+        },
+        "1500hz_symbol_static": {
+          "blocks": 128,
+          "channel_bler_min_max": [
+            0.125,
+            1.0
+          ],
+          "crc_failures": 120,
+          "equal_channel_mean_bler_descriptive": 0.9375,
+          "pooled_bler_descriptive": 0.9375
+        },
+        "750hz_continuous": {
+          "blocks": 128,
+          "channel_bler_min_max": [
+            0.0,
+            1.0
+          ],
+          "crc_failures": 61,
+          "equal_channel_mean_bler_descriptive": 0.4765625,
+          "pooled_bler_descriptive": 0.4765625
+        },
+        "750hz_symbol_static": {
+          "blocks": 128,
+          "channel_bler_min_max": [
+            0.0,
+            1.0
+          ],
+          "crc_failures": 60,
+          "equal_channel_mean_bler_descriptive": 0.46875,
+          "pooled_bler_descriptive": 0.46875
+        }
+      }
+    }
+  }
+}

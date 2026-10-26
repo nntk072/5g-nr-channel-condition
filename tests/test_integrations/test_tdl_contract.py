@@ -13,6 +13,7 @@ from integrations.sionna.tdl import generate_tdl_frequency_response
         ({"subcarrier_spacing_hz": 0}, "subcarrier_spacing_hz"),
         ({"los_angle_of_arrival_rad": float("nan")}, "los_angle_of_arrival_rad"),
         ({"seed": -1}, "seed"),
+        ({"spec_version": "99.0"}, "unsupported 3GPP TR 38.901 profile-table version"),
     ],
 )
 def test_tdl_adapter_rejects_invalid_inputs_before_optional_import(values, message):

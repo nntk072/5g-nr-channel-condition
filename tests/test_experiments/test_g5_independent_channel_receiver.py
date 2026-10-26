@@ -6,10 +6,10 @@ from pathlib import Path
 
 import pytest
 from experiments.g5_independent_channel_receiver import (
-    _source_fingerprints,
     clopper_pearson_upper_bound,
     cluster_bootstrap_interval,
 )
+from tests.test_experiments.frozen_g5_source_manifest import assert_frozen_source_manifest
 
 MAXIMUM_REFERENCE_BLER = 0.05
 MAXIMUM_REFERENCE_UPPER_BOUND = 0.10
@@ -78,7 +78,15 @@ def test_saved_independent_channel_report_has_cluster_level_reproducible_decisio
 
     assert report["schema"] == "umcd.g5_independent_channel_receiver.v3"
     assert recorded_hash == actual_hash
-    assert report["source_sha256"] == _source_fingerprints()
+    assert_frozen_source_manifest(
+        report,
+        expected_paths=(
+            "experiments/g5_independent_channel_receiver.py",
+            "integrations/sionna/nr_pusch.py",
+            "integrations/sionna/ofdm_impairments.py",
+            "receivers/nr/pusch.py",
+        ),
+    )
     assert report["runtime"]["device"] == "cpu"
     configuration = report["configuration"]
     assert configuration["channel_draws"] == len(configuration["channel_seeds"]) == 64

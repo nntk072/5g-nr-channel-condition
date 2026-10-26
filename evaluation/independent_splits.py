@@ -23,15 +23,36 @@ class IndependentSplit:
     group_field: str
 
     def __post_init__(self) -> None:
+        if not isinstance(self.sample_to_split, Mapping) or not isinstance(
+            self.group_to_split, Mapping
+        ):
+            raise TypeError("split assignments must be mappings")
         if not self.sample_to_split or not self.group_to_split:
             raise ValueError("split assignments must not be empty")
-        if not self.seed.strip() or not self.group_field.strip():
-            raise ValueError("seed and group_field must be non-empty")
+        if (
+            not isinstance(self.seed, str)
+            or not self.seed
+            or self.seed != self.seed.strip()
+            or not isinstance(self.group_field, str)
+            or not self.group_field
+            or self.group_field != self.group_field.strip()
+        ):
+            raise ValueError("seed and group_field must be nonempty canonical strings")
         allowed = {"train", "validation", "calibration", "test"}
-        if set(self.sample_to_split.values()) - allowed:
-            raise ValueError("split names must be train, validation, calibration, or test")
-        if set(self.group_to_split.values()) - allowed:
-            raise ValueError("split names must be train, validation, calibration, or test")
+        for assignments, label in (
+            (self.sample_to_split, "sample"),
+            (self.group_to_split, "group"),
+        ):
+            if any(
+                not isinstance(key, str) or not key or key != key.strip()
+                for key in assignments
+            ):
+                raise ValueError(f"{label} assignment IDs must be nonempty canonical strings")
+            if any(
+                not isinstance(value, str) or value not in allowed
+                for value in assignments.values()
+            ):
+                raise ValueError("split names must be train, validation, calibration, or test")
         object.__setattr__(self, "sample_to_split", MappingProxyType(dict(self.sample_to_split)))
         object.__setattr__(self, "group_to_split", MappingProxyType(dict(self.group_to_split)))
 
@@ -87,15 +108,35 @@ def make_independent_split(
         or abs(sum(proportions.values()) - 1) > 1e-9
     ):
         raise ValueError("split fractions must be positive and sum to one")
-    if not seed.strip() or not records:
-        raise ValueError("seed and records must be non-empty")
+    if not isinstance(seed, str) or not seed or seed != seed.strip() or not records:
+        raise ValueError("seed must be canonical and records must be nonempty")
+    if any(
+        not isinstance(field, str) or not field or field != field.strip()
+        for field in (group_field, sample_id_field)
+    ):
+        raise ValueError("group_field and sample_id_field must be nonempty canonical strings")
 
     sample_groups: dict[str, str] = {}
     for record in records:
-        sample_id = str(record.get(sample_id_field, "")).strip()
-        group_id = str(record.get(group_field, "")).strip()
-        if not sample_id or not group_id:
-            raise ValueError(f"each record needs non-empty {sample_id_field} and {group_field}")
+        if not isinstance(record, Mapping):
+            raise TypeError("each split record must be a mapping")
+        sample_value = record.get(sample_id_field)
+        group_value = record.get(group_field)
+        if not isinstance(sample_value, str) or not isinstance(group_value, str):
+            raise ValueError(
+                f"each record needs nonempty canonical string {sample_id_field} and {group_field}"
+            )
+        sample_id = sample_value
+        group_id = group_value
+        if (
+            not sample_id
+            or not group_id
+            or sample_id != sample_id.strip()
+            or group_id != group_id.strip()
+        ):
+            raise ValueError(
+                f"each record needs nonempty canonical string {sample_id_field} and {group_field}"
+            )
         if sample_id in sample_groups:
             raise ValueError(f"duplicate sample ID: {sample_id}")
         sample_groups[sample_id] = group_id
@@ -103,9 +144,10 @@ def make_independent_split(
     groups = sorted(set(sample_groups.values()))
     if len(groups) < len(split_order):
         minimum = "three" if len(split_order) == 3 else "4"
+        missing = len(split_order) - len(groups)
         raise ValueError(
             f"at least {minimum} independent groups ({len(split_order)}) are required for "
-            f"{len(split_order)}-way splits"
+            f"{len(split_order)}-way splits; found {len(groups)}, need {missing} more"
         )
     ordered = sorted(
         groups,
@@ -140,8 +182,21 @@ def audit_group_leakage(split: IndependentSplit, records: Sequence[Mapping[str, 
     observed: dict[str, str] = {}
     observed_samples: set[str] = set()
     for record in records:
-        sample_id = str(record.get("sample_id", ""))
-        group_id = str(record.get(split.group_field, ""))
+        if not isinstance(record, Mapping):
+            raise TypeError("audit records must be mappings")
+        sample_value = record.get("sample_id")
+        group_value = record.get(split.group_field)
+        if (
+            not isinstance(sample_value, str)
+            or not sample_value
+            or sample_value != sample_value.strip()
+            or not isinstance(group_value, str)
+            or not group_value
+            or group_value != group_value.strip()
+        ):
+            raise ValueError("audit records need nonempty canonical sample and group IDs")
+        sample_id = sample_value
+        group_id = group_value
         if sample_id in observed_samples:
             raise ValueError(f"duplicate sample ID in audit records: {sample_id}")
         observed_samples.add(sample_id)

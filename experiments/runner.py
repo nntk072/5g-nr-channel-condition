@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
+import os
+import stat
 from pathlib import Path
 from time import perf_counter
 from typing import Any, Sequence
@@ -18,6 +22,7 @@ from artifacts.provenance import (
 )
 from configuration.loader import resolve_config
 from datasets.channel import ChannelDataset
+from datasets.split_policy import SplitPolicyRegistry, verify_signed_split_policy_registry
 from evaluation.metrics import (
     binary_metrics,
     block_bootstrap_auc,
@@ -30,6 +35,345 @@ from learning import fit_complex_cnn, fit_coral_mlp, fit_real_cnn, fit_sklearn
 from models.capacity import capacity_spec
 from propagation.physics import observable_features
 from receivers.pilots import comb_ls_estimate
+
+_VALIDATION_THRESHOLD_POLICY = {
+    "schema": "loslab.validation_threshold_selection.v1",
+    "criterion": "Youden J = sensitivity - false-positive rate",
+    "selection_partition": "validation",
+    "positive_label": 1,
+    "weighting": "unweighted validation rows",
+    "tie_break": "first maximum in roc_curve threshold order",
+    "test_labels_used_for_selection": False,
+}
+
+_MODEL_FEATURE_ROUTES = {
+    "cnn": ("observed_cfr", "complex_cfr_grid_v1"),
+    "cvnn": ("observed_cfr", "complex_cfr_grid_v1"),
+    "raw_mlp": ("observed_cfr", "flattened_real_imag_cfr_v1"),
+    "observable_features": ("observed_cfr", "logmag_pdp_moments_v1"),
+}
+_MODEL_METHODS = frozenset(
+    {"rf", "histgb", "xgb", "mlp", "raw_mlp", "logreg", "cnn", "cvnn", "coral", "coral0"}
+)
+
+
+def _stable_single_link_sha256(path: str | Path) -> str:
+    """Hash one stable regular-file snapshot without following file aliases."""
+    file_path = Path(path)
+    if not hasattr(os, "O_NOFOLLOW"):
+        raise ValueError("platform lacks safe single-link model artifact opening")
+    path_before = os.lstat(file_path)
+    if not stat.S_ISREG(path_before.st_mode) or path_before.st_nlink != 1:
+        raise ValueError("model artifact must be a single-link regular file")
+    descriptor = os.open(file_path, os.O_RDONLY | os.O_NOFOLLOW)
+    digest = hashlib.sha256()
+    try:
+        before = os.fstat(descriptor)
+        if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1:
+            raise ValueError("model artifact must be a single-link regular file")
+        if (path_before.st_dev, path_before.st_ino) != (before.st_dev, before.st_ino):
+            raise ValueError("model artifact path changed before opening")
+        with os.fdopen(descriptor, "rb", closefd=False) as stream:
+            for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                digest.update(chunk)
+        after = os.fstat(descriptor)
+        path_after = os.lstat(file_path)
+    finally:
+        os.close(descriptor)
+
+    def identity(value: os.stat_result) -> tuple[int, ...]:
+        return (
+            value.st_dev,
+            value.st_ino,
+            value.st_mode,
+            value.st_nlink,
+            value.st_size,
+            value.st_mtime_ns,
+            value.st_ctime_ns,
+        )
+
+    if identity(before) != identity(after) or identity(before) != identity(path_after):
+        raise ValueError("model artifact changed during hashing")
+    return digest.hexdigest()
+
+
+def build_model_input_artifact_contract(
+    *,
+    method: str,
+    method_input: np.ndarray,
+    include_phase: bool,
+    config_sha256: str,
+    source_revision: str | None,
+    input_file_digests: list[dict[str, Any]],
+    split: dict[str, Any],
+    model_file_sha256: str,
+) -> dict[str, Any]:
+    """Bind a saved model to its audited observation-only input route."""
+    if method not in _MODEL_METHODS:
+        raise ValueError(f"unsupported model-input artifact method: {method!r}")
+    if not isinstance(method_input, np.ndarray) or method_input.ndim < 2:
+        raise ValueError("model input must be a batched feature array")
+    if not np.issubdtype(method_input.dtype, np.number) or not np.isfinite(method_input).all():
+        raise ValueError("model input must contain finite numeric values")
+    source_feature, transform = _MODEL_FEATURE_ROUTES.get(
+        method, ("observed_cfr", "logmag_pdp_moments_v1")
+    )
+    feature_contract = {
+        "schema": "loslab.model_input_feature_contract.v1",
+        "method": method,
+        "source_dataclass": "datasets.channel.ChannelModelInputs",
+        "allowed_source_fields": [source_feature],
+        "excluded_truth_and_metadata_fields": [
+            "data.y",
+            "data.metadata",
+            "data.group",
+            "data.domain",
+            "PathOracleTable",
+            "target_values",
+        ],
+        "target_field_used_for_supervision_only": "data.y",
+        "feature_transform": transform,
+        "include_phase": bool(include_phase) if transform == "logmag_pdp_moments_v1" else None,
+        "feature_dtype": str(method_input.dtype),
+        "feature_shape_per_sample": [int(value) for value in method_input.shape[1:]],
+        "source_revision": source_revision,
+        "run_config_sha256": config_sha256,
+    }
+    feature_contract_sha256 = canonical_hash(feature_contract)
+    return {
+        "schema": "loslab.model_input_artifact_contract.v1",
+        "model_sha256": model_file_sha256,
+        "feature_contract": feature_contract,
+        "feature_contract_sha256": feature_contract_sha256,
+        "training_input_files": input_file_digests,
+        "split": split,
+    }
+
+
+def verify_model_input_artifact_contract(
+    model_info_path: str | Path, model_path: str | Path
+) -> dict[str, Any]:
+    """Verify that a saved model is bound to a canonical observation-only input contract."""
+    sidecar_path = Path(model_info_path)
+    if not hasattr(os, "O_NOFOLLOW"):
+        raise ValueError("platform lacks safe model input artifact sidecar opening")
+    before_path = os.lstat(sidecar_path)
+    if not stat.S_ISREG(before_path.st_mode) or before_path.st_nlink != 1:
+        raise ValueError("model input artifact sidecar must be a single-link regular file")
+    descriptor = os.open(sidecar_path, os.O_RDONLY | os.O_NOFOLLOW)
+    try:
+        before = os.fstat(descriptor)
+        if (
+            not stat.S_ISREG(before.st_mode)
+            or before.st_nlink != 1
+            or before.st_size > 1_048_576
+        ):
+            raise ValueError("model input artifact sidecar exceeds its safe file contract")
+        with os.fdopen(descriptor, "rb", closefd=False) as stream:
+            sidecar_bytes = stream.read(1_048_577)
+        after = os.fstat(descriptor)
+        after_path = os.lstat(sidecar_path)
+    finally:
+        os.close(descriptor)
+
+    def file_identity(value: os.stat_result) -> tuple[int, ...]:
+        return (
+            value.st_dev,
+            value.st_ino,
+            value.st_mode,
+            value.st_nlink,
+            value.st_size,
+            value.st_mtime_ns,
+            value.st_ctime_ns,
+        )
+
+    if (
+        len(sidecar_bytes) > 1_048_576
+        or len(sidecar_bytes) != before.st_size
+        or file_identity(before) != file_identity(after)
+        or file_identity(before) != file_identity(after_path)
+    ):
+        raise ValueError("model input artifact sidecar changed during bounded read")
+    try:
+        sidecar = json.loads(sidecar_bytes.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise ValueError("model input artifact sidecar must be readable UTF-8 JSON") from error
+    if not isinstance(sidecar, dict) or not isinstance(sidecar.get("model_input_artifact_contract"), dict):
+        raise ValueError("model input artifact sidecar lacks its contract")
+    contract = sidecar["model_input_artifact_contract"]
+    import jsonschema
+
+    schema_path = (
+        Path(__file__).resolve().parents[1]
+        / "datasets/schema/model-input-artifact-contract.v1.schema.json"
+    )
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    jsonschema.Draft202012Validator.check_schema(schema)
+    schema_errors = list(jsonschema.Draft202012Validator(schema).iter_errors(contract))
+    if schema_errors:
+        raise ValueError(
+            "model input artifact contract violates schema: "
+            + "; ".join(error.message for error in schema_errors[:10])
+        )
+    if set(contract) != {
+        "schema",
+        "model_sha256",
+        "feature_contract",
+        "feature_contract_sha256",
+        "training_input_files",
+        "split",
+    } or contract.get("schema") != "loslab.model_input_artifact_contract.v1":
+        raise ValueError("model input artifact contract fields or schema are invalid")
+    feature = contract.get("feature_contract")
+    if not isinstance(feature, dict) or set(feature) != {
+        "schema",
+        "method",
+        "source_dataclass",
+        "allowed_source_fields",
+        "excluded_truth_and_metadata_fields",
+        "target_field_used_for_supervision_only",
+        "feature_transform",
+        "include_phase",
+        "feature_dtype",
+        "feature_shape_per_sample",
+        "source_revision",
+        "run_config_sha256",
+    }:
+        raise ValueError("model feature contract fields are invalid")
+    method = feature.get("method")
+    expected_format = (
+        "loslab.sklearn.v1"
+        if method in {"rf", "histgb", "xgb", "mlp", "raw_mlp", "logreg"}
+        else "loslab.model_input_artifact.v1"
+    )
+    include_phase = sidecar.get("include_phase")
+    threshold = sidecar.get("threshold")
+    if (
+        sidecar.get("format") != expected_format
+        or sidecar.get("method") != method
+        or not isinstance(include_phase, bool)
+        or isinstance(threshold, bool)
+        or not isinstance(threshold, (int, float))
+        or not np.isfinite(float(threshold))
+        or not 0.0 <= float(threshold) <= 1.0
+        or feature.get("include_phase")
+        != (include_phase if feature.get("feature_transform") == "logmag_pdp_moments_v1" else None)
+    ):
+        raise ValueError("model info wrapper disagrees with the feature contract")
+    expected_route = _MODEL_FEATURE_ROUTES.get(
+        method, ("observed_cfr", "logmag_pdp_moments_v1")
+    )
+    if (
+        feature.get("schema") != "loslab.model_input_feature_contract.v1"
+        or method not in _MODEL_METHODS
+        or feature.get("source_dataclass") != "datasets.channel.ChannelModelInputs"
+        or feature.get("allowed_source_fields") != [expected_route[0]]
+        or feature.get("excluded_truth_and_metadata_fields")
+        != ["data.y", "data.metadata", "data.group", "data.domain", "PathOracleTable", "target_values"]
+        or feature.get("feature_transform") != expected_route[1]
+        or feature.get("target_field_used_for_supervision_only") != "data.y"
+        or "data.y" not in feature.get("excluded_truth_and_metadata_fields", [])
+        or not isinstance(feature.get("run_config_sha256"), str)
+        or len(feature["run_config_sha256"]) != 64
+        or any(char not in "0123456789abcdef" for char in feature["run_config_sha256"])
+    ):
+        raise ValueError("model feature contract does not match an audited observation-only route")
+    if canonical_hash(feature) != contract.get("feature_contract_sha256"):
+        raise ValueError("model feature contract digest does not match its contents")
+    if _stable_single_link_sha256(model_path) != contract.get("model_sha256"):
+        raise ValueError("model bytes do not match the input artifact contract")
+    files = contract.get("training_input_files")
+    if not isinstance(files, list) or not files or any(
+        not isinstance(row, dict)
+        or set(row) != {"path", "sha256"}
+        or not isinstance(row["path"], str)
+        or not isinstance(row["sha256"], str)
+        or len(row["sha256"]) != 64
+        or any(char not in "0123456789abcdef" for char in row["sha256"])
+        for row in files
+    ):
+        raise ValueError("model input contract has an invalid training file roster")
+    split = contract.get("split")
+    if not isinstance(split, dict) or set(split) != {
+        "mode",
+        "registry_sha256",
+        "indices_sha256",
+        "train_rows",
+        "validation_rows",
+        "test_rows",
+    }:
+        raise ValueError("model input contract split binding is invalid")
+    for count_key in ("train_rows", "validation_rows", "test_rows"):
+        count = split[count_key]
+        if isinstance(count, bool) or not isinstance(count, int) or count <= 0:
+            raise ValueError("model input contract split counts must be positive integers")
+    for digest_key in ("indices_sha256",):
+        digest = split[digest_key]
+        if not isinstance(digest, str) or len(digest) != 64 or any(
+            char not in "0123456789abcdef" for char in digest
+        ):
+            raise ValueError("model input contract split digest is invalid")
+    registry_digest = split["registry_sha256"]
+    if registry_digest is not None and (
+        not isinstance(registry_digest, str)
+        or len(registry_digest) != 64
+        or any(char not in "0123456789abcdef" for char in registry_digest)
+    ):
+        raise ValueError("model input contract registry digest is invalid")
+    return {
+        "status": "PASS_MODEL_INPUT_ARTIFACT_BINDING",
+        "model_sha256": contract["model_sha256"],
+        "feature_contract_sha256": contract["feature_contract_sha256"],
+    }
+
+
+def _validation_threshold_selection_record(
+    labels: np.ndarray,
+    scores: np.ndarray,
+    groups: np.ndarray,
+    row_indices: np.ndarray,
+) -> dict[str, Any]:
+    """Select a validation-only operating point and bind its exact evidence."""
+    if (
+        labels.ndim != 1
+        or scores.shape != labels.shape
+        or groups.shape != labels.shape
+        or row_indices.shape != labels.shape
+        or len(labels) == 0
+    ):
+        raise ValueError("validation threshold evidence arrays must be nonempty and aligned")
+    threshold = threshold_from_validation(labels, scores)
+    evidence_sha256 = canonical_hash(
+        {
+            "row_indices": row_indices.tolist(),
+            "group_ids": groups.astype(str).tolist(),
+            "labels": labels.astype(int).tolist(),
+            "positive_label_scores": scores.astype(float).tolist(),
+        }
+    )
+    return {
+        **_VALIDATION_THRESHOLD_POLICY,
+        "threshold": threshold,
+        "validation_row_count": int(len(labels)),
+        "validation_group_count": int(len(np.unique(groups))),
+        "validation_evidence_sha256": evidence_sha256,
+    }
+
+
+def verify_validation_threshold_selection_record(
+    record: Any,
+    labels: np.ndarray,
+    scores: np.ndarray,
+    groups: np.ndarray,
+    row_indices: np.ndarray,
+) -> dict[str, Any]:
+    """Recompute the threshold decision and bind it to exact validation evidence."""
+    if not isinstance(record, dict):
+        raise TypeError("threshold selection record must be an object")
+    expected = _validation_threshold_selection_record(labels, scores, groups, row_indices)
+    if canonical_hash(record) != canonical_hash(expected):
+        raise ValueError("threshold selection record differs from validation-only recomputation")
+    return expected
 
 
 def _label_semantics_by_source(data: ChannelDataset) -> str:
@@ -130,6 +474,68 @@ def _learned_parameter_count(model: Any, training: dict[str, Any]) -> int | None
     return None
 
 
+def _locked_split_indices(
+    data: ChannelDataset, registry: SplitPolicyRegistry
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, dict[str, Any]]:
+    """Resolve every channel row through its frozen split parent or child ID."""
+    split_for_row: list[str] = []
+    represented_parents: set[str] = set()
+    group_split: dict[str, str] = {}
+    for group, metadata in zip(data.group, data.metadata, strict=True):
+        subject_id = metadata.get("split_subject_id")
+        if (
+            not isinstance(subject_id, str)
+            or not subject_id
+            or subject_id != subject_id.strip()
+        ):
+            raise ValueError(
+                "signed split evaluation requires a nonempty canonical split_subject_id per row"
+            )
+        if subject_id in registry.subjects:
+            parent_id = subject_id
+            partition = registry.split_for_parent(subject_id)
+        elif subject_id in registry.child_bindings:
+            parent_id = registry.child_bindings[subject_id].parent_subject_id
+            partition = registry.split_for_child(subject_id)
+        else:
+            raise ValueError(f"dataset split subject is absent from signed lock: {subject_id}")
+        represented_parents.add(parent_id)
+        if partition not in {"train", "validation", "test", "calibration"}:
+            raise ValueError(f"unsupported locked split partition: {partition}")
+        if not isinstance(group, str) or not group or group != group.strip():
+            raise ValueError("dataset group IDs must be nonempty canonical strings")
+        group_key = group
+        prior = group_split.setdefault(group_key, partition)
+        if prior != partition:
+            raise ValueError(f"dataset group crosses signed split partitions: {group_key}")
+        split_for_row.append(partition)
+
+    if represented_parents != set(registry.subjects):
+        missing = sorted(set(registry.subjects) - represented_parents)
+        raise ValueError(
+            f"dataset does not cover every signed split parent ({len(missing)} missing)"
+        )
+    labels = np.asarray(split_for_row)
+    train = np.flatnonzero(labels == "train")
+    validation = np.flatnonzero(labels == "validation")
+    test = np.flatnonzero(labels == "test")
+    if min(len(train), len(validation), len(test)) == 0:
+        raise ValueError(
+            "signed split lock must resolve non-empty train, validation, and test rows"
+        )
+    report = {
+        "mode": "signed_locked",
+        "policy_sha256": registry.policy.to_dict()["policy_sha256"],
+        "registry_sha256": registry.to_dict()["registry_sha256"],
+        "parent_counts": {
+            split: sum(registry.split_for_parent(parent) == split for parent in represented_parents)
+            for split in registry.policy.split_fractions
+        },
+        "calibration_rows_reserved": int(np.sum(labels == "calibration")),
+    }
+    return train, validation, test, report
+
+
 def run_experiment(
     paths: Sequence[str | Path],
     output: str | Path,
@@ -146,20 +552,62 @@ def run_experiment(
     device: str = "cpu",
     coral_penalty: float = 0.1,
     capacity: str = "medium",
+    split_lock_path: str | Path | None = None,
+    split_signature_path: str | Path | None = None,
+    trusted_split_signers_path: str | Path | None = None,
+    split_signer_id: str | None = None,
 ) -> dict:
     if not paths:
         raise ValueError("No datasets supplied")
     capacity_spec(capacity)
     data = ChannelDataset.concatenate([ChannelDataset.load(p) for p in paths])
+    signed_split_args = (
+        split_lock_path,
+        split_signature_path,
+        trusted_split_signers_path,
+        split_signer_id,
+    )
+    if any(value is not None for value in signed_split_args) and not all(
+        value is not None for value in signed_split_args
+    ):
+        raise ValueError(
+            "signed split mode requires lock, signature, trusted keyring, and signer ID"
+        )
+    locked_indices = None
+    split_provenance: dict[str, Any] = {"mode": "unlocked_pilot"}
+    if all(value is not None for value in signed_split_args):
+        if holdout is not None:
+            raise ValueError("holdout cannot be combined with a signed split lock")
+        lock_path = Path(split_lock_path)  # type: ignore[arg-type]
+        signature_path = Path(split_signature_path)  # type: ignore[arg-type]
+        signers_path = Path(trusted_split_signers_path)  # type: ignore[arg-type]
+        registry = verify_signed_split_policy_registry(
+            lock_path,
+            signature_path,
+            trusted_allowed_signers_path=signers_path,
+            signer_id=str(split_signer_id),
+        )
+        locked_indices = _locked_split_indices(data, registry)
+        split_provenance = {
+            **locked_indices[3],
+            "signer_id": split_signer_id,
+            "lock_file_sha256": sha256_file(lock_path),
+            "signature_file_sha256": sha256_file(signature_path),
+            "trusted_keyring_sha256": sha256_file(signers_path),
+        }
     resolved_label_semantics = _resolved_label_semantics(data)
+    model_inputs = data.model_inputs()
     if observation == "ideal_cfr":
-        observable = data.h
+        observable = model_inputs.observed_cfr
     elif observation == "comb_ls":
         observable = comb_ls_estimate(
-            data.h, spacing=pilot_spacing, snr_db=pilot_snr_db, seed=observation_seed
+            model_inputs.observed_cfr,
+            spacing=pilot_spacing,
+            snr_db=pilot_snr_db,
+            seed=observation_seed,
         )
     elif observation == "precomputed":
-        observable = data.h
+        observable = model_inputs.observed_cfr
     else:
         raise ValueError("observation must be ideal_cfr, comb_ls, or precomputed")
     x = observable_features(observable, include_phase=include_phase)
@@ -188,6 +636,8 @@ def run_experiment(
         "cvnn_input_representation": (
             "complex convolution, phase-equivariant encoding, magnitude-invariant classifier"
         ),
+        "split_mode": split_provenance["mode"],
+        "threshold_selection_policy": _VALIDATION_THRESHOLD_POLICY,
     }
     dependency_versions = versions()
     manifest = run_manifest(
@@ -212,13 +662,16 @@ def run_experiment(
         study_status=(
             "DEBUG_ONLY" if "synthetic_debug" in data.source else "SIMULATION_ONLY_UNVALIDATED"
         ),
+        split_policy=split_provenance,
     )
     atomic_json(layout.config / "resolved.json", resolve_config(config))
     atomic_json(output / "manifest.json", manifest)
     results: list[dict[str, Any]] = []
     for seed in seeds:
         train, val, test = (
-            holdout_domain(data, holdout, seed=seed)
+            locked_indices[:3]
+            if locked_indices is not None
+            else holdout_domain(data, holdout, seed=seed)
             if holdout
             else in_domain_split(data, seed=seed)
         )
@@ -289,7 +742,13 @@ def run_experiment(
             val_scores = clf.predict_proba(method_input[val])[:, 1]
             _sync_torch_device(device, uses_torch)
             validation_prediction_seconds = perf_counter() - validation_started
-            threshold = threshold_from_validation(data.y[val], val_scores)
+            threshold_selection = _validation_threshold_selection_record(
+                data.y[val],
+                val_scores,
+                data.group[val],
+                val,
+            )
+            threshold = threshold_selection["threshold"]
             checkpoint = (
                 layout.models / f"{method}_seed{seed}.pt"
                 if method.startswith("coral") or method in ("cnn", "cvnn")
@@ -305,15 +764,48 @@ def run_experiment(
                 import joblib
 
                 joblib.dump(clf, checkpoint)
-                atomic_json(
-                    layout.models / f"{method}_seed{seed}_modelinfo.json",
+            split_contract = {
+                "mode": split_provenance["mode"],
+                "registry_sha256": split_provenance.get("registry_sha256"),
+                "indices_sha256": canonical_hash(
                     {
-                        "format": "loslab.sklearn.v1",
-                        "threshold": threshold,
-                        "include_phase": include_phase,
-                        "method": method,
-                    },
-                )
+                        "train_idx": train.tolist(),
+                        "validation_idx": val.tolist(),
+                        "test_idx": test.tolist(),
+                    }
+                ),
+                "train_rows": int(len(train)),
+                "validation_rows": int(len(val)),
+                "test_rows": int(len(test)),
+            }
+            model_input_contract = build_model_input_artifact_contract(
+                method=method,
+                method_input=method_input,
+                include_phase=include_phase,
+                config_sha256=canonical_hash(config),
+                source_revision=dependency_versions.get("git_sha"),
+                input_file_digests=manifest["inputs"],
+                split=split_contract,
+                model_file_sha256=_stable_single_link_sha256(checkpoint),
+            )
+            model_info_path = layout.models / f"{method}_seed{seed}_modelinfo.json"
+            atomic_json(
+                model_info_path,
+                {
+                    "format": (
+                        "loslab.sklearn.v1"
+                        if method in {"rf", "histgb", "xgb", "mlp", "raw_mlp", "logreg"}
+                        else "loslab.model_input_artifact.v1"
+                    ),
+                    "threshold": threshold,
+                    "include_phase": include_phase,
+                    "method": method,
+                    "model_input_artifact_contract": model_input_contract,
+                },
+            )
+            model_input_contract_verification = verify_model_input_artifact_contract(
+                model_info_path, checkpoint
+            )
             test_prediction_started = perf_counter()
             prob = clf.predict_proba(method_input[test])[:, 1]
             _sync_torch_device(device, uses_torch)
@@ -336,7 +828,10 @@ def run_experiment(
                 ),
                 "metrics": metrics,
                 "confidence": ci,
+                "threshold_selection": threshold_selection,
                 "split": {
+                    "mode": split_provenance["mode"],
+                    "registry_sha256": split_provenance.get("registry_sha256"),
                     "indices_sha256": canonical_hash(
                         {
                             "train_idx": train.tolist(),
@@ -368,6 +863,11 @@ def run_experiment(
                     ),
                 },
                 "checkpoint_path": str(checkpoint),
+                "model_sha256": model_input_contract["model_sha256"],
+                "model_input_artifact_contract_sha256": canonical_hash(model_input_contract),
+                "model_input_artifact_contract_status": model_input_contract_verification[
+                    "status"
+                ],
             }
             results.append(result)
             # Keep split indices and probabilities for independently reproducing every metric.

@@ -15,6 +15,10 @@ from datasets import (  # noqa: E402
     standardized_run_from_channel,
     write_standardized_run,
 )
+from datasets.standardized_specs import (  # noqa: E402
+    FIXED_TDL_DOPPLER_CASES,
+    SPEED_OF_LIGHT_MPS,
+)
 from integrations.sionna.cdl import CDLArrayConfig, generate_cdl_frequency_response  # noqa: E402
 from integrations.sionna.tdl import generate_tdl_frequency_response  # noqa: E402
 
@@ -41,6 +45,11 @@ def test_tdl_receive_array_and_correlation_are_admitted_with_axis_provenance() -
     assert run.records[0].metadata["rx_antenna_count"] == 2
     assert run.records[0].metadata["sampled_bandwidth_hz"] == 240_000.0
     assert run.records[0].metadata["rx_corr_mat_imag"][0][1] == pytest.approx(0.2, abs=1e-7)
+    assert len(run.records[0].metadata["resolved_profile_parameters_sha256"]) == 64
+
+    channel.metadata["mean_tap_powers"][0] += 0.01
+    with pytest.raises(ValueError, match="resolved TDL profile parameter digest"):
+        standardized_run_from_channel(channel, family=StandardizedFamily.TDL)
 
 
 @pytest.mark.native_sionna
@@ -164,6 +173,77 @@ def test_fixed_delay_tdl_profile_frequency_and_bandwidth_admission(
     )
     with pytest.raises(ValueError, match=message):
         standardized_run_from_channel(channel, family=StandardizedFamily.TDL)
+
+
+@pytest.mark.native_sionna
+@pytest.mark.parametrize(
+    ("case_id", "model", "carrier_hz", "doppler_hz"),
+    tuple(
+        (
+            case_id,
+            model,
+            3.5e9 if frequency_range == "FR1" else 28e9,
+            maximum_doppler_hz,
+        )
+        for case_id, (model, frequency_range, maximum_doppler_hz) in FIXED_TDL_DOPPLER_CASES.items()
+    ),
+)
+def test_fixed_profile_named_doppler_case_derives_and_roundtrips_max_speed(
+    tmp_path, case_id: str, model: str, carrier_hz: float, doppler_hz: float
+) -> None:
+    channel = generate_tdl_frequency_response(
+        model=model,
+        seed=13_201,
+        carrier_frequency_hz=carrier_hz,
+        subcarrier_spacing_hz=30_000.0,
+        num_subcarriers=8,
+        delay_spread_s=None,
+        fixed_profile_conformance_case=case_id,
+        spec_version="19.2",
+        device="cpu",
+    )
+
+    expected_max_speed = doppler_hz * SPEED_OF_LIGHT_MPS / carrier_hz
+    assert channel.metadata["fixed_profile_conformance_case"] == case_id
+    assert channel.metadata["max_speed_mps"] == pytest.approx(expected_max_speed)
+    assert channel.metadata["maximum_doppler_hz"] == pytest.approx(doppler_hz)
+    run = standardized_run_from_channel(channel, family=StandardizedFamily.TDL)
+    stored = write_standardized_run(tmp_path, run)
+    restored = read_standardized_run(tmp_path, stored)
+    record = restored.records[0]
+    assert record.metadata["fixed_profile_conformance_case"] == case_id
+    assert record.metadata["maximum_doppler_hz"] == pytest.approx(doppler_hz)
+
+
+@pytest.mark.parametrize(
+    ("model", "carrier_hz", "case_id", "max_speed_mps", "message"),
+    (
+        ("A30", 3.5e9, "UNKNOWN", None, "unknown TS 38.101-4"),
+        ("B100", 3.5e9, "TDLA30-5", None, "requires TDL-A30"),
+        ("A30", 28e9, "TDLA30-5", None, "requires FR1"),
+        ("A30", 3.5e9, "TDLA30-5", 1.0, "requires max_speed_mps"),
+    ),
+)
+def test_fixed_profile_named_doppler_case_rejects_mismatches_before_generation(
+    model: str,
+    carrier_hz: float,
+    case_id: str,
+    max_speed_mps: float | None,
+    message: str,
+) -> None:
+    with pytest.raises(ValueError, match=message):
+        generate_tdl_frequency_response(
+            model=model,
+            seed=13_202,
+            carrier_frequency_hz=carrier_hz,
+            subcarrier_spacing_hz=30_000.0,
+            num_subcarriers=8,
+            delay_spread_s=None,
+            fixed_profile_conformance_case=case_id,
+            max_speed_mps=max_speed_mps,
+            spec_version="19.2",
+            device="cpu",
+        )
 
 
 @pytest.mark.native_sionna

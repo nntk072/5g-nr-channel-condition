@@ -1,8 +1,13 @@
 from __future__ import annotations
 
+import hashlib
+import io
 import json
+import os
 import sys
 import types
+import zipfile
+from typing import Any
 
 import numpy as np
 import pytest
@@ -13,6 +18,26 @@ from integrations.sionna.rt_cache import (
     store_rt_dataset,
 )
 from integrations.sionna.rt_identity import rt_run_identity, static_rt_solver_config
+
+
+def _mock_sionna_scene():
+    material = types.SimpleNamespace(
+        name="wall",
+        relative_permittivity=4.2,
+        conductivity=0.01,
+        thickness=0.1,
+        scattering_coefficient=0.2,
+        xpd_coefficient=0.0,
+        scattering_pattern=types.SimpleNamespace(),
+        frequency_update_callback=None,
+    )
+    scene = types.SimpleNamespace(
+        radio_materials={"wall": material},
+        objects={"wall-1": types.SimpleNamespace(radio_material=material)},
+        frequency=0.0,
+        bandwidth=0.0,
+    )
+    return scene, material
 
 
 def _identity(*, complete: bool = True) -> dict:
@@ -84,6 +109,71 @@ def test_rt_dataset_cache_detects_manifest_metadata_tampering(tmp_path):
         load_rt_dataset(tmp_path, identity)
 
 
+def test_rt_dataset_cache_load_parses_the_verified_bounded_payload(tmp_path):
+    identity = _identity()
+    payload_path = store_rt_dataset(tmp_path, _dataset(identity), identity)
+
+    with pytest.raises(ValueError, match="configured byte limit"):
+        load_rt_dataset(tmp_path, identity, max_payload_bytes=payload_path.stat().st_size - 1)
+    with pytest.raises(TypeError, match="must be an integer"):
+        load_rt_dataset(tmp_path, identity, max_payload_bytes=True)
+    with pytest.raises(ValueError, match="must be positive"):
+        load_rt_dataset(tmp_path, identity, max_payload_bytes=0)
+
+
+def test_rt_dataset_cache_bounds_npz_expansion_before_array_loading(tmp_path):
+    identity = _identity()
+    payload_path = store_rt_dataset(tmp_path, _dataset(identity), identity)
+    archive_bytes = io.BytesIO()
+    with zipfile.ZipFile(archive_bytes, mode="w", compression=zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr("oversized.npy", bytes(8192))
+    payload = archive_bytes.getvalue()
+    assert len(payload) < 4096
+    payload_path.write_bytes(payload)
+
+    manifest_path = payload_path.with_suffix(".json")
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["payload_sha256"] = hashlib.sha256(payload).hexdigest()
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="uncompressed byte limit"):
+        load_rt_dataset(tmp_path, identity, max_payload_bytes=4096)
+
+
+@pytest.mark.parametrize("alias_kind", ["symlink", "hardlink"])
+def test_rt_dataset_cache_rejects_aliased_payload_files(tmp_path, alias_kind):
+    identity = _identity()
+    payload_path = store_rt_dataset(tmp_path, _dataset(identity), identity)
+    outside = tmp_path / "outside.npz"
+    outside.write_bytes(payload_path.read_bytes())
+    payload_path.unlink()
+    if alias_kind == "symlink":
+        payload_path.symlink_to(outside)
+    else:
+        os.link(outside, payload_path)
+
+    with pytest.raises(ValueError, match="single-link regular file"):
+        load_rt_dataset(tmp_path, identity)
+
+
+def test_rt_dataset_cache_rejects_duplicate_manifest_keys(tmp_path):
+    identity = _identity()
+    payload_path = store_rt_dataset(tmp_path, _dataset(identity), identity)
+    manifest_path = payload_path.with_suffix(".json")
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    schema = manifest["schema"]
+    manifest_path.write_text(
+        '{"schema":"loslab.rt_dataset_cache.v1",'
+        f'"schema":"{schema}"'
+        + "}",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="invalid RT cache manifest") as error:
+        load_rt_dataset(tmp_path, identity)
+    assert "duplicate cache manifest key" in str(error.value.__cause__)
+
+
 def test_rt_dataset_cache_rejects_conflicting_outputs_for_one_run_key(tmp_path):
     identity = _identity()
     store_rt_dataset(tmp_path, _dataset(identity), identity)
@@ -121,10 +211,12 @@ def test_cache_aware_rt_generator_reuses_dataset_without_retracing(tmp_path, mon
 
     scene_xml = tmp_path / "mock_scene.xml"
     scene_xml.write_text("<scene/>", encoding="utf-8")
-    sionna_module = types.ModuleType("sionna")
+    sionna_module: Any = types.ModuleType("sionna")
     sionna_module.__path__ = []
-    rt_module = types.ModuleType("sionna.rt")
+    rt_module: Any = types.ModuleType("sionna.rt")
     rt_module.scene = types.SimpleNamespace(mock_scene=scene_xml)
+    scene, material = _mock_sionna_scene()
+    rt_module.load_scene = lambda _reference: scene
     sionna_module.rt = rt_module
     monkeypatch.setitem(sys.modules, "sionna", sionna_module)
     monkeypatch.setitem(sys.modules, "sionna.rt", rt_module)
@@ -152,11 +244,24 @@ def test_cache_aware_rt_generator_reuses_dataset_without_retracing(tmp_path, mon
 
     calls = []
 
-    def generate(config, *, grid, seed, _backend_selection, _runtime_fingerprint, **_kwargs):
+    def generate(
+        config,
+        *,
+        grid,
+        seed,
+        _backend_selection,
+        _runtime_fingerprint,
+        _material_manifest_override,
+        **_kwargs,
+    ):
         calls.append(config)
         identity = rt_run_identity(
             scene_asset_manifest=scene_asset_manifest(scene_xml),
-            physical_config={"scene": adapter.asdict(config), "grid": adapter.asdict(grid)},
+            physical_config={
+                "scene": adapter.asdict(config),
+                "grid": adapter.asdict(grid),
+                "material_state": _material_manifest_override,
+            },
             solver_config=static_rt_solver_config(config.max_depth),
             seed=seed,
             backend_selection=_backend_selection.as_dict(),
@@ -178,6 +283,17 @@ def test_cache_aware_rt_generator_reuses_dataset_without_retracing(tmp_path, mon
     np.testing.assert_array_equal(first.h, second.h)
     assert first.generation_report == second.generation_report
 
+    material.scattering_coefficient = 0.5
+    third = adapter.generate_raytraced_cached(
+        config, cache_directory=tmp_path / "cache", seed=12, pilot=True
+    )
+
+    assert len(calls) == 2
+    assert (
+        third.generation_report["rt_run_identity"]["cache_key_sha256"]
+        != (first.generation_report["rt_run_identity"]["cache_key_sha256"])
+    )
+
 
 def test_cache_aware_rt_generator_bypasses_unresolved_scene_assets(tmp_path, monkeypatch):
     from integrations.sionna import adapter, backend
@@ -189,10 +305,12 @@ def test_cache_aware_rt_generator_bypasses_unresolved_scene_assets(tmp_path, mon
         '<scene><string name="filename" value="https://assets.invalid/mesh.obj"/></scene>',
         encoding="utf-8",
     )
-    sionna_module = types.ModuleType("sionna")
+    sionna_module: Any = types.ModuleType("sionna")
     sionna_module.__path__ = []
-    rt_module = types.ModuleType("sionna.rt")
+    rt_module: Any = types.ModuleType("sionna.rt")
     rt_module.scene = types.SimpleNamespace(mock_scene=scene_xml)
+    scene, _material = _mock_sionna_scene()
+    rt_module.load_scene = lambda _reference: scene
     sionna_module.rt = rt_module
     monkeypatch.setitem(sys.modules, "sionna", sionna_module)
     monkeypatch.setitem(sys.modules, "sionna.rt", rt_module)

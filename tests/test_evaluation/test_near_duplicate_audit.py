@@ -133,6 +133,19 @@ def test_duplicate_sample_ids_fail_closed() -> None:
         )
 
 
+@pytest.mark.parametrize(
+    ("record", "field"),
+    [
+        (_record(" padded", "train", (1 + 0j,)), "sample_id"),
+        (_record("sample", "train ", (1 + 0j,)), "split_id"),
+        (_record("sample", "train", (1 + 0j,), " geometry-hash"), "family_site_geometry_hash"),
+    ],
+)
+def test_padded_split_audit_identities_fail_closed(record: ChannelRecord, field: str) -> None:
+    with pytest.raises(ValueError, match=field):
+        audit_near_duplicates((record,), normalized_inner_product_threshold=0.9)
+
+
 def test_inconsistent_shapes_fail_closed() -> None:
     with pytest.raises(ValueError, match="inconsistent CFR shapes"):
         audit_near_duplicates(

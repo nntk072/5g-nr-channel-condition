@@ -47,6 +47,7 @@ def _small_profile_dataset() -> ChannelDataset:
         domain=np.asarray(domains),
         source=np.asarray(sources),
         metadata=tuple(metadata),
+        label_semantics="profile_proxy",
     )
 
 
@@ -126,6 +127,22 @@ def test_profile_holdout_rejects_inconsistent_proxy_labels():
 
     with pytest.raises(ValueError, match="does not match"):
         run_profile_holdout(corrupted, methods=("logreg",))
+
+
+def test_profile_holdout_rejects_conflicting_dataset_level_label_semantics():
+    data = _small_profile_dataset()
+    mislabeled = ChannelDataset(
+        data.h,
+        data.y,
+        data.group,
+        data.domain,
+        data.source,
+        data.metadata,
+        label_semantics="geometric_direct_path_oracle",
+    )
+
+    with pytest.raises(ValueError, match="dataset-level profile_proxy"):
+        run_profile_holdout(mislabeled, methods=("logreg",))
 
 
 def test_random_forest_baseline_configuration_is_single_worker():

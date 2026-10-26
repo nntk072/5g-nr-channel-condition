@@ -1,0 +1,32 @@
+{
+  "audit": {
+    "blocks_per_channel": 8,
+    "checks": {
+      "acceptance_verdict": true,
+      "cfo_cluster_tail_bounds": true,
+      "committed_source_digest": null,
+      "configuration_digest": true,
+      "crc_and_bler_summaries": true,
+      "deterministic_replay": null,
+      "flattened_block_arrays": true,
+      "paired_cluster_inference": true,
+      "protocol_digest": true,
+      "result_digest": true,
+      "retained_observed_statistics": true,
+      "schema": true,
+      "source_digest_bindings": true,
+      "source_worktree_digest": true
+    },
+    "independent_channel_count": 64,
+    "limitations": [
+      "The retained artifact records per-channel samplewise-reference residual maxima and wrong-order waveform RMSE scalars, and the auditor recomputes their experiment-wide maximum/minimum. It does not retain raw waveforms, so the waveform equations cannot be independently recomputed from the report.",
+      "A passing audit verifies this declared synthetic fixture only; it does not establish a field channel population, G5 closure, or production RT authorization."
+    ],
+    "schema": "umcd.g5_ordered_impairments_result_audit.v1",
+    "status": "VERIFIED_RESULT_AND_WORKTREE_SOURCE_PENDING_COMMIT"
+  },
+  "result_file_sha256": "a0610a3e5caaa29433c6c96b88b682d9382fc8d34eac6bdda7078e677bf014dc",
+  "result_path": "g5-ordered-impairments-independent-channels-cpu-64x8-shared-sync-diagnostic-retention-v3-20261025.json",
+  "result_sha256": "ab97fb1bda3f9f004c33011ab3e15d9e2015f93fe0f13257f0604e3a793efc92",
+  "schema": "umcd.g5_ordered_impairments_retained_audit_record.v1"
+}

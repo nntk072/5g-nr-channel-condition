@@ -229,6 +229,44 @@ def test_shared_pilot_authorization_enforces_trajectory_ceilings(tmp_path: Path)
         )
 
 
+@pytest.mark.parametrize(
+    ("generation_request", "message"),
+    [
+        (
+            {
+                "operation": "rt_data",
+                "config": {
+                    "per_class": 1,
+                    "max_attempts": 1,
+                    "samples_per_src": 1,
+                    "max_depth": 1,
+                    "total_work_units": True,
+                },
+                "destinations": ["/tmp/pilot"],
+            },
+            "pilot RT total_work_units",
+        ),
+        (
+            {
+                "operation": "rt_nr_trajectory",
+                "config": {
+                    "num_steps": 1,
+                    "samples_per_src": 1,
+                    "max_depth": 0,
+                    "max_num_paths_per_src": 1,
+                    "total_work_units": True,
+                },
+                "destinations": ["/tmp/pilot"],
+            },
+            "pilot trajectory total_work_units",
+        ),
+    ],
+)
+def test_pilot_authorization_rejects_boolean_work_count(generation_request: dict, message: str):
+    with pytest.raises(ValueError, match=message):
+        authorize_d1_generation(generation_request, pilot=True)
+
+
 def test_public_release_status_claims_do_not_enable_production(tmp_path: Path):
     request = {"seed": 5}
     approval = _approval(tmp_path, request)

@@ -1,0 +1,1235 @@
+{
+  "channel_draw_records": [
+    {
+      "channel_seed": 86001,
+      "configuration_results": {
+        "0": {
+          "crc_pass_by_condition": {
+            "750hz_continuous": [
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false
+            ],
+            "static": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          },
+          "dmrs_resource_elements_per_slot": 36,
+          "payload_seed": 1086001,
+          "transport_block_bits": 2024,
+          "waveform_noise_sha256": "0b368b0cfa9fd558ab68ddc904eb69513d7b709e106cd5d03b9d3108585c08d8"
+        },
+        "3": {
+          "crc_pass_by_condition": {
+            "750hz_continuous": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ],
+            "static": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          },
+          "dmrs_resource_elements_per_slot": 144,
+          "payload_seed": 1086001,
+          "transport_block_bits": 1864,
+          "waveform_noise_sha256": "0b368b0cfa9fd558ab68ddc904eb69513d7b709e106cd5d03b9d3108585c08d8"
+        }
+      },
+      "echo_coefficient_real_imag": [
+        -0.024232548631219354,
+        0.4458902983630906
+      ],
+      "echo_delay_samples": 5,
+      "noise_seed": 2086001
+    },
+    {
+      "channel_seed": 86002,
+      "configuration_results": {
+        "0": {
+          "crc_pass_by_condition": {
+            "750hz_continuous": [
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false
+            ],
+            "static": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          },
+          "dmrs_resource_elements_per_slot": 36,
+          "payload_seed": 1086002,
+          "transport_block_bits": 2024,
+          "waveform_noise_sha256": "8e64fc35fecd8970534e3734827041162e6ffcc5dad8b0265ae6bbcfb91ba674"
+        },
+        "3": {
+          "crc_pass_by_condition": {
+            "750hz_continuous": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ],
+            "static": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          },
+          "dmrs_resource_elements_per_slot": 144,
+          "payload_seed": 1086002,
+          "transport_block_bits": 1864,
+          "waveform_noise_sha256": "8e64fc35fecd8970534e3734827041162e6ffcc5dad8b0265ae6bbcfb91ba674"
+        }
+      },
+      "echo_coefficient_real_imag": [
+        0.15080828136155686,
+        0.39783146921122814
+      ],
+      "echo_delay_samples": 3,
+      "noise_seed": 2086002
+    },
+    {
+      "channel_seed": 86003,
+      "configuration_results": {
+        "0": {
+          "crc_pass_by_condition": {
+            "750hz_continuous": [
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false
+            ],
+            "static": [
+              false,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          },
+          "dmrs_resource_elements_per_slot": 36,
+          "payload_seed": 1086003,
+          "transport_block_bits": 2024,
+          "waveform_noise_sha256": "93566c54c04bf43231ce49440d33daf760cd149479502051f9e9f15a33da46d9"
+        },
+        "3": {
+          "crc_pass_by_condition": {
+            "750hz_continuous": [
+              false,
+              true,
+              true,
+              false,
+              true,
+              true,
+              true,
+              true
+            ],
+            "static": [
+              false,
+              false,
+              true,
+              false,
+              false,
+              true,
+              true,
+              false
+            ]
+          },
+          "dmrs_resource_elements_per_slot": 144,
+          "payload_seed": 1086003,
+          "transport_block_bits": 1864,
+          "waveform_noise_sha256": "93566c54c04bf43231ce49440d33daf760cd149479502051f9e9f15a33da46d9"
+        }
+      },
+      "echo_coefficient_real_imag": [
+        0.0580380504662687,
+        0.3648700921431966
+      ],
+      "echo_delay_samples": 8,
+      "noise_seed": 2086003
+    },
+    {
+      "channel_seed": 86004,
+      "configuration_results": {
+        "0": {
+          "crc_pass_by_condition": {
+            "750hz_continuous": [
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false
+            ],
+            "static": [
+              true,
+              true,
+              true,
+              false,
+              true,
+              true,
+              false,
+              true
+            ]
+          },
+          "dmrs_resource_elements_per_slot": 36,
+          "payload_seed": 1086004,
+          "transport_block_bits": 2024,
+          "waveform_noise_sha256": "9bf3575b7ec6275cc7f50ea65efd72c426af598dc611a5b2b985fa51ab127a7c"
+        },
+        "3": {
+          "crc_pass_by_condition": {
+            "750hz_continuous": [
+              true,
+              false,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ],
+            "static": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              false
+            ]
+          },
+          "dmrs_resource_elements_per_slot": 144,
+          "payload_seed": 1086004,
+          "transport_block_bits": 1864,
+          "waveform_noise_sha256": "9bf3575b7ec6275cc7f50ea65efd72c426af598dc611a5b2b985fa51ab127a7c"
+        }
+      },
+      "echo_coefficient_real_imag": [
+        -0.42058663093650306,
+        -0.15447692894111562
+      ],
+      "echo_delay_samples": 6,
+      "noise_seed": 2086004
+    },
+    {
+      "channel_seed": 86005,
+      "configuration_results": {
+        "0": {
+          "crc_pass_by_condition": {
+            "750hz_continuous": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              false
+            ],
+            "static": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          },
+          "dmrs_resource_elements_per_slot": 36,
+          "payload_seed": 1086005,
+          "transport_block_bits": 2024,
+          "waveform_noise_sha256": "25505be8ad98b3fd4a13d7dd1e9627bef7af69c7c22a67ef7b4d933f5212ca6f"
+        },
+        "3": {
+          "crc_pass_by_condition": {
+            "750hz_continuous": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ],
+            "static": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          },
+          "dmrs_resource_elements_per_slot": 144,
+          "payload_seed": 1086005,
+          "transport_block_bits": 1864,
+          "waveform_noise_sha256": "25505be8ad98b3fd4a13d7dd1e9627bef7af69c7c22a67ef7b4d933f5212ca6f"
+        }
+      },
+      "echo_coefficient_real_imag": [
+        -0.09327612524053097,
+        -0.2709773222031474
+      ],
+      "echo_delay_samples": 2,
+      "noise_seed": 2086005
+    },
+    {
+      "channel_seed": 86006,
+      "configuration_results": {
+        "0": {
+          "crc_pass_by_condition": {
+            "750hz_continuous": [
+              true,
+              true,
+              false,
+              false,
+              false,
+              false,
+              false,
+              true
+            ],
+            "static": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          },
+          "dmrs_resource_elements_per_slot": 36,
+          "payload_seed": 1086006,
+          "transport_block_bits": 2024,
+          "waveform_noise_sha256": "fa8bba21de0037a6e4f725336d65ae8e33942231eda4496827667dae48bbd535"
+        },
+        "3": {
+          "crc_pass_by_condition": {
+            "750hz_continuous": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ],
+            "static": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          },
+          "dmrs_resource_elements_per_slot": 144,
+          "payload_seed": 1086006,
+          "transport_block_bits": 1864,
+          "waveform_noise_sha256": "fa8bba21de0037a6e4f725336d65ae8e33942231eda4496827667dae48bbd535"
+        }
+      },
+      "echo_coefficient_real_imag": [
+        -0.1909245503192966,
+        0.2661500108109704
+      ],
+      "echo_delay_samples": 2,
+      "noise_seed": 2086006
+    },
+    {
+      "channel_seed": 86007,
+      "configuration_results": {
+        "0": {
+          "crc_pass_by_condition": {
+            "750hz_continuous": [
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false
+            ],
+            "static": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          },
+          "dmrs_resource_elements_per_slot": 36,
+          "payload_seed": 1086007,
+          "transport_block_bits": 2024,
+          "waveform_noise_sha256": "df8e574076b03b7f35542b9e7898645131211e59ebd3da0014fbfbf49db38fdc"
+        },
+        "3": {
+          "crc_pass_by_condition": {
+            "750hz_continuous": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ],
+            "static": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          },
+          "dmrs_resource_elements_per_slot": 144,
+          "payload_seed": 1086007,
+          "transport_block_bits": 1864,
+          "waveform_noise_sha256": "df8e574076b03b7f35542b9e7898645131211e59ebd3da0014fbfbf49db38fdc"
+        }
+      },
+      "echo_coefficient_real_imag": [
+        -0.37147211713645173,
+        -0.22914313113848975
+      ],
+      "echo_delay_samples": 2,
+      "noise_seed": 2086007
+    },
+    {
+      "channel_seed": 86008,
+      "configuration_results": {
+        "0": {
+          "crc_pass_by_condition": {
+            "750hz_continuous": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ],
+            "static": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          },
+          "dmrs_resource_elements_per_slot": 36,
+          "payload_seed": 1086008,
+          "transport_block_bits": 2024,
+          "waveform_noise_sha256": "70ef646fe26ca5b55a9bad89f7578f3c09cd34a58ff8bac53604c2ea3515a204"
+        },
+        "3": {
+          "crc_pass_by_condition": {
+            "750hz_continuous": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ],
+            "static": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          },
+          "dmrs_resource_elements_per_slot": 144,
+          "payload_seed": 1086008,
+          "transport_block_bits": 1864,
+          "waveform_noise_sha256": "70ef646fe26ca5b55a9bad89f7578f3c09cd34a58ff8bac53604c2ea3515a204"
+        }
+      },
+      "echo_coefficient_real_imag": [
+        -0.08153235324423311,
+        0.19851439917992797
+      ],
+      "echo_delay_samples": 7,
+      "noise_seed": 2086008
+    },
+    {
+      "channel_seed": 86009,
+      "configuration_results": {
+        "0": {
+          "crc_pass_by_condition": {
+            "750hz_continuous": [
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false
+            ],
+            "static": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          },
+          "dmrs_resource_elements_per_slot": 36,
+          "payload_seed": 1086009,
+          "transport_block_bits": 2024,
+          "waveform_noise_sha256": "3acb967c4c1ed209e2ac212a5f1e5d384a48135eb91e32b87f42678ce9354071"
+        },
+        "3": {
+          "crc_pass_by_condition": {
+            "750hz_continuous": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ],
+            "static": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          },
+          "dmrs_resource_elements_per_slot": 144,
+          "payload_seed": 1086009,
+          "transport_block_bits": 1864,
+          "waveform_noise_sha256": "3acb967c4c1ed209e2ac212a5f1e5d384a48135eb91e32b87f42678ce9354071"
+        }
+      },
+      "echo_coefficient_real_imag": [
+        -0.3600586579722008,
+        0.009060208966640174
+      ],
+      "echo_delay_samples": 3,
+      "noise_seed": 2086009
+    },
+    {
+      "channel_seed": 86010,
+      "configuration_results": {
+        "0": {
+          "crc_pass_by_condition": {
+            "750hz_continuous": [
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false
+            ],
+            "static": [
+              false,
+              false,
+              false,
+              true,
+              true,
+              true,
+              false,
+              false
+            ]
+          },
+          "dmrs_resource_elements_per_slot": 36,
+          "payload_seed": 1086010,
+          "transport_block_bits": 2024,
+          "waveform_noise_sha256": "e96f18b0dce87715cd2f40642d3a943d1f838d20474bdc04f0d0c31b68f9cd6e"
+        },
+        "3": {
+          "crc_pass_by_condition": {
+            "750hz_continuous": [
+              true,
+              true,
+              true,
+              false,
+              false,
+              false,
+              false,
+              false
+            ],
+            "static": [
+              true,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              true
+            ]
+          },
+          "dmrs_resource_elements_per_slot": 144,
+          "payload_seed": 1086010,
+          "transport_block_bits": 1864,
+          "waveform_noise_sha256": "e96f18b0dce87715cd2f40642d3a943d1f838d20474bdc04f0d0c31b68f9cd6e"
+        }
+      },
+      "echo_coefficient_real_imag": [
+        -0.33499584599866683,
+        -0.2689689236324812
+      ],
+      "echo_delay_samples": 8,
+      "noise_seed": 2086010
+    },
+    {
+      "channel_seed": 86011,
+      "configuration_results": {
+        "0": {
+          "crc_pass_by_condition": {
+            "750hz_continuous": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ],
+            "static": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          },
+          "dmrs_resource_elements_per_slot": 36,
+          "payload_seed": 1086011,
+          "transport_block_bits": 2024,
+          "waveform_noise_sha256": "2077aa729416dda5849d02d906487201182f32854862f4157e5ff9f3655526f8"
+        },
+        "3": {
+          "crc_pass_by_condition": {
+            "750hz_continuous": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ],
+            "static": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          },
+          "dmrs_resource_elements_per_slot": 144,
+          "payload_seed": 1086011,
+          "transport_block_bits": 1864,
+          "waveform_noise_sha256": "2077aa729416dda5849d02d906487201182f32854862f4157e5ff9f3655526f8"
+        }
+      },
+      "echo_coefficient_real_imag": [
+        -0.19921813286498508,
+        -0.10428770922258025
+      ],
+      "echo_delay_samples": 6,
+      "noise_seed": 2086011
+    },
+    {
+      "channel_seed": 86012,
+      "configuration_results": {
+        "0": {
+          "crc_pass_by_condition": {
+            "750hz_continuous": [
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false
+            ],
+            "static": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          },
+          "dmrs_resource_elements_per_slot": 36,
+          "payload_seed": 1086012,
+          "transport_block_bits": 2024,
+          "waveform_noise_sha256": "84d7efcce2961d87bfe210d6948bb3581d6bae9d7cde5b41278be87ce6851733"
+        },
+        "3": {
+          "crc_pass_by_condition": {
+            "750hz_continuous": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ],
+            "static": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          },
+          "dmrs_resource_elements_per_slot": 144,
+          "payload_seed": 1086012,
+          "transport_block_bits": 1864,
+          "waveform_noise_sha256": "84d7efcce2961d87bfe210d6948bb3581d6bae9d7cde5b41278be87ce6851733"
+        }
+      },
+      "echo_coefficient_real_imag": [
+        -0.3645439724926897,
+        -0.2345520235591385
+      ],
+      "echo_delay_samples": 2,
+      "noise_seed": 2086012
+    },
+    {
+      "channel_seed": 86013,
+      "configuration_results": {
+        "0": {
+          "crc_pass_by_condition": {
+            "750hz_continuous": [
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false
+            ],
+            "static": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          },
+          "dmrs_resource_elements_per_slot": 36,
+          "payload_seed": 1086013,
+          "transport_block_bits": 2024,
+          "waveform_noise_sha256": "4df223117d1d2dbaf58b6dfb510ad6017747e44ab7c3df073623570adf639b32"
+        },
+        "3": {
+          "crc_pass_by_condition": {
+            "750hz_continuous": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ],
+            "static": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          },
+          "dmrs_resource_elements_per_slot": 144,
+          "payload_seed": 1086013,
+          "transport_block_bits": 1864,
+          "waveform_noise_sha256": "4df223117d1d2dbaf58b6dfb510ad6017747e44ab7c3df073623570adf639b32"
+        }
+      },
+      "echo_coefficient_real_imag": [
+        0.2889801409702327,
+        0.3826674320335111
+      ],
+      "echo_delay_samples": 3,
+      "noise_seed": 2086013
+    },
+    {
+      "channel_seed": 86014,
+      "configuration_results": {
+        "0": {
+          "crc_pass_by_condition": {
+            "750hz_continuous": [
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false
+            ],
+            "static": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          },
+          "dmrs_resource_elements_per_slot": 36,
+          "payload_seed": 1086014,
+          "transport_block_bits": 2024,
+          "waveform_noise_sha256": "02d816fcfc7f0a4454fb2d80c9303ff93ae8226aa4d480e887b536e86ed38d9e"
+        },
+        "3": {
+          "crc_pass_by_condition": {
+            "750hz_continuous": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ],
+            "static": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          },
+          "dmrs_resource_elements_per_slot": 144,
+          "payload_seed": 1086014,
+          "transport_block_bits": 1864,
+          "waveform_noise_sha256": "02d816fcfc7f0a4454fb2d80c9303ff93ae8226aa4d480e887b536e86ed38d9e"
+        }
+      },
+      "echo_coefficient_real_imag": [
+        -0.4068126266294195,
+        0.14200053179148214
+      ],
+      "echo_delay_samples": 4,
+      "noise_seed": 2086014
+    },
+    {
+      "channel_seed": 86015,
+      "configuration_results": {
+        "0": {
+          "crc_pass_by_condition": {
+            "750hz_continuous": [
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false
+            ],
+            "static": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          },
+          "dmrs_resource_elements_per_slot": 36,
+          "payload_seed": 1086015,
+          "transport_block_bits": 2024,
+          "waveform_noise_sha256": "9fba37d1e4f3d3cabfcb77e839f5ad0102449a861aa79b5582e9b8184defde90"
+        },
+        "3": {
+          "crc_pass_by_condition": {
+            "750hz_continuous": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ],
+            "static": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          },
+          "dmrs_resource_elements_per_slot": 144,
+          "payload_seed": 1086015,
+          "transport_block_bits": 1864,
+          "waveform_noise_sha256": "9fba37d1e4f3d3cabfcb77e839f5ad0102449a861aa79b5582e9b8184defde90"
+        }
+      },
+      "echo_coefficient_real_imag": [
+        -0.3715147498935407,
+        0.1660181909768688
+      ],
+      "echo_delay_samples": 3,
+      "noise_seed": 2086015
+    },
+    {
+      "channel_seed": 86016,
+      "configuration_results": {
+        "0": {
+          "crc_pass_by_condition": {
+            "750hz_continuous": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ],
+            "static": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          },
+          "dmrs_resource_elements_per_slot": 36,
+          "payload_seed": 1086016,
+          "transport_block_bits": 2024,
+          "waveform_noise_sha256": "173fa8812dc57388f68092f859fb9c42be51a03dcab00ebee726ff5bc3548498"
+        },
+        "3": {
+          "crc_pass_by_condition": {
+            "750hz_continuous": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ],
+            "static": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          },
+          "dmrs_resource_elements_per_slot": 144,
+          "payload_seed": 1086016,
+          "transport_block_bits": 1864,
+          "waveform_noise_sha256": "173fa8812dc57388f68092f859fb9c42be51a03dcab00ebee726ff5bc3548498"
+        }
+      },
+      "echo_coefficient_real_imag": [
+        -0.14904809302002492,
+        -0.1522907231558147
+      ],
+      "echo_delay_samples": 6,
+      "noise_seed": 2086016
+    }
+  ],
+  "command": [
+    "/home/nguyenl37/5g-nr-channel-condition/.venv/bin/python3",
+    "experiments/scan_g5_doppler_dmrs_noise_operating_point.py",
+    "--waveform-noise-variance",
+    "0.0003",
+    "--output",
+    "docs/research/results/g5-doppler-dmrs-noise-scan-0p0003-20261024.json"
+  ],
+  "configuration": {
+    "blocks_per_channel": 8,
+    "channel_distribution": {
+      "direct_coefficient": [
+        0.85,
+        0.0
+      ],
+      "echo_amplitude_uniform": [
+        0.2,
+        0.5
+      ],
+      "echo_delay_samples_inclusive": [
+        2,
+        8
+      ],
+      "echo_doppler_hz_conditions": {
+        "750hz_continuous": 750.0,
+        "static": 0.0
+      },
+      "echo_phase_uniform_rad": [
+        -3.141592653589793,
+        3.141592653589793
+      ]
+    },
+    "channel_draws": 16,
+    "channel_seeds": [
+      86001,
+      86002,
+      86003,
+      86004,
+      86005,
+      86006,
+      86007,
+      86008,
+      86009,
+      86010,
+      86011,
+      86012,
+      86013,
+      86014,
+      86015,
+      86016
+    ],
+    "interpretation": "development-only descriptive scan; no confirmatory inference or G5 qualification",
+    "noise_seed_offset": 2000000,
+    "nr_configuration": {
+      "cyclic_prefix_samples": 7,
+      "decoder_channel_estimator": "Sionna PUSCH receiver default DM-RS LS with linear interpolation",
+      "dmrs_additional_positions": [
+        0,
+        3
+      ],
+      "fft_size": 72,
+      "n_size_bwp_rb": 6,
+      "sample_rate_hz": 2160000.0,
+      "subcarrier_spacing_hz": 30000
+    },
+    "pairing": "same channel realization, waveform AWGN seed, and transmitter seed across DM-RS configurations; transport-block sizes differ with pilot overhead",
+    "payload_seed_offset": 1000000,
+    "purpose": "development_noise_operating_point_selection",
+    "waveform_awgn_complex_variance": 0.0003
+  },
+  "created_utc": "2026-10-24T11:54:31.030681+00:00",
+  "git_revision": "8ba3482539ccc4774175f86b4e9938081424a268",
+  "goodput_delta_by_condition": {
+    "750hz_continuous": {
+      "mean_additional_position_3_minus_0_bits_per_slot_descriptive": 1209.875,
+      "per_channel_delta_min_max_bits_per_slot": [
+        -160.0,
+        1864.0
+      ]
+    },
+    "static": {
+      "mean_additional_position_3_minus_0_bits_per_slot_descriptive": -208.25,
+      "per_channel_delta_min_max_bits_per_slot": [
+        -1072.0,
+        113.0
+      ]
+    }
+  },
+  "result_sha256": "d76ca851e3d63fcc985a5081c1571fa9248f10d82d3c42584ec632f459b4f6ea",
+  "runtime": {
+    "device": "cpu",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "sionna": "2.2.0",
+    "torch": "2.11.0+cu128"
+  },
+  "schema": "umcd.g5_doppler_dmrs_noise_operating_point.v1",
+  "source_sha256": {
+    "experiments/scan_g5_doppler_dmrs_density.py": "924bf8f867ba947eef42dc5272fbcbaa3d830d9f126dda496db9f86fc2196d56",
+    "experiments/scan_g5_doppler_dmrs_noise_operating_point.py": "b79109a03e29cf0d90a8bbdf196b71fbade4140cbd3d5bb86991673d3cd0f5ba",
+    "integrations/sionna/nr_pusch.py": "073fb321bd69547478c6c6862a0e355ae1f708f8895a5951423a16ee24f64a41",
+    "integrations/sionna/ofdm_impairments.py": "d79e5b6cdd2280cad685bebc904bd6d345ce061621785944b02aff9fff62b751",
+    "receivers/nr/pusch.py": "f00a94da21f925c7366a36072fb63dd2dd68669bd2414064e797a97d8fd8464d"
+  },
+  "status": "DEVELOPMENT_ONLY_NOT_QUALIFIED",
+  "summary_by_dmrs_additional_position": {
+    "0": {
+      "750hz_continuous": {
+        "blocks": 128,
+        "channel_bler_min_max": [
+          0.0,
+          1.0
+        ],
+        "crc_failures": 94,
+        "equal_channel_mean_bler_descriptive": 0.734375,
+        "pooled_bler_descriptive": 0.734375,
+        "successful_transport_block_bits_per_slot_descriptive": 537.625,
+        "transport_block_bits_per_payload": 2024
+      },
+      "static": {
+        "blocks": 128,
+        "channel_bler_min_max": [
+          0.0,
+          0.625
+        ],
+        "crc_failures": 8,
+        "equal_channel_mean_bler_descriptive": 0.0625,
+        "pooled_bler_descriptive": 0.0625,
+        "successful_transport_block_bits_per_slot_descriptive": 1897.5,
+        "transport_block_bits_per_payload": 2024
+      }
+    },
+    "3": {
+      "750hz_continuous": {
+        "blocks": 128,
+        "channel_bler_min_max": [
+          0.0,
+          0.625
+        ],
+        "crc_failures": 8,
+        "equal_channel_mean_bler_descriptive": 0.0625,
+        "pooled_bler_descriptive": 0.0625,
+        "successful_transport_block_bits_per_slot_descriptive": 1747.5,
+        "transport_block_bits_per_payload": 1864
+      },
+      "static": {
+        "blocks": 128,
+        "channel_bler_min_max": [
+          0.0,
+          0.75
+        ],
+        "crc_failures": 12,
+        "equal_channel_mean_bler_descriptive": 0.09375,
+        "pooled_bler_descriptive": 0.09375,
+        "successful_transport_block_bits_per_slot_descriptive": 1689.25,
+        "transport_block_bits_per_payload": 1864
+      }
+    }
+  }
+}

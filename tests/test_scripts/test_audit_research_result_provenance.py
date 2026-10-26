@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import gzip
+import hashlib
 import importlib.util
 import json
 from pathlib import Path
@@ -166,6 +167,49 @@ def test_all_declared_path_fields_are_checked(tmp_path: Path) -> None:
 
     assert [issue["code"] for issue in issues] == ["unresolved_input_reference"]
     assert "missing.json" in issues[0]["message"]
+
+
+def test_declared_artifact_digest_is_compared_with_file_bytes(tmp_path: Path) -> None:
+    root = tmp_path / "results"
+    artifact = root / "capture.bin"
+    artifact.parent.mkdir(parents=True)
+    artifact.write_bytes(b"captured bytes")
+    matching_digest = hashlib.sha256(artifact.read_bytes()).hexdigest()
+    _write_json(
+        root / "run.json",
+        _valid_record(
+            inputs={"dataset_path": "capture.bin", "dataset_sha256": matching_digest}
+        ),
+    )
+
+    report = audit_tree(root)
+
+    assert report["files_with_issues"] == 0
+
+
+def test_mismatched_and_malformed_artifact_digests_are_reported(tmp_path: Path) -> None:
+    root = tmp_path / "results"
+    artifact = root / "capture.bin"
+    artifact.parent.mkdir(parents=True)
+    artifact.write_bytes(b"captured bytes")
+    _write_json(
+        root / "run.json",
+        _valid_record(
+            inputs=[
+                {"path": "capture.bin", "sha256": "a" * 64},
+                {"path": "capture.bin", "sha256": "not-a-digest"},
+                {"path": "capture.bin", "sha256": None},
+            ]
+        ),
+    )
+
+    issues = audit_tree(root)["files"][0]["issues"]
+
+    assert [issue["code"] for issue in issues] == [
+        "reference_hash_mismatch",
+        "invalid_reference_hash",
+        "invalid_reference_hash",
+    ]
 
 
 def test_descriptive_input_text_and_hashes_are_not_treated_as_file_paths(tmp_path: Path) -> None:

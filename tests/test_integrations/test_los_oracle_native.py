@@ -35,6 +35,24 @@ def test_independent_segment_oracle_matches_clear_and_screen_blocked_geometry(sc
 
 
 @pytest.mark.native_sionna
+def test_numpy_mesh_inventory_oracle_matches_screen_scene_geometry(screen_scene):
+    from integrations.sionna.los_oracle import independent_mesh_segment_visibility
+
+    visible = independent_mesh_segment_visibility(
+        screen_scene, [-2.0, -1.0, 2.5], [-2.0, 1.0, 2.5]
+    )
+    blocked = independent_mesh_segment_visibility(
+        screen_scene, [-2.0, 0.0, 2.5], [2.0, 0.0, 2.5]
+    )
+
+    assert visible.geometry.outcome == "visible"
+    assert blocked.geometry.outcome == "blocked"
+    assert blocked.scene_geometry_sha256 == visible.scene_geometry_sha256
+    assert blocked.triangle_count > 0
+    assert blocked.object_names
+
+
+@pytest.mark.native_sionna
 def test_segment_touching_screen_boundary_is_ambiguous(screen_scene):
     from integrations.sionna.los_oracle import SegmentVisibilityState, segment_visibility
 

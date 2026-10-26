@@ -1,9 +1,12 @@
+from typing import Any
+
 import pytest
 
 torch = pytest.importorskip("torch")
 pytest.importorskip("sionna")
 
 from datasets.nr_store import read_nr_record, write_nr_record  # noqa: E402
+from experiments.g5_cp_bounded_dft_estimator import FiniteDelayDFTChannelEstimator  # noqa: E402
 from experiments.link_curves import (  # noqa: E402
     run_tdl_pusch_bler_curve,
     run_tdl_pusch_rx_diversity_curve,
@@ -11,11 +14,158 @@ from experiments.link_curves import (  # noqa: E402
 )
 from integrations.sionna.nr_pusch import SionnaPUSCHLSReceiver  # noqa: E402
 from integrations.sionna.tdl_pusch import (  # noqa: E402
+    SionnaPUSCHLinkDecoder,
     SionnaTDLTimePUSCHLink,
     generate_tdl_pusch_batch,
     tdl_pusch_records,
 )
 from receivers.nr import NRPUSCHConfig  # noqa: E402
+
+
+def test_tdl_time_curve_rejects_incomplete_dft_estimator_configuration() -> None:
+    with pytest.raises(TypeError, match="bounds must both be integers"):
+        run_tdl_pusch_time_bler_curve(
+            snr_db=(18.0,),
+            frames_per_snr=1,
+            batch_size=1,
+            seed=948001,
+            channel_estimator_kind="finite_delay_dft",
+        )
+    with pytest.raises(ValueError, match="only valid for the finite-delay DFT"):
+        run_tdl_pusch_time_bler_curve(
+            snr_db=(18.0,),
+            frames_per_snr=1,
+            batch_size=1,
+            seed=948001,
+            channel_estimator_kind="sionna_ls",
+            estimator_min_delay_samples=-6,
+            estimator_max_delay_samples=7,
+        )
+
+
+@pytest.mark.native_sionna
+def test_tdl_pusch_wrappers_reuse_the_configured_channel_estimator() -> None:
+    receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(
+            n_size_bwp=12,
+            subcarrier_spacing_khz=30,
+            interpolation_type="nn",
+        ),
+        device="cpu",
+    )
+    decoder = SionnaPUSCHLinkDecoder(receiver)
+    time_link = SionnaTDLTimePUSCHLink(
+        receiver,
+        model="A",
+        delay_spread_s=100e-9,
+        carrier_frequency_hz=3.5e9,
+        speed_mps=0.0,
+    )
+
+    assert decoder._decoder._channel_estimator is receiver._estimator
+    assert time_link.receiver._channel_estimator is receiver._estimator
+
+
+@pytest.mark.native_sionna
+def test_sample_domain_tdl_pusch_accepts_signed_delay_dft_estimator() -> None:
+    receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(n_size_bwp=12, subcarrier_spacing_khz=30),
+        device="cpu",
+    )
+    estimator = FiniteDelayDFTChannelEstimator(
+        receiver,
+        min_delay_samples=-6,
+        max_delay_samples=7,
+    )
+    time_link = SionnaTDLTimePUSCHLink(
+        receiver,
+        model="A",
+        delay_spread_s=100e-9,
+        carrier_frequency_hz=3.5e9,
+        speed_mps=0.0,
+        channel_estimator=estimator,
+    )
+
+    waveform, bits, clean, channel_truth = time_link.transmit_channel(2, seed=92108)
+    decoded, crc_ok = time_link.decode(clean, 0.0)
+    from sionna.phy.channel import time_to_ofdm_channel
+
+    received_grid = time_link.receiver._ofdm_demodulator(clean)
+    estimate, _ = estimator(received_grid, torch.tensor(0.0))
+    truth = time_to_ofdm_channel(channel_truth, receiver.resource_grid, time_link.l_min)
+    relative_error = (estimate - truth).abs().square().sum() / truth.abs().square().sum()
+
+    assert waveform.device.type == "cpu"
+    assert time_link.l_min == -6 and time_link.l_max == 7
+    assert time_link.receiver._channel_estimator is estimator
+    assert decoded.shape == bits.shape
+    assert crc_ok.shape == (2, 1)
+    assert torch.isfinite(decoded).all() and torch.isfinite(crc_ok).all()
+    assert relative_error.item() < 0.01
+
+    result = run_tdl_pusch_time_bler_curve(
+        snr_db=(18.0,),
+        frames_per_snr=2,
+        batch_size=1,
+        seed=92108,
+        profile="A",
+        delay_spread_s=100e-9,
+        carrier_frequency_hz=3.5e9,
+        speed_mps=0.0,
+        n_size_bwp=12,
+        subcarrier_spacing_khz=30,
+        channel_estimator_kind="finite_delay_dft",
+        estimator_min_delay_samples=-6,
+        estimator_max_delay_samples=7,
+        device="cpu",
+    )
+    assert result["configuration"]["channel_estimator"] == {
+        "kind": "finite_delay_dft",
+        "min_delay_samples": -6,
+        "max_delay_samples": 7,
+    }
+    assert result["points"][0]["frames"] == 2
+
+
+@pytest.mark.native_sionna
+def test_sample_domain_tdl_pusch_curve_runs_on_cpu() -> None:
+    result = run_tdl_pusch_time_bler_curve(
+        snr_db=(0.0, 30.0),
+        frames_per_snr=4,
+        batch_size=2,
+        seed=92107,
+        profile="A",
+        delay_spread_s=100e-9,
+        carrier_frequency_hz=3.5e9,
+        speed_mps=3.0,
+        n_size_bwp=12,
+        subcarrier_spacing_khz=30,
+        device="cpu",
+    )
+
+    assert result["evidence_grade"] == "SIMULATION_ONLY_UNVALIDATED"
+    assert result["schema"] == "loslab.tdl_pusch_time_bler_curve.v2"
+    assert result["configuration"]["device"] == "cpu"
+    assert [point["snr_db"] for point in result["points"]] == [0.0, 30.0]
+    assert all(point["frames"] == 4 for point in result["points"])
+    assert all(len(point["frame_error_mask"]) == 4 for point in result["points"])
+    assert all(
+        point["frame_cluster_ids"] == ["92107", "92107", "92108", "92108"]
+        for point in result["points"]
+    )
+    assert result["configuration"]["confidence_interval"] == (
+        "two-sided 95% Wilson score interval across codewords"
+    )
+    assert (
+        result["configuration"]["batch_cluster_confidence_interval"]["bootstrap_draws"]
+        == 5000
+    )
+    assert all(
+        point["bler_batch_cluster_bootstrap"]["independent_groups"] == 2
+        and point["bler_batch_cluster_bootstrap"]["status"] == "estimated"
+        and point["bler_batch_cluster_bootstrap"]["cluster_bootstrap_ci95"] is not None
+        for point in result["points"]
+    )
 
 
 @pytest.mark.native_sionna
@@ -26,7 +176,7 @@ def test_tdl_pusch_link_produces_stored_receiver_records_with_separate_truth(tmp
         NRPUSCHConfig(n_size_bwp=2, subcarrier_spacing_khz=30),
         device="cuda:0",
     )
-    values = {
+    values: dict[str, Any] = {
         "model": "A",
         "batch_size": 2,
         "seed": 72,
@@ -222,7 +372,7 @@ def test_sample_domain_tdl_pusch_rx_diversity_accepts_correlated_rx_array():
     if not torch.cuda.is_available():
         pytest.skip("CUDA is not available")
 
-    options = dict(
+    options: dict[str, Any] = dict(
         snr_db=(8.0,),
         frames_per_snr=16,
         batch_size=8,

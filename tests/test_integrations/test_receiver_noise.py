@@ -41,3 +41,50 @@ def test_proper_complex_awgn_rejects_invalid_variance(variance: float) -> None:
     reference = torch.zeros((2,), dtype=torch.complex64)
     with pytest.raises(ValueError, match="finite and nonnegative"):
         proper_complex_awgn(reference, variance, generator=torch.Generator().manual_seed(1))
+
+
+@pytest.mark.parametrize(
+    ("variance", "message"),
+    [
+        (True, "Boolean or complex"),
+        (1.0 + 0.5j, "Boolean or complex"),
+        ("noise", "real numeric values"),
+    ],
+)
+def test_proper_complex_awgn_rejects_invalid_variance_types_and_cast_overflow(
+    variance: object, message: str
+) -> None:
+    reference = torch.zeros((2,), dtype=torch.complex64)
+    with pytest.raises(ValueError, match=message):
+        proper_complex_awgn(reference, variance, generator=torch.Generator().manual_seed(1))
+
+
+def test_proper_complex_awgn_rejects_target_dtype_overflow() -> None:
+    reference = torch.zeros((2,), dtype=torch.complex64)
+    variance = torch.tensor(1e100, dtype=torch.float64)
+
+    with pytest.raises(ValueError, match="representable as finite"):
+        proper_complex_awgn(reference, variance, generator=torch.Generator().manual_seed(1))
+
+
+def test_proper_complex_awgn_rejects_positive_variance_underflow() -> None:
+    reference = torch.zeros((2,), dtype=torch.complex64)
+    variance = torch.tensor(1e-100, dtype=torch.float64)
+
+    with pytest.raises(ValueError, match="underflow to zero"):
+        proper_complex_awgn(reference, variance, generator=torch.Generator().manual_seed(1))
+
+
+def test_proper_complex_awgn_preserves_python_scalar_precision_until_validation() -> None:
+    reference = torch.zeros((2,), dtype=torch.complex64)
+
+    with pytest.raises(ValueError, match="underflow to zero"):
+        proper_complex_awgn(reference, 1e-100, generator=torch.Generator().manual_seed(1))
+
+
+def test_proper_complex_awgn_rejects_sparse_variance_tensor() -> None:
+    reference = torch.zeros((2,), dtype=torch.complex64)
+    variance = torch.sparse_coo_tensor([[0]], [1.0], size=(2,))
+
+    with pytest.raises(ValueError, match="dense real-valued"):
+        proper_complex_awgn(reference, variance, generator=torch.Generator().manual_seed(1))

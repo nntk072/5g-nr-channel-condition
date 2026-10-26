@@ -57,13 +57,14 @@ class NearDuplicateAuditReport:
 
 def _validate_record(record: ChannelRecord) -> None:
     for value, name in ((record.sample_id, "sample_id"), (record.split_id, "split_id")):
-        if not isinstance(value, str) or not value.strip():
-            raise ValueError(f"{name} must be a nonempty string")
+        if not isinstance(value, str) or not value or value != value.strip():
+            raise ValueError(f"{name} must be a canonical nonempty string")
     if record.family_site_geometry_hash is not None and (
         not isinstance(record.family_site_geometry_hash, str)
-        or not record.family_site_geometry_hash.strip()
+        or not record.family_site_geometry_hash
+        or record.family_site_geometry_hash != record.family_site_geometry_hash.strip()
     ):
-        raise ValueError("family_site_geometry_hash must be None or a nonempty string")
+        raise ValueError("family_site_geometry_hash must be None or a canonical nonempty string")
     if not isinstance(record.cfr, np.ndarray):
         raise ValueError(f"CFR for sample {record.sample_id!r} must be a NumPy array")
     if record.cfr.size == 0:

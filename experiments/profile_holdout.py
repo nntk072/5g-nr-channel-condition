@@ -61,6 +61,10 @@ def normalized_cfr_features(h: np.ndarray) -> np.ndarray:
 
 
 def _profile_rows(data: ChannelDataset) -> dict[str, np.ndarray]:
+    if data.label_semantics != "profile_proxy":
+        raise ValueError(
+            "profile-disjoint evaluation requires dataset-level profile_proxy label semantics"
+        )
     rows: dict[str, list[int]] = {}
     group_profile: dict[str, str] = {}
     for index, (group, metadata, label, family) in enumerate(
@@ -249,7 +253,8 @@ def run_profile_holdout(
         raise ValueError("seed must be a nonnegative integer")
 
     profile_indices = _profile_rows(data)
-    features = normalized_cfr_features(data.h)
+    model_inputs = data.model_inputs()
+    features = normalized_cfr_features(model_inputs.observed_cfr)
     profile_names = tuple("ABCDE")
     scores: dict[str, np.ndarray] = {
         method: np.full(len(data.y), np.nan, dtype=np.float64) for method in methods

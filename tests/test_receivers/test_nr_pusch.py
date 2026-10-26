@@ -15,6 +15,10 @@ def test_pusch_config_accepts_valid_dmrs_configuration():
     assert config.n_size_grid == 24
 
 
+def test_pusch_config_defaults_to_sionna_receiver_linear_interpolation():
+    assert NRPUSCHConfig().interpolation_type == "lin"
+
+
 def test_pusch_config_accepts_bwp_offset_inside_wider_carrier_grid():
     config = NRPUSCHConfig(
         n_size_bwp=6,

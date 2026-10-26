@@ -10,6 +10,11 @@ from typing import Any
 
 from artifacts.provenance import package_source_sha256, sha256_file, versions
 from datasets.nr_store import NRStoredTrajectory, read_nr_trajectory
+from datasets.split_policy import (
+    SplitPolicyRegistry,
+    VerifiedOpenSSHArtifact,
+    verify_signed_split_policy_registry_attestation,
+)
 from evaluation.independent_splits import IndependentSplit
 from experiments.rt_trajectory_forecast import (
     evaluate_trajectory_forecasts,
@@ -29,15 +34,51 @@ def evaluate_frozen_trajectories(
     store: Path,
     split_lock_path: Path,
     spec_paths: list[Path],
+    *,
+    split_signature_path: Path | None = None,
+    trusted_split_allowed_signers_path: Path | None = None,
+    split_signer_id: str | None = None,
 ) -> dict[str, Any]:
-    """Evaluate all fixed baselines once; preserve split membership in every row."""
-    raw_lock = json.loads(split_lock_path.read_text(encoding="utf-8"))
-    split = IndependentSplit(
-        sample_to_split=raw_lock["sample_to_split"],
-        group_to_split=raw_lock["group_to_split"],
-        seed=raw_lock["seed"],
-        group_field=raw_lock["group_field"],
+    """Evaluate fixed baselines under a signed registry or legacy diagnostic lock."""
+    signed_arguments = (
+        split_signature_path,
+        trusted_split_allowed_signers_path,
+        split_signer_id,
     )
+    signed_mode = any(value is not None for value in signed_arguments)
+    if signed_mode and any(value is None for value in signed_arguments):
+        raise ValueError(
+            "signed split mode requires signature, trusted allowed-signers file, and signer ID"
+        )
+    registry: SplitPolicyRegistry | None = None
+    verified_lock: VerifiedOpenSSHArtifact | None = None
+    split: IndependentSplit | None = None
+    if signed_mode:
+        assert split_signature_path is not None
+        assert trusted_split_allowed_signers_path is not None
+        assert split_signer_id is not None
+        registry, verified_lock = verify_signed_split_policy_registry_attestation(
+            split_lock_path,
+            split_signature_path,
+            trusted_allowed_signers_path=trusted_split_allowed_signers_path,
+            signer_id=split_signer_id,
+        )
+        expected_samples = {
+            child_id
+            for child_id, binding in registry.child_bindings.items()
+            if binding.child_kind == "nr_trajectory_sample"
+        }
+        if not expected_samples:
+            raise ValueError("signed split registry has no NR trajectory sample children")
+    else:
+        raw_lock = json.loads(split_lock_path.read_text(encoding="utf-8"))
+        split = IndependentSplit(
+            sample_to_split=raw_lock["sample_to_split"],
+            group_to_split=raw_lock["group_to_split"],
+            seed=raw_lock["seed"],
+            group_field=raw_lock["group_field"],
+        )
+        expected_samples = set(split.sample_to_split)
     if not spec_paths:
         raise ValueError("at least one trajectory spec is required")
 
@@ -53,11 +94,48 @@ def evaluate_frozen_trajectories(
         if observed_samples.intersection(trajectory.sample_ids):
             raise ValueError(f"trajectory specs contain duplicate samples: {trajectory_id}")
         observed_samples.update(trajectory.sample_ids)
-        sample_splits = {split.sample_to_split[sample_id] for sample_id in trajectory.sample_ids}
+        if registry is not None:
+            for sample_id, record in zip(
+                trajectory.sample_ids, trajectory.records, strict=True
+            ):
+                try:
+                    binding = registry.child_bindings[sample_id]
+                except KeyError as exc:
+                    raise ValueError(
+                        f"trajectory sample is absent from signed split registry: {sample_id}"
+                    ) from exc
+                if binding.child_kind != "nr_trajectory_sample":
+                    raise ValueError(
+                        f"trajectory sample has wrong signed child kind: {sample_id}"
+                    )
+                expected_lineage = {
+                    "split_subject_id": binding.parent_subject_id,
+                    "split_child_id": sample_id,
+                    "split_child_kind": binding.child_kind,
+                }
+                for field, expected_value in expected_lineage.items():
+                    if record.provenance.get(field) != expected_value:
+                        raise ValueError(
+                            f"trajectory sample provenance {field} differs from signed registry: "
+                            f"{sample_id}"
+                        )
+            sample_splits = {
+                registry.split_for_child(sample_id) for sample_id in trajectory.sample_ids
+            }
+        else:
+            assert split is not None
+            try:
+                sample_splits = {
+                    split.sample_to_split[sample_id] for sample_id in trajectory.sample_ids
+                }
+            except KeyError as exc:
+                raise ValueError(
+                    f"trajectory sample is absent from frozen split lock: {exc.args[0]}"
+                ) from exc
         if len(sample_splits) != 1:
             raise ValueError(f"trajectory crosses frozen splits: {trajectory_id}")
         assigned_split = next(iter(sample_splits))
-        if split.group_field == "scene_group_id":
+        if split is not None and split.group_field == "scene_group_id":
             group_id = (
                 "procedural_urban_family"
                 if "urban_" in Path(str(spec["scene"])).stem
@@ -67,7 +145,11 @@ def evaluate_frozen_trajectories(
                 raise ValueError(
                     f"trajectory scene group differs from frozen lock: {trajectory_id}"
                 )
-        rows = evaluate_trajectory_forecasts(trajectory, split=assigned_split)
+        rows = evaluate_trajectory_forecasts(
+            trajectory,
+            split=assigned_split,
+            split_registry=registry,
+        )
         all_rows.extend(rows)
         trajectories.append(
             {
@@ -80,12 +162,22 @@ def evaluate_frozen_trajectories(
         )
         input_specs.append({"path": str(spec_path), "sha256": sha256_file(spec_path)})
 
-    if observed_samples != set(split.sample_to_split):
+    if observed_samples != expected_samples:
         raise ValueError("trajectory specs must cover exactly the samples in the frozen split")
 
+    split_names = (
+        tuple(registry.policy.split_fractions)
+        if registry is not None
+        else ("train", "validation", "test")
+    )
+    if split is not None:
+        split_seed = split.seed
+    else:
+        assert registry is not None
+        split_seed = registry.policy.seed
     metrics_by_split = {
         name: summarize_forecast_rows([row for row in all_rows if row["split"] == name])
-        for name in ("train", "validation", "test")
+        for name in split_names
     }
     predictions = sorted(
         all_rows,
@@ -106,8 +198,29 @@ def evaluate_frozen_trajectories(
             "linear_complex_extrapolation": "two latest estimates with timestamp-scaled complex linear trend",
         },
         "split_lock": str(split_lock_path),
-        "split_lock_sha256": sha256_file(split_lock_path),
-        "split_seed": split.seed,
+        "split_lock_sha256": (
+            verified_lock.artifact_sha256
+            if verified_lock is not None
+            else sha256_file(split_lock_path)
+        ),
+        "split_provenance": (
+            {
+                "mode": "signed_split_policy_registry",
+                "signature_sha256": verified_lock.signature_sha256,
+                "trusted_allowed_signers_sha256": verified_lock.allowed_signers_sha256,
+                "signer_id": verified_lock.signer_id,
+                "signature_namespace": verified_lock.namespace,
+                "registry_policy_sha256": registry.policy.to_dict()["policy_sha256"],
+                "registry_schema": registry.to_dict()["schema"],
+                "trajectory_child_kind": "nr_trajectory_sample",
+            }
+            if verified_lock is not None and registry is not None
+            else {
+                "mode": "legacy_unsigned_diagnostic_lock",
+                "qualification": "DIAGNOSTIC_ONLY",
+            }
+        ),
+        "split_seed": split_seed,
         "trajectory_count": len(trajectories),
         "transition_count": len(predictions),
         "trajectories": trajectories,
@@ -132,8 +245,18 @@ def main() -> None:
     parser.add_argument("split_lock", type=Path)
     parser.add_argument("output", type=Path)
     parser.add_argument("specs", nargs="+", type=Path)
+    parser.add_argument("--split-signature", type=Path)
+    parser.add_argument("--trusted-split-allowed-signers", type=Path)
+    parser.add_argument("--split-signer-id")
     args = parser.parse_args()
-    report = evaluate_frozen_trajectories(args.store, args.split_lock, args.specs)
+    report = evaluate_frozen_trajectories(
+        args.store,
+        args.split_lock,
+        args.specs,
+        split_signature_path=args.split_signature,
+        trusted_split_allowed_signers_path=args.trusted_split_allowed_signers,
+        split_signer_id=args.split_signer_id,
+    )
     payload = json.dumps(report, indent=2, sort_keys=True, allow_nan=False).encode() + b"\n"
     if args.output.exists():
         parser.error(f"refusing to overwrite existing report: {args.output}")

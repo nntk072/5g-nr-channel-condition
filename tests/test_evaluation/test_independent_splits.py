@@ -2,6 +2,7 @@ import json
 
 import pytest
 from evaluation.independent_splits import (
+    IndependentSplit,
     audit_group_leakage,
     freeze_split_lock,
     make_independent_split,
@@ -75,6 +76,47 @@ def test_split_requires_group_identity_and_unique_sample_ids():
         )
 
 
+@pytest.mark.parametrize(
+    "bad_record",
+    [
+        {"sample_id": None, "scene_group_id": "scene-a"},
+        {"sample_id": 17, "scene_group_id": "scene-a"},
+        {"sample_id": "sample-a", "scene_group_id": None},
+        {"sample_id": "sample-a", "scene_group_id": 17},
+        {"sample_id": "sample-a", "scene_group_id": "   "},
+    ],
+)
+def test_split_rejects_missing_or_non_string_identity_fields(bad_record):
+    with pytest.raises(ValueError, match="nonempty canonical string sample_id and scene_group_id"):
+        make_independent_split(
+            [bad_record, *records()[1:]],
+            seed="strict-identities",
+        )
+
+
+def test_split_rejects_non_string_seed_and_identity_field_names():
+    with pytest.raises(ValueError, match="seed must be canonical"):
+        make_independent_split(records(), seed=7)
+    with pytest.raises(ValueError, match="group_field and sample_id_field"):
+        make_independent_split(records(), seed="strict-fields", group_field=None)
+
+
+@pytest.mark.parametrize(
+    ("sample_to_split", "group_to_split", "seed", "group_field", "message"),
+    [
+        ({None: "train"}, {"scene-a": "train"}, "seed", "scene_group_id", "sample assignment IDs"),
+        ({"sample-a": "train"}, {17: "train"}, "seed", "scene_group_id", "group assignment IDs"),
+        ({"sample-a": "unknown"}, {"scene-a": "train"}, "seed", "scene_group_id", "split names"),
+        ({"sample-a": "train"}, {"scene-a": "train"}, None, "scene_group_id", "seed and group_field"),
+    ],
+)
+def test_split_value_object_rejects_malformed_lock_fields(
+    sample_to_split, group_to_split, seed, group_field, message
+):
+    with pytest.raises(ValueError, match=message):
+        IndependentSplit(sample_to_split, group_to_split, seed, group_field)
+
+
 def test_four_way_split_supports_spatial_buffer_audit():
     samples = [
         {
@@ -99,6 +141,49 @@ def test_group_leakage_audit_rejects_changed_scene_group():
     samples[0] = {**samples[0], "scene_group_id": "different-scene"}
 
     with pytest.raises(ValueError, match="leakage or changed group identity"):
+        audit_group_leakage(split, samples)
+
+
+def test_group_leakage_audit_rejects_non_string_identity_fields():
+    samples = records()
+    split = make_independent_split(samples, seed="strict-audit-identities")
+    samples[0] = {**samples[0], "scene_group_id": None}
+
+    with pytest.raises(ValueError, match="nonempty canonical sample and group IDs"):
+        audit_group_leakage(split, samples)
+
+
+@pytest.mark.parametrize(
+    ("bad_record", "seed", "group_field"),
+    [
+        ({"sample_id": " sample-a", "scene_group_id": "scene-a"}, "canonical", "scene_group_id"),
+        ({"sample_id": "sample-a", "scene_group_id": "scene-a "}, "canonical", "scene_group_id"),
+        ({"sample_id": "sample-a", "scene_group_id": "scene-a"}, " padded", "scene_group_id"),
+        ({"sample_id": "sample-a", "scene_group_id": "scene-a"}, "canonical", " scene_group_id"),
+    ],
+)
+def test_split_rejects_padded_identity_values(bad_record, seed, group_field):
+    with pytest.raises(ValueError):
+        make_independent_split(
+            [bad_record, *records()[1:]],
+            seed=seed,
+            group_field=group_field,
+        )
+
+
+def test_split_lock_value_and_audit_reject_padded_identity_keys():
+    with pytest.raises(ValueError, match="canonical strings"):
+        IndependentSplit(
+            {" sample-a": "train"},
+            {"scene-a": "train"},
+            "seed",
+            "scene_group_id",
+        )
+
+    samples = records()
+    split = make_independent_split(samples, seed="canonical-audit")
+    samples[0] = {**samples[0], "sample_id": f" {samples[0]['sample_id']}"}
+    with pytest.raises(ValueError, match="canonical sample and group IDs"):
         audit_group_leakage(split, samples)
 
 

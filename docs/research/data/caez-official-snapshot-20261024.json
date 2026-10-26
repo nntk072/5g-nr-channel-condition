@@ -1,0 +1,37 @@
+{
+  "schema": "caez-official-count-snapshot.v1",
+  "retrieved_date": "2026-10-24",
+  "dataset_page": "https://iip.ethz.ch/datasets/caez.html",
+  "license_page": "https://iip.ethz.ch/datasets/caez/caez-dataset-license.html",
+  "license_disposition": "User accepted CAEZ Dataset License v1.0 for local research use. Do not redistribute raw data or any subset; publish attribution and source links with derived results.",
+  "official_preprocessed_directory": "https://iis-people.ee.ethz.ch/~iisdatasets/iip/caez/5g/csi_features/downsampled_ofdm_domain_absolutes/",
+  "published_counts": {
+    "caez_5g_indoor_full": 338981,
+    "caez_5g_outdoor_full": 303189,
+    "caez_5g_hallway_full": 288180
+  },
+  "preprocessed_listing": {
+    "caez_5g_indoor_full.npz": {
+      "last_modified": "2025-12-12 11:19",
+      "displayed_size": "5.5G"
+    },
+    "caez_5g_outdoor_full.npz": {
+      "last_modified": "2025-12-12 11:22",
+      "displayed_size": "5.0G"
+    },
+    "caez_5g_hallway_full.npz": {
+      "last_modified": "2026-08-05 15:58",
+      "displayed_size": "4.7G"
+    }
+  },
+  "official_processing_sources": {
+    "indoor_outdoor": "https://github.com/IIP-Group/neural-positioning/blob/main/gen_dataset.py",
+    "hallway": "https://github.com/IIP-Group/neural-positioning-transformer/blob/main/gen_dataset_hallway.py"
+  },
+  "remote_checksums_available": false,
+  "snapshot_limitations": [
+    "The ETH page reports sample counts for each named campaign; it does not state that these counts equal rows in the separate preprocessed feature archives.",
+    "The official directory listing provides rounded sizes and modification times, but no remote cryptographic checksums or row-level source crosswalk.",
+    "The linked preprocessing scripts currently describe filtering behavior, but the local archives do not bind their exact generator commit, raw input version, filter flags, or retained-row index map."
+  ]
+}

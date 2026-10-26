@@ -779,24 +779,67 @@ def generate_rt_nr_trajectory(
                     ),
                     "geometric_los": np.asarray(True, dtype=np.bool_),
                 },
+                target_reason_codes={
+                    "channel_cfr": (
+                        (
+                            TargetValidity.VALID
+                            if total_path_counts[index] > 0
+                            else TargetValidity.NOT_OBSERVABLE
+                        ),
+                    )
+                    * grid.fft_size,
+                    "channel_cfr_ofdm_symbols": (
+                        (
+                            TargetValidity.VALID
+                            if total_path_counts[index] > 0
+                            else TargetValidity.NOT_OBSERVABLE
+                        ),
+                    )
+                    * waveform_channels[index].size,
+                    "geometric_los": (TargetValidity.VALID,),
+                },
                 target_definitions={
-                    "channel_cfr": TargetDefinition(
+                    "channel_cfr": TargetDefinition.versioned(
                         semantic="absolute-delay full-path complex CFR on effective PUSCH subcarriers",
                         units="complex channel gain (dimensionless)",
                         source="sionna_rt_pathsolver",
+                        reference=(
+                            "Sionna RT full solver-valid path set evaluated with absolute "
+                            "propagation delays and configured carrier/subcarrier offsets"
+                        ),
+                        aggregation_rule=(
+                            "coherent sum of all retained solver-valid paths per effective "
+                            "subcarrier and frame; no path-count or power normalization"
+                        ),
+                        definition_version="umcd.rt-trajectory.absolute-cfr.v1",
                     ),
-                    "channel_cfr_ofdm_symbols": TargetDefinition(
+                    "channel_cfr_ofdm_symbols": TargetDefinition.versioned(
                         semantic=(
                             "absolute-delay full-path CFR with path-Doppler phase evolution "
                             "sampled at PUSCH OFDM symbols"
                         ),
                         units="complex channel gain (dimensionless)",
                         source="sionna_rt_paths_cfr_doppler",
+                        reference=(
+                            "absolute-delay RT path channel evaluated at the declared NR "
+                            "OFDM symbol start timestamps"
+                        ),
+                        aggregation_rule=(
+                            "coherent sum of retained solver-valid paths per effective "
+                            "subcarrier and OFDM symbol; no path or symbol averaging"
+                        ),
+                        definition_version="umcd.rt-trajectory.symbol-cfr.v1",
                     ),
-                    "geometric_los": TargetDefinition(
+                    "geometric_los": TargetDefinition.versioned(
                         semantic="independent Mitsuba segment-intersection geometry oracle",
                         units="boolean",
                         source="mitsuba_segment_intersection_oracle",
+                        reference=(
+                            "independent finite-segment visibility query for the recorded "
+                            "TX/RX poses and scene geometry"
+                        ),
+                        aggregation_rule="one independent direct-path visibility value per frame",
+                        definition_version="umcd.rt-trajectory.geometric-los.v1",
                     ),
                 },
                 provenance=record_provenance,

@@ -4,12 +4,12 @@ from pathlib import Path
 
 import pytest
 from experiments.g5_doppler_awgn_receiver import (
-    _source_fingerprints,
     exact_paired_binomial_p_value,
     run_doppler_awgn_probe,
     wilson_interval,
 )
 from scipy.stats import binomtest
+from tests.test_experiments.frozen_g5_source_manifest import assert_frozen_source_manifest
 
 # Frozen in Unified Plan edition 3.246. Keep these values independent of the
 # experiment module so producer changes cannot redefine the saved-report audit.
@@ -71,7 +71,15 @@ def test_saved_doppler_awgn_report_recomputes_paired_outcomes_and_source_hashes(
 
     assert report["schema"] == "umcd.g5_doppler_awgn_receiver.v1"
     assert recorded_hash == actual_hash
-    assert report["source_sha256"] == _source_fingerprints()
+    assert_frozen_source_manifest(
+        report,
+        expected_paths=(
+            "experiments/g5_doppler_awgn_receiver.py",
+            "integrations/sionna/nr_pusch.py",
+            "integrations/sionna/ofdm_impairments.py",
+            "receivers/nr/pusch.py",
+        ),
+    )
     assert report["command"]
     assert len(report["config_sha256"]) == 64
     assert (

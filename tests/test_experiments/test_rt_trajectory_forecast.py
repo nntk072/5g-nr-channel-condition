@@ -1,8 +1,18 @@
 """Tests for fixed receiver-only RT trajectory forecast baselines."""
 
+from dataclasses import replace
+
 import numpy as np
 import pytest
 from datasets.nr import NRChannelRecord, NRObservation, NRTrajectory
+from datasets.split_policy import (
+    SplitChildBinding,
+    SplitParentType,
+    SplitPolicy,
+    SplitSubject,
+    bind_split_children,
+    make_split_policy_registry,
+)
 from experiments.rt_trajectory_forecast import (
     evaluate_trajectory_forecasts,
     summarize_forecast_rows,
@@ -65,4 +75,97 @@ def test_forecast_baselines_reject_unrecognized_split_or_single_snapshot() -> No
         evaluate_trajectory_forecasts(
             NRTrajectory("one", (0.0, 1.0), (_record("a", 1.0, 1.0), _record("b", 1.0, 1.0))),
             split="development",
+        )
+
+
+def test_forecast_baselines_accept_calibration_partition() -> None:
+    trajectory = NRTrajectory(
+        "calibration-split",
+        (0.0, 1.0),
+        (_record("cal-a", 1.0, 1.0), _record("cal-b", 1.0, 1.0)),
+    )
+
+    rows = evaluate_trajectory_forecasts(trajectory, split="calibration")
+
+    assert rows
+    assert {row["split"] for row in rows} == {"calibration"}
+
+
+def test_forecast_metrics_use_only_valid_target_elements() -> None:
+    first = _record("t0", 1.0, 1.0)
+    target = _record("t1", 1.0, 1.0)
+    target = replace(
+        target,
+        targets={"channel_cfr": np.asarray([2.0, 0.0, 0.0], dtype=np.complex64)},
+        target_masks={"channel_cfr": np.asarray([True, False, False])},
+    )
+    trajectory = NRTrajectory("masked", (0.0, 1.0), (first, target))
+
+    rows = evaluate_trajectory_forecasts(trajectory, split="test")
+
+    assert len(rows) == 1
+    assert rows[0]["valid_target_element_count"] == 1
+    assert rows[0]["nmse_linear"] == pytest.approx(0.25)
+
+
+def test_forecast_metrics_skip_empty_support_and_declared_time_gaps() -> None:
+    first = _record("t0", 1.0, 1.0)
+    empty_target = replace(
+        _record("t1", 1.0, 1.0),
+        targets={"channel_cfr": np.zeros(3, dtype=np.complex64)},
+        target_masks={"channel_cfr": np.zeros(3, dtype=np.bool_)},
+    )
+    last = replace(
+        _record("t2", 1.0, 1.0),
+        targets={"channel_cfr": np.zeros(3, dtype=np.complex64)},
+        target_masks={"channel_cfr": np.zeros(3, dtype=np.bool_)},
+    )
+    trajectory = NRTrajectory("gapped", (0.0, 1.0, 2.0), (first, empty_target, last))
+
+    no_support = evaluate_trajectory_forecasts(trajectory, split="test")
+    across_gap = evaluate_trajectory_forecasts(
+        trajectory, split="test", gap_after_sample_ids={"t0"}
+    )
+
+    assert no_support == []
+    assert across_gap == []
+    with pytest.raises(ValueError, match="unknown samples"):
+        evaluate_trajectory_forecasts(
+            trajectory, split="test", gap_after_sample_ids={"not-in-trajectory"}
+        )
+
+
+def test_forecast_evaluator_enforces_frozen_split_assignment() -> None:
+    trajectory = NRTrajectory(
+        "split-bound",
+        (0.0, 1.0),
+        (_record("sample-a", 1.0, 1.0), _record("sample-b", 1.0, 1.0)),
+    )
+    parents = tuple(f"parent-{index}" for index in range(64))
+    subjects = tuple(
+        SplitSubject(
+            subject_id=parent_id,
+            parent_type=SplitParentType.NETWORK_EPISODE,
+            source_family="synthetic-test",
+        )
+        for parent_id in parents
+    )
+    parent_registry = make_split_policy_registry(
+        subjects, policy=SplitPolicy.release_v2(seed="forecast-registry-test")
+    )
+    registry = bind_split_children(
+        parent_registry,
+        tuple(
+            SplitChildBinding(sample_id, parents[index], "nr_trajectory_sample")
+            for index, sample_id in enumerate(trajectory.sample_ids)
+        ),
+    )
+    assigned_splits = {registry.split_for_child(sample_id) for sample_id in trajectory.sample_ids}
+    wrong_split = next(
+        candidate for candidate in ("train", "validation", "test") if candidate not in assigned_splits
+    )
+
+    with pytest.raises(ValueError, match="do not all belong"):
+        evaluate_trajectory_forecasts(
+            trajectory, split=wrong_split, split_registry=registry
         )

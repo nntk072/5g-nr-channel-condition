@@ -1,0 +1,1422 @@
+{
+  "collisions": [],
+  "global_exclusivity_established": false,
+  "incomplete_files": [],
+  "malformed_seed_fields": [],
+  "reserved_seeds": [
+    1720100,
+    1720101,
+    1720102,
+    1720103,
+    1720104,
+    1720105,
+    1720106,
+    1720107,
+    1720108
+  ],
+  "roots": [
+    {
+      "eligible_json_file_count": 232,
+      "path": "/home/l2nguyen/5g-nr-channel-condition/docs/research/results"
+    }
+  ],
+  "scan_scope": "regular single-link .json and .json.gz files under supplied roots",
+  "scanned_file_count": 232,
+  "scanned_files": [
+    {
+      "byte_count": 15522,
+      "collision_count": 0,
+      "path": "docs/research/results/caez-cross-environment-summary-forecast.json",
+      "sha256": "2697498a6309a4c6fe16a8d11b3e397ae5db62b2bd604558c45d0b79726dd345"
+    },
+    {
+      "byte_count": 2328,
+      "collision_count": 0,
+      "path": "docs/research/results/caez-indoor-audit.json",
+      "sha256": "ca241335c191af74aead8bf5fbc3adfcd688ab8f099c7a190f6a705274741285"
+    },
+    {
+      "byte_count": 6533,
+      "collision_count": 0,
+      "path": "docs/research/results/caez-indoor-magnitude-forecast.json",
+      "sha256": "0d892aebd2fd18438cf885011fc1598ffe987624f5a80b0de0f3d4b5a2b7cb6c"
+    },
+    {
+      "byte_count": 4032,
+      "collision_count": 0,
+      "path": "docs/research/results/caez-official-count-reconciliation-20261024.json",
+      "sha256": "be03f71fd056f0dfe4b6f2a06c5dc76458000e1e68f2beb0723e863dfdf53cd0"
+    },
+    {
+      "byte_count": 19821,
+      "collision_count": 0,
+      "path": "docs/research/results/cdl-profile-validation-19.2-a-to-e-4096-seed31900-1000ns.json",
+      "sha256": "03e753b8d4074831499718a66fdef64ebf10e003868bd18d6a20038c14229c14"
+    },
+    {
+      "byte_count": 19831,
+      "collision_count": 0,
+      "path": "docs/research/results/cdl-profile-validation-19.2-a-to-e-4096-seed31900-300ns.json",
+      "sha256": "21c8ddaee69bafdf5404587b1a9d6534dd36dc5d1ca59cf84dda39c55dcae8a2"
+    },
+    {
+      "byte_count": 19838,
+      "collision_count": 0,
+      "path": "docs/research/results/cdl-profile-validation-19.2-a-to-e-4096-seed31900-30ns.json",
+      "sha256": "cb994c00b61bd48bf9784f2821b497fc1ac23b9240aaccebc469129ebf68b489"
+    },
+    {
+      "byte_count": 19827,
+      "collision_count": 0,
+      "path": "docs/research/results/cdl-profile-validation-19.2-a-to-e-4096-seed31900.json",
+      "sha256": "1c29b597ae04fbd7b370143f1cca98e70efaa805e2090bef2d2d5b60c31db094"
+    },
+    {
+      "byte_count": 4163,
+      "collision_count": 0,
+      "path": "docs/research/results/g3-fr3-building-scattering-audit-20261024.json",
+      "sha256": "5a14154a9cbe7ad386f1ed556b66ac17a3d8944be52038d6445751fc651d5f9f"
+    },
+    {
+      "byte_count": 38573,
+      "collision_count": 0,
+      "path": "docs/research/results/g3-scene-asset-material-audit-20261023.json",
+      "sha256": "b4275ca39801667467004d1b6eb32c6333de4d0fd2256a32fb3adb19010640ef"
+    },
+    {
+      "byte_count": 1239,
+      "collision_count": 0,
+      "path": "docs/research/results/g4-standard-reference-audit-20261026.json",
+      "sha256": "59f58dfa7074c97f365ca49c5539c2e41b61275ac170d4301d5ea5552229d8ee"
+    },
+    {
+      "byte_count": 5476,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-cp-bounded-dft-selected-failures-20261024.json",
+      "sha256": "b5c6bd6338ec3f766e37c64525f816267b4421a119d6488a2020c6855ad6bf00"
+    },
+    {
+      "byte_count": 119398,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-delay-domain-dft-confirm-20261024.json",
+      "sha256": "f924dc226bc5c2611f63c7887943c3eba969c74dde9ddffd6e132e3d4a212956"
+    },
+    {
+      "byte_count": 111684,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-doppler-dmrs-density-confirm-20261024.json",
+      "sha256": "b0f43d2b04a93249147784c77e825eec21fb3de7125f213826cbb15bd2ffd033"
+    },
+    {
+      "byte_count": 112038,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-doppler-dmrs-density-scan-20261024.json",
+      "sha256": "bf6990006d04318ffa9445d63a12303f77488e10bf34baeca4e2d675564898c8"
+    },
+    {
+      "byte_count": 31742,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-doppler-dmrs-noise-scan-0p0001-20261024.json",
+      "sha256": "607424931c89d0493a5618754cf8aa1b0ec1679a7bd67b36fcaaa0a59cd89e6c"
+    },
+    {
+      "byte_count": 31718,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-doppler-dmrs-noise-scan-0p0003-20261024.json",
+      "sha256": "ebdf845b5d272c386bf47d6d5b52363c9f83431ca0866e607b04b50ae1bf84ef"
+    },
+    {
+      "byte_count": 31743,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-doppler-dmrs-noise-scan-0p0006-20261024.json",
+      "sha256": "ff1674c154031edacf04d03825073fa69e6b70825ca49b2eb14a087b83c0b986"
+    },
+    {
+      "byte_count": 78905,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-doppler-operating-point-scan-20261024.json",
+      "sha256": "82f869b297dc3a6ff4716a8c46e1c01952a2d22d63062797865e84824a861633"
+    },
+    {
+      "byte_count": 8452,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-estimator-choice-posthoc-20261024.json",
+      "sha256": "e68b67059ae9b8824e84757adca4f67a35e6d43f5a20cc5c21eeb21b6cae759a"
+    },
+    {
+      "byte_count": 43061,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-independent-channel-pusch-20261024.json",
+      "sha256": "18b72f1206fcb46761077d62252f1500a6ee81a466300c093c8137f7499ab183"
+    },
+    {
+      "byte_count": 78606,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-independent-channel-pusch-doppler-stress-20261024.json",
+      "sha256": "b3a7c37a2ffe6f4c2c3516caeac412be64a6f215dbeac99ff9b2733451d9c4fe"
+    },
+    {
+      "byte_count": 55073,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-independent-channel-pusch-ici-20261024.json",
+      "sha256": "1d0705afc855b1f11f451d005412ad14d363ede882daadbd847c2fbf28912154"
+    },
+    {
+      "byte_count": 242518,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-ordered-impairments-independent-channels-cpu-64x8-20261024.json",
+      "sha256": "ec207cc42c1e4557c997f9123339683052ee870ed364b6e2dfb09b329ea80d7a"
+    },
+    {
+      "byte_count": 242132,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-ordered-impairments-independent-channels-cpu-64x8-channel-truth-guard-diagnostic-20261024.json",
+      "sha256": "bd9d764dbec86f6a1ca32f35266a8fc4a87c00a0f7cb8195c919faae34e0dcb0"
+    },
+    {
+      "byte_count": 243268,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-ordered-impairments-independent-channels-cpu-64x8-fixed-max-guard-diagnostic-20261024.json",
+      "sha256": "31f1226b6c1a2e70d4ae5f2d93ebe889e5d2173c3ef89346dc55ad392a31d08d"
+    },
+    {
+      "byte_count": 242824,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-ordered-impairments-independent-channels-cpu-64x8-fixed2-guard-diagnostic-20261024.json",
+      "sha256": "b5f3f795d726ccecbd91ab14039de7821af6bc684f3f034586e2603afe9a0d40"
+    },
+    {
+      "byte_count": 242658,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-ordered-impairments-independent-channels-cpu-64x8-shared-sync-confirm-20261024.json",
+      "sha256": "509cde92b2682aceebf409a50afad853ac71b33044a2b043a5e14077b474f9f7"
+    },
+    {
+      "byte_count": 260683,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-ordered-impairments-independent-channels-cpu-64x8-shared-sync-diagnostic-retention-v3-20261025.json",
+      "sha256": "a0610a3e5caaa29433c6c96b88b682d9382fc8d34eac6bdda7078e677bf014dc"
+    },
+    {
+      "byte_count": 1607,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-ordered-impairments-independent-channels-cpu-64x8-shared-sync-diagnostic-retention-v3-audit-20261025.json",
+      "sha256": "09702b8b147540f3f79d1f445e076573a4dd426e68d2b03bd208eb4ab069f20f"
+    },
+    {
+      "byte_count": 243057,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-ordered-impairments-independent-channels-cpu-64x8-shared-sync-replication-20261025.json",
+      "sha256": "bb2aeab7376f7e195a95cc5d54cd8ea90a86a865137f4145ed8d159a48bb4b8a"
+    },
+    {
+      "byte_count": 243692,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-ordered-impairments-independent-channels-cpu-64x8-shared-sync-replication-v2-20261025.json",
+      "sha256": "54f4845cd7b9989fbdefa0da393cedf456ee0c35c136aa7711664009c645003a"
+    },
+    {
+      "byte_count": 1523,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-ordered-impairments-independent-channels-cpu-64x8-shared-sync-replication-v2-audit-20261025.json",
+      "sha256": "f858992ecbc803b05f6103ca8e56c016cd2b93bd859baaf130a09fa465fe7e6f"
+    },
+    {
+      "byte_count": 11268,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-ordered-impairments-tx-rx-iq-cpu-128-20261024.json",
+      "sha256": "b889a7f2a9d2f95ab47ccc80a6de5a16840c242d3213347f1aee8865da651812"
+    },
+    {
+      "byte_count": 4649,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-standardized-pusch-cp-exceedance-20261023.json",
+      "sha256": "362a7eea2f5c82a2dae9244fa1fabb96624c93bfd2858a7819cc08b973ca75c0"
+    },
+    {
+      "byte_count": 6101,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-standardized-pusch-cp-exceedance-cluster-bootstrap-20261023.json",
+      "sha256": "247dfcf6581d8628360e01b9b8592bcb8b85d70e11fe36546b15677f75129bde"
+    },
+    {
+      "byte_count": 74783,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-standardized-pusch-cp-exceedance-snr-curve-128-v5-20261024.json",
+      "sha256": "bb7071896453e95f70cf072623da7f431de1ee744f23e573ec8f8110d80733d2"
+    },
+    {
+      "byte_count": 19673,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-standardized-pusch-cp-exceedance-snr-curve-20261023.json",
+      "sha256": "dbf13b6c62f1e24f710623bd2b877d8781847ced44c22fbe746338194ab3b425"
+    },
+    {
+      "byte_count": 23863,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-standardized-pusch-cp-exceedance-snr-curve-v2-20261023.json",
+      "sha256": "dce54470d36f388c59d50d5a041689c7ea5a936f6caafd9086d4fd738b472152"
+    },
+    {
+      "byte_count": 19250,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-standardized-pusch-cp-exceedance-snr-curve-v3-20261023.json",
+      "sha256": "153cff31f662c130217f714bdf9b5fa351e06834213929832b2269232887d1f3"
+    },
+    {
+      "byte_count": 75602,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-standardized-pusch-cp-exceedance-tdl-a-snr-curve-128-v1-20261024.json",
+      "sha256": "65e61fec0dba3b2f5784813483c41d2906ed01b19a3403bb0d729a242ee683f5"
+    },
+    {
+      "byte_count": 75602,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-standardized-pusch-cp-exceedance-tdl-a-snr-curve-128-v2-20261024.json",
+      "sha256": "0e396d7b6e4dd35e7f57282238601797712702b12b9756a50f92f0acb248994a"
+    },
+    {
+      "byte_count": 75718,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-standardized-pusch-cp-exceedance-tdl-b-snr-curve-128-v1-20261024.json",
+      "sha256": "9bc695e6f042d35620af9edee0dec3e7b6e264ff422a3a7ccd814e010e83f407"
+    },
+    {
+      "byte_count": 74798,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-standardized-pusch-cp-exceedance-tdl-c-snr-curve-128-v1-20261024.json",
+      "sha256": "5dbd9229634078173d97fbe08c3d7baa2941b069c499fa00f4169dc979edc52b"
+    },
+    {
+      "byte_count": 75585,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-standardized-pusch-cp-exceedance-tdl-c-snr-curve-128-v2-20261024.json",
+      "sha256": "4d1c819f3a3fbf0985d511db7fb9f0f81a07a6e0f929f6cd798cc4b8556711aa"
+    },
+    {
+      "byte_count": 75585,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-standardized-pusch-cp-exceedance-tdl-c-snr-curve-128-v3-20261024.json",
+      "sha256": "7fae7ff2f25c32693347129d17a34fb0d1b01cc8cbee3ca672ff40e82131ea0c"
+    },
+    {
+      "byte_count": 74888,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-standardized-pusch-cp-exceedance-tdl-d-snr-curve-128-v1-20261024.json",
+      "sha256": "a70cbb7c683efe9380cc3241a171cd941c4f8d07941de8a5c1600b8d8fc9668a"
+    },
+    {
+      "byte_count": 74884,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-standardized-pusch-cp-exceedance-tdl-e-snr-curve-128-v1-20261024.json",
+      "sha256": "17c8af607a0efa77d4cdf509fb69aacb0af60853b858053757eafa1a78866672"
+    },
+    {
+      "byte_count": 16135,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-standardized-pusch-cp-profile-matrix-familywise-20261024.json",
+      "sha256": "67c69abb187e8612b3725c473b3240ae97c46f2dd4cd45f594257bd620a548d6"
+    },
+    {
+      "byte_count": 16135,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-standardized-pusch-cp-profile-matrix-familywise-v3-20261024.json",
+      "sha256": "531c5cb784c45a7a3ccda90478f58d996ba6adfa1b4b64d9de104636b19b5af3"
+    },
+    {
+      "byte_count": 5108,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-static-reference-failure-path-diagnostic-20261024.json",
+      "sha256": "adb9145a843c1bd272fe8f0182fed7a7367192ca8b538d900e9c9f7463995bad"
+    },
+    {
+      "byte_count": 1490764,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-tdl-ae-dmrs-density-family-confirm-20261024.json",
+      "sha256": "f1d0940c368dd811c77cc4de599b0c9002282e9aa0769b78fe6d357b83499726"
+    },
+    {
+      "byte_count": 1845089,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-tdl-ae-dmrs-density-family-reconfirm-20261024.json",
+      "sha256": "cd34b700565416bd0f54f00c81fa944efac23ad6bfd29784d30fc17ab327ce17"
+    },
+    {
+      "byte_count": 1845181,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-tdl-ae-dmrs-density-family-reconfirm-v2-20261024.json",
+      "sha256": "4ac73aae46dbb08fae6fb859e6cb348f0564b71ac9fd7e5d6e46c3608f4b3ee5"
+    },
+    {
+      "byte_count": 1849255,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-tdl-ae-signed-lag-dft-family-confirm-20261024.json",
+      "sha256": "f2c6a3aefc1a24f183214e49405187c576c536e68c076d93c203474cafdd885f"
+    },
+    {
+      "byte_count": 262106,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-tdl-c-dmrs-density-confirm-20261024.json",
+      "sha256": "78d052f7128079736af34e0588b65fa516a37629e52a868635ce3bfbe8d85adb"
+    },
+    {
+      "byte_count": 325414,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-tdl-c-signed-lag-dft-confirm-20261024.json",
+      "sha256": "83dc49027142987afdb89f9e8777f64cd4daa58ba77aaf72f43b875abdbda767"
+    },
+    {
+      "byte_count": 203548,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-tdl-cpu-dmrs-density-development-20261024.json",
+      "sha256": "f2668f9f49217f4ce4cc72e348cc1779deb3b513b99776adbf494bd36d839384"
+    },
+    {
+      "byte_count": 41551,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-time-varying-multipath-pusch-20261023.json",
+      "sha256": "4642b0c5f7db849d3e4658466e7213e111007617845d7e1bb9a3e37f4653ef38"
+    },
+    {
+      "byte_count": 67800,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-time-varying-multipath-pusch-awgn-20261023.json",
+      "sha256": "a42abd2c74836b24addf894bbb42d54c9a9e339f8eeac85f3d927c53ed60efd3"
+    },
+    {
+      "byte_count": 54586,
+      "collision_count": 0,
+      "path": "docs/research/results/g5-time-varying-multipath-pusch-symbol-control-20261023.json",
+      "sha256": "7464d257c07d060c2acf8a137c05350f96fdbdfab9795f1a0b1a54feb6a161dc"
+    },
+    {
+      "byte_count": 17214,
+      "collision_count": 0,
+      "path": "docs/research/results/g7-08-city43-joint-tx-spatial-split-lineage-audit-20261024.json",
+      "sha256": "f05b73ff85f6544399461d984028afd8ef0ba82443f6fd66e4a573b7c82537d0"
+    },
+    {
+      "byte_count": 138181,
+      "collision_count": 0,
+      "path": "docs/research/results/g7-08-six-scene-pilot-legacy-asset-reconstruction-20261025.json",
+      "sha256": "5835564b739254afe0b8bf1e839689d92e3ac4ca76e8914010f02cada030aa49"
+    },
+    {
+      "byte_count": 48115,
+      "collision_count": 0,
+      "path": "docs/research/results/g7-08-six-scene-pilot-split-feasibility-20261025.json",
+      "sha256": "e16782984a771752016371c90d7030f42bd851fe2f21097da4e47d745729b063"
+    },
+    {
+      "byte_count": 132400,
+      "collision_count": 0,
+      "path": "docs/research/results/identifiability-common-timing-phase-sweep-160.json",
+      "sha256": "b07d27aaa432e92d3a6dc6b13bc1d4ad206a0bede5036aa3b7aaa9a36bae2a1e"
+    },
+    {
+      "byte_count": 10914517,
+      "collision_count": 0,
+      "path": "docs/research/results/identifiability-cross-condition-calibration-seed20261026.json",
+      "sha256": "a68196aa1ea0f3daa013111e804ec4ccf1fa83cf268a8c9375ffb2b2b00990c1"
+    },
+    {
+      "byte_count": 96620,
+      "collision_count": 0,
+      "path": "docs/research/results/identifiability-global-omp-local-mle-seed20261024.json",
+      "sha256": "a82a68ecb6dc0abb17103694e9699d1fe9c4a38d443ae13adac74122a26021f8"
+    },
+    {
+      "byte_count": 16304,
+      "collision_count": 0,
+      "path": "docs/research/results/identifiability-interval-paired-comparison-seed20261028.json",
+      "sha256": "efd66be2bc20ac1ee5598536f476c9c293d73327357313d180f7dd3ebd81b010"
+    },
+    {
+      "byte_count": 40708156,
+      "collision_count": 0,
+      "path": "docs/research/results/identifiability-matched-profile-vs-omp-seed20261029.json",
+      "sha256": "538480ad9ba27f533610947b12128d6456ac99004ad4d00d688288d3158e5a07"
+    },
+    {
+      "byte_count": 83623,
+      "collision_count": 0,
+      "path": "docs/research/results/identifiability-matched-transfer-seed20261030.json",
+      "sha256": "21c739a89cbd6b93dd9627126825713fba6dce549a03b6ee09ffb1796fb9bb57"
+    },
+    {
+      "byte_count": 8150066,
+      "collision_count": 0,
+      "path": "docs/research/results/identifiability-profile-likelihood-seed20261025.json",
+      "sha256": "013ed373ad8dc5cd10ab8a83db8411a4c7cef9ae8392ba410c0b4cb2e4b51e61"
+    },
+    {
+      "byte_count": 8425,
+      "collision_count": 0,
+      "path": "docs/research/results/identifiability-profile-likelihood-stress-seed20261031-v2.json",
+      "sha256": "00b81fe68d46b51a1daea8f01365f028dd372878af95f246e40da73f5cef4e4f"
+    },
+    {
+      "byte_count": 8825,
+      "collision_count": 0,
+      "path": "docs/research/results/identifiability-profile-repeated-calibration-seed20261101-v2.json",
+      "sha256": "7d9329f364c49401f47e73c0f8b4ebd99c8499074594e56a0d17c6a023c97e4c"
+    },
+    {
+      "byte_count": 36999,
+      "collision_count": 0,
+      "path": "docs/research/results/identifiability-relative-delay-local-mle-seed20261023.json",
+      "sha256": "24463e905233034cd27a5272623f89743d75b92df4bd94ec658b2756c2055574"
+    },
+    {
+      "byte_count": 37706,
+      "collision_count": 0,
+      "path": "docs/research/results/identifiability-two-path-fisher-sweep-80.json",
+      "sha256": "4976875695b856149320f949f044a945d0a74b44ba5cc11c95cc25ef06e68e59"
+    },
+    {
+      "byte_count": 12136,
+      "collision_count": 0,
+      "path": "docs/research/results/multipath-order-stress-seed20261022.json",
+      "sha256": "98e84f75bf10d0249644e81af9125835b0a0aadbb61a72c82fc54ff1f8e46a28"
+    },
+    {
+      "byte_count": 89555,
+      "collision_count": 0,
+      "path": "docs/research/results/mvp-capacity-losso-20261022.json",
+      "sha256": "76e26a4067e3d96b8d99c61a99dc289f6ea85bb9b6a1b2f6feb18dbe3fba7a0c"
+    },
+    {
+      "byte_count": 3756,
+      "collision_count": 0,
+      "path": "docs/research/results/mvp-six-scene-dmrs-holdout-etoile-seed20261022.json",
+      "sha256": "3ae93fa94da0e5b6f1eb1c5d9b30a0e5e0e80ca840bb5cfbc2009962992831f9"
+    },
+    {
+      "byte_count": 14437,
+      "collision_count": 0,
+      "path": "docs/research/results/mvp-six-scene-dmrs-losso-seed20261022.json",
+      "sha256": "750264bcd7e6cb9b16c7c1b2721343d656d8bbc704d4d3db297e301bc85eb16d"
+    },
+    {
+      "byte_count": 10168,
+      "collision_count": 0,
+      "path": "docs/research/results/nr-sync-continuous-timing-paired-comparison-20261027.json",
+      "sha256": "e5328063e85f86b37723b4c723471ccbf37856fe37f9cefd9c6972868b12ac68"
+    },
+    {
+      "byte_count": 1760945,
+      "collision_count": 0,
+      "path": "docs/research/results/nr-sync-operating-characteristics-continuous-seed20261027.json",
+      "sha256": "6ac0ee34a97795d6dda3b6e799ad87802d5f742463475753344b0664b7d94f64"
+    },
+    {
+      "byte_count": 1732109,
+      "collision_count": 0,
+      "path": "docs/research/results/nr-sync-operating-characteristics-fractional-seed20261022.json",
+      "sha256": "28ece24982a325f2988732e6bfd42d0375905aa46da107a5a4ff467306177733"
+    },
+    {
+      "byte_count": 1211056,
+      "collision_count": 0,
+      "path": "docs/research/results/nr-sync-operating-characteristics-seed20261022.json",
+      "sha256": "40d5e2a24c2302aad442c3fee4928ec64b757618b193f023139d5280f005db48"
+    },
+    {
+      "byte_count": 7674,
+      "collision_count": 0,
+      "path": "docs/research/results/observable-multipath-analytical-pilot-seed20261031-v2.json",
+      "sha256": "9abbd4b22cd68b10a20950ece24611b951460b7ea13090a2ab4dda9015c8791b"
+    },
+    {
+      "byte_count": 9568,
+      "collision_count": 0,
+      "path": "docs/research/results/observable-multipath-analytical-pilot-seed20261031-v4.json",
+      "sha256": "f5f214cd68023676cfe49f0d6f19353142dc1bf44a8bf088d8f2c2ab9c3398b4"
+    },
+    {
+      "byte_count": 17172,
+      "collision_count": 0,
+      "path": "docs/research/results/profile-holdout-baselines-seed20261021.json",
+      "sha256": "4fd6b110aa59bbe4bf1088efd5481e722cfbc4471c29638fbbdb8a91480020af"
+    },
+    {
+      "byte_count": 26083,
+      "collision_count": 0,
+      "path": "docs/research/results/profile-holdout-resource-audit-f6d9d69.json",
+      "sha256": "f840dfae70f4a1b6fe7a2c3b1802a1c1c5245074cb81d448809e6e5c36444d8f"
+    },
+    {
+      "byte_count": 11815,
+      "collision_count": 0,
+      "path": "docs/research/results/profile-proxy-tdl-cdl-a-to-e-4096-seed78021.json",
+      "sha256": "2a2cf4c0eda1dcaabdc4d5e7654e1e33133e642cef70c38eec0ece9b35609aaa"
+    },
+    {
+      "byte_count": 22257,
+      "collision_count": 0,
+      "path": "docs/research/results/pusch-static-cp-margin-12prb-30khz-512.json",
+      "sha256": "b86ff5a5d09e87b2c52ee0eba78d4913f01d992221062b2b945321d7858750d6"
+    },
+    {
+      "byte_count": 72037,
+      "collision_count": 0,
+      "path": "docs/research/results/pusch-static-cp-margin-sweep-12prb-15khz-30db-512.json",
+      "sha256": "5d2733058b3784e0231cb838ecd537db64f4f6383ae23295ad160aeb87d613a0"
+    },
+    {
+      "byte_count": 72349,
+      "collision_count": 0,
+      "path": "docs/research/results/pusch-static-cp-margin-sweep-12prb-30khz-20db-512.json",
+      "sha256": "3fb6bdc980b68ae6b4c271bf9c12f91fe79d3d3d3ad565b347c5c7497be340b9"
+    },
+    {
+      "byte_count": 71886,
+      "collision_count": 0,
+      "path": "docs/research/results/pusch-static-cp-margin-sweep-12prb-30khz-40db-512.json",
+      "sha256": "8ab99c07c5f798307134259644e2204ea910d81396d3b630f100c6c4f16bd57a"
+    },
+    {
+      "byte_count": 71937,
+      "collision_count": 0,
+      "path": "docs/research/results/pusch-static-cp-margin-sweep-12prb-30khz-512.json",
+      "sha256": "6c8385eb2f0a3c0dd1fee6e950c7a9a93114514bb322944f297f21e00be3e1eb"
+    },
+    {
+      "byte_count": 1355814,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-capstress-depth6-s05-100k-cap1000-20261022.json",
+      "sha256": "07fcf2e02355570f430922f498096089103a3462fabbec1905a506d3ef83d04a"
+    },
+    {
+      "byte_count": 4210502,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-capstress-depth6-s05-100k-cap10000-20261022.json",
+      "sha256": "0cb582b659ed1b7cc4aea4f6cd2b44339130c163f41a8be40c858ccbddd0c14a"
+    },
+    {
+      "byte_count": 4451805,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-capstress-depth6-s05-100k-cap1000000-20261022.json",
+      "sha256": "a764f981dba30329b61bdb56135513337ffb57544886c15251683d59cac46eea"
+    },
+    {
+      "byte_count": 54294,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-convergence-20261022.json",
+      "sha256": "9a16ed783c93aaf42dfb4b72d7cf2c77d7e3154d1bf15d7bf2737c5bba21bb82"
+    },
+    {
+      "byte_count": 11194883,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-convergence-depth20-100k-20261022.json",
+      "sha256": "a31db7b7e6261bf9450a47fb58b8c4c1548aa1403287b6ec9cb65631785d090e"
+    },
+    {
+      "byte_count": 66715,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-convergence-depth4-20261022.json",
+      "sha256": "3f9428220bc82e213c131efb8cac21736aa58d4df6f266f6f4dad21be6355ff0"
+    },
+    {
+      "byte_count": 78189,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-convergence-depth5-20261022.json",
+      "sha256": "5dcbee63e1194b5721fcfaafddf3551ec1a8ad15e5a4d11843c11df9d6850483"
+    },
+    {
+      "byte_count": 122340,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-convergence-depth6-20261022.json",
+      "sha256": "16242be022509daddbb594e7e805618fe1f8de972d12f3249c3f478ea1987c1d"
+    },
+    {
+      "byte_count": 4147495,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-convergence-depth6-s05-20261022.json",
+      "sha256": "685d7cf03343d126c98af5550b28001477cb0b3eb21254daeb1c4833b5a45816"
+    },
+    {
+      "byte_count": 708061,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-convergence-depth6-s05-cap1000-20261022.json",
+      "sha256": "76f5febd7eaa3e7f95a8907408fabd93fce49400939a4d97d6792ec948dedce6"
+    },
+    {
+      "byte_count": 1347465,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-convergence-depth6-s05-cap1000-cfr-20261022.json",
+      "sha256": "52bc5b261ceacee5774753e906f63eab25a0ece1c8d7739a3a00a8ea653833bf"
+    },
+    {
+      "byte_count": 1347404,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-convergence-depth6-s05-cap1000-cfr-repeat-20261022.json",
+      "sha256": "b50723082e2ac4957c66212f9c86f2a2558ff0efb3e4a8bd45883b4b8f53730a"
+    },
+    {
+      "byte_count": 13301,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-convergence-depth6-s05-cap1000-replay-20261022.json",
+      "sha256": "de1aae8b7d3c304edb8bcfae44917eca7c658ec50c6e794f574caa458943be0f"
+    },
+    {
+      "byte_count": 3561488,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-convergence-depth6-s05-cap10000-20261022.json",
+      "sha256": "f1e758eea23d2f52c5f37abf69b0148c59edfb5eb7095721fca3be6f3c93ba82"
+    },
+    {
+      "byte_count": 4202233,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-convergence-depth6-s05-cap10000-cfr-20261022.json",
+      "sha256": "425d85b7bda43f0a57e679230391860a4fdac4bd933038d50b9e9481a0aa8717"
+    },
+    {
+      "byte_count": 4443397,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-convergence-depth6-s05-cap1000000-cfr-20261022.json",
+      "sha256": "3363385d7e373b8ecb2840f8658aecb4af71d5081b0019a2d514591bb7382d4b"
+    },
+    {
+      "byte_count": 197552,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-convergence-depth7-20261022.json",
+      "sha256": "3c850b3ac6f871d641bfa5461ad45bca1e12e90e6ba9bf856edb711c8f7afeb2"
+    },
+    {
+      "byte_count": 271584,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-convergence-depth7-highbudget-20261022.json",
+      "sha256": "0af490a8846afae9b1ae13a2ae4222e901695de565471885810f0429a32b2d77"
+    },
+    {
+      "byte_count": 307977,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-convergence-depth8-20261022.json",
+      "sha256": "16a6c04cd7168774f3c42f08363d60db00eaa9170244964501a90955ecdd142e"
+    },
+    {
+      "byte_count": 484010,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-convergence-depth9-20261022.json",
+      "sha256": "d5a2e5f1b1a910cac01c8d451e2e87856be05dd478f7bf7d4ab82b553a82d5f0"
+    },
+    {
+      "byte_count": 55300,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-convergence-highbudget-20261022.json",
+      "sha256": "a6da4d646e94ff048c164ca68c16206cfb27861c19bb25973280800a6a91e79a"
+    },
+    {
+      "byte_count": 518170,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-depth0-3-s0-100k-1m-20261022.json",
+      "sha256": "b412a2bb54c63737470009254d7a87fa5a32e3c5b526aceb207b7271f5d95df4"
+    },
+    {
+      "byte_count": 16358,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-depth0-3-s0-100k-1m-20seeds-20261022.json.gz",
+      "sha256": "28b67a47728e7ca21dc3f3b9c951ff55debeac2f72291b58358e855197ef7494"
+    },
+    {
+      "byte_count": 11437353,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-depth0-3-s05-100k-1m-20261022.json",
+      "sha256": "41829530920e330d6240b30286d410dce4cd4a0576db90ee8103a78f453d387f"
+    },
+    {
+      "byte_count": 18836373,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-depth0-3-s05-100k-1m-20seeds-20261022.json.gz",
+      "sha256": "663ac8b04baef78862220c93ae249d610d0a63d576774d52bfd3591bedbd3a63"
+    },
+    {
+      "byte_count": 1906788,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-diffuse-budget-s05-verified-20261022.json",
+      "sha256": "9f374bfda51bfeed338cb20d48a35e07993b1a26f1d1a127403bd5f25f4de500"
+    },
+    {
+      "byte_count": 1264598,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-diffuse-budget-sweep-s05-20261022.json",
+      "sha256": "d4b085104c8113739c934853e9ba79982ed92dda2b63fd3446195a988a622843"
+    },
+    {
+      "byte_count": 1264635,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-diffuse-budget-sweep-s05-components-20261022.json",
+      "sha256": "64f706ea689bc20001a00331dd75d159d4c86800d7625c72488ca8827eb1c022"
+    },
+    {
+      "byte_count": 732439,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-diffuse-budget-zero-verified-20261022.json",
+      "sha256": "ef92c91dc5dfb24e9711cd34bc1c7855675258b36a9452cc6f5f9de3342ece6f"
+    },
+    {
+      "byte_count": 19082,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-material-component-s0-20261022.json",
+      "sha256": "9cd62661ad73551f6ef140538db9039e5e833d9ca238e27f00f10f3fc8d1c6a3"
+    },
+    {
+      "byte_count": 22328,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-material-component-s05-20261022.json",
+      "sha256": "875a94ff5407125c6c01d1b1b48cae1a6a1fe3eb8604989debaaba8e22a49a43"
+    },
+    {
+      "byte_count": 621264,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-path-cap-10k-candidate-audit-20261022.json",
+      "sha256": "db5b36f4ab0f6204ea75f5739f2487e58e9c0b1367b6227eebd656b3c4651fee"
+    },
+    {
+      "byte_count": 618688,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-path-cap-10k-verified-20261022.json",
+      "sha256": "8c34dfbcd20012eb49c8bc525d8d11cfaa5a12103d794080c2ff30e34f129e2b"
+    },
+    {
+      "byte_count": 600253,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-path-cap-1k-candidate-audit-20261022.json",
+      "sha256": "54230d1121ecd4817af3cbed358f03f8be72aa7dfe0f7c2cba6b4ef565733f63"
+    },
+    {
+      "byte_count": 597782,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-path-cap-1k-verified-20261022.json",
+      "sha256": "fe6325622e0e38b4e98136be46c928a0c66b4bcbb0ba682a144bfd38cd922381"
+    },
+    {
+      "byte_count": 621262,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-path-cap-1m-candidate-audit-20261022.json",
+      "sha256": "17c9378b4542cd0b835c7528bc0a2c0be3b9237695c62a1655868afe14fe8ae6"
+    },
+    {
+      "byte_count": 618680,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-path-cap-1m-verified-20261022.json",
+      "sha256": "2e5a06acc82202360cf3dba11cf3a8d40fd9009fc06733a6348c5567e77248b5"
+    },
+    {
+      "byte_count": 7794,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-s0-depth3-100k-vs-1m-20261022.json",
+      "sha256": "1b52a2a0ea1b49c578e5a42ee4c171f97f6e1cf3fb52a991977ea7b86e78ec0a"
+    },
+    {
+      "byte_count": 14639,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-s0-depth3-distribution-audit-20seeds-20261022.json",
+      "sha256": "dd49b24336b3395459d822a40f0b35bd37b374d9a4499f5a332ff892a451ac61"
+    },
+    {
+      "byte_count": 7985,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-s05-depth3-100k-vs-1m-20261022.json",
+      "sha256": "73b0fd98655386971d7839d70838b380642619f10905807fb4a4122a94542bf0"
+    },
+    {
+      "byte_count": 18067,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-s05-depth3-distribution-audit-20seeds-20261022.json",
+      "sha256": "10cf37f97cfddcd6e97f511459c6625eba192acd1cd945fa59b9989dff651f3b"
+    },
+    {
+      "byte_count": 14884,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-scattering-s0-20261022.json",
+      "sha256": "8f07be7c5ecdbb8aeae75c0eee1898ac61741e6142ee6dd32d30783a6859a24b"
+    },
+    {
+      "byte_count": 17847,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-los-nlos-scattering-s05-20261022.json",
+      "sha256": "6fb82b82481f4eada640f02d95c6bc6bcdb381646364edf0bcfbf0a5eb11b018"
+    },
+    {
+      "byte_count": 15712,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-one-screen-convergence-multiseed.json",
+      "sha256": "15870716123abacc69cbebc29aefb8d1d3ae8dc32ccb8cef9e2aff24402c0721"
+    },
+    {
+      "byte_count": 15707,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-one-screen-convergence.json",
+      "sha256": "5d1095bc307b675d0a4bf51ee39926b66546330dbf4fda0fb1bc6bc96bbbe9e8"
+    },
+    {
+      "byte_count": 401823,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-scattering-committed-131ccfd/scattering-0-depth-3.json",
+      "sha256": "fa3670fecdb535c485f51e0ac6ba1a50bb410f3cf050e60e9fe64c4e8ad1f5be"
+    },
+    {
+      "byte_count": 618724,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-scattering-committed-131ccfd/scattering-0.5-depth-3.json",
+      "sha256": "94dce693a2978e2718c24035711872d907bfcc224d38769fac9dfc2a90c23ac2"
+    },
+    {
+      "byte_count": 18188,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-scattering-control-audit-v4-20261022.json",
+      "sha256": "5730433446208207f323ce2a4244b3d9d5b866fa0ca70a7d68133d678a73fce5"
+    },
+    {
+      "byte_count": 512497,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-scattering-control-s0-v4-20261022.json",
+      "sha256": "9bcde9004eecff7d523031b1dfe57039900b1b80b6786db468ca9f0087ec0c4e"
+    },
+    {
+      "byte_count": 736361,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-scattering-control-s05-v4-20261022.json",
+      "sha256": "71fb5c49555fb0e3c054328956ed9f832926de601d0f0df396c3f1fef012adf9"
+    },
+    {
+      "byte_count": 10290,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-box-transmitter-location-holdout-20261022.json",
+      "sha256": "4bd97352b94c0876cee8d2a3e519f7066e5a4e9c397ab8613c8d2190aba14617"
+    },
+    {
+      "byte_count": 2132336,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city41-center-nlos-path-budget-diagnostic-native-cfr-100k-1m-3m-depth3-20261022.json.gz",
+      "sha256": "b7ea85b60e3c045b6f07e8d16836c0b383e53555a8dab0e19d92246b3950db8d"
+    },
+    {
+      "byte_count": 1017999,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city41-spatial-budget-depth3-native-materials-6links-100k-1m-20seeds-20261022.json",
+      "sha256": "b927b3af15c137220b81ed963ada7bcc6178234274798eee7686ed32695907c3"
+    },
+    {
+      "byte_count": 16426,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city41-spatial-budget-depth3-native-materials-6links-depth3-distribution-audit-20seeds-20261022.json",
+      "sha256": "af60101eec340845e718ea0e6739189dd3d4ebbcc146907aa70c1f418930ac04"
+    },
+    {
+      "byte_count": 1084384,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city42-center-nlos-path-budget-diagnostic-native-cfr-100k-1m-3m-depth3-20261022.json.gz",
+      "sha256": "fbef3934ff3d240b64a6fe1f26605b5b40bd248b5c266854ee322b4670440ff5"
+    },
+    {
+      "byte_count": 1018611,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city42-spatial-budget-depth3-native-materials-6links-100k-1m-20seeds-20261022.json",
+      "sha256": "c396f18c1a6399f6a1eb1d46f08fb3c6bc9d88853b51672e5c73f0565a207fe2"
+    },
+    {
+      "byte_count": 16154,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city42-spatial-budget-depth3-native-materials-6links-depth3-distribution-audit-20seeds-20261022.json",
+      "sha256": "529635b92371a85106201a5865605feb446c3a721a999fe80ed59d5370fc68b3"
+    },
+    {
+      "byte_count": 1727516,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city42-west-nlos-path-budget-diagnostic-native-cfr-100k-1m-3m-depth3-20261022.json.gz",
+      "sha256": "b5911ea918891a92fc6e9bb5478f2d792e87ee80aabb5ddd99b6198b78e9841a"
+    },
+    {
+      "byte_count": 3354734,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-center-los-seed23-depth10-s0-lineage-writehook-v2-20261024.json.gz",
+      "sha256": "018c3f8a1cd145ec8b869dad2d3517408c00d88792e708fc696664aaf7505adf"
+    },
+    {
+      "byte_count": 4374429,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-center-los-seed23-depth10-s0-path-attribution-100k-vs-1m-20261022.json.gz",
+      "sha256": "2aac0458f9a5da69fa9d99ee11b6c0947b6e3ec01380ff60e92d18bceed064a0"
+    },
+    {
+      "byte_count": 8046,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-center-los-seed23-depth10-s0-path-attribution-audit-20261022.json",
+      "sha256": "da134629834e5e37e3760392944f24876d5acef3aed14651561216cedec91e81"
+    },
+    {
+      "byte_count": 4352499,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-center-los-seed23-depth10-s0-path-lineage-100k-vs-1m-20261023.json.gz",
+      "sha256": "0ccd0484eec1481443d2a8fabea3517b171cc76d234665307c3678028b274844"
+    },
+    {
+      "byte_count": 4338646,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-center-los-seed23-depth10-s0-path-lineage-writehook3-100k-vs-1m-20261023.json.gz",
+      "sha256": "89133167eab4338d00e67b24c23bb81044bffa13a1a13160bbc1c705723d1093"
+    },
+    {
+      "byte_count": 9029,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-center-los-seed23-depth10-s0-path-match-sensitivity-20261023.json",
+      "sha256": "37e40dc3fa6541b259d919bb72f4e26334683027775235e299fd6a8c28820187"
+    },
+    {
+      "byte_count": 706673,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-los-nlos-capstress-depth3-s05-20k-cap1000-20261022.json",
+      "sha256": "2ba4dfd86fda04365fea42fee908801a666f55894fbaf5bf191e351d4677b682"
+    },
+    {
+      "byte_count": 878040,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-los-nlos-capstress-depth3-s05-20k-cap10000-20261022.json",
+      "sha256": "97031dee69345dbb9e38d19877be770c097db76fc9ab4dc074517096cc6f05b8"
+    },
+    {
+      "byte_count": 877985,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-los-nlos-capstress-depth3-s05-20k-cap1000000-20261022.json",
+      "sha256": "6175e35cb5b054cd6d983ac76691f49d606edaac196b4ad638bf0603bb1cec37"
+    },
+    {
+      "byte_count": 336247,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-los-nlos-depth3-s05-cap1000-20261022.json",
+      "sha256": "798f74829283dd8a82966ceabbcebbebda405d2916f0cf3554aa0342a92239af"
+    },
+    {
+      "byte_count": 701817,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-los-nlos-depth3-s05-cap1000-cfr-20261022.json",
+      "sha256": "bef0c1e551f614903f9d7b9dfa8de17e0278228247fa0af9c91c41b69da127dc"
+    },
+    {
+      "byte_count": 507504,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-los-nlos-depth3-s05-cap10000-20261022.json",
+      "sha256": "f9d67d91acacca1adb6820c8468f7909c49ad7a9d64738730b1514b1c350e584"
+    },
+    {
+      "byte_count": 873157,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-los-nlos-depth3-s05-cap10000-cfr-20261022.json",
+      "sha256": "c8e6ca67e25a16f91ee6ee3b5ce15980e28ea68ff1d1757037ecacd872fa1b6c"
+    },
+    {
+      "byte_count": 507504,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-los-nlos-depth3-s05-cap1000000-20261022.json",
+      "sha256": "d73cea157d36f510583ebce1d0ffb25d943a471a5a94c6a4c528a40402133c40"
+    },
+    {
+      "byte_count": 873110,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-los-nlos-depth3-s05-cap1000000-cfr-20261022.json",
+      "sha256": "4611e46b02de5051d488d9bdec86886a2ab77b7b78608e60a2cccd42e0b84396"
+    },
+    {
+      "byte_count": 423539,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-nlos-path-power-threshold-20261022.json",
+      "sha256": "1bba1c621b19ab40d7b233b3e95a10e097b729d4ea0c3999a20ccc21a45c381c"
+    },
+    {
+      "byte_count": 18466,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-scattering-control-audit-concrete-v4-20261022.json",
+      "sha256": "db6f0e9a882bc2d0680998150214556fec9aa64ada32b54e23dfc8e7af2792cc"
+    },
+    {
+      "byte_count": 839240,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-scattering-control-concrete-s05-v4-20261022.json",
+      "sha256": "1c69142f5fd6b4622ff7b37a902a656cb63f648dbb3f86af016ac257a0ece0fc"
+    },
+    {
+      "byte_count": 484698,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-scattering-control-s0-v4-20261022.json",
+      "sha256": "b8e5f7c8216824828ae9322cc2563fd97815723fa7654cbc34ae62e54e42bc61"
+    },
+    {
+      "byte_count": 8092,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-scattering-replay-audit-v4-20261022.json",
+      "sha256": "529bdc3ca9b20a06f11b4ee6844c5d54dad71cb923e4dafcea969a9bf97f2cd3"
+    },
+    {
+      "byte_count": 724405,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-scattering-replay-reference-v4-20261022.json",
+      "sha256": "bbda22a36b4afba2454085c2efe44a38b0230a76e74a39072edc3487a1f5261e"
+    },
+    {
+      "byte_count": 724420,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-scattering-replay-repeat-v4-20261022.json",
+      "sha256": "a854c7956b8e072b0b44849261c448aa5b3b9b3808edb1376101572edc59cc44"
+    },
+    {
+      "byte_count": 40984,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-spatial-budget-depth3-native-materials-6links-100k-1m-20seeds-20261022.json.gz",
+      "sha256": "1974c27116cc0b817d05f48734915987258782cf9a6b83c12ab0fcda0b6104e2"
+    },
+    {
+      "byte_count": 16168,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-spatial-budget-depth3-native-materials-6links-depth3-distribution-audit-20seeds-20261022.json",
+      "sha256": "92c5607b7c3914fe6e975bd65a676850b302bc24f594ec8e1d23c40b0c274c44"
+    },
+    {
+      "byte_count": 114035,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-spatial-budget-depth3-s05-100k-1m-20seeds-20261022-summary.json.gz",
+      "sha256": "cbb6bce26f10bc865fe48bd5e9467979ea7702486384ba0e2d8ec1a4015923a7"
+    },
+    {
+      "byte_count": 19666,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-spatial-budget-depth3-s05-depth3-distribution-audit-20seeds-20261022.json",
+      "sha256": "c1ce3d45049ae6692a9cc2df7c24a1c35a821bec44849a70f0630db64dbecc92"
+    },
+    {
+      "byte_count": 187829,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-spatial-los-nlos-100k-vs-1m-20261022.json",
+      "sha256": "0fe6e4914de503fd8e8d5aced7d6e2c8cf9bb6b73cd12c610f88df0f22d5bf31"
+    },
+    {
+      "byte_count": 187033,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-spatial-los-nlos-20k-vs-100k-20261022.json",
+      "sha256": "08c48a88c972a81118b2eb96e6897e53ece0903ea4a8b42807bb142a30969f52"
+    },
+    {
+      "byte_count": 187768,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-spatial-los-nlos-20k-vs-1m-20261022.json",
+      "sha256": "91949abecc4365f3270c2d05eb3bb871fdaeba1ffdcc6e553259668ea26c00fe"
+    },
+    {
+      "byte_count": 3779123,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-spatial-los-nlos-depth10-s0-100k-20261022.json",
+      "sha256": "351c69831754088bb0835a70994adbccdfd2d2ab43e8bbb3d8a2e1f749eb5827"
+    },
+    {
+      "byte_count": 4120949,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-spatial-los-nlos-depth10-s0-1m-20261022.json",
+      "sha256": "ed66ae82f5b8034d844e14862b6cd310845968cc102d954908e0261b86a929ef"
+    },
+    {
+      "byte_count": 3628981,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-spatial-los-nlos-depth10-s0-20k-20261022.json",
+      "sha256": "d8798321f12964b9e86987f56c595af3703df62f348bf45403b67e91fc1559d8"
+    },
+    {
+      "byte_count": 62403391,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-spatial-los-nlos-depth10-s05-1m-20261022.json.gz",
+      "sha256": "69bbe01078c16b5b4c1709415fee36319dec084b95138975c00c8a861a37e9b6"
+    },
+    {
+      "byte_count": 37240510,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-spatial-los-nlos-depth10-s05-20k-100k-20261022.json",
+      "sha256": "a2663e9d11c8bfd2c41b31225f3cb12612e91a20f2bca1231263f3553403e6c9"
+    },
+    {
+      "byte_count": 10258312,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-spatial-los-nlos-depth10-s05-20k-20261022.json",
+      "sha256": "e58a7d0e81affae4202490ff3cd226fa65ac52d08e25a1fe9b90bd5d85dadd8e"
+    },
+    {
+      "byte_count": 5801097,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-spatial-los-nlos-depth6-s05-20k-20261022.json",
+      "sha256": "2d1e4a1c92cae739e32db4eddcbe853e5de02ca9f754709d68ea03ae3fdb6e51"
+    },
+    {
+      "byte_count": 7427,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-spatial-los-nlos-replay-audit-20261022.json",
+      "sha256": "4150af93652e81da0ad969e8c4f7e4d2a2cc62d4df5e80d7d0c30ef7f88c800f"
+    },
+    {
+      "byte_count": 180715,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-spatial-los-nlos-s0-100k-vs-1m-20261022.json",
+      "sha256": "cf986583aef23fef8977da48a092761f3b10bc45773ead03379bdf69c6d14b29"
+    },
+    {
+      "byte_count": 180684,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-spatial-los-nlos-s0-20k-vs-100k-20261022.json",
+      "sha256": "539a40718077faf2d86e497d917266014f5c9b049b763ecc63c9f8a1b8f8c487"
+    },
+    {
+      "byte_count": 180618,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-city43-spatial-los-nlos-s0-20k-vs-1m-20261022.json",
+      "sha256": "9b2e047c3dbd65be49293cf3510a0ab8b2aed478a4f1b1689734669df5579a77"
+    },
+    {
+      "byte_count": 2770,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-class-conditional-outcome-accounting-native-smoke-20261022.json",
+      "sha256": "ac7abb70778962f43582ace5a23c4670ca2dd13a8af63c1c0fb5fbcb5454d592"
+    },
+    {
+      "byte_count": 9353,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-cross-scene-depth-sensitivity-20261022.json",
+      "sha256": "ca0399a08f0465f4d3ce79a8ed51f758de89346e09e12bc64f366b17c497b9cc"
+    },
+    {
+      "byte_count": 23511,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-etoile-budget-depth-class-outcomes-20261022.json",
+      "sha256": "0fae0f73353a989366cfbb1b351d0b328bbfbf0396696089f5d34f923ccddd00"
+    },
+    {
+      "byte_count": 3096,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-etoile-class-conditional-outcome-retrace-20261022.json",
+      "sha256": "4067f5235d8be85c44c8fec5d8bfe69082d784ad1645ccad26404af22a8e816d"
+    },
+    {
+      "byte_count": 4561,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-etoile-convergence-highbudget-20261021.json",
+      "sha256": "f475e1465813608e6c611b6799a748f1c67656315a381504804b0fec7bf1f226"
+    },
+    {
+      "byte_count": 14061,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-etoile-convergence-multiseed.json",
+      "sha256": "1db32ffd3f54ed951adbacc96ee63aa6cd23fe94fff8fc09c1c42b50e8943492"
+    },
+    {
+      "byte_count": 18211,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-nr-forecast-pilot-six-scenes-39018ce.json",
+      "sha256": "dfa368a369f9f0d7c0e408f31caa1e44c9033ea29d04c633466d54befd735928"
+    },
+    {
+      "byte_count": 5229,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-nr-trajectories-pilot-six-scenes-39018ce.json",
+      "sha256": "a51c3c62828edbfdff6c7d5b516036567f1852d6a01a2dc139993abef230cbdd"
+    },
+    {
+      "byte_count": 5229,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-nr-trajectories-pilot-six-scenes-761ff9f.json",
+      "sha256": "21af130fa2849ce768251d1e21d4df6b44d49b8a808c64849c280b6193d598e0"
+    },
+    {
+      "byte_count": 16747,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-simple-street-canyon-convergence-multiseed.json",
+      "sha256": "e3e857e4844a48cc9e6e8e9fd77cdeb81566c978379d7c29aabdcaeaee649b55"
+    },
+    {
+      "byte_count": 17941,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-six-scene-adaptive-budget-20261021.json",
+      "sha256": "67738f303ab6aa4b4c65966447152579c9d7f1f30ab39ee9807fd88cfc740ca3"
+    },
+    {
+      "byte_count": 10113,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-six-scene-class-conditional-outcome-retrace-20261022.json",
+      "sha256": "a59a3714b0fa209849cedd7cf9f9616ac7f0a2ee123c5d256f1ace56c4c8af88"
+    },
+    {
+      "byte_count": 5775,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-six-scene-depth2-budget-check-20261021.json",
+      "sha256": "725ac1edf6b4db5baa6b261c0ac8b6a5feb16eba486fd1bdd9dad08c9586bf1d"
+    },
+    {
+      "byte_count": 17125,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-six-scene-dmrs-pusch-holdout-12db.json",
+      "sha256": "fcb1cd1f7b9b32ed64fa9a52923309cef8ca186f013a5f9f91692e3bfd66394c"
+    },
+    {
+      "byte_count": 8020,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-six-scene-holdout-100k-20261021.json",
+      "sha256": "abc5c1dcc171dfcfefe9dcd0bff5e6e9fa534f9adc837480b01569b12a853626"
+    },
+    {
+      "byte_count": 7650,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-six-scene-holdout-20261021.json",
+      "sha256": "b16267c399623c4f996cc52f20396820155fda4c1909d101040fbbf50901fb34"
+    },
+    {
+      "byte_count": 25182,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-six-scene-label-complexity-audit-20261022.json",
+      "sha256": "af20ab2d3d57a189dc56997944c6d369c411d10ab4b4e8afd978cef18cc05c8b"
+    },
+    {
+      "byte_count": 13724,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-six-scene-path-qa-adaptive-20261021.json",
+      "sha256": "3ebd24b626b31c23f432513ce273b589a01cfac8c8ab84a4c3ae40db3becc5e4"
+    },
+    {
+      "byte_count": 19338,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-urban43-budget-depth-class-outcomes-20261022.json",
+      "sha256": "aa4559b8452bff6103d15b30ceac56bb5063765fc7e2c0aacac0f23d5034980f"
+    },
+    {
+      "byte_count": 10747,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-urban43-joint-location-holdout-20261022.json",
+      "sha256": "bd7e94b78defca25ab4d73d67ba09dba5697656a20e78093fdbde2ccb81407ce"
+    },
+    {
+      "byte_count": 80292,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-urban43-spatial-holdout-label-audit-20261022.json",
+      "sha256": "e6594fd73f31c6b900ac9644eb6b3a9b492fe7eadc46dc9865dc728faf4557b7"
+    },
+    {
+      "byte_count": 80292,
+      "collision_count": 0,
+      "path": "docs/research/results/rt-urban43-spatial-label-audit-20261022.json",
+      "sha256": "825618d1e67e48d159503448e56f26174e8e3d6a7748b622998fa5afee2996ba"
+    },
+    {
+      "byte_count": 18218,
+      "collision_count": 0,
+      "path": "docs/research/results/tdl-pusch-cuda-memory-profile-rtxpro500-20261021.json",
+      "sha256": "a3acae4e0b107676cb25a7d6a20e1b6c920f744160ac815f4035738e1085f2b8"
+    },
+    {
+      "byte_count": 7326,
+      "collision_count": 0,
+      "path": "docs/research/results/tdl-pusch-rx-correlation-tdla-24prb-15khz-rho090-1024-seed74000.json",
+      "sha256": "3d816fbe69de71a443ce79b297ecc1c769aea29f7f10bbe2aa68f982b7788ef7"
+    },
+    {
+      "byte_count": 7276,
+      "collision_count": 0,
+      "path": "docs/research/results/tdl-pusch-rx-correlation-tdla-rho090-paired-1024-seed65000.json",
+      "sha256": "a40605f0e23c3df2791a756c51c9597ad78d9b8687b14e5c6b74098576eb760b"
+    },
+    {
+      "byte_count": 192583,
+      "collision_count": 0,
+      "path": "docs/research/results/tdl-pusch-rx-diversity-tdla-1024-seed65000.json",
+      "sha256": "3c70e1d90738fcef94ce2117c8adb1290b78c649d63589e08e38856f92733a00"
+    },
+    {
+      "byte_count": 194743,
+      "collision_count": 0,
+      "path": "docs/research/results/tdl-pusch-rx-diversity-tdla-24prb-15khz-1024-seed74000.json",
+      "sha256": "3e5c1641cb0e92d7a35000b10f49ee08049ae3849dfff45191a3d677ccb611cd"
+    },
+    {
+      "byte_count": 194241,
+      "collision_count": 0,
+      "path": "docs/research/results/tdl-pusch-rx-diversity-tdla-24prb-15khz-rho090-1024-seed74000.json",
+      "sha256": "37245e4f726e94714a10a8a5349837c6252a723dd1ec96a28dccd81fabf08268"
+    },
+    {
+      "byte_count": 194328,
+      "collision_count": 0,
+      "path": "docs/research/results/tdl-pusch-rx-diversity-tdla-rho090-paired-1024-seed65000.json",
+      "sha256": "2ad7ebee904cdb2a26ea44be42baf127150ce95f820815effb3b18044e377acd"
+    },
+    {
+      "byte_count": 6898,
+      "collision_count": 0,
+      "path": "docs/research/results/tdl-pusch-time-bler-tdla-100ns-vs-1000ns-cp-overrun-512-seed51005.json",
+      "sha256": "3304f016e41fdbc701d92f134ea0c1febf5b581b501a2a736deea7c04bc6eeb1"
+    },
+    {
+      "byte_count": 6808,
+      "collision_count": 0,
+      "path": "docs/research/results/tdl-pusch-time-bler-tdla-100ns-vs-300ns-cp-overrun-512-seed51005.json",
+      "sha256": "85189247c3ae3e75a4e664b94c17299a8b6ffee7d2b2ce7ff7dda90847e1bbd9"
+    },
+    {
+      "byte_count": 34290,
+      "collision_count": 0,
+      "path": "docs/research/results/tdl-pusch-time-bler-tdla-12prb-30khz-1000ns-cp-overrun-512-seed51005.json",
+      "sha256": "3bde2c074e2d89389170e0e5b639ef26dd5dd4d9ec0f021431c162f0db5c836b"
+    },
+    {
+      "byte_count": 34306,
+      "collision_count": 0,
+      "path": "docs/research/results/tdl-pusch-time-bler-tdla-12prb-30khz-100ns-control-512-seed51005.json",
+      "sha256": "c05fcf966af6474b38af31f2b54e6fd4fb08630ef74ce8c6e4299cacc660e547"
+    },
+    {
+      "byte_count": 34296,
+      "collision_count": 0,
+      "path": "docs/research/results/tdl-pusch-time-bler-tdla-12prb-30khz-300ns-cp-overrun-512-seed51005.json",
+      "sha256": "a217389131b27c6877074574e2c8e084fb62a0cd29bc81e753778ce9e010042f"
+    },
+    {
+      "byte_count": 43835,
+      "collision_count": 0,
+      "path": "docs/research/results/tdl-pusch-time-bler-tdla-12prb-30mps-512.json",
+      "sha256": "ff0fdcb5c5c89dc82e2cdbe67cd70cee10fccdac99630b9ad88cce5d4fa9481e"
+    },
+    {
+      "byte_count": 29094,
+      "collision_count": 0,
+      "path": "docs/research/results/tdl-pusch-time-bler-tdla-12prb-30mps-dmrs0-512.json",
+      "sha256": "001e8e1b51b56de30c85883cd2c846a904e691212265d1b7c2b82aa742a538a8"
+    },
+    {
+      "byte_count": 29837,
+      "collision_count": 0,
+      "path": "docs/research/results/tdl-pusch-time-bler-tdla-12prb-30mps-dmrs3-512.json",
+      "sha256": "dd3bff21c305ea30a59d3ae6aed8ed5e298b9f64d875c32b04e3b33a6b936eb9"
+    },
+    {
+      "byte_count": 44548,
+      "collision_count": 0,
+      "path": "docs/research/results/tdl-pusch-time-bler-tdla-12prb-3mps-512.json",
+      "sha256": "c358af4338eeb5c667d26f0658c3729ca1c339b9ee1322da6fa543f8fbfcb540"
+    },
+    {
+      "byte_count": 5040,
+      "collision_count": 0,
+      "path": "docs/research/results/tdl-pusch-time-bler-tdla-dmrs-paired-512.json",
+      "sha256": "0d2a0b100632b22a866e58a8e1e9579b59c3394af4c006eabe459e1fd22263fd"
+    },
+    {
+      "byte_count": 4847,
+      "collision_count": 0,
+      "path": "docs/research/results/tdl-pusch-time-bler-tdla-mobility-paired-512.json",
+      "sha256": "e78f6a00e44a2e16609de706e58d115d0f9c456baecdac8fd03aefb179eddb61"
+    },
+    {
+      "byte_count": 56203,
+      "collision_count": 0,
+      "path": "docs/research/results/tdl-pusch-time-profile-sweep-512-seed63000.json",
+      "sha256": "5ae2da8cb5f3d15a112be41aee943642dfa0f2ad9416bc958fc9f47dbfa5133e"
+    }
+  ],
+  "schema": "loslab.seed_roster_collision_audit.v2",
+  "seed_field_rule": "integer values under seed-named fields, inclusive two-integer seed ranges, or exact reserved integers embedded in seed-named keys",
+  "status": "CLEAR_WITHIN_SCANNED_JSON_CORPUS"
+}

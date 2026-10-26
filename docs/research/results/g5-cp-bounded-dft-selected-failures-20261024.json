@@ -1,0 +1,125 @@
+{
+  "blocks_per_channel": 8,
+  "configuration": {
+    "cyclic_prefix_samples": 7,
+    "error_variance": "LS pilot variance propagated through the pseudoinverse frequency basis",
+    "fit_input": "raw DM-RS observations before Sionna adjacent-frequency CDM averaging",
+    "fitted_delay_samples_inclusive": [
+      0,
+      7
+    ]
+  },
+  "confirmation_artifact": "docs/research/results/g5-doppler-dmrs-density-confirm-20261024.json",
+  "confirmation_artifact_sha256": "b0f43d2b04a93249147784c77e825eec21fb3de7125f213826cbb15bd2ffd033",
+  "created_utc": "2026-10-24T17:21:46.439249+00:00",
+  "independent_channel_count": 7,
+  "interpretation": "The selected failures are not a population sample. The CP-bounded DFT estimate is an experimental receiver candidate only; these post-hoc outcomes cannot select, qualify, or confirm it. The delay-8 cases exceed the fitted CP support and their oracle comparison omits ISI. Any candidate qualification requires a frozen protocol and disjoint channel seeds.",
+  "observations": [
+    {
+      "channel_seed": 85004,
+      "cp_bounded_dft_crc_passes": 8,
+      "cp_bounded_dft_noiseless_channel_nmse": 0.0002571878139860928,
+      "echo_amplitude": 0.4970535092915291,
+      "echo_delay_samples": 6,
+      "exceeds_cyclic_prefix": false,
+      "linear_crc_passes": 4,
+      "linear_noiseless_channel_nmse": 0.05590658634901047,
+      "mean_propagated_error_variance": 0.00022222221014089882
+    },
+    {
+      "channel_seed": 85014,
+      "cp_bounded_dft_crc_passes": 0,
+      "cp_bounded_dft_noiseless_channel_nmse": 0.22285261750221252,
+      "echo_amplitude": 0.4534472944926699,
+      "echo_delay_samples": 8,
+      "exceeds_cyclic_prefix": true,
+      "linear_crc_passes": 0,
+      "linear_noiseless_channel_nmse": 0.09557453542947769,
+      "mean_propagated_error_variance": 0.00022222221014089882
+    },
+    {
+      "channel_seed": 85015,
+      "cp_bounded_dft_crc_passes": 8,
+      "cp_bounded_dft_noiseless_channel_nmse": 0.0002480419061612338,
+      "echo_amplitude": 0.49040683251532985,
+      "echo_delay_samples": 6,
+      "exceeds_cyclic_prefix": false,
+      "linear_crc_passes": 3,
+      "linear_noiseless_channel_nmse": 0.05468503385782242,
+      "mean_propagated_error_variance": 0.00022222221014089882
+    },
+    {
+      "channel_seed": 85016,
+      "cp_bounded_dft_crc_passes": 8,
+      "cp_bounded_dft_noiseless_channel_nmse": 0.0002716353628784418,
+      "echo_amplitude": 0.3651276476170615,
+      "echo_delay_samples": 7,
+      "exceeds_cyclic_prefix": false,
+      "linear_crc_passes": 7,
+      "linear_noiseless_channel_nmse": 0.04883592948317528,
+      "mean_propagated_error_variance": 0.00022222221014089882
+    },
+    {
+      "channel_seed": 85059,
+      "cp_bounded_dft_crc_passes": 8,
+      "cp_bounded_dft_noiseless_channel_nmse": 0.00024157622829079628,
+      "echo_amplitude": 0.46956005643840776,
+      "echo_delay_samples": 7,
+      "exceeds_cyclic_prefix": false,
+      "linear_crc_passes": 4,
+      "linear_noiseless_channel_nmse": 0.0729767456650734,
+      "mean_propagated_error_variance": 0.00022222221014089882
+    },
+    {
+      "channel_seed": 85062,
+      "cp_bounded_dft_crc_passes": 0,
+      "cp_bounded_dft_noiseless_channel_nmse": 0.23418930172920227,
+      "echo_amplitude": 0.4684266317755813,
+      "echo_delay_samples": 8,
+      "exceeds_cyclic_prefix": true,
+      "linear_crc_passes": 2,
+      "linear_noiseless_channel_nmse": 0.10056063532829285,
+      "mean_propagated_error_variance": 0.00022222221014089882
+    },
+    {
+      "channel_seed": 85063,
+      "cp_bounded_dft_crc_passes": 0,
+      "cp_bounded_dft_noiseless_channel_nmse": 0.23548734188079834,
+      "echo_amplitude": 0.4710727868650654,
+      "echo_delay_samples": 8,
+      "exceeds_cyclic_prefix": true,
+      "linear_crc_passes": 2,
+      "linear_noiseless_channel_nmse": 0.09917885065078735,
+      "mean_propagated_error_variance": 0.00022222221014089882
+    }
+  ],
+  "posthoc_descriptive_strata": {
+    "exceeds_cyclic_prefix": {
+      "blocks": 24,
+      "cp_bounded_dft_crc_passes": 0,
+      "linear_crc_passes": 4,
+      "mean_cp_bounded_dft_channel_nmse": 0.2308430870374044,
+      "mean_linear_channel_nmse": 0.09843800713618596,
+      "selected_channels": 3
+    },
+    "within_cyclic_prefix": {
+      "blocks": 32,
+      "cp_bounded_dft_crc_passes": 32,
+      "linear_crc_passes": 18,
+      "mean_cp_bounded_dft_channel_nmse": 0.00025461032782914117,
+      "mean_linear_channel_nmse": 0.05810107383877039,
+      "selected_channels": 4
+    }
+  },
+  "result_sha256": "d428994bd0655599cda2e7e0e60b308459876cc78353ff8781018cab0fa5c77e",
+  "schema": "umcd.g5_cp_bounded_dft_selected_failure_diagnostic.v1",
+  "selection_rule": "All frozen channel draws with any position-0 static CRC failure; selection is outcome-dependent and occurred before this estimator replay.",
+  "source_sha256": {
+    "experiments/audit_g5_cp_bounded_dft_diagnostic.py": "e1ef61de0313580d9edc2fcf32c81c3033195802514fadd8502382e903420b24",
+    "experiments/g5_cp_bounded_dft_estimator.py": "e78e8fc1c1bb8c225cf4dd27777871ef4f8051c573679a443c3526cc2b38cc9f",
+    "integrations/sionna/nr_pusch.py": "b0f8a482eefc3460644a4000d38f6b3aad44336234b3bfd98e9b0d73f123ad86",
+    "integrations/sionna/ofdm_impairments.py": "d79e5b6cdd2280cad685bebc904bd6d345ce061621785944b02aff9fff62b751",
+    "receivers/nr/pusch.py": "d756599070c350e65d96b823738c98ad7be59d9188eb7eba98683d748716594d"
+  },
+  "status": "POST_HOC_DIAGNOSTIC_NOT_QUALIFICATION"
+}

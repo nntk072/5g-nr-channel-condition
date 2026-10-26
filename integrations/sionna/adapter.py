@@ -10,13 +10,14 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from copy import copy
 from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Mapping, Protocol, Sequence, cast
 
 import numpy as np
-from artifacts.provenance import package_source_sha256, versions
+from artifacts.provenance import canonical_hash, package_source_sha256, versions
 from datasets.channel import ChannelDataset
 from datasets.channel_view import (
     ChannelDelayReference,
@@ -29,6 +30,7 @@ from datasets.observations import (
     FrequencyDomainObservation,
     LinkedFrequencyDomainObservation,
 )
+from datasets.rt_split_identity import rt_spatial_split_subject_id as _rt_spatial_split_subject_id
 from propagation.physics import add_estimation_noise, frequency_response, subcarrier_frequencies
 
 from integrations.sionna.candidate_audit import instrument_path_solver_candidate_counter
@@ -188,13 +190,18 @@ def generate_standardized(
                     h_list.append(data[k])
                     ys.append(int(p in "DE"))
                     # Each sample is one link; follow-up correlated snapshots must reuse its group.
-                    groups.append(f"{family}_{p}_s{seed}_link{int(ix)}")
+                    group_id = f"{family}_{p}_s{seed}_link{int(ix)}"
+                    groups.append(group_id)
                     domains.append(f"{family}")
                     sources.append(f"{family}")
                     meta.append(
                         {
                             "profile": p,
                             "family": family,
+                            "split_subject_id": group_id,
+                            "split_parent_type": "standardized_channel_draw",
+                            "split_source_family": family,
+                            "split_leakage_relations": [],
                             "spread_ns": float(sp),
                             "label_semantics": "PROFILE_PROXY",
                             "grid_carrier_hz": grid.carrier_hz,
@@ -390,6 +397,13 @@ class RayScene:
             or self.max_num_paths_per_src < 1
         ):
             raise ValueError("max_num_paths_per_src must be a positive integer")
+        if (
+            isinstance(self.block_size_m, bool)
+            or not isinstance(self.block_size_m, (int, float))
+            or not math.isfinite(self.block_size_m)
+            or self.block_size_m <= 0
+        ):
+            raise ValueError("block_size_m must be finite and positive")
 
 
 def build_rt_data_generation_request(
@@ -400,6 +414,7 @@ def build_rt_data_generation_request(
     selection: Any,
     scene_ref: object,
     scene_assets: Mapping[str, Any],
+    material_manifest: Mapping[str, Any],
     destinations: Sequence[str | Path] = (),
 ) -> dict[str, Any]:
     """Build the canonical request from effective runtime and resolved scene facts."""
@@ -421,6 +436,7 @@ def build_rt_data_generation_request(
             "complete": scene_assets["complete"],
             "runtime_versions": versions(),
         },
+        "material_state_sha256": canonical_hash(dict(material_manifest)),
         "destinations": sorted(str(Path(value).expanduser().resolve()) for value in destinations),
     }
 
@@ -438,7 +454,10 @@ def authorize_rt_data_generation(
     """Resolve the effective RT inputs and authorize their canonical request."""
     from integrations.sionna.backend import activate_rt_backend, select_rt_backend
     from integrations.sionna.d1_generation_gate import authorize_d1_generation
-    from integrations.sionna.scene_assets import scene_asset_manifest
+    from integrations.sionna.scene_assets import (
+        scene_asset_manifest,
+        sionna_scene_material_manifest,
+    )
 
     selection = select_rt_backend(scene_config.mitsuba_variant)
     activate_rt_backend(selection)
@@ -459,6 +478,10 @@ def authorize_rt_data_generation(
             "asset_set_sha256": hashlib.sha256(ref.encode()).hexdigest(),
             "complete": False,
         }
+    scene = rt.load_scene(scene_ref)
+    scene.frequency = grid.carrier_hz
+    scene.bandwidth = grid.n_subcarriers * grid.spacing_hz
+    material_manifest = sionna_scene_material_manifest(scene)
     request = build_rt_data_generation_request(
         effective,
         grid,
@@ -466,6 +489,7 @@ def authorize_rt_data_generation(
         selection=selection,
         scene_ref=scene_ref,
         scene_assets=assets,
+        material_manifest=material_manifest,
         destinations=destinations,
     )
     return authorize_d1_generation(
@@ -649,6 +673,8 @@ def generate_raytraced(
     approval_manifest: str | Path | None = None,
     expected_approval_sha256: str | None = None,
     _scene_assets_override: Mapping[str, Any] | None = None,
+    _scene_override: Any | None = None,
+    _material_manifest_override: Mapping[str, Any] | None = None,
     output_destination: str | Path | None = None,
     failure_report_destination: str | Path | None = None,
     _authorization_destinations: Sequence[str | Path] = (),
@@ -709,6 +735,15 @@ def generate_raytraced(
             "unresolved_references": [scene_reference],
             "complete": False,
         }
+    scene = _scene_override if _scene_override is not None else load_scene(scene_ref)
+    scene.frequency = grid.carrier_hz
+    scene.bandwidth = grid.n_subcarriers * grid.spacing_hz
+    material_manifest = sionna_scene_material_manifest(scene)
+    if (
+        _material_manifest_override is not None
+        and dict(_material_manifest_override) != material_manifest
+    ):
+        raise PermissionError("RT material state changed after request authorization")
     from integrations.sionna.d1_generation_gate import (
         authorize_d1_generation,
         require_d1_authorization,
@@ -727,6 +762,7 @@ def generate_raytraced(
         selection=selection,
         scene_ref=scene_ref,
         scene_assets=scene_assets,
+        material_manifest=material_manifest,
         destinations=destinations,
     )
     if authorization is None:
@@ -751,16 +787,14 @@ def generate_raytraced(
         if _authorization_destinations:
             for destination in _authorization_destinations:
                 require_pilot_destination(authorization, destination, publisher="rt_cache")  # type: ignore[arg-type]
-    scene = load_scene(scene_ref)
     if scene_xml_path.is_file():
         loaded_scene_assets = scene_asset_manifest(scene_xml_path)
         if loaded_scene_assets.get("asset_set_sha256") != scene_assets.get("asset_set_sha256"):
             raise PermissionError(
                 "RT scene asset closure changed between authorization and scene load"
             )
-    scene.frequency = grid.carrier_hz
-    scene.bandwidth = grid.n_subcarriers * grid.spacing_hz
-    material_manifest = sionna_scene_material_manifest(scene)
+    if sionna_scene_material_manifest(scene) != material_manifest:
+        raise PermissionError("RT material state changed after request authorization")
     runtime_fingerprint = (
         dict(_runtime_fingerprint)
         if _runtime_fingerprint is not None
@@ -966,12 +1000,15 @@ def generate_raytraced(
         samples.append(observed_channel[0])
         ys.append(label)
         scene_id = scene_path.stem if scene_path.suffix else cfg.name
-        block_x = int(np.floor(x / cfg.block_size_m))
-        block_y = int(np.floor(y / cfg.block_size_m))
-        group_id = f"{scene_id}_block_{block_x}_{block_y}"
+        group_id, split_identity_complete = _rt_spatial_split_subject_id(
+            scene_asset_set_sha256=scene_assets["asset_set_sha256"],
+            scene_asset_manifest_complete=scene_assets["complete"],
+            scene_name=cfg.name,
+            rx_position_m=(float(x), float(y), float(z)),
+            block_size_m=cfg.block_size_m,
+        )
         domain_id = f"rt_{scene_id}"
         if cfg.transmitter_id is not None:
-            group_id = f"{scene_id}_tx_{cfg.transmitter_id}_block_{block_x}_{block_y}"
             domain_id = f"{domain_id}_{cfg.transmitter_id}"
         groups.append(group_id)
         domains.append(domain_id)
@@ -979,6 +1016,23 @@ def generate_raytraced(
         meta.append(
             {
                 "scene": cfg.name,
+                "split_subject_id": group_id,
+                "split_parent_type": "network_episode",
+                "split_source_family": "sionna_rt",
+                "split_leakage_relations": [],
+                "split_identity_basis": (
+                    "scene_asset_set_sha256+receiver_xy_grid"
+                    if split_identity_complete
+                    else "provisional_scene_name+receiver_xy_grid"
+                ),
+                "split_identity_complete": split_identity_complete,
+                "split_block_size_m": float(cfg.block_size_m),
+                "split_coordinate_frame_id": (
+                    scene_assets["asset_set_sha256"] if split_identity_complete else None
+                ),
+                "split_positions_m": (
+                    [float(x), float(y), float(z)] if split_identity_complete else None
+                ),
                 "scene_asset_set_sha256": scene_assets["asset_set_sha256"],
                 "scene_asset_manifest_complete": scene_assets["complete"],
                 "scene_asset_count": scene_assets["asset_count"],
@@ -1031,7 +1085,7 @@ def generate_raytraced(
                     noisy_cfr=observed_channel,
                     label=label,
                     rx_position=(float(x), float(y), float(z)),
-                    split_group_id=str(scene_assets["asset_set_sha256"]),
+                    split_group_id=group_id,
                     scene_config=cfg,
                     grid=grid,
                     seed=seed + attempt,
@@ -1227,7 +1281,10 @@ def generate_raytraced_cached(
         raise PermissionError("cached RT dataset access requires D1 authorization")
     from integrations.sionna.backend import activate_rt_backend, select_rt_backend
     from integrations.sionna.rt_cache import load_rt_dataset, store_rt_dataset
-    from integrations.sionna.scene_assets import scene_asset_manifest
+    from integrations.sionna.scene_assets import (
+        scene_asset_manifest,
+        sionna_scene_material_manifest,
+    )
 
     selection = select_rt_backend(scene_config.mitsuba_variant)
     activate_rt_backend(selection)
@@ -1250,6 +1307,10 @@ def generate_raytraced_cached(
             "unresolved_references": [reference],
             "complete": False,
         }
+    scene = rt.load_scene(scene_ref)
+    scene.frequency = grid.carrier_hz
+    scene.bandwidth = grid.n_subcarriers * grid.spacing_hz
+    material_manifest = sionna_scene_material_manifest(scene)
     from integrations.sionna.d1_generation_gate import (
         authorize_d1_generation,
         require_d1_authorization,
@@ -1268,6 +1329,7 @@ def generate_raytraced_cached(
         selection=selection,
         scene_ref=scene_ref,
         scene_assets=assets,
+        material_manifest=material_manifest,
         destinations=destinations,
     )
     if authorization is None:
@@ -1296,7 +1358,11 @@ def generate_raytraced_cached(
     )
     identity = rt_run_identity(
         scene_asset_manifest=assets,
-        physical_config={"scene": asdict(cfg), "grid": asdict(grid)},
+        physical_config={
+            "scene": asdict(cfg),
+            "grid": asdict(grid),
+            "material_state": material_manifest,
+        },
         solver_config=static_rt_solver_config(cfg.max_depth, cfg.max_num_paths_per_src),
         seed=seed,
         backend_selection=selection.as_dict(),
@@ -1316,6 +1382,8 @@ def generate_raytraced_cached(
         _runtime_fingerprint=runtime_fingerprint,
         authorization=authorization,
         _scene_assets_override=assets,
+        _scene_override=scene,
+        _material_manifest_override=material_manifest,
         output_destination=output_destination,
         failure_report_destination=failure_report_destination,
         umcd_store_root=umcd_store_root,

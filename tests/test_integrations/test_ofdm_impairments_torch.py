@@ -12,10 +12,60 @@ from integrations.sionna.ofdm_impairments import (  # noqa: E402
     apply_iq_imbalance,
     apply_phase_noise,
     apply_residual_cfo,
+    apply_time_varying_multipath,
     estimate_integer_timing_offset_from_cp,
     estimate_residual_cfo_from_cp,
     generate_wiener_phase_noise_rad,
 )
+
+
+def test_time_varying_paths_can_appear_and_disappear_at_receive_samples() -> None:
+    waveform = torch.arange(1, 9, dtype=torch.float64).to(torch.complex128)
+    activity = torch.tensor(
+        [[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+         [0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.5, 0.0]],
+        dtype=torch.float64,
+    )
+
+    received = apply_time_varying_multipath(
+        waveform,
+        path_coefficients=[1.0 + 0j, 0.5 + 0.0j],
+        path_delays_samples=[0, 2],
+        path_dopplers_hz=[0.0, 0.0],
+        path_activity_trajectories=activity,
+        sampling_frequency_hz=1_000.0,
+    )
+
+    delayed = torch.cat((torch.zeros(2, dtype=torch.complex128), waveform[:-2]))
+    expected = waveform + (0.5 * activity[1] * delayed)
+    torch.testing.assert_close(received, expected)
+    assert received[4] == waveform[4] + 0.5 * waveform[2]
+    assert received[6] == waveform[6] + 0.25 * waveform[4]
+    assert received[7] == waveform[7]
+
+
+@pytest.mark.parametrize(
+    "activity",
+    [
+        torch.ones((1, 7), dtype=torch.float64),
+        torch.ones((1, 8), dtype=torch.complex128),
+        torch.ones((1, 8), dtype=torch.bool),
+        torch.full((1, 8), float("nan"), dtype=torch.float64),
+        torch.full((1, 8), 1.1, dtype=torch.float64),
+        torch.full((1, 8), -0.1, dtype=torch.float64),
+    ],
+)
+def test_time_varying_paths_reject_malformed_activity_trajectories(activity) -> None:
+    waveform = torch.ones(8, dtype=torch.complex128)
+    with pytest.raises((TypeError, ValueError), match="path activity trajectories"):
+        apply_time_varying_multipath(
+            waveform,
+            path_coefficients=[1.0 + 0j],
+            path_delays_samples=[0],
+            path_dopplers_hz=[0.0],
+            path_activity_trajectories=activity,
+            sampling_frequency_hz=1_000.0,
+        )
 
 
 def test_phase_noise_and_iq_imbalance_match_samplewise_reference() -> None:
@@ -248,6 +298,42 @@ def test_cyclic_prefix_cfo_acquisition_rejects_invalid_frame_and_parameters() ->
             cfo_hz=float("nan"),
             sampling_frequency_hz=6_400.0,
         )
+
+
+def test_residual_cfo_rejects_boolean_complex_and_unrepresentable_inputs() -> None:
+    waveform = torch.ones(8, dtype=torch.complex64)
+    with pytest.raises(TypeError, match="real numeric"):
+        apply_residual_cfo(
+            waveform,
+            cfo_hz=True,
+            sampling_frequency_hz=1_000.0,
+        )
+    with pytest.raises(TypeError, match="real numeric"):
+        apply_residual_cfo(
+            waveform,
+            cfo_hz=torch.tensor(1.0 + 0.0j),
+            sampling_frequency_hz=1_000.0,
+        )
+    with pytest.raises(TypeError, match="sampling_frequency_hz"):
+        apply_residual_cfo(
+            waveform,
+            cfo_hz=1.0,
+            sampling_frequency_hz=True,
+        )
+    with pytest.raises(TypeError, match="initial_phase_rad"):
+        apply_residual_cfo(
+            waveform,
+            cfo_hz=1.0,
+            sampling_frequency_hz=1_000.0,
+            initial_phase_rad=True,
+        )
+    for cfo_hz in (1e-300, 1e300):
+        with pytest.raises(ValueError, match="waveform precision"):
+            apply_residual_cfo(
+                waveform,
+                cfo_hz=cfo_hz,
+                sampling_frequency_hz=1_000.0,
+            )
 
 
 def test_cyclic_prefix_timing_acquisition_finds_bounded_delay_per_waveform() -> None:

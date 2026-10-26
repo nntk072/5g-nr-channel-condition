@@ -430,15 +430,17 @@ def build_standardized_pusch_dmrs_records(
         )
         target_cfr = torch.index_select(target_cfr, -1, effective_bins)
         profile_target = np.asarray([int(record.profile_los_component)], dtype=np.uint8)
-        profile_definition = TargetDefinition(
+        profile_definition = TargetDefinition.versioned(
             semantic="standardized_profile_los_category_proxy",
             units="binary_class",
             source="Sionna standardized TDL/CDL profile model",
             reference=(
                 "profile_los_component false maps to 0 and true maps to 1; not geometric LOS truth"
             ),
+            aggregation_rule="one profile-category proxy per generated channel record",
+            definition_version="umcd.standardized.profile-los-proxy.v1",
         )
-        channel_definition = TargetDefinition(
+        channel_definition = TargetDefinition.versioned(
             semantic="perfect_synchronized_effective_subcarrier_cfr",
             units="complex channel gain (dimensionless)",
             source="standardized Sionna TDL/CDL CFR adapter",
@@ -448,6 +450,11 @@ def build_standardized_pusch_dmrs_records(
                 if channel_mode == "time_domain"
                 else "profile-relative excess-delay CFR resampled to this resource grid"
             ),
+            aggregation_rule=(
+                "retain each effective subcarrier coefficient in receiver FFT-bin order; "
+                "no antenna, symbol, or power averaging"
+            ),
+            definition_version="umcd.standardized.effective-cfr.v1",
         )
         records.append(
             NRChannelRecord(

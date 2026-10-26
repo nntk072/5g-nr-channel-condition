@@ -1,0 +1,47 @@
+{
+  "schema": "loslab.g4_standard_reference_manifest.v1",
+  "snapshot_date": "2026-10-26",
+  "redistribution_policy": "reference_identity_only; do_not_redistribute_etsi_pdf",
+  "sources": [
+    {
+      "source_id": "tr-138901-v16.1.0",
+      "standard": "3GPP TR 38.901",
+      "version": "16.1.0",
+      "filename": "tr_138901v160100p.pdf",
+      "source_url": "https://www.etsi.org/deliver/etsi_tr/138900_138999/138901/16.01.00_60/tr_138901v160100p.pdf",
+      "sha256": "513daf94101121acb74633f09d77836077f6215dfe1aed41caa0a72fd19f2e3b",
+      "size_bytes": 1444732,
+      "reference_scope": [
+        "TR 38.901 v16.1.0 source identity for the TDL/CDL profile tables used by the declared adapter compatibility matrix"
+      ],
+      "limitations": "A hash-pinned normative source identity; it does not prove extracted values or simulation results conform."
+    },
+    {
+      "source_id": "tr-138901-v19.2.0",
+      "standard": "3GPP TR 38.901",
+      "version": "19.2.0",
+      "filename": "tr_138901v190200p.pdf",
+      "source_url": "https://www.etsi.org/deliver/etsi_tr/138900_138999/138901/19.02.00_60/tr_138901v190200p.pdf",
+      "sha256": "b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4",
+      "size_bytes": 2843332,
+      "reference_scope": [
+        "CDL-A-through-E cluster delays, powers, angles, spreads, XPR, and LOS partitions"
+      ],
+      "limitations": "A hash-pinned normative source identity; it does not prove extracted values or simulation results conform."
+    },
+    {
+      "source_id": "ts-138101-4-v19.2.2",
+      "standard": "3GPP TS 38.101-4",
+      "version": "19.2.2",
+      "filename": "ts_13810104v190202p.pdf",
+      "source_url": "https://www.etsi.org/deliver/etsi_ts/138100_138199/13810104/19.02.02_60/ts_13810104v190202p.pdf",
+      "sha256": "b3c6a73c7a40219e7270c08c7a57c84cb46f6757b303a64ec768ba04a6079e81",
+      "size_bytes": 7538266,
+      "reference_scope": [
+        "Fixed TDL profile tap delays, powers, and Doppler conformance cases"
+      ],
+      "limitations": "A hash-pinned normative source identity; it does not prove extracted values or simulation results conform."
+    }
+  ],
+  "status": "SOURCE_IDENTITIES_PINNED_NOT_QUALIFIED"
+}

@@ -1,0 +1,134 @@
+{
+  "audit_source_sha256": "68b27323b5a3b1aaf9dfa1b6a14c92e56290c414cbb5c71f554b2659f87d0842",
+  "evidence_boundary": {
+    "does_not_support": [
+      "3.5 GHz target-frequency calibration or frequency transfer without independent validation",
+      "full-sphere 3D angular scattering",
+      "independent material/acquisition-unit uncertainty estimates from the single angular sweep",
+      "direct mapping from S21 to Sionna's diffuse coefficient without antenna, geometry, and power normalization",
+      "complex path-level CSI or NR receiver qualification"
+    ],
+    "next_scientific_step": "derive a preregistered power/angular observable from the documented calibration and geometry, then validate it on held-out angles/frequencies; keep target-band qualification separate",
+    "qualification": "not_claimed",
+    "supports": [
+      "repeatable parsing and frequency-grid checks for measured 8\u201312 GHz S-parameters",
+      "planar 10\u2013170 degree receiver-angle observations for five named sample constructions",
+      "a separately scoped out-of-band angular-scattering model check after calibration review"
+    ]
+  },
+  "measurement_audit": {
+    "frequency_end_hz": 12000000000.0,
+    "frequency_grid_sha256": "7ef992ed9c7b8d613f3528897010acc0e51e3aec3f07c9ce37cb2663987e646e",
+    "frequency_points_per_file": 1601,
+    "frequency_start_hz": 8000000000.0,
+    "frequency_step_hz": 2500000.0,
+    "material_profile_counts": {
+      "Brick Wall": 17,
+      "Gypsum Board Only": 17,
+      "Marble": 17,
+      "Plasterbord With Stud Metal Inside": 17,
+      "PlyWood": 17
+    },
+    "measured_profile_count": 85,
+    "reference_file_count": 10,
+    "rx_angles_deg": [
+      10,
+      20,
+      30,
+      40,
+      50,
+      60,
+      70,
+      80,
+      90,
+      100,
+      110,
+      120,
+      130,
+      140,
+      150,
+      160,
+      170
+    ],
+    "touchstone_file_count": 95,
+    "zip_crc": "passed"
+  },
+  "report_sha256": "833186891959a978b186720d588f2ad439ccaa986880da83740d8f6545c70c06",
+  "schema": "umcd.external_material_scattering_source_audit.v1",
+  "setup_from_source_pdf": {
+    "controls_per_material": [
+      "same-day SOLT thru/cable measurement",
+      "free-space Tx/Rx reference"
+    ],
+    "geometry": "horizontal bistatic semicircle around the sample; planar angular sweep",
+    "height_m_by_material": {
+      "Brick Wall": 0.43,
+      "Gypsum Board Only": 0.6,
+      "Marble": 0.78,
+      "Plasterbord With Stud Metal Inside": 0.6,
+      "PlyWood": 0.78
+    },
+    "receiver_angles_deg": [
+      10,
+      20,
+      30,
+      40,
+      50,
+      60,
+      70,
+      80,
+      90,
+      100,
+      110,
+      120,
+      130,
+      140,
+      150,
+      160,
+      170
+    ],
+    "receiver_step_deg": 10,
+    "rx_wall_distance_m_by_material": {
+      "Brick Wall": 2.45,
+      "Gypsum Board Only": 2.45,
+      "Marble": 1.73,
+      "Plasterbord With Stud Metal Inside": 2.45,
+      "PlyWood": 1.85
+    },
+    "transmitter_angle_deg": 135,
+    "tx_wall_distance_m_by_material": {
+      "Brick Wall": 1.6,
+      "Gypsum Board Only": 1.6,
+      "Marble": 0.32,
+      "Plasterbord With Stud Metal Inside": 1.6,
+      "PlyWood": 0.32
+    }
+  },
+  "source": {
+    "authors": [
+      "Elena Bernardi",
+      "Enrico Maria Vitucci",
+      "Vittorio Degli-Esposti"
+    ],
+    "doi": "10.5281/zenodo.15610052",
+    "files": {
+      "Info Dataset Scattering Measurements FR3 - CNIT.pdf": {
+        "bytes": 236144,
+        "md5": "cb8efdf3b623c1b8c0c2fe7ba5dc1d37",
+        "sha256": "ede144a2f92368bb052a1ee7e0e007447fa030dde021441e2cd7fdec7b2fafa0"
+      },
+      "Scattering Measurements Materials FR3 CNIT.zip": {
+        "bytes": 6560704,
+        "md5": "a9886323b7831d0ee49ca53b4f630594",
+        "sha256": "fc7efdf50cbbb050d8ceee1c8bce551bdcd05ed35fc27c107aabca9b6bff2ac4"
+      }
+    },
+    "license": "CC-BY-4.0",
+    "license_source": "Zenodo record metadata API; license id cc-by-4.0",
+    "record_access": "open",
+    "retrieved_utc_date": "2026-10-24",
+    "title": "Scattering Measurements of Building Materials in the FR3 band",
+    "zenodo_record_id": "15610052"
+  },
+  "status": "OUT_OF_BAND_REFERENCE_ONLY"
+}

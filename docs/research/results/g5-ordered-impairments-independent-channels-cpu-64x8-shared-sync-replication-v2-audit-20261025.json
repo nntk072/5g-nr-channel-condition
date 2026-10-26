@@ -1,0 +1,32 @@
+{
+  "audit": {
+    "blocks_per_channel": 8,
+    "checks": {
+      "acceptance_verdict": true,
+      "cfo_cluster_tail_bounds": true,
+      "committed_source_digest": null,
+      "configuration_digest": true,
+      "crc_and_bler_summaries": true,
+      "deterministic_replay": null,
+      "flattened_block_arrays": true,
+      "paired_cluster_inference": true,
+      "protocol_digest": true,
+      "result_digest": true,
+      "retained_observed_statistics": true,
+      "schema": true,
+      "source_digest_bindings": true,
+      "source_worktree_digest": true
+    },
+    "independent_channel_count": 64,
+    "limitations": [
+      "The retained artifact does not include the samplewise reference residuals or wrong-order waveforms; those two scalar acceptance observations are consumed from the source-bound report rather than independently recomputed.",
+      "A passing audit verifies this declared synthetic fixture only; it does not establish a field channel population, G5 closure, or production RT authorization."
+    ],
+    "schema": "umcd.g5_ordered_impairments_result_audit.v1",
+    "status": "VERIFIED_RESULT_AND_WORKTREE_SOURCE_PENDING_COMMIT"
+  },
+  "result_file_sha256": "54f4845cd7b9989fbdefa0da393cedf456ee0c35c136aa7711664009c645003a",
+  "result_path": "g5-ordered-impairments-independent-channels-cpu-64x8-shared-sync-replication-v2-20261025.json",
+  "result_sha256": "df16a10c9c36cb6be2ce78b5f70710d0039b9dbb22399c8ffdbcb6011d7a8b55",
+  "schema": "umcd.g5_ordered_impairments_retained_audit_record.v1"
+}

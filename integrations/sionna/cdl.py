@@ -3,11 +3,17 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import math
 from dataclasses import asdict, dataclass
 from importlib.metadata import PackageNotFoundError, version
-from pathlib import Path
+from numbers import Real
 from typing import Any, Sequence
+
+from datasets.standardized_specs import (
+    cdl_parameter_table_binding_sha256,
+    standardized_profile_applicability,
+)
 
 from .random import call_with_sionna_seed
 
@@ -55,7 +61,12 @@ class CDLArrayConfig:
             "element_horizontal_spacing",
         ):
             value = getattr(self, name)
-            if value is not None and (value <= 0 or not math.isfinite(value)):
+            if value is not None and (
+                isinstance(value, bool)
+                or not isinstance(value, Real)
+                or value <= 0
+                or not math.isfinite(value)
+            ):
                 raise ValueError(f"{name} must be finite and positive when set")
 
 
@@ -80,6 +91,11 @@ def _validate_vector(name: str, value: Sequence[float] | None) -> list[float] | 
         return None
     if len(value) != 3:
         raise ValueError(f"{name} must contain exactly three components")
+    if any(
+        isinstance(component, bool) or not isinstance(component, Real)
+        for component in value
+    ):
+        raise ValueError(f"{name} components must be finite real numbers")
     result = [float(component) for component in value]
     if not all(math.isfinite(component) for component in result):
         raise ValueError(f"{name} components must be finite")
@@ -96,8 +112,11 @@ def _profile_metadata(
     delay_dtype: Any,
 ) -> dict[str, Any]:
     """Read the pinned source table and derive output cluster powers/delays."""
-    table_path = Path(profile_resources.parameter_file(f"CDL-{model}.json", spec_version))
-    parameters = profile_resources.load_json(table_path)
+    table_filename = f"CDL-{model}.json"
+    table_resource = profile_resources.parameter_file(table_filename, spec_version)
+    table_bytes = table_resource.read_bytes()
+    parameters = json.loads(table_bytes)
+    table_sha256 = hashlib.sha256(table_bytes).hexdigest()
     raw_powers = [10.0 ** (float(power_db) / 10.0) for power_db in parameters["powers"]]
     power_sum = sum(raw_powers)
     normalized_powers = [power / power_sum for power in raw_powers]
@@ -158,8 +177,9 @@ def _profile_metadata(
             "zsa": float(parameters["cZSA"]),
         },
         "cross_polarization_power_ratio_db": float(parameters["xpr"]),
-        "parameter_table": table_path.name,
-        "parameter_table_sha256": hashlib.sha256(table_path.read_bytes()).hexdigest(),
+        "parameter_table": table_filename,
+        "parameter_table_source": f"TR 38.901:{spec_version}:{table_filename}",
+        "parameter_table_sha256": table_sha256,
     }
 
 
@@ -194,8 +214,14 @@ def generate_cdl_frequency_response(
     seconds-valued API, so this adapter rejects that mode. No geometric LOS
     label is produced: ``profile_los_component`` describes only the profile.
     """
-    if model not in {"A", "B", "C", "D", "E"}:
-        raise ValueError("model must be one of A, B, C, D, or E")
+    try:
+        applicability = standardized_profile_applicability("cdl", model)
+    except ValueError as exc:
+        raise ValueError("model must be one of A, B, C, D, or E") from exc
+    if spec_version not in applicability.supported_versions:
+        raise ValueError(
+            f"unsupported {applicability.standard} profile-table version: {spec_version}"
+        )
     if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
         raise ValueError("seed must be a nonnegative integer")
     for name, value in (
@@ -225,14 +251,32 @@ def generate_cdl_frequency_response(
         ("subcarrier_spacing_hz", subcarrier_spacing_hz),
         ("sampling_frequency_hz", sampling_frequency_hz),
     ):
-        if scalar_value <= 0 or not math.isfinite(scalar_value):
+        if (
+            isinstance(scalar_value, bool)
+            or not isinstance(scalar_value, Real)
+            or scalar_value <= 0
+            or not math.isfinite(scalar_value)
+        ):
             raise ValueError(f"{scalar_name} must be finite and positive")
-    if delay_spread_s < 0 or not math.isfinite(delay_spread_s):
+    if (
+        isinstance(delay_spread_s, bool)
+        or not isinstance(delay_spread_s, Real)
+        or delay_spread_s < 0
+        or not math.isfinite(delay_spread_s)
+    ):
         raise ValueError("delay_spread_s must be finite and nonnegative")
-    if min_speed_mps < 0 or not math.isfinite(min_speed_mps):
+    if (
+        isinstance(min_speed_mps, bool)
+        or not isinstance(min_speed_mps, Real)
+        or min_speed_mps < 0
+        or not math.isfinite(min_speed_mps)
+    ):
         raise ValueError("min_speed_mps must be finite and nonnegative")
     if max_speed_mps is not None and (
-        max_speed_mps < min_speed_mps or not math.isfinite(max_speed_mps)
+        isinstance(max_speed_mps, bool)
+        or not isinstance(max_speed_mps, Real)
+        or max_speed_mps < min_speed_mps
+        or not math.isfinite(max_speed_mps)
     ):
         raise ValueError("max_speed_mps must be finite and >= min_speed_mps")
     effective_speed_max = 0.0 if max_speed_mps is None else max_speed_mps
@@ -357,4 +401,5 @@ def generate_cdl_frequency_response(
             "tx_antenna_count": int(h_path.shape[4]),
         }
     )
+    metadata["parameter_table_binding_sha256"] = cdl_parameter_table_binding_sha256(metadata)
     return SionnaCDLChannel(h_path, tau_s, cfr, metadata)

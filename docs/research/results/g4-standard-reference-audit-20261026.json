@@ -1,0 +1,31 @@
+{
+  "interpretation": "The local files match the pinned source bytes. This does not establish that extracted values, implemented models, statistical tests, or standardized conformance are correct.",
+  "manifest_sha256": "53c3c1d57bcc37ca87c751491cee9478fa32d8f3b69663a1926cdeb52cc0e578",
+  "qualification_status": "NOT_QUALIFIED",
+  "schema": "loslab.g4_standard_reference_audit.v1",
+  "source_count": 3,
+  "sources": [
+    {
+      "filename": "tr_138901v160100p.pdf",
+      "sha256": "513daf94101121acb74633f09d77836077f6215dfe1aed41caa0a72fd19f2e3b",
+      "size_bytes": 1444732,
+      "source_id": "tr-138901-v16.1.0",
+      "status": "PASS_EXACT_REFERENCE_BYTES"
+    },
+    {
+      "filename": "tr_138901v190200p.pdf",
+      "sha256": "b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4",
+      "size_bytes": 2843332,
+      "source_id": "tr-138901-v19.2.0",
+      "status": "PASS_EXACT_REFERENCE_BYTES"
+    },
+    {
+      "filename": "ts_13810104v190202p.pdf",
+      "sha256": "b3c6a73c7a40219e7270c08c7a57c84cb46f6757b303a64ec768ba04a6079e81",
+      "size_bytes": 7538266,
+      "source_id": "ts-138101-4-v19.2.2",
+      "status": "PASS_EXACT_REFERENCE_BYTES"
+    }
+  ],
+  "status": "PASS_REFERENCE_SOURCE_BYTES_ONLY"
+}

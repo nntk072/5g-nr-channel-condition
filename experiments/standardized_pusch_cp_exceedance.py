@@ -21,7 +21,7 @@ import numpy as np
 from evaluation.statistics import paired_cluster_binary_error_comparison
 
 SCHEMA = "umcd.g5_cp_exceedance_receiver_probe.v5"
-CURVE_SCHEMA = "umcd.g5_cp_exceedance_snr_curve.v3"
+CURVE_SCHEMA = "umcd.g5_cp_exceedance_snr_curve.v4"
 
 
 def wilson_interval(
@@ -132,11 +132,17 @@ def _parent_lineage(run: Any, records: Sequence[Any]) -> list[dict[str, Any]]:
 
 
 def run_cp_exceedance_probe(
-    *, samples: int = 16, snr_db: float = 60.0, command: Sequence[str] | None = None
+    *,
+    samples: int = 16,
+    snr_db: float = 60.0,
+    model: str = "A",
+    command: Sequence[str] | None = None,
 ) -> dict[str, Any]:
     """Run paired receiver views, counting each independent TDL draw once."""
     if isinstance(samples, bool) or not isinstance(samples, int) or samples < 4:
         raise ValueError("samples must be an integer >= 4")
+    if model not in {"A", "B", "C", "D", "E"}:
+        raise ValueError("model must be one of A, B, C, D, or E")
     if isinstance(snr_db, bool) or not isinstance(snr_db, (float, int)):
         raise TypeError("snr_db must be a real number")
     if not math.isfinite(snr_db):
@@ -154,7 +160,7 @@ def run_cp_exceedance_probe(
     delay_spread_s = 1.0e-6
     config = NRPUSCHConfig(n_size_bwp=6, subcarrier_spacing_khz=30)
     channel = generate_tdl_frequency_response(
-        model="A",
+        model=model,
         seed=channel_seed,
         carrier_frequency_hz=3.5e9,
         subcarrier_spacing_hz=30_000.0,
@@ -229,7 +235,7 @@ def run_cp_exceedance_probe(
         for estimate in ("dmrs_ls", "diagonal_cfr_oracle")
     }
     configuration = {
-        "channel_family": "Sionna TDL-A stochastic channel draws",
+        "channel_family": f"Sionna TDL-{model} stochastic channel draws",
         "carrier_frequency_hz": 3.5e9,
         "subcarrier_spacing_hz": 30_000.0,
         "source_cfr_subcarriers": 128,
@@ -302,6 +308,7 @@ def run_cp_exceedance_snr_curve(
     *,
     samples: int = 16,
     snr_db: Sequence[float] = (60.0, 80.0, 100.0),
+    model: str = "A",
     command: Sequence[str] | None = None,
 ) -> dict[str, Any]:
     """Run a matched CPU SNR curve over identical standardized channel parents.
@@ -315,7 +322,8 @@ def run_cp_exceedance_snr_curve(
         raise ValueError("samples must be an integer >= 4")
     snr_values = _validate_snr_grid(snr_db)
     reports = [
-        run_cp_exceedance_probe(samples=samples, snr_db=snr, command=command) for snr in snr_values
+        run_cp_exceedance_probe(samples=samples, snr_db=snr, model=model, command=command)
+        for snr in snr_values
     ]
     reference = reports[0]
     reference_configuration = dict(reference["configuration"])
@@ -350,6 +358,7 @@ def run_cp_exceedance_snr_curve(
         )
     curve_configuration = {
         "channel_family": reference_configuration["channel_family"],
+        "channel_and_receiver_configuration": reference_configuration,
         "snr_db": list(snr_values),
         "samples_per_snr": samples,
         "independent_parent_count": len(reference_lineage),
@@ -392,7 +401,7 @@ def run_cp_exceedance_snr_curve(
         "interpretation": [
             "All SNR points use identical standardized channel truth, parent IDs, transmit seeds, and noise seeds.",
             "Different SNRs change the noise variance; they are paired receiver views, not independent channel evidence.",
-            "Parent-cluster intervals are conditional on the sampled TDL-A family and do not support scene/site generalization.",
+            f"Parent-cluster intervals are conditional on the sampled TDL-{model} family and do not support scene/site generalization.",
             "The finite sinc-discretized time-domain TDL and ideal-CFR control are diagnostics, not physical truth.",
             "This is not a deployment BLER curve, standards certification, G5 pass, or G3 receiver qualification.",
         ],
@@ -416,6 +425,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--samples", type=int, default=16)
     parser.add_argument("--snr-db", type=float, nargs="+", default=[60.0])
+    parser.add_argument("--profile", choices=("A", "B", "C", "D", "E"), default="A")
     parser.add_argument("--output", type=Path, default=None)
     args = parser.parse_args(argv)
     invocation = [
@@ -427,20 +437,29 @@ def main(argv: Sequence[str] | None = None) -> int:
         "experiments/standardized_pusch_cp_exceedance.py",
         *(list(argv) if argv is not None else sys.argv[1:]),
     ]
+    profile_suffix = "" if args.profile == "A" else f"-tdl-{args.profile.lower()}"
     if len(args.snr_db) == 1:
         report = run_cp_exceedance_probe(
-            samples=args.samples, snr_db=args.snr_db[0], command=invocation
+            samples=args.samples,
+            snr_db=args.snr_db[0],
+            model=args.profile,
+            command=invocation,
         )
         default_output = Path(
-            "docs/research/results/g5-standardized-pusch-cp-exceedance-cluster-bootstrap-v5-20261023.json"
+            "docs/research/results/g5-standardized-pusch-cp-exceedance"
+            f"{profile_suffix}-cluster-bootstrap-v5-20261023.json"
         )
         print_summary = report["outcomes"]
     else:
         report = run_cp_exceedance_snr_curve(
-            samples=args.samples, snr_db=args.snr_db, command=invocation
+            samples=args.samples,
+            snr_db=args.snr_db,
+            model=args.profile,
+            command=invocation,
         )
         default_output = Path(
-            "docs/research/results/g5-standardized-pusch-cp-exceedance-snr-curve-v3-20261023.json"
+            "docs/research/results/g5-standardized-pusch-cp-exceedance"
+            f"{profile_suffix}-snr-curve-v4-20261024.json"
         )
         print_summary = {str(point["snr_db"]): point["outcomes"] for point in report["points"]}
     output_path = args.output or default_output

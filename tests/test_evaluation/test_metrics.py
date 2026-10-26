@@ -19,8 +19,10 @@ from evaluation.paired_link_curves import (
     summarize_tdl_profile_sweep,
 )
 from evaluation.statistics import (
+    cluster_binary_error_rate_interval,
     paired_binary_error_comparison,
     paired_cluster_binary_error_comparison,
+    paired_cluster_binary_error_family_comparison,
     paired_seed_delta,
 )
 
@@ -193,6 +195,43 @@ def test_paired_cluster_error_interval_resamples_independent_parents_not_rows():
     assert replicated["independent_groups"] == 4
     assert replicated["paired_trials"] == 40
     assert result["sampling_unit"].startswith("independent group")
+
+
+def test_cluster_binary_error_interval_resamples_whole_groups_deterministically():
+    errors = [False, True, True, True, False, False]
+    groups = ["a", "a", "b", "b", "c", "c"]
+    result = cluster_binary_error_rate_interval(errors, groups, seed=71, draws=2000)
+    replicated = cluster_binary_error_rate_interval(errors, groups, seed=71, draws=2000)
+
+    assert result == replicated
+    assert result["error_rate"] == pytest.approx(0.5)
+    assert result["independent_groups"] == 3
+    assert 0.0 <= result["cluster_bootstrap_ci95"][0]
+    assert result["cluster_bootstrap_ci95"][0] < result["cluster_bootstrap_ci95"][1] <= 1.0
+    assert result["status"] == "estimated"
+
+
+def test_cluster_binary_error_interval_reports_one_group_as_insufficient():
+    result = cluster_binary_error_rate_interval([False, True], ["one", "one"], draws=50)
+
+    assert result["independent_groups"] == 1
+    assert result["cluster_bootstrap_ci95"] is None
+    assert result["status"] == "insufficient_independent_groups"
+
+
+@pytest.mark.parametrize(
+    ("errors", "groups", "message"),
+    [
+        ([False], [], "equally sized"),
+        ([False], [""], "non-empty strings"),
+        ([0, 1], ["a", "b"], "boolean values"),
+        ([False], ["a"], "positive integer"),
+    ],
+)
+def test_cluster_binary_error_interval_rejects_invalid_inputs(errors, groups, message):
+    kwargs = {"draws": 0} if message == "positive integer" else {"draws": 10}
+    with pytest.raises(ValueError, match=message):
+        cluster_binary_error_rate_interval(errors, groups, **kwargs)
 
 
 @pytest.mark.parametrize(
@@ -469,6 +508,200 @@ def test_curve_comparator_pairs_different_tdl_profiles(tmp_path):
     assert not result["paired_design"]["same_channel_truth_by_seed"]
     assert result["control"]["profile"] == "TDL-B"
     assert result["treatment"]["profile"] == "TDL-C"
+
+
+def test_curve_comparator_pairs_estimators_by_batch_cluster(tmp_path):
+    checks = [
+        {
+            "seed": seed,
+            "noise_seed": seed + 2,
+            "noise_real_seed": seed + 2,
+            "noise_imag_seed": seed + 3,
+            "transmit_bits_sha256": f"bits-{seed}",
+            "channel_truth_sha256": f"channel-{seed}",
+        }
+        for seed in (41, 42, 43, 44)
+    ]
+    common = {
+        "schema": "loslab.tdl_pusch_time_bler_curve.v2",
+        "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
+        "configuration": {
+            "speed_mps": 3.0,
+            "matched_realization_checks": checks,
+            "transmit_waveform_mean_power_by_batch": [1.0] * len(checks),
+        },
+    }
+    groups = [str(seed) for seed in (41, 42, 43, 44)]
+    point_data = [
+        {
+            "snr_db": 8.0,
+            "frames": 4,
+            "frame_error_mask": [True, True, False, False],
+            "frame_cluster_ids": groups,
+            "bits": 400,
+        },
+        {
+            "snr_db": 12.0,
+            "frames": 4,
+            "frame_error_mask": [False, False, False, False],
+            "frame_cluster_ids": groups,
+            "bits": 400,
+        },
+    ]
+    control = {
+        **common,
+        "configuration": {
+            **common["configuration"],
+            "channel_estimator": {
+                "kind": "sionna_ls",
+                "min_delay_samples": None,
+                "max_delay_samples": None,
+            },
+        },
+        "points": point_data,
+    }
+    treatment = {
+        **common,
+        "configuration": {
+            **common["configuration"],
+            "channel_estimator": {
+                "kind": "finite_delay_dft",
+                "min_delay_samples": 0,
+                "max_delay_samples": 8,
+            },
+        },
+        "points": [
+            {**point_data[0], "frame_error_mask": [True, False, False, False]},
+            point_data[1],
+        ],
+    }
+    control_path = tmp_path / "ls-curve.json"
+    treatment_path = tmp_path / "dft-curve.json"
+    atomic_json(control_path, control)
+    atomic_json(treatment_path, treatment)
+
+    result = compare_curves(
+        control_path,
+        treatment_path,
+        varying_config_field="channel_estimator",
+    )
+
+    assert result["schema"] == "loslab.paired_tdl_pusch_time_bler.v3"
+    assert result["paired_design"]["same_transmitted_bits_by_seed"] is True
+    assert result["paired_design"]["same_channel_truth_by_seed"] is True
+    assert result["paired_design"]["sampling_unit"] == (
+        "independent batch seed; codewords nested within batch"
+    )
+    assert result["paired_design"]["interval_scope"] == (
+        "pointwise plus simultaneous familywise 95% max-deviation cluster bootstrap across SNR"
+    )
+    assert result["points"][0]["cluster_paired_comparison"]["independent_groups"] == 4
+    family = result["points"][0]["familywise_cluster_comparison"]
+    assert family["familywise_snr_points"] == 2
+    assert family["familywise_confidence_level"] == 0.95
+    assert family["familywise_cluster_bootstrap_ci95"][0] <= family[
+        "treatment_minus_control_error_rate"
+    ] <= family["familywise_cluster_bootstrap_ci95"][1]
+    assert "mcnemar_exact_two_sided_p_value" not in result["points"][0]
+
+
+def test_paired_cluster_family_bootstrap_uses_shared_roster_and_bounds_memory():
+    groups = ["a", "a", "b", "b", "c", "c"]
+    estimates = paired_cluster_binary_error_family_comparison(
+        [[False, True, False, True, False, True]] * 2,
+        [[True, True, False, False, False, False]] * 2,
+        [groups, groups],
+        seed=9,
+        draws=300,
+    )
+
+    assert estimates[0]["familywise_cluster_bootstrap_ci95"] == estimates[1][
+        "familywise_cluster_bootstrap_ci95"
+    ]
+    assert estimates[0]["paired_trials"] == 6
+    assert estimates[0]["sampling_unit"] == "independent batch seed; codewords nested"
+    with pytest.raises(ValueError, match="same independent cluster roster"):
+        paired_cluster_binary_error_family_comparison(
+            [[False, True], [False, True]],
+            [[True, False], [True, False]],
+            [["a", "b"], ["a", "c"]],
+            draws=10,
+        )
+    with pytest.raises(ValueError, match="memory limit"):
+        paired_cluster_binary_error_family_comparison(
+            [[False, True], [True, False]],
+            [[True, False], [False, True]],
+            [["a", "b"], ["a", "b"]],
+            draws=2_500_001,
+        )
+
+
+def test_estimator_curve_comparison_rejects_unmatched_channel_truth(tmp_path):
+    checks = [
+        {
+            "seed": 41,
+            "noise_seed": 43,
+            "noise_real_seed": 43,
+            "noise_imag_seed": 44,
+            "transmit_bits_sha256": "same-bits",
+            "channel_truth_sha256": "control-channel",
+        },
+        {
+            "seed": 42,
+            "noise_seed": 44,
+            "noise_real_seed": 44,
+            "noise_imag_seed": 45,
+            "transmit_bits_sha256": "same-bits-2",
+            "channel_truth_sha256": "control-channel-2",
+        },
+    ]
+    common = {
+        "schema": "loslab.tdl_pusch_time_bler_curve.v2",
+        "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
+        "configuration": {
+            "speed_mps": 3.0,
+            "matched_realization_checks": checks,
+            "transmit_waveform_mean_power_by_batch": [1.0, 1.0],
+        },
+        "points": [
+            {
+                "snr_db": 10.0,
+                "frames": 2,
+                "frame_error_mask": [False, True],
+                "frame_cluster_ids": ["41", "42"],
+            }
+        ],
+    }
+    control = {
+        **common,
+        "configuration": {
+            **common["configuration"],
+            "channel_estimator": {"kind": "sionna_ls"},
+        },
+    }
+    treatment_checks = [
+        {**checks[0]},
+        {**checks[1], "channel_truth_sha256": "different-channel"},
+    ]
+    treatment = {
+        **common,
+        "configuration": {
+            **common["configuration"],
+            "channel_estimator": {"kind": "finite_delay_dft"},
+            "matched_realization_checks": treatment_checks,
+        },
+    }
+    control_path = tmp_path / "control-estimator.json"
+    treatment_path = tmp_path / "treatment-estimator.json"
+    atomic_json(control_path, control)
+    atomic_json(treatment_path, treatment)
+
+    with pytest.raises(ValueError, match="channel truth differs"):
+        compare_curves(
+            control_path,
+            treatment_path,
+            varying_config_field="channel_estimator",
+        )
 
 
 def test_tdl_profile_sweep_requires_matched_trials_and_adjusts_family(tmp_path):

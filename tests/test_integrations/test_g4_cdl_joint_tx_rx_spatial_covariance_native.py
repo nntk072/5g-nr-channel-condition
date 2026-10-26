@@ -1,9 +1,11 @@
-"""Independent joint transmit/receive spatial covariance checks for CDL-A through E."""
+"""ETSI-referenced joint transmit/receive spatial covariance checks for CDL-A through E."""
 
 from __future__ import annotations
 
 import hashlib
+import json
 import math
+from pathlib import Path
 from statistics import NormalDist
 from typing import Any
 
@@ -27,6 +29,10 @@ _CDL_TABLE_SHA256 = {
     "E": "04328f33d8d79b24aa3d0303fecb58b465ed7e13874930b05e76be0d97743480",
 }
 _PROFILE_COUNT = 5
+_CDL_ETSI_REFERENCE_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
+)
 _RAY_ANGLE_OFFSETS = (
     0.0447,
     -0.0447,
@@ -59,6 +65,27 @@ def _unique_hermitian_components(matrix: Any) -> Any:
     return torch.stack(components).to(torch.float64)
 
 
+def _independent_profile_parameters(model: str) -> dict[str, Any]:
+    """Adapt the ETSI-derived fixture rows to the ray-sum equations below."""
+    reference = json.loads(_CDL_ETSI_REFERENCE_PATH.read_text(encoding="utf-8"))
+    if reference["source_id"] != "tr-138901-v19.2.0":
+        raise ValueError("CDL independent reference is bound to an unexpected ETSI source")
+    profile = next(row for row in reference["profiles"] if row["profile_model"] == model)
+    components = profile["components"]
+    return {
+        "los": int(profile["los"]),
+        "powers": [row["power_db"] for row in components],
+        "aod": [row["angles_deg"]["aod"] for row in components],
+        "aoa": [row["angles_deg"]["aoa"] for row in components],
+        "zod": [row["angles_deg"]["zod"] for row in components],
+        "zoa": [row["angles_deg"]["zoa"] for row in components],
+        "cASD": profile["cluster_spreads_deg"]["asd"],
+        "cASA": profile["cluster_spreads_deg"]["asa"],
+        "cZSD": profile["cluster_spreads_deg"]["zsd"],
+        "cZSA": profile["cluster_spreads_deg"]["zsa"],
+    }
+
+
 def _one_end_covariance(
     azimuth_deg: Any,
     zenith_deg: Any,
@@ -82,7 +109,7 @@ def _independent_joint_covariance_reference(
     table_bytes = table_path.read_bytes()
     digest = hashlib.sha256(table_bytes).hexdigest()
     assert digest == _CDL_TABLE_SHA256[model]
-    parameters = profile_resources.load_json(table_path)
+    parameters = _independent_profile_parameters(model)
     is_los = bool(parameters["los"])
 
     powers = torch.as_tensor(

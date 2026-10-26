@@ -8,7 +8,7 @@ import math
 import shlex
 from collections.abc import Mapping
 from pathlib import Path
-from types import CodeType
+from types import CodeType, FunctionType, ModuleType
 from xml.etree import ElementTree
 
 import numpy as np
@@ -188,24 +188,97 @@ def _material_json_value(value: object) -> object:
     raise TypeError(f"unsupported material-state value: {type(value).__qualname__}")
 
 
-def _callable_manifest(callback: object) -> dict[str, object]:
+def _callable_manifest(
+    callback: object, active_callables: set[int] | None = None
+) -> dict[str, object]:
     code = getattr(callback, "__code__", None)
     if code is None:
         raise TypeError("material frequency callback must expose Python code for provenance")
+    if active_callables is None:
+        active_callables = set()
+    identity = id(callback)
+    if identity in active_callables:
+        return {
+            "recursive_callable": {
+                "module": getattr(callback, "__module__", ""),
+                "qualname": getattr(callback, "__qualname__", type(callback).__qualname__),
+            }
+        }
+    active_callables.add(identity)
     closure = getattr(callback, "__closure__", None) or ()
     closure_values = {
         name: _material_json_value(cell.cell_contents)
         for name, cell in zip(code.co_freevars, closure, strict=True)
     }
     normalized_code = _normalized_code(code)
-    return {
+    callback_globals = getattr(callback, "__globals__", {})
+    referenced_globals = {
+        name: _global_dependency_manifest(callback_globals[name], active_callables, set())
+        for name in sorted(set(code.co_names))
+        if name in callback_globals
+    }
+    result = {
         "module": getattr(callback, "__module__", ""),
         "qualname": getattr(callback, "__qualname__", type(callback).__qualname__),
         "code_sha256": hashlib.sha256(
             json.dumps(normalized_code, sort_keys=True, separators=(",", ":")).encode()
         ).hexdigest(),
         "closure_values": closure_values,
+        "referenced_globals": referenced_globals,
     }
+    active_callables.remove(identity)
+    return result
+
+
+def _global_dependency_manifest(
+    value: object, active_callables: set[int], active_containers: set[int]
+) -> object:
+    """Serialize callback globals without silently omitting behavior inputs."""
+    if isinstance(value, ModuleType):
+        return {
+            "module": value.__name__,
+            "version": _material_json_value(getattr(value, "__version__", None)),
+        }
+    if isinstance(value, FunctionType):
+        return _callable_manifest(value, active_callables)
+    if isinstance(value, type):
+        return {"class_module": value.__module__, "class_qualname": value.__qualname__}
+    if callable(value):
+        return {
+            "callable_module": getattr(value, "__module__", type(value).__module__),
+            "callable_qualname": getattr(value, "__qualname__", type(value).__qualname__),
+        }
+    if isinstance(value, Mapping):
+        identity = id(value)
+        if identity in active_containers:
+            raise ValueError("material callback references a cyclic global mapping")
+        active_containers.add(identity)
+        pairs = [
+            [
+                _global_dependency_manifest(key, active_callables, active_containers),
+                _global_dependency_manifest(item, active_callables, active_containers),
+            ]
+            for key, item in value.items()
+        ]
+        active_containers.remove(identity)
+        pairs.sort(key=lambda pair: json.dumps(pair[0], sort_keys=True, separators=(",", ":")))
+        return {"mapping_items": pairs}
+    if isinstance(value, (tuple, list)):
+        identity = id(value)
+        if identity in active_containers:
+            raise ValueError("material callback references a cyclic global sequence")
+        active_containers.add(identity)
+        result = [
+            _global_dependency_manifest(item, active_callables, active_containers) for item in value
+        ]
+        active_containers.remove(identity)
+        return {"tuple" if isinstance(value, tuple) else "list": result}
+    if isinstance(value, (str, bool, int, float, np.ndarray, np.generic)) or value is None:
+        return _material_json_value(value)
+    raise TypeError(
+        "material callback references unsupported global state: "
+        f"{type(value).__module__}.{type(value).__qualname__}"
+    )
 
 
 def _normalized_code(code: CodeType) -> dict[str, object]:

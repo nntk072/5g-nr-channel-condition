@@ -62,8 +62,8 @@
     "symbol_static_control": "echo coefficient phase evaluated at each OFDM-symbol start and held over that symbol",
     "waveform_awgn_injected": false
   },
-  "created_utc": "2026-10-23T20:14:29.756158+00:00",
-  "git_revision": "78491760212bd68b5fcbff11b357f9f67bc8a4e3",
+  "created_utc": "2026-10-24T07:25:28.333065+00:00",
+  "git_revision": "8ba3482539ccc4774175f86b4e9938081424a268",
   "intra_symbol_acceptance": {
     "inference_scope": "conditional on this fixed synthetic channel and tested payload population; the symbol-static model is a diagnostic control, not a deployment channel",
     "interpretation": "continuous sample-time Doppler versus the same Doppler frozen at each OFDM-symbol start; both retain inter-symbol channel aging",
@@ -2535,7 +2535,7 @@
       "echo_doppler_hz": 750.0
     }
   ],
-  "result_sha256": "c250bcdc4fc5e54113008f9b1a4b60d0bc241f356dd469d121b224e526c25ee2",
+  "result_sha256": "fe817c2c77a3fc93e4d885e9b2272e0a2587d7f9ef9ec6fab519f9388a31c49f",
   "runtime": {
     "device": "cpu",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
@@ -2547,7 +2547,7 @@
   "source_sha256": {
     "experiments/g5_time_varying_multipath_receiver.py": "7e3adbc8a1b2083ecab37db29ac593efd1ae34398232f5bda45ce9b7ff1ec0b7",
     "integrations/sionna/nr_pusch.py": "073fb321bd69547478c6c6862a0e355ae1f708f8895a5951423a16ee24f64a41",
-    "integrations/sionna/ofdm_impairments.py": "d8e30d81ce895bf55c7ed5a470089ae596e648940eaa2719896cc50e1ed0d49d",
+    "integrations/sionna/ofdm_impairments.py": "d79e5b6cdd2280cad685bebc904bd6d345ce061621785944b02aff9fff62b751",
     "receivers/nr/pusch.py": "f00a94da21f925c7366a36072fb63dd2dd68669bd2414064e797a97d8fd8464d"
   },
   "summary_by_condition": {

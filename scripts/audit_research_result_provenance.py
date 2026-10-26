@@ -8,8 +8,11 @@ from __future__ import annotations
 
 import argparse
 import gzip
+import hashlib
 import json
+import os
 import re
+import stat
 import sys
 import zlib
 from collections import Counter
@@ -145,6 +148,95 @@ def _reference_values(
     return []
 
 
+def _reference_hashes(value: Any, label: str) -> dict[str, Any]:
+    """Return declared digests paired with their path fields, when present."""
+    found: dict[str, Any] = {}
+    if isinstance(value, list):
+        for index, item in enumerate(value):
+            found.update(_reference_hashes(item, f"{label}[{index}]"))
+    elif isinstance(value, dict):
+        for key in value:
+            if key not in _PATH_KEYS and not key.endswith(_PATH_SUFFIXES):
+                continue
+            stem = key
+            for suffix in _PATH_SUFFIXES:
+                if stem.endswith(suffix):
+                    stem = stem[: -len(suffix)]
+                    break
+            candidates = (
+                (f"{stem}_sha256", f"{stem}_hash", f"{stem}_checksum_sha256")
+                if stem
+                else ("sha256", "hash", "checksum_sha256")
+            )
+            for digest_key in candidates:
+                if digest_key in value:
+                    found[f"{label}.{key}"] = value[digest_key]
+                    break
+        for key, item in value.items():
+            if (
+                key not in _PATH_KEYS
+                and not key.endswith(_PATH_SUFFIXES)
+                and isinstance(item, (list, dict))
+            ):
+                found.update(_reference_hashes(item, f"{label}.{key}"))
+    return found
+
+
+def _file_signature(
+    metadata: os.stat_result,
+) -> tuple[int, int, int, int, int, int, int]:
+    return (
+        metadata.st_dev,
+        metadata.st_ino,
+        metadata.st_mode,
+        metadata.st_nlink,
+        metadata.st_size,
+        metadata.st_mtime_ns,
+        metadata.st_ctime_ns,
+    )
+
+
+def _sha256_file(path: Path) -> str:
+    """Hash one stable regular file without following a leaf symlink."""
+    before = path.lstat()
+    if stat.S_ISLNK(before.st_mode):
+        raise OSError("referenced artifact is a symlink")
+    flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
+    if hasattr(os, "O_BINARY"):
+        flags |= os.O_BINARY
+    descriptor = os.open(path, flags)
+    try:
+        opened = os.fstat(descriptor)
+        current = path.lstat()
+        if (
+            not stat.S_ISREG(opened.st_mode)
+            or stat.S_ISLNK(current.st_mode)
+            or _file_signature(opened) != _file_signature(before)
+            or _file_signature(opened) != _file_signature(current)
+        ):
+            raise OSError("referenced artifact changed while opening or is not a regular file")
+        byte_count = 0
+        with os.fdopen(descriptor, "rb") as handle:
+            descriptor = -1
+            digest = hashlib.sha256()
+            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                digest.update(chunk)
+                byte_count += len(chunk)
+            opened_after = os.fstat(handle.fileno())
+            current_after = path.lstat()
+            if (
+                stat.S_ISLNK(current_after.st_mode)
+                or _file_signature(opened_after) != _file_signature(opened)
+                or _file_signature(opened_after) != _file_signature(current_after)
+                or byte_count != opened.st_size
+            ):
+                raise OSError("referenced artifact changed while hashing")
+            return digest.hexdigest()
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
+
+
 def _has_invalid_reference(value: Any) -> bool:
     if isinstance(value, str):
         return False
@@ -263,6 +355,7 @@ def audit_record(
             strings_are_paths=declared[0]
             in {"input_files", "input_artifacts", "output_files", "output_artifacts"},
         )
+        reference_hashes = _reference_hashes(declared[1], declared[0])
         if _has_invalid_reference(declared[1]):
             issues.append(
                 {
@@ -288,6 +381,40 @@ def audit_record(
                         "code": f"unresolved_{kind}_reference",
                         "field": field,
                         "message": f"referenced local artifact does not exist: {reference}",
+                    }
+                )
+                continue
+            if field not in reference_hashes:
+                continue
+            expected_hash = reference_hashes[field]
+            if not isinstance(expected_hash, str) or not _SHA256.fullmatch(expected_hash):
+                issues.append(
+                    {
+                        "code": "invalid_reference_hash",
+                        "field": field,
+                        "message": "associated artifact digest must be a SHA-256 hex string",
+                    }
+                )
+                continue
+            if resolved is None:
+                continue
+            try:
+                actual_hash = _sha256_file(resolved)
+            except OSError as error:
+                issues.append(
+                    {
+                        "code": "unreadable_reference",
+                        "field": field,
+                        "message": f"cannot hash referenced artifact: {error}",
+                    }
+                )
+                continue
+            if actual_hash.lower() != expected_hash.lower():
+                issues.append(
+                    {
+                        "code": "reference_hash_mismatch",
+                        "field": field,
+                        "message": "referenced artifact bytes do not match the declared SHA-256",
                     }
                 )
     return issues

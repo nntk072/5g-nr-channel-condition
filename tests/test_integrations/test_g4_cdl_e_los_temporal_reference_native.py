@@ -1,7 +1,8 @@
 """Bounded CDL-E LOS-plus-diffuse temporal covariance reference check.
 
-The independent reference uses the pinned CDL-E v19.2 parameter table and the
-TR 38.901 ray-offset Doppler phase. It checks one native CPU configuration:
+The independent reference uses byte-pinned ETSI-derived CDL-E v19.2 component
+rows and the TR 38.901 ray-offset Doppler phase. It checks one native CPU
+configuration:
 single omnidirectional elements, a 3.5-GHz carrier, an x-directed 30-m/s UT,
 and a 0.7-ms lag. With 8,192 independent channel draws, both real and
 imaginary normalized covariance components must contain the independent
@@ -16,7 +17,9 @@ does not establish external physical validity or close broad G4.07.
 from __future__ import annotations
 
 import hashlib
+import json
 import math
+from pathlib import Path
 from statistics import NormalDist
 from typing import Iterator
 
@@ -26,7 +29,6 @@ torch = pytest.importorskip("torch")
 pytest.importorskip("sionna.phy")
 
 from integrations.sionna.cdl import generate_cdl_frequency_response  # noqa: E402
-from sionna.phy.channel.tr38901 import models as profile_resources  # noqa: E402
 
 _SEED = 1985
 _BATCH_SIZE = 8192
@@ -36,6 +38,15 @@ _LAG_S = 0.7e-3
 _C0_MPS = 299_792_458.0
 _FAMILYWISE_ALPHA = 0.01
 _MAX_CI_HALF_WIDTH = 0.05
+_REFERENCE_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "docs"
+    / "research"
+    / "G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
+)
+_REFERENCE_SHA256 = "24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090"
+_ETSI_SOURCE_SHA256 = "b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4"
+_SIONNA_E_TABLE_SHA256 = "04328f33d8d79b24aa3d0303fecb58b465ed7e13874930b05e76be0d97743480"
 _RAY_ANGLE_OFFSETS = (
     0.0447,
     -0.0447,
@@ -71,39 +82,49 @@ def _limit_torch_threads() -> Iterator[None]:
 
 
 def _independent_cdl_e_temporal_reference() -> complex:
-    """Sum LOS specular and diffuse ray terms directly from the profile table."""
-    table_path = profile_resources.parameter_file("CDL-E.json", "19.2")
-    assert hashlib.sha256(table_path.read_bytes()).hexdigest() == (
-        "04328f33d8d79b24aa3d0303fecb58b465ed7e13874930b05e76be0d97743480"
-    )
-    parameters = profile_resources.load_json(table_path)
-    assert bool(parameters["los"])
+    """Sum LOS specular and diffuse ray terms from the pinned ETSI rows."""
+    reference_bytes = _REFERENCE_PATH.read_bytes()
+    assert hashlib.sha256(reference_bytes).hexdigest() == _REFERENCE_SHA256
+    document = json.loads(reference_bytes)
+    assert document["source_sha256"] == _ETSI_SOURCE_SHA256
+    profile = next(item for item in document["profiles"] if item["profile_model"] == "E")
+    assert profile["los"] is True
+    components = profile["components"]
+    specular_components = [item for item in components if item["component"] == "specular"]
+    diffuse_components = [item for item in components if item["component"] == "diffuse"]
+    assert len(specular_components) == 1
+    assert components[0] is specular_components[0]
+    assert components[1:] == diffuse_components
 
     powers = torch.as_tensor(
-        [10.0 ** (float(power_db) / 10.0) for power_db in parameters["powers"]],
+        [10.0 ** (float(item["power_db"]) / 10.0) for item in components],
         dtype=torch.float64,
     )
     powers = powers / powers.sum()
     offsets = torch.as_tensor(_RAY_ANGLE_OFFSETS, dtype=torch.float64)
     lag_doppler_phase = 2.0 * math.pi * _SPEED_MPS * _CARRIER_FREQUENCY_HZ / _C0_MPS * _LAG_S
 
-    # The first table power is the LOS specular component. Remaining powers
+    # The first component power is the LOS specular component. Remaining powers
     # are diffuse clusters; their azimuth and zenith offsets are independently
     # coupled, so average over the Cartesian product of the 20 ray offsets.
-    los_aoa = math.radians(float(parameters["aoa"][0]))
-    los_zoa = math.radians(float(parameters["zoa"][0]))
+    los_aoa = math.radians(float(specular_components[0]["angles_deg"]["aoa"]))
+    los_zoa = math.radians(float(specular_components[0]["angles_deg"]["zoa"]))
     los_x_projection = math.sin(los_zoa) * math.cos(los_aoa)
     reference = powers[0].to(torch.complex128) * torch.exp(
         torch.tensor(1j * lag_doppler_phase * los_x_projection, dtype=torch.complex128)
     )
 
     aoa = torch.deg2rad(
-        torch.as_tensor(parameters["aoa"][1:], dtype=torch.float64)[:, None]
-        + float(parameters["cASA"]) * offsets
+        torch.as_tensor(
+            [item["angles_deg"]["aoa"] for item in diffuse_components], dtype=torch.float64
+        )[:, None]
+        + float(profile["cluster_spreads_deg"]["asa"]) * offsets
     )
     zoa = torch.deg2rad(
-        torch.as_tensor(parameters["zoa"][1:], dtype=torch.float64)[:, None]
-        + float(parameters["cZSA"]) * offsets
+        torch.as_tensor(
+            [item["angles_deg"]["zoa"] for item in diffuse_components], dtype=torch.float64
+        )[:, None]
+        + float(profile["cluster_spreads_deg"]["zsa"]) * offsets
     )
     x_projection = torch.sin(zoa)[:, :, None] * torch.cos(aoa)[:, None, :]
     diffuse_phase = torch.exp(1j * lag_doppler_phase * x_projection).mean(dim=(1, 2))
@@ -161,3 +182,4 @@ def test_cdl_e_los_diffuse_temporal_covariance_matches_independent_ray_reference
     assert float(half_width.max()) <= _MAX_CI_HALF_WIDTH
     assert channel.metadata["profile_los_component"] is True
     assert channel.metadata["batch_axis_semantics"] == "independent_stochastic_channel_draws"
+    assert channel.metadata["parameter_table_sha256"] == _SIONNA_E_TABLE_SHA256

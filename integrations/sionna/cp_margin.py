@@ -104,6 +104,7 @@ def run_static_cp_margin_experiment(  # pragma: no cover - exercised by native C
     )
     decoder = PUSCHReceiver(
         phy._transmitter,
+        channel_estimator=phy._estimator,
         return_tb_crc_status=True,
         input_domain="freq",
         device=device,

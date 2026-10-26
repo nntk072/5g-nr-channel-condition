@@ -950,6 +950,10 @@ def test_rt_cpu_box_scene_generates_balanced_geometry_labeled_records(tmp_path):
     assert set(data.source) == {"sionna_rt"}
     assert set(data.domain) == {"rt_box_one_screen"}
     assert all(row["geometry_label"] == "GEOMETRIC_DIRECT_PATH_ORACLE" for row in data.metadata)
+    assert all(
+        row["split_subject_id"] == str(group)
+        for row, group in zip(data.metadata, data.group, strict=True)
+    )
     assert all(row["valid_paths_full"] > 0 for row in data.metadata)
     assert all(row["mitsuba_variant"] == "llvm_ad_mono_polarized" for row in data.metadata)
     assert all(row["scene_asset_manifest_complete"] for row in data.metadata)

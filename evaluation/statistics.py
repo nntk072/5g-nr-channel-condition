@@ -239,6 +239,220 @@ def paired_cluster_binary_error_comparison(
     }
 
 
+def paired_cluster_binary_error_family_comparison(
+    control_errors_by_point: list[list[bool]],
+    treatment_errors_by_point: list[list[bool]],
+    groups_by_point: list[list[str]],
+    *,
+    seed: int = 1,
+    draws: int = 5000,
+) -> list[dict]:
+    """Compare paired BLER over an SNR family with shared cluster resampling.
+
+    A single resampled cluster roster is used for every SNR in each bootstrap
+    draw. The max absolute centered deviation then yields a simultaneous
+    familywise band; pointwise percentile intervals are retained as diagnostics.
+    """
+    point_count = len(control_errors_by_point)
+    if (
+        point_count == 0
+        or len(treatment_errors_by_point) != point_count
+        or len(groups_by_point) != point_count
+    ):
+        raise ValueError("SNR family inputs must have the same nonzero point count")
+    if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
+        raise ValueError("seed must be a nonnegative integer")
+    if isinstance(draws, bool) or not isinstance(draws, int) or draws <= 0:
+        raise ValueError("draws must be a positive integer")
+
+    control_counts: list[np.ndarray] = []
+    treatment_counts: list[np.ndarray] = []
+    trial_counts: list[np.ndarray] = []
+    point_estimates: list[float] = []
+    expected_groups: set[str] | None = None
+    for control_values, treatment_values, group_values in zip(
+        control_errors_by_point, treatment_errors_by_point, groups_by_point, strict=True
+    ):
+        control = np.asarray(control_values)
+        treatment = np.asarray(treatment_values)
+        groups = np.asarray(group_values)
+        if (
+            control.ndim != 1
+            or treatment.ndim != 1
+            or groups.ndim != 1
+            or control.size == 0
+            or control.shape != treatment.shape
+            or control.shape != groups.shape
+        ):
+            raise ValueError("each SNR point needs nonempty aligned outcomes and group IDs")
+        if not all(isinstance(value, (bool, np.bool_)) for value in control.tolist()) or not all(
+            isinstance(value, (bool, np.bool_)) for value in treatment.tolist()
+        ):
+            raise ValueError("error masks must contain only boolean outcomes")
+        if not all(isinstance(value, str) and value.strip() for value in groups.tolist()):
+            raise ValueError("group IDs must be non-empty strings")
+        unique_groups = set(groups.tolist())
+        if expected_groups is None:
+            expected_groups = unique_groups
+        elif unique_groups != expected_groups:
+            raise ValueError("every SNR point must contain the same independent cluster roster")
+        ordered_groups = sorted(unique_groups)
+        group_indices = {group: index for index, group in enumerate(ordered_groups)}
+        inverse = np.fromiter(
+            (group_indices[group] for group in groups.tolist()),
+            dtype=np.int64,
+            count=groups.size,
+        )
+        control_bool = control.astype(bool, copy=False)
+        treatment_bool = treatment.astype(bool, copy=False)
+        size_by_group = np.bincount(inverse, minlength=len(ordered_groups)).astype(np.float64)
+        control_counts.append(
+            np.bincount(inverse, weights=control_bool.astype(np.float64), minlength=len(ordered_groups))
+        )
+        treatment_counts.append(
+            np.bincount(inverse, weights=treatment_bool.astype(np.float64), minlength=len(ordered_groups))
+        )
+        trial_counts.append(size_by_group)
+        point_estimates.append(float(treatment_bool.mean() - control_bool.mean()))
+
+    assert expected_groups is not None
+    if len(expected_groups) < 2:
+        raise ValueError("at least two independent groups are required for cluster bootstrap")
+    if len(expected_groups) * point_count > 5_000_000:
+        raise ValueError("independent-group-by-SNR grid exceeds the 5,000,000-cell memory limit")
+    if draws * point_count > 5_000_000:
+        raise ValueError("bootstrap draw-by-SNR grid exceeds the 5,000,000-cell memory limit")
+
+    control_matrix = np.stack(control_counts, axis=1)
+    treatment_matrix = np.stack(treatment_counts, axis=1)
+    trials_matrix = np.stack(trial_counts, axis=1)
+    estimates = np.asarray(point_estimates, dtype=np.float64)
+    rng = np.random.default_rng(seed)
+    group_count = len(expected_groups)
+    max_deviation = np.empty(draws, dtype=np.float64)
+    pointwise_draws = np.empty((draws, point_count), dtype=np.float64)
+    max_cells = 1_000_000
+    chunk_size = max(1, min(draws, max_cells // group_count, max_cells // point_count))
+    for start in range(0, draws, chunk_size):
+        stop = min(draws, start + chunk_size)
+        sampled = rng.integers(0, group_count, size=(stop - start, group_count))
+        sampled_count = stop - start
+        multiplicities = np.zeros((sampled_count, group_count), dtype=np.float64)
+        np.add.at(
+            multiplicities,
+            (np.repeat(np.arange(sampled_count), group_count), sampled.ravel()),
+            1.0,
+        )
+        control_rate = (multiplicities @ control_matrix) / (multiplicities @ trials_matrix)
+        treatment_rate = (multiplicities @ treatment_matrix) / (multiplicities @ trials_matrix)
+        deltas = treatment_rate - control_rate
+        pointwise_draws[start:stop] = deltas
+        max_deviation[start:stop] = np.max(np.abs(deltas - estimates), axis=1)
+
+    critical_value = float(np.quantile(max_deviation, 0.95))
+    output: list[dict] = []
+    for point_index, estimate in enumerate(estimates.tolist()):
+        pointwise_low, pointwise_high = np.quantile(
+            pointwise_draws[:, point_index], [0.025, 0.975]
+        )
+        output.append(
+            {
+                "independent_groups": group_count,
+                "paired_trials": int(trials_matrix[:, point_index].sum()),
+                "treatment_minus_control_error_rate": estimate,
+                "cluster_bootstrap_ci95": [float(pointwise_low), float(pointwise_high)],
+                "familywise_cluster_bootstrap_ci95": [
+                    max(-1.0, estimate - critical_value),
+                    min(1.0, estimate + critical_value),
+                ],
+                "familywise_method": "shared-cluster max-absolute-centered-deviation bootstrap",
+                "familywise_confidence_level": 0.95,
+                "familywise_snr_points": point_count,
+                "familywise_critical_deviation": critical_value,
+                "bootstrap_seed": seed,
+                "bootstrap_draws": draws,
+                "sampling_unit": "independent batch seed; codewords nested",
+                "warning": (
+                    "Conditional on supplied synthetic batches; this does not establish "
+                    "independent-scene, site, or measured-channel generalization."
+                ),
+            }
+        )
+    return output
+
+
+def cluster_binary_error_rate_interval(
+    errors: list[bool],
+    groups: list[str],
+    *,
+    seed: int = 1,
+    draws: int = 5000,
+) -> dict:
+    """Estimate a binary error rate and percentile interval by resampling clusters.
+
+    The point estimate is pooled across the supplied trials. Each bootstrap draw
+    samples whole groups with replacement and retains every trial in each group,
+    so nested codewords are not treated as independent units. This interval is
+    conditional on the supplied group population and cannot establish
+    generalization to unrepresented scenes, sites, or channel families.
+    """
+    outcome = np.asarray(errors)
+    group_ids = np.asarray(groups)
+    if outcome.ndim != 1 or group_ids.ndim != 1:
+        raise ValueError("error outcomes and groups must be one-dimensional")
+    if outcome.size == 0 or outcome.shape != group_ids.shape:
+        raise ValueError("error outcomes and groups must be nonempty and equally sized")
+    if not all(isinstance(value, (bool, np.bool_)) for value in outcome.tolist()):
+        raise ValueError("error outcomes must contain only boolean values")
+    if not all(isinstance(group, str) and group.strip() for group in group_ids.tolist()):
+        raise ValueError("group IDs must be non-empty strings")
+    if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
+        raise ValueError("seed must be a nonnegative integer")
+    if isinstance(draws, bool) or not isinstance(draws, int) or draws <= 0:
+        raise ValueError("draws must be a positive integer")
+
+    outcome = outcome.astype(bool, copy=False)
+    group_ids = group_ids.astype(str, copy=False)
+    unique_groups, inverse = np.unique(group_ids, return_inverse=True)
+    result = {
+        "error_rate": float(outcome.mean()),
+        "independent_groups": int(unique_groups.size),
+        "trials": int(outcome.size),
+        "bootstrap_seed": seed,
+        "bootstrap_draws": draws,
+        "sampling_unit": "independent group; all nested trials remain together",
+        "warning": (
+            "Cluster bootstrap inference is conditional on the supplied groups; "
+            "it does not replace independent-scene or external-data validation."
+        ),
+    }
+    if unique_groups.size < 2:
+        return {
+            **result,
+            "cluster_bootstrap_ci95": None,
+            "status": "insufficient_independent_groups",
+        }
+
+    errors_by_group = np.bincount(inverse, weights=outcome.astype(np.float64))
+    trials_by_group = np.bincount(inverse).astype(np.float64)
+    rng = np.random.default_rng(seed)
+    max_cluster_cells = 1_000_000
+    draw_chunk_size = max(1, max_cluster_cells // int(unique_groups.size))
+    rate_chunks: list[np.ndarray] = []
+    for start in range(0, draws, draw_chunk_size):
+        count = min(draw_chunk_size, draws - start)
+        sampled_groups = rng.integers(0, unique_groups.size, size=(count, unique_groups.size))
+        sampled_trials = trials_by_group[sampled_groups].sum(axis=1)
+        rate_chunks.append(errors_by_group[sampled_groups].sum(axis=1) / sampled_trials)
+    rates = np.concatenate(rate_chunks)
+    ci_low, ci_high = np.percentile(rates, [2.5, 97.5])
+    return {
+        **result,
+        "cluster_bootstrap_ci95": [float(ci_low), float(ci_high)],
+        "status": "estimated",
+    }
+
+
 def paired_group_regression_comparison(
     target: list[float],
     control_prediction: list[float],

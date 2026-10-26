@@ -1,0 +1,447 @@
+{
+  "analysis_source_sha256": "42002a94cf06102ba4969a060c6a65dc21a2038898bd1197ae7971c32975411a",
+  "claims": [
+    {
+      "bootstrap_draws": 100000,
+      "bootstrap_interval": [
+        0.0703125,
+        0.2734375
+      ],
+      "bootstrap_seed": 20261025,
+      "claim_id": "TDL-A@60dB",
+      "control": "ideal-CFR DMRS-LS",
+      "independent_parents": 128,
+      "interval_confidence": 0.9966666666666667,
+      "paired_treatment_minus_control_bler": 0.1640625,
+      "parent_delta_counts_minus_one_zero_plus_one": [
+        1,
+        105,
+        22
+      ],
+      "profile": "A",
+      "snr_db": 60.0,
+      "treatment": "time-domain DMRS-LS"
+    },
+    {
+      "bootstrap_draws": 100000,
+      "bootstrap_interval": [
+        -0.0625,
+        0.21875
+      ],
+      "bootstrap_seed": 20261026,
+      "claim_id": "TDL-A@80dB",
+      "control": "ideal-CFR DMRS-LS",
+      "independent_parents": 128,
+      "interval_confidence": 0.9966666666666667,
+      "paired_treatment_minus_control_bler": 0.078125,
+      "parent_delta_counts_minus_one_zero_plus_one": [
+        14,
+        90,
+        24
+      ],
+      "profile": "A",
+      "snr_db": 80.0,
+      "treatment": "time-domain DMRS-LS"
+    },
+    {
+      "bootstrap_draws": 100000,
+      "bootstrap_interval": [
+        -0.125,
+        0.1875
+      ],
+      "bootstrap_seed": 20261027,
+      "claim_id": "TDL-A@100dB",
+      "control": "ideal-CFR DMRS-LS",
+      "independent_parents": 128,
+      "interval_confidence": 0.9966666666666667,
+      "paired_treatment_minus_control_bler": 0.03125,
+      "parent_delta_counts_minus_one_zero_plus_one": [
+        22,
+        80,
+        26
+      ],
+      "profile": "A",
+      "snr_db": 100.0,
+      "treatment": "time-domain DMRS-LS"
+    },
+    {
+      "bootstrap_draws": 100000,
+      "bootstrap_interval": [
+        0.109375,
+        0.3359375
+      ],
+      "bootstrap_seed": 20261028,
+      "claim_id": "TDL-B@60dB",
+      "control": "ideal-CFR DMRS-LS",
+      "independent_parents": 128,
+      "interval_confidence": 0.9966666666666667,
+      "paired_treatment_minus_control_bler": 0.21875,
+      "parent_delta_counts_minus_one_zero_plus_one": [
+        1,
+        98,
+        29
+      ],
+      "profile": "B",
+      "snr_db": 60.0,
+      "treatment": "time-domain DMRS-LS"
+    },
+    {
+      "bootstrap_draws": 100000,
+      "bootstrap_interval": [
+        0.0078125,
+        0.296875
+      ],
+      "bootstrap_seed": 20261029,
+      "claim_id": "TDL-B@80dB",
+      "control": "ideal-CFR DMRS-LS",
+      "independent_parents": 128,
+      "interval_confidence": 0.9966666666666667,
+      "paired_treatment_minus_control_bler": 0.1484375,
+      "parent_delta_counts_minus_one_zero_plus_one": [
+        12,
+        85,
+        31
+      ],
+      "profile": "B",
+      "snr_db": 80.0,
+      "treatment": "time-domain DMRS-LS"
+    },
+    {
+      "bootstrap_draws": 100000,
+      "bootstrap_interval": [
+        -0.234375,
+        0.125
+      ],
+      "bootstrap_seed": 20261030,
+      "claim_id": "TDL-B@100dB",
+      "control": "ideal-CFR DMRS-LS",
+      "independent_parents": 128,
+      "interval_confidence": 0.9966666666666667,
+      "paired_treatment_minus_control_bler": -0.0546875,
+      "parent_delta_counts_minus_one_zero_plus_one": [
+        34,
+        67,
+        27
+      ],
+      "profile": "B",
+      "snr_db": 100.0,
+      "treatment": "time-domain DMRS-LS"
+    },
+    {
+      "bootstrap_draws": 100000,
+      "bootstrap_interval": [
+        0.2265625,
+        0.4765625
+      ],
+      "bootstrap_seed": 20261031,
+      "claim_id": "TDL-C@60dB",
+      "control": "ideal-CFR DMRS-LS",
+      "independent_parents": 128,
+      "interval_confidence": 0.9966666666666667,
+      "paired_treatment_minus_control_bler": 0.3515625,
+      "parent_delta_counts_minus_one_zero_plus_one": [
+        1,
+        81,
+        46
+      ],
+      "profile": "C",
+      "snr_db": 60.0,
+      "treatment": "time-domain DMRS-LS"
+    },
+    {
+      "bootstrap_draws": 100000,
+      "bootstrap_interval": [
+        0.1171875,
+        0.4140625
+      ],
+      "bootstrap_seed": 20261032,
+      "claim_id": "TDL-C@80dB",
+      "control": "ideal-CFR DMRS-LS",
+      "independent_parents": 128,
+      "interval_confidence": 0.9966666666666667,
+      "paired_treatment_minus_control_bler": 0.265625,
+      "parent_delta_counts_minus_one_zero_plus_one": [
+        9,
+        76,
+        43
+      ],
+      "profile": "C",
+      "snr_db": 80.0,
+      "treatment": "time-domain DMRS-LS"
+    },
+    {
+      "bootstrap_draws": 100000,
+      "bootstrap_interval": [
+        -0.0625,
+        0.2890625
+      ],
+      "bootstrap_seed": 20261033,
+      "claim_id": "TDL-C@100dB",
+      "control": "ideal-CFR DMRS-LS",
+      "independent_parents": 128,
+      "interval_confidence": 0.9966666666666667,
+      "paired_treatment_minus_control_bler": 0.1171875,
+      "parent_delta_counts_minus_one_zero_plus_one": [
+        23,
+        67,
+        38
+      ],
+      "profile": "C",
+      "snr_db": 100.0,
+      "treatment": "time-domain DMRS-LS"
+    },
+    {
+      "bootstrap_draws": 100000,
+      "bootstrap_interval": [
+        0.0,
+        0.0390625
+      ],
+      "bootstrap_seed": 20261034,
+      "claim_id": "TDL-D@60dB",
+      "control": "ideal-CFR DMRS-LS",
+      "independent_parents": 128,
+      "interval_confidence": 0.9966666666666667,
+      "paired_treatment_minus_control_bler": 0.0078125,
+      "parent_delta_counts_minus_one_zero_plus_one": [
+        0,
+        127,
+        1
+      ],
+      "profile": "D",
+      "snr_db": 60.0,
+      "treatment": "time-domain DMRS-LS"
+    },
+    {
+      "bootstrap_draws": 100000,
+      "bootstrap_interval": [
+        0.0,
+        0.0390625
+      ],
+      "bootstrap_seed": 20261035,
+      "claim_id": "TDL-D@80dB",
+      "control": "ideal-CFR DMRS-LS",
+      "independent_parents": 128,
+      "interval_confidence": 0.9966666666666667,
+      "paired_treatment_minus_control_bler": 0.0078125,
+      "parent_delta_counts_minus_one_zero_plus_one": [
+        0,
+        127,
+        1
+      ],
+      "profile": "D",
+      "snr_db": 80.0,
+      "treatment": "time-domain DMRS-LS"
+    },
+    {
+      "bootstrap_draws": 100000,
+      "bootstrap_interval": [
+        0.0,
+        0.0390625
+      ],
+      "bootstrap_seed": 20261036,
+      "claim_id": "TDL-D@100dB",
+      "control": "ideal-CFR DMRS-LS",
+      "independent_parents": 128,
+      "interval_confidence": 0.9966666666666667,
+      "paired_treatment_minus_control_bler": 0.0078125,
+      "parent_delta_counts_minus_one_zero_plus_one": [
+        0,
+        127,
+        1
+      ],
+      "profile": "D",
+      "snr_db": 100.0,
+      "treatment": "time-domain DMRS-LS"
+    },
+    {
+      "bootstrap_draws": 100000,
+      "bootstrap_interval": [
+        0.0,
+        0.0703125
+      ],
+      "bootstrap_seed": 20261037,
+      "claim_id": "TDL-E@60dB",
+      "control": "ideal-CFR DMRS-LS",
+      "independent_parents": 128,
+      "interval_confidence": 0.9966666666666667,
+      "paired_treatment_minus_control_bler": 0.0234375,
+      "parent_delta_counts_minus_one_zero_plus_one": [
+        0,
+        125,
+        3
+      ],
+      "profile": "E",
+      "snr_db": 60.0,
+      "treatment": "time-domain DMRS-LS"
+    },
+    {
+      "bootstrap_draws": 100000,
+      "bootstrap_interval": [
+        0.0,
+        0.0546875
+      ],
+      "bootstrap_seed": 20261038,
+      "claim_id": "TDL-E@80dB",
+      "control": "ideal-CFR DMRS-LS",
+      "independent_parents": 128,
+      "interval_confidence": 0.9966666666666667,
+      "paired_treatment_minus_control_bler": 0.015625,
+      "parent_delta_counts_minus_one_zero_plus_one": [
+        0,
+        126,
+        2
+      ],
+      "profile": "E",
+      "snr_db": 80.0,
+      "treatment": "time-domain DMRS-LS"
+    },
+    {
+      "bootstrap_draws": 100000,
+      "bootstrap_interval": [
+        0.0,
+        0.0546875
+      ],
+      "bootstrap_seed": 20261039,
+      "claim_id": "TDL-E@100dB",
+      "control": "ideal-CFR DMRS-LS",
+      "independent_parents": 128,
+      "interval_confidence": 0.9966666666666667,
+      "paired_treatment_minus_control_bler": 0.015625,
+      "parent_delta_counts_minus_one_zero_plus_one": [
+        0,
+        126,
+        2
+      ],
+      "profile": "E",
+      "snr_db": 100.0,
+      "treatment": "time-domain DMRS-LS"
+    }
+  ],
+  "family": {
+    "bootstrap_draws_per_claim": 100000,
+    "bootstrap_seed_base": 20261024,
+    "claim_count": 15,
+    "family_wise_confidence": 0.95,
+    "method": "two-sided percentile bootstrap with Bonferroni alpha/FAMILY_SIZE per claim",
+    "primary_view": "DMRS-LS; oracle outcomes are excluded from this inferential family",
+    "profile_count": 5,
+    "resampling_unit": "independent channel parent; paired receiver outcomes retained",
+    "snr_points_per_profile": [
+      60.0,
+      80.0,
+      100.0
+    ]
+  },
+  "generated_at_utc": "2026-10-24T06:37:17Z",
+  "input_reports": [
+    {
+      "configuration_sha256": "04d3623d0b96a361861a9259b9c3a5912edc220b9daa8cb35fbb9b92d587e474",
+      "independent_parent_count": 128,
+      "point_report_sha256": [
+        "229041265cf2b4971f289291f4d3feb5aff6ecb2905a00975062baa3cd03e4d3",
+        "1cdf40f48e75bba6680cb9e8af397942fc4608adecfa64cfb18234397b1cd572",
+        "09f580bd07bad13a89aead7b2aa02ef7585268af7448dd4833f6b5f096baf02c"
+      ],
+      "profile": "A",
+      "report": "g5-standardized-pusch-cp-exceedance-tdl-a-snr-curve-128-v2-20261024.json",
+      "report_sha256": "0e396d7b6e4dd35e7f57282238601797712702b12b9756a50f92f0acb248994a",
+      "source_files_sha256": {
+        "datasets/standardized.py": "eb4e673932ea6b04138135c92f848b27f8fccca11d2e9af9860887800ecbcff0",
+        "evaluation/statistics.py": "a203fa4ea2e620f3660728bf75a1de8b155f6a6e82066819d917a454ddcec395",
+        "experiments/standardized_pusch_cp_exceedance.py": "54aee734e8bfd6a62a8b5fe6e3adcea1a8e946b3e8b8f7aba1fb49b7a82f5768",
+        "integrations/sionna/nr_pusch.py": "073fb321bd69547478c6c6862a0e355ae1f708f8895a5951423a16ee24f64a41",
+        "integrations/sionna/standardized_pusch.py": "a0df89a09a642bf25fd4459a1e72215bb94064e67662445fac6feee5d044bd9c",
+        "integrations/sionna/tdl.py": "206535699567054c012aee741f6a677772c61138171eb3113d705ae3d6946cb1"
+      }
+    },
+    {
+      "configuration_sha256": "210aa0c116e9ccdae839ee87f56cc9edb3d983ca9d21b6400f7f463954778d3d",
+      "independent_parent_count": 128,
+      "point_report_sha256": [
+        "877c53a072309be38964722f7131d20ad91b11e8aca561c623c545378660a873",
+        "f705988c12f22cfec67827fd9fe0efdae1888ee178c9fdc4f36b92e7f09da22d",
+        "4cc3963df7c8925b593a48d92fc899e5a06338887e9fdfd7042501dbe2a227d5"
+      ],
+      "profile": "B",
+      "report": "g5-standardized-pusch-cp-exceedance-tdl-b-snr-curve-128-v1-20261024.json",
+      "report_sha256": "9bc695e6f042d35620af9edee0dec3e7b6e264ff422a3a7ccd814e010e83f407",
+      "source_files_sha256": {
+        "datasets/standardized.py": "eb4e673932ea6b04138135c92f848b27f8fccca11d2e9af9860887800ecbcff0",
+        "evaluation/statistics.py": "a203fa4ea2e620f3660728bf75a1de8b155f6a6e82066819d917a454ddcec395",
+        "experiments/standardized_pusch_cp_exceedance.py": "54aee734e8bfd6a62a8b5fe6e3adcea1a8e946b3e8b8f7aba1fb49b7a82f5768",
+        "integrations/sionna/nr_pusch.py": "073fb321bd69547478c6c6862a0e355ae1f708f8895a5951423a16ee24f64a41",
+        "integrations/sionna/standardized_pusch.py": "a0df89a09a642bf25fd4459a1e72215bb94064e67662445fac6feee5d044bd9c",
+        "integrations/sionna/tdl.py": "206535699567054c012aee741f6a677772c61138171eb3113d705ae3d6946cb1"
+      }
+    },
+    {
+      "configuration_sha256": "4075def9ac788f0249517989580f8701010ed1d58698e9f4c5bdd8288affed9e",
+      "independent_parent_count": 128,
+      "point_report_sha256": [
+        "d36eeab4cc1888413476cd51e34df37df8d741f139a2238b1ea13ed9186cb426",
+        "888c9dde19459ec6b3a8b71e5ca9865ecd31111bb14bd8f4ceaf222d0d5f4a66",
+        "352b37ce6ba9a6682e57c925899c1f4092c7888143cee29b2c9962187cfff288"
+      ],
+      "profile": "C",
+      "report": "g5-standardized-pusch-cp-exceedance-tdl-c-snr-curve-128-v3-20261024.json",
+      "report_sha256": "7fae7ff2f25c32693347129d17a34fb0d1b01cc8cbee3ca672ff40e82131ea0c",
+      "source_files_sha256": {
+        "datasets/standardized.py": "eb4e673932ea6b04138135c92f848b27f8fccca11d2e9af9860887800ecbcff0",
+        "evaluation/statistics.py": "a203fa4ea2e620f3660728bf75a1de8b155f6a6e82066819d917a454ddcec395",
+        "experiments/standardized_pusch_cp_exceedance.py": "54aee734e8bfd6a62a8b5fe6e3adcea1a8e946b3e8b8f7aba1fb49b7a82f5768",
+        "integrations/sionna/nr_pusch.py": "073fb321bd69547478c6c6862a0e355ae1f708f8895a5951423a16ee24f64a41",
+        "integrations/sionna/standardized_pusch.py": "a0df89a09a642bf25fd4459a1e72215bb94064e67662445fac6feee5d044bd9c",
+        "integrations/sionna/tdl.py": "206535699567054c012aee741f6a677772c61138171eb3113d705ae3d6946cb1"
+      }
+    },
+    {
+      "configuration_sha256": "97d415c2a9b7bd12be4e2998b4f50c08e25f1d2826a3f37cbaf99394f4766f20",
+      "independent_parent_count": 128,
+      "point_report_sha256": [
+        "809e051964c91b8b0432a48d46e6f4ec7cc91e542511eeb591cdc83c35d406de",
+        "927f82e155d88e1e5a6f68da86c74678da18c9d25d4dcd7a538874bc7ca66d5d",
+        "e7b36cf1c626e8510cee15b093ab758a9610edf90401bc6fb61156b1f529e533"
+      ],
+      "profile": "D",
+      "report": "g5-standardized-pusch-cp-exceedance-tdl-d-snr-curve-128-v1-20261024.json",
+      "report_sha256": "a70cbb7c683efe9380cc3241a171cd941c4f8d07941de8a5c1600b8d8fc9668a",
+      "source_files_sha256": {
+        "datasets/standardized.py": "eb4e673932ea6b04138135c92f848b27f8fccca11d2e9af9860887800ecbcff0",
+        "evaluation/statistics.py": "a203fa4ea2e620f3660728bf75a1de8b155f6a6e82066819d917a454ddcec395",
+        "experiments/standardized_pusch_cp_exceedance.py": "54aee734e8bfd6a62a8b5fe6e3adcea1a8e946b3e8b8f7aba1fb49b7a82f5768",
+        "integrations/sionna/nr_pusch.py": "073fb321bd69547478c6c6862a0e355ae1f708f8895a5951423a16ee24f64a41",
+        "integrations/sionna/standardized_pusch.py": "a0df89a09a642bf25fd4459a1e72215bb94064e67662445fac6feee5d044bd9c",
+        "integrations/sionna/tdl.py": "206535699567054c012aee741f6a677772c61138171eb3113d705ae3d6946cb1"
+      }
+    },
+    {
+      "configuration_sha256": "780813c4eaccb8f542d320997f05d310eef8fe37e287c937e50cc5fd637f2686",
+      "independent_parent_count": 128,
+      "point_report_sha256": [
+        "76ec22415000acfc6fcd61c1f6ff1fc7953c75b2ef5453ecd41aed71a52fba57",
+        "89789044043aae3266e17b0e9160a4332eb30c3c687c50e5dea1240ac9fe1df2",
+        "d5ea727d221d3705e3777808f25be98a51fec3f7f44461f9e2fc1fab5ed37860"
+      ],
+      "profile": "E",
+      "report": "g5-standardized-pusch-cp-exceedance-tdl-e-snr-curve-128-v1-20261024.json",
+      "report_sha256": "17c8af607a0efa77d4cdf509fb69aacb0af60853b858053757eafa1a78866672",
+      "source_files_sha256": {
+        "datasets/standardized.py": "eb4e673932ea6b04138135c92f848b27f8fccca11d2e9af9860887800ecbcff0",
+        "evaluation/statistics.py": "a203fa4ea2e620f3660728bf75a1de8b155f6a6e82066819d917a454ddcec395",
+        "experiments/standardized_pusch_cp_exceedance.py": "54aee734e8bfd6a62a8b5fe6e3adcea1a8e946b3e8b8f7aba1fb49b7a82f5768",
+        "integrations/sionna/nr_pusch.py": "073fb321bd69547478c6c6862a0e355ae1f708f8895a5951423a16ee24f64a41",
+        "integrations/sionna/standardized_pusch.py": "a0df89a09a642bf25fd4459a1e72215bb94064e67662445fac6feee5d044bd9c",
+        "integrations/sionna/tdl.py": "206535699567054c012aee741f6a677772c61138171eb3113d705ae3d6946cb1"
+      }
+    }
+  ],
+  "limitations": [
+    "Intervals are conditional on one standardized Sionna configuration and the sampled channel parents.",
+    "The profile/SNR family correction does not support physical-site generalization or deployment BLER claims.",
+    "Sparse failures in TDL-D/E limit resolution; this audit does not close G5.09 or authorize production RT data."
+  ],
+  "repository_commit_at_run": "8ba3482539ccc4774175f86b4e9938081424a268",
+  "run_date": "2026-10-24",
+  "schema": "umcd.g5_cp_profile_matrix_familywise_audit.v1",
+  "status": "exploratory; does not pass G5 or qualify G3"
+}

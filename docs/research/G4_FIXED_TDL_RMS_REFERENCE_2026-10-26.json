@@ -1,0 +1,22 @@
+{
+  "schema": "loslab.g4_fixed_tdl_rms_reference.v1",
+  "standard": "3GPP TS 38.101-4",
+  "version": "19.2.2",
+  "source_id": "ts-138101-4-v19.2.2",
+  "source_sha256": "b3c6a73c7a40219e7270c08c7a57c84cb46f6757b303a64ec768ba04a6079e81",
+  "source_url": "https://www.etsi.org/deliver/etsi_ts/138100_138199/13810104/19.02.02_60/ts_13810104v190202p.pdf",
+  "reference_scope": [
+    "Annex B.2.1.1-1 and B.2.1.2-1 fixed-profile RMS delay-spread scalars"
+  ],
+  "status": "SCALAR_REFERENCE_ONLY_NOT_CONFORMANCE_QUALIFICATION",
+  "profiles": [
+    { "profile_model": "A10", "rms_delay_spread_ns": 10.0 },
+    { "profile_model": "A30", "rms_delay_spread_ns": 30.0 },
+    { "profile_model": "B100", "rms_delay_spread_ns": 100.0 },
+    { "profile_model": "C60", "rms_delay_spread_ns": 60.0 },
+    { "profile_model": "C300", "rms_delay_spread_ns": 300.0 },
+    { "profile_model": "D10", "rms_delay_spread_ns": 10.0 },
+    { "profile_model": "D30", "rms_delay_spread_ns": 30.0 }
+  ],
+  "interpretation": "The targets are scalar cross-checks derived from the cited tables. They do not bind every tap value, establish the Sionna generator's source implementation, or qualify statistical behavior."
+}

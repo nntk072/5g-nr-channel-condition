@@ -7,7 +7,10 @@ import math
 from typing import Any, Sequence
 
 from artifacts.provenance import package_source_sha256, versions
-from evaluation.statistics import paired_binary_error_comparison
+from evaluation.statistics import (
+    cluster_binary_error_rate_interval,
+    paired_binary_error_comparison,
+)
 
 
 def wilson_score_interval_95(errors: int, total: int) -> tuple[float, float]:
@@ -224,6 +227,10 @@ def run_tdl_pusch_time_bler_curve(
     subcarrier_spacing_khz: int = 30,
     num_rx_ant: int = 1,
     allow_cp_overrun: bool = False,
+    channel_estimator_kind: str = "sionna_ls",
+    estimator_min_delay_samples: int | None = None,
+    estimator_max_delay_samples: int | None = None,
+    device: str | None = None,
 ) -> dict[str, Any]:
     """Measure paired PUSCH BLER over the sample-domain, time-varying TDL link."""
     snr_values = tuple(float(value) for value in snr_db)
@@ -253,13 +260,34 @@ def run_tdl_pusch_time_bler_curve(
         raise TypeError("num_rx_ant must be an integer")
     if num_rx_ant <= 0:
         raise ValueError("num_rx_ant must be positive")
-    if not torch_cuda_available():
-        raise RuntimeError("The sample-domain TDL-PUSCH curve requires CUDA")
-
+    if channel_estimator_kind not in {"sionna_ls", "finite_delay_dft"}:
+        raise ValueError("channel_estimator_kind must be 'sionna_ls' or 'finite_delay_dft'")
+    if channel_estimator_kind == "sionna_ls":
+        if estimator_min_delay_samples is not None or estimator_max_delay_samples is not None:
+            raise ValueError("delay bounds are only valid for the finite-delay DFT estimator")
+    else:
+        if (
+            isinstance(estimator_min_delay_samples, bool)
+            or not isinstance(estimator_min_delay_samples, int)
+            or isinstance(estimator_max_delay_samples, bool)
+            or not isinstance(estimator_max_delay_samples, int)
+        ):
+            raise TypeError("finite-delay DFT bounds must both be integers")
+        if estimator_min_delay_samples > estimator_max_delay_samples:
+            raise ValueError(
+                "estimator_min_delay_samples must not exceed estimator_max_delay_samples"
+            )
     import torch
     from integrations.sionna.nr_pusch import SionnaPUSCHLSReceiver
     from integrations.sionna.tdl_pusch import SionnaTDLTimePUSCHLink, seeded_complex_awgn
     from receivers.nr import NRPUSCHConfig
+
+    if device is None:
+        device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    if not isinstance(device, str) or (device != "cpu" and not device.startswith("cuda")):
+        raise ValueError("device must be cpu, cuda, or cuda:<index>")
+    if device.startswith("cuda") and not torch.cuda.is_available():
+        raise RuntimeError(f"CUDA device requested but unavailable: {device}")
 
     receiver = SionnaPUSCHLSReceiver(
         NRPUSCHConfig(
@@ -267,8 +295,19 @@ def run_tdl_pusch_time_bler_curve(
             subcarrier_spacing_khz=subcarrier_spacing_khz,
             dmrs_additional_position=dmrs_additional_position,
         ),
-        device="cuda:0",
+        device=device,
     )
+    channel_estimator = None
+    if channel_estimator_kind == "finite_delay_dft":
+        from experiments.g5_cp_bounded_dft_estimator import FiniteDelayDFTChannelEstimator
+
+        assert estimator_min_delay_samples is not None
+        assert estimator_max_delay_samples is not None
+        channel_estimator = FiniteDelayDFTChannelEstimator(
+            receiver,
+            min_delay_samples=estimator_min_delay_samples,
+            max_delay_samples=estimator_max_delay_samples,
+        )
     link = SionnaTDLTimePUSCHLink(
         receiver,
         model=profile.upper(),
@@ -277,6 +316,7 @@ def run_tdl_pusch_time_bler_curve(
         speed_mps=speed_mps,
         num_rx_ant=num_rx_ant,
         allow_cp_overrun=allow_cp_overrun,
+        channel_estimator=channel_estimator,
     )
     if seed > 2**63 - 3:
         raise ValueError("seed must leave room for derived channel and noise seeds")
@@ -319,15 +359,16 @@ def run_tdl_pusch_time_bler_curve(
         batch_index += 1
 
     points: list[dict[str, Any]] = []
-    for snr in snr_values:
+    for snr_index, snr in enumerate(snr_values):
         noise_variance = 10.0 ** (-snr / 10.0)
         frame_errors = bit_errors = frames = bits_total = 0
         frame_error_mask: list[bool] = []
+        frame_cluster_ids: list[str] = []
         for batch in batches:
             clean = batch["clean"]
             noise = seeded_complex_awgn(
                 tuple(clean.shape),
-                device="cuda:0",
+                device=device,
                 noise_variance=noise_variance,
                 real_seed=batch["noise_seed"],
                 imag_seed=batch["noise_seed"] + 1,
@@ -337,11 +378,22 @@ def run_tdl_pusch_time_bler_curve(
             target = batch["bits"]
             valid = crc_ok.reshape(-1).to(dtype=torch.bool)
             frame_error_mask.extend((~valid).detach().cpu().tolist())
+            frame_cluster_ids.extend([str(batch["seed"])] * int(valid.numel()))
             bit_errors += int(torch.count_nonzero(decoded != target).item())
             bits_total += int(target.numel())
             frame_errors += int(torch.count_nonzero(~valid).item())
             frames += int(valid.numel())
         lower, upper = wilson_score_interval_95(frame_errors, frames)
+        bootstrap_seed = int.from_bytes(
+            hashlib.sha256(f"{seed}:batch-cluster-bler:{snr_index}".encode()).digest()[:8],
+            "big",
+        )
+        clustered_interval = cluster_binary_error_rate_interval(
+            frame_error_mask,
+            frame_cluster_ids,
+            seed=bootstrap_seed,
+            draws=5000,
+        )
         points.append(
             {
                 "snr_db": snr,
@@ -350,7 +402,9 @@ def run_tdl_pusch_time_bler_curve(
                 "bler_errors": frame_errors,
                 "bler": frame_errors / frames,
                 "bler_wilson_95_ci": [lower, upper],
+                "bler_batch_cluster_bootstrap": clustered_interval,
                 "frame_error_mask": frame_error_mask,
+                "frame_cluster_ids": frame_cluster_ids,
                 "bit_errors": bit_errors,
                 "bits": bits_total,
                 "ber": bit_errors / bits_total,
@@ -362,7 +416,7 @@ def run_tdl_pusch_time_bler_curve(
         )
 
     return {
-        "schema": "loslab.tdl_pusch_time_bler_curve.v1",
+        "schema": "loslab.tdl_pusch_time_bler_curve.v2",
         "evidence_grade": "SIMULATION_ONLY_UNVALIDATED",
         "configuration": {
             **link.metadata,
@@ -374,15 +428,29 @@ def run_tdl_pusch_time_bler_curve(
             ],
             "matched_realization_checks": matched_checks,
             "seed": seed,
+            "device": device,
             "n_size_bwp_resource_blocks": n_size_bwp,
             "subcarrier_spacing_khz": subcarrier_spacing_khz,
             "dmrs_additional_position": dmrs_additional_position,
+            "channel_estimator": {
+                "kind": channel_estimator_kind,
+                "min_delay_samples": estimator_min_delay_samples,
+                "max_delay_samples": estimator_max_delay_samples,
+            },
             "snr_definition": (
                 "sampled waveform mean complex power / complex AWGN variance; "
                 "noise variance=10**(-SNR_dB/10) and measured transmit mean power is recorded"
             ),
             "decoder": "Sionna time-domain PUSCHReceiver with DMRS estimation and CRC status",
             "confidence_interval": "two-sided 95% Wilson score interval across codewords",
+            "batch_cluster_confidence_interval": {
+                "method": (
+                    "pointwise 95% percentile bootstrap resampling whole batch-seed clusters"
+                ),
+                "insufficient_groups": "interval is null when fewer than two clusters are present",
+                "bootstrap_draws": 5000,
+                "bootstrap_seed_derivation": "SHA-256 of root seed and SNR point index",
+            },
             "versions": versions(),
             "package_source_sha256": package_source_sha256(),
         },
@@ -396,7 +464,9 @@ def run_tdl_pusch_time_bler_curve(
                 else "The discrete channel memory exceeds the cyclic prefix; this is an explicit "
                 "ISI/ICI stress condition and not a normal CP-contained PUSCH configuration."
             ),
-            "Wilson intervals count codewords and do not account for independent-scene uncertainty.",
+            "Wilson intervals count codewords and do not account for batch clustering.",
+            "Batch-cluster intervals preserve codeword dependence within each generated batch, "
+            "but are conditional on this synthetic link and do not establish scene/site uncertainty.",
             "This curve is not standards certification or validation against external measurements.",
         ],
     }

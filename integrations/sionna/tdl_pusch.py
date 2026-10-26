@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+from numbers import Real
 from typing import Any
 
 import numpy as np
@@ -32,8 +33,15 @@ def seeded_complex_awgn(
         isinstance(size, bool) or not isinstance(size, int) or size <= 0 for size in shape
     ):
         raise ValueError("shape must contain positive integer dimensions")
+    if isinstance(noise_variance, bool) or not isinstance(noise_variance, Real):
+        raise ValueError("noise_variance must be a real scalar")
+    noise_variance = float(noise_variance)
     if not math.isfinite(noise_variance) or noise_variance < 0:
         raise ValueError("noise_variance must be finite and nonnegative")
+    if noise_variance > float(np.finfo(np.float32).max):
+        raise ValueError("noise_variance must be representable as finite float32")
+    if 0 < noise_variance < float(np.nextafter(np.float32(0), np.float32(1))):
+        raise ValueError("positive noise_variance must be representable as nonzero float32")
     for name, seed in (("real_seed", real_seed), ("imag_seed", imag_seed)):
         if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
             raise ValueError(f"{name} must be a nonnegative integer")
@@ -76,6 +84,7 @@ class SionnaPUSCHLinkDecoder:
             raise RuntimeError("Install the optional Sionna 2.2 PHY dependencies") from exc
         self._decoder = PUSCHReceiver(
             receiver._transmitter,
+            channel_estimator=receiver._estimator,
             return_tb_crc_status=True,
             input_domain="freq",
             device=receiver.device,
@@ -100,6 +109,7 @@ class SionnaTDLTimePUSCHLink:
         num_rx_ant: int = 1,
         spec_version: str = "19.2",
         allow_cp_overrun: bool = False,
+        channel_estimator: Any | None = None,
     ) -> None:
         try:
             import torch
@@ -136,8 +146,10 @@ class SionnaTDLTimePUSCHLink:
             )
         self.l_min = l_min
         self.l_max = l_max
+        estimator = receiver._estimator if channel_estimator is None else channel_estimator
         self.receiver = PUSCHReceiver(
             self.transmitter,
+            channel_estimator=estimator,
             input_domain="time",
             l_min=l_min,
             return_tb_crc_status=True,
@@ -256,10 +268,19 @@ def tdl_pusch_records(
                 targets={"channel_cfr": channel_truth},
                 target_masks={"channel_cfr": torch.ones_like(channel_truth, dtype=torch.bool)},
                 target_definitions={
-                    "channel_cfr": TargetDefinition(
+                    "channel_cfr": TargetDefinition.versioned(
                         semantic="perfect synchronized effective-subcarrier CFR",
                         units="complex channel gain (dimensionless)",
                         source="sionna_phy_ofdmchannel_return_channel",
+                        reference=(
+                            "OFDMChannel return_channel with the configured TDL profile, "
+                            "carrier, sample rate, and effective FFT-bin mapping"
+                        ),
+                        aggregation_rule=(
+                            "retain each effective subcarrier coefficient; no antenna, "
+                            "symbol, or power averaging"
+                        ),
+                        definition_version="umcd.tdl-pusch.effective-cfr.v1",
                     )
                 },
                 provenance={
@@ -300,8 +321,15 @@ def generate_tdl_pusch_batch(
         raise ValueError("num_rx_ant must be a positive integer")
     if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
         raise ValueError("seed must be a nonnegative integer")
+    if isinstance(noise_variance, bool) or not isinstance(noise_variance, Real):
+        raise ValueError("noise_variance must be a real scalar")
+    noise_variance = float(noise_variance)
     if not math.isfinite(noise_variance) or noise_variance < 0:
         raise ValueError("noise_variance must be finite and nonnegative")
+    if noise_variance > float(np.finfo(np.float32).max):
+        raise ValueError("noise_variance must be representable as finite float32")
+    if 0 < noise_variance < float(np.nextafter(np.float32(0), np.float32(1))):
+        raise ValueError("positive noise_variance must be representable as nonzero float32")
     if not math.isfinite(carrier_frequency_hz) or carrier_frequency_hz <= 0:
         raise ValueError("carrier_frequency_hz must be finite and positive")
     if not math.isfinite(delay_spread_s) or delay_spread_s < 0:

@@ -1,0 +1,25 @@
+{
+  "schema": "loslab.g4_fixed_tdl_los_k_factor_reference.v1",
+  "standard": "3GPP TS 38.101-4",
+  "version": "19.2.2",
+  "source_id": "ts-138101-4-v19.2.2",
+  "source_sha256": "b3c6a73c7a40219e7270c08c7a57c84cb46f6757b303a64ec768ba04a6079e81",
+  "component_reference": "G4_FIXED_TDL_TAP_PROFILE_REFERENCE_2026-10-26.json",
+  "component_reference_sha256": "fe22560a71f4e5683ea6780f73e84466155b26f5f97cc4b63e3250c102fafda3",
+  "derivation": "K_linear = sum(linear power of LOS components) / sum(linear power of Rayleigh components); each table power is converted from dB as 10**(power_db/10).",
+  "rounding_tolerance_db": 0.1,
+  "status": "DETERMINISTIC_PROFILE_PARAMETER_REFERENCE_ONLY_NOT_CONFORMANCE_QUALIFICATION",
+  "profiles": [
+    {
+      "profile_model": "D10",
+      "k_factor_linear": 7.984318484399036,
+      "k_factor_db": 9.02237852084226
+    },
+    {
+      "profile_model": "D30",
+      "k_factor_linear": 7.945797943801942,
+      "k_factor_db": 9.001375170486195
+    }
+  ],
+  "interpretation": "The K factor is derived from the separately listed co-located deterministic LOS and diffuse components, before any adapter normalization. The 0.1 dB comparison tolerance bounds the ratio uncertainty from independently rounded 0.1 dB component powers. This deterministic parameter check does not test the Rician fading distribution, temporal behavior, covariance, receiver impact, or physical propagation."
+}
