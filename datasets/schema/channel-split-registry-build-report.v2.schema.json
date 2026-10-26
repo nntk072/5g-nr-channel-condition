@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/nntk072/5g-nr-channel-condition/datasets/schema/channel-split-registry-build-report.v2.schema.json",
+  "title": "UMCD channel split registry build report v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "status",
+    "qualification_status",
+    "registry_sha256",
+    "registry_file_sha256",
+    "policy_sha256",
+    "policy_file_sha256",
+    "spatial_buffer_m",
+    "inputs",
+    "lineage"
+  ],
+  "properties": {
+    "schema": {"const": "umcd.channel_split_registry_build_report.v2"},
+    "status": {"const": "CANDIDATE_NOT_EXTERNALLY_REVIEWED"},
+    "qualification_status": {"const": "NOT_QUALIFIED"},
+    "registry_sha256": {"$ref": "#/$defs/sha256"},
+    "registry_file_sha256": {"$ref": "#/$defs/sha256"},
+    "policy_sha256": {"$ref": "#/$defs/sha256"},
+    "policy_file_sha256": {"$ref": "#/$defs/sha256"},
+    "spatial_buffer_m": {"type": "number", "minimum": 0},
+    "inputs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "bytes", "sha256", "row_count", "split_metadata_migration"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "bytes": {"type": "integer", "minimum": 0},
+          "sha256": {"$ref": "#/$defs/sha256"},
+          "row_count": {"type": "integer", "minimum": 0},
+          "split_metadata_migration": {
+            "type": ["string", "null"],
+            "enum": ["legacy_rt_complete_scene_identity_v1", null]
+          }
+        }
+      }
+    },
+    "lineage": {"type": "object"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

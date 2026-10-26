@@ -1,0 +1,241 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:loslab:seed-roster-collision-audit:v2",
+  "title": "Structured Seed Roster Collision Audit with Bounded Scan Status",
+  "description": "Local JSON result-corpus scan; oversized inputs are recorded as incomplete and never treated as clear.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "status",
+    "reserved_seeds",
+    "seed_field_rule",
+    "scan_scope",
+    "roots",
+    "scanned_file_count",
+    "scanned_files",
+    "collisions",
+    "malformed_seed_fields",
+    "global_exclusivity_established",
+    "incomplete_files"
+  ],
+  "properties": {
+    "schema": {
+      "const": "loslab.seed_roster_collision_audit.v2"
+    },
+    "status": {
+      "enum": [
+        "COLLISION_FOUND",
+        "MALFORMED_SEED_FIELDS",
+        "CLEAR_WITHIN_SCANNED_JSON_CORPUS",
+        "INCOMPLETE_SCAN"
+      ]
+    },
+    "reserved_seeds": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "seed_field_rule": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scan_scope": {
+      "type": "string",
+      "minLength": 1
+    },
+    "roots": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "eligible_json_file_count"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "eligible_json_file_count": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "scanned_file_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "scanned_files": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/file"
+      }
+    },
+    "collisions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/collision"
+      }
+    },
+    "malformed_seed_fields": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "file_path",
+          "json_path",
+          "observed_type"
+        ],
+        "properties": {
+          "file_path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "json_path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "observed_type": {
+            "enum": [
+              "boolean",
+              "number",
+              "string",
+              "null",
+              "range",
+              "object",
+              "empty_list"
+            ]
+          }
+        }
+      }
+    },
+    "global_exclusivity_established": {
+      "const": false
+    },
+    "incomplete_files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "reason"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "byte_count",
+        "sha256",
+        "collision_count"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "byte_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "collision_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "collision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "byte_count",
+        "sha256",
+        "collision_count",
+        "matches"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "byte_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "collision_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "matches": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/match"
+          }
+        }
+      }
+    },
+    "match": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "json_path",
+        "seed",
+        "encoded_type"
+      ],
+      "properties": {
+        "json_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "encoded_type": {
+          "enum": [
+            "integer",
+            "number",
+            "string",
+            "key",
+            "range"
+          ]
+        }
+      }
+    }
+  }
+}

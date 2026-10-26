@@ -21,7 +21,15 @@ from typing import Any, Mapping, cast
 
 import numpy as np
 
+from .model_input_audit import audit_model_input_payload
 from .observations import FrequencyDomainModelInputs, FrequencyDomainObservation
+from .standardized_specs import (
+    STANDARDIZED_PROFILE_APPLICABILITY,
+    cdl_parameter_table_binding_sha256,
+    standardized_profile_applicability,
+    tdl_resolved_profile_parameter_sha256,
+    validate_fixed_tdl_conformance_metadata,
+)
 from .targets import (
     TargetDefinition,
     TargetValidity,
@@ -38,18 +46,21 @@ class StandardizedFamily(StrEnum):
     CDL = "cdl"
 
 
-_SCALABLE_TDL_CDL_MODELS = frozenset({"A", "B", "C", "D", "E"})
-_FIXED_TDL_MODELS = frozenset({"A10", "A30", "B100", "C60", "C300", "D10", "D30"})
-_PROFILE_LOS_COMPONENT_MODELS = frozenset({"D", "E", "D10", "D30"})
-_FIXED_TDL_FREQUENCY_RANGES = {
-    "A10": {"FR2"},
-    "A30": {"FR1", "FR2"},
-    "B100": {"FR1"},
-    "C60": {"FR2"},
-    "C300": {"FR1"},
-    "D10": {"FR2"},
-    "D30": {"FR1", "FR2"},
-}
+_SCALABLE_TDL_CDL_MODELS = frozenset(
+    model
+    for family, model in STANDARDIZED_PROFILE_APPLICABILITY
+    if model in {"A", "B", "C", "D", "E"}
+)
+_FIXED_TDL_MODELS = frozenset(
+    model
+    for family, model in STANDARDIZED_PROFILE_APPLICABILITY
+    if family == "tdl" and STANDARDIZED_PROFILE_APPLICABILITY[(family, model)].fixed_profile
+)
+_PROFILE_LOS_COMPONENT_MODELS = frozenset(
+    model
+    for (_, model), applicability in STANDARDIZED_PROFILE_APPLICABILITY.items()
+    if applicability.profile_los_component
+)
 
 
 def _numpy(value: Any, *, name: str, kind: str) -> np.ndarray:
@@ -108,32 +119,71 @@ def validate_standardized_channel_admission(
     prefix = "standardized channel admission rejected: "
     if not isinstance(family, StandardizedFamily):
         raise TypeError("family must use StandardizedFamily")
-    supported_models = (
-        _SCALABLE_TDL_CDL_MODELS | _FIXED_TDL_MODELS
-        if family is StandardizedFamily.TDL
-        else _SCALABLE_TDL_CDL_MODELS
-    )
-    if profile_model not in supported_models:
+    try:
+        applicability = standardized_profile_applicability(family.value, profile_model)
+    except ValueError:
         if family is StandardizedFamily.TDL:
             raise ValueError(prefix + "TDL profile must be scalable A–E or fixed TS 38.101-4")
         raise ValueError(prefix + "CDL profile must be one of A–E")
-    expected_delay_semantics = (
-        "fixed_ts_38_101_4_absolute_tap_delays"
-        if profile_model in _FIXED_TDL_MODELS
-        else "scalable_tr_38_901_profile"
-    )
+    expected_delay_semantics = applicability.delay_profile_semantics
     if metadata.get("delay_profile_semantics") != expected_delay_semantics:
         raise ValueError(prefix + "delay profile semantics disagree with the admitted profile")
-    if profile_model in _SCALABLE_TDL_CDL_MODELS and metadata.get("spec_version") not in {
-        "16.1",
-        "19.2",
-    }:
-        raise ValueError(prefix + "unsupported TR 38.901 parameter-table version")
-    if (
-        profile_model in _FIXED_TDL_MODELS
-        and metadata.get("fixed_profile_spec_version") != "19.2.2"
-    ):
-        raise ValueError(prefix + "fixed TDL profile table must identify TS 38.101-4 V19.2.2")
+    resolved_profile_digest = metadata.get("resolved_profile_parameters_sha256")
+    parameter_table_source = metadata.get("profile_parameter_table_source")
+    parameter_table_sha256 = metadata.get("profile_parameter_table_sha256")
+    if (parameter_table_source is None) != (parameter_table_sha256 is None):
+        raise ValueError(prefix + "TDL parameter table source identity and digest must appear together")
+    if parameter_table_source is not None:
+        expected_table_source = (
+            f"TS 38.101-4:19.2.2:TDL-{profile_model}.json"
+            if profile_model in _FIXED_TDL_MODELS
+            else f"TR 38.901:{metadata.get('spec_version')}:TDL-{profile_model}.json"
+        )
+        if (
+            family is not StandardizedFamily.TDL
+            or not isinstance(parameter_table_source, str)
+            or parameter_table_source != expected_table_source
+            or not isinstance(parameter_table_sha256, str)
+            or len(parameter_table_sha256) != 64
+            or any(character not in "0123456789abcdef" for character in parameter_table_sha256)
+        ):
+            raise ValueError(prefix + "TDL parameter table source identity or digest is invalid")
+        if resolved_profile_digest is None:
+            raise ValueError(prefix + "TDL parameter table identity must be bound by the profile digest")
+    if resolved_profile_digest is not None:
+        if family is not StandardizedFamily.TDL:
+            raise ValueError(prefix + "resolved TDL profile digest is attached to a non-TDL record")
+        if (
+            not isinstance(resolved_profile_digest, str)
+            or len(resolved_profile_digest) != 64
+            or any(character not in "0123456789abcdef" for character in resolved_profile_digest)
+            or resolved_profile_digest != tdl_resolved_profile_parameter_sha256(metadata)
+        ):
+            raise ValueError(prefix + "resolved TDL profile parameter digest is invalid")
+    version_field = "fixed_profile_spec_version" if applicability.fixed_profile else "spec_version"
+    if metadata.get(version_field) not in applicability.supported_versions:
+        raise ValueError(prefix + f"unsupported {applicability.standard} parameter-table version")
+    if family is StandardizedFamily.CDL:
+        table_filename = f"CDL-{profile_model}.json"
+        table_source = metadata.get("parameter_table_source")
+        table_sha256 = metadata.get("parameter_table_sha256")
+        table_name = metadata.get("parameter_table")
+        if table_sha256 is not None and (
+            not isinstance(table_sha256, str)
+            or len(table_sha256) != 64
+            or any(character not in "0123456789abcdef" for character in table_sha256)
+        ):
+            raise ValueError(prefix + "CDL parameter table digest must be lowercase SHA-256")
+        if table_source is not None:
+            expected_table_source = f"TR 38.901:{metadata.get('spec_version')}:{table_filename}"
+            if (
+                table_source != expected_table_source
+                or table_sha256 is None
+                or table_name != table_filename
+                or metadata.get("parameter_table_binding_sha256")
+                != cdl_parameter_table_binding_sha256(metadata)
+            ):
+                raise ValueError(prefix + "CDL parameter table source identity is inconsistent")
     if h_path.ndim != 6 or h_path.shape[0] != 1 or h_path.shape[2] != 1:
         raise ValueError(prefix + "the supported TDL/CDL model requires one RX and one TX link")
 
@@ -142,9 +192,16 @@ def validate_standardized_channel_admission(
         isinstance(carrier_hz, bool)
         or not isinstance(carrier_hz, (int, float))
         or not math.isfinite(carrier_hz)
-        or not 0.5e9 <= carrier_hz <= 100e9
+        or not any(
+            low <= carrier_hz <= high
+            for low, high in applicability.carrier_frequency_ranges_hz
+        )
     ):
-        raise ValueError(prefix + "carrier_frequency_hz must be within 0.5–100 GHz")
+        allowed_ranges = ", ".join(
+            f"{low / 1e9:g}–{high / 1e9:g} GHz"
+            for low, high in applicability.carrier_frequency_ranges_hz
+        )
+        raise ValueError(prefix + f"carrier_frequency_hz must be within {allowed_ranges}")
     if profile_model in _FIXED_TDL_MODELS:
         if 0.5e9 <= carrier_hz <= 7.125e9:
             frequency_range = "FR1"
@@ -154,10 +211,16 @@ def validate_standardized_channel_admission(
             raise ValueError(
                 prefix + "fixed TS 38.101-4 TDL profiles require an FR1 or FR2 carrier frequency"
             )
-        if frequency_range not in _FIXED_TDL_FREQUENCY_RANGES[profile_model]:
+        allowed_frequency_ranges = {
+            "FR1" if low <= carrier_hz <= 7.125e9 else "FR2"
+            for low, high in applicability.carrier_frequency_ranges_hz
+            if low <= carrier_hz <= high
+        }
+        if not allowed_frequency_ranges:
             raise ValueError(
                 prefix + f"fixed TDL-{profile_model} is not applicable in {frequency_range}"
             )
+    validate_fixed_tdl_conformance_metadata(profile_model, metadata)
 
     subcarrier_count = metadata.get("num_subcarriers")
     spacing_hz = metadata.get("subcarrier_spacing_hz")
@@ -178,15 +241,19 @@ def validate_standardized_channel_admission(
     expected_bandwidth_hz = subcarrier_count * spacing_hz
     if not math.isclose(sampled_bandwidth_hz, expected_bandwidth_hz, rel_tol=1e-12, abs_tol=1e-6):
         raise ValueError(prefix + "sampled_bandwidth_hz disagrees with subcarrier grid")
-    if sampled_bandwidth_hz > 2e9:
-        raise ValueError(prefix + "standardized dataset sampled bandwidth must be at most 2 GHz")
-    if profile_model in {"A10", "D10"}:
+    if sampled_bandwidth_hz > applicability.maximum_sampled_bandwidth_hz:
+        raise ValueError(
+            prefix
+            + "standardized dataset sampled bandwidth must be at most "
+            + f"{applicability.maximum_sampled_bandwidth_hz:g} Hz"
+        )
+    if applicability.minimum_channel_bandwidth_exclusive_hz is not None:
         channel_bandwidth_hz = metadata.get("channel_bandwidth_hz")
         if (
             isinstance(channel_bandwidth_hz, bool)
             or not isinstance(channel_bandwidth_hz, (int, float))
             or not math.isfinite(channel_bandwidth_hz)
-            or channel_bandwidth_hz <= 200e6
+            or channel_bandwidth_hz <= applicability.minimum_channel_bandwidth_exclusive_hz
         ):
             raise ValueError(
                 prefix + f"fixed TDL-{profile_model} requires channel_bandwidth_hz > 200 MHz"
@@ -455,7 +522,7 @@ class StandardizedLearningExample:
 
     def model_inputs(self) -> FrequencyDomainModelInputs:
         """Return receiver-visible data without sample IDs, targets, or oracle truth."""
-        return self.observation.model_inputs
+        return audit_model_input_payload(self.observation.model_inputs)
 
 
 @dataclass(frozen=True, slots=True, eq=False)

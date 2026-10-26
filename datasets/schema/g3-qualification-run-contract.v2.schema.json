@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.invalid/schema/g3-qualification-run-contract.v2.schema.json",
+  "title": "G3 Frozen Qualification Run Contract v2",
+  "description": "Hash-bound preregistration with per-stratum executable evaluator floors. Those floors are not a powered sample-size guarantee, measurement authentication, or qualification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "run_id", "qualification_status", "joint_acceptance_family", "joint_acceptance_family_sha256", "task_scope", "candidate", "challenger", "waveform", "link_budget_noise", "path_matching", "sampling", "solver_budget", "source_identity", "finite_solver_caps_are_ground_truth", "contract_sha256"],
+  "properties": {
+    "schema": {"const": "loslab.g3_qualification_run_contract.v2"},
+    "run_id": {"type": "string", "pattern": "^[a-z][a-z0-9._-]{2,63}$"},
+    "qualification_status": {"const": "NOT_QUALIFIED"},
+    "joint_acceptance_family": {"type": "object"},
+    "joint_acceptance_family_sha256": {"$ref": "#/$defs/hash"},
+    "task_scope": {
+      "type": "object", "additionalProperties": false,
+      "required": ["task_id", "scenario_ids", "channel_conditions", "carrier_hz"],
+      "properties": {
+        "task_id": {"type": "string", "minLength": 1},
+        "scenario_ids": {"$ref": "#/$defs/stringRoster"},
+        "channel_conditions": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["LOS", "NLOS"]}},
+        "carrier_hz": {"type": "number", "minimum": 1}
+      }
+    },
+    "candidate": {"$ref": "#/$defs/modelConfig"},
+    "challenger": {"$ref": "#/$defs/modelConfig"},
+    "waveform": {
+      "type": "object", "additionalProperties": false,
+      "required": ["waveform_id", "configuration", "configuration_sha256"],
+      "properties": {"waveform_id": {"type": "string", "minLength": 1}, "configuration": {"type": "object", "required": ["carrier_hz"], "properties": {"carrier_hz": {"type": "number", "minimum": 1}}}, "configuration_sha256": {"$ref": "#/$defs/hash"}}
+    },
+    "link_budget_noise": {
+      "type": "object", "additionalProperties": false,
+      "required": ["tx_power_dbm", "tx_gain_dbi", "rx_gain_dbi", "noise_figure_db", "noise_temperature_k", "noise_bandwidth_hz"],
+      "properties": {
+        "tx_power_dbm": {"type": "number"}, "tx_gain_dbi": {"type": "number"}, "rx_gain_dbi": {"type": "number"}, "noise_figure_db": {"type": "number"}, "noise_temperature_k": {"type": "number", "exclusiveMinimum": 0}, "noise_bandwidth_hz": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "path_matching": {
+      "type": "object", "additionalProperties": false,
+      "required": ["delay_tolerance_s", "azimuth_tolerance_deg", "elevation_tolerance_deg", "coefficient_relative_tolerance", "minimum_bidirectional_coverage"],
+      "properties": {
+        "delay_tolerance_s": {"type": "number", "minimum": 0}, "azimuth_tolerance_deg": {"type": "number", "minimum": 0}, "elevation_tolerance_deg": {"type": "number", "minimum": 0}, "coefficient_relative_tolerance": {"type": "number", "minimum": 0}, "minimum_bidirectional_coverage": {"type": "number", "exclusiveMinimum": 0, "maximum": 1}
+      }
+    },
+    "sampling": {
+      "type": "object", "additionalProperties": false,
+      "required": ["episode_ids", "path_equivalence_scenarios", "unit_by_branch", "planned_units_by_branch", "planned_units_by_stratum", "bootstrap_seed", "bootstrap_draws"],
+      "properties": {
+        "episode_ids": {"$ref": "#/$defs/stringRoster"},
+        "path_equivalence_scenarios": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/pathEpisode"}},
+        "unit_by_branch": {"$ref": "#/$defs/branchUnits"},
+        "planned_units_by_branch": {"$ref": "#/$defs/branchTotals"},
+        "planned_units_by_stratum": {"$ref": "#/$defs/branchStratumCounts"},
+        "bootstrap_seed": {"type": "integer", "minimum": 0},
+        "bootstrap_draws": {"type": "integer", "minimum": 1000}
+      }
+    },
+    "solver_budget": {
+      "type": "object", "additionalProperties": false,
+      "required": ["max_rays_per_link", "max_interactions", "max_episodes", "max_wall_seconds", "overflow_policy"],
+      "properties": {
+        "max_rays_per_link": {"type": "integer", "minimum": 1}, "max_interactions": {"type": "integer", "minimum": 1}, "max_episodes": {"type": "integer", "minimum": 1}, "max_wall_seconds": {"type": "number", "exclusiveMinimum": 0}, "overflow_policy": {"enum": ["abort_run", "record_censored_episode"]}
+      }
+    },
+    "source_identity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["git_revision", "working_tree_dirty", "source_bundle_sha256"],
+      "properties": {"git_revision": {"type": "string", "pattern": "^[a-f0-9]{40}$"}, "working_tree_dirty": {"type": "boolean"}, "source_bundle_sha256": {"$ref": "#/$defs/hash"}}
+    },
+    "finite_solver_caps_are_ground_truth": {"const": false},
+    "contract_sha256": {"$ref": "#/$defs/hash"}
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "stringRoster": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "pathEpisode": {"type": "array", "prefixItems": [{"type": "string", "minLength": 1}, {"enum": ["LOS", "NLOS"]}, {"type": "string", "minLength": 1}], "minItems": 3, "maxItems": 3},
+    "modelConfig": {
+      "type": "object", "additionalProperties": false,
+      "required": ["config_id", "configuration", "configuration_sha256"],
+      "properties": {"config_id": {"type": "string", "minLength": 1}, "configuration": {"type": "object"}, "configuration_sha256": {"$ref": "#/$defs/hash"}}
+    },
+    "branchUnits": {
+      "type": "object", "additionalProperties": false,
+      "required": ["material_calibration", "complex_csi", "propagation_metrics", "receiver_impact", "path_equivalence"],
+      "properties": {
+        "material_calibration": {"const": "independent_acquisition_unit"}, "complex_csi": {"const": "independent_physical_episode"}, "propagation_metrics": {"const": "independent_physical_episode"}, "receiver_impact": {"const": "independent_transport_block_cluster"}, "path_equivalence": {"const": "physical_episode"}
+      }
+    },
+    "branchTotals": {
+      "type": "object", "additionalProperties": false,
+      "required": ["material_calibration", "complex_csi", "propagation_metrics", "receiver_impact", "path_equivalence"],
+      "properties": {"material_calibration": {"type": "integer", "minimum": 20}, "complex_csi": {"type": "integer", "minimum": 2}, "propagation_metrics": {"type": "integer", "minimum": 2}, "receiver_impact": {"type": "integer", "minimum": 20}, "path_equivalence": {"type": "integer", "minimum": 1}}
+    },
+    "materialStratumCount": {"type": "object", "additionalProperties": false, "required": ["stratum", "planned_units"], "properties": {"stratum": {"type": "array", "prefixItems": [{"type": "string", "minLength": 1}, {"enum": ["V", "H"]}, {"type": "string", "minLength": 1}], "minItems": 3, "maxItems": 3}, "planned_units": {"type": "integer", "minimum": 20}}},
+    "complexStratumCount": {"type": "object", "additionalProperties": false, "required": ["stratum", "planned_units"], "properties": {"stratum": {"type": "array", "prefixItems": [{"type": "string", "minLength": 1}, {"enum": ["LOS", "NLOS"]}], "minItems": 2, "maxItems": 2}, "planned_units": {"type": "integer", "minimum": 2}}},
+    "propagationStratumCount": {"type": "object", "additionalProperties": false, "required": ["stratum", "planned_units"], "properties": {"stratum": {"type": "array", "prefixItems": [{"type": "string", "minLength": 1}, {"enum": ["LOS", "NLOS"]}, {"enum": ["total", "specular", "diffuse"]}], "minItems": 3, "maxItems": 3}, "planned_units": {"type": "integer", "minimum": 2}}},
+    "receiverStratumCount": {"type": "object", "additionalProperties": false, "required": ["stratum", "planned_units"], "properties": {"stratum": {"type": "array", "prefixItems": [{"type": "string", "minLength": 1}, {"enum": ["LOS", "NLOS"]}], "minItems": 2, "maxItems": 2}, "planned_units": {"type": "integer", "minimum": 20}}},
+    "pathStratumCount": {"type": "object", "additionalProperties": false, "required": ["stratum", "planned_units"], "properties": {"stratum": {"$ref": "#/$defs/pathEpisode"}, "planned_units": {"const": 1}}},
+    "branchStratumCounts": {
+      "type": "object", "additionalProperties": false,
+      "required": ["material_calibration", "complex_csi", "propagation_metrics", "receiver_impact", "path_equivalence"],
+      "properties": {
+        "material_calibration": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/materialStratumCount"}},
+        "complex_csi": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/complexStratumCount"}},
+        "propagation_metrics": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/propagationStratumCount"}},
+        "receiver_impact": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/receiverStratumCount"}},
+        "path_equivalence": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/pathStratumCount"}}
+      }
+    }
+  }
+}

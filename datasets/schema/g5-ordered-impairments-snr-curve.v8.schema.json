@@ -1,0 +1,738 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://umcd.example/schema/g5-ordered-impairments-snr-curve.v8.schema.json",
+  "title": "G5 ordered-impairment SNR curve v8 with exact channel-seed inference roster",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "scope",
+    "inference_scope",
+    "config",
+    "acceptance",
+    "curve_inference",
+    "points"
+  ],
+  "properties": {
+    "schema": {
+      "const": "umcd.g5_ordered_impairments_independent_channels_snr_curve.v8"
+    },
+    "scope": {
+      "type": "string",
+      "minLength": 1
+    },
+    "inference_scope": {
+      "type": "string",
+      "minLength": 1
+    },
+    "config": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_sha256",
+        "snr_db",
+        "channel_seeds",
+        "blocks_per_channel",
+        "channel_estimator",
+        "shared_random_streams_across_snr",
+        "snr_definition",
+        "transport_blocks_per_snr_point",
+        "transport_blocks_across_curve",
+        "maximum_transport_blocks_across_curve",
+        "maximum_snr_points"
+      ],
+      "properties": {
+        "schema_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "snr_db": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "number"
+          }
+        },
+        "channel_seeds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "blocks_per_channel": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "channel_estimator": {
+          "enum": [
+            "sionna_default_ls",
+            "finite_delay_dft"
+          ]
+        },
+        "shared_random_streams_across_snr": {
+          "const": [
+            "channel",
+            "payload",
+            "TX phase noise",
+            "RX phase noise",
+            "standardized AWGN"
+          ]
+        },
+        "snr_definition": {
+          "type": "string",
+          "minLength": 1
+        },
+        "transport_blocks_per_snr_point": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "transport_blocks_across_curve": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maximum_transport_blocks_across_curve": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maximum_snr_points": {
+          "const": 64
+        },
+        "waveform_evidence": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "schema",
+            "file_name",
+            "sha256",
+            "byte_count",
+            "channel_count",
+            "snr_point_count",
+            "snr_db",
+            "arrays"
+          ],
+          "properties": {
+            "schema": {
+              "const": "umcd.g5_ordered_impairments_waveform_evidence.v4"
+            },
+            "file_name": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9._-]+[.]npz$"
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "byte_count": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "channel_count": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "snr_point_count": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 64
+            },
+            "snr_db": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 64,
+              "uniqueItems": true,
+              "items": {
+                "type": "number"
+              }
+            },
+            "arrays": {
+              "const": [
+                "actual_capture",
+                "awgn_standard_normal_imag",
+                "awgn_standard_normal_real",
+                "channel_seeds",
+                "clean_receiver_input_by_snr",
+                "corrected_receiver_input_by_snr",
+                "rx_phase_noise_rad",
+                "tx_phase_noise_rad",
+                "tx_waveform",
+                "uncorrected_receiver_input_by_snr"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "acceptance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "criteria_frozen_before_run",
+        "status",
+        "pass"
+      ],
+      "properties": {
+        "criteria_frozen_before_run": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "criteria",
+            "criteria_sha256",
+            "confidence_level",
+            "interval_scope",
+            "decision_unit",
+            "preregistration_signature"
+          ],
+          "properties": {
+            "status": {
+              "const": "contract_supplied_before_run"
+            },
+            "criteria": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "schema",
+                "snr_db",
+                "channel_seeds",
+                "channel_estimator",
+                "blocks_per_channel",
+                "minimum_independent_channels",
+                "maximum_corrected_macro_bler",
+                "minimum_uncorrected_minus_corrected_macro_bler"
+              ],
+              "properties": {
+                "schema": {
+                  "const": "umcd.g5_ordered_impairments_snr_acceptance.v1"
+                },
+                "snr_db": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "number"
+                  }
+                },
+                "channel_estimator": {
+                  "enum": [
+                    "sionna_default_ls",
+                    "finite_delay_dft"
+                  ]
+                },
+                "blocks_per_channel": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "minimum_independent_channels": {
+                  "type": "integer",
+                  "minimum": 20
+                },
+                "maximum_corrected_macro_bler": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                },
+                "minimum_uncorrected_minus_corrected_macro_bler": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                },
+                "channel_seeds": {
+                  "type": "array",
+                  "minItems": 2,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              }
+            },
+            "criteria_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "confidence_level": {
+              "const": 0.95
+            },
+            "interval_scope": {
+              "type": "string",
+              "minLength": 1
+            },
+            "decision_unit": {
+              "type": "string",
+              "minLength": 1
+            },
+            "preregistration_signature": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "status",
+                "namespace",
+                "signer_id",
+                "contract_payload_sha256",
+                "signature_sha256",
+                "trusted_allowed_signers_sha256",
+                "trust_file_custody"
+              ],
+              "properties": {
+                "status": {
+                  "const": "verified_before_receiver_run"
+                },
+                "namespace": {
+                  "const": "umcd-g5-snr-acceptance-v1"
+                },
+                "signer_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "contract_payload_sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "signature_sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "trusted_allowed_signers_sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "trust_file_custody": {
+                  "const": "not_established_by_this_verifier"
+                }
+              }
+            }
+          }
+        },
+        "status": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "NOT_EVALUABLE"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cluster_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pass": {
+          "type": "boolean"
+        },
+        "point_decisions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "snr_db",
+              "corrected_macro_bler_simultaneous_upper",
+              "maximum_corrected_macro_bler",
+              "corrected_bler_criterion_pass",
+              "uncorrected_minus_corrected_simultaneous_lower",
+              "minimum_uncorrected_minus_corrected_macro_bler",
+              "minimum_improvement_criterion_pass",
+              "pass"
+            ],
+            "properties": {
+              "snr_db": {
+                "type": "number"
+              },
+              "corrected_macro_bler_simultaneous_upper": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "maximum_corrected_macro_bler": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "corrected_bler_criterion_pass": {
+                "type": "boolean"
+              },
+              "uncorrected_minus_corrected_simultaneous_lower": {
+                "type": "number",
+                "minimum": -1,
+                "maximum": 1
+              },
+              "minimum_uncorrected_minus_corrected_macro_bler": {
+                "type": "number",
+                "minimum": -1,
+                "maximum": 1
+              },
+              "minimum_improvement_criterion_pass": {
+                "type": "boolean"
+              },
+              "pass": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
+    },
+    "curve_inference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "unit",
+        "cluster_count",
+        "bootstrap_seed",
+        "bootstrap_draws",
+        "family_size",
+        "method",
+        "paired_contrast_definition",
+        "by_condition",
+        "by_paired_contrast",
+        "channel_seeds"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "available",
+            "unavailable"
+          ]
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cluster_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "channel_seeds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "bootstrap_seed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "bootstrap_draws": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "family_size": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "method": {
+          "type": "string",
+          "minLength": 1
+        },
+        "paired_contrast_definition": {
+          "const": "uncorrected macro-BLER minus corrected macro-BLER; positive values favor correction"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "simultaneous_radius": {
+          "type": "number",
+          "minimum": 0
+        },
+        "by_condition": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "clean",
+            "uncorrected",
+            "corrected"
+          ],
+          "properties": {
+            "clean": {
+              "$ref": "#/$defs/curveEstimates"
+            },
+            "uncorrected": {
+              "$ref": "#/$defs/curveEstimates"
+            },
+            "corrected": {
+              "$ref": "#/$defs/curveEstimates"
+            }
+          }
+        },
+        "by_paired_contrast": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/pairedContrast"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "available"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "simultaneous_radius"
+            ],
+            "properties": {
+              "cluster_count": {
+                "minimum": 2
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "unavailable"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "reason"
+            ],
+            "properties": {
+              "by_condition": {
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      ]
+    },
+    "points": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "snr_db",
+          "experiment"
+        ],
+        "properties": {
+          "snr_db": {
+            "type": "number"
+          },
+          "experiment": {
+            "type": "object",
+            "required": [
+              "schema",
+              "config",
+              "paired_outcomes",
+              "acceptance"
+            ],
+            "properties": {
+              "schema": {
+                "enum": [
+                  "umcd.g5_ordered_impairments_independent_channels.v15",
+                  "umcd.g5_ordered_impairments_independent_channels.v16",
+                  "umcd.g5_ordered_impairments_independent_channels.v17",
+                  "umcd.g5_ordered_impairments_independent_channels.v18",
+                  "umcd.g5_ordered_impairments_independent_channels.v19",
+                  "umcd.g5_ordered_impairments_independent_channels.v20"
+                ]
+              },
+              "config": {
+                "type": "object",
+                "required": [
+                  "channel_seeds",
+                  "blocks_per_channel",
+                  "waveform_awgn_complex_variance",
+                  "nominal_snr_db",
+                  "mean_transmit_waveform_power",
+                  "transmit_waveform_power_by_channel",
+                  "noisy_receiver_input_sha256_by_channel"
+                ],
+                "properties": {
+                  "channel_seeds": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    }
+                  },
+                  "blocks_per_channel": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "waveform_awgn_complex_variance": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "nominal_snr_db": {
+                    "type": "number"
+                  },
+                  "mean_transmit_waveform_power": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "transmit_waveform_power_by_channel": {
+                    "type": "array",
+                    "items": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    }
+                  },
+                  "noisy_receiver_input_sha256_by_channel": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    }
+                  }
+                }
+              },
+              "paired_outcomes": {
+                "type": "object"
+              },
+              "acceptance": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "curveEstimates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "snr_db",
+          "mean_channel_macro_bler",
+          "pointwise_95_percent_interval",
+          "simultaneous_95_percent_interval"
+        ],
+        "properties": {
+          "snr_db": {
+            "type": "number"
+          },
+          "mean_channel_macro_bler": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "pointwise_95_percent_interval": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            ],
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "simultaneous_95_percent_interval": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            ],
+            "minItems": 2,
+            "maxItems": 2
+          }
+        }
+      }
+    },
+    "pairedContrast": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "snr_db",
+        "mean_channel_macro_bler_improvement",
+        "pointwise_95_percent_interval",
+        "simultaneous_95_percent_interval"
+      ],
+      "properties": {
+        "snr_db": {
+          "type": "number"
+        },
+        "mean_channel_macro_bler_improvement": {
+          "type": "number",
+          "minimum": -1,
+          "maximum": 1,
+          "description": "Paired channel-cluster uncorrected-minus-corrected macro-BLER; positive means correction reduced BLER."
+        },
+        "pointwise_95_percent_interval": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            {
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            }
+          ],
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "simultaneous_95_percent_interval": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            {
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            }
+          ],
+          "minItems": 2,
+          "maxItems": 2
+        }
+      }
+    }
+  }
+}

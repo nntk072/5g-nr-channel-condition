@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.invalid/schema/g3-joint-evaluator-artifact.v1.schema.json",
+  "title": "G3 five-branch numerical evaluator artifact",
+  "description": "Exact-input-byte-bound deterministic numerical evaluator output. It is never, by itself, scientific qualification or authenticated measurement evidence.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "status",
+    "qualification_status",
+    "input_bytes_sha256",
+    "bundle_sha256",
+    "bundle"
+  ],
+  "properties": {
+    "schema": {"const": "loslab.g3_joint_evaluator_artifact.v1"},
+    "status": {"const": "NUMERICAL_EVALUATION_ONLY_NOT_QUALIFIED"},
+    "qualification_status": {"const": "NOT_QUALIFIED"},
+    "input_bytes_sha256": {"$ref": "#/$defs/sha256"},
+    "bundle_sha256": {"$ref": "#/$defs/sha256"},
+    "bundle": {"$ref": "#/$defs/bundle"}
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "branchHashes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "material_calibration",
+        "complex_csi",
+        "propagation_metrics",
+        "receiver_impact",
+        "path_equivalence"
+      ],
+      "properties": {
+        "material_calibration": {"$ref": "#/$defs/sha256"},
+        "complex_csi": {"$ref": "#/$defs/sha256"},
+        "propagation_metrics": {"$ref": "#/$defs/sha256"},
+        "receiver_impact": {"$ref": "#/$defs/sha256"},
+        "path_equivalence": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "branchValues": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "material_calibration",
+        "complex_csi",
+        "propagation_metrics",
+        "receiver_impact",
+        "path_equivalence"
+      ],
+      "properties": {
+        "material_calibration": {"type": "object"},
+        "complex_csi": {"type": "object"},
+        "propagation_metrics": {"type": "object"},
+        "receiver_impact": {"type": "object"},
+        "path_equivalence": {"type": "object"}
+      }
+    },
+    "bundle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "status",
+        "qualification_status",
+        "joint_acceptance_family",
+        "branch_inputs_sha256",
+        "branch_outputs_sha256",
+        "evaluator_statuses",
+        "evaluations",
+        "interpretation"
+      ],
+      "properties": {
+        "schema": {"const": "loslab.g3_joint_evaluator_bundle.v1"},
+        "status": {"const": "NUMERICAL_EVALUATION_ONLY_NOT_QUALIFIED"},
+        "qualification_status": {"const": "NOT_QUALIFIED"},
+        "joint_acceptance_family": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["family_id", "family_sha256", "schema", "claim_count"],
+          "properties": {
+            "family_id": {"type": "string", "minLength": 1},
+            "family_sha256": {"$ref": "#/$defs/sha256"},
+            "schema": {"const": "loslab.g3_joint_acceptance_family.v4"},
+            "claim_count": {"type": "integer", "minimum": 1}
+          }
+        },
+        "branch_inputs_sha256": {"$ref": "#/$defs/branchHashes"},
+        "branch_outputs_sha256": {"$ref": "#/$defs/branchHashes"},
+        "evaluator_statuses": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "material_calibration",
+            "complex_csi",
+            "propagation_metrics",
+            "receiver_impact",
+            "path_equivalence"
+          ],
+          "properties": {
+            "material_calibration": {"type": "string"},
+            "complex_csi": {"type": "string"},
+            "propagation_metrics": {"type": "string"},
+            "receiver_impact": {"type": "string"},
+            "path_equivalence": {"type": "string"}
+          }
+        },
+        "evaluations": {"$ref": "#/$defs/branchValues"},
+        "interpretation": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

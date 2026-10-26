@@ -118,6 +118,22 @@ def audit(path: Path, *, chunk_rows: int = 2048) -> dict[str, Any]:
     summaries = {
         name: _array_summary(array, chunk_rows=chunk_rows) for name, array in arrays.items()
     }
+    h_is_complex = bool(np.iscomplexobj(arrays["H"]))
+    channel_observation = {
+        "stored_dtype": str(arrays["H"].dtype),
+        "complex_coefficients_present": h_is_complex,
+        "phase_information_available_in_archive": h_is_complex,
+        "g3_complex_csi_disposition": (
+            "not_established_phase_reference_unverified"
+            if h_is_complex
+            else "ineligible_no_explicit_complex_phase"
+        ),
+        "scope_note": (
+            "Complex dtype alone does not establish calibration or an absolute phase reference."
+            if h_is_complex
+            else "The archived H field is real-valued; complex phase cannot be reconstructed."
+        ),
+    }
 
     times = arrays["timestamps"]
     if times.ndim != 1 or times.dtype.kind not in "fiu":
@@ -143,6 +159,7 @@ def audit(path: Path, *, chunk_rows: int = 2048) -> dict[str, Any]:
         "npz_members": sorted(members),
         "sample_count": sample_counts.pop(),
         "fields": summaries,
+        "channel_observation": channel_observation,
         "member_sizes": member_metadata,
         "timestamps": {
             "strictly_increasing": strictly_increasing,

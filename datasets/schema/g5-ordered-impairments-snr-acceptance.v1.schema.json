@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://umcd.example/schema/g5-ordered-impairments-snr-acceptance.v1.schema.json",
+  "title": "G5 ordered-impairment SNR-family acceptance contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "snr_db",
+    "channel_seeds",
+    "channel_estimator",
+    "blocks_per_channel",
+    "minimum_independent_channels",
+    "maximum_corrected_macro_bler",
+    "minimum_uncorrected_minus_corrected_macro_bler"
+  ],
+  "properties": {
+    "schema": {
+      "const": "umcd.g5_ordered_impairments_snr_acceptance.v1"
+    },
+    "snr_db": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "number"
+      }
+    },
+    "channel_seeds": {
+      "type": "array",
+      "minItems": 20,
+      "uniqueItems": true,
+      "items": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "channel_estimator": {
+      "enum": [
+        "sionna_default_ls",
+        "finite_delay_dft"
+      ]
+    },
+    "blocks_per_channel": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "minimum_independent_channels": {
+      "type": "integer",
+      "minimum": 20
+    },
+    "maximum_corrected_macro_bler": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+      }
+    },
+    "minimum_uncorrected_minus_corrected_macro_bler": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+      }
+    }
+  }
+}

@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:umcd:element-frame-spherical-angular-power-map:v1",
+  "title": "Element-Frame Spherical Angular Power Map",
+  "description": "Solid-angle-weighted ray power binned in the element-local frame with explicit orientation metadata.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "input_direction_count",
+    "total_power",
+    "zenith_edges_rad",
+    "azimuth_edges_rad",
+    "cell_solid_angles_sr",
+    "integrated_power_fractions",
+    "power_density_per_sr",
+    "bin_boundary_convention",
+    "direction_frame",
+    "orientation_rad",
+    "orientation_convention"
+  ],
+  "properties": {
+    "schema": {
+      "const": "umcd.element_frame_spherical_power_map.v1"
+    },
+    "input_direction_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "total_power": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "zenith_edges_rad": {
+      "$ref": "#/$defs/edgeVector"
+    },
+    "azimuth_edges_rad": {
+      "$ref": "#/$defs/edgeVector"
+    },
+    "cell_solid_angles_sr": {
+      "$ref": "#/$defs/positiveMatrix"
+    },
+    "integrated_power_fractions": {
+      "$ref": "#/$defs/unitMatrix"
+    },
+    "power_density_per_sr": {
+      "$ref": "#/$defs/nonnegativeMatrix"
+    },
+    "bin_boundary_convention": {
+      "const": "half-open; south pole in last zenith bin; azimuth upper edge wraps to lower edge"
+    },
+    "direction_frame": {
+      "const": "element_local"
+    },
+    "orientation_rad": {
+      "type": "array",
+      "prefixItems": [
+        { "type": "number" },
+        { "type": "number" },
+        { "type": "number" }
+      ],
+      "items": false,
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "orientation_convention": {
+      "const": "Rz(yaw) Ry(pitch) Rx(roll); inverse applied to global directions"
+    }
+  },
+  "$defs": {
+    "edgeVector": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "type": "number" }
+    },
+    "positiveMatrix": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "array",
+        "minItems": 1,
+        "items": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "unitMatrix": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "array",
+        "minItems": 1,
+        "items": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "nonnegativeMatrix": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "array",
+        "minItems": 1,
+        "items": { "type": "number", "minimum": 0 }
+      }
+    }
+  }
+}

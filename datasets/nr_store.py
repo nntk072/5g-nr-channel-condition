@@ -19,6 +19,11 @@ import numpy as np
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
 from .nr import NRChannelRecord, NRObservation, NRTrajectory, TargetDefinition
+from .targets import TargetValidity
+
+_MAX_NR_RECORD_MANIFEST_BYTES = 1 * 1024 * 1024
+_MAX_NR_TRAJECTORY_MANIFEST_BYTES = 1 * 1024 * 1024
+_MAX_NR_TRAJECTORY_CONTENT_BYTES = 64 * 1024 * 1024
 
 
 @dataclass(frozen=True, slots=True)
@@ -28,7 +33,7 @@ class NRStoredRecord:
     sample_id: str
     content_sha256: str
     relative_path: str
-    schema_version: int = 1
+    schema_version: int = 3
 
 
 @dataclass(frozen=True, slots=True)
@@ -116,6 +121,54 @@ def _open_store_record(base: Path, relative_path: str) -> BinaryIO:
     except BaseException:
         os.close(descriptor)
         raise
+
+
+def _file_identity(info: os.stat_result) -> tuple[int, ...]:
+    return (
+        info.st_dev,
+        info.st_ino,
+        info.st_mode,
+        info.st_nlink,
+        info.st_size,
+        info.st_mtime_ns,
+        info.st_ctime_ns,
+    )
+
+
+def _stable_store_record_bytes(
+    base: Path, relative_path: str, *, maximum_bytes: int, label: str
+) -> bytes:
+    """Read a bounded single-link store file from one stable descriptor."""
+    with _open_store_record(base, relative_path) as stream:
+        descriptor = stream.fileno()
+        before = os.fstat(descriptor)
+        if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1:
+            raise ValueError(f"{label} must be a single-link regular file")
+        if before.st_size > maximum_bytes:
+            raise ValueError(f"{label} exceeds the {maximum_bytes}-byte limit")
+        chunks: list[bytes] = []
+        size = 0
+        while True:
+            request_size = min(1024 * 1024, maximum_bytes + 1 - size)
+            chunk = stream.read(request_size)
+            if not chunk:
+                break
+            chunks.append(chunk)
+            size += len(chunk)
+            if size > maximum_bytes:
+                raise ValueError(f"{label} exceeds the {maximum_bytes}-byte limit")
+        after = os.fstat(descriptor)
+        relative = PurePosixPath(relative_path)
+        path = base.joinpath(*relative.parts)
+        current = os.stat(path, follow_symlinks=False)
+        identity = _file_identity(before)
+        if (
+            size != before.st_size
+            or _file_identity(after) != identity
+            or _file_identity(current) != identity
+        ):
+            raise ValueError(f"{label} changed while it was being read")
+        return b"".join(chunks)
 
 
 def _nr_record_memory_estimate(
@@ -228,10 +281,20 @@ def iter_nr_record_shards(
                 resolved_manifest = manifest_path.resolve(strict=True)
                 if not resolved_manifest.is_relative_to(base):
                     raise ValueError("NR manifest path resolves outside the store")
-                payload = json.loads(
-                    resolved_manifest.read_text(encoding="utf-8"),
-                    object_pairs_hook=_reject_duplicate_json_keys,
+                manifest_relative = resolved_manifest.relative_to(base).as_posix()
+                manifest_bytes = _stable_store_record_bytes(
+                    base,
+                    manifest_relative,
+                    maximum_bytes=_MAX_NR_RECORD_MANIFEST_BYTES,
+                    label="NR record manifest",
                 )
+                try:
+                    payload = json.loads(
+                        manifest_bytes.decode("utf-8"),
+                        object_pairs_hook=_reject_duplicate_json_keys,
+                    )
+                except (UnicodeDecodeError, json.JSONDecodeError, RecursionError) as exc:
+                    raise ValueError("NR record manifest is not valid bounded UTF-8 JSON") from exc
                 if not isinstance(payload, dict):
                     raise ValueError("NR record manifest must be a JSON object")
                 stored = NRStoredRecord(**payload)
@@ -242,7 +305,7 @@ def iter_nr_record_shards(
                 )
                 if resolved_manifest.name != expected_manifest_name:
                     raise ValueError("NR record manifest filename does not match its sample ID")
-                if stored.schema_version != 1:
+                if stored.schema_version not in {1, 2, 3}:
                     raise ValueError(
                         f"unsupported NR record schema version: {stored.schema_version}"
                     )
@@ -313,11 +376,29 @@ def _publish_immutable(path: Path, data: bytes) -> None:
         try:
             os.link(temp_path, path)
         except FileExistsError:
-            if path.read_bytes() != data:
-                raise
+            existing = _stable_store_record_bytes(
+                path.parent,
+                path.name,
+                maximum_bytes=len(data),
+                label="existing immutable NR store object",
+            )
+            if existing != data:
+                raise FileExistsError("File exists with different immutable NR store bytes")
+        _fsync_directory(path.parent)
     finally:
         if temp_path is not None:
             Path(temp_path).unlink(missing_ok=True)
+
+
+def _fsync_directory(directory: Path) -> None:
+    """Persist a newly linked immutable entry where directory fsync is supported."""
+    if os.name != "posix" or not hasattr(os, "O_DIRECTORY"):
+        return
+    descriptor = os.open(directory, os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
 
 
 def write_nr_record(root: str | Path, record: NRChannelRecord) -> NRStoredRecord:
@@ -325,8 +406,11 @@ def write_nr_record(root: str | Path, record: NRChannelRecord) -> NRStoredRecord
 
     NPZ loading always uses ``allow_pickle=False``. A repeated write of the
     same sample and content is idempotent; changing an existing sample ID is
-    rejected so published manifests cannot silently drift.
+    rejected so published manifests cannot silently drift. New records use
+    schema v3 and require digest-verified semantic definitions for every
+    target; v1/v2 remain read-only historical formats.
     """
+    record.require_versioned_target_definitions()
     base = Path(root)
     arrays: dict[str, np.ndarray] = {
         "received_grid": _as_numpy(record.observation.received_grid, field="received_grid"),
@@ -341,6 +425,7 @@ def write_nr_record(root: str | Path, record: NRChannelRecord) -> NRStoredRecord
     }
     target_keys: dict[str, str] = {}
     mask_keys: dict[str, str] = {}
+    reason_keys: dict[str, str] = {}
     for index, name in enumerate(sorted(record.targets)):
         key = f"target_{index:04d}"
         target_keys[name] = key
@@ -349,15 +434,25 @@ def write_nr_record(root: str | Path, record: NRChannelRecord) -> NRStoredRecord
         key = f"target_mask_{index:04d}"
         mask_keys[name] = key
         arrays[key] = _as_numpy(record.target_masks[name], field=f"target mask {name}")
+    validity_codes = {reason: index for index, reason in enumerate(TargetValidity)}
+    for index, name in enumerate(sorted(record.target_reason_codes)):
+        key = f"target_reason_code_{index:04d}"
+        reason_keys[name] = key
+        arrays[key] = np.asarray(
+            [validity_codes[reason] for reason in record.target_reason_codes[name]],
+            dtype=np.uint8,
+        )
 
     metadata = {
-        "schema_version": 1,
+        "schema_version": 3,
         "sample_id": record.observation.sample_id,
         "receiver_config": asdict(record.observation.receiver_config),
         "fft_bin_indices": list(record.observation.fft_bin_indices),
         "estimate_metadata": dict(record.observation.channel_estimate.metadata),
         "targets": target_keys,
         "target_masks": mask_keys,
+        "target_reason_codes": reason_keys,
+        "target_reason_codebook": [reason.value for reason in TargetValidity],
         "provenance": dict(record.provenance),
         "target_definitions": {
             name: asdict(definition) for name, definition in record.target_definitions.items()
@@ -380,17 +475,35 @@ def write_nr_record(root: str | Path, record: NRChannelRecord) -> NRStoredRecord
 
 
 def read_nr_record(root: str | Path, manifest: NRStoredRecord | str | Path) -> NRChannelRecord:
-    """Read and verify one stored record without enabling pickle deserialization."""
+    """Read a verified v1/v2 historical or v3 canonical record without pickle."""
     base = Path(root)
     if isinstance(manifest, NRStoredRecord):
         stored = manifest
     else:
         manifest_path = Path(manifest)
-        if not manifest_path.is_absolute():
-            manifest_path = base / manifest_path
-        raw_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        resolved_base = base.resolve()
+        try:
+            if not manifest_path.is_absolute():
+                manifest_path = resolved_base / manifest_path
+            relative_manifest = manifest_path.relative_to(resolved_base)
+        except ValueError as error:
+            raise ValueError("NR record manifest must remain inside its store") from error
+        manifest_bytes = _stable_store_record_bytes(
+            resolved_base,
+            relative_manifest.as_posix(),
+            maximum_bytes=_MAX_NR_RECORD_MANIFEST_BYTES,
+            label="NR record manifest",
+        )
+        try:
+            raw_manifest = json.loads(
+                manifest_bytes.decode("utf-8"), object_pairs_hook=_reject_duplicate_json_keys
+            )
+        except (UnicodeDecodeError, json.JSONDecodeError, RecursionError, ValueError) as error:
+            raise ValueError("NR record manifest is not valid bounded UTF-8 JSON") from error
+        if not isinstance(raw_manifest, dict):
+            raise ValueError("NR record manifest must be a JSON object")
         stored = NRStoredRecord(**raw_manifest)
-    if stored.schema_version != 1:
+    if stored.schema_version not in {1, 2, 3}:
         raise ValueError(f"unsupported NR record schema version: {stored.schema_version}")
     if Path(stored.relative_path).is_absolute() or ".." in Path(stored.relative_path).parts:
         raise ValueError("manifest record path must remain inside the store")
@@ -402,6 +515,8 @@ def read_nr_record(root: str | Path, manifest: NRStoredRecord | str | Path) -> N
         raise ValueError("NR record content hash does not match its manifest")
     with np.load(io.BytesIO(payload), allow_pickle=False) as archive:
         metadata = json.loads(archive["metadata_json"].tobytes().decode("utf-8"))
+        if metadata.get("schema_version") != stored.schema_version:
+            raise ValueError("NR record payload schema version does not match its manifest")
         if metadata["sample_id"] != stored.sample_id:
             raise ValueError("NR record sample ID does not match its manifest")
         estimate = NRChannelEstimate(
@@ -426,17 +541,54 @@ def read_nr_record(root: str | Path, manifest: NRStoredRecord | str | Path) -> N
         masks: Mapping[str, np.ndarray] = {
             name: archive[key] for name, key in metadata["target_masks"].items()
         }
+        if stored.schema_version in {2, 3}:
+            raw_reasons = metadata.get("target_reason_codes")
+            if not isinstance(raw_reasons, dict) or set(raw_reasons) != set(targets):
+                raise ValueError("NR v2/v3 record must store reason codes for every target")
+            if metadata.get("target_reason_codebook") != [
+                reason.value for reason in TargetValidity
+            ]:
+                raise ValueError("NR v2 target reason-code dictionary is unsupported")
+            reason_codes = {}
+            reason_code_values = tuple(TargetValidity)
+            for name, key in raw_reasons.items():
+                values = np.asarray(archive[key])
+                if values.dtype != np.dtype(np.uint8) or np.any(values >= len(reason_code_values)):
+                    raise ValueError(f"invalid stored target reason codes for {name!r}")
+                reason_codes[name] = tuple(reason_code_values[int(value)] for value in values)
+        else:
+            # Historical v1 masks had no reason-code field. Preserve their
+            # byte-level provenance while explicitly marking unavailable
+            # reasons as unrecorded and canonicalizing masked storage to zero.
+            migrated_targets: dict[str, np.ndarray] = {}
+            reason_codes = {}
+            for name, target in targets.items():
+                target_array = np.array(target, copy=True)
+                mask = np.broadcast_to(
+                    np.asarray(masks.get(name, True), dtype=bool), target_array.shape
+                )
+                target_array[~mask] = 0
+                migrated_targets[name] = target_array
+                reason_codes[name] = tuple(
+                    TargetValidity.VALID if selected else TargetValidity.LEGACY_REASON_UNRECORDED
+                    for selected in mask.reshape(-1)
+                )
+            targets = migrated_targets
         definitions = {
             name: TargetDefinition(**value)
             for name, value in metadata.get("target_definitions", {}).items()
         }
-        return NRChannelRecord(
+        record = NRChannelRecord(
             observation=observation,
             targets=targets,
             target_masks=masks,
             provenance=metadata["provenance"],
             target_definitions=definitions,
+            target_reason_codes=reason_codes,
         )
+        if stored.schema_version == 3:
+            record.require_versioned_target_definitions()
+        return record
 
 
 def write_nr_trajectory(root: str | Path, trajectory: NRTrajectory) -> NRStoredTrajectory:
@@ -450,9 +602,13 @@ def write_nr_trajectory(root: str | Path, trajectory: NRTrajectory) -> NRStoredT
         "records": [asdict(manifest) for manifest in record_manifests],
     }
     payload = _json_bytes(trajectory_payload)
+    if len(payload) > _MAX_NR_TRAJECTORY_CONTENT_BYTES:
+        raise ValueError(
+            "NR trajectory content exceeds the "
+            f"{_MAX_NR_TRAJECTORY_CONTENT_BYTES}-byte limit"
+        )
     digest = hashlib.sha256(payload).hexdigest()
     relative_path = f"trajectories/{digest[:2]}/{digest}.json"
-    _publish_immutable(base / relative_path, payload)
     stored = NRStoredTrajectory(
         trajectory_id=trajectory.trajectory_id,
         content_sha256=digest,
@@ -461,6 +617,12 @@ def write_nr_trajectory(root: str | Path, trajectory: NRTrajectory) -> NRStoredT
     )
     trajectory_key = hashlib.sha256(stored.trajectory_id.encode()).hexdigest()
     manifest_data = _json_bytes(asdict(stored)) + b"\n"
+    if len(manifest_data) > _MAX_NR_TRAJECTORY_MANIFEST_BYTES:
+        raise ValueError(
+            "NR trajectory manifest exceeds the "
+            f"{_MAX_NR_TRAJECTORY_MANIFEST_BYTES}-byte limit"
+        )
+    _publish_immutable(base / relative_path, payload)
     _publish_immutable(
         base / "manifests" / "trajectories" / f"{trajectory_key}.json", manifest_data
     )
@@ -472,25 +634,46 @@ def read_nr_trajectory(
     manifest: NRStoredTrajectory | str | Path,
 ) -> NRTrajectory:
     """Load and validate a stored trajectory and every referenced NR record."""
-    base = Path(root)
+    base = Path(root).resolve()
     if isinstance(manifest, NRStoredTrajectory):
         stored = manifest
     else:
         manifest_path = Path(manifest)
         if not manifest_path.is_absolute():
             manifest_path = base / manifest_path
-        raw_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        try:
+            manifest_relative = manifest_path.absolute().relative_to(base).as_posix()
+        except ValueError as error:
+            raise ValueError("NR trajectory manifest must remain inside its store") from error
+        manifest_bytes = _stable_store_record_bytes(
+            base,
+            manifest_relative,
+            maximum_bytes=_MAX_NR_TRAJECTORY_MANIFEST_BYTES,
+            label="NR trajectory manifest",
+        )
+        raw_manifest = json.loads(
+            manifest_bytes.decode("utf-8"), object_pairs_hook=_reject_duplicate_json_keys
+        )
         raw_manifest["sample_ids"] = tuple(raw_manifest["sample_ids"])
         stored = NRStoredTrajectory(**raw_manifest)
     if stored.schema_version != 1:
         raise ValueError(f"unsupported NR trajectory schema version: {stored.schema_version}")
-    relative_path = Path(stored.relative_path)
-    if relative_path.is_absolute() or ".." in relative_path.parts:
+    relative_path = PurePosixPath(stored.relative_path)
+    if (
+        relative_path.is_absolute()
+        or relative_path.as_posix() != stored.relative_path
+        or any(part in {"", ".", ".."} for part in relative_path.parts)
+    ):
         raise ValueError("trajectory path must remain inside the store")
-    payload = (base / relative_path).read_bytes()
+    payload = _stable_store_record_bytes(
+        base,
+        stored.relative_path,
+        maximum_bytes=_MAX_NR_TRAJECTORY_CONTENT_BYTES,
+        label="NR trajectory content",
+    )
     if hashlib.sha256(payload).hexdigest() != stored.content_sha256:
         raise ValueError("NR trajectory content hash does not match its manifest")
-    values = json.loads(payload.decode("utf-8"))
+    values = json.loads(payload.decode("utf-8"), object_pairs_hook=_reject_duplicate_json_keys)
     if values.get("schema_version") != 1:
         raise ValueError("unsupported NR trajectory payload schema")
     if values.get("trajectory_id") != stored.trajectory_id:

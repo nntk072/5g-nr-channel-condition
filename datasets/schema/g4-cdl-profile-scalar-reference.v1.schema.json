@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:loslab:g4-cdl-profile-scalar-reference:v1",
+  "title": "G4 CDL Profile Scalar References",
+  "description": "Compact scalar summaries independently transcribed from 3GPP TR 38.901 tables; not full table data or conformance qualification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "standard", "version", "source_id", "source_sha256", "source_url", "status", "derivation", "profiles", "interpretation"],
+  "properties": {
+    "schema": { "const": "loslab.g4_cdl_profile_scalar_reference.v1" },
+    "standard": { "const": "3GPP TR 38.901" },
+    "version": { "const": "19.2.0" },
+    "source_id": { "const": "tr-138901-v19.2.0" },
+    "source_sha256": { "const": "b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4" },
+    "source_url": { "const": "https://www.etsi.org/deliver/etsi_tr/138900_138999/138901/19.02.00_60/tr_138901v190200p.pdf" },
+    "status": { "const": "SCALAR_REFERENCE_ONLY_NOT_CONFORMANCE_QUALIFICATION" },
+    "derivation": { "type": "object", "additionalProperties": false, "required": ["profile_table", "rms_delay_spread", "max_normalized_delay", "los_k_factor", "rounding_tolerances"], "properties": {
+      "profile_table": { "const": "Tables 7.7.1-1 through 7.7.1-5" },
+      "rms_delay_spread": { "const": "sqrt(sum_i(p_i*(tau_i-mean_tau)^2)); powers converted from dB and normalized; LOS specular and first diffuse entries both have zero delay" },
+      "max_normalized_delay": { "const": "maximum tabulated normalized excess delay" },
+      "los_k_factor": { "const": "10*log10(specular linear power / sum of all diffuse-cluster linear powers), from clause 7.7.6; LOS profiles D/E only" },
+      "rounding_tolerances": { "type": "object", "additionalProperties": false, "required": ["rms_normalized_delay_abs", "max_normalized_delay_abs", "angle_spread_deg_abs", "xpr_db_abs", "los_k_factor_db_abs"], "properties": {
+        "rms_normalized_delay_abs": { "const": 0.01 }, "max_normalized_delay_abs": { "const": 0.00005 }, "angle_spread_deg_abs": { "const": 0.05 }, "xpr_db_abs": { "const": 0.05 }, "los_k_factor_db_abs": { "const": 0.05 }
+      }}
+    }},
+    "profiles": { "type": "array", "minItems": 5, "maxItems": 5, "items": { "type": "object", "additionalProperties": false, "required": ["profile_model", "los", "source_component_count", "output_delay_cluster_count", "max_normalized_delay", "rms_normalized_delay", "angle_spreads_deg", "xpr_db", "los_k_factor_db"], "properties": {
+      "profile_model": { "enum": ["A", "B", "C", "D", "E"] }, "los": { "type": "boolean" }, "source_component_count": { "type": "integer", "minimum": 1 }, "output_delay_cluster_count": { "type": "integer", "minimum": 1 }, "max_normalized_delay": { "type": "number", "exclusiveMinimum": 0 }, "rms_normalized_delay": { "type": "number", "exclusiveMinimum": 0 },
+      "angle_spreads_deg": { "type": "object", "additionalProperties": false, "required": ["asd", "asa", "zsd", "zsa"], "properties": { "asd": { "type": "number", "exclusiveMinimum": 0 }, "asa": { "type": "number", "exclusiveMinimum": 0 }, "zsd": { "type": "number", "exclusiveMinimum": 0 }, "zsa": { "type": "number", "exclusiveMinimum": 0 } } },
+      "xpr_db": { "type": "number" }, "los_k_factor_db": { "type": ["number", "null"] }
+    }}},
+    "interpretation": { "type": "string", "minLength": 1 }
+  }
+}

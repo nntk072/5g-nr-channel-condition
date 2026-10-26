@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.invalid/schema/g3-run-manifest-signer-policy.v1.schema.json",
+  "title": "G3 Run Manifest Signer Role Policy v1",
+  "description": "Externally governed mapping from OpenSSH signer principals to organizational roles and permitted verification purposes. Policy validity does not establish custody or scientific independence.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "policy_id", "signers"],
+  "properties": {
+    "schema": {"const": "loslab.g3_run_manifest_signer_policy.v1"},
+    "policy_id": {"type": "string", "minLength": 1},
+    "signers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/signer"}
+    }
+  },
+  "$defs": {
+    "signer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["principal", "organization", "roles", "allowed_purposes"],
+      "properties": {
+        "principal": {"type": "string", "minLength": 1},
+        "organization": {"type": "string", "minLength": 1},
+        "roles": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "allowed_purposes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"enum": ["g3_joint_run_manifest_verification"]}
+        }
+      }
+    }
+  }
+}

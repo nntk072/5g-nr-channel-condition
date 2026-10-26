@@ -1,0 +1,933 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:loslab:schema:g3-material-calibration-predictions.v2",
+  "title": "LoSLab G3 material calibration predictions v2",
+  "description": "Structural schema for the frozen evaluator input. Cross-record consistency, canonical hash verification, semantic numeric checks, and scoring criteria are enforced by evaluation/g3_material_calibration.py, not this schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "target_frequency_hz",
+    "model_id",
+    "model_sha256",
+    "measurement_calibration_id",
+    "material_mapping_id",
+    "surface_description",
+    "uncertainty_description",
+    "measurement_unit_independence_description",
+    "cluster_bootstrap_seed",
+    "cluster_bootstrap_replicates",
+    "expected_strata",
+    "full_split_manifest",
+    "full_split_manifest_sha256",
+    "split_manifest_external_verification_id",
+    "incidence_groups",
+    "test_predictions"
+  ],
+  "properties": {
+    "schema": {
+      "const": "loslab.g3_material_calibration_predictions.v2"
+    },
+    "target_frequency_hz": {
+      "type": "number"
+    },
+    "model_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "model_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "measurement_calibration_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "material_mapping_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "surface_description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "uncertainty_description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "measurement_unit_independence_description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "cluster_bootstrap_seed": {
+      "type": "integer"
+    },
+    "cluster_bootstrap_replicates": {
+      "type": "integer"
+    },
+    "expected_strata": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/stratum"
+      }
+    },
+    "full_split_manifest": {
+      "$ref": "#/$defs/fullSplitManifest"
+    },
+    "full_split_manifest_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "split_manifest_external_verification_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "incidence_groups": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/incidenceGroup"
+      }
+    },
+    "test_predictions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/testPrediction"
+      }
+    },
+    "joint_acceptance_family": {
+      "$ref": "#/$defs/jointAcceptanceFamily"
+    }
+  },
+  "$defs": {
+    "nonemptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "numberArray": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "number"
+      }
+    },
+    "angularMatrix": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/numberArray"
+      }
+    },
+    "sampleIds": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/nonemptyString"
+      }
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{64}$"
+    },
+    "stratum": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "material_id",
+        "polarization",
+        "incidence_stratum_id"
+      ],
+      "properties": {
+        "material_id": {
+          "$ref": "#/$defs/nonemptyString"
+        },
+        "polarization": {
+          "$ref": "#/$defs/nonemptyString"
+        },
+        "incidence_stratum_id": {
+          "$ref": "#/$defs/nonemptyString"
+        }
+      }
+    },
+    "jointClaim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evaluator",
+        "stratum",
+        "claim"
+      ],
+      "properties": {
+        "evaluator": {
+          "enum": [
+            "material_calibration",
+            "complex_csi"
+          ]
+        },
+        "stratum": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 3,
+          "items": {
+            "$ref": "#/$defs/nonemptyString"
+          }
+        },
+        "claim": {
+          "$ref": "#/$defs/nonemptyString"
+        }
+      }
+    },
+    "jointAcceptanceFamilyV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "family_id",
+        "familywise_alpha",
+        "familywise_confidence_level",
+        "material_expected_strata",
+        "complex_csi_expected_strata",
+        "claim_roster",
+        "claim_count",
+        "per_claim_alpha",
+        "per_claim_confidence_level",
+        "family_sha256"
+      ],
+      "properties": {
+        "schema": {
+          "const": "loslab.g3_joint_acceptance_family.v1"
+        },
+        "family_id": {
+          "$ref": "#/$defs/nonemptyString"
+        },
+        "familywise_alpha": {
+          "const": 0.05
+        },
+        "familywise_confidence_level": {
+          "const": 0.95
+        },
+        "material_expected_strata": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "$ref": "#/$defs/nonemptyString"
+              },
+              {
+                "enum": [
+                  "V",
+                  "H"
+                ]
+              },
+              {
+                "$ref": "#/$defs/nonemptyString"
+              }
+            ],
+            "items": false,
+            "minItems": 3,
+            "maxItems": 3
+          }
+        },
+        "complex_csi_expected_strata": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "$ref": "#/$defs/nonemptyString"
+              },
+              {
+                "enum": [
+                  "LOS",
+                  "NLOS"
+                ]
+              }
+            ],
+            "items": false,
+            "minItems": 2,
+            "maxItems": 2
+          }
+        },
+        "claim_roster": {
+          "type": "array",
+          "minItems": 7,
+          "items": {
+            "$ref": "#/$defs/jointClaim"
+          }
+        },
+        "claim_count": {
+          "type": "integer",
+          "minimum": 7
+        },
+        "per_claim_alpha": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 0.05
+        },
+        "per_claim_confidence_level": {
+          "type": "number",
+          "exclusiveMinimum": 0.95,
+          "maximum": 1
+        },
+        "family_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "jointAcceptanceFamilyV2": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "family_id",
+        "familywise_alpha",
+        "familywise_confidence_level",
+        "material_expected_strata",
+        "complex_csi_expected_strata",
+        "claim_roster",
+        "claim_count",
+        "per_claim_alpha",
+        "per_claim_confidence_level",
+        "family_sha256",
+        "propagation_expected_strata"
+      ],
+      "properties": {
+        "schema": {
+          "const": "loslab.g3_joint_acceptance_family.v2"
+        },
+        "family_id": {
+          "$ref": "#/$defs/nonemptyString"
+        },
+        "familywise_alpha": {
+          "const": 0.05
+        },
+        "familywise_confidence_level": {
+          "const": 0.95
+        },
+        "material_expected_strata": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "$ref": "#/$defs/nonemptyString"
+              },
+              {
+                "enum": [
+                  "V",
+                  "H"
+                ]
+              },
+              {
+                "$ref": "#/$defs/nonemptyString"
+              }
+            ],
+            "items": false,
+            "minItems": 3,
+            "maxItems": 3
+          }
+        },
+        "complex_csi_expected_strata": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "$ref": "#/$defs/nonemptyString"
+              },
+              {
+                "enum": [
+                  "LOS",
+                  "NLOS"
+                ]
+              }
+            ],
+            "items": false,
+            "minItems": 2,
+            "maxItems": 2
+          }
+        },
+        "claim_roster": {
+          "type": "array",
+          "minItems": 15,
+          "items": {
+            "$ref": "#/$defs/jointClaimV2"
+          }
+        },
+        "claim_count": {
+          "type": "integer",
+          "minimum": 15
+        },
+        "per_claim_alpha": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 0.05
+        },
+        "per_claim_confidence_level": {
+          "type": "number",
+          "exclusiveMinimum": 0.95,
+          "maximum": 1
+        },
+        "family_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "propagation_expected_strata": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "$ref": "#/$defs/nonemptyString"
+              },
+              {
+                "enum": [
+                  "LOS",
+                  "NLOS"
+                ]
+              },
+              {
+                "enum": [
+                  "total",
+                  "specular",
+                  "diffuse"
+                ]
+              }
+            ],
+            "items": false,
+            "minItems": 3,
+            "maxItems": 3
+          }
+        }
+      }
+    },
+    "jointClaimV2": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evaluator",
+        "stratum",
+        "claim"
+      ],
+      "properties": {
+        "evaluator": {
+          "enum": [
+            "material_calibration",
+            "complex_csi",
+            "propagation_metrics"
+          ]
+        },
+        "stratum": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 3,
+          "items": {
+            "$ref": "#/$defs/nonemptyString"
+          }
+        },
+        "claim": {
+          "$ref": "#/$defs/nonemptyString"
+        }
+      }
+    },
+    "jointAcceptanceFamilyV3": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "family_id",
+        "familywise_alpha",
+        "familywise_confidence_level",
+        "material_expected_strata",
+        "complex_csi_expected_strata",
+        "claim_roster",
+        "claim_count",
+        "per_claim_alpha",
+        "per_claim_confidence_level",
+        "family_sha256",
+        "propagation_expected_strata",
+        "receiver_impact_expected_strata"
+      ],
+      "properties": {
+        "schema": {
+          "enum": [
+            "loslab.g3_joint_acceptance_family.v3",
+            "loslab.g3_joint_acceptance_family.v4"
+          ]
+        },
+        "family_id": {
+          "$ref": "#/$defs/nonemptyString"
+        },
+        "familywise_alpha": {
+          "const": 0.05
+        },
+        "familywise_confidence_level": {
+          "const": 0.95
+        },
+        "material_expected_strata": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "$ref": "#/$defs/nonemptyString"
+              },
+              {
+                "enum": [
+                  "V",
+                  "H"
+                ]
+              },
+              {
+                "$ref": "#/$defs/nonemptyString"
+              }
+            ],
+            "items": false,
+            "minItems": 3,
+            "maxItems": 3
+          }
+        },
+        "complex_csi_expected_strata": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "$ref": "#/$defs/nonemptyString"
+              },
+              {
+                "enum": [
+                  "LOS",
+                  "NLOS"
+                ]
+              }
+            ],
+            "items": false,
+            "minItems": 2,
+            "maxItems": 2
+          }
+        },
+        "claim_roster": {
+          "type": "array",
+          "minItems": 19,
+          "items": {
+            "$ref": "#/$defs/jointClaimV3"
+          }
+        },
+        "claim_count": {
+          "type": "integer",
+          "minimum": 19
+        },
+        "per_claim_alpha": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 0.05
+        },
+        "per_claim_confidence_level": {
+          "type": "number",
+          "exclusiveMinimum": 0.95,
+          "maximum": 1
+        },
+        "family_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "propagation_expected_strata": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "$ref": "#/$defs/nonemptyString"
+              },
+              {
+                "enum": [
+                  "LOS",
+                  "NLOS"
+                ]
+              },
+              {
+                "enum": [
+                  "total",
+                  "specular",
+                  "diffuse"
+                ]
+              }
+            ],
+            "items": false,
+            "minItems": 3,
+            "maxItems": 3
+          }
+        },
+        "receiver_impact_expected_strata": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "$ref": "#/$defs/nonemptyString"
+              },
+              {
+                "enum": [
+                  "LOS",
+                  "NLOS"
+                ]
+              }
+            ],
+            "items": false,
+            "minItems": 2,
+            "maxItems": 2
+          }
+        },
+        "path_equivalence_expected_scenarios": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              { "$ref": "#/$defs/nonemptyString" },
+              { "enum": ["LOS", "NLOS"] },
+              { "$ref": "#/$defs/nonemptyString" }
+            ],
+            "items": false,
+            "minItems": 3,
+            "maxItems": 3
+          }
+        },
+        "path_equivalence_bidirectional_coverage_min": {
+          "const": 0.95
+        },
+        "path_equivalence_aggregation": {
+          "const": "every preregistered independent scene episode must pass; no pooling"
+        },
+        "path_equivalence_admission_possible": {
+          "const": false
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "schema": { "const": "loslab.g3_joint_acceptance_family.v4" }
+            }
+          },
+          "then": {
+            "required": [
+              "path_equivalence_expected_scenarios",
+              "path_equivalence_bidirectional_coverage_min",
+              "path_equivalence_aggregation",
+              "path_equivalence_admission_possible"
+            ]
+          }
+        }
+      ]
+    },
+    "jointClaimV3": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evaluator",
+        "stratum",
+        "claim"
+      ],
+      "properties": {
+        "evaluator": {
+          "enum": [
+            "material_calibration",
+            "complex_csi",
+            "propagation_metrics",
+            "receiver_impact"
+          ]
+        },
+        "stratum": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 3,
+          "items": {
+            "$ref": "#/$defs/nonemptyString"
+          }
+        },
+        "claim": {
+          "$ref": "#/$defs/nonemptyString"
+        }
+      }
+    },
+    "jointAcceptanceFamily": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/jointAcceptanceFamilyV1"
+        },
+        {
+          "$ref": "#/$defs/jointAcceptanceFamilyV2"
+        },
+        {
+          "$ref": "#/$defs/jointAcceptanceFamilyV3"
+        }
+      ]
+    },
+    "splitGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "incidence_group_id",
+        "split",
+        "sample_ids"
+      ],
+      "properties": {
+        "incidence_group_id": {
+          "$ref": "#/$defs/nonemptyString"
+        },
+        "split": {
+          "enum": [
+            "train",
+            "validation",
+            "test"
+          ]
+        },
+        "sample_ids": {
+          "$ref": "#/$defs/sampleIds"
+        }
+      }
+    },
+    "testSampleAssignment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sample_id",
+        "incidence_group_id",
+        "incidence_stratum_id",
+        "incidence_angle_deg",
+        "material_id",
+        "polarization",
+        "measurement_unit_id",
+        "measurement_unit_provenance_id"
+      ],
+      "properties": {
+        "sample_id": {
+          "$ref": "#/$defs/nonemptyString"
+        },
+        "incidence_group_id": {
+          "$ref": "#/$defs/nonemptyString"
+        },
+        "incidence_stratum_id": {
+          "$ref": "#/$defs/nonemptyString"
+        },
+        "incidence_angle_deg": {
+          "type": "number"
+        },
+        "material_id": {
+          "$ref": "#/$defs/nonemptyString"
+        },
+        "polarization": {
+          "$ref": "#/$defs/nonemptyString"
+        },
+        "measurement_unit_id": {
+          "$ref": "#/$defs/nonemptyString"
+        },
+        "measurement_unit_provenance_id": {
+          "$ref": "#/$defs/nonemptyString"
+        }
+      }
+    },
+    "fullSplitManifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "expected_strata",
+        "groups",
+        "test_sample_assignments"
+      ],
+      "properties": {
+        "schema": {
+          "const": "loslab.g3_material_calibration_split_manifest.v1"
+        },
+        "expected_strata": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/stratum"
+          }
+        },
+        "groups": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/splitGroup"
+          }
+        },
+        "test_sample_assignments": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/testSampleAssignment"
+          }
+        }
+      }
+    },
+    "incidenceGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "incidence_group_id",
+        "measurement_unit_id",
+        "measurement_unit_provenance_id",
+        "incidence_stratum_id",
+        "incidence_angle_deg",
+        "split",
+        "sample_ids"
+      ],
+      "properties": {
+        "incidence_group_id": {
+          "$ref": "#/$defs/nonemptyString"
+        },
+        "measurement_unit_id": {
+          "$ref": "#/$defs/nonemptyString"
+        },
+        "measurement_unit_provenance_id": {
+          "$ref": "#/$defs/nonemptyString"
+        },
+        "incidence_stratum_id": {
+          "$ref": "#/$defs/nonemptyString"
+        },
+        "incidence_angle_deg": {
+          "type": "number"
+        },
+        "split": {
+          "const": "test"
+        },
+        "sample_ids": {
+          "$ref": "#/$defs/sampleIds"
+        }
+      }
+    },
+    "testPrediction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sample_id",
+        "incidence_group_id",
+        "incidence_stratum_id",
+        "incidence_angle_deg",
+        "split",
+        "material_id",
+        "polarization",
+        "measured_integrated_power_db",
+        "predicted_integrated_power_db",
+        "prediction_interval_95_db",
+        "angular_power_semantics",
+        "angular_array_order",
+        "angular_coordinate_frame_id",
+        "theta_edges_deg",
+        "phi_edges_deg",
+        "measured_angular_power_per_bin_w",
+        "predicted_angular_power_per_bin_w",
+        "solid_angle_sr",
+        "missing_angular_bin_indices"
+      ],
+      "properties": {
+        "sample_id": {
+          "$ref": "#/$defs/nonemptyString"
+        },
+        "incidence_group_id": {
+          "$ref": "#/$defs/nonemptyString"
+        },
+        "incidence_stratum_id": {
+          "$ref": "#/$defs/nonemptyString"
+        },
+        "incidence_angle_deg": {
+          "type": "number"
+        },
+        "split": {
+          "const": "test"
+        },
+        "material_id": {
+          "$ref": "#/$defs/nonemptyString"
+        },
+        "polarization": {
+          "$ref": "#/$defs/nonemptyString"
+        },
+        "measured_integrated_power_db": {
+          "type": "number"
+        },
+        "predicted_integrated_power_db": {
+          "type": "number"
+        },
+        "prediction_interval_95_db": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "number"
+          }
+        },
+        "angular_power_semantics": {
+          "const": "integrated_power_per_bin"
+        },
+        "angular_array_order": {
+          "const": [
+            "theta_bin",
+            "phi_bin; azimuth varies fastest"
+          ]
+        },
+        "angular_coordinate_frame_id": {
+          "$ref": "#/$defs/nonemptyString"
+        },
+        "theta_edges_deg": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 180
+          }
+        },
+        "phi_edges_deg": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180
+          }
+        },
+        "measured_angular_power_per_bin_w": {
+          "$ref": "#/$defs/angularMatrix"
+        },
+        "predicted_angular_power_per_bin_w": {
+          "$ref": "#/$defs/angularMatrix"
+        },
+        "solid_angle_sr": {
+          "$ref": "#/$defs/angularMatrix"
+        },
+        "missing_angular_bin_indices": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "integer",
+                "minimum": 0
+              }
+            ],
+            "items": false,
+            "minItems": 2,
+            "maxItems": 2
+          }
+        }
+      }
+    }
+  }
+}

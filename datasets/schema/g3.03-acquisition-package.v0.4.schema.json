@@ -1,0 +1,1633 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:loslab:g3.03-acquisition-package:v0.4",
+  "title": "G3.03 Lab Acquisition Package Proposal v0.4",
+  "description": "Proposal-only structural contract. Every illustrative fixture value is synthetic/example data. Version 0.4 defines h_floor as the RMS magnitude of same-grid noise-only complex CFR estimates in hash-bound, sample-bound NPY files; this numerical derivation does not authenticate the acquisition method or establish scientific qualification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "package_id",
+    "study_id",
+    "created_utc",
+    "files",
+    "specimens",
+    "acquisition_units",
+    "calibrations",
+    "samples",
+    "fits",
+    "angular_measurements",
+    "csi_measurements",
+    "rights",
+    "attestations",
+    "proposal_status",
+    "campaigns",
+    "instruments",
+    "protocols",
+    "evaluator_binding",
+    "row_crosswalk",
+    "uncertainty_records",
+    "per_file_rights",
+    "external_attestations"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "g3.03-acquisition-package.v0.4"
+    },
+    "package_id": {
+      "$ref": "#/$defs/id"
+    },
+    "study_id": {
+      "$ref": "#/$defs/id"
+    },
+    "created_utc": {
+      "$ref": "#/$defs/utc"
+    },
+    "package_description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "files": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/file"
+      }
+    },
+    "specimens": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/specimen"
+      }
+    },
+    "acquisition_units": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/unit"
+      }
+    },
+    "calibrations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/calibration"
+      }
+    },
+    "samples": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/sample"
+      }
+    },
+    "fits": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/fit"
+      }
+    },
+    "angular_measurements": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/angular"
+      }
+    },
+    "csi_measurements": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/csi"
+      }
+    },
+    "rights": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/rights"
+      }
+    },
+    "attestations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "external_signature",
+        "physical_independence",
+        "calibration_truth",
+        "rights_sufficiency"
+      ],
+      "properties": {
+        "external_signature": {
+          "$ref": "#/$defs/attestation"
+        },
+        "physical_independence": {
+          "$ref": "#/$defs/attestation"
+        },
+        "calibration_truth": {
+          "$ref": "#/$defs/attestation"
+        },
+        "rights_sufficiency": {
+          "$ref": "#/$defs/attestation"
+        }
+      }
+    },
+    "proposal_status": {
+      "const": "proposal_only"
+    },
+    "campaigns": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/campaign"
+      }
+    },
+    "instruments": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/instrument"
+      }
+    },
+    "protocols": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/protocol"
+      }
+    },
+    "evaluator_binding": {
+      "$ref": "#/$defs/evaluatorBinding"
+    },
+    "row_crosswalk": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/crosswalk"
+      }
+    },
+    "uncertainty_records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/uncertainty"
+      }
+    },
+    "per_file_rights": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/fileRights"
+      }
+    },
+    "external_attestations": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "$ref": "#/$defs/plannedAttestation"
+      },
+      "allOf": [
+        {
+          "contains": {
+            "properties": {
+              "attestation_type": {
+                "const": "split_preregistration"
+              }
+            },
+            "required": [
+              "attestation_type"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "attestation_type": {
+                "const": "physical_independence"
+              }
+            },
+            "required": [
+              "attestation_type"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "attestation_type": {
+                "const": "calibration_traceability"
+              }
+            },
+            "required": [
+              "attestation_type"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "attestation_type": {
+                "const": "rights_review"
+              }
+            },
+            "required": [
+              "attestation_type"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9._-]{2,63}$"
+    },
+    "fileId": {
+      "type": "string",
+      "pattern": "^file\\.[a-z0-9._-]{1,58}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "utc": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "fileRefs": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/fileId"
+      }
+    },
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "file_id",
+        "path",
+        "size_bytes",
+        "media_type",
+        "sha256",
+        "role",
+        "dependency_file_ids",
+        "sample_ids",
+        "specimen_ids",
+        "calibration_ids"
+      ],
+      "properties": {
+        "file_id": {
+          "$ref": "#/$defs/fileId"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+$"
+        },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "media_type": {
+          "type": "string",
+          "minLength": 3
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "role": {
+          "enum": [
+            "raw",
+            "calibrated",
+            "calibration",
+            "noise_measurement",
+            "reference",
+            "background",
+            "repeat",
+            "phase_reference",
+            "specimen_provenance",
+            "unit_provenance",
+            "processing",
+            "fit",
+            "covariance",
+            "rights",
+            "attestation",
+            "other",
+            "scorer_input",
+            "evaluator_output",
+            "material_mapping",
+            "split_manifest",
+            "campaign",
+            "instrument",
+            "protocol",
+            "crosswalk",
+            "uncertainty",
+            "verification"
+          ]
+        },
+        "dependency_file_ids": {
+          "$ref": "#/$defs/fileRefs"
+        },
+        "sample_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "specimen_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "calibration_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        }
+      }
+    },
+    "specimen": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "specimen_id",
+        "material_claim",
+        "composition",
+        "thickness_m",
+        "dimensions_m",
+        "preparation",
+        "condition",
+        "provenance_file_ids"
+      ],
+      "properties": {
+        "specimen_id": {
+          "$ref": "#/$defs/id"
+        },
+        "material_claim": {
+          "type": "string",
+          "minLength": 1
+        },
+        "composition": {
+          "type": "string",
+          "minLength": 1
+        },
+        "thickness_m": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "dimensions_m": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        },
+        "preparation": {
+          "type": "string",
+          "minLength": 1
+        },
+        "condition": {
+          "type": "string",
+          "minLength": 1
+        },
+        "provenance_file_ids": {
+          "$ref": "#/$defs/fileRefs"
+        }
+      }
+    },
+    "unit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit_id",
+        "specimen_id",
+        "unit_kind",
+        "provenance_file_ids",
+        "independence_attestation_id"
+      ],
+      "properties": {
+        "unit_id": {
+          "$ref": "#/$defs/id"
+        },
+        "specimen_id": {
+          "$ref": "#/$defs/id"
+        },
+        "unit_kind": {
+          "enum": [
+            "independent_specimen_acquisition",
+            "repositioned_acquisition",
+            "repeat_scan"
+          ]
+        },
+        "provenance_file_ids": {
+          "$ref": "#/$defs/fileRefs"
+        },
+        "independence_attestation_id": {
+          "$ref": "#/$defs/id"
+        }
+      }
+    },
+    "calibration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "calibration_id",
+        "method",
+        "reference_plane",
+        "valid_from_utc",
+        "valid_to_utc",
+        "standard_file_ids",
+        "run_file_ids",
+        "processing_file_ids",
+        "truth_attestation_id"
+      ],
+      "properties": {
+        "calibration_id": {
+          "$ref": "#/$defs/id"
+        },
+        "method": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reference_plane": {
+          "type": "string",
+          "minLength": 1
+        },
+        "valid_from_utc": {
+          "$ref": "#/$defs/utc"
+        },
+        "valid_to_utc": {
+          "$ref": "#/$defs/utc"
+        },
+        "standard_file_ids": {
+          "$ref": "#/$defs/fileRefs"
+        },
+        "run_file_ids": {
+          "$ref": "#/$defs/fileRefs"
+        },
+        "processing_file_ids": {
+          "$ref": "#/$defs/fileRefs"
+        },
+        "truth_attestation_id": {
+          "$ref": "#/$defs/id"
+        }
+      }
+    },
+    "sample": {
+      "type": "object",
+      "description": "Proposal fixture record only. Any numerical values in this record must be synthetic/example values, never presented as acquired measurements.",
+      "additionalProperties": false,
+      "required": [
+        "record_status",
+        "sample_id",
+        "specimen_id",
+        "unit_id",
+        "calibration_id",
+        "campaign_id",
+        "instrument_id",
+        "acquired_utc",
+        "polarization",
+        "incidence_zenith_deg",
+        "frequency_hz",
+        "measured_integrated_power_w",
+        "file_ids"
+      ],
+      "properties": {
+        "record_status": {
+          "const": "synthetic_example_only"
+        },
+        "sample_id": {
+          "$ref": "#/$defs/id"
+        },
+        "specimen_id": {
+          "$ref": "#/$defs/id"
+        },
+        "unit_id": {
+          "$ref": "#/$defs/id"
+        },
+        "calibration_id": {
+          "$ref": "#/$defs/id"
+        },
+        "campaign_id": {
+          "$ref": "#/$defs/id"
+        },
+        "instrument_id": {
+          "$ref": "#/$defs/id"
+        },
+        "acquired_utc": {
+          "$ref": "#/$defs/utc"
+        },
+        "polarization": {
+          "enum": [
+            "V",
+            "H",
+            "RHCP",
+            "LHCP"
+          ]
+        },
+        "incidence_zenith_deg": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 180
+        },
+        "frequency_hz": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "measured_integrated_power_w": {
+          "type": "number",
+          "minimum": 0
+        },
+        "file_ids": {
+          "$ref": "#/$defs/fileRefs"
+        }
+      }
+    },
+    "fit": {
+      "type": "object",
+      "description": "Proposal fixture record only. Fit parameters and uncertainties are synthetic/example values, not fitted measurement results.",
+      "additionalProperties": false,
+      "required": [
+        "record_status",
+        "fit_id",
+        "specimen_id",
+        "model_id",
+        "model_sha256",
+        "method",
+        "software_file_ids",
+        "parameters"
+      ],
+      "properties": {
+        "record_status": {
+          "const": "synthetic_example_only"
+        },
+        "fit_id": {
+          "$ref": "#/$defs/id"
+        },
+        "specimen_id": {
+          "$ref": "#/$defs/id"
+        },
+        "model_id": {
+          "$ref": "#/$defs/id"
+        },
+        "model_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "method": {
+          "type": "string",
+          "minLength": 1
+        },
+        "software_file_ids": {
+          "$ref": "#/$defs/fileRefs"
+        },
+        "parameters": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "record_status",
+              "name",
+              "estimate",
+              "unit",
+              "standard_uncertainty"
+            ],
+            "properties": {
+              "record_status": {
+                "const": "synthetic_example_only"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "estimate": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string",
+                "minLength": 1
+              },
+              "standard_uncertainty": {
+                "type": "number",
+                "minimum": 0
+              },
+              "covariance_file_id": {
+                "$ref": "#/$defs/fileId"
+              }
+            }
+          }
+        }
+      }
+    },
+    "matrix": {
+      "type": "array",
+      "description": "Nested numeric matrix. Schema checks local values only; equality with angular edge-derived dimensions must be checked by a semantic verifier.",
+      "minItems": 1,
+      "items": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "angular": {
+      "type": "object",
+      "description": "Proposal fixture record only. All bin powers and solid-angle values are synthetic/example values. Matrices cover zenith 0\u2013180 degrees and a full 360-degree azimuth; dimensions, full coverage, and solid-angle values require semantic verification.",
+      "additionalProperties": false,
+      "required": [
+        "record_status",
+        "angular_id",
+        "sample_id",
+        "theta_edges_deg",
+        "phi_edges_deg",
+        "coordinate_frame_id",
+        "array_order",
+        "power_semantics",
+        "power_per_bin_w",
+        "solid_angle_sr",
+        "missing_bin_indices"
+      ],
+      "properties": {
+        "record_status": {
+          "const": "synthetic_example_only"
+        },
+        "angular_id": {
+          "$ref": "#/$defs/id"
+        },
+        "sample_id": {
+          "$ref": "#/$defs/id"
+        },
+        "theta_edges_deg": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "description": "Zenith edges in degrees; strictly increasing order must be checked by a semantic verifier.",
+          "items": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 180
+          }
+        },
+        "phi_edges_deg": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "description": "Azimuth edges in degrees on [-180, 180], including the final 180-degree cell boundary; strictly increasing order and full 360-degree coverage must be checked by a semantic verifier.",
+          "items": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180
+          }
+        },
+        "coordinate_frame_id": {
+          "$ref": "#/$defs/id"
+        },
+        "array_order": {
+          "const": [
+            "theta_bin",
+            "phi_bin; azimuth varies fastest"
+          ]
+        },
+        "power_semantics": {
+          "const": "integrated_power_per_bin"
+        },
+        "power_per_bin_w": {
+          "$ref": "#/$defs/matrix"
+        },
+        "solid_angle_sr": {
+          "$ref": "#/$defs/matrix"
+        },
+        "missing_bin_indices": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "integer",
+                "minimum": 0
+              }
+            ],
+            "minItems": 2,
+            "maxItems": 2
+          }
+        }
+      }
+    },
+    "csi": {
+      "type": "object",
+      "description": "Proposal fixture record only. Complex values and all associated numerical values are synthetic/example values. Flat-value counts and vector lengths must be checked against shape by a semantic verifier; Draft 2020-12 cannot express these cross-field equalities for arbitrary dimensions.",
+      "additionalProperties": false,
+      "required": [
+        "record_status",
+        "csi_id",
+        "sample_id",
+        "axes",
+        "shape",
+        "rx_port_ids",
+        "tx_port_ids",
+        "subcarrier_indices",
+        "subcarrier_frequency_offsets_hz",
+        "ofdm_symbol_indices",
+        "complex_order",
+        "measured_complex",
+        "predicted_complex",
+        "delay_reference",
+        "phase_reference",
+        "phase_convention",
+        "h_floor",
+        "file_ids"
+      ],
+      "properties": {
+        "record_status": {
+          "const": "synthetic_example_only"
+        },
+        "csi_id": {
+          "$ref": "#/$defs/id"
+        },
+        "sample_id": {
+          "$ref": "#/$defs/id"
+        },
+        "axes": {
+          "const": [
+            "rx_port",
+            "tx_port",
+            "subcarrier",
+            "ofdm_symbol"
+          ]
+        },
+        "shape": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "rx_port_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "tx_port_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "subcarrier_indices": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "integer"
+          }
+        },
+        "subcarrier_frequency_offsets_hz": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Vector length must match shape[2] and subcarrier_indices; this cross-field equality requires semantic verification.",
+          "items": {
+            "type": "number"
+          }
+        },
+        "ofdm_symbol_indices": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Vector length must match shape[3]; this cross-field equality requires semantic verification.",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "complex_order": {
+          "const": "C row-major; last axis varies fastest; each value is [real, imaginary]"
+        },
+        "measured_complex": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "minItems": 2,
+            "maxItems": 2
+          }
+        },
+        "predicted_complex": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "minItems": 2,
+            "maxItems": 2
+          }
+        },
+        "delay_reference": {
+          "type": "string",
+          "minLength": 1
+        },
+        "phase_reference": {
+          "type": "string",
+          "minLength": 1
+        },
+        "phase_convention": {
+          "type": "string",
+          "minLength": 1
+        },
+        "h_floor": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "amplitude_linear",
+            "method",
+            "noise_input_file_ids"
+          ],
+          "properties": {
+            "amplitude_linear": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "description": "Must equal sqrt(mean(abs(noise_only_cfr_estimates)**2)) over all referenced complex NPY 1.0 or 2.0 arrays. Every array shape must match the CSI record shape."
+            },
+            "method": {
+              "type": "string",
+              "minLength": 1,
+              "const": "noise_only_cfr_estimate_rms_v1"
+            },
+            "noise_input_file_ids": {
+              "$ref": "#/$defs/fileRefs"
+            }
+          }
+        },
+        "file_ids": {
+          "$ref": "#/$defs/fileRefs"
+        }
+      }
+    },
+    "rights": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rights_id",
+        "rights_holder",
+        "scope",
+        "redistribution",
+        "publication",
+        "restrictions",
+        "evidence_file_ids",
+        "attestation_id"
+      ],
+      "properties": {
+        "rights_id": {
+          "$ref": "#/$defs/id"
+        },
+        "rights_holder": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": [
+              "raw",
+              "calibrated",
+              "derived",
+              "figures",
+              "specimen_images"
+            ]
+          }
+        },
+        "redistribution": {
+          "enum": [
+            "allowed",
+            "restricted",
+            "prohibited",
+            "unknown"
+          ]
+        },
+        "publication": {
+          "enum": [
+            "allowed",
+            "restricted",
+            "prohibited",
+            "unknown"
+          ]
+        },
+        "restrictions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "evidence_file_ids": {
+          "$ref": "#/$defs/fileRefs"
+        },
+        "attestation_id": {
+          "$ref": "#/$defs/id"
+        }
+      }
+    },
+    "attestation": {
+      "type": "object",
+      "description": "Proposal-only planned attestation. Claim text is a synthetic/example template, not an assertion; signatures and signing times must remain null.",
+      "additionalProperties": false,
+      "required": [
+        "attestation_id",
+        "attestation_status",
+        "claim",
+        "signer_id",
+        "signed_utc",
+        "signature_value",
+        "evidence_file_ids"
+      ],
+      "properties": {
+        "attestation_status": {
+          "const": "planned_not_signed"
+        },
+        "attestation_id": {
+          "$ref": "#/$defs/id"
+        },
+        "claim": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Synthetic/example proposed wording only; not a signed or verified claim."
+        },
+        "signer_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Synthetic/example intended signer identifier only; no signer has attested."
+        },
+        "signed_utc": {
+          "const": null
+        },
+        "signature_value": {
+          "const": null
+        },
+        "evidence_file_ids": {
+          "$ref": "#/$defs/fileRefs"
+        }
+      }
+    },
+    "stratum": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "material_id",
+        "polarization",
+        "incidence_stratum_id"
+      ],
+      "properties": {
+        "material_id": {
+          "$ref": "#/$defs/id"
+        },
+        "polarization": {
+          "enum": [
+            "V",
+            "H"
+          ]
+        },
+        "incidence_stratum_id": {
+          "$ref": "#/$defs/id"
+        }
+      }
+    },
+    "campaign": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "campaign_id",
+        "study_id",
+        "campaign_status",
+        "start_utc",
+        "end_utc",
+        "site",
+        "operator_role",
+        "instrument_ids",
+        "protocol_id",
+        "coordinate_frame",
+        "survey_method",
+        "survey_uncertainty_m",
+        "environment",
+        "record_file_ids"
+      ],
+      "properties": {
+        "campaign_id": {
+          "$ref": "#/$defs/id"
+        },
+        "study_id": {
+          "$ref": "#/$defs/id"
+        },
+        "campaign_status": {
+          "enum": [
+            "proposed",
+            "planned"
+          ]
+        },
+        "start_utc": {
+          "$ref": "#/$defs/utc"
+        },
+        "end_utc": {
+          "$ref": "#/$defs/utc"
+        },
+        "site": {
+          "type": "string",
+          "minLength": 1
+        },
+        "operator_role": {
+          "type": "string",
+          "minLength": 1
+        },
+        "instrument_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "protocol_id": {
+          "$ref": "#/$defs/id"
+        },
+        "coordinate_frame": {
+          "type": "string",
+          "minLength": 1
+        },
+        "survey_method": {
+          "type": "string",
+          "minLength": 1
+        },
+        "survey_uncertainty_m": {
+          "type": "number",
+          "minimum": 0
+        },
+        "environment": {
+          "type": "object",
+          "minProperties": 1
+        },
+        "record_file_ids": {
+          "$ref": "#/$defs/fileRefs"
+        }
+      }
+    },
+    "instrument": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "instrument_id",
+        "make",
+        "model",
+        "serial_number_reference",
+        "firmware",
+        "tx_rx_chain",
+        "antenna_ids",
+        "configuration",
+        "configuration_file_ids"
+      ],
+      "properties": {
+        "instrument_id": {
+          "$ref": "#/$defs/id"
+        },
+        "make": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "serial_number_reference": {
+          "type": "string",
+          "minLength": 1
+        },
+        "firmware": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tx_rx_chain": {
+          "type": "string",
+          "minLength": 1
+        },
+        "antenna_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "configuration": {
+          "type": "object",
+          "required": [
+            "carrier_frequency_hz"
+          ],
+          "properties": {
+            "carrier_frequency_hz": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        "configuration_file_ids": {
+          "$ref": "#/$defs/fileRefs"
+        }
+      }
+    },
+    "protocol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocol_id",
+        "protocol_status",
+        "target_frequency_hz",
+        "evaluator_schema",
+        "criteria_reference",
+        "physical_unit_definition",
+        "expected_strata",
+        "split_manifest_file_id",
+        "split_manifest_canonical_sha256",
+        "external_verification_id",
+        "bootstrap_seed",
+        "bootstrap_replicates",
+        "uncertainty_method",
+        "protocol_file_ids"
+      ],
+      "properties": {
+        "protocol_id": {
+          "$ref": "#/$defs/id"
+        },
+        "protocol_status": {
+          "enum": [
+            "proposed",
+            "planned"
+          ]
+        },
+        "target_frequency_hz": {
+          "const": 3500000000
+        },
+        "evaluator_schema": {
+          "const": "loslab.g3_material_calibration_predictions.v2"
+        },
+        "criteria_reference": {
+          "type": "string",
+          "minLength": 1
+        },
+        "physical_unit_definition": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expected_strata": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/stratum"
+          }
+        },
+        "split_manifest_file_id": {
+          "$ref": "#/$defs/fileId"
+        },
+        "split_manifest_canonical_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "external_verification_id": {
+          "$ref": "#/$defs/id"
+        },
+        "bootstrap_seed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "bootstrap_replicates": {
+          "type": "integer",
+          "minimum": 1000
+        },
+        "uncertainty_method": {
+          "type": "string",
+          "minLength": 1
+        },
+        "protocol_file_ids": {
+          "$ref": "#/$defs/fileRefs"
+        }
+      }
+    },
+    "artifactReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "file_id",
+        "exact_bytes_sha256",
+        "exact_bytes_size",
+        "byte_scope"
+      ],
+      "properties": {
+        "file_id": {
+          "$ref": "#/$defs/fileId"
+        },
+        "exact_bytes_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "exact_bytes_size": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "byte_scope": {
+          "const": "exact_file_bytes"
+        }
+      }
+    },
+    "evaluatorBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "execution_status",
+        "input_contract",
+        "scorer_input",
+        "split_manifest",
+        "evaluator_output",
+        "material_mapping",
+        "output_contract",
+        "reported_prediction_input_sha256",
+        "evaluator_code_sha256",
+        "run_configuration_file_ids"
+      ],
+      "properties": {
+        "execution_status": {
+          "const": "not_executed_proposal_only"
+        },
+        "input_contract": {
+          "const": "loslab.g3_material_calibration_predictions.v2"
+        },
+        "output_contract": {
+          "const": "loslab.g3_material_calibration_evaluation.v2"
+        },
+        "scorer_input": {
+          "$ref": "#/$defs/artifactReference"
+        },
+        "split_manifest": {
+          "$ref": "#/$defs/artifactReference"
+        },
+        "evaluator_output": {
+          "$ref": "#/$defs/artifactReference"
+        },
+        "material_mapping": {
+          "$ref": "#/$defs/artifactReference"
+        },
+        "reported_prediction_input_sha256": {
+          "$ref": "#/$defs/sha256",
+          "description": "Copy of prediction_input_sha256 from the evaluator output; a semantic verifier must compare it with the exact-byte scorer_input hash."
+        },
+        "evaluator_code_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "run_configuration_file_ids": {
+          "$ref": "#/$defs/fileRefs"
+        }
+      }
+    },
+    "crosswalk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "acquisition_sample_id",
+        "angular_measurement_id",
+        "evaluator_sample_id",
+        "input_row_pointer",
+        "output_stratum_pointer",
+        "incidence_group_id",
+        "split",
+        "material_id",
+        "polarization",
+        "incidence_stratum_id",
+        "measurement_unit_id",
+        "measurement_unit_provenance_id",
+        "source_file_ids"
+      ],
+      "properties": {
+        "acquisition_sample_id": {
+          "$ref": "#/$defs/id"
+        },
+        "angular_measurement_id": {
+          "$ref": "#/$defs/id"
+        },
+        "evaluator_sample_id": {
+          "$ref": "#/$defs/id"
+        },
+        "input_row_pointer": {
+          "type": "string",
+          "pattern": "^/test_predictions/[0-9]+$"
+        },
+        "output_stratum_pointer": {
+          "type": "string",
+          "pattern": "^/strata/[0-9]+$"
+        },
+        "incidence_group_id": {
+          "$ref": "#/$defs/id"
+        },
+        "split": {
+          "enum": [
+            "train",
+            "validation",
+            "test"
+          ]
+        },
+        "material_id": {
+          "$ref": "#/$defs/id"
+        },
+        "polarization": {
+          "enum": [
+            "V",
+            "H"
+          ]
+        },
+        "incidence_stratum_id": {
+          "$ref": "#/$defs/id"
+        },
+        "measurement_unit_id": {
+          "$ref": "#/$defs/id"
+        },
+        "measurement_unit_provenance_id": {
+          "$ref": "#/$defs/id"
+        },
+        "source_file_ids": {
+          "$ref": "#/$defs/fileRefs"
+        }
+      }
+    },
+    "uncertaintyComponent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "standard_uncertainty",
+        "unit",
+        "distribution",
+        "correlation_group"
+      ],
+      "properties": {
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "standard_uncertainty": {
+          "type": "number",
+          "minimum": 0
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "distribution": {
+          "enum": [
+            "normal",
+            "uniform",
+            "triangular",
+            "empirical",
+            "other"
+          ]
+        },
+        "correlation_group": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "uncertainty": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "uncertainty_id",
+        "scope",
+        "sample_ids",
+        "components",
+        "dependence_model",
+        "propagation_method",
+        "repeatability_file_ids",
+        "uncertainty_record_file_ids"
+      ],
+      "properties": {
+        "uncertainty_id": {
+          "$ref": "#/$defs/id"
+        },
+        "scope": {
+          "enum": [
+            "campaign",
+            "specimen",
+            "sample",
+            "stratum"
+          ]
+        },
+        "sample_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "components": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/uncertaintyComponent"
+          }
+        },
+        "dependence_model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "propagation_method": {
+          "type": "string",
+          "minLength": 1
+        },
+        "repeatability_file_ids": {
+          "$ref": "#/$defs/fileRefs"
+        },
+        "uncertainty_record_file_ids": {
+          "$ref": "#/$defs/fileRefs"
+        }
+      }
+    },
+    "fileRights": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "file_id",
+        "rights_holder",
+        "license_or_basis",
+        "research_use",
+        "publication",
+        "redistribution",
+        "attribution",
+        "restrictions",
+        "evidence_file_ids",
+        "attestation_id"
+      ],
+      "properties": {
+        "file_id": {
+          "$ref": "#/$defs/fileId"
+        },
+        "rights_holder": {
+          "type": "string",
+          "minLength": 1
+        },
+        "license_or_basis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "research_use": {
+          "enum": [
+            "allowed",
+            "restricted",
+            "prohibited",
+            "unknown"
+          ]
+        },
+        "publication": {
+          "enum": [
+            "allowed",
+            "restricted",
+            "prohibited",
+            "unknown"
+          ]
+        },
+        "redistribution": {
+          "enum": [
+            "allowed",
+            "restricted",
+            "prohibited",
+            "unknown"
+          ]
+        },
+        "attribution": {
+          "type": "string"
+        },
+        "restrictions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "evidence_file_ids": {
+          "$ref": "#/$defs/fileRefs"
+        },
+        "attestation_id": {
+          "$ref": "#/$defs/id"
+        }
+      }
+    },
+    "plannedAttestation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "attestation_id",
+        "attestation_type",
+        "attestation_status",
+        "claim_template",
+        "subject_file_ids",
+        "signer_role",
+        "signature_algorithm",
+        "signature_file_id",
+        "signature_value",
+        "signed_utc",
+        "verification_id",
+        "verifying_organization",
+        "verification_method",
+        "verification_record_file_ids"
+      ],
+      "properties": {
+        "attestation_id": {
+          "$ref": "#/$defs/id"
+        },
+        "attestation_type": {
+          "enum": [
+            "split_preregistration",
+            "physical_independence",
+            "calibration_traceability",
+            "rights_review",
+            "scientific_review"
+          ]
+        },
+        "attestation_status": {
+          "const": "planned_not_signed"
+        },
+        "claim_template": {
+          "type": "string",
+          "minLength": 1
+        },
+        "subject_file_ids": {
+          "$ref": "#/$defs/fileRefs"
+        },
+        "signer_role": {
+          "type": "string",
+          "minLength": 1
+        },
+        "signature_algorithm": {
+          "type": "string",
+          "minLength": 1
+        },
+        "signature_file_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^file\\.[a-z0-9._-]{1,58}$"
+        },
+        "signature_value": {
+          "const": null
+        },
+        "signed_utc": {
+          "const": null
+        },
+        "verification_id": {
+          "$ref": "#/$defs/id"
+        },
+        "verifying_organization": {
+          "type": "string",
+          "minLength": 1
+        },
+        "verification_method": {
+          "type": "string",
+          "minLength": 1
+        },
+        "verification_record_file_ids": {
+          "$ref": "#/$defs/fileRefs"
+        }
+      }
+    }
+  }
+}

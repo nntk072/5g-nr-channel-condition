@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.invalid/schema/g3-joint-evaluator-input.v2.schema.json",
+  "title": "G3 five-branch joint evaluator input with receiver execution identity",
+  "description": "Serialized input for deterministic numerical scoring, including hash-bound candidate/challenger, waveform, and link-budget context. Every receiver outcome record binds to that context digest. Complex scalars use {$complex:[real,imaginary]}; validity does not independently attest runtime execution, measurement truth, or qualification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "joint_acceptance_family",
+    "receiver_execution",
+    "material_calibration",
+    "complex_csi",
+    "propagation_metrics",
+    "receiver_impact",
+    "path_equivalence"
+  ],
+  "properties": {
+    "schema": {"const": "loslab.g3_joint_evaluator_inputs.v2"},
+    "joint_acceptance_family": {"type": "object"},
+    "receiver_execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["candidate", "challenger", "waveform", "link_budget_noise"],
+      "properties": {
+        "candidate": {"$ref": "#/$defs/configuration"},
+        "challenger": {"$ref": "#/$defs/configuration"},
+        "waveform": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["waveform_id", "configuration", "configuration_sha256"],
+          "properties": {
+            "waveform_id": {"type": "string", "minLength": 1},
+            "configuration": {"type": "object"},
+            "configuration_sha256": {"$ref": "#/$defs/sha256"}
+          }
+        },
+        "link_budget_noise": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["tx_power_dbm", "tx_gain_dbi", "rx_gain_dbi", "noise_figure_db", "noise_temperature_k", "noise_bandwidth_hz"],
+          "properties": {
+            "tx_power_dbm": {"type": "number"},
+            "tx_gain_dbi": {"type": "number"},
+            "rx_gain_dbi": {"type": "number"},
+            "noise_figure_db": {"type": "number"},
+            "noise_temperature_k": {"type": "number", "exclusiveMinimum": 0},
+            "noise_bandwidth_hz": {"type": "number", "exclusiveMinimum": 0}
+          }
+        }
+      }
+    },
+    "material_calibration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["payload"],
+      "properties": {
+        "payload": {"type": "object"},
+        "joint_acceptance_family": {"type": "object"}
+      }
+    },
+    "complex_csi": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["records", "expected_strata"],
+      "properties": {
+        "records": {"type": "array", "minItems": 1},
+        "expected_strata": {"$ref": "#/$defs/strata2"},
+        "bootstrap_seed": {"type": "integer", "minimum": 0},
+        "bootstrap_draws": {"type": "integer", "minimum": 1000},
+        "confidence_level": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1},
+        "joint_acceptance_family": {"type": "object"}
+      }
+    },
+    "propagation_metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["records", "expected_strata", "effective_bandwidth_hz"],
+      "properties": {
+        "records": {"type": "array", "minItems": 1},
+        "expected_strata": {"$ref": "#/$defs/strata3"},
+        "effective_bandwidth_hz": {"type": "number", "exclusiveMinimum": 0},
+        "bootstrap_seed": {"type": "integer", "minimum": 0},
+        "bootstrap_draws": {"type": "integer", "minimum": 1000},
+        "joint_acceptance_family": {"type": "object"}
+      }
+    },
+    "receiver_impact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "records",
+        "expected_strata",
+        "candidate_config_id",
+        "challenger_config_id",
+        "snr_grid_db",
+        "comparison_snr_db"
+      ],
+      "properties": {
+        "records": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["receiver_execution_context_sha256"],
+            "properties": {
+              "receiver_execution_context_sha256": {"$ref": "#/$defs/sha256"}
+            }
+          }
+        },
+        "expected_strata": {"$ref": "#/$defs/strata2"},
+        "candidate_config_id": {"type": "string", "minLength": 1},
+        "challenger_config_id": {"type": "string", "minLength": 1},
+        "snr_grid_db": {"type": "array", "minItems": 1, "items": {"type": "number"}},
+        "comparison_snr_db": {"type": "number"},
+        "bootstrap_seed": {"type": "integer", "minimum": 0},
+        "bootstrap_draws": {"type": "integer", "minimum": 1000},
+        "joint_acceptance_family": {"type": "object"}
+      }
+    },
+    "path_equivalence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["records", "expected_scenarios"],
+      "properties": {
+        "records": {"type": "array", "minItems": 1},
+        "expected_scenarios": {"$ref": "#/$defs/strata3"},
+        "joint_acceptance_family": {"type": "object"}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "configuration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["config_id", "configuration", "configuration_sha256"],
+      "properties": {
+        "config_id": {"type": "string", "minLength": 1},
+        "configuration": {"type": "object"},
+        "configuration_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "strata2": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "array",
+        "prefixItems": [{"type": "string"}, {"type": "string"}],
+        "minItems": 2,
+        "maxItems": 2
+      }
+    },
+    "strata3": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "array",
+        "prefixItems": [{"type": "string"}, {"type": "string"}, {"type": "string"}],
+        "minItems": 3,
+        "maxItems": 3
+      }
+    }
+  }
+}

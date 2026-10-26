@@ -40,6 +40,42 @@ _NAMESPACE_ORDER = (
 )
 _SPLIT_ORDER = ("train", "validation", "calibration", "test")
 _DEFAULT_FOUR_WAY = {"train": 0.7, "validation": 0.1, "calibration": 0.1, "test": 0.1}
+_SPLIT_REGISTRY_V2_FIELDS = frozenset(
+    {
+        "schema",
+        "schema_version",
+        "policy",
+        "subjects",
+        "components",
+        "children",
+        "report",
+        "registry_sha256",
+    }
+)
+_SPLIT_REGISTRY_V3_FIELDS = _SPLIT_REGISTRY_V2_FIELDS | {"spatiotemporal_audit"}
+SPLIT_POLICY_SIGNATURE_NAMESPACE = "umcd-split-policy-v2@github.com"
+MAX_SPLIT_POLICY_LOCK_BYTES = 256 * 1024 * 1024
+MAX_SPLIT_POLICY_SIGNATURE_BYTES = 1024 * 1024
+MAX_SPLIT_POLICY_ALLOWED_SIGNERS_BYTES = 4 * 1024 * 1024
+_READ_CHUNK_BYTES = 1024 * 1024
+
+
+def _require_canonical_identity(value: Any, name: str) -> str:
+    if not isinstance(value, str) or not value.strip() or value != value.strip():
+        raise ValueError(f"{name} must be a canonical nonempty string")
+    return value
+
+
+@dataclass(frozen=True)
+class VerifiedOpenSSHArtifact:
+    """Immutable artifact bytes verified under an external OpenSSH trust file."""
+
+    payload: bytes
+    artifact_sha256: str
+    signature_sha256: str
+    allowed_signers_sha256: str
+    signer_id: str
+    namespace: str
 
 
 def _canonical_json(value: Any) -> bytes:
@@ -80,24 +116,33 @@ def _fsync_directory(path: Path) -> None:
         os.close(descriptor)
 
 
-def _read_immutable_lock_bytes(path: Path) -> bytes:
-    """Read one regular, single-link lock without following a leaf symlink."""
+def _read_immutable_lock_bytes(
+    path: Path,
+    *,
+    artifact_label: str = "split-policy lock",
+    max_bytes: int = MAX_SPLIT_POLICY_LOCK_BYTES,
+) -> bytes:
+    """Read one regular, single-link policy artifact without following leaf symlinks."""
+    if isinstance(max_bytes, bool) or not isinstance(max_bytes, int) or max_bytes <= 0:
+        raise ValueError("max_bytes must be a positive integer")
     path_metadata_before = os.lstat(path)
     if stat.S_ISLNK(path_metadata_before.st_mode):
-        raise ValueError("split-policy lock must not be a symlink")
+        raise ValueError(f"{artifact_label} must not be a symlink")
+    if path_metadata_before.st_size > max_bytes:
+        raise ValueError(f"{artifact_label} exceeds its {max_bytes}-byte limit")
 
     flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
     try:
         descriptor = os.open(path, flags)
     except OSError as exc:
         if exc.errno == errno.ELOOP:
-            raise ValueError("split-policy lock must not be a symlink") from exc
+            raise ValueError(f"{artifact_label} must not be a symlink") from exc
         raise
     try:
         metadata = os.fstat(descriptor)
         path_metadata_after = os.lstat(path)
         if stat.S_ISLNK(path_metadata_after.st_mode):
-            raise ValueError("split-policy lock must not be a symlink")
+            raise ValueError(f"{artifact_label} must not be a symlink")
         same_open_file = (
             (metadata.st_dev, metadata.st_ino)
             == (
@@ -107,49 +152,152 @@ def _read_immutable_lock_bytes(path: Path) -> bytes:
             == (path_metadata_before.st_dev, path_metadata_before.st_ino)
         )
         if not same_open_file:
-            raise ValueError("split-policy lock path changed while opening")
+            raise ValueError(f"{artifact_label} path changed while opening")
         if (
             not stat.S_ISREG(metadata.st_mode)
             or metadata.st_nlink != 1
             or not stat.S_ISREG(path_metadata_after.st_mode)
             or path_metadata_after.st_nlink != 1
         ):
-            raise ValueError("split-policy lock must be a single-link regular file")
+            raise ValueError(f"{artifact_label} must be a single-link regular file")
+        if metadata.st_size > max_bytes:
+            raise ValueError(f"{artifact_label} exceeds its {max_bytes}-byte limit")
         if _lock_stat_signature(metadata) != _lock_stat_signature(
             path_metadata_before
         ) or _lock_stat_signature(metadata) != _lock_stat_signature(path_metadata_after):
-            raise ValueError("split-policy lock changed while opening")
+            raise ValueError(f"{artifact_label} changed while opening")
         with os.fdopen(descriptor, "rb") as stream:
             descriptor = -1
-            contents = stream.read()
+            chunks: list[bytes] = []
+            total_bytes = 0
+            while True:
+                chunk = stream.read(min(_READ_CHUNK_BYTES, max_bytes + 1 - total_bytes))
+                if not chunk:
+                    break
+                total_bytes += len(chunk)
+                if total_bytes > max_bytes:
+                    raise ValueError(f"{artifact_label} exceeds its {max_bytes}-byte limit")
+                chunks.append(chunk)
+            contents = b"".join(chunks)
             metadata_after_read = os.fstat(stream.fileno())
             path_metadata_after_read = os.lstat(path)
             if stat.S_ISLNK(path_metadata_after_read.st_mode):
-                raise ValueError("split-policy lock must not be a symlink")
+                raise ValueError(f"{artifact_label} must not be a symlink")
             same_open_file_after_read = (
                 (metadata_after_read.st_dev, metadata_after_read.st_ino)
                 == (metadata.st_dev, metadata.st_ino)
                 == (path_metadata_after_read.st_dev, path_metadata_after_read.st_ino)
             )
             if not same_open_file_after_read:
-                raise ValueError("split-policy lock path changed while reading")
+                raise ValueError(f"{artifact_label} path changed while reading")
             if (
                 not stat.S_ISREG(metadata_after_read.st_mode)
                 or metadata_after_read.st_nlink != 1
                 or not stat.S_ISREG(path_metadata_after_read.st_mode)
                 or path_metadata_after_read.st_nlink != 1
             ):
-                raise ValueError("split-policy lock must be a single-link regular file")
+                raise ValueError(f"{artifact_label} must be a single-link regular file")
             if (
                 _lock_stat_signature(metadata_after_read) != _lock_stat_signature(metadata)
                 or _lock_stat_signature(path_metadata_after_read) != _lock_stat_signature(metadata)
                 or len(contents) != metadata.st_size
             ):
-                raise ValueError("split-policy lock changed while reading")
+                raise ValueError(f"{artifact_label} changed while reading")
             return contents
     finally:
         if descriptor >= 0:
             os.close(descriptor)
+
+
+def _verify_openssh_signature_bytes(
+    payload: bytes,
+    signature: bytes,
+    allowed_signers: bytes,
+    *,
+    signer_id: str,
+    namespace: str,
+) -> None:
+    import shutil
+    import subprocess
+
+    executable = shutil.which("ssh-keygen")
+    if executable is None:
+        raise RuntimeError("OpenSSH ssh-keygen is required to verify signed artifacts")
+    with tempfile.TemporaryDirectory(prefix="umcd-openssh-verify-") as temporary_directory:
+        snapshot = Path(temporary_directory)
+        artifact_path = snapshot / "artifact.bin"
+        signature_path = snapshot / "artifact.bin.sig"
+        allowed_signers_path = snapshot / "allowed_signers"
+        artifact_path.write_bytes(payload)
+        signature_path.write_bytes(signature)
+        allowed_signers_path.write_bytes(allowed_signers)
+        try:
+            result = subprocess.run(
+                [
+                    executable,
+                    "-Y",
+                    "verify",
+                    "-f",
+                    str(allowed_signers_path),
+                    "-I",
+                    signer_id,
+                    "-n",
+                    namespace,
+                    "-s",
+                    str(signature_path),
+                ],
+                check=False,
+                capture_output=True,
+                input=payload,
+                timeout=30,
+            )
+        except subprocess.TimeoutExpired as error:
+            raise RuntimeError("OpenSSH signature verification timed out") from error
+        if result.returncode != 0:
+            raise ValueError("artifact signature is invalid or signer is not trusted")
+
+
+def verify_openssh_signed_artifact(
+    path: str | Path,
+    signature_path: str | Path,
+    *,
+    trusted_allowed_signers_path: str | Path,
+    signer_id: str,
+    namespace: str,
+) -> VerifiedOpenSSHArtifact:
+    """Verify arbitrary artifact bytes against an independently supplied OpenSSH trust file."""
+    for field_name, value in (("signer_id", signer_id), ("namespace", namespace)):
+        _require_canonical_identity(value, field_name)
+        if any(character in value for character in ("\n", "\r", "\x00")):
+            raise ValueError(f"{field_name} must be a single-line value")
+    payload = _read_immutable_lock_bytes(
+        Path(path), artifact_label="signed artifact", max_bytes=MAX_SPLIT_POLICY_LOCK_BYTES
+    )
+    signature = _read_immutable_lock_bytes(
+        Path(signature_path),
+        artifact_label="artifact signature",
+        max_bytes=MAX_SPLIT_POLICY_SIGNATURE_BYTES,
+    )
+    allowed_signers = _read_immutable_lock_bytes(
+        Path(trusted_allowed_signers_path),
+        artifact_label="trusted artifact keyring",
+        max_bytes=MAX_SPLIT_POLICY_ALLOWED_SIGNERS_BYTES,
+    )
+    _verify_openssh_signature_bytes(
+        payload,
+        signature,
+        allowed_signers,
+        signer_id=signer_id,
+        namespace=namespace,
+    )
+    return VerifiedOpenSSHArtifact(
+        payload=payload,
+        artifact_sha256=hashlib.sha256(payload).hexdigest(),
+        signature_sha256=hashlib.sha256(signature).hexdigest(),
+        allowed_signers_sha256=hashlib.sha256(allowed_signers).hexdigest(),
+        signer_id=signer_id,
+        namespace=namespace,
+    )
 
 
 class LeakageNamespace(StrEnum):
@@ -187,9 +335,7 @@ class LeakageRelation:
                 object.__setattr__(self, "namespace", LeakageNamespace(self.namespace))
             except (TypeError, ValueError) as exc:
                 raise ValueError(f"unsupported leakage namespace: {self.namespace!r}") from exc
-        if not isinstance(self.identity, str) or not self.identity.strip():
-            raise ValueError("leakage relation identity must be a non-empty string")
-        object.__setattr__(self, "identity", self.identity.strip())
+        _require_canonical_identity(self.identity, "leakage relation identity")
 
     @property
     def qualified_identity(self) -> str:
@@ -213,9 +359,7 @@ class SplitSubject:
     def __post_init__(self) -> None:
         for name in ("subject_id", "source_family"):
             value = getattr(self, name)
-            if not isinstance(value, str) or not value.strip():
-                raise ValueError(f"{name} must be a non-empty string")
-            object.__setattr__(self, name, value.strip())
+            _require_canonical_identity(value, name)
         if not isinstance(self.parent_type, SplitParentType):
             try:
                 object.__setattr__(self, "parent_type", SplitParentType(self.parent_type))
@@ -229,9 +373,8 @@ class SplitSubject:
             raise ValueError("a split subject cannot repeat a leakage relation")
         object.__setattr__(self, "relations", tuple(sorted(relations)))
         partition_id = self.subject_id if self.partition_id is None else self.partition_id
-        if not isinstance(partition_id, str) or not partition_id.strip():
-            raise ValueError("partition_id must be a non-empty opaque identity")
-        object.__setattr__(self, "partition_id", partition_id.strip())
+        _require_canonical_identity(partition_id, "partition_id")
+        object.__setattr__(self, "partition_id", partition_id)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -259,9 +402,7 @@ class SpatiotemporalFootprint:
     end_time_s: float | None = None
 
     def __post_init__(self) -> None:
-        if not isinstance(self.subject_id, str) or not self.subject_id.strip():
-            raise ValueError("subject_id must be a non-empty string")
-        object.__setattr__(self, "subject_id", self.subject_id.strip())
+        _require_canonical_identity(self.subject_id, "subject_id")
         if any(
             isinstance(value, bool) or not isinstance(value, Real)
             for point in self.positions_m
@@ -280,7 +421,7 @@ class SpatiotemporalFootprint:
                 or not self.coordinate_frame_id.strip()
             ):
                 raise ValueError("coordinate_frame_id is required when positions_m are present")
-            object.__setattr__(self, "coordinate_frame_id", self.coordinate_frame_id.strip())
+            _require_canonical_identity(self.coordinate_frame_id, "coordinate_frame_id")
         elif self.coordinate_frame_id is not None:
             raise ValueError("coordinate_frame_id requires at least one position")
 
@@ -289,6 +430,7 @@ class SpatiotemporalFootprint:
             return
         if not isinstance(self.time_scope_id, str) or not self.time_scope_id.strip():
             raise ValueError("time_scope_id is required when a time window is present")
+        _require_canonical_identity(self.time_scope_id, "time_scope_id")
         if self.start_time_s is None or self.end_time_s is None:
             raise ValueError("time windows require both start_time_s and end_time_s")
         if any(
@@ -299,7 +441,6 @@ class SpatiotemporalFootprint:
         start, end = float(self.start_time_s), float(self.end_time_s)
         if not math.isfinite(start) or not math.isfinite(end) or start >= end:
             raise ValueError("time window must be finite and satisfy start_time_s < end_time_s")
-        object.__setattr__(self, "time_scope_id", self.time_scope_id.strip())
         object.__setattr__(self, "start_time_s", start)
         object.__setattr__(self, "end_time_s", end)
 
@@ -431,17 +572,24 @@ def derive_spatiotemporal_leakage_relations(
     result: dict[str, list[LeakageRelation]] = {subject_id: [] for subject_id in by_id}
 
     def add_component_relations(
-        namespace: LeakageNamespace, scope_id: str, members: Sequence[str]
+        namespace: LeakageNamespace,
+        scope_id: str,
+        members: Sequence[str],
+        evidence: Mapping[str, Any],
     ) -> None:
         if len(members) < 2:
             return
-        canonical = json.dumps(
-            {"scope": scope_id, "subjects": sorted(members)},
-            sort_keys=True,
-            separators=(",", ":"),
-        ).encode("utf-8")
+        canonical = _canonical_json(
+            {
+                "algorithm": "umcd.spatiotemporal-leakage.v2",
+                "namespace": namespace.value,
+                "scope": scope_id,
+                "subjects": sorted(members),
+                "evidence": evidence,
+            }
+        )
         identity = hashlib.sha256(canonical).hexdigest()
-        relation = LeakageRelation(namespace, f"{scope_id}:{identity}")
+        relation = LeakageRelation(namespace, f"v2:{scope_id}:{identity}")
         for subject_id in members:
             result[subject_id].append(relation)
 
@@ -449,13 +597,158 @@ def derive_spatiotemporal_leakage_relations(
         if len(component) > 1:
             scope = by_id[component[0]].coordinate_frame_id
             assert scope is not None
-            add_component_relations(LeakageNamespace.SPATIAL_BUFFER, scope, component)
+            evidence = {
+                "spatial_buffer_m": buffer_m,
+                "positions_m": {
+                    subject_id: sorted(by_id[subject_id].positions_m)
+                    for subject_id in sorted(component)
+                },
+            }
+            add_component_relations(
+                LeakageNamespace.SPATIAL_BUFFER, scope, component, evidence
+            )
     for scope, component in time_groups:
-        add_component_relations(LeakageNamespace.OVERLAPPING_TIME_WINDOW, scope, component)
+        evidence = {
+            "interval_semantics": "half-open",
+            "time_windows_s": {
+                subject_id: [by_id[subject_id].start_time_s, by_id[subject_id].end_time_s]
+                for subject_id in sorted(component)
+            },
+        }
+        add_component_relations(
+            LeakageNamespace.OVERLAPPING_TIME_WINDOW, scope, component, evidence
+        )
 
     return MappingProxyType(
         {subject_id: tuple(sorted(relations)) for subject_id, relations in sorted(result.items())}
     )
+
+
+def audit_spatiotemporal_leakage_relations(
+    footprints: Sequence[SpatiotemporalFootprint],
+    subjects: Sequence[SplitSubject],
+    *,
+    spatial_buffer_m: float,
+) -> dict[str, Any]:
+    """Re-derive and verify spatial/time relations against frozen parent subjects.
+
+    The relation identities bind the exact geometry/time evidence, derivation
+    version, and spatial buffer. This audit is still required to establish
+    that registered relations were actually derived from the supplied
+    authoritative footprint inventory.
+    """
+    derived = derive_spatiotemporal_leakage_relations(
+        footprints, spatial_buffer_m=spatial_buffer_m
+    )
+    subject_by_id: dict[str, SplitSubject] = {}
+    for subject in subjects:
+        if not isinstance(subject, SplitSubject):
+            raise TypeError("subjects must contain SplitSubject values")
+        if subject.subject_id in subject_by_id:
+            raise ValueError(f"duplicate split subject in footprint audit: {subject.subject_id}")
+        subject_by_id[subject.subject_id] = subject
+    if set(subject_by_id) != set(derived):
+        raise ValueError("footprints and split subjects must cover exactly the same parents")
+
+    namespaces = {
+        LeakageNamespace.SPATIAL_BUFFER,
+        LeakageNamespace.OVERLAPPING_TIME_WINDOW,
+    }
+    for subject_id, subject in subject_by_id.items():
+        observed = {item for item in subject.relations if item.namespace in namespaces}
+        expected = set(derived[subject_id])
+        if observed != expected:
+            raise ValueError(
+                f"derived spatial/time relations do not match footprint evidence for {subject_id}"
+            )
+
+    footprint_payload = {
+        item.subject_id: {
+            "positions_m": sorted(item.positions_m),
+            "coordinate_frame_id": item.coordinate_frame_id,
+            "time_scope_id": item.time_scope_id,
+            "start_time_s": item.start_time_s,
+            "end_time_s": item.end_time_s,
+        }
+        for item in sorted(footprints, key=lambda item: item.subject_id)
+    }
+    relation_payload = {
+        subject_id: [item.to_dict() for item in sorted(derived[subject_id])]
+        for subject_id in sorted(derived)
+    }
+    report: dict[str, Any] = {
+        "schema": "umcd.spatiotemporal_lineage_audit.v2",
+        "status": "PASS_INPUT_SCOPED",
+        "spatial_buffer_m": float(spatial_buffer_m),
+        "derivation_algorithm": "umcd.spatiotemporal-leakage.v2",
+        "parent_count": len(subject_by_id),
+        "subject_ids_sha256": hashlib.sha256(
+            _canonical_json(sorted(subject_by_id))
+        ).hexdigest(),
+        "spatially_linked_parent_count": sum(
+            any(
+                relation.namespace is LeakageNamespace.SPATIAL_BUFFER
+                for relation in derived[item]
+            )
+            for item in derived
+        ),
+        "temporally_linked_parent_count": sum(
+            any(
+                relation.namespace is LeakageNamespace.OVERLAPPING_TIME_WINDOW
+                for relation in derived[item]
+            )
+            for item in derived
+        ),
+        "footprints_sha256": hashlib.sha256(_canonical_json(footprint_payload)).hexdigest(),
+        "derived_relations_sha256": hashlib.sha256(_canonical_json(relation_payload)).hexdigest(),
+    }
+    report["audit_sha256"] = hashlib.sha256(_canonical_json(report)).hexdigest()
+    return report
+
+
+def bind_spatiotemporal_audit_to_registry(
+    registry: SplitPolicyRegistry,
+    footprints: Sequence[SpatiotemporalFootprint],
+    *,
+    spatial_buffer_m: float,
+) -> SplitPolicyRegistry:
+    """Return a v3 registry lock that binds the complete footprint audit digest."""
+    if not isinstance(registry, SplitPolicyRegistry):
+        raise TypeError("registry must be a SplitPolicyRegistry")
+    audit = audit_spatiotemporal_leakage_relations(
+        footprints,
+        tuple(registry.subjects.values()),
+        spatial_buffer_m=spatial_buffer_m,
+    )
+    if registry.spatiotemporal_audit is not None and dict(registry.spatiotemporal_audit) != audit:
+        raise ValueError("frozen registry spatiotemporal audit cannot be replaced")
+    return SplitPolicyRegistry(
+        policy=registry.policy,
+        subject_to_component=registry.subject_to_component,
+        component_to_split=registry.component_to_split,
+        subjects=registry.subjects,
+        child_bindings=registry.child_bindings,
+        spatiotemporal_audit=audit,
+    )
+
+
+def verify_registry_spatiotemporal_audit(
+    registry: SplitPolicyRegistry,
+    footprints: Sequence[SpatiotemporalFootprint],
+    *,
+    spatial_buffer_m: float,
+) -> dict[str, Any]:
+    """Recompute and compare the footprint inventory committed by a v3 registry."""
+    if registry.spatiotemporal_audit is None:
+        raise ValueError("registry has no frozen spatiotemporal footprint audit")
+    observed = audit_spatiotemporal_leakage_relations(
+        footprints,
+        tuple(registry.subjects.values()),
+        spatial_buffer_m=spatial_buffer_m,
+    )
+    if dict(registry.spatiotemporal_audit) != observed:
+        raise ValueError("spatiotemporal footprint inventory differs from frozen registry audit")
+    return observed
 
 
 def network_episode_subject(
@@ -500,9 +793,10 @@ def standardized_draw_subject(
     if not isinstance(record, StandardizedChannelRecord):
         raise TypeError("record must be a StandardizedChannelRecord")
     if partition_id is None:
-        stored_identity = record.metadata.get("partition_id")
-        if isinstance(stored_identity, str) and stored_identity.strip():
-            partition_id = stored_identity.strip()
+        if "partition_id" in record.metadata:
+            partition_id = _require_canonical_identity(
+                record.metadata["partition_id"], "standardized partition_id"
+            )
         else:
             seed = record.metadata.get("seed")
             if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
@@ -533,10 +827,8 @@ class SplitPolicy:
     component_algorithm: str = "sha256-connected-component-v2"
 
     def __post_init__(self) -> None:
-        if not isinstance(self.seed, str) or not self.seed.strip():
-            raise ValueError("policy seed must be a non-empty string")
-        if not isinstance(self.policy_version, str) or not self.policy_version.strip():
-            raise ValueError("policy_version must be a non-empty string")
+        _require_canonical_identity(self.seed, "policy seed")
+        _require_canonical_identity(self.policy_version, "policy_version")
         if self.component_algorithm != "sha256-connected-component-v2":
             raise ValueError("unsupported component assignment algorithm")
         fractions = dict(self.split_fractions)
@@ -561,8 +853,6 @@ class SplitPolicy:
         if not namespaces or len(set(namespaces)) != len(namespaces):
             raise ValueError("relation_namespaces must be non-empty and unique")
         namespaces = tuple(sorted(namespaces, key=lambda item: _NAMESPACE_ORDER.index(item.value)))
-        object.__setattr__(self, "seed", self.seed.strip())
-        object.__setattr__(self, "policy_version", self.policy_version.strip())
         object.__setattr__(self, "split_fractions", MappingProxyType(ordered_fractions))
         object.__setattr__(self, "relation_namespaces", namespaces)
 
@@ -613,9 +903,7 @@ class SplitChildBinding:
     def __post_init__(self) -> None:
         for name in ("child_id", "parent_subject_id", "child_kind"):
             value = getattr(self, name)
-            if not isinstance(value, str) or not value.strip():
-                raise ValueError(f"{name} must be a non-empty string")
-            object.__setattr__(self, name, value.strip())
+            _require_canonical_identity(value, name)
 
     def to_dict(self) -> dict[str, str]:
         return {
@@ -624,28 +912,19 @@ class SplitChildBinding:
         }
 
 
-def _derive_registry_assignments(
-    subjects: Mapping[str, SplitSubject], policy: SplitPolicy
-) -> tuple[dict[str, str], dict[str, str]]:
-    """Rebuild canonical components and assignments from frozen inputs only."""
-    if not isinstance(policy, SplitPolicy):
-        raise TypeError("policy must be a SplitPolicy")
+def derive_split_components(
+    subjects: Sequence[SplitSubject],
+) -> tuple[tuple[SplitSubject, ...], ...]:
+    """Return deterministic connected components without assigning split partitions."""
     if not subjects:
         raise ValueError("at least one split subject is required")
-    subject_by_id = dict(subjects)
-    if any(not isinstance(subject, SplitSubject) for subject in subject_by_id.values()):
-        raise TypeError("subjects must contain SplitSubject values")
-    if any(key != subject.subject_id for key, subject in subject_by_id.items()):
-        raise ValueError("subject mapping keys must equal subject IDs")
-    if len({subject.partition_id for subject in subject_by_id.values()}) != len(subject_by_id):
-        raise ValueError("partition_id values must uniquely identify parent subjects")
-    for subject in subject_by_id.values():
-        unsupported = set(item.namespace for item in subject.relations) - set(
-            policy.relation_namespaces
-        )
-        if unsupported:
-            raise ValueError(f"subject has relations excluded by policy: {sorted(unsupported)}")
-
+    subject_by_id: dict[str, SplitSubject] = {}
+    for subject in subjects:
+        if not isinstance(subject, SplitSubject):
+            raise TypeError("subjects must contain SplitSubject values")
+        if subject.subject_id in subject_by_id:
+            raise ValueError(f"duplicate split subject ID: {subject.subject_id}")
+        subject_by_id[subject.subject_id] = subject
     parent = {subject_id: subject_id for subject_id in subject_by_id}
 
     def find(subject_id: str) -> str:
@@ -674,17 +953,55 @@ def _derive_registry_assignments(
     members: dict[str, list[str]] = {}
     for subject_id in sorted(subject_by_id):
         members.setdefault(find(subject_id), []).append(subject_id)
+    return tuple(
+        tuple(subject_by_id[subject_id] for subject_id in component)
+        for component in sorted(members.values(), key=lambda items: items[0])
+    )
+
+
+def _derive_registry_assignments(
+    subjects: Mapping[str, SplitSubject], policy: SplitPolicy
+) -> tuple[dict[str, str], dict[str, str]]:
+    """Rebuild canonical components and assignments from frozen inputs only."""
+    if not isinstance(policy, SplitPolicy):
+        raise TypeError("policy must be a SplitPolicy")
+    if not subjects:
+        raise ValueError("at least one split subject is required")
+    subject_by_id = dict(subjects)
+    if any(not isinstance(subject, SplitSubject) for subject in subject_by_id.values()):
+        raise TypeError("subjects must contain SplitSubject values")
+    if any(key != subject.subject_id for key, subject in subject_by_id.items()):
+        raise ValueError("subject mapping keys must equal subject IDs")
+    if len({subject.partition_id for subject in subject_by_id.values()}) != len(subject_by_id):
+        raise ValueError("partition_id values must uniquely identify parent subjects")
+    for subject in subject_by_id.values():
+        unsupported = set(item.namespace for item in subject.relations) - set(
+            policy.relation_namespaces
+        )
+        if unsupported:
+            raise ValueError(f"subject has relations excluded by policy: {sorted(unsupported)}")
 
     subject_to_component: dict[str, str] = {}
-    for component_members in members.values():
-        partition_ids = sorted(
-            str(subject_by_id[subject_id].partition_id) for subject_id in component_members
-        )
+    for component in derive_split_components(tuple(subject_by_id.values())):
+        partition_ids: list[str] = []
+        for subject in component:
+            if subject.partition_id is None:
+                raise ValueError("split subject is missing its canonical partition ID")
+            partition_ids.append(subject.partition_id)
+        partition_ids.sort()
         component_id = "component-" + hashlib.sha256(_canonical_json(partition_ids)).hexdigest()
-        for subject_id in component_members:
-            subject_to_component[subject_id] = component_id
+        for subject in component:
+            subject_to_component[subject.subject_id] = component_id
 
     component_ids = sorted(set(subject_to_component.values()))
+    required_component_count = len(policy.split_fractions)
+    if len(component_ids) < required_component_count:
+        missing_component_count = required_component_count - len(component_ids)
+        raise ValueError(
+            f"split policy requires at least {required_component_count} independent leakage "
+            f"components for {required_component_count}-way assignment; found "
+            f"{len(component_ids)}, need {missing_component_count} more"
+        )
     independent = make_independent_split(
         [
             {"sample_id": component_id, "component_id": component_id}
@@ -708,12 +1025,16 @@ class SplitPolicyRegistry:
     component_to_split: Mapping[str, str]
     subjects: Mapping[str, SplitSubject]
     child_bindings: Mapping[str, SplitChildBinding] = field(default_factory=dict)
+    spatiotemporal_audit: Mapping[str, Any] | None = None
 
     def __post_init__(self) -> None:
         subject_components = dict(self.subject_to_component)
         component_splits = dict(self.component_to_split)
         subjects = dict(self.subjects)
         children = dict(self.child_bindings)
+        lineage_audit = (
+            None if self.spatiotemporal_audit is None else dict(self.spatiotemporal_audit)
+        )
         if not subject_components or set(subject_components) != set(subjects):
             raise ValueError("registry must assign every registered parent subject")
         expected_subject_components, expected_component_splits = _derive_registry_assignments(
@@ -730,14 +1051,80 @@ class SplitPolicyRegistry:
                 raise TypeError("child_bindings must contain SplitChildBinding values")
             if key != binding.child_id:
                 raise ValueError("child mapping keys must equal child IDs")
+            if binding.child_id in subjects:
+                raise ValueError(
+                    f"child ID collides with a parent subject ID: {binding.child_id}"
+                )
             if binding.parent_subject_id not in subjects:
                 raise ValueError(
                     f"child references an unknown split parent: {binding.parent_subject_id}"
                 )
+        if lineage_audit is not None:
+            expected_audit_keys = {
+                "schema",
+                "status",
+                "spatial_buffer_m",
+                "derivation_algorithm",
+                "parent_count",
+                "subject_ids_sha256",
+                "spatially_linked_parent_count",
+                "temporally_linked_parent_count",
+                "footprints_sha256",
+                "derived_relations_sha256",
+                "audit_sha256",
+            }
+            audit_core = {
+                key: value for key, value in lineage_audit.items() if key != "audit_sha256"
+            }
+            audit_digests = (
+                lineage_audit.get("subject_ids_sha256"),
+                lineage_audit.get("footprints_sha256"),
+                lineage_audit.get("derived_relations_sha256"),
+                lineage_audit.get("audit_sha256"),
+            )
+            digests_are_valid = all(
+                isinstance(digest, str)
+                and len(digest) == 64
+                and all(character in "0123456789abcdef" for character in digest)
+                for digest in audit_digests
+            )
+            buffer_m = lineage_audit.get("spatial_buffer_m")
+            counts_are_valid = all(
+                isinstance(lineage_audit.get(key), int)
+                and not isinstance(lineage_audit.get(key), bool)
+                and lineage_audit[key] >= 0
+                for key in (
+                    "parent_count",
+                    "spatially_linked_parent_count",
+                    "temporally_linked_parent_count",
+                )
+            )
+            if (
+                set(lineage_audit) != expected_audit_keys
+                or lineage_audit.get("schema")
+                != "umcd.spatiotemporal_lineage_audit.v2"
+                or lineage_audit.get("status") != "PASS_INPUT_SCOPED"
+                or lineage_audit.get("derivation_algorithm")
+                != "umcd.spatiotemporal-leakage.v2"
+                or isinstance(buffer_m, bool)
+                or not isinstance(buffer_m, Real)
+                or not math.isfinite(float(buffer_m))
+                or buffer_m < 0
+                or not counts_are_valid
+                or not digests_are_valid
+                or lineage_audit.get("parent_count") != len(subjects)
+                or lineage_audit.get("subject_ids_sha256")
+                != hashlib.sha256(_canonical_json(sorted(subjects))).hexdigest()
+                or hashlib.sha256(_canonical_json(audit_core)).hexdigest()
+                != lineage_audit.get("audit_sha256")
+            ):
+                raise ValueError("registry spatiotemporal audit is invalid or roster-mismatched")
         object.__setattr__(self, "subject_to_component", MappingProxyType(subject_components))
         object.__setattr__(self, "component_to_split", MappingProxyType(component_splits))
         object.__setattr__(self, "subjects", MappingProxyType(subjects))
         object.__setattr__(self, "child_bindings", MappingProxyType(children))
+        if lineage_audit is not None:
+            object.__setattr__(self, "spatiotemporal_audit", MappingProxyType(lineage_audit))
 
     def split_for_parent(self, subject_id: str) -> str:
         try:
@@ -815,8 +1202,12 @@ class SplitPolicyRegistry:
 
     def to_dict(self) -> dict[str, Any]:
         core = {
-            "schema": "umcd.split_registry.v2",
-            "schema_version": 2,
+            "schema": (
+                "umcd.split_registry.v2"
+                if self.spatiotemporal_audit is None
+                else "umcd.split_registry.v3"
+            ),
+            "schema_version": 2 if self.spatiotemporal_audit is None else 3,
             "policy": self.policy.to_dict(),
             "subjects": {
                 subject_id: {
@@ -839,6 +1230,8 @@ class SplitPolicyRegistry:
             },
             "report": self.report(),
         }
+        if self.spatiotemporal_audit is not None:
+            core["spatiotemporal_audit"] = dict(self.spatiotemporal_audit)
         return {**core, "registry_sha256": hashlib.sha256(_canonical_json(core)).hexdigest()}
 
 
@@ -890,6 +1283,7 @@ def bind_split_children(
         component_to_split=registry.component_to_split,
         subjects=registry.subjects,
         child_bindings=children,
+        spatiotemporal_audit=registry.spatiotemporal_audit,
     )
 
 
@@ -934,11 +1328,248 @@ def audit_split_policy_registry(
         raise ValueError("audit bindings do not cover exactly the frozen child set")
 
 
+def audit_split_policy_parent_roster(
+    registry: SplitPolicyRegistry, subjects: Sequence[SplitSubject]
+) -> dict[str, Any]:
+    """Verify exact frozen parent coverage without asserting child-data coverage."""
+    if not isinstance(registry, SplitPolicyRegistry):
+        raise TypeError("registry must be a SplitPolicyRegistry")
+    observed: dict[str, SplitSubject] = {}
+    for subject in subjects:
+        if not isinstance(subject, SplitSubject):
+            raise TypeError("subjects must contain SplitSubject values")
+        if subject.subject_id in observed:
+            raise ValueError(f"duplicate split subject in audit: {subject.subject_id}")
+        frozen = registry.subjects.get(subject.subject_id)
+        if frozen is None:
+            raise ValueError(f"subject is absent from frozen split registry: {subject.subject_id}")
+        if subject != frozen:
+            raise ValueError(f"frozen split lineage changed for subject {subject.subject_id}")
+        observed[subject.subject_id] = subject
+    if set(observed) != set(registry.subjects):
+        raise ValueError("audit subjects do not cover exactly the frozen parent set")
+    report: dict[str, Any] = {
+        "schema": "umcd.split_parent_roster_audit.v1",
+        "status": "PASS_INPUT_SCOPED",
+        "registry_sha256": registry.to_dict()["registry_sha256"],
+        "parent_count": len(observed),
+        "parent_ids_sha256": hashlib.sha256(_canonical_json(sorted(observed))).hexdigest(),
+    }
+    report["audit_sha256"] = hashlib.sha256(_canonical_json(report)).hexdigest()
+    return report
+
+
+def audit_split_policy_child_roster(
+    registry: SplitPolicyRegistry,
+    child_bindings: Sequence[SplitChildBinding],
+    *,
+    child_kind: str,
+) -> dict[str, Any]:
+    """Verify exact frozen child coverage for one artifact kind.
+
+    This permits auditing a saved derived view against only the corresponding
+    child class while the registry also contains other descendant kinds. The
+    supplied bindings must exactly match every frozen child of ``child_kind``.
+    """
+
+    if not isinstance(registry, SplitPolicyRegistry):
+        raise TypeError("registry must be a SplitPolicyRegistry")
+    child_kind = _require_canonical_identity(child_kind, "child_kind")
+    expected = {
+        child_id: binding
+        for child_id, binding in registry.child_bindings.items()
+        if binding.child_kind == child_kind
+    }
+    if not expected:
+        raise ValueError(f"registry has no frozen children of kind {child_kind!r}")
+
+    observed: dict[str, SplitChildBinding] = {}
+    for binding in child_bindings:
+        if not isinstance(binding, SplitChildBinding):
+            raise TypeError("child_bindings must contain SplitChildBinding values")
+        if binding.child_kind != child_kind:
+            raise ValueError(
+                f"child roster contains kind {binding.child_kind!r}; expected {child_kind!r}"
+            )
+        if binding.child_id in observed:
+            raise ValueError(f"duplicate child binding in audit: {binding.child_id}")
+        frozen = expected.get(binding.child_id)
+        if frozen is None:
+            raise ValueError(f"child is absent from frozen {child_kind!r} roster: {binding.child_id}")
+        if binding != frozen:
+            raise ValueError(f"frozen parent binding changed for child {binding.child_id}")
+        observed[binding.child_id] = binding
+    if set(observed) != set(expected):
+        raise ValueError(f"audit bindings do not cover exactly the frozen {child_kind!r} roster")
+
+    report: dict[str, Any] = {
+        "schema": "umcd.split_child_roster_audit.v1",
+        "status": "PASS_INPUT_SCOPED",
+        "registry_sha256": registry.to_dict()["registry_sha256"],
+        "child_kind": child_kind,
+        "child_count": len(observed),
+        "child_ids_sha256": hashlib.sha256(_canonical_json(sorted(observed))).hexdigest(),
+        "bindings_sha256": hashlib.sha256(
+            _canonical_json(
+                [observed[child_id].to_dict() for child_id in sorted(observed)]
+            )
+        ).hexdigest(),
+    }
+    report["audit_sha256"] = hashlib.sha256(_canonical_json(report)).hexdigest()
+    return report
+
+
+def audit_whole_scene_holdout(
+    registry: SplitPolicyRegistry,
+    scene_subjects: Mapping[str, Sequence[str]],
+    *,
+    expected_scene_ids: Sequence[str],
+    expected_subject_ids: Sequence[str],
+) -> dict[str, Any]:
+    """Verify complete input-scoped scene membership stays within one split.
+
+    The expected scene and parent rosters must come from a separately reviewed
+    corpus inventory. This function verifies exact coverage and the frozen
+    registry's assignments; it cannot establish that the supplied inventory
+    represents the complete or legally/physically authoritative corpus.
+    A parent may belong to multiple scenes, in which case the connected
+    relation graph must place those scenes in the same split as well.
+    """
+    if not isinstance(registry, SplitPolicyRegistry):
+        raise TypeError("registry must be a SplitPolicyRegistry")
+    if not isinstance(scene_subjects, Mapping):
+        raise TypeError("scene_subjects must be a mapping of scene IDs to parent IDs")
+
+    def validate_roster(values: Sequence[str], label: str) -> tuple[str, ...]:
+        if isinstance(values, (str, bytes)):
+            raise TypeError(f"{label} must be a sequence of IDs")
+        roster = tuple(values)
+        for item in roster:
+            _require_canonical_identity(item, f"{label} entry")
+        if len(set(roster)) != len(roster):
+            raise ValueError(f"{label} must not contain duplicate IDs")
+        return roster
+
+    expected_scenes = validate_roster(expected_scene_ids, "expected_scene_ids")
+    expected_subjects = validate_roster(expected_subject_ids, "expected_subject_ids")
+    if not expected_scenes or not expected_subjects:
+        raise ValueError("expected scene and parent rosters must be non-empty")
+    normalized_mapping: dict[str, tuple[str, ...]] = {}
+    for scene_id, parent_ids in scene_subjects.items():
+        normalized_scene_id = _require_canonical_identity(scene_id, "scene_subjects key")
+        if normalized_scene_id in normalized_mapping:
+            raise ValueError(f"duplicate scene ID: {normalized_scene_id}")
+        normalized_mapping[normalized_scene_id] = validate_roster(
+            parent_ids, f"scene_subjects[{normalized_scene_id!r}]"
+        )
+        if not normalized_mapping[normalized_scene_id]:
+            raise ValueError(f"scene has no parent subjects: {normalized_scene_id}")
+    if set(normalized_mapping) != set(expected_scenes):
+        raise ValueError("scene membership does not match expected scene inventory")
+    observed_subjects: set[str] = set()
+    scene_component_ids: dict[str, str] = {}
+    scene_splits: dict[str, str] = {}
+    membership_count = 0
+    for scene_id in sorted(expected_scenes):
+        parent_ids = normalized_mapping[scene_id]
+        membership_count += len(parent_ids)
+        observed_subjects.update(parent_ids)
+        component_ids: set[str] = set()
+        splits: set[str] = set()
+        required_relation = LeakageRelation(LeakageNamespace.SCENE_REALIZATION, scene_id)
+        for parent_id in parent_ids:
+            subject = registry.subjects.get(parent_id)
+            if subject is None:
+                raise ValueError(f"scene parent is absent from frozen registry: {parent_id}")
+            if required_relation not in subject.relations:
+                raise ValueError(f"scene parent lacks its scene-realization relation: {parent_id}")
+            component_ids.add(registry.subject_to_component[parent_id])
+            splits.add(registry.split_for_parent(parent_id))
+        if len(component_ids) != 1 or len(splits) != 1:
+            raise ValueError(f"whole-scene holdout is violated for scene: {scene_id}")
+        scene_component_ids[scene_id] = next(iter(component_ids))
+        scene_splits[scene_id] = next(iter(splits))
+
+    if observed_subjects != set(expected_subjects):
+        raise ValueError("scene memberships do not cover exactly the expected parent roster")
+    registered_scene_subjects = {
+        subject_id
+        for subject_id, subject in registry.subjects.items()
+        if any(
+            relation.namespace is LeakageNamespace.SCENE_REALIZATION
+            for relation in subject.relations
+        )
+    }
+    omitted_scene_subjects = registered_scene_subjects - observed_subjects
+    if omitted_scene_subjects:
+        raise ValueError(
+            "scene memberships omit frozen scene-lineage parents: "
+            + ", ".join(sorted(omitted_scene_subjects))
+        )
+    registered_scene_ids = {
+        relation.identity
+        for subject in registry.subjects.values()
+        for relation in subject.relations
+        if relation.namespace is LeakageNamespace.SCENE_REALIZATION
+    }
+    if registered_scene_ids != set(expected_scenes):
+        raise ValueError(
+            "expected scene inventory does not cover exactly the frozen "
+            "scene-realization identities"
+        )
+    report = {
+        "status": "PASS_INPUT_SCOPED",
+        "policy_sha256": registry.policy.to_dict()["policy_sha256"],
+        "registry_sha256": registry.to_dict()["registry_sha256"],
+        "expected_scene_ids_sha256": hashlib.sha256(
+            _canonical_json(sorted(expected_scenes))
+        ).hexdigest(),
+        "expected_subject_ids_sha256": hashlib.sha256(
+            _canonical_json(sorted(expected_subjects))
+        ).hexdigest(),
+        "scene_membership_sha256": hashlib.sha256(
+            _canonical_json(
+                {
+                    scene_id: sorted(parent_ids)
+                    for scene_id, parent_ids in sorted(normalized_mapping.items())
+                }
+            )
+        ).hexdigest(),
+        "scene_count": len(expected_scenes),
+        "parent_subject_count": len(expected_subjects),
+        "scene_membership_count": membership_count,
+        "scene_component_ids": dict(sorted(scene_component_ids.items())),
+        "scene_splits": dict(sorted(scene_splits.items())),
+    }
+    report["audit_sha256"] = hashlib.sha256(_canonical_json(report)).hexdigest()
+    return report
+
+
 def freeze_split_policy_registry(path: str | Path, registry: SplitPolicyRegistry) -> str:
     """Atomically create a canonical immutable registry lock."""
+    if not isinstance(registry, SplitPolicyRegistry):
+        raise TypeError("registry must be a SplitPolicyRegistry")
+    has_spatiotemporal_relations = any(
+        relation.namespace
+        in {
+            LeakageNamespace.SPATIAL_BUFFER,
+            LeakageNamespace.OVERLAPPING_TIME_WINDOW,
+        }
+        for subject in registry.subjects.values()
+        for relation in subject.relations
+    )
+    if has_spatiotemporal_relations and registry.spatiotemporal_audit is None:
+        raise ValueError(
+            "cannot freeze spatial/time leakage relations without a bound footprint audit"
+        )
     destination = Path(path)
-    destination.parent.mkdir(parents=True, exist_ok=True)
     encoded = (json.dumps(registry.to_dict(), indent=2, sort_keys=True) + "\n").encode()
+    if len(encoded) > MAX_SPLIT_POLICY_LOCK_BYTES:
+        raise ValueError(
+            "split-policy lock exceeds its "
+            f"{MAX_SPLIT_POLICY_LOCK_BYTES}-byte reader limit"
+        )
+    destination.parent.mkdir(parents=True, exist_ok=True)
     if destination.exists():
         if _read_immutable_lock_bytes(destination) != encoded:
             raise FileExistsError(f"refusing to modify existing split-policy lock: {destination}")
@@ -970,13 +1601,37 @@ def freeze_split_policy_registry(path: str | Path, registry: SplitPolicyRegistry
 
 
 def read_split_policy_registry(path: str | Path) -> SplitPolicyRegistry:
-    """Read a v2 lock and independently reconstruct its frozen assignment."""
-    payload = json.loads(
-        _read_immutable_lock_bytes(Path(path)).decode("utf-8"),
-        object_pairs_hook=_reject_duplicate_json_keys,
-    )
-    if payload.get("schema") != "umcd.split_registry.v2" or payload.get("schema_version") != 2:
+    """Read a split lock and independently reconstruct its frozen assignment."""
+    try:
+        payload = json.loads(
+            _read_immutable_lock_bytes(Path(path)).decode("utf-8"),
+            object_pairs_hook=_reject_duplicate_json_keys,
+        )
+    except (UnicodeDecodeError, json.JSONDecodeError, RecursionError) as exc:
+        raise ValueError("UMCD split registry is not valid bounded UTF-8 JSON") from exc
+    if not isinstance(payload, dict):
+        raise ValueError("UMCD split registry root must be a JSON object")
+    schema = payload.get("schema")
+    schema_version = payload.get("schema_version")
+    if isinstance(schema_version, bool) or not isinstance(schema_version, int):
+        raise ValueError("UMCD split registry schema_version must be an integer")
+    if (schema, schema_version) == ("umcd.split_registry.v2", 2):
+        expected_fields = _SPLIT_REGISTRY_V2_FIELDS
+    elif (schema, schema_version) == ("umcd.split_registry.v3", 3):
+        expected_fields = _SPLIT_REGISTRY_V3_FIELDS
+    else:
         raise ValueError("unsupported UMCD split registry schema")
+    if set(payload) != expected_fields:
+        missing = sorted(expected_fields - set(payload))
+        extra = sorted(set(payload) - expected_fields)
+        raise ValueError(
+            f"UMCD split registry field roster is invalid; missing={missing}, extra={extra}"
+        )
+    for field_name in ("policy", "subjects", "components", "children", "report"):
+        if not isinstance(payload[field_name], dict):
+            raise ValueError(f"UMCD split registry {field_name} must be a JSON object")
+    if schema_version == 3 and not isinstance(payload["spatiotemporal_audit"], dict):
+        raise ValueError("UMCD split registry spatiotemporal_audit must be a JSON object")
     core = {key: value for key, value in payload.items() if key != "registry_sha256"}
     if hashlib.sha256(_canonical_json(core)).hexdigest() != payload.get("registry_sha256"):
         raise ValueError("UMCD split registry hash is invalid")
@@ -1012,7 +1667,57 @@ def read_split_policy_registry(path: str | Path) -> SplitPolicyRegistry:
         component_to_split,
         subjects,
         children,
+        payload.get("spatiotemporal_audit"),
     )
     if registry.to_dict() != payload:
         raise ValueError("UMCD split registry representation is not canonical")
+    return registry
+
+
+def verify_signed_split_policy_registry_attestation(
+    path: str | Path,
+    signature_path: str | Path,
+    *,
+    trusted_allowed_signers_path: str | Path,
+    signer_id: str,
+) -> tuple[SplitPolicyRegistry, VerifiedOpenSSHArtifact]:
+    """Verify a split lock and return its exact artifact/trust attestation.
+
+    The lock, detached signature, and externally governed OpenSSH
+    ``allowed_signers`` trust file are snapshotted as single-link regular files
+    before verification. The trusted keyring must be supplied independently
+    of the release bundle. Signatures use the ``umcd-split-policy-v2`` SSH
+    namespace, separating them from signatures for other purposes.
+    """
+    signer_id = _require_canonical_identity(signer_id, "signer_id")
+    if any(character in signer_id for character in ("\n", "\r", "\x00")):
+        raise ValueError("signer_id must be a single-line principal")
+
+    verified = verify_openssh_signed_artifact(
+        path,
+        signature_path,
+        trusted_allowed_signers_path=trusted_allowed_signers_path,
+        signer_id=signer_id,
+        namespace=SPLIT_POLICY_SIGNATURE_NAMESPACE,
+    )
+    with tempfile.TemporaryDirectory(prefix="umcd-split-policy-verify-") as temporary_directory:
+        lock_snapshot = Path(temporary_directory) / "split-registry.json"
+        lock_snapshot.write_bytes(verified.payload)
+        return read_split_policy_registry(lock_snapshot), verified
+
+
+def verify_signed_split_policy_registry(
+    path: str | Path,
+    signature_path: str | Path,
+    *,
+    trusted_allowed_signers_path: str | Path,
+    signer_id: str,
+) -> SplitPolicyRegistry:
+    """Verify the detached signature and return the frozen split registry."""
+    registry, _ = verify_signed_split_policy_registry_attestation(
+        path,
+        signature_path,
+        trusted_allowed_signers_path=trusted_allowed_signers_path,
+        signer_id=signer_id,
+    )
     return registry

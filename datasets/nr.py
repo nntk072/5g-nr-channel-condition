@@ -11,7 +11,8 @@ from typing import Any, Mapping
 import numpy as np
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
-from .targets import TargetDefinition
+from .model_input_audit import audit_model_input_payload
+from .targets import TargetDefinition, TargetValidity, validate_canonical_target_contract
 
 
 def _freeze_mapping(values: Mapping[str, Any]) -> Mapping[str, Any]:
@@ -127,14 +128,16 @@ class NRObservation:
 
     def model_inputs(self) -> NRModelInputs:
         """Return the inference payload without IDs, target values, or provenance."""
-        return NRModelInputs(
-            received_grid=self.received_grid,
-            received_grid_mask=self.received_grid_mask,
-            h_hat=self.channel_estimate.h_hat,
-            error_variance=self.channel_estimate.error_variance,
-            pilot_mask=self.channel_estimate.pilot_mask,
-            fft_bin_indices=self.fft_bin_indices,
-            receiver_config=self.receiver_config,
+        return audit_model_input_payload(
+            NRModelInputs(
+                received_grid=self.received_grid,
+                received_grid_mask=self.received_grid_mask,
+                h_hat=self.channel_estimate.h_hat,
+                error_variance=self.channel_estimate.error_variance,
+                pilot_mask=self.channel_estimate.pilot_mask,
+                fft_bin_indices=self.fft_bin_indices,
+                receiver_config=self.receiver_config,
+            )
         )
 
 
@@ -170,12 +173,37 @@ class NRChannelRecord:
     target_masks: Mapping[str, Any]
     provenance: Mapping[str, Any]
     target_definitions: Mapping[str, TargetDefinition] = field(default_factory=dict)
+    target_reason_codes: Mapping[str, tuple[TargetValidity, ...]] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if not self.targets:
             raise ValueError("at least one explicitly named target is required")
+        torch_module: Any = None
+        try:
+            torch_module = import_module("torch")
+        except ImportError:
+            pass
+        for name, target in self.targets.items():
+            if not isinstance(name, str) or not name.strip():
+                raise ValueError("target names must be non-empty strings")
+            if torch_module is not None and torch_module.is_tensor(target):
+                if target.numel() == 0:
+                    raise ValueError(f"target {name!r} must be non-empty")
+                finite = bool(torch_module.isfinite(target).all().item())
+            else:
+                array = np.asarray(target)
+                if array.dtype.kind not in "biufc":
+                    raise TypeError(f"target {name!r} must use a numeric or boolean dtype")
+                if array.size == 0:
+                    raise ValueError(f"target {name!r} must be non-empty")
+                finite = bool(np.isfinite(array).all())
+            if not finite:
+                raise ValueError(f"target {name!r} must contain only finite values")
         if not set(self.target_masks).issubset(self.targets):
             raise ValueError("target masks must correspond to declared targets")
+        if not set(self.target_reason_codes).issubset(self.targets):
+            raise ValueError("target reason codes must correspond to declared targets")
+        normalized_reasons: dict[str, tuple[TargetValidity, ...]] = {}
         for name, mask in self.target_masks.items():
             mask_dtype = getattr(mask, "dtype", None)
             if mask_dtype is None:
@@ -194,6 +222,65 @@ class NRChannelRecord:
                 ) from exc
             if broadcast_shape != target_shape:
                 raise ValueError(f"target mask {name!r} is not broadcastable to its target")
+            if torch_module is not None and torch_module.is_tensor(target):
+                expanded_mask = torch_module.broadcast_to(
+                    torch_module.as_tensor(mask, dtype=torch_module.bool, device=target.device),
+                    target_shape,
+                )
+                unavailable = target.masked_select(torch_module.logical_not(expanded_mask))
+                if unavailable.numel() and bool(torch_module.any(unavailable != 0).item()):
+                    raise ValueError(
+                        f"masked target elements for {name!r} must use zero storage"
+                    )
+            else:
+                target_array = np.asarray(target)
+                mask_array = (
+                    mask.detach().cpu().numpy()
+                    if torch_module is not None and torch_module.is_tensor(mask)
+                    else np.asarray(mask)
+                )
+                expanded_mask = np.broadcast_to(
+                    mask_array.astype(bool, copy=False), target_shape
+                )
+                if np.any(target_array[~expanded_mask] != 0):
+                    raise ValueError(f"masked target elements for {name!r} must use zero storage")
+        for name, target in self.targets.items():
+            target_shape = tuple(target.shape) if hasattr(target, "shape") else np.shape(target)
+            raw_mask = self.target_masks.get(name)
+            if raw_mask is None:
+                expanded_mask = np.ones(target_shape, dtype=bool)
+            else:
+                if torch_module is not None and torch_module.is_tensor(raw_mask):
+                    mask_array = raw_mask.detach().cpu().numpy()
+                else:
+                    mask_array = np.asarray(raw_mask)
+                expanded_mask = np.broadcast_to(
+                    mask_array.astype(bool, copy=False), target_shape
+                )
+            flat_mask = expanded_mask.reshape(-1)
+            if name in self.target_reason_codes:
+                reasons = tuple(self.target_reason_codes[name])
+                if len(reasons) != flat_mask.size or any(
+                    not isinstance(reason, TargetValidity) for reason in reasons
+                ):
+                    raise ValueError(
+                        f"target reason codes for {name!r} must contain one TargetValidity "
+                        "per target element"
+                    )
+            else:
+                if not bool(np.all(flat_mask)):
+                    raise ValueError(
+                        f"target reason codes are required for unavailable elements of {name!r}"
+                    )
+                reasons = (TargetValidity.VALID,) * flat_mask.size
+            if any(
+                selected != (reason is TargetValidity.VALID)
+                for selected, reason in zip(flat_mask, reasons, strict=True)
+            ):
+                raise ValueError(
+                    f"target masks and reason codes disagree for target {name!r}"
+                )
+            normalized_reasons[name] = reasons
         if not self.provenance:
             raise ValueError("provenance must not be empty")
         definitions = dict(self.target_definitions)
@@ -205,6 +292,52 @@ class NRChannelRecord:
         object.__setattr__(self, "target_masks", _freeze_mapping(self.target_masks))
         object.__setattr__(self, "provenance", _freeze_mapping(self.provenance))
         object.__setattr__(self, "target_definitions", _freeze_mapping(definitions))
+        object.__setattr__(self, "target_reason_codes", _freeze_mapping(normalized_reasons))
+
+    def require_versioned_target_definitions(self) -> None:
+        """Require a digest-verified semantic definition for every persisted target."""
+        if set(self.target_definitions) != set(self.targets):
+            raise ValueError(
+                "canonical NR records require one target definition for every target"
+            )
+        for name, definition in self.target_definitions.items():
+            try:
+                definition.require_versioned()
+            except ValueError as error:
+                raise ValueError(
+                    f"canonical NR target definition for {name!r} is not versioned: {error}"
+                ) from error
+            validate_canonical_target_contract(
+                self.targets[name],
+                definition,
+                name=name,
+                valid_mask=self.target_masks.get(name),
+            )
+            target_value = self.targets[name]
+            target_shape_attribute = getattr(target_value, "shape", None)
+            target_shape = (
+                tuple(target_shape_attribute)
+                if target_shape_attribute is not None
+                else tuple(np.shape(target_value))
+            )
+            version = definition.definition_version
+            estimate_shape = tuple(self.observation.channel_estimate.h_hat.shape)
+            effective_subcarrier_count = len(self.observation.fft_bin_indices)
+            expected_shape: tuple[int, ...] | None = None
+            if version in {
+                "umcd.standardized.effective-cfr.v1",
+                "umcd.tdl-pusch.effective-cfr.v1",
+            }:
+                expected_shape = estimate_shape
+            elif version == "umcd.rt-trajectory.absolute-cfr.v1":
+                expected_shape = (effective_subcarrier_count,)
+            elif version == "umcd.rt-trajectory.symbol-cfr.v1":
+                expected_shape = (estimate_shape[5], effective_subcarrier_count)
+            if expected_shape is not None and target_shape != expected_shape:
+                raise ValueError(
+                    f"canonical NR target {name!r} has shape {target_shape}, "
+                    f"expected {expected_shape} from its observation and FFT mapping"
+                )
 
 
 @dataclass(frozen=True, slots=True)
@@ -216,8 +349,10 @@ class NRTrajectory:
     records: tuple[NRChannelRecord, ...]
 
     def __post_init__(self) -> None:
-        if not self.trajectory_id.strip():
-            raise ValueError("trajectory_id must be non-empty")
+        if not isinstance(self.trajectory_id, str):
+            raise TypeError("trajectory_id must be a string")
+        if not self.trajectory_id or self.trajectory_id.strip() != self.trajectory_id:
+            raise ValueError("trajectory_id must be a non-empty canonical string")
         records = tuple(self.records)
         times = tuple(self.sample_times_s)
         if not records or len(times) != len(records):
@@ -272,3 +407,171 @@ class NRTrajectory:
         values = tuple(record.targets.get(name) for record in self.records)
         masks = tuple(record.target_masks.get(name) for record in self.records)
         return values, masks
+
+    def target_reason_series(
+        self, name: str
+    ) -> tuple[tuple[TargetValidity, ...] | None, ...]:
+        """Return per-record element reasons, preserving missing target records as None."""
+        if name not in self.target_names:
+            raise KeyError(f"unknown trajectory target: {name}")
+        return tuple(record.target_reason_codes.get(name) for record in self.records)
+
+    def target_support_counts(self, name: str) -> dict[str, int]:
+        """Count target presence and mask-selected elements across this trajectory.
+
+        Missing per-record masks follow the existing record contract and mean
+        all elements are selected; ``implicit_all_valid_mask_record_count``
+        makes those implicit selections visible in the report.
+        """
+        if name not in self.target_names:
+            raise KeyError(f"unknown trajectory target: {name}")
+        torch_module: Any = None
+        try:
+            torch_module = import_module("torch")
+        except ImportError:
+            pass
+
+        present_record_count = 0
+        missing_record_count = 0
+        element_count = 0
+        selected_element_count = 0
+        implicit_all_valid_mask_record_count = 0
+        for record in self.records:
+            target = record.targets.get(name)
+            if target is None:
+                missing_record_count += 1
+                continue
+            present_record_count += 1
+            raw_shape = getattr(target, "shape", None)
+            target_shape = tuple(raw_shape) if raw_shape is not None else tuple(np.shape(target))
+            target_size = math.prod(target_shape) if target_shape else 1
+            element_count += target_size
+            mask = record.target_masks.get(name)
+            if mask is None:
+                selected_element_count += target_size
+                implicit_all_valid_mask_record_count += 1
+            elif torch_module is not None and torch_module.is_tensor(mask):
+                expanded = torch_module.broadcast_to(mask, target_shape)
+                selected_element_count += int(torch_module.count_nonzero(expanded).item())
+            else:
+                expanded = np.broadcast_to(np.asarray(mask), target_shape)
+                selected_element_count += int(np.count_nonzero(expanded))
+
+        return {
+            "record_count": len(self.records),
+            "present_record_count": present_record_count,
+            "missing_record_count": missing_record_count,
+            "element_count": element_count,
+            "selected_element_count": selected_element_count,
+            "masked_element_count": element_count - selected_element_count,
+            "implicit_all_valid_mask_record_count": implicit_all_valid_mask_record_count,
+        }
+
+
+def audit_nr_trajectory_target_support(
+    assignments: tuple[tuple[str, str, NRTrajectory], ...],
+    expected_cells: tuple[tuple[str, str, str], ...],
+) -> dict[str, Any]:
+    """Aggregate NR target support by an explicit split/family/target roster.
+
+    Each assignment is ``(split_id, source_family_id, trajectory)``. Every
+    trajectory is an indivisible split unit; counts aggregate its records and
+    target masks without treating records as independent split units. The
+    expected-cell roster is mandatory so targets absent throughout a family
+    still appear with zero support instead of disappearing from the report.
+    """
+    if not expected_cells:
+        raise ValueError("expected_cells must declare split/family/target coverage")
+
+    normalized_cells: set[tuple[str, str, str]] = set()
+    targets_by_assignment: dict[tuple[str, str], set[str]] = {}
+    for cell in expected_cells:
+        if not isinstance(cell, tuple) or len(cell) != 3:
+            raise ValueError("each expected cell must be a (split, family, target) tuple")
+        split_id, family_id, target_id = cell
+        if any(not isinstance(value, str) or not value.strip() for value in cell):
+            raise ValueError("expected split, family, and target IDs must be nonempty strings")
+        normalized = (split_id.strip(), family_id.strip(), target_id.strip())
+        if normalized in normalized_cells:
+            raise ValueError(f"duplicate expected NR target cell: {normalized!r}")
+        normalized_cells.add(normalized)
+        targets_by_assignment.setdefault(normalized[:2], set()).add(normalized[2])
+
+    assigned_trajectories: set[str] = set()
+    assigned_samples: set[str] = set()
+    aggregate: dict[tuple[str, str, str], dict[str, int]] = {
+        cell: {
+            "trajectory_count": 0,
+            "record_count": 0,
+            "present_record_count": 0,
+            "missing_record_count": 0,
+            "element_count": 0,
+            "selected_element_count": 0,
+            "masked_element_count": 0,
+            "implicit_all_valid_mask_record_count": 0,
+        }
+        for cell in normalized_cells
+    }
+    for assignment in assignments:
+        if not isinstance(assignment, tuple) or len(assignment) != 3:
+            raise ValueError("each assignment must be a (split, family, trajectory) tuple")
+        split_id, family_id, trajectory = assignment
+        if any(not isinstance(value, str) or not value.strip() for value in (split_id, family_id)):
+            raise ValueError("assignment split and family IDs must be nonempty strings")
+        if not isinstance(trajectory, NRTrajectory):
+            raise TypeError("assignment trajectory must be an NRTrajectory")
+        trajectory_id = trajectory.trajectory_id
+        if trajectory_id in assigned_trajectories:
+            raise ValueError(f"duplicate trajectory assignment: {trajectory_id!r}")
+        assigned_trajectories.add(trajectory_id)
+        duplicate_samples = assigned_samples.intersection(trajectory.sample_ids)
+        if duplicate_samples:
+            raise ValueError(
+                "NR sample IDs may not be counted more than once across trajectories: "
+                f"{sorted(duplicate_samples)!r}"
+            )
+        assigned_samples.update(trajectory.sample_ids)
+        assignment_key = (split_id.strip(), family_id.strip())
+        expected_targets = targets_by_assignment.get(assignment_key)
+        if expected_targets is None:
+            raise ValueError(f"trajectory {trajectory_id!r} has no expected coverage cells")
+        unexpected_targets = set(trajectory.target_names) - expected_targets
+        if unexpected_targets:
+            raise ValueError(
+                f"trajectory {trajectory_id!r} contains undeclared targets "
+                f"{sorted(unexpected_targets)!r}"
+            )
+
+        for target_id in expected_targets:
+            cell = (assignment_key[0], assignment_key[1], target_id)
+            counts = aggregate[cell]
+            counts["trajectory_count"] += 1
+            counts["record_count"] += len(trajectory.records)
+            if target_id in trajectory.target_names:
+                support = trajectory.target_support_counts(target_id)
+                for key in (
+                    "present_record_count",
+                    "missing_record_count",
+                    "element_count",
+                    "selected_element_count",
+                    "masked_element_count",
+                    "implicit_all_valid_mask_record_count",
+                ):
+                    counts[key] += support[key]
+            else:
+                counts["missing_record_count"] += len(trajectory.records)
+
+    return {
+        "schema": "umcd.nr_target_support_audit.v1",
+        "status": "INPUT_SCOPED_NOT_RELEASE_QUALIFIED",
+        "trajectory_count": len(assigned_trajectories),
+        "cells": [
+            {
+                "split_id": split_id,
+                "family_id": family_id,
+                "target_id": target_id,
+                **aggregate[(split_id, family_id, target_id)],
+            }
+            for split_id, family_id, target_id in sorted(normalized_cells)
+        ],
+    }

@@ -6,16 +6,19 @@ from .analytical import (
     AnalyticalPathOracle,
     generate_analytical_multipath,
 )
-from .channel import ChannelDataset
+from .channel import ChannelDataset, ChannelModelInputs
 from .channel_view import ChannelDelayReference, ChannelPowerScale, PhysicalChannelView
+from .counterfactual import DirectPathAblation, remove_direct_path_component
 from .episode_store import (
     EpisodeBundle,
     StoredEpisodeBundle,
+    iter_episode_bundle_shards,
     read_episode_bundle,
     read_frequency_model_inputs,
     read_receiver_model_inputs,
     write_episode_bundle,
 )
+from .model_input_audit import audit_model_input_payload
 from .network import (
     AntennaArraySpec,
     DirectedLink,
@@ -33,6 +36,7 @@ from .nr import (
     NRObservation,
     NRTrajectory,
     TargetDefinition,
+    audit_nr_trajectory_target_support,
 )
 from .nr_store import (
     NRStoredRecord,
@@ -50,8 +54,28 @@ from .observations import (
 )
 from .path_oracle import PathOracleTable, PathSolveStatus
 from .provenance import UMCDRunProvenance
-from .public_release import export_public_release, validate_public_release_manifest
+from .public_release import (
+    PUBLIC_RELEASE_SIGNATURE_NAMESPACE,
+    export_public_release,
+    validate_public_release_manifest,
+)
+from .scenario_gbsm import (
+    ScenarioGBSMRecord,
+    ScenarioGBSMRun,
+    StoredScenarioGBSMRun,
+    read_scenario_gbsm_run,
+    scenario_gbsm_episode_bundle,
+    scenario_gbsm_run_from_channel,
+    scenario_gbsm_run_to_episode_bundles,
+    write_scenario_gbsm_run,
+)
+from .split_lineage import (
+    derive_channel_dataset_split_evidence,
+    derive_channel_dataset_split_subjects,
+    make_channel_dataset_split_registry,
+)
 from .split_policy import (
+    SPLIT_POLICY_SIGNATURE_NAMESPACE,
     LeakageNamespace,
     LeakageRelation,
     SplitChildBinding,
@@ -59,13 +83,24 @@ from .split_policy import (
     SplitPolicy,
     SplitPolicyRegistry,
     SplitSubject,
+    VerifiedOpenSSHArtifact,
+    audit_spatiotemporal_leakage_relations,
+    audit_split_policy_child_roster,
+    audit_split_policy_parent_roster,
     audit_split_policy_registry,
+    audit_whole_scene_holdout,
+    bind_spatiotemporal_audit_to_registry,
     bind_split_children,
+    derive_split_components,
     freeze_split_policy_registry,
     make_split_policy_registry,
     network_episode_subject,
     read_split_policy_registry,
     standardized_draw_subject,
+    verify_openssh_signed_artifact,
+    verify_registry_spatiotemporal_audit,
+    verify_signed_split_policy_registry,
+    verify_signed_split_policy_registry_attestation,
 )
 from .splits import (
     EpisodeSplitRegistry,
@@ -91,11 +126,22 @@ from .standardized import (
     write_standardized_learning_run,
     write_standardized_run,
 )
+from .standardized_specs import (
+    STANDARDIZED_PROFILE_APPLICABILITY,
+    StandardizedProfileApplicability,
+    standardized_generator_capability_report,
+    standardized_profile_applicability,
+    standardized_profile_applicability_report,
+)
 from .synthetic import debug_multipath
 from .targets import TargetValidity, TargetValue, definition_digest
 
 __all__ = [
     "ChannelDataset",
+    "DirectPathAblation",
+    "remove_direct_path_component",
+    "ChannelModelInputs",
+    "audit_model_input_payload",
     "ChannelDelayReference",
     "ChannelPowerScale",
     "PhysicalChannelView",
@@ -103,6 +149,7 @@ __all__ = [
     "LinkedNRObservation",
     "StoredEpisodeBundle",
     "export_public_release",
+    "PUBLIC_RELEASE_SIGNATURE_NAMESPACE",
     "validate_public_release_manifest",
     "AntennaArraySpec",
     "DirectedLink",
@@ -117,8 +164,13 @@ __all__ = [
     "NodeRole",
     "PathOracleTable",
     "PathSolveStatus",
+    "ScenarioGBSMRecord",
+    "ScenarioGBSMRun",
+    "StoredScenarioGBSMRun",
     "StandardizedChannelRecord",
     "StandardizedChannelRun",
+    "StandardizedProfileApplicability",
+    "STANDARDIZED_PROFILE_APPLICABILITY",
     "StandardizedFamily",
     "StandardizedLearningExample",
     "StandardizedLearningRun",
@@ -132,6 +184,7 @@ __all__ = [
     "SplitPolicy",
     "SplitPolicyRegistry",
     "SplitSubject",
+    "VerifiedOpenSSHArtifact",
     "UMCDRunProvenance",
     "AnalyticalMultipathSample",
     "AnalyticalModelInputs",
@@ -142,15 +195,26 @@ __all__ = [
     "NRStoredRecord",
     "NRTrajectory",
     "TargetDefinition",
+    "audit_nr_trajectory_target_support",
     "TargetValidity",
     "TargetValue",
     "definition_digest",
     "read_episode_bundle",
+    "iter_episode_bundle_shards",
     "read_frequency_model_inputs",
     "read_receiver_model_inputs",
     "audit_episode_split_registry",
     "audit_split_policy_registry",
+    "audit_split_policy_child_roster",
+    "audit_split_policy_parent_roster",
+    "audit_spatiotemporal_leakage_relations",
+    "bind_spatiotemporal_audit_to_registry",
+    "audit_whole_scene_holdout",
+    "derive_channel_dataset_split_subjects",
+    "derive_channel_dataset_split_evidence",
+    "make_channel_dataset_split_registry",
     "bind_split_children",
+    "derive_split_components",
     "freeze_episode_split_registry",
     "freeze_split_policy_registry",
     "make_episode_split_registry",
@@ -158,6 +222,11 @@ __all__ = [
     "network_episode_subject",
     "read_episode_split_registry",
     "read_split_policy_registry",
+    "SPLIT_POLICY_SIGNATURE_NAMESPACE",
+    "verify_signed_split_policy_registry",
+    "verify_signed_split_policy_registry_attestation",
+    "verify_openssh_signed_artifact",
+    "verify_registry_spatiotemporal_audit",
     "write_episode_bundle",
     "NRStoredTrajectory",
     "debug_multipath",
@@ -167,13 +236,21 @@ __all__ = [
     "read_nr_trajectory",
     "read_standardized_run",
     "read_standardized_learning_run",
+    "read_scenario_gbsm_run",
+    "scenario_gbsm_episode_bundle",
     "standardized_learning_example_from_record",
     "standardized_learning_run_from_channel_run",
     "standardized_run_from_channel",
+    "scenario_gbsm_run_from_channel",
+    "scenario_gbsm_run_to_episode_bundles",
+    "standardized_profile_applicability",
+    "standardized_profile_applicability_report",
+    "standardized_generator_capability_report",
     "validate_standardized_channel_admission",
     "standardized_draw_subject",
     "write_nr_record",
     "write_nr_trajectory",
     "write_standardized_run",
     "write_standardized_learning_run",
+    "write_scenario_gbsm_run",
 ]

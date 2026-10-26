@@ -1,0 +1,294 @@
+{
+  "schema_version": "loslab.g3_acquisition_design_assumptions.v3",
+  "scenario_label": "hypothetical_unverified",
+  "assumption_source_description": "SYNTHETIC HYPOTHETICAL ONLY. Illustrative engineering assumptions copied from test-sized scenarios; replace with conservatively justified, preregistered worst-stratum assumptions. Not measurement or pilot data.",
+  "expected_strata": [
+    {
+      "stratum_id": "example-concrete-V-incidence-0-30",
+      "material_id": "example-concrete",
+      "polarization": "V",
+      "incidence_stratum_id": "incidence-0-30"
+    },
+    {
+      "stratum_id": "example-concrete-H-incidence-30-60",
+      "material_id": "example-concrete",
+      "polarization": "H",
+      "incidence_stratum_id": "incidence-30-60"
+    }
+  ],
+  "worst_stratum_assumptions": {
+    "planned_quantile_pass_probabilities": {
+      "median_absolute_power_error_db": 0.9,
+      "p95_absolute_power_error_db": 0.99,
+      "median_prediction_interval_width_db": 0.9
+    },
+    "planned_interval_coverage": 0.95,
+    "planned_complex_csi_failure_probability": 0.01,
+    "planned_angular_unit_pass_probability": 0.999999,
+    "familywise_alpha": 0.05,
+    "familywise_power": 0.8,
+    "planned_complex_csi_p95_pass_probability": 0.99
+  },
+  "bootstrap_assurance": {
+    "scenarios_by_stratum": [
+      {
+        "stratum_id": "example-concrete-V-incidence-0-30",
+        "assumed_iid_scenario": {
+          "assumed_unit_summaries": [
+            {
+              "median_absolute_power_error_db": 0.5,
+              "p95_absolute_power_error_db": 1.0,
+              "maximum_angular_cdf_ks": 0.05,
+              "nominal_95_interval_coverage": 0.95,
+              "median_prediction_interval_width_db": 1.0
+            },
+            {
+              "median_absolute_power_error_db": 0.7,
+              "p95_absolute_power_error_db": 1.2,
+              "maximum_angular_cdf_ks": 0.06,
+              "nominal_95_interval_coverage": 0.96,
+              "median_prediction_interval_width_db": 1.2
+            }
+          ],
+          "probabilities": [
+            0.5,
+            0.5
+          ]
+        }
+      },
+      {
+        "stratum_id": "example-concrete-H-incidence-30-60",
+        "assumed_iid_scenario": {
+          "assumed_unit_summaries": [
+            {
+              "median_absolute_power_error_db": 0.5,
+              "p95_absolute_power_error_db": 1.0,
+              "maximum_angular_cdf_ks": 0.05,
+              "nominal_95_interval_coverage": 0.95,
+              "median_prediction_interval_width_db": 1.0
+            },
+            {
+              "median_absolute_power_error_db": 0.7,
+              "p95_absolute_power_error_db": 1.2,
+              "maximum_angular_cdf_ks": 0.06,
+              "nominal_95_interval_coverage": 0.96,
+              "median_prediction_interval_width_db": 1.2
+            }
+          ],
+          "probabilities": [
+            0.5,
+            0.5
+          ]
+        }
+      }
+    ],
+    "candidate_units_per_stratum": [
+      20,
+      30
+    ],
+    "bootstrap_replicates": 1000,
+    "assurance_replicates": 100,
+    "target_assurance": 0.8,
+    "seed": 701
+  },
+  "joint_acceptance_family": {
+    "schema": "loslab.g3_joint_acceptance_family.v1",
+    "family_id": "synthetic-g3-planning-family-v1",
+    "familywise_alpha": 0.05,
+    "familywise_confidence_level": 0.95,
+    "material_expected_strata": [
+      [
+        "example-concrete",
+        "H",
+        "incidence-30-60"
+      ],
+      [
+        "example-concrete",
+        "V",
+        "incidence-0-30"
+      ]
+    ],
+    "complex_csi_expected_strata": [
+      [
+        "example-site",
+        "LOS"
+      ],
+      [
+        "example-site",
+        "NLOS"
+      ]
+    ],
+    "claim_roster": [
+      {
+        "evaluator": "complex_csi",
+        "stratum": [
+          "example-site",
+          "LOS"
+        ],
+        "claim": "cluster_failure_upper_bound"
+      },
+      {
+        "evaluator": "complex_csi",
+        "stratum": [
+          "example-site",
+          "LOS"
+        ],
+        "claim": "p95_e_h_upper_confidence_bound"
+      },
+      {
+        "evaluator": "complex_csi",
+        "stratum": [
+          "example-site",
+          "NLOS"
+        ],
+        "claim": "cluster_failure_upper_bound"
+      },
+      {
+        "evaluator": "complex_csi",
+        "stratum": [
+          "example-site",
+          "NLOS"
+        ],
+        "claim": "p95_e_h_upper_confidence_bound"
+      },
+      {
+        "evaluator": "material_calibration",
+        "stratum": [
+          "example-concrete",
+          "H",
+          "incidence-30-60"
+        ],
+        "claim": "maximum_angular_cdf_ks"
+      },
+      {
+        "evaluator": "material_calibration",
+        "stratum": [
+          "example-concrete",
+          "H",
+          "incidence-30-60"
+        ],
+        "claim": "median_absolute_power_error_db"
+      },
+      {
+        "evaluator": "material_calibration",
+        "stratum": [
+          "example-concrete",
+          "H",
+          "incidence-30-60"
+        ],
+        "claim": "median_prediction_interval_width_db"
+      },
+      {
+        "evaluator": "material_calibration",
+        "stratum": [
+          "example-concrete",
+          "H",
+          "incidence-30-60"
+        ],
+        "claim": "nominal_95_interval_coverage"
+      },
+      {
+        "evaluator": "material_calibration",
+        "stratum": [
+          "example-concrete",
+          "H",
+          "incidence-30-60"
+        ],
+        "claim": "p95_absolute_power_error_db"
+      },
+      {
+        "evaluator": "material_calibration",
+        "stratum": [
+          "example-concrete",
+          "V",
+          "incidence-0-30"
+        ],
+        "claim": "maximum_angular_cdf_ks"
+      },
+      {
+        "evaluator": "material_calibration",
+        "stratum": [
+          "example-concrete",
+          "V",
+          "incidence-0-30"
+        ],
+        "claim": "median_absolute_power_error_db"
+      },
+      {
+        "evaluator": "material_calibration",
+        "stratum": [
+          "example-concrete",
+          "V",
+          "incidence-0-30"
+        ],
+        "claim": "median_prediction_interval_width_db"
+      },
+      {
+        "evaluator": "material_calibration",
+        "stratum": [
+          "example-concrete",
+          "V",
+          "incidence-0-30"
+        ],
+        "claim": "nominal_95_interval_coverage"
+      },
+      {
+        "evaluator": "material_calibration",
+        "stratum": [
+          "example-concrete",
+          "V",
+          "incidence-0-30"
+        ],
+        "claim": "p95_absolute_power_error_db"
+      }
+    ],
+    "claim_count": 14,
+    "per_claim_alpha": 0.0035714285714285718,
+    "per_claim_confidence_level": 0.9964285714285714,
+    "family_sha256": "9b40f08320a5b811f59180c277ea99aea98d1ed06edf49f7ae2f504f4b1d8a56"
+  },
+  "complex_csi_bootstrap_assurance": {
+    "scenarios_by_stratum": [
+      {
+        "family_id": "example-site",
+        "condition": "LOS",
+        "assumed_iid_scenario": {
+          "assumed_cluster_summaries": [
+            {
+              "cluster_median_e_h": 0.005,
+              "cluster_p95_e_h": 0.02,
+              "cluster_failed": false
+            }
+          ],
+          "probabilities": [
+            1.0
+          ]
+        }
+      },
+      {
+        "family_id": "example-site",
+        "condition": "NLOS",
+        "assumed_iid_scenario": {
+          "assumed_cluster_summaries": [
+            {
+              "cluster_median_e_h": 0.005,
+              "cluster_p95_e_h": 0.02,
+              "cluster_failed": false
+            }
+          ],
+          "probabilities": [
+            1.0
+          ]
+        }
+      }
+    ],
+    "candidate_clusters_per_stratum": [
+      20,
+      120
+    ],
+    "bootstrap_replicates": 1000,
+    "assurance_replicates": 100,
+    "target_assurance": 0.8,
+    "seed": 703
+  }
+}

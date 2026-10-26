@@ -7,7 +7,7 @@ import io
 
 import numpy as np
 import pytest
-from datasets.nr import NRChannelRecord, NRObservation
+from datasets.nr import NRChannelRecord, NRObservation, TargetDefinition
 from datasets.nr_store import NRStoredRecord, read_nr_record, write_nr_record
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
@@ -49,6 +49,16 @@ def test_observation_preserves_explicit_resource_element_missingness(tmp_path):
         targets={"target": np.asarray([1.0], dtype=np.float32)},
         target_masks={"target": np.asarray([True])},
         provenance={"source": "test"},
+        target_definitions={
+            "target": TargetDefinition.versioned(
+                semantic="observation mask test target",
+                units="fixture value",
+                source="mask test fixture",
+                reference="fixed test scalar",
+                aggregation_rule="one scalar per record",
+                definition_version="tests.nr-mask.target.v1",
+            )
+        },
     )
 
     assert not observation.model_inputs().received_grid_mask[..., 3, 7].item()

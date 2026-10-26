@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:loslab:g3-path-equivalence-roster-input:v1",
+  "title": "G3 Path Equivalence Roster Diagnostic Input",
+  "description": "Retained comparison records evaluated against the path roster frozen in a hash-valid G3 joint-acceptance-family v4.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "joint_acceptance_family", "records"],
+  "properties": {
+    "schema": {
+      "const": "loslab.g3_path_equivalence_roster_input.v1"
+    },
+    "joint_acceptance_family": {
+      "type": "object",
+      "required": [
+        "schema",
+        "family_id",
+        "family_sha256",
+        "path_equivalence_expected_scenarios",
+        "path_equivalence_bidirectional_coverage_min",
+        "path_equivalence_admission_possible"
+      ],
+      "properties": {
+        "schema": {
+          "const": "loslab.g3_joint_acceptance_family.v4"
+        },
+        "family_id": { "type": "string", "minLength": 1 },
+        "family_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "path_equivalence_expected_scenarios": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              { "type": "string", "minLength": 1 },
+              { "enum": ["LOS", "NLOS"] },
+              { "type": "string", "minLength": 1 }
+            ],
+            "items": false,
+            "minItems": 3,
+            "maxItems": 3
+          }
+        },
+        "path_equivalence_bidirectional_coverage_min": {
+          "const": 0.95
+        },
+        "path_equivalence_admission_possible": {
+          "const": false
+        }
+      }
+    },
+    "records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["family_id", "condition", "episode_id", "comparison"],
+        "properties": {
+          "family_id": { "type": "string", "minLength": 1 },
+          "condition": { "enum": ["LOS", "NLOS"] },
+          "episode_id": { "type": "string", "minLength": 1 },
+          "comparison": {
+            "type": "object",
+            "required": ["schema", "admission_possible"],
+            "properties": {
+              "schema": {
+                "const": "loslab.g3_path_equivalence_comparison.v1"
+              },
+              "admission_possible": {
+                "const": false
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

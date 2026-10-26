@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:umcd:g5-ordered-impairments-waveform-evidence:v4",
+  "title": "G5 Ordered-Impairments Multi-SNR Waveform Evidence Manifest v4",
+  "description": "Hash-bound shared TX, oscillator, capture and standardized AWGN draws, plus the exact clean, uncorrected and corrected receiver inputs for each SNR point.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "file_name", "sha256", "byte_count", "channel_count", "arrays"],
+  "properties": {
+    "schema": { "const": "umcd.g5_ordered_impairments_waveform_evidence.v4" },
+    "file_name": { "type": "string", "pattern": "^[^/\\\\]+\\.npz$" },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "byte_count": { "type": "integer", "minimum": 1, "maximum": 536870912 },
+    "channel_count": { "type": "integer", "minimum": 1 },
+    "arrays": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "actual_capture",
+          "awgn_standard_normal_imag",
+          "awgn_standard_normal_real",
+          "channel_seeds",
+          "clean_receiver_input_by_snr",
+          "corrected_receiver_input_by_snr",
+          "rx_phase_noise_rad",
+          "tx_phase_noise_rad",
+          "tx_waveform",
+          "uncorrected_receiver_input_by_snr"
+        ]
+      },
+      "allOf": [
+        { "contains": { "const": "actual_capture" } },
+        { "contains": { "const": "awgn_standard_normal_imag" } },
+        { "contains": { "const": "awgn_standard_normal_real" } },
+        { "contains": { "const": "channel_seeds" } },
+        { "contains": { "const": "clean_receiver_input_by_snr" } },
+        { "contains": { "const": "corrected_receiver_input_by_snr" } },
+        { "contains": { "const": "rx_phase_noise_rad" } },
+        { "contains": { "const": "tx_phase_noise_rad" } },
+        { "contains": { "const": "tx_waveform" } },
+        { "contains": { "const": "uncorrected_receiver_input_by_snr" } }
+      ]
+    }
+  }
+}

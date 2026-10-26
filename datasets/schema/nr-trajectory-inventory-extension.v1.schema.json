@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:umcd:nr-trajectory-inventory-extension:v1",
+  "title": "UMCD corpus inventory NR trajectory extension",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["nr_trajectory_inventory", "nr_expected_coverage"],
+  "properties": {
+    "nr_trajectory_inventory": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["trajectory_id", "parent_episode_id", "manifest", "manifest_sha256"],
+        "properties": {
+          "trajectory_id": {"type": "string", "minLength": 1},
+          "parent_episode_id": {"type": "string", "minLength": 1},
+          "manifest": {
+            "type": "string",
+            "pattern": "^manifests/trajectories/[0-9a-f]{64}\\.json$"
+          },
+          "manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    },
+    "nr_expected_coverage": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["split_id", "family_id", "target_id"],
+        "properties": {
+          "split_id": {"type": "string", "minLength": 1},
+          "family_id": {"type": "string", "minLength": 1},
+          "target_id": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  }
+}

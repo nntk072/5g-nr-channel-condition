@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:loslab:g4-standard-reference-manifest:v1",
+  "title": "G4 Standard Reference Source Manifest",
+  "description": "Exact identity and scope of external normative reference files; this manifest alone does not establish conformance.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "snapshot_date", "redistribution_policy", "sources", "status"],
+  "properties": {
+    "schema": { "const": "loslab.g4_standard_reference_manifest.v1" },
+    "snapshot_date": { "type": "string", "format": "date" },
+    "redistribution_policy": { "const": "reference_identity_only; do_not_redistribute_etsi_pdf" },
+    "sources": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["source_id", "standard", "version", "filename", "source_url", "sha256", "size_bytes", "reference_scope", "limitations"],
+        "properties": {
+          "source_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9.-]+$" },
+          "standard": { "type": "string", "minLength": 1 },
+          "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+          "filename": { "type": "string", "pattern": "^[A-Za-z0-9._-]+\\.pdf$" },
+          "source_url": { "type": "string", "format": "uri", "pattern": "^https://www\\.etsi\\.org/" },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "size_bytes": { "type": "integer", "minimum": 1, "maximum": 33554432 },
+          "reference_scope": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+          "limitations": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "status": { "const": "SOURCE_IDENTITIES_PINNED_NOT_QUALIFIED" }
+  }
+}

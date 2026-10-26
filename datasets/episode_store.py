@@ -6,15 +6,19 @@ import hashlib
 import io
 import json
 import os
+import sqlite3
+import stat
 import tempfile
+import zipfile
 from dataclasses import asdict, dataclass
 from pathlib import Path, PurePosixPath
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, Iterator, cast
 
 import numpy as np
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
 from .channel_view import ChannelDelayReference, ChannelPowerScale, PhysicalChannelView
+from .counterfactual import DirectPathAblation, validate_direct_path_ablation_source
 from .network import (
     AntennaArraySpec,
     DirectedLink,
@@ -40,23 +44,31 @@ from .targets import (
     migrate_legacy_target_definition_v1,
 )
 
+if TYPE_CHECKING:
+    from .scenario_gbsm import ScenarioGBSMRecord
+
 
 @dataclass(frozen=True, slots=True)
 class EpisodeBundle:
     """Episode with separately stored receiver, oracle, channel, and target views."""
 
     episode: NetworkEpisode
-    path_oracle: PathOracleTable
+    path_oracle: PathOracleTable | None
     channel_views: tuple[PhysicalChannelView, ...]
     targets: tuple[TargetValue, ...]
     receiver_observations: tuple[LinkedNRObservation | LinkedFrequencyDomainObservation, ...] = ()
     provenance_records: tuple[UMCDRunProvenance, ...] = ()
+    scenario_gbsm_records: tuple[ScenarioGBSMRecord, ...] = ()
+    direct_path_ablations: tuple[DirectPathAblation, ...] = ()
 
     def __post_init__(self) -> None:
         channels, targets = tuple(self.channel_views), tuple(self.targets)
         observations = tuple(self.receiver_observations)
         provenance = tuple(self.provenance_records)
-        self.path_oracle.validate_for(self.episode)
+        scenario_gbsm_records = tuple(self.scenario_gbsm_records)
+        direct_path_ablations = tuple(self.direct_path_ablations)
+        if self.path_oracle is not None:
+            self.path_oracle.validate_for(self.episode)
         for view in channels:
             view.validate_for(self.episode)
         if len({view.view_id for view in channels}) != len(channels):
@@ -102,19 +114,63 @@ class EpisodeBundle:
             raise TypeError("provenance_records must contain UMCDRunProvenance values")
         if len({item.record_id for item in provenance}) != len(provenance):
             raise ValueError("provenance record IDs must be unique within a bundle")
-        available_layers = {"episode", "oracle_paths"}
+        if len(scenario_gbsm_records) > 1:
+            raise ValueError("an episode bundle can contain one scenario GBSM drop")
+        for record in scenario_gbsm_records:
+            validator = getattr(record, "validate_for_episode", None)
+            if not callable(validator):
+                raise TypeError("scenario_gbsm_records must contain scenario GBSM records")
+            validator(self.episode)
+        if any(not isinstance(item, DirectPathAblation) for item in direct_path_ablations):
+            raise TypeError("direct_path_ablations must contain DirectPathAblation values")
+        if direct_path_ablations and self.path_oracle is None:
+            raise ValueError("direct-path ablations require their source path-oracle layer")
+        source_paths = self.path_oracle
+        ablation_children: set[str] = set()
+        for item in direct_path_ablations:
+            if source_paths is None:
+                raise ValueError("direct-path ablation source path-oracle layer is missing")
+            if item.parent_subject_id != self.episode.episode_id:
+                raise ValueError("direct-path ablation parent must match the episode ID")
+            validate_direct_path_ablation_source(source_paths, item)
+            if not np.array_equal(item.frequency_offset_hz, self.episode.subcarrier_offsets_hz):
+                raise ValueError("direct-path ablation frequency grid differs from episode grid")
+            pair_children = {item.base_child_id, item.ablated_child_id}
+            if ablation_children.intersection(pair_children):
+                raise ValueError("direct-path ablation child IDs must be unique within the bundle")
+            ablation_children.update(pair_children)
+        if not any(
+            (
+                self.path_oracle is not None,
+                channels,
+                targets,
+                observations,
+                scenario_gbsm_records,
+                direct_path_ablations,
+            )
+        ):
+            raise ValueError("episode bundle needs at least one non-episode data layer")
+        available_layers = {"episode"}
+        if self.path_oracle is not None:
+            available_layers.add("oracle_paths")
         if channels:
             available_layers.add("oracle_channels")
         if targets:
             available_layers.add("targets")
         if observations:
             available_layers.add("receiver_observations")
+        if scenario_gbsm_records:
+            available_layers.add("scenario_gbsm")
+        if direct_path_ablations:
+            available_layers.add("counterfactual_ablations")
         if any(item.subject_layer not in available_layers for item in provenance):
             raise ValueError("provenance subject_layer must identify a populated bundle layer")
         object.__setattr__(self, "channel_views", channels)
         object.__setattr__(self, "targets", targets)
         object.__setattr__(self, "receiver_observations", observations)
         object.__setattr__(self, "provenance_records", provenance)
+        object.__setattr__(self, "scenario_gbsm_records", scenario_gbsm_records)
+        object.__setattr__(self, "direct_path_ablations", direct_path_ablations)
 
 
 @dataclass(frozen=True, slots=True)
@@ -134,6 +190,31 @@ def _json_bytes(value: Any) -> bytes:
         )
     except (TypeError, ValueError) as exc:
         raise TypeError("episode metadata must contain finite JSON-compatible values") from exc
+
+
+def _unique_json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    """Reject duplicate JSON keys so signed/hash-bound metadata is unambiguous."""
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON object key: {key}")
+        result[key] = value
+    return result
+
+
+def _reject_json_constant(value: str) -> None:
+    raise ValueError(f"non-finite JSON constant is forbidden: {value}")
+
+
+def _parse_json_bytes(payload: bytes, *, label: str) -> Any:
+    try:
+        return json.loads(
+            payload.decode("utf-8"),
+            object_pairs_hook=_unique_json_object,
+            parse_constant=_reject_json_constant,
+        )
+    except (UnicodeDecodeError, json.JSONDecodeError, RecursionError, ValueError) as error:
+        raise ValueError(f"{label} is not valid strict UTF-8 JSON: {error}") from error
 
 
 def _object_ref(layer: str, payload: bytes) -> dict[str, str]:
@@ -171,11 +252,132 @@ def _publish_immutable(path: Path, payload: bytes) -> None:
         try:
             os.link(temp_path, path)
         except FileExistsError:
-            if path.read_bytes() != payload:
-                raise
+            existing = _stable_file_bytes(
+                path, label="existing immutable episode object", max_bytes=len(payload)
+            )
+            if existing != payload:
+                raise FileExistsError(
+                    "immutable episode object path already contains different bytes"
+                )
+        _fsync_directory(path.parent)
     finally:
         if temp_path is not None:
             Path(temp_path).unlink(missing_ok=True)
+
+
+def _fsync_directory(directory: Path) -> None:
+    """Persist a newly linked immutable entry where directory fsync is supported."""
+    if os.name != "posix" or not hasattr(os, "O_DIRECTORY"):
+        return
+    descriptor = os.open(directory, os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+
+
+def _stable_file_bytes(path: Path, *, label: str, max_bytes: int | None = None) -> bytes:
+    """Read a single-link regular file and reject observable concurrent changes."""
+    before_path = os.lstat(path)
+    if not stat.S_ISREG(before_path.st_mode) or before_path.st_nlink != 1:
+        raise ValueError(f"{label} must be a single-link regular file")
+    descriptor = os.open(
+        path,
+        os.O_RDONLY | os.O_NONBLOCK | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0),
+    )
+    try:
+        before_fd = os.fstat(descriptor)
+        if _file_identity(before_fd) != _file_identity(before_path):
+            raise ValueError(f"{label} changed while opening")
+        if max_bytes is not None and before_fd.st_size > max_bytes:
+            raise ValueError(f"{label} exceeds the configured byte limit")
+        chunks: list[bytes] = []
+        size = 0
+        while True:
+            request_size = 1024 * 1024
+            if max_bytes is not None:
+                request_size = min(request_size, max_bytes + 1 - size)
+                if request_size <= 0:
+                    raise ValueError(f"{label} exceeds the configured byte limit")
+            chunk = os.read(descriptor, request_size)
+            if not chunk:
+                break
+            chunks.append(chunk)
+            size += len(chunk)
+            if max_bytes is not None and size > max_bytes:
+                raise ValueError(f"{label} exceeds the configured byte limit")
+        after_fd = os.fstat(descriptor)
+        after_path = os.lstat(path)
+        identity = _file_identity(before_fd)
+        if size != before_fd.st_size or _file_identity(after_fd) != identity:
+            raise ValueError(f"{label} changed while being read")
+        if _file_identity(after_path) != identity:
+            raise ValueError(f"{label} path changed while being read")
+        return b"".join(chunks)
+    finally:
+        os.close(descriptor)
+
+
+def _file_identity(info: os.stat_result) -> tuple[int, ...]:
+    return (
+        info.st_dev,
+        info.st_ino,
+        info.st_mode,
+        info.st_nlink,
+        info.st_size,
+        info.st_mtime_ns,
+        info.st_ctime_ns,
+    )
+
+
+def _episode_object_size_estimate(
+    base: Path,
+    reference: dict[str, str],
+    *,
+    max_shard_bytes: int,
+) -> int:
+    """Hash-check an NPZ layer and conservatively estimate its decoded memory."""
+    relative = PurePosixPath(reference["path"])
+    if relative.is_absolute() or ".." in relative.parts or not relative.parts:
+        raise ValueError("episode object path must remain inside the store")
+    if relative.suffix != ".npz" or relative.name != f"{reference['sha256']}.npz":
+        raise ValueError("episode object path must be content-addressed")
+    path = base.joinpath(*relative.parts)
+    resolved = path.resolve(strict=True)
+    if not resolved.is_relative_to(base):
+        raise ValueError("episode object path resolves outside the store")
+    payload = _stable_file_bytes(
+        path,
+        label="episode object under max_shard_bytes",
+        max_bytes=max_shard_bytes,
+    )
+    if hashlib.sha256(payload).hexdigest() != reference["sha256"]:
+        raise ValueError("episode object content hash does not match its manifest")
+    try:
+        with zipfile.ZipFile(io.BytesIO(payload)) as archive:
+            members = archive.infolist()
+            names = [item.filename for item in members]
+            if not members or len(names) != len(set(names)):
+                raise ValueError("episode object archive must have unique nonempty members")
+            if any(not name.endswith(".npy") for name in names):
+                raise ValueError("episode object archive members must be NPY arrays")
+            uncompressed_bytes = sum(item.file_size for item in members)
+    except zipfile.BadZipFile as error:
+        raise ValueError("episode object is not a readable NPZ archive") from error
+    estimate = 2 * len(payload) + 2 * uncompressed_bytes
+    if estimate > max_shard_bytes:
+        raise ValueError(
+            f"episode layer estimate ({estimate} bytes) exceeds max_shard_bytes ({max_shard_bytes})"
+        )
+    return estimate
+
+
+def _iter_episode_manifest_paths(directory: Path) -> Iterator[Path]:
+    """Yield manifest entries without materializing a potentially large listing."""
+    with os.scandir(directory) as entries:
+        for entry in entries:
+            if entry.name.endswith(".json"):
+                yield Path(entry.path)
 
 
 def _episode_payload(episode: NetworkEpisode) -> bytes:
@@ -286,6 +488,28 @@ def _path_payload(paths: PathOracleTable) -> bytes:
         if value is not None:
             arrays[name] = value
     return _pack_npz(metadata, **arrays)
+
+
+def _direct_path_ablation_payload(ablation: DirectPathAblation) -> bytes:
+    metadata = {
+        "schema": "umcd.direct_path_ablation.v1",
+        "parent_subject_id": ablation.parent_subject_id,
+        "base_child_id": ablation.base_child_id,
+        "ablated_child_id": ablation.ablated_child_id,
+        "split": ablation.split,
+        "path_table_sha256": ablation.path_table_sha256,
+        "link_ids": list(ablation.link_ids),
+    }
+    return _pack_npz(
+        metadata,
+        frame_indices=ablation.frame_indices,
+        rx_port_indices=ablation.rx_port_indices,
+        tx_port_indices=ablation.tx_port_indices,
+        frequency_offset_hz=ablation.frequency_offset_hz,
+        full_cfr=ablation.full_cfr,
+        without_direct_cfr=ablation.without_direct_cfr,
+        removed_direct_path_count=ablation.removed_direct_path_count,
+    )
 
 
 def _channel_payload(view: PhysicalChannelView) -> bytes:
@@ -417,7 +641,12 @@ def write_episode_bundle(root: str | Path, bundle: EpisodeBundle) -> StoredEpiso
     """
     base = Path(root)
     payloads = [("episode", _episode_payload(bundle.episode))]
-    payloads.append(("oracle_paths", _path_payload(bundle.path_oracle)))
+    if bundle.path_oracle is not None:
+        payloads.append(("oracle_paths", _path_payload(bundle.path_oracle)))
+    payloads.extend(
+        ("counterfactual_ablations", _direct_path_ablation_payload(item))
+        for item in bundle.direct_path_ablations
+    )
     payloads.extend(("oracle_channels", _channel_payload(view)) for view in bundle.channel_views)
     payloads.extend(("targets", _target_payload(target)) for target in bundle.targets)
     payloads.extend(
@@ -432,8 +661,23 @@ def write_episode_bundle(root: str | Path, bundle: EpisodeBundle) -> StoredEpiso
     payloads.extend(
         ("provenance", _provenance_payload(record)) for record in bundle.provenance_records
     )
+    scenario_gbsm_byte_limit: int | None = None
+    if bundle.scenario_gbsm_records:
+        from .scenario_gbsm import MAX_SCENARIO_GBSM_OBJECT_BYTES, _record_bytes
+
+        scenario_gbsm_byte_limit = MAX_SCENARIO_GBSM_OBJECT_BYTES
+
+        payloads.extend(
+            ("scenario_gbsm", _record_bytes(record)) for record in bundle.scenario_gbsm_records
+        )
     references: list[dict[str, str]] = []
     for layer, payload in payloads:
+        if (
+            layer == "scenario_gbsm"
+            and scenario_gbsm_byte_limit is not None
+            and len(payload) > scenario_gbsm_byte_limit
+        ):
+            raise ValueError("scenario GBSM episode layer exceeds its compressed byte ceiling")
         reference = _object_ref(layer, payload)
         _publish_immutable(base / reference["path"], payload)
         references.append({"layer": layer, **reference})
@@ -452,18 +696,177 @@ def write_episode_bundle(root: str | Path, bundle: EpisodeBundle) -> StoredEpiso
     return StoredEpisodeBundle(bundle.episode.episode_id, digest, relative_path)
 
 
+def iter_episode_bundle_shards(
+    root: str | Path,
+    *,
+    max_shard_bytes: int,
+) -> Iterator[tuple[EpisodeBundle, ...]]:
+    """Yield episode bundles in deterministic batches under a conservative byte budget.
+
+    Manifest inventory is staged in temporary disk-backed SQLite so a large
+    corpus does not require retaining every JSON record in memory. Each bundle
+    is size-estimated before its arrays are decoded; the estimate charges twice
+    the compressed NPZ bytes and twice the uncompressed archive-member bytes.
+    This bounds the declared accounting model, not Python/allocator RSS. A
+    single bundle whose estimate exceeds the budget fails before deserialization.
+    """
+    if isinstance(max_shard_bytes, bool) or not isinstance(max_shard_bytes, int):
+        raise TypeError("max_shard_bytes must be an integer")
+    if max_shard_bytes <= 0:
+        raise ValueError("max_shard_bytes must be positive")
+
+    base = Path(root).resolve()
+    manifest_directory = base / "manifests" / "episodes"
+    try:
+        metadata = os.lstat(manifest_directory)
+    except FileNotFoundError:
+        return
+    if not stat.S_ISDIR(metadata.st_mode):
+        raise ValueError("episode manifest directory must be a real directory")
+    if not manifest_directory.resolve(strict=True).is_relative_to(base):
+        raise ValueError("episode manifest directory resolves outside the store")
+
+    with tempfile.TemporaryDirectory(prefix="umcd-episode-inventory-") as temporary_dir:
+        connection = sqlite3.connect(Path(temporary_dir) / "inventory.sqlite3")
+        try:
+            connection.execute("PRAGMA cache_size = -256")
+            connection.execute("PRAGMA temp_store = FILE")
+            connection.execute("PRAGMA journal_mode = OFF")
+            connection.execute(
+                "CREATE TABLE inventory ("
+                "episode_id TEXT PRIMARY KEY COLLATE BINARY, "
+                "bundle_sha256 TEXT NOT NULL, "
+                "relative_path TEXT NOT NULL, "
+                "estimated_bytes INTEGER NOT NULL"
+                ") WITHOUT ROWID"
+            )
+            for manifest_path in _iter_episode_manifest_paths(manifest_directory):
+                manifest_bytes = _stable_file_bytes(
+                    manifest_path, label="episode manifest", max_bytes=1024 * 1024
+                )
+                manifest = _parse_json_bytes(manifest_bytes, label="episode manifest")
+                if not isinstance(manifest, dict):
+                    raise ValueError("episode manifest must be a JSON object")
+                if (
+                    manifest.get("schema") != "umcd.bundle.v1"
+                    or manifest.get("schema_version") != 1
+                ):
+                    raise ValueError("unsupported episode bundle schema")
+                episode_id = manifest.get("episode_id")
+                if not isinstance(episode_id, str) or not episode_id.strip():
+                    raise ValueError("episode manifest episode_id must be nonempty")
+                expected_name = f"{hashlib.sha256(episode_id.encode()).hexdigest()}.json"
+                if manifest_path.name != expected_name:
+                    raise ValueError("episode manifest filename does not match its episode ID")
+                core = {
+                    key: manifest[key]
+                    for key in ("schema", "schema_version", "episode_id", "layers")
+                }
+                digest = hashlib.sha256(_json_bytes(core)).hexdigest()
+                if digest != manifest.get("bundle_sha256"):
+                    raise ValueError("episode bundle manifest hash is invalid")
+                references = manifest.get("layers")
+                if not isinstance(references, list) or not references:
+                    raise ValueError("episode bundle layers must be a nonempty list")
+                if (
+                    sum(
+                        isinstance(reference, dict) and reference.get("layer") == "episode"
+                        for reference in references
+                    )
+                    != 1
+                ):
+                    raise ValueError("bundle must contain exactly one episode layer")
+                oracle_path_layers = sum(
+                    isinstance(reference, dict) and reference.get("layer") == "oracle_paths"
+                    for reference in references
+                )
+                if oracle_path_layers > 1:
+                    raise ValueError("bundle can contain at most one path-oracle layer")
+                if not any(
+                    isinstance(reference, dict) and reference.get("layer") != "episode"
+                    for reference in references
+                ):
+                    raise ValueError("bundle must contain at least one non-episode data layer")
+                estimated_bytes = 0
+                for reference in references:
+                    if not isinstance(reference, dict) or set(reference) != {
+                        "layer",
+                        "sha256",
+                        "path",
+                    }:
+                        raise ValueError("episode layer reference fields are invalid")
+                    if not isinstance(reference["layer"], str) or not reference["layer"]:
+                        raise ValueError("episode layer name must be nonempty")
+                    if not isinstance(reference["sha256"], str) or len(reference["sha256"]) != 64:
+                        raise ValueError("episode layer digest must be a SHA-256 hex digest")
+                    try:
+                        int(reference["sha256"], 16)
+                    except ValueError as error:
+                        raise ValueError("episode layer digest must be hexadecimal") from error
+                    if not isinstance(reference["path"], str):
+                        raise ValueError("episode layer path must be a string")
+                    estimated_bytes += _episode_object_size_estimate(
+                        base,
+                        cast(dict[str, str], reference),
+                        max_shard_bytes=max_shard_bytes,
+                    )
+                    if estimated_bytes > max_shard_bytes:
+                        raise ValueError(
+                            f"episode bundle {episode_id!r} estimate exceeds max_shard_bytes"
+                        )
+                relative_path = manifest_path.relative_to(base).as_posix()
+                try:
+                    connection.execute(
+                        "INSERT INTO inventory VALUES (?, ?, ?, ?)",
+                        (episode_id, digest, relative_path, estimated_bytes),
+                    )
+                except sqlite3.IntegrityError as error:
+                    raise ValueError(f"duplicate episode manifest for {episode_id!r}") from error
+
+            batch: list[StoredEpisodeBundle] = []
+            batch_bytes = 0
+            cursor = connection.execute(
+                "SELECT episode_id, bundle_sha256, relative_path, estimated_bytes "
+                "FROM inventory ORDER BY episode_id COLLATE BINARY"
+            )
+            for episode_id, digest, relative_path, estimated_bytes in cursor:
+                estimated = int(estimated_bytes)
+                if estimated > max_shard_bytes:
+                    raise ValueError(f"episode bundle {episode_id!r} exceeds max_shard_bytes")
+                if batch and batch_bytes + estimated > max_shard_bytes:
+                    yield tuple(read_episode_bundle(base, item) for item in batch)
+                    batch = []
+                    batch_bytes = 0
+                batch.append(StoredEpisodeBundle(episode_id, digest, relative_path))
+                batch_bytes += estimated
+            if batch:
+                yield tuple(read_episode_bundle(base, item) for item in batch)
+        finally:
+            connection.close()
+
+
 def _read_object(
-    base: Path, reference: dict[str, str]
+    base: Path, reference: dict[str, str], *, max_bytes: int | None = None
 ) -> tuple[dict[str, Any], dict[str, np.ndarray]]:
     relative = PurePosixPath(reference["path"])
     if relative.is_absolute() or ".." in relative.parts:
         raise ValueError("object paths must remain inside the episode store")
-    payload = (base / Path(*relative.parts)).read_bytes()
+    object_path = base / Path(*relative.parts)
+    if not object_path.resolve(strict=True).is_relative_to(base.resolve()):
+        raise ValueError("episode object path resolves outside the store")
+    payload = _stable_file_bytes(object_path, label="episode object", max_bytes=max_bytes)
     digest = hashlib.sha256(payload).hexdigest()
     if digest != reference.get("sha256") or relative.name != f"{digest}.npz":
         raise ValueError("episode object content hash does not match its manifest")
     with np.load(io.BytesIO(payload), allow_pickle=False) as archive:
-        metadata = json.loads(archive["metadata_json"].tobytes().decode("utf-8"))
+        if (
+            len(archive.files) != len(set(archive.files))
+            or archive.files.count("metadata_json") != 1
+        ):
+            raise ValueError("episode object archive must have unique names and one metadata entry")
+        metadata = _parse_json_bytes(
+            archive["metadata_json"].tobytes(), label="episode object metadata"
+        )
         arrays = {
             name: np.array(archive[name], copy=True)
             for name in archive.files
@@ -473,7 +876,10 @@ def _read_object(
 
 
 def _validated_manifest(
-    base: Path, manifest: StoredEpisodeBundle | str | Path
+    base: Path,
+    manifest: StoredEpisodeBundle | str | Path,
+    *,
+    max_bytes: int | None = None,
 ) -> tuple[dict[str, Any], list[dict[str, str]]]:
     if isinstance(manifest, StoredEpisodeBundle):
         relative_path = PurePosixPath(manifest.relative_path)
@@ -484,7 +890,10 @@ def _validated_manifest(
         manifest_path = Path(manifest)
         if not manifest_path.is_absolute():
             manifest_path = base / manifest_path
-    metadata = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest_bytes = _stable_file_bytes(
+        manifest_path, label="episode manifest", max_bytes=max_bytes
+    )
+    metadata = _parse_json_bytes(manifest_bytes, label="episode manifest")
     if metadata.get("schema") != "umcd.bundle.v1" or metadata.get("schema_version") != 1:
         raise ValueError("unsupported episode bundle schema")
     manifest_core = {
@@ -521,6 +930,8 @@ def read_receiver_model_inputs(
         "targets",
         "receiver_observations",
         "provenance",
+        "scenario_gbsm",
+        "counterfactual_ablations",
     }
     episode_refs: list[dict[str, str]] = []
     observation_refs: list[dict[str, str]] = []
@@ -666,11 +1077,31 @@ def _read_episode(metadata: dict[str, Any], arrays: dict[str, np.ndarray]) -> Ne
 
 
 def read_episode_bundle(
-    root: str | Path, manifest: StoredEpisodeBundle | str | Path
+    root: str | Path,
+    manifest: StoredEpisodeBundle | str | Path,
+    *,
+    max_shard_bytes: int | None = None,
 ) -> EpisodeBundle:
-    """Load and checksum all linked layers without enabling pickle deserialization."""
+    """Load linked layers with optional conservative size-accounting bounds."""
+    if max_shard_bytes is not None and (
+        isinstance(max_shard_bytes, bool)
+        or not isinstance(max_shard_bytes, int)
+        or max_shard_bytes <= 0
+    ):
+        raise ValueError("max_shard_bytes must be a positive integer")
     base = Path(root)
-    metadata, references = _validated_manifest(base, manifest)
+    metadata, references = _validated_manifest(
+        base,
+        manifest,
+        max_bytes=1024 * 1024 if max_shard_bytes is not None else None,
+    )
+    if max_shard_bytes is not None:
+        estimated_bundle_bytes = sum(
+            _episode_object_size_estimate(base, reference, max_shard_bytes=max_shard_bytes)
+            for reference in references
+        )
+        if estimated_bundle_bytes > max_shard_bytes:
+            raise ValueError("episode bundle exceeds max_shard_bytes")
     grouped: dict[str, list[tuple[dict[str, Any], dict[str, np.ndarray]]]] = {}
     allowed_layers = {
         "episode",
@@ -679,71 +1110,79 @@ def read_episode_bundle(
         "targets",
         "receiver_observations",
         "provenance",
+        "scenario_gbsm",
+        "counterfactual_ablations",
     }
     for reference in references:
         layer = reference.get("layer")
         if layer not in allowed_layers:
             raise ValueError(f"unsupported episode bundle layer: {layer!r}")
-        object_metadata, arrays = _read_object(base, reference)
+        object_metadata, arrays = _read_object(base, reference, max_bytes=max_shard_bytes)
         grouped.setdefault(layer, []).append((object_metadata, arrays))
-    if len(grouped.get("episode", [])) != 1 or len(grouped.get("oracle_paths", [])) != 1:
-        raise ValueError("bundle must contain exactly one episode and one path-oracle layer")
+    if len(grouped.get("episode", [])) != 1 or len(grouped.get("oracle_paths", [])) > 1:
+        raise ValueError("bundle must contain one episode and at most one path-oracle layer")
     episode_metadata, episode_arrays = grouped["episode"][0]
     if episode_metadata.get("schema") != "umcd.episode.v1":
         raise ValueError("unsupported episode layer schema")
     episode = _read_episode(episode_metadata, episode_arrays)
-    path_metadata, path_arrays = grouped["oracle_paths"][0]
-    if path_metadata.get("schema") != "umcd.path_oracle.v1":
-        raise ValueError("unsupported path-oracle layer schema")
-    optional = path_metadata["optional_fields"]
-    paths = PathOracleTable(
-        link_ids=tuple(path_metadata["link_ids"]),
-        frame_indices=path_arrays["frame_indices"],
-        rx_port_indices=path_arrays["rx_port_indices"],
-        tx_port_indices=path_arrays["tx_port_indices"],
-        path_offsets=path_arrays["path_offsets"],
-        solve_status=tuple(PathSolveStatus(value) for value in path_metadata["solve_status"]),
-        delay_s=path_arrays["delay_s"],
-        complex_gain=path_arrays["complex_gain"],
-        interaction_order=path_arrays["interaction_order"],
-        doppler_hz=path_arrays.get("doppler_hz") if optional["doppler_hz"] else None,
-        aoa_azimuth_elevation_rad=(
-            path_arrays.get("aoa_azimuth_elevation_rad")
-            if optional["aoa_azimuth_elevation_rad"]
-            else None
-        ),
-        aod_azimuth_elevation_rad=(
-            path_arrays.get("aod_azimuth_elevation_rad")
-            if optional["aod_azimuth_elevation_rad"]
-            else None
-        ),
-        interaction_offsets=(
-            path_arrays.get("interaction_offsets")
-            if optional.get("interaction_geometry", False)
-            else None
-        ),
-        interaction_types=(
-            path_arrays.get("interaction_types")
-            if optional.get("interaction_geometry", False)
-            else None
-        ),
-        object_ids=(
-            path_arrays.get("object_ids") if optional.get("interaction_geometry", False) else None
-        ),
-        primitive_ids=(
-            path_arrays.get("primitive_ids")
-            if optional.get("interaction_geometry", False)
-            else None
-        ),
-        interaction_vertices_m=(
-            path_arrays.get("interaction_vertices_m")
-            if optional.get("interaction_geometry", False)
-            else None
-        ),
-        interaction_vertex_frame=optional.get("interaction_vertex_frame"),
-        path_kind=None if path_metadata["path_kind"] is None else tuple(path_metadata["path_kind"]),
-        coefficient_convention=path_metadata["coefficient_convention"],
-    )
+    paths = None
+    if grouped.get("oracle_paths"):
+        path_metadata, path_arrays = grouped["oracle_paths"][0]
+        if path_metadata.get("schema") != "umcd.path_oracle.v1":
+            raise ValueError("unsupported path-oracle layer schema")
+        optional = path_metadata["optional_fields"]
+        paths = PathOracleTable(
+            link_ids=tuple(path_metadata["link_ids"]),
+            frame_indices=path_arrays["frame_indices"],
+            rx_port_indices=path_arrays["rx_port_indices"],
+            tx_port_indices=path_arrays["tx_port_indices"],
+            path_offsets=path_arrays["path_offsets"],
+            solve_status=tuple(PathSolveStatus(value) for value in path_metadata["solve_status"]),
+            delay_s=path_arrays["delay_s"],
+            complex_gain=path_arrays["complex_gain"],
+            interaction_order=path_arrays["interaction_order"],
+            doppler_hz=path_arrays.get("doppler_hz") if optional["doppler_hz"] else None,
+            aoa_azimuth_elevation_rad=(
+                path_arrays.get("aoa_azimuth_elevation_rad")
+                if optional["aoa_azimuth_elevation_rad"]
+                else None
+            ),
+            aod_azimuth_elevation_rad=(
+                path_arrays.get("aod_azimuth_elevation_rad")
+                if optional["aod_azimuth_elevation_rad"]
+                else None
+            ),
+            interaction_offsets=(
+                path_arrays.get("interaction_offsets")
+                if optional.get("interaction_geometry", False)
+                else None
+            ),
+            interaction_types=(
+                path_arrays.get("interaction_types")
+                if optional.get("interaction_geometry", False)
+                else None
+            ),
+            object_ids=(
+                path_arrays.get("object_ids")
+                if optional.get("interaction_geometry", False)
+                else None
+            ),
+            primitive_ids=(
+                path_arrays.get("primitive_ids")
+                if optional.get("interaction_geometry", False)
+                else None
+            ),
+            interaction_vertices_m=(
+                path_arrays.get("interaction_vertices_m")
+                if optional.get("interaction_geometry", False)
+                else None
+            ),
+            interaction_vertex_frame=optional.get("interaction_vertex_frame"),
+            path_kind=(
+                None if path_metadata["path_kind"] is None else tuple(path_metadata["path_kind"])
+            ),
+            coefficient_convention=path_metadata["coefficient_convention"],
+        )
     channels: list[PhysicalChannelView] = []
     for channel_metadata, arrays in grouped.get("oracle_channels", []):
         if channel_metadata.get("schema") != "umcd.physical_channel.v1":
@@ -800,6 +1239,83 @@ def read_episode_bundle(
         UMCDRunProvenance.from_dict(provenance_metadata)
         for provenance_metadata, _ in grouped.get("provenance", [])
     ]
+    from .scenario_gbsm import ScenarioGBSMRecord
+
+    scenario_gbsm_records = []
+    for scenario_metadata, scenario_arrays in grouped.get("scenario_gbsm", []):
+        if (
+            set(scenario_metadata)
+            != {
+                "schema",
+                "sample_id",
+                "run_id",
+                "sample_index",
+                "scenario",
+                "scenario_los",
+                "metadata",
+            }
+            or scenario_metadata.get("schema") != "umcd.scenario_gbsm_record.v1"
+        ):
+            raise ValueError("unsupported scenario GBSM episode layer schema")
+        if set(scenario_arrays) != {"h_path", "tau_s", "cfr", "subcarrier_offsets_hz"}:
+            raise ValueError("scenario GBSM episode layer arrays are invalid")
+        scenario_gbsm_records.append(
+            ScenarioGBSMRecord(
+                sample_id=scenario_metadata["sample_id"],
+                run_id=scenario_metadata["run_id"],
+                sample_index=scenario_metadata["sample_index"],
+                scenario=scenario_metadata["scenario"],
+                scenario_los=scenario_metadata["scenario_los"],
+                h_path=scenario_arrays["h_path"],
+                tau_s=scenario_arrays["tau_s"],
+                cfr=scenario_arrays["cfr"],
+                subcarrier_offsets_hz=scenario_arrays["subcarrier_offsets_hz"],
+                metadata=scenario_metadata["metadata"],
+            )
+        )
+    direct_path_ablations = []
+    for ablation_metadata, ablation_arrays in grouped.get("counterfactual_ablations", []):
+        if (
+            set(ablation_metadata)
+            != {
+                "schema",
+                "parent_subject_id",
+                "base_child_id",
+                "ablated_child_id",
+                "split",
+                "path_table_sha256",
+                "link_ids",
+            }
+            or ablation_metadata.get("schema") != "umcd.direct_path_ablation.v1"
+        ):
+            raise ValueError("unsupported direct-path ablation layer schema")
+        if set(ablation_arrays) != {
+            "frame_indices",
+            "rx_port_indices",
+            "tx_port_indices",
+            "frequency_offset_hz",
+            "full_cfr",
+            "without_direct_cfr",
+            "removed_direct_path_count",
+        }:
+            raise ValueError("direct-path ablation layer arrays are invalid")
+        direct_path_ablations.append(
+            DirectPathAblation(
+                parent_subject_id=ablation_metadata["parent_subject_id"],
+                base_child_id=ablation_metadata["base_child_id"],
+                ablated_child_id=ablation_metadata["ablated_child_id"],
+                split=ablation_metadata["split"],
+                path_table_sha256=ablation_metadata["path_table_sha256"],
+                link_ids=tuple(ablation_metadata["link_ids"]),
+                frame_indices=ablation_arrays["frame_indices"],
+                rx_port_indices=ablation_arrays["rx_port_indices"],
+                tx_port_indices=ablation_arrays["tx_port_indices"],
+                frequency_offset_hz=ablation_arrays["frequency_offset_hz"],
+                full_cfr=ablation_arrays["full_cfr"],
+                without_direct_cfr=ablation_arrays["without_direct_cfr"],
+                removed_direct_path_count=ablation_arrays["removed_direct_path_count"],
+            )
+        )
     if metadata["episode_id"] != episode.episode_id:
         raise ValueError("manifest and episode payload IDs differ")
     return EpisodeBundle(
@@ -809,4 +1325,6 @@ def read_episode_bundle(
         tuple(targets),
         tuple(observations),
         tuple(provenance_records),
+        tuple(scenario_gbsm_records),
+        tuple(direct_path_ablations),
     )

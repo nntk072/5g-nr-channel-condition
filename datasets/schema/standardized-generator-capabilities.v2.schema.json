@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://umcd.example/schema/standardized-generator-capabilities.v2.schema.json",
+  "title": "UMCD standardized channel generator capability matrix v2",
+  "description": "Implemented adapter scope only; this report is not statistical conformance or scientific qualification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "status", "families", "scenario_gbsm", "capabilities_sha256"],
+  "properties": {
+    "schema": {"const": "umcd.standardized_generator_capabilities.v2"},
+    "status": {"const": "CODE_SCOPE_ONLY_NOT_CONFORMANCE_QUALIFICATION"},
+    "capabilities_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "families": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["family", "supported_models", "supported_profile_table_versions", "link_topology", "antenna_features", "unsupported_antenna_features", "unsupported_topologies", "channel_views"],
+        "properties": {
+          "family": {"enum": ["tdl", "cdl"]},
+          "supported_models": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}},
+          "supported_profile_table_versions": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["scalable", "fixed"],
+            "properties": {
+              "scalable": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}},
+              "fixed": {"type": "array", "uniqueItems": true, "items": {"type": "string"}}
+            }
+          },
+          "link_topology": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["tx_node_count", "rx_node_count", "mimo"],
+            "properties": {
+              "tx_node_count": {"const": 1},
+              "rx_node_count": {"const": 1},
+              "mimo": {"const": true}
+            }
+          },
+          "antenna_features": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}},
+          "unsupported_antenna_features": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}},
+          "unsupported_topologies": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}},
+          "channel_views": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}}
+        }
+      }
+    },
+    "scenario_gbsm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["family", "supported_models", "supported_versions", "link_topology", "status", "antenna_features", "limitations"],
+      "properties": {
+        "family": {"const": "3gpp_scenario_gbsm"},
+        "supported_models": {"const": ["InF", "InH", "RMa", "UMa", "UMi"]},
+        "supported_versions": {"const": ["16.1", "19.2"]},
+        "link_topology": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["tx_node_count", "rx_node_count", "batch_semantics"],
+          "properties": {
+            "tx_node_count": {"const": 1},
+            "rx_node_count": {"const": 1},
+            "batch_semantics": {"const": "explicit_one_bs_one_ut_drops"}
+          }
+        },
+        "status": {"const": "CODE_SCOPE_ONLY_NOT_CONFORMANCE_QUALIFICATION"},
+        "antenna_features": {
+          "const": [
+            "panel_array_geometry",
+            "single_or_dual_polarization",
+            "omni_or_38_901_or_38_901_handheld_element_patterns",
+            "explicit_endpoint_orientation",
+            "explicit_ut_velocity"
+          ]
+        },
+        "limitations": {
+          "const": [
+            "explicit_one_bs_one_ut_topology_per_batch_row",
+            "no_multi_cell_interference_composition",
+            "no_spatial_consistency_or_blockage_controls",
+            "no_geometric_los_truth",
+            "no_statistical_conformance_claim"
+          ]
+        }
+      }
+    }
+  }
+}

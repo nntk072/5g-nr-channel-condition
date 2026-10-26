@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/nntk072/5g-nr-channel-condition/datasets/schema/rt-backend-capability-report.v1.schema.json",
+  "title": "UMCD Sionna RT backend capability report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "status",
+    "requested",
+    "available_variants",
+    "runtime_versions",
+    "selected_backend",
+    "selected_variant",
+    "probe_passed",
+    "probe_summary",
+    "fallback_reason",
+    "failure_reason"
+  ],
+  "properties": {
+    "schema": {"const": "umcd.rt_backend_capability_report.v1"},
+    "status": {"enum": ["AVAILABLE", "UNAVAILABLE"]},
+    "requested": {"type": "string", "minLength": 1},
+    "available_variants": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "runtime_versions": {
+      "type": "object",
+      "additionalProperties": {"type": "string"}
+    },
+    "selected_backend": {"type": ["string", "null"]},
+    "selected_variant": {"type": ["string", "null"]},
+    "probe_passed": {"type": "boolean"},
+    "probe_summary": {"type": "string"},
+    "fallback_reason": {"type": ["string", "null"]},
+    "failure_reason": {"type": ["string", "null"]}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "AVAILABLE"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "selected_backend": {"type": "string", "minLength": 1},
+          "selected_variant": {"type": "string", "minLength": 1},
+          "probe_passed": {"const": true},
+          "failure_reason": {"const": null}
+        }
+      },
+      "else": {
+        "properties": {
+          "selected_backend": {"const": null},
+          "selected_variant": {"const": null},
+          "probe_passed": {"const": false},
+          "failure_reason": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  ]
+}

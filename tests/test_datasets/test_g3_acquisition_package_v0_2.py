@@ -8,27 +8,49 @@ import pytest
 ROOT = Path(__file__).resolve().parents[2]
 SCHEMA_PATH = ROOT / "datasets/schema/g3.03-acquisition-package.v0.2.schema.json"
 V01_FIXTURE_PATH = ROOT / "datasets/schema/examples/g3.03-acquisition-package.v0.1.example.json"
+V03_PLUS = {
+    "g3.03-acquisition-package.v0.3",
+    "g3.03-acquisition-package.v0.4",
+}
 
 
-def _package():
+def _package(schema_version="g3.03-acquisition-package.v0.2"):
     package = json.loads(V01_FIXTURE_PATH.read_text(encoding="utf-8"))
     package.update(
-        schema_version="g3.03-acquisition-package.v0.2",
+        schema_version=schema_version,
         proposal_status="proposal_only",
         package_description=(
             "SYNTHETIC TEST FIXTURE ONLY: fictional records; no measurements, evaluator run, "
             "external verification, lab acceptance, or G3 qualification."
         ),
     )
+    if schema_version in V03_PLUS:
+        noise_file_ids = {
+            file_id
+            for record in package["csi_measurements"]
+            for file_id in record["h_floor"]["noise_input_file_ids"]
+        }
+        for file_record in package["files"]:
+            if file_record["file_id"] in noise_file_ids:
+                file_record["role"] = "noise_measurement"
+                if schema_version == "g3.03-acquisition-package.v0.4":
+                    file_record["path"] = "files/noise-input.npy"
+                    file_record["media_type"] = "application/x-npy"
+                    file_record["sample_ids"] = [package["csi_measurements"][0]["sample_id"]]
+        if schema_version == "g3.03-acquisition-package.v0.4":
+            for record in package["csi_measurements"]:
+                record["h_floor"]["method"] = "noise_only_cfr_estimate_rms_v1"
+                record["h_floor"]["amplitude_linear"] = 2.5
     for collection in ("samples", "fits", "angular_measurements", "csi_measurements"):
         for record in package[collection]:
             record["record_status"] = "synthetic_example_only"
             if collection == "fits":
                 for parameter in record["parameters"]:
                     parameter["record_status"] = "synthetic_example_only"
-    # The schema uses the draft's half-open azimuth domain [-180, 180).
-    for record in package["angular_measurements"]:
-        record["phi_edges_deg"] = [-180, 0, 179]
+    # Keep the v0.2 historical fixture; v0.3 closes the sphere at +180 degrees.
+    if schema_version == "g3.03-acquisition-package.v0.2":
+        for record in package["angular_measurements"]:
+            record["phi_edges_deg"] = [-180, 0, 179]
     for attestation in package["attestations"].values():
         attestation["attestation_status"] = "planned_not_signed"
         attestation["claim"] = "SYNTHETIC EXAMPLE: proposed wording only; no claim is made."
@@ -45,6 +67,11 @@ def _package():
             _file("file.protocol", "protocol.json", "protocol"),
             _file("file.uncertainty", "uncertainty.json", "uncertainty"),
         ]
+        + (
+            [_file("file.material.mapping", "material-mapping.json", "material_mapping")]
+            if schema_version in V03_PLUS
+            else []
+        )
     )
     package.update(
         campaigns=[
@@ -83,7 +110,11 @@ def _package():
                 "protocol_id": "protocol.example.1",
                 "protocol_status": "proposed",
                 "target_frequency_hz": 3500000000,
-                "evaluator_schema": "loslab.g3_material_calibration_predictions.v1",
+                "evaluator_schema": (
+                    "loslab.g3_material_calibration_predictions.v2"
+                    if schema_version in V03_PLUS
+                    else "loslab.g3_material_calibration_predictions.v1"
+                ),
                 "criteria_reference": "Frozen G3.03 evaluator criteria; no criteria redefined here.",
                 "physical_unit_definition": "Proposed independent acquisition unit definition.",
                 "expected_strata": [
@@ -104,11 +135,24 @@ def _package():
         ],
         evaluator_binding={
             "execution_status": "not_executed_proposal_only",
-            "input_contract": "loslab.g3_material_calibration_predictions.v1",
-            "output_contract": "loslab.g3_material_calibration_evaluation.v1",
+            "input_contract": (
+                "loslab.g3_material_calibration_predictions.v2"
+                if schema_version in V03_PLUS
+                else "loslab.g3_material_calibration_predictions.v1"
+            ),
+            "output_contract": (
+                "loslab.g3_material_calibration_evaluation.v2"
+                if schema_version in V03_PLUS
+                else "loslab.g3_material_calibration_evaluation.v1"
+            ),
             "scorer_input": _artifact_ref("file.scorer.input"),
             "split_manifest": _artifact_ref("file.split.manifest"),
             "evaluator_output": _artifact_ref("file.evaluator.output"),
+            **(
+                {"material_mapping": _artifact_ref("file.material.mapping")}
+                if schema_version in V03_PLUS
+                else {}
+            ),
             "reported_prediction_input_sha256": "0" * 64,
             "evaluator_code_sha256": "2" * 64,
             "run_configuration_file_ids": ["file.protocol"],
@@ -172,6 +216,16 @@ def _package():
         }
         for file in package["files"]
     ]
+    if schema_version in V03_PLUS:
+        package["samples"][0].update(
+            campaign_id="campaign.example.1",
+            instrument_id="instrument.example.1",
+        )
+        for angular in package["angular_measurements"]:
+            angular["coordinate_frame_id"] = "frame.example.1"
+        package["row_crosswalk"][0]["angular_measurement_id"] = package[
+            "angular_measurements"
+        ][0]["angular_id"]
     return package
 
 
@@ -226,6 +280,10 @@ def _assert_cross_record_links(package):
         ("scorer_input", "scorer_input"),
         ("split_manifest", "split_manifest"),
         ("evaluator_output", "evaluator_output"),
+    ) + (
+        (("material_mapping", "material_mapping"),)
+        if package["schema_version"] == "g3.03-acquisition-package.v0.3"
+        else ()
     ):
         reference = binding[name]
         inventory = files[reference["file_id"]]
@@ -299,6 +357,19 @@ def test_proposal_fixture_validates_and_is_explicitly_unexecuted(schema_validato
         and item["signature_value"] is None
         for item in package["attestations"].values()
     )
+
+
+def test_v04_proposal_fixture_validates_noise_floor_derivation_contract():
+    jsonschema = pytest.importorskip("jsonschema")
+    package = _package("g3.03-acquisition-package.v0.4")
+    schema = json.loads(
+        (ROOT / "datasets/schema/g3.03-acquisition-package.v0.4.schema.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    jsonschema.Draft202012Validator.check_schema(schema)
+    validator = jsonschema.Draft202012Validator(schema, format_checker=jsonschema.FormatChecker())
+    assert list(validator.iter_errors(package)) == []
 
 
 def test_exact_byte_references_and_per_file_rights_join(schema_validator):

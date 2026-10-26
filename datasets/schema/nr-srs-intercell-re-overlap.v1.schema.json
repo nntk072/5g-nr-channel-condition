@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:loslab:nr-srs-intercell-re-overlap:v1",
+  "title": "NR SRS Inter-cell Resource Element Overlap Diagnostic",
+  "description": "Same-grid scheduled SRS resource-element occupancy only. It does not establish interference or receiver impact.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "status", "admission_possible", "grid", "scheduled_occurrence_count",
+    "expanded_resource_element_count", "shared_intercell_resource_element_count",
+    "pairwise_resource_overlaps", "collision_coordinates", "collision_coordinates_truncated",
+    "limitations"
+  ],
+  "properties": {
+    "schema": { "const": "loslab.nr_srs_intercell_re_overlap.v1" },
+    "status": { "enum": ["INTERCELL_RE_OVERLAP_DETECTED", "NO_INTERCELL_RE_OVERLAP"] },
+    "admission_possible": { "const": false },
+    "grid": {
+      "type": "object", "additionalProperties": false,
+      "required": ["grid_id", "carrier_hz", "numerology", "subcarrier_spacing_hz"],
+      "properties": {
+        "grid_id": { "type": "string", "minLength": 1 },
+        "carrier_hz": { "type": "number", "exclusiveMinimum": 0 },
+        "numerology": { "type": "integer", "minimum": 0, "maximum": 6 },
+        "subcarrier_spacing_hz": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "scheduled_occurrence_count": { "type": "integer", "minimum": 1 },
+    "expanded_resource_element_count": { "type": "integer", "minimum": 1 },
+    "shared_intercell_resource_element_count": { "type": "integer", "minimum": 0 },
+    "pairwise_resource_overlaps": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["left", "right", "shared_resource_element_count"],
+        "properties": {
+          "left": { "$ref": "#/$defs/resource" },
+          "right": { "$ref": "#/$defs/resource" },
+          "shared_resource_element_count": { "type": "integer", "minimum": 1 }
+        }
+      }
+    },
+    "collision_coordinates": {
+      "type": "array", "maxItems": 1000,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["slot_index", "symbol_index", "subcarrier_index", "participants"],
+        "properties": {
+          "slot_index": { "type": "integer", "minimum": 0 },
+          "symbol_index": { "type": "integer", "minimum": 0 },
+          "subcarrier_index": { "type": "integer", "minimum": 0 },
+          "participants": {
+            "type": "array", "minItems": 2, "items": { "$ref": "#/$defs/resource" }
+          }
+        }
+      }
+    },
+    "collision_coordinates_truncated": { "type": "boolean" },
+    "limitations": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+  },
+  "$defs": {
+    "resource": {
+      "type": "object", "additionalProperties": false,
+      "required": ["cell_id", "resource_set_id", "resource_id"],
+      "properties": {
+        "cell_id": { "type": "string", "minLength": 1 },
+        "resource_set_id": { "type": "integer", "minimum": 0 },
+        "resource_id": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

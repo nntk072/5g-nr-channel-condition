@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.example/schema/g3-joint-evidence-run-manifest.v2.schema.json",
+  "title": "G3 Joint Evidence Run Manifest v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "run_id", "qualification_status", "input", "artifact", "evaluator_sources", "evaluator_source_bundle_sha256"],
+  "properties": {
+    "schema": {"const": "loslab.g3_joint_evidence_run_manifest.v2"},
+    "run_id": {"type": "string", "pattern": "^[a-z][a-z0-9._-]{2,63}$"},
+    "qualification_status": {"const": "NOT_QUALIFIED"},
+    "input": {"$ref": "#/$defs/file"},
+    "artifact": {"$ref": "#/$defs/file"},
+    "qualification_contract": {"type": "object"},
+    "evaluator_sources": {
+      "type": "array",
+      "minItems": 33,
+      "maxItems": 33,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/source"}
+    },
+    "evaluator_source_bundle_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  },
+  "$defs": {
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "size_bytes", "sha256", "role"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1, "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+$"},
+        "size_bytes": {"type": "integer", "minimum": 0},
+        "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "role": {"enum": ["joint_evaluator_input", "joint_evaluator_artifact"]}
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "size_bytes", "sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1, "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+$"},
+        "size_bytes": {"type": "integer", "minimum": 0},
+        "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
+    }
+  }
+}

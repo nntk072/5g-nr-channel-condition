@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.invalid/schema/public-release-manifest.v2.schema.json",
+  "title": "UMCD public release manifest v2",
+  "description": "Strict release inventory and per-artifact ODbL lineage declarations. Cross-field and legal-review requirements are additionally enforced by datasets.public_release.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "release_id", "source_software_revision", "artifacts", "scenes"],
+  "properties": {
+    "schema": {"const": "umcd.public_release.v2"},
+    "release_id": {"type": "string", "minLength": 1},
+    "source_software_revision": {"type": "string", "minLength": 1},
+    "scenes": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/scene"}
+    },
+    "artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/artifact"}
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "scene": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scene_id", "asset_tree_sha256", "license_url", "copyright_notice_url",
+        "required_credit", "source_software_revision", "attribution_location",
+        "source_data_offer_url", "extract_or_update_date_or_documented_gap",
+        "source_ids_or_documented_gap", "conversion_recipe_or_documented_gap",
+        "third_party_license_closure"
+      ],
+      "properties": {
+        "scene_id": {"type": "string", "minLength": 1},
+        "asset_tree_sha256": {"$ref": "#/$defs/sha256"},
+        "license_url": {"const": "https://opendatacommons.org/licenses/odbl/1-0/"},
+        "copyright_notice_url": {"const": "https://www.openstreetmap.org/copyright"},
+        "required_credit": {"const": "© OpenStreetMap contributors"},
+        "source_software_revision": {"type": "string", "minLength": 1},
+        "attribution_location": {"const": "LICENSES/README.txt"},
+        "source_data_offer_url": {"type": "string", "format": "uri"},
+        "extract_or_update_date_or_documented_gap": {"type": "string", "minLength": 1},
+        "source_ids_or_documented_gap": {"type": "string", "minLength": 1},
+        "conversion_recipe_or_documented_gap": {"type": "string", "minLength": 1},
+        "third_party_license_closure": {"const": "complete"}
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path", "sha256", "license", "license_url", "scene_ids",
+        "scene_classifications", "source_scene_tree_sha256", "redistribution",
+        "lineage_complete"
+      ],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "license": {"type": "string", "minLength": 1},
+        "license_url": {"type": "string", "format": "uri"},
+        "scene_ids": {
+          "type": "array", "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "scene_classifications": {
+          "type": "object",
+          "additionalProperties": {"enum": ["odbl_database", "odbl_produced_work"]}
+        },
+        "source_scene_tree_sha256": {
+          "type": "array", "uniqueItems": true,
+          "items": {"$ref": "#/$defs/sha256"}
+        },
+        "redistribution": {"const": "permitted"},
+        "lineage_complete": {"const": true}
+      }
+    }
+  }
+}

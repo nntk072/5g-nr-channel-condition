@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://umcd.example/schema/standardized-profile-applicability.v1.schema.json",
+  "title": "UMCD standardized profile applicability ledger",
+  "description": "Code-supported TDL/CDL profile scope; not evidence of statistical conformance or scientific qualification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "status", "rows", "rows_sha256"],
+  "properties": {
+    "schema": {"const": "umcd.standardized_profile_applicability.v1"},
+    "status": {"const": "CODE_SCOPE_ONLY_NOT_CONFORMANCE_QUALIFICATION"},
+    "rows_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "rows": {
+      "type": "array",
+      "minItems": 17,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "family", "profile_model", "standard", "supported_versions",
+          "delay_profile_semantics", "carrier_frequency_ranges_hz",
+          "maximum_sampled_bandwidth_hz", "profile_los_component", "fixed_profile",
+          "minimum_channel_bandwidth_exclusive_hz"
+        ],
+        "properties": {
+          "family": {"enum": ["tdl", "cdl"]},
+          "profile_model": {"type": "string", "minLength": 1},
+          "standard": {"enum": ["3GPP TR 38.901", "3GPP TS 38.101-4"]},
+          "supported_versions": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+          "delay_profile_semantics": {"enum": ["scalable_tr_38_901_profile", "fixed_ts_38_101_4_absolute_tap_delays"]},
+          "carrier_frequency_ranges_hz": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "array",
+              "prefixItems": [{"type": "number", "minimum": 0}, {"type": "number", "exclusiveMinimum": 0}],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            }
+          },
+          "maximum_sampled_bandwidth_hz": {"type": "number", "exclusiveMinimum": 0},
+          "profile_los_component": {"type": "boolean"},
+          "fixed_profile": {"type": "boolean"},
+          "minimum_channel_bandwidth_exclusive_hz": {"type": ["number", "null"], "exclusiveMinimum": 0}
+        }
+      }
+    }
+  }
+}

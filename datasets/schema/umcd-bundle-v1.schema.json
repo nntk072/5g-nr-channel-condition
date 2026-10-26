@@ -19,12 +19,21 @@
         "required": ["layer", "sha256", "path"],
         "properties": {
           "layer": {
-            "enum": ["episode", "oracle_paths", "oracle_channels", "targets"]
+            "enum": [
+              "episode",
+              "oracle_paths",
+              "oracle_channels",
+              "targets",
+              "receiver_observations",
+              "provenance",
+              "scenario_gbsm",
+              "counterfactual_ablations"
+            ]
           },
           "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
           "path": {
             "type": "string",
-            "pattern": "^objects/(episode|oracle_paths|oracle_channels|targets)/[0-9a-f]{2}/[0-9a-f]{64}\\.npz$"
+            "pattern": "^objects/(episode|oracle_paths|oracle_channels|targets|receiver_observations|provenance|scenario_gbsm|counterfactual_ablations)/[0-9a-f]{2}/[0-9a-f]{64}\\.npz$"
           }
         }
       }

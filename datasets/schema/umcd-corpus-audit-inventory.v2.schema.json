@@ -1,0 +1,177 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:umcd:corpus-audit-inventory:v2",
+  "title": "UMCD frozen corpus audit inventory v2",
+  "description": "Frozen parent, split, target, and optional NR trajectory inventory. Minimum independent-group support is declared per target cell; schema validity does not establish corpus completeness or qualification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "frozen",
+    "inventory_id",
+    "store",
+    "split_registry",
+    "bundles",
+    "expected_coverage",
+    "duplicate_threshold",
+    "legal_assessment",
+    "external_lock_attestation"
+  ],
+  "properties": {
+    "schema": {"const": "umcd.corpus_audit_inventory.v2"},
+    "frozen": {"const": true},
+    "inventory_id": {"type": "string", "minLength": 1},
+    "store": {"$ref": "#/$defs/relativePath"},
+    "split_registry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"$ref": "#/$defs/relativePath"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "bundles": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["episode_id", "manifest", "manifest_sha256", "relations"],
+        "properties": {
+          "episode_id": {"type": "string", "minLength": 1},
+          "manifest": {
+            "type": "string",
+            "pattern": "^manifests/episodes/[A-Za-z0-9._-]+\\.json$"
+          },
+          "manifest_sha256": {"$ref": "#/$defs/sha256"},
+          "relations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["namespace", "identity"],
+              "properties": {
+                "namespace": {"$ref": "#/$defs/leakageNamespace"},
+                "identity": {"type": "string", "minLength": 1}
+              }
+            }
+          }
+        }
+      }
+    },
+    "expected_coverage": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "split_id",
+          "family_id",
+          "target_id",
+          "minimum_independent_groups"
+        ],
+        "properties": {
+          "split_id": {"type": "string", "minLength": 1},
+          "family_id": {"type": "string", "minLength": 1},
+          "target_id": {"type": "string", "minLength": 1},
+          "minimum_independent_groups": {"type": "integer", "minimum": 1}
+        }
+      }
+    },
+    "duplicate_threshold": {"type": "number", "minimum": 0, "maximum": 1},
+    "legal_assessment": {"$ref": "#/$defs/legalAssessment"},
+    "external_lock_attestation": {"$ref": "#/$defs/lockAttestation"},
+    "nr_trajectory_inventory": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["trajectory_id", "parent_episode_id", "manifest", "manifest_sha256"],
+        "properties": {
+          "trajectory_id": {"type": "string", "minLength": 1},
+          "parent_episode_id": {"type": "string", "minLength": 1},
+          "manifest": {
+            "type": "string",
+            "pattern": "^manifests/trajectories/[0-9a-f]{64}\\.json$"
+          },
+          "manifest_sha256": {"$ref": "#/$defs/sha256"}
+        }
+      }
+    },
+    "nr_expected_coverage": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["split_id", "family_id", "target_id"],
+        "properties": {
+          "split_id": {"type": "string", "minLength": 1},
+          "family_id": {"type": "string", "minLength": 1},
+          "target_id": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  },
+  "oneOf": [
+    {
+      "required": ["nr_trajectory_inventory", "nr_expected_coverage"]
+    },
+    {
+      "not": {
+        "anyOf": [
+          {"required": ["nr_trajectory_inventory"]},
+          {"required": ["nr_expected_coverage"]}
+        ]
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+$"
+    },
+    "leakageNamespace": {
+      "enum": [
+        "asset_family",
+        "site",
+        "scene_realization",
+        "trajectory_session",
+        "capture_session",
+        "counterfactual_family",
+        "material_realization",
+        "equipment_family",
+        "spatial_buffer",
+        "overlapping_time_window"
+      ]
+    },
+    "legalAssessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": {"enum": ["pending", "approved", "rejected", "not_applicable"]},
+        "evidence_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "lockAttestation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": {"enum": ["missing", "provided", "attested", "rejected"]},
+        "signature_path": {"$ref": "#/$defs/relativePath"},
+        "signer_id": {"type": "string", "minLength": 1},
+        "evidence_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "dependentRequired": {
+        "signature_path": ["signer_id"],
+        "signer_id": ["signature_path"]
+      }
+    }
+  }
+}

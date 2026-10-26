@@ -1,0 +1,561 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.invalid/schema/g3-joint-evaluator-input.v5.schema.json",
+  "title": "G3 five-branch joint evaluator input with raw path-equivalence recomputation",
+  "description": "Serialized numerical evaluator input. Path-equivalence comparisons are recomputed from both solvers raw valid deterministic paths and full active-grid CFRs using one shared declared configuration. This remains diagnostic and does not establish physical truth or qualification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "joint_acceptance_family",
+    "receiver_execution",
+    "material_calibration",
+    "complex_csi",
+    "propagation_metrics",
+    "receiver_impact",
+    "path_equivalence"
+  ],
+  "properties": {
+    "schema": {
+      "const": "loslab.g3_joint_evaluator_inputs.v5"
+    },
+    "joint_acceptance_family": {
+      "type": "object"
+    },
+    "receiver_execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate",
+        "challenger",
+        "waveform",
+        "link_budget_noise"
+      ],
+      "properties": {
+        "candidate": {
+          "$ref": "#/$defs/configuration"
+        },
+        "challenger": {
+          "$ref": "#/$defs/configuration"
+        },
+        "waveform": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "waveform_id",
+            "configuration",
+            "configuration_sha256"
+          ],
+          "properties": {
+            "waveform_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "configuration": {
+              "type": "object"
+            },
+            "configuration_sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "link_budget_noise": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "tx_power_dbm",
+            "tx_gain_dbi",
+            "rx_gain_dbi",
+            "noise_figure_db",
+            "noise_temperature_k",
+            "noise_bandwidth_hz"
+          ],
+          "properties": {
+            "tx_power_dbm": {
+              "type": "number"
+            },
+            "tx_gain_dbi": {
+              "type": "number"
+            },
+            "rx_gain_dbi": {
+              "type": "number"
+            },
+            "noise_figure_db": {
+              "type": "number"
+            },
+            "noise_temperature_k": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "noise_bandwidth_hz": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        }
+      }
+    },
+    "material_calibration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "payload"
+      ],
+      "properties": {
+        "payload": {
+          "type": "object"
+        },
+        "joint_acceptance_family": {
+          "type": "object"
+        }
+      }
+    },
+    "complex_csi": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "records",
+        "expected_strata"
+      ],
+      "properties": {
+        "records": {
+          "type": "array",
+          "minItems": 1
+        },
+        "expected_strata": {
+          "$ref": "#/$defs/strata2"
+        },
+        "bootstrap_seed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "bootstrap_draws": {
+          "type": "integer",
+          "minimum": 1000
+        },
+        "confidence_level": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "joint_acceptance_family": {
+          "type": "object"
+        }
+      }
+    },
+    "propagation_metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "records",
+        "expected_strata",
+        "effective_bandwidth_hz"
+      ],
+      "properties": {
+        "records": {
+          "type": "array",
+          "minItems": 1
+        },
+        "expected_strata": {
+          "$ref": "#/$defs/strata3"
+        },
+        "effective_bandwidth_hz": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "bootstrap_seed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "bootstrap_draws": {
+          "type": "integer",
+          "minimum": 1000
+        },
+        "joint_acceptance_family": {
+          "type": "object"
+        }
+      }
+    },
+    "receiver_impact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "records",
+        "expected_strata",
+        "candidate_config_id",
+        "challenger_config_id",
+        "snr_grid_db",
+        "comparison_snr_db"
+      ],
+      "properties": {
+        "records": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "receiver_execution_context_sha256",
+              "family_id",
+              "condition",
+              "episode_id",
+              "configuration_id",
+              "receiver_configuration_sha256"
+            ],
+            "properties": {
+              "receiver_execution_context_sha256": {
+                "$ref": "#/$defs/sha256"
+              },
+              "family_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "condition": {
+                "enum": [
+                  "LOS",
+                  "NLOS"
+                ]
+              },
+              "episode_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "configuration_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "receiver_configuration_sha256": {
+                "$ref": "#/$defs/sha256"
+              }
+            }
+          }
+        },
+        "expected_strata": {
+          "$ref": "#/$defs/strata2"
+        },
+        "candidate_config_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "challenger_config_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "snr_grid_db": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "number"
+          }
+        },
+        "comparison_snr_db": {
+          "type": "number"
+        },
+        "bootstrap_seed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "bootstrap_draws": {
+          "type": "integer",
+          "minimum": 1000
+        },
+        "joint_acceptance_family": {
+          "type": "object"
+        }
+      }
+    },
+    "path_equivalence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "records",
+        "expected_scenarios",
+        "comparison_configuration"
+      ],
+      "properties": {
+        "records": {
+          "items": {
+            "properties": {
+              "challenger_paths": {
+                "items": {
+                  "$ref": "#/$defs/rawPath"
+                },
+                "type": "array"
+              },
+              "episode_id": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "candidate_full_cfr_imag": {
+                "$ref": "#/$defs/realVector"
+              },
+              "family_id": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "challenger_full_cfr_real": {
+                "$ref": "#/$defs/realVector"
+              },
+              "condition": {
+                "enum": [
+                  "LOS",
+                  "NLOS"
+                ]
+              },
+              "challenger_full_cfr_imag": {
+                "$ref": "#/$defs/realVector"
+              },
+              "candidate_full_cfr_real": {
+                "$ref": "#/$defs/realVector"
+              },
+              "candidate_paths": {
+                "items": {
+                  "$ref": "#/$defs/rawPath"
+                },
+                "type": "array"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "family_id",
+              "condition",
+              "episode_id",
+              "candidate_paths",
+              "challenger_paths",
+              "candidate_full_cfr_real",
+              "candidate_full_cfr_imag",
+              "challenger_full_cfr_real",
+              "challenger_full_cfr_imag"
+            ],
+            "type": "object"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "expected_scenarios": {
+          "$ref": "#/$defs/strata3"
+        },
+        "joint_acceptance_family": {
+          "type": "object"
+        },
+        "comparison_configuration": {
+          "properties": {
+            "direction_tolerance_rad": {
+              "maximum": 3.141592653589793,
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            "transmit_power_per_re_w": {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            "candidate_configuration_id": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "noise_power_per_re_w": {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            "h_floor": {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            "vertex_tolerance_m": {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            "delay_tolerance_s": {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            "challenger_configuration_id": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "candidate_configuration_id",
+            "challenger_configuration_id",
+            "vertex_tolerance_m",
+            "delay_tolerance_s",
+            "direction_tolerance_rad",
+            "h_floor",
+            "transmit_power_per_re_w",
+            "noise_power_per_re_w"
+          ],
+          "type": "object"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "configuration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "config_id",
+        "configuration",
+        "configuration_sha256"
+      ],
+      "properties": {
+        "config_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "configuration": {
+          "type": "object"
+        },
+        "configuration_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "strata2": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "array",
+        "prefixItems": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "string"
+          }
+        ],
+        "minItems": 2,
+        "maxItems": 2
+      }
+    },
+    "strata3": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "array",
+        "prefixItems": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "string"
+          },
+          {
+            "type": "string"
+          }
+        ],
+        "minItems": 3,
+        "maxItems": 3
+      }
+    },
+    "realVector": {
+      "items": {
+        "type": "number"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "point3": {
+      "maxItems": 3,
+      "items": {
+        "type": "number"
+      },
+      "minItems": 3,
+      "type": "array"
+    },
+    "rawPath": {
+      "properties": {
+        "path_kind": {
+          "enum": [
+            "specular",
+            "deterministic"
+          ]
+        },
+        "interaction_vertices_m": {
+          "items": {
+            "$ref": "#/$defs/point3"
+          },
+          "type": "array"
+        },
+        "theta_r_rad": {
+          "type": "number"
+        },
+        "phi_r_rad": {
+          "type": "number"
+        },
+        "path_index": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "coefficient_imag": {
+          "type": "number"
+        },
+        "cfr_contribution_real": {
+          "$ref": "#/$defs/realVector"
+        },
+        "interaction_type_masks": {
+          "items": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "array"
+        },
+        "phi_t_rad": {
+          "type": "number"
+        },
+        "theta_t_rad": {
+          "type": "number"
+        },
+        "valid": {
+          "const": true
+        },
+        "coefficient_real": {
+          "type": "number"
+        },
+        "primitive_ids": {
+          "items": {
+            "type": "integer"
+          },
+          "type": "array"
+        },
+        "absolute_delay_s": {
+          "minimum": 0,
+          "type": "number"
+        },
+        "cfr_contribution_imag": {
+          "$ref": "#/$defs/realVector"
+        },
+        "object_ids": {
+          "items": {
+            "type": "integer"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "valid",
+        "path_kind",
+        "path_index",
+        "interaction_type_masks",
+        "object_ids",
+        "primitive_ids",
+        "interaction_vertices_m",
+        "absolute_delay_s",
+        "theta_t_rad",
+        "phi_t_rad",
+        "theta_r_rad",
+        "phi_r_rad",
+        "coefficient_real",
+        "coefficient_imag",
+        "cfr_contribution_real",
+        "cfr_contribution_imag"
+      ],
+      "type": "object"
+    }
+  }
+}

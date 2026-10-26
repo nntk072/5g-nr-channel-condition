@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://umcd.example/schemas/channel-dataset-child-artifact-roster.v3.schema.json",
+  "title": "UMCD typed split child artifact roster v3",
+  "description": "The exact roster bytes are detached-signature verified. artifact_root names one directory below the roster directory. The listed paths must exactly cover every regular file beneath that directory; symlinks, hard links, special files, and unlisted files are rejected. Each frozen child must have a ChannelDataset NPZ whose rows bind to that child, kind, and parent. Recognized NR trajectory stores are traversed through content and record hashes and checked against split lineage. NR record-store manifests and their content-addressed NPZ payloads are paired, hash-checked, and checked against the same split binding. Every v3 artifact type must have a semantic validator; types without one are rejected. Exact subtree inventory does not establish authoritative corpus completeness or release qualification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "child_kind", "artifact_root", "artifacts"],
+  "properties": {
+    "schema": {"const": "umcd.channel_dataset_child_artifact_roster.v3"},
+    "child_kind": {"type": "string", "minLength": 1},
+    "artifact_root": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"},
+    "artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["artifact_id", "artifact_type", "child_id", "path", "bytes", "sha256"],
+        "properties": {
+          "artifact_id": {"type": "string", "minLength": 1},
+          "artifact_type": {
+            "enum": [
+              "channel_dataset_npz",
+              "nr_trajectory_store_manifest_json",
+              "nr_record_store_manifest_json",
+              "nr_record_store_content_npz"
+            ]
+          },
+          "child_id": {"type": "string", "minLength": 1},
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?!/)(?!.*//)(?!.*\\.$)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*\\/+$)[A-Za-z0-9._/-]+$"
+          },
+          "bytes": {"type": "integer", "minimum": 0},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    }
+  }
+}

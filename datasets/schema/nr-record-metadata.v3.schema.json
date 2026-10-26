@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:umcd:nr-record-metadata:v3",
+  "title": "UMCD NR record metadata v3",
+  "description": "Canonical NR metadata requires digest-bound semantic definitions for every target; v1/v2 remain readable as historical records.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "sample_id", "receiver_config", "fft_bin_indices",
+    "estimate_metadata", "targets", "target_masks", "target_reason_codes",
+    "target_reason_codebook", "provenance", "target_definitions"
+  ],
+  "properties": {
+    "schema_version": {"const": 3},
+    "sample_id": {"type": "string", "minLength": 1},
+    "receiver_config": {"type": "object"},
+    "fft_bin_indices": {"type": "array", "items": {"type": "integer", "minimum": 0}},
+    "estimate_metadata": {"type": "object"},
+    "targets": {"$ref": "#/$defs/arrayKeyMap"},
+    "target_masks": {"$ref": "#/$defs/arrayKeyMap"},
+    "target_reason_codes": {"$ref": "#/$defs/arrayKeyMap"},
+    "target_reason_codebook": {
+      "const": [
+        "valid", "not_applicable", "not_observable", "reference_missing",
+        "low_confidence_ground_truth", "solver_failure", "censored",
+        "outside_calibrated_domain", "sensor_dropout", "saturated",
+        "timestamp_gap", "license_restricted", "legacy_reason_unrecorded"
+      ]
+    },
+    "provenance": {"type": "object"},
+    "target_definitions": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"$ref": "#/$defs/targetDefinition"}
+    }
+  },
+  "$defs": {
+    "arrayKeyMap": {
+      "type": "object",
+      "additionalProperties": {"type": "string", "pattern": "^[A-Za-z0-9_]+$"}
+    },
+    "targetDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "semantic", "units", "source", "reference", "definition_sha256",
+        "aggregation_rule", "definition_version"
+      ],
+      "properties": {
+        "semantic": {"type": "string", "minLength": 1},
+        "units": {"type": "string", "minLength": 1},
+        "source": {"type": "string", "minLength": 1},
+        "reference": {"type": "string", "minLength": 1},
+        "definition_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "aggregation_rule": {"type": "string", "minLength": 1},
+        "definition_version": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

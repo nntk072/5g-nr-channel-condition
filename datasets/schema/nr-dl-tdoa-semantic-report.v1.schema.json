@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:nr:dl-tdoa-semantic-report:v1",
+  "title": "NR DL-TDOA semantic report v1",
+  "description": "Input-scoped NR DL-RSTD report semantics before LPP ASN.1 encoding. Timestamps and measurement quality are caller supplied; this schema does not establish radio measurement validity or qualification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "reference_tp_id",
+    "reference_time_candidates_s",
+    "frequency_range",
+    "measurement_reference_point",
+    "elements",
+    "semantics"
+  ],
+  "properties": {
+    "schema": {"const": "umcd.nr_dl_tdoa_measurement_report.v1"},
+    "reference_tp_id": {"type": "string", "minLength": 1},
+    "reference_time_candidates_s": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "number"}
+    },
+    "frequency_range": {"type": "integer", "enum": [1, 2]},
+    "measurement_reference_point": {
+      "type": "string",
+      "enum": ["UE_antenna_connector", "UE_antenna"]
+    },
+    "elements": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/element"}
+    },
+    "semantics": {"const": "pre_lpp_asn1_semantic_report"}
+  },
+  "$defs": {
+    "element": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tp_id",
+        "measurement_subframe_start_time_s",
+        "selected_reference_subframe_start_time_s",
+        "rstd_s",
+        "timing_quality",
+        "is_reference"
+      ],
+      "properties": {
+        "tp_id": {"type": "string", "minLength": 1},
+        "measurement_subframe_start_time_s": {"type": "number"},
+        "selected_reference_subframe_start_time_s": {"type": "number"},
+        "rstd_s": {"type": "number"},
+        "timing_quality": {"$ref": "#/$defs/timingQuality"},
+        "is_reference": {"type": "boolean"}
+      }
+    },
+    "timingQuality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "resolution_m"],
+      "properties": {
+        "value": {"type": "integer", "minimum": 0, "maximum": 31},
+        "resolution_m": {"type": "number", "enum": [0.1, 1.0, 10.0, 30.0]}
+      }
+    }
+  }
+}

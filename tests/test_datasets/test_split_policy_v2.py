@@ -8,6 +8,7 @@ import os
 import stat
 from dataclasses import replace
 from pathlib import Path
+from typing import cast
 
 import numpy as np
 import pytest
@@ -29,14 +30,21 @@ from datasets.split_policy import (
     SplitPolicy,
     SplitPolicyRegistry,
     SplitSubject,
+    _read_immutable_lock_bytes,
+    audit_spatiotemporal_leakage_relations,
+    audit_split_policy_child_roster,
     audit_split_policy_registry,
+    audit_whole_scene_holdout,
+    bind_spatiotemporal_audit_to_registry,
     bind_split_children,
     derive_spatiotemporal_leakage_relations,
+    derive_split_components,
     freeze_split_policy_registry,
     make_split_policy_registry,
     network_episode_subject,
     read_split_policy_registry,
     standardized_draw_subject,
+    verify_registry_spatiotemporal_audit,
 )
 from datasets.standardized import StandardizedChannelRecord, StandardizedFamily
 from evaluation.independent_splits import make_independent_split
@@ -59,6 +67,192 @@ def _unlinked_subjects(count: int = 20) -> list[SplitSubject]:
     return [
         _subject(f"subject-{index:02d}", family=f"family-{index % 2}") for index in range(count)
     ]
+
+
+def test_split_policy_identity_contracts_reject_padded_values() -> None:
+    with pytest.raises(ValueError, match="canonical nonempty string"):
+        LeakageRelation(LeakageNamespace.SITE, " site-a ")
+    with pytest.raises(ValueError, match="canonical nonempty string"):
+        SplitSubject(" parent-a ", SplitParentType.NETWORK_EPISODE, "family-a")
+    with pytest.raises(ValueError, match="canonical nonempty string"):
+        SplitSubject("parent-a", SplitParentType.NETWORK_EPISODE, " family-a ")
+    with pytest.raises(ValueError, match="canonical nonempty string"):
+        SplitSubject(
+            "parent-a",
+            SplitParentType.NETWORK_EPISODE,
+            "family-a",
+            partition_id=" partition-a ",
+        )
+    with pytest.raises(ValueError, match="canonical nonempty string"):
+        SplitChildBinding(" child-a ", "parent-a", "receiver_observation")
+    with pytest.raises(ValueError, match="canonical nonempty string"):
+        SplitChildBinding("child-a", " parent-a ", "receiver_observation")
+    with pytest.raises(ValueError, match="canonical nonempty string"):
+        SplitChildBinding("child-a", "parent-a", " receiver_observation ")
+    with pytest.raises(ValueError, match="canonical nonempty string"):
+        SpatiotemporalFootprint("parent-a", ((0.0, 0.0, 0.0),), " map ")
+    with pytest.raises(ValueError, match="canonical nonempty string"):
+        SpatiotemporalFootprint(
+            "parent-a", time_scope_id=" clock ", start_time_s=0.0, end_time_s=1.0
+        )
+    with pytest.raises(ValueError, match="canonical nonempty string"):
+        SplitPolicy.release_v2(seed=" seed-a ")
+    policy = SplitPolicy.release_v2(seed="seed-a")
+    with pytest.raises(ValueError, match="canonical nonempty string"):
+        SplitPolicy(
+            seed="seed-a",
+            split_fractions=policy.split_fractions,
+            policy_version=" umcd.release_split.v2 ",
+        )
+
+
+def test_derive_split_components_is_transitive_deterministic_and_nonassigning() -> None:
+    a = _subject("a", (LeakageNamespace.SITE, "site-1"))
+    b = _subject(
+        "b",
+        (LeakageNamespace.SITE, "site-1"),
+        (LeakageNamespace.SCENE_REALIZATION, "scene-1"),
+    )
+    c = _subject("c", (LeakageNamespace.SCENE_REALIZATION, "scene-1"))
+    d = _subject("d")
+
+    forward = derive_split_components([a, b, c, d])
+    reverse = derive_split_components([d, c, b, a])
+
+    assert [[subject.subject_id for subject in group] for group in forward] == [
+        ["a", "b", "c"],
+        ["d"],
+    ]
+    assert reverse == forward
+
+
+def _scene_holdout_fixture():
+    scene_subjects = {
+        f"scene-{scene}": (f"parent-{scene}-a", f"parent-{scene}-b") for scene in "abcd"
+    }
+    subjects = [
+        _subject(
+            parent_id,
+            (LeakageNamespace.SCENE_REALIZATION, scene_id),
+            family="rt.scene",
+        )
+        for scene_id, parent_ids in scene_subjects.items()
+        for parent_id in parent_ids
+    ]
+    policy = SplitPolicy.release_v2(seed="whole-scene-holdout")
+    registry = make_split_policy_registry(subjects, policy=policy)
+    return registry, scene_subjects, subjects
+
+
+def test_whole_scene_holdout_auditor_checks_complete_rosters_and_assignments():
+    registry, scene_subjects, subjects = _scene_holdout_fixture()
+
+    report = audit_whole_scene_holdout(
+        registry,
+        scene_subjects,
+        expected_scene_ids=tuple(scene_subjects),
+        expected_subject_ids=tuple(subject.subject_id for subject in subjects),
+    )
+
+    assert report["status"] == "PASS_INPUT_SCOPED"
+    assert report["scene_count"] == 4
+    assert report["parent_subject_count"] == 8
+    assert report["scene_membership_count"] == 8
+    assert len(report["registry_sha256"]) == 64
+    assert len(report["scene_membership_sha256"]) == 64
+    assert len(report["audit_sha256"]) == 64
+    repeated_report = audit_whole_scene_holdout(
+        registry,
+        scene_subjects,
+        expected_scene_ids=tuple(scene_subjects),
+        expected_subject_ids=tuple(subject.subject_id for subject in subjects),
+    )
+    assert repeated_report == report
+    for scene_id, parent_ids in scene_subjects.items():
+        assert len({registry.split_for_parent(parent_id) for parent_id in parent_ids}) == 1
+        assert len({registry.subject_to_component[parent_id] for parent_id in parent_ids}) == 1
+        assert report["scene_splits"][scene_id] == registry.split_for_parent(parent_ids[0])
+
+
+def test_whole_scene_holdout_auditor_rejects_incomplete_scene_inventory():
+    registry, scene_subjects, subjects = _scene_holdout_fixture()
+    with pytest.raises(ValueError, match="expected scene inventory"):
+        audit_whole_scene_holdout(
+            registry,
+            scene_subjects,
+            expected_scene_ids=tuple(scene_subjects)[:-1],
+            expected_subject_ids=tuple(subject.subject_id for subject in subjects),
+        )
+
+
+def test_whole_scene_holdout_auditor_rejects_missing_parent_coverage():
+    registry, scene_subjects, subjects = _scene_holdout_fixture()
+    with pytest.raises(ValueError, match="exactly the expected parent roster"):
+        audit_whole_scene_holdout(
+            registry,
+            scene_subjects,
+            expected_scene_ids=tuple(scene_subjects),
+            expected_subject_ids=tuple(subject.subject_id for subject in subjects[:-1]),
+        )
+
+
+def test_whole_scene_holdout_auditor_rejects_omitted_registered_scene_parent():
+    registry, scene_subjects, subjects = _scene_holdout_fixture()
+    omitted_subject = _subject(
+        "parent-scene-e-a",
+        (LeakageNamespace.SCENE_REALIZATION, "scene-e"),
+        family="rt.scene",
+    )
+    registry = make_split_policy_registry(
+        [*subjects, omitted_subject], policy=registry.policy
+    )
+
+    with pytest.raises(ValueError, match="omit frozen scene-lineage parents"):
+        audit_whole_scene_holdout(
+            registry,
+            scene_subjects,
+            expected_scene_ids=tuple(scene_subjects),
+            expected_subject_ids=tuple(subject.subject_id for subject in subjects),
+        )
+
+
+def test_whole_scene_holdout_auditor_rejects_omitted_scene_relation_on_covered_parent():
+    registry, scene_subjects, subjects = _scene_holdout_fixture()
+    updated_subjects = []
+    for subject in subjects:
+        if subject.subject_id == "parent-a-a":
+            subject = replace(
+                subject,
+                relations=(
+                    *subject.relations,
+                    LeakageRelation(LeakageNamespace.SCENE_REALIZATION, "scene-extra"),
+                ),
+            )
+        updated_subjects.append(subject)
+    registry = make_split_policy_registry(updated_subjects, policy=registry.policy)
+
+    with pytest.raises(ValueError, match="exactly the frozen scene-realization identities"):
+        audit_whole_scene_holdout(
+            registry,
+            scene_subjects,
+            expected_scene_ids=tuple(scene_subjects),
+            expected_subject_ids=tuple(subject.subject_id for subject in subjects),
+        )
+
+
+def test_whole_scene_holdout_auditor_requires_explicit_scene_lineage():
+    scene_subjects = {f"scene-{scene}": (f"parent-{scene}",) for scene in "abcd"}
+    subjects = [_subject(parent_ids[0]) for parent_ids in scene_subjects.values()]
+    registry = make_split_policy_registry(
+        subjects, policy=SplitPolicy.release_v2(seed="missing-scene-lineage")
+    )
+    with pytest.raises(ValueError, match="lacks its scene-realization relation"):
+        audit_whole_scene_holdout(
+            registry,
+            scene_subjects,
+            expected_scene_ids=tuple(scene_subjects),
+            expected_subject_ids=tuple(subject.subject_id for subject in subjects),
+        )
 
 
 def _network_episode() -> NetworkEpisode:
@@ -220,6 +414,146 @@ def test_spatial_buffer_relations_link_nearby_subjects_within_coordinate_frame()
     assert registry.split_for_parent("a") == registry.split_for_parent("b")
 
 
+def test_spatiotemporal_relation_identity_binds_buffer_and_exact_footprint_evidence():
+    footprints = (
+        SpatiotemporalFootprint("a", ((0.0, 0.0, 0.0),), "local-map"),
+        SpatiotemporalFootprint("b", ((1.0, 0.0, 0.0),), "local-map"),
+    )
+    at_one_meter = derive_spatiotemporal_leakage_relations(
+        footprints, spatial_buffer_m=1.0
+    )
+    at_two_meters = derive_spatiotemporal_leakage_relations(
+        footprints, spatial_buffer_m=2.0
+    )
+    changed_position = derive_spatiotemporal_leakage_relations(
+        (footprints[0], replace(footprints[1], positions_m=((0.9, 0.0, 0.0),))),
+        spatial_buffer_m=1.0,
+    )
+
+    assert at_one_meter["a"] == at_one_meter["b"]
+    assert at_one_meter["a"] != at_two_meters["a"]
+    assert at_one_meter["a"] != changed_position["a"]
+    assert at_one_meter["a"][0].identity.startswith("v2:local-map:")
+
+    overlapping_windows = (
+        SpatiotemporalFootprint("left", time_scope_id="clock", start_time_s=0, end_time_s=2),
+        SpatiotemporalFootprint("right", time_scope_id="clock", start_time_s=1, end_time_s=3),
+    )
+    shifted_windows = (
+        overlapping_windows[0],
+        replace(overlapping_windows[1], start_time_s=0.5, end_time_s=3),
+    )
+    first_time_relations = derive_spatiotemporal_leakage_relations(
+        overlapping_windows, spatial_buffer_m=0.0
+    )
+    shifted_time_relations = derive_spatiotemporal_leakage_relations(
+        shifted_windows, spatial_buffer_m=0.0
+    )
+    assert first_time_relations["left"] != shifted_time_relations["left"]
+
+
+def test_spatiotemporal_lineage_audit_recomputes_relations_from_footprints():
+    footprints = (
+        SpatiotemporalFootprint("a", ((0.0, 0.0, 0.0),), "local-map"),
+        SpatiotemporalFootprint("b", ((0.5, 0.0, 0.0),), "local-map"),
+        SpatiotemporalFootprint("c", time_scope_id="clock", start_time_s=0, end_time_s=2),
+        SpatiotemporalFootprint("d", time_scope_id="clock", start_time_s=1, end_time_s=3),
+    )
+    derived = derive_spatiotemporal_leakage_relations(footprints, spatial_buffer_m=1.0)
+    subjects = [
+        _subject(
+            footprint.subject_id,
+            *(
+                (relation.namespace, relation.identity)
+                for relation in derived[footprint.subject_id]
+            ),
+        )
+        for footprint in footprints
+    ]
+
+    report = audit_spatiotemporal_leakage_relations(
+        footprints, subjects, spatial_buffer_m=1.0
+    )
+
+    assert report["status"] == "PASS_INPUT_SCOPED"
+    assert report["parent_count"] == 4
+    assert report["spatially_linked_parent_count"] == 2
+    assert report["temporally_linked_parent_count"] == 2
+    assert report["derivation_algorithm"] == "umcd.spatiotemporal-leakage.v2"
+    assert len(report["footprints_sha256"]) == 64
+    assert len(report["audit_sha256"]) == 64
+    with pytest.raises(ValueError, match="do not match footprint evidence"):
+        audit_spatiotemporal_leakage_relations(
+            (
+                footprints[0],
+                replace(footprints[1], positions_m=((0.75, 0.0, 0.0),)),
+                *footprints[2:],
+            ),
+            subjects,
+            spatial_buffer_m=1.0,
+        )
+
+
+def test_v3_registry_freezes_complete_footprint_inventory_digest(tmp_path: Path):
+    subjects = _unlinked_subjects(4)
+    footprints = tuple(
+        SpatiotemporalFootprint(
+            subject.subject_id,
+            ((float(index * 10), 0.0, 0.0),),
+            "release-map",
+        )
+        for index, subject in enumerate(subjects)
+    )
+    base = make_split_policy_registry(
+        subjects, policy=SplitPolicy.release_v2(seed="footprint-inventory-lock")
+    )
+    frozen = bind_spatiotemporal_audit_to_registry(
+        base, footprints, spatial_buffer_m=1.0
+    )
+    changed = bind_spatiotemporal_audit_to_registry(
+        base,
+        (replace(footprints[0], positions_m=((0.25, 0.0, 0.0),)), *footprints[1:]),
+        spatial_buffer_m=1.0,
+    )
+
+    assert frozen.to_dict()["schema"] == "umcd.split_registry.v3"
+    assert frozen.to_dict()["registry_sha256"] != changed.to_dict()["registry_sha256"]
+    assert verify_registry_spatiotemporal_audit(
+        frozen, footprints, spatial_buffer_m=1.0
+    ) == dict(frozen.spatiotemporal_audit)
+    with pytest.raises(ValueError, match="differs from frozen registry audit"):
+        verify_registry_spatiotemporal_audit(
+            frozen,
+            (replace(footprints[0], positions_m=((0.25, 0.0, 0.0),)), *footprints[1:]),
+            spatial_buffer_m=1.0,
+        )
+
+    lock_path = tmp_path / "split-registry-v3.json"
+    freeze_split_policy_registry(lock_path, frozen)
+    loaded = read_split_policy_registry(lock_path)
+    assert loaded.to_dict() == frozen.to_dict()
+    assert verify_registry_spatiotemporal_audit(
+        loaded, footprints, spatial_buffer_m=1.0
+    ) == dict(frozen.spatiotemporal_audit)
+
+
+def test_registry_refuses_to_freeze_spatial_relations_without_footprint_audit(
+    tmp_path: Path,
+):
+    subjects = [
+        _subject("near-a", (LeakageNamespace.SPATIAL_BUFFER, "map:arbitrary")),
+        _subject("near-b", (LeakageNamespace.SPATIAL_BUFFER, "map:arbitrary")),
+        *_unlinked_subjects(4),
+    ]
+    registry = make_split_policy_registry(
+        subjects, policy=SplitPolicy.release_v2(seed="require-footprint-lock")
+    )
+
+    with pytest.raises(ValueError, match="bound footprint audit"):
+        freeze_split_policy_registry(tmp_path / "unsafe-lock.json", registry)
+    assert not (tmp_path / "unsafe-lock.json").exists()
+
+
 def test_spatial_buffer_comparison_does_not_underflow_and_create_false_leakage():
     footprints = (
         SpatiotemporalFootprint("origin", ((0.0, 0.0, 0.0),), "tiny-scale-map"),
@@ -265,11 +599,11 @@ def test_overlapping_time_windows_are_half_open_and_scope_qualified():
 
 def test_spatiotemporal_footprints_reject_invalid_geometry():
     with pytest.raises(ValueError):
-        SpatiotemporalFootprint("bad-coordinate", ((float("nan"), 0, 0),), "map")
+        SpatiotemporalFootprint("bad-coordinate", ((float("nan"), 0.0, 0.0),), "map")
     with pytest.raises(ValueError, match="coordinate_frame_id is required"):
         SpatiotemporalFootprint("missing-frame", ((0, 0, 0),))
     with pytest.raises(TypeError, match="coordinates must be real numbers"):
-        SpatiotemporalFootprint("string-coordinate", (("0", 0, 0),), "map")
+        SpatiotemporalFootprint("string-coordinate", ((cast(float, "0"), 0.0, 0.0),), "map")
 
 
 def test_spatiotemporal_footprints_require_valid_half_open_time_windows():
@@ -279,7 +613,7 @@ def test_spatiotemporal_footprints_require_valid_half_open_time_windows():
         SpatiotemporalFootprint("partial", time_scope_id="clock", start_time_s=1)
     with pytest.raises(TypeError, match="endpoints must be real numbers"):
         SpatiotemporalFootprint(
-            "string-time", time_scope_id="clock", start_time_s="0", end_time_s=1
+            "string-time", time_scope_id="clock", start_time_s=cast(float, "0"), end_time_s=1
         )
 
 
@@ -347,11 +681,35 @@ def test_three_way_legacy_assignment_and_serialization_remain_unchanged():
 
 
 def test_four_way_split_requires_at_least_four_independent_components():
-    with pytest.raises(ValueError, match="at least 4 independent groups"):
+    with pytest.raises(ValueError, match="at least 4 independent groups") as error:
         make_independent_split(
             [{"sample_id": str(i), "scene_group_id": str(i)} for i in range(3)],
             seed="small",
             fractions={"train": 0.7, "validation": 0.1, "calibration": 0.1, "test": 0.1},
+        )
+    assert "found 3, need 1 more" in str(error.value)
+
+
+def test_release_registry_reports_observed_and_missing_independent_components():
+    subjects = [
+        _subject(
+            f"parent-{component}-{row}",
+            (LeakageNamespace.SPATIAL_BUFFER, f"city43-component-{component}"),
+            (LeakageNamespace.SCENE_REALIZATION, f"city43-scene-{component}-{row}"),
+        )
+        for component, row_count in enumerate((3, 2, 4))
+        for row in range(row_count)
+    ]
+    with pytest.raises(
+        ValueError,
+        match=(
+            "requires at least 4 independent leakage components for 4-way assignment; "
+            "found 3, need 1 more"
+        ),
+    ):
+        make_split_policy_registry(
+            subjects,
+            policy=SplitPolicy.release_v2(seed="three-independent-components"),
         )
 
 
@@ -436,6 +794,10 @@ def test_child_bindings_reject_unknown_parent_conflicts_and_changed_audit():
     subjects = [_subject("parent-a"), *_unlinked_subjects(8)]
     policy = SplitPolicy.release_v2(seed="binding-validation")
     registry = make_split_policy_registry(subjects, policy=policy)
+    with pytest.raises(ValueError, match="child ID collides with a parent subject ID"):
+        bind_split_children(
+            registry, [SplitChildBinding("subject-00", "parent-a", "receiver_observation")]
+        )
     with pytest.raises(ValueError, match="unknown split parent"):
         bind_split_children(registry, [SplitChildBinding("orphan", "missing", "frame")])
     with pytest.raises(ValueError, match="conflicting parent or kind"):
@@ -458,6 +820,60 @@ def test_child_bindings_reject_unknown_parent_conflicts_and_changed_audit():
         frozen.split_for_child("parent-a")
     with pytest.raises(ValueError, match="exactly the frozen child set"):
         audit_split_policy_registry(frozen, subjects)
+
+
+def test_child_kind_roster_audit_scopes_exact_coverage_with_hashes():
+    subjects = [_subject("parent-a"), *_unlinked_subjects(8)]
+    registry = make_split_policy_registry(
+        subjects, policy=SplitPolicy.release_v2(seed="child-kind-roster")
+    )
+    children = (
+        SplitChildBinding("receiver-a", "parent-a", "receiver_observation"),
+        SplitChildBinding("receiver-b", "subject-00", "receiver_observation"),
+        SplitChildBinding("path-a", "parent-a", "path_oracle"),
+    )
+    frozen = bind_split_children(registry, children)
+    report = audit_split_policy_child_roster(
+        frozen, children[:2], child_kind="receiver_observation"
+    )
+
+    assert report["status"] == "PASS_INPUT_SCOPED"
+    assert report["child_count"] == 2
+    assert report["child_kind"] == "receiver_observation"
+    assert len(report["child_ids_sha256"]) == 64
+    assert len(report["bindings_sha256"]) == 64
+    assert len(report["audit_sha256"]) == 64
+
+
+@pytest.mark.parametrize(
+    ("observed", "kind", "message"),
+    [
+        (lambda children: children[:1], "receiver_observation", "exactly the frozen"),
+        (
+            lambda children: (
+                SplitChildBinding("extra", "parent-a", "receiver_observation"),
+            ),
+            "receiver_observation",
+            "absent from frozen",
+        ),
+        (lambda children: children[:1], "path_oracle", "expected 'path_oracle'"),
+    ],
+)
+def test_child_kind_roster_audit_rejects_incomplete_or_mismatched_bindings(
+    observed, kind, message
+):
+    subjects = [_subject("parent-a"), *_unlinked_subjects(8)]
+    registry = make_split_policy_registry(
+        subjects, policy=SplitPolicy.release_v2(seed="child-kind-reject")
+    )
+    children = (
+        SplitChildBinding("receiver-a", "parent-a", "receiver_observation"),
+        SplitChildBinding("receiver-b", "subject-00", "receiver_observation"),
+        SplitChildBinding("path-a", "parent-a", "path_oracle"),
+    )
+    frozen = bind_split_children(registry, children)
+    with pytest.raises(ValueError, match=message):
+        audit_split_policy_child_roster(frozen, observed(children), child_kind=kind)
 
 
 def test_standardized_profile_and_family_metadata_do_not_change_opaque_partition():
@@ -506,6 +922,17 @@ def test_standardized_profile_and_family_metadata_do_not_change_opaque_partition
     assert registry_a.split_for_parent(subject_a.subject_id) == registry_d.split_for_parent(
         subject_d.subject_id
     )
+
+
+def test_standardized_partition_metadata_rejects_whitespace_normalization():
+    record = _standardized_record()
+    padded = replace(
+        record,
+        metadata={**record.metadata, "partition_id": " padded-partition "},
+    )
+
+    with pytest.raises(ValueError, match="standardized partition_id must be a canonical"):
+        standardized_draw_subject(padded)
 
 
 def test_standardized_parent_requires_opaque_identity_when_seed_is_missing():
@@ -634,6 +1061,42 @@ def test_registry_lock_is_canonical_immutable_and_detects_registry_or_policy_tam
         freeze_split_policy_registry(path, other)
 
 
+def test_registry_freeze_rejects_lock_larger_than_reader_limit_before_publication(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import datasets.split_policy as split_policy_module
+
+    _, registry = _four_way_registry(_unlinked_subjects())
+    destination = tmp_path / "oversized" / "split-registry.json"
+    monkeypatch.setattr(split_policy_module, "MAX_SPLIT_POLICY_LOCK_BYTES", 1)
+
+    with pytest.raises(ValueError, match="exceeds its 1-byte reader limit"):
+        freeze_split_policy_registry(destination, registry)
+
+    assert not destination.exists()
+    assert not destination.parent.exists()
+
+
+def test_split_policy_artifact_reader_enforces_streaming_byte_ceiling(tmp_path: Path) -> None:
+    path = tmp_path / "bounded-lock.json"
+    path.write_bytes(b"12345678")
+
+    assert _read_immutable_lock_bytes(path, max_bytes=8) == b"12345678"
+    with pytest.raises(ValueError, match="exceeds its 7-byte limit"):
+        _read_immutable_lock_bytes(path, max_bytes=7)
+
+
+@pytest.mark.parametrize("invalid_limit", [0, -1, True, 1.5])
+def test_split_policy_artifact_reader_rejects_invalid_byte_ceiling(
+    tmp_path: Path, invalid_limit: object
+) -> None:
+    path = tmp_path / "bounded-lock.json"
+    path.write_bytes(b"{}")
+
+    with pytest.raises(ValueError, match="max_bytes must be a positive integer"):
+        _read_immutable_lock_bytes(path, max_bytes=invalid_limit)  # type: ignore[arg-type]
+
+
 @pytest.mark.skipif(
     os.name != "posix" or not hasattr(os, "O_DIRECTORY"),
     reason="directory fsync is unavailable on this platform",
@@ -669,6 +1132,55 @@ def test_registry_lock_rejects_duplicate_json_keys(tmp_path):
     path.write_text(encoded, encoding="utf-8")
 
     with pytest.raises(ValueError, match="duplicate JSON object key: schema"):
+        read_split_policy_registry(path)
+
+
+@pytest.mark.parametrize(
+    ("payload", "message"),
+    [
+        (b"[]", "root must be a JSON object"),
+        (b"\xff", "not valid bounded UTF-8 JSON"),
+        (b"{invalid", "not valid bounded UTF-8 JSON"),
+    ],
+)
+def test_registry_lock_rejects_invalid_json_boundary_shapes(tmp_path, payload, message):
+    path = tmp_path / "invalid-registry.json"
+    path.write_bytes(payload)
+
+    with pytest.raises(ValueError, match=message):
+        read_split_policy_registry(path)
+
+
+def test_registry_lock_checks_versioned_field_roster_and_object_shapes(tmp_path):
+    path = tmp_path / "invalid-registry-shape.json"
+    path.write_text(
+        json.dumps(
+            {
+                "schema": "umcd.split_registry.v2",
+                "schema_version": 2,
+                "policy": [],
+                "subjects": {},
+                "components": {},
+                "children": {},
+                "report": {},
+                "registry_sha256": "0" * 64,
+                "unexpected": True,
+            }
+        ),
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="field roster is invalid"):
+        read_split_policy_registry(path)
+
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    del payload["unexpected"]
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    with pytest.raises(ValueError, match="policy must be a JSON object"):
+        read_split_policy_registry(path)
+
+    payload["schema_version"] = 2.0
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    with pytest.raises(ValueError, match="schema_version must be an integer"):
         read_split_policy_registry(path)
 
 

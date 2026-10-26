@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:umcd:g5-ordered-impairments-waveform-evidence:v2",
+  "title": "G5 Ordered-Impairments Waveform Evidence Manifest v2",
+  "description": "Hash-bound TX/oscillator/capture and standardized AWGN draws sufficient to reconstruct receiver inputs at declared SNR points.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "file_name", "sha256", "byte_count", "channel_count", "arrays"],
+  "properties": {
+    "schema": { "const": "umcd.g5_ordered_impairments_waveform_evidence.v2" },
+    "file_name": { "type": "string", "pattern": "^[^/\\\\]+\\.npz$" },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "byte_count": { "type": "integer", "minimum": 1, "maximum": 536870912 },
+    "channel_count": { "type": "integer", "minimum": 1 },
+    "arrays": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "actual_capture",
+          "awgn_standard_normal_imag",
+          "awgn_standard_normal_real",
+          "channel_seeds",
+          "rx_phase_noise_rad",
+          "tx_phase_noise_rad",
+          "tx_waveform"
+        ]
+      },
+      "allOf": [
+        { "contains": { "const": "actual_capture" } },
+        { "contains": { "const": "awgn_standard_normal_imag" } },
+        { "contains": { "const": "awgn_standard_normal_real" } },
+        { "contains": { "const": "channel_seeds" } },
+        { "contains": { "const": "rx_phase_noise_rad" } },
+        { "contains": { "const": "tx_phase_noise_rad" } },
+        { "contains": { "const": "tx_waveform" } }
+      ]
+    }
+  }
+}

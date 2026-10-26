@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:umcd:g5-ordered-impairments-waveform-evidence:v1",
+  "title": "G5 Ordered-Impairments Waveform Evidence Manifest",
+  "description": "Sibling NPZ evidence manifest for independently rebuilding the ordered-impairment receiver diagnostics.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "file_name", "sha256", "byte_count", "channel_count", "arrays"],
+  "properties": {
+    "schema": {
+      "const": "umcd.g5_ordered_impairments_waveform_evidence.v1"
+    },
+    "file_name": {
+      "type": "string",
+      "pattern": "^[^/\\\\]+\\.npz$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "byte_count": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 536870912
+    },
+    "channel_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "arrays": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "actual_capture",
+          "channel_seeds",
+          "rx_phase_noise_rad",
+          "tx_phase_noise_rad",
+          "tx_waveform"
+        ]
+      },
+      "allOf": [
+        { "contains": { "const": "actual_capture" } },
+        { "contains": { "const": "channel_seeds" } },
+        { "contains": { "const": "rx_phase_noise_rad" } },
+        { "contains": { "const": "tx_phase_noise_rad" } },
+        { "contains": { "const": "tx_waveform" } }
+      ]
+    }
+  }
+}

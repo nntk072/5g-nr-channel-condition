@@ -7,6 +7,8 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from .model_input_audit import audit_model_input_payload
+
 
 @dataclass(frozen=True, slots=True, eq=False)
 class FrequencyDomainModelInputs:
@@ -59,6 +61,7 @@ class FrequencyDomainObservation:
             raise ValueError("sample_id must be a non-empty string")
         if not isinstance(self.model_inputs, FrequencyDomainModelInputs):
             raise TypeError("model_inputs must be FrequencyDomainModelInputs")
+        audit_model_input_payload(self.model_inputs)
 
 
 @dataclass(frozen=True, slots=True)

@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:loslab:g4-cdl-tap-angle-reference:v1",
+  "title": "G4 CDL Per-Cluster Tap and Angle References",
+  "description": "ETSI TR 38.901 Tables 7.7.1-1 through 7.7.1-5 transcribed against the pinned PDF source. This is deterministic reference data, not a conformance verdict.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "standard", "version", "source_id", "source_sha256", "source_url", "reference_scope", "status", "profiles", "interpretation"],
+  "properties": {
+    "schema": { "const": "loslab.g4_cdl_tap_angle_reference.v1" },
+    "standard": { "const": "3GPP TR 38.901" },
+    "version": { "const": "19.2.0" },
+    "source_id": { "const": "tr-138901-v19.2.0" },
+    "source_sha256": { "const": "b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4" },
+    "source_url": { "const": "https://www.etsi.org/deliver/etsi_tr/138900_138999/138901/19.02.00_60/tr_138901v190200p.pdf" },
+    "reference_scope": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+    "status": { "const": "PER_CLUSTER_REFERENCE_ONLY_NOT_CONFORMANCE_QUALIFICATION" },
+    "profiles": {
+      "type": "array", "minItems": 5, "maxItems": 5,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["profile_model", "source_table", "los", "cluster_count", "cluster_spreads_deg", "xpr_db", "components"],
+        "properties": {
+          "profile_model": { "enum": ["A", "B", "C", "D", "E"] },
+          "source_table": { "type": "string", "pattern": "^7\\.7\\.1-[1-5]$" },
+          "los": { "type": "boolean" },
+          "cluster_count": { "type": "integer", "minimum": 1 },
+          "cluster_spreads_deg": {
+            "type": "object", "additionalProperties": false,
+            "required": ["asd", "asa", "zsd", "zsa"],
+            "properties": { "asd": { "type": "number", "minimum": 0 }, "asa": { "type": "number", "minimum": 0 }, "zsd": { "type": "number", "minimum": 0 }, "zsa": { "type": "number", "minimum": 0 } }
+          },
+          "xpr_db": { "type": "number" },
+          "components": {
+            "type": "array", "minItems": 1,
+            "items": {
+              "type": "object", "additionalProperties": false,
+              "required": ["cluster_index", "component", "normalized_delay", "power_db", "angles_deg"],
+              "properties": {
+                "cluster_index": { "type": "integer", "minimum": 1 },
+                "component": { "enum": ["diffuse", "specular"] },
+                "normalized_delay": { "type": "number", "minimum": 0 },
+                "power_db": { "type": "number" },
+                "angles_deg": {
+                  "type": "object", "additionalProperties": false,
+                  "required": ["aod", "aoa", "zod", "zoa"],
+                  "properties": { "aod": { "type": "number" }, "aoa": { "type": "number" }, "zod": { "type": "number" }, "zoa": { "type": "number" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "interpretation": { "type": "string", "minLength": 1 }
+  }
+}

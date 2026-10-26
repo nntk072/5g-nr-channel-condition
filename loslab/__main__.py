@@ -22,6 +22,11 @@ def main() -> None:
         default="auto",
         help="backend for --probe-rt: auto (OptiX then LLVM), cuda, llvm, or exact variant",
     )
+    path_roster = sub.add_parser(
+        "g3-path-roster-audit",
+        help="Audit retained path-equivalence records against a frozen G3 family v4 roster",
+    )
+    path_roster.add_argument("input", type=Path, help="versioned diagnostic input JSON")
     city = sub.add_parser("city-scene", help="Generate reproducible 3D urban scene files")
     city.add_argument("--output-dir", required=True)
     city.add_argument("--seed", type=int, default=42)
@@ -42,6 +47,12 @@ def main() -> None:
     phy.add_argument("--samples-per-profile", type=int, default=80)
     phy.add_argument("--device", default="cpu")
     phy.add_argument("--spec-version", default="19.2")
+    scenario_gbsm = sub.add_parser(
+        "scenario-gbsm-data",
+        help="Generate explicitly configured, unqualified 3GPP scenario-GBSM run-store data",
+    )
+    scenario_gbsm.add_argument("--config", required=True, type=Path)
+    scenario_gbsm.add_argument("--output-dir", required=True, type=Path)
     rt = sub.add_parser("rt-data", help="Generate geometric LOS/NLOS from full multi-path RT")
     rt.add_argument("--output", required=True)
     rt.add_argument("--seed", type=int, default=42)
@@ -108,6 +119,14 @@ def main() -> None:
     exp.add_argument("--input", nargs="+", help="One or more dataset NPZs")
     exp.add_argument("--output")
     exp.add_argument("--holdout", default=None, help="Unseen RT scene/domain, e.g. rt_munich")
+    exp.add_argument("--split-lock", type=Path, help="Frozen UMCD split registry JSON")
+    exp.add_argument(
+        "--split-signature", type=Path, help="OpenSSH detached signature for --split-lock"
+    )
+    exp.add_argument(
+        "--split-trusted-signers", type=Path, help="Externally governed allowed_signers keyring"
+    )
+    exp.add_argument("--split-signer-id", help="Trusted principal expected to sign the split lock")
     exp.add_argument(
         "--methods", nargs="+", default=["rf", "histgb", "mlp", "raw_mlp", "coral0", "coral"]
     )
@@ -125,6 +144,19 @@ def main() -> None:
     exp.add_argument("--pilot-snr-db", type=float, default=12.0)
     exp.add_argument("--observation-seed", type=int, default=2026)
     args = parser.parse_args()
+    if args.command == "scenario-gbsm-data":
+        from .scenario_gbsm import generate_and_store
+
+        try:
+            report = generate_and_store(args.config, args.output_dir)
+        except (OSError, RuntimeError, TypeError, ValueError) as error:
+            parser.error(str(error))
+        print(json.dumps(report, indent=2, sort_keys=True))
+        return
+    if args.command == "g3-path-roster-audit":
+        from evaluation.g3_path_equivalence_roster_cli import main as audit_path_roster
+
+        raise SystemExit(audit_path_roster([str(args.input)]))
     if args.command == "doctor":
         from .provenance import versions
 
@@ -359,6 +391,10 @@ def main() -> None:
                 "pilot_spacing",
                 "pilot_snr_db",
                 "observation_seed",
+                "split_lock_path",
+                "split_signature_path",
+                "trusted_split_signers_path",
+                "split_signer_id",
             }
             unknown = set(config) - allowed
             if unknown:
@@ -379,6 +415,12 @@ def main() -> None:
                 "pilot_spacing": config.get("pilot_spacing", args.pilot_spacing),
                 "pilot_snr_db": config.get("pilot_snr_db", args.pilot_snr_db),
                 "observation_seed": config.get("observation_seed", args.observation_seed),
+                "split_lock_path": config.get("split_lock_path", args.split_lock),
+                "split_signature_path": config.get("split_signature_path", args.split_signature),
+                "trusted_split_signers_path": config.get(
+                    "trusted_split_signers_path", args.split_trusted_signers
+                ),
+                "split_signer_id": config.get("split_signer_id", args.split_signer_id),
             }
         else:
             inputs = args.input
@@ -395,6 +437,10 @@ def main() -> None:
                 "pilot_spacing": args.pilot_spacing,
                 "pilot_snr_db": args.pilot_snr_db,
                 "observation_seed": args.observation_seed,
+                "split_lock_path": args.split_lock,
+                "split_signature_path": args.split_signature,
+                "trusted_split_signers_path": args.split_trusted_signers,
+                "split_signer_id": args.split_signer_id,
             }
         if not inputs or not output:
             parser.error("experiment requires --input and --output, or --config with both")

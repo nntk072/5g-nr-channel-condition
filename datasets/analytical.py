@@ -10,6 +10,8 @@ from typing import Mapping
 import numpy as np
 from propagation.physics import frequency_response, subcarrier_frequencies
 
+from .model_input_audit import audit_model_input_payload
+
 
 @dataclass(frozen=True, slots=True)
 class AnalyticalModelInputs:
@@ -44,6 +46,7 @@ class AnalyticalMultipathSample:
             raise ValueError("sample_id must be non-empty")
         if not self.metadata:
             raise ValueError("metadata must not be empty")
+        audit_model_input_payload(self.model_inputs)
         object.__setattr__(self, "metadata", MappingProxyType(dict(self.metadata)))
 
 

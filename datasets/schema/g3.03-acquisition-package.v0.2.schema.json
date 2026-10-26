@@ -825,7 +825,7 @@
           "properties": {
             "amplitude_linear": {
               "type": "number",
-              "minimum": 0
+              "exclusiveMinimum": 0
             },
             "method": {
               "type": "string",

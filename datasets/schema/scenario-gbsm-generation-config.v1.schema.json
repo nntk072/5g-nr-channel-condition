@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://umcd.example/schema/scenario-gbsm-generation-config.v1.schema.json",
+  "title": "Bounded 3GPP scenario GBSM generation configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "run_id",
+    "sample_ids",
+    "scenario",
+    "seed",
+    "carrier_frequency_hz",
+    "subcarrier_spacing_hz",
+    "num_subcarriers",
+    "topology",
+    "generator"
+  ],
+  "properties": {
+    "schema": {
+      "const": "umcd.scenario_gbsm_generation.v1"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sample_ids": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "scenario": {
+      "enum": ["UMi", "UMa", "RMa", "InH", "InF"]
+    },
+    "seed": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "carrier_frequency_hz": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "subcarrier_spacing_hz": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "num_subcarriers": {
+      "type": "integer",
+      "minimum": 8,
+      "maximum": 4096
+    },
+    "topology": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ut_loc", "bs_loc", "ut_velocities", "in_state", "los"],
+      "properties": {
+        "ut_loc": {"$ref": "#/$defs/vectors"},
+        "bs_loc": {"$ref": "#/$defs/vectors"},
+        "ut_velocities": {"$ref": "#/$defs/vectors"},
+        "ut_orientations": {"$ref": "#/$defs/vectors"},
+        "bs_orientations": {"$ref": "#/$defs/vectors"},
+        "in_state": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 128,
+          "items": {"type": "boolean"}
+        },
+        "los": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 128,
+          "items": {"type": "boolean"}
+        }
+      }
+    },
+    "generator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sampling_frequency_hz"],
+      "properties": {
+        "direction": {"enum": ["downlink", "uplink"]},
+        "num_time_steps": {"type": "integer", "minimum": 1, "maximum": 256},
+        "sampling_frequency_hz": {"type": "number", "exclusiveMinimum": 0},
+        "scenario_options": {"type": "object"},
+        "enable_pathloss": {"type": "boolean"},
+        "enable_shadow_fading": {"type": "boolean"},
+        "spec_version": {"enum": ["16.1", "19.2"]},
+        "device": {"type": "string"},
+        "ut_array": {"type": "object"},
+        "bs_array": {"type": "object"}
+      }
+    }
+  },
+  "$defs": {
+    "vectors": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "items": {
+        "type": "array",
+        "minItems": 3,
+        "maxItems": 3,
+        "items": {"type": "number"}
+      }
+    }
+  }
+}

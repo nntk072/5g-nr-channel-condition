@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import replace
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -12,6 +13,7 @@ from datasets.channel_view import (
     ChannelPowerScale,
     PhysicalChannelView,
 )
+from datasets.counterfactual import remove_direct_path_component
 from datasets.episode_store import (
     EpisodeBundle,
     read_episode_bundle,
@@ -37,6 +39,14 @@ from datasets.observations import (
 )
 from datasets.path_oracle import PathOracleTable, PathSolveStatus
 from datasets.provenance import UMCDRunProvenance
+from datasets.split_policy import (
+    SplitChildBinding,
+    SplitParentType,
+    SplitPolicy,
+    SplitSubject,
+    bind_split_children,
+    make_split_policy_registry,
+)
 from datasets.targets import (
     TargetDefinition,
     TargetValidity,
@@ -564,6 +574,79 @@ def test_episode_bundle_roundtrip_keeps_layers_content_addressed_and_pickle_free
         "oracle_channels",
         "targets",
     }
+
+
+def test_episode_bundle_roundtrips_split_bound_direct_path_ablation(tmp_path):
+    bundle = _bundle()
+    paths = PathOracleTable(
+        link_ids=("gNB-1-to-UE-1",),
+        frame_indices=np.asarray([0]),
+        rx_port_indices=np.asarray([0]),
+        tx_port_indices=np.asarray([0]),
+        path_offsets=np.asarray([0, 2]),
+        solve_status=(PathSolveStatus.SOLVED,),
+        delay_s=np.asarray([10e-9, 20e-9]),
+        complex_gain=np.asarray([0.7 + 0.2j, 0.1 - 0.3j]),
+        interaction_order=np.asarray([0, 1]),
+    )
+    policy = SplitPolicy(
+        seed="episode-ablation-store",
+        split_fractions={"train": 1 / 3, "validation": 1 / 3, "test": 1 / 3},
+    )
+    subjects = [
+        SplitSubject(
+            subject_id="episode-1",
+            parent_type=SplitParentType.NETWORK_EPISODE,
+            source_family="rt.city",
+        ),
+        *[
+            SplitSubject(
+                subject_id=f"independent-{index}",
+                parent_type=SplitParentType.NETWORK_EPISODE,
+                source_family="rt.city",
+            )
+            for index in range(2)
+        ],
+    ]
+    registry = bind_split_children(
+        make_split_policy_registry(subjects, policy=policy),
+        [
+            SplitChildBinding("base-view", "episode-1", "counterfactual_base"),
+            SplitChildBinding("minus-direct-view", "episode-1", "counterfactual_math_ablation"),
+        ],
+    )
+    ablation = remove_direct_path_component(
+        paths,
+        frequency_offset_hz=bundle.episode.subcarrier_offsets_hz,
+        registry=registry,
+        parent_subject_id="episode-1",
+        base_child_id="base-view",
+        ablated_child_id="minus-direct-view",
+    )
+    tampered_ablation = replace(ablation, full_cfr=ablation.full_cfr + 1.0)
+    with pytest.raises(ValueError, match="do not replay"):
+        replace(bundle, path_oracle=paths, direct_path_ablations=(tampered_ablation,))
+    bundle = replace(bundle, path_oracle=paths, direct_path_ablations=(ablation,))
+
+    stored = write_episode_bundle(tmp_path, bundle)
+    loaded = read_episode_bundle(tmp_path, stored)
+
+    assert len(loaded.direct_path_ablations) == 1
+    actual = loaded.direct_path_ablations[0]
+    assert actual.path_table_sha256 == ablation.path_table_sha256
+    assert actual.split == ablation.split
+    assert actual.link_ids == ("gNB-1-to-UE-1",)
+    assert actual.removed_direct_path_count.tolist() == [1]
+    np.testing.assert_array_equal(actual.frame_indices, [0])
+    np.testing.assert_array_equal(actual.frequency_offset_hz, bundle.episode.subcarrier_offsets_hz)
+    np.testing.assert_array_equal(actual.full_cfr, ablation.full_cfr)
+    np.testing.assert_array_equal(actual.without_direct_cfr, ablation.without_direct_cfr)
+    manifest = json.loads((tmp_path / stored.relative_path).read_text())
+    assert "counterfactual_ablations" in {item["layer"] for item in manifest["layers"]}
+    jsonschema = pytest.importorskip("jsonschema")
+    schema_path = Path(__file__).resolve().parents[2] / "datasets/schema/umcd-bundle-v1.schema.json"
+    schema = json.loads(schema_path.read_text())
+    jsonschema.Draft202012Validator(schema).validate(manifest)
 
 
 def test_frequency_receiver_observation_roundtrip_is_separate_and_inference_only(tmp_path):

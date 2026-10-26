@@ -1,0 +1,285 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:loslab:g3-path-equivalence-roster-diagnostic:v2",
+  "title": "G3 Path Equivalence Roster Diagnostic",
+  "description": "Diagnostic-only per-independent-episode path-class coverage; this record cannot admit or qualify a model.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "status",
+    "admission_possible",
+    "coverage_criterion",
+    "joint_acceptance_family",
+    "expected_episode_count",
+    "observed_episode_count",
+    "all_expected_episodes_pass",
+    "strata",
+    "scenarios",
+    "limitations"
+  ],
+  "$defs": {
+    "quantiles": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["q05", "q50", "q95"],
+          "properties": {
+            "q05": { "type": "number" },
+            "q50": { "type": "number" },
+            "q95": { "type": "number" }
+          }
+        }
+      ]
+    },
+    "solverBudget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_rays_per_link",
+        "max_interactions",
+        "max_episodes",
+        "max_wall_seconds",
+        "overflow_policy"
+      ],
+      "properties": {
+        "max_rays_per_link": { "type": "integer", "minimum": 1 },
+        "max_interactions": { "type": "integer", "minimum": 1 },
+        "max_episodes": { "type": "integer", "minimum": 1 },
+        "max_wall_seconds": { "type": "number", "minimum": 0.000001 },
+        "overflow_policy": { "enum": ["abort_run", "record_censored_episode"] }
+      }
+    },
+    "diffuseSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "path_count",
+        "coefficient_power_sum",
+        "normalized_coefficient_power_quantiles",
+        "unweighted_quantiles",
+        "coefficient_power_weighted_quantiles",
+        "circular_mean_azimuth_rad",
+        "angular_quantile_weighting",
+        "azimuth_reference",
+        "zero_total_power_uses_equal_weights_for_angular_summary"
+      ],
+      "properties": {
+        "status": { "enum": ["DESCRIPTIVE_DISTRIBUTION", "NO_DIFFUSE_PATHS"] },
+        "path_count": { "type": "integer", "minimum": 0 },
+        "coefficient_power_sum": { "type": "number", "minimum": 0 },
+        "normalized_coefficient_power_quantiles": { "$ref": "#/$defs/quantiles" },
+        "unweighted_quantiles": { "$ref": "#/$defs/distributionFields" },
+        "coefficient_power_weighted_quantiles": { "$ref": "#/$defs/distributionFields" },
+        "circular_mean_azimuth_rad": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["transmit", "receive"],
+          "properties": {
+            "transmit": { "type": ["number", "null"] },
+            "receive": { "type": ["number", "null"] }
+          }
+        },
+        "angular_quantile_weighting": {
+          "enum": ["coefficient_power", "equal_weight_fallback_no_coefficient_power"]
+        },
+        "azimuth_reference": { "const": "power-weighted circular mean; quantiles are wrapped offsets" },
+        "zero_total_power_uses_equal_weights_for_angular_summary": { "type": "boolean" }
+      }
+    },
+    "distributionFields": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "delay_s",
+        "tx_zenith_rad",
+        "rx_zenith_rad",
+        "tx_azimuth_offset_rad",
+        "rx_azimuth_offset_rad",
+        "path_power"
+      ],
+      "properties": {
+        "delay_s": { "$ref": "#/$defs/quantiles" },
+        "tx_zenith_rad": { "$ref": "#/$defs/quantiles" },
+        "rx_zenith_rad": { "$ref": "#/$defs/quantiles" },
+        "tx_azimuth_offset_rad": { "$ref": "#/$defs/quantiles" },
+        "rx_azimuth_offset_rad": { "$ref": "#/$defs/quantiles" },
+        "path_power": { "$ref": "#/$defs/quantiles" }
+      }
+    },
+    "diffuseDistribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "status",
+        "admission_possible",
+        "ray_identity_assignment",
+        "quantile_levels",
+        "candidate",
+        "challenger",
+        "candidate_minus_challenger_unweighted_quantile_deltas",
+        "candidate_minus_challenger_power_weighted_quantile_deltas",
+        "candidate_minus_challenger_normalized_power_quantile_deltas",
+        "candidate_minus_challenger_circular_mean_azimuth_delta_rad",
+        "candidate_minus_challenger_coefficient_power_sum",
+        "candidate_minus_challenger_total_coefficient_power",
+        "solver_budget_provenance",
+        "solver_budget_sha256",
+        "finite_solver_caps_are_ground_truth",
+        "limitations"
+      ],
+      "properties": {
+        "schema": { "const": "loslab.g3_diffuse_path_distribution_diagnostic.v1" },
+        "status": { "const": "DESCRIPTIVE_ONLY_NOT_QUALIFIED" },
+        "admission_possible": { "const": false },
+        "ray_identity_assignment": { "const": false },
+        "quantile_levels": {
+          "const": [0.05, 0.5, 0.95]
+        },
+        "candidate": { "$ref": "#/$defs/diffuseSummary" },
+        "challenger": { "$ref": "#/$defs/diffuseSummary" },
+        "candidate_minus_challenger_unweighted_quantile_deltas": { "$ref": "#/$defs/distributionFields" },
+        "candidate_minus_challenger_power_weighted_quantile_deltas": { "$ref": "#/$defs/distributionFields" },
+        "candidate_minus_challenger_normalized_power_quantile_deltas": { "$ref": "#/$defs/quantiles" },
+        "candidate_minus_challenger_circular_mean_azimuth_delta_rad": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["transmit", "receive"],
+          "properties": {
+            "transmit": { "type": ["number", "null"] },
+            "receive": { "type": ["number", "null"] }
+          }
+        },
+        "candidate_minus_challenger_coefficient_power_sum": { "type": "number" },
+        "candidate_minus_challenger_total_coefficient_power": { "type": "number" },
+        "solver_budget_provenance": { "$ref": "#/$defs/solverBudget" },
+        "solver_budget_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "finite_solver_caps_are_ground_truth": { "const": false },
+        "limitations": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+      }
+    }
+  },
+  "properties": {
+    "schema": {
+      "const": "loslab.g3_path_equivalence_roster_diagnostic.v2"
+    },
+    "status": {
+      "enum": [
+        "ROSTER_PATH_COVERAGE_DIAGNOSTIC_PASS",
+        "ROSTER_PATH_COVERAGE_DIAGNOSTIC_FAIL",
+        "ROSTER_PATH_COVERAGE_DIAGNOSTIC_UNRESOLVED"
+      ]
+    },
+    "admission_possible": {
+      "const": false
+    },
+    "coverage_criterion": {
+      "const": 0.95
+    },
+    "joint_acceptance_family": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["family_id", "family_sha256"],
+          "properties": {
+            "family_id": { "type": "string", "minLength": 1 },
+            "family_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+          }
+        }
+      ]
+    },
+    "expected_episode_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "observed_episode_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "all_expected_episodes_pass": {
+      "type": "boolean"
+    },
+    "strata": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "family_id",
+          "condition",
+          "episodes",
+          "coverage_pass",
+          "coverage_fail",
+          "unresolved"
+        ],
+        "properties": {
+          "family_id": { "type": "string", "minLength": 1 },
+          "condition": { "enum": ["LOS", "NLOS"] },
+          "episodes": { "type": "integer", "minimum": 1 },
+          "coverage_pass": { "type": "integer", "minimum": 0 },
+          "coverage_fail": { "type": "integer", "minimum": 0 },
+          "unresolved": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "family_id",
+          "condition",
+          "episode_id",
+          "class_coverage_status",
+          "candidate_bidirectional_coverage",
+          "challenger_bidirectional_coverage",
+          "raw_path_input_sha256"
+        ],
+        "properties": {
+          "family_id": { "type": "string", "minLength": 1 },
+          "condition": { "enum": ["LOS", "NLOS"] },
+          "episode_id": { "type": "string", "minLength": 1 },
+          "class_coverage_status": {
+            "enum": [
+              "PASS",
+              "FAIL",
+              "UNRESOLVED_NO_RELEVANT_CLASSES",
+              "NOT_ASSESSABLE_NO_CLASSES"
+            ]
+          },
+          "candidate_bidirectional_coverage": {
+            "type": ["number", "null"],
+            "minimum": 0,
+            "maximum": 1
+          },
+          "challenger_bidirectional_coverage": {
+            "type": ["number", "null"],
+            "minimum": 0,
+            "maximum": 1
+          },
+          "raw_path_input_sha256": {
+            "type": ["string", "null"],
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "diffuse_distribution": { "$ref": "#/$defs/diffuseDistribution" }
+        }
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "solver_budget_provenance": { "$ref": "#/$defs/solverBudget" },
+    "diffuse_path_diagnostics_are_descriptive_only": { "const": true }
+  }
+}

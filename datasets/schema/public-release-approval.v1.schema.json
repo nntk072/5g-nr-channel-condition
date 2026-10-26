@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.invalid/schema/public-release-approval.v1.schema.json",
+  "title": "UMCD public release signature receipt v1",
+  "description": "Receipt for an externally trusted OpenSSH signature over exact public-release-manifest.v2 bytes. It does not determine the legal truth of the signed declarations.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "manifest_sha256",
+    "signature_sha256",
+    "allowed_signers_sha256",
+    "signer_id",
+    "signature_namespace"
+  ],
+  "properties": {
+    "schema": {"const": "umcd.public_release_approval.v1"},
+    "manifest_sha256": {"$ref": "#/$defs/sha256"},
+    "signature_sha256": {"$ref": "#/$defs/sha256"},
+    "allowed_signers_sha256": {"$ref": "#/$defs/sha256"},
+    "signer_id": {"type": "string", "minLength": 1},
+    "signature_namespace": {"const": "umcd-public-release-manifest-v2@github.com"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

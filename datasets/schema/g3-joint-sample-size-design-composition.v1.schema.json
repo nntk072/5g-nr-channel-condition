@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:loslab:g3-joint-sample-size-design-composition:v1",
+  "title": "Scenario-conditional G3 joint sample-size design composition",
+  "description": "Joins family-bound evaluator-aligned material, CSI, propagation, and receiver assurance plans while preserving distinct sampling units. This artifact is never qualification evidence and reports whether all modeled precision and power requirements are complete under explicit assumptions.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "status",
+    "qualification_status",
+    "admission_possible",
+    "joint_acceptance_family",
+    "component_plans",
+    "sampling_units_are_distinct",
+    "single_combined_sample_size_is_reported",
+    "branch_designs",
+    "all_branch_counts_available",
+    "component_designs_claim_complete_powered_design",
+    "branch_assurance_lower_bounds",
+    "joint_g3_assurance_lower_bound_union_bound",
+    "target_joint_g3_assurance",
+    "material_angular_maximum_assumption",
+    "complete_precision_powered_g3_design",
+    "complete_g3_sample_size",
+    "blockers",
+    "limitations",
+    "design_sha256"
+  ],
+  "properties": {
+    "schema": {"const": "loslab.g3_joint_sample_size_design_composition.v1"},
+    "status": {"const": "SCENARIO_CONDITIONAL_DESIGN_NOT_QUALIFICATION"},
+    "qualification_status": {"const": "NOT_QUALIFIED"},
+    "admission_possible": {"const": false},
+    "joint_acceptance_family": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["family_id", "family_sha256"],
+      "properties": {
+        "family_id": {"type": "string", "minLength": 1},
+        "family_sha256": {"$ref": "#/$defs/hash"}
+      }
+    },
+    "component_plans": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["joint", "material_assurance", "complex_csi_assurance", "propagation_assurance", "receiver_assurance"],
+      "properties": {
+        "joint": {"$ref": "#/$defs/componentJoint"},
+        "material_assurance": {"$ref": "#/$defs/componentMaterial"},
+        "complex_csi_assurance": {"$ref": "#/$defs/componentCsi"},
+        "propagation_assurance": {"$ref": "#/$defs/componentPropagation"},
+        "receiver_assurance": {"$ref": "#/$defs/componentReceiver"}
+      }
+    },
+    "sampling_units_are_distinct": {"const": true},
+    "single_combined_sample_size_is_reported": {"const": false},
+    "branch_designs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["material_calibration", "complex_csi", "propagation_metrics", "receiver_impact", "path_equivalence"],
+      "properties": {
+        "material_calibration": {"$ref": "#/$defs/branchDesign"},
+        "complex_csi": {"$ref": "#/$defs/branchDesign"},
+        "propagation_metrics": {"$ref": "#/$defs/branchDesign"},
+        "receiver_impact": {"$ref": "#/$defs/branchDesign"},
+        "path_equivalence": {"$ref": "#/$defs/branchDesign"}
+      }
+    },
+    "all_branch_counts_available": {"type": "boolean"},
+    "component_designs_claim_complete_powered_design": {"type": "boolean"},
+    "branch_assurance_lower_bounds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["material_calibration", "complex_csi", "propagation_metrics", "receiver_impact"],
+      "properties": {
+        "material_calibration": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "complex_csi": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "propagation_metrics": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "receiver_impact": {"type": ["number", "null"], "minimum": 0, "maximum": 1}
+      }
+    },
+    "joint_g3_assurance_lower_bound_union_bound": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+    "target_joint_g3_assurance": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1},
+    "material_angular_maximum_assumption": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["supplied", "compatible_with_material_design", "maximum_units_per_stratum"],
+      "properties": {
+        "supplied": {"type": "boolean"},
+        "compatible_with_material_design": {"type": ["boolean", "null"]},
+        "maximum_units_per_stratum": {"type": ["integer", "null"], "minimum": 1}
+      }
+    },
+    "complete_precision_powered_g3_design": {"type": "boolean"},
+    "complete_g3_sample_size": {"type": "null"},
+    "blockers": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "limitations": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "design_sha256": {"$ref": "#/$defs/hash"}
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "componentJoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "sha256"],
+      "properties": {
+        "schema": {"const": "loslab.g3_joint_sample_size_planning.v1"},
+        "sha256": {"$ref": "#/$defs/hash"}
+      }
+    },
+    "componentMaterial": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "sha256"],
+      "properties": {
+        "schema": {"const": "loslab.g3_bootstrap_assurance_planning.v1"},
+        "sha256": {"$ref": "#/$defs/hash"}
+      }
+    },
+    "componentCsi": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "sha256"],
+      "properties": {
+        "schema": {"const": "loslab.g3_complex_csi_bootstrap_assurance_planning.v1"},
+        "sha256": {"$ref": "#/$defs/hash"}
+      }
+    },
+    "componentPropagation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "sha256"],
+      "properties": {
+        "schema": {"const": "loslab.g3_propagation_bootstrap_assurance_planning.v1"},
+        "sha256": {"$ref": "#/$defs/hash"}
+      }
+    },
+    "componentReceiver": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "sha256"],
+      "properties": {
+        "schema": {"const": "loslab.g3_receiver_impact_bootstrap_assurance_planning.v1"},
+        "sha256": {"$ref": "#/$defs/hash"}
+      }
+    },
+    "branchDesign": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sampling_unit", "required_units_by_stratum", "count_available", "component_status"],
+      "properties": {
+        "sampling_unit": {"type": "string", "minLength": 1},
+        "required_units_by_stratum": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["stratum", "required_units"],
+            "properties": {
+              "stratum": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+              "required_units": {"type": ["integer", "null"], "minimum": 1}
+            }
+          }
+        },
+        "count_available": {"type": "boolean"},
+        "component_status": {"enum": ["EXACT_EPISODE_CENSUS", "SCENARIO_CONDITIONAL_COUNT_AVAILABLE", "REQUIRED_ASSURANCE_COUNT_UNRESOLVED"]}
+      }
+    }
+  }
+}

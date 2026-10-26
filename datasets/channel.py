@@ -15,6 +15,35 @@ from pathlib import Path
 
 import numpy as np
 
+from .model_input_audit import audit_model_input_payload
+
+
+@dataclass(frozen=True, slots=True)
+class ChannelModelInputs:
+    """CFR-only feature source without labels or dataset metadata.
+
+    Whether this CFR is ideal, estimated, or precomputed is declared by the
+    calling experiment; this wrapper does not claim that ideal CFR is a
+    receiver-observable quantity.
+    """
+
+    observed_cfr: np.ndarray
+
+    def __post_init__(self) -> None:
+        observed = np.asarray(self.observed_cfr)
+        if (
+            observed.ndim != 3
+            or any(size < 1 for size in observed.shape)
+            or not np.iscomplexobj(observed)
+        ):
+            raise ValueError("observed_cfr must be complex [samples, antennas, subcarriers]")
+        if not np.isfinite(observed).all():
+            raise ValueError("observed_cfr must be nonempty and finite")
+        # Expose a read-only view without duplicating a potentially large corpus.
+        visible = observed.view()
+        visible.setflags(write=False)
+        object.__setattr__(self, "observed_cfr", visible)
+
 
 @dataclass(frozen=True)
 class ChannelDataset:
@@ -26,6 +55,70 @@ class ChannelDataset:
     metadata: tuple[dict, ...]  # optional provenance only, NEVER used as features
     generation_report: dict = field(default_factory=dict)  # dataset-level QA/provenance
     label_semantics: str = "unspecified_legacy"
+
+    def with_split_child_binding(self, child_id: str, child_kind: str) -> "ChannelDataset":
+        """Return a child artifact whose every row carries one frozen child identity.
+
+        All rows must already identify the same ``split_subject_id`` parent.
+        The returned dataset adds ``split_child_id`` and ``split_child_kind``
+        to every row's metadata so a signed child-artifact audit can verify
+        semantic coverage without exposing metadata as model features.
+        """
+        if not isinstance(child_id, str) or not child_id or child_id != child_id.strip():
+            raise ValueError("child_id must be a nonempty canonical string")
+        if not isinstance(child_kind, str) or not child_kind or child_kind != child_kind.strip():
+            raise ValueError("child_kind must be a nonempty canonical string")
+        parents: set[str] = set()
+        bound_metadata: list[dict] = []
+        for row_index, metadata in enumerate(self.metadata):
+            if not isinstance(metadata, dict):
+                raise ValueError(f"row {row_index} metadata must be an object")
+            parent = metadata.get("split_subject_id")
+            if not isinstance(parent, str) or not parent or parent != parent.strip():
+                raise ValueError(
+                    f"row {row_index} lacks a nonempty canonical split_subject_id"
+                )
+            parents.add(parent)
+            existing_child = metadata.get("split_child_id")
+            existing_kind = metadata.get("split_child_kind")
+            if (existing_child is None) != (existing_kind is None):
+                raise ValueError(f"row {row_index} has incomplete split child metadata")
+            if existing_child is not None and (
+                existing_child != child_id or existing_kind != child_kind
+            ):
+                raise ValueError(f"row {row_index} is already bound to a different split child")
+            bound_metadata.append(
+                {
+                    **metadata,
+                    "split_subject_id": parent,
+                    "split_child_id": child_id,
+                    "split_child_kind": child_kind,
+                }
+            )
+        if len(parents) != 1:
+            raise ValueError("a split child artifact must contain rows from exactly one parent")
+        return ChannelDataset(
+            self.h,
+            self.y,
+            self.group,
+            self.domain,
+            self.source,
+            tuple(bound_metadata),
+            {
+                "schema": "loslab.dataset_derivation.v1",
+                "operation": "bind_split_child",
+                "child_id": child_id,
+                "child_kind": child_kind,
+                "parent_subject_id": next(iter(parents)),
+                "row_count": len(bound_metadata),
+                "parent_generation_report": self.generation_report,
+            },
+            self.label_semantics,
+        )
+
+    def model_inputs(self) -> ChannelModelInputs:
+        """Return the CFR-only feature payload, isolated from labels and metadata."""
+        return audit_model_input_payload(ChannelModelInputs(observed_cfr=self.h))
 
     def __post_init__(self) -> None:
         h = np.asarray(self.h)
@@ -42,10 +135,19 @@ class ChannelDataset:
             raise ValueError("labels must be 0 or 1")
         if len(self.metadata) != n:
             raise ValueError("metadata count mismatch")
-        if not isinstance(self.label_semantics, str) or not self.label_semantics.strip():
+        if (
+            not isinstance(self.label_semantics, str)
+            or not self.label_semantics
+            or self.label_semantics != self.label_semantics.strip()
+        ):
             raise ValueError("label_semantics must be a non-empty string")
-        if any(not str(g).strip() for g in self.group):
-            raise ValueError("empty group ID is forbidden")
+        if any(
+            not isinstance(group_id, str)
+            or not group_id
+            or group_id != group_id.strip()
+            for group_id in self.group
+        ):
+            raise ValueError("group IDs must be nonempty canonical strings")
         try:
             report = json.loads(json.dumps(self.generation_report, sort_keys=True, allow_nan=False))
         except (TypeError, ValueError) as exc:

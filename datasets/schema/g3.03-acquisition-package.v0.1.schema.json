@@ -157,7 +157,7 @@
         "h_floor": {
           "type": "object", "additionalProperties": false,
           "required": ["amplitude_linear", "method", "noise_input_file_ids"],
-          "properties": {"amplitude_linear": {"type": "number", "minimum": 0}, "method": {"type": "string", "minLength": 1}, "noise_input_file_ids": {"$ref": "#/$defs/fileRefs"}}
+          "properties": {"amplitude_linear": {"type": "number", "exclusiveMinimum": 0}, "method": {"type": "string", "minLength": 1}, "noise_input_file_ids": {"$ref": "#/$defs/fileRefs"}}
         },
         "file_ids": {"$ref": "#/$defs/fileRefs"}
       }

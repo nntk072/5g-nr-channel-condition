@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
@@ -14,9 +15,123 @@ from datasets import (
     standardized_learning_example_from_record,
     standardized_learning_run_from_channel_run,
     standardized_run_from_channel,
+    validate_standardized_channel_admission,
     write_standardized_learning_run,
     write_standardized_run,
 )
+from datasets.standardized_specs import (
+    FIXED_TDL_DOPPLER_CASES,
+    SPEED_OF_LIGHT_MPS,
+    cdl_parameter_table_binding_sha256,
+    standardized_generator_capability_report,
+    standardized_profile_applicability,
+    standardized_profile_applicability_report,
+)
+
+
+def test_standardized_profile_applicability_ledger_is_complete_and_deterministic() -> None:
+    report = standardized_profile_applicability_report()
+    assert report["schema"] == "umcd.standardized_profile_applicability.v1"
+    assert report["status"] == "CODE_SCOPE_ONLY_NOT_CONFORMANCE_QUALIFICATION"
+    rows = report["rows"]
+    assert isinstance(rows, list)
+    assert len(rows) == 17
+    assert len({(row["family"], row["profile_model"]) for row in rows}) == 17
+    assert report == standardized_profile_applicability_report()
+    rows_digest = hashlib.sha256(
+        json.dumps(rows, sort_keys=True, separators=(",", ":"), allow_nan=False).encode("utf-8")
+    ).hexdigest()
+    assert report["rows_sha256"] == rows_digest
+
+    assert standardized_profile_applicability("tdl", "A30").carrier_frequency_ranges_hz == (
+        (0.5e9, 7.125e9),
+        (24.25e9, 71e9),
+    )
+    assert standardized_profile_applicability("tdl", "A10").minimum_channel_bandwidth_exclusive_hz == 200e6
+    assert standardized_profile_applicability("cdl", "D").profile_los_component is True
+    with pytest.raises(ValueError, match="unsupported standardized profile"):
+        standardized_profile_applicability("cdl", "D30")
+    with pytest.raises(ValueError, match="unsupported standardized profile"):
+        standardized_profile_applicability("scm", "UMi")
+
+
+def test_every_declared_profile_version_has_a_pinned_normative_source() -> None:
+    report = standardized_profile_applicability_report()
+    manifest_path = (
+        Path(__file__).resolve().parents[2]
+        / "docs/research/G4_STANDARD_REFERENCE_MANIFEST_2026-10-26.json"
+    )
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    schema_path = (
+        Path(__file__).resolve().parents[2]
+        / "datasets/schema/g4-standard-reference-manifest.v1.schema.json"
+    )
+    jsonschema = pytest.importorskip("jsonschema")
+    jsonschema.Draft202012Validator(
+        json.loads(schema_path.read_text(encoding="utf-8"))
+    ).validate(manifest)
+    sources = {
+        (row["standard"], row["version"]): row for row in manifest["sources"]
+    }
+    assert set(sources) == {
+        ("3GPP TR 38.901", "16.1.0"),
+        ("3GPP TR 38.901", "19.2.0"),
+        ("3GPP TS 38.101-4", "19.2.2"),
+    }
+
+    for row in report["rows"]:
+        assert isinstance(row, dict)
+        for version in row["supported_versions"]:
+            canonical_version = (
+                f"{version}.0" if row["standard"] == "3GPP TR 38.901" else version
+            )
+            assert (row["standard"], canonical_version) in sources
+
+
+def test_standardized_generator_capability_matrix_is_hash_bound_and_explicit() -> None:
+    report = standardized_generator_capability_report()
+    assert report["schema"] == "umcd.standardized_generator_capabilities.v2"
+    assert report["status"] == "CODE_SCOPE_ONLY_NOT_CONFORMANCE_QUALIFICATION"
+    payload = {
+        "families": report["families"],
+        "scenario_gbsm": report["scenario_gbsm"],
+    }
+    assert report["capabilities_sha256"] == hashlib.sha256(
+        json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False).encode(
+            "utf-8"
+        )
+    ).hexdigest()
+    by_family = {row["family"]: row for row in report["families"]}
+    assert by_family["tdl"]["link_topology"] == {
+        "tx_node_count": 1,
+        "rx_node_count": 1,
+        "mimo": True,
+    }
+    assert "multiple_tx_or_rx_nodes_per_record" in by_family["tdl"]["unsupported_topologies"]
+    assert "panel_array_geometry" in by_family["cdl"]["antenna_features"]
+    assert report["scenario_gbsm"]["supported_models"] == [
+        "InF",
+        "InH",
+        "RMa",
+        "UMa",
+        "UMi",
+    ]
+    assert report["scenario_gbsm"]["link_topology"]["batch_semantics"] == (
+        "explicit_one_bs_one_ut_drops"
+    )
+    assert report["scenario_gbsm"]["status"] == "CODE_SCOPE_ONLY_NOT_CONFORMANCE_QUALIFICATION"
+    scenario_limits = report["scenario_gbsm"]["limitations"]
+    assert "no_spatial_consistency_or_blockage_controls" in scenario_limits
+    assert "not_integrated_with_canonical_episode_store" not in scenario_limits
+
+    schema_path = (
+        Path(__file__).resolve().parents[2]
+        / "datasets/schema/standardized-generator-capabilities.v2.schema.json"
+    )
+    jsonschema = pytest.importorskip("jsonschema")
+    jsonschema.Draft202012Validator(
+        json.loads(schema_path.read_text(encoding="utf-8"))
+    ).validate(report)
 
 
 def _metadata(
@@ -98,6 +213,73 @@ def _channel(
         channel_frequency_response=cfr,
         metadata=_metadata(model=model, los=los, carrier_hz=carrier_hz, spacing_hz=spacing_hz),
     )
+
+
+@pytest.mark.parametrize(
+    ("case_id", "profile_model", "frequency_range", "doppler_hz"),
+    [(case_id, *case) for case_id, case in FIXED_TDL_DOPPLER_CASES.items()],
+)
+def test_fixed_tdl_annex_b_doppler_cases_are_admitted(
+    case_id: str, profile_model: str, frequency_range: str, doppler_hz: float
+) -> None:
+    carrier_hz = 3.5e9 if frequency_range == "FR1" else 28e9
+    speed_mps = doppler_hz * SPEED_OF_LIGHT_MPS / carrier_hz
+    metadata = _metadata(model=profile_model, carrier_hz=carrier_hz)
+    metadata.update(
+        {
+            "fixed_profile_spec_version": "19.2.2",
+            "fixed_profile_conformance_case": case_id,
+            "min_speed_mps": speed_mps,
+            "max_speed_mps": speed_mps,
+            "maximum_doppler_hz": doppler_hz,
+        }
+    )
+
+    validate_standardized_channel_admission(
+        StandardizedFamily.TDL, profile_model, _channel().h_path[0], metadata
+    )
+
+
+@pytest.mark.parametrize(
+    (
+        "case_id",
+        "profile_model",
+        "carrier_hz",
+        "recorded_doppler_hz",
+        "minimum_speed_mps",
+        "message",
+    ),
+    (
+        ("TDL-UNKNOWN", "A30", 3.5e9, 5.0, 0.0, "unknown TS 38.101-4"),
+        ("TDLA30-5", "B100", 3.5e9, 5.0, 0.0, "requires TDL-A30"),
+        ("TDLA30-5", "A30", 28e9, 5.0, 0.0, "requires FR1"),
+        ("TDLA30-5", "A30", 3.5e9, 6.0, 0.0, "requires max Doppler 5 Hz"),
+        ("TDLA30-5", "A30", 3.5e9, 5.0, 1.0, "invalid speed interval"),
+    ),
+)
+def test_fixed_tdl_annex_b_doppler_case_mismatches_are_rejected(
+    case_id: str,
+    profile_model: str,
+    carrier_hz: float,
+    recorded_doppler_hz: float,
+    minimum_speed_mps: float,
+    message: str,
+) -> None:
+    metadata = _metadata(model=profile_model, carrier_hz=carrier_hz)
+    speed_mps = recorded_doppler_hz * SPEED_OF_LIGHT_MPS / carrier_hz
+    metadata.update(
+        {
+            "fixed_profile_spec_version": "19.2.2",
+            "fixed_profile_conformance_case": case_id,
+            "min_speed_mps": minimum_speed_mps,
+            "max_speed_mps": speed_mps,
+            "maximum_doppler_hz": recorded_doppler_hz,
+        }
+    )
+    with pytest.raises(ValueError, match=message):
+        validate_standardized_channel_admission(
+            StandardizedFamily.TDL, profile_model, _channel().h_path[0], metadata
+        )
 
 
 def test_channel_adapter_batch_round_trip_is_immutable_and_preserves_profile_semantics(
@@ -200,6 +382,50 @@ def test_standardized_admission_checks_cdl_array_configuration_against_axes() ->
     channel = _channel()
     channel.metadata["ut_array"]["num_cols_per_panel"] = 2
     with pytest.raises(ValueError, match="receive array configuration disagrees"):
+        standardized_run_from_channel(channel, family=StandardizedFamily.CDL)
+
+
+def test_standardized_cdl_admission_binds_parameter_table_identity() -> None:
+    channel = _channel()
+    channel.metadata.update(
+        {
+            "parameter_table": "CDL-A.json",
+            "parameter_table_source": "TR 38.901:19.2:CDL-A.json",
+            "parameter_table_sha256": "a" * 64,
+        }
+    )
+    channel.metadata["parameter_table_binding_sha256"] = cdl_parameter_table_binding_sha256(
+        channel.metadata
+    )
+    standardized_run_from_channel(channel, family=StandardizedFamily.CDL)
+
+    channel = _channel()
+    channel.metadata.update(
+        {
+            "parameter_table": "CDL-A.json",
+            "parameter_table_source": "TR 38.901:16.1:CDL-A.json",
+            "parameter_table_sha256": "a" * 64,
+            "parameter_table_binding_sha256": "0" * 64,
+        }
+    )
+    with pytest.raises(ValueError, match="CDL parameter table source identity is inconsistent"):
+        standardized_run_from_channel(channel, family=StandardizedFamily.CDL)
+
+    channel = _channel()
+    channel.metadata["parameter_table_sha256"] = "not-a-digest"
+    with pytest.raises(ValueError, match="CDL parameter table digest must be lowercase SHA-256"):
+        standardized_run_from_channel(channel, family=StandardizedFamily.CDL)
+
+    channel = _channel()
+    channel.metadata.update(
+        {
+            "parameter_table": "CDL-A.json",
+            "parameter_table_source": "TR 38.901:19.2:CDL-A.json",
+            "parameter_table_sha256": "b" * 64,
+            "parameter_table_binding_sha256": "a" * 64,
+        }
+    )
+    with pytest.raises(ValueError, match="CDL parameter table source identity is inconsistent"):
         standardized_run_from_channel(channel, family=StandardizedFamily.CDL)
 
 

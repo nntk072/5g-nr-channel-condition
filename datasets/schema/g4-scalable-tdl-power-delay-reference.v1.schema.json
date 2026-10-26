@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:g4-scalable-tdl-power-delay-reference:v1",
+  "title": "ETSI TR 38.901 scalable TDL power and delay reference v1",
+  "type": "object",
+  "required": ["schema", "standard", "version", "source_id", "source_sha256", "source_url", "reference_scope", "status", "profiles", "interpretation"],
+  "properties": {
+    "schema": {"const": "loslab.g4_scalable_tdl_power_delay_reference.v1"},
+    "standard": {"const": "3GPP TR 38.901"},
+    "version": {"const": "19.2.0"},
+    "source_id": {"const": "tr-138901-v19.2.0"},
+    "source_sha256": {"const": "b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4"},
+    "source_url": {"type": "string", "format": "uri"},
+    "reference_scope": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "status": {"const": "PROFILE_TABLE_REFERENCE_ONLY_NOT_CONFORMANCE_QUALIFICATION"},
+    "profiles": {
+      "type": "array", "minItems": 5, "maxItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["profile_model", "source_table", "components"],
+        "properties": {
+          "profile_model": {"enum": ["A", "B", "C", "D", "E"]},
+          "source_table": {"type": "string", "pattern": "^7\\.7\\.2-[1-5]$"},
+          "components": {
+            "type": "array", "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["component_index", "normalized_delay", "power_db", "fading_distribution"],
+              "properties": {
+                "component_index": {"type": "integer", "minimum": 1},
+                "normalized_delay": {"type": "number", "minimum": 0},
+                "power_db": {"type": "number"},
+                "fading_distribution": {"enum": ["LOS", "Rayleigh"]}
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "interpretation": {"type": "string", "minLength": 1}
+  },
+  "additionalProperties": false
+}

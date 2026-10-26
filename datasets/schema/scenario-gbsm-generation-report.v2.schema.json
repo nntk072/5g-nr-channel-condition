@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://umcd.example/schema/scenario-gbsm-generation-report.v2.schema.json",
+  "title": "Unqualified scenario GBSM generation and canonical episode report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "status",
+    "run_id",
+    "scenario",
+    "sample_count",
+    "configuration_file_sha256",
+    "configuration_sha256",
+    "scenario_los_counts",
+    "geometric_los_labels_created",
+    "store_manifest",
+    "episode_store_manifests",
+    "interpretation"
+  ],
+  "properties": {
+    "schema": {"const": "umcd.scenario_gbsm_generation_report.v2"},
+    "status": {"const": "SYNTHETIC_STANDARDIZED_MODEL_DATA_NOT_QUALIFIED"},
+    "run_id": {"type": "string", "minLength": 1},
+    "scenario": {"enum": ["UMi", "UMa", "RMa", "InH", "InF"]},
+    "sample_count": {"type": "integer", "minimum": 1, "maximum": 128},
+    "configuration_file_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "configuration_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "scenario_los_counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["los", "nlos"],
+      "properties": {
+        "los": {"type": "integer", "minimum": 0},
+        "nlos": {"type": "integer", "minimum": 0}
+      }
+    },
+    "geometric_los_labels_created": {"const": false},
+    "store_manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run_id", "content_sha256", "relative_path", "sample_ids", "schema_version"],
+      "properties": {
+        "run_id": {"type": "string", "minLength": 1},
+        "content_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "relative_path": {"type": "string", "minLength": 1},
+        "sample_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 128,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "schema_version": {"const": 1}
+      }
+    },
+    "episode_store_manifests": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["episode_id", "bundle_sha256", "relative_path", "schema_version"],
+        "properties": {
+          "episode_id": {"type": "string", "minLength": 1},
+          "bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "relative_path": {"type": "string", "minLength": 1},
+          "schema_version": {"const": 1}
+        }
+      }
+    },
+    "interpretation": {"type": "string", "minLength": 1}
+  }
+}

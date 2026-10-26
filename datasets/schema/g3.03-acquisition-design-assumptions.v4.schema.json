@@ -1,0 +1,1118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:loslab:g3-acquisition-design-assumptions:v4",
+  "title": "G3 Joint Acceptance-Family Acquisition Design Inputs with Receiver Bootstrap Assurance",
+  "description": "Unverified planning-only assumptions for the G3 v3 family, including evaluator-aligned paired NR receiver assurance; never measurement evidence or qualification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "scenario_label",
+    "assumption_source_description",
+    "expected_strata",
+    "joint_acceptance_family",
+    "worst_stratum_assumptions",
+    "bootstrap_assurance",
+    "complex_csi_bootstrap_assurance",
+    "receiver_impact_bootstrap_assurance"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "loslab.g3_acquisition_design_assumptions.v4"
+    },
+    "scenario_label": {
+      "enum": [
+        "hypothetical_unverified",
+        "externally_justified_preregistered_unverified"
+      ]
+    },
+    "assumption_source_description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "expected_strata": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/stratum"
+      }
+    },
+    "joint_acceptance_family": {
+      "$ref": "#/$defs/jointAcceptanceFamilyV3"
+    },
+    "worst_stratum_assumptions": {
+      "$ref": "#/$defs/assumptions"
+    },
+    "bootstrap_assurance": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/bootstrap"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "complex_csi_bootstrap_assurance": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/complexCsiBootstrap"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "receiver_impact_bootstrap_assurance": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/receiverImpactBootstrap"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stratum": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stratum_id",
+        "material_id",
+        "polarization",
+        "incidence_stratum_id"
+      ],
+      "properties": {
+        "stratum_id": {
+          "$ref": "#/$defs/id"
+        },
+        "material_id": {
+          "$ref": "#/$defs/id"
+        },
+        "polarization": {
+          "enum": [
+            "V",
+            "H"
+          ]
+        },
+        "incidence_stratum_id": {
+          "$ref": "#/$defs/id"
+        }
+      }
+    },
+    "probability": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "exclusiveMaximum": 1
+    },
+    "assumptions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "planned_quantile_pass_probabilities",
+        "planned_interval_coverage",
+        "planned_complex_csi_failure_probability",
+        "planned_complex_csi_p95_pass_probability",
+        "planned_angular_unit_pass_probability",
+        "familywise_alpha",
+        "familywise_power"
+      ],
+      "properties": {
+        "planned_quantile_pass_probabilities": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "median_absolute_power_error_db",
+            "p95_absolute_power_error_db",
+            "median_prediction_interval_width_db"
+          ],
+          "properties": {
+            "median_absolute_power_error_db": {
+              "$ref": "#/$defs/probability"
+            },
+            "p95_absolute_power_error_db": {
+              "$ref": "#/$defs/probability"
+            },
+            "median_prediction_interval_width_db": {
+              "$ref": "#/$defs/probability"
+            }
+          }
+        },
+        "planned_interval_coverage": {
+          "$ref": "#/$defs/probability"
+        },
+        "planned_complex_csi_failure_probability": {
+          "$ref": "#/$defs/probability"
+        },
+        "planned_complex_csi_p95_pass_probability": {
+          "$ref": "#/$defs/probability",
+          "description": "Assumed probability that one independent CSI scene cluster's per-cluster p95 e_H summary is at or below 0.05; must exceed 0.95. This is an unverified planning assumption."
+        },
+        "planned_angular_unit_pass_probability": {
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "familywise_alpha": {
+          "const": 0.05
+        },
+        "familywise_power": {
+          "$ref": "#/$defs/probability"
+        },
+        "planned_propagation_p95_pass_probabilities": {
+          "type": "object",
+          "description": "Unverified worst-stratum assumptions for the probability that one independent outer cluster's metric-specific p95 normalized error is at or below 1; every value must exceed 0.95.",
+          "additionalProperties": false,
+          "required": [
+            "arrival_angular_spread_deg",
+            "departure_angular_spread_deg",
+            "first_arrival_delay_s",
+            "rms_delay_spread_s"
+          ],
+          "properties": {
+            "arrival_angular_spread_deg": {
+              "$ref": "#/$defs/probability"
+            },
+            "departure_angular_spread_deg": {
+              "$ref": "#/$defs/probability"
+            },
+            "first_arrival_delay_s": {
+              "$ref": "#/$defs/probability"
+            },
+            "rms_delay_spread_s": {
+              "$ref": "#/$defs/probability"
+            }
+          }
+        },
+        "planned_propagation_cluster_failure_probabilities": {
+          "type": "object",
+          "description": "Unverified worst-stratum assumptions for the probability that one independent outer cluster contains any episode above the metric tolerance; every value must be below 0.05.",
+          "additionalProperties": false,
+          "required": [
+            "arrival_angular_spread_deg",
+            "departure_angular_spread_deg",
+            "first_arrival_delay_s",
+            "rms_delay_spread_s"
+          ],
+          "properties": {
+            "arrival_angular_spread_deg": {
+              "$ref": "#/$defs/probability"
+            },
+            "departure_angular_spread_deg": {
+              "$ref": "#/$defs/probability"
+            },
+            "first_arrival_delay_s": {
+              "$ref": "#/$defs/probability"
+            },
+            "rms_delay_spread_s": {
+              "$ref": "#/$defs/probability"
+            }
+          }
+        }
+      }
+    },
+    "unitSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "median_absolute_power_error_db",
+        "p95_absolute_power_error_db",
+        "maximum_angular_cdf_ks",
+        "nominal_95_interval_coverage",
+        "median_prediction_interval_width_db"
+      ],
+      "properties": {
+        "median_absolute_power_error_db": {
+          "type": "number"
+        },
+        "p95_absolute_power_error_db": {
+          "type": "number"
+        },
+        "maximum_angular_cdf_ks": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "nominal_95_interval_coverage": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "median_prediction_interval_width_db": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "assumed_unit_summaries",
+        "probabilities"
+      ],
+      "properties": {
+        "assumed_unit_summaries": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/unitSummary"
+          }
+        },
+        "probabilities": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 1
+          }
+        }
+      }
+    },
+    "stratumScenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stratum_id",
+        "assumed_iid_scenario"
+      ],
+      "properties": {
+        "stratum_id": {
+          "$ref": "#/$defs/id"
+        },
+        "assumed_iid_scenario": {
+          "$ref": "#/$defs/scenario"
+        }
+      }
+    },
+    "jointClaim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evaluator",
+        "stratum",
+        "claim"
+      ],
+      "properties": {
+        "evaluator": {
+          "enum": [
+            "material_calibration",
+            "complex_csi"
+          ]
+        },
+        "stratum": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 3,
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "claim": {
+          "$ref": "#/$defs/id"
+        }
+      }
+    },
+    "jointAcceptanceFamilyV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "family_id",
+        "familywise_alpha",
+        "familywise_confidence_level",
+        "material_expected_strata",
+        "complex_csi_expected_strata",
+        "claim_roster",
+        "claim_count",
+        "per_claim_alpha",
+        "per_claim_confidence_level",
+        "family_sha256"
+      ],
+      "properties": {
+        "schema": {
+          "const": "loslab.g3_joint_acceptance_family.v1"
+        },
+        "family_id": {
+          "$ref": "#/$defs/id"
+        },
+        "familywise_alpha": {
+          "const": 0.05
+        },
+        "familywise_confidence_level": {
+          "const": 0.95
+        },
+        "material_expected_strata": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "$ref": "#/$defs/id"
+              },
+              {
+                "enum": [
+                  "V",
+                  "H"
+                ]
+              },
+              {
+                "$ref": "#/$defs/id"
+              }
+            ],
+            "items": false,
+            "minItems": 3,
+            "maxItems": 3
+          }
+        },
+        "complex_csi_expected_strata": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "$ref": "#/$defs/id"
+              },
+              {
+                "enum": [
+                  "LOS",
+                  "NLOS"
+                ]
+              }
+            ],
+            "items": false,
+            "minItems": 2,
+            "maxItems": 2
+          }
+        },
+        "claim_roster": {
+          "type": "array",
+          "minItems": 7,
+          "items": {
+            "$ref": "#/$defs/jointClaim"
+          }
+        },
+        "claim_count": {
+          "type": "integer",
+          "minimum": 7
+        },
+        "per_claim_alpha": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 0.05
+        },
+        "per_claim_confidence_level": {
+          "type": "number",
+          "exclusiveMinimum": 0.95,
+          "maximum": 1
+        },
+        "family_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{64}$"
+        }
+      }
+    },
+    "jointAcceptanceFamilyV2": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "family_id",
+        "familywise_alpha",
+        "familywise_confidence_level",
+        "material_expected_strata",
+        "complex_csi_expected_strata",
+        "claim_roster",
+        "claim_count",
+        "per_claim_alpha",
+        "per_claim_confidence_level",
+        "family_sha256",
+        "propagation_expected_strata"
+      ],
+      "properties": {
+        "schema": {
+          "const": "loslab.g3_joint_acceptance_family.v2"
+        },
+        "family_id": {
+          "$ref": "#/$defs/id"
+        },
+        "familywise_alpha": {
+          "const": 0.05
+        },
+        "familywise_confidence_level": {
+          "const": 0.95
+        },
+        "material_expected_strata": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "$ref": "#/$defs/id"
+              },
+              {
+                "enum": [
+                  "V",
+                  "H"
+                ]
+              },
+              {
+                "$ref": "#/$defs/id"
+              }
+            ],
+            "items": false,
+            "minItems": 3,
+            "maxItems": 3
+          }
+        },
+        "complex_csi_expected_strata": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "$ref": "#/$defs/id"
+              },
+              {
+                "enum": [
+                  "LOS",
+                  "NLOS"
+                ]
+              }
+            ],
+            "items": false,
+            "minItems": 2,
+            "maxItems": 2
+          }
+        },
+        "claim_roster": {
+          "type": "array",
+          "minItems": 15,
+          "items": {
+            "$ref": "#/$defs/jointClaimV2"
+          }
+        },
+        "claim_count": {
+          "type": "integer",
+          "minimum": 15
+        },
+        "per_claim_alpha": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 0.05
+        },
+        "per_claim_confidence_level": {
+          "type": "number",
+          "exclusiveMinimum": 0.95,
+          "maximum": 1
+        },
+        "family_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{64}$"
+        },
+        "propagation_expected_strata": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "$ref": "#/$defs/id"
+              },
+              {
+                "enum": [
+                  "LOS",
+                  "NLOS"
+                ]
+              },
+              {
+                "enum": [
+                  "total",
+                  "specular",
+                  "diffuse"
+                ]
+              }
+            ],
+            "items": false,
+            "minItems": 3,
+            "maxItems": 3
+          }
+        }
+      }
+    },
+    "jointClaimV2": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evaluator",
+        "stratum",
+        "claim"
+      ],
+      "properties": {
+        "evaluator": {
+          "enum": [
+            "material_calibration",
+            "complex_csi",
+            "propagation_metrics"
+          ]
+        },
+        "stratum": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 3,
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "claim": {
+          "$ref": "#/$defs/id"
+        }
+      }
+    },
+    "jointAcceptanceFamily": {
+      "$ref": "#/$defs/jointAcceptanceFamilyV3"
+    },
+    "bootstrap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scenarios_by_stratum",
+        "candidate_units_per_stratum",
+        "bootstrap_replicates",
+        "assurance_replicates",
+        "target_assurance",
+        "seed"
+      ],
+      "properties": {
+        "scenarios_by_stratum": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/stratumScenario"
+          }
+        },
+        "candidate_units_per_stratum": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 20
+          }
+        },
+        "bootstrap_replicates": {
+          "type": "integer",
+          "minimum": 1000
+        },
+        "assurance_replicates": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "target_assurance": {
+          "$ref": "#/$defs/probability"
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "csiClusterSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cluster_median_e_h",
+        "cluster_p95_e_h",
+        "cluster_failed"
+      ],
+      "properties": {
+        "cluster_median_e_h": {
+          "type": "number",
+          "minimum": 0
+        },
+        "cluster_p95_e_h": {
+          "type": "number",
+          "minimum": 0
+        },
+        "cluster_failed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "csiScenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "assumed_cluster_summaries",
+        "probabilities"
+      ],
+      "properties": {
+        "assumed_cluster_summaries": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/csiClusterSummary"
+          }
+        },
+        "probabilities": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 1
+          }
+        }
+      }
+    },
+    "csiStratumScenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "family_id",
+        "condition",
+        "assumed_iid_scenario"
+      ],
+      "properties": {
+        "family_id": {
+          "$ref": "#/$defs/id"
+        },
+        "condition": {
+          "enum": [
+            "LOS",
+            "NLOS"
+          ]
+        },
+        "assumed_iid_scenario": {
+          "$ref": "#/$defs/csiScenario"
+        }
+      }
+    },
+    "complexCsiBootstrap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scenarios_by_stratum",
+        "candidate_clusters_per_stratum",
+        "bootstrap_replicates",
+        "assurance_replicates",
+        "target_assurance",
+        "seed"
+      ],
+      "properties": {
+        "scenarios_by_stratum": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/csiStratumScenario"
+          }
+        },
+        "candidate_clusters_per_stratum": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 2
+          }
+        },
+        "bootstrap_replicates": {
+          "type": "integer",
+          "minimum": 1000
+        },
+        "assurance_replicates": {
+          "type": "integer",
+          "minimum": 100
+        },
+        "target_assurance": {
+          "$ref": "#/$defs/probability"
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "jointAcceptanceFamilyV3": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "family_id",
+        "familywise_alpha",
+        "familywise_confidence_level",
+        "material_expected_strata",
+        "complex_csi_expected_strata",
+        "claim_roster",
+        "claim_count",
+        "per_claim_alpha",
+        "per_claim_confidence_level",
+        "family_sha256",
+        "propagation_expected_strata",
+        "receiver_impact_expected_strata"
+      ],
+      "properties": {
+        "schema": {
+          "enum": [
+            "loslab.g3_joint_acceptance_family.v3",
+            "loslab.g3_joint_acceptance_family.v4"
+          ]
+        },
+        "family_id": {
+          "$ref": "#/$defs/id"
+        },
+        "familywise_alpha": {
+          "const": 0.05
+        },
+        "familywise_confidence_level": {
+          "const": 0.95
+        },
+        "material_expected_strata": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "$ref": "#/$defs/id"
+              },
+              {
+                "enum": [
+                  "V",
+                  "H"
+                ]
+              },
+              {
+                "$ref": "#/$defs/id"
+              }
+            ],
+            "items": false,
+            "minItems": 3,
+            "maxItems": 3
+          }
+        },
+        "complex_csi_expected_strata": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "$ref": "#/$defs/id"
+              },
+              {
+                "enum": [
+                  "LOS",
+                  "NLOS"
+                ]
+              }
+            ],
+            "items": false,
+            "minItems": 2,
+            "maxItems": 2
+          }
+        },
+        "claim_roster": {
+          "type": "array",
+          "minItems": 19,
+          "items": {
+            "$ref": "#/$defs/jointClaimV3"
+          }
+        },
+        "claim_count": {
+          "type": "integer",
+          "minimum": 19
+        },
+        "per_claim_alpha": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 0.05
+        },
+        "per_claim_confidence_level": {
+          "type": "number",
+          "exclusiveMinimum": 0.95,
+          "maximum": 1
+        },
+        "family_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{64}$"
+        },
+        "propagation_expected_strata": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "$ref": "#/$defs/id"
+              },
+              {
+                "enum": [
+                  "LOS",
+                  "NLOS"
+                ]
+              },
+              {
+                "enum": [
+                  "total",
+                  "specular",
+                  "diffuse"
+                ]
+              }
+            ],
+            "items": false,
+            "minItems": 3,
+            "maxItems": 3
+          }
+        },
+        "receiver_impact_expected_strata": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "$ref": "#/$defs/id"
+              },
+              {
+                "enum": [
+                  "LOS",
+                  "NLOS"
+                ]
+              }
+            ],
+            "items": false,
+            "minItems": 2,
+            "maxItems": 2
+          }
+        },
+        "path_equivalence_expected_scenarios": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              { "$ref": "#/$defs/id" },
+              { "enum": ["LOS", "NLOS"] },
+              { "$ref": "#/$defs/id" }
+            ],
+            "items": false,
+            "minItems": 3,
+            "maxItems": 3
+          }
+        },
+        "path_equivalence_bidirectional_coverage_min": {
+          "const": 0.95
+        },
+        "path_equivalence_aggregation": {
+          "const": "every preregistered independent scene episode must pass; no pooling"
+        },
+        "path_equivalence_admission_possible": {
+          "const": false
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "schema": { "const": "loslab.g3_joint_acceptance_family.v4" }
+            }
+          },
+          "then": {
+            "required": [
+              "path_equivalence_expected_scenarios",
+              "path_equivalence_bidirectional_coverage_min",
+              "path_equivalence_aggregation",
+              "path_equivalence_admission_possible"
+            ]
+          }
+        }
+      ]
+    },
+    "jointClaimV3": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evaluator",
+        "stratum",
+        "claim"
+      ],
+      "properties": {
+        "evaluator": {
+          "enum": [
+            "material_calibration",
+            "complex_csi",
+            "propagation_metrics",
+            "receiver_impact"
+          ]
+        },
+        "stratum": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 3,
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "claim": {
+          "$ref": "#/$defs/id"
+        }
+      }
+    },
+    "receiverBooleanMatrix": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "array",
+        "minItems": 2,
+        "items": {
+          "type": "boolean"
+        }
+      }
+    },
+    "receiverOutcomeAtom": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_crc_errors",
+        "challenger_crc_errors"
+      ],
+      "properties": {
+        "candidate_crc_errors": {
+          "$ref": "#/$defs/receiverBooleanMatrix"
+        },
+        "challenger_crc_errors": {
+          "$ref": "#/$defs/receiverBooleanMatrix"
+        }
+      }
+    },
+    "receiverScenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "assumed_cluster_outcomes",
+        "probabilities"
+      ],
+      "properties": {
+        "assumed_cluster_outcomes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/receiverOutcomeAtom"
+          }
+        },
+        "probabilities": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 1
+          }
+        }
+      }
+    },
+    "receiverStratumScenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "family_id",
+        "condition",
+        "assumed_iid_scenario"
+      ],
+      "properties": {
+        "family_id": {
+          "$ref": "#/$defs/id"
+        },
+        "condition": {
+          "enum": [
+            "LOS",
+            "NLOS"
+          ]
+        },
+        "assumed_iid_scenario": {
+          "$ref": "#/$defs/receiverScenario"
+        }
+      }
+    },
+    "receiverImpactBootstrap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scenarios_by_stratum",
+        "candidate_clusters_per_stratum",
+        "snr_grid_db",
+        "comparison_snr_db",
+        "bootstrap_replicates",
+        "assurance_replicates",
+        "target_assurance",
+        "monte_carlo_confidence",
+        "seed"
+      ],
+      "properties": {
+        "scenarios_by_stratum": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/receiverStratumScenario"
+          }
+        },
+        "candidate_clusters_per_stratum": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 20
+          }
+        },
+        "snr_grid_db": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "number"
+          }
+        },
+        "comparison_snr_db": {
+          "type": "number"
+        },
+        "bootstrap_replicates": {
+          "type": "integer",
+          "minimum": 1000
+        },
+        "assurance_replicates": {
+          "type": "integer",
+          "minimum": 100
+        },
+        "target_assurance": {
+          "$ref": "#/$defs/probability"
+        },
+        "monte_carlo_confidence": {
+          "$ref": "#/$defs/probability"
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

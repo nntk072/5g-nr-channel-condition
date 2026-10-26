@@ -31,6 +31,26 @@ def test_debug_deterministic():
     assert np.array_equal(a.y, b.y)
 
 
+def test_legacy_channel_model_input_view_exposes_only_read_only_cfr():
+    data = debug_multipath(n_scenes=2, links_per_scene=4)
+    model_inputs = data.model_inputs()
+
+    np.testing.assert_array_equal(model_inputs.observed_cfr, data.h)
+    assert not model_inputs.observed_cfr.flags.writeable
+    for private_field in (
+        "y",
+        "group",
+        "domain",
+        "source",
+        "metadata",
+        "generation_report",
+        "label_semantics",
+    ):
+        assert not hasattr(model_inputs, private_field)
+    with pytest.raises(ValueError, match="read-only"):
+        model_inputs.observed_cfr[0, 0, 0] = 0.0
+
+
 def test_debug_seeds_change_channels():
     a = debug_multipath(seed=1)
     b = debug_multipath(seed=2)
@@ -54,6 +74,98 @@ def test_storage_roundtrip(tmp_path):
     assert loaded.metadata == d.metadata
     assert loaded.generation_report == d.generation_report == {}
     assert loaded.label_semantics == "synthetic_debug_direct_component"
+
+
+def test_split_child_binding_records_child_kind_on_every_parent_row() -> None:
+    source = debug_multipath(n_scenes=2, links_per_scene=4)
+    parent_id = "episode-parent-1"
+    dataset = ChannelDataset(
+        source.h[:2],
+        source.y[:2],
+        source.group[:2],
+        source.domain[:2],
+        source.source[:2],
+        (
+            {"split_subject_id": parent_id, "row": 0},
+            {"split_subject_id": parent_id, "row": 1},
+        ),
+    )
+
+    child = dataset.with_split_child_binding("observation-1", "receiver_observation")
+
+    assert [row["split_child_id"] for row in child.metadata] == [
+        "observation-1",
+        "observation-1",
+    ]
+    assert all(row["split_child_kind"] == "receiver_observation" for row in child.metadata)
+    assert child.generation_report["parent_subject_id"] == parent_id
+    assert child.generation_report["row_count"] == 2
+    assert dataset.metadata[0] == {"split_subject_id": parent_id, "row": 0}
+
+
+def test_split_child_binding_rejects_multiple_parents_and_conflicting_rebinding() -> None:
+    source = debug_multipath(n_scenes=2, links_per_scene=4)
+    dataset = ChannelDataset(
+        source.h[:2],
+        source.y[:2],
+        source.group[:2],
+        source.domain[:2],
+        source.source[:2],
+        (
+            {"split_subject_id": "parent-1"},
+            {"split_subject_id": "parent-2"},
+        ),
+    )
+    with pytest.raises(ValueError, match="exactly one parent"):
+        dataset.with_split_child_binding("observation-1", "receiver_observation")
+
+    single_parent = ChannelDataset(
+        source.h[:1],
+        source.y[:1],
+        source.group[:1],
+        source.domain[:1],
+        source.source[:1],
+        ({"split_subject_id": "parent-1", "split_child_id": "old", "split_child_kind": "kind"},),
+    )
+    with pytest.raises(ValueError, match="different split child"):
+        single_parent.with_split_child_binding("new", "kind")
+
+
+@pytest.mark.parametrize(
+    ("child_id", "child_kind", "parent_id"),
+    [
+        (" child", "kind", "parent"),
+        ("child", "kind ", "parent"),
+        ("child", "kind", " parent"),
+    ],
+)
+def test_split_child_binding_rejects_padded_identities(child_id, child_kind, parent_id) -> None:
+    source = debug_multipath(n_scenes=2, links_per_scene=4)
+    dataset = ChannelDataset(
+        source.h[:1],
+        source.y[:1],
+        source.group[:1],
+        source.domain[:1],
+        source.source[:1],
+        ({"split_subject_id": parent_id},),
+    )
+    with pytest.raises(ValueError, match="canonical"):
+        dataset.with_split_child_binding(child_id, child_kind)
+
+
+def test_channel_dataset_rejects_padded_split_group_identity() -> None:
+    source = debug_multipath(n_scenes=2, links_per_scene=4)
+    groups = source.group.copy()
+    groups[0] = f" {groups[0]}"
+    with pytest.raises(ValueError, match="group IDs must be nonempty canonical strings"):
+        ChannelDataset(
+            source.h,
+            source.y,
+            groups,
+            source.domain,
+            source.source,
+            source.metadata,
+        )
 
 
 def test_generation_report_roundtrips_and_derivations_keep_lineage(tmp_path):

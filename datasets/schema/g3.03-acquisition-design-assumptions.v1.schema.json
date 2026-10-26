@@ -1,0 +1,255 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:loslab:g3-acquisition-design-assumptions:v1",
+  "title": "G3.03 Assumption-Driven Acquisition Design Inputs",
+  "description": "Planning-only scenario assumptions that remain unverified. This input never constitutes measurement evidence, a frozen protocol, or qualification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "scenario_label",
+    "assumption_source_description",
+    "expected_strata",
+    "worst_stratum_assumptions",
+    "bootstrap_assurance"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "loslab.g3_acquisition_design_assumptions.v1"
+    },
+    "scenario_label": {
+      "enum": ["hypothetical_unverified", "externally_justified_preregistered_unverified"]
+    },
+    "assumption_source_description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "expected_strata": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/stratum"
+      }
+    },
+    "worst_stratum_assumptions": {
+      "$ref": "#/$defs/assumptions"
+    },
+    "bootstrap_assurance": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/bootstrap"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stratum": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stratum_id",
+        "material_id",
+        "polarization",
+        "incidence_stratum_id"
+      ],
+      "properties": {
+        "stratum_id": {
+          "$ref": "#/$defs/id"
+        },
+        "material_id": {
+          "$ref": "#/$defs/id"
+        },
+        "polarization": {
+          "enum": ["V", "H"]
+        },
+        "incidence_stratum_id": {
+          "$ref": "#/$defs/id"
+        }
+      }
+    },
+    "probability": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "exclusiveMaximum": 1
+    },
+    "assumptions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "planned_quantile_pass_probabilities",
+        "planned_interval_coverage",
+        "planned_complex_csi_failure_probability",
+        "planned_angular_unit_pass_probability",
+        "familywise_alpha",
+        "familywise_power"
+      ],
+      "properties": {
+        "planned_quantile_pass_probabilities": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "median_absolute_power_error_db",
+            "p95_absolute_power_error_db",
+            "median_prediction_interval_width_db"
+          ],
+          "properties": {
+            "median_absolute_power_error_db": {
+              "$ref": "#/$defs/probability"
+            },
+            "p95_absolute_power_error_db": {
+              "$ref": "#/$defs/probability"
+            },
+            "median_prediction_interval_width_db": {
+              "$ref": "#/$defs/probability"
+            }
+          }
+        },
+        "planned_interval_coverage": {
+          "$ref": "#/$defs/probability"
+        },
+        "planned_complex_csi_failure_probability": {
+          "$ref": "#/$defs/probability"
+        },
+        "planned_angular_unit_pass_probability": {
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "familywise_alpha": {
+          "const": 0.05
+        },
+        "familywise_power": {
+          "$ref": "#/$defs/probability"
+        }
+      }
+    },
+    "unitSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "median_absolute_power_error_db",
+        "p95_absolute_power_error_db",
+        "maximum_angular_cdf_ks",
+        "nominal_95_interval_coverage",
+        "median_prediction_interval_width_db"
+      ],
+      "properties": {
+        "median_absolute_power_error_db": {
+          "type": "number"
+        },
+        "p95_absolute_power_error_db": {
+          "type": "number"
+        },
+        "maximum_angular_cdf_ks": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "nominal_95_interval_coverage": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "median_prediction_interval_width_db": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["assumed_unit_summaries", "probabilities"],
+      "properties": {
+        "assumed_unit_summaries": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/unitSummary"
+          }
+        },
+        "probabilities": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 1
+          }
+        }
+      }
+    },
+    "stratumScenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stratum_id", "assumed_iid_scenario"],
+      "properties": {
+        "stratum_id": {
+          "$ref": "#/$defs/id"
+        },
+        "assumed_iid_scenario": {
+          "$ref": "#/$defs/scenario"
+        }
+      }
+    },
+    "bootstrap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scenarios_by_stratum",
+        "candidate_units_per_stratum",
+        "bootstrap_replicates",
+        "assurance_replicates",
+        "target_assurance",
+        "seed"
+      ],
+      "properties": {
+        "scenarios_by_stratum": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/stratumScenario"
+          }
+        },
+        "candidate_units_per_stratum": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 20
+          }
+        },
+        "bootstrap_replicates": {
+          "type": "integer",
+          "minimum": 1000
+        },
+        "assurance_replicates": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "target_assurance": {
+          "$ref": "#/$defs/probability"
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

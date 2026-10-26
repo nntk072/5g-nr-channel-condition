@@ -10,7 +10,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 from datasets import iter_nr_record_shards
-from datasets.nr import NRChannelRecord, NRObservation
+from datasets.nr import NRChannelRecord, NRObservation, TargetDefinition
 from datasets.nr_store import NRStoredRecord, read_nr_record, write_nr_record
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
@@ -34,6 +34,16 @@ def _record(sample_id: str) -> NRChannelRecord:
         targets={"profile_proxy": np.asarray(1, dtype=np.int8)},
         target_masks={},
         provenance={"source": "streaming-test"},
+        target_definitions={
+            "profile_proxy": TargetDefinition.versioned(
+                semantic="streaming test profile proxy",
+                units="class index",
+                source="streaming test fixture",
+                reference="fixed synthetic test value",
+                aggregation_rule="one scalar per record",
+                definition_version="tests.nr-streaming.profile-proxy.v1",
+            )
+        },
     )
 
 
@@ -169,6 +179,36 @@ def test_oversized_record_fails_before_arrays_are_loaded(tmp_path, monkeypatch):
         next(iter_nr_record_shards(tmp_path, max_shard_bytes=1))
 
 
+def test_oversized_record_manifest_is_rejected_before_payload_estimation(tmp_path, monkeypatch):
+    stored = write_nr_record(tmp_path, _record("oversized-manifest"))
+    manifest_key = hashlib.sha256(stored.sample_id.encode()).hexdigest()
+    manifest_path = tmp_path / "manifests" / f"{manifest_key}.json"
+    import datasets.nr_store as nr_store
+
+    manifest_path.write_bytes(b" " * (nr_store._MAX_NR_RECORD_MANIFEST_BYTES + 1))
+    monkeypatch.setattr(
+        nr_store,
+        "_nr_record_memory_estimate",
+        lambda *_args, **_kwargs: pytest.fail("oversized manifest must fail before payload scan"),
+    )
+    with pytest.raises(ValueError, match="NR record manifest exceeds the"):
+        next(iter_nr_record_shards(tmp_path, max_shard_bytes=10_000_000))
+
+
+def test_hardlinked_record_manifest_is_rejected(tmp_path):
+    stored = write_nr_record(tmp_path, _record("hardlinked-manifest"))
+    manifest_key = hashlib.sha256(stored.sample_id.encode()).hexdigest()
+    manifest_path = tmp_path / "manifests" / f"{manifest_key}.json"
+    hardlink = tmp_path / "manifest-copy.json"
+    try:
+        os.link(manifest_path, hardlink)
+    except OSError as exc:
+        pytest.skip(f"hard-link creation is unavailable: {exc}")
+
+    with pytest.raises(ValueError, match="single-link regular file"):
+        next(iter_nr_record_shards(tmp_path, max_shard_bytes=10_000_000))
+
+
 def test_malformed_npy_shape_is_rejected_before_array_decode(tmp_path):
     stored = write_nr_record(tmp_path, _record("malformed-header"))
     record_path = tmp_path / stored.relative_path
@@ -207,6 +247,45 @@ def test_record_reader_rejects_fifo_without_blocking(tmp_path):
     os.mkfifo(object_path)
 
     with pytest.raises(ValueError, match="regular file"):
+        read_nr_record(tmp_path, stored)
+
+
+def test_nr_record_object_publication_failure_is_retryable(tmp_path, monkeypatch):
+    import datasets.nr_store as nr_store
+
+    record = _record("object-retry")
+    real_link = nr_store.os.link
+    injected = False
+
+    def fail_object_link(source, destination, *args, **kwargs):
+        nonlocal injected
+        if not injected and Path(destination).suffix == ".npz":
+            injected = True
+            raise OSError("injected NR object publication failure")
+        return real_link(source, destination, *args, **kwargs)
+
+    monkeypatch.setattr(nr_store.os, "link", fail_object_link)
+    with pytest.raises(OSError, match="injected NR object publication failure"):
+        write_nr_record(tmp_path, record)
+
+    assert not list((tmp_path / "manifests").glob("*.json"))
+    assert not list((tmp_path / "records").rglob("*.npz"))
+    assert not [path for path in tmp_path.rglob(".*") if path.is_file()]
+
+    stored = write_nr_record(tmp_path, record)
+    loaded = read_nr_record(tmp_path, stored)
+    assert loaded.observation.sample_id == record.observation.sample_id
+    assert not [path for path in tmp_path.rglob(".*") if path.is_file()]
+
+
+def test_nr_record_reader_rejects_corrupt_content_object(tmp_path):
+    stored = write_nr_record(tmp_path, _record("corrupt-object"))
+    object_path = tmp_path / stored.relative_path
+    tampered = bytearray(object_path.read_bytes())
+    tampered[len(tampered) // 2] ^= 0x01
+    object_path.write_bytes(tampered)
+
+    with pytest.raises(ValueError, match="content hash"):
         read_nr_record(tmp_path, stored)
 
 

@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:loslab:g4-fixed-tdl-los-k-factor-reference:v1",
+  "title": "G4 Fixed TDL LOS K-Factor Reference",
+  "description": "Deterministic D10/D30 K-factor derived from source-bound TS 38.101-4 component powers; not a fading conformance verdict.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "standard", "version", "source_id", "source_sha256", "component_reference", "component_reference_sha256", "derivation", "rounding_tolerance_db", "status", "profiles", "interpretation"],
+  "properties": {
+    "schema": {"const": "loslab.g4_fixed_tdl_los_k_factor_reference.v1"},
+    "standard": {"const": "3GPP TS 38.101-4"},
+    "version": {"const": "19.2.2"},
+    "source_id": {"const": "ts-138101-4-v19.2.2"},
+    "source_sha256": {"const": "b3c6a73c7a40219e7270c08c7a57c84cb46f6757b303a64ec768ba04a6079e81"},
+    "component_reference": {"const": "G4_FIXED_TDL_TAP_PROFILE_REFERENCE_2026-10-26.json"},
+    "component_reference_sha256": {"const": "fe22560a71f4e5683ea6780f73e84466155b26f5f97cc4b63e3250c102fafda3"},
+    "derivation": {"const": "K_linear = sum(linear power of LOS components) / sum(linear power of Rayleigh components); each table power is converted from dB as 10**(power_db/10)."},
+    "rounding_tolerance_db": {"const": 0.1},
+    "status": {"const": "DETERMINISTIC_PROFILE_PARAMETER_REFERENCE_ONLY_NOT_CONFORMANCE_QUALIFICATION"},
+    "profiles": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["profile_model", "k_factor_linear", "k_factor_db"],
+        "properties": {
+          "profile_model": {"enum": ["D10", "D30"]},
+          "k_factor_linear": {"type": "number", "exclusiveMinimum": 0},
+          "k_factor_db": {"type": "number"}
+        }
+      }
+    },
+    "interpretation": {"type": "string", "minLength": 1}
+  }
+}
