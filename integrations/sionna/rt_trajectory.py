@@ -32,10 +32,16 @@ from datasets.nr_store import (
     write_nr_trajectory,
 )
 from datasets.targets import TargetValidity, TargetValue, target_definition_digest
+from propagation.scene_visibility import extract_scene_triangle_inventory
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
 from integrations.sionna.candidate_audit import instrument_path_solver_candidate_counter
 from integrations.sionna.d1_generation_gate import D1GenerationAuthorization
+from integrations.sionna.los_oracle import (
+    SegmentVisibilityState,
+    independent_mesh_segment_visibility,
+    segment_visibility,
+)
 from integrations.sionna.rt_identity import rt_run_identity, rt_runtime_fingerprint
 
 
@@ -411,6 +417,9 @@ def generate_rt_nr_trajectory(
             return cached
     if umcd_store_root is not None and not run_identity["complete"]:
         raise ValueError("UMCD publication requires a complete scene and RT run identity")
+    static_scene_geometry_inventory = (
+        None if config.moving_scene_objects else extract_scene_triangle_inventory(scene)
+    )
     try:
         from sionna.rt import PathSolver, PlanarArray, Receiver, Transmitter
     except ImportError as exc:
@@ -485,6 +494,7 @@ def generate_rt_nr_trajectory(
     candidate_path_counts_per_source: list[tuple[int, ...]] = []
     geometric_los: list[bool] = []
     geometric_los_states: list[str] = []
+    geometric_oracle_provenance: list[dict[str, object]] = []
     umcd_path_bindings: list[SionnaPathBinding] = []
     moving_object_poses: list[dict[str, dict[str, list[float]]]] = []
     pose_positions: list[np.ndarray] = []
@@ -502,6 +512,13 @@ def generate_rt_nr_trajectory(
                 "velocity_mps": list(motion.velocity_mps),
             }
         moving_object_poses.append(object_poses)
+        scene_geometry_inventory = (
+            extract_scene_triangle_inventory(scene)
+            if config.moving_scene_objects
+            else static_scene_geometry_inventory
+        )
+        if scene_geometry_inventory is None:
+            raise RuntimeError("RT trajectory has no loaded-scene geometry inventory")
         rx.position = list(position)
         tx.look_at(rx)
         rx.look_at(tx)
@@ -548,18 +565,33 @@ def generate_rt_nr_trajectory(
             pose_orientations.append(np.stack((tx_orientation, rx_orientation)))
         direct_count = count_valid_paths(direct)
         path_count = count_valid_paths(paths)
-        from .los_oracle import segment_visibility
-
-        visibility = segment_visibility(scene, config.transmitter_position_m, position)
-        if visibility.visible is None:
+        numpy_visibility = independent_mesh_segment_visibility(
+            scene,
+            config.transmitter_position_m,
+            position,
+            inventory=scene_geometry_inventory,
+        )
+        mitsuba_visibility = segment_visibility(scene, config.transmitter_position_m, position)
+        numpy_state = numpy_visibility.geometry.outcome
+        if numpy_state == "ambiguous" or mitsuba_visibility.state in (
+            SegmentVisibilityState.AMBIGUOUS,
+            SegmentVisibilityState.COINCIDENT_ENDPOINTS,
+        ):
             raise RuntimeError(
-                f"geometric LOS oracle is {visibility.state.value} at trajectory step {index}; "
+                f"geometric LOS oracle is ambiguous at trajectory step {index}; "
                 "ambiguous labels must be resolved before dataset publication"
             )
-        if (direct_count > 0) != visibility.visible:
+        numpy_visible = numpy_state == "visible"
+        if mitsuba_visibility.visible is None or mitsuba_visibility.visible != numpy_visible:
             raise RuntimeError(
-                "depth-zero PathSolver and independent geometry LOS oracle disagree at "
-                f"step {index}: direct_paths={direct_count}, geometry={visibility.state.value}"
+                "NumPy loaded-scene inventory and Mitsuba geometry cross-check disagree at "
+                f"trajectory step {index}: numpy={numpy_state}, "
+                f"mitsuba={mitsuba_visibility.state.value}"
+            )
+        if (direct_count > 0) != numpy_visible:
+            raise RuntimeError(
+                "depth-zero PathSolver and NumPy loaded-scene geometry oracle disagree at "
+                f"step {index}: direct_paths={direct_count}, geometry={numpy_state}"
             )
         if path_count == 0 and direct_count > 0:
             raise RuntimeError(
@@ -598,8 +630,24 @@ def generate_rt_nr_trajectory(
         if per_source_counts is None:
             raise RuntimeError("RT trajectory solve did not expose per-source candidate counts")
         candidate_path_counts_per_source.append(per_source_counts)
-        geometric_los.append(bool(visibility.visible))
-        geometric_los_states.append(visibility.state.value)
+        geometric_los.append(bool(numpy_visible))
+        geometric_los_states.append(numpy_state)
+        depth_zero_state = "visible" if direct_count else "blocked"
+        geometric_oracle_provenance.append(
+            {
+                "primary_oracle": "numpy_loaded_scene_triangle_inventory",
+                "scene_geometry_sha256": numpy_visibility.scene_geometry_sha256,
+                "scene_object_count": len(numpy_visibility.object_names),
+                "scene_triangle_count": numpy_visibility.triangle_count,
+                "primary_visibility_state": numpy_state,
+                "mitsuba_cross_check_state": mitsuba_visibility.state.value,
+                "depth_zero_pathsolver_state": depth_zero_state,
+                "oracle_agreement": {
+                    "numpy_mitsuba": True,
+                    "numpy_depth_zero_pathsolver": True,
+                },
+            }
+        )
 
     if config.no_path_policy == "noise_only_mixed_episode" and not any(total_path_counts):
         raise RuntimeError("noise_only_mixed_episode requires at least one path-bearing snapshot")
@@ -697,6 +745,7 @@ def generate_rt_nr_trajectory(
             "receiver_position_m": list(position),
             "transmitter_position_m": list(config.transmitter_position_m),
             "moving_scene_objects": moving_object_poses[index],
+            "geometric_los_oracle_provenance": geometric_oracle_provenance[index],
             "geometric_los_geometry_oracle_state": geometric_los_states[index],
             "geometric_los_oracle": geometric_los[index],
             "target_semantics": {
@@ -705,7 +754,10 @@ def generate_rt_nr_trajectory(
                     "absolute-delay full-path CFR including Sionna path-Doppler phase evolution "
                     "across PUSCH OFDM-symbol samples"
                 ),
-                "geometric_los": "independent Mitsuba segment-intersection geometry oracle",
+                "geometric_los": (
+                    "digest-bound NumPy loaded-scene triangle inventory, cross-checked by "
+                    "Mitsuba segment intersection and depth-zero Sionna PathSolver"
+                ),
             },
             "target_units": {
                 "channel_cfr": "complex channel gain (dimensionless)",
@@ -831,15 +883,16 @@ def generate_rt_nr_trajectory(
                         definition_version="umcd.rt-trajectory.symbol-cfr.v1",
                     ),
                     "geometric_los": TargetDefinition.versioned(
-                        semantic="independent Mitsuba segment-intersection geometry oracle",
+                        semantic="digest-bound NumPy loaded-scene direct-visibility oracle",
                         units="boolean",
-                        source="mitsuba_segment_intersection_oracle",
+                        source="numpy_loaded_scene_triangle_inventory",
                         reference=(
-                            "independent finite-segment visibility query for the recorded "
-                            "TX/RX poses and scene geometry"
+                            "loaded-scene triangle query cross-checked with Mitsuba segment "
+                            "intersection and depth-zero Sionna PathSolver for each recorded "
+                            "TX/RX pose and geometry digest"
                         ),
                         aggregation_rule="one independent direct-path visibility value per frame",
-                        definition_version="umcd.rt-trajectory.geometric-los.v1",
+                        definition_version="umcd.rt-trajectory.geometric-los.v2",
                     ),
                 },
                 provenance=record_provenance,
@@ -885,21 +938,23 @@ def generate_rt_nr_trajectory(
         target_definition = TargetDefinition(
             semantic="geometric direct-path visibility",
             units="boolean",
-            source="mitsuba_segment_intersection_oracle",
+            source="numpy_loaded_scene_triangle_inventory",
             reference=(
-                "independent finite-segment Mitsuba geometry query for the RT scene and poses"
+                "digest-bound loaded-scene triangle query cross-checked with Mitsuba segment "
+                "intersection and depth-zero Sionna PathSolver at each recorded pose"
             ),
             aggregation_rule="one visibility value per trajectory frame; no spatial or temporal pooling",
-            definition_version="umcd.f04_rt_dynamic.direct_visibility.v2",
+            definition_version="umcd.f04_rt_dynamic.direct_visibility.v3",
             definition_sha256=target_definition_digest(
                 semantic="geometric direct-path visibility",
                 units="boolean",
-                source="mitsuba_segment_intersection_oracle",
+                source="numpy_loaded_scene_triangle_inventory",
                 reference=(
-                    "independent finite-segment Mitsuba geometry query for the RT scene and poses"
+                    "digest-bound loaded-scene triangle query cross-checked with Mitsuba "
+                    "segment intersection and depth-zero Sionna PathSolver at each recorded pose"
                 ),
                 aggregation_rule="one visibility value per trajectory frame; no spatial or temporal pooling",
-                definition_version="umcd.f04_rt_dynamic.direct_visibility.v2",
+                definition_version="umcd.f04_rt_dynamic.direct_visibility.v3",
             ),
         )
         los_target = TargetValue(
@@ -939,6 +994,7 @@ def generate_rt_nr_trajectory(
         "sample_times_s": list(times),
         "geometric_los": geometric_los,
         "geometric_los_geometry_oracle_states": geometric_los_states,
+        "geometric_los_oracle_provenance": geometric_oracle_provenance,
         "direct_path_counts": direct_path_counts,
         "full_path_counts": total_path_counts,
         "receiver_metadata": receiver.metadata,

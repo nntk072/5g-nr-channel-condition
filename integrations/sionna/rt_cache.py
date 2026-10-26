@@ -214,9 +214,7 @@ def load_rt_dataset(
         manifest_bytes = _read_stable_file(
             manifest_path, label="RT cache manifest", max_bytes=_MANIFEST_MAX_BYTES
         )
-        manifest = json.loads(
-            manifest_bytes.decode("utf-8"), object_pairs_hook=_unique_json_object
-        )
+        manifest = json.loads(manifest_bytes.decode("utf-8"), object_pairs_hook=_unique_json_object)
     except (OSError, UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
         raise ValueError("invalid RT cache manifest") from exc
     if (
@@ -241,20 +239,16 @@ def load_rt_dataset(
         or manifest["sample_count"] < 0
         or not isinstance(manifest.get("shape"), list)
         or any(
-            isinstance(dimension, bool)
-            or not isinstance(dimension, int)
-            or dimension < 0
+            isinstance(dimension, bool) or not isinstance(dimension, int) or dimension < 0
             for dimension in manifest["shape"]
         )
     ):
         raise ValueError("RT cache manifest schema or key mismatch")
-    payload = _read_stable_file(
-        payload_path, label="RT cache payload", max_bytes=max_payload_bytes
-    )
-    _validate_npz_uncompressed_size(payload, max_bytes=max_payload_bytes)
+    payload = _read_stable_file(payload_path, label="RT cache payload", max_bytes=max_payload_bytes)
     digest = hashlib.sha256(payload).hexdigest()
     if digest != manifest.get("payload_sha256"):
         raise ValueError("RT cache payload hash mismatch")
+    _validate_npz_uncompressed_size(payload, max_bytes=max_payload_bytes)
     dataset = ChannelDataset.load_bytes(payload)
     recorded_identity = dataset.generation_report.get("rt_run_identity")
     if not isinstance(recorded_identity, Mapping) or _cache_key(recorded_identity) != key:

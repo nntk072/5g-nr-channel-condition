@@ -9,6 +9,7 @@ from typing import Sequence
 import numpy as np
 from propagation.scene_visibility import (
     SceneSegmentVisibility,
+    SceneTriangleInventory,
     extract_scene_triangle_inventory,
     query_scene_segment_visibility,
 )
@@ -157,6 +158,7 @@ def independent_mesh_segment_visibility(
     source_position_m: Sequence[float],
     target_position_m: Sequence[float],
     *,
+    inventory: SceneTriangleInventory | None = None,
     tolerance_m: float = 1e-8,
 ) -> SceneSegmentVisibility:
     """Query loaded scene triangles with the independent NumPy geometry oracle.
@@ -167,7 +169,8 @@ def independent_mesh_segment_visibility(
     segment/triangle predicate. All triangle surfaces are treated as opaque;
     the result is an audit of geometric contact, not material-aware RF LOS.
     """
-    inventory = extract_scene_triangle_inventory(scene)
+    if inventory is None:
+        inventory = extract_scene_triangle_inventory(scene)
     return query_scene_segment_visibility(
         inventory, source_position_m, target_position_m, tolerance_m=tolerance_m
     )

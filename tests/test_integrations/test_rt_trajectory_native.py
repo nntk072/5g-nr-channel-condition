@@ -210,6 +210,33 @@ def test_moving_scene_object_is_retraced_and_recorded_per_frame(tmp_path):
         "blocked",
         "visible",
     ]
+    geometry_provenance = [
+        record.provenance["geometric_los_oracle_provenance"] for record in trajectory.records
+    ]
+    assert all(
+        item["primary_oracle"] == "numpy_loaded_scene_triangle_inventory"
+        for item in geometry_provenance
+    )
+    assert (
+        geometry_provenance[0]["scene_geometry_sha256"]
+        != geometry_provenance[1]["scene_geometry_sha256"]
+    )
+    assert [item["primary_visibility_state"] for item in geometry_provenance] == [
+        "blocked",
+        "visible",
+    ]
+    assert all(
+        item["oracle_agreement"] == {"numpy_mitsuba": True, "numpy_depth_zero_pathsolver": True}
+        for item in geometry_provenance
+    )
+    assert [item["mitsuba_cross_check_state"] for item in geometry_provenance] == [
+        "blocked",
+        "visible",
+    ]
+    assert [item["depth_zero_pathsolver_state"] for item in geometry_provenance] == [
+        "blocked",
+        "visible",
+    ]
     assert [record.provenance["direct_path_count"] for record in trajectory.records] == [0, 1]
     assert all(record.provenance["full_path_count"] > 0 for record in trajectory.records)
     first_cfr = trajectory.records[0].targets["channel_cfr"]

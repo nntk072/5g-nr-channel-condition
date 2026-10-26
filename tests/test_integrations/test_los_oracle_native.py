@@ -36,18 +36,28 @@ def test_independent_segment_oracle_matches_clear_and_screen_blocked_geometry(sc
 
 @pytest.mark.native_sionna
 def test_numpy_mesh_inventory_oracle_matches_screen_scene_geometry(screen_scene):
-    from integrations.sionna.los_oracle import independent_mesh_segment_visibility
+    from integrations.sionna.los_oracle import (
+        independent_mesh_segment_visibility,
+        segment_visibility,
+    )
+    from propagation.scene_visibility import extract_scene_triangle_inventory
 
+    inventory = extract_scene_triangle_inventory(screen_scene)
     visible = independent_mesh_segment_visibility(
-        screen_scene, [-2.0, -1.0, 2.5], [-2.0, 1.0, 2.5]
+        screen_scene, [-2.0, -1.0, 2.5], [-2.0, 1.0, 2.5], inventory=inventory
     )
     blocked = independent_mesh_segment_visibility(
-        screen_scene, [-2.0, 0.0, 2.5], [2.0, 0.0, 2.5]
+        screen_scene, [-2.0, 0.0, 2.5], [2.0, 0.0, 2.5], inventory=inventory
     )
+    mitsuba_visible = segment_visibility(screen_scene, [-2.0, -1.0, 2.5], [-2.0, 1.0, 2.5])
+    mitsuba_blocked = segment_visibility(screen_scene, [-2.0, 0.0, 2.5], [2.0, 0.0, 2.5])
 
     assert visible.geometry.outcome == "visible"
     assert blocked.geometry.outcome == "blocked"
+    assert mitsuba_visible.visible is True
+    assert mitsuba_blocked.visible is False
     assert blocked.scene_geometry_sha256 == visible.scene_geometry_sha256
+    assert visible.scene_geometry_sha256 == inventory.scene_geometry_sha256
     assert blocked.triangle_count > 0
     assert blocked.object_names
 

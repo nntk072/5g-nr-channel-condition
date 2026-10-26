@@ -163,9 +163,7 @@ def test_rt_dataset_cache_rejects_duplicate_manifest_keys(tmp_path):
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     schema = manifest["schema"]
     manifest_path.write_text(
-        '{"schema":"loslab.rt_dataset_cache.v1",'
-        f'"schema":"{schema}"'
-        + "}",
+        f'{{"schema":"loslab.rt_dataset_cache.v1","schema":"{schema}"' + "}",
         encoding="utf-8",
     )
 
@@ -208,6 +206,13 @@ def test_cache_aware_rt_generator_reuses_dataset_without_retracing(tmp_path, mon
     from integrations.sionna import adapter, backend
     from integrations.sionna.adapter import RayScene
     from integrations.sionna.scene_assets import scene_asset_manifest
+
+    fake_inventory = types.SimpleNamespace(
+        scene_geometry_sha256="b" * 64,
+        object_names=("wall-1",),
+        triangles_m=np.zeros((4, 3, 3), dtype=np.float64),
+    )
+    monkeypatch.setattr(adapter, "extract_scene_triangle_inventory", lambda _scene: fake_inventory)
 
     scene_xml = tmp_path / "mock_scene.xml"
     scene_xml.write_text("<scene/>", encoding="utf-8")
@@ -261,6 +266,11 @@ def test_cache_aware_rt_generator_reuses_dataset_without_retracing(tmp_path, mon
                 "scene": adapter.asdict(config),
                 "grid": adapter.asdict(grid),
                 "material_state": _material_manifest_override,
+                "scene_geometry": {
+                    "scene_geometry_sha256": fake_inventory.scene_geometry_sha256,
+                    "scene_object_count": len(fake_inventory.object_names),
+                    "scene_triangle_count": len(fake_inventory.triangles_m),
+                },
             },
             solver_config=static_rt_solver_config(config.max_depth),
             seed=seed,
@@ -299,6 +309,13 @@ def test_cache_aware_rt_generator_bypasses_unresolved_scene_assets(tmp_path, mon
     from integrations.sionna import adapter, backend
     from integrations.sionna.adapter import RayScene
     from integrations.sionna.backend import RTBackendSelection
+
+    fake_inventory = types.SimpleNamespace(
+        scene_geometry_sha256="c" * 64,
+        object_names=("wall-1",),
+        triangles_m=np.zeros((4, 3, 3), dtype=np.float64),
+    )
+    monkeypatch.setattr(adapter, "extract_scene_triangle_inventory", lambda _scene: fake_inventory)
 
     scene_xml = tmp_path / "mock_scene.xml"
     scene_xml.write_text(
@@ -339,7 +356,15 @@ def test_cache_aware_rt_generator_bypasses_unresolved_scene_assets(tmp_path, mon
         generated.append(config)
         identity = rt_run_identity(
             scene_asset_manifest={"complete": False, "asset_set_sha256": "partial"},
-            physical_config={"scene": adapter.asdict(config), "grid": adapter.asdict(grid)},
+            physical_config={
+                "scene": adapter.asdict(config),
+                "grid": adapter.asdict(grid),
+                "scene_geometry": {
+                    "scene_geometry_sha256": fake_inventory.scene_geometry_sha256,
+                    "scene_object_count": len(fake_inventory.object_names),
+                    "scene_triangle_count": len(fake_inventory.triangles_m),
+                },
+            },
             solver_config=static_rt_solver_config(config.max_depth),
             seed=seed,
             backend_selection=_backend_selection.as_dict(),

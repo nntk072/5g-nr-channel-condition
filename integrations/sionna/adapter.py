@@ -2,8 +2,8 @@
 
 Important: no fabricated LOS=one-path assumption. A physical LOS link may contain
 one direct ray plus any number of reflected, diffuse and refracted rays.
-LOS labels use an independent scene-segment query cross-checked against a
-depth-zero geometric PathSolver invocation.
+LOS labels use a digest-bound NumPy inventory of loaded scene triangles,
+cross-checked against Mitsuba segment queries and depth-zero PathSolver.
 """
 
 from __future__ import annotations
@@ -32,10 +32,15 @@ from datasets.observations import (
 )
 from datasets.rt_split_identity import rt_spatial_split_subject_id as _rt_spatial_split_subject_id
 from propagation.physics import add_estimation_noise, frequency_response, subcarrier_frequencies
+from propagation.scene_visibility import SceneTriangleInventory, extract_scene_triangle_inventory
 
 from integrations.sionna.candidate_audit import instrument_path_solver_candidate_counter
 from integrations.sionna.d1_generation_gate import D1GenerationAuthorization
-from integrations.sionna.los_oracle import SegmentVisibilityState, segment_visibility
+from integrations.sionna.los_oracle import (
+    SegmentVisibilityState,
+    independent_mesh_segment_visibility,
+    segment_visibility,
+)
 from integrations.sionna.random import call_with_sionna_seed
 from integrations.sionna.rt_identity import (
     rt_run_identity,
@@ -415,6 +420,7 @@ def build_rt_data_generation_request(
     scene_ref: object,
     scene_assets: Mapping[str, Any],
     material_manifest: Mapping[str, Any],
+    scene_geometry_inventory: SceneTriangleInventory,
     destinations: Sequence[str | Path] = (),
 ) -> dict[str, Any]:
     """Build the canonical request from effective runtime and resolved scene facts."""
@@ -437,6 +443,12 @@ def build_rt_data_generation_request(
             "runtime_versions": versions(),
         },
         "material_state_sha256": canonical_hash(dict(material_manifest)),
+        "scene_geometry": {
+            "primary_oracle": "numpy_loaded_scene_triangle_inventory",
+            "scene_geometry_sha256": scene_geometry_inventory.scene_geometry_sha256,
+            "scene_object_count": len(scene_geometry_inventory.object_names),
+            "scene_triangle_count": len(scene_geometry_inventory.triangles_m),
+        },
         "destinations": sorted(str(Path(value).expanduser().resolve()) for value in destinations),
     }
 
@@ -482,6 +494,7 @@ def authorize_rt_data_generation(
     scene.frequency = grid.carrier_hz
     scene.bandwidth = grid.n_subcarriers * grid.spacing_hz
     material_manifest = sionna_scene_material_manifest(scene)
+    scene_geometry_inventory = extract_scene_triangle_inventory(scene)
     request = build_rt_data_generation_request(
         effective,
         grid,
@@ -490,6 +503,7 @@ def authorize_rt_data_generation(
         scene_ref=scene_ref,
         scene_assets=assets,
         material_manifest=material_manifest,
+        scene_geometry_inventory=scene_geometry_inventory,
         destinations=destinations,
     )
     return authorize_d1_generation(
@@ -526,6 +540,7 @@ def _publish_static_rt_sample_umcd(
     package_sha256: str,
     scene_assets: Mapping[str, Any],
     material_manifest: Mapping[str, Any],
+    scene_geometry_inventory: SceneTriangleInventory,
     authorization: D1GenerationAuthorization | None,
 ) -> Mapping[str, object]:
     """Publish one static RT path solve and its direct noisy-CFR observation."""
@@ -551,6 +566,11 @@ def _publish_static_rt_sample_umcd(
             "grid": asdict(grid),
             "rx_position_m": list(rx_position),
             "material_state": dict(material_manifest),
+            "scene_geometry": {
+                "scene_geometry_sha256": scene_geometry_inventory.scene_geometry_sha256,
+                "scene_object_count": len(scene_geometry_inventory.object_names),
+                "scene_triangle_count": len(scene_geometry_inventory.triangles_m),
+            },
         },
         solver_config=static_rt_solver_config(
             scene_config.max_depth, scene_config.max_num_paths_per_src
@@ -623,17 +643,23 @@ def _publish_static_rt_sample_umcd(
     label_definition = TargetDefinition(
         semantic="geometric direct-path visibility",
         units="boolean",
-        source="independent_segment_visibility_oracle",
-        reference="finite scene-segment visibility cross-checked by depth-zero PathSolver",
+        source="numpy_loaded_scene_triangle_inventory",
+        reference=(
+            "digest-bound loaded-scene triangle visibility cross-checked by Mitsuba "
+            "segment intersection and depth-zero PathSolver"
+        ),
         aggregation_rule="one direct-path visibility label per link; no temporal or port pooling",
-        definition_version="umcd.f03_rt_static.direct_visibility.v1",
+        definition_version="umcd.f03_rt_static.direct_visibility.v2",
         definition_sha256=target_definition_digest(
             semantic="geometric direct-path visibility",
             units="boolean",
-            source="independent_segment_visibility_oracle",
-            reference="finite scene-segment visibility cross-checked by depth-zero PathSolver",
+            source="numpy_loaded_scene_triangle_inventory",
+            reference=(
+                "digest-bound loaded-scene triangle visibility cross-checked by Mitsuba "
+                "segment intersection and depth-zero PathSolver"
+            ),
             aggregation_rule="one direct-path visibility label per link; no temporal or port pooling",
-            definition_version="umcd.f03_rt_static.direct_visibility.v1",
+            definition_version="umcd.f03_rt_static.direct_visibility.v2",
         ),
     )
     target = TargetValue(
@@ -674,6 +700,7 @@ def generate_raytraced(
     expected_approval_sha256: str | None = None,
     _scene_assets_override: Mapping[str, Any] | None = None,
     _scene_override: Any | None = None,
+    _scene_geometry_inventory_override: SceneTriangleInventory | None = None,
     _material_manifest_override: Mapping[str, Any] | None = None,
     output_destination: str | Path | None = None,
     failure_report_destination: str | Path | None = None,
@@ -681,9 +708,10 @@ def generate_raytraced(
 ) -> ChannelDataset:
     """Balanced physical LOS/NLOS ray tracing. Fail closed when insufficient examples.
 
-    Full PathSolver includes direct + reflection (and optional diffuse). A finite
-    scene-segment query determines geometric LOS; depth-zero PathSolver results
-    cross-check the label, and ambiguous/disagreeing candidates are excluded.
+    Full PathSolver includes direct + reflection (and optional diffuse). A
+    digest-bound NumPy query over loaded scene triangles determines geometric
+    LOS; Mitsuba and depth-zero PathSolver cross-check it, and ambiguous or
+    disagreeing candidates are excluded.
     Report how often LOS really contains >=2 valid paths; default rejects
     direct-only LOS. NLOS must contain at least one observable indirect path.
     """
@@ -744,6 +772,11 @@ def generate_raytraced(
         and dict(_material_manifest_override) != material_manifest
     ):
         raise PermissionError("RT material state changed after request authorization")
+    scene_geometry_inventory = (
+        _scene_geometry_inventory_override
+        if _scene_geometry_inventory_override is not None
+        else extract_scene_triangle_inventory(scene)
+    )
     from integrations.sionna.d1_generation_gate import (
         authorize_d1_generation,
         require_d1_authorization,
@@ -763,6 +796,7 @@ def generate_raytraced(
         scene_ref=scene_ref,
         scene_assets=scene_assets,
         material_manifest=material_manifest,
+        scene_geometry_inventory=scene_geometry_inventory,
         destinations=destinations,
     )
     if authorization is None:
@@ -824,6 +858,7 @@ def generate_raytraced(
         "geometry_oracle_errors": 0,
         "geometry_oracle_ambiguous": 0,
         "geometry_oracle_coincident": 0,
+        "mitsuba_geometry_disagreements": 0,
         "depth_zero_oracle_attempts": 0,
         "depth_zero_oracle_calls": 0,
         "depth_zero_oracle_errors": 0,
@@ -879,7 +914,13 @@ def generate_raytraced(
         receiver.position = [float(x), float(y), float(z)]
         attempt_counts["geometry_oracle_attempts"] += 1
         try:
-            visibility = segment_visibility(scene, cfg.tx_position, (x, y, z))
+            numpy_visibility = independent_mesh_segment_visibility(
+                scene,
+                cfg.tx_position,
+                (x, y, z),
+                inventory=scene_geometry_inventory,
+            )
+            mitsuba_visibility = segment_visibility(scene, cfg.tx_position, (x, y, z))
         except Exception as error:
             attempt_counts["geometry_oracle_errors"] += 1
             solver_failure = {
@@ -890,15 +931,25 @@ def generate_raytraced(
             }
             break
         attempt_counts["geometry_oracle_calls"] += 1
-        if visibility.state is SegmentVisibilityState.AMBIGUOUS:
+        numpy_state = numpy_visibility.geometry.outcome
+        if (
+            numpy_state == "ambiguous"
+            or mitsuba_visibility.state is SegmentVisibilityState.AMBIGUOUS
+        ):
             attempt_counts["geometry_oracle_ambiguous"] += 1
             continue
-        if visibility.state is SegmentVisibilityState.COINCIDENT_ENDPOINTS:
+        if mitsuba_visibility.state is SegmentVisibilityState.COINCIDENT_ENDPOINTS:
             attempt_counts["geometry_oracle_coincident"] += 1
             continue
-        if visibility.visible is None:
-            raise RuntimeError("geometry oracle returned a non-labelable visibility state")
-        label = int(visibility.visible)
+        numpy_visible = numpy_state == "visible"
+        mitsuba_visible = mitsuba_visibility.visible
+        if mitsuba_visible is None:
+            attempt_counts["geometry_oracle_ambiguous"] += 1
+            continue
+        if numpy_visible != mitsuba_visible:
+            attempt_counts["mitsuba_geometry_disagreements"] += 1
+            continue
+        label = int(numpy_visible)
         attempt_counts["depth_zero_oracle_attempts"] += 1
         try:
             oracle_paths = los_oracle(
@@ -972,6 +1023,7 @@ def generate_raytraced(
             attempt_counts["full_solver_empty_paths"] += 1
             continue
         n_direct = count_valid_paths(oracle_paths)
+        depth_zero_state = "visible" if n_direct else "blocked"
         mixed = bool(label and n_paths > n_direct)
         if label and cfg.require_los_multipath and not mixed:
             class_outcomes["los_direct_only_rejected"] += 1
@@ -1038,11 +1090,35 @@ def generate_raytraced(
                 "scene_asset_count": scene_assets["asset_count"],
                 "geometry_label": "GEOMETRIC_DIRECT_PATH_ORACLE",
                 "geometry_oracle": {
-                    "state": visibility.state.value,
-                    "segment_length_m": visibility.segment_length_m,
-                    "first_intersection_distance_m": visibility.first_intersection_distance_m,
-                    "incidence_cosine": visibility.incidence_cosine,
-                    "boundary_probe_blocked": list(visibility.boundary_probe_blocked),
+                    "primary_oracle": "numpy_loaded_scene_triangle_inventory",
+                    "scene_geometry_sha256": numpy_visibility.scene_geometry_sha256,
+                    "scene_object_count": len(numpy_visibility.object_names),
+                    "scene_triangle_count": numpy_visibility.triangle_count,
+                    "state": numpy_state,
+                    "primary_visibility_state": numpy_state,
+                    "segment_length_m": numpy_visibility.geometry.segment_length_m,
+                    "intersected_triangle_count": len(
+                        numpy_visibility.geometry.intersected_triangle_indices
+                    ),
+                    "ambiguous_triangle_count": len(
+                        numpy_visibility.geometry.ambiguous_triangle_indices
+                    ),
+                },
+                "geometry_oracle_cross_checks": {
+                    "mitsuba_cross_check_state": mitsuba_visibility.state.value,
+                    "mitsuba_segment_length_m": mitsuba_visibility.segment_length_m,
+                    "mitsuba_first_intersection_distance_m": (
+                        mitsuba_visibility.first_intersection_distance_m
+                    ),
+                    "mitsuba_incidence_cosine": mitsuba_visibility.incidence_cosine,
+                    "mitsuba_boundary_probe_blocked": list(
+                        mitsuba_visibility.boundary_probe_blocked
+                    ),
+                    "depth_zero_pathsolver_state": depth_zero_state,
+                    "oracle_agreement": {
+                        "numpy_mitsuba": True,
+                        "numpy_depth_zero_pathsolver": True,
+                    },
                 },
                 "tx": list(cfg.tx_position),
                 "transmitter_id": cfg.transmitter_id,
@@ -1094,6 +1170,7 @@ def generate_raytraced(
                     package_sha256=package_sha256,
                     scene_assets=scene_assets,
                     material_manifest=material_manifest,
+                    scene_geometry_inventory=scene_geometry_inventory,
                     authorization=authorization,
                 )
             )
@@ -1118,6 +1195,7 @@ def generate_raytraced(
     if attempt_counts["geometry_oracle_calls"] != (
         attempt_counts["geometry_oracle_ambiguous"]
         + attempt_counts["geometry_oracle_coincident"]
+        + attempt_counts["mitsuba_geometry_disagreements"]
         + attempt_counts["depth_zero_oracle_attempts"]
     ):
         raise RuntimeError("RT generation report does not account for every geometry result")
@@ -1176,11 +1254,20 @@ def generate_raytraced(
         "schema": "loslab.raytraced_generation_report.v3",
         "label_semantics": "geometric_direct_path_oracle",
         "label_oracle": {
-            "primary": "independent_finite_scene_segment_visibility_query",
-            "cross_check": "depth_zero_los_only_path_solver",
+            "primary": "numpy_loaded_scene_triangle_inventory",
+            "cross_checks": [
+                "mitsuba_finite_segment_visibility_query",
+                "depth_zero_los_only_path_solver",
+            ],
             "policy": "skip_ambiguous_or_disagreeing_candidates",
             "grazing_cosine_threshold": 1e-3,
             "boundary_probe_offset_m": 1e-3,
+        },
+        "scene_geometry": {
+            "scene_geometry_sha256": scene_geometry_inventory.scene_geometry_sha256,
+            "scene_object_count": len(scene_geometry_inventory.object_names),
+            "scene_triangle_count": len(scene_geometry_inventory.triangles_m),
+            "primary_oracle": "numpy_loaded_scene_triangle_inventory",
         },
         "channel_semantics": {
             "schema": "loslab.rt_absolute_channel.v1",
@@ -1230,6 +1317,11 @@ def generate_raytraced(
             "scene": asdict(cfg),
             "grid": asdict(grid),
             "material_state": material_manifest,
+            "scene_geometry": {
+                "scene_geometry_sha256": scene_geometry_inventory.scene_geometry_sha256,
+                "scene_object_count": len(scene_geometry_inventory.object_names),
+                "scene_triangle_count": len(scene_geometry_inventory.triangles_m),
+            },
         },
         solver_config=solver_config,
         seed=seed,
@@ -1311,6 +1403,7 @@ def generate_raytraced_cached(
     scene.frequency = grid.carrier_hz
     scene.bandwidth = grid.n_subcarriers * grid.spacing_hz
     material_manifest = sionna_scene_material_manifest(scene)
+    scene_geometry_inventory = extract_scene_triangle_inventory(scene)
     from integrations.sionna.d1_generation_gate import (
         authorize_d1_generation,
         require_d1_authorization,
@@ -1330,6 +1423,7 @@ def generate_raytraced_cached(
         scene_ref=scene_ref,
         scene_assets=assets,
         material_manifest=material_manifest,
+        scene_geometry_inventory=scene_geometry_inventory,
         destinations=destinations,
     )
     if authorization is None:
@@ -1362,6 +1456,11 @@ def generate_raytraced_cached(
             "scene": asdict(cfg),
             "grid": asdict(grid),
             "material_state": material_manifest,
+            "scene_geometry": {
+                "scene_geometry_sha256": scene_geometry_inventory.scene_geometry_sha256,
+                "scene_object_count": len(scene_geometry_inventory.object_names),
+                "scene_triangle_count": len(scene_geometry_inventory.triangles_m),
+            },
         },
         solver_config=static_rt_solver_config(cfg.max_depth, cfg.max_num_paths_per_src),
         seed=seed,
@@ -1383,6 +1482,7 @@ def generate_raytraced_cached(
         authorization=authorization,
         _scene_assets_override=assets,
         _scene_override=scene,
+        _scene_geometry_inventory_override=scene_geometry_inventory,
         _material_manifest_override=material_manifest,
         output_destination=output_destination,
         failure_report_destination=failure_report_destination,
