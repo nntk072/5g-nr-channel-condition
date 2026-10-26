@@ -1,0 +1,233 @@
+FFFFF                                                                    [100%]
+=================================== FAILURES ===================================
+_____ test_cdl_joint_delay_angle_characteristics_match_table_reference[A] ______
+
+model = 'A'
+
+    @pytest.mark.native_sionna
+    @pytest.mark.parametrize("model", _MODELS)
+    def test_cdl_joint_delay_angle_characteristics_match_table_reference(model: str) -> None:
+        """Check selected joint normalized-delay/four-angle moments on fresh draws."""
+        table_path = profile_resources.parameter_file(f"CDL-{model}.json", "19.2")
+        assert hashlib.sha256(table_path.read_bytes()).hexdigest() == _PROFILE_SHA256[model]
+        parameters = _independent_profile_parameters(model)
+        expected_powers, table_angles_deg = _profile_diffuse_reference(parameters)
+        is_los = bool(parameters["los"])
+        delay_start = int(is_los)
+        table_delays = torch.tensor(parameters["delays"][delay_start:], dtype=torch.float64)
+        table_delay_order = torch.argsort(table_delays)
+        table_delays = table_delays[table_delay_order]
+        rays = _native_diffuse_rays(model, seed=_JOINT_DELAY_ANGLE_SEED)
+    
+        native_angles_rad = torch.stack(
+            [getattr(rays, name)[:, 0, 0] for name in _ANGLE_FIELDS], dim=-1
+        ).to(torch.float64)
+        native_powers = rays.powers[:, 0, 0].to(torch.float64)
+        native_delays = rays.delays[:, 0, 0].to(torch.float64) / _DELAY_SPREAD_S
+        expected_clusters = int(expected_powers.numel())
+        assert native_angles_rad.shape == (_BATCH_SIZE, expected_clusters, 20, 4)
+        assert native_powers.shape == (_BATCH_SIZE, expected_clusters)
+        assert native_delays.shape == (_BATCH_SIZE, expected_clusters)
+        native_delays, cluster_order = torch.sort(native_delays, dim=-1)
+        native_powers = torch.gather(native_powers, dim=1, index=cluster_order)
+        angle_order = cluster_order[:, :, None, None].expand(-1, -1, 20, len(_ANGLE_FIELDS))
+        native_angles_rad = torch.gather(native_angles_rad, dim=1, index=angle_order)
+>       torch.testing.assert_close(
+            native_delays,
+            table_delays.expand_as(native_delays),
+            atol=2e-7,
+            rtol=0.0,
+        )
+E       AssertionError: Tensor-likes are not close!
+E       
+E       Mismatched elements: 16384 / 188416 (8.7%)
+E       Greatest absolute difference: 4.6205720849457066e-07 at index (0, 22) (up to 2e-07 allowed)
+E       Greatest relative difference: 4.887008863142388e-08 at index (0, 17) (up to 0.0 allowed)
+
+tests/test_integrations/test_g4_cdl_joint_angular_characteristic_native.py:435: AssertionError
+_____ test_cdl_joint_delay_angle_characteristics_match_table_reference[B] ______
+
+model = 'B'
+
+    @pytest.mark.native_sionna
+    @pytest.mark.parametrize("model", _MODELS)
+    def test_cdl_joint_delay_angle_characteristics_match_table_reference(model: str) -> None:
+        """Check selected joint normalized-delay/four-angle moments on fresh draws."""
+        table_path = profile_resources.parameter_file(f"CDL-{model}.json", "19.2")
+        assert hashlib.sha256(table_path.read_bytes()).hexdigest() == _PROFILE_SHA256[model]
+        parameters = _independent_profile_parameters(model)
+        expected_powers, table_angles_deg = _profile_diffuse_reference(parameters)
+        is_los = bool(parameters["los"])
+        delay_start = int(is_los)
+        table_delays = torch.tensor(parameters["delays"][delay_start:], dtype=torch.float64)
+        table_delay_order = torch.argsort(table_delays)
+        table_delays = table_delays[table_delay_order]
+        rays = _native_diffuse_rays(model, seed=_JOINT_DELAY_ANGLE_SEED)
+    
+        native_angles_rad = torch.stack(
+            [getattr(rays, name)[:, 0, 0] for name in _ANGLE_FIELDS], dim=-1
+        ).to(torch.float64)
+        native_powers = rays.powers[:, 0, 0].to(torch.float64)
+        native_delays = rays.delays[:, 0, 0].to(torch.float64) / _DELAY_SPREAD_S
+        expected_clusters = int(expected_powers.numel())
+        assert native_angles_rad.shape == (_BATCH_SIZE, expected_clusters, 20, 4)
+        assert native_powers.shape == (_BATCH_SIZE, expected_clusters)
+        assert native_delays.shape == (_BATCH_SIZE, expected_clusters)
+        native_delays, cluster_order = torch.sort(native_delays, dim=-1)
+        native_powers = torch.gather(native_powers, dim=1, index=cluster_order)
+        angle_order = cluster_order[:, :, None, None].expand(-1, -1, 20, len(_ANGLE_FIELDS))
+        native_angles_rad = torch.gather(native_angles_rad, dim=1, index=angle_order)
+>       torch.testing.assert_close(
+            native_delays,
+            table_delays.expand_as(native_delays),
+            atol=2e-7,
+            rtol=0.0,
+        )
+E       AssertionError: Tensor-likes are not close!
+E       
+E       Mismatched elements: 16384 / 188416 (8.7%)
+E       Greatest absolute difference: 2.3215170941170982e-07 at index (0, 21) (up to 2e-07 allowed)
+E       Greatest relative difference: 7.646216059012124e-08 at index (0, 17) (up to 0.0 allowed)
+
+tests/test_integrations/test_g4_cdl_joint_angular_characteristic_native.py:435: AssertionError
+_____ test_cdl_joint_delay_angle_characteristics_match_table_reference[C] ______
+
+model = 'C'
+
+    @pytest.mark.native_sionna
+    @pytest.mark.parametrize("model", _MODELS)
+    def test_cdl_joint_delay_angle_characteristics_match_table_reference(model: str) -> None:
+        """Check selected joint normalized-delay/four-angle moments on fresh draws."""
+        table_path = profile_resources.parameter_file(f"CDL-{model}.json", "19.2")
+        assert hashlib.sha256(table_path.read_bytes()).hexdigest() == _PROFILE_SHA256[model]
+        parameters = _independent_profile_parameters(model)
+        expected_powers, table_angles_deg = _profile_diffuse_reference(parameters)
+        is_los = bool(parameters["los"])
+        delay_start = int(is_los)
+        table_delays = torch.tensor(parameters["delays"][delay_start:], dtype=torch.float64)
+        table_delay_order = torch.argsort(table_delays)
+        table_delays = table_delays[table_delay_order]
+        rays = _native_diffuse_rays(model, seed=_JOINT_DELAY_ANGLE_SEED)
+    
+        native_angles_rad = torch.stack(
+            [getattr(rays, name)[:, 0, 0] for name in _ANGLE_FIELDS], dim=-1
+        ).to(torch.float64)
+        native_powers = rays.powers[:, 0, 0].to(torch.float64)
+        native_delays = rays.delays[:, 0, 0].to(torch.float64) / _DELAY_SPREAD_S
+        expected_clusters = int(expected_powers.numel())
+        assert native_angles_rad.shape == (_BATCH_SIZE, expected_clusters, 20, 4)
+        assert native_powers.shape == (_BATCH_SIZE, expected_clusters)
+        assert native_delays.shape == (_BATCH_SIZE, expected_clusters)
+        native_delays, cluster_order = torch.sort(native_delays, dim=-1)
+        native_powers = torch.gather(native_powers, dim=1, index=cluster_order)
+        angle_order = cluster_order[:, :, None, None].expand(-1, -1, 20, len(_ANGLE_FIELDS))
+        native_angles_rad = torch.gather(native_angles_rad, dim=1, index=angle_order)
+>       torch.testing.assert_close(
+            native_delays,
+            table_delays.expand_as(native_delays),
+            atol=2e-7,
+            rtol=0.0,
+        )
+E       AssertionError: Tensor-likes are not close!
+E       
+E       Mismatched elements: 16384 / 196608 (8.3%)
+E       Greatest absolute difference: 2.4720027536062616e-07 at index (0, 21) (up to 2e-07 allowed)
+E       Greatest relative difference: 5.145840555238844e-08 at index (0, 16) (up to 0.0 allowed)
+
+tests/test_integrations/test_g4_cdl_joint_angular_characteristic_native.py:435: AssertionError
+_____ test_cdl_joint_delay_angle_characteristics_match_table_reference[D] ______
+
+model = 'D'
+
+    @pytest.mark.native_sionna
+    @pytest.mark.parametrize("model", _MODELS)
+    def test_cdl_joint_delay_angle_characteristics_match_table_reference(model: str) -> None:
+        """Check selected joint normalized-delay/four-angle moments on fresh draws."""
+        table_path = profile_resources.parameter_file(f"CDL-{model}.json", "19.2")
+        assert hashlib.sha256(table_path.read_bytes()).hexdigest() == _PROFILE_SHA256[model]
+        parameters = _independent_profile_parameters(model)
+        expected_powers, table_angles_deg = _profile_diffuse_reference(parameters)
+        is_los = bool(parameters["los"])
+        delay_start = int(is_los)
+        table_delays = torch.tensor(parameters["delays"][delay_start:], dtype=torch.float64)
+        table_delay_order = torch.argsort(table_delays)
+        table_delays = table_delays[table_delay_order]
+        rays = _native_diffuse_rays(model, seed=_JOINT_DELAY_ANGLE_SEED)
+    
+        native_angles_rad = torch.stack(
+            [getattr(rays, name)[:, 0, 0] for name in _ANGLE_FIELDS], dim=-1
+        ).to(torch.float64)
+        native_powers = rays.powers[:, 0, 0].to(torch.float64)
+        native_delays = rays.delays[:, 0, 0].to(torch.float64) / _DELAY_SPREAD_S
+        expected_clusters = int(expected_powers.numel())
+        assert native_angles_rad.shape == (_BATCH_SIZE, expected_clusters, 20, 4)
+        assert native_powers.shape == (_BATCH_SIZE, expected_clusters)
+        assert native_delays.shape == (_BATCH_SIZE, expected_clusters)
+        native_delays, cluster_order = torch.sort(native_delays, dim=-1)
+        native_powers = torch.gather(native_powers, dim=1, index=cluster_order)
+        angle_order = cluster_order[:, :, None, None].expand(-1, -1, 20, len(_ANGLE_FIELDS))
+        native_angles_rad = torch.gather(native_angles_rad, dim=1, index=angle_order)
+>       torch.testing.assert_close(
+            native_delays,
+            table_delays.expand_as(native_delays),
+            atol=2e-7,
+            rtol=0.0,
+        )
+E       AssertionError: Tensor-likes are not close!
+E       
+E       Mismatched elements: 8192 / 106496 (7.7%)
+E       Greatest absolute difference: 5.801615774458924e-07 at index (0, 12) (up to 2e-07 allowed)
+E       Greatest relative difference: 4.632028562442254e-08 at index (0, 12) (up to 0.0 allowed)
+
+tests/test_integrations/test_g4_cdl_joint_angular_characteristic_native.py:435: AssertionError
+_____ test_cdl_joint_delay_angle_characteristics_match_table_reference[E] ______
+
+model = 'E'
+
+    @pytest.mark.native_sionna
+    @pytest.mark.parametrize("model", _MODELS)
+    def test_cdl_joint_delay_angle_characteristics_match_table_reference(model: str) -> None:
+        """Check selected joint normalized-delay/four-angle moments on fresh draws."""
+        table_path = profile_resources.parameter_file(f"CDL-{model}.json", "19.2")
+        assert hashlib.sha256(table_path.read_bytes()).hexdigest() == _PROFILE_SHA256[model]
+        parameters = _independent_profile_parameters(model)
+        expected_powers, table_angles_deg = _profile_diffuse_reference(parameters)
+        is_los = bool(parameters["los"])
+        delay_start = int(is_los)
+        table_delays = torch.tensor(parameters["delays"][delay_start:], dtype=torch.float64)
+        table_delay_order = torch.argsort(table_delays)
+        table_delays = table_delays[table_delay_order]
+        rays = _native_diffuse_rays(model, seed=_JOINT_DELAY_ANGLE_SEED)
+    
+        native_angles_rad = torch.stack(
+            [getattr(rays, name)[:, 0, 0] for name in _ANGLE_FIELDS], dim=-1
+        ).to(torch.float64)
+        native_powers = rays.powers[:, 0, 0].to(torch.float64)
+        native_delays = rays.delays[:, 0, 0].to(torch.float64) / _DELAY_SPREAD_S
+        expected_clusters = int(expected_powers.numel())
+        assert native_angles_rad.shape == (_BATCH_SIZE, expected_clusters, 20, 4)
+        assert native_powers.shape == (_BATCH_SIZE, expected_clusters)
+        assert native_delays.shape == (_BATCH_SIZE, expected_clusters)
+        native_delays, cluster_order = torch.sort(native_delays, dim=-1)
+        native_powers = torch.gather(native_powers, dim=1, index=cluster_order)
+        angle_order = cluster_order[:, :, None, None].expand(-1, -1, 20, len(_ANGLE_FIELDS))
+        native_angles_rad = torch.gather(native_angles_rad, dim=1, index=angle_order)
+>       torch.testing.assert_close(
+            native_delays,
+            table_delays.expand_as(native_delays),
+            atol=2e-7,
+            rtol=0.0,
+        )
+E       AssertionError: Tensor-likes are not close!
+E       
+E       Mismatched elements: 24576 / 114688 (21.4%)
+E       Greatest absolute difference: 1.427351357108364e-06 at index (0, 13) (up to 2e-07 allowed)
+E       Greatest relative difference: 6.91482546232839e-08 at index (0, 13) (up to 0.0 allowed)
+
+tests/test_integrations/test_g4_cdl_joint_angular_characteristic_native.py:435: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_integrations/test_g4_cdl_joint_angular_characteristic_native.py::test_cdl_joint_delay_angle_characteristics_match_table_reference[A]
+FAILED tests/test_integrations/test_g4_cdl_joint_angular_characteristic_native.py::test_cdl_joint_delay_angle_characteristics_match_table_reference[B]
+FAILED tests/test_integrations/test_g4_cdl_joint_angular_characteristic_native.py::test_cdl_joint_delay_angle_characteristics_match_table_reference[C]
+FAILED tests/test_integrations/test_g4_cdl_joint_angular_characteristic_native.py::test_cdl_joint_delay_angle_characteristics_match_table_reference[D]
+FAILED tests/test_integrations/test_g4_cdl_joint_angular_characteristic_native.py::test_cdl_joint_delay_angle_characteristics_match_table_reference[E]

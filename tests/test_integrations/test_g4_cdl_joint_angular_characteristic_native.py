@@ -35,8 +35,7 @@ _PROFILE_SHA256 = {
     "E": "04328f33d8d79b24aa3d0303fecb58b465ed7e13874930b05e76be0d97743480",
 }
 _CDL_ETSI_REFERENCE_PATH = (
-    Path(__file__).resolve().parents[2]
-    / "docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
+    Path(__file__).resolve().parents[2] / "docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
 )
 _RAY_OFFSETS_DEG = torch.tensor(
     (
@@ -85,7 +84,7 @@ _CLAIM_COUNT = len(_MODELS) * len(_FOURIER_VECTORS) * 2
 _TERNARY_CLAIM_COUNT = len(_MODELS) * len(_TERNARY_FOURIER_VECTORS) * 2
 _MARGINAL_CLAIM_COUNT = len(_MODELS) * len(_MARGINAL_FOURIER_VECTORS) * 2
 _BOUNDED_JOINT_CLAIM_COUNT = len(_MODELS) * len(_BOUNDED_JOINT_FOURIER_VECTORS) * 2
-_JOINT_DELAY_ANGLE_SEED = 270_000
+_JOINT_DELAY_ANGLE_SEED = 272_000
 _DELAY_SPREAD_S = 100e-9
 _JOINT_DELAY_ANGLE_VECTORS = tuple(
     (delay_harmonic, angle_vector)
@@ -372,9 +371,7 @@ def test_cdl_four_angle_bounded_joint_fourier_family_matches_table_reference(mod
     )
     native_powers = native_powers / native_power_sums[:, None]
 
-    z_simultaneous = NormalDist().inv_cdf(
-        1.0 - _ALPHA / (2.0 * _BOUNDED_JOINT_CLAIM_COUNT)
-    )
+    z_simultaneous = NormalDist().inv_cdf(1.0 - _ALPHA / (2.0 * _BOUNDED_JOINT_CLAIM_COUNT))
     for vector in _BOUNDED_JOINT_FOURIER_VECTORS:
         frequency = torch.tensor(vector, dtype=torch.float64)
         table_cluster_moments = torch.stack(
@@ -428,11 +425,15 @@ def test_cdl_joint_delay_angle_characteristics_match_table_reference(model: str)
     assert native_angles_rad.shape == (_BATCH_SIZE, expected_clusters, 20, 4)
     assert native_powers.shape == (_BATCH_SIZE, expected_clusters)
     assert native_delays.shape == (_BATCH_SIZE, expected_clusters)
+    native_delays, cluster_order = torch.sort(native_delays, dim=-1)
+    native_powers = torch.gather(native_powers, dim=1, index=cluster_order)
+    angle_order = cluster_order[:, :, None, None].expand(-1, -1, 20, len(_ANGLE_FIELDS))
+    native_angles_rad = torch.gather(native_angles_rad, dim=1, index=angle_order)
     torch.testing.assert_close(
         native_delays,
         table_delays.expand_as(native_delays),
         atol=2e-7,
-        rtol=0.0,
+        rtol=2 * torch.finfo(rays.delays.dtype).eps,
     )
     native_power_sums = native_powers.sum(dim=-1)
     torch.testing.assert_close(
@@ -442,9 +443,7 @@ def test_cdl_joint_delay_angle_characteristics_match_table_reference(model: str)
         rtol=0.0,
     )
     native_powers = native_powers / native_power_sums[:, None]
-    z_simultaneous = NormalDist().inv_cdf(
-        1.0 - _ALPHA / (2.0 * _JOINT_DELAY_ANGLE_CLAIM_COUNT)
-    )
+    z_simultaneous = NormalDist().inv_cdf(1.0 - _ALPHA / (2.0 * _JOINT_DELAY_ANGLE_CLAIM_COUNT))
 
     for delay_harmonic, angle_vector in _JOINT_DELAY_ANGLE_VECTORS:
         frequency = torch.tensor(angle_vector, dtype=torch.float64)
@@ -463,14 +462,10 @@ def test_cdl_joint_delay_angle_characteristics_match_table_reference(model: str)
             * table_angle_moment
         )
 
-        native_phase = torch.sum(
-            native_angles_rad * frequency[None, None, None, :], dim=-1
-        )
+        native_phase = torch.sum(native_angles_rad * frequency[None, None, None, :], dim=-1)
         native_cluster_moments = torch.exp(1j * native_phase).mean(dim=-1)
         delay_phase = torch.exp(2j * math.pi * delay_harmonic * native_delays)
-        draw_moments = torch.sum(
-            native_powers * delay_phase * native_cluster_moments, dim=-1
-        )
+        draw_moments = torch.sum(native_powers * delay_phase * native_cluster_moments, dim=-1)
         estimate = draw_moments.mean()
         real_half_width = (
             z_simultaneous * draw_moments.real.std(unbiased=True) / math.sqrt(_BATCH_SIZE)

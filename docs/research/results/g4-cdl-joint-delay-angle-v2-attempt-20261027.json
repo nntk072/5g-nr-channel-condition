@@ -1,0 +1,48 @@
+{
+  "schema": "loslab.g4_cdl_joint_delay_angle_attempt.v1",
+  "protocol": "G4_07_CDL_JOINT_DELAY_ANGLE_PROTOCOL_V2_2026-10-27",
+  "attempt_date": "2026-10-27",
+  "status": "INVALIDATED_IMPLEMENTATION_DEFECT",
+  "design": {
+    "profiles": ["A", "B", "C", "D", "E"],
+    "samples_per_profile": 8192,
+    "seeds": [271065, 271066, 271067, 271068, 271069],
+    "acceptance_criteria_changed": false
+  },
+  "seed_collision_audit": {
+    "path": "g4-cdl-joint-delay-angle-v2-seed-collision-audit-20261027.json",
+    "sha256": "2740d11cb263b5ddab67b4585095aeca88dbd04a99f81f855fc14582affc7f8c",
+    "status": "CLEAR_WITHIN_SCANNED_JSON_CORPUS",
+    "scanned_file_count": 2264
+  },
+  "runtime": {
+    "sionna": "2.2.0",
+    "torch": "2.10.0+cu128",
+    "device": "cpu"
+  },
+  "test_log": {
+    "path": "g4-cdl-joint-delay-angle-v2-20261027.log",
+    "sha256": "efc3f772374f11f286d516ead5649c8a45c8934cc5281badf09440ca9a97464a"
+  },
+  "outcome": {
+    "profiles_reached_statistical_claims": [],
+    "profiles_stopped_at_delay_precision_check": ["A", "B", "C", "D", "E"],
+    "native_cluster_permutation_was_applied": true,
+    "native_delay_dtype": "float32",
+    "reference_delay_dtype": "float64",
+    "structural_check": {
+      "absolute_tolerance": 2e-7,
+      "relative_tolerance": 0.0,
+      "maximum_absolute_difference_by_profile": {
+        "A": 4.6205720849457066e-07,
+        "B": 2.3215170941170982e-07,
+        "C": 2.4720027536062616e-07,
+        "D": 5.801615774458924e-07,
+        "E": 1.427351357108364e-06
+      }
+    },
+    "root_cause": "The cluster-order repair exposed float32 quantization in Sionna's generated delays. The zero-relative-tolerance elementwise check compared those float32 values with float64 table values more tightly than the generator's representational precision.",
+    "scientific_verdict": "NOT_EVALUATED"
+  },
+  "scope": "Records an invalidated test implementation attempt only. It is not a G4 acceptance result and establishes no channel-family conformance."
+}

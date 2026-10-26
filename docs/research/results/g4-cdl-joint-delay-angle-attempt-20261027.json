@@ -1,0 +1,35 @@
+{
+  "schema": "loslab.g4_cdl_joint_delay_angle_attempt.v1",
+  "protocol": "G4_07_CDL_JOINT_DELAY_ANGLE_PROTOCOL_2026-10-25",
+  "attempt_date": "2026-10-27",
+  "status": "INVALIDATED_IMPLEMENTATION_DEFECT",
+  "design": {
+    "profiles": ["A", "B", "C", "D", "E"],
+    "samples_per_profile": 8192,
+    "seeds": [270065, 270066, 270067, 270068, 270069],
+    "acceptance_criteria_changed": false
+  },
+  "seed_collision_audit": {
+    "path": "g4-cdl-joint-delay-angle-seed-collision-audit-20261027.json",
+    "sha256": "dd9ebd1393c32defb47d6374676f530361244609c690448fc81676a8f2c3f18f",
+    "status": "CLEAR_WITHIN_SCANNED_JSON_CORPUS",
+    "scanned_file_count": 2262
+  },
+  "runtime": {
+    "sionna": "2.2.0",
+    "torch": "2.10.0+cu128",
+    "device": "cpu",
+    "gpu_host": "2x Tesla V100-PCIE-16GB"
+  },
+  "outcome": {
+    "profiles_reached_statistical_claims": [],
+    "profiles_stopped_at_delay_order_check": ["A", "B", "C", "D", "E"],
+    "representative_profile": "A",
+    "representative_max_abs_difference": 0.1257999774977761,
+    "representative_mismatch_fraction": 0.391,
+    "representative_native_and_reference_delay_multisets_match": true,
+    "root_cause": "The test sorts the ETSI reference cluster delays but compares them elementwise with native Sionna delays in source-table order. The cluster power and angle arrays remain aligned with native delays; the subsequent characteristic sums are permutation invariant. The elementwise order assertion therefore rejects equivalent cluster rosters before evaluating any statistical acceptance claim.",
+    "scientific_verdict": "NOT_EVALUATED"
+  },
+  "scope": "Records an invalidated test implementation attempt only. It is not a G4 acceptance result and establishes no channel-family conformance."
+}

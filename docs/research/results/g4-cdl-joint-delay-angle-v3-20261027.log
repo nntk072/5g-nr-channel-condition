@@ -1,0 +1,463 @@
+FFFFF                                                                    [100%]
+=================================== FAILURES ===================================
+_____ test_cdl_joint_delay_angle_characteristics_match_table_reference[A] ______
+
+model = 'A'
+
+    @pytest.mark.native_sionna
+    @pytest.mark.parametrize("model", _MODELS)
+    def test_cdl_joint_delay_angle_characteristics_match_table_reference(model: str) -> None:
+        """Check selected joint normalized-delay/four-angle moments on fresh draws."""
+        table_path = profile_resources.parameter_file(f"CDL-{model}.json", "19.2")
+        assert hashlib.sha256(table_path.read_bytes()).hexdigest() == _PROFILE_SHA256[model]
+        parameters = _independent_profile_parameters(model)
+        expected_powers, table_angles_deg = _profile_diffuse_reference(parameters)
+        is_los = bool(parameters["los"])
+        delay_start = int(is_los)
+        table_delays = torch.tensor(parameters["delays"][delay_start:], dtype=torch.float64)
+        table_delay_order = torch.argsort(table_delays)
+        table_delays = table_delays[table_delay_order]
+        rays = _native_diffuse_rays(model, seed=_JOINT_DELAY_ANGLE_SEED)
+    
+        native_angles_rad = torch.stack(
+            [getattr(rays, name)[:, 0, 0] for name in _ANGLE_FIELDS], dim=-1
+        ).to(torch.float64)
+        native_powers = rays.powers[:, 0, 0].to(torch.float64)
+        native_delays = rays.delays[:, 0, 0].to(torch.float64) / _DELAY_SPREAD_S
+        expected_clusters = int(expected_powers.numel())
+        assert native_angles_rad.shape == (_BATCH_SIZE, expected_clusters, 20, 4)
+        assert native_powers.shape == (_BATCH_SIZE, expected_clusters)
+        assert native_delays.shape == (_BATCH_SIZE, expected_clusters)
+        native_delays, cluster_order = torch.sort(native_delays, dim=-1)
+        native_powers = torch.gather(native_powers, dim=1, index=cluster_order)
+        angle_order = cluster_order[:, :, None, None].expand(-1, -1, 20, len(_ANGLE_FIELDS))
+        native_angles_rad = torch.gather(native_angles_rad, dim=1, index=angle_order)
+        torch.testing.assert_close(
+            native_delays,
+            table_delays.expand_as(native_delays),
+            atol=2e-7,
+            rtol=2 * torch.finfo(rays.delays.dtype).eps,
+        )
+        native_power_sums = native_powers.sum(dim=-1)
+        torch.testing.assert_close(
+            native_power_sums,
+            torch.ones(_BATCH_SIZE, dtype=torch.float64),
+            atol=2e-7,
+            rtol=0.0,
+        )
+        native_powers = native_powers / native_power_sums[:, None]
+        z_simultaneous = NormalDist().inv_cdf(
+            1.0 - _ALPHA / (2.0 * _JOINT_DELAY_ANGLE_CLAIM_COUNT)
+        )
+    
+        for delay_harmonic, angle_vector in _JOINT_DELAY_ANGLE_VECTORS:
+            frequency = torch.tensor(angle_vector, dtype=torch.float64)
+            table_angle_moment = torch.stack(
+                [
+                    torch.exp(
+                        1j * math.pi / 180.0 * table_angles_deg[..., index] * frequency[index]
+                    ).mean(dim=-1)
+                    for index in range(len(_ANGLE_FIELDS))
+                ],
+                dim=-1,
+            ).prod(dim=-1)
+            expected = torch.sum(
+                expected_powers
+                * torch.exp(2j * math.pi * delay_harmonic * table_delays)
+                * table_angle_moment
+            )
+    
+            native_phase = torch.sum(
+                native_angles_rad * frequency[None, None, None, :], dim=-1
+            )
+            native_cluster_moments = torch.exp(1j * native_phase).mean(dim=-1)
+            delay_phase = torch.exp(2j * math.pi * delay_harmonic * native_delays)
+            draw_moments = torch.sum(
+                native_powers * delay_phase * native_cluster_moments, dim=-1
+            )
+            estimate = draw_moments.mean()
+            real_half_width = (
+                z_simultaneous * draw_moments.real.std(unbiased=True) / math.sqrt(_BATCH_SIZE)
+            )
+            imag_half_width = (
+                z_simultaneous * draw_moments.imag.std(unbiased=True) / math.sqrt(_BATCH_SIZE)
+            )
+>           assert abs(float(estimate.real - expected.real)) <= float(real_half_width) + 1e-12
+E           assert 4.724972679781558e-08 <= (1.0677126794520559e-18 + 1e-12)
+E            +  where 4.724972679781558e-08 = abs(4.724972679781558e-08)
+E            +    where 4.724972679781558e-08 = float((tensor(0.5274, dtype=torch.float64) - tensor(0.5274, dtype=torch.float64)))
+E            +      where tensor(0.5274, dtype=torch.float64) = tensor(0.5274-0.1578j, dtype=torch.complex128).real
+E            +      and   tensor(0.5274, dtype=torch.float64) = tensor(0.5274-0.1578j, dtype=torch.complex128).real
+E            +  and   1.0677126794520559e-18 = float(tensor(1.0677e-18, dtype=torch.float64))
+
+tests/test_integrations/test_g4_cdl_joint_angular_characteristic_native.py:485: AssertionError
+_____ test_cdl_joint_delay_angle_characteristics_match_table_reference[B] ______
+
+model = 'B'
+
+    @pytest.mark.native_sionna
+    @pytest.mark.parametrize("model", _MODELS)
+    def test_cdl_joint_delay_angle_characteristics_match_table_reference(model: str) -> None:
+        """Check selected joint normalized-delay/four-angle moments on fresh draws."""
+        table_path = profile_resources.parameter_file(f"CDL-{model}.json", "19.2")
+        assert hashlib.sha256(table_path.read_bytes()).hexdigest() == _PROFILE_SHA256[model]
+        parameters = _independent_profile_parameters(model)
+        expected_powers, table_angles_deg = _profile_diffuse_reference(parameters)
+        is_los = bool(parameters["los"])
+        delay_start = int(is_los)
+        table_delays = torch.tensor(parameters["delays"][delay_start:], dtype=torch.float64)
+        table_delay_order = torch.argsort(table_delays)
+        table_delays = table_delays[table_delay_order]
+        rays = _native_diffuse_rays(model, seed=_JOINT_DELAY_ANGLE_SEED)
+    
+        native_angles_rad = torch.stack(
+            [getattr(rays, name)[:, 0, 0] for name in _ANGLE_FIELDS], dim=-1
+        ).to(torch.float64)
+        native_powers = rays.powers[:, 0, 0].to(torch.float64)
+        native_delays = rays.delays[:, 0, 0].to(torch.float64) / _DELAY_SPREAD_S
+        expected_clusters = int(expected_powers.numel())
+        assert native_angles_rad.shape == (_BATCH_SIZE, expected_clusters, 20, 4)
+        assert native_powers.shape == (_BATCH_SIZE, expected_clusters)
+        assert native_delays.shape == (_BATCH_SIZE, expected_clusters)
+        native_delays, cluster_order = torch.sort(native_delays, dim=-1)
+        native_powers = torch.gather(native_powers, dim=1, index=cluster_order)
+        angle_order = cluster_order[:, :, None, None].expand(-1, -1, 20, len(_ANGLE_FIELDS))
+        native_angles_rad = torch.gather(native_angles_rad, dim=1, index=angle_order)
+        torch.testing.assert_close(
+            native_delays,
+            table_delays.expand_as(native_delays),
+            atol=2e-7,
+            rtol=2 * torch.finfo(rays.delays.dtype).eps,
+        )
+        native_power_sums = native_powers.sum(dim=-1)
+        torch.testing.assert_close(
+            native_power_sums,
+            torch.ones(_BATCH_SIZE, dtype=torch.float64),
+            atol=2e-7,
+            rtol=0.0,
+        )
+        native_powers = native_powers / native_power_sums[:, None]
+        z_simultaneous = NormalDist().inv_cdf(
+            1.0 - _ALPHA / (2.0 * _JOINT_DELAY_ANGLE_CLAIM_COUNT)
+        )
+    
+        for delay_harmonic, angle_vector in _JOINT_DELAY_ANGLE_VECTORS:
+            frequency = torch.tensor(angle_vector, dtype=torch.float64)
+            table_angle_moment = torch.stack(
+                [
+                    torch.exp(
+                        1j * math.pi / 180.0 * table_angles_deg[..., index] * frequency[index]
+                    ).mean(dim=-1)
+                    for index in range(len(_ANGLE_FIELDS))
+                ],
+                dim=-1,
+            ).prod(dim=-1)
+            expected = torch.sum(
+                expected_powers
+                * torch.exp(2j * math.pi * delay_harmonic * table_delays)
+                * table_angle_moment
+            )
+    
+            native_phase = torch.sum(
+                native_angles_rad * frequency[None, None, None, :], dim=-1
+            )
+            native_cluster_moments = torch.exp(1j * native_phase).mean(dim=-1)
+            delay_phase = torch.exp(2j * math.pi * delay_harmonic * native_delays)
+            draw_moments = torch.sum(
+                native_powers * delay_phase * native_cluster_moments, dim=-1
+            )
+            estimate = draw_moments.mean()
+            real_half_width = (
+                z_simultaneous * draw_moments.real.std(unbiased=True) / math.sqrt(_BATCH_SIZE)
+            )
+            imag_half_width = (
+                z_simultaneous * draw_moments.imag.std(unbiased=True) / math.sqrt(_BATCH_SIZE)
+            )
+>           assert abs(float(estimate.real - expected.real)) <= float(real_half_width) + 1e-12
+E           assert 3.621810423792837e-08 <= (4.809551278750915e-18 + 1e-12)
+E            +  where 3.621810423792837e-08 = abs(3.621810423792837e-08)
+E            +    where 3.621810423792837e-08 = float((tensor(-0.2629, dtype=torch.float64) - tensor(-0.2629, dtype=torch.float64)))
+E            +      where tensor(-0.2629, dtype=torch.float64) = tensor(-0.2629-0.3055j, dtype=torch.complex128).real
+E            +      and   tensor(-0.2629, dtype=torch.float64) = tensor(-0.2629-0.3055j, dtype=torch.complex128).real
+E            +  and   4.809551278750915e-18 = float(tensor(4.8096e-18, dtype=torch.float64))
+
+tests/test_integrations/test_g4_cdl_joint_angular_characteristic_native.py:485: AssertionError
+_____ test_cdl_joint_delay_angle_characteristics_match_table_reference[C] ______
+
+model = 'C'
+
+    @pytest.mark.native_sionna
+    @pytest.mark.parametrize("model", _MODELS)
+    def test_cdl_joint_delay_angle_characteristics_match_table_reference(model: str) -> None:
+        """Check selected joint normalized-delay/four-angle moments on fresh draws."""
+        table_path = profile_resources.parameter_file(f"CDL-{model}.json", "19.2")
+        assert hashlib.sha256(table_path.read_bytes()).hexdigest() == _PROFILE_SHA256[model]
+        parameters = _independent_profile_parameters(model)
+        expected_powers, table_angles_deg = _profile_diffuse_reference(parameters)
+        is_los = bool(parameters["los"])
+        delay_start = int(is_los)
+        table_delays = torch.tensor(parameters["delays"][delay_start:], dtype=torch.float64)
+        table_delay_order = torch.argsort(table_delays)
+        table_delays = table_delays[table_delay_order]
+        rays = _native_diffuse_rays(model, seed=_JOINT_DELAY_ANGLE_SEED)
+    
+        native_angles_rad = torch.stack(
+            [getattr(rays, name)[:, 0, 0] for name in _ANGLE_FIELDS], dim=-1
+        ).to(torch.float64)
+        native_powers = rays.powers[:, 0, 0].to(torch.float64)
+        native_delays = rays.delays[:, 0, 0].to(torch.float64) / _DELAY_SPREAD_S
+        expected_clusters = int(expected_powers.numel())
+        assert native_angles_rad.shape == (_BATCH_SIZE, expected_clusters, 20, 4)
+        assert native_powers.shape == (_BATCH_SIZE, expected_clusters)
+        assert native_delays.shape == (_BATCH_SIZE, expected_clusters)
+        native_delays, cluster_order = torch.sort(native_delays, dim=-1)
+        native_powers = torch.gather(native_powers, dim=1, index=cluster_order)
+        angle_order = cluster_order[:, :, None, None].expand(-1, -1, 20, len(_ANGLE_FIELDS))
+        native_angles_rad = torch.gather(native_angles_rad, dim=1, index=angle_order)
+        torch.testing.assert_close(
+            native_delays,
+            table_delays.expand_as(native_delays),
+            atol=2e-7,
+            rtol=2 * torch.finfo(rays.delays.dtype).eps,
+        )
+        native_power_sums = native_powers.sum(dim=-1)
+        torch.testing.assert_close(
+            native_power_sums,
+            torch.ones(_BATCH_SIZE, dtype=torch.float64),
+            atol=2e-7,
+            rtol=0.0,
+        )
+        native_powers = native_powers / native_power_sums[:, None]
+        z_simultaneous = NormalDist().inv_cdf(
+            1.0 - _ALPHA / (2.0 * _JOINT_DELAY_ANGLE_CLAIM_COUNT)
+        )
+    
+        for delay_harmonic, angle_vector in _JOINT_DELAY_ANGLE_VECTORS:
+            frequency = torch.tensor(angle_vector, dtype=torch.float64)
+            table_angle_moment = torch.stack(
+                [
+                    torch.exp(
+                        1j * math.pi / 180.0 * table_angles_deg[..., index] * frequency[index]
+                    ).mean(dim=-1)
+                    for index in range(len(_ANGLE_FIELDS))
+                ],
+                dim=-1,
+            ).prod(dim=-1)
+            expected = torch.sum(
+                expected_powers
+                * torch.exp(2j * math.pi * delay_harmonic * table_delays)
+                * table_angle_moment
+            )
+    
+            native_phase = torch.sum(
+                native_angles_rad * frequency[None, None, None, :], dim=-1
+            )
+            native_cluster_moments = torch.exp(1j * native_phase).mean(dim=-1)
+            delay_phase = torch.exp(2j * math.pi * delay_harmonic * native_delays)
+            draw_moments = torch.sum(
+                native_powers * delay_phase * native_cluster_moments, dim=-1
+            )
+            estimate = draw_moments.mean()
+            real_half_width = (
+                z_simultaneous * draw_moments.real.std(unbiased=True) / math.sqrt(_BATCH_SIZE)
+            )
+            imag_half_width = (
+                z_simultaneous * draw_moments.imag.std(unbiased=True) / math.sqrt(_BATCH_SIZE)
+            )
+>           assert abs(float(estimate.real - expected.real)) <= float(real_half_width) + 1e-12
+E           assert 6.723235364269886e-09 <= (1.280876231154871e-18 + 1e-12)
+E            +  where 6.723235364269886e-09 = abs(-6.723235364269886e-09)
+E            +    where -6.723235364269886e-09 = float((tensor(0.0622, dtype=torch.float64) - tensor(0.0622, dtype=torch.float64)))
+E            +      where tensor(0.0622, dtype=torch.float64) = tensor(0.0622+0.0278j, dtype=torch.complex128).real
+E            +      and   tensor(0.0622, dtype=torch.float64) = tensor(0.0622+0.0278j, dtype=torch.complex128).real
+E            +  and   1.280876231154871e-18 = float(tensor(1.2809e-18, dtype=torch.float64))
+
+tests/test_integrations/test_g4_cdl_joint_angular_characteristic_native.py:485: AssertionError
+_____ test_cdl_joint_delay_angle_characteristics_match_table_reference[D] ______
+
+model = 'D'
+
+    @pytest.mark.native_sionna
+    @pytest.mark.parametrize("model", _MODELS)
+    def test_cdl_joint_delay_angle_characteristics_match_table_reference(model: str) -> None:
+        """Check selected joint normalized-delay/four-angle moments on fresh draws."""
+        table_path = profile_resources.parameter_file(f"CDL-{model}.json", "19.2")
+        assert hashlib.sha256(table_path.read_bytes()).hexdigest() == _PROFILE_SHA256[model]
+        parameters = _independent_profile_parameters(model)
+        expected_powers, table_angles_deg = _profile_diffuse_reference(parameters)
+        is_los = bool(parameters["los"])
+        delay_start = int(is_los)
+        table_delays = torch.tensor(parameters["delays"][delay_start:], dtype=torch.float64)
+        table_delay_order = torch.argsort(table_delays)
+        table_delays = table_delays[table_delay_order]
+        rays = _native_diffuse_rays(model, seed=_JOINT_DELAY_ANGLE_SEED)
+    
+        native_angles_rad = torch.stack(
+            [getattr(rays, name)[:, 0, 0] for name in _ANGLE_FIELDS], dim=-1
+        ).to(torch.float64)
+        native_powers = rays.powers[:, 0, 0].to(torch.float64)
+        native_delays = rays.delays[:, 0, 0].to(torch.float64) / _DELAY_SPREAD_S
+        expected_clusters = int(expected_powers.numel())
+        assert native_angles_rad.shape == (_BATCH_SIZE, expected_clusters, 20, 4)
+        assert native_powers.shape == (_BATCH_SIZE, expected_clusters)
+        assert native_delays.shape == (_BATCH_SIZE, expected_clusters)
+        native_delays, cluster_order = torch.sort(native_delays, dim=-1)
+        native_powers = torch.gather(native_powers, dim=1, index=cluster_order)
+        angle_order = cluster_order[:, :, None, None].expand(-1, -1, 20, len(_ANGLE_FIELDS))
+        native_angles_rad = torch.gather(native_angles_rad, dim=1, index=angle_order)
+        torch.testing.assert_close(
+            native_delays,
+            table_delays.expand_as(native_delays),
+            atol=2e-7,
+            rtol=2 * torch.finfo(rays.delays.dtype).eps,
+        )
+        native_power_sums = native_powers.sum(dim=-1)
+        torch.testing.assert_close(
+            native_power_sums,
+            torch.ones(_BATCH_SIZE, dtype=torch.float64),
+            atol=2e-7,
+            rtol=0.0,
+        )
+        native_powers = native_powers / native_power_sums[:, None]
+        z_simultaneous = NormalDist().inv_cdf(
+            1.0 - _ALPHA / (2.0 * _JOINT_DELAY_ANGLE_CLAIM_COUNT)
+        )
+    
+        for delay_harmonic, angle_vector in _JOINT_DELAY_ANGLE_VECTORS:
+            frequency = torch.tensor(angle_vector, dtype=torch.float64)
+            table_angle_moment = torch.stack(
+                [
+                    torch.exp(
+                        1j * math.pi / 180.0 * table_angles_deg[..., index] * frequency[index]
+                    ).mean(dim=-1)
+                    for index in range(len(_ANGLE_FIELDS))
+                ],
+                dim=-1,
+            ).prod(dim=-1)
+            expected = torch.sum(
+                expected_powers
+                * torch.exp(2j * math.pi * delay_harmonic * table_delays)
+                * table_angle_moment
+            )
+    
+            native_phase = torch.sum(
+                native_angles_rad * frequency[None, None, None, :], dim=-1
+            )
+            native_cluster_moments = torch.exp(1j * native_phase).mean(dim=-1)
+            delay_phase = torch.exp(2j * math.pi * delay_harmonic * native_delays)
+            draw_moments = torch.sum(
+                native_powers * delay_phase * native_cluster_moments, dim=-1
+            )
+            estimate = draw_moments.mean()
+            real_half_width = (
+                z_simultaneous * draw_moments.real.std(unbiased=True) / math.sqrt(_BATCH_SIZE)
+            )
+            imag_half_width = (
+                z_simultaneous * draw_moments.imag.std(unbiased=True) / math.sqrt(_BATCH_SIZE)
+            )
+>           assert abs(float(estimate.real - expected.real)) <= float(real_half_width) + 1e-12
+E           assert 2.4420759303644957e-08 <= (2.41137885745305e-18 + 1e-12)
+E            +  where 2.4420759303644957e-08 = abs(-2.4420759303644957e-08)
+E            +    where -2.4420759303644957e-08 = float((tensor(-0.2764, dtype=torch.float64) - tensor(-0.2764, dtype=torch.float64)))
+E            +      where tensor(-0.2764, dtype=torch.float64) = tensor(-0.2764+0.1153j, dtype=torch.complex128).real
+E            +      and   tensor(-0.2764, dtype=torch.float64) = tensor(-0.2764+0.1153j, dtype=torch.complex128).real
+E            +  and   2.41137885745305e-18 = float(tensor(2.4114e-18, dtype=torch.float64))
+
+tests/test_integrations/test_g4_cdl_joint_angular_characteristic_native.py:485: AssertionError
+_____ test_cdl_joint_delay_angle_characteristics_match_table_reference[E] ______
+
+model = 'E'
+
+    @pytest.mark.native_sionna
+    @pytest.mark.parametrize("model", _MODELS)
+    def test_cdl_joint_delay_angle_characteristics_match_table_reference(model: str) -> None:
+        """Check selected joint normalized-delay/four-angle moments on fresh draws."""
+        table_path = profile_resources.parameter_file(f"CDL-{model}.json", "19.2")
+        assert hashlib.sha256(table_path.read_bytes()).hexdigest() == _PROFILE_SHA256[model]
+        parameters = _independent_profile_parameters(model)
+        expected_powers, table_angles_deg = _profile_diffuse_reference(parameters)
+        is_los = bool(parameters["los"])
+        delay_start = int(is_los)
+        table_delays = torch.tensor(parameters["delays"][delay_start:], dtype=torch.float64)
+        table_delay_order = torch.argsort(table_delays)
+        table_delays = table_delays[table_delay_order]
+        rays = _native_diffuse_rays(model, seed=_JOINT_DELAY_ANGLE_SEED)
+    
+        native_angles_rad = torch.stack(
+            [getattr(rays, name)[:, 0, 0] for name in _ANGLE_FIELDS], dim=-1
+        ).to(torch.float64)
+        native_powers = rays.powers[:, 0, 0].to(torch.float64)
+        native_delays = rays.delays[:, 0, 0].to(torch.float64) / _DELAY_SPREAD_S
+        expected_clusters = int(expected_powers.numel())
+        assert native_angles_rad.shape == (_BATCH_SIZE, expected_clusters, 20, 4)
+        assert native_powers.shape == (_BATCH_SIZE, expected_clusters)
+        assert native_delays.shape == (_BATCH_SIZE, expected_clusters)
+        native_delays, cluster_order = torch.sort(native_delays, dim=-1)
+        native_powers = torch.gather(native_powers, dim=1, index=cluster_order)
+        angle_order = cluster_order[:, :, None, None].expand(-1, -1, 20, len(_ANGLE_FIELDS))
+        native_angles_rad = torch.gather(native_angles_rad, dim=1, index=angle_order)
+        torch.testing.assert_close(
+            native_delays,
+            table_delays.expand_as(native_delays),
+            atol=2e-7,
+            rtol=2 * torch.finfo(rays.delays.dtype).eps,
+        )
+        native_power_sums = native_powers.sum(dim=-1)
+        torch.testing.assert_close(
+            native_power_sums,
+            torch.ones(_BATCH_SIZE, dtype=torch.float64),
+            atol=2e-7,
+            rtol=0.0,
+        )
+        native_powers = native_powers / native_power_sums[:, None]
+        z_simultaneous = NormalDist().inv_cdf(
+            1.0 - _ALPHA / (2.0 * _JOINT_DELAY_ANGLE_CLAIM_COUNT)
+        )
+    
+        for delay_harmonic, angle_vector in _JOINT_DELAY_ANGLE_VECTORS:
+            frequency = torch.tensor(angle_vector, dtype=torch.float64)
+            table_angle_moment = torch.stack(
+                [
+                    torch.exp(
+                        1j * math.pi / 180.0 * table_angles_deg[..., index] * frequency[index]
+                    ).mean(dim=-1)
+                    for index in range(len(_ANGLE_FIELDS))
+                ],
+                dim=-1,
+            ).prod(dim=-1)
+            expected = torch.sum(
+                expected_powers
+                * torch.exp(2j * math.pi * delay_harmonic * table_delays)
+                * table_angle_moment
+            )
+    
+            native_phase = torch.sum(
+                native_angles_rad * frequency[None, None, None, :], dim=-1
+            )
+            native_cluster_moments = torch.exp(1j * native_phase).mean(dim=-1)
+            delay_phase = torch.exp(2j * math.pi * delay_harmonic * native_delays)
+            draw_moments = torch.sum(
+                native_powers * delay_phase * native_cluster_moments, dim=-1
+            )
+            estimate = draw_moments.mean()
+            real_half_width = (
+                z_simultaneous * draw_moments.real.std(unbiased=True) / math.sqrt(_BATCH_SIZE)
+            )
+            imag_half_width = (
+                z_simultaneous * draw_moments.imag.std(unbiased=True) / math.sqrt(_BATCH_SIZE)
+            )
+>           assert abs(float(estimate.real - expected.real)) <= float(real_half_width) + 1e-12
+E           assert 1.4333076903128017e-07 <= (4.772335141151189e-18 + 1e-12)
+E            +  where 1.4333076903128017e-07 = abs(1.4333076903128017e-07)
+E            +    where 1.4333076903128017e-07 = float((tensor(-0.5607, dtype=torch.float64) - tensor(-0.5607, dtype=torch.float64)))
+E            +      where tensor(-0.5607, dtype=torch.float64) = tensor(-0.5607-0.2506j, dtype=torch.complex128).real
+E            +      and   tensor(-0.5607, dtype=torch.float64) = tensor(-0.5607-0.2506j, dtype=torch.complex128).real
+E            +  and   4.772335141151189e-18 = float(tensor(4.7723e-18, dtype=torch.float64))
+
+tests/test_integrations/test_g4_cdl_joint_angular_characteristic_native.py:485: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_integrations/test_g4_cdl_joint_angular_characteristic_native.py::test_cdl_joint_delay_angle_characteristics_match_table_reference[A]
+FAILED tests/test_integrations/test_g4_cdl_joint_angular_characteristic_native.py::test_cdl_joint_delay_angle_characteristics_match_table_reference[B]
+FAILED tests/test_integrations/test_g4_cdl_joint_angular_characteristic_native.py::test_cdl_joint_delay_angle_characteristics_match_table_reference[C]
+FAILED tests/test_integrations/test_g4_cdl_joint_angular_characteristic_native.py::test_cdl_joint_delay_angle_characteristics_match_table_reference[D]
+FAILED tests/test_integrations/test_g4_cdl_joint_angular_characteristic_native.py::test_cdl_joint_delay_angle_characteristics_match_table_reference[E]

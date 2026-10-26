@@ -1,0 +1,53 @@
+{
+  "schema": "loslab.g4_cdl_joint_delay_angle_attempt.v1",
+  "protocol": "G4_07_CDL_JOINT_DELAY_ANGLE_PROTOCOL_V3_2026-10-27",
+  "attempt_date": "2026-10-27",
+  "status": "INCONCLUSIVE_INVALID_STANDARD_ERROR_ASSUMPTION",
+  "design": {
+    "profiles": ["A", "B", "C", "D", "E"],
+    "samples_per_profile": 8192,
+    "seeds": [272065, 272066, 272067, 272068, 272069],
+    "acceptance_criteria_changed": false
+  },
+  "seed_collision_audit": {
+    "path": "g4-cdl-joint-delay-angle-v3-seed-collision-audit-20261027.json",
+    "sha256": "663cccaa361d5786476cd693c4c8b0af0956b88f62cfd19135324f0096c224f3",
+    "status": "CLEAR_WITHIN_SCANNED_JSON_CORPUS",
+    "scanned_file_count": 2266
+  },
+  "runtime": {
+    "sionna": "2.2.0",
+    "torch": "2.10.0+cu128",
+    "device": "cpu"
+  },
+  "test_log": {
+    "path": "g4-cdl-joint-delay-angle-v3-20261027.log",
+    "sha256": "1253d497e4c60cee37bcf4b5e5c22cf2144d6a7336fdc340919056a1ad282295"
+  },
+  "outcome": {
+    "profiles_reached_first_claim": ["A", "B", "C", "D", "E"],
+    "profiles_passing_all_claims": [],
+    "first_claim": {
+      "delay_harmonic": 1,
+      "angle_frequency_vector": [1, 0, 0, 0],
+      "component": "real"
+    },
+    "absolute_estimate_reference_difference": {
+      "A": 4.724972679781558e-08,
+      "B": 3.621810423792837e-08,
+      "C": 6.723235364269886e-09,
+      "D": 2.4420759303644957e-08,
+      "E": 1.4333076903128017e-07
+    },
+    "simultaneous_half_width": {
+      "A": 1.0677126794520559e-18,
+      "B": 4.809551278750915e-18,
+      "C": 1.280876231154871e-18,
+      "D": 2.41137885745305e-18,
+      "E": 4.772335141151189e-18
+    },
+    "interpretation": "The selected single-angle characteristic is invariant to Sionna's per-draw ray permutations: profile delays, cluster powers, and ray-offset sets are fixed. The empirical standard error across the 8,192 rows is effectively zero and does not estimate uncertainty from independent angular draws. The preregistered confidence-interval claim therefore has no valid sampling basis for this statistic.",
+    "scientific_verdict": "NOT_EVALUATED"
+  },
+  "scope": "No profile passed qualification. This attempt demonstrates a protocol/statistical-design gap, not conformance or nonconformance of the complete CDL family. Do not change v3 criteria or reuse its seeds for a revised study."
+}
