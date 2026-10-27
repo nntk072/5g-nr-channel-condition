@@ -66,6 +66,7 @@ _MODEL_FEATURE_ROUTES = {
     "cvnn": ("observed_cfr", "complex_cfr_grid_v1"),
     "raw_mlp": ("observed_cfr", "flattened_real_imag_cfr_v1"),
     "label_permuted": ("observed_cfr", "flattened_real_imag_cfr_v1"),
+    "row_shuffled": ("observed_cfr", "flattened_real_imag_cfr_v1"),
     "power_only": ("observed_cfr", "log_power_per_link_subcarrier_v1"),
     "phase_randomized": ("observed_cfr", "iid_phase_randomized_flattened_real_imag_cfr_v1"),
     "observable_features": ("observed_cfr", "logmag_pdp_moments_v1"),
@@ -78,6 +79,7 @@ _MODEL_METHODS = frozenset(
         "mlp",
         "raw_mlp",
         "label_permuted",
+        "row_shuffled",
         "power_only",
         "phase_randomized",
         "logreg",
@@ -231,7 +233,11 @@ def _permute_training_labels(
     ):
         raise ValueError("label permutation requires at least two binary integer training labels")
     for name, seed in (("run_seed", run_seed), ("base_seed", base_seed)):
-        if isinstance(seed, bool) or not isinstance(seed, (int, np.integer)) or not 0 <= seed < 2**63:
+        if (
+            isinstance(seed, bool)
+            or not isinstance(seed, (int, np.integer))
+            or not 0 <= seed < 2**63
+        ):
             raise ValueError(f"{name} must be an integer in [0, 2**63)")
     rng = np.random.default_rng(np.random.SeedSequence([int(run_seed), int(base_seed)]))
     permutation = rng.permutation(len(values)).astype(np.int64, copy=False)
@@ -246,6 +252,39 @@ def _permute_training_labels(
         "permutation_indices_sha256": _array_sha256(permutation),
         "permuted_targets_sha256": _array_sha256(permuted),
         "positive_count": int(np.count_nonzero(permuted == 1)),
+    }
+    return permuted, contract
+
+
+def _permute_training_feature_rows(
+    features: np.ndarray, *, run_seed: int, base_seed: int
+) -> tuple[np.ndarray, dict[str, Any]]:
+    """Deterministically reorder training observations without changing labels."""
+    values = np.asarray(features)
+    if values.ndim != 2 or len(values) < 2 or not np.isfinite(values).all():
+        raise ValueError("feature-row permutation requires a finite 2D training matrix")
+    for name, seed in (("run_seed", run_seed), ("base_seed", base_seed)):
+        if (
+            isinstance(seed, bool)
+            or not isinstance(seed, (int, np.integer))
+            or not 0 <= seed < 2**63
+        ):
+            raise ValueError(f"{name} must be an integer in [0, 2**63)")
+    rng = np.random.default_rng(np.random.SeedSequence([int(run_seed), int(base_seed)]))
+    permutation = rng.permutation(len(values)).astype(np.int64, copy=False)
+    permuted = np.array(values[permutation], copy=True)
+    contract = {
+        "schema": "loslab.training_feature_row_permutation.v1",
+        "algorithm": "numpy_seedsequence_default_rng_permutation_v1",
+        "implementation_sha256": hashlib.sha256(
+            inspect.getsource(_permute_training_feature_rows).encode("utf-8")
+        ).hexdigest(),
+        "run_seed": int(run_seed),
+        "base_seed": int(base_seed),
+        "row_count": int(len(values)),
+        "source_features_sha256": _array_sha256(values),
+        "permutation_indices_sha256": _array_sha256(permutation),
+        "permuted_features_sha256": _array_sha256(permuted),
     }
     return permuted, contract
 
@@ -268,7 +307,7 @@ def _array_sha256(array: np.ndarray) -> str:
 def _feature_transform_implementation_sha256(method: str) -> str:
     if method in ("cnn", "cvnn"):
         transform = _identity_complex_cfr
-    elif method in ("raw_mlp", "label_permuted"):
+    elif method in ("raw_mlp", "label_permuted", "row_shuffled"):
         transform = _flatten_real_imag_cfr
     elif method == "power_only":
         transform = _log_power_per_link_subcarrier
@@ -333,6 +372,9 @@ def build_model_input_artifact_contract(
     target_values: np.ndarray | None = None,
     label_permutation_seed: int | None = None,
     label_permutation_run_seed: int | None = None,
+    source_method_input: np.ndarray | None = None,
+    feature_permutation_seed: int | None = None,
+    feature_permutation_run_seed: int | None = None,
 ) -> dict[str, Any]:
     """Bind a saved model to its audited observation-only input route."""
     if method not in _MODEL_METHODS:
@@ -365,7 +407,9 @@ def build_model_input_artifact_contract(
         method, ("observed_cfr", "logmag_pdp_moments_v1")
     )
     input_contract_version = (
-        "v5"
+        "v6"
+        if method == "row_shuffled"
+        else "v5"
         if method == "label_permuted"
         else "v4"
         if method == "phase_randomized"
@@ -432,6 +476,32 @@ def build_model_input_artifact_contract(
         or label_permutation_run_seed is not None
     ):
         raise ValueError("target permutation inputs are only valid for the label_permuted method")
+    if method == "row_shuffled":
+        if (
+            not isinstance(source_method_input, np.ndarray)
+            or source_method_input.ndim != 2
+            or source_method_input.shape != method_input.shape
+            or source_method_input.dtype != method_input.dtype
+            or feature_permutation_seed is None
+            or feature_permutation_run_seed is None
+        ):
+            raise ValueError("row-shuffled contracts require source features and permutation seeds")
+        shuffled, transform_contract = _permute_training_feature_rows(
+            source_method_input[checked_indices["train"]],
+            run_seed=feature_permutation_run_seed,
+            base_seed=feature_permutation_seed,
+        )
+        expected_input = np.array(source_method_input, copy=True)
+        expected_input[checked_indices["train"]] = shuffled
+        if not np.array_equal(expected_input, method_input):
+            raise ValueError("row-shuffled model input differs from its declared permutation")
+        feature_contract["feature_row_permutation"] = transform_contract
+    elif (
+        source_method_input is not None
+        or feature_permutation_seed is not None
+        or feature_permutation_run_seed is not None
+    ):
+        raise ValueError("feature-row permutation inputs are only valid for row_shuffled")
     feature_contract_sha256 = canonical_hash(feature_contract)
     return {
         "schema": f"loslab.model_input_artifact_contract.{input_contract_version}",
@@ -450,6 +520,7 @@ def verify_model_input_artifact_contract(
     method_input: np.ndarray | None = None,
     partition_indices: dict[str, np.ndarray] | None = None,
     target_values: np.ndarray | None = None,
+    source_method_input: np.ndarray | None = None,
 ) -> dict[str, Any]:
     """Verify that a saved model is bound to a canonical observation-only input contract."""
     sidecar_path = Path(model_info_path)
@@ -506,6 +577,7 @@ def verify_model_input_artifact_contract(
         "loslab.model_input_artifact_contract.v3": "v3",
         "loslab.model_input_artifact_contract.v4": "v4",
         "loslab.model_input_artifact_contract.v5": "v5",
+        "loslab.model_input_artifact_contract.v6": "v6",
     }.get(contract_schema)
     if schema_version is None:
         raise ValueError("model input artifact contract schema is unsupported")
@@ -553,6 +625,7 @@ def verify_model_input_artifact_contract(
         "loslab.model_input_artifact_contract.v3",
         "loslab.model_input_artifact_contract.v4",
         "loslab.model_input_artifact_contract.v5",
+        "loslab.model_input_artifact_contract.v6",
     }:
         expected_feature_fields.update(
             {
@@ -563,6 +636,8 @@ def verify_model_input_artifact_contract(
         )
     if contract_schema == "loslab.model_input_artifact_contract.v5":
         expected_feature_fields.add("supervision_transform")
+    if contract_schema == "loslab.model_input_artifact_contract.v6":
+        expected_feature_fields.add("feature_row_permutation")
     if not isinstance(feature, dict) or set(feature) != expected_feature_fields:
         raise ValueError("model feature contract fields are invalid")
     method = feature.get("method")
@@ -578,6 +653,7 @@ def verify_model_input_artifact_contract(
             "power_only",
             "phase_randomized",
             "label_permuted",
+            "row_shuffled",
             "logreg",
         }
         else "loslab.model_input_artifact.v1"
@@ -630,6 +706,7 @@ def verify_model_input_artifact_contract(
         "loslab.model_input_artifact_contract.v3",
         "loslab.model_input_artifact_contract.v4",
         "loslab.model_input_artifact_contract.v5",
+        "loslab.model_input_artifact_contract.v6",
     }:
         if method_input is not None:
             matrix = feature["feature_matrix"]
@@ -694,6 +771,29 @@ def verify_model_input_artifact_contract(
         )
         if replayed_permutation != permutation:
             raise ValueError("label permutation does not replay from the retained training labels")
+    if contract_schema == "loslab.model_input_artifact_contract.v6":
+        if method != "row_shuffled" or source_method_input is None:
+            raise ValueError("row-shuffled contract verification requires source features")
+        if (
+            method_input is None
+            or partition_indices is None
+            or not isinstance(source_method_input, np.ndarray)
+            or source_method_input.shape != method_input.shape
+            or source_method_input.dtype != method_input.dtype
+        ):
+            raise ValueError("row-shuffled verification inputs are incomplete")
+        permutation = feature.get("feature_row_permutation")
+        if not isinstance(permutation, dict):
+            raise ValueError("row-shuffled feature contract lacks its permutation")
+        shuffled, replayed_permutation = _permute_training_feature_rows(
+            source_method_input[partition_indices["train"]],
+            run_seed=permutation.get("run_seed"),
+            base_seed=permutation.get("base_seed"),
+        )
+        replayed_input = np.array(source_method_input, copy=True)
+        replayed_input[partition_indices["train"]] = shuffled
+        if replayed_permutation != permutation or not np.array_equal(replayed_input, method_input):
+            raise ValueError("feature-row permutation does not replay from source observations")
     files = contract.get("training_input_files")
     if (
         not isinstance(files, list)
@@ -978,6 +1078,7 @@ def run_experiment(
     observation_seed: int = 2026,
     phase_randomization_seed: int = 2027,
     label_permutation_seed: int = 2028,
+    row_shuffle_seed: int = 2029,
     device: str = "cpu",
     coral_penalty: float = 0.1,
     capacity: str = "medium",
@@ -1003,6 +1104,12 @@ def run_experiment(
         or not 0 <= label_permutation_seed < 2**63
     ):
         raise ValueError("label_permutation_seed must be an integer in [0, 2**63)")
+    if (
+        isinstance(row_shuffle_seed, bool)
+        or not isinstance(row_shuffle_seed, (int, np.integer))
+        or not 0 <= row_shuffle_seed < 2**63
+    ):
+        raise ValueError("row_shuffle_seed must be an integer in [0, 2**63)")
     resolved_prior_shift = None if prior_shift is None else validate_prior_shift_spec(prior_shift)
     if resolved_prior_shift is not None:
         _validate_evaluation_payload(resolved_prior_shift, "prior-shift.v1.schema.json")
@@ -1092,6 +1199,7 @@ def run_experiment(
         "observation_seed": observation_seed,
         "phase_randomization_seed": int(phase_randomization_seed),
         "label_permutation_seed": int(label_permutation_seed),
+        "row_shuffle_seed": int(row_shuffle_seed),
         "feature_transform_by_method": {
             method: _MODEL_FEATURE_ROUTES.get(method, ("observed_cfr", "logmag_pdp_moments_v1"))[1]
             for method in methods
@@ -1106,6 +1214,9 @@ def run_experiment(
         "label_permuted_supervision": (
             "training labels only are permuted with a deterministic seed derived from the run and label-permutation seeds; "
             "validation, calibration, and test labels remain unchanged"
+        ),
+        "row_shuffled_training_features": (
+            "training observed-CFR feature rows are deterministically permuted while their labels and all evaluation partitions remain unchanged"
         ),
         "cnn_input_representation": "per-link real/imaginary channels over ordered subcarriers",
         "cvnn_input_representation": (
@@ -1183,7 +1294,7 @@ def run_experiment(
                 _identity_complex_cfr(observable)
                 if method in ("cnn", "cvnn")
                 else raw_real_imag
-                if method in ("raw_mlp", "label_permuted")
+                if method in ("raw_mlp", "label_permuted", "row_shuffled")
                 else power_only
                 if method == "power_only"
                 else phase_randomized
@@ -1196,6 +1307,12 @@ def run_experiment(
                 )
             else:
                 training_targets = data.y[train]
+            if method == "row_shuffled":
+                shuffled_features, _ = _permute_training_feature_rows(
+                    method_input[train], run_seed=int(seed), base_seed=int(row_shuffle_seed)
+                )
+                method_input = np.array(method_input, copy=True)
+                method_input[train] = shuffled_features
             uses_torch = method in ("cnn", "cvnn", "coral", "coral0")
             _sync_torch_device(device, uses_torch)
             if uses_torch and device.startswith("cuda"):
@@ -1210,6 +1327,7 @@ def run_experiment(
                 "mlp",
                 "raw_mlp",
                 "label_permuted",
+                "row_shuffled",
                 "power_only",
                 "phase_randomized",
                 "logreg",
@@ -1222,6 +1340,8 @@ def run_experiment(
                     if method == "raw_mlp"
                     else "mlp"
                     if method == "label_permuted"
+                    else "mlp"
+                    if method == "row_shuffled"
                     else "logreg"
                     if method == "power_only"
                     else "mlp"
@@ -1373,6 +1493,11 @@ def run_experiment(
                     int(label_permutation_seed) if method == "label_permuted" else None
                 ),
                 label_permutation_run_seed=(int(seed) if method == "label_permuted" else None),
+                source_method_input=(raw_real_imag if method == "row_shuffled" else None),
+                feature_permutation_seed=(
+                    int(row_shuffle_seed) if method == "row_shuffled" else None
+                ),
+                feature_permutation_run_seed=(int(seed) if method == "row_shuffled" else None),
             )
             model_info_path = layout.models / f"{method}_seed{seed}_modelinfo.json"
             atomic_json(
@@ -1388,6 +1513,7 @@ def run_experiment(
                             "mlp",
                             "raw_mlp",
                             "label_permuted",
+                            "row_shuffled",
                             "power_only",
                             "phase_randomized",
                             "logreg",
@@ -1410,6 +1536,7 @@ def run_experiment(
                 method_input=method_input,
                 partition_indices=partition_indices,
                 target_values=data.y if method == "label_permuted" else None,
+                source_method_input=raw_real_imag if method == "row_shuffled" else None,
             )
             test_prediction_started = perf_counter()
             test_scores_raw = clf.predict_proba(method_input[test])[:, 1]
@@ -1508,6 +1635,8 @@ def run_experiment(
                     if method == "phase_randomized"
                     else "raw flattened real/imaginary CFR trained on deterministically permuted training labels"
                     if method == "label_permuted"
+                    else "row-shuffled flattened real/imaginary CFR"
+                    if method == "row_shuffled"
                     else "engineered observable features"
                 ),
                 "metrics": metrics,
@@ -1614,6 +1743,7 @@ def run_experiment(
         ("power_only", "raw_mlp"),
         ("raw_mlp", "phase_randomized"),
         ("raw_mlp", "label_permuted"),
+        ("raw_mlp", "row_shuffled"),
         ("cnn", "raw_mlp"),
         ("cvnn", "raw_mlp"),
         ("xgb", "mlp"),

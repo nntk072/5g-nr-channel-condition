@@ -50,13 +50,24 @@ python -m loslab experiment \
   --bootstrap 200
 ```
 
+The `row_shuffled` control keeps the training labels fixed and permutes only
+the observed-CFR feature rows inside the training partition. Validation,
+calibration, and test features remain in their original rows. It uses the same
+MLP implementation and split as `raw_mlp`; contract v6 binds the source and
+permuted training-matrix digests, permutation indices digest, seeds, and
+permutation implementation digest, and verifies the operation from the
+retained source observations. Run it with `--methods row_shuffled raw_mlp` and
+pin `--row-shuffle-seed` (default `2029`).
+
 The versioned schemas are
 `datasets/schema/model-input-artifact-contract.v3.schema.json` and
 `datasets/schema/model-input-artifact-contract.v4.schema.json` and
-`datasets/schema/model-input-artifact-contract.v5.schema.json`; v1-v5 readers
+`datasets/schema/model-input-artifact-contract.v5.schema.json` and
+`datasets/schema/model-input-artifact-contract.v6.schema.json`; v1-v6 readers
 remain available. Results are simulation-only diagnostics and do not show
 that any control predicts measured or deployment channels.
 
-G8.08 remains partial. Source-ID-only, metadata-only, time/row-shuffled, and
-explicit oracle-leak controls plus physical classical estimators still need
-isolated routes and audit contracts before benchmarking.
+G8.08 remains partial. Source-ID-only, metadata-only, explicit oracle-leak
+controls, and physical classical estimators still need isolated routes and
+audit contracts before benchmarking. Row shuffling is restricted to the
+training partition and is not a time-series or temporal-dependence test.

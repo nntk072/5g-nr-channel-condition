@@ -850,18 +850,85 @@ def test_run_experiment_routes_permuted_labels_on_shared_split(tmp_path, monkeyp
     assert "label_permuted_versus_raw_mlp" in summary["paired_method_comparisons"]
     assert contract["schema"] == "loslab.model_input_artifact_contract.v5"
     assert feature_contract["supervision_transform"] == expected_transform
-    assert verify_model_input_artifact_contract(
-        sidecar_path,
-        output / "models" / "label_permuted_seed37.joblib",
-        method_input=runner._flatten_real_imag_cfr(dataset.h),
-        partition_indices={
-            "train": prediction["train_idx"],
-            "validation": prediction["val_idx"],
-            "test": prediction["test_idx"],
-        },
-        target_values=dataset.y,
-    )["status"] == "PASS_MODEL_INPUT_ARTIFACT_BINDING"
+    assert (
+        verify_model_input_artifact_contract(
+            sidecar_path,
+            output / "models" / "label_permuted_seed37.joblib",
+            method_input=runner._flatten_real_imag_cfr(dataset.h),
+            partition_indices={
+                "train": prediction["train_idx"],
+                "validation": prediction["val_idx"],
+                "test": prediction["test_idx"],
+            },
+            target_values=dataset.y,
+        )["status"]
+        == "PASS_MODEL_INPUT_ARTIFACT_BINDING"
+    )
     assert control["input_representation"].startswith("raw flattened")
+
+
+def test_run_experiment_routes_row_shuffled_features_on_shared_split(tmp_path, monkeypatch) -> None:
+    import experiments.runner as runner
+
+    source = tmp_path / "debug.npz"
+    debug_multipath(n_scenes=8, links_per_scene=16, seed=89).save(source)
+    original_fit = runner.fit_sklearn
+    captures = []
+
+    def capture_fit(values, labels, *, seed, method, capacity):
+        captures.append((values.copy(), labels.copy(), method))
+        return original_fit(values, labels, seed=seed, method="logreg", capacity=capacity)
+
+    monkeypatch.setattr(runner, "fit_sklearn", capture_fit)
+    output = tmp_path / "runs" / "row-shuffled"
+    run_experiment(
+        [source],
+        output,
+        methods=("row_shuffled", "raw_mlp"),
+        seeds=(41,),
+        row_shuffle_seed=421,
+        bootstrap=10,
+    )
+
+    results = json.loads((output / "results.json").read_text(encoding="utf-8"))
+    control = next(row for row in results if row["method"] == "row_shuffled")
+    raw = next(row for row in results if row["method"] == "raw_mlp")
+    summary = json.loads((output / "summary.json").read_text(encoding="utf-8"))
+    sidecar_path = output / "models" / "row_shuffled_seed41_modelinfo.json"
+    sidecar = json.loads(sidecar_path.read_text(encoding="utf-8"))
+    contract = sidecar["model_input_artifact_contract"]
+    prediction = np.load(output / "predictions" / "row_shuffled_seed41.npz")
+    dataset = ChannelDataset.load(source)
+    source_features = runner._flatten_real_imag_cfr(dataset.h)
+    train_indices = prediction["train_idx"]
+    expected_training_features, expected_transform = runner._permute_training_feature_rows(
+        source_features[train_indices], run_seed=41, base_seed=421
+    )
+    expected_method_input = source_features.copy()
+    expected_method_input[train_indices] = expected_training_features
+
+    assert [method for _values, _labels, method in captures] == ["mlp", "mlp"]
+    np.testing.assert_array_equal(captures[0][0], expected_training_features)
+    np.testing.assert_array_equal(captures[0][1], dataset.y[train_indices])
+    np.testing.assert_array_equal(captures[1][1], dataset.y[train_indices])
+    assert control["split"]["indices_sha256"] == raw["split"]["indices_sha256"]
+    assert "row_shuffled_versus_raw_mlp" in summary["paired_method_comparisons"]
+    assert contract["schema"] == "loslab.model_input_artifact_contract.v6"
+    assert contract["feature_contract"]["feature_row_permutation"] == expected_transform
+    assert (
+        verify_model_input_artifact_contract(
+            sidecar_path,
+            output / "models" / "row_shuffled_seed41.joblib",
+            method_input=expected_method_input,
+            partition_indices={
+                "train": prediction["train_idx"],
+                "validation": prediction["val_idx"],
+                "test": prediction["test_idx"],
+            },
+            source_method_input=source_features,
+        )["status"]
+        == "PASS_MODEL_INPUT_ARTIFACT_BINDING"
+    )
 
 
 def test_run_experiment_routes_phase_randomization_on_shared_split(tmp_path, monkeypatch) -> None:

@@ -159,6 +159,8 @@ def main() -> None:
     exp.add_argument("--pilot-snr-db", type=float, default=12.0)
     exp.add_argument("--observation-seed", type=int, default=2026)
     exp.add_argument("--phase-randomization-seed", type=int, default=2027)
+    exp.add_argument("--label-permutation-seed", type=int, default=2028)
+    exp.add_argument("--row-shuffle-seed", type=int, default=2029)
     args = parser.parse_args()
     if args.command == "lineage-evidence-audit":
         from .lineage_audit import audit_provenance_file
@@ -432,6 +434,8 @@ def main() -> None:
                 "pilot_snr_db",
                 "observation_seed",
                 "phase_randomization_seed",
+                "label_permutation_seed",
+                "row_shuffle_seed",
                 "split_lock_path",
                 "split_signature_path",
                 "trusted_split_signers_path",
@@ -461,6 +465,10 @@ def main() -> None:
                 "phase_randomization_seed": config.get(
                     "phase_randomization_seed", args.phase_randomization_seed
                 ),
+                "label_permutation_seed": config.get(
+                    "label_permutation_seed", args.label_permutation_seed
+                ),
+                "row_shuffle_seed": config.get("row_shuffle_seed", args.row_shuffle_seed),
                 "split_lock_path": config.get("split_lock_path", args.split_lock),
                 "split_signature_path": config.get("split_signature_path", args.split_signature),
                 "trusted_split_signers_path": config.get(
@@ -486,6 +494,8 @@ def main() -> None:
                 "pilot_snr_db": args.pilot_snr_db,
                 "observation_seed": args.observation_seed,
                 "phase_randomization_seed": args.phase_randomization_seed,
+                "label_permutation_seed": args.label_permutation_seed,
+                "row_shuffle_seed": args.row_shuffle_seed,
                 "split_lock_path": args.split_lock,
                 "split_signature_path": args.split_signature,
                 "trusted_split_signers_path": args.split_trusted_signers,
