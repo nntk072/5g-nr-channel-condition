@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:model-input-artifact-contract:v2",
+  "title": "Observation-only model input artifact contract v2",
+  "type": "object",
+  "required": [
+    "schema",
+    "model_sha256",
+    "feature_contract",
+    "feature_contract_sha256",
+    "training_input_files",
+    "split"
+  ],
+  "properties": {
+    "schema": { "const": "loslab.model_input_artifact_contract.v2" },
+    "model_sha256": { "$ref": "#/$defs/sha256" },
+    "feature_contract_sha256": { "$ref": "#/$defs/sha256" },
+    "feature_contract": {
+      "type": "object",
+      "required": [
+        "schema",
+        "method",
+        "source_dataclass",
+        "allowed_source_fields",
+        "excluded_truth_and_metadata_fields",
+        "target_field_used_for_supervision_only",
+        "feature_transform",
+        "feature_transform_implementation_sha256",
+        "include_phase",
+        "feature_dtype",
+        "feature_shape_per_sample",
+        "feature_matrix",
+        "partition_feature_matrices",
+        "source_revision",
+        "run_config_sha256"
+      ],
+      "properties": {
+        "schema": { "const": "loslab.model_input_feature_contract.v2" },
+        "method": { "enum": ["rf", "histgb", "xgb", "mlp", "raw_mlp", "logreg", "cnn", "cvnn", "coral", "coral0"] },
+        "source_dataclass": { "const": "datasets.channel.ChannelModelInputs" },
+        "allowed_source_fields": { "const": ["observed_cfr"] },
+        "excluded_truth_and_metadata_fields": {
+          "const": ["data.y", "data.metadata", "data.group", "data.domain", "PathOracleTable", "target_values"]
+        },
+        "target_field_used_for_supervision_only": { "const": "data.y" },
+        "feature_transform": { "enum": ["complex_cfr_grid_v1", "flattened_real_imag_cfr_v1", "logmag_pdp_moments_v1"] },
+        "feature_transform_implementation_sha256": { "$ref": "#/$defs/sha256" },
+        "include_phase": { "type": ["boolean", "null"] },
+        "feature_dtype": { "enum": ["float32", "float64", "complex64", "complex128", "int8", "int16", "int32", "int64", "uint8", "uint16", "uint32", "uint64"] },
+        "feature_shape_per_sample": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "integer", "minimum": 1 }
+        },
+        "feature_matrix": {
+          "type": "object",
+          "required": ["sample_count", "dtype", "shape_per_sample", "sha256"],
+          "properties": {
+            "sample_count": { "type": "integer", "minimum": 1 },
+            "dtype": { "type": "string", "minLength": 1 },
+            "shape_per_sample": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "type": "integer", "minimum": 1 }
+            },
+            "sha256": { "$ref": "#/$defs/sha256" }
+          },
+          "additionalProperties": false
+        },
+        "partition_feature_matrices": {
+          "type": "object",
+          "required": ["train", "validation", "test"],
+          "properties": {
+            "train": { "$ref": "#/$defs/partitionMatrix" },
+            "validation": { "$ref": "#/$defs/partitionMatrix" },
+            "test": { "$ref": "#/$defs/partitionMatrix" }
+          },
+          "additionalProperties": false
+        },
+        "source_revision": { "type": ["string", "null"] },
+        "run_config_sha256": { "$ref": "#/$defs/sha256" }
+      },
+      "additionalProperties": false
+    },
+    "training_input_files": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["path", "sha256"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "sha256": { "$ref": "#/$defs/sha256" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "split": {
+      "type": "object",
+      "required": ["mode", "registry_sha256", "indices_sha256", "train_rows", "validation_rows", "test_rows"],
+      "properties": {
+        "mode": { "type": "string", "minLength": 1 },
+        "registry_sha256": { "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }] },
+        "indices_sha256": { "$ref": "#/$defs/sha256" },
+        "train_rows": { "type": "integer", "minimum": 1 },
+        "validation_rows": { "type": "integer", "minimum": 1 },
+        "test_rows": { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "partitionMatrix": {
+      "type": "object",
+      "required": ["sample_count", "sha256"],
+      "properties": {
+        "sample_count": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

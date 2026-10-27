@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import inspect
 import json
 import os
 import stat
@@ -57,6 +58,43 @@ _MODEL_METHODS = frozenset(
 )
 
 
+def _identity_complex_cfr(observed_cfr: np.ndarray) -> np.ndarray:
+    """Keep the audited complex CFR grid as the model's input matrix."""
+    return observed_cfr
+
+
+def _flatten_real_imag_cfr(observed_cfr: np.ndarray) -> np.ndarray:
+    """Flatten each CFR sample in C order, real values before imaginary values."""
+    return np.concatenate((observed_cfr.real, observed_cfr.imag), axis=1).reshape(
+        len(observed_cfr), -1
+    )
+
+
+def _array_sha256(array: np.ndarray) -> str:
+    value = np.ascontiguousarray(array)
+    header = json.dumps(
+        {"dtype": value.dtype.str, "shape": list(value.shape)},
+        sort_keys=True,
+        separators=(",", ":"),
+        allow_nan=False,
+    ).encode("utf-8")
+    digest = hashlib.sha256()
+    digest.update(header)
+    digest.update(b"\0")
+    digest.update(value.tobytes(order="C"))
+    return digest.hexdigest()
+
+
+def _feature_transform_implementation_sha256(method: str) -> str:
+    if method in ("cnn", "cvnn"):
+        transform = _identity_complex_cfr
+    elif method == "raw_mlp":
+        transform = _flatten_real_imag_cfr
+    else:
+        transform = observable_features
+    return hashlib.sha256(inspect.getsource(transform).encode("utf-8")).hexdigest()
+
+
 def _stable_single_link_sha256(path: str | Path) -> str:
     """Hash one stable regular-file snapshot without following file aliases."""
     file_path = Path(path)
@@ -107,6 +145,7 @@ def build_model_input_artifact_contract(
     input_file_digests: list[dict[str, Any]],
     split: dict[str, Any],
     model_file_sha256: str,
+    partition_indices: dict[str, np.ndarray],
 ) -> dict[str, Any]:
     """Bind a saved model to its audited observation-only input route."""
     if method not in _MODEL_METHODS:
@@ -115,11 +154,28 @@ def build_model_input_artifact_contract(
         raise ValueError("model input must be a batched feature array")
     if not np.issubdtype(method_input.dtype, np.number) or not np.isfinite(method_input).all():
         raise ValueError("model input must contain finite numeric values")
+    if set(partition_indices) != {"train", "validation", "test"}:
+        raise ValueError("model input partitions must include train, validation, and test")
+    checked_indices: dict[str, np.ndarray] = {}
+    for name, indices in partition_indices.items():
+        if (
+            not isinstance(indices, np.ndarray)
+            or indices.ndim != 1
+            or not np.issubdtype(indices.dtype, np.integer)
+            or np.issubdtype(indices.dtype, np.bool_)
+            or np.any(indices < 0)
+            or np.any(indices >= len(method_input))
+        ):
+            raise ValueError(f"model input {name} partition indices are invalid")
+        checked_indices[name] = indices
+    all_indices = np.concatenate(tuple(checked_indices.values()))
+    if len(np.unique(all_indices)) != len(all_indices):
+        raise ValueError("model input partitions must be mutually disjoint")
     source_feature, transform = _MODEL_FEATURE_ROUTES.get(
         method, ("observed_cfr", "logmag_pdp_moments_v1")
     )
     feature_contract = {
-        "schema": "loslab.model_input_feature_contract.v1",
+        "schema": "loslab.model_input_feature_contract.v2",
         "method": method,
         "source_dataclass": "datasets.channel.ChannelModelInputs",
         "allowed_source_fields": [source_feature],
@@ -133,15 +189,29 @@ def build_model_input_artifact_contract(
         ],
         "target_field_used_for_supervision_only": "data.y",
         "feature_transform": transform,
+        "feature_transform_implementation_sha256": _feature_transform_implementation_sha256(method),
         "include_phase": bool(include_phase) if transform == "logmag_pdp_moments_v1" else None,
         "feature_dtype": str(method_input.dtype),
         "feature_shape_per_sample": [int(value) for value in method_input.shape[1:]],
+        "feature_matrix": {
+            "sample_count": int(method_input.shape[0]),
+            "dtype": method_input.dtype.str,
+            "shape_per_sample": [int(value) for value in method_input.shape[1:]],
+            "sha256": _array_sha256(method_input),
+        },
+        "partition_feature_matrices": {
+            name: {
+                "sample_count": int(len(indices)),
+                "sha256": _array_sha256(method_input[indices]),
+            }
+            for name, indices in partition_indices.items()
+        },
         "source_revision": source_revision,
         "run_config_sha256": config_sha256,
     }
     feature_contract_sha256 = canonical_hash(feature_contract)
     return {
-        "schema": "loslab.model_input_artifact_contract.v1",
+        "schema": "loslab.model_input_artifact_contract.v2",
         "model_sha256": model_file_sha256,
         "feature_contract": feature_contract,
         "feature_contract_sha256": feature_contract_sha256,
@@ -151,7 +221,11 @@ def build_model_input_artifact_contract(
 
 
 def verify_model_input_artifact_contract(
-    model_info_path: str | Path, model_path: str | Path
+    model_info_path: str | Path,
+    model_path: str | Path,
+    *,
+    method_input: np.ndarray | None = None,
+    partition_indices: dict[str, np.ndarray] | None = None,
 ) -> dict[str, Any]:
     """Verify that a saved model is bound to a canonical observation-only input contract."""
     sidecar_path = Path(model_info_path)
@@ -163,11 +237,7 @@ def verify_model_input_artifact_contract(
     descriptor = os.open(sidecar_path, os.O_RDONLY | os.O_NOFOLLOW)
     try:
         before = os.fstat(descriptor)
-        if (
-            not stat.S_ISREG(before.st_mode)
-            or before.st_nlink != 1
-            or before.st_size > 1_048_576
-        ):
+        if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1 or before.st_size > 1_048_576:
             raise ValueError("model input artifact sidecar exceeds its safe file contract")
         with os.fdopen(descriptor, "rb", closefd=False) as stream:
             sidecar_bytes = stream.read(1_048_577)
@@ -198,14 +268,22 @@ def verify_model_input_artifact_contract(
         sidecar = json.loads(sidecar_bytes.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as error:
         raise ValueError("model input artifact sidecar must be readable UTF-8 JSON") from error
-    if not isinstance(sidecar, dict) or not isinstance(sidecar.get("model_input_artifact_contract"), dict):
+    if not isinstance(sidecar, dict) or not isinstance(
+        sidecar.get("model_input_artifact_contract"), dict
+    ):
         raise ValueError("model input artifact sidecar lacks its contract")
     contract = sidecar["model_input_artifact_contract"]
     import jsonschema
 
-    schema_path = (
-        Path(__file__).resolve().parents[1]
-        / "datasets/schema/model-input-artifact-contract.v1.schema.json"
+    contract_schema = contract.get("schema")
+    schema_version = {
+        "loslab.model_input_artifact_contract.v1": "v1",
+        "loslab.model_input_artifact_contract.v2": "v2",
+    }.get(contract_schema)
+    if schema_version is None:
+        raise ValueError("model input artifact contract schema is unsupported")
+    schema_path = Path(__file__).resolve().parents[1] / (
+        f"datasets/schema/model-input-artifact-contract.{schema_version}.schema.json"
     )
     schema = json.loads(schema_path.read_text(encoding="utf-8"))
     jsonschema.Draft202012Validator.check_schema(schema)
@@ -215,17 +293,21 @@ def verify_model_input_artifact_contract(
             "model input artifact contract violates schema: "
             + "; ".join(error.message for error in schema_errors[:10])
         )
-    if set(contract) != {
-        "schema",
-        "model_sha256",
-        "feature_contract",
-        "feature_contract_sha256",
-        "training_input_files",
-        "split",
-    } or contract.get("schema") != "loslab.model_input_artifact_contract.v1":
+    if (
+        set(contract)
+        != {
+            "schema",
+            "model_sha256",
+            "feature_contract",
+            "feature_contract_sha256",
+            "training_input_files",
+            "split",
+        }
+        or contract.get("schema") != contract_schema
+    ):
         raise ValueError("model input artifact contract fields or schema are invalid")
     feature = contract.get("feature_contract")
-    if not isinstance(feature, dict) or set(feature) != {
+    expected_feature_fields = {
         "schema",
         "method",
         "source_dataclass",
@@ -238,7 +320,16 @@ def verify_model_input_artifact_contract(
         "feature_shape_per_sample",
         "source_revision",
         "run_config_sha256",
-    }:
+    }
+    if contract_schema == "loslab.model_input_artifact_contract.v2":
+        expected_feature_fields.update(
+            {
+                "feature_transform_implementation_sha256",
+                "feature_matrix",
+                "partition_feature_matrices",
+            }
+        )
+    if not isinstance(feature, dict) or set(feature) != expected_feature_fields:
         raise ValueError("model feature contract fields are invalid")
     method = feature.get("method")
     expected_format = (
@@ -260,16 +351,26 @@ def verify_model_input_artifact_contract(
         != (include_phase if feature.get("feature_transform") == "logmag_pdp_moments_v1" else None)
     ):
         raise ValueError("model info wrapper disagrees with the feature contract")
-    expected_route = _MODEL_FEATURE_ROUTES.get(
-        method, ("observed_cfr", "logmag_pdp_moments_v1")
+    expected_route = _MODEL_FEATURE_ROUTES.get(method, ("observed_cfr", "logmag_pdp_moments_v1"))
+    expected_feature_schema = (
+        "loslab.model_input_feature_contract.v2"
+        if contract_schema == "loslab.model_input_artifact_contract.v2"
+        else "loslab.model_input_feature_contract.v1"
     )
     if (
-        feature.get("schema") != "loslab.model_input_feature_contract.v1"
+        feature.get("schema") != expected_feature_schema
         or method not in _MODEL_METHODS
         or feature.get("source_dataclass") != "datasets.channel.ChannelModelInputs"
         or feature.get("allowed_source_fields") != [expected_route[0]]
         or feature.get("excluded_truth_and_metadata_fields")
-        != ["data.y", "data.metadata", "data.group", "data.domain", "PathOracleTable", "target_values"]
+        != [
+            "data.y",
+            "data.metadata",
+            "data.group",
+            "data.domain",
+            "PathOracleTable",
+            "target_values",
+        ]
         or feature.get("feature_transform") != expected_route[1]
         or feature.get("target_field_used_for_supervision_only") != "data.y"
         or "data.y" not in feature.get("excluded_truth_and_metadata_fields", [])
@@ -282,15 +383,62 @@ def verify_model_input_artifact_contract(
         raise ValueError("model feature contract digest does not match its contents")
     if _stable_single_link_sha256(model_path) != contract.get("model_sha256"):
         raise ValueError("model bytes do not match the input artifact contract")
+    feature_matrix_verified = False
+    if contract_schema == "loslab.model_input_artifact_contract.v2":
+        if method_input is not None:
+            matrix = feature["feature_matrix"]
+            if (
+                not isinstance(method_input, np.ndarray)
+                or method_input.shape[0] != matrix["sample_count"]
+                or list(method_input.shape[1:]) != matrix["shape_per_sample"]
+                or method_input.dtype.str != matrix["dtype"]
+                or _array_sha256(method_input) != matrix["sha256"]
+            ):
+                raise ValueError("model feature matrix differs from its frozen contract")
+            if partition_indices is None or set(partition_indices) != {
+                "train",
+                "validation",
+                "test",
+            }:
+                raise ValueError("model feature matrix verification requires all split indices")
+            index_arrays = tuple(partition_indices.values())
+            if any(
+                not isinstance(indices, np.ndarray) or indices.ndim != 1 for indices in index_arrays
+            ):
+                raise ValueError("model feature matrix verification indices are malformed")
+            all_indices = np.concatenate(index_arrays)
+            if len(np.unique(all_indices)) != len(all_indices):
+                raise ValueError("model feature matrix verification partitions overlap")
+            for name, indices in partition_indices.items():
+                if (
+                    not isinstance(indices, np.ndarray)
+                    or indices.ndim != 1
+                    or not np.issubdtype(indices.dtype, np.integer)
+                    or np.issubdtype(indices.dtype, np.bool_)
+                    or np.any(indices < 0)
+                    or np.any(indices >= len(method_input))
+                ):
+                    raise ValueError(f"{name} feature matrix verification indices are invalid")
+                expected = feature["partition_feature_matrices"][name]
+                if (
+                    len(indices) != expected["sample_count"]
+                    or _array_sha256(method_input[indices]) != expected["sha256"]
+                ):
+                    raise ValueError(f"{name} feature matrix differs from its frozen contract")
+            feature_matrix_verified = True
     files = contract.get("training_input_files")
-    if not isinstance(files, list) or not files or any(
-        not isinstance(row, dict)
-        or set(row) != {"path", "sha256"}
-        or not isinstance(row["path"], str)
-        or not isinstance(row["sha256"], str)
-        or len(row["sha256"]) != 64
-        or any(char not in "0123456789abcdef" for char in row["sha256"])
-        for row in files
+    if (
+        not isinstance(files, list)
+        or not files
+        or any(
+            not isinstance(row, dict)
+            or set(row) != {"path", "sha256"}
+            or not isinstance(row["path"], str)
+            or not isinstance(row["sha256"], str)
+            or len(row["sha256"]) != 64
+            or any(char not in "0123456789abcdef" for char in row["sha256"])
+            for row in files
+        )
     ):
         raise ValueError("model input contract has an invalid training file roster")
     split = contract.get("split")
@@ -309,8 +457,10 @@ def verify_model_input_artifact_contract(
             raise ValueError("model input contract split counts must be positive integers")
     for digest_key in ("indices_sha256",):
         digest = split[digest_key]
-        if not isinstance(digest, str) or len(digest) != 64 or any(
-            char not in "0123456789abcdef" for char in digest
+        if (
+            not isinstance(digest, str)
+            or len(digest) != 64
+            or any(char not in "0123456789abcdef" for char in digest)
         ):
             raise ValueError("model input contract split digest is invalid")
     registry_digest = split["registry_sha256"]
@@ -324,6 +474,7 @@ def verify_model_input_artifact_contract(
         "status": "PASS_MODEL_INPUT_ARTIFACT_BINDING",
         "model_sha256": contract["model_sha256"],
         "feature_contract_sha256": contract["feature_contract_sha256"],
+        "feature_matrix_verified": feature_matrix_verified,
     }
 
 
@@ -483,11 +634,7 @@ def _locked_split_indices(
     group_split: dict[str, str] = {}
     for group, metadata in zip(data.group, data.metadata, strict=True):
         subject_id = metadata.get("split_subject_id")
-        if (
-            not isinstance(subject_id, str)
-            or not subject_id
-            or subject_id != subject_id.strip()
-        ):
+        if not isinstance(subject_id, str) or not subject_id or subject_id != subject_id.strip():
             raise ValueError(
                 "signed split evaluation requires a nonempty canonical split_subject_id per row"
             )
@@ -611,9 +758,7 @@ def run_experiment(
     else:
         raise ValueError("observation must be ideal_cfr, comb_ls, or precomputed")
     x = observable_features(observable, include_phase=include_phase)
-    raw_real_imag = np.concatenate((observable.real, observable.imag), axis=1).reshape(
-        len(observable), -1
-    )
+    raw_real_imag = _flatten_real_imag_cfr(observable)
     layout = RunLayout.at(output)
     layout.ensure()
     output = layout.root
@@ -679,7 +824,7 @@ def run_experiment(
         assert not (set(data.group[test]) & (set(data.group[train]) | set(data.group[val])))
         for method in methods:
             method_input = (
-                observable
+                _identity_complex_cfr(observable)
                 if method in ("cnn", "cvnn")
                 else raw_real_imag
                 if method == "raw_mlp"
@@ -787,6 +932,7 @@ def run_experiment(
                 input_file_digests=manifest["inputs"],
                 split=split_contract,
                 model_file_sha256=_stable_single_link_sha256(checkpoint),
+                partition_indices={"train": train, "validation": val, "test": test},
             )
             model_info_path = layout.models / f"{method}_seed{seed}_modelinfo.json"
             atomic_json(
@@ -804,7 +950,10 @@ def run_experiment(
                 },
             )
             model_input_contract_verification = verify_model_input_artifact_contract(
-                model_info_path, checkpoint
+                model_info_path,
+                checkpoint,
+                method_input=method_input,
+                partition_indices={"train": train, "validation": val, "test": test},
             )
             test_prediction_started = perf_counter()
             prob = clf.predict_proba(method_input[test])[:, 1]
@@ -865,8 +1014,9 @@ def run_experiment(
                 "checkpoint_path": str(checkpoint),
                 "model_sha256": model_input_contract["model_sha256"],
                 "model_input_artifact_contract_sha256": canonical_hash(model_input_contract),
-                "model_input_artifact_contract_status": model_input_contract_verification[
-                    "status"
+                "model_input_artifact_contract_status": model_input_contract_verification["status"],
+                "model_input_feature_matrix_verified": model_input_contract_verification[
+                    "feature_matrix_verified"
                 ],
             }
             results.append(result)

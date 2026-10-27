@@ -8,6 +8,8 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from artifacts.provenance import canonical_hash
+from datasets.channel import ChannelDataset
 from datasets.synthetic import debug_multipath
 from experiments.runner import (
     _label_semantics_by_source,
@@ -17,6 +19,7 @@ from experiments.runner import (
     verify_model_input_artifact_contract,
     verify_validation_threshold_selection_record,
 )
+from propagation.physics import observable_features
 
 
 def test_validation_threshold_record_binds_only_selection_partition_data() -> None:
@@ -234,19 +237,83 @@ def test_run_experiment_writes_reproducible_complete_artifacts(tmp_path) -> None
         (output / "models" / "logreg_seed11_modelinfo.json").read_text(encoding="utf-8")
     )
     model_contract = model_info["model_input_artifact_contract"]
-    assert model_contract["schema"] == "loslab.model_input_artifact_contract.v1"
-    assert model_contract["model_sha256"] == hashlib.sha256(
-        (output / "models" / "logreg_seed11.joblib").read_bytes()
-    ).hexdigest()
+    assert model_contract["schema"] == "loslab.model_input_artifact_contract.v2"
+    assert (
+        model_contract["model_sha256"]
+        == hashlib.sha256((output / "models" / "logreg_seed11.joblib").read_bytes()).hexdigest()
+    )
     assert model_contract["feature_contract"]["allowed_source_fields"] == ["observed_cfr"]
     assert "data.y" in model_contract["feature_contract"]["excluded_truth_and_metadata_fields"]
     assert model_contract["feature_contract"]["feature_transform"] == "logmag_pdp_moments_v1"
-    assert verify_model_input_artifact_contract(
-        output / "models" / "logreg_seed11_modelinfo.json",
-        output / "models" / "logreg_seed11.joblib",
-    )["status"] == "PASS_MODEL_INPUT_ARTIFACT_BINDING"
+    assert len(model_contract["feature_contract"]["feature_transform_implementation_sha256"]) == 64
+    assert model_contract["feature_contract"]["feature_matrix"]["sample_count"] == len(
+        ChannelDataset.load(source).y
+    )
+    assert model_contract["feature_contract"]["partition_feature_matrices"].keys() == {
+        "train",
+        "validation",
+        "test",
+    }
+    assert (
+        verify_model_input_artifact_contract(
+            output / "models" / "logreg_seed11_modelinfo.json",
+            output / "models" / "logreg_seed11.joblib",
+        )["status"]
+        == "PASS_MODEL_INPUT_ARTIFACT_BINDING"
+    )
     model_info_path = output / "models" / "logreg_seed11_modelinfo.json"
     model_path = output / "models" / "logreg_seed11.joblib"
+    data = ChannelDataset.load(source)
+    features = observable_features(data.model_inputs().observed_cfr)
+    with np.load(output / "predictions" / "logreg_seed11.npz") as prediction:
+        partitions = {
+            "train": prediction["train_idx"],
+            "validation": prediction["val_idx"],
+            "test": prediction["test_idx"],
+        }
+    matrix_audit = verify_model_input_artifact_contract(
+        model_info_path,
+        model_path,
+        method_input=features,
+        partition_indices=partitions,
+    )
+    assert matrix_audit["feature_matrix_verified"] is True
+    report_row = json.loads((output / "results.json").read_text(encoding="utf-8"))[0]
+    assert report_row["model_input_feature_matrix_verified"] is True
+    changed_features = features.copy()
+    changed_features[0, 0] += 1.0
+    with pytest.raises(ValueError, match="feature matrix differs"):
+        verify_model_input_artifact_contract(
+            model_info_path,
+            model_path,
+            method_input=changed_features,
+            partition_indices=partitions,
+        )
+    overlapping_partitions = dict(partitions)
+    overlapping_partitions["validation"] = np.concatenate(
+        (partitions["validation"], partitions["train"][:1])
+    )
+    with pytest.raises(ValueError, match="partitions overlap"):
+        verify_model_input_artifact_contract(
+            model_info_path,
+            model_path,
+            method_input=features,
+            partition_indices=overlapping_partitions,
+        )
+    legacy_info = json.loads(model_info_path.read_text(encoding="utf-8"))
+    legacy_contract = legacy_info["model_input_artifact_contract"]
+    legacy_contract["schema"] = "loslab.model_input_artifact_contract.v1"
+    legacy_feature = legacy_contract["feature_contract"]
+    legacy_feature["schema"] = "loslab.model_input_feature_contract.v1"
+    legacy_feature.pop("feature_transform_implementation_sha256")
+    legacy_feature.pop("feature_matrix")
+    legacy_feature.pop("partition_feature_matrices")
+    legacy_contract["feature_contract_sha256"] = canonical_hash(legacy_feature)
+    legacy_path = tmp_path / "legacy-modelinfo.json"
+    legacy_path.write_text(json.dumps(legacy_info), encoding="utf-8")
+    assert verify_model_input_artifact_contract(legacy_path, model_path)["status"] == (
+        "PASS_MODEL_INPUT_ARTIFACT_BINDING"
+    )
     symlink_sidecar = tmp_path / "modelinfo-symlink.json"
     symlink_sidecar.symlink_to(model_info_path)
     with pytest.raises(ValueError, match="single-link regular file"):
@@ -284,9 +351,7 @@ def test_run_experiment_writes_reproducible_complete_artifacts(tmp_path) -> None
     assert summary["aggregate_across_fixed_splits"]["logreg"]["seeds"] == 1
     model_path.write_bytes(model_path.read_bytes() + b"tampered")
     with pytest.raises(ValueError, match="model bytes do not match"):
-        verify_model_input_artifact_contract(
-            model_info_path, model_path
-        )
+        verify_model_input_artifact_contract(model_info_path, model_path)
 
 
 def test_run_experiment_refuses_to_overwrite_completed_run(tmp_path) -> None:
@@ -501,9 +566,13 @@ def test_run_experiment_routes_raw_observations_to_real_cnn(tmp_path, monkeypatc
     model_info = json.loads(
         (output / "models" / "cnn_seed13_modelinfo.json").read_text(encoding="utf-8")
     )
-    assert model_info["model_input_artifact_contract"]["feature_contract"][
-        "feature_transform"
-    ] == "complex_cfr_grid_v1"
+    assert (
+        model_info["model_input_artifact_contract"]["feature_contract"]["feature_transform"]
+        == "complex_cfr_grid_v1"
+    )
+    assert model_info["model_input_artifact_contract"]["schema"] == (
+        "loslab.model_input_artifact_contract.v2"
+    )
     assert observed_inputs
     config = json.loads((output / "config" / "resolved.json").read_text(encoding="utf-8"))
     assert "real/imaginary" in config["values"]["cnn_input_representation"]
