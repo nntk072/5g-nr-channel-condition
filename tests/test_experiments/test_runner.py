@@ -1045,3 +1045,17 @@ def test_run_experiment_routes_source_only_on_shared_split(tmp_path, monkeypatch
         )["status"]
         == "PASS_MODEL_INPUT_ARTIFACT_BINDING"
     )
+    changed_sources = dataset.source.copy()
+    changed_sources[prediction["train_idx"][0]] = "tampered_source"
+    with pytest.raises(ValueError, match="does not replay"):
+        verify_model_input_artifact_contract(
+            sidecar_path,
+            output / "models" / "source_only_seed43.joblib",
+            method_input=expected_features,
+            partition_indices={
+                "train": prediction["train_idx"],
+                "validation": prediction["val_idx"],
+                "test": prediction["test_idx"],
+            },
+            source_values=changed_sources,
+        )

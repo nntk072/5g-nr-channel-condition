@@ -70,10 +70,7 @@ encoder implementation digest, and verifies the vocabulary from training
 rows.
 
 The versioned schemas are
-`datasets/schema/model-input-artifact-contract.v3.schema.json` and
-`datasets/schema/model-input-artifact-contract.v4.schema.json` and
-`datasets/schema/model-input-artifact-contract.v5.schema.json` and
-`datasets/schema/model-input-artifact-contract.v6.schema.json` and
+`datasets/schema/model-input-artifact-contract.v3.schema.json` through
 `datasets/schema/model-input-artifact-contract.v7.schema.json`; v1-v7 readers
 remain available. Results are simulation-only diagnostics and do not show
 that any control predicts measured or deployment channels.
