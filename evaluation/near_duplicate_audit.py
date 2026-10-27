@@ -116,9 +116,11 @@ def audit_near_duplicates(
 
     A pair is flagged when both records have the same non-None geometry hash,
     or when the magnitude of their normalized complex inner product is strictly
-    greater than the caller-supplied threshold. Geometry and CFR flags are
-    review cues, not proof of dataset leakage. Zero-norm CFR pairs are retained
-    in ``skipped_comparisons``; an exact geometry match can still flag that pair.
+    greater than the caller-supplied threshold. CFRs are compared only when both
+    records carry the same nonempty comparison-context ID; absent or different
+    contexts are retained in ``skipped_comparisons``. Geometry and CFR flags are
+    review cues, not proof of dataset leakage. Zero-norm CFR pairs are also
+    skipped; an exact geometry match can still flag a pair.
     """
     threshold = normalized_inner_product_threshold
     if isinstance(threshold, bool) or not isinstance(threshold, (int, float)):
@@ -130,20 +132,22 @@ def audit_near_duplicates(
         raise ValueError("records must be a nonempty tuple")
 
     seen_ids: set[str] = set()
-    expected_shape_by_context: dict[str | None, tuple[int, ...]] = {}
+    expected_shape_by_context: dict[str, tuple[int, ...]] = {}
     for record in records:
         _validate_record(record)
         if record.sample_id in seen_ids:
             raise ValueError(f"duplicate sample_id {record.sample_id!r}")
         seen_ids.add(record.sample_id)
-        expected_shape = expected_shape_by_context.setdefault(
-            record.comparison_context_id, record.cfr.shape
-        )
-        if record.cfr.shape != expected_shape:
-            raise ValueError(
-                f"inconsistent CFR shapes for comparison context: expected {expected_shape}, got {record.cfr.shape} "
-                f"for sample {record.sample_id!r}"
+        if record.comparison_context_id is not None:
+            expected_shape = expected_shape_by_context.setdefault(
+                record.comparison_context_id, record.cfr.shape
             )
+            if record.cfr.shape != expected_shape:
+                raise ValueError(
+                    "inconsistent CFR shapes for comparison context: "
+                    f"expected {expected_shape}, got {record.cfr.shape} "
+                    f"for sample {record.sample_id!r}"
+                )
 
     ordered = sorted(records, key=lambda item: item.sample_id)
     candidates: list[NearDuplicateCandidate] = []
@@ -157,7 +161,14 @@ def audit_near_duplicates(
                 first.family_site_geometry_hash is not None
                 and first.family_site_geometry_hash == second.family_site_geometry_hash
             )
-            compatible_context = first.comparison_context_id == second.comparison_context_id
+            has_context = (
+                first.comparison_context_id is not None
+                and second.comparison_context_id is not None
+            )
+            compatible_context = (
+                has_context
+                and first.comparison_context_id == second.comparison_context_id
+            )
             similarity = (
                 _normalized_inner_product_magnitude(first.cfr, second.cfr)
                 if compatible_context
@@ -171,6 +182,8 @@ def audit_near_duplicates(
                         reason=(
                             "zero_norm_cfr"
                             if compatible_context
+                            else "missing_channel_context"
+                            if not has_context
                             else "incompatible_channel_context"
                         ),
                     )

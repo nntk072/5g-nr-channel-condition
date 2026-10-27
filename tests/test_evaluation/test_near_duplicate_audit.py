@@ -13,7 +13,7 @@ def _record(
     split_id: str,
     values: tuple[complex, ...],
     geometry_hash: str | None = None,
-    context_id: str | None = None,
+    context_id: str | None = "fixture-channel-context",
 ) -> ChannelRecord:
     return ChannelRecord(
         sample_id=sample_id,
@@ -29,9 +29,9 @@ def test_flags_exact_cfr_copy_and_global_phase_gain_scaled_copy() -> None:
     scaled = (4.2 * np.exp(1.37j)) * baseline
     report = audit_near_duplicates(
         (
-            ChannelRecord("copy", "test", None, baseline.copy()),
-            ChannelRecord("original", "train", None, baseline),
-            ChannelRecord("scaled", "validation", None, scaled),
+            ChannelRecord("copy", "test", None, baseline.copy(), "fixture-channel-context"),
+            ChannelRecord("original", "train", None, baseline, "fixture-channel-context"),
+            ChannelRecord("scaled", "validation", None, scaled, "fixture-channel-context"),
         ),
         normalized_inner_product_threshold=0.999999,
     )
@@ -132,6 +132,34 @@ def test_incompatible_channel_contexts_are_skipped_instead_of_scored() -> None:
     assert [(item.sample_id_a, item.sample_id_b, item.reason) for item in report.skipped_comparisons] == [
         ("a", "b", "incompatible_channel_context")
     ]
+
+
+def test_missing_channel_context_is_skipped_even_when_cfr_shapes_match() -> None:
+    report = audit_near_duplicates(
+        (
+            _record("a", "train", (1 + 0j, 2j), context_id=None),
+            _record("b", "test", (1 + 0j, 2j), context_id=None),
+        ),
+        normalized_inner_product_threshold=0.9,
+    )
+
+    assert report.candidates == ()
+    assert [item.reason for item in report.skipped_comparisons] == [
+        "missing_channel_context"
+    ]
+
+
+def test_missing_context_does_not_require_equal_cfr_shapes() -> None:
+    report = audit_near_duplicates(
+        (
+            _record("a", "train", (1 + 0j,), context_id=None),
+            _record("b", "test", (1 + 0j, 2j), context_id=None),
+        ),
+        normalized_inner_product_threshold=0.9,
+    )
+
+    assert report.candidates == ()
+    assert report.skipped_comparisons[0].reason == "missing_channel_context"
 
 
 def test_matching_geometry_remains_flagged_across_incompatible_channel_contexts() -> None:
