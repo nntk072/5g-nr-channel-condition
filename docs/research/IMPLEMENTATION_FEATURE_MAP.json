@@ -1416,17 +1416,25 @@
     {
       "backlog_line": 256,
       "backlog_status": "open",
-      "description": "Inventory each remaining G4 gate against existing native checks and implement only genuine gaps: hash-pinned tables, tap/delay/power and LOS partition, angular geometry, array/orientation, polarization, covariance, circularity, and temporal evolution. The frozen CDL joint delay/four-angle characteristic and fixed-TDL Rayleigh properness have pinned-reference native regression definitions; scalable TDL-A–E first-tap covariance and scalable/fixed TDL Doppler expectation inputs now come from independent ETSI component fixtures rather than adapter metadata. Scalable TDL-A–E have a source-bound three-lag Jakes temporal covariance protocol across all 95 ETSI-labeled Rayleigh taps (570 simultaneous coordinates); fixed TDL A10/A30/B100/C60/C300/D10/D30 now have a matching protocol across 82 Rayleigh-only taps (492 coordinates), both with fresh audited seed rosters. A scalable-TDL proper-complex protocol covers every ETSI-labeled Rayleigh tap outside the merged TDL-D/E LOS tap. These protocol definitions close a software-contract gap only: native statistical generation remains intentionally deferred until consolidated validation; none establishes the full delay-angle law or G4 qualification.",
+      "description": "Inventory each remaining G4 gate against existing native checks and implement only genuine gaps: hash-pinned tables, tap/delay/power and LOS partition, angular geometry, array/orientation, polarization, covariance, circularity, and temporal evolution. The frozen CDL joint delay/four-angle characteristic and fixed-TDL Rayleigh properness have pinned-reference native regression definitions; scalable TDL-A–E first-tap covariance and scalable/fixed TDL Doppler expectation inputs now come from independent ETSI component fixtures rather than adapter metadata. Scalable TDL-A–E have a source-bound three-lag Jakes temporal covariance protocol across all 95 ETSI-labeled Rayleigh taps (570 simultaneous coordinates); fixed TDL A10/A30/B100/C60/C300/D10/D30 now have a matching protocol across 82 Rayleigh-only taps (492 coordinates), both with fresh audited seed rosters. A scalable-TDL proper-complex protocol covers every ETSI-labeled Rayleigh tap outside the merged TDL-D/E LOS tap. A fixed-TDL-D10/D30 first-tap Rician marginal scorer and native regression now derive the noncentral-chi-square reference from the byte-pinned ETSI component fixture; portable tests and a fresh seed audit are retained in `evaluation/g4_tdl_rician_marginal.py`, `tests/test_evaluation/test_g4_tdl_rician_marginal.py`, `tests/test_integrations/test_g4_fixed_tdl_rician_marginal_native.py`, and `docs/research/G4_07_FIXED_TDL_RICIAN_MARGINAL_PROTOCOL_2026-10-27.md` and `docs/research/G4_FIXED_TDL_RICIAN_MARGINAL_SEED_AUDIT_2026-10-27.json`. The receipt is kept outside the scanned roots so the pre-run audit can be repeated without self-collision. The native family needs a retained consolidated rerun; no G4 qualification is claimed. These protocol definitions close software-contract gaps only: aside from the two bounded D10/D30 Rician implementation samples noted in its protocol, further native statistical generation remains deferred until consolidated validation; none establishes the full delay-angle law or G4 qualification.",
       "evidence_links": {
         "cli_entries": [],
-        "documentation": [],
+        "documentation": [
+          "docs/research/G4_07_FIXED_TDL_RICIAN_MARGINAL_PROTOCOL_2026-10-27.md",
+          "docs/research/G4_FIXED_TDL_RICIAN_MARGINAL_SEED_AUDIT_2026-10-27.json"
+        ],
         "other_files": [],
-        "regression_files": [],
+        "regression_files": [
+          "tests/test_evaluation/test_g4_tdl_rician_marginal.py",
+          "tests/test_integrations/test_g4_fixed_tdl_rician_marginal_native.py"
+        ],
         "schemas": [],
-        "source_modules": []
+        "source_modules": [
+          "evaluation/g4_tdl_rician_marginal.py"
+        ]
       },
       "feature_id": "PKG05-005",
-      "link_status": "unmapped",
+      "link_status": "linked",
       "package": {
         "number": 5,
         "title": "G4 — standardized channel model and statistical conformance"
@@ -1623,7 +1631,7 @@
     {
       "backlog_line": 265,
       "backlog_status": "open",
-      "description": "Complete confidence-controlled tests for remaining profile/configuration/topology combinations and criteria at the gate's required statistical unit; do not mistake deterministic table checks or helper self-consistency for a population qualification. Frozen software protocols now include fixed-TDL proper-complex, temporal covariance, and Doppler-spectrum CDF checks; scalable TDL temporal covariance and a scalable TDL Doppler-spectrum CDF family are also defined. The shared Doppler estimator's four portable cases pass, and the fixed-profile tap roster comes from the independent TS 38.101-4 fixture. All native statistical generation remains deferred until consolidated validation, and G4 qualification remains open.",
+      "description": "Complete confidence-controlled tests for remaining profile/configuration/topology combinations and criteria at the gate's required statistical unit; do not mistake deterministic table checks or helper self-consistency for a population qualification. Frozen software protocols now include fixed-TDL proper-complex, temporal covariance, and Doppler-spectrum CDF checks; scalable TDL temporal covariance and a scalable TDL Doppler-spectrum CDF family are also defined. The shared Doppler estimator's four portable cases pass, and the fixed-profile tap roster comes from the independent TS 38.101-4 fixture. A bounded fixed-TDL-D Rician first-tap marginal family is also defined against separate ETSI LOS/diffuse component powers; its portable scorer and reference tests pass, while native confirmation remains for consolidated validation. The broader native statistical families remain deferred until consolidated validation, and G4 qualification remains open.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -4252,13 +4260,13 @@
   "schema": "loslab.implementation_feature_map.v1",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "b70b4d55be237619ec7c38934940bd62621abafe7fb1c04cdc080643edc2330e"
+    "sha256": "fc521f52a16637690db0581226b26acba22cc8f0368c2dbaef8e4150113a0870"
   },
   "summary": {
     "feature_count": 181,
-    "linked_count": 21,
+    "linked_count": 22,
     "marked_done_count": 126,
     "open_count": 55,
-    "unmapped_count": 160
+    "unmapped_count": 159
   }
 }
