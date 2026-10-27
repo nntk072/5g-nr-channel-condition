@@ -12,6 +12,7 @@ from datasets.channel_view import (
     ChannelPowerScale,
     PhysicalChannelView,
 )
+from datasets.counterfactual import remove_direct_path_component
 from datasets.episode_store import (
     EpisodeBundle,
     _episode_object_size_estimate,
@@ -29,6 +30,14 @@ from datasets.network import (
     NodeRole,
 )
 from datasets.path_oracle import PathOracleTable, PathSolveStatus
+from datasets.split_policy import (
+    SplitChildBinding,
+    SplitParentType,
+    SplitPolicy,
+    SplitSubject,
+    bind_split_children,
+    make_split_policy_registry,
+)
 from datasets.targets import (
     TargetDefinition,
     TargetValidity,
@@ -194,6 +203,46 @@ def _episode_bundle() -> EpisodeBundle:
     )
 
 
+def _episode_bundle_with_counterfactual() -> EpisodeBundle:
+    bundle = _episode_bundle()
+    parent_id = bundle.episode.episode_id
+    policy = SplitPolicy(
+        seed="umcd-store-counterfactual-retry",
+        split_fractions={"train": 1 / 3, "validation": 1 / 3, "test": 1 / 3},
+    )
+    subjects = [
+        SplitSubject(
+            subject_id=parent_id,
+            parent_type=SplitParentType.NETWORK_EPISODE,
+            source_family=bundle.episode.family_id,
+        ),
+        *[
+            SplitSubject(
+                subject_id=f"independent-{index}",
+                parent_type=SplitParentType.NETWORK_EPISODE,
+                source_family=bundle.episode.family_id,
+            )
+            for index in range(2)
+        ],
+    ]
+    registry = bind_split_children(
+        make_split_policy_registry(subjects, policy=policy),
+        [
+            SplitChildBinding("counterfactual-base", parent_id, "counterfactual_base"),
+            SplitChildBinding("counterfactual-ablated", parent_id, "counterfactual_math_ablation"),
+        ],
+    )
+    ablation = remove_direct_path_component(
+        bundle.path_oracle,
+        frequency_offset_hz=bundle.episode.subcarrier_offsets_hz,
+        registry=registry,
+        parent_subject_id=parent_id,
+        base_child_id="counterfactual-base",
+        ablated_child_id="counterfactual-ablated",
+    )
+    return replace(bundle, direct_path_ablations=(ablation,))
+
+
 def test_target_value_rejects_empty_truth_instead_of_losing_unavailability_reason():
     definition = _versioned_delay_target().definition
 
@@ -210,11 +259,21 @@ def test_target_value_rejects_empty_truth_instead_of_losing_unavailability_reaso
 
 @pytest.mark.parametrize(
     "layer_name",
-    ("episode", "oracle_paths", "oracle_channels", "targets"),
+    (
+        "episode",
+        "oracle_paths",
+        "counterfactual_ablations",
+        "oracle_channels",
+        "targets",
+    ),
 )
 def test_episode_bundle_reader_rejects_changed_compressed_object_bytes(tmp_path, layer_name):
     store = tmp_path / "umcd-store"
-    bundle = _episode_bundle()
+    bundle = (
+        _episode_bundle_with_counterfactual()
+        if layer_name == "counterfactual_ablations"
+        else _episode_bundle()
+    )
 
     stored = write_episode_bundle(store, bundle)
     loaded = read_episode_bundle(store, stored)
@@ -302,6 +361,44 @@ def test_episode_bundle_mid_object_publication_failure_is_retryable(tmp_path, mo
     loaded = read_episode_bundle(store, stored)
     assert loaded.episode.episode_id == bundle.episode.episode_id
     assert stored.episode_id == bundle.episode.episode_id
+    assert not [path for path in store.rglob(".*") if path.is_file()]
+
+
+def test_episode_bundle_counterfactual_object_publication_failure_is_retryable(
+    tmp_path, monkeypatch
+):
+    import datasets.episode_store as episode_store
+
+    store = tmp_path / "umcd-counterfactual-retry-store"
+    bundle = _episode_bundle_with_counterfactual()
+    publish = episode_store._publish_immutable
+    injected = False
+
+    def fail_counterfactual_object(path, payload):
+        nonlocal injected
+        if "counterfactual_ablations" in path.parts and not injected:
+            injected = True
+            raise OSError("injected counterfactual object publication failure")
+        publish(path, payload)
+
+    monkeypatch.setattr(episode_store, "_publish_immutable", fail_counterfactual_object)
+    with pytest.raises(OSError, match="counterfactual object publication failure"):
+        write_episode_bundle(store, bundle)
+
+    assert list((store / "objects" / "episode").rglob("*.npz"))
+    assert list((store / "objects" / "oracle_paths").rglob("*.npz"))
+    assert not (store / "objects" / "counterfactual_ablations").exists()
+    assert not (store / "manifests" / "episodes").exists()
+
+    monkeypatch.setattr(episode_store, "_publish_immutable", publish)
+    stored = write_episode_bundle(store, bundle)
+    loaded = read_episode_bundle(store, stored)
+    assert len(loaded.direct_path_ablations) == 1
+    assert loaded.direct_path_ablations[0].removed_direct_path_count.tolist() == [1]
+    np.testing.assert_array_equal(
+        loaded.direct_path_ablations[0].without_direct_cfr,
+        bundle.direct_path_ablations[0].without_direct_cfr,
+    )
     assert not [path for path in store.rglob(".*") if path.is_file()]
 
 
