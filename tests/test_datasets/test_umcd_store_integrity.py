@@ -208,7 +208,11 @@ def test_target_value_rejects_empty_truth_instead_of_losing_unavailability_reaso
         )
 
 
-def test_episode_bundle_reader_rejects_changed_compressed_object_bytes(tmp_path):
+@pytest.mark.parametrize(
+    "layer_name",
+    ("episode", "oracle_paths", "oracle_channels", "targets"),
+)
+def test_episode_bundle_reader_rejects_changed_compressed_object_bytes(tmp_path, layer_name):
     store = tmp_path / "umcd-store"
     bundle = _episode_bundle()
 
@@ -220,8 +224,8 @@ def test_episode_bundle_reader_rejects_changed_compressed_object_bytes(tmp_path)
 
     manifest_path = store / stored.relative_path
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    path_reference = next(item for item in manifest["layers"] if item["layer"] == "oracle_paths")
-    object_path = store / path_reference["path"]
+    layer_reference = next(item for item in manifest["layers"] if item["layer"] == layer_name)
+    object_path = store / layer_reference["path"]
     assert object_path.suffix == ".npz"
 
     tampered = bytearray(object_path.read_bytes())
