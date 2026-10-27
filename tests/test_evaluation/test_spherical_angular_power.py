@@ -81,7 +81,7 @@ def test_element_frame_power_map_uses_inverse_orientation_and_preserves_power() 
     assert result["orientation_rad"] == [math.pi / 2.0, 0.0, 0.0]
     assert result["total_power"] == pytest.approx(2.5)
     assert fractions.sum() == pytest.approx(1.0)
-    assert fractions[0, 1] == pytest.approx(1.0)
+    assert fractions[1, 1] == pytest.approx(1.0)
 
 
 def test_element_frame_power_map_matches_versioned_json_schema() -> None:

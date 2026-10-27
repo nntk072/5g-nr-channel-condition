@@ -164,9 +164,9 @@ def _reference_hashes(value: Any, label: str) -> dict[str, Any]:
                     stem = stem[: -len(suffix)]
                     break
             candidates = (
-                (f"{stem}_sha256", f"{stem}_hash", f"{stem}_checksum_sha256")
-                if stem
-                else ("sha256", "hash", "checksum_sha256")
+                ("sha256", "hash", "checksum_sha256")
+                if key in _PATH_KEYS and not key.endswith(_PATH_SUFFIXES)
+                else (f"{stem}_sha256", f"{stem}_hash", f"{stem}_checksum_sha256")
             )
             for digest_key in candidates:
                 if digest_key in value:

@@ -132,7 +132,9 @@ def validate_standardized_channel_admission(
     parameter_table_source = metadata.get("profile_parameter_table_source")
     parameter_table_sha256 = metadata.get("profile_parameter_table_sha256")
     if (parameter_table_source is None) != (parameter_table_sha256 is None):
-        raise ValueError(prefix + "TDL parameter table source identity and digest must appear together")
+        raise ValueError(
+            prefix + "TDL parameter table source identity and digest must appear together"
+        )
     if parameter_table_source is not None:
         expected_table_source = (
             f"TS 38.101-4:19.2.2:TDL-{profile_model}.json"
@@ -149,7 +151,9 @@ def validate_standardized_channel_admission(
         ):
             raise ValueError(prefix + "TDL parameter table source identity or digest is invalid")
         if resolved_profile_digest is None:
-            raise ValueError(prefix + "TDL parameter table identity must be bound by the profile digest")
+            raise ValueError(
+                prefix + "TDL parameter table identity must be bound by the profile digest"
+            )
     if resolved_profile_digest is not None:
         if family is not StandardizedFamily.TDL:
             raise ValueError(prefix + "resolved TDL profile digest is attached to a non-TDL record")
@@ -193,8 +197,7 @@ def validate_standardized_channel_admission(
         or not isinstance(carrier_hz, (int, float))
         or not math.isfinite(carrier_hz)
         or not any(
-            low <= carrier_hz <= high
-            for low, high in applicability.carrier_frequency_ranges_hz
+            low <= carrier_hz <= high for low, high in applicability.carrier_frequency_ranges_hz
         )
     ):
         allowed_ranges = ", ".join(
@@ -245,7 +248,7 @@ def validate_standardized_channel_admission(
         raise ValueError(
             prefix
             + "standardized dataset sampled bandwidth must be at most "
-            + f"{applicability.maximum_sampled_bandwidth_hz:g} Hz"
+            + f"{applicability.maximum_sampled_bandwidth_hz / 1e9:g} GHz"
         )
     if applicability.minimum_channel_bandwidth_exclusive_hz is not None:
         channel_bandwidth_hz = metadata.get("channel_bandwidth_hz")

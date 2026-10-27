@@ -13,6 +13,7 @@ from datasets.split_policy import (
     bind_split_children,
     make_split_policy_registry,
 )
+from datasets.targets import TargetValidity
 from experiments.rt_trajectory_forecast import (
     evaluate_trajectory_forecasts,
     summarize_forecast_rows,
@@ -98,6 +99,13 @@ def test_forecast_metrics_use_only_valid_target_elements() -> None:
         target,
         targets={"channel_cfr": np.asarray([2.0, 0.0, 0.0], dtype=np.complex64)},
         target_masks={"channel_cfr": np.asarray([True, False, False])},
+        target_reason_codes={
+            "channel_cfr": (
+                TargetValidity.VALID,
+                TargetValidity.NOT_OBSERVABLE,
+                TargetValidity.NOT_OBSERVABLE,
+            )
+        },
     )
     trajectory = NRTrajectory("masked", (0.0, 1.0), (first, target))
 
@@ -114,11 +122,13 @@ def test_forecast_metrics_skip_empty_support_and_declared_time_gaps() -> None:
         _record("t1", 1.0, 1.0),
         targets={"channel_cfr": np.zeros(3, dtype=np.complex64)},
         target_masks={"channel_cfr": np.zeros(3, dtype=np.bool_)},
+        target_reason_codes={"channel_cfr": (TargetValidity.NOT_OBSERVABLE,) * 3},
     )
     last = replace(
         _record("t2", 1.0, 1.0),
         targets={"channel_cfr": np.zeros(3, dtype=np.complex64)},
         target_masks={"channel_cfr": np.zeros(3, dtype=np.bool_)},
+        target_reason_codes={"channel_cfr": (TargetValidity.NOT_OBSERVABLE,) * 3},
     )
     trajectory = NRTrajectory("gapped", (0.0, 1.0, 2.0), (first, empty_target, last))
 
@@ -162,10 +172,10 @@ def test_forecast_evaluator_enforces_frozen_split_assignment() -> None:
     )
     assigned_splits = {registry.split_for_child(sample_id) for sample_id in trajectory.sample_ids}
     wrong_split = next(
-        candidate for candidate in ("train", "validation", "test") if candidate not in assigned_splits
+        candidate
+        for candidate in ("train", "validation", "test")
+        if candidate not in assigned_splits
     )
 
     with pytest.raises(ValueError, match="do not all belong"):
-        evaluate_trajectory_forecasts(
-            trajectory, split=wrong_split, split_registry=registry
-        )
+        evaluate_trajectory_forecasts(trajectory, split=wrong_split, split_registry=registry)

@@ -47,7 +47,10 @@ def test_standardized_profile_applicability_ledger_is_complete_and_deterministic
         (0.5e9, 7.125e9),
         (24.25e9, 71e9),
     )
-    assert standardized_profile_applicability("tdl", "A10").minimum_channel_bandwidth_exclusive_hz == 200e6
+    assert (
+        standardized_profile_applicability("tdl", "A10").minimum_channel_bandwidth_exclusive_hz
+        == 200e6
+    )
     assert standardized_profile_applicability("cdl", "D").profile_los_component is True
     with pytest.raises(ValueError, match="unsupported standardized profile"):
         standardized_profile_applicability("cdl", "D30")
@@ -67,12 +70,10 @@ def test_every_declared_profile_version_has_a_pinned_normative_source() -> None:
         / "datasets/schema/g4-standard-reference-manifest.v1.schema.json"
     )
     jsonschema = pytest.importorskip("jsonschema")
-    jsonschema.Draft202012Validator(
-        json.loads(schema_path.read_text(encoding="utf-8"))
-    ).validate(manifest)
-    sources = {
-        (row["standard"], row["version"]): row for row in manifest["sources"]
-    }
+    jsonschema.Draft202012Validator(json.loads(schema_path.read_text(encoding="utf-8"))).validate(
+        manifest
+    )
+    sources = {(row["standard"], row["version"]): row for row in manifest["sources"]}
     assert set(sources) == {
         ("3GPP TR 38.901", "16.1.0"),
         ("3GPP TR 38.901", "19.2.0"),
@@ -82,9 +83,7 @@ def test_every_declared_profile_version_has_a_pinned_normative_source() -> None:
     for row in report["rows"]:
         assert isinstance(row, dict)
         for version in row["supported_versions"]:
-            canonical_version = (
-                f"{version}.0" if row["standard"] == "3GPP TR 38.901" else version
-            )
+            canonical_version = f"{version}.0" if row["standard"] == "3GPP TR 38.901" else version
             assert (row["standard"], canonical_version) in sources
 
 
@@ -96,11 +95,14 @@ def test_standardized_generator_capability_matrix_is_hash_bound_and_explicit() -
         "families": report["families"],
         "scenario_gbsm": report["scenario_gbsm"],
     }
-    assert report["capabilities_sha256"] == hashlib.sha256(
-        json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False).encode(
-            "utf-8"
-        )
-    ).hexdigest()
+    assert (
+        report["capabilities_sha256"]
+        == hashlib.sha256(
+            json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False).encode(
+                "utf-8"
+            )
+        ).hexdigest()
+    )
     by_family = {row["family"]: row for row in report["families"]}
     assert by_family["tdl"]["link_topology"] == {
         "tx_node_count": 1,
@@ -129,9 +131,9 @@ def test_standardized_generator_capability_matrix_is_hash_bound_and_explicit() -
         / "datasets/schema/standardized-generator-capabilities.v2.schema.json"
     )
     jsonschema = pytest.importorskip("jsonschema")
-    jsonschema.Draft202012Validator(
-        json.loads(schema_path.read_text(encoding="utf-8"))
-    ).validate(report)
+    jsonschema.Draft202012Validator(json.loads(schema_path.read_text(encoding="utf-8"))).validate(
+        report
+    )
 
 
 def _metadata(
@@ -449,7 +451,7 @@ def test_standardized_admission_rejects_invalid_cdl_array_metadata(
 def test_standardized_admission_rejects_unsupported_table_version_and_incomplete_tdl_corr() -> None:
     channel = _channel()
     channel.metadata["spec_version"] = "18.0"
-    with pytest.raises(ValueError, match="unsupported TR 38.901"):
+    with pytest.raises(ValueError, match="unsupported .*TR 38.901"):
         standardized_run_from_channel(channel, family=StandardizedFamily.TDL)
 
     channel = _channel()

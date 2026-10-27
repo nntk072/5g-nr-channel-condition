@@ -141,7 +141,7 @@ def test_repository_relative_declared_paths_resolve_from_checkout_root(tmp_path:
         _valid_record(
             inputs={
                 "dataset_path": "inputs/capture.bin",
-                "dataset_sha256": "c" * 64,
+                "dataset_sha256": hashlib.sha256(b"fixture").hexdigest(),
                 "source_manifest_path": "inputs/manifest.json",
             }
         ),
@@ -177,9 +177,7 @@ def test_declared_artifact_digest_is_compared_with_file_bytes(tmp_path: Path) ->
     matching_digest = hashlib.sha256(artifact.read_bytes()).hexdigest()
     _write_json(
         root / "run.json",
-        _valid_record(
-            inputs={"dataset_path": "capture.bin", "dataset_sha256": matching_digest}
-        ),
+        _valid_record(inputs={"dataset_path": "capture.bin", "dataset_sha256": matching_digest}),
     )
 
     report = audit_tree(root)

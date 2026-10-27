@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import io
+import json
 
 import numpy as np
 import pytest
@@ -69,9 +70,17 @@ def test_observation_preserves_explicit_resource_element_missingness(tmp_path):
     current_manifest = write_nr_record(tmp_path, record)
     with np.load(tmp_path / current_manifest.relative_path, allow_pickle=False) as archive:
         legacy_buffer = io.BytesIO()
+        legacy_arrays = {
+            name: archive[name] for name in archive.files if name != "received_grid_mask"
+        }
+        legacy_metadata = json.loads(legacy_arrays["metadata_json"].tobytes().decode())
+        legacy_metadata["schema_version"] = 1
+        legacy_arrays["metadata_json"] = np.frombuffer(
+            json.dumps(legacy_metadata, sort_keys=True).encode(), dtype=np.uint8
+        )
         np.savez_compressed(
             legacy_buffer,
-            **{name: archive[name] for name in archive.files if name != "received_grid_mask"},
+            **legacy_arrays,
         )
     legacy_payload = legacy_buffer.getvalue()
     legacy_path = tmp_path / "records" / "legacy-v1.npz"
@@ -81,6 +90,7 @@ def test_observation_preserves_explicit_resource_element_missingness(tmp_path):
         sample_id=observation.sample_id,
         content_sha256=hashlib.sha256(legacy_payload).hexdigest(),
         relative_path="records/legacy-v1.npz",
+        schema_version=1,
     )
     legacy = read_nr_record(tmp_path, legacy_manifest)
     assert legacy.observation.received_grid_mask.all()

@@ -19,20 +19,23 @@ from scripts import evaluate_rt_nr_trajectory_forecasts as forecast_script
 
 
 def _signed_registry() -> SplitPolicyRegistry:
-    parent = SplitSubject(
-        subject_id="forecast-parent",
-        parent_type=SplitParentType.NETWORK_EPISODE,
-        source_family="synthetic-test",
+    parents = tuple(
+        SplitSubject(
+            subject_id="forecast-parent" if index == 0 else f"forecast-parent-{index}",
+            parent_type=SplitParentType.NETWORK_EPISODE,
+            source_family="synthetic-test",
+        )
+        for index in range(64)
     )
     registry = make_split_policy_registry(
-        (parent,), policy=SplitPolicy.release_v2(seed="signed-forecast-test")
+        parents, policy=SplitPolicy.release_v2(seed="signed-forecast-test")
     )
     return bind_split_children(
         registry,
         (
-            SplitChildBinding("sample-a", parent.subject_id, "nr_trajectory_sample"),
-            SplitChildBinding("sample-b", parent.subject_id, "nr_trajectory_sample"),
-            SplitChildBinding("other-child", parent.subject_id, "nr_record"),
+            SplitChildBinding("sample-a", parents[0].subject_id, "nr_trajectory_sample"),
+            SplitChildBinding("sample-b", parents[0].subject_id, "nr_trajectory_sample"),
+            SplitChildBinding("other-child", parents[0].subject_id, "nr_record"),
         ),
     )
 

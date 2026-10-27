@@ -90,14 +90,22 @@ def apply_residual_cfo(
     added to the receiver's model inputs unless an actual estimator exposes it.
     """
     torch = _validate_waveform(waveform)
-    initial_phase = _require_real_finite_scalar(
-        initial_phase_rad, name="initial_phase_rad"
-    )
+    initial_phase = _require_real_finite_scalar(initial_phase_rad, name="initial_phase_rad")
     sample_rate = _require_real_finite_scalar(
         sampling_frequency_hz, name="sampling_frequency_hz", positive=True
     )
     try:
-        cfo_input = torch.as_tensor(cfo_hz, device=waveform.device)
+        # Preserve Python float range until the explicit waveform-precision
+        # checks below. PyTorch's default dtype may silently round tiny scalar
+        # CFO values to zero before those checks can detect the loss.
+        if isinstance(cfo_hz, bool):
+            raise TypeError("cfo_hz must contain real numeric values")
+        if isinstance(cfo_hz, Real):
+            cfo_input = torch.as_tensor(cfo_hz, dtype=torch.float64, device=waveform.device)
+        elif isinstance(cfo_hz, torch.Tensor):
+            cfo_input = torch.as_tensor(cfo_hz, device=waveform.device)
+        else:
+            cfo_input = torch.as_tensor(cfo_hz, dtype=torch.float64, device=waveform.device)
     except (TypeError, ValueError, RuntimeError, OverflowError) as exc:
         raise TypeError("cfo_hz must contain real numeric values") from exc
     integer_dtypes = {torch.uint8, torch.int8, torch.int16, torch.int32, torch.int64}
@@ -234,9 +242,7 @@ def apply_time_varying_multipath(
         activity = activity.to(dtype=waveform.real.dtype)
         expected_shape = (path_count, waveform.shape[-1])
         if tuple(activity.shape) != expected_shape:
-            raise ValueError(
-                "path activity trajectories must have shape [paths, waveform samples]"
-            )
+            raise ValueError("path activity trajectories must have shape [paths, waveform samples]")
         if not bool(torch.isfinite(activity).all()):
             raise ValueError("path activity trajectories must be finite")
         if bool(torch.any((activity < 0.0) | (activity > 1.0))):

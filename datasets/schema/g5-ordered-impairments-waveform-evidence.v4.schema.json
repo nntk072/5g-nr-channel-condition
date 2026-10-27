@@ -5,13 +5,19 @@
   "description": "Hash-bound shared TX, oscillator, capture and standardized AWGN draws, plus the exact clean, uncorrected and corrected receiver inputs for each SNR point.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema", "file_name", "sha256", "byte_count", "channel_count", "arrays"],
+  "required": ["schema", "file_name", "sha256", "byte_count", "channel_count", "snr_point_count", "snr_db", "arrays"],
   "properties": {
     "schema": { "const": "umcd.g5_ordered_impairments_waveform_evidence.v4" },
     "file_name": { "type": "string", "pattern": "^[^/\\\\]+\\.npz$" },
     "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
     "byte_count": { "type": "integer", "minimum": 1, "maximum": 536870912 },
     "channel_count": { "type": "integer", "minimum": 1 },
+    "snr_point_count": { "type": "integer", "minimum": 1 },
+    "snr_db": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "number" }
+    },
     "arrays": {
       "type": "array",
       "minItems": 10,
