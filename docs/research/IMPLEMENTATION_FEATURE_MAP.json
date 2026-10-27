@@ -3,7 +3,7 @@
     {
       "backlog_line": 181,
       "backlog_status": "open",
-      "description": "Turn this backlog into a fully traceable feature map. **Partial:** `scripts.build_implementation_feature_map` indexes all 176 checklist rows by package/plan gate, resolves explicitly referenced repository paths, dotted Python module names, and registered `pyproject.toml` CLI entry points, and marks unresolved rows `unmapped`. It writes `docs/research/IMPLEMENTATION_FEATURE_MAP.json`; `loslab-build-implementation-feature-map --check` detects stale output. The current snapshot has 16 linked and 160 unmapped rows, so evidence links for remaining sources, schemas, CLI entries, regression files, plus audited implementation-status reconciliation remain open. Checkbox state is not scientific qualification.",
+      "description": "Turn this backlog into a fully traceable feature map. **Partial:** `scripts.build_implementation_feature_map` indexes all 176 checklist rows by package/plan gate, resolves explicitly referenced repository paths, dotted Python module names, and registered `pyproject.toml` CLI entry points, and marks unresolved rows `unmapped`. It writes `docs/research/IMPLEMENTATION_FEATURE_MAP.json`; `loslab-build-implementation-feature-map --check` detects stale output. The current snapshot has 18 linked, 158 unmapped, 121 backlog-marked-done, and 55 open rows. Evidence links for remaining sources, schemas, CLI entries, regression files, plus audited implementation-status reconciliation remain open. Checkbox state is not scientific qualification.",
       "evidence_links": {
         "cli_entries": [
           "scripts/build_implementation_feature_map.py"
@@ -3961,18 +3961,33 @@
     },
     {
       "backlog_line": 385,
-      "backlog_status": "open",
-      "description": "Implement a pilot sampler/report over mandatory families, antenna topologies, difficulty regimes, natural/enriched priors, no-path/empty/rejected outcomes, runtime/storage costs, and observed coverage.",
+      "backlog_status": "marked_done",
+      "description": "Implement a deterministic pilot sampler/report over the declared mandatory channel-family, antenna-topology, difficulty, and natural/enriched-prior rosters; record no-path/empty/rejected/failed outcomes, runtime/storage costs, and missing coverage. Natural cell target probabilities must sum to one; the report records sample share and corresponding cell design weight, while enriched stress carries no prevalence weight. `experiments/pilot_sampling.py`, `experiments/pilot_cli.py`, the `loslab-pilot` entry point, schemas `datasets/schema/pilot-design.v1.schema.json`, `datasets/schema/pilot-candidate-roster.v1.schema.json`, `datasets/schema/pilot-sample.v1.schema.json`, `datasets/schema/pilot-outcomes.v1.schema.json`, `datasets/schema/pilot-audit.v1.schema.json`, and `tests/test_experiments/test_pilot_sampling.py` cover the SHA-256-ranked sampler and exact-roster outcome auditor. Reports bind sampler/CLI source hashes. This is input-scoped `NOT_QUALIFIED` planning/reporting only; candidate-prior representativeness, authoritative mandatory inventories, native pilot runs, and scale decisions remain open. Workflow: `docs/research/PILOT_SAMPLING_WORKFLOW.md`.",
       "evidence_links": {
-        "cli_entries": [],
-        "documentation": [],
+        "cli_entries": [
+          "loslab-pilot -> experiments.pilot_cli:main (experiments/pilot_cli.py)"
+        ],
+        "documentation": [
+          "docs/research/PILOT_SAMPLING_WORKFLOW.md"
+        ],
         "other_files": [],
-        "regression_files": [],
-        "schemas": [],
-        "source_modules": []
+        "regression_files": [
+          "tests/test_experiments/test_pilot_sampling.py"
+        ],
+        "schemas": [
+          "datasets/schema/pilot-audit.v1.schema.json",
+          "datasets/schema/pilot-candidate-roster.v1.schema.json",
+          "datasets/schema/pilot-design.v1.schema.json",
+          "datasets/schema/pilot-outcomes.v1.schema.json",
+          "datasets/schema/pilot-sample.v1.schema.json"
+        ],
+        "source_modules": [
+          "experiments/pilot_cli.py",
+          "experiments/pilot_sampling.py"
+        ]
       },
       "feature_id": "PKG10-006",
-      "link_status": "unmapped",
+      "link_status": "linked",
       "package": {
         "number": 10,
         "title": "End-to-end dataset pipeline and research outputs"
@@ -4107,13 +4122,13 @@
   "schema": "loslab.implementation_feature_map.v1",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "50155ab1dc656924e707e59660a629e376f2cea2ccefb914dc6d8590a5a4fdca"
+    "sha256": "cdb4f54fac1679febe28b88ffda47400d9b2c5a8d6afe209c0978ab36d4c1a6d"
   },
   "summary": {
     "feature_count": 176,
-    "linked_count": 17,
-    "marked_done_count": 120,
-    "open_count": 56,
-    "unmapped_count": 159
+    "linked_count": 18,
+    "marked_done_count": 121,
+    "open_count": 55,
+    "unmapped_count": 158
   }
 }

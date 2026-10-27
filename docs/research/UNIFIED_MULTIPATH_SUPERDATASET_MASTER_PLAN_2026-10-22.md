@@ -2318,6 +2318,7 @@ Material defaults in that thin-screen fixture are zero scattering in pinned Sion
 ### Stage S7: prospective sampling, calibration, external data
 
 - Generate a **pilot** covering all mandatory antenna categories, channel families and low/high difficulty regimes; quantify failure and observed distributions before freezing production ranges.
+- **Sampling implementation (2026-10-27):** `experiments.pilot_sampling` and `loslab-pilot` now provide deterministic, input-scoped sample selection and exact-roster outcome/cost accounting. The frozen design names the mandatory factor rosters and quotas; candidate-prior provenance and the actual native pilot remain unverified. Reports stay `NOT_QUALIFIED`; this implementation does not authorize scaled production generation.
 - Define planned core factor grid and realistic deployment prior; explicitly record enrichment of weak-direct, high-delay-spread, rare transitions and no-path outcomes.
 - Qualify external measured datasets by licensing, precision, clock, array, and label ontologies; reserve selected sites completely held out. Keep measured magnitude-only data explicitly out of complex phase/ToA evaluations.
 - **Deliver:** pilot acceptance and scale budget, coverage gaps, frozen sampling priors, external provenance and license register.

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.invalid/schema/pilot-candidate-roster.v1.schema.json",
+  "title": "UMCD pilot candidate roster v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "candidates"],
+  "properties": {
+    "schema": {"const": "umcd.pilot_candidate_roster.v1"},
+    "candidates": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/candidate"}}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "candidate": {
+      "type": "object", "additionalProperties": false,
+      "required": ["candidate_id", "independent_group_id", "channel_family", "antenna_topology", "difficulty", "prior_kind", "source_record_sha256"],
+      "properties": {
+        "candidate_id": {"type": "string", "minLength": 1},
+        "independent_group_id": {"type": "string", "minLength": 1},
+        "channel_family": {"type": "string", "minLength": 1},
+        "antenna_topology": {"type": "string", "minLength": 1},
+        "difficulty": {"enum": ["low", "medium", "high"]},
+        "prior_kind": {"enum": ["natural_prevalence", "enriched_stress"]},
+        "source_record_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  }
+}

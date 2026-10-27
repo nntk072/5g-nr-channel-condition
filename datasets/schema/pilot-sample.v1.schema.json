@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.invalid/schema/pilot-sample.v1.schema.json",
+  "title": "UMCD pilot sample v1",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "implementation_source_sha256", "cli_source_sha256", "status", "qualification_status", "sampling_algorithm", "sampling_seed", "design_sha256", "candidate_roster_sha256", "prior_provenance_sha256", "candidate_count", "selected_candidate_count", "selected_unique_independent_group_count", "selected_candidates", "cells", "limitations"],
+  "properties": {
+    "schema": {"const": "umcd.pilot_sample.v1"},
+    "implementation_source_sha256": {"$ref": "#/$defs/sha256"},
+    "cli_source_sha256": {"$ref": "#/$defs/sha256"},
+    "status": {"enum": ["SAMPLE_ROSTER_COMPLETE", "INCOMPLETE_DESIGN"]},
+    "qualification_status": {"const": "NOT_QUALIFIED"},
+    "sampling_algorithm": {"const": "sha256_rank_without_replacement_v1"},
+    "sampling_seed": {"type": "integer", "minimum": 0},
+    "design_sha256": {"$ref": "#/$defs/sha256"},
+    "candidate_roster_sha256": {"$ref": "#/$defs/sha256"},
+    "prior_provenance_sha256": {"$ref": "#/$defs/sha256"},
+    "candidate_count": {"type": "integer", "minimum": 1},
+    "selected_candidate_count": {"type": "integer", "minimum": 0},
+    "selected_unique_independent_group_count": {"type": "integer", "minimum": 0},
+    "selected_candidates": {"type": "array", "items": {"$ref": "#/$defs/selected"}},
+    "cells": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/cell"}},
+    "limitations": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "selected": {
+      "type": "object", "additionalProperties": false,
+      "required": ["candidate_id", "independent_group_id", "cell_id", "source_record_sha256"],
+      "properties": {
+        "candidate_id": {"type": "string", "minLength": 1},
+        "independent_group_id": {"type": "string", "minLength": 1},
+        "cell_id": {"$ref": "#/$defs/sha256"},
+        "source_record_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "cell": {
+      "type": "object", "additionalProperties": false,
+      "required": ["channel_family", "antenna_topology", "difficulty", "prior_kind", "cell_id", "requested_independent_groups", "target_population_probability", "available_independent_groups", "selected_independent_groups", "sample_share_within_prior", "design_importance_weight", "shortfall", "selected_candidate_ids"],
+      "properties": {
+        "channel_family": {"type": "string", "minLength": 1},
+        "antenna_topology": {"type": "string", "minLength": 1},
+        "difficulty": {"enum": ["low", "medium", "high"]},
+        "prior_kind": {"enum": ["natural_prevalence", "enriched_stress"]},
+        "cell_id": {"$ref": "#/$defs/sha256"},
+        "requested_independent_groups": {"type": "integer", "minimum": 1},
+        "target_population_probability": {"oneOf": [{"type": "number", "exclusiveMinimum": 0, "maximum": 1}, {"type": "null"}]},
+        "available_independent_groups": {"type": "integer", "minimum": 0},
+        "selected_independent_groups": {"type": "integer", "minimum": 0},
+        "sample_share_within_prior": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "design_importance_weight": {"type": ["number", "null"], "exclusiveMinimum": 0},
+        "shortfall": {"type": "integer", "minimum": 0},
+        "selected_candidate_ids": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      }
+    }
+  }
+}

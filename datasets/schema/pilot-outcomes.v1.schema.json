@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.invalid/schema/pilot-outcomes.v1.schema.json",
+  "title": "UMCD pilot outcomes v1",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "outcomes"],
+  "properties": {
+    "schema": {"const": "umcd.pilot_outcomes.v1"},
+    "outcomes": {"type": "array", "items": {"$ref": "#/$defs/outcome"}}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "outcome": {
+      "type": "object", "additionalProperties": false,
+      "required": ["candidate_id", "outcome", "runtime_seconds", "storage_bytes", "result_sha256"],
+      "properties": {
+        "candidate_id": {"type": "string", "minLength": 1},
+        "outcome": {"enum": ["included", "no_path", "empty", "rejected", "failed"]},
+        "runtime_seconds": {"type": "number", "minimum": 0},
+        "storage_bytes": {"type": "integer", "minimum": 0, "maximum": 9223372036854775807},
+        "result_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  }
+}
