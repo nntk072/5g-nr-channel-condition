@@ -8,7 +8,7 @@ from enum import StrEnum
 
 import numpy as np
 
-from .time_axis import canonical_time_axis
+from .time_axis import TimeAxisAlignment, align_time_axes, canonical_time_axis
 
 
 def _readonly_array(value: np.ndarray, *, name: str, shape_tail: tuple[int, ...]) -> np.ndarray:
@@ -237,6 +237,33 @@ class NodePoseTimeline:
             return self.orientations_local_to_world[frame_index, self.node_index(node_id)]
         except IndexError as exc:
             raise KeyError(node_id) from exc
+
+    def align_to(
+        self,
+        reference_times_s: tuple[float, ...],
+        *,
+        tolerance_s: float,
+    ) -> tuple[NodePoseTimeline, TimeAxisAlignment]:
+        """Reindex poses onto a reference grid using unique samples, never interpolation.
+
+        The returned alignment report records timestamp residuals and any extra
+        observed frames. Every reference frame must match exactly one observed
+        sample within the explicitly supplied tolerance.
+        """
+        alignment = align_time_axes(
+            reference_times_s,
+            self.frame_times_s,
+            tolerance_s=tolerance_s,
+            require_complete=True,
+        )
+        frame_indices = tuple(int(index) for index in alignment.observed_indices if index is not None)
+        aligned = NodePoseTimeline(
+            node_ids=self.node_ids,
+            frame_times_s=alignment.reference_times_s,
+            positions_world_m=self.positions_world_m[list(frame_indices)],
+            orientations_local_to_world=self.orientations_local_to_world[list(frame_indices)],
+        )
+        return aligned, alignment
 
 
 @dataclass(frozen=True, slots=True, eq=False)
