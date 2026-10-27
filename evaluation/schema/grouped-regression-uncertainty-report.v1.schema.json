@@ -19,8 +19,8 @@
     "prediction_file": {"type": "string", "minLength": 1},
     "prediction_file_sha256": {"$ref": "#/$defs/sha256"},
     "seed": {"type": "integer", "minimum": 0},
-    "metrics": {"type": "object"},
-    "runtime_versions": {"type": "object"},
+    "metrics": {"$ref": "#/$defs/metrics"},
+    "runtime_versions": {"$ref": "#/$defs/runtimeVersions"},
     "package_source_sha256": {"$ref": "#/$defs/sha256"}
   },
   "$defs": {
@@ -29,6 +29,154 @@
       "minLength": 1,
       "pattern": "^\\S(?:.*\\S)?$"
     },
-    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "nullableNumber": {"type": ["number", "null"]},
+    "coverageKey": {"type": "string", "pattern": "^[0-9]+(?:\\.[0-9]+)?$"},
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "calibration_group_count", "calibration_sample_count", "test_group_count",
+        "test_sample_count", "calibration_group_scores_max_standardized_error",
+        "error_metrics", "group_conformal_intervals", "test_interval_metrics_by_stratum",
+        "risk_coverage", "group_risk_coverage", "resampling_unit", "interpretation"
+      ],
+      "properties": {
+        "calibration_group_count": {"type": "integer", "minimum": 1},
+        "calibration_sample_count": {"type": "integer", "minimum": 1},
+        "test_group_count": {"type": "integer", "minimum": 1},
+        "test_sample_count": {"type": "integer", "minimum": 1},
+        "calibration_group_scores_max_standardized_error": {
+          "type": "array", "items": {"type": "number", "minimum": 0}
+        },
+        "error_metrics": {"$ref": "#/$defs/errorMetrics"},
+        "group_conformal_intervals": {"$ref": "#/$defs/intervalMap"},
+        "test_interval_metrics_by_stratum": {"$ref": "#/$defs/stratumIntervalMap"},
+        "risk_coverage": {
+          "type": "array", "minItems": 1, "items": {"$ref": "#/$defs/sampleRiskPoint"}
+        },
+        "group_risk_coverage": {
+          "type": "array", "minItems": 1, "items": {"$ref": "#/$defs/groupRiskPoint"}
+        },
+        "resampling_unit": {"const": "independent test group"},
+        "interpretation": {"type": "string", "minLength": 1}
+      }
+    },
+    "errorMetrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mae", "rmse", "group_macro_rmse", "group_rmse", "group_macro_rmse_ci95",
+        "bootstrap_groups", "bootstrap_draws", "bootstrap_resampling_cells",
+        "bootstrap_peak_index_cells"
+      ],
+      "properties": {
+        "mae": {"type": "number", "minimum": 0},
+        "rmse": {"type": "number", "minimum": 0},
+        "group_macro_rmse": {"type": "number", "minimum": 0},
+        "group_rmse": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "number", "minimum": 0}},
+        "group_macro_rmse_ci95": {
+          "oneOf": [
+            {"type": "null"},
+            {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number", "minimum": 0}}
+          ]
+        },
+        "bootstrap_groups": {"type": "integer", "minimum": 1},
+        "bootstrap_draws": {"type": "integer", "minimum": 0},
+        "bootstrap_resampling_cells": {"type": "integer", "minimum": 0},
+        "bootstrap_peak_index_cells": {"type": "integer", "minimum": 0}
+      }
+    },
+    "intervalMap": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {"$ref": "#/$defs/coverageKey"},
+      "additionalProperties": {"$ref": "#/$defs/intervalMetrics"}
+    },
+    "intervalMetrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scale_multiplier", "finite_sample_unbounded", "test_sample_coverage",
+        "test_group_simultaneous_coverage", "mean_interval_width"
+      ],
+      "properties": {
+        "scale_multiplier": {"$ref": "#/$defs/nullableNumber"},
+        "finite_sample_unbounded": {"type": "boolean"},
+        "test_sample_coverage": {"type": "number", "minimum": 0, "maximum": 1},
+        "test_group_simultaneous_coverage": {"type": "number", "minimum": 0, "maximum": 1},
+        "mean_interval_width": {"$ref": "#/$defs/nullableNumber"}
+      }
+    },
+    "stratumIntervalMap": {
+      "type": "object",
+      "propertyNames": {"$ref": "#/$defs/coverageKey"},
+      "additionalProperties": {"$ref": "#/$defs/stratumMap"}
+    },
+    "stratumMap": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"$ref": "#/$defs/stratumMetrics"}
+    },
+    "stratumMetrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sample_count", "group_count", "sample_coverage",
+        "group_simultaneous_coverage", "mean_interval_width"
+      ],
+      "properties": {
+        "sample_count": {"type": "integer", "minimum": 1},
+        "group_count": {"type": "integer", "minimum": 1},
+        "sample_coverage": {"type": "number", "minimum": 0, "maximum": 1},
+        "group_simultaneous_coverage": {"type": "number", "minimum": 0, "maximum": 1},
+        "mean_interval_width": {"$ref": "#/$defs/nullableNumber"}
+      }
+    },
+    "sampleRiskPoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requested_coverage", "actual_coverage", "accepted_samples", "mae", "rmse"],
+      "properties": {
+        "requested_coverage": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
+        "actual_coverage": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
+        "accepted_samples": {"type": "integer", "minimum": 1},
+        "mae": {"type": "number", "minimum": 0},
+        "rmse": {"type": "number", "minimum": 0}
+      }
+    },
+    "groupRiskPoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requested_coverage", "actual_group_coverage", "accepted_groups", "accepted_samples",
+        "mean_group_uncertainty", "group_macro_mae", "group_macro_rmse", "selection_rule"
+      ],
+      "properties": {
+        "requested_coverage": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
+        "actual_group_coverage": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
+        "accepted_groups": {"type": "integer", "minimum": 1},
+        "accepted_samples": {"type": "integer", "minimum": 1},
+        "mean_group_uncertainty": {"type": "number", "exclusiveMinimum": 0},
+        "group_macro_mae": {"type": "number", "minimum": 0},
+        "group_macro_rmse": {"type": "number", "minimum": 0},
+        "selection_rule": {"const": "ascending_mean_group_uncertainty_stable_by_group_id"}
+      }
+    },
+    "runtimeVersions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["python", "numpy", "scikit-learn", "torch", "sionna", "sionna-rt", "sionna-phy", "git_sha"],
+      "properties": {
+        "python": {"type": "string", "minLength": 1},
+        "numpy": {"type": "string", "minLength": 1},
+        "scikit-learn": {"type": "string", "minLength": 1},
+        "torch": {"type": "string", "minLength": 1},
+        "sionna": {"type": "string", "minLength": 1},
+        "sionna-rt": {"type": "string", "minLength": 1},
+        "sionna-phy": {"type": "string", "minLength": 1},
+        "git_sha": {"type": "string", "minLength": 1}
+      }
+    }
   }
 }

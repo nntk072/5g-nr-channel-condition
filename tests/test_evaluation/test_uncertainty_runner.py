@@ -85,7 +85,12 @@ def test_runner_evaluates_frozen_group_disjoint_prediction_file(tmp_path):
     schema = json.loads(
         Path("evaluation/schema/grouped-regression-uncertainty-report.v1.schema.json").read_text()
     )
-    jsonschema.Draft202012Validator(schema).validate(report)
+    validator = jsonschema.Draft202012Validator(schema)
+    validator.validate(report)
+    report_with_metric_drift = json.loads(json.dumps(report))
+    report_with_metric_drift["metrics"]["error_metrics"]["unbound_metric"] = 1
+    with pytest.raises(jsonschema.ValidationError):
+        validator.validate(report_with_metric_drift)
 
 
 def test_runner_rejects_unknown_schema_duplicate_samples_and_missing_fields(tmp_path):
