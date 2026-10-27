@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import math
 from dataclasses import dataclass, field
 from importlib import import_module
@@ -292,6 +293,11 @@ class NRChannelRecord:
         if not self.provenance:
             raise ValueError("provenance must not be empty")
         reference_bits = self.reference_transport_block_bits
+        reference_shape_key = "reference_transport_block_shape"
+        reference_digest_key = "reference_transport_block_sha256"
+        declared_reference_fields = {
+            key for key in (reference_shape_key, reference_digest_key) if key in self.provenance
+        }
         if reference_bits is not None:
             if torch_module is not None and torch_module.is_tensor(reference_bits):
                 reference_bits = reference_bits.detach().cpu().numpy()
@@ -307,8 +313,23 @@ class NRChannelRecord:
                     "reference_transport_block_bits must be a bounded binary [TX, bit] array"
                 )
             reference_array = np.array(reference_array, dtype=np.uint8, copy=True)
+            expected_reference_shape = self.provenance.get(reference_shape_key)
+            expected_reference_digest = self.provenance.get(reference_digest_key)
+            actual_reference_digest = hashlib.sha256(reference_array.tobytes(order="C")).hexdigest()
+            if (
+                declared_reference_fields != {reference_shape_key, reference_digest_key}
+                or not isinstance(expected_reference_shape, list)
+                or any(type(size) is not int or size <= 0 for size in expected_reference_shape)
+                or expected_reference_shape != list(reference_array.shape)
+                or expected_reference_digest != actual_reference_digest
+            ):
+                raise ValueError(
+                    "reference transport-block payload differs from its provenance shape/digest"
+                )
             reference_array.setflags(write=False)
             object.__setattr__(self, "reference_transport_block_bits", reference_array)
+        elif declared_reference_fields:
+            raise ValueError("reference transport-block provenance requires its payload array")
         definitions = dict(self.target_definitions)
         if definitions and set(definitions) != set(self.targets):
             raise ValueError("target definitions must describe every declared target")

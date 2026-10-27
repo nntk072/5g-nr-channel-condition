@@ -50,6 +50,7 @@ def make_single_record(
     target_masks=None,
     target_reason_codes=None,
     reference_transport_block_bits=None,
+    provenance_overrides=None,
 ):
     estimate = NRChannelEstimate(
         h_hat=np.zeros((1, 1, 2, 1, 1, 14, 24), dtype=np.complex64),
@@ -62,11 +63,24 @@ def make_single_record(
         received_grid=np.zeros((1, 1, 2, 14, 24), dtype=np.complex64),
         channel_estimate=estimate,
     )
+    provenance = {"source": "trajectory-fixture"}
+    if reference_transport_block_bits is not None:
+        reference_array = np.asarray(reference_transport_block_bits, dtype=np.uint8)
+        provenance.update(
+            {
+                "reference_transport_block_shape": list(reference_array.shape),
+                "reference_transport_block_sha256": hashlib.sha256(
+                    reference_array.tobytes(order="C")
+                ).hexdigest(),
+            }
+        )
+    if provenance_overrides is not None:
+        provenance.update(provenance_overrides)
     return NRChannelRecord(
         observation=observation,
         targets=targets,
         target_masks={} if target_masks is None else target_masks,
-        provenance={"source": "trajectory-fixture"},
+        provenance=provenance,
         target_definitions={
             name: TargetDefinition.versioned(
                 semantic=f"synthetic test target {name}",
@@ -529,6 +543,7 @@ def test_nr_trajectory_rejects_noncanonical_identity(trajectory_id):
 
 def test_nr_record_round_trip_is_lossless_pickle_free_and_content_addressed(tmp_path):
     observation = make_observation()
+    reference_bits = np.asarray([[1, 0, 1, 1, 0]], dtype=np.uint8)
     record = NRChannelRecord(
         observation=observation,
         targets={
@@ -536,8 +551,15 @@ def test_nr_record_round_trip_is_lossless_pickle_free_and_content_addressed(tmp_
             "channel_cfr": (np.arange(24) + 1j * np.arange(24)).astype(np.complex64),
         },
         target_masks={"geometric_los": np.asarray(True)},
-        provenance={"scene_hash": "sha256:abc", "simulator": "Sionna 2.2"},
-        reference_transport_block_bits=np.asarray([[1, 0, 1, 1, 0]], dtype=np.uint8),
+        provenance={
+            "scene_hash": "sha256:abc",
+            "simulator": "Sionna 2.2",
+            "reference_transport_block_shape": list(reference_bits.shape),
+            "reference_transport_block_sha256": hashlib.sha256(
+                reference_bits.tobytes(order="C")
+            ).hexdigest(),
+        },
+        reference_transport_block_bits=reference_bits,
         target_definitions={
             "geometric_los": TargetDefinition.versioned(
                 semantic="depth-zero RT visibility oracle",
@@ -605,6 +627,57 @@ def test_nr_record_rejects_invalid_reference_transport_bits(reference_bits):
             targets={"label": np.asarray(1)},
             reference_transport_block_bits=reference_bits,
         )
+
+
+@pytest.mark.parametrize(
+    "provenance_overrides",
+    (
+        {"reference_transport_block_shape": [1, 9]},
+        {"reference_transport_block_sha256": "0" * 64},
+    ),
+)
+def test_nr_record_rejects_reference_payload_provenance_drift(provenance_overrides):
+    with pytest.raises(ValueError, match="provenance shape/digest"):
+        make_single_record(
+            "reference-payload-provenance-drift",
+            targets={"label": np.asarray(1)},
+            reference_transport_block_bits=np.asarray([[1, 0, 1]], dtype=np.uint8),
+            provenance_overrides=provenance_overrides,
+        )
+
+
+def test_nr_v4_reader_rejects_rehashed_reference_payload_provenance_drift(tmp_path):
+    record = make_single_record(
+        "stored-reference-payload-provenance-drift",
+        targets={"label": np.asarray(1)},
+        reference_transport_block_bits=np.asarray([[1, 0, 1]], dtype=np.uint8),
+    )
+    stored = write_nr_record(tmp_path, record)
+    with np.load(tmp_path / stored.relative_path, allow_pickle=False) as archive:
+        arrays = {name: archive[name].copy() for name in archive.files}
+    metadata = json.loads(arrays["metadata_json"].tobytes().decode("utf-8"))
+    metadata["provenance"]["reference_transport_block_sha256"] = "0" * 64
+    arrays["metadata_json"] = np.frombuffer(
+        json.dumps(metadata, sort_keys=True, separators=(",", ":"), allow_nan=False).encode(),
+        dtype=np.uint8,
+    )
+    buffer = io.BytesIO()
+    np.savez_compressed(buffer, **arrays)
+    payload = buffer.getvalue()
+    digest = hashlib.sha256(payload).hexdigest()
+    relative_path = f"records/{digest[:2]}/{digest}.npz"
+    object_path = tmp_path / relative_path
+    object_path.parent.mkdir(parents=True, exist_ok=True)
+    object_path.write_bytes(payload)
+
+    forged = NRStoredRecord(
+        sample_id=stored.sample_id,
+        content_sha256=digest,
+        relative_path=relative_path,
+        schema_version=4,
+    )
+    with pytest.raises(ValueError, match="provenance shape/digest"):
+        read_nr_record(tmp_path, forged)
 
 
 def test_nr_v2_record_without_target_definitions_remains_readable(tmp_path):
