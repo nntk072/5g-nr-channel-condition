@@ -29,54 +29,54 @@ class TargetValidity(StrEnum):
     LEGACY_REASON_UNRECORDED = "legacy_reason_unrecorded"
 
 
-_CANONICAL_TARGET_CONTRACTS: dict[str, tuple[str, str, str, bool]] = {
+_CANONICAL_TARGET_CONTRACTS: dict[str, tuple[str, str, str, str]] = {
     "umcd.standardized.profile-los-proxy.v1": (
         "profile_los_proxy",
         "standardized_profile_los_category_proxy",
         "binary_class",
-        True,
+        "binary_scalar",
     ),
     "umcd.f03_rt_static.direct_visibility.v2": (
         "geometric_los",
         "geometric direct-path visibility",
         "boolean",
-        True,
+        "binary_scalar",
     ),
     "umcd.rt-trajectory.geometric-los.v2": (
         "geometric_los",
         "digest-bound NumPy loaded-scene direct-visibility oracle",
         "boolean",
-        True,
+        "binary_array",
     ),
     "umcd.f04_rt_dynamic.direct_visibility.v3": (
         "geometric_los",
         "geometric direct-path visibility",
         "boolean",
-        True,
+        "binary_array",
     ),
     "profile_los_proxy.v2": (
         "profile_los_proxy",
         "standardized_profile_los_category_proxy",
         "binary_class",
-        True,
+        "binary_scalar",
     ),
     "umcd.standardized.effective-cfr.v1": (
         "channel_cfr",
         "perfect_synchronized_effective_subcarrier_cfr",
         "complex channel gain (dimensionless)",
-        False,
+        "complex",
     ),
     "umcd.tdl-pusch.effective-cfr.v1": (
         "channel_cfr",
         "perfect synchronized effective-subcarrier CFR",
         "complex channel gain (dimensionless)",
-        False,
+        "complex",
     ),
     "umcd.rt-trajectory.absolute-cfr.v1": (
         "channel_cfr",
         "absolute-delay full-path complex CFR on effective PUSCH subcarriers",
         "complex channel gain (dimensionless)",
-        False,
+        "complex",
     ),
     "umcd.rt-trajectory.symbol-cfr.v1": (
         "channel_cfr_ofdm_symbols",
@@ -85,25 +85,25 @@ _CANONICAL_TARGET_CONTRACTS: dict[str, tuple[str, str, str, bool]] = {
             "sampled at PUSCH OFDM symbols"
         ),
         "complex channel gain (dimensionless)",
-        False,
+        "complex",
     ),
     "umcd.rt-trajectory.geometric-los.v1": (
         "geometric_los",
         "independent Mitsuba segment-intersection geometry oracle",
         "boolean",
-        True,
+        "binary_scalar",
     ),
     "umcd.f03_rt_static.direct_visibility.v1": (
         "geometric_los",
         "geometric direct-path visibility",
         "boolean",
-        True,
+        "binary_scalar",
     ),
     "umcd.f04_rt_dynamic.direct_visibility.v2": (
         "geometric_los",
         "geometric direct-path visibility",
         "boolean",
-        True,
+        "binary_array",
     ),
 }
 
@@ -234,13 +234,14 @@ def validate_canonical_target_contract(
 
     Unknown definition versions remain application-defined. Recognized versions
     are pinned to their target name, semantic, units, declared provenance and
-    aggregation, and real/complex value domain; scalar categorical targets are
-    constrained to one binary value.
+    aggregation, and real/complex value domain. Scalar categorical targets are
+    constrained to one binary value, while frame-indexed visibility targets
+    retain their declared vector axis and require binary values elementwise.
     """
     contract = _CANONICAL_TARGET_CONTRACTS.get(definition.definition_version)
     if contract is None:
         return
-    expected_name, expected_semantic, expected_units, binary_scalar = contract
+    expected_name, expected_semantic, expected_units, value_domain = contract
     if name is not None and name != expected_name:
         raise ValueError(
             f"target definition {definition.definition_version!r} is only valid for "
@@ -275,8 +276,8 @@ def validate_canonical_target_contract(
     if callable(detach):
         array_input = detach().cpu().numpy()
     array = np.asarray(array_input)
-    if binary_scalar:
-        if array.size != 1:
+    if value_domain in {"binary_scalar", "binary_array"}:
+        if value_domain == "binary_scalar" and array.size != 1:
             raise ValueError(f"canonical target {target_name!r} must contain exactly one value")
         if array.dtype.kind not in "biuf":
             raise TypeError(
@@ -301,7 +302,7 @@ def validate_canonical_target_contract(
         selected = array[valid]
         if np.any((selected != 0) & (selected != 1)):
             raise ValueError(f"canonical target {target_name!r} values must be binary (0 or 1)")
-    elif array.dtype.kind != "c":
+    elif value_domain == "complex" and array.dtype.kind != "c":
         raise TypeError(f"canonical complex target {target_name!r} must use a complex dtype")
 
 

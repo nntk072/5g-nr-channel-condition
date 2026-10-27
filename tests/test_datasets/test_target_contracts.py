@@ -47,6 +47,11 @@ def _definition(version: str, *, semantic: str, units: str) -> TargetDefinition:
             "independent finite-segment visibility query for the recorded TX/RX poses and scene geometry",
             "one independent direct-path visibility value per frame",
         ),
+        "umcd.f04_rt_dynamic.direct_visibility.v3": (
+            "numpy_loaded_scene_triangle_inventory",
+            "digest-bound loaded-scene triangle query cross-checked with Mitsuba segment intersection and depth-zero Sionna PathSolver at each recorded pose",
+            "one visibility value per trajectory frame; no spatial or temporal pooling",
+        ),
     }.get(
         version,
         (
@@ -104,6 +109,21 @@ def test_geometric_los_contract_checks_name_semantics_and_scalar_domain() -> Non
     with pytest.raises(ValueError, match="exactly one value"):
         validate_canonical_target_contract(
             np.asarray([True, False]), definition, name="geometric_los"
+        )
+
+
+def test_frame_visibility_contract_accepts_binary_values_per_frame() -> None:
+    definition = _definition(
+        "umcd.f04_rt_dynamic.direct_visibility.v3",
+        semantic="geometric direct-path visibility",
+        units="boolean",
+    )
+    validate_canonical_target_contract(
+        np.asarray([1, 0, 1], dtype=np.uint8), definition, name="geometric_los"
+    )
+    with pytest.raises(ValueError, match="must be binary"):
+        validate_canonical_target_contract(
+            np.asarray([1, 2, 0], dtype=np.uint8), definition, name="geometric_los"
         )
 
 

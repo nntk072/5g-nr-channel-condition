@@ -3018,7 +3018,7 @@
     {
       "backlog_line": 335,
       "backlog_status": "open",
-      "description": "Complete domain-specific target units/reference/gauge/aggregation semantics, shapes, allowed ranges, and canonical migration policy across UMCD and NR target families. `TargetValue` rejects empty arrays and padded entity/confidence identities; versioned target definition fields reject surrounding whitespace before digest admission. NR v3 requires digest-bound semantic definitions, and existing mask/reason contracts remain in force. The emitted standardized profile proxy plus F03-static v2 and RT-trajectory/F04-dynamic v2/v3 geometric-visibility definitions now pin producer, reference, and aggregation declarations at admission; the target-contract module passes 22 tests with coverage disabled, and Ruff/format checks pass. Other target families, physical gauge/range rules, migration policy, and consolidated validation remain open.",
+      "description": "Complete domain-specific target units/reference/gauge/aggregation semantics, shapes, allowed ranges, and canonical migration policy across UMCD and NR target families. `TargetValue` rejects empty arrays and padded entity/confidence identities; versioned target definition fields reject surrounding whitespace before digest admission. NR v3 requires digest-bound semantic definitions, and existing mask/reason contracts remain in force. The canonical F04 dynamic geometric-visibility target now preserves its per-frame binary axis, and `EpisodeBundle` requires that axis to match the parent frame-time roster; the NR inference audit allowlist now includes the declared hopping/transform-precoding configuration fields. The focused target/storage/model-input slice passes 76 tests with Ruff and diff checks. Other target families, physical gauge/range rules, migration policy, and consolidated validation remain open.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -4252,7 +4252,7 @@
   "schema": "loslab.implementation_feature_map.v1",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "d3b0cca11014111cd946007c94659ae44c39742c18aca4eaf4d48d9898582307"
+    "sha256": "43d4a2a449bdad0d5e26e5dc00f5c70965b5f171034737dfb7be979be1d58d9b"
   },
   "summary": {
     "feature_count": 181,

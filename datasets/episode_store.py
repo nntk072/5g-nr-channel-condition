@@ -82,6 +82,27 @@ class EpisodeBundle:
             raise ValueError("target entity_id must reference the episode or one of its links")
         link_ids = {link.link_id for link in self.episode.links}
         frame_count = len(self.episode.frame_times_s)
+        frame_visibility_versions = {
+            "umcd.rt-trajectory.geometric-los.v1",
+            "umcd.rt-trajectory.geometric-los.v2",
+            "umcd.f04_rt_dynamic.direct_visibility.v2",
+            "umcd.f04_rt_dynamic.direct_visibility.v3",
+        }
+        static_visibility_versions = {
+            "umcd.f03_rt_static.direct_visibility.v1",
+            "umcd.f03_rt_static.direct_visibility.v2",
+        }
+        for target in targets:
+            version = target.definition.definition_version
+            if version in frame_visibility_versions:
+                if target.entity_id not in link_ids:
+                    raise ValueError("frame visibility target must identify an episode link")
+                if target.values.shape != (frame_count,):
+                    raise ValueError(
+                        "frame visibility target shape must match the episode frame-time roster"
+                    )
+            elif version in static_visibility_versions and target.entity_id not in link_ids:
+                raise ValueError("static visibility target must identify an episode link")
         for binding in observations:
             if binding.link_id not in link_ids:
                 raise ValueError("receiver observation link_id must reference an episode link")

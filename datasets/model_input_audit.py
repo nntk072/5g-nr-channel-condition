@@ -50,6 +50,8 @@ _NR_RECEIVER_CONFIG_FIELDS = frozenset(
         "n_size_grid",
         "n_start_grid",
         "n_start_bwp",
+        "frequency_hopping",
+        "transform_precoding",
     }
 )
 

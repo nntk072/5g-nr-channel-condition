@@ -550,6 +550,42 @@ def _bundle() -> EpisodeBundle:
     return EpisodeBundle(episode, paths, (channel,), (target,))
 
 
+def test_frame_visibility_target_matches_episode_timestamp_roster():
+    episode = replace(_episode(), frame_times_s=(0.0, 0.01, 0.02))
+    definition = TargetDefinition.versioned(
+        semantic="geometric direct-path visibility",
+        units="boolean",
+        source="numpy_loaded_scene_triangle_inventory",
+        reference=(
+            "digest-bound loaded-scene triangle query cross-checked with Mitsuba "
+            "segment intersection and depth-zero Sionna PathSolver at each recorded pose"
+        ),
+        aggregation_rule="one visibility value per trajectory frame; no spatial or temporal pooling",
+        definition_version="umcd.f04_rt_dynamic.direct_visibility.v3",
+    )
+    target = TargetValue(
+        entity_id="gNB-1-to-UE-1",
+        definition=definition,
+        values=np.asarray([1, 0, 1], dtype=np.uint8),
+        valid_mask=np.ones(3, dtype=np.bool_),
+        reason_codes=(TargetValidity.VALID,) * 3,
+        confidence="geometry_verified",
+    )
+    bundle = EpisodeBundle(episode, None, (), (target,))
+    assert len(bundle.targets[0].values) == len(episode.frame_times_s)
+
+    truncated = TargetValue(
+        entity_id=target.entity_id,
+        definition=definition,
+        values=np.asarray([1, 0], dtype=np.uint8),
+        valid_mask=np.ones(2, dtype=np.bool_),
+        reason_codes=(TargetValidity.VALID,) * 2,
+        confidence="geometry_verified",
+    )
+    with pytest.raises(ValueError, match="frame-time roster"):
+        EpisodeBundle(episode, None, (), (truncated,))
+
+
 def test_episode_bundle_roundtrip_keeps_layers_content_addressed_and_pickle_free(tmp_path):
     bundle = _bundle()
     stored = write_episode_bundle(tmp_path, bundle)
