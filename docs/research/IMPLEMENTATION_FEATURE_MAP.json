@@ -1197,17 +1197,26 @@
     {
       "backlog_line": 244,
       "backlog_status": "open",
-      "description": "Complete report/run-manifest signature and trust-policy plumbing; detached exact-byte verification, run-manifest signer roles, strict reviewer preflight, and package-bound G3.03 attestations exist. The run-verification report now has a strict, hash-identified output contract and durable no-overwrite CLI publication, but this does not sign that report. Reviewer/keyring custody, external trusted timestamps, report signature binding, and scientific admission remain open. Reports remain `NOT_QUALIFIED` when external authority, independent provenance, or criteria are missing.",
+      "description": "Complete report/run-manifest signature and trust-policy plumbing. Detached exact-byte verification, run-manifest signer roles, strict reviewer preflight, package-bound G3.03 attestations, and persisted-report signature verification now exist. The report verifier in `evaluation/g3_joint_evidence_run_manifest.py` uses a dedicated OpenSSH namespace, strict receipt schema `datasets/schema/g3-run-verification-signature-receipt.v1.schema.json`, and standalone `loslab-verify-g3-run-report-signature` CLI in `scripts/verify_g3_run_report_signature.py`; regressions are in `tests/test_evaluation/test_g3_run_report_signature.py`. Its receipt binds exact report bytes, report schema digest, signer, signature, and caller-supplied allowed-signers digest while remaining `NOT_QUALIFIED`; report tampering is rejected. Reviewer/keyring custody, external trusted timestamps, runtime/source/measurement truth, and scientific admission remain open. Reports and signature receipts remain `NOT_QUALIFIED` when external authority, independent provenance, or criteria are missing.",
       "evidence_links": {
-        "cli_entries": [],
+        "cli_entries": [
+          "loslab-verify-g3-run-report-signature -> scripts.verify_g3_run_report_signature:main (scripts/verify_g3_run_report_signature.py)",
+          "scripts/verify_g3_run_report_signature.py"
+        ],
         "documentation": [],
         "other_files": [],
-        "regression_files": [],
-        "schemas": [],
-        "source_modules": []
+        "regression_files": [
+          "tests/test_evaluation/test_g3_run_report_signature.py"
+        ],
+        "schemas": [
+          "datasets/schema/g3-run-verification-signature-receipt.v1.schema.json"
+        ],
+        "source_modules": [
+          "evaluation/g3_joint_evidence_run_manifest.py"
+        ]
       },
       "feature_id": "PKG04-029",
-      "link_status": "unmapped",
+      "link_status": "linked",
       "package": {
         "number": 4,
         "title": "G3 — criterion-driven comparison and admission software"
@@ -4145,13 +4154,13 @@
   "schema": "loslab.implementation_feature_map.v1",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "ff78e4c7000ef9652319ef763f82c6a8ba404dcfaa21978d2989c45da4016b1d"
+    "sha256": "603f49d8137bc17efafee3f4b137142e5aad2b805028f508614481d3647266d9"
   },
   "summary": {
     "feature_count": 177,
-    "linked_count": 18,
+    "linked_count": 19,
     "marked_done_count": 122,
     "open_count": 55,
-    "unmapped_count": 159
+    "unmapped_count": 158
   }
 }

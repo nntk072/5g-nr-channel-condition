@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.invalid/schema/g3-run-verification-signature-receipt.v1.schema.json",
+  "title": "G3 Run Verification Report Signature Receipt v1",
+  "description": "Exact-byte detached signature verification receipt. Signature validity does not establish report truth, trust custody, or scientific qualification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "status",
+    "qualification_status",
+    "run_id",
+    "signed_report_sha256",
+    "report_schema_sha256",
+    "signature_namespace",
+    "signer_id",
+    "signature_sha256",
+    "trusted_allowed_signers_sha256",
+    "receipt_schema_sha256",
+    "limitations"
+  ],
+  "properties": {
+    "schema": {"const": "loslab.g3_run_verification_signature_receipt.v1"},
+    "status": {"const": "SIGNATURE_VERIFIED"},
+    "qualification_status": {"const": "NOT_QUALIFIED"},
+    "run_id": {"anyOf": [{"type": "null"}, {"type": "string", "pattern": "^[a-z][a-z0-9._-]{2,63}$"}]},
+    "signed_report_sha256": {"$ref": "#/$defs/sha256"},
+    "report_schema_sha256": {"$ref": "#/$defs/sha256"},
+    "signature_namespace": {"const": "loslab-g3-joint-run-verification-report-v1@github.com"},
+    "signer_id": {"type": "string", "minLength": 1},
+    "signature_sha256": {"$ref": "#/$defs/sha256"},
+    "trusted_allowed_signers_sha256": {"$ref": "#/$defs/sha256"},
+    "receipt_schema_sha256": {"$ref": "#/$defs/sha256"},
+    "limitations": {"type": "array", "minItems": 2, "items": {"type": "string", "minLength": 1}}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

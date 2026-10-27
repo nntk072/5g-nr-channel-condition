@@ -52,6 +52,9 @@ PATH_DIAGNOSTIC_SCHEMA_V2_RELATIVE_PATH = (
 )
 G3_RUN_MANIFEST_SIGNATURE_NAMESPACE = "loslab-g3-joint-run-manifest-v1@github.com"
 G3_SIGNER_POLICY_SIGNATURE_NAMESPACE = "loslab-g3-run-manifest-policy-v1@github.com"
+G3_RUN_VERIFICATION_REPORT_SIGNATURE_NAMESPACE = (
+    "loslab-g3-joint-run-verification-report-v1@github.com"
+)
 ARTIFACT_SCHEMA_V1_RELATIVE_PATH = "datasets/schema/g3-joint-evaluator-artifact.v1.schema.json"
 ARTIFACT_SCHEMA_RELATIVE_PATH = "datasets/schema/g3-joint-evaluator-artifact.v2.schema.json"
 QUALIFICATION_CONTRACT_SCHEMA_RELATIVE_PATH = (
@@ -1094,6 +1097,70 @@ def verify_g3_joint_evidence_run_manifest(
         errors.append(str(error))
     _validate_run_verification_report(report)
     return report
+
+
+def verify_g3_joint_evidence_run_report_signature(
+    report_path: str | Path,
+    signature_path: str | Path,
+    trusted_allowed_signers_path: str | Path,
+    *,
+    signer_id: str,
+) -> dict[str, Any]:
+    """Verify an external detached signature over exact bytes of a saved run report.
+
+    The signature authenticates the report bytes and principal under a dedicated
+    namespace. It does not establish signer-key custody, truth of the report, or
+    scientific qualification.
+    """
+    report_raw = _read_bounded_regular_file(
+        Path(report_path), limit=MAX_PACKAGE_BYTES, description="G3 run verification report"
+    )
+    report = _json_bytes(report_raw, "G3 run verification report")
+    if not isinstance(report, dict):
+        raise ValueError("G3 run verification report root must be an object")
+    _validate_run_verification_report(report)
+    identity = verify_openssh_signature_for_bytes(
+        report_raw,
+        signature_path,
+        trusted_allowed_signers_path,
+        signer_id=signer_id,
+        namespace=G3_RUN_VERIFICATION_REPORT_SIGNATURE_NAMESPACE,
+    )
+    schema_path = (
+        Path(__file__).resolve().parents[1]
+        / "datasets/schema/g3-run-verification-signature-receipt.v1.schema.json"
+    )
+    schema_bytes = _read_bounded_regular_file(
+        schema_path, limit=MAX_SCHEMA_BYTES, description="G3 report signature receipt schema"
+    )
+    receipt: dict[str, Any] = {
+        "schema": "loslab.g3_run_verification_signature_receipt.v1",
+        "status": "SIGNATURE_VERIFIED",
+        "qualification_status": "NOT_QUALIFIED",
+        "run_id": report["run_id"],
+        "signed_report_sha256": hashlib.sha256(report_raw).hexdigest(),
+        "report_schema_sha256": report["report_schema_sha256"],
+        "signature_namespace": identity["namespace"],
+        "signer_id": identity["signer_id"],
+        "signature_sha256": identity["signature_sha256"],
+        "trusted_allowed_signers_sha256": identity["allowed_signers_sha256"],
+        "receipt_schema_sha256": hashlib.sha256(schema_bytes).hexdigest(),
+        "limitations": [
+            "The detached signature authenticates the exact report bytes and signer principal, not the truth of the report.",
+            "Allowed-signers key custody, reviewer independence, runtime truth, measurement provenance, and scientific qualification remain external.",
+        ],
+    }
+    import jsonschema
+
+    schema = _json_bytes(schema_bytes, "G3 report signature receipt schema")
+    jsonschema.Draft202012Validator.check_schema(schema)
+    errors = sorted(
+        jsonschema.Draft202012Validator(schema).iter_errors(receipt),
+        key=lambda error: list(error.absolute_path),
+    )
+    if errors:
+        raise ValueError("G3 report signature receipt violates schema: " + errors[0].message)
+    return receipt
 
 
 def main(argv: list[str] | None = None) -> int:

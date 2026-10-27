@@ -29,6 +29,7 @@ loslab-audit-odbl-scene-source = "scripts.audit_odbl_scene_source_snapshot:main"
 loslab-pilot = "experiments.pilot_cli:main"
 loslab-runtime-inventory = "integrations.runtime_inventory:main"
 loslab-build-implementation-feature-map = "scripts.build_implementation_feature_map:main"
+loslab-verify-g3-run-report-signature = "scripts.verify_g3_run_report_signature:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
