@@ -175,7 +175,7 @@ Gate checkboxes in the master plan describe acceptance evidence, not necessarily
 
 ### 0. Make the implementation inventory executable
 
-- [ ] Turn this backlog into a traceable feature map: each item links to source modules, schemas, CLI entry points, regression files, plan gate, and its implementation status.
+- [ ] Turn this backlog into a fully traceable feature map. **Partial:** `scripts.build_implementation_feature_map` indexes all 176 checklist rows by package/gate, categorizes explicitly referenced repository paths, marks missing links `unmapped`, and keeps checkbox claims separate from scientific qualification. It writes `docs/research/IMPLEMENTATION_FEATURE_MAP.json`; `loslab-build-implementation-feature-map --check` detects stale output. The current snapshot has 13 linked and 163 unmapped rows, so manual links to source modules, schemas, CLI entries, regression files, and plan gates plus audited implementation-status reconciliation remain open.
 - [ ] Reconcile duplicate/chronological status entries in `MASTER_RESEARCH_PLAN.md` and `MVP_STATUS.md`; maintain one current summary per feature while preserving historical evidence.
 - [ ] Identify APIs that exist only as isolated helpers and wire them into the canonical generation, storage, audit, or evaluation path.
 - [ ] Mark every feature as code-complete, partial, absent, or externally blocked; do not use test-pass status to imply scientific qualification.
