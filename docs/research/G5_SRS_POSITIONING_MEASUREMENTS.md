@@ -16,6 +16,17 @@ verify the calibration, mapping, bandwidth-to-RE consistency, antenna pattern,
 or receiver behavior. Zero power is retained with status
 `ZERO_POWER_DIAGNOSTIC` and `null` dBm values.
 
+For mapped multiport SRS grids, `measure_ul_srs_rsrp_from_grid` accepts receive
+grids with axes `[occasion, RX branch, slot symbol, subcarrier]`, selects only
+REs occupied by the mapped SRS resource, applies a caller-calibrated watts per
+grid-unit-squared scale, and binds digests for the received and mapped grids.
+It keeps noise and interference power present on those REs, labels the wrapper
+`OBSERVED_NOT_QUALIFIED`, and enforces a combined bound on receive-grid and
+mapped-resource cells before materialization. It snapshots those inputs so
+the recorded digests identify the arrays used for the measurement. This connects the averaging report to an actual mapped
+receive-grid representation; calibration, synchronization, interference
+separation, and receiver performance still require evidence.
+
 The same module also reports the TS 38.215 V19.2.0 UL-RTOA reference instant
 from SFN/subframe identity and the signed gNB Rx-Tx time difference from
 caller-supplied TRP timing observations. Timing reports distinguish receiver

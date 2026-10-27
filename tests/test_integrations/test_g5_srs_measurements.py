@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+from integrations.sionna.srs import NRSRSMultiportResourceGrid
 from integrations.sionna.srs_measurements import (
     measure_ul_srs_rsrp,
+    measure_ul_srs_rsrp_from_grid,
     report_gnb_rx_tx_time_difference,
     report_ul_rtoa,
 )
@@ -82,6 +84,85 @@ def test_gnb_rx_tx_difference_uses_rx_minus_tx_and_separate_reference_points():
     assert report["gnb_rx_tx_time_difference_s"] == pytest.approx(4e-6)
     assert report["receiver_reference_point"] == "rx_transceiver_array_boundary_connector"
     assert report["transmitter_reference_point"] == "tx_antenna_connector"
+
+
+def test_grid_observation_measures_only_configured_srs_res_and_binds_inputs():
+    mapped_grid = np.zeros((1, 2, 3), dtype=np.complex128)
+    mapped_grid[0, 1, [0, 2]] = [1 + 0j, -1 + 0j]
+    mapped_mask = np.zeros(mapped_grid.shape, dtype=bool)
+    mapped_mask[0, 1, [0, 2]] = True
+    mapped = NRSRSMultiportResourceGrid(
+        grid=mapped_grid,
+        mask=mapped_mask,
+        symbol_indices=(1,),
+        subcarrier_indices=(0, 2),
+    )
+    received = np.full((2, 2, 2, 3), 1000 + 0j, dtype=np.complex128)
+    received[:, :, 1, [0, 2]] = np.array(
+        [
+            [[2, 4], [6, 8]],
+            [[2, 2], [4, 4]],
+        ],
+        dtype=np.complex128,
+    )
+
+    report = measure_ul_srs_rsrp_from_grid(
+        received,
+        mapped,
+        occasion_ids=["occasion-1", "occasion-2"],
+        receiver_branch_ids=["branch-1", "branch-2"],
+        receiver_category="terrestrial_type_1_c",
+        measurement_frequency_bandwidth_hz=20e6,
+        power_scale_w_per_grid_unit_squared=0.5,
+        power_calibration_sha256="e" * 64,
+    )
+
+    measurement = report["measurement_report"]
+    assert report["status"] == "OBSERVED_NOT_QUALIFIED"
+    assert len(report["received_grid_sha256"]) == 64
+    assert len(report["mapped_resource_sha256"]) == 64
+    assert measurement["configured_re_count_per_occasion"] == [2, 2]
+    assert measurement["receiver_branch_measurements"][0]["ul_srs_rsrp_w"] == pytest.approx(3.5)
+    assert measurement["receiver_branch_measurements"][1]["ul_srs_rsrp_w"] == pytest.approx(16.5)
+    assert report["received_re_power_includes_noise_and_interference"] is True
+
+
+def test_grid_observation_rejects_invalid_scale_shape_and_resource_bound():
+    mapped = NRSRSMultiportResourceGrid(
+        grid=np.array([[[1 + 0j, 1 + 0j]]]),
+        mask=np.array([[[True, True]]]),
+        symbol_indices=(0,),
+        subcarrier_indices=(0, 1),
+    )
+    common = {
+        "occasion_ids": ["occasion-1"],
+        "receiver_branch_ids": ["branch-1"],
+        "receiver_category": "terrestrial_type_1_c",
+        "measurement_frequency_bandwidth_hz": 1e6,
+        "power_calibration_sha256": "f" * 64,
+    }
+    with pytest.raises(ValueError, match="power scale"):
+        measure_ul_srs_rsrp_from_grid(
+            np.ones((1, 1, 1, 2), dtype=np.complex128),
+            mapped,
+            power_scale_w_per_grid_unit_squared=True,
+            **common,
+        )
+    with pytest.raises(ValueError, match="dimensions"):
+        measure_ul_srs_rsrp_from_grid(
+            np.ones((1, 1, 2, 3), dtype=np.complex128),
+            mapped,
+            power_scale_w_per_grid_unit_squared=1.0,
+            **common,
+        )
+    with pytest.raises(ValueError, match="maximum_grid_cells"):
+        measure_ul_srs_rsrp_from_grid(
+            np.ones((1, 1, 1, 2), dtype=np.complex128),
+            mapped,
+            power_scale_w_per_grid_unit_squared=1.0,
+            maximum_grid_cells=1,
+            **common,
+        )
 
 
 @pytest.mark.parametrize(

@@ -7,6 +7,7 @@ measurement reference point; this module does not calibrate RF power.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import re
@@ -37,6 +38,10 @@ _SCHEMA_PATH = (
 )
 _TIMING_SCHEMA_PATH = (
     Path(__file__).resolve().parents[2] / "evaluation/schema/nr-ul-srs-timing-report.v1.schema.json"
+)
+_GRID_OBSERVATION_SCHEMA_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "evaluation/schema/nr-ul-srs-rsrp-grid-observation.v1.schema.json"
 )
 
 
@@ -151,6 +156,170 @@ def measure_ul_srs_rsrp(
     }
     _validate_report_schema(report)
     return report
+
+
+def measure_ul_srs_rsrp_from_grid(
+    received_grid: np.ndarray,
+    mapped_resource: Any,
+    *,
+    occasion_ids: Sequence[str],
+    receiver_branch_ids: Sequence[str],
+    receiver_category: str,
+    measurement_frequency_bandwidth_hz: float,
+    power_scale_w_per_grid_unit_squared: float,
+    power_calibration_sha256: str,
+    maximum_grid_cells: int = 10_000_000,
+) -> dict[str, Any]:
+    """Measure calibrated receive-grid SRS RE power and bind both input grids.
+
+    ``received_grid`` uses ``[occasion, RX branch, slot symbol, subcarrier]``
+    axes. Power is measured directly from the complex receive-grid samples on
+    configured SRS REs. The calibration scale maps squared grid units to watts;
+    noise and interference contributions present in those REs are retained.
+    This is a receiver observation/report path, not interference rejection or
+    receiver qualification.
+    """
+
+    from integrations.sionna.srs import (
+        NRSRSHoppedMultiportResourceGrid,
+        NRSRSMultiportResourceGrid,
+        NRSRSPositioningMultiportResourceGrid,
+    )
+
+    supported = (
+        NRSRSMultiportResourceGrid,
+        NRSRSHoppedMultiportResourceGrid,
+        NRSRSPositioningMultiportResourceGrid,
+    )
+    if not isinstance(mapped_resource, supported):
+        raise TypeError("mapped_resource must be a mapped multiport SRS resource")
+    received_source = np.asarray(received_grid)
+    if (
+        received_source.ndim != 4
+        or received_source.dtype.kind != "c"
+        or any(size <= 0 for size in received_source.shape)
+    ):
+        raise ValueError(
+            "received_grid must be nonempty complex [occasion, RX branch, symbol, subcarrier]"
+        )
+    mapped_grid_source = np.asarray(mapped_resource.grid)
+    mapped_mask_source = np.asarray(mapped_resource.mask)
+    if received_source.shape[2:] != mapped_grid_source.shape[1:]:
+        raise ValueError("received_grid symbol/subcarrier dimensions must match the SRS grid")
+    if isinstance(maximum_grid_cells, bool) or not isinstance(maximum_grid_cells, int):
+        raise TypeError("maximum_grid_cells must be an integer")
+    if maximum_grid_cells <= 0:
+        raise ValueError("maximum_grid_cells must be positive")
+    total_grid_cells = received_source.size + mapped_grid_source.size + mapped_mask_source.size
+    if total_grid_cells > maximum_grid_cells:
+        raise ValueError("received and mapped SRS grids exceed maximum_grid_cells")
+    # Snapshot all measured and provenance-bound arrays so their hashes describe
+    # the exact values used below, even if a caller later mutates its buffers.
+    received = np.array(received_source, copy=True, order="C")
+    mapped_grid = np.array(mapped_grid_source, copy=True, order="C")
+    mapped_mask = np.array(mapped_mask_source, copy=True, order="C")
+    if not np.isfinite(received).all():
+        raise ValueError("received_grid must contain only finite complex values")
+    if (
+        isinstance(power_scale_w_per_grid_unit_squared, (bool, np.bool_))
+        or not isinstance(power_scale_w_per_grid_unit_squared, Real)
+        or not math.isfinite(float(power_scale_w_per_grid_unit_squared))
+        or power_scale_w_per_grid_unit_squared <= 0
+    ):
+        raise ValueError("power scale must be finite and positive real watts per grid unit squared")
+
+    configured_mask = np.any(mapped_mask, axis=0)
+    if not np.any(configured_mask):
+        raise ValueError("mapped SRS resource must occupy at least one resource element")
+    grid64 = received.astype(np.complex128, copy=False)
+    with np.errstate(over="ignore", invalid="ignore"):
+        power = (grid64.real * grid64.real + grid64.imag * grid64.imag) * float(
+            power_scale_w_per_grid_unit_squared
+        )
+    if not np.isfinite(power).all():
+        raise ValueError("calibrated received-grid power is not finite")
+    flattened_power = power.reshape(received.shape[0], received.shape[1], -1)
+    flattened_mask = np.broadcast_to(
+        configured_mask, (received.shape[0], *configured_mask.shape)
+    ).reshape(received.shape[0], -1)
+    flattened_power[:, :, ~flattened_mask[0]] = 0.0
+
+    report = measure_ul_srs_rsrp(
+        flattened_power,
+        flattened_mask,
+        occasion_ids=occasion_ids,
+        receiver_branch_ids=receiver_branch_ids,
+        receiver_category=receiver_category,
+        measurement_frequency_bandwidth_hz=measurement_frequency_bandwidth_hz,
+        power_calibration_sha256=power_calibration_sha256,
+    )
+    wrapper = {
+        "schema": "loslab.nr_ul_srs_rsrp_grid_observation.v1",
+        "status": "OBSERVED_NOT_QUALIFIED",
+        "measurement_report": report,
+        "received_grid_sha256": _array_sha256(received),
+        "mapped_resource_sha256": _mapped_resource_sha256(
+            mapped_resource, grid=mapped_grid, mask=mapped_mask
+        ),
+        "power_scale_w_per_grid_unit_squared": float(power_scale_w_per_grid_unit_squared),
+        "power_calibration_sha256": power_calibration_sha256,
+        "received_re_power_includes_noise_and_interference": True,
+        "limitations": [
+            "The power scale and calibration digest are caller supplied and not independently calibrated.",
+            "Observed receive-grid power retains noise and interference on configured SRS REs.",
+            "The workflow does not perform synchronization, interference rejection, or receiver qualification.",
+        ],
+    }
+    _validate_grid_observation_schema(wrapper)
+    return wrapper
+
+
+def _array_sha256(values: np.ndarray) -> str:
+    contiguous = np.ascontiguousarray(values)
+    header = json.dumps(
+        {"dtype": contiguous.dtype.str, "shape": list(contiguous.shape)},
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    digest = hashlib.sha256()
+    digest.update(header)
+    digest.update(b"\0")
+    digest.update(memoryview(contiguous).cast("B"))
+    return digest.hexdigest()
+
+
+def _mapped_resource_sha256(
+    mapped_resource: Any, *, grid: np.ndarray | None = None, mask: np.ndarray | None = None
+) -> str:
+    identity = {
+        "type": type(mapped_resource).__name__,
+        "symbol_indices": list(mapped_resource.symbol_indices),
+        "subcarrier_indices": getattr(mapped_resource, "subcarrier_indices", None),
+        "subcarrier_indices_by_symbol": getattr(
+            mapped_resource, "subcarrier_indices_by_symbol", None
+        ),
+        "position_indices_by_symbol": getattr(mapped_resource, "position_indices_by_symbol", None),
+        "positioning_offsets": getattr(mapped_resource, "positioning_offsets", None),
+        "n_srs_by_symbol": getattr(mapped_resource, "n_srs_by_symbol", None),
+        "active_port_symbols": getattr(mapped_resource, "active_port_symbols", None),
+        "grid_sha256": _array_sha256(mapped_resource.grid if grid is None else grid),
+        "mask_sha256": _array_sha256(mapped_resource.mask if mask is None else mask),
+    }
+    payload = json.dumps(identity, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
+def _validate_grid_observation_schema(report: dict[str, Any]) -> None:
+    import jsonschema
+
+    schema = json.loads(_GRID_OBSERVATION_SCHEMA_PATH.read_text(encoding="utf-8"))
+    jsonschema.Draft202012Validator.check_schema(schema)
+    errors = list(jsonschema.Draft202012Validator(schema).iter_errors(report))
+    if errors:
+        raise ValueError(
+            "SRS receive-grid observation violates schema: "
+            + "; ".join(error.message for error in errors[:10])
+        )
 
 
 def report_ul_rtoa(
