@@ -214,6 +214,25 @@ def fixed_tdl_first_tap_power_components(model: str) -> tuple[float, float]:
     return first_tap_diffuse / total_power, first_tap_specular / total_power
 
 
+def fixed_tdl_rayleigh_tap_indices(model: str) -> tuple[int, ...]:
+    """Return zero-based fixed-profile taps made only from ETSI Rayleigh rows.
+
+    A tap containing both an Annex B LOS component and Rayleigh diffuse power
+    is a Rician aggregate in the native channel output and is excluded from
+    diffuse-only statistical references.
+    """
+    if not isinstance(model, str) or model not in _FIXED_PROFILE_MODELS:
+        raise ValueError("model must name a supported fixed TDL profile")
+    by_tap: dict[int, list[str]] = {}
+    for tap_index, _, distribution in _load_fixed_profiles()[model]:
+        by_tap.setdefault(tap_index, []).append(distribution)
+    return tuple(
+        tap_index - 1
+        for tap_index, distributions in sorted(by_tap.items())
+        if all(distribution == "Rayleigh" for distribution in distributions)
+    )
+
+
 def scalable_tdl_first_tap_covariance_reference(
     model: str, rx_correlation: Any, num_tx_ant: int
 ) -> np.ndarray:

@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 from evaluation.g4_tdl_covariance_reference import (
     fixed_tdl_first_tap_power_components,
+    fixed_tdl_rayleigh_tap_indices,
     scalable_tdl_first_tap_covariance_reference,
     scalable_tdl_first_tap_power_components,
 )
@@ -31,16 +32,30 @@ def test_fixed_first_tap_component_powers_come_from_annex_b_rows(model: str) -> 
     assert diffuse + specular <= 1.0
 
 
+@pytest.mark.parametrize(
+    ("model", "expected_count"),
+    (("A10", 16), ("A30", 12), ("B100", 12), ("C60", 12), ("C300", 12), ("D10", 9), ("D30", 9)),
+)
+def test_fixed_rayleigh_tap_roster_excludes_only_mixed_los_taps(
+    model: str, expected_count: int
+) -> None:
+    tap_indices = fixed_tdl_rayleigh_tap_indices(model)
+
+    assert len(tap_indices) == expected_count
+    assert tap_indices == tuple(sorted(set(tap_indices)))
+    if model in {"D10", "D30"}:
+        assert tap_indices == tuple(range(1, 10))
+    else:
+        assert tap_indices == tuple(range(expected_count))
+
+
 @pytest.mark.parametrize("model", tuple("ABCDE"))
 def test_first_tap_covariance_is_hermitian_psd_and_normalized(model: str) -> None:
     rho = 0.45
     phase = 0.23
     correlation = np.array(
         [
-            [
-                rho ** abs(row - column) * np.exp(1j * phase * (row - column))
-                for column in range(3)
-            ]
+            [rho ** abs(row - column) * np.exp(1j * phase * (row - column)) for column in range(3)]
             for row in range(3)
         ],
         dtype=np.complex128,

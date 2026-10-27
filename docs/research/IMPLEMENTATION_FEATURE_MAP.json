@@ -1591,19 +1591,17 @@
     {
       "backlog_line": 264,
       "backlog_status": "open",
-      "description": "Complete confidence-controlled tests for remaining profile/configuration/topology combinations and criteria at the gate's required statistical unit; do not mistake deterministic table checks or helper self-consistency for a population qualification. Frozen software protocols now include fixed-TDL proper-complex and temporal covariance checks, scalable TDL temporal covariance, and a scalable TDL Doppler-spectrum CDF family (five audited seeds; `docs/research/G4_07_SCALABLE_TDL_DOPPLER_SPECTRUM_PROTOCOL_V1_2026-10-27.md`). The Doppler spectrum's four portable cases pass; all new native statistical generation remains deferred until consolidated validation, and G4 qualification remains open.",
+      "description": "Complete confidence-controlled tests for remaining profile/configuration/topology combinations and criteria at the gate's required statistical unit; do not mistake deterministic table checks or helper self-consistency for a population qualification. Frozen software protocols now include fixed-TDL proper-complex, temporal covariance, and Doppler-spectrum CDF checks; scalable TDL temporal covariance and a scalable TDL Doppler-spectrum CDF family are also defined. The shared Doppler estimator's four portable cases pass, and the fixed-profile tap roster comes from the independent TS 38.101-4 fixture. All native statistical generation remains deferred until consolidated validation, and G4 qualification remains open.",
       "evidence_links": {
         "cli_entries": [],
-        "documentation": [
-          "docs/research/G4_07_SCALABLE_TDL_DOPPLER_SPECTRUM_PROTOCOL_V1_2026-10-27.md"
-        ],
+        "documentation": [],
         "other_files": [],
         "regression_files": [],
         "schemas": [],
         "source_modules": []
       },
       "feature_id": "PKG05-014",
-      "link_status": "linked",
+      "link_status": "unmapped",
       "package": {
         "number": 5,
         "title": "G4 — standardized channel model and statistical conformance"
@@ -4122,13 +4120,13 @@
   "schema": "loslab.implementation_feature_map.v1",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "eaf2983fbbc2fdddf75cbea4fc4af11930d0df66e0c0809be72ca197e97f3966"
+    "sha256": "581b559721c394ebf92c190038152520806cbcef70a63107a90c7e3ba775f0dd"
   },
   "summary": {
     "feature_count": 176,
-    "linked_count": 18,
+    "linked_count": 17,
     "marked_done_count": 121,
     "open_count": 55,
-    "unmapped_count": 158
+    "unmapped_count": 159
   }
 }
