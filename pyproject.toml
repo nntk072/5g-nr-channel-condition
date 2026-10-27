@@ -25,6 +25,7 @@ plots = ["matplotlib>=3.8,<4", "Pillow>=10"]
 [project.scripts]
 loslab = "loslab.__main__:main"
 loslab-audit-channel-population = "scripts.audit_channel_population:main"
+loslab-runtime-inventory = "integrations.runtime_inventory:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

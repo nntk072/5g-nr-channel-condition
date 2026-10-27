@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/nntk072/5g-nr-channel-condition/datasets/schema/runtime-inventory.v1.schema.json",
+  "title": "UMCD runtime inventory v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "status", "python", "platform", "source", "distributions", "accelerator", "qualification"],
+  "properties": {
+    "schema": {"const": "umcd.runtime_inventory.v1"},
+    "status": {"const": "SELF_REPORTED_INTEGRITY_ONLY"},
+    "python": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["implementation", "version", "executable"],
+      "properties": {
+        "implementation": {"type": "string", "minLength": 1},
+        "version": {"type": "string", "minLength": 1},
+        "executable": {"type": "string", "minLength": 1}
+      }
+    },
+    "platform": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system", "release", "machine"],
+      "properties": {
+        "system": {"type": "string"},
+        "release": {"type": "string"},
+        "machine": {"type": "string"}
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pyproject.toml", "uv.lock", "git_commit", "tracked_worktree_clean"],
+      "properties": {
+        "pyproject.toml": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"},
+        "uv.lock": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"},
+        "git_commit": {"type": ["string", "null"]},
+        "tracked_worktree_clean": {"type": ["boolean", "null"]}
+      }
+    },
+    "distributions": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "installed"],
+            "properties": {"name": {"type": "string"}, "installed": {"const": false}}
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "installed", "version", "identity_completeness", "distribution_metadata_sha256", "identity_files", "model_table_count", "model_tables_sha256", "model_tables"],
+            "properties": {
+              "name": {"type": "string"},
+              "installed": {"const": true},
+              "version": {"type": "string", "minLength": 1},
+              "identity_completeness": {"enum": ["COMPLETE", "INCOMPLETE"]},
+              "distribution_metadata_sha256": {"$ref": "#/$defs/sha256"},
+              "identity_files": {"type": "object", "additionalProperties": {"$ref": "#/$defs/sha256"}},
+              "model_table_count": {"type": "integer", "minimum": 0},
+              "model_tables_sha256": {"$ref": "#/$defs/sha256"},
+              "model_tables": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["path", "sha256"],
+                  "properties": {"path": {"type": "string"}, "sha256": {"$ref": "#/$defs/sha256"}}
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "accelerator": {
+      "type": "object",
+      "required": ["probed", "status"],
+      "properties": {
+        "probed": {"type": "boolean"},
+        "status": {"enum": ["NOT_PROBED", "TORCH_UNAVAILABLE", "CUDA_AVAILABLE", "CUDA_UNAVAILABLE"]},
+        "torch_version": {"type": "string"},
+        "torch_cuda_build": {"type": ["string", "null"]},
+        "cuda_available": {"type": "boolean"},
+        "devices": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["index", "name", "compute_capability", "total_memory_bytes"],
+            "properties": {
+              "index": {"type": "integer", "minimum": 0},
+              "name": {"type": "string"},
+              "compute_capability": {"type": "array", "prefixItems": [{"type": "integer"}, {"type": "integer"}], "minItems": 2, "maxItems": 2},
+              "total_memory_bytes": {"type": "integer", "minimum": 0}
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "qualification": {"const": "NOT_QUALIFIED"}
+  },
+  "$defs": {"sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}
+}
