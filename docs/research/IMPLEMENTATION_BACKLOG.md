@@ -204,11 +204,11 @@ Gate checkboxes in the master plan describe acceptance evidence, not necessarily
 
 ### 3. G2 — path oracle, channel gauge, arrays, and canonical persistence
 
-- [ ] Complete native `Paths` API/version adapters with shape, dtype, valid-mask, padding, normalization, and path-source assertions.
+- [ ] Complete native `Paths` API/version adapters with shape, dtype, valid-mask, padding, normalization, and path-source assertions. `sionna_paths_to_oracle_table` now requires Boolean validity, real floating coefficient/delay/Doppler/angle/vertex fields, and integer interaction/object/primitive fields before conversion; invalid padded entries remain excluded by the validity/interaction masks. Four dependency-light adapter tests pass. Native SISO/MIMO version parity, normalization semantics, and source/budget lineage checks remain open.
 - [ ] Complete absolute delay/phase/power reconstruction and same-path-set direct/indirect decomposition; preserve raw solver-valid multiplicity and solver-budget provenance.
 - [ ] Complete analytical single/multiple-path checks for close delays, coherent nulls, nonzero reference offsets, link-budget coefficients, frequency ordering, and DC/guard/odd-even FFT mappings.
 - [ ] Complete explicit/synthetic array comparison for near/far field, dual polarization, basis rotations, port order, and named axis conventions.
-- [ ] Complete sparse variable-size path/channel serialization, lossless dtype-safe round trips, zero-path handling, checksums, atomic publish, and compatibility for existing single-link records. `PathOracleTable` already stores unpadded ragged path groups and explicit zero-path outcomes; it now also rejects padded link, path-kind, interaction-frame, and coefficient-convention identities before they can enter join/provenance keys. Twelve focused path-oracle regressions and Ruff pass. Native `Paths` adapter parity, remaining sparse channel formats, and legacy single-link compatibility remain open.
+- [ ] Complete sparse variable-size path/channel serialization, lossless dtype-safe round trips, zero-path handling, checksums, atomic publish, and compatibility for existing single-link records. `PathOracleTable` already stores unpadded ragged path groups and explicit zero-path outcomes; it also rejects padded link, path-kind, interaction-frame, and coefficient-convention identities before they can enter join/provenance keys. Remaining sparse channel formats and legacy single-link compatibility remain open.
 - [ ] Integrate geometry-derived LOS separately from solver-found direct paths and standardized-model LOS proxies.
 
 ### 4. G3 — criterion-driven comparison and admission software

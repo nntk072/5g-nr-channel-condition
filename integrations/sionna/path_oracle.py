@@ -19,6 +19,22 @@ def _numpy(value: Any) -> np.ndarray:
     return np.asarray(value)
 
 
+def _real_numeric(value: Any, *, name: str) -> np.ndarray:
+    """Require a real floating Paths field without coercing aliases or complex data."""
+    array = _numpy(value)
+    if array.dtype.kind != "f":
+        raise TypeError(f"Sionna Paths.{name} must use a real floating dtype")
+    return array
+
+
+def _integer_numeric(value: Any, *, name: str) -> np.ndarray:
+    """Require an integer Paths field before converting it to the table's int64 domain."""
+    array = _numpy(value)
+    if array.dtype.kind not in "iu":
+        raise TypeError(f"Sionna Paths.{name} must use an integer dtype")
+    return array
+
+
 def _port_shape(value: np.ndarray, target: tuple[int, ...], *, name: str) -> np.ndarray:
     """Broadcast a Sionna path field to [rx, rx_port, tx, tx_port, path]."""
     if value.ndim == 3:
@@ -98,37 +114,58 @@ def sionna_paths_to_oracle_table(
     if solve_status is not None and not isinstance(solve_status, PathSolveStatus):
         raise TypeError("solve_status must be a PathSolveStatus value or None")
 
-    valid = _numpy(getattr(paths, "valid")).astype(bool, copy=False)
+    valid = _numpy(getattr(paths, "valid"))
+    if valid.dtype.kind != "b":
+        raise TypeError("Sionna Paths.valid must use a Boolean dtype")
     gain_components = getattr(paths, "a")
     if not isinstance(gain_components, (tuple, list)) or len(gain_components) != 2:
         raise ValueError("Sionna Paths.a must contain real and imaginary components")
-    gain_real = _numpy(gain_components[0])
-    gain_imag = _numpy(gain_components[1])
+    gain_real = _real_numeric(gain_components[0], name="a.real")
+    gain_imag = _real_numeric(gain_components[1], name="a.imag")
     if gain_real.shape != gain_imag.shape or gain_real.ndim != 5:
         raise ValueError("Sionna path coefficients must have matching five-axis shapes")
     target_shape = gain_real.shape
     valid = _port_shape(valid, target_shape, name="valid")
-    delays = _port_shape(_numpy(getattr(paths, "tau")), target_shape, name="tau")
-    doppler = _port_shape(_numpy(getattr(paths, "doppler")), target_shape, name="doppler")
-    theta_t = _port_shape(_numpy(getattr(paths, "theta_t")), target_shape, name="theta_t")
-    phi_t = _port_shape(_numpy(getattr(paths, "phi_t")), target_shape, name="phi_t")
-    theta_r = _port_shape(_numpy(getattr(paths, "theta_r")), target_shape, name="theta_r")
-    phi_r = _port_shape(_numpy(getattr(paths, "phi_r")), target_shape, name="phi_r")
+    delays = _port_shape(_real_numeric(getattr(paths, "tau"), name="tau"), target_shape, name="tau")
+    doppler = _port_shape(
+        _real_numeric(getattr(paths, "doppler"), name="doppler"), target_shape, name="doppler"
+    )
+    theta_t = _port_shape(
+        _real_numeric(getattr(paths, "theta_t"), name="theta_t"), target_shape, name="theta_t"
+    )
+    phi_t = _port_shape(
+        _real_numeric(getattr(paths, "phi_t"), name="phi_t"), target_shape, name="phi_t"
+    )
+    theta_r = _port_shape(
+        _real_numeric(getattr(paths, "theta_r"), name="theta_r"), target_shape, name="theta_r"
+    )
+    phi_r = _port_shape(
+        _real_numeric(getattr(paths, "phi_r"), name="phi_r"), target_shape, name="phi_r"
+    )
 
     try:
         from sionna.rt.constants import InteractionType
 
         interaction_slots = _interaction_shape(
-            _numpy(getattr(paths, "interactions")), target_shape, name="interactions"
+            _integer_numeric(getattr(paths, "interactions"), name="interactions"),
+            target_shape,
+            name="interactions",
         )
         object_slots = _interaction_shape(
-            _numpy(getattr(paths, "objects")), target_shape, name="objects"
+            _integer_numeric(getattr(paths, "objects"), name="objects"),
+            target_shape,
+            name="objects",
         )
         primitive_slots = _interaction_shape(
-            _numpy(getattr(paths, "primitives")), target_shape, name="primitives"
+            _integer_numeric(getattr(paths, "primitives"), name="primitives"),
+            target_shape,
+            name="primitives",
         )
         vertex_slots = _interaction_shape(
-            _numpy(getattr(paths, "vertices")), target_shape, name="vertices", xyz_axis=True
+            _real_numeric(getattr(paths, "vertices"), name="vertices"),
+            target_shape,
+            name="vertices",
+            xyz_axis=True,
         )
         interaction_order = np.count_nonzero(interaction_slots != int(InteractionType.NONE), axis=0)
     except ImportError as error:
