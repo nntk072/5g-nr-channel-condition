@@ -466,6 +466,55 @@ def test_received_waveform_composition_applies_per_link_power_gain_once():
     )
 
 
+def test_received_waveform_composition_applies_cfo_on_capture_timeline():
+    links = torch.ones((1, 1, 1, 1, 4), dtype=torch.complex128)
+    composition = compose_received_waveforms(
+        links,
+        link_start_samples=((2,),),
+        capture_num_samples=6,
+        sample_rate_hz=8.0,
+        link_cfo_hz=((2.0,),),
+        link_initial_phase_rad=((torch.pi / 2,),),
+    )
+
+    torch.testing.assert_close(
+        composition.received_waveform[0, 0, 0],
+        torch.tensor([0, 0, -1j, 1, 1j, -1], dtype=torch.complex128),
+        rtol=1e-14,
+        atol=1e-14,
+    )
+    torch.testing.assert_close(composition.link_cfo_hz, torch.tensor([[2.0]], dtype=torch.float64))
+    torch.testing.assert_close(
+        composition.link_initial_phase_rad,
+        torch.tensor([[torch.pi / 2]], dtype=torch.float64),
+    )
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"link_cfo_hz": ((True,),)},
+        {"link_cfo_hz": ((1.0, 2.0),)},
+        {"link_cfo_hz": ((1.0 + 0.0j,),)},
+        {"link_cfo_hz": ((float("inf"),),)},
+        {"link_cfo_hz": ((1e308,),), "sample_rate_hz": 1e-308},
+        {"link_initial_phase_rad": ((False,),)},
+        {"link_initial_phase_rad": ((0.0, 1.0),)},
+        {"link_initial_phase_rad": ((float("nan"),),)},
+    ],
+)
+def test_received_waveform_composition_rejects_invalid_link_oscillators(kwargs):
+    links = torch.ones((1, 1, 1, 1, 4), dtype=torch.complex64)
+    args = {
+        "link_start_samples": ((0,),),
+        "capture_num_samples": 4,
+        "sample_rate_hz": 30.72e6,
+    }
+    args.update(kwargs)
+    with pytest.raises((TypeError, ValueError)):
+        compose_received_waveforms(links, **args)
+
+
 @pytest.mark.parametrize(
     "kwargs",
     [

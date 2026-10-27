@@ -219,9 +219,10 @@ class NetworkWaveformComposition:
     ``received_waveform`` sums the transmitter axis. Each input link waveform
     is assumed already scaled and channel-filtered. ``link_start_samples``
     gives the integer offset of each link's first sample relative to capture
-    sample zero. All links must use the same sample rate and carrier/numerology;
-    this helper aligns sample clocks but does not model fractional delay, CFO,
-    adjacent-channel leakage, or nonlinear RF effects.
+    sample zero. All links must use the same sample rate and carrier/numerology.
+    Per-link residual CFO and initial phase are applied on the shared capture
+    timeline; this helper does not model fractional delay, adjacent-channel
+    leakage, or nonlinear RF effects.
     """
 
     source_contributions: Any
@@ -229,6 +230,8 @@ class NetworkWaveformComposition:
     link_start_samples: Any
     link_power_gain_linear: Any
     sample_rate_hz: float
+    link_cfo_hz: Any
+    link_initial_phase_rad: Any
 
 
 @dataclass(frozen=True, slots=True)
@@ -532,6 +535,8 @@ def compose_received_waveforms(
     capture_num_samples: int,
     sample_rate_hz: float,
     link_power_gain_linear: Any | None = None,
+    link_cfo_hz: Any | None = None,
+    link_initial_phase_rad: Any | None = None,
     max_output_elements: int = 64_000_000,
 ) -> NetworkWaveformComposition:
     """Align and sum already propagated transmitter waveforms at each receiver.
@@ -543,9 +548,12 @@ def compose_received_waveforms(
     its square root is applied once to the waveform amplitude. Positive start
     offsets insert leading zeros; negative offsets clip samples that arrived
     before the capture window. Samples outside the capture are discarded. The
-    function does not apply a channel or RF-impairment model; apply those per
-    link before calling it. Do not pass an already path-loss-scaled waveform
-    together with its gain matrix.
+    Optional CFO and initial phase arrays have ``[rx, tx]`` axes. They describe
+    each link's residual oscillator relative to capture time zero and are
+    applied after integer alignment, so delayed links accrue phase over their
+    arrival time. This does not model fractional delay, phase-noise evolution,
+    adjacent-channel leakage, or nonlinear RF effects. Do not pass an already
+    path-loss-scaled waveform together with its gain matrix.
 
     The output is bounded by ``max_output_elements`` across both retained link
     contributions and the receiver sum, before allocating the capture tensors.
@@ -615,6 +623,34 @@ def compose_received_waveforms(
             name="link_power_gain_linear",
             nonnegative=True,
         )
+    if link_cfo_hz is None:
+        cfo = torch.zeros((rx_count, tx_count), dtype=torch.float64, device=link_waveforms.device)
+    else:
+        cfo = _validated_real_values(
+            torch,
+            link_cfo_hz,
+            shape=(rx_count, tx_count),
+            device=link_waveforms.device,
+            name="link_cfo_hz",
+        )
+    if link_initial_phase_rad is None:
+        initial_phase = torch.zeros(
+            (rx_count, tx_count), dtype=torch.float64, device=link_waveforms.device
+        )
+    else:
+        initial_phase = _validated_real_values(
+            torch,
+            link_initial_phase_rad,
+            shape=(rx_count, tx_count),
+            device=link_waveforms.device,
+            name="link_initial_phase_rad",
+        )
+    cycles_per_sample = cfo / float(sample_rate_hz)
+    if not bool(torch.isfinite(cycles_per_sample).all()):
+        raise ValueError("link CFO divided by sample rate must be representable in float64")
+    # Reduce before multiplying by sample indices to avoid overflow for large
+    # finite CFO values while preserving their sampled phase progression.
+    cycles_per_sample = torch.remainder(cycles_per_sample, 1.0)
     amplitude_gain = torch.sqrt(power_gain)
     waveform_gain = amplitude_gain.to(dtype=link_waveforms.real.dtype)
     if not bool(torch.isfinite(waveform_gain).all()) or bool(
@@ -644,6 +680,19 @@ def compose_received_waveforms(
                 capture_num_samples - destination_start,
             )
             if sample_count > 0:
+                destination_indices = torch.arange(
+                    destination_start,
+                    destination_start + sample_count,
+                    dtype=torch.float64,
+                    device=link_waveforms.device,
+                )
+                cycles = torch.remainder(
+                    cycles_per_sample[rx_index, tx_index] * destination_indices
+                    + initial_phase[rx_index, tx_index] / (2.0 * math.pi),
+                    1.0,
+                )
+                phase = (2.0 * math.pi * cycles).to(dtype=link_waveforms.real.dtype)
+                oscillator = torch.polar(torch.ones_like(phase), phase)
                 contributions[
                     :, rx_index, :, tx_index, destination_start : destination_start + sample_count
                 ] = (
@@ -651,6 +700,7 @@ def compose_received_waveforms(
                         :, rx_index, tx_index, :, source_start : source_start + sample_count
                     ]
                     * waveform_gain[rx_index, tx_index]
+                    * oscillator
                 )
     received = contributions.sum(dim=3)
     if not bool(torch.isfinite(contributions).all()) or not bool(torch.isfinite(received).all()):
@@ -661,6 +711,8 @@ def compose_received_waveforms(
         link_start_samples=offsets,
         link_power_gain_linear=power_gain,
         sample_rate_hz=float(sample_rate_hz),
+        link_cfo_hz=cfo,
+        link_initial_phase_rad=initial_phase,
     )
 
 
