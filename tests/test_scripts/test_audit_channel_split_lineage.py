@@ -1145,6 +1145,53 @@ def test_child_artifact_semantic_rows_must_match_frozen_child_and_parent(tmp_pat
         )
 
 
+@pytest.mark.parametrize(
+    ("array_change", "message"),
+    [
+        (lambda arrays: arrays.update(h=np.ones((2, 1, 8), dtype=np.complex64)), "row counts"),
+        (lambda arrays: arrays.update(h=np.ones((1, 1, 8), dtype=np.float32)), "invalid shapes or dtypes"),
+        (lambda arrays: arrays.update(group=np.asarray(["parent-1", "extra"])), "row counts"),
+    ],
+)
+def test_child_artifact_semantic_rows_bind_metadata_to_array_headers(
+    tmp_path, array_change, message: str
+) -> None:
+    artifact_root = tmp_path / "artifacts"
+    artifact_root.mkdir()
+    dataset_path = artifact_root / "child.npz"
+    ChannelDataset(
+        h=np.ones((1, 1, 8), dtype=np.complex64),
+        y=np.zeros(1, dtype=np.uint8),
+        group=np.asarray(["parent-1"]),
+        domain=np.asarray(["fixture"]),
+        source=np.asarray(["synthetic"]),
+        metadata=(
+            {
+                "split_subject_id": "parent-1",
+                "split_child_id": "child-1",
+                "split_child_kind": "receiver_observation",
+            },
+        ),
+    ).save(dataset_path)
+    with np.load(dataset_path, allow_pickle=False) as archive:
+        arrays = {name: archive[name] for name in archive.files}
+    array_change(arrays)
+    with dataset_path.open("wb") as stream:
+        np.savez_compressed(stream, **arrays)
+
+    payload = dataset_path.read_bytes()
+    with pytest.raises(ValueError, match=message):
+        _read_channel_dataset_child_rows(
+            artifact_root,
+            "child.npz",
+            child_id="child-1",
+            child_kind="receiver_observation",
+            parent_subject_id="parent-1",
+            expected_bytes=len(payload),
+            expected_sha256=hashlib.sha256(payload).hexdigest(),
+        )
+
+
 def _write_legacy_rt_dataset(path, *, tx_name: str, rx_x: float, scene_hash: str) -> None:
     scene_config = {"name": "legacy-city43", "block_size_m": 20.0}
     assets = [{"path": "legacy-city43.xml", "bytes": 1, "sha256": scene_hash}]

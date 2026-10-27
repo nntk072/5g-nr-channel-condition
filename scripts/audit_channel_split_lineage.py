@@ -7,6 +7,7 @@ import errno
 import hashlib
 import io
 import json
+import math
 import os
 import re
 import stat
@@ -39,6 +40,7 @@ _GIT_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 _REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 _MAX_CHILD_ROSTER_BYTES = 16 * 1024 * 1024
 _MAX_CHILD_METADATA_NPY_BYTES = 64 * 1024 * 1024
+_MAX_CHILD_ARRAY_HEADER_BYTES = 64 * 1024
 _MAX_CHILD_ARTIFACT_TREE_FILES = 100_000
 _MAX_CHILD_ARTIFACT_TREE_DEPTH = 32
 _V3_SEMANTIC_CHILD_ARTIFACT_TYPES = frozenset(
@@ -391,16 +393,32 @@ def _read_channel_dataset_child_rows(
         os.lseek(file_descriptor, 0, os.SEEK_SET)
         with os.fdopen(file_descriptor, "rb") as stream:
             file_descriptor = -1
+            observed_shapes: dict[str, tuple[int, ...]] = {}
+            observed_dtypes: dict[str, np.dtype[Any]] = {}
             try:
                 with zipfile.ZipFile(stream) as archive:
-                    metadata_members = [
-                        entry for entry in archive.infolist() if entry.filename == "metadata_json.npy"
-                    ]
-                    if len(metadata_members) != 1:
+                    members: dict[str, zipfile.ZipInfo] = {}
+                    for entry in archive.infolist():
+                        if not entry.filename.endswith(".npy"):
+                            raise ValueError(
+                                f"split child artifact {child_id!r} has an unexpected NPZ member"
+                            )
+                        name = entry.filename[:-4]
+                        if name in members:
+                            raise ValueError(
+                                f"split child artifact {child_id!r} repeats array {name!r}"
+                            )
+                        members[name] = entry
+                    required_members = {"h", "y", "group", "domain", "source", "metadata_json"}
+                    optional_members = {"generation_report_json", "label_semantics_json"}
+                    if (
+                        not required_members.issubset(members)
+                        or set(members) - required_members - optional_members
+                    ):
                         raise ValueError(
-                            f"split child artifact {child_id!r} must contain one metadata_json.npy"
+                            f"split child artifact {child_id!r} has an invalid ChannelDataset array roster"
                         )
-                    metadata_member = metadata_members[0]
+                    metadata_member = members["metadata_json"]
                     if metadata_member.file_size > _MAX_CHILD_METADATA_NPY_BYTES:
                         raise ValueError(
                             f"split child artifact {child_id!r} metadata exceeds 64 MiB"
@@ -413,6 +431,40 @@ def _read_channel_dataset_child_rows(
                         raise ValueError(
                             f"split child artifact {child_id!r} metadata exceeds 64 MiB"
                         )
+                    for name, member in members.items():
+                        try:
+                            with archive.open(member) as array_stream:
+                                version = np.lib.format.read_magic(array_stream)
+                                if version == (1, 0):
+                                    shape, _fortran_order, dtype = (
+                                        np.lib.format.read_array_header_1_0(
+                                            array_stream,
+                                            max_header_size=_MAX_CHILD_ARRAY_HEADER_BYTES,
+                                        )
+                                    )
+                                elif version in {(2, 0), (3, 0)}:
+                                    shape, _fortran_order, dtype = (
+                                        np.lib.format.read_array_header_2_0(
+                                            array_stream,
+                                            max_header_size=_MAX_CHILD_ARRAY_HEADER_BYTES,
+                                        )
+                                    )
+                                else:
+                                    raise ValueError("unsupported NPY version")
+                                expected_member_bytes = array_stream.tell() + (
+                                    math.prod(shape) * np.dtype(dtype).itemsize
+                                )
+                                if expected_member_bytes != member.file_size:
+                                    raise ValueError(
+                                        "NPY header shape/dtype disagrees with member size"
+                                    )
+                                observed_shapes[name] = tuple(shape)
+                                observed_dtypes[name] = np.dtype(dtype)
+                        except (EOFError, OSError, ValueError, zipfile.BadZipFile) as error:
+                            raise ValueError(
+                                f"split child artifact {child_id!r} array {name!r} "
+                                "has an invalid NPY header"
+                            ) from error
             except (OSError, zipfile.BadZipFile, RuntimeError, zlib.error) as error:
                 raise ValueError(
                     f"split child artifact {child_id!r} is not a readable ChannelDataset NPZ"
@@ -439,6 +491,47 @@ def _read_channel_dataset_child_rows(
             ) from error
         if not isinstance(rows, list) or not rows:
             raise ValueError(f"split child artifact {child_id!r} must contain at least one row")
+
+        # Inspect every persisted array header without materializing the channel
+        # tensor.  The signed byte digest authenticates the artifact bytes; this
+        # check binds the row metadata to the actual storage shapes and dtypes.
+        expected_rows = len(rows)
+        expected_array_shapes: dict[str, tuple[int, ...]] = {
+            "h": (expected_rows,),
+            "y": (expected_rows,),
+            "group": (expected_rows,),
+            "domain": (expected_rows,),
+            "source": (expected_rows,),
+            "metadata_json": (),
+        }
+        for optional_scalar in ("generation_report_json", "label_semantics_json"):
+            if optional_scalar in members:
+                expected_array_shapes[optional_scalar] = ()
+        if any(
+            observed_shapes.get(name, ())[:1] != shape
+            for name, shape in expected_array_shapes.items()
+        ):
+            raise ValueError(
+                f"split child artifact {child_id!r} array row counts disagree with metadata"
+            )
+        if (
+            len(observed_shapes["h"]) != 3
+            or observed_shapes["h"][0] != expected_rows
+            or observed_shapes["h"][1] < 1
+            or observed_shapes["h"][2] < 8
+            or observed_dtypes["h"].kind != "c"
+            or observed_dtypes["y"].kind not in "biuf"
+            or any(observed_dtypes[name].kind != "U" for name in ("group", "domain", "source"))
+            or observed_dtypes["metadata_json"].kind != "U"
+            or any(
+                observed_dtypes[name].kind != "U"
+                for name in ("generation_report_json", "label_semantics_json")
+                if name in members
+            )
+        ):
+            raise ValueError(
+                f"split child artifact {child_id!r} arrays have invalid shapes or dtypes"
+            )
         for row_index, row in enumerate(rows):
             if not isinstance(row, dict):
                 raise ValueError(f"split child artifact {child_id!r} row {row_index} is not an object")
