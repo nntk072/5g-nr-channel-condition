@@ -3,17 +3,21 @@
     {
       "backlog_line": 178,
       "backlog_status": "open",
-      "description": "Turn this backlog into a fully traceable feature map. **Partial:** `scripts.build_implementation_feature_map` indexes all 176 checklist rows by package/gate, categorizes explicitly referenced repository paths, marks missing links `unmapped`, and keeps checkbox claims separate from scientific qualification. It writes `docs/research/IMPLEMENTATION_FEATURE_MAP.json`; `loslab-build-implementation-feature-map --check` detects stale output. The current snapshot has 13 linked and 163 unmapped rows, so manual links to source modules, schemas, CLI entries, regression files, and plan gates plus audited implementation-status reconciliation remain open.",
+      "description": "Turn this backlog into a fully traceable feature map. **Partial:** `scripts.build_implementation_feature_map` indexes all 176 checklist rows by package/plan gate, resolves explicitly referenced repository paths, dotted Python module names, and registered `pyproject.toml` CLI entry points, and marks unresolved rows `unmapped`. It writes `docs/research/IMPLEMENTATION_FEATURE_MAP.json`; `loslab-build-implementation-feature-map --check` detects stale output. The current snapshot has 15 linked and 161 unmapped rows, so evidence links for remaining sources, schemas, CLI entries, regression files, plus audited implementation-status reconciliation remain open. Checkbox state is not scientific qualification.",
       "evidence_links": {
-        "cli_entries": [],
+        "cli_entries": [
+          "scripts/build_implementation_feature_map.py"
+        ],
         "documentation": [],
-        "other_files": [],
+        "other_files": [
+          "pyproject.toml"
+        ],
         "regression_files": [],
         "schemas": [],
         "source_modules": []
       },
       "feature_id": "PKG00-001",
-      "link_status": "unmapped",
+      "link_status": "linked",
       "package": {
         "number": 0,
         "title": "Make the implementation inventory executable"
@@ -111,7 +115,7 @@
         "title": "G0 — runtime, source identity, assets, provenance, and licensing"
       },
       "plan_gates": [
-        "backlog-package-1"
+        "G0"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -134,7 +138,7 @@
         "title": "G0 — runtime, source identity, assets, provenance, and licensing"
       },
       "plan_gates": [
-        "backlog-package-1"
+        "G0"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -157,7 +161,7 @@
         "title": "G0 — runtime, source identity, assets, provenance, and licensing"
       },
       "plan_gates": [
-        "backlog-package-1"
+        "G0"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -166,7 +170,9 @@
       "backlog_status": "open",
       "description": "Finish dependency/API compatibility matrix and exact native source, wheel, runtime, and model-table identities. `integrations.runtime_inventory` and `loslab-runtime-inventory` bind lock/config bytes, installed distribution RECORD/WHEEL/direct-URL identities, Sionna TR 38.901 model-table bytes, Python/platform, Git revision, and optional CUDA device metadata under schema v2. Schema v3 adds opt-in Linux loaded-ELF file identity from `/proc/self/maps`, bounded to 1-GiB per file and 8-GiB total with explicit incomplete status; a live CUDA/PHY probe hashed 130 files completely. Its opt-in `integrations.runtime_compatibility` check covers every currently used Sionna PHY/RT, Mitsuba, and Dr.Jit export against pinned versions. In the PHY-only environment the PHY probe is compatible and the RT probe reports missing `sionna-rt` before attempting RT imports. The scene-asset manifest hashes each local asset from one stable descriptor using bounded streaming (2-GiB per asset/8-GiB total defaults). See `docs/research/RUNTIME_INVENTORY_WORKFLOW.md` and `docs/research/RT_SCENE_ASSET_IDENTITY.md`. Full dependency-matrix coverage, independent runtime attestation, and trust admission remain open.",
       "evidence_links": {
-        "cli_entries": [],
+        "cli_entries": [
+          "loslab-runtime-inventory -> integrations.runtime_inventory:main (integrations/runtime_inventory.py)"
+        ],
         "documentation": [
           "docs/research/RT_SCENE_ASSET_IDENTITY.md",
           "docs/research/RUNTIME_INVENTORY_WORKFLOW.md"
@@ -174,7 +180,10 @@
         "other_files": [],
         "regression_files": [],
         "schemas": [],
-        "source_modules": []
+        "source_modules": [
+          "integrations/runtime_compatibility.py",
+          "integrations/runtime_inventory.py"
+        ]
       },
       "feature_id": "PKG01-004",
       "link_status": "linked",
@@ -183,7 +192,7 @@
         "title": "G0 — runtime, source identity, assets, provenance, and licensing"
       },
       "plan_gates": [
-        "backlog-package-1"
+        "G0"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -206,7 +215,7 @@
         "title": "G0 — runtime, source identity, assets, provenance, and licensing"
       },
       "plan_gates": [
-        "backlog-package-1"
+        "G0"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -229,7 +238,7 @@
         "title": "G0 — runtime, source identity, assets, provenance, and licensing"
       },
       "plan_gates": [
-        "backlog-package-1"
+        "G0"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -252,7 +261,7 @@
         "title": "G0 — runtime, source identity, assets, provenance, and licensing"
       },
       "plan_gates": [
-        "backlog-package-1"
+        "G0"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -275,7 +284,7 @@
         "title": "G0 — runtime, source identity, assets, provenance, and licensing"
       },
       "plan_gates": [
-        "backlog-package-1"
+        "G0"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -289,16 +298,18 @@
         "other_files": [],
         "regression_files": [],
         "schemas": [],
-        "source_modules": []
+        "source_modules": [
+          "propagation/scene_visibility.py"
+        ]
       },
       "feature_id": "PKG02-001",
-      "link_status": "unmapped",
+      "link_status": "linked",
       "package": {
         "number": 2,
         "title": "G1 — geometry, scene identity, and visibility truth"
       },
       "plan_gates": [
-        "backlog-package-2"
+        "G1"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -321,7 +332,7 @@
         "title": "G1 — geometry, scene identity, and visibility truth"
       },
       "plan_gates": [
-        "backlog-package-2"
+        "G1"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -344,7 +355,7 @@
         "title": "G1 — geometry, scene identity, and visibility truth"
       },
       "plan_gates": [
-        "backlog-package-2"
+        "G1"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -367,7 +378,7 @@
         "title": "G1 — geometry, scene identity, and visibility truth"
       },
       "plan_gates": [
-        "backlog-package-2"
+        "G1"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -390,7 +401,7 @@
         "title": "G1 — geometry, scene identity, and visibility truth"
       },
       "plan_gates": [
-        "backlog-package-2"
+        "G1"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -413,7 +424,7 @@
         "title": "G2 — path oracle, channel gauge, arrays, and canonical persistence"
       },
       "plan_gates": [
-        "backlog-package-3"
+        "G2"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -436,7 +447,7 @@
         "title": "G2 — path oracle, channel gauge, arrays, and canonical persistence"
       },
       "plan_gates": [
-        "backlog-package-3"
+        "G2"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -459,7 +470,7 @@
         "title": "G2 — path oracle, channel gauge, arrays, and canonical persistence"
       },
       "plan_gates": [
-        "backlog-package-3"
+        "G2"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -482,7 +493,7 @@
         "title": "G2 — path oracle, channel gauge, arrays, and canonical persistence"
       },
       "plan_gates": [
-        "backlog-package-3"
+        "G2"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -505,7 +516,7 @@
         "title": "G2 — path oracle, channel gauge, arrays, and canonical persistence"
       },
       "plan_gates": [
-        "backlog-package-3"
+        "G2"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -528,7 +539,7 @@
         "title": "G2 — path oracle, channel gauge, arrays, and canonical persistence"
       },
       "plan_gates": [
-        "backlog-package-3"
+        "G2"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -551,7 +562,7 @@
         "title": "G3 — criterion-driven comparison and admission software"
       },
       "plan_gates": [
-        "backlog-package-4"
+        "G3"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -597,7 +608,7 @@
         "title": "G3 — criterion-driven comparison and admission software"
       },
       "plan_gates": [
-        "backlog-package-4"
+        "G3"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -646,7 +657,7 @@
         "title": "G3 — criterion-driven comparison and admission software"
       },
       "plan_gates": [
-        "backlog-package-4"
+        "G3"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -692,7 +703,7 @@
         "title": "G3 — criterion-driven comparison and admission software"
       },
       "plan_gates": [
-        "backlog-package-4"
+        "G3"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -738,7 +749,7 @@
         "title": "G3 — criterion-driven comparison and admission software"
       },
       "plan_gates": [
-        "backlog-package-4"
+        "G3"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -807,7 +818,7 @@
         "title": "G3 — criterion-driven comparison and admission software"
       },
       "plan_gates": [
-        "backlog-package-4"
+        "G3"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -830,7 +841,7 @@
         "title": "G3 — criterion-driven comparison and admission software"
       },
       "plan_gates": [
-        "backlog-package-4"
+        "G3"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -922,7 +933,7 @@
         "title": "G3 — criterion-driven comparison and admission software"
       },
       "plan_gates": [
-        "backlog-package-4"
+        "G3"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -945,7 +956,7 @@
         "title": "G3 — criterion-driven comparison and admission software"
       },
       "plan_gates": [
-        "backlog-package-4"
+        "G3"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -968,7 +979,7 @@
         "title": "G3 — criterion-driven comparison and admission software"
       },
       "plan_gates": [
-        "backlog-package-4"
+        "G3"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -991,7 +1002,7 @@
         "title": "G3 — criterion-driven comparison and admission software"
       },
       "plan_gates": [
-        "backlog-package-4"
+        "G3"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -1014,7 +1025,7 @@
         "title": "G3 — criterion-driven comparison and admission software"
       },
       "plan_gates": [
-        "backlog-package-4"
+        "G3"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -1037,7 +1048,7 @@
         "title": "G3 — criterion-driven comparison and admission software"
       },
       "plan_gates": [
-        "backlog-package-4"
+        "G3"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -1083,7 +1094,7 @@
         "title": "G3 — criterion-driven comparison and admission software"
       },
       "plan_gates": [
-        "backlog-package-4"
+        "G3"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -1106,7 +1117,7 @@
         "title": "G3 — criterion-driven comparison and admission software"
       },
       "plan_gates": [
-        "backlog-package-4"
+        "G3"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -1129,7 +1140,7 @@
         "title": "G3 — criterion-driven comparison and admission software"
       },
       "plan_gates": [
-        "backlog-package-4"
+        "G3"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -1152,7 +1163,7 @@
         "title": "G3 — criterion-driven comparison and admission software"
       },
       "plan_gates": [
-        "backlog-package-4"
+        "G3"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -1175,7 +1186,7 @@
         "title": "G3 — criterion-driven comparison and admission software"
       },
       "plan_gates": [
-        "backlog-package-4"
+        "G3"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -1221,7 +1232,7 @@
         "title": "G3 — criterion-driven comparison and admission software"
       },
       "plan_gates": [
-        "backlog-package-4"
+        "G3"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -1293,7 +1304,7 @@
         "title": "G4 — standardized channel model and statistical conformance"
       },
       "plan_gates": [
-        "backlog-package-5"
+        "G4"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -1339,7 +1350,7 @@
         "title": "G4 — standardized channel model and statistical conformance"
       },
       "plan_gates": [
-        "backlog-package-5"
+        "G4"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -1362,7 +1373,7 @@
         "title": "G4 — standardized channel model and statistical conformance"
       },
       "plan_gates": [
-        "backlog-package-5"
+        "G4"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -1408,7 +1419,7 @@
         "title": "G4 — standardized channel model and statistical conformance"
       },
       "plan_gates": [
-        "backlog-package-5"
+        "G4"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -1431,7 +1442,7 @@
         "title": "G4 — standardized channel model and statistical conformance"
       },
       "plan_gates": [
-        "backlog-package-5"
+        "G4"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -1454,7 +1465,7 @@
         "title": "G4 — standardized channel model and statistical conformance"
       },
       "plan_gates": [
-        "backlog-package-5"
+        "G4"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -1477,7 +1488,7 @@
         "title": "G4 — standardized channel model and statistical conformance"
       },
       "plan_gates": [
-        "backlog-package-5"
+        "G4"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -1500,7 +1511,7 @@
         "title": "G4 — standardized channel model and statistical conformance"
       },
       "plan_gates": [
-        "backlog-package-5"
+        "G4"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -1523,7 +1534,7 @@
         "title": "G4 — standardized channel model and statistical conformance"
       },
       "plan_gates": [
-        "backlog-package-5"
+        "G4"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -1569,7 +1580,7 @@
         "title": "G4 — standardized channel model and statistical conformance"
       },
       "plan_gates": [
-        "backlog-package-5"
+        "G4"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -1617,7 +1628,7 @@
         "title": "G4 — standardized channel model and statistical conformance"
       },
       "plan_gates": [
-        "backlog-package-5"
+        "G4"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -1640,7 +1651,7 @@
         "title": "G4 — standardized channel model and statistical conformance"
       },
       "plan_gates": [
-        "backlog-package-5"
+        "G4"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -1709,7 +1720,7 @@
         "title": "G4 — standardized channel model and statistical conformance"
       },
       "plan_gates": [
-        "backlog-package-5"
+        "G4"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -1732,7 +1743,7 @@
         "title": "G4 — standardized channel model and statistical conformance"
       },
       "plan_gates": [
-        "backlog-package-5"
+        "G4"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -1755,7 +1766,7 @@
         "title": "G4 — standardized channel model and statistical conformance"
       },
       "plan_gates": [
-        "backlog-package-5"
+        "G4"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -1778,7 +1789,7 @@
         "title": "G4 — standardized channel model and statistical conformance"
       },
       "plan_gates": [
-        "backlog-package-5"
+        "G4"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -1801,7 +1812,7 @@
         "title": "G4 — standardized channel model and statistical conformance"
       },
       "plan_gates": [
-        "backlog-package-5"
+        "G4"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -1853,7 +1864,7 @@
         "title": "G4 — standardized channel model and statistical conformance"
       },
       "plan_gates": [
-        "backlog-package-5"
+        "G4"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -1876,7 +1887,7 @@
         "title": "G5 — NR signals, observation chain, and receiver impact"
       },
       "plan_gates": [
-        "backlog-package-6"
+        "G5"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -1899,7 +1910,7 @@
         "title": "G5 — NR signals, observation chain, and receiver impact"
       },
       "plan_gates": [
-        "backlog-package-6"
+        "G5"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -1945,7 +1956,7 @@
         "title": "G5 — NR signals, observation chain, and receiver impact"
       },
       "plan_gates": [
-        "backlog-package-6"
+        "G5"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -1968,7 +1979,7 @@
         "title": "G5 — NR signals, observation chain, and receiver impact"
       },
       "plan_gates": [
-        "backlog-package-6"
+        "G5"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -1991,7 +2002,7 @@
         "title": "G5 — NR signals, observation chain, and receiver impact"
       },
       "plan_gates": [
-        "backlog-package-6"
+        "G5"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2014,7 +2025,7 @@
         "title": "G5 — NR signals, observation chain, and receiver impact"
       },
       "plan_gates": [
-        "backlog-package-6"
+        "G5"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2037,7 +2048,7 @@
         "title": "G5 — NR signals, observation chain, and receiver impact"
       },
       "plan_gates": [
-        "backlog-package-6"
+        "G5"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2083,7 +2094,7 @@
         "title": "G5 — NR signals, observation chain, and receiver impact"
       },
       "plan_gates": [
-        "backlog-package-6"
+        "G5"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2106,7 +2117,7 @@
         "title": "G5 — NR signals, observation chain, and receiver impact"
       },
       "plan_gates": [
-        "backlog-package-6"
+        "G5"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2129,7 +2140,7 @@
         "title": "G5 — NR signals, observation chain, and receiver impact"
       },
       "plan_gates": [
-        "backlog-package-6"
+        "G5"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2152,7 +2163,7 @@
         "title": "G5 — NR signals, observation chain, and receiver impact"
       },
       "plan_gates": [
-        "backlog-package-6"
+        "G5"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2175,7 +2186,7 @@
         "title": "G5 — NR signals, observation chain, and receiver impact"
       },
       "plan_gates": [
-        "backlog-package-6"
+        "G5"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2267,7 +2278,7 @@
         "title": "G5 — NR signals, observation chain, and receiver impact"
       },
       "plan_gates": [
-        "backlog-package-6"
+        "G5"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2313,7 +2324,7 @@
         "title": "G5 — NR signals, observation chain, and receiver impact"
       },
       "plan_gates": [
-        "backlog-package-6"
+        "G5"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2336,7 +2347,7 @@
         "title": "G5 — NR signals, observation chain, and receiver impact"
       },
       "plan_gates": [
-        "backlog-package-6"
+        "G5"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2359,7 +2370,7 @@
         "title": "G5 — NR signals, observation chain, and receiver impact"
       },
       "plan_gates": [
-        "backlog-package-6"
+        "G5"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2382,7 +2393,7 @@
         "title": "G5 — NR signals, observation chain, and receiver impact"
       },
       "plan_gates": [
-        "backlog-package-6"
+        "G5"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2405,7 +2416,7 @@
         "title": "G5 — NR signals, observation chain, and receiver impact"
       },
       "plan_gates": [
-        "backlog-package-6"
+        "G5"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2428,7 +2439,7 @@
         "title": "G5 — NR signals, observation chain, and receiver impact"
       },
       "plan_gates": [
-        "backlog-package-6"
+        "G5"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2451,7 +2462,7 @@
         "title": "G5 — NR signals, observation chain, and receiver impact"
       },
       "plan_gates": [
-        "backlog-package-6"
+        "G5"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2474,7 +2485,7 @@
         "title": "G5 — NR signals, observation chain, and receiver impact"
       },
       "plan_gates": [
-        "backlog-package-6"
+        "G5"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2497,7 +2508,7 @@
         "title": "G5 — NR signals, observation chain, and receiver impact"
       },
       "plan_gates": [
-        "backlog-package-6"
+        "G5"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2520,7 +2531,7 @@
         "title": "G5 — NR signals, observation chain, and receiver impact"
       },
       "plan_gates": [
-        "backlog-package-6"
+        "G5"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2612,7 +2623,7 @@
         "title": "G5 — NR signals, observation chain, and receiver impact"
       },
       "plan_gates": [
-        "backlog-package-6"
+        "G5"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2658,7 +2669,7 @@
         "title": "G6 — trajectories, future targets, multiband, and interventions"
       },
       "plan_gates": [
-        "backlog-package-7"
+        "G6"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2681,7 +2692,7 @@
         "title": "G6 — trajectories, future targets, multiband, and interventions"
       },
       "plan_gates": [
-        "backlog-package-7"
+        "G6"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2704,7 +2715,7 @@
         "title": "G6 — trajectories, future targets, multiband, and interventions"
       },
       "plan_gates": [
-        "backlog-package-7"
+        "G6"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2727,7 +2738,7 @@
         "title": "G6 — trajectories, future targets, multiband, and interventions"
       },
       "plan_gates": [
-        "backlog-package-7"
+        "G6"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2750,7 +2761,7 @@
         "title": "G6 — trajectories, future targets, multiband, and interventions"
       },
       "plan_gates": [
-        "backlog-package-7"
+        "G6"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2773,7 +2784,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2796,7 +2807,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2819,7 +2830,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2842,7 +2853,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2865,7 +2876,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2888,7 +2899,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2911,7 +2922,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2934,7 +2945,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2957,7 +2968,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -2980,7 +2991,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3003,7 +3014,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3026,7 +3037,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3051,7 +3062,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3074,7 +3085,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3097,7 +3108,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3122,7 +3133,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3145,7 +3156,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3168,7 +3179,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3191,7 +3202,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3214,7 +3225,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3237,7 +3248,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3260,7 +3271,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3283,7 +3294,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3306,7 +3317,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3329,7 +3340,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3352,7 +3363,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3400,7 +3411,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3423,7 +3434,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3446,7 +3457,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3469,7 +3480,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3492,7 +3503,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3515,7 +3526,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3538,7 +3549,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3561,7 +3572,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3584,7 +3595,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3607,7 +3618,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3633,7 +3644,7 @@
         "title": "G7 — target contracts, release storage, lineage, and coverage"
       },
       "plan_gates": [
-        "backlog-package-8"
+        "G7"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3656,7 +3667,7 @@
         "title": "G8 — evaluation integrity, fairness, observability, and baselines"
       },
       "plan_gates": [
-        "backlog-package-9"
+        "G8"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3679,7 +3690,7 @@
         "title": "G8 — evaluation integrity, fairness, observability, and baselines"
       },
       "plan_gates": [
-        "backlog-package-9"
+        "G8"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3702,7 +3713,7 @@
         "title": "G8 — evaluation integrity, fairness, observability, and baselines"
       },
       "plan_gates": [
-        "backlog-package-9"
+        "G8"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3727,7 +3738,7 @@
         "title": "G8 — evaluation integrity, fairness, observability, and baselines"
       },
       "plan_gates": [
-        "backlog-package-9"
+        "G8"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3752,7 +3763,7 @@
         "title": "G8 — evaluation integrity, fairness, observability, and baselines"
       },
       "plan_gates": [
-        "backlog-package-9"
+        "G8"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3775,7 +3786,7 @@
         "title": "G8 — evaluation integrity, fairness, observability, and baselines"
       },
       "plan_gates": [
-        "backlog-package-9"
+        "G8"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3798,7 +3809,7 @@
         "title": "G8 — evaluation integrity, fairness, observability, and baselines"
       },
       "plan_gates": [
-        "backlog-package-9"
+        "G8"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -3821,7 +3832,7 @@
         "title": "G8 — evaluation integrity, fairness, observability, and baselines"
       },
       "plan_gates": [
-        "backlog-package-9"
+        "G8"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
@@ -4088,13 +4099,13 @@
   "schema": "loslab.implementation_feature_map.v1",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "4dd6f1ba9e438f3cf67f2e0400c76ccfcb3e547f8e5f32f410ec8ca5fbede0e5"
+    "sha256": "8c2a2c6e32b9e01d587dd50a6719840128a0c925cb5ac03e9824c72df1729b6f"
   },
   "summary": {
     "feature_count": 176,
-    "linked_count": 13,
+    "linked_count": 15,
     "marked_done_count": 120,
     "open_count": 56,
-    "unmapped_count": 163
+    "unmapped_count": 161
   }
 }

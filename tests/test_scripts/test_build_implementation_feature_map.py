@@ -48,3 +48,25 @@ def test_feature_map_links_only_existing_repository_files(tmp_path: Path) -> Non
 
     assert feature["evidence_links"]["cli_entries"] == ["scripts/tool.py"]
     assert feature["link_status"] == "linked"
+
+
+def test_feature_map_resolves_dotted_modules_and_registered_cli(tmp_path: Path) -> None:
+    integrations = tmp_path / "integrations"
+    integrations.mkdir()
+    (integrations / "runtime_inventory.py").write_text("def main(): pass\n")
+    (tmp_path / "pyproject.toml").write_text(
+        '[project.scripts]\nloslab-runtime-inventory = "integrations.runtime_inventory:main"\n'
+    )
+    text = (
+        "### 1. G0 runtime\n"
+        "- [ ] Wire `integrations.runtime_inventory` into `loslab-runtime-inventory`.\n"
+    )
+    result = build_feature_map(text, root=tmp_path)
+    feature = result["features"][0]
+
+    assert feature["plan_gates"] == ["G0"]
+    assert feature["evidence_links"]["source_modules"] == ["integrations/runtime_inventory.py"]
+    assert feature["evidence_links"]["cli_entries"] == [
+        "loslab-runtime-inventory -> integrations.runtime_inventory:main "
+        "(integrations/runtime_inventory.py)"
+    ]

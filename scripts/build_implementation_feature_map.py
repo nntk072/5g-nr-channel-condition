@@ -7,6 +7,7 @@ import hashlib
 import json
 import re
 import sys
+import tomllib
 from pathlib import Path
 from typing import Any
 
@@ -18,6 +19,7 @@ _HEADING = re.compile(r"^###\s+(\d+)\.\s+(.+?)\s*$")
 _ITEM = re.compile(r"^\s*-\s+\[([ xX])\]\s+(.+?)\s*$")
 _PLAN_GATES = re.compile(r"\bG\d+(?:\.\d+)?\b")
 _BACKTICK_PATH = re.compile(r"`([^`]+)`")
+_DOTTED_SYMBOL = re.compile(r"\b[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)+\b")
 _PATH_SUFFIXES = {".json", ".md", ".py", ".yaml", ".yml", ".toml", ".lock"}
 
 
@@ -68,12 +70,41 @@ def _classify_paths(paths: list[str]) -> dict[str, list[str]]:
     return result
 
 
+def _module_file(module: str, root: Path) -> str | None:
+    """Resolve a dotted module or qualified symbol to its longest real module."""
+    parts = module.split(".")
+    for length in range(len(parts), 1, -1):
+        candidate = Path(*parts[:length]).with_suffix(".py")
+        resolved = _relative_path(candidate.as_posix(), root)
+        if resolved is not None:
+            return resolved
+        package_init = Path(*parts[:length]) / "__init__.py"
+        resolved = _relative_path(package_init.as_posix(), root)
+        if resolved is not None:
+            return resolved
+    return None
+
+
+def _console_scripts(root: Path) -> dict[str, str]:
+    try:
+        project = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
+    except (OSError, tomllib.TOMLDecodeError):
+        return {}
+    scripts = project.get("project", {}).get("scripts", {})
+    return {
+        command: entrypoint
+        for command, entrypoint in scripts.items()
+        if isinstance(command, str) and isinstance(entrypoint, str) and ":" in entrypoint
+    }
+
+
 def build_feature_map(markdown: str, *, root: Path = _REPOSITORY_ROOT) -> dict[str, Any]:
-    """Parse every checklist item and preserve only explicitly linked evidence paths."""
+    """Parse checklist items and resolve only evidence paths present in this checkout."""
     features: list[dict[str, Any]] = []
     package_number: str | None = None
     package_title: str | None = None
     package_ordinal = 0
+    console_scripts = _console_scripts(root)
     for line_number, line in enumerate(markdown.splitlines(), start=1):
         heading = _HEADING.match(line)
         if heading:
@@ -87,14 +118,29 @@ def build_feature_map(markdown: str, *, root: Path = _REPOSITORY_ROOT) -> dict[s
             raise ValueError(f"checklist item at line {line_number} appears outside a package")
         package_ordinal += 1
         checked, description = item.groups()
-        paths = sorted(
-            {
-                path
-                for token in _BACKTICK_PATH.findall(description)
-                if (path := _relative_path(token, root)) is not None
-            }
-        )
+        paths: set[str] = set()
+        cli_links: set[str] = set()
+        tokens = _BACKTICK_PATH.findall(description)
+        for token in tokens:
+            path = _relative_path(token, root)
+            if path is not None:
+                paths.add(path)
+                continue
+            if (module_path := _module_file(token.strip(), root)) is not None:
+                paths.add(module_path)
+            if token in console_scripts:
+                entrypoint = console_scripts[token]
+                module, _callable = entrypoint.split(":", 1)
+                if (source_path := _module_file(module, root)) is not None:
+                    cli_links.add(f"{token} -> {entrypoint} ({source_path})")
+        for token in _DOTTED_SYMBOL.findall(description):
+            if (module_path := _module_file(token, root)) is not None:
+                paths.add(module_path)
         explicit_gates = sorted(set(_PLAN_GATES.findall(description)))
+        if not explicit_gates:
+            explicit_gates = sorted(set(_PLAN_GATES.findall(package_title)))
+        evidence_links = _classify_paths(sorted(paths))
+        evidence_links["cli_entries"] = sorted(set(evidence_links["cli_entries"]) | cli_links)
         features.append(
             {
                 "feature_id": f"PKG{int(package_number):02d}-{package_ordinal:03d}",
@@ -103,8 +149,8 @@ def build_feature_map(markdown: str, *, root: Path = _REPOSITORY_ROOT) -> dict[s
                 "plan_gates": explicit_gates or [f"backlog-package-{package_number}"],
                 "backlog_status": "marked_done" if checked.lower() == "x" else "open",
                 "description": description,
-                "evidence_links": _classify_paths(paths),
-                "link_status": "linked" if paths else "unmapped",
+                "evidence_links": evidence_links,
+                "link_status": "linked" if paths or cli_links else "unmapped",
                 "qualification_status": "not_assessed_by_inventory",
             }
         )
