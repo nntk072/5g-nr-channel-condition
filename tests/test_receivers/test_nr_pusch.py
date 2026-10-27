@@ -4,6 +4,7 @@ from receivers.nr import (
     NRChannelEstimate,
     NRPUSCHConfig,
     compose_pusch_intra_slot_hops,
+    verify_pusch_intra_slot_hops,
 )
 
 
@@ -74,6 +75,25 @@ def test_pusch_intra_slot_hops_map_bwp_segments_to_absolute_carrier_crbs():
         Path("datasets/schema/nr-pusch-intra-slot-hop-grid.v1.schema.json").read_text()
     )
     jsonschema.Draft202012Validator(schema).validate(result.metadata)
+    replay = verify_pusch_intra_slot_hops(
+        bwp_grid, result.frequency_grid, result.metadata
+    )
+    assert replay["status"] == "PASS_INPUT_SCOPED_REPLAY"
+    assert replay["qualification_status"] == "NOT_QUALIFIED"
+    replay_schema = json.loads(
+        Path("datasets/schema/nr-pusch-hop-grid-replay.v1.schema.json").read_text()
+    )
+    jsonschema.Draft202012Validator(replay_schema).validate(replay)
+
+    changed_grid = result.frequency_grid.copy()
+    changed_grid[0, 0, 0, 4, 120] += 1
+    with pytest.raises(ValueError, match="carrier grid does not replay"):
+        verify_pusch_intra_slot_hops(bwp_grid, changed_grid, result.metadata)
+
+    changed_metadata = dict(result.metadata)
+    changed_metadata["second_hop_start_crb"] += 1
+    with pytest.raises(ValueError, match="metadata does not replay"):
+        verify_pusch_intra_slot_hops(bwp_grid, result.frequency_grid, changed_metadata)
 
 
 @pytest.mark.parametrize(

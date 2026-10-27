@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.invalid/schema/nr-pusch-hop-grid-replay.v1.schema.json",
+  "title": "NR PUSCH Hop Grid Replay Receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "status", "qualification_status", "source_grid_sha256", "carrier_grid_sha256"],
+  "properties": {
+    "schema": {"const": "loslab.nr_pusch_hop_grid_replay.v1"},
+    "status": {"const": "PASS_INPUT_SCOPED_REPLAY"},
+    "qualification_status": {"const": "NOT_QUALIFIED"},
+    "source_grid_sha256": {"$ref": "#/$defs/sha256"},
+    "carrier_grid_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

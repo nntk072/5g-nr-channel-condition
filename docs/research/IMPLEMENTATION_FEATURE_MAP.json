@@ -1951,13 +1951,14 @@
     {
       "backlog_line": 283,
       "backlog_status": "open",
-      "description": "Complete PUSCH/DMRS resource mapping and decoder/CRC paths over remaining allocation, mapping, CDM/port, hopping, transform-precoding, numerology, bandwidth, channel, and impairment cases specified by the plan. The diagnostic payload/CRC decoder exposes CPU/CUDA selection; the two high-SNR TDL fixture cases pass on CPU and V100 under the Sionna PHY-only `sionna-no-rt` installation. The bounded native CUDA TX-to-decoder test `test_sample_domain_tdl_pusch_decodes_waveforms_and_records_matched_bler` passes on V100 for one TDL-A 12-RB/30-kHz fixed-seed case. PUSCH hopping remains rejected by the pinned Sionna PHY 2.2.0 receiver, which does not implement that mode. A separate `compose_pusch_intra_slot_hops` API now composes caller-mapped first/second hop segments into a BWP/carrier grid, validates placement and records exact input/output hashes under `datasets/schema/nr-pusch-intra-slot-hop-grid.v1.schema.json`; it does not generate hop-specific DMRS or enable receiver decoding. Transform precoding remains explicitly unsupported because the backend setter raises `NotImplementedError`. These software checks are not the G5.09 cohort. Remaining modes, lower-SNR qualification, broader network integration, and receiver qualification remain open.",
+      "description": "Complete PUSCH/DMRS resource mapping and decoder/CRC paths over remaining allocation, mapping, CDM/port, hopping, transform-precoding, numerology, bandwidth, channel, and impairment cases specified by the plan. The diagnostic payload/CRC decoder exposes CPU/CUDA selection; the two high-SNR TDL fixture cases pass on CPU and V100 under the Sionna PHY-only `sionna-no-rt` installation. The bounded native CUDA TX-to-decoder test `test_sample_domain_tdl_pusch_decodes_waveforms_and_records_matched_bler` passes on V100 for one TDL-A 12-RB/30-kHz fixed-seed case. PUSCH hopping remains rejected by the pinned Sionna PHY 2.2.0 receiver, which does not implement that mode. A separate `compose_pusch_intra_slot_hops` API composes caller-mapped hop segments into a BWP/carrier grid and records input/output hashes under `datasets/schema/nr-pusch-intra-slot-hop-grid.v1.schema.json`; `verify_pusch_intra_slot_hops` replays that map and rejects modified metadata or carrier-grid output under receipt schema `datasets/schema/nr-pusch-hop-grid-replay.v1.schema.json`. It does not generate hop-specific DMRS or enable receiver decoding. Transform precoding remains explicitly unsupported because the backend setter raises `NotImplementedError`. These software checks are not the G5.09 cohort. Remaining modes, lower-SNR qualification, broader network integration, and receiver qualification remain open.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
         "other_files": [],
         "regression_files": [],
         "schemas": [
+          "datasets/schema/nr-pusch-hop-grid-replay.v1.schema.json",
           "datasets/schema/nr-pusch-intra-slot-hop-grid.v1.schema.json"
         ],
         "source_modules": []
@@ -4159,7 +4160,7 @@
   "schema": "loslab.implementation_feature_map.v1",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "d8d0978b0c42eb54615e21cdff007ab08d8caf4125edaf78851c4decc157c569"
+    "sha256": "ba151d6770d70766a6dd5d9ad53765e3278ba9b3eaa01d03c862122b614b60a5"
   },
   "summary": {
     "feature_count": 177,

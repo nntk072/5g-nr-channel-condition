@@ -121,6 +121,61 @@ def compose_pusch_intra_slot_hops(
     }
     return NRPUSCHFrequencyHopGrid(output, metadata)
 
+
+def verify_pusch_intra_slot_hops(
+    bwp_allocation_grid: np.ndarray,
+    carrier_slot_grid: np.ndarray,
+    metadata: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Replay and verify a saved PUSCH hop-grid composition and its digests."""
+    if not isinstance(metadata, Mapping) or metadata.get("schema") != (
+        "loslab.nr_pusch_intra_slot_hop_grid.v1"
+    ):
+        raise ValueError("unsupported PUSCH hop-grid metadata schema")
+    integer_fields = (
+        "carrier_grid_size_rb",
+        "carrier_grid_start_rb",
+        "bwp_start_rb",
+        "bwp_size_rb",
+        "allocation_start_symbol",
+        "allocation_rb_count",
+        "first_hop_symbol_count",
+        "first_hop_start_crb",
+        "second_hop_start_crb",
+    )
+    if any(
+        isinstance(metadata.get(field), bool) or not isinstance(metadata.get(field), int)
+        for field in integer_fields
+    ):
+        raise ValueError("PUSCH hop-grid metadata contains malformed layout values")
+    first_offset = metadata["first_hop_start_crb"] - metadata["bwp_start_rb"]
+    second_offset = metadata["second_hop_start_crb"] - metadata["bwp_start_rb"]
+    replay = compose_pusch_intra_slot_hops(
+        bwp_allocation_grid,
+        carrier_grid_size_rb=metadata["carrier_grid_size_rb"],
+        carrier_grid_start_rb=metadata["carrier_grid_start_rb"],
+        bwp_start_rb=metadata["bwp_start_rb"],
+        bwp_size_rb=metadata["bwp_size_rb"],
+        allocation_start_symbol=metadata["allocation_start_symbol"],
+        first_hop_rb_start=first_offset,
+        second_hop_rb_start=second_offset,
+        first_hop_symbol_count=metadata["first_hop_symbol_count"],
+    )
+    if dict(metadata) != replay.metadata:
+        raise ValueError("PUSCH hop-grid metadata does not replay from the source grid")
+    observed = np.asarray(carrier_slot_grid)
+    if observed.dtype != replay.frequency_grid.dtype or not np.array_equal(
+        observed, replay.frequency_grid
+    ):
+        raise ValueError("PUSCH carrier grid does not replay from the source grid")
+    return {
+        "schema": "loslab.nr_pusch_hop_grid_replay.v1",
+        "status": "PASS_INPUT_SCOPED_REPLAY",
+        "qualification_status": "NOT_QUALIFIED",
+        "source_grid_sha256": replay.metadata["source_grid_sha256"],
+        "carrier_grid_sha256": replay.metadata["carrier_grid_sha256"],
+    }
+
 @dataclass(frozen=True, slots=True)
 class NRPUSCHConfig:
     """PUSCH/DMRS resource-grid and channel-estimator configuration.
