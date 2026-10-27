@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import evaluation.uncertainty as uncertainty
 import numpy as np
 import pytest
 from evaluation.uncertainty import evaluate_grouped_regression_uncertainty
@@ -156,3 +157,28 @@ def test_grouped_uncertainty_rejects_coercive_probability_grids(
     inputs[field] = value
     with pytest.raises(exception, match=message):
         evaluate_grouped_regression_uncertainty(**inputs)
+
+
+def test_group_bootstrap_chunks_resampling_indices_at_declared_peak_limit(monkeypatch):
+    monkeypatch.setattr(uncertainty, "_MAX_BOOTSTRAP_PEAK_INDEX_CELLS", 8)
+    report = _evaluate()
+
+    bootstrap = report["error_metrics"]
+    assert bootstrap["bootstrap_resampling_cells"] == 400
+    assert bootstrap["bootstrap_peak_index_cells"] <= 8
+    per_group_rmse = np.asarray([0.1, np.sqrt((0.4**2 + 0.8**2) / 2)])
+    indices = np.random.default_rng(9).integers(0, 2, size=(200, 2))
+    expected_ci = np.quantile(per_group_rmse[indices].mean(axis=1), [0.025, 0.975])
+    np.testing.assert_allclose(bootstrap["group_macro_rmse_ci95"], expected_ci)
+
+
+def test_group_bootstrap_rejects_excessive_work_before_allocating_indices(monkeypatch):
+    monkeypatch.setattr(uncertainty, "_MAX_BOOTSTRAP_RESAMPLING_CELLS", 3)
+    with pytest.raises(ValueError, match="resampling work"):
+        _evaluate()
+
+
+def test_group_bootstrap_rejects_excessive_draw_count_before_allocation(monkeypatch):
+    monkeypatch.setattr(uncertainty, "_MAX_BOOTSTRAP_DRAWS", 100)
+    with pytest.raises(ValueError, match="draw ceiling"):
+        _evaluate()

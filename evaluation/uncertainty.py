@@ -13,6 +13,10 @@ from numbers import Real
 
 import numpy as np
 
+_MAX_BOOTSTRAP_RESAMPLING_CELLS = 100_000_000
+_MAX_BOOTSTRAP_PEAK_INDEX_CELLS = 2_000_000
+_MAX_BOOTSTRAP_DRAWS = 1_000_000
+
 
 def _real_vector(value: Sequence[float] | np.ndarray, *, name: str) -> np.ndarray:
     raw = np.asarray(value)
@@ -111,17 +115,38 @@ def _group_bootstrap_rmse(
             "group_macro_rmse_ci95": None,
             "bootstrap_groups": int(unique.size),
             "bootstrap_draws": 0,
+            "bootstrap_resampling_cells": 0,
+            "bootstrap_peak_index_cells": 0,
         }
     if isinstance(draws, bool) or not isinstance(draws, int) or draws < 100:
         raise ValueError("draws must be an integer >= 100")
+    if draws > _MAX_BOOTSTRAP_DRAWS:
+        raise ValueError(f"draws exceeds the {_MAX_BOOTSTRAP_DRAWS}-draw ceiling")
+    if unique.size > _MAX_BOOTSTRAP_PEAK_INDEX_CELLS:
+        raise ValueError(
+            "group count exceeds the "
+            f"{_MAX_BOOTSTRAP_PEAK_INDEX_CELLS}-cell bootstrap peak ceiling"
+        )
+    resampling_cells = int(draws * unique.size)
+    if resampling_cells > _MAX_BOOTSTRAP_RESAMPLING_CELLS:
+        raise ValueError(
+            "group bootstrap resampling work exceeds the "
+            f"{_MAX_BOOTSTRAP_RESAMPLING_CELLS}-cell ceiling"
+        )
     rng = np.random.default_rng(seed)
-    indices = rng.integers(0, unique.size, size=(draws, unique.size))
-    estimates = per_group_rmse[indices].mean(axis=1)
+    chunk_draws = max(1, _MAX_BOOTSTRAP_PEAK_INDEX_CELLS // unique.size)
+    estimates = np.empty(draws, dtype=np.float64)
+    for start in range(0, draws, chunk_draws):
+        stop = min(draws, start + chunk_draws)
+        indices = rng.integers(0, unique.size, size=(stop - start, unique.size))
+        estimates[start:stop] = per_group_rmse[indices].mean(axis=1)
     low, high = np.quantile(estimates, [0.025, 0.975])
     return {
         "group_macro_rmse_ci95": [float(low), float(high)],
         "bootstrap_groups": int(unique.size),
         "bootstrap_draws": draws,
+        "bootstrap_resampling_cells": resampling_cells,
+        "bootstrap_peak_index_cells": min(draws, chunk_draws) * int(unique.size),
     }
 
 
