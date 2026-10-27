@@ -837,9 +837,17 @@ class SplitPolicy:
             {"train", "validation", "calibration", "test"},
         ):
             raise ValueError("split fractions must define the three-way or four-way split set")
-        ordered_fractions = {
-            name: float(fractions[name]) for name in _SPLIT_ORDER if name in fractions
-        }
+        ordered_fractions: dict[str, float] = {}
+        for name in _SPLIT_ORDER:
+            if name not in fractions:
+                continue
+            fraction = fractions[name]
+            if isinstance(fraction, bool) or not isinstance(fraction, Real):
+                raise TypeError("split fractions must be real numbers")
+            try:
+                ordered_fractions[name] = float(fraction)
+            except OverflowError as error:
+                raise ValueError("split fractions must be finite and positive") from error
         if any(not 0 < value < 1 for value in ordered_fractions.values()):
             raise ValueError("split fractions must be finite and positive")
         if any(not math.isfinite(value) for value in ordered_fractions.values()):

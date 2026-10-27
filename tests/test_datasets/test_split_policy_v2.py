@@ -106,6 +106,33 @@ def test_split_policy_identity_contracts_reject_padded_values() -> None:
         )
 
 
+@pytest.mark.parametrize("invalid_fraction", ["0.7", True, 0.7 + 0j])
+def test_split_policy_rejects_coercible_fraction_types(invalid_fraction) -> None:
+    with pytest.raises(TypeError, match="split fractions must be real numbers"):
+        SplitPolicy(
+            seed="strict-fraction-types",
+            split_fractions={
+                "train": invalid_fraction,
+                "validation": 0.1,
+                "calibration": 0.1,
+                "test": 0.1,
+            },
+        )
+
+
+def test_split_policy_rejects_fraction_that_overflows_float_conversion() -> None:
+    with pytest.raises(ValueError, match="split fractions must be finite and positive"):
+        SplitPolicy(
+            seed="overflowing-fraction",
+            split_fractions={
+                "train": 10**1000,
+                "validation": 0.1,
+                "calibration": 0.1,
+                "test": 0.1,
+            },
+        )
+
+
 def test_derive_split_components_is_transitive_deterministic_and_nonassigning() -> None:
     a = _subject("a", (LeakageNamespace.SITE, "site-1"))
     b = _subject(
