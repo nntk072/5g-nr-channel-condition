@@ -172,7 +172,7 @@ def test_nr_channel_estimate_preserves_named_axis_contract():
     result = NRChannelEstimate(
         h_hat=h_hat,
         error_variance=np.zeros((1, 1, 1, 1, 1, 14, 24), dtype=np.float32),
-        pilot_mask=np.zeros((1, 1, 14, 24), dtype=np.int32),
+        pilot_mask=np.zeros((1, 1, 14, 24), dtype=bool),
         metadata={"sionna_version": "2.2.0"},
     )
     assert result.h_hat.shape == (2, 1, 1, 1, 1, 14, 24)
@@ -184,6 +184,43 @@ def test_nr_channel_estimate_rejects_non_broadcastable_variance():
         NRChannelEstimate(
             h_hat=h_hat,
             error_variance=np.zeros((3, 1, 1, 1, 1, 14, 24), dtype=np.float32),
-            pilot_mask=np.zeros((1, 1, 14, 24), dtype=np.int32),
+            pilot_mask=np.zeros((1, 1, 14, 24), dtype=bool),
             metadata={"sionna_version": "2.2.0"},
         )
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "exception", "message"),
+    [
+        ("h_hat", np.zeros((1, 1, 1, 1, 1, 14, 24), dtype=np.float32), TypeError, "complex"),
+        (
+            "h_hat",
+            np.full((1, 1, 1, 1, 1, 14, 24), np.nan + 0j, dtype=np.complex64),
+            ValueError,
+            "finite",
+        ),
+        (
+            "error_variance",
+            np.full((1, 1, 1, 1, 1, 14, 24), -1.0, dtype=np.float32),
+            ValueError,
+            "nonnegative",
+        ),
+        (
+            "pilot_mask",
+            np.zeros((1, 1, 14, 24), dtype=np.int32),
+            TypeError,
+            "Boolean",
+        ),
+        ("h_hat", np.zeros((1, 1, 1, 1, 1, 14, 0), dtype=np.complex64), ValueError, "non-empty"),
+    ],
+)
+def test_nr_channel_estimate_rejects_invalid_array_domains(field, value, exception, message):
+    kwargs = {
+        "h_hat": np.zeros((1, 1, 1, 1, 1, 14, 24), dtype=np.complex64),
+        "error_variance": np.zeros((1, 1, 1, 1, 1, 14, 24), dtype=np.float32),
+        "pilot_mask": np.zeros((1, 1, 14, 24), dtype=bool),
+        "metadata": {"sionna_version": "2.2.0"},
+    }
+    kwargs[field] = value
+    with pytest.raises(exception, match=message):
+        NRChannelEstimate(**kwargs)

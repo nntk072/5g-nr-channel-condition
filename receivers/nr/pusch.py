@@ -327,12 +327,72 @@ class NRChannelEstimate:
         mask_shape = tuple(getattr(self.pilot_mask, "shape", ()))
         if len(h_shape) != 7:
             raise ValueError("h_hat must have seven named channel axes")
+        if any(size <= 0 for size in h_shape):
+            raise ValueError("h_hat axes must be non-empty")
         if len(error_shape) != 7 or any(
             variance_axis not in (1, estimate_axis)
             for variance_axis, estimate_axis in zip(error_shape, h_shape, strict=True)
         ):
             raise ValueError("error_variance must be broadcastable to h_hat")
+        if any(size <= 0 for size in error_shape):
+            raise ValueError("error_variance axes must be non-empty")
         if len(mask_shape) != 4 or mask_shape != h_shape[3:]:
             raise ValueError("pilot_mask must have [tx, stream, symbol, subcarrier] axes")
-        if not self.metadata:
+        if not isinstance(self.metadata, Mapping) or not self.metadata:
             raise ValueError("estimate metadata must not be empty")
+
+        try:
+            import torch
+        except ImportError:
+            torch = None
+
+        def array_domain(value: Any, name: str) -> tuple[str, bool, bool]:
+            if isinstance(value, np.ndarray):
+                kind = value.dtype.kind
+                if kind not in "biufc":
+                    raise TypeError(f"{name} must be a dense numeric array")
+                finite = bool(np.isfinite(value).all())
+                negative = bool(np.any(value < 0)) if kind in "iuf" else False
+                return kind, finite, negative
+            if torch is not None and torch.is_tensor(value):
+                if value.layout != torch.strided:
+                    raise TypeError(f"{name} must be a dense numeric tensor")
+                is_complex = value.is_complex()
+                is_bool = value.dtype == torch.bool
+                is_real = value.is_floating_point() or (
+                    not is_complex and not is_bool
+                )
+                if not (is_complex or is_bool or is_real):
+                    raise TypeError(f"{name} must be a dense numeric tensor")
+                finite = bool(torch.isfinite(value).all())
+                negative = bool((value < 0).any()) if is_real and not is_bool else False
+                if is_complex:
+                    kind = "c"
+                elif is_bool:
+                    kind = "b"
+                elif value.is_floating_point():
+                    kind = "f"
+                else:
+                    kind = "i"
+                return kind, finite, negative
+            raise TypeError(f"{name} must be a NumPy array or dense PyTorch tensor")
+
+        h_kind, h_finite, _ = array_domain(self.h_hat, "h_hat")
+        if h_kind != "c":
+            raise TypeError("h_hat must be complex-valued")
+        if not h_finite:
+            raise ValueError("h_hat must contain only finite values")
+        variance_kind, variance_finite, variance_negative = array_domain(
+            self.error_variance, "error_variance"
+        )
+        if variance_kind not in "uf":
+            raise TypeError("error_variance must be real-valued")
+        if not variance_finite:
+            raise ValueError("error_variance must contain only finite values")
+        if variance_negative:
+            raise ValueError("error_variance must be nonnegative")
+        mask_kind, mask_finite, _ = array_domain(self.pilot_mask, "pilot_mask")
+        if mask_kind != "b":
+            raise TypeError("pilot_mask must be Boolean-valued")
+        if not mask_finite:
+            raise ValueError("pilot_mask must contain only finite values")
