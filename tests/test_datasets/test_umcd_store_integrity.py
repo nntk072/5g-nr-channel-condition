@@ -30,6 +30,7 @@ from datasets.network import (
     NodeRole,
 )
 from datasets.path_oracle import PathOracleTable, PathSolveStatus
+from datasets.provenance import UMCDRunProvenance
 from datasets.split_policy import (
     SplitChildBinding,
     SplitParentType,
@@ -240,7 +241,25 @@ def _episode_bundle_with_counterfactual() -> EpisodeBundle:
         base_child_id="counterfactual-base",
         ablated_child_id="counterfactual-ablated",
     )
-    return replace(bundle, direct_path_ablations=(ablation,))
+    provenance = UMCDRunProvenance(
+        record_id="counterfactual-ablation-provenance",
+        subject_layer="counterfactual_ablations",
+        source_family=bundle.episode.family_id,
+        producer="UMCD direct-path mathematical ablation",
+        package_source_sha256="c" * 64,
+        software_versions={"python": "3.11"},
+        backend={"backend": "numpy"},
+        scene_asset_sha256={},
+        seed=None,
+        physical_config={"carrier_hz": bundle.episode.carrier_hz},
+        solver_config={"method": "remove zero-interaction components"},
+        material_config={},
+    )
+    return replace(
+        bundle,
+        direct_path_ablations=(ablation,),
+        provenance_records=(provenance,),
+    )
 
 
 def test_target_value_rejects_empty_truth_instead_of_losing_unavailability_reason():
@@ -265,13 +284,14 @@ def test_target_value_rejects_empty_truth_instead_of_losing_unavailability_reaso
         "counterfactual_ablations",
         "oracle_channels",
         "targets",
+        "provenance",
     ),
 )
 def test_episode_bundle_reader_rejects_changed_compressed_object_bytes(tmp_path, layer_name):
     store = tmp_path / "umcd-store"
     bundle = (
         _episode_bundle_with_counterfactual()
-        if layer_name == "counterfactual_ablations"
+        if layer_name in {"counterfactual_ablations", "provenance"}
         else _episode_bundle()
     )
 
@@ -394,11 +414,44 @@ def test_episode_bundle_counterfactual_object_publication_failure_is_retryable(
     stored = write_episode_bundle(store, bundle)
     loaded = read_episode_bundle(store, stored)
     assert len(loaded.direct_path_ablations) == 1
+    assert loaded.provenance_records[0].subject_layer == "counterfactual_ablations"
     assert loaded.direct_path_ablations[0].removed_direct_path_count.tolist() == [1]
     np.testing.assert_array_equal(
         loaded.direct_path_ablations[0].without_direct_cfr,
         bundle.direct_path_ablations[0].without_direct_cfr,
     )
+    assert not [path for path in store.rglob(".*") if path.is_file()]
+
+
+def test_episode_bundle_provenance_object_publication_failure_is_retryable(tmp_path, monkeypatch):
+    import datasets.episode_store as episode_store
+
+    store = tmp_path / "umcd-provenance-retry-store"
+    bundle = _episode_bundle_with_counterfactual()
+    publish = episode_store._publish_immutable
+    injected = False
+
+    def fail_provenance_object(path, payload):
+        nonlocal injected
+        if "provenance" in path.parts and not injected:
+            injected = True
+            raise OSError("injected provenance object publication failure")
+        publish(path, payload)
+
+    monkeypatch.setattr(episode_store, "_publish_immutable", fail_provenance_object)
+    with pytest.raises(OSError, match="provenance object publication failure"):
+        write_episode_bundle(store, bundle)
+
+    assert list((store / "objects" / "episode").rglob("*.npz"))
+    assert list((store / "objects" / "counterfactual_ablations").rglob("*.npz"))
+    assert not (store / "objects" / "provenance").exists()
+    assert not (store / "manifests" / "episodes").exists()
+
+    monkeypatch.setattr(episode_store, "_publish_immutable", publish)
+    stored = write_episode_bundle(store, bundle)
+    loaded = read_episode_bundle(store, stored)
+    assert loaded.provenance_records[0].record_id == "counterfactual-ablation-provenance"
+    assert loaded.provenance_records[0].subject_layer == "counterfactual_ablations"
     assert not [path for path in store.rglob(".*") if path.is_file()]
 
 

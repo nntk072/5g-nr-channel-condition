@@ -19,6 +19,8 @@ _SUBJECT_LAYERS = {
     "oracle_channels",
     "receiver_observations",
     "targets",
+    "scenario_gbsm",
+    "counterfactual_ablations",
 }
 
 

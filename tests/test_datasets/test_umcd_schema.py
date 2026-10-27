@@ -914,6 +914,24 @@ def test_provenance_lineage_claims_are_tiered_hash_bound_and_schema_valid(tmp_pa
     assert loaded.provenance_records[0].to_dict() == payload
 
 
+@pytest.mark.parametrize("subject_layer", ("scenario_gbsm", "counterfactual_ablations"))
+def test_provenance_schema_admits_provenance_for_all_episode_bundle_layers(subject_layer):
+    record = replace(
+        _provenance_record(),
+        subject_layer=subject_layer,
+        lineage_claims=(),
+    )
+    payload = record.to_dict()
+    assert UMCDRunProvenance.from_dict(payload).to_dict() == payload
+
+    jsonschema = pytest.importorskip("jsonschema")
+    schema_path = (
+        Path(__file__).resolve().parents[2] / "datasets/schema/umcd-run-provenance.v2.schema.json"
+    )
+    schema = json.loads(schema_path.read_text())
+    jsonschema.Draft202012Validator(schema).validate(payload)
+
+
 @pytest.mark.parametrize(
     "status,evidence",
     [

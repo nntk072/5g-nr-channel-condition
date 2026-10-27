@@ -28,7 +28,7 @@
     "schema": {"const": "umcd.run_provenance.v2"},
     "schema_version": {"const": 2},
     "record_id": {"type": "string", "minLength": 1},
-    "subject_layer": {"enum": ["episode", "oracle_paths", "oracle_channels", "receiver_observations", "targets"]},
+    "subject_layer": {"enum": ["episode", "oracle_paths", "oracle_channels", "receiver_observations", "targets", "scenario_gbsm", "counterfactual_ablations"]},
     "source_family": {"type": "string", "minLength": 1},
     "producer": {"type": "string", "minLength": 1},
     "package_source_sha256": {"$ref": "#/$defs/sha256"},

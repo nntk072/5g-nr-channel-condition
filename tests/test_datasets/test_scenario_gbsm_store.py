@@ -20,6 +20,7 @@ from datasets.network import (
     NetworkNode,
     NodeRole,
 )
+from datasets.provenance import UMCDRunProvenance
 from datasets.scenario_gbsm import (
     ScenarioGBSMRecord,
     ScenarioGBSMRun,
@@ -463,3 +464,29 @@ def test_scenario_gbsm_episode_layer_publication_failure_is_retryable(
     np.testing.assert_array_equal(restored.scenario_gbsm_records[0].h_path, run.records[0].h_path)
     np.testing.assert_array_equal(restored.scenario_gbsm_records[0].cfr, run.records[0].cfr)
     assert not [path for path in tmp_path.rglob(".*") if path.is_file()]
+
+
+def test_scenario_gbsm_layer_accepts_bound_provenance_round_trip(tmp_path) -> None:
+    run = scenario_gbsm_run_from_channel(
+        _native_channel(), run_id="pilot-provenance-layer", sample_ids=["drop-000"]
+    )
+    provenance = UMCDRunProvenance(
+        record_id="scenario-gbsm-generation",
+        subject_layer="scenario_gbsm",
+        source_family="scenario_gbsm:UMi",
+        producer="Sionna 2.2.0 UMi adapter",
+        package_source_sha256="a" * 64,
+        software_versions={"python": "3.11", "sionna": "2.2.0"},
+        backend={"backend": "cpu"},
+        scene_asset_sha256={},
+        seed=91,
+        physical_config={"carrier_frequency_hz": 3.5e9},
+        solver_config={"scenario": "UMi"},
+        material_config={},
+    )
+    bundle = replace(scenario_gbsm_episode_bundle(run.records[0]), provenance_records=(provenance,))
+
+    pointer = write_episode_bundle(tmp_path, bundle)
+    restored = read_episode_bundle(tmp_path, pointer)
+    assert restored.provenance_records[0].subject_layer == "scenario_gbsm"
+    assert restored.provenance_records[0].to_dict() == provenance.to_dict()
