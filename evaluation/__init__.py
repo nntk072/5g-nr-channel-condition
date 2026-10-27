@@ -40,6 +40,7 @@ from .metrics import (
     holdout_domain,
     in_domain_split,
 )
+from .population_audit import audit_expected_population, validate_expected_population_roster
 from .prior_shift import (
     adjust_probabilities_between_priors,
     adjust_probabilities_for_prior_shift,
@@ -72,6 +73,7 @@ __all__ = [
     "TemporalOverlap",
     "audit_cfr_near_duplicates",
     "audit_class_support",
+    "audit_expected_population",
     "audit_group_leakage",
     "audit_spatial_buffer",
     "adjust_probabilities_between_priors",
@@ -92,6 +94,7 @@ __all__ = [
     "build_g3_qualification_run_contract_v3",
     "verify_g3_qualification_run_contract",
     "validate_prior_shift_spec",
+    "validate_expected_population_roster",
     "compose_g3_joint_sample_size_design",
     "verify_g3_joint_sample_size_design",
     "evaluate_path_equivalence_roster",

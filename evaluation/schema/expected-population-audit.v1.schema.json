@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.invalid/schema/evaluation/expected-population-audit.v1.schema.json",
+  "title": "Expected population selection audit v1",
+  "type": "object",
+  "required": [
+    "schema", "status", "roster_id", "roster_sha256", "observed_identity_roster_sha256", "expected_unit_count", "observed_row_count",
+    "expected_disposition_counts", "included_missing_unit_ids", "duplicate_observed_sample_ids",
+    "unrostered_observed_sample_ids", "observed_for_nonincluded_unit_ids", "identity_mismatches",
+    "by_family", "by_domain", "limitations", "roster_source", "dataset_inputs"
+  ],
+  "properties": {
+    "schema": {"const": "loslab.expected_population_audit.v1"},
+    "status": {"enum": ["ROSTER_MATCH", "ROSTER_MISMATCH"]},
+    "roster_id": {"type": "string", "minLength": 1},
+    "roster_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "observed_identity_roster_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "expected_unit_count": {"type": "integer", "minimum": 1},
+    "observed_row_count": {"type": "integer", "minimum": 0},
+    "expected_disposition_counts": {
+      "type": "object",
+      "required": ["empty", "excluded", "included", "no_path", "rejected"],
+      "properties": {
+        "empty": {"type": "integer", "minimum": 0},
+        "excluded": {"type": "integer", "minimum": 0},
+        "included": {"type": "integer", "minimum": 0},
+        "no_path": {"type": "integer", "minimum": 0},
+        "rejected": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "included_missing_unit_ids": {"$ref": "#/$defs/ids"},
+    "duplicate_observed_sample_ids": {"$ref": "#/$defs/ids"},
+    "unrostered_observed_sample_ids": {"$ref": "#/$defs/ids"},
+    "observed_for_nonincluded_unit_ids": {"$ref": "#/$defs/ids"},
+    "identity_mismatches": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["unit_id", "field", "expected", "observed"],
+        "properties": {
+          "unit_id": {"type": "string", "minLength": 1},
+          "field": {"enum": ["family_id", "domain_id", "independent_group_id"]},
+          "expected": {"type": "string", "minLength": 1},
+          "observed": {"type": "string", "minLength": 1}
+        },
+        "additionalProperties": false
+      }
+    },
+    "by_family": {"$ref": "#/$defs/strata"},
+    "by_domain": {"$ref": "#/$defs/strata"},
+    "limitations": {"type": "array", "minItems": 3, "items": {"type": "string", "minLength": 1}},
+    "roster_source": {"oneOf": [{"$ref": "#/$defs/artifact"}, {"type": "null"}]},
+    "dataset_inputs": {"type": "array", "items": {"$ref": "#/$defs/artifact"}}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "artifact": {
+      "type": "object",
+      "required": ["path", "sha256", "byte_count"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "byte_count": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    },
+    "ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "stratum": {
+      "type": "object",
+      "required": ["stratum_id", "expected_unit_count", "included_unit_count", "excluded_unit_count", "rejected_unit_count", "no_path_unit_count", "empty_unit_count"],
+      "properties": {
+        "stratum_id": {"type": "string", "minLength": 1},
+        "expected_unit_count": {"type": "integer", "minimum": 1},
+        "included_unit_count": {"type": "integer", "minimum": 0},
+        "excluded_unit_count": {"type": "integer", "minimum": 0},
+        "rejected_unit_count": {"type": "integer", "minimum": 0},
+        "no_path_unit_count": {"type": "integer", "minimum": 0},
+        "empty_unit_count": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "strata": {"type": "array", "items": {"$ref": "#/$defs/stratum"}}
+  }
+}
