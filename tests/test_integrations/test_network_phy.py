@@ -570,6 +570,104 @@ def test_received_waveform_composition_rejects_invalid_fractional_delays(fractio
         )
 
 
+def test_network_phase_noise_is_shared_by_transmitter_across_links_and_replayable():
+    sample_count = 8192
+    links = torch.ones((3, 2, 1, 1, sample_count), dtype=torch.complex128)
+    args = {
+        "link_start_samples": ((0,), (0,)),
+        "capture_num_samples": sample_count,
+        "sample_rate_hz": 1e6,
+        "tx_phase_noise_linewidth_hz": (20_000.0,),
+        "rx_phase_noise_linewidth_hz": (0.0, 0.0),
+        "phase_noise_seed": 1907,
+    }
+
+    first = compose_received_waveforms(links, **args)
+    replay = compose_received_waveforms(links, **args)
+    different_seed = compose_received_waveforms(links, **{**args, "phase_noise_seed": 1908})
+
+    torch.testing.assert_close(
+        first.source_contributions, replay.source_contributions, rtol=0, atol=0
+    )
+    torch.testing.assert_close(
+        first.source_contributions[:, 0, 0, 0],
+        first.source_contributions[:, 1, 0, 0],
+        rtol=0,
+        atol=0,
+    )
+    assert not torch.equal(first.source_contributions, different_seed.source_contributions)
+    assert not torch.equal(first.source_contributions[0], first.source_contributions[1])
+    increments = torch.angle(
+        first.source_contributions[0, 0, 0, 0, 1:]
+        * first.source_contributions[0, 0, 0, 0, :-1].conj()
+    )
+    expected_variance = 2.0 * torch.pi * 20_000.0 / 1e6
+    assert float(increments.var(unbiased=True)) == pytest.approx(expected_variance, rel=0.08)
+    torch.testing.assert_close(
+        first.tx_phase_noise_linewidth_hz,
+        torch.tensor([20_000.0], dtype=torch.float64),
+    )
+    assert first.phase_noise_seed == 1907
+
+
+def test_network_phase_noise_is_shared_by_receiver_across_transmitters():
+    links = torch.ones((2, 1, 2, 1, 128), dtype=torch.complex64)
+    composition = compose_received_waveforms(
+        links,
+        link_start_samples=((0, 0),),
+        capture_num_samples=128,
+        sample_rate_hz=1e6,
+        tx_phase_noise_linewidth_hz=(0.0, 0.0),
+        rx_phase_noise_linewidth_hz=(10_000.0,),
+        phase_noise_seed=813,
+    )
+
+    torch.testing.assert_close(
+        composition.source_contributions[:, 0, :, 0],
+        composition.source_contributions[:, 0, :, 1],
+        rtol=0,
+        atol=0,
+    )
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"tx_phase_noise_linewidth_hz": (1.0,)},
+        {"tx_phase_noise_linewidth_hz": (True,), "phase_noise_seed": 12},
+        {"rx_phase_noise_linewidth_hz": (-1.0,), "phase_noise_seed": 12},
+        {"tx_phase_noise_linewidth_hz": (float("inf"),), "phase_noise_seed": 12},
+        {"rx_phase_noise_linewidth_hz": (1.0, 2.0), "phase_noise_seed": 12},
+        {"tx_phase_noise_linewidth_hz": (1.0,), "phase_noise_seed": True},
+        {"tx_phase_noise_linewidth_hz": (1.0,), "phase_noise_seed": -1},
+    ],
+)
+def test_network_phase_noise_rejects_invalid_oscillator_inputs(kwargs):
+    links = torch.ones((1, 1, 1, 1, 16), dtype=torch.complex64)
+    args = {
+        "link_start_samples": ((0,),),
+        "capture_num_samples": 16,
+        "sample_rate_hz": 1e6,
+    }
+    args.update(kwargs)
+    with pytest.raises((TypeError, ValueError)):
+        compose_received_waveforms(links, **args)
+
+
+def test_network_phase_noise_counts_oscillator_work_against_capture_bound():
+    links = torch.ones((1, 1, 1, 1, 16), dtype=torch.complex64)
+    with pytest.raises(ValueError, match="oscillator state"):
+        compose_received_waveforms(
+            links,
+            link_start_samples=((0,),),
+            capture_num_samples=16,
+            sample_rate_hz=1e6,
+            tx_phase_noise_linewidth_hz=(1_000.0,),
+            phase_noise_seed=41,
+            max_output_elements=111,
+        )
+
+
 @pytest.mark.parametrize(
     "kwargs",
     [

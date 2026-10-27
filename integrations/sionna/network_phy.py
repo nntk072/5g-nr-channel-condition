@@ -222,9 +222,9 @@ class NetworkWaveformComposition:
     is assumed already scaled and channel-filtered. ``link_start_samples``
     gives the integer offset of each link's first sample relative to capture
     sample zero. All links must use the same sample rate and carrier/numerology.
-    Per-link residual CFO and initial phase are applied on the shared capture
-    timeline; this helper does not model fractional delay, adjacent-channel
-    leakage, or nonlinear RF effects.
+    Per-link residual CFO, initial phase, fractional delay, and shared node-level
+    phase-noise processes are applied on the capture timeline. Adjacent-channel
+    leakage and nonlinear RF effects are not modeled.
     """
 
     source_contributions: Any
@@ -236,6 +236,9 @@ class NetworkWaveformComposition:
     link_initial_phase_rad: Any
     link_fractional_delay_samples: Any
     fractional_delay_kernel_radius: int
+    tx_phase_noise_linewidth_hz: Any
+    rx_phase_noise_linewidth_hz: Any
+    phase_noise_seed: int | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -581,6 +584,38 @@ def _fractional_delay_capture_slice(
     return output
 
 
+def _shared_phase_noise_processes(
+    torch: Any,
+    *,
+    batch_size: int,
+    node_count: int,
+    sample_count: int,
+    linewidth_hz: Any,
+    sample_rate_hz: float,
+    generator: Any,
+    device: Any,
+) -> Any:
+    """Generate one Wiener phase trajectory per batch draw and RF node."""
+    phase = torch.zeros((batch_size, node_count, sample_count), dtype=torch.float64, device=device)
+    if sample_count == 1:
+        return phase
+    linewidth_ratio = linewidth_hz / sample_rate_hz
+    if not bool(torch.isfinite(linewidth_ratio).all()):
+        raise ValueError("phase-noise linewidth/sample-rate ratio must be finite")
+    increment_scale = torch.sqrt(linewidth_ratio) * math.sqrt(2.0 * math.pi)
+    increments = torch.randn(
+        (batch_size, node_count, sample_count - 1),
+        dtype=torch.float64,
+        device=device,
+        generator=generator,
+    )
+    increments *= increment_scale[None, :, None]
+    torch.cumsum(increments, dim=-1, out=phase[..., 1:])
+    if not bool(torch.isfinite(phase).all()):
+        raise ValueError("generated phase-noise trajectory is not finite")
+    return phase
+
+
 def compose_received_waveforms(
     link_waveforms: Any,
     *,
@@ -591,6 +626,9 @@ def compose_received_waveforms(
     link_cfo_hz: Any | None = None,
     link_initial_phase_rad: Any | None = None,
     link_fractional_delay_samples: Any | None = None,
+    tx_phase_noise_linewidth_hz: Any | None = None,
+    rx_phase_noise_linewidth_hz: Any | None = None,
+    phase_noise_seed: int | None = None,
     max_output_elements: int = 64_000_000,
 ) -> NetworkWaveformComposition:
     """Align and sum already propagated transmitter waveforms at each receiver.
@@ -601,16 +639,19 @@ def compose_received_waveforms(
     power gain for each RX/TX pair (for example, ``NetworkLinkBudget`` gains);
     its square root is applied once to the waveform amplitude. Positive start
     offsets insert leading zeros; negative offsets clip samples that arrived
-    before the capture window. Samples outside the capture are discarded. The
+    before the capture window. Samples outside the capture are discarded.
     Optional CFO and initial phase arrays have ``[rx, tx]`` axes. They describe
     each link's residual oscillator relative to capture time zero and are
     applied after integer alignment, so delayed links accrue phase over their
     arrival time. Optional fractional delays use the same ``[rx, tx]`` axes,
     are bounded to less than one sample, and use a 33-tap Blackman-windowed
     sinc interpolator with zero extension outside the source waveform. This
-    does not model phase-noise evolution, adjacent-channel leakage, or
-    nonlinear RF effects. Do not pass an already path-loss-scaled waveform
-    together with its gain matrix.
+    does not model PLL-shaped phase-noise spectra, adjacent-channel leakage, or
+    nonlinear RF effects. Optional transmitter and receiver linewidth vectors
+    apply independent Wiener oscillators per node and batch draw; each node's
+    trajectory is shared across its incident links and antenna ports. A seed
+    is required when either linewidth is positive. Do not pass an already
+    path-loss-scaled waveform together with its gain matrix.
 
     The output is bounded by ``max_output_elements`` across both retained link
     contributions and the receiver sum, before allocating the capture tensors.
@@ -716,6 +757,39 @@ def compose_received_waveforms(
         )
     if bool((fractional_delay.abs() >= 1.0).any()):
         raise ValueError("link fractional delays must have magnitude below one sample")
+    if tx_phase_noise_linewidth_hz is None:
+        tx_linewidth = torch.zeros(tx_count, dtype=torch.float64, device=link_waveforms.device)
+    else:
+        tx_linewidth = _validated_real_values(
+            torch,
+            tx_phase_noise_linewidth_hz,
+            shape=(tx_count,),
+            device=link_waveforms.device,
+            name="tx_phase_noise_linewidth_hz",
+            nonnegative=True,
+        )
+    if rx_phase_noise_linewidth_hz is None:
+        rx_linewidth = torch.zeros(rx_count, dtype=torch.float64, device=link_waveforms.device)
+    else:
+        rx_linewidth = _validated_real_values(
+            torch,
+            rx_phase_noise_linewidth_hz,
+            shape=(rx_count,),
+            device=link_waveforms.device,
+            name="rx_phase_noise_linewidth_hz",
+            nonnegative=True,
+        )
+    phase_noise_enabled = bool((tx_linewidth > 0).any() or (rx_linewidth > 0).any())
+    if phase_noise_seed is None:
+        if phase_noise_enabled:
+            raise ValueError("phase_noise_seed is required when oscillator linewidth is positive")
+    elif (
+        isinstance(phase_noise_seed, bool)
+        or not isinstance(phase_noise_seed, int)
+        or phase_noise_seed < 0
+        or phase_noise_seed > 2**63 - 1
+    ):
+        raise ValueError("phase_noise_seed must be an integer in [0, 2**63 - 1]")
     cycles_per_sample = cfo / float(sample_rate_hz)
     if not bool(torch.isfinite(cycles_per_sample).all()):
         raise ValueError("link CFO divided by sample rate must be representable in float64")
@@ -731,9 +805,46 @@ def compose_received_waveforms(
 
     contribution_elements = batch * rx_count * rx_ports * tx_count * capture_num_samples
     receive_elements = batch * rx_count * rx_ports * capture_num_samples
-    if contribution_elements + receive_elements > max_output_elements:
+    phase_state_elements = (
+        batch * (tx_count + rx_count) * capture_num_samples if phase_noise_enabled else 0
+    )
+    phase_work_elements = (
+        batch * (max(tx_count, rx_count) + 2) * capture_num_samples if phase_noise_enabled else 0
+    )
+    if (
+        contribution_elements + receive_elements + phase_state_elements + phase_work_elements
+        > max_output_elements
+    ):
         raise ValueError(
-            "aligned waveform outputs exceed max_output_elements; reduce the capture or batch"
+            "waveform outputs and oscillator state exceed max_output_elements; "
+            "reduce the capture, batch, or oscillator roster"
+        )
+
+    tx_phase_noise = None
+    rx_phase_noise = None
+    if phase_noise_enabled:
+        phase_generator = torch.Generator(device=link_waveforms.device).manual_seed(
+            phase_noise_seed
+        )
+        tx_phase_noise = _shared_phase_noise_processes(
+            torch,
+            batch_size=batch,
+            node_count=tx_count,
+            sample_count=capture_num_samples,
+            linewidth_hz=tx_linewidth,
+            sample_rate_hz=float(sample_rate_hz),
+            generator=phase_generator,
+            device=link_waveforms.device,
+        )
+        rx_phase_noise = _shared_phase_noise_processes(
+            torch,
+            batch_size=batch,
+            node_count=rx_count,
+            sample_count=capture_num_samples,
+            linewidth_hz=rx_linewidth,
+            sample_rate_hz=float(sample_rate_hz),
+            generator=phase_generator,
+            device=link_waveforms.device,
         )
 
     contributions = torch.zeros(
@@ -776,12 +887,28 @@ def compose_received_waveforms(
                     device=link_waveforms.device,
                 )
                 cycles = torch.remainder(
-                    cycles_per_sample[rx_index, tx_index] * destination_indices
-                    + initial_phase[rx_index, tx_index] / (2.0 * math.pi),
+                    cycles_per_sample[rx_index, tx_index] * destination_indices,
                     1.0,
                 )
-                phase = (2.0 * math.pi * cycles).to(dtype=link_waveforms.real.dtype)
+                base_phase = (2.0 * math.pi * cycles + initial_phase[rx_index, tx_index]).to(
+                    dtype=link_waveforms.real.dtype
+                )
+                if phase_noise_enabled:
+                    assert tx_phase_noise is not None and rx_phase_noise is not None
+                    node_phase = (
+                        tx_phase_noise[
+                            :, tx_index, destination_start : destination_start + sample_count
+                        ]
+                        - rx_phase_noise[
+                            :, rx_index, destination_start : destination_start + sample_count
+                        ]
+                    ).to(dtype=link_waveforms.real.dtype)
+                    phase = base_phase[None, :] + node_phase
+                else:
+                    phase = base_phase
                 oscillator = torch.polar(torch.ones_like(phase), phase)
+                if phase_noise_enabled:
+                    oscillator = oscillator[:, None, :]
                 contributions[
                     :, rx_index, :, tx_index, destination_start : destination_start + sample_count
                 ] = aligned * waveform_gain[rx_index, tx_index] * oscillator
@@ -798,6 +925,9 @@ def compose_received_waveforms(
         link_initial_phase_rad=initial_phase,
         link_fractional_delay_samples=fractional_delay,
         fractional_delay_kernel_radius=_NETWORK_FRACTIONAL_DELAY_KERNEL_RADIUS,
+        tx_phase_noise_linewidth_hz=tx_linewidth,
+        rx_phase_noise_linewidth_hz=rx_linewidth,
+        phase_noise_seed=phase_noise_seed,
     )
 
 
