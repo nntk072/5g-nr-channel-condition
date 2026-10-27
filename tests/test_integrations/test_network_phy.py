@@ -411,6 +411,48 @@ def test_received_waveform_composition_aligns_each_link_on_capture_timeline():
     assert composition.sample_rate_hz == 30.72e6
 
 
+def test_received_waveform_composition_applies_causal_complex_link_filter_and_keeps_tail():
+    links = torch.tensor([1.0, 2.0, 3.0], dtype=torch.complex64).reshape(1, 1, 1, 1, 3)
+    taps = torch.tensor([[[1.0 + 0.0j, 0.0 + 0.5j]]], dtype=torch.complex64)
+    composition = compose_received_waveforms(
+        links,
+        link_start_samples=((1,),),
+        capture_num_samples=6,
+        sample_rate_hz=30.72e6,
+        link_filter_taps=taps,
+    )
+
+    torch.testing.assert_close(
+        composition.received_waveform[0, 0, 0],
+        torch.tensor([0, 1, 2 + 0.5j, 3 + 1j, 1.5j, 0], dtype=torch.complex64),
+    )
+    torch.testing.assert_close(composition.link_filter_taps, taps)
+
+
+def test_received_waveform_composition_bounds_and_validates_complex_link_filters():
+    links = torch.ones((1, 1, 1, 1, 10), dtype=torch.complex64)
+    args = {
+        "link_start_samples": ((0,),),
+        "capture_num_samples": 10,
+        "sample_rate_hz": 30.72e6,
+    }
+    with pytest.raises(ValueError, match=r"complex \[rx, tx, tap\]"):
+        compose_received_waveforms(links, **args, link_filter_taps=(((1.0, 0.0),),))
+    with pytest.raises(ValueError, match="finite"):
+        compose_received_waveforms(
+            links,
+            **args,
+            link_filter_taps=torch.tensor([[[complex(float("nan"), 0.0)]]]),
+        )
+    with pytest.raises(ValueError, match="exceed max_output_elements"):
+        compose_received_waveforms(
+            links,
+            **args,
+            link_filter_taps=torch.ones((1, 1, 2), dtype=torch.complex64),
+            max_output_elements=39,
+        )
+
+
 def test_waveform_receiver_noise_is_reproducible_and_distinct_per_receiver():
     links = torch.ones((2, 2, 1, 2, 4096), dtype=torch.complex64)
     composition = compose_received_waveforms(

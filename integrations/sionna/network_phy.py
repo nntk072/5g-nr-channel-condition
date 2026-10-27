@@ -241,6 +241,7 @@ class NetworkWaveformComposition:
     phase_noise_seed: int | None
     rx_iq_gain_imbalance_db: Any
     rx_iq_phase_imbalance_rad: Any
+    link_filter_taps: Any | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -625,6 +626,7 @@ def compose_received_waveforms(
     capture_num_samples: int,
     sample_rate_hz: float,
     link_power_gain_linear: Any | None = None,
+    link_filter_taps: Any | None = None,
     link_cfo_hz: Any | None = None,
     link_initial_phase_rad: Any | None = None,
     link_fractional_delay_samples: Any | None = None,
@@ -639,9 +641,15 @@ def compose_received_waveforms(
 
     ``link_waveforms`` has axes ``[batch, rx, tx, rx_port, sample]`` and holds
     one small-scale channel-filtered contribution per transmitter/receiver
-    pair. Optional ``link_power_gain_linear`` supplies a nonnegative flat
-    power gain for each RX/TX pair (for example, ``NetworkLinkBudget`` gains);
-    its square root is applied once to the waveform amplitude. Positive start
+    pair. Optional ``link_filter_taps`` supplies a causal, complex baseband
+    FIR for each RX/TX pair, with axes ``[rx, tx, tap]``; it is applied after
+    the supplied small-scale channel response and before oscillator and
+    receiver impairments. The caller is responsible for deriving the taps from
+    a calibrated or otherwise declared complex frequency response. The API
+    does not infer phase from frequency-dependent power-only link-budget data.
+    Optional ``link_power_gain_linear`` supplies a nonnegative flat power gain
+    for each RX/TX pair (for example, ``NetworkLinkBudget`` gains); its square
+    root is applied once to the waveform amplitude. Positive start
     offsets insert leading zeros; negative offsets clip samples that arrived
     before the capture window. Samples outside the capture are discarded.
     Optional CFO and initial phase arrays have ``[rx, tx]`` axes. They describe
@@ -659,8 +667,10 @@ def compose_received_waveforms(
     I/Q imbalance must be applied before propagation. Do not pass an already
     path-loss-scaled waveform together with its gain matrix.
 
-    Outputs and temporary impairment work are bounded by
-    ``max_output_elements`` before allocating capture tensors.
+    Outputs and temporary filter/impairment work are bounded by
+    ``max_output_elements`` before allocating capture tensors. FIRs are limited
+    to 128 taps, and filter work accounts for every tap and fractional-delay
+    interpolation step.
     This is a common-sample-rate baseband composition primitive, not a complete
     asynchronous or multi-numerology network simulator.
     """
@@ -727,6 +737,34 @@ def compose_received_waveforms(
             name="link_power_gain_linear",
             nonnegative=True,
         )
+    if link_filter_taps is None:
+        filter_taps = torch.ones(
+            (rx_count, tx_count, 1), dtype=link_waveforms.dtype, device=link_waveforms.device
+        )
+    else:
+        try:
+            filter_probe = torch.as_tensor(link_filter_taps, device=link_waveforms.device)
+        except (TypeError, ValueError, RuntimeError, OverflowError) as error:
+            raise ValueError("link_filter_taps must contain complex numeric values") from error
+        if (
+            filter_probe.layout != torch.strided
+            or not filter_probe.is_complex()
+            or filter_probe.ndim != 3
+            or tuple(filter_probe.shape[:2]) != (rx_count, tx_count)
+            or filter_probe.shape[2] < 1
+            or filter_probe.shape[2] > 128
+        ):
+            raise ValueError(
+                "link_filter_taps must be a dense complex [rx, tx, tap] array with 1–128 taps"
+            )
+        if not bool(torch.isfinite(filter_probe).all()):
+            raise ValueError("link_filter_taps must contain only finite coefficients")
+        filter_taps = filter_probe.to(dtype=link_waveforms.dtype)
+        if not bool(torch.isfinite(filter_taps).all()) or bool(
+            ((filter_probe != 0) & (filter_taps == 0)).any()
+        ):
+            raise ValueError("link_filter_taps are not representable in waveform precision")
+    filter_is_identity = filter_taps.shape[2] == 1 and bool((filter_taps[..., 0] == 1).all())
     if link_cfo_hz is None:
         cfo = torch.zeros((rx_count, tx_count), dtype=torch.float64, device=link_waveforms.device)
     else:
@@ -855,12 +893,29 @@ def compose_received_waveforms(
         batch * (max(tx_count, rx_count) + 2) * capture_num_samples if phase_noise_enabled else 0
     )
     iq_work_elements = 5 * batch * rx_ports * capture_num_samples if iq_active else 0
+    filter_work_elements = 0
+    if not filter_is_identity:
+        interpolation_cost = (
+            2 * _NETWORK_FRACTIONAL_DELAY_KERNEL_RADIUS + 1
+            if bool((fractional_delay != 0).any())
+            else 1
+        )
+        filter_work_elements = (
+            batch
+            * rx_count
+            * tx_count
+            * rx_ports
+            * capture_num_samples
+            * filter_taps.shape[2]
+            * interpolation_cost
+        )
     if (
         contribution_elements
         + receive_elements
         + phase_state_elements
         + phase_work_elements
         + iq_work_elements
+        + filter_work_elements
         > max_output_elements
     ):
         raise ValueError(
@@ -900,34 +955,64 @@ def compose_received_waveforms(
         dtype=link_waveforms.dtype,
         device=link_waveforms.device,
     )
+    filtered_waveform_samples = _input_samples + filter_taps.shape[2] - 1
     for rx_index in range(rx_count):
         for tx_index in range(tx_count):
             offset = int(offsets[rx_index, tx_index].item())
             source_start = max(0, -offset)
             destination_start = max(0, offset)
             sample_count = min(
-                link_waveforms.shape[-1] - source_start,
+                filtered_waveform_samples - source_start,
                 capture_num_samples - destination_start,
             )
             if sample_count > 0:
-                if fractional_delay[rx_index, tx_index] == 0:
+                relative_output_indices = torch.arange(
+                    destination_start - offset,
+                    destination_start - offset + sample_count,
+                    dtype=torch.int64,
+                    device=link_waveforms.device,
+                )
+                if filter_is_identity and fractional_delay[rx_index, tx_index] == 0:
                     aligned = link_waveforms[
                         :, rx_index, tx_index, :, source_start : source_start + sample_count
                     ]
-                else:
-                    relative_output_indices = torch.arange(
-                        destination_start - offset,
-                        destination_start - offset + sample_count,
-                        dtype=link_waveforms.real.dtype,
-                        device=link_waveforms.device,
-                    )
+                elif filter_is_identity:
                     aligned = _fractional_delay_capture_slice(
                         torch,
                         link_waveforms[:, rx_index, tx_index],
-                        output_indices=relative_output_indices,
+                        output_indices=relative_output_indices.to(link_waveforms.real.dtype),
                         delay_samples=float(fractional_delay[rx_index, tx_index].item()),
                         kernel_radius=_NETWORK_FRACTIONAL_DELAY_KERNEL_RADIUS,
                     )
+                else:
+                    aligned = torch.zeros(
+                        (batch, rx_ports, sample_count),
+                        dtype=link_waveforms.dtype,
+                        device=link_waveforms.device,
+                    )
+                    for tap_index in range(filter_taps.shape[2]):
+                        source_indices = relative_output_indices - tap_index
+                        valid = (source_indices >= 0) & (source_indices < _input_samples)
+                        if fractional_delay[rx_index, tx_index] == 0:
+                            safe_indices = source_indices.clamp(0, _input_samples - 1)
+                            filtered_samples = link_waveforms[:, rx_index, tx_index].index_select(
+                                -1, safe_indices
+                            )
+                            filtered_samples = filtered_samples * valid.to(
+                                link_waveforms.real.dtype
+                            )
+                        else:
+                            filtered_samples = _fractional_delay_capture_slice(
+                                torch,
+                                link_waveforms[:, rx_index, tx_index],
+                                output_indices=source_indices.to(link_waveforms.real.dtype),
+                                delay_samples=float(fractional_delay[rx_index, tx_index].item()),
+                                kernel_radius=_NETWORK_FRACTIONAL_DELAY_KERNEL_RADIUS,
+                            )
+                            filtered_samples = filtered_samples * valid.to(
+                                link_waveforms.real.dtype
+                            )
+                        aligned += filtered_samples * filter_taps[rx_index, tx_index, tap_index]
                 destination_indices = torch.arange(
                     destination_start,
                     destination_start + sample_count,
@@ -986,6 +1071,7 @@ def compose_received_waveforms(
         phase_noise_seed=phase_noise_seed,
         rx_iq_gain_imbalance_db=rx_iq_gain,
         rx_iq_phase_imbalance_rad=rx_iq_phase,
+        link_filter_taps=filter_taps,
     )
 
 
