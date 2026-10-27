@@ -933,3 +933,20 @@ def test_independent_ordered_impairment_probe_bounds_total_work_before_receiver_
         experiment._run_independent_ordered_impairment_probe(
             channel_seeds=(10, 11), blocks_per_channel=2
         )
+
+
+def test_waveform_evidence_seed_storage_range_is_checked_before_receiver_setup(
+    monkeypatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(
+        experiment,
+        "SionnaPUSCHLSReceiver",
+        lambda *_args, **_kwargs: pytest.fail("invalid seed must fail before receiver setup"),
+    )
+
+    with pytest.raises(ValueError, match="fit signed 64-bit storage"):
+        experiment._run_independent_ordered_impairment_probe(
+            channel_seeds=(np.iinfo(np.int64).max + 1,),
+            blocks_per_channel=1,
+            waveform_evidence_output=tmp_path / "waveforms.npz",
+        )

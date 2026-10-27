@@ -788,6 +788,10 @@ def _run_independent_ordered_impairment_probe(
         isinstance(seed, bool) or not isinstance(seed, int) or seed < 0 for seed in channel_seeds
     ):
         raise ValueError("channel_seeds must contain nonnegative integers")
+    if evidence_path is not None and any(
+        seed > np.iinfo(np.int64).max for seed in channel_seeds
+    ):
+        raise ValueError("channel_seeds must fit signed 64-bit storage when waveform evidence is requested")
     if isinstance(blocks_per_channel, bool) or not isinstance(blocks_per_channel, int):
         raise TypeError("blocks_per_channel must be an integer")
     if blocks_per_channel < 1:

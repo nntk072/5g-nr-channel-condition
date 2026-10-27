@@ -2273,7 +2273,7 @@
     {
       "backlog_line": 297,
       "backlog_status": "marked_done",
-      "description": "Bound SNR-curve input preprocessing as well as receiver work: cap the SNR count before materializing it, derive the maximum seed-roster size from the block ceiling before iterating or deduplicating, and reject malformed seed/estimator input types before receiver setup. Regression definitions cover a lazy oversized roster that must fail before iteration. The cap is resource protection, not statistical sufficiency or G5 qualification.",
+      "description": "Bound SNR-curve input preprocessing as well as receiver work: cap the SNR count before materializing it, derive the maximum seed-roster size from the block ceiling before iterating or deduplicating, reject malformed seed/estimator inputs before receiver setup, and reject waveform-evidence channel seeds outside signed int64 before constructing the receiver because the evidence archive stores them as int64. Regression definitions cover lazy oversized rosters and the evidence-specific seed-storage bound. These caps are resource/serialization protections, not statistical sufficiency or G5 qualification.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -4154,7 +4154,7 @@
   "schema": "loslab.implementation_feature_map.v1",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "603f49d8137bc17efafee3f4b137142e5aad2b805028f508614481d3647266d9"
+    "sha256": "c30903bfc3b2495fe01de89ab87b9774a81d19b366e3a46f252d2e313e4e24ce"
   },
   "summary": {
     "feature_count": 177,
