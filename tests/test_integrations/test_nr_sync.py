@@ -209,6 +209,32 @@ def test_nr_sync_rejects_invalid_identity_and_capture() -> None:
         )
 
 
+@pytest.mark.parametrize(
+    ("overrides", "message"),
+    [
+        ({"sampling_frequency_hz": True}, "sampling_frequency_hz must be a real"),
+        ({"cfo_hypotheses_hz": (True,)}, "CFO hypothesis must be a real"),
+        ({"minimum_score": True}, "minimum_score must be a real"),
+        (
+            {"fractional_timing_hypotheses_samples": ("0.0",)},
+            "fractional timing hypothesis must be a real",
+        ),
+    ],
+)
+def test_pss_acquisition_rejects_boolean_and_string_numeric_aliases(overrides, message):
+    capture = modulate_nr_sync_symbol(
+        nr_pss_sequence(0), fft_size=256, cyclic_prefix_length=32
+    )
+    arguments = {
+        "fft_size": 256,
+        "cyclic_prefix_length": 32,
+        "sampling_frequency_hz": 7_680_000.0,
+    }
+    arguments.update(overrides)
+    with pytest.raises(TypeError, match=message):
+        detect_nr_pss(capture, **arguments)
+
+
 def test_pss_search_rejects_noise_below_detection_threshold() -> None:
     rng = np.random.default_rng(361)
     noise = rng.standard_normal(4096) + 1j * rng.standard_normal(4096)

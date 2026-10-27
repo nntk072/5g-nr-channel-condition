@@ -58,6 +58,18 @@ def _validate_identity(nid1: int, nid2: int | None = None) -> None:
         raise ValueError("nid2 must be an integer in [0, 2]")
 
 
+def _finite_real(value: object, name: str) -> float:
+    if isinstance(value, (bool, np.bool_)) or not isinstance(value, Real):
+        raise TypeError(f"{name} must be a real non-Boolean number")
+    try:
+        result = float(value)
+    except OverflowError as error:
+        raise ValueError(f"{name} must be finite") from error
+    if not math.isfinite(result):
+        raise ValueError(f"{name} must be finite")
+    return result
+
+
 def nr_pss_sequence(nid2: int) -> NDArray[np.int8]:
     """Generate the length-127 NR PSS sequence for N_ID^(2)."""
     if isinstance(nid2, bool) or not isinstance(nid2, int) or not 0 <= nid2 <= 2:
@@ -104,7 +116,8 @@ def modulate_nr_sync_symbol(
 ) -> ComplexArray:
     """Map a PSS/SSS sequence to SSB tones, optionally delay it fractionally, and add a CP."""
     _validate_ofdm(fft_size, cyclic_prefix_length)
-    if not math.isfinite(fractional_delay_samples) or abs(fractional_delay_samples) >= 0.5:
+    fractional_delay = _finite_real(fractional_delay_samples, "fractional_delay_samples")
+    if abs(fractional_delay) >= 0.5:
         raise ValueError("fractional_delay_samples must be finite and in (-0.5, 0.5)")
     if sequence.shape != (127,) or not np.isin(sequence, (-1, 1)).all():
         raise ValueError("sequence must contain 127 BPSK values in {-1, +1}")
@@ -114,7 +127,7 @@ def modulate_nr_sync_symbol(
     subcarrier_offsets = np.arange(-64, 63)
     frequency[subcarrier_offsets % fft_size] = sequence
     frequency *= np.exp(
-        -2j * np.pi * np.fft.fftfreq(fft_size) * fft_size * fractional_delay_samples / fft_size
+        -2j * np.pi * np.fft.fftfreq(fft_size) * fft_size * fractional_delay / fft_size
     )
     useful = np.fft.ifft(frequency)
     return np.concatenate((useful[-cyclic_prefix_length:], useful))
@@ -182,6 +195,40 @@ def detect_nr_pss(
     upper bound.
     """
     _validate_ofdm(fft_size, cyclic_prefix_length)
+    sample_rate = _finite_real(sampling_frequency_hz, "sampling_frequency_hz")
+    if sample_rate <= 0.0:
+        raise ValueError("sampling_frequency_hz must be finite and positive")
+    minimum_score = _finite_real(minimum_score, "minimum_score")
+    if not 0.0 <= minimum_score <= 1.0:
+        raise ValueError("minimum_score must be finite and in [0, 1]")
+    if (
+        isinstance(cfo_hypotheses_hz, (str, bytes))
+        or not isinstance(cfo_hypotheses_hz, Sequence)
+        or len(cfo_hypotheses_hz) == 0
+    ):
+        raise ValueError("at least one CFO hypothesis is required")
+    try:
+        cfo_grid = tuple(_finite_real(value, "CFO hypothesis") for value in cfo_hypotheses_hz)
+    except ValueError as error:
+        raise ValueError("CFO hypotheses must be finite") from error
+    if (
+        isinstance(fractional_timing_hypotheses_samples, (str, bytes))
+        or not isinstance(fractional_timing_hypotheses_samples, Sequence)
+        or len(fractional_timing_hypotheses_samples) == 0
+    ):
+        raise ValueError("fractional timing hypotheses must be unique values in [-0.5, 0.5)")
+    try:
+        fractional_grid = tuple(
+            _finite_real(value, "fractional timing hypothesis")
+            for value in fractional_timing_hypotheses_samples
+        )
+    except ValueError as error:
+        raise ValueError("fractional timing hypotheses must be finite") from error
+    if (
+        any(not -0.5 <= value < 0.5 for value in fractional_grid)
+        or len(set(fractional_grid)) != len(fractional_grid)
+    ):
+        raise ValueError("fractional timing hypotheses must be unique values in [-0.5, 0.5)")
     samples = np.asarray(capture, dtype=np.complex128)
     if samples.ndim not in (1, 2) or samples.size == 0 or not np.isfinite(samples).all():
         raise ValueError("capture must be a finite complex vector or receive-chain matrix")
@@ -191,24 +238,6 @@ def detect_nr_pss(
         raise ValueError("capture is shorter than one PSS OFDM symbol")
     variances = _noise_variance_by_chain(noise_variance, samples.shape[0])
     inverse_variances = 1.0 / variances
-    if not math.isfinite(sampling_frequency_hz) or sampling_frequency_hz <= 0:
-        raise ValueError("sampling_frequency_hz must be finite and positive")
-    if not math.isfinite(minimum_score) or not 0.0 <= minimum_score <= 1.0:
-        raise ValueError("minimum_score must be finite and in [0, 1]")
-    if not cfo_hypotheses_hz:
-        raise ValueError("at least one CFO hypothesis is required")
-    if any(not math.isfinite(float(value)) for value in cfo_hypotheses_hz):
-        raise ValueError("CFO hypotheses must be finite")
-    if (
-        not fractional_timing_hypotheses_samples
-        or any(
-            not math.isfinite(float(value)) or not -0.5 <= value < 0.5
-            for value in fractional_timing_hypotheses_samples
-        )
-        or len(set(fractional_timing_hypotheses_samples))
-        != len(fractional_timing_hypotheses_samples)
-    ):
-        raise ValueError("fractional timing hypotheses must be unique values in [-0.5, 0.5)")
     if isinstance(cfo_guard_samples, bool) or not isinstance(cfo_guard_samples, int):
         raise TypeError("cfo_guard_samples must be an integer")
     if not 0 <= cfo_guard_samples < cyclic_prefix_length:
@@ -225,16 +254,16 @@ def detect_nr_pss(
     best: PSSDetection | None = None
     sample_axis = np.arange(symbol_length, dtype=np.float64)
     for nid2 in range(3):
-        for fractional_delay in fractional_timing_hypotheses_samples:
+        for fractional_delay in fractional_grid:
             base = modulate_nr_sync_symbol(
                 nr_pss_sequence(nid2),
                 fft_size=fft_size,
                 cyclic_prefix_length=cyclic_prefix_length,
                 fractional_delay_samples=float(fractional_delay),
             )
-            for cfo_hz in cfo_hypotheses_hz:
+            for cfo_hz in cfo_grid:
                 template = base * np.exp(
-                    2j * np.pi * float(cfo_hz) * sample_axis / sampling_frequency_hz
+                    2j * np.pi * cfo_hz * sample_axis / sample_rate
                 )
                 correlations = np.stack(
                     [correlate(chain, template, mode="valid", method="fft") for chain in samples],
@@ -281,7 +310,7 @@ def detect_nr_pss(
             cyclic_prefix_length=cyclic_prefix_length,
             fractional_delay_samples=fractional_delay,
         )
-        candidate *= np.exp(2j * np.pi * coarse_best.cfo_hz * sample_axis / sampling_frequency_hz)
+        candidate *= np.exp(2j * np.pi * coarse_best.cfo_hz * sample_axis / sample_rate)
         candidate_energy = float(np.vdot(candidate, candidate).real)
         denominator = math.sqrt(matched_energy * candidate_energy)
         if denominator <= np.finfo(np.float64).tiny:
@@ -325,7 +354,7 @@ def detect_nr_pss(
             "PSS cyclic-prefix correlation has insufficient energy for CFO refinement"
         )
     refined_cfo_hz = (
-        float(np.angle(cp_correlation)) * sampling_frequency_hz / (2.0 * np.pi * fft_size)
+        float(np.angle(cp_correlation)) * sample_rate / (2.0 * np.pi * fft_size)
     )
     return PSSDetection(
         best.sample_offset,
@@ -419,7 +448,11 @@ def acquire_nr_cell(
     cell-search reference, not a complete or standards-certified NR synchronizer.
     """
     _validate_ofdm(fft_size, cyclic_prefix_length)
-    if not math.isfinite(minimum_sss_score) or not 0.0 <= minimum_sss_score <= 1.0:
+    sample_rate = _finite_real(sampling_frequency_hz, "sampling_frequency_hz")
+    if sample_rate <= 0.0:
+        raise ValueError("sampling_frequency_hz must be finite and positive")
+    minimum_sss_score = _finite_real(minimum_sss_score, "minimum_sss_score")
+    if not 0.0 <= minimum_sss_score <= 1.0:
         raise ValueError("minimum_sss_score must be finite and in [0, 1]")
     samples = np.asarray(capture, dtype=np.complex128)
     if samples.ndim not in (1, 2) or not np.isfinite(samples).all():
@@ -437,7 +470,7 @@ def acquire_nr_cell(
         samples[:, : samples.shape[1] - 2 * symbol_length],
         fft_size=fft_size,
         cyclic_prefix_length=cyclic_prefix_length,
-        sampling_frequency_hz=sampling_frequency_hz,
+        sampling_frequency_hz=sample_rate,
         noise_variance=variances,
         cfo_hypotheses_hz=cfo_hypotheses_hz,
         fractional_timing_hypotheses_samples=fractional_timing_hypotheses_samples,
@@ -450,7 +483,7 @@ def acquire_nr_cell(
         raise ValueError("capture ends before the SSS symbol")
     pss_start = pss.sample_offset
     pss_end = pss_start + symbol_length
-    phase = np.exp(-2j * np.pi * pss.cfo_hz * np.arange(symbol_length) / sampling_frequency_hz)
+    phase = np.exp(-2j * np.pi * pss.cfo_hz * np.arange(symbol_length) / sample_rate)
     corrected_pss = samples[:, pss_start:pss_end] * phase[None, :]
     pss_spectrum = np.fft.fft(corrected_pss[:, cyclic_prefix_length:], axis=-1)
     offsets = np.arange(-64, 63)
