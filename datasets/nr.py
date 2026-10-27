@@ -295,8 +295,9 @@ class NRChannelRecord:
         reference_bits = self.reference_transport_block_bits
         reference_shape_key = "reference_transport_block_shape"
         reference_digest_key = "reference_transport_block_sha256"
+        normalized_provenance = dict(self.provenance)
         declared_reference_fields = {
-            key for key in (reference_shape_key, reference_digest_key) if key in self.provenance
+            key for key in (reference_shape_key, reference_digest_key) if key in normalized_provenance
         }
         if reference_bits is not None:
             if torch_module is not None and torch_module.is_tensor(reference_bits):
@@ -313,8 +314,8 @@ class NRChannelRecord:
                     "reference_transport_block_bits must be a bounded binary [TX, bit] array"
                 )
             reference_array = np.array(reference_array, dtype=np.uint8, copy=True)
-            expected_reference_shape = self.provenance.get(reference_shape_key)
-            expected_reference_digest = self.provenance.get(reference_digest_key)
+            expected_reference_shape = normalized_provenance.get(reference_shape_key)
+            expected_reference_digest = normalized_provenance.get(reference_digest_key)
             actual_reference_digest = hashlib.sha256(reference_array.tobytes(order="C")).hexdigest()
             if (
                 declared_reference_fields != {reference_shape_key, reference_digest_key}
@@ -326,6 +327,7 @@ class NRChannelRecord:
                 raise ValueError(
                     "reference transport-block payload differs from its provenance shape/digest"
                 )
+            normalized_provenance[reference_shape_key] = tuple(expected_reference_shape)
             reference_array.setflags(write=False)
             object.__setattr__(self, "reference_transport_block_bits", reference_array)
         elif declared_reference_fields:
@@ -337,9 +339,37 @@ class NRChannelRecord:
             raise TypeError("target definitions must be TargetDefinition values")
         object.__setattr__(self, "targets", _freeze_mapping(self.targets))
         object.__setattr__(self, "target_masks", _freeze_mapping(self.target_masks))
-        object.__setattr__(self, "provenance", _freeze_mapping(self.provenance))
+        object.__setattr__(self, "provenance", _freeze_mapping(normalized_provenance))
         object.__setattr__(self, "target_definitions", _freeze_mapping(definitions))
         object.__setattr__(self, "target_reason_codes", _freeze_mapping(normalized_reasons))
+
+    def validate_reference_transport_block_integrity(self) -> None:
+        """Recheck mutable NumPy backing storage before publishing a record."""
+        reference_bits = self.reference_transport_block_bits
+        reference_shape = self.provenance.get("reference_transport_block_shape")
+        reference_digest = self.provenance.get("reference_transport_block_sha256")
+        fields_present = reference_shape is not None or reference_digest is not None
+        if reference_bits is None:
+            if fields_present:
+                raise ValueError("reference transport-block provenance requires its payload array")
+            return
+
+        reference_array = np.asarray(reference_bits)
+        if (
+            reference_array.ndim != 2
+            or any(size <= 0 for size in reference_array.shape)
+            or reference_array.size > MAX_REFERENCE_TRANSPORT_BLOCK_BITS
+            or reference_array.dtype.kind not in "biu"
+            or np.any((reference_array != 0) & (reference_array != 1))
+            or not isinstance(reference_shape, tuple)
+            or any(type(size) is not int or size <= 0 for size in reference_shape)
+            or reference_shape != tuple(reference_array.shape)
+            or reference_digest
+            != hashlib.sha256(reference_array.tobytes(order="C")).hexdigest()
+        ):
+            raise ValueError(
+                "reference transport-block payload differs from its provenance shape/digest"
+            )
 
     def require_versioned_target_definitions(self) -> None:
         """Require a digest-verified semantic definition for every persisted target."""

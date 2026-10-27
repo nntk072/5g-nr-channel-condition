@@ -607,7 +607,8 @@ def audit_standardized_pusch_records_for_diagnostic(
         expected_shape = record.provenance.get("reference_transport_block_shape")
         expected_digest = record.provenance.get("reference_transport_block_sha256")
         if (
-            expected_shape != list(reference_array.shape)
+            not isinstance(expected_shape, tuple)
+            or expected_shape != tuple(reference_array.shape)
             or expected_digest != hashlib.sha256(reference_array.tobytes(order="C")).hexdigest()
         ):
             raise ValueError("retained TX reference payload differs from its provenance digest")

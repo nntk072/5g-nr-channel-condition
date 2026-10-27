@@ -140,7 +140,7 @@ def test_standardized_tdl_cdl_to_pusch_dmrs_is_seeded_and_target_is_separate(
             record.reference_transport_block_bits,
             repeated.reference_transport_block_bits,
         )
-        assert record.provenance["reference_transport_block_shape"] == list(
+        assert record.provenance["reference_transport_block_shape"] == tuple(
             record.reference_transport_block_bits.shape
         )
         assert not hasattr(observation.model_inputs(), "reference_transport_block_bits")

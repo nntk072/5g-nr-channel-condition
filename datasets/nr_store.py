@@ -412,6 +412,7 @@ def write_nr_record(root: str | Path, record: NRChannelRecord) -> NRStoredRecord
     v1-v3 remain read-only historical formats.
     """
     record.require_versioned_target_definitions()
+    record.validate_reference_transport_block_integrity()
     base = Path(root)
     arrays: dict[str, np.ndarray] = {
         "received_grid": _as_numpy(record.observation.received_grid, field="received_grid"),

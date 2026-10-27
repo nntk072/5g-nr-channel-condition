@@ -599,6 +599,9 @@ def test_nr_record_round_trip_is_lossless_pickle_free_and_content_addressed(tmp_
     np.testing.assert_array_equal(
         restored.reference_transport_block_bits, record.reference_transport_block_bits
     )
+    assert record.provenance["reference_transport_block_shape"] == (1, 5)
+    with pytest.raises(TypeError):
+        record.provenance["reference_transport_block_shape"][0] = 2
     assert not hasattr(observation.model_inputs(), "reference_transport_block_bits")
     with np.load(tmp_path / stored.relative_path, allow_pickle=False) as archive:
         metadata = json.loads(archive["metadata_json"].tobytes().decode("utf-8"))
@@ -678,6 +681,20 @@ def test_nr_v4_reader_rejects_rehashed_reference_payload_provenance_drift(tmp_pa
     )
     with pytest.raises(ValueError, match="provenance shape/digest"):
         read_nr_record(tmp_path, forged)
+
+
+def test_nr_writer_rejects_reference_payload_mutated_after_record_admission(tmp_path):
+    record = make_single_record(
+        "mutated-reference-payload",
+        targets={"label": np.asarray(1)},
+        reference_transport_block_bits=np.asarray([[1, 0, 1]], dtype=np.uint8),
+    )
+    record.reference_transport_block_bits.setflags(write=True)
+    record.reference_transport_block_bits[0, 0] = 0
+
+    with pytest.raises(ValueError, match="provenance shape/digest"):
+        write_nr_record(tmp_path, record)
+    assert not (tmp_path / "records").exists()
 
 
 def test_nr_v2_record_without_target_definitions_remains_readable(tmp_path):
