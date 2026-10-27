@@ -10,8 +10,10 @@ torch = pytest.importorskip("torch")
 
 from integrations.sionna.network_phy import (  # noqa: E402
     add_independent_receiver_awgn,
+    add_independent_receiver_waveform_awgn,
     apply_network_link_budget,
     compose_downlink_resource_grids,
+    compose_received_waveforms,
     network_resource_sinr,
     network_sinr,
 )
@@ -57,22 +59,19 @@ def test_per_link_budget_applies_antenna_beam_and_path_loss_once():
         input_channel_semantics="unit_mean_small_scale_fading",
     )
 
-    expected_net_gain_db = torch.tensor(
-        [[-64.0, -82.0], [-74.0, -50.0]], dtype=torch.float64
-    )
+    expected_net_gain_db = torch.tensor([[-64.0, -82.0], [-74.0, -50.0]], dtype=torch.float64)
     expected_power_gain = torch.pow(10.0, expected_net_gain_db / 10.0)
     torch.testing.assert_close(budget.net_gain_db, expected_net_gain_db)
     torch.testing.assert_close(budget.power_gain_linear, expected_power_gain)
     torch.testing.assert_close(
         budget.mean_received_power_w_per_re,
-        expected_power_gain
-        * torch.tensor([[1.0, 2.0], [1.0, 2.0]], dtype=torch.float64),
+        expected_power_gain * torch.tensor([[1.0, 2.0], [1.0, 2.0]], dtype=torch.float64),
     )
     torch.testing.assert_close(
         budget.channel.abs().square().to(torch.float64),
-        expected_power_gain[None, :, None, :, None, None, None].expand_as(
-            budget.channel.real
-        ).to(torch.float64),
+        expected_power_gain[None, :, None, :, None, None, None]
+        .expand_as(budget.channel.real)
+        .to(torch.float64),
     )
 
 
@@ -118,9 +117,7 @@ def test_per_resource_sinr_preserves_symbol_and_subcarrier_interference_structur
     )
     torch.testing.assert_close(
         metrics.interference_power_w_per_re,
-        torch.tensor([[[1.5, 0.0, 1.5]]], dtype=torch.float64).expand(
-            1, 2, 3
-        ),
+        torch.tensor([[[1.5, 0.0, 1.5]]], dtype=torch.float64).expand(1, 2, 3),
     )
     torch.testing.assert_close(
         metrics.sinr_linear,
@@ -165,7 +162,7 @@ def test_per_resource_sinr_accepts_serving_cell_map_by_symbol_and_subcarrier():
         ((True,), "integer transmitter indices"),
         ((0.0,), "integer transmitter indices"),
         (((0, 1),), r"shape \[rx\] or \[rx, symbol, subcarrier\]"),
-        ((2,), "address an existing transmitter"),
+        ((2, 0), "address an existing transmitter"),
     ],
 )
 def test_per_resource_sinr_rejects_invalid_serving_cell_maps(serving_map, message):
@@ -194,9 +191,7 @@ def test_frequency_dependent_link_budget_binds_and_scales_each_subcarrier():
     expected_power_gain = torch.pow(10.0, expected_net_gain_db / 10.0)
     torch.testing.assert_close(budget.net_gain_db, expected_net_gain_db)
     torch.testing.assert_close(budget.power_gain_linear, expected_power_gain)
-    torch.testing.assert_close(
-        budget.mean_received_power_w_per_re, expected_power_gain * 2.0
-    )
+    torch.testing.assert_close(budget.mean_received_power_w_per_re, expected_power_gain * 2.0)
     torch.testing.assert_close(
         budget.channel.abs().square().to(torch.float64),
         expected_power_gain[None, :, None, :, None, None, :].to(torch.float64),
@@ -247,7 +242,7 @@ def test_link_budget_rejects_double_counting_and_invalid_inputs():
         apply_network_link_budget(channel, **{**common, "path_loss_db": ((-1.0,),)})
     with pytest.raises(ValueError, match="Boolean"):
         apply_network_link_budget(channel, **{**common, "tx_antenna_gain_dbi": (True,)})
-    with pytest.raises(ValueError, match="shape \(1, 1\)"):
+    with pytest.raises(ValueError, match=r"shape \(1, 1\)"):
         apply_network_link_budget(channel, **{**common, "rx_beam_gain_dbi": (0.0,)})
 
 
@@ -258,7 +253,7 @@ def test_disabling_interferer_reproduces_desired_only_reference():
 
     torch.testing.assert_close(joint.received_grid, desired_only.received_grid)
     assert torch.count_nonzero(joint.source_contributions[:, :, :, 1]) == 0
-    metrics = network_sinr(joint, (0, 0), (0.0, 0.0))
+    metrics = network_sinr(joint, (0, 0), (1e-12, 1e-12))
     torch.testing.assert_close(
         metrics.interference_power_w_per_re, torch.zeros(2, dtype=torch.float64)
     )
@@ -329,8 +324,8 @@ def test_composition_rejects_nonzero_power_for_empty_transmit_grid():
         ((True,), "Boolean"),
         ((1.0 + 0.5j,), "complex"),
         (("1.0",), "real numeric"),
-        ((1e-300,), "not representable"),
-        ((1e300,), "not representable"),
+        ((1e-300, 1.0), "not representable"),
+        ((1e300, 1.0), "not representable"),
     ],
 )
 def test_composition_rejects_malformed_or_unrepresentable_transmit_power(power, message):
@@ -373,7 +368,7 @@ def test_sinr_rejects_sparse_receiver_noise():
 def test_receiver_noise_rejects_values_not_representable_in_grid_dtype(variance):
     channel, grids = _two_node_fixture()
     composition = compose_downlink_resource_grids(channel, grids, (1.0, 1.0))
-    with pytest.raises(ValueError, match="representable"):
+    with pytest.raises(ValueError, match="representable|underflow"):
         add_independent_receiver_awgn(composition, (variance, variance), seed=41)
 
 
@@ -388,3 +383,72 @@ def test_network_receiver_and_sinr_refuse_inconsistent_composition():
         network_sinr(inconsistent, (0, 1), (0.1, 0.1))
     with pytest.raises(ValueError, match="equal the sum of source contributions"):
         add_independent_receiver_awgn(inconsistent, (0.1, 0.1), seed=41)
+
+
+def test_received_waveform_composition_aligns_each_link_on_capture_timeline():
+    links = torch.zeros((1, 2, 2, 1, 4), dtype=torch.complex64)
+    links[:, 0, 0, 0] = 1.0
+    links[:, 0, 1, 0] = 1.0j
+    links[:, 1, 0, 0] = 2.0
+    links[:, 1, 1, 0] = 3.0j
+    composition = compose_received_waveforms(
+        links,
+        link_start_samples=((0, 2), (-1, 1)),
+        capture_num_samples=6,
+        sample_rate_hz=30.72e6,
+    )
+
+    assert composition.source_contributions.shape == (1, 2, 1, 2, 6)
+    torch.testing.assert_close(
+        composition.received_waveform[0, 0, 0],
+        torch.tensor([1, 1, 1 + 1j, 1 + 1j, 1j, 1j], dtype=torch.complex64),
+    )
+    torch.testing.assert_close(
+        composition.received_waveform[0, 1, 0],
+        torch.tensor([2, 2 + 3j, 2 + 3j, 3j, 3j, 0], dtype=torch.complex64),
+    )
+    assert composition.sample_rate_hz == 30.72e6
+
+
+def test_waveform_receiver_noise_is_reproducible_and_distinct_per_receiver():
+    links = torch.ones((2, 2, 1, 2, 4096), dtype=torch.complex64)
+    composition = compose_received_waveforms(
+        links,
+        link_start_samples=((0,), (0,)),
+        capture_num_samples=4096,
+        sample_rate_hz=15.36e6,
+    )
+    first = add_independent_receiver_waveform_awgn(composition, (0.2, 0.2), seed=513)
+    replay = add_independent_receiver_waveform_awgn(composition, (0.2, 0.2), seed=513)
+
+    torch.testing.assert_close(first.noise_waveform, replay.noise_waveform, rtol=0, atol=0)
+    assert not torch.equal(first.noise_waveform[:, 0], first.noise_waveform[:, 1])
+    measured = first.noise_waveform.abs().square().mean(dim=(0, 2, 3))
+    torch.testing.assert_close(measured, torch.tensor([0.2, 0.2]), rtol=0.08, atol=0.01)
+    torch.testing.assert_close(
+        first.received_waveform,
+        composition.received_waveform + first.noise_waveform,
+    )
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"link_start_samples": ((False,),)},
+        {"link_start_samples": ((0.0,),)},
+        {"link_start_samples": ((0, 0),)},
+        {"capture_num_samples": 0},
+        {"sample_rate_hz": float("nan")},
+        {"max_output_elements": 1},
+    ],
+)
+def test_received_waveform_composition_rejects_invalid_alignment_or_bounds(kwargs):
+    links = torch.ones((1, 1, 1, 1, 4), dtype=torch.complex64)
+    args = {
+        "link_start_samples": ((0,),),
+        "capture_num_samples": 4,
+        "sample_rate_hz": 30.72e6,
+    }
+    args.update(kwargs)
+    with pytest.raises((TypeError, ValueError)):
+        compose_received_waveforms(links, **args)

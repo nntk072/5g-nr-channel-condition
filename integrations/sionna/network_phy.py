@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from typing import Any, Sequence
 
@@ -210,6 +211,35 @@ class NoisyNetworkGrid:
     seed: int
 
 
+@dataclass(frozen=True, slots=True)
+class NetworkWaveformComposition:
+    """Per-link channel-filtered waveforms aligned to a receiver capture.
+
+    ``source_contributions`` has axes ``[batch, rx, rx_port, tx, sample]``;
+    ``received_waveform`` sums the transmitter axis. Each input link waveform
+    is assumed already scaled and channel-filtered. ``link_start_samples``
+    gives the integer offset of each link's first sample relative to capture
+    sample zero. All links must use the same sample rate and carrier/numerology;
+    this helper aligns sample clocks but does not model fractional delay, CFO,
+    adjacent-channel leakage, or nonlinear RF effects.
+    """
+
+    source_contributions: Any
+    received_waveform: Any
+    link_start_samples: Any
+    sample_rate_hz: float
+
+
+@dataclass(frozen=True, slots=True)
+class NoisyNetworkWaveform:
+    """Receiver-specific independent complex AWGN added to a network capture."""
+
+    received_waveform: Any
+    noise_waveform: Any
+    noise_variance_w_per_sample: Any
+    seed: int
+
+
 def apply_network_link_budget(
     small_scale_channel: Any,
     *,
@@ -248,8 +278,7 @@ def apply_network_link_budget(
         raise TypeError("small_scale_channel must be a complex PyTorch tensor")
     if small_scale_channel.ndim != 7:
         raise ValueError(
-            "small_scale_channel axes must be "
-            "[batch, rx, rx_port, tx, tx_port, symbol, subcarrier]"
+            "small_scale_channel axes must be [batch, rx, rx_port, tx, tx_port, symbol, subcarrier]"
         )
     if any(size <= 0 for size in small_scale_channel.shape):
         raise ValueError("small_scale_channel axes must be non-empty")
@@ -345,6 +374,7 @@ def apply_network_link_budget(
         name="transmit_power_w_per_re",
     )
     if frequency_dependent:
+
         def link_profile(value: Any, flat_shape: tuple[int, ...], mode: str) -> Any:
             if tuple(value.shape) == flat_shape:
                 value = value.unsqueeze(-1)
@@ -359,21 +389,9 @@ def apply_network_link_budget(
         tx_link_beam = link_profile(tx_beam, (rx_count, tx_count), "link")
         rx_link_beam = link_profile(rx_beam, (rx_count, tx_count), "link")
         path_loss_profile = link_profile(path_loss, (rx_count, tx_count), "link")
-        net_gain_db = (
-            tx_link_gain
-            + rx_link_gain
-            + tx_link_beam
-            + rx_link_beam
-            - path_loss_profile
-        )
+        net_gain_db = tx_link_gain + rx_link_gain + tx_link_beam + rx_link_beam - path_loss_profile
     else:
-        net_gain_db = (
-            tx_gain[None, :]
-            + rx_gain[:, None]
-            + tx_beam
-            + rx_beam
-            - path_loss
-        )
+        net_gain_db = tx_gain[None, :] + rx_gain[:, None] + tx_beam + rx_beam - path_loss
     amplitude_gain = torch.pow(
         torch.tensor(10.0, dtype=torch.float64, device=device), net_gain_db / 20.0
     )
@@ -385,9 +403,8 @@ def apply_network_link_budget(
     ):
         raise ValueError("large-scale link-budget gain is not representable in float64")
     output_gain = amplitude_gain.to(dtype=small_scale_channel.real.dtype)
-    if (
-        not bool(torch.isfinite(output_gain).all())
-        or bool(((amplitude_gain > 0) & (output_gain == 0)).any())
+    if not bool(torch.isfinite(output_gain).all()) or bool(
+        ((amplitude_gain > 0) & (output_gain == 0)).any()
     ):
         raise ValueError("large-scale link-budget gain is not representable in channel dtype")
     if frequency_dependent:
@@ -486,9 +503,8 @@ def compose_downlink_resource_grids(
     scale = torch.zeros_like(power)
     scale[enabled] = torch.sqrt(power[enabled] / grid_power[enabled])
     output_scale = scale.to(transmit_grids.real.dtype)
-    if (
-        not bool(torch.isfinite(output_scale).all())
-        or bool((enabled & (scale > 0) & (output_scale == 0)).any())
+    if not bool(torch.isfinite(output_scale).all()) or bool(
+        (enabled & (scale > 0) & (output_scale == 0)).any()
     ):
         raise ValueError("transmit power scaling is not representable in the waveform dtype")
     scaled_grids = transmit_grids * output_scale[None, :, None, None, None]
@@ -505,6 +521,201 @@ def compose_downlink_resource_grids(
         source_contributions=contributions,
         received_grid=received_grid,
         transmit_power_w_per_re=power,
+    )
+
+
+def compose_received_waveforms(
+    link_waveforms: Any,
+    *,
+    link_start_samples: Any,
+    capture_num_samples: int,
+    sample_rate_hz: float,
+    max_output_elements: int = 64_000_000,
+) -> NetworkWaveformComposition:
+    """Align and sum already propagated transmitter waveforms at each receiver.
+
+    ``link_waveforms`` has axes ``[batch, rx, tx, rx_port, sample]`` and holds
+    one channel-filtered contribution per transmitter/receiver pair. Positive
+    start offsets insert leading zeros; negative offsets clip samples that
+    arrived before the capture window. Samples outside the capture are
+    discarded. The function does not apply transmit-power, path-loss, channel,
+    or RF-impairment models; apply those per link before calling it.
+
+    The output is bounded by ``max_output_elements`` across both retained link
+    contributions and the receiver sum, before allocating the capture tensors.
+    This is a common-sample-rate baseband composition primitive, not a complete
+    asynchronous or multi-numerology network simulator.
+    """
+    try:
+        import torch
+    except ImportError as exc:
+        raise RuntimeError("Install PyTorch to compose received waveforms") from exc
+
+    if not torch.is_tensor(link_waveforms) or not torch.is_complex(link_waveforms):
+        raise TypeError("link_waveforms must be a complex PyTorch tensor")
+    if link_waveforms.ndim != 5:
+        raise ValueError("link_waveforms must have [batch, rx, tx, rx_port, sample] axes")
+    if any(size <= 0 for size in link_waveforms.shape):
+        raise ValueError("link_waveforms axes must be non-empty")
+    if not bool(torch.isfinite(link_waveforms).all()):
+        raise ValueError("link_waveforms must contain only finite samples")
+    if (
+        isinstance(capture_num_samples, bool)
+        or not isinstance(capture_num_samples, int)
+        or capture_num_samples <= 0
+    ):
+        raise ValueError("capture_num_samples must be a positive integer")
+    if (
+        isinstance(max_output_elements, bool)
+        or not isinstance(max_output_elements, int)
+        or max_output_elements <= 0
+    ):
+        raise ValueError("max_output_elements must be a positive integer")
+    if (
+        isinstance(sample_rate_hz, bool)
+        or not isinstance(sample_rate_hz, (int, float))
+        or not math.isfinite(sample_rate_hz)
+        or sample_rate_hz <= 0
+    ):
+        raise ValueError("sample_rate_hz must be finite and positive")
+
+    batch, rx_count, tx_count, rx_ports, _input_samples = link_waveforms.shape
+    try:
+        offset_probe = torch.as_tensor(link_start_samples, device=link_waveforms.device)
+    except (TypeError, ValueError, RuntimeError, OverflowError) as error:
+        raise ValueError("link_start_samples must contain integer sample offsets") from error
+    integer_dtypes = {torch.uint8, torch.int8, torch.int16, torch.int32, torch.int64}
+    if (
+        offset_probe.layout != torch.strided
+        or offset_probe.dtype == torch.bool
+        or offset_probe.is_floating_point()
+        or offset_probe.is_complex()
+        or offset_probe.dtype not in integer_dtypes
+    ):
+        raise ValueError("link_start_samples must contain integer sample offsets")
+    if tuple(offset_probe.shape) != (rx_count, tx_count):
+        raise ValueError(f"link_start_samples must have shape {(rx_count, tx_count)}")
+    offsets = offset_probe.to(torch.int64)
+
+    contribution_elements = batch * rx_count * rx_ports * tx_count * capture_num_samples
+    receive_elements = batch * rx_count * rx_ports * capture_num_samples
+    if contribution_elements + receive_elements > max_output_elements:
+        raise ValueError(
+            "aligned waveform outputs exceed max_output_elements; reduce the capture or batch"
+        )
+
+    contributions = torch.zeros(
+        (batch, rx_count, rx_ports, tx_count, capture_num_samples),
+        dtype=link_waveforms.dtype,
+        device=link_waveforms.device,
+    )
+    for rx_index in range(rx_count):
+        for tx_index in range(tx_count):
+            offset = int(offsets[rx_index, tx_index].item())
+            source_start = max(0, -offset)
+            destination_start = max(0, offset)
+            sample_count = min(
+                link_waveforms.shape[-1] - source_start,
+                capture_num_samples - destination_start,
+            )
+            if sample_count > 0:
+                contributions[
+                    :, rx_index, :, tx_index, destination_start : destination_start + sample_count
+                ] = link_waveforms[
+                    :, rx_index, tx_index, :, source_start : source_start + sample_count
+                ]
+    received = contributions.sum(dim=3)
+    if not bool(torch.isfinite(contributions).all()) or not bool(torch.isfinite(received).all()):
+        raise ValueError("composed receiver waveform is not finite")
+    return NetworkWaveformComposition(
+        source_contributions=contributions,
+        received_waveform=received,
+        link_start_samples=offsets,
+        sample_rate_hz=float(sample_rate_hz),
+    )
+
+
+def add_independent_receiver_waveform_awgn(
+    composition: NetworkWaveformComposition,
+    noise_variance_w_per_sample: Sequence[float] | Any,
+    *,
+    seed: int,
+) -> NoisyNetworkWaveform:
+    """Add independent receiver-node AWGN to an aligned waveform composition."""
+    try:
+        import torch
+    except ImportError as exc:
+        raise RuntimeError("Install PyTorch to add receiver waveform noise") from exc
+
+    received = getattr(composition, "received_waveform", None)
+    contributions = getattr(composition, "source_contributions", None)
+    offsets = getattr(composition, "link_start_samples", None)
+    if not torch.is_tensor(received) or not torch.is_complex(received) or received.ndim != 4:
+        raise TypeError("composition must contain complex [batch, rx, rx_port, sample] waveforms")
+    if not torch.is_tensor(contributions) or not torch.is_complex(contributions):
+        raise TypeError("composition must contain complex per-link contributions")
+    if contributions.ndim != 5 or tuple(contributions.shape[:2]) != tuple(received.shape[:2]):
+        raise ValueError("composition link contributions have invalid axes")
+    if any(size <= 0 for size in received.shape) or any(size <= 0 for size in contributions.shape):
+        raise ValueError("composition waveform axes must be non-empty")
+    if tuple(contributions.shape[2:3] + contributions.shape[4:5]) != tuple(
+        received.shape[2:3] + received.shape[3:4]
+    ):
+        raise ValueError("composition link contributions do not match the receiver waveform")
+    integer_dtypes = {torch.uint8, torch.int8, torch.int16, torch.int32, torch.int64}
+    if (
+        not torch.is_tensor(offsets)
+        or offsets.layout != torch.strided
+        or offsets.dtype not in integer_dtypes
+        or offsets.shape != (received.shape[1], contributions.shape[3])
+    ):
+        raise ValueError("composition must contain one sample offset per receiver/transmitter")
+    if (
+        isinstance(composition.sample_rate_hz, bool)
+        or not isinstance(composition.sample_rate_hz, (int, float))
+        or not math.isfinite(composition.sample_rate_hz)
+        or composition.sample_rate_hz <= 0
+    ):
+        raise ValueError("composition sample rate must be finite and positive")
+    if received.device != contributions.device or received.dtype != contributions.dtype:
+        raise ValueError("received waveforms and link contributions must share dtype and device")
+    if not torch.equal(contributions.sum(dim=3), received):
+        raise ValueError("received_waveform must equal the sum of source_contributions")
+    if not bool(torch.isfinite(received).all()) or not bool(torch.isfinite(contributions).all()):
+        raise ValueError("composition waveforms must be finite")
+    if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
+        raise ValueError("seed must be a nonnegative integer")
+    rx_count = received.shape[1]
+    if seed + rx_count - 1 > 2**63 - 1:
+        raise ValueError("seed and receiver-derived seeds must fit in [0, 2**63 - 1]")
+    variance = _validated_nonnegative_vector(
+        torch,
+        noise_variance_w_per_sample,
+        size=rx_count,
+        device=received.device,
+        name="noise_variance_w_per_sample",
+    )
+    from .noise import proper_complex_awgn
+
+    noise_parts = []
+    for rx_index in range(rx_count):
+        generator = torch.Generator(device=received.device).manual_seed(seed + rx_index)
+        noise_parts.append(
+            proper_complex_awgn(
+                received[:, rx_index],
+                variance[rx_index],
+                generator=generator,
+            )
+        )
+    noise = torch.stack(noise_parts, dim=1)
+    noisy = received + noise
+    if not bool(torch.isfinite(noise).all()) or not bool(torch.isfinite(noisy).all()):
+        raise ValueError("receiver waveform plus noise is not finite")
+    return NoisyNetworkWaveform(
+        received_waveform=noisy,
+        noise_waveform=noise,
+        noise_variance_w_per_sample=variance,
+        seed=seed,
     )
 
 
@@ -614,9 +825,7 @@ def network_resource_sinr(
     elif tuple(serving_probe.shape) == (rx_count, symbol_count, subcarrier_count):
         serving_map = serving_probe.to(torch.int64)
     else:
-        raise ValueError(
-            "serving_tx_indices must have shape [rx] or [rx, symbol, subcarrier]"
-        )
+        raise ValueError("serving_tx_indices must have shape [rx] or [rx, symbol, subcarrier]")
     if bool(((serving_map < 0) | (serving_map >= tx_count)).any()):
         raise ValueError("each serving transmitter index must address an existing transmitter")
     noise = _validated_nonnegative_vector(
@@ -629,9 +838,7 @@ def network_resource_sinr(
 
     desired_rows = []
     interference_rows = []
-    tx_indices = torch.arange(tx_count, device=contributions.device).reshape(
-        1, 1, tx_count, 1, 1
-    )
+    tx_indices = torch.arange(tx_count, device=contributions.device).reshape(1, 1, tx_count, 1, 1)
     for rx_index in range(rx_count):
         per_tx = contributions[:, rx_index]
         serving = serving_map[rx_index]
@@ -649,8 +856,7 @@ def network_resource_sinr(
             + interference.imag.to(torch.float64).square()
         ).mean(dim=(0, 1))
         desired_power = (
-            desired.real.to(torch.float64).square()
-            + desired.imag.to(torch.float64).square()
+            desired.real.to(torch.float64).square() + desired.imag.to(torch.float64).square()
         ).mean(dim=(0, 1))
         desired_rows.append(desired_power)
         interference_rows.append(interference_power)
@@ -668,9 +874,7 @@ def network_resource_sinr(
     if not bool(torch.isfinite(sinr[valid]).all()):
         raise ValueError("per-resource network SINR is not representable in float64")
     sinr = torch.where(valid, sinr, torch.full_like(sinr, float("nan")))
-    return NetworkResourceSINR(
-        desired_power, interference_power, noise_power, sinr, valid
-    )
+    return NetworkResourceSINR(desired_power, interference_power, noise_power, sinr, valid)
 
 
 def add_independent_receiver_awgn(
