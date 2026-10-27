@@ -16,6 +16,8 @@ _ROOT = Path(__file__).resolve().parents[2]
 _REFERENCE_PATH = _ROOT / "docs/research/G4_FIXED_TDL_TAP_PROFILE_REFERENCE_2026-10-26.json"
 _REFERENCE_SHA256 = "fe22560a71f4e5683ea6780f73e84466155b26f5f97cc4b63e3250c102fafda3"
 _SOURCE_SHA256 = "b3c6a73c7a40219e7270c08c7a57c84cb46f6757b303a64ec768ba04a6079e81"
+_SEED_AUDIT_PATH = _ROOT / "docs/research/G4_FIXED_TDL_PROPERNESS_SEED_AUDIT_2026-10-27.json"
+_SEED_AUDIT_SHA256 = "c9887cb5a39b858baacacbdd783b478638722fb657c512cad34fc83c285e3e56"
 _MODELS = ("A10", "A30", "B100", "C60", "C300", "D10", "D30")
 _SEED_START = 1_730_000
 _SAMPLE_COUNT = 32_768
@@ -84,12 +86,35 @@ def test_fixed_tdl_circularity_family_is_bound_to_the_expected_etsi_taps() -> No
     assert 0 not in _rayleigh_tap_indices(profiles["D30"])
 
 
+def _verify_seed_audit() -> None:
+    payload = _SEED_AUDIT_PATH.read_bytes()
+    if hashlib.sha256(payload).hexdigest() != _SEED_AUDIT_SHA256:
+        raise ValueError("fixed TDL properness seed audit does not match its frozen digest")
+    audit = json.loads(payload)
+    expected_seeds = [_SEED_START + index for index in range(len(_MODELS))]
+    if (
+        audit.get("schema") != "loslab.seed_roster_collision_audit.v2"
+        or audit.get("status") != "CLEAR_WITHIN_SCANNED_JSON_CORPUS"
+        or audit.get("reserved_seeds") != expected_seeds
+        or audit.get("scanned_file_count", 0) < 1
+        or audit.get("collisions")
+        or audit.get("malformed_seed_fields")
+        or audit.get("incomplete_files")
+    ):
+        raise ValueError("fixed TDL properness seed roster is not clear in its frozen audit")
+
+
+def test_fixed_tdl_circularity_seed_roster_has_a_complete_collision_audit() -> None:
+    _verify_seed_audit()
+
+
 @pytest.mark.native_sionna
 @pytest.mark.parametrize("model", _MODELS)
 def test_fixed_tdl_rayleigh_tap_mean_and_pseudocovariance_match_proper_complex_reference(
     model: str,
 ) -> None:
     """Check zero mean and properness for each independently drawn Rayleigh tap."""
+    _verify_seed_audit()
     torch = pytest.importorskip("torch")
     pytest.importorskip("sionna.phy")
     reference = _load_reference()
