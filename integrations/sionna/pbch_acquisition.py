@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from numbers import Integral
+from numbers import Integral, Real
 from typing import Sequence
 
 import numpy as np
@@ -65,8 +65,12 @@ def nr_pbch_acquire_and_receive(
     cp_lengths = _validate_cp_lengths(cyclic_prefix_lengths, fft_length)
     if cp_lengths[0] != cp_lengths[2]:
         raise ValueError("PSS and SSS cyclic-prefix lengths must match for acquisition")
-    if not math.isfinite(sampling_frequency_hz) or sampling_frequency_hz <= 0:
-        raise ValueError("sampling_frequency_hz must be finite and positive")
+    sample_rate_hz = _positive_real(sampling_frequency_hz, "sampling_frequency_hz")
+    list_size = _positive_integer(list_size, "list_size")
+    if not isinstance(device, str):
+        raise TypeError("device must be a string")
+    if not device:
+        raise ValueError("device must not be empty")
     if isinstance(max_candidate_blocks_per_half_frame, (bool, np.bool_)) or not isinstance(
         max_candidate_blocks_per_half_frame, Integral
     ):
@@ -86,7 +90,7 @@ def nr_pbch_acquire_and_receive(
         samples,
         fft_size=fft_length,
         cyclic_prefix_length=cp_lengths[0],
-        sampling_frequency_hz=float(sampling_frequency_hz),
+        sampling_frequency_hz=sample_rate_hz,
         noise_variance=noise_variance,
         cfo_hypotheses_hz=cfo_hypotheses_hz,
         cfo_guard_samples=cfo_guard_samples,
@@ -102,7 +106,7 @@ def nr_pbch_acquire_and_receive(
     frame_indexes = np.arange(frame_start, frame_end, dtype=np.float64)
     aligned_ssb = (
         samples[:, frame_start:frame_end]
-        * np.exp(-2j * np.pi * detection.cfo_hz * frame_indexes / sampling_frequency_hz)[None, :]
+        * np.exp(-2j * np.pi * detection.cfo_hz * frame_indexes / sample_rate_hz)[None, :]
     )
     if single_receive_chain:
         aligned_ssb = aligned_ssb[0]
@@ -171,6 +175,18 @@ def _positive_integer(value: object, name: str) -> int:
     result = int(value)
     if result <= 0:
         raise ValueError(f"{name} must be positive")
+    return result
+
+
+def _positive_real(value: object, name: str) -> float:
+    if isinstance(value, (bool, np.bool_)) or not isinstance(value, Real):
+        raise TypeError(f"{name} must be a real number")
+    try:
+        result = float(value)
+    except (OverflowError, ValueError) as error:
+        raise ValueError(f"{name} must be finite and positive") from error
+    if not math.isfinite(result) or result <= 0.0:
+        raise ValueError(f"{name} must be finite and positive")
     return result
 
 
