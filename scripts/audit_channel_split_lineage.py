@@ -53,6 +53,17 @@ _V4_SEMANTIC_CHILD_ARTIFACT_TYPES = _V3_SEMANTIC_CHILD_ARTIFACT_TYPES | {
     "umcd_episode_store_manifest_json",
     "umcd_episode_store_content_npz",
 }
+_V6_MULTI_OWNER_ARTIFACT_TYPES = frozenset(
+    {
+        "umcd_episode_store_content_npz",
+        "scenario_gbsm_run_manifest_json",
+        "scenario_gbsm_record_content_npz",
+    }
+)
+_V6_SEMANTIC_CHILD_ARTIFACT_TYPES = _V4_SEMANTIC_CHILD_ARTIFACT_TYPES | {
+    "scenario_gbsm_run_manifest_json",
+    "scenario_gbsm_record_content_npz",
+}
 
 
 def _unique_json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
@@ -460,6 +471,7 @@ def _load_split_child_artifact_roster(
     expected_child_kind: str,
     expected_child_bindings: dict[str, SplitChildBinding],
     verified_artifact: VerifiedOpenSSHArtifact,
+    split_registry: Any | None = None,
 ) -> dict[str, Any]:
     payload = verified_artifact.payload
     if len(payload) > _MAX_CHILD_ROSTER_BYTES:
@@ -488,6 +500,10 @@ def _load_split_child_artifact_roster(
         if set(value) != {"schema", "child_kind", "artifact_root", "artifacts"}:
             raise ValueError("split child artifact v5 roster has unsupported fields")
         roster_version = 5
+    elif schema == "umcd.channel_dataset_child_artifact_roster.v6":
+        if set(value) != {"schema", "child_kind", "artifact_root", "artifacts"}:
+            raise ValueError("split child artifact v6 roster has unsupported fields")
+        roster_version = 6
     else:
         raise ValueError("split child artifact roster has an unsupported schema")
     entries = value["artifacts"]
@@ -498,6 +514,7 @@ def _load_split_child_artifact_roster(
     observed_paths: set[str] = set()
     observed_trajectory_ids: set[str] = set()
     observed_episode_ids: set[str] = set()
+    observed_scenario_run_ids: set[str] = set()
     declared: list[dict[str, Any]] = []
     roster_directory = Path(os.path.abspath(path)).parent
     artifact_root_name: str | None = None
@@ -520,11 +537,15 @@ def _load_split_child_artifact_roster(
             raise ValueError(f"split child artifact {index} has invalid fields")
         if roster_version == 1:
             expected_fields = {"child_id", "path", "bytes", "sha256"}
-        elif roster_version == 5:
+        elif roster_version in {5, 6}:
             artifact_type_hint = entry.get("artifact_type")
             owner_field = (
                 "child_ids"
-                if artifact_type_hint == "umcd_episode_store_content_npz"
+                if (
+                    artifact_type_hint == "umcd_episode_store_content_npz"
+                    if roster_version == 5
+                    else artifact_type_hint in _V6_MULTI_OWNER_ARTIFACT_TYPES
+                )
                 else "child_id"
             )
             expected_fields = {
@@ -562,7 +583,11 @@ def _load_split_child_artifact_roster(
         else:
             artifact_id = entry["artifact_id"]
             artifact_type = entry["artifact_type"]
-            if roster_version == 5 and artifact_type == "umcd_episode_store_content_npz":
+            if (
+                roster_version == 5 and artifact_type == "umcd_episode_store_content_npz"
+            ) or (
+                roster_version == 6 and artifact_type in _V6_MULTI_OWNER_ARTIFACT_TYPES
+            ):
                 owner_child_ids = entry["child_ids"]
                 if (
                     not isinstance(owner_child_ids, list)
@@ -595,7 +620,9 @@ def _load_split_child_artifact_roster(
             ):
                 raise ValueError(f"split child artifact {index} has an invalid artifact type")
             semantic_types = (
-                _V4_SEMANTIC_CHILD_ARTIFACT_TYPES
+                _V6_SEMANTIC_CHILD_ARTIFACT_TYPES
+                if roster_version >= 6
+                else _V4_SEMANTIC_CHILD_ARTIFACT_TYPES
                 if roster_version >= 4
                 else _V3_SEMANTIC_CHILD_ARTIFACT_TYPES
             )
@@ -641,7 +668,11 @@ def _load_split_child_artifact_roster(
             "bytes": byte_count,
             "sha256": digest,
         }
-        if roster_version == 5 and artifact_type == "umcd_episode_store_content_npz":
+        if (
+            roster_version == 5 and artifact_type == "umcd_episode_store_content_npz"
+        ) or (
+            roster_version == 6 and artifact_type in _V6_MULTI_OWNER_ARTIFACT_TYPES
+        ):
             if any(owner not in expected_child_bindings for owner in owner_child_ids):
                 raise ValueError(f"split child artifact {index} references an unknown child ID")
             declaration["child_ids"] = list(owner_child_ids)
@@ -657,6 +688,54 @@ def _load_split_child_artifact_roster(
                 f"(missing={sorted(observed_paths_under_root - declared_paths)}, "
                 f"unlisted={sorted(declared_paths - observed_paths_under_root)})"
             )
+    scenario_content_owner_references: dict[str, list[tuple[str, str]]] = {}
+    if roster_version >= 6:
+        for candidate in declared:
+            if candidate["artifact_type"] != "scenario_gbsm_run_manifest_json":
+                continue
+            manifest_bytes = _read_stable_regular_file(
+                artifact_root / candidate["path"],
+                label="scenario GBSM run manifest for owner inventory",
+                max_bytes=64 * 1024 * 1024,
+            )
+            try:
+                manifest_value = json.loads(
+                    manifest_bytes.decode("utf-8"),
+                    object_pairs_hook=_unique_json_object,
+                )
+            except (UnicodeDecodeError, json.JSONDecodeError, RecursionError) as error:
+                raise ValueError(
+                    "scenario GBSM run manifest is not valid bounded UTF-8 JSON"
+                ) from error
+            if not isinstance(manifest_value, dict) or not isinstance(
+                manifest_value.get("records"), list
+            ):
+                raise ValueError("scenario GBSM run manifest record roster is invalid")
+            owner_parent_children: dict[str, list[str]] = {}
+            for owner in candidate["child_ids"]:
+                owner_parent_children.setdefault(
+                    expected_child_bindings[owner].parent_subject_id, []
+                ).append(owner)
+            for reference in manifest_value["records"]:
+                if not isinstance(reference, dict):
+                    raise ValueError("scenario GBSM record reference is malformed")
+                parent_id = reference.get("sample_id")
+                object_relative_path = reference.get("relative_path")
+                if (
+                    not isinstance(parent_id, str)
+                    or not parent_id
+                    or parent_id.strip() != parent_id
+                    or not isinstance(object_relative_path, str)
+                    or not object_relative_path.startswith("scenario_gbsm/records/")
+                    or not object_relative_path.endswith(".npz")
+                ):
+                    raise ValueError("scenario GBSM record reference has invalid identity or path")
+                owners = owner_parent_children.get(parent_id)
+                if not owners:
+                    raise ValueError("scenario GBSM run manifest omits a record parent owner")
+                scenario_content_owner_references.setdefault(object_relative_path, []).extend(
+                    (owner, object_relative_path) for owner in owners
+                )
     expected_child_ids = set(expected_child_bindings)
     if observed_child_ids != expected_child_ids:
         raise ValueError(
@@ -828,6 +907,74 @@ def _load_split_child_artifact_roster(
                 "nr_sample_id": record.observation.sample_id,
                 "nr_target_count": len(record.targets),
             }
+        elif artifact_type == "scenario_gbsm_run_manifest_json":
+            if roster_version < 6:
+                raise ValueError("scenario GBSM run manifests require child artifact roster v6")
+            if not relative_path.startswith("scenario_gbsm/manifests/"):
+                raise ValueError(
+                    "scenario_gbsm_run_manifest_json must be under scenario_gbsm/manifests/"
+                )
+            if split_registry is None:
+                raise ValueError("scenario GBSM semantic admission requires the frozen registry")
+            from datasets.scenario_gbsm import read_scenario_gbsm_run
+
+            run = read_scenario_gbsm_run(artifact_root, relative_path)
+            if run.run_id in observed_scenario_run_ids:
+                raise ValueError(f"split child artifact roster repeats scenario run ID: {run.run_id}")
+            observed_scenario_run_ids.add(run.run_id)
+            parent_ids = {record.sample_id for record in run.records}
+            parent_to_children: dict[str, list[str]] = {}
+            for candidate_child_id, binding in expected_child_bindings.items():
+                parent_to_children.setdefault(binding.parent_subject_id, []).append(
+                    candidate_child_id
+                )
+            missing_parents = parent_ids - set(parent_to_children)
+            if missing_parents:
+                raise ValueError(
+                    "scenario GBSM run has parents absent from the frozen child roster: "
+                    f"{sorted(missing_parents)}"
+                )
+            expected_owners = sorted(
+                child
+                for parent in parent_ids
+                for child in parent_to_children[parent]
+            )
+            if child_ids != expected_owners:
+                raise ValueError(
+                    "scenario GBSM run child_ids do not exactly cover its frozen parent rows"
+                )
+            split_audit = run.audit_split_assignment(split_registry)
+            semantic_rows = {
+                "semantic_validator": "scenario_gbsm_split_assignment_v1",
+                "scenario_run_id": run.run_id,
+                "scenario_parent_count": len(parent_ids),
+                "scenario_record_count": len(run.records),
+                "scenario_split_component_id": split_audit["component_id"],
+                "scenario_split": split_audit["split"],
+                "scenario_split_audit_sha256": split_audit["audit_sha256"],
+            }
+        elif artifact_type == "scenario_gbsm_record_content_npz":
+            if roster_version < 6:
+                raise ValueError("scenario GBSM record objects require child artifact roster v6")
+            if (
+                not relative_path.startswith("scenario_gbsm/records/")
+                or not relative_path.endswith(".npz")
+            ):
+                raise ValueError(
+                    "scenario_gbsm_record_content_npz must be beneath scenario_gbsm/records/"
+                )
+            scenario_references = scenario_content_owner_references.get(relative_path, [])
+            if not scenario_references:
+                raise ValueError(
+                    "scenario GBSM record content must be referenced by a rostered run manifest"
+                )
+            _require_exact_child_object_owners(
+                relative_path,
+                child_ids if child_ids is not None else [child_id],
+                scenario_references,
+                label="scenario GBSM record content object",
+            )
+            semantic_rows = {"semantic_validator": "scenario_gbsm_record_content_v1"}
         elif artifact_type == "umcd_episode_store_manifest_json":
             if not relative_path.startswith("manifests/episodes/"):
                 raise ValueError(
@@ -964,9 +1111,16 @@ def _load_split_child_artifact_roster(
             f"; roster v{roster_version} also validates UMCD episode-store manifests, parent "
             "episode IDs, and exact content-object child ownership"
         )
+    if roster_version >= 6:
+        authority += (
+            "; roster v6 also traverses scenario GBSM runs and checks every parent against the "
+            "frozen registry's shared trajectory-session component and split assignment"
+        )
     audit: dict[str, Any] = {
         "schema": (
-            "umcd.split_child_artifact_audit.v6"
+            "umcd.split_child_artifact_audit.v7"
+            if roster_version == 6
+            else "umcd.split_child_artifact_audit.v6"
             if roster_version == 5
             else "umcd.split_child_artifact_audit.v5"
             if roster_version == 4
@@ -996,6 +1150,10 @@ def _load_split_child_artifact_roster(
             item.get("trajectory_sample_count", 0) for item in verified
         ),
         "trajectory_count": len(observed_trajectory_ids),
+        "scenario_gbsm_run_count": len(observed_scenario_run_ids),
+        "scenario_gbsm_parent_count": sum(
+            item.get("scenario_parent_count", 0) for item in verified
+        ),
     }
     if roster_version >= 4:
         audit["episode_count"] = len(observed_episode_ids)
@@ -1650,6 +1808,7 @@ def audit_channel_datasets(
                         expected_child_kind=child_kind.strip(),
                         expected_child_bindings=expected_child_bindings,
                         verified_artifact=verified_roster,
+                        split_registry=registry,
                     )
                 )
         byte_only_artifact_count = sum(
@@ -1669,6 +1828,14 @@ def audit_channel_datasets(
         )
         episode_count = sum(
             roster["audit"].get("episode_count", 0) for roster in child_artifact_reports
+        )
+        scenario_gbsm_run_count = sum(
+            roster["audit"].get("scenario_gbsm_run_count", 0)
+            for roster in child_artifact_reports
+        )
+        scenario_gbsm_parent_count = sum(
+            roster["audit"].get("scenario_gbsm_parent_count", 0)
+            for roster in child_artifact_reports
         )
         expected_child_kinds = {
             binding.child_kind for binding in registry.child_bindings.values()
@@ -1702,10 +1869,13 @@ def audit_channel_datasets(
             & {
                 "umcd.channel_dataset_child_artifact_roster.v4",
                 "umcd.channel_dataset_child_artifact_roster.v5",
+                "umcd.channel_dataset_child_artifact_roster.v6",
             }
         )
         report["schema"] = (
-            "loslab.channel_split_lineage_audit_bundle.v9"
+            "loslab.channel_split_lineage_audit_bundle.v10"
+            if "umcd.channel_dataset_child_artifact_roster.v6" in roster_schemas
+            else "loslab.channel_split_lineage_audit_bundle.v9"
             if "umcd.channel_dataset_child_artifact_roster.v5" in roster_schemas
             else "loslab.channel_split_lineage_audit_bundle.v8"
             if has_umcd_episode_artifacts
@@ -1751,6 +1921,8 @@ def audit_channel_datasets(
             "child_artifact_trajectory_sample_count": trajectory_sample_count,
             "child_artifact_trajectory_count": trajectory_count,
             "child_artifact_episode_count": episode_count,
+            "child_artifact_scenario_gbsm_run_count": scenario_gbsm_run_count,
+            "child_artifact_scenario_gbsm_parent_count": scenario_gbsm_parent_count,
             "complete_split_integrity_audit": require_complete_split_audit,
             "child_roster_audits": child_roster_reports,
             "child_artifact_roster_audits": child_artifact_reports,

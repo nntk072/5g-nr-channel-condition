@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://umcd.example/schemas/channel-dataset-child-artifact-roster.v6.schema.json",
+  "title": "UMCD typed split child artifact roster v6",
+  "description": "The exact roster bytes are detached-signature verified. artifact_root names one directory below the roster directory and artifacts exactly cover its regular files. Every artifact type has a semantic validator. Scenario GBSM run manifests and content-addressed records declare canonical child_ids ownership; records are traversed through the store reader and bound to frozen parent/component/split assignments. UMCD content objects retain exact multi-child ownership checks. This does not establish authoritative corpus completeness or release qualification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "child_kind", "artifact_root", "artifacts"],
+  "properties": {
+    "schema": {"const": "umcd.channel_dataset_child_artifact_roster.v6"},
+    "child_kind": {"type": "string", "minLength": 1},
+    "artifact_root": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"},
+    "artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["artifact_id", "artifact_type", "path", "bytes", "sha256"],
+        "properties": {
+          "artifact_id": {"type": "string", "minLength": 1},
+          "artifact_type": {
+            "enum": [
+              "channel_dataset_npz",
+              "nr_trajectory_store_manifest_json",
+              "nr_record_store_manifest_json",
+              "nr_record_store_content_npz",
+              "umcd_episode_store_manifest_json",
+              "umcd_episode_store_content_npz",
+              "scenario_gbsm_run_manifest_json",
+              "scenario_gbsm_record_content_npz"
+            ]
+          },
+          "child_id": {"type": "string", "minLength": 1},
+          "child_ids": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {"type": "string", "minLength": 1}
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?!/)(?!.*//)(?!.*\\.$)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*\\/+$)[A-Za-z0-9._/-]+$"
+          },
+          "bytes": {"type": "integer", "minimum": 0},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        },
+        "oneOf": [
+          {
+            "properties": {
+              "artifact_type": {
+                "enum": [
+                  "umcd_episode_store_content_npz",
+                  "scenario_gbsm_run_manifest_json",
+                  "scenario_gbsm_record_content_npz"
+                ]
+              }
+            },
+            "required": ["child_ids"],
+            "not": {"required": ["child_id"]}
+          },
+          {
+            "properties": {
+              "artifact_type": {
+                "enum": [
+                  "channel_dataset_npz",
+                  "nr_trajectory_store_manifest_json",
+                  "nr_record_store_manifest_json",
+                  "nr_record_store_content_npz",
+                  "umcd_episode_store_manifest_json"
+                ]
+              }
+            },
+            "required": ["child_id"],
+            "not": {"required": ["child_ids"]}
+          }
+        ]
+      }
+    }
+  }
+}

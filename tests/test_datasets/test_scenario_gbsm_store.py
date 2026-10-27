@@ -3,13 +3,16 @@
 from __future__ import annotations
 
 import hashlib
+import importlib
 import json
+import sys
 from dataclasses import dataclass, replace
 from pathlib import Path
 
 import datasets.scenario_gbsm as scenario_gbsm_store
 import numpy as np
 import pytest
+from datasets.channel import ChannelDataset
 from datasets.episode_store import EpisodeBundle, read_episode_bundle, write_episode_bundle
 from datasets.network import (
     AntennaArraySpec,
@@ -33,9 +36,11 @@ from datasets.scenario_gbsm import (
 from datasets.split_policy import (
     LeakageNamespace,
     LeakageRelation,
+    SplitChildBinding,
     SplitParentType,
     SplitPolicy,
     SplitSubject,
+    VerifiedOpenSSHArtifact,
     make_split_policy_registry,
 )
 
@@ -199,6 +204,174 @@ def test_scenario_gbsm_run_split_audit_rejects_missing_shared_relation() -> None
     )
     with pytest.raises(ValueError, match="omits the scenario run relation"):
         run.audit_split_assignment(registry)
+
+
+def test_signed_child_roster_semantically_audits_scenario_gbsm_run(tmp_path) -> None:
+    repository_root = str(Path(__file__).resolve().parents[2])
+    sys.path.insert(0, repository_root)
+    try:
+        audit_module = importlib.import_module("scripts.audit_channel_split_lineage")
+    finally:
+        sys.path.remove(repository_root)
+    _load_split_child_artifact_roster = audit_module._load_split_child_artifact_roster
+
+    run = _two_record_run()
+    artifact_root = tmp_path / "children"
+    artifact_root.mkdir()
+    store_pointer = write_scenario_gbsm_run(artifact_root, run)
+    manifest_path = artifact_root / store_pointer.relative_path
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    parent_to_child = {
+        record.sample_id: f"child-{record.sample_id}"
+        for record in run.records
+    }
+    bindings = {
+        child_id: SplitChildBinding(child_id, parent_id, "receiver_observation")
+        for parent_id, child_id in parent_to_child.items()
+    }
+    entries: list[dict[str, object]] = []
+
+    def declare(artifact_id: str, artifact_type: str, relative_path: str, *, child_id=None, child_ids=None):
+        payload = (artifact_root / relative_path).read_bytes()
+        entry: dict[str, object] = {
+            "artifact_id": artifact_id,
+            "artifact_type": artifact_type,
+            "path": relative_path,
+            "bytes": len(payload),
+            "sha256": hashlib.sha256(payload).hexdigest(),
+        }
+        if child_id is not None:
+            entry["child_id"] = child_id
+        if child_ids is not None:
+            entry["child_ids"] = child_ids
+        entries.append(entry)
+
+    for record in run.records:
+        child_id = parent_to_child[record.sample_id]
+        dataset_path = f"datasets/{child_id}.npz"
+        dataset = ChannelDataset(
+            h=np.ones((1, 1, 8), dtype=np.complex64),
+            y=np.zeros(1, dtype=np.uint8),
+            group=np.asarray([record.sample_id]),
+            domain=np.asarray([record.scenario]),
+            source=np.asarray(["scenario_gbsm"]),
+            metadata=({"split_subject_id": record.sample_id},),
+        ).with_split_child_binding(child_id, "receiver_observation")
+        dataset.save(artifact_root / dataset_path)
+        declare(f"dataset-{child_id}", "channel_dataset_npz", dataset_path, child_id=child_id)
+    declare(
+        "scenario-run",
+        "scenario_gbsm_run_manifest_json",
+        store_pointer.relative_path,
+        child_ids=sorted(bindings),
+    )
+    for reference in manifest["records"]:
+        parent_id = reference["sample_id"]
+        declare(
+            f"scenario-record-{parent_id}",
+            "scenario_gbsm_record_content_npz",
+            reference["relative_path"],
+            child_ids=[parent_to_child[parent_id]],
+        )
+
+    run_relation = LeakageRelation(
+        LeakageNamespace.TRAJECTORY_SESSION, f"scenario_gbsm_run:{run.run_id}"
+    )
+    registry = make_split_policy_registry(
+        [
+            SplitSubject(
+                record.sample_id,
+                SplitParentType.NETWORK_EPISODE,
+                "scenario_gbsm:UMi",
+                (run_relation,),
+            )
+            for record in run.records
+        ]
+        + [
+            SplitSubject("unrelated-parent-a", SplitParentType.NETWORK_EPISODE, "fixture"),
+            SplitSubject("unrelated-parent-b", SplitParentType.NETWORK_EPISODE, "fixture"),
+        ],
+        policy=SplitPolicy(
+            seed="scenario-roster-audit",
+            split_fractions={"train": 0.8, "validation": 0.1, "test": 0.1},
+        ),
+    )
+    roster_payload = json.dumps(
+        {
+            "schema": "umcd.channel_dataset_child_artifact_roster.v6",
+            "child_kind": "receiver_observation",
+            "artifact_root": "children",
+            "artifacts": entries,
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode()
+    jsonschema = pytest.importorskip("jsonschema")
+    roster_schema = json.loads(
+        (
+            Path(__file__).resolve().parents[2]
+            / "datasets/schema/channel-dataset-child-artifact-roster.v6.schema.json"
+        ).read_text(encoding="utf-8")
+    )
+    jsonschema.Draft202012Validator.check_schema(roster_schema)
+    jsonschema.Draft202012Validator(roster_schema).validate(json.loads(roster_payload))
+    verified = VerifiedOpenSSHArtifact(
+        payload=roster_payload,
+        artifact_sha256=hashlib.sha256(roster_payload).hexdigest(),
+        signature_sha256="a" * 64,
+        allowed_signers_sha256="b" * 64,
+        signer_id="test-signer",
+        namespace="umcd-channel-child-artifact-roster-v1@github.com",
+    )
+    result = _load_split_child_artifact_roster(
+        tmp_path / "roster.json",
+        expected_child_kind="receiver_observation",
+        expected_child_bindings=bindings,
+        verified_artifact=verified,
+        split_registry=registry,
+    )["audit"]
+
+    assert result["schema"] == "umcd.split_child_artifact_audit.v7"
+    assert result["semantic_artifact_count"] == len(entries)
+    scenario_entry = next(
+        item for item in result["artifacts"]
+        if item["artifact_type"] == "scenario_gbsm_run_manifest_json"
+    )
+    assert scenario_entry["scenario_parent_count"] == 2
+    assert scenario_entry["scenario_split"] == run.audit_split_assignment(registry)["split"]
+
+    altered_entries = [dict(entry) for entry in entries]
+    manifest_entry = next(
+        entry for entry in altered_entries
+        if entry["artifact_type"] == "scenario_gbsm_run_manifest_json"
+    )
+    manifest_entry["child_ids"] = manifest_entry["child_ids"][:1]
+    altered_payload = json.dumps(
+        {
+            "schema": "umcd.channel_dataset_child_artifact_roster.v6",
+            "child_kind": "receiver_observation",
+            "artifact_root": "children",
+            "artifacts": altered_entries,
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode()
+    altered_verified = VerifiedOpenSSHArtifact(
+        payload=altered_payload,
+        artifact_sha256=hashlib.sha256(altered_payload).hexdigest(),
+        signature_sha256="c" * 64,
+        allowed_signers_sha256="b" * 64,
+        signer_id="test-signer",
+        namespace="umcd-channel-child-artifact-roster-v1@github.com",
+    )
+    with pytest.raises(ValueError, match="omits a record parent owner"):
+        _load_split_child_artifact_roster(
+            tmp_path / "altered-roster.json",
+            expected_child_kind="receiver_observation",
+            expected_child_bindings=bindings,
+            verified_artifact=altered_verified,
+            split_registry=registry,
+        )
 
 
 def test_scenario_gbsm_conversion_assembles_canonical_episode_bundle(tmp_path) -> None:
