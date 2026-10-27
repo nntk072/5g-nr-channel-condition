@@ -152,7 +152,7 @@ def test_locked_split_indices_resolves_child_rows_through_parent_bindings() -> N
         bind_split_children,
         make_split_policy_registry,
     )
-    from experiments.runner import _locked_split_indices
+    from experiments.runner import _kish_effective_group_count, _locked_split_indices
 
     parents = [
         SplitSubject(f"parent-{index:03d}", SplitParentType.NETWORK_EPISODE, "test")
@@ -217,6 +217,17 @@ def test_locked_split_indices_resolves_child_rows_through_parent_bindings() -> N
             label: partition_support["class_counts"][label] > 0 for label in ("0", "1")
         }
         assert partition_support["parent_count"] == len({parent_by_row[index] for index in indices})
+        assert partition_support["effective_declared_group_count_kish"] == pytest.approx(
+            _kish_effective_group_count(
+                [
+                    sum(data.group[index] == group_id for index in indices)
+                    for group_id in set(data.group[indices].tolist())
+                ]
+            )
+        )
+
+    assert _kish_effective_group_count([3, 1]) == pytest.approx(1.6)
+    assert _kish_effective_group_count([]) == 0.0
 
     padded_metadata = list(data.metadata)
     padded_metadata[0] = {"split_subject_id": f" {subjects[0]}"}

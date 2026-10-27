@@ -3737,15 +3737,13 @@
     {
       "backlog_line": 369,
       "backlog_status": "open",
-      "description": "Complete class availability and effective independent-group reporting; retain undefined metrics rather than inventing values. The UMCD target-coverage report exposes leakage-component counts per split × family × target. The frozen split × family × class audit reports rows, distinct caller-declared independent groups, and empty/absent statuses; the legacy common experiment runner publishes the report under a versioned JSON Schema and retains `null` plus per-metric reasons when a required class is absent. `experiments/runner.py` now emits a strict per-partition support report under `evaluation/schema/locked-benchmark-split-support.v1.schema.json` for signed-lock runs, with class availability, source/domain row coverage, parent/component/group counts and roster digests, and exact row-assignment digests; each model result binds its digest. The report explicitly leaves physical independence `not_established_by_runner`. Focused signed-lock partition and runner integration tests pass. Corrected the estimator-comparison test fixture to declare the required v2 LS/DFT metadata before exercising the unmatched-channel-truth rejection; the full metrics module previously passed 41 tests. Other model routes, physical independence evidence, site/array eligibility, and broader evaluation support accounting remain open.",
+      "description": "Complete class availability and effective independent-group reporting; retain undefined metrics rather than inventing values. The UMCD target-coverage report exposes leakage-component counts per split × family × target. The frozen split × family × class audit reports rows, distinct caller-declared independent groups, and empty/absent statuses; the legacy common experiment runner publishes the report under a versioned JSON Schema and retains `null` plus per-metric reasons when a required class is absent. `experiments/runner.py` emits a strict per-partition v2 support report for signed-lock runs, with class availability, source/domain row coverage, parent/component/group counts and roster digests, Kish effective declared-group count (accounting for unequal rows per declared group), and exact row-assignment digests; each model result binds its digest. The v1 reader contract remains unchanged. The report explicitly leaves physical independence `not_established_by_runner`. Focused signed-lock partition and runner integration tests pass. Other model routes, verified physical independence evidence, site/array eligibility, and broader evaluation support accounting remain open.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
         "other_files": [],
         "regression_files": [],
-        "schemas": [
-          "evaluation/schema/locked-benchmark-split-support.v1.schema.json"
-        ],
+        "schemas": [],
         "source_modules": [
           "experiments/runner.py"
         ]
@@ -4158,7 +4156,7 @@
   "schema": "loslab.implementation_feature_map.v1",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "9e347eaa128cf5cf6349b5d05a1941a7d6e5365d0859b5cf4034a3a01cfb1475"
+    "sha256": "5d12c0b2a29ee75e8ebe0d76b17f965f9b280b684aef3ae018999054c4462751"
   },
   "summary": {
     "feature_count": 177,

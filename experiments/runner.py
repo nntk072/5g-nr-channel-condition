@@ -1282,6 +1282,19 @@ def _learned_parameter_count(model: Any, training: dict[str, Any]) -> int | None
     return None
 
 
+def _kish_effective_group_count(group_row_counts: Sequence[int]) -> float:
+    """Return Kish effective group count from positive group row frequencies."""
+    counts = list(group_row_counts)
+    if any(
+        not isinstance(count, int) or isinstance(count, bool) or count <= 0
+        for count in counts
+    ):
+        raise ValueError("group row counts must be positive integers")
+    total = sum(counts)
+    squared = sum(count * count for count in counts)
+    return total * total / squared if squared else 0.0
+
+
 def _locked_split_indices(
     data: ChannelDataset, registry: SplitPolicyRegistry
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, dict[str, Any]]:
@@ -1346,6 +1359,13 @@ def _locked_split_indices(
         parent_ids = sorted({parent_for_row[index] for index in selected})
         component_ids = sorted({component_for_row[index] for index in selected})
         group_ids = sorted({str(data.group[index]) for index in selected})
+        group_row_counts: dict[str, int] = {}
+        for index in selected:
+            group_id = str(data.group[index])
+            group_row_counts[group_id] = group_row_counts.get(group_id, 0) + 1
+        effective_declared_group_count = _kish_effective_group_count(
+            list(group_row_counts.values())
+        )
         source_counts: dict[str, int] = {}
         domain_counts: dict[str, int] = {}
         for index in selected:
@@ -1383,6 +1403,7 @@ def _locked_split_indices(
             "leakage_component_roster_sha256": canonical_hash(component_ids),
             "declared_group_count": len(group_ids),
             "declared_group_roster_sha256": canonical_hash(group_ids),
+            "effective_declared_group_count_kish": effective_declared_group_count,
             "class_counts": class_counts,
             "class_availability": {label: count > 0 for label, count in class_counts.items()},
             "source_row_counts": dict(sorted(source_counts.items())),
@@ -1390,7 +1411,7 @@ def _locked_split_indices(
             "assignment_sha256": canonical_hash(assignment_rows),
         }
     support_report: dict[str, Any] = {
-        "schema": "loslab.locked_benchmark_split_support.v1",
+        "schema": "loslab.locked_benchmark_split_support.v2",
         "status": "PASS_INPUT_SCOPED",
         "qualification_status": "NOT_QUALIFIED",
         "physical_independence_status": "not_established_by_runner",
@@ -1398,7 +1419,7 @@ def _locked_split_indices(
         "partition_support": partition_support,
     }
     _validate_evaluation_payload(
-        support_report, "locked-benchmark-split-support.v1.schema.json"
+        support_report, "locked-benchmark-split-support.v2.schema.json"
     )
     report = {
         "mode": "signed_locked",
