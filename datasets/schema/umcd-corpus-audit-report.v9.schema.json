@@ -1,0 +1,323 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:umcd:corpus-audit-report:v9",
+  "title": "UMCD corpus audit report v9",
+  "description": "Hash-bound corpus integrity report with exact candidate-roster binding, exact channel-comparison context identities, incompatible-context accounting, and optional signed near-duplicate dispositions.",
+  "type": "object",
+  "required": [
+    "schema",
+    "qualification",
+    "report_sha256"
+  ],
+  "properties": {
+    "schema": {
+      "const": "umcd.corpus_audit_report.v9"
+    },
+    "qualification": {
+      "const": "not_claimed"
+    },
+    "report_sha256": {
+      "$ref": "#/$defs/sha256"
+    }
+  },
+  "unevaluatedProperties": false,
+  "oneOf": [
+    {
+      "required": [
+        "inventory_id",
+        "inventory_sha256",
+        "bundle_manifest_sha256",
+        "split_registry_file_sha256",
+        "checks",
+        "external_gates",
+        "fixture_notice",
+        "report_sha256"
+      ],
+      "properties": {
+        "inventory_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "inventory_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "bundle_manifest_sha256": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/sha256"
+          }
+        },
+        "split_registry_file_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "checks": {
+          "type": "object",
+          "required": [
+            "near_duplicate_review"
+          ],
+          "properties": {
+            "near_duplicate_review": {
+              "$ref": "#/$defs/nearDuplicateReview"
+            }
+          }
+        },
+        "external_gates": {
+          "type": "object"
+        },
+        "fixture_notice": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    {
+      "required": [
+        "inventory_sha256",
+        "execution",
+        "report_sha256"
+      ],
+      "properties": {
+        "inventory_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "execution": {
+          "type": "object",
+          "required": [
+            "status",
+            "error"
+          ],
+          "properties": {
+            "status": {
+              "const": "failed"
+            },
+            "error": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "nullableSha256": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/sha256"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "nearDuplicateReview": {
+      "type": "object",
+      "required": [
+        "status",
+        "threshold",
+        "comparable_group_count",
+        "cross_split_pair_count",
+        "total_pair_comparison_count",
+        "candidate_count",
+        "candidates",
+        "skipped_comparison_count",
+        "skipped_comparison_reasons",
+        "candidate_set_sha256",
+        "disposition_status",
+        "disposition_manifest_sha256",
+        "disposition_signature_sha256",
+        "disposition_allowed_signers_sha256",
+        "disposition_signer_id",
+        "disposition_signature_namespace",
+        "dispositions"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "review_required",
+            "incomplete_comparisons",
+            "no_candidates_detected",
+            "not_run_no_cross_split_pairs",
+            "adjudicated_no_leakage",
+            "confirmed_cross_split_leakage"
+          ]
+        },
+        "threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "comparable_group_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cross_split_pair_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "total_pair_comparison_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "candidate_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "candidate_id",
+              "sample_id_a",
+              "sample_id_b",
+              "split_id_a",
+              "split_id_b",
+              "geometry_hash_match",
+              "normalized_complex_inner_product_magnitude",
+              "comparison_context_id_a",
+              "comparison_context_id_b"
+            ],
+            "properties": {
+              "candidate_id": {
+                "$ref": "#/$defs/sha256"
+              },
+              "sample_id_a": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sample_id_b": {
+                "type": "string",
+                "minLength": 1
+              },
+              "split_id_a": {
+                "type": "string",
+                "minLength": 1
+              },
+              "split_id_b": {
+                "type": "string",
+                "minLength": 1
+              },
+              "geometry_hash_match": {
+                "type": "boolean"
+              },
+              "normalized_complex_inner_product_magnitude": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 1
+              },
+              "comparison_context_id_a": {
+                "$ref": "#/$defs/nullableSha256"
+              },
+              "comparison_context_id_b": {
+                "$ref": "#/$defs/nullableSha256"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "skipped_comparison_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "skipped_comparison_reasons": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "candidate_set_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "disposition_status": {
+          "enum": [
+            "not_provided",
+            "verified",
+            "not_required_no_candidates"
+          ]
+        },
+        "disposition_manifest_sha256": {
+          "$ref": "#/$defs/nullableSha256"
+        },
+        "disposition_signature_sha256": {
+          "$ref": "#/$defs/nullableSha256"
+        },
+        "disposition_allowed_signers_sha256": {
+          "$ref": "#/$defs/nullableSha256"
+        },
+        "disposition_signer_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "disposition_signature_namespace": {
+          "enum": [
+            "umcd-near-duplicate-dispositions-v2@github.com",
+            null
+          ]
+        },
+        "dispositions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "candidate_id",
+              "outcome",
+              "rationale",
+              "evidence_files"
+            ],
+            "properties": {
+              "candidate_id": {
+                "$ref": "#/$defs/sha256"
+              },
+              "outcome": {
+                "enum": [
+                  "legitimate_similarity",
+                  "confirmed_leakage"
+                ]
+              },
+              "rationale": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              },
+              "evidence_files": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 16,
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "path",
+                    "sha256"
+                  ],
+                  "properties": {
+                    "path": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "sha256": {
+                      "$ref": "#/$defs/sha256"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

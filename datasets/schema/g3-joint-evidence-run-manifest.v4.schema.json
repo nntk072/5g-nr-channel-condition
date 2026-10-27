@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.example/schema/g3-joint-evidence-run-manifest.v4.schema.json",
+  "title": "G3 Joint Evidence Run Manifest v4",
+  "description": "Exact input, artifact, runtime inventory, evaluator-source, and self-reported execution-environment identities. Runtime inventory signature and binding are verified separately; qualification remains NOT_QUALIFIED.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "run_id",
+    "qualification_status",
+    "runtime_identity",
+    "input",
+    "artifact",
+    "runtime_inventory",
+    "evaluator_sources",
+    "evaluator_source_bundle_sha256"
+  ],
+  "properties": {
+    "schema": { "const": "loslab.g3_joint_evidence_run_manifest.v4" },
+    "run_id": { "type": "string", "pattern": "^[a-z][a-z0-9._-]{2,63}$" },
+    "qualification_status": { "const": "NOT_QUALIFIED" },
+    "runtime_identity": { "$ref": "#/$defs/runtimeIdentity" },
+    "input": { "$ref": "#/$defs/file" },
+    "artifact": { "$ref": "#/$defs/file" },
+    "runtime_inventory": {
+      "allOf": [
+        { "$ref": "#/$defs/file" },
+        { "properties": { "role": { "const": "runtime_inventory" } } }
+      ]
+    },
+    "qualification_contract": { "type": "object" },
+    "evaluator_sources": {
+      "type": "array",
+      "minItems": 41,
+      "maxItems": 41,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/source" }
+    },
+    "evaluator_source_bundle_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  },
+  "$defs": {
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "size_bytes", "sha256", "role"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+$"
+        },
+        "size_bytes": { "type": "integer", "minimum": 0 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+      "role": { "enum": ["joint_evaluator_input", "joint_evaluator_artifact", "runtime_inventory"] }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "size_bytes", "sha256"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+$"
+        },
+        "size_bytes": { "type": "integer", "minimum": 0 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "runtimeIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "python",
+        "python_implementation",
+        "platform_system",
+        "platform_release",
+        "machine",
+        "packages",
+        "source_revision"
+      ],
+      "properties": {
+        "schema": { "const": "loslab.g3_execution_environment.v1" },
+        "python": { "type": "string", "minLength": 1 },
+        "python_implementation": { "type": "string", "minLength": 1 },
+        "platform_system": { "type": "string", "minLength": 1 },
+        "platform_release": { "type": "string", "minLength": 1 },
+        "machine": { "type": "string", "minLength": 1 },
+        "packages": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["numpy", "scikit-learn", "torch", "sionna", "sionna-rt", "sionna-phy"],
+          "properties": {
+            "numpy": { "type": "string", "minLength": 1 },
+            "scikit-learn": { "type": "string", "minLength": 1 },
+            "torch": { "type": "string", "minLength": 1 },
+            "sionna": { "type": "string", "minLength": 1 },
+            "sionna-rt": { "type": "string", "minLength": 1 },
+            "sionna-phy": { "type": "string", "minLength": 1 }
+          }
+        },
+        "source_revision": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

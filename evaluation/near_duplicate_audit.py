@@ -23,6 +23,7 @@ class ChannelRecord:
     split_id: str
     family_site_geometry_hash: str | None
     cfr: CFRArray
+    comparison_context_id: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -35,6 +36,8 @@ class NearDuplicateCandidate:
     split_id_b: str
     geometry_hash_match: bool
     normalized_complex_inner_product_magnitude: float | None
+    comparison_context_id_a: str | None
+    comparison_context_id_b: str | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -65,6 +68,12 @@ def _validate_record(record: ChannelRecord) -> None:
         or record.family_site_geometry_hash != record.family_site_geometry_hash.strip()
     ):
         raise ValueError("family_site_geometry_hash must be None or a canonical nonempty string")
+    if record.comparison_context_id is not None and (
+        not isinstance(record.comparison_context_id, str)
+        or not record.comparison_context_id
+        or record.comparison_context_id != record.comparison_context_id.strip()
+    ):
+        raise ValueError("comparison_context_id must be None or a canonical nonempty string")
     if not isinstance(record.cfr, np.ndarray):
         raise ValueError(f"CFR for sample {record.sample_id!r} must be a NumPy array")
     if record.cfr.size == 0:
@@ -121,17 +130,18 @@ def audit_near_duplicates(
         raise ValueError("records must be a nonempty tuple")
 
     seen_ids: set[str] = set()
-    expected_shape: tuple[int, ...] | None = None
+    expected_shape_by_context: dict[str | None, tuple[int, ...]] = {}
     for record in records:
         _validate_record(record)
         if record.sample_id in seen_ids:
             raise ValueError(f"duplicate sample_id {record.sample_id!r}")
         seen_ids.add(record.sample_id)
-        if expected_shape is None:
-            expected_shape = record.cfr.shape
-        elif record.cfr.shape != expected_shape:
+        expected_shape = expected_shape_by_context.setdefault(
+            record.comparison_context_id, record.cfr.shape
+        )
+        if record.cfr.shape != expected_shape:
             raise ValueError(
-                f"inconsistent CFR shapes: expected {expected_shape}, got {record.cfr.shape} "
+                f"inconsistent CFR shapes for comparison context: expected {expected_shape}, got {record.cfr.shape} "
                 f"for sample {record.sample_id!r}"
             )
 
@@ -147,13 +157,22 @@ def audit_near_duplicates(
                 first.family_site_geometry_hash is not None
                 and first.family_site_geometry_hash == second.family_site_geometry_hash
             )
-            similarity = _normalized_inner_product_magnitude(first.cfr, second.cfr)
+            compatible_context = first.comparison_context_id == second.comparison_context_id
+            similarity = (
+                _normalized_inner_product_magnitude(first.cfr, second.cfr)
+                if compatible_context
+                else None
+            )
             if similarity is None:
                 skipped.append(
                     SkippedComparison(
                         sample_id_a=first.sample_id,
                         sample_id_b=second.sample_id,
-                        reason="zero_norm_cfr",
+                        reason=(
+                            "zero_norm_cfr"
+                            if compatible_context
+                            else "incompatible_channel_context"
+                        ),
                     )
                 )
             if geometry_match or (similarity is not None and similarity > threshold):
@@ -165,6 +184,8 @@ def audit_near_duplicates(
                         split_id_b=second.split_id,
                         geometry_hash_match=geometry_match,
                         normalized_complex_inner_product_magnitude=similarity,
+                        comparison_context_id_a=first.comparison_context_id,
+                        comparison_context_id_b=second.comparison_context_id,
                     )
                 )
 

@@ -13,12 +13,14 @@ def _record(
     split_id: str,
     values: tuple[complex, ...],
     geometry_hash: str | None = None,
+    context_id: str | None = None,
 ) -> ChannelRecord:
     return ChannelRecord(
         sample_id=sample_id,
         split_id=split_id,
         family_site_geometry_hash=geometry_hash,
         cfr=np.asarray(values, dtype=np.complex128),
+        comparison_context_id=context_id,
     )
 
 
@@ -115,6 +117,36 @@ def test_zero_norm_pair_can_still_be_flagged_by_geometry() -> None:
     assert report.candidates[0].geometry_hash_match
     assert report.candidates[0].normalized_complex_inner_product_magnitude is None
     assert report.skipped_comparisons[0].reason == "zero_norm_cfr"
+
+
+def test_incompatible_channel_contexts_are_skipped_instead_of_scored() -> None:
+    report = audit_near_duplicates(
+        (
+            _record("a", "train", (1 + 0j, 0j), context_id="frequency-grid-a"),
+            _record("b", "test", (1 + 0j, 0j), context_id="frequency-grid-b"),
+        ),
+        normalized_inner_product_threshold=0.99,
+    )
+
+    assert report.candidates == ()
+    assert [(item.sample_id_a, item.sample_id_b, item.reason) for item in report.skipped_comparisons] == [
+        ("a", "b", "incompatible_channel_context")
+    ]
+
+
+def test_matching_geometry_remains_flagged_across_incompatible_channel_contexts() -> None:
+    report = audit_near_duplicates(
+        (
+            _record("a", "train", (1 + 0j,), "same-geometry", "context-a"),
+            _record("b", "test", (1 + 0j, 2j), "same-geometry", "context-b"),
+        ),
+        normalized_inner_product_threshold=0.99,
+    )
+
+    assert len(report.candidates) == 1
+    assert report.candidates[0].geometry_hash_match
+    assert report.candidates[0].normalized_complex_inner_product_magnitude is None
+    assert report.skipped_comparisons[0].reason == "incompatible_channel_context"
 
 
 @pytest.mark.parametrize("threshold", [-0.01, 1.01, float("nan"), float("inf"), True])

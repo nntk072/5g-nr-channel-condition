@@ -517,6 +517,7 @@ def _write_run_manifest(
     *,
     wrong_input_hash: bool = False,
     qualification_contract: dict[str, Any] | None = None,
+    runtime_inventory_path: Path | None = None,
 ) -> None:
     run_id = (
         qualification_contract["run_id"]
@@ -524,11 +525,51 @@ def _write_run_manifest(
         else "joint-run-001"
     )
     manifest = run_manifest.build_g3_joint_evidence_run_manifest(
-        run_id, source, saved, qualification_contract=qualification_contract
+        run_id,
+        source,
+        saved,
+        qualification_contract=qualification_contract,
+        runtime_inventory_path=runtime_inventory_path,
     )
     if wrong_input_hash:
         manifest["input"]["sha256"] = "0" * 64
     _write_canonical(path, manifest)
+
+
+def test_run_manifest_v4_binds_runtime_inventory_and_preserves_not_qualified_status(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _install_scorers(monkeypatch)
+    source = tmp_path / "joint-input.json"
+    saved = tmp_path / "joint-report.json"
+    inventory = tmp_path / "runtime-inventory.json"
+    _write_canonical(source, _payload())
+    artifact._write_new_artifact(saved, artifact.evaluate_g3_joint_evidence_file(source))
+    inventory.write_bytes(
+        (
+            Path(__file__).resolve().parents[2]
+            / "docs/research/results/runtime-inventory-v3-cuda-phy-20261027.json"
+        ).read_bytes()
+    )
+
+    manifest = run_manifest.build_g3_joint_evidence_run_manifest(
+        "joint-run-001",
+        source,
+        saved,
+        package_root=tmp_path,
+        runtime_inventory_path=inventory,
+    )
+    manifest_path = tmp_path / "run-manifest-v4.json"
+    _write_canonical(manifest_path, manifest)
+    report = run_manifest.verify_g3_joint_evidence_run_manifest(manifest_path)
+
+    assert manifest["schema"] == "loslab.g3_joint_evidence_run_manifest.v4"
+    assert manifest["runtime_inventory"]["role"] == "runtime_inventory"
+    assert len(manifest["evaluator_sources"]) == len(run_manifest.V4_EVALUATOR_SOURCE_PATHS)
+    assert report["status"] == "PASS_INPUT_SCOPED_RECOMPUTATION"
+    assert report["qualification_status"] == "NOT_QUALIFIED"
+    assert report["runtime_inventory_signature_status"] == "not_provided"
+    assert report["runtime_inventory_binding_status"] == "not_provided"
 
 
 def _sign_run_manifest(manifest_path: Path, directory: Path) -> tuple[Path, Path, str]:
@@ -566,6 +607,115 @@ def _sign_run_manifest(manifest_path: Path, directory: Path) -> tuple[Path, Path
         text=True,
     )
     return Path(f"{manifest_path}.sig"), allowed_signers, signer_id
+
+
+def _runtime_inventory_fixture(path: Path) -> None:
+    source_root = Path(__file__).resolve().parents[2]
+    inventory = json.loads(
+        (
+            source_root
+            / "docs/research/results/runtime-inventory-v3-cuda-phy-20261027.json"
+        ).read_text(encoding="utf-8")
+    )
+    identity = run_manifest._runtime_identity()
+    inventory["python"]["version"] = identity["python"]
+    inventory["python"]["implementation"] = identity["python_implementation"]
+    inventory["platform"].update(
+        {
+            "system": identity["platform_system"],
+            "release": identity["platform_release"],
+            "machine": identity["machine"],
+        }
+    )
+    inventory["source"]["git_commit"] = identity["source_revision"]
+    inventory["source"]["tracked_worktree_clean"] = True
+    for relative_path in ("pyproject.toml", "uv.lock"):
+        inventory["source"][relative_path] = hashlib.sha256(
+            (source_root / relative_path).read_bytes()
+        ).hexdigest()
+    for relative_path in (
+        "integrations/runtime_inventory.py",
+        "integrations/runtime_compatibility.py",
+        "scripts/report_runtime_inventory.py",
+    ):
+        inventory["source"]["runtime_inventory_sources"][relative_path] = hashlib.sha256(
+            (source_root / relative_path).read_bytes()
+        ).hexdigest()
+    distribution_by_name = {
+        item["name"].lower().replace("_", "-"): item
+        for item in inventory["distributions"]
+    }
+    runtime_packages = identity["packages"]
+    package_candidates = {
+        "numpy": ("numpy",),
+        "scikit-learn": ("scikit-learn",),
+        "torch": ("torch",),
+        "sionna": ("sionna",),
+        "sionna-rt": ("sionna-rt", "sionna-no-rt"),
+        "sionna-phy": ("sionna-no-rt",),
+    }
+    for package_name, candidates in package_candidates.items():
+        package_version = runtime_packages[package_name]
+        matching = [distribution_by_name[name] for name in candidates]
+        target = next(
+            (
+                item
+                for item in matching
+                if item.get("installed") is True
+                and item.get("version") == package_version
+            ),
+            matching[0],
+        )
+        for distribution in matching:
+            if distribution is target and package_version != "not installed":
+                distribution["installed"] = True
+                distribution["version"] = package_version
+            else:
+                distribution_name = distribution["name"]
+                distribution.clear()
+                distribution.update(
+                    {"name": distribution_name, "installed": False}
+                )
+    _write_canonical(path, inventory)
+
+
+def _sign_runtime_inventory(
+    inventory_path: Path, directory: Path
+) -> tuple[Path, Path, str]:
+    ssh_keygen = shutil.which("ssh-keygen")
+    if ssh_keygen is None:
+        pytest.skip("OpenSSH is unavailable")
+    signer_id = "g3-runtime-attestor"
+    private_key = directory / "g3-runtime-attestor-key"
+    subprocess.run(
+        [ssh_keygen, "-q", "-t", "ed25519", "-N", "", "-f", str(private_key)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    public_key = private_key.with_suffix(".pub").read_text(encoding="utf-8").strip()
+    allowed_signers = directory / "runtime-allowed-signers"
+    allowed_signers.write_text(
+        f'{signer_id} namespaces="{run_manifest.RUNTIME_INVENTORY_SIGNATURE_NAMESPACE}" '
+        f"{public_key}\n",
+        encoding="utf-8",
+    )
+    subprocess.run(
+        [
+            ssh_keygen,
+            "-Y",
+            "sign",
+            "-n",
+            run_manifest.RUNTIME_INVENTORY_SIGNATURE_NAMESPACE,
+            "-f",
+            str(private_key),
+            str(inventory_path),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return Path(f"{inventory_path}.sig"), allowed_signers, signer_id
 
 
 def _qualification_contract(
@@ -912,7 +1062,7 @@ def test_run_manifest_builder_rejects_malformed_runtime_identity(
     _write_canonical(source, _payload())
     artifact._write_new_artifact(saved, artifact.evaluate_g3_joint_evidence_file(source))
 
-    with pytest.raises(ValueError, match="violates v3 schema"):
+    with pytest.raises(ValueError, match="violates selected schema"):
         run_manifest.build_g3_joint_evidence_run_manifest(
             "joint-run-001",
             source,
@@ -1041,6 +1191,7 @@ def test_strict_run_manifest_requires_criterion_driven_contract_v4(
     saved = tmp_path / "joint-report.json"
     manifest_path = tmp_path / "run-manifest.json"
     policy_path = tmp_path / "signer-policy.json"
+    runtime_inventory_path = tmp_path / "runtime-inventory.json"
     payload = _payload_v6() if criterion_driven_contract else _payload_v4()
     if criterion_driven_contract:
         payload["path_equivalence"]["solver_budget_provenance"] = {
@@ -1058,7 +1209,14 @@ def test_strict_run_manifest_requires_criterion_driven_contract_v4(
         source_identity["evaluator_source_bundle_sha256"],
         raw_paths=criterion_driven_contract,
     )
-    _write_run_manifest(manifest_path, source, saved, qualification_contract=contract)
+    _runtime_inventory_fixture(runtime_inventory_path)
+    _write_run_manifest(
+        manifest_path,
+        source,
+        saved,
+        qualification_contract=contract,
+        runtime_inventory_path=runtime_inventory_path,
+    )
     manifest_signature, manifest_signers, manifest_signer_id = _sign_run_manifest(
         manifest_path, tmp_path
     )
@@ -1110,6 +1268,9 @@ def test_strict_run_manifest_requires_criterion_driven_contract_v4(
         text=True,
     )
     policy_signature = Path(f"{policy_path}.sig")
+    runtime_signature, runtime_signers, runtime_signer_id = _sign_runtime_inventory(
+        runtime_inventory_path, tmp_path
+    )
 
     report = run_manifest.verify_g3_joint_evidence_run_manifest(
         manifest_path,
@@ -1120,6 +1281,9 @@ def test_strict_run_manifest_requires_criterion_driven_contract_v4(
         trusted_signer_policy_signature_path=policy_signature,
         trusted_policy_allowed_signers_path=policy_signers,
         policy_signer_id=policy_signer_id,
+        runtime_inventory_signature_path=runtime_signature,
+        trusted_runtime_inventory_signers_path=runtime_signers,
+        runtime_inventory_signer_id=runtime_signer_id,
         require_signed_reviewer_admission=True,
     )
 
@@ -1129,6 +1293,8 @@ def test_strict_run_manifest_requires_criterion_driven_contract_v4(
         assert report["signer_policy_signature_status"] == "verified"
         assert report["signer_policy_signer_id"] == policy_signer_id
         assert report["signer_policy_custody"] == "not_established_by_this_verifier"
+        assert report["runtime_inventory_signature_status"] == "verified"
+        assert report["runtime_inventory_binding_status"] == "verified"
         assert report["signed_reviewer_admission_status"] == (
             "signature_role_policy_and_contract_preflight_passed"
         )

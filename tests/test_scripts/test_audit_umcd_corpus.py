@@ -361,9 +361,19 @@ def _fixture(
     stratified: bool = False,
     scene_roster: bool = False,
     zero_channels: bool = False,
+    incompatible_channel_context: bool = False,
 ) -> Path:
     store = tmp_path / "store"
     bundles = tuple(_bundle(f"episode-{index}", f"asset-family-{index}") for index in range(3))
+    if incompatible_channel_context:
+        changed = bundles[1]
+        offsets = np.asarray([-30_000.0, 0.0, 30_000.0])
+        changed_episode = replace(changed.episode, subcarrier_offsets_hz=offsets)
+        changed_views = tuple(
+            replace(view, subcarrier_offsets_hz=offsets)
+            for view in changed.channel_views
+        )
+        bundles = (bundles[0], replace(changed, episode=changed_episode, channel_views=changed_views), bundles[2])
     if zero_channels:
         bundles = tuple(
             replace(
@@ -495,7 +505,7 @@ def test_audit_report_is_deterministic_hash_bound_and_nonqualifying(tmp_path):
 
     assert first == second
     assert first["qualification"] == "not_claimed"
-    assert first["schema"] == "umcd.corpus_audit_report.v8"
+    assert first["schema"] == "umcd.corpus_audit_report.v9"
     assert first["external_gates"]["legal_assessment"]["status"] == "external_unverified"
     assert first["external_gates"]["external_lock_attestation"]["status"] == "external_unverified"
     assert first["checks"]["bundle_store_integrity"]["bundle_count"] == 3
@@ -514,7 +524,7 @@ def test_audit_report_is_deterministic_hash_bound_and_nonqualifying(tmp_path):
     )
 
 
-def test_corpus_audit_report_v8_schema_rejects_unknown_near_duplicate_status(tmp_path):
+def test_corpus_audit_report_v9_schema_rejects_unknown_near_duplicate_status(tmp_path):
     report = audit_inventory(_fixture(tmp_path))
     malformed = json.loads(json.dumps(report))
     malformed["checks"]["near_duplicate_review"]["status"] = "skipped_but_clean"
@@ -536,11 +546,26 @@ def test_zero_norm_cross_split_cfrs_mark_near_duplicate_review_incomplete(
     report = audit_inventory(_fixture(tmp_path, zero_channels=True))
     review = report["checks"]["near_duplicate_review"]
 
-    assert report["schema"] == "umcd.corpus_audit_report.v8"
+    assert report["schema"] == "umcd.corpus_audit_report.v9"
     assert review["status"] == "incomplete_comparisons"
     assert review["candidate_count"] == 0
     assert review["cross_split_pair_count"] > 0
     assert review["skipped_comparison_count"] > 0
+
+
+def test_incompatible_cfr_frequency_grids_are_reported_as_incomplete(
+    tmp_path: Path,
+) -> None:
+    report = audit_inventory(_fixture(tmp_path, incompatible_channel_context=True))
+    review = report["checks"]["near_duplicate_review"]
+
+    assert review["status"] == "incomplete_comparisons"
+    assert review["skipped_comparison_reasons"]["incompatible_channel_context"] > 0
+    assert any(
+        item["comparison_context_id_a"] != item["comparison_context_id_b"]
+        and item["normalized_complex_inner_product_magnitude"] is None
+        for item in review["candidates"]
+    )
 
 
 @pytest.mark.parametrize(
@@ -556,7 +581,7 @@ def test_signed_near_duplicate_dispositions_bind_exact_inventory_and_candidate_s
     inventory_path = _fixture(tmp_path)
     initial = audit_inventory(inventory_path)
     review = initial["checks"]["near_duplicate_review"]
-    assert initial["schema"] == "umcd.corpus_audit_report.v8"
+    assert initial["schema"] == "umcd.corpus_audit_report.v9"
     assert review["candidate_set_sha256"]
     assert all(len(item["candidate_id"]) == 64 for item in review["candidates"])
     assert review["disposition_status"] == "not_provided"

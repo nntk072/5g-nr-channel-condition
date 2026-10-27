@@ -35,6 +35,9 @@ from evaluation.g3_signed_attestation import verify_openssh_signature_for_bytes
 V1_SCHEMA_RELATIVE_PATH = "datasets/schema/g3-joint-evidence-run-manifest.v1.schema.json"
 SCHEMA_RELATIVE_PATH = "datasets/schema/g3-joint-evidence-run-manifest.v2.schema.json"
 SCHEMA_V3_RELATIVE_PATH = "datasets/schema/g3-joint-evidence-run-manifest.v3.schema.json"
+SCHEMA_V4_RELATIVE_PATH = "datasets/schema/g3-joint-evidence-run-manifest.v4.schema.json"
+RUNTIME_INVENTORY_SCHEMA_V3_RELATIVE_PATH = "datasets/schema/runtime-inventory.v3.schema.json"
+RUNTIME_INVENTORY_SIGNATURE_NAMESPACE = "loslab-g3-runtime-inventory-v1@github.com"
 SIGNER_POLICY_SCHEMA = "loslab.g3_run_manifest_signer_policy.v1"
 SIGNER_POLICY_PURPOSE = "g3_joint_run_manifest_verification"
 SIGNER_POLICY_RELATIVE_PATH = "datasets/schema/g3-run-manifest-signer-policy.v1.schema.json"
@@ -68,6 +71,7 @@ QUALIFICATION_CONTRACT_SCHEMA_V4_RELATIVE_PATH = (
 )
 _MAX_CAPTURE_BYTES = MAX_JSON_ARTIFACT_BYTES
 _MAX_MANIFEST_TOTAL_BYTES = _MAX_CAPTURE_BYTES * 2
+_MAX_V4_MANIFEST_TOTAL_BYTES = _MAX_CAPTURE_BYTES * 3
 _MAX_SOURCE_BUNDLE_BYTES = 64 * 1024 * 1024
 V1_EVALUATOR_SOURCE_PATHS = tuple(sorted((
     V1_SCHEMA_RELATIVE_PATH,
@@ -135,6 +139,18 @@ EVALUATOR_SOURCE_PATHS = tuple(
         )
     )
 )
+V4_EVALUATOR_SOURCE_PATHS = tuple(
+    sorted(
+        (
+            *EVALUATOR_SOURCE_PATHS,
+            SCHEMA_V4_RELATIVE_PATH,
+            RUNTIME_INVENTORY_SCHEMA_V3_RELATIVE_PATH,
+            "integrations/runtime_inventory.py",
+            "integrations/runtime_compatibility.py",
+            "scripts/report_runtime_inventory.py",
+        )
+    )
+)
 _RUN_ID_PATTERN = re.compile(r"^[a-z][a-z0-9._-]{2,63}$")
 
 
@@ -167,6 +183,100 @@ def _runtime_identity() -> dict[str, Any]:
         "packages": {name: observed[name] for name in package_names},
         "source_revision": observed["git_sha"],
     }
+
+
+def _verify_signed_runtime_inventory_bindings(
+    runtime_inventory: dict[str, Any],
+    runtime_identity: dict[str, Any],
+    evaluator_sources: list[dict[str, Any]],
+) -> None:
+    """Join signed loaded-runtime evidence to the run's source and platform IDs."""
+    source = runtime_inventory.get("source")
+    python_identity = runtime_inventory.get("python")
+    platform_identity = runtime_inventory.get("platform")
+    loaded = runtime_inventory.get("loaded_native_libraries")
+    if not all(isinstance(value, dict) for value in (source, python_identity, platform_identity, loaded)):
+        raise ValueError("signed runtime inventory is missing source, platform, or loaded-library identity")
+    if (
+        runtime_inventory.get("schema") != "umcd.runtime_inventory.v3"
+        or runtime_inventory.get("status") != "SELF_REPORTED_INTEGRITY_ONLY"
+        or runtime_inventory.get("qualification") != "NOT_QUALIFIED"
+        or loaded.get("status") != "COMPLETE"
+        or loaded.get("unhashed") != []
+    ):
+        raise ValueError("strict G3 runtime inventory must be complete v3 integrity evidence")
+    if source.get("tracked_worktree_clean") is not True:
+        raise ValueError("strict G3 runtime inventory requires a clean tracked source tree")
+    if source.get("git_commit") != runtime_identity.get("source_revision"):
+        raise ValueError("runtime inventory commit differs from the run runtime identity")
+    if (
+        python_identity.get("version") != runtime_identity.get("python")
+        or python_identity.get("implementation")
+        != runtime_identity.get("python_implementation")
+        or platform_identity.get("system") != runtime_identity.get("platform_system")
+        or platform_identity.get("release") != runtime_identity.get("platform_release")
+        or platform_identity.get("machine") != runtime_identity.get("machine")
+    ):
+        raise ValueError("runtime inventory platform differs from the run runtime identity")
+    packages = runtime_identity.get("packages")
+    distributions = runtime_inventory.get("distributions")
+    if not isinstance(packages, dict) or not isinstance(distributions, list):
+        raise ValueError("runtime inventory package identity is missing")
+    distribution_by_name = {
+        item.get("name", "").lower().replace("_", "-"): item
+        for item in distributions
+        if isinstance(item, dict)
+    }
+    if len(distribution_by_name) != len(distributions):
+        raise ValueError("runtime inventory contains duplicate or malformed distribution names")
+    package_distributions = {
+        "numpy": ("numpy",),
+        "scikit-learn": ("scikit-learn",),
+        "torch": ("torch",),
+        "sionna": ("sionna",),
+        "sionna-rt": ("sionna-rt", "sionna-no-rt"),
+        "sionna-phy": ("sionna-no-rt",),
+    }
+    for package_name, candidates in package_distributions.items():
+        declared_version = packages.get(package_name)
+        matching_distributions = [
+            distribution_by_name[name]
+            for name in candidates
+            if name in distribution_by_name
+        ]
+        if not matching_distributions:
+            raise ValueError(f"runtime inventory omits package identity: {package_name}")
+        installed_matches = [
+            distribution
+            for distribution in matching_distributions
+            if distribution.get("installed") is True
+        ]
+        if declared_version == "not installed":
+            if installed_matches:
+                raise ValueError(
+                    f"runtime identity says {package_name} is absent but inventory records it installed"
+                )
+        elif not any(
+            distribution.get("version") == declared_version
+            for distribution in installed_matches
+        ):
+            raise ValueError(
+                f"runtime inventory package version differs from runtime identity: {package_name}"
+            )
+    source_by_path = {item["path"]: item["sha256"] for item in evaluator_sources}
+    for path in ("pyproject.toml", "uv.lock"):
+        if source.get(path) != source_by_path.get(path):
+            raise ValueError(f"runtime inventory {path} digest differs from evaluator source roster")
+    runtime_sources = source.get("runtime_inventory_sources")
+    if not isinstance(runtime_sources, dict):
+        raise ValueError("runtime inventory source-code digest roster is missing")
+    for path in (
+        "integrations/runtime_inventory.py",
+        "integrations/runtime_compatibility.py",
+        "scripts/report_runtime_inventory.py",
+    ):
+        if runtime_sources.get(path) != source_by_path.get(path):
+            raise ValueError(f"runtime inventory source digest differs from evaluator roster: {path}")
 
 
 def _authorize_run_manifest_signer(signer_id: str, policy_bytes: bytes) -> dict[str, str]:
@@ -524,7 +634,9 @@ def _verify_qualification_contract_bindings(
 
 
 def g3_evaluator_source_bundle_identity(
-    *, source_root: str | Path | None = None
+    *,
+    source_root: str | Path | None = None,
+    include_runtime_inventory: bool = False,
 ) -> dict[str, Any]:
     """Return the fixed G3 source roster and its digest before a run is launched."""
     root = (
@@ -540,7 +652,14 @@ def g3_evaluator_source_bundle_identity(
     sources: list[dict[str, Any]] = []
     total = 0
     try:
-        for relative_path in EVALUATOR_SOURCE_PATHS:
+        if not isinstance(include_runtime_inventory, bool):
+            raise TypeError("include_runtime_inventory must be a boolean")
+        source_roster = (
+            V4_EVALUATOR_SOURCE_PATHS
+            if include_runtime_inventory
+            else EVALUATOR_SOURCE_PATHS
+        )
+        for relative_path in source_roster:
             remaining = _MAX_SOURCE_BUNDLE_BYTES - total
             if remaining <= 0:
                 raise ValueError("evaluator source roster exceeds its total byte limit")
@@ -569,6 +688,7 @@ def build_g3_joint_evidence_run_manifest(
     source_root: str | Path | None = None,
     qualification_contract: dict[str, Any] | None = None,
     runtime_identity: dict[str, Any] | None = None,
+    runtime_inventory_path: str | Path | None = None,
 ) -> dict[str, Any]:
     """Describe exact run files, optional preregistration, and scorer source identities."""
     if not isinstance(run_id, str) or _RUN_ID_PATTERN.fullmatch(run_id) is None:
@@ -607,6 +727,49 @@ def build_g3_joint_evidence_run_manifest(
             limit=_MAX_CAPTURE_BYTES,
             capture=True,
         )
+        runtime_inventory_entry: dict[str, Any] | None = None
+        if runtime_inventory_path is not None:
+            inventory_file = Path(os.path.abspath(runtime_inventory_path))
+            inventory_relative, inventory_bytes, inventory_size, inventory_digest = (
+                _rooted_file_identity(
+                    package_fd,
+                    package_dir,
+                    inventory_file,
+                    limit=_MAX_CAPTURE_BYTES,
+                    capture=True,
+                )
+            )
+            if inventory_bytes is None:
+                raise ValueError("runtime inventory bytes were not captured")
+            inventory_payload = _json_bytes(inventory_bytes, "G3 runtime inventory")
+            import jsonschema
+
+            inventory_schema = _json_bytes(
+                _read_rooted_source_file(
+                    source_dir,
+                    RUNTIME_INVENTORY_SCHEMA_V3_RELATIVE_PATH,
+                    limit=MAX_SCHEMA_BYTES,
+                ),
+                "runtime inventory v3 schema",
+            )
+            inventory_errors = list(
+                jsonschema.Draft202012Validator(inventory_schema).iter_errors(
+                    inventory_payload
+                )
+            )
+            if inventory_errors:
+                raise ValueError(
+                    "runtime inventory violates v3 schema: "
+                    + "; ".join(error.message for error in inventory_errors[:10])
+                )
+            if inventory_relative in (input_relative, artifact_relative):
+                raise ValueError("runtime inventory, input, and artifact paths must be distinct")
+            runtime_inventory_entry = {
+                "path": inventory_relative,
+                "size_bytes": inventory_size,
+                "sha256": inventory_digest,
+                "role": "runtime_inventory",
+            }
         if qualification_contract is not None:
             if input_bytes is None:
                 raise ValueError("joint evaluator input was not captured")
@@ -620,7 +783,12 @@ def build_g3_joint_evidence_run_manifest(
             raise ValueError("input and artifact paths must be distinct")
         sources: list[dict[str, Any]] = []
         source_bytes_total = 0
-        for relative_path in EVALUATOR_SOURCE_PATHS:
+        source_roster = (
+            V4_EVALUATOR_SOURCE_PATHS
+            if runtime_inventory_entry is not None
+            else EVALUATOR_SOURCE_PATHS
+        )
+        for relative_path in source_roster:
             parts = _safe_relative_path(relative_path)
             remaining_source_budget = _MAX_SOURCE_BUNDLE_BYTES - source_bytes_total
             if remaining_source_budget <= 0:
@@ -639,10 +807,16 @@ def build_g3_joint_evidence_run_manifest(
     source_bundle_sha256 = _source_bundle_sha256(sources)
     if qualification_contract is not None and qualification_contract["source_identity"][
         "source_bundle_sha256"
-    ] != source_bundle_sha256:
+    ] != _source_bundle_sha256(
+        [item for item in sources if item["path"] in EVALUATOR_SOURCE_PATHS]
+    ):
         raise ValueError("qualification contract source bundle differs from run receipt sources")
     manifest = {
-        "schema": "loslab.g3_joint_evidence_run_manifest.v3",
+        "schema": (
+            "loslab.g3_joint_evidence_run_manifest.v4"
+            if runtime_inventory_entry is not None
+            else "loslab.g3_joint_evidence_run_manifest.v3"
+        ),
         "run_id": run_id,
         "qualification_status": "NOT_QUALIFIED",
         "runtime_identity": (
@@ -663,6 +837,8 @@ def build_g3_joint_evidence_run_manifest(
         "evaluator_sources": sources,
         "evaluator_source_bundle_sha256": source_bundle_sha256,
     }
+    if runtime_inventory_entry is not None:
+        manifest["runtime_inventory"] = runtime_inventory_entry
     if qualification_contract is not None:
         if not isinstance(qualification_contract, dict):
             raise TypeError("qualification_contract must be an object")
@@ -674,7 +850,11 @@ def build_g3_joint_evidence_run_manifest(
 
     manifest_schema = _json_bytes(
         _read_rooted_source_file(
-            source_dir, SCHEMA_V3_RELATIVE_PATH, limit=MAX_SCHEMA_BYTES
+            source_dir,
+            SCHEMA_V4_RELATIVE_PATH
+            if runtime_inventory_entry is not None
+            else SCHEMA_V3_RELATIVE_PATH,
+            limit=MAX_SCHEMA_BYTES,
         ),
         "G3 run manifest schema",
     )
@@ -683,7 +863,7 @@ def build_g3_joint_evidence_run_manifest(
     )
     if schema_errors:
         raise ValueError(
-            "G3 run manifest violates v3 schema: "
+            "G3 run manifest violates selected schema: "
             + "; ".join(error.message for error in schema_errors[:10])
         )
     return manifest
@@ -701,6 +881,9 @@ def verify_g3_joint_evidence_run_manifest(
     trusted_signer_policy_signature_path: str | Path | None = None,
     trusted_policy_allowed_signers_path: str | Path | None = None,
     policy_signer_id: str | None = None,
+    runtime_inventory_signature_path: str | Path | None = None,
+    trusted_runtime_inventory_signers_path: str | Path | None = None,
+    runtime_inventory_signer_id: str | None = None,
     require_signed_reviewer_admission: bool = False,
 ) -> dict[str, Any]:
     """Verify file hashes and replay the evaluator from a small standalone manifest.
@@ -723,6 +906,8 @@ def verify_g3_joint_evidence_run_manifest(
         "signed_reviewer_admission_status": "not_requested",
         "signer_policy_custody": "not_established_by_this_verifier",
         "runtime_identity_status": "not_recorded",
+        "runtime_inventory_signature_status": "not_provided",
+        "runtime_inventory_binding_status": "not_provided",
         "errors": [],
         "limitations": [
             "A verified detached signature authenticates the manifest bytes and signer principal, "
@@ -769,10 +954,24 @@ def verify_g3_joint_evidence_run_manifest(
             raise ValueError(
                 "a signer-policy signature requires both a signer policy and a signed run manifest"
             )
+        runtime_signature_options = (
+            runtime_inventory_signature_path,
+            trusted_runtime_inventory_signers_path,
+            runtime_inventory_signer_id,
+        )
+        if any(value is not None for value in runtime_signature_options) and not all(
+            value is not None for value in runtime_signature_options
+        ):
+            raise ValueError(
+                "runtime inventory signature, trusted keyring, and signer ID must be supplied together"
+            )
         if require_signed_reviewer_admission and (
             not all(value is not None for value in signature_options)
             or trusted_signer_policy_path is None
             or not all(value is not None for value in policy_signature_options)
+            or runtime_inventory_signature_path is None
+            or trusted_runtime_inventory_signers_path is None
+            or runtime_inventory_signer_id is None
         ):
             raise ValueError(
                 "strict signed reviewer admission requires a signed run manifest, an externally "
@@ -904,16 +1103,22 @@ def verify_g3_joint_evidence_run_manifest(
         elif manifest_version == "loslab.g3_joint_evidence_run_manifest.v3":
             manifest_schema_path = SCHEMA_V3_RELATIVE_PATH
             expected_source_paths = EVALUATOR_SOURCE_PATHS
+        elif manifest_version == "loslab.g3_joint_evidence_run_manifest.v4":
+            manifest_schema_path = SCHEMA_V4_RELATIVE_PATH
+            expected_source_paths = V4_EVALUATOR_SOURCE_PATHS
         else:
             raise ValueError("unsupported G3 run manifest schema")
         if require_signed_reviewer_admission and manifest_version != (
-            "loslab.g3_joint_evidence_run_manifest.v3"
+            "loslab.g3_joint_evidence_run_manifest.v4"
         ):
             raise ValueError(
-                "strict signed reviewer admission requires run-manifest v3 runtime provenance"
+                "strict signed reviewer admission requires v4 signed runtime inventory provenance"
             )
         validate_schema(manifest, manifest_schema_path, "G3 run manifest")
-        if manifest_version == "loslab.g3_joint_evidence_run_manifest.v3":
+        if manifest_version in (
+            "loslab.g3_joint_evidence_run_manifest.v3",
+            "loslab.g3_joint_evidence_run_manifest.v4",
+        ):
             runtime_identity = manifest["runtime_identity"]
             report.update(
                 {
@@ -975,7 +1180,7 @@ def verify_g3_joint_evidence_run_manifest(
         total = 0
         seen_paths: set[tuple[str, ...]] = set()
         try:
-            for field, expected_role, limit in (
+            capture_fields = [
                 (
                     "input",
                     "joint_evaluator_input",
@@ -986,13 +1191,27 @@ def verify_g3_joint_evidence_run_manifest(
                     "joint_evaluator_artifact",
                     min(MAX_ARTIFACT_BYTES, _MAX_CAPTURE_BYTES),
                 ),
-            ):
+            ]
+            if manifest_version == "loslab.g3_joint_evidence_run_manifest.v4":
+                capture_fields.append(
+                    (
+                        "runtime_inventory",
+                        "runtime_inventory",
+                        min(MAX_JSON_ARTIFACT_BYTES, _MAX_CAPTURE_BYTES),
+                    )
+                )
+            for field, expected_role, limit in capture_fields:
                 entry = manifest[field]
                 parts = _safe_relative_path(entry["path"])
                 if parts in seen_paths:
-                    raise ValueError("input and artifact paths must be distinct")
+                    raise ValueError("manifest file paths must be distinct")
                 seen_paths.add(parts)
-                remaining = _MAX_MANIFEST_TOTAL_BYTES - total
+                total_limit = (
+                    _MAX_V4_MANIFEST_TOTAL_BYTES
+                    if manifest_version == "loslab.g3_joint_evidence_run_manifest.v4"
+                    else _MAX_MANIFEST_TOTAL_BYTES
+                )
+                remaining = total_limit - total
                 data, size, digest = _read_inventory_file(
                     root_fd, parts, min(limit, remaining), capture=True
                 )
@@ -1017,7 +1236,13 @@ def verify_g3_joint_evidence_run_manifest(
             raise ValueError("evaluator source bundle digest does not match its file roster")
         if qualification_contract is not None and qualification_contract["source_identity"][
             "source_bundle_sha256"
-        ] != manifest["evaluator_source_bundle_sha256"]:
+        ] != _source_bundle_sha256(
+            [
+                item
+                for item in sources
+                if item["path"] in EVALUATOR_SOURCE_PATHS
+            ]
+        ):
             raise ValueError("qualification contract source bundle differs from run receipt sources")
         source_fd = os.open(
             source_dir,
@@ -1048,7 +1273,10 @@ def verify_g3_joint_evidence_run_manifest(
         _validate_joint_evaluator_input_schema(input_payload, source_root=source_dir)
         artifact_schema_path = (
             ARTIFACT_SCHEMA_RELATIVE_PATH
-            if manifest_version == "loslab.g3_joint_evidence_run_manifest.v3"
+            if manifest_version in (
+                "loslab.g3_joint_evidence_run_manifest.v3",
+                "loslab.g3_joint_evidence_run_manifest.v4",
+            )
             else ARTIFACT_SCHEMA_V1_RELATIVE_PATH
         )
         validate_schema(
@@ -1056,6 +1284,68 @@ def verify_g3_joint_evidence_run_manifest(
             artifact_schema_path,
             "G3 joint evaluator artifact",
         )
+        if manifest_version == "loslab.g3_joint_evidence_run_manifest.v4":
+            runtime_inventory_payload = _json_bytes(
+                captured["runtime_inventory"], "G3 runtime inventory"
+            )
+            validate_schema(
+                runtime_inventory_payload,
+                RUNTIME_INVENTORY_SCHEMA_V3_RELATIVE_PATH,
+                "G3 runtime inventory",
+            )
+        if manifest_version == "loslab.g3_joint_evidence_run_manifest.v4":
+            if runtime_inventory_signature_path is not None:
+                assert trusted_runtime_inventory_signers_path is not None
+                assert runtime_inventory_signer_id is not None
+                runtime_signature_identity = verify_openssh_signature_for_bytes(
+                    captured["runtime_inventory"],
+                    runtime_inventory_signature_path,
+                    trusted_runtime_inventory_signers_path,
+                    signer_id=runtime_inventory_signer_id,
+                    namespace=RUNTIME_INVENTORY_SIGNATURE_NAMESPACE,
+                )
+                report.update(
+                    {
+                        "runtime_inventory_signature_status": "verified",
+                        "runtime_inventory_signer_id": runtime_signature_identity[
+                            "signer_id"
+                        ],
+                        "runtime_inventory_signature_sha256": runtime_signature_identity[
+                            "signature_sha256"
+                        ],
+                        "trusted_runtime_inventory_signers_sha256": runtime_signature_identity[
+                            "allowed_signers_sha256"
+                        ],
+                    }
+                )
+                if signature_identity is not None:
+                    if runtime_signature_identity["signer_id"] == signature_identity["signer_id"]:
+                        raise ValueError("runtime inventory signer must differ from run-manifest signer")
+                    if runtime_signature_identity["allowed_signers_sha256"] == signature_identity[
+                        "allowed_signers_sha256"
+                    ]:
+                        raise ValueError("runtime inventory trust keyring must differ from run-manifest keyring")
+                if runtime_signature_identity["signer_id"] == report.get("signer_policy_signer_id"):
+                    raise ValueError("runtime inventory signer must differ from signer-policy custodian")
+                if runtime_signature_identity["allowed_signers_sha256"] == report.get(
+                    "signer_policy_allowed_signers_sha256"
+                ):
+                    raise ValueError("runtime inventory trust keyring must differ from signer-policy keyring")
+                _verify_signed_runtime_inventory_bindings(
+                    runtime_inventory_payload,
+                    manifest["runtime_identity"],
+                    sources,
+                )
+                report.update(
+                    {
+                        "runtime_inventory_sha256": hashlib.sha256(
+                            captured["runtime_inventory"]
+                        ).hexdigest(),
+                        "runtime_inventory_binding_status": "verified",
+                    }
+                )
+            elif require_signed_reviewer_admission:
+                raise ValueError("strict signed reviewer admission requires signed runtime inventory")
         if qualification_contract is not None:
             qualification_contract_sha256 = _verify_qualification_contract_bindings(
                 qualification_contract,
@@ -1201,6 +1491,11 @@ def main(argv: list[str] | None = None) -> int:
         type=Path,
         help="optional frozen G3 qualification contract to bind into the run receipt",
     )
+    parser.add_argument(
+        "--runtime-inventory",
+        type=Path,
+        help="optional canonical runtime-inventory v3 JSON to bind into a v4 run receipt",
+    )
     parser.add_argument("--signature", type=Path, help="detached signature for the run manifest")
     parser.add_argument(
         "--trusted-allowed-signers",
@@ -1227,17 +1522,36 @@ def main(argv: list[str] | None = None) -> int:
         "--policy-signer-id", help="OpenSSH principal expected to sign the signer policy"
     )
     parser.add_argument(
+        "--runtime-inventory-signature",
+        type=Path,
+        help="detached signature over exact runtime-inventory bytes",
+    )
+    parser.add_argument(
+        "--trusted-runtime-inventory-allowed-signers",
+        type=Path,
+        help="independent OpenSSH allowed_signers file for runtime inventory",
+    )
+    parser.add_argument(
+        "--runtime-inventory-signer-id",
+        help="OpenSSH principal expected to sign the runtime inventory",
+    )
+    parser.add_argument(
         "--require-signed-reviewer-admission",
         action="store_true",
         help=(
-            "require a signed v3 run receipt, externally signed reviewer-role policy, "
-            "and frozen G3 contract before reporting input-scoped replay"
+            "require a signed v4 run receipt, independent signed runtime inventory, "
+            "externally signed reviewer-role policy, and frozen G3 contract before replay"
         ),
     )
     parser.add_argument(
         "--print-source-bundle",
         action="store_true",
         help="print the fixed evaluator source inventory for preregistering a run",
+    )
+    parser.add_argument(
+        "--include-runtime-inventory-sources",
+        action="store_true",
+        help="include the v4 runtime-inventory verifier and runtime capture sources",
     )
     args = parser.parse_args(argv)
     if args.print_source_bundle:
@@ -1258,15 +1572,30 @@ def main(argv: list[str] | None = None) -> int:
                 args.trusted_signer_policy_signature,
                 args.trusted_policy_allowed_signers,
                 args.policy_signer_id,
+                args.runtime_inventory,
+                args.runtime_inventory_signature,
+                args.trusted_runtime_inventory_allowed_signers,
+                args.runtime_inventory_signer_id,
             )
         ) or args.require_signed_reviewer_admission:
             parser.error("--print-source-bundle cannot be combined with run-manifest arguments")
         try:
-            print(json.dumps(g3_evaluator_source_bundle_identity(source_root=args.source_root)))
+            print(
+                json.dumps(
+                    g3_evaluator_source_bundle_identity(
+                        source_root=args.source_root,
+                        include_runtime_inventory=args.include_runtime_inventory_sources,
+                    )
+                )
+            )
         except (OSError, TypeError, ValueError, RuntimeError) as error:
             print(f"G3 source inventory error: {error}", file=sys.stderr)
             return 2
         return 0
+    if args.include_runtime_inventory_sources:
+        parser.error("--include-runtime-inventory-sources requires --print-source-bundle")
+    if args.runtime_inventory is not None and args.create_run_id is None:
+        parser.error("--runtime-inventory requires --create-run-id")
     if args.qualification_contract is not None and args.create_run_id is None:
         parser.error("--qualification-contract requires --create-run-id")
     if args.create_run_id is not None and any(
@@ -1279,6 +1608,9 @@ def main(argv: list[str] | None = None) -> int:
             args.trusted_signer_policy_signature,
             args.trusted_policy_allowed_signers,
             args.policy_signer_id,
+                args.runtime_inventory_signature,
+                args.trusted_runtime_inventory_allowed_signers,
+                args.runtime_inventory_signer_id,
         )
     ):
         parser.error("manifest signature options are only valid when verifying an existing manifest")
@@ -1313,6 +1645,7 @@ def main(argv: list[str] | None = None) -> int:
                     if args.qualification_contract is not None
                     else None
                 ),
+                runtime_inventory_path=args.runtime_inventory,
             )
             with args.output.open("xb") as stream:
                 stream.write(_canonical_json_bytes(value))
@@ -1336,6 +1669,11 @@ def main(argv: list[str] | None = None) -> int:
         trusted_signer_policy_signature_path=args.trusted_signer_policy_signature,
         trusted_policy_allowed_signers_path=args.trusted_policy_allowed_signers,
         policy_signer_id=args.policy_signer_id,
+            runtime_inventory_signature_path=args.runtime_inventory_signature,
+            trusted_runtime_inventory_signers_path=(
+                args.trusted_runtime_inventory_allowed_signers
+            ),
+            runtime_inventory_signer_id=args.runtime_inventory_signer_id,
         require_signed_reviewer_admission=args.require_signed_reviewer_admission,
     )
     if args.report_output is not None:

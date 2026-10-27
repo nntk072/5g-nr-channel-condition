@@ -15,6 +15,7 @@ from dataclasses import asdict
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+import numpy as np
 from datasets.episode_store import (
     EpisodeBundle,
     _stable_file_bytes,
@@ -47,14 +48,17 @@ _STRATIFIED_SCHEMA = "umcd.corpus_audit_inventory.v3"
 _SCENE_ROSTER_SCHEMA = "umcd.corpus_audit_inventory.v4"
 _REPORT_SCHEMA_V6 = "umcd.corpus_audit_report.v6"
 _REPORT_SCHEMA_V7 = "umcd.corpus_audit_report.v7"
-_REPORT_SCHEMA = "umcd.corpus_audit_report.v8"
+_REPORT_SCHEMA_V8 = "umcd.corpus_audit_report.v8"
+_REPORT_SCHEMA = "umcd.corpus_audit_report.v9"
 _REPORT_SCHEMA_PATHS = {
     _REPORT_SCHEMA_V6: Path(__file__).resolve().parents[1]
     / "datasets/schema/umcd-corpus-audit-report.v6.schema.json",
     _REPORT_SCHEMA_V7: Path(__file__).resolve().parents[1]
     / "datasets/schema/umcd-corpus-audit-report.v7.schema.json",
-    _REPORT_SCHEMA: Path(__file__).resolve().parents[1]
+    _REPORT_SCHEMA_V8: Path(__file__).resolve().parents[1]
     / "datasets/schema/umcd-corpus-audit-report.v8.schema.json",
+    _REPORT_SCHEMA: Path(__file__).resolve().parents[1]
+    / "datasets/schema/umcd-corpus-audit-report.v9.schema.json",
 }
 _DUPLICATE_DISPOSITION_SCHEMA = "umcd.near_duplicate_dispositions.v2"
 _DUPLICATE_DISPOSITION_SCHEMA_PATH = (
@@ -424,6 +428,29 @@ def _bundle_geometry_hash(bundle: EpisodeBundle) -> str | None:
             }
             for link in scene.links
         ],
+    }
+    return hashlib.sha256(_canonical_json(identity)).hexdigest()
+
+
+def _channel_comparison_context_id(view: Any) -> str:
+    """Hash the exact CFR coordinates and normalization contract used for comparison."""
+    offsets = np.ascontiguousarray(view.subcarrier_offsets_hz, dtype="<f8")
+    mask = np.packbits(np.asarray(view.valid_mask, dtype=np.bool_).reshape(-1), bitorder="little")
+    identity = {
+        "schema": "umcd.near_duplicate_channel_context.v1",
+        "view_id": view.view_id,
+        "axes": list(view.axes),
+        "shape": list(view.channel.shape),
+        "dtype": str(view.channel.dtype),
+        "frame_times_s": list(view.frame_times_s),
+        "rx_port_ids": list(view.rx_port_ids),
+        "tx_port_ids": list(view.tx_port_ids),
+        "carrier_hz": float(view.carrier_hz),
+        "subcarrier_offsets_sha256": hashlib.sha256(offsets.tobytes()).hexdigest(),
+        "delay_reference": view.delay_reference.value,
+        "power_scale": view.power_scale.value,
+        "normalization_recipe": view.normalization_recipe,
+        "valid_mask_sha256": hashlib.sha256(mask.tobytes()).hexdigest(),
     }
     return hashlib.sha256(_canonical_json(identity)).hexdigest()
 
@@ -974,7 +1001,7 @@ def audit_inventory(
     target_task_bindings = (
         _validated_target_task_bindings(inventory) if is_stratified_inventory else None
     )
-    duplicate_groups: dict[tuple[str, tuple[int, ...]], list[ChannelRecord]] = defaultdict(list)
+    duplicate_groups: dict[str, list[ChannelRecord]] = defaultdict(list)
     for episode_id in sorted(bundles):
         bundle = bundles[episode_id]
         split_id = registry.split_for_parent(episode_id)
@@ -1024,12 +1051,13 @@ def audit_inventory(
                     )
         geometry_hash = _bundle_geometry_hash(bundle)
         for view in bundle.channel_views:
-            duplicate_groups[(view.view_id, tuple(view.channel.shape))].append(
+            duplicate_groups[view.view_id].append(
                 ChannelRecord(
                     sample_id=f"{episode_id}::{view.view_id}",
                     split_id=split_id,
                     family_site_geometry_hash=geometry_hash,
                     cfr=view.channel,
+                    comparison_context_id=_channel_comparison_context_id(view),
                 )
             )
 
@@ -1088,6 +1116,15 @@ def audit_inventory(
     ]
     candidates = [item for report in duplicate_reports for item in report.candidates]
     skipped = [item for report in duplicate_reports for item in report.skipped_comparisons]
+    comparable_group_count = sum(
+        any(
+            first.split_id != second.split_id
+            and first.comparison_context_id == second.comparison_context_id
+            for index, first in enumerate(group)
+            for second in group[index + 1 :]
+        )
+        for group in duplicate_groups.values()
+    )
     candidate_rows, candidate_set_sha256 = _candidate_roster(candidates)
     inventory_sha256 = (
         verified_inventory.artifact_sha256
@@ -1134,14 +1171,17 @@ def audit_inventory(
         )
     else:
         duplicate_status = (
-            "review_required"
-            if candidates
-            else "incomplete_comparisons"
+            "incomplete_comparisons"
             if skipped
+            else "review_required"
+            if candidates
             else "no_candidates_detected"
             if pair_count
             else "not_run_no_cross_split_pairs"
         )
+    skipped_reason_counts: dict[str, int] = defaultdict(int)
+    for item in skipped:
+        skipped_reason_counts[item.reason] += 1
 
     report_core = {
         "schema": _REPORT_SCHEMA,
@@ -1174,12 +1214,13 @@ def audit_inventory(
             "near_duplicate_review": {
                 "status": duplicate_status,
                 "threshold": float(threshold),
-                "comparable_group_count": len(duplicate_reports),
+                "comparable_group_count": comparable_group_count,
                 "cross_split_pair_count": pair_count,
                 "total_pair_comparison_count": comparison_count,
                 "candidate_count": len(candidates),
                 "candidates": candidate_rows,
                 "skipped_comparison_count": len(skipped),
+                "skipped_comparison_reasons": dict(sorted(skipped_reason_counts.items())),
                 "candidate_set_sha256": candidate_set_sha256,
                 "disposition_status": disposition_status,
                 "disposition_manifest_sha256": (

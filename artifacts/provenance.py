@@ -117,7 +117,17 @@ def versions() -> dict[str, str]:
     d = {"python": sys.version.split()[0]}
     for p in ("numpy", "scikit-learn", "torch", "sionna", "sionna-rt", "sionna-phy"):
         try:
-            d[p] = importlib.metadata.version(p)
+            distribution = (
+                "sionna-no-rt"
+                if p == "sionna-phy"
+                else p
+            )
+            try:
+                d[p] = importlib.metadata.version(distribution)
+            except importlib.metadata.PackageNotFoundError:
+                if p != "sionna-rt":
+                    raise
+                d[p] = importlib.metadata.version("sionna-no-rt")
         except importlib.metadata.PackageNotFoundError:
             d[p] = "not installed"
     try:
