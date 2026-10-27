@@ -209,6 +209,31 @@ def test_nr_sync_rejects_invalid_identity_and_capture() -> None:
         )
 
 
+def test_pss_sss_acquisition_rejects_real_valued_capture_arrays():
+    real_symbol = np.ones(256 + 32, dtype=np.float64)
+    with pytest.raises(ValueError, match="finite complex"):
+        detect_nr_pss(
+            real_symbol,
+            fft_size=256,
+            cyclic_prefix_length=32,
+            sampling_frequency_hz=7_680_000.0,
+        )
+    with pytest.raises(ValueError, match="finite complex"):
+        acquire_nr_cell(
+            np.ones(3 * (256 + 32), dtype=np.float64),
+            fft_size=256,
+            cyclic_prefix_length=32,
+            sampling_frequency_hz=7_680_000.0,
+        )
+    with pytest.raises(ValueError, match="finite complex"):
+        decode_nr_sss_symbol(
+            real_symbol,
+            nid2=0,
+            fft_size=256,
+            cyclic_prefix_length=32,
+        )
+
+
 @pytest.mark.parametrize(
     ("overrides", "message"),
     [

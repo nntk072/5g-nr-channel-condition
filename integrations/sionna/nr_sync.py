@@ -229,9 +229,15 @@ def detect_nr_pss(
         or len(set(fractional_grid)) != len(fractional_grid)
     ):
         raise ValueError("fractional timing hypotheses must be unique values in [-0.5, 0.5)")
-    samples = np.asarray(capture, dtype=np.complex128)
-    if samples.ndim not in (1, 2) or samples.size == 0 or not np.isfinite(samples).all():
+    raw_samples = np.asarray(capture)
+    if (
+        raw_samples.ndim not in (1, 2)
+        or raw_samples.dtype.kind != "c"
+        or raw_samples.size == 0
+        or not np.isfinite(raw_samples).all()
+    ):
         raise ValueError("capture must be a finite complex vector or receive-chain matrix")
+    samples = np.asarray(raw_samples, dtype=np.complex128)
     if samples.ndim == 1:
         samples = samples[None, :]
     if samples.shape[0] == 0 or samples.shape[1] < fft_size + cyclic_prefix_length:
@@ -383,10 +389,15 @@ def decode_nr_sss_symbol(
     if isinstance(nid2, bool) or not isinstance(nid2, int) or not 0 <= nid2 <= 2:
         raise ValueError("nid2 must be an integer in [0, 2]")
     _validate_ofdm(fft_size, cyclic_prefix_length)
-    samples = np.asarray(symbol_with_cp, dtype=np.complex128)
+    raw_samples = np.asarray(symbol_with_cp)
     expected_length = fft_size + cyclic_prefix_length
-    if samples.ndim not in (1, 2) or not np.isfinite(samples).all():
+    if (
+        raw_samples.ndim not in (1, 2)
+        or raw_samples.dtype.kind != "c"
+        or not np.isfinite(raw_samples).all()
+    ):
         raise ValueError("symbol_with_cp must be one finite complex symbol or receive-chain matrix")
+    samples = np.asarray(raw_samples, dtype=np.complex128)
     if samples.ndim == 1:
         samples = samples[None, :]
     if samples.shape[0] == 0 or samples.shape[1] != expected_length:
@@ -454,9 +465,15 @@ def acquire_nr_cell(
     minimum_sss_score = _finite_real(minimum_sss_score, "minimum_sss_score")
     if not 0.0 <= minimum_sss_score <= 1.0:
         raise ValueError("minimum_sss_score must be finite and in [0, 1]")
-    samples = np.asarray(capture, dtype=np.complex128)
-    if samples.ndim not in (1, 2) or not np.isfinite(samples).all():
+    raw_samples = np.asarray(capture)
+    if (
+        raw_samples.ndim not in (1, 2)
+        or raw_samples.dtype.kind != "c"
+        or raw_samples.size == 0
+        or not np.isfinite(raw_samples).all()
+    ):
         raise ValueError("capture must be a finite complex vector or receive-chain matrix")
+    samples = np.asarray(raw_samples, dtype=np.complex128)
     if samples.ndim == 1:
         samples = samples[None, :]
     variances = _noise_variance_by_chain(noise_variance, samples.shape[0])
