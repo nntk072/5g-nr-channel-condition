@@ -17,6 +17,7 @@ from experiments.runner import (
     _resolved_label_semantics,
     _validation_threshold_selection_record,
     run_experiment,
+    verify_declared_partition_support,
     verify_model_input_artifact_contract,
     verify_validation_threshold_selection_record,
 )
@@ -328,6 +329,23 @@ def test_run_experiment_writes_reproducible_complete_artifacts(tmp_path) -> None
         partition_support
     )
     assert set(partition_support) == {"train", "validation", "calibration", "test"}
+    support_replay = verify_declared_partition_support(
+        data,
+        partitions,
+        partition_support,
+        report_row["split"]["declared_partition_support_sha256"],
+    )
+    assert support_replay["status"] == "PASS_INPUT_SCOPED_REPLAY"
+    assert support_replay["qualification_status"] == "NOT_QUALIFIED"
+    tampered_support = json.loads(json.dumps(partition_support))
+    tampered_support["test"]["declared_group_count"] += 1
+    with pytest.raises(ValueError, match="does not replay"):
+        verify_declared_partition_support(
+            data,
+            partitions,
+            tampered_support,
+            report_row["split"]["declared_partition_support_sha256"],
+        )
     for partition, indices in partitions.items():
         support = partition_support[partition]
         assert support["row_count"] == len(indices)

@@ -9,7 +9,7 @@ import os
 import stat
 from pathlib import Path
 from time import perf_counter
-from typing import Any, Sequence
+from typing import Any, Mapping, Sequence
 
 import numpy as np
 from artifacts.build_dag import BuildNodeSpec, resolve_build_artifact, run_build_node
@@ -1337,6 +1337,55 @@ def _declared_partition_support(
     }
     _validate_evaluation_payload(report, "model-partition-support.v1.schema.json")
     return report
+
+
+def verify_declared_partition_support(
+    data: ChannelDataset,
+    partition_indices: Mapping[str, Sequence[int] | np.ndarray],
+    report: Mapping[str, Any],
+    expected_sha256: str,
+) -> dict[str, Any]:
+    """Replay a saved per-run split-support report from its source dataset."""
+    expected_partitions = {"train", "validation", "calibration", "test"}
+    if not isinstance(partition_indices, Mapping) or set(partition_indices) != expected_partitions:
+        raise ValueError("partition indices must name train, validation, calibration, and test")
+    normalized: dict[str, np.ndarray] = {}
+    seen: set[int] = set()
+    for partition in ("train", "validation", "calibration", "test"):
+        indices = np.asarray(partition_indices[partition])
+        if indices.ndim != 1 or indices.dtype.kind not in "iu":
+            raise ValueError(f"{partition} indices must be a one-dimensional integer array")
+        values = [int(index) for index in indices]
+        if (
+            len(values) != len(set(values))
+            or any(index < 0 or index >= len(data.y) for index in values)
+            or seen.intersection(values)
+        ):
+            raise ValueError("partition indices must be unique, in range, and disjoint")
+        seen.update(values)
+        normalized[partition] = indices.astype(np.int64, copy=False)
+    if seen != set(range(len(data.y))):
+        raise ValueError("partition indices must cover every source dataset row exactly once")
+    actual_report = {
+        partition: _declared_partition_support(data, normalized[partition])
+        for partition in ("train", "validation", "calibration", "test")
+    }
+    actual_sha256 = canonical_hash(actual_report)
+    if (
+        not isinstance(expected_sha256, str)
+        or len(expected_sha256) != 64
+        or any(char not in "0123456789abcdef" for char in expected_sha256)
+        or actual_sha256 != expected_sha256
+        or dict(report) != actual_report
+    ):
+        raise ValueError("partition support report does not replay from source data and indices")
+    return {
+        "schema": "loslab.model_partition_support_verification.v1",
+        "status": "PASS_INPUT_SCOPED_REPLAY",
+        "qualification_status": "NOT_QUALIFIED",
+        "physical_independence_status": "not_established_by_runner",
+        "report_sha256": actual_sha256,
+    }
 
 
 def _locked_split_indices(
