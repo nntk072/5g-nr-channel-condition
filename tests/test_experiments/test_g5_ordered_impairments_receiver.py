@@ -59,7 +59,11 @@ def _fake_snr_point(**kwargs: Any) -> dict[str, Any]:
         for seed in seeds
     ]
     return {
-        "schema": "umcd.g5_ordered_impairments_independent_channels.v15",
+        "schema": (
+            "umcd.g5_ordered_impairments_independent_channels.v21"
+            if kwargs.get("device", "cpu") != "cpu"
+            else "umcd.g5_ordered_impairments_independent_channels.v15"
+        ),
         "config": {
             "channel_seeds": list(seeds),
             "blocks_per_channel": blocks,
@@ -73,6 +77,16 @@ def _fake_snr_point(**kwargs: Any) -> dict[str, Any]:
             "mean_transmit_waveform_power": 1.0,
             "transmit_waveform_power_by_channel": [1.0] * len(seeds),
             "noisy_receiver_input_sha256_by_channel": ["0" * 64 for _ in seeds],
+            **(
+                {"execution_device": kwargs["device"]}
+                if kwargs.get("device", "cpu") != "cpu"
+                else {}
+            ),
+            **(
+                {"receiver_configuration": {"device": kwargs["device"]}}
+                if kwargs.get("device", "cpu") != "cpu"
+                else {}
+            ),
             "per_channel_draws": records,
         },
         "paired_outcomes": {
@@ -84,6 +98,7 @@ def _fake_snr_point(**kwargs: Any) -> dict[str, Any]:
             }
             for condition in ("clean", "uncorrected", "corrected")
         },
+        "acceptance": {},
     }
 
 
@@ -124,6 +139,39 @@ def test_independent_snr_curve_pairs_seed_roster_and_binds_variance(monkeypatch)
     )
     assert report["acceptance"]["pass"] is False
     assert report["acceptance"]["criteria_frozen_before_run"]["status"] == "descriptive_only"
+
+
+def test_independent_snr_curve_routes_explicit_cuda_device_and_versions_report(
+    monkeypatch, tmp_path: Path
+) -> None:
+    calls: list[dict[str, object]] = []
+
+    def fake_probe(**kwargs):
+        calls.append(kwargs)
+        return _fake_snr_point(**kwargs)
+
+    monkeypatch.setattr(experiment, "_validate_execution_device", lambda device: device)
+    monkeypatch.setattr(experiment, "run_independent_ordered_impairment_probe", fake_probe)
+    report = experiment.run_independent_ordered_impairment_snr_curve(
+        snr_db=(0.0, 10.0),
+        channel_seeds=(17, 23),
+        blocks_per_channel=2,
+        device="cuda:0",
+    )
+
+    assert [call["device"] for call in calls] == ["cuda:0", "cuda:0"]
+    assert report["schema"] == "umcd.g5_ordered_impairments_independent_channels_snr_curve.v12"
+    assert report["config"]["execution_device"] == "cuda:0"
+    assert all(
+        point["experiment"]["schema"] == "umcd.g5_ordered_impairments_independent_channels.v21"
+        and point["experiment"]["config"]["execution_device"] == "cuda:0"
+        for point in report["points"]
+    )
+    result_path = tmp_path / "cuda-curve.json"
+    write_hash_bound_result(result_path, build_hash_bound_result(report))
+    audit = audit_result_file(result_path)
+    assert audit["checks"]["execution_device_binding"] is True
+    assert audit["checks"]["paired_roster_noise_and_crc_summaries"] is True
 
 
 def test_independent_snr_curve_applies_pre_run_family_acceptance_contract(

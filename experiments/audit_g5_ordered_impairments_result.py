@@ -57,7 +57,12 @@ _EXACT_SEED_ROSTER_CURVE_SCHEMAS = {
     "umcd.g5_ordered_impairments_independent_channels_snr_curve.v8",
     "umcd.g5_ordered_impairments_independent_channels_snr_curve.v10",
     "umcd.g5_ordered_impairments_independent_channels_snr_curve.v11",
+    "umcd.g5_ordered_impairments_independent_channels_snr_curve.v13",
+    "umcd.g5_ordered_impairments_independent_channels_snr_curve.v14",
+    "umcd.g5_ordered_impairments_independent_channels_snr_curve.v15",
+    "umcd.g5_ordered_impairments_independent_channels_snr_curve.v16",
 }
+_CUDA_CURVE_BASE_VERSIONS = {12: 9, 13: 7, 14: 8, 15: 10, 16: 11}
 
 
 def _canonical_json_bytes(value: Any) -> bytes:
@@ -474,7 +479,7 @@ def _recompute_waveform_diagnostics(
     rx_phase = arrays["rx_phase_noise_rad"]
     actual = arrays["actual_capture"]
     if (
-        tx.ndim != 4
+        tx.ndim not in {4, 5}
         or tx.shape[0] != len(records)
         or not np.iscomplexobj(tx)
         or tx_phase.shape != tx.shape
@@ -538,7 +543,7 @@ def _recompute_waveform_diagnostics(
                 or isinstance(snr_values[snr_index], bool)
                 or not _is_finite_number(snr_values[snr_index])
                 or not _is_finite_number(config.get("nominal_snr_db"))
-                or float(config["nominal_snr_db"]) != snr_values[snr_index]
+                or not _same_float(config.get("nominal_snr_db"), snr_values[snr_index])
             ):
                 raise ValueError("multi-SNR waveform evidence point binding is invalid")
             condition_arrays = {
@@ -1331,6 +1336,11 @@ def _audit_independent_snr_curve(
         "umcd.g5_ordered_impairments_independent_channels_snr_curve.v9",
         "umcd.g5_ordered_impairments_independent_channels_snr_curve.v10",
         "umcd.g5_ordered_impairments_independent_channels_snr_curve.v11",
+        "umcd.g5_ordered_impairments_independent_channels_snr_curve.v12",
+        "umcd.g5_ordered_impairments_independent_channels_snr_curve.v13",
+        "umcd.g5_ordered_impairments_independent_channels_snr_curve.v14",
+        "umcd.g5_ordered_impairments_independent_channels_snr_curve.v15",
+        "umcd.g5_ordered_impairments_independent_channels_snr_curve.v16",
     }:
         raise ValueError("unsupported independent-channel SNR curve schema")
 
@@ -1368,6 +1378,29 @@ def _audit_independent_snr_curve(
         if committed_source is None
         else provenance.get("source_sha256") == _sha256(committed_source)
     )
+
+    actual_curve_version = int(curve_schema.rsplit("v", maxsplit=1)[1])
+    execution_device = config.get("execution_device", "cpu")
+    runtime = provenance.get("runtime")
+    if actual_curve_version in _CUDA_CURVE_BASE_VERSIONS:
+        checks["execution_device_binding"] = (
+            isinstance(execution_device, str)
+            and execution_device.startswith("cuda:")
+            and execution_device[5:].isdigit()
+            and str(int(execution_device[5:])) == execution_device[5:]
+            and isinstance(runtime, dict)
+            and runtime.get("torch_device") == execution_device
+        )
+        curve_schema = (
+            "umcd.g5_ordered_impairments_independent_channels_snr_curve.v"
+            f"{_CUDA_CURVE_BASE_VERSIONS[actual_curve_version]}"
+        )
+    else:
+        checks["execution_device_binding"] = (
+            "execution_device" not in config
+            and isinstance(runtime, dict)
+            and runtime.get("torch_device") == "cpu"
+        )
 
     seeds = config.get("channel_seeds")
     blocks = config.get("blocks_per_channel")
@@ -1456,14 +1489,34 @@ def _audit_independent_snr_curve(
         point_evidence = (
             point_config.get("waveform_evidence") if isinstance(point_config, dict) else None
         )
+        receiver_configuration = (
+            point_config.get("receiver_configuration") if isinstance(point_config, dict) else None
+        )
+        cuda_execution = execution_device != "cpu"
+        if cuda_execution:
+            expected_point_version = (
+                24
+                if config.get("channel_estimator") == "finite_delay_dft"
+                and point_evidence is not None
+                else 23
+                if config.get("channel_estimator") == "finite_delay_dft"
+                else 22
+                if point_evidence is not None
+                else 21
+            )
+        else:
+            expected_point_version = (
+                20
+                if config.get("channel_estimator") == "finite_delay_dft"
+                and point_evidence is not None
+                else 17
+                if config.get("channel_estimator") == "finite_delay_dft"
+                else 19
+                if point_evidence is not None
+                else 15
+            )
         expected_point_schema = (
-            "umcd.g5_ordered_impairments_independent_channels.v20"
-            if config.get("channel_estimator") == "finite_delay_dft" and point_evidence is not None
-            else "umcd.g5_ordered_impairments_independent_channels.v17"
-            if config.get("channel_estimator") == "finite_delay_dft"
-            else "umcd.g5_ordered_impairments_independent_channels.v19"
-            if point_evidence is not None
-            else "umcd.g5_ordered_impairments_independent_channels.v15"
+            f"umcd.g5_ordered_impairments_independent_channels.v{expected_point_version}"
         )
         if (
             not isinstance(report, dict)
@@ -1471,6 +1524,14 @@ def _audit_independent_snr_curve(
             or not isinstance(point_config, dict)
             or point_config.get("channel_seeds") != seeds
             or point_config.get("blocks_per_channel") != blocks
+            or point_config.get("execution_device", "cpu") != execution_device
+            or (
+                cuda_execution
+                and (
+                    not isinstance(receiver_configuration, dict)
+                    or receiver_configuration.get("device") != execution_device
+                )
+            )
             or not isinstance(estimator, dict)
             or estimator.get("name") != config.get("channel_estimator")
         ):
@@ -1806,6 +1867,11 @@ def _audit_independent_snr_curve(
         "umcd.g5_ordered_impairments_independent_channels_snr_curve.v8",
         "umcd.g5_ordered_impairments_independent_channels_snr_curve.v10",
         "umcd.g5_ordered_impairments_independent_channels_snr_curve.v11",
+        "umcd.g5_ordered_impairments_independent_channels_snr_curve.v12",
+        "umcd.g5_ordered_impairments_independent_channels_snr_curve.v13",
+        "umcd.g5_ordered_impairments_independent_channels_snr_curve.v14",
+        "umcd.g5_ordered_impairments_independent_channels_snr_curve.v15",
+        "umcd.g5_ordered_impairments_independent_channels_snr_curve.v16",
     }:
         frozen_contract = frozen_acceptance.get("criteria")
         contract_consistent = isinstance(frozen_contract, dict)
@@ -2268,6 +2334,11 @@ def audit_result_file(
         "umcd.g5_ordered_impairments_independent_channels_snr_curve.v9",
         "umcd.g5_ordered_impairments_independent_channels_snr_curve.v10",
         "umcd.g5_ordered_impairments_independent_channels_snr_curve.v11",
+        "umcd.g5_ordered_impairments_independent_channels_snr_curve.v12",
+        "umcd.g5_ordered_impairments_independent_channels_snr_curve.v13",
+        "umcd.g5_ordered_impairments_independent_channels_snr_curve.v14",
+        "umcd.g5_ordered_impairments_independent_channels_snr_curve.v15",
+        "umcd.g5_ordered_impairments_independent_channels_snr_curve.v16",
     }:
         if deterministic_replay:
             raise ValueError("deterministic replay is not available for diagnostic SNR curves")

@@ -742,6 +742,26 @@ def _independent_report_schema(
     raise ValueError("channel_estimator must be sionna_default_ls or finite_delay_dft")
 
 
+def _validate_execution_device(device: str) -> str:
+    if not isinstance(device, str) or not (device == "cpu" or device.startswith("cuda:")):
+        raise ValueError("device must be cpu or an explicit CUDA device such as cuda:0")
+    if device == "cpu":
+        return device
+    try:
+        parsed_device = torch.device(device)
+    except (RuntimeError, ValueError) as exc:
+        raise ValueError("device must be cpu or an explicit CUDA device such as cuda:0") from exc
+    if parsed_device.type != "cuda" or parsed_device.index is None or str(parsed_device) != device:
+        raise ValueError("device must be cpu or an explicit CUDA device such as cuda:0")
+    if not torch.cuda.is_available():
+        raise RuntimeError(
+            "CUDA was requested, but this PyTorch runtime has no available CUDA device"
+        )
+    if parsed_device.index >= torch.cuda.device_count():
+        raise ValueError(f"CUDA device index {parsed_device.index} is not available")
+    return device
+
+
 def _run_independent_ordered_impairment_probe(
     *,
     channel_seeds: tuple[int, ...],
@@ -756,27 +776,7 @@ def _run_independent_ordered_impairment_probe(
     evidence_path = Path(waveform_evidence_output) if waveform_evidence_output is not None else None
     if not isinstance(include_condition_inputs, bool):
         raise TypeError("include_condition_inputs must be a Boolean")
-    if not isinstance(device, str) or not (device == "cpu" or device.startswith("cuda:")):
-        raise ValueError("device must be cpu or an explicit CUDA device such as cuda:0")
-    if device != "cpu":
-        try:
-            parsed_device = torch.device(device)
-        except (RuntimeError, ValueError) as exc:
-            raise ValueError(
-                "device must be cpu or an explicit CUDA device such as cuda:0"
-            ) from exc
-        if (
-            parsed_device.type != "cuda"
-            or parsed_device.index is None
-            or str(parsed_device) != device
-        ):
-            raise ValueError("device must be cpu or an explicit CUDA device such as cuda:0")
-        if not torch.cuda.is_available():
-            raise RuntimeError(
-                "CUDA was requested, but this PyTorch runtime has no available CUDA device"
-            )
-        if parsed_device.index >= torch.cuda.device_count():
-            raise ValueError(f"CUDA device index {parsed_device.index} is not available")
+    device = _validate_execution_device(device)
     if evidence_path is not None:
         if "\\" in evidence_path.name or not evidence_path.name.endswith(".npz"):
             raise ValueError("waveform evidence output must be a sibling-safe .npz filename")
@@ -788,10 +788,10 @@ def _run_independent_ordered_impairment_probe(
         isinstance(seed, bool) or not isinstance(seed, int) or seed < 0 for seed in channel_seeds
     ):
         raise ValueError("channel_seeds must contain nonnegative integers")
-    if evidence_path is not None and any(
-        seed > np.iinfo(np.int64).max for seed in channel_seeds
-    ):
-        raise ValueError("channel_seeds must fit signed 64-bit storage when waveform evidence is requested")
+    if evidence_path is not None and any(seed > np.iinfo(np.int64).max for seed in channel_seeds):
+        raise ValueError(
+            "channel_seeds must fit signed 64-bit storage when waveform evidence is requested"
+        )
     if isinstance(blocks_per_channel, bool) or not isinstance(blocks_per_channel, int):
         raise TypeError("blocks_per_channel must be an integer")
     if blocks_per_channel < 1:
@@ -1374,6 +1374,7 @@ def run_independent_ordered_impairment_snr_curve(
     waveform_evidence_output: Path | None = None,
     acceptance_criteria: dict[str, Any] | None = None,
     preregistration_signature: dict[str, str] | None = None,
+    device: str = "cpu",
 ) -> dict[str, Any]:
     """Run a bounded paired diagnostic curve over common channel/payload seeds.
 
@@ -1389,6 +1390,7 @@ def run_independent_ordered_impairment_snr_curve(
     the run. A contract decision applies only to this synthetic fixture; it is
     not field or deployment qualification.
     """
+    device = _validate_execution_device(device)
     if isinstance(snr_db, (str, bytes)) or not (
         isinstance(snr_db, Sequence) or isinstance(snr_db, np.ndarray)
     ):
@@ -1430,10 +1432,9 @@ def run_independent_ordered_impairment_snr_curve(
         raise ValueError("channel_seeds must contain nonnegative integers")
     if len(set(channel_seeds)) != len(channel_seeds):
         raise ValueError("channel_seeds must be nonempty and unique")
-    if not isinstance(channel_estimator, str) or channel_estimator not in {
-        "sionna_default_ls",
-        "finite_delay_dft",
-    }:
+    if not isinstance(channel_estimator, str):
+        raise TypeError("channel_estimator must be a string")
+    if channel_estimator not in {"sionna_default_ls", "finite_delay_dft"}:
         raise ValueError("channel_estimator must be sionna_default_ls or finite_delay_dft")
     frozen_acceptance = _freeze_independent_snr_acceptance_criteria(
         acceptance_criteria,
@@ -1555,7 +1556,7 @@ def run_independent_ordered_impairment_snr_curve(
                 **preregistration_signature,
                 **preregistration_order,
             }
-    curve_schema_version = (
+    cpu_curve_schema_version = (
         11
         if isinstance(preregistration_signature, dict)
         and "reviewer_policy" in preregistration_signature
@@ -1566,6 +1567,12 @@ def run_independent_ordered_impairment_snr_curve(
         else 7
         if frozen_acceptance is not None
         else 9
+    )
+    cuda_curve_schema_versions = {9: 12, 7: 13, 8: 14, 10: 15, 11: 16}
+    curve_schema_version = (
+        cuda_curve_schema_versions[cpu_curve_schema_version]
+        if device != "cpu"
+        else cpu_curve_schema_version
     )
     evidence_path = Path(waveform_evidence_output) if waveform_evidence_output is not None else None
     if evidence_path is not None:
@@ -1623,6 +1630,7 @@ def run_independent_ordered_impairment_snr_curve(
                 noise_variance=variance,
                 waveform_evidence_output=point_evidence_path,
                 include_condition_inputs=point_evidence_path is not None,
+                device=device,
             )
             config = report.get("config")
             if not isinstance(config, dict):
@@ -1651,7 +1659,15 @@ def run_independent_ordered_impairment_snr_curve(
                 output_path=staging_evidence_path,
                 snr_values=snr_values,
             )
-            suffix = "20" if channel_estimator == "finite_delay_dft" else "19"
+            suffix = (
+                "24"
+                if device != "cpu" and channel_estimator == "finite_delay_dft"
+                else "23"
+                if device != "cpu"
+                else "20"
+                if channel_estimator == "finite_delay_dft"
+                else "19"
+            )
             for point in points:
                 point_report = point["experiment"]
                 point_config = point_report["config"]
@@ -1665,7 +1681,7 @@ def run_independent_ordered_impairment_snr_curve(
             snr_values,
             seed=INDEPENDENT_SNR_CURVE_BOOTSTRAP_SEED,
             draws=INDEPENDENT_SNR_CURVE_BOOTSTRAP_DRAWS,
-            include_exact_seed_roster=curve_schema_version in {7, 8, 10},
+            include_exact_seed_roster=curve_schema_version in {7, 8, 10, 13, 14, 15},
         )
         if staging_evidence_path is not None and evidence_path is not None:
             os.link(staging_evidence_path, evidence_path)
@@ -1746,6 +1762,7 @@ def run_independent_ordered_impairment_snr_curve(
             "transport_blocks_across_curve": requested_transport_blocks,
             "maximum_transport_blocks_across_curve": _MAX_G5_INDEPENDENT_TRANSPORT_BLOCKS,
             "maximum_snr_points": _MAX_G5_INDEPENDENT_SNR_POINTS,
+            **({"execution_device": device} if device != "cpu" else {}),
             "waveform_evidence": evidence_manifest,
         },
         "acceptance": acceptance,
@@ -2066,6 +2083,11 @@ def verify_hash_bound_result(result: dict[str, Any]) -> bool:
         "umcd.g5_ordered_impairments_independent_channels_snr_curve.v9",
         "umcd.g5_ordered_impairments_independent_channels_snr_curve.v10",
         "umcd.g5_ordered_impairments_independent_channels_snr_curve.v11",
+        "umcd.g5_ordered_impairments_independent_channels_snr_curve.v12",
+        "umcd.g5_ordered_impairments_independent_channels_snr_curve.v13",
+        "umcd.g5_ordered_impairments_independent_channels_snr_curve.v14",
+        "umcd.g5_ordered_impairments_independent_channels_snr_curve.v15",
+        "umcd.g5_ordered_impairments_independent_channels_snr_curve.v16",
     }:
         curve_schema_version = experiment["schema"].rsplit("v", maxsplit=1)[1]
         schema_path = (
@@ -2140,7 +2162,7 @@ def main() -> None:
     parser.add_argument(
         "--device",
         default="cpu",
-        help="PUSCH receiver execution device for the bounded independent-channel probe",
+        help="PUSCH receiver device for bounded independent-channel probes and SNR curves",
     )
     parser.add_argument(
         "--independent-channel-count",
@@ -2274,8 +2296,6 @@ def main() -> None:
             else None
         )
         if args.snr_db is not None:
-            if args.device != "cpu":
-                parser.error("--device CUDA is supported for one-point probes, not SNR curves")
             if args.output is not None and evidence_path is not None:
                 if evidence_path.parent.resolve() != args.output.parent.resolve():
                     parser.error("waveform evidence must be a sibling of the result JSON")
@@ -2306,6 +2326,7 @@ def main() -> None:
                     waveform_evidence_output=evidence_path,
                     acceptance_criteria=acceptance_criteria,
                     preregistration_signature=acceptance_signature,
+                    device=args.device,
                 )
             except (OSError, RuntimeError, TypeError, ValueError) as error:
                 parser.error(str(error))

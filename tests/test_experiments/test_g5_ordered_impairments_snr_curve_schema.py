@@ -113,6 +113,59 @@ def test_independent_channel_snr_curve_schema_accepts_diagnostic_shape() -> None
     jsonschema.Draft202012Validator(schema).validate(_curve())
 
 
+def test_cuda_curve_schemas_are_versioned_and_bind_device_identity() -> None:
+    jsonschema = pytest.importorskip("jsonschema")
+    root = Path(__file__).resolve().parents[2] / "datasets" / "schema"
+    for version, base in {12: 9, 13: 7, 14: 8, 15: 10, 16: 11}.items():
+        path = root / f"g5-ordered-impairments-snr-curve.v{version}.schema.json"
+        schema = json.loads(path.read_text(encoding="utf-8"))
+        jsonschema.Draft202012Validator.check_schema(schema)
+        assert schema["properties"]["schema"]["const"].endswith(f".v{version}")
+        assert "execution_device" in schema["properties"]["config"]["required"]
+        assert schema["properties"]["config"]["properties"]["execution_device"] == {
+            "type": "string",
+            "pattern": "^cuda:[0-9]+$",
+        }
+        assert schema["properties"]["points"]["items"]["properties"]["experiment"]["properties"][
+            "schema"
+        ]["enum"][-4:] == [
+            "umcd.g5_ordered_impairments_independent_channels.v21",
+            "umcd.g5_ordered_impairments_independent_channels.v22",
+            "umcd.g5_ordered_impairments_independent_channels.v23",
+            "umcd.g5_ordered_impairments_independent_channels.v24",
+        ]
+        assert (
+            schema["properties"]["acceptance"]
+            == json.loads(
+                (root / f"g5-ordered-impairments-snr-curve.v{base}.schema.json").read_text(
+                    encoding="utf-8"
+                )
+            )["properties"]["acceptance"]
+        )
+
+
+def test_cuda_diagnostic_curve_schema_requires_explicit_cuda_device() -> None:
+    jsonschema = pytest.importorskip("jsonschema")
+    path = (
+        Path(__file__).resolve().parents[2]
+        / "datasets"
+        / "schema"
+        / "g5-ordered-impairments-snr-curve.v12.schema.json"
+    )
+    schema = json.loads(path.read_text(encoding="utf-8"))
+    curve = _curve(version=12)
+    curve["config"]["execution_device"] = "cuda:0"
+    curve["points"][0]["experiment"]["schema"] = (
+        "umcd.g5_ordered_impairments_independent_channels.v21"
+    )
+    curve["points"][0]["experiment"]["config"]["execution_device"] = "cuda:0"
+
+    validator = jsonschema.Draft202012Validator(schema)
+    assert not list(validator.iter_errors(curve))
+    del curve["config"]["execution_device"]
+    assert list(validator.iter_errors(curve))
+
+
 def test_independent_channel_snr_curve_v2_schema_accepts_bounded_grid() -> None:
     jsonschema = pytest.importorskip("jsonschema")
     schema_path = (
