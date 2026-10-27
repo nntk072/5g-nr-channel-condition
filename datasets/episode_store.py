@@ -490,6 +490,101 @@ def _path_payload(paths: PathOracleTable) -> bytes:
     return _pack_npz(metadata, **arrays)
 
 
+_PATH_ORACLE_REQUIRED_ARRAYS = frozenset(
+    {
+        "frame_indices",
+        "rx_port_indices",
+        "tx_port_indices",
+        "path_offsets",
+        "delay_s",
+        "complex_gain",
+        "interaction_order",
+    }
+)
+_PATH_ORACLE_OPTIONAL_ARRAYS = {
+    "doppler_hz": frozenset({"doppler_hz"}),
+    "aoa_azimuth_elevation_rad": frozenset({"aoa_azimuth_elevation_rad"}),
+    "aod_azimuth_elevation_rad": frozenset({"aod_azimuth_elevation_rad"}),
+    "interaction_geometry": frozenset(
+        {
+            "interaction_offsets",
+            "interaction_types",
+            "object_ids",
+            "primitive_ids",
+            "interaction_vertices_m",
+        }
+    ),
+}
+_PATH_ORACLE_METADATA_FIELDS = frozenset(
+    {"schema", "link_ids", "solve_status", "path_kind", "coefficient_convention", "optional_fields"}
+)
+_PATH_ORACLE_OPTIONAL_METADATA_FIELDS = frozenset(
+    {
+        "doppler_hz",
+        "aoa_azimuth_elevation_rad",
+        "aod_azimuth_elevation_rad",
+        "interaction_geometry",
+        "interaction_vertex_frame",
+    }
+)
+
+
+def _validate_path_oracle_layer(
+    metadata: dict[str, Any], array_names: set[str] | frozenset[str]
+) -> None:
+    """Reject path-layer metadata or arrays outside the v1 storage contract."""
+    if not isinstance(metadata, dict) or set(metadata) != _PATH_ORACLE_METADATA_FIELDS:
+        raise ValueError("path-oracle metadata fields do not match the v1 contract")
+    if metadata["schema"] != "umcd.path_oracle.v1":
+        raise ValueError("unsupported path-oracle layer schema")
+    links = metadata["link_ids"]
+    statuses = metadata["solve_status"]
+    if (
+        not isinstance(links, list)
+        or not links
+        or any(not isinstance(value, str) or not value.strip() for value in links)
+        or len(set(links)) != len(links)
+    ):
+        raise ValueError("path-oracle link_ids must be unique non-empty strings")
+    if not isinstance(statuses, list) or len(statuses) != len(links):
+        raise ValueError("path-oracle solve_status must match link_ids")
+    valid_statuses = {status.value for status in PathSolveStatus}
+    if any(not isinstance(value, str) or value not in valid_statuses for value in statuses):
+        raise ValueError("path-oracle solve_status contains an unknown value")
+    path_kind = metadata["path_kind"]
+    if path_kind is not None and (
+        not isinstance(path_kind, list)
+        or any(not isinstance(value, str) or not value for value in path_kind)
+    ):
+        raise ValueError("path-oracle path_kind must be null or an array of non-empty strings")
+    convention = metadata["coefficient_convention"]
+    if not isinstance(convention, str) or not convention.strip():
+        raise ValueError("path-oracle coefficient_convention must be non-empty")
+    optional = metadata["optional_fields"]
+    if not isinstance(optional, dict) or set(optional) != _PATH_ORACLE_OPTIONAL_METADATA_FIELDS:
+        raise ValueError("path-oracle optional_fields do not match the v1 contract")
+    for name in (
+        "doppler_hz",
+        "aoa_azimuth_elevation_rad",
+        "aod_azimuth_elevation_rad",
+        "interaction_geometry",
+    ):
+        if not isinstance(optional[name], bool):
+            raise ValueError(f"path-oracle optional_fields.{name} must be boolean")
+    vertex_frame = optional["interaction_vertex_frame"]
+    if optional["interaction_geometry"]:
+        if not isinstance(vertex_frame, str) or not vertex_frame.strip():
+            raise ValueError("path-oracle interaction geometry requires a named vertex frame")
+    elif vertex_frame is not None:
+        raise ValueError("path-oracle vertex frame requires interaction geometry")
+    expected = set(_PATH_ORACLE_REQUIRED_ARRAYS)
+    for flag, names in _PATH_ORACLE_OPTIONAL_ARRAYS.items():
+        if optional[flag]:
+            expected.update(names)
+    if set(array_names) != expected:
+        raise ValueError("path-oracle NPZ arrays do not match the metadata optional_fields")
+
+
 def _direct_path_ablation_payload(ablation: DirectPathAblation) -> bytes:
     metadata = {
         "schema": "umcd.direct_path_ablation.v1",
@@ -1128,8 +1223,7 @@ def read_episode_bundle(
     paths = None
     if grouped.get("oracle_paths"):
         path_metadata, path_arrays = grouped["oracle_paths"][0]
-        if path_metadata.get("schema") != "umcd.path_oracle.v1":
-            raise ValueError("unsupported path-oracle layer schema")
+        _validate_path_oracle_layer(path_metadata, set(path_arrays))
         optional = path_metadata["optional_fields"]
         paths = PathOracleTable(
             link_ids=tuple(path_metadata["link_ids"]),

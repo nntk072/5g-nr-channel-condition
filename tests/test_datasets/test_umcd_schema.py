@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import io
 import json
 import os
 from dataclasses import replace
@@ -18,6 +19,8 @@ from datasets.channel_view import (
 from datasets.counterfactual import remove_direct_path_component
 from datasets.episode_store import (
     EpisodeBundle,
+    _path_payload,
+    _validate_path_oracle_layer,
     read_episode_bundle,
     read_frequency_model_inputs,
     read_receiver_model_inputs,
@@ -581,6 +584,31 @@ def test_episode_bundle_roundtrip_keeps_layers_content_addressed_and_pickle_free
         "oracle_channels",
         "targets",
     }
+
+
+def test_path_oracle_storage_metadata_schema_and_exact_array_roster():
+    payload = _path_payload(_bundle().path_oracle)
+    with np.load(io.BytesIO(payload), allow_pickle=False) as archive:
+        metadata = json.loads(archive["metadata_json"].tobytes())
+        array_names = set(archive.files) - {"metadata_json"}
+
+    schema_path = (
+        Path(__file__).resolve().parents[2]
+        / "datasets/schema/umcd-path-oracle-layer.v1.schema.json"
+    )
+    jsonschema = pytest.importorskip("jsonschema")
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    jsonschema.Draft202012Validator.check_schema(schema)
+    jsonschema.Draft202012Validator(schema).validate(metadata)
+    _validate_path_oracle_layer(metadata, array_names)
+
+    extra_metadata = {**metadata, "unrecognized": True}
+    with pytest.raises(ValueError, match="metadata fields"):
+        _validate_path_oracle_layer(extra_metadata, array_names)
+    with pytest.raises(ValueError, match="arrays do not match"):
+        _validate_path_oracle_layer(metadata, array_names - {"delay_s"})
+    with pytest.raises(ValueError, match="arrays do not match"):
+        _validate_path_oracle_layer(metadata, array_names | {"unexpected"})
 
 
 def test_episode_bundle_roundtrips_split_bound_direct_path_ablation(tmp_path):
