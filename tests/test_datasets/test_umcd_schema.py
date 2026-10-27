@@ -602,6 +602,14 @@ def test_path_oracle_storage_metadata_schema_and_exact_array_roster():
     jsonschema.Draft202012Validator(schema).validate(metadata)
     _validate_path_oracle_layer(metadata, array_names)
 
+    repeated_link_groups = {
+        **metadata,
+        "link_ids": [metadata["link_ids"][0], metadata["link_ids"][0]],
+        "solve_status": [metadata["solve_status"][0], metadata["solve_status"][0]],
+    }
+    jsonschema.Draft202012Validator(schema).validate(repeated_link_groups)
+    _validate_path_oracle_layer(repeated_link_groups, array_names)
+
     extra_metadata = {**metadata, "unrecognized": True}
     with pytest.raises(ValueError, match="metadata fields"):
         _validate_path_oracle_layer(extra_metadata, array_names)
@@ -609,6 +617,32 @@ def test_path_oracle_storage_metadata_schema_and_exact_array_roster():
         _validate_path_oracle_layer(metadata, array_names - {"delay_s"})
     with pytest.raises(ValueError, match="arrays do not match"):
         _validate_path_oracle_layer(metadata, array_names | {"unexpected"})
+
+
+def test_episode_bundle_roundtrip_accepts_repeated_path_link_ids_by_port(tmp_path):
+    bundle = _bundle()
+    paths = PathOracleTable(
+        link_ids=("gNB-1-to-UE-1", "gNB-1-to-UE-1"),
+        frame_indices=np.asarray([0, 0]),
+        rx_port_indices=np.asarray([0, 0]),
+        tx_port_indices=np.asarray([0, 1]),
+        path_offsets=np.asarray([0, 1, 2]),
+        solve_status=(PathSolveStatus.SOLVED, PathSolveStatus.SOLVED),
+        delay_s=np.asarray([10e-9, 11e-9]),
+        complex_gain=np.asarray([0.01 + 0.02j, 0.02 + 0.01j]),
+        interaction_order=np.asarray([1, 1]),
+        interaction_offsets=np.asarray([0, 1, 2]),
+        interaction_types=np.asarray([1, 1]),
+        object_ids=np.asarray([7, 7]),
+        primitive_ids=np.asarray([3, 4]),
+        interaction_vertices_m=np.asarray([[1.0, 2.0, 3.0], [2.0, 2.0, 3.0]]),
+        interaction_vertex_frame="test_scene_xyz_m",
+    )
+    stored = write_episode_bundle(tmp_path, replace(bundle, path_oracle=paths))
+    loaded = read_episode_bundle(tmp_path, stored)
+
+    assert loaded.path_oracle.link_ids == paths.link_ids
+    np.testing.assert_array_equal(loaded.path_oracle.tx_port_indices, [0, 1])
 
 
 def test_episode_bundle_roundtrips_split_bound_direct_path_ablation(tmp_path):

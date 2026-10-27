@@ -543,9 +543,8 @@ def _validate_path_oracle_layer(
         not isinstance(links, list)
         or not links
         or any(not isinstance(value, str) or not value.strip() for value in links)
-        or len(set(links)) != len(links)
     ):
-        raise ValueError("path-oracle link_ids must be unique non-empty strings")
+        raise ValueError("path-oracle link_ids must be non-empty strings")
     if not isinstance(statuses, list) or len(statuses) != len(links):
         raise ValueError("path-oracle solve_status must match link_ids")
     valid_statuses = {status.value for status in PathSolveStatus}
