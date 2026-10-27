@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.invalid/schema/evaluation/nr-ul-srs-rsrp-report.v1.schema.json",
+  "title": "NR UL SRS-RSRP measurement report v1",
+  "type": "object",
+  "required": [
+    "schema", "status", "measurement", "standard", "receiver_category", "measurement_reference_point",
+    "measurement_frequency_bandwidth_hz", "power_unit", "power_averaging",
+    "configured_measurement_occasion_ids", "configured_re_count_per_occasion",
+    "configured_re_count_total", "power_calibration_sha256", "receiver_branch_measurements",
+    "diversity_combining", "diversity_ul_srs_rsrp_w", "diversity_ul_srs_rsrp_dbm",
+    "receiver_diversity_lower_bound_satisfied", "limitations"
+  ],
+  "properties": {
+    "schema": {"const": "loslab.nr_ul_srs_rsrp_report.v1"},
+    "status": {"enum": ["MEASURED", "ZERO_POWER_DIAGNOSTIC"]},
+    "measurement": {"const": "UL_SRS_RSRP"},
+    "standard": {"const": "3GPP_TS_38.215_V19.2.0_clause_5.2.5"},
+    "receiver_category": {"enum": ["terrestrial_type_1_c", "terrestrial_type_1_o", "terrestrial_type_2_o", "terrestrial_type_1_h", "satellite_type_1_o", "satellite_type_1_h"]},
+    "measurement_reference_point": {"enum": ["rx_antenna_connector", "combined_antenna_elements_per_receiver_branch", "rx_transceiver_array_boundary_connector"]},
+    "measurement_frequency_bandwidth_hz": {"type": "number", "exclusiveMinimum": 0},
+    "power_unit": {"const": "W"},
+    "power_averaging": {"const": "linear_average_of_configured_srs_re_power_contributions"},
+    "configured_measurement_occasion_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "configured_re_count_per_occasion": {"type": "array", "minItems": 1, "items": {"type": "integer", "minimum": 1}},
+    "configured_re_count_total": {"type": "integer", "minimum": 1},
+    "power_calibration_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "receiver_branch_measurements": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["receiver_branch_id", "ul_srs_rsrp_w", "ul_srs_rsrp_dbm"],
+        "properties": {
+          "receiver_branch_id": {"type": "string", "minLength": 1},
+          "ul_srs_rsrp_w": {"type": "number", "minimum": 0},
+          "ul_srs_rsrp_dbm": {"oneOf": [{"type": "number"}, {"type": "null"}]}
+        },
+        "additionalProperties": false
+      }
+    },
+    "diversity_combining": {"const": "selection_combining_max_receiver_branch_power"},
+    "diversity_ul_srs_rsrp_w": {"type": "number", "minimum": 0},
+    "diversity_ul_srs_rsrp_dbm": {"oneOf": [{"type": "number"}, {"type": "null"}]},
+    "receiver_diversity_lower_bound_satisfied": {"const": true},
+    "limitations": {"type": "array", "minItems": 3, "items": {"type": "string", "minLength": 1}}
+  },
+  "additionalProperties": false
+}

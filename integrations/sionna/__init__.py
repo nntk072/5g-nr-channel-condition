@@ -161,6 +161,7 @@ from .srs import (
     nr_srs_type1_bandwidth_configuration,
     srs_cyclic_shift_count,
 )
+from .srs_measurements import measure_ul_srs_rsrp
 from .ssb_grid import (
     NRSSBResourceGrid,
     map_nr_ssb_resource_grid,
@@ -277,6 +278,7 @@ __all__ = [
     "map_nr_srs_hopped_resource",
     "map_nr_srs_multiport_resource",
     "map_nr_srs_resource",
+    "measure_ul_srs_rsrp",
     "map_nr_srs_positioning_multiport_resource",
     "map_nr_srs_positioning_resource",
     "nr_low_papr_sequence_type1",
