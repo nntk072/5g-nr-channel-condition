@@ -109,6 +109,25 @@ def test_nr_observation_builds_inference_payload_without_sample_oracle_ids():
     assert not hasattr(model_inputs, "target_definitions")
 
 
+@pytest.mark.parametrize(
+    ("grid", "exception", "message"),
+    [
+        (np.zeros((2, 1, 2, 14, 24), dtype=np.float32), TypeError, "must be complex-valued"),
+        (np.full((2, 1, 2, 14, 24), np.nan + 0j, dtype=np.complex64), ValueError, "finite values"),
+    ],
+)
+def test_nr_observation_audits_receiver_grid_at_construction(grid, exception, message):
+    with pytest.raises(exception, match=message):
+        make_observation(received_grid=grid)
+
+
+def test_nr_observation_requires_canonical_sample_id_and_tuple_fft_mapping():
+    with pytest.raises(ValueError, match="canonical string"):
+        make_observation(sample_id=" padded-id ")
+    with pytest.raises(TypeError, match="must be a tuple"):
+        make_observation(fft_bin_indices=list(range(24)))
+
+
 def test_receiver_output_factory_preserves_the_authoritative_fft_bin_mapping():
     observation = NRObservation.from_receiver_output(
         sample_id="sample-from-grid",

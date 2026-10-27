@@ -79,8 +79,16 @@ class NRObservation:
     received_grid_mask: Any | None = None
 
     def __post_init__(self) -> None:
-        if not self.sample_id.strip():
-            raise ValueError("sample_id must be non-empty")
+        if (
+            not isinstance(self.sample_id, str)
+            or not self.sample_id.strip()
+            or self.sample_id != self.sample_id.strip()
+        ):
+            raise ValueError("sample_id must be a non-empty canonical string")
+        if not isinstance(self.channel_estimate, NRChannelEstimate):
+            raise TypeError("channel_estimate must be an NRChannelEstimate")
+        if not isinstance(self.receiver_config, NRPUSCHConfig):
+            raise TypeError("receiver_config must be the typed NRPUSCHConfig")
         grid_shape = tuple(getattr(self.received_grid, "shape", ()))
         estimate_shape = tuple(getattr(self.channel_estimate.h_hat, "shape", ()))
         if len(grid_shape) != 5:
@@ -119,6 +127,8 @@ class NRObservation:
             raise ValueError("channel estimate must have seven named axes")
         if estimate_shape[:3] != grid_shape[:3] or estimate_shape[5] != grid_shape[3]:
             raise ValueError("received grid and channel estimate batch/antenna/symbol axes differ")
+        if not isinstance(self.fft_bin_indices, tuple):
+            raise TypeError("fft_bin_indices must be a tuple of zero-based FFT-bin indices")
         if not self.fft_bin_indices or len(self.fft_bin_indices) != estimate_shape[6]:
             raise ValueError("fft_bin_indices must map every estimated subcarrier")
         if any(
@@ -131,8 +141,17 @@ class NRObservation:
             raise ValueError("fft_bin_indices must be valid zero-based FFT-bin indices")
         if len(set(self.fft_bin_indices)) != len(self.fft_bin_indices):
             raise ValueError("fft_bin_indices must be unique")
-        if not isinstance(self.receiver_config, NRPUSCHConfig):
-            raise TypeError("receiver_config must be the typed NRPUSCHConfig")
+        audit_model_input_payload(
+            NRModelInputs(
+                received_grid=self.received_grid,
+                received_grid_mask=self.received_grid_mask,
+                h_hat=self.channel_estimate.h_hat,
+                error_variance=self.channel_estimate.error_variance,
+                pilot_mask=self.channel_estimate.pilot_mask,
+                fft_bin_indices=self.fft_bin_indices,
+                receiver_config=self.receiver_config,
+            )
+        )
 
     @classmethod
     def from_receiver_output(
@@ -185,8 +204,12 @@ class LinkedNRObservation:
     observation: NRObservation
 
     def __post_init__(self) -> None:
-        if not isinstance(self.link_id, str) or not self.link_id.strip():
-            raise ValueError("link_id must be a non-empty string")
+        if (
+            not isinstance(self.link_id, str)
+            or not self.link_id.strip()
+            or self.link_id != self.link_id.strip()
+        ):
+            raise ValueError("link_id must be a non-empty canonical string")
         if isinstance(self.frame_index, bool) or not isinstance(self.frame_index, int):
             raise TypeError("frame_index must be an integer")
         if self.frame_index < 0:
