@@ -33,6 +33,7 @@ def test_spatial_audit_reports_cross_split_neighbors_within_meter_buffer():
     report = audit_spatial_buffer(spatial_records, split, buffer_m=0.5)
 
     assert not report.is_clean
+    assert report.coordinate_frame_id == "EPSG:32632"
     assert len(report.pairs) == 1
     assert {report.pairs[0].sample_id_a, report.pairs[0].sample_id_b} == {
         train_id,
@@ -55,6 +56,7 @@ def test_spatial_audit_is_clean_for_well_separated_projected_samples():
     report = audit_spatial_buffer(spatial_records, split, buffer_m=10.0)
 
     assert report.is_clean
+    assert report.coordinate_frame_id == "EPSG:32632"
     assert report.pairs == ()
 
 

@@ -27,6 +27,7 @@ class SpatialLeakageAudit:
     """Proximity-audit result; an empty pair list means clean at this buffer."""
 
     buffer_m: float
+    coordinate_frame_id: str
     pairs: tuple[SpatialLeakagePair, ...]
 
     @property
@@ -143,4 +144,9 @@ def audit_spatial_buffer(
                         )
                     )
     pairs.sort(key=lambda pair: (pair.split_a, pair.split_b, pair.sample_id_a, pair.sample_id_b))
-    return SpatialLeakageAudit(buffer_m=float(buffer_m), pairs=tuple(pairs))
+    assert coordinate_frame_id is not None
+    return SpatialLeakageAudit(
+        buffer_m=float(buffer_m),
+        coordinate_frame_id=coordinate_frame_id,
+        pairs=tuple(pairs),
+    )
