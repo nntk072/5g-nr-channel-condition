@@ -26,6 +26,7 @@ from configuration.loader import resolve_config
 from datasets.channel import ChannelDataset
 from datasets.split_policy import SplitPolicyRegistry, verify_signed_split_policy_registry
 from evaluation.class_support import audit_class_support
+from evaluation.low_confidence import build_low_confidence_audit
 from evaluation.metrics import (
     binary_metrics,
     block_bootstrap_auc,
@@ -814,12 +815,20 @@ def run_experiment(
     split_signer_id: str | None = None,
     build_cache_root: str | Path | None = None,
     prior_shift: dict[str, Any] | None = None,
+    low_confidence_margin: float | None = None,
 ) -> dict:
     if not paths:
         raise ValueError("No datasets supplied")
     resolved_prior_shift = None if prior_shift is None else validate_prior_shift_spec(prior_shift)
     if resolved_prior_shift is not None:
         _validate_evaluation_payload(resolved_prior_shift, "prior-shift.v1.schema.json")
+    if low_confidence_margin is not None and (
+        isinstance(low_confidence_margin, bool)
+        or not isinstance(low_confidence_margin, (int, float))
+        or not np.isfinite(low_confidence_margin)
+        or not 0 <= low_confidence_margin < 0.5
+    ):
+        raise ValueError("low_confidence_margin must be finite and in [0, 0.5)")
     capacity_spec(capacity)
     dataset_build_node = None
     if build_cache_root is None:
@@ -902,6 +911,7 @@ def run_experiment(
         "split_mode": split_provenance["mode"],
         "threshold_selection_policy": _VALIDATION_THRESHOLD_POLICY,
         "prior_shift": resolved_prior_shift,
+        "low_confidence_margin": low_confidence_margin,
         "dataset_materialization": (
             "content_addressed_build_node_v1"
             if dataset_build_node is not None
@@ -1173,6 +1183,20 @@ def run_experiment(
             metrics = binary_metrics(data.y[test], prob, threshold=threshold)
             source_families = np.asarray(data.source, dtype=str)
             test_families = source_families[test]
+            low_confidence_mask = np.zeros(len(test), dtype=bool)
+            low_confidence_report = None
+            if low_confidence_margin is not None:
+                low_confidence_mask, low_confidence_report = build_low_confidence_audit(
+                    prob,
+                    data.group[test],
+                    test_families,
+                    data.domain[test],
+                    threshold=threshold,
+                    margin=float(low_confidence_margin),
+                )
+                _validate_evaluation_payload(
+                    low_confidence_report, "low-confidence-audit.v1.schema.json"
+                )
             expected_test_strata = tuple(
                 ("test", family_id) for family_id in sorted(set(source_families.tolist()))
             )
@@ -1235,6 +1259,7 @@ def run_experiment(
                 "metrics": metrics,
                 "prior_shift": prior_shift_report,
                 "probability_calibration": calibrator_report,
+                "low_confidence_audit": low_confidence_report,
                 "model_output_threshold": model_output_threshold,
                 "class_support": class_support_payload,
                 "confidence": ci,
@@ -1308,6 +1333,7 @@ def run_experiment(
                 p_val_calibrated=val_model_calibrated,
                 p_calibration_raw=calibration_scores_raw,
                 p_calibration_calibrated=calibration_scores_calibrated,
+                test_low_confidence=low_confidence_mask,
                 threshold=np.float64(threshold),
             )
         atomic_json(output / "results.json", results)

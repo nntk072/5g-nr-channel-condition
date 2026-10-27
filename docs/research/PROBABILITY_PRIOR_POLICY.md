@@ -38,3 +38,15 @@ physical acquisition units. This workflow does not establish natural-prior
 calibration, qualify any NR receiver, or authorize sealed-test release. It is
 implemented only in the legacy common experiment runner; other model and
 evaluation routes remain open work.
+
+## Optional low-confidence coverage audit
+
+An experiment config may also set `low_confidence_margin` to a preregistered
+absolute probability distance in `[0, 0.5)`. The runner applies the fixed rule
+`abs(test_probability - validation_threshold) <= low_confidence_margin` after
+the validation-selected threshold has been frozen. It reports flagged row and
+caller-supplied group counts overall and by source family and domain, validates
+the report against `loslab.low_confidence_audit.v1`, and stores the row mask in
+the prediction artifact. The margin is included in the hashed run config. This
+is descriptive coverage only: test labels do not select the threshold or
+margin, and the audit does not estimate error risk or prove group independence.

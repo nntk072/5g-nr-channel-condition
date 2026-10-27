@@ -229,6 +229,7 @@ def test_run_experiment_writes_reproducible_complete_artifacts(tmp_path) -> None
             "target_positive_prevalence": 0.25,
             "target_prior_evidence_sha256": "a" * 64,
         },
+        low_confidence_margin=0.05,
     )
 
     manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
@@ -295,12 +296,15 @@ def test_run_experiment_writes_reproducible_complete_artifacts(tmp_path) -> None
     assert report_row["prior_shift"]["fit_partition"] == "calibration"
     assert report_row["prior_shift"]["target_prior_id"] == "debug-natural-prior-sensitivity-v1"
     assert report_row["prior_shift"]["target_prior_evidence_sha256"] == "a" * 64
+    assert report_row["low_confidence_audit"]["threshold_source"] == "validation"
+    assert report_row["low_confidence_audit"]["margin"] == pytest.approx(0.05)
     assert report_row["model_output_threshold"] == pytest.approx(model_info["threshold"])
     assert model_info["prior_shift"] == report_row["prior_shift"]
     with np.load(output / "predictions" / "logreg_seed11.npz") as prediction:
         assert "test_source" in prediction.files
         assert len(prediction["test_source"]) == len(prediction["y_test"])
         assert "p_test_raw" in prediction.files
+        assert "test_low_confidence" in prediction.files
         assert not np.allclose(prediction["p_test"], prediction["p_test_raw"])
     changed_features = features.copy()
     changed_features[0, 0] += 1.0

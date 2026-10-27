@@ -338,7 +338,8 @@ def test_experiment_config_dispatches_resolved_options(tmp_path, monkeypatch, ca
         "  target_prior_kind: natural\n"
         "  target_prior_id: field-v1\n"
         "  target_positive_prevalence: 0.2\n"
-        f"  target_prior_evidence_sha256: {'a' * 64}\n",
+        f"  target_prior_evidence_sha256: {'a' * 64}\n"
+        "low_confidence_margin: 0.08\n",
         encoding="utf-8",
     )
     calls = []
@@ -372,4 +373,5 @@ def test_experiment_config_dispatches_resolved_options(tmp_path, monkeypatch, ca
         "target_positive_prevalence": 0.2,
         "target_prior_evidence_sha256": "a" * 64,
     }
+    assert options["low_confidence_margin"] == 0.08
     assert json.loads(capsys.readouterr().out) == {"status": "ok"}

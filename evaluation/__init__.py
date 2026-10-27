@@ -32,6 +32,7 @@ from .independent_splits import (
     freeze_split_lock,
     make_independent_split,
 )
+from .low_confidence import build_low_confidence_audit
 from .metrics import (
     binary_metrics,
     block_bootstrap_auc,
@@ -75,6 +76,7 @@ __all__ = [
     "audit_spatial_buffer",
     "adjust_probabilities_between_priors",
     "adjust_probabilities_for_prior_shift",
+    "build_low_confidence_audit",
     "apply_platt_calibrator",
     "binary_metrics",
     "block_bootstrap_auc",

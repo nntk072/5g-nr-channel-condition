@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.invalid/schema/evaluation/low-confidence-audit.v1.schema.json",
+  "title": "LOS Lab held-out low-confidence coverage audit v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "partition",
+    "threshold_source",
+    "threshold",
+    "margin",
+    "criterion",
+    "independence_identity_source",
+    "record_count",
+    "independent_group_count",
+    "low_confidence_record_count",
+    "low_confidence_independent_group_count",
+    "low_confidence_record_fraction",
+    "by_family",
+    "by_domain"
+  ],
+  "properties": {
+    "schema": {"const": "loslab.low_confidence_audit.v1"},
+    "partition": {"const": "test"},
+    "threshold_source": {"const": "validation"},
+    "threshold": {"type": "number", "minimum": 0, "maximum": 1},
+    "margin": {"type": "number", "minimum": 0, "exclusiveMaximum": 0.5},
+    "criterion": {"const": "absolute_probability_distance_to_threshold_at_most_margin"},
+    "independence_identity_source": {"const": "caller_supplied_group_ids"},
+    "record_count": {"type": "integer", "minimum": 1},
+    "independent_group_count": {"type": "integer", "minimum": 1},
+    "low_confidence_record_count": {"type": "integer", "minimum": 0},
+    "low_confidence_independent_group_count": {"type": "integer", "minimum": 0},
+    "low_confidence_record_fraction": {"type": "number", "minimum": 0, "maximum": 1},
+    "by_family": {"$ref": "#/$defs/strata"},
+    "by_domain": {"$ref": "#/$defs/strata"}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "summary": {
+      "type": "object",
+      "required": [
+        "record_count",
+        "independent_group_count",
+        "low_confidence_record_count",
+        "low_confidence_independent_group_count",
+        "low_confidence_record_fraction"
+      ],
+      "properties": {
+        "record_count": {"type": "integer", "minimum": 1},
+        "independent_group_count": {"type": "integer", "minimum": 1},
+        "low_confidence_record_count": {"type": "integer", "minimum": 0},
+        "low_confidence_independent_group_count": {"type": "integer", "minimum": 0},
+        "low_confidence_record_fraction": {"type": "number", "minimum": 0, "maximum": 1}
+      },
+      "additionalProperties": false
+    },
+    "strata": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "stratum_id",
+          "record_count",
+          "independent_group_count",
+          "low_confidence_record_count",
+          "low_confidence_independent_group_count",
+          "low_confidence_record_fraction"
+        ],
+        "properties": {
+          "stratum_id": {"type": "string", "minLength": 1},
+          "record_count": {"type": "integer", "minimum": 1},
+          "independent_group_count": {"type": "integer", "minimum": 1},
+          "low_confidence_record_count": {"type": "integer", "minimum": 0},
+          "low_confidence_independent_group_count": {"type": "integer", "minimum": 0},
+          "low_confidence_record_fraction": {"type": "number", "minimum": 0, "maximum": 1}
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}
