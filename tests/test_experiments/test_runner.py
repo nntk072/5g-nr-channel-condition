@@ -784,6 +784,86 @@ def test_phase_randomized_features_are_seeded_and_preserve_magnitude() -> None:
     np.testing.assert_allclose(np.abs(randomized_cfr), np.abs(source), rtol=1e-14, atol=1e-14)
 
 
+def test_training_label_permutation_is_seeded_and_preserves_class_counts() -> None:
+    from experiments.runner import _permute_training_labels
+
+    labels = np.asarray([0, 0, 0, 1, 1, 1, 1], dtype=np.int64)
+    original = labels.copy()
+    first, contract = _permute_training_labels(labels, run_seed=31, base_seed=413)
+    replay, replay_contract = _permute_training_labels(labels, run_seed=31, base_seed=413)
+    other_seed, _ = _permute_training_labels(labels, run_seed=32, base_seed=413)
+
+    np.testing.assert_array_equal(labels, original)
+    np.testing.assert_array_equal(first, replay)
+    assert contract == replay_contract
+    assert np.count_nonzero(first == 1) == np.count_nonzero(labels == 1)
+    assert not np.array_equal(first, other_seed)
+    assert contract["permuted_targets_sha256"]
+
+    with pytest.raises(ValueError, match="binary integer training labels"):
+        _permute_training_labels(np.asarray([0.0, 1.0]), run_seed=31, base_seed=413)
+
+
+def test_run_experiment_routes_permuted_labels_on_shared_split(tmp_path, monkeypatch) -> None:
+    import experiments.runner as runner
+
+    source = tmp_path / "debug.npz"
+    debug_multipath(n_scenes=8, links_per_scene=16, seed=83).save(source)
+    original_fit = runner.fit_sklearn
+    captures = []
+
+    def capture_fit(values, labels, *, seed, method, capacity):
+        captures.append((values.copy(), labels.copy(), method))
+        return original_fit(values, labels, seed=seed, method="logreg", capacity=capacity)
+
+    monkeypatch.setattr(runner, "fit_sklearn", capture_fit)
+    output = tmp_path / "runs" / "label-permuted"
+    run_experiment(
+        [source],
+        output,
+        methods=("label_permuted", "raw_mlp"),
+        seeds=(37,),
+        label_permutation_seed=419,
+        bootstrap=10,
+    )
+
+    results = json.loads((output / "results.json").read_text(encoding="utf-8"))
+    control = next(row for row in results if row["method"] == "label_permuted")
+    raw = next(row for row in results if row["method"] == "raw_mlp")
+    summary = json.loads((output / "summary.json").read_text(encoding="utf-8"))
+    sidecar_path = output / "models" / "label_permuted_seed37_modelinfo.json"
+    sidecar = json.loads(sidecar_path.read_text(encoding="utf-8"))
+    contract = sidecar["model_input_artifact_contract"]
+    feature_contract = contract["feature_contract"]
+    prediction = np.load(output / "predictions" / "label_permuted_seed37.npz")
+    dataset = ChannelDataset.load(source)
+    train_indices = prediction["train_idx"]
+    expected_labels, expected_transform = runner._permute_training_labels(
+        dataset.y[train_indices], run_seed=37, base_seed=419
+    )
+
+    assert [method for _values, _labels, method in captures] == ["mlp", "mlp"]
+    assert not np.iscomplexobj(captures[0][0])
+    np.testing.assert_array_equal(captures[0][1], expected_labels)
+    np.testing.assert_array_equal(captures[1][1], dataset.y[train_indices])
+    assert control["split"]["indices_sha256"] == raw["split"]["indices_sha256"]
+    assert "label_permuted_versus_raw_mlp" in summary["paired_method_comparisons"]
+    assert contract["schema"] == "loslab.model_input_artifact_contract.v5"
+    assert feature_contract["supervision_transform"] == expected_transform
+    assert verify_model_input_artifact_contract(
+        sidecar_path,
+        output / "models" / "label_permuted_seed37.joblib",
+        method_input=runner._flatten_real_imag_cfr(dataset.h),
+        partition_indices={
+            "train": prediction["train_idx"],
+            "validation": prediction["val_idx"],
+            "test": prediction["test_idx"],
+        },
+        target_values=dataset.y,
+    )["status"] == "PASS_MODEL_INPUT_ARTIFACT_BINDING"
+    assert control["input_representation"].startswith("raw flattened")
+
+
 def test_run_experiment_routes_phase_randomization_on_shared_split(tmp_path, monkeypatch) -> None:
     import experiments.runner as runner
 
