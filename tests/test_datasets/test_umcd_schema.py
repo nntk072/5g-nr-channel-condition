@@ -21,6 +21,7 @@ from datasets.episode_store import (
     read_receiver_model_inputs,
     write_episode_bundle,
 )
+from datasets.lineage import LineageStatusClaim
 from datasets.network import (
     AntennaArraySpec,
     DirectedLink,
@@ -866,3 +867,63 @@ def test_provenance_record_snapshots_nested_configuration_and_checks_its_hash():
     tampered["solver_config"]["max_depth"] = 99
     with pytest.raises(ValueError, match="hash is invalid"):
         UMCDRunProvenance.from_dict(tampered)
+
+
+def test_provenance_lineage_claims_are_tiered_hash_bound_and_schema_valid(tmp_path):
+    claims = (
+        LineageStatusClaim(status="proposed", scope="city43-phase0", evidence_sha256={}),
+        LineageStatusClaim(
+            status="synthetic_debug",
+            scope="network-phy-composer",
+            evidence_sha256={"regression_report_sha256": "d" * 64},
+        ),
+        LineageStatusClaim(
+            status="native_verified",
+            scope="city43-phase0",
+            evidence_sha256={
+                "native_run_manifest_sha256": "e" * 64,
+                "numeric_shape_gauge_report_sha256": "f" * 64,
+            },
+        ),
+    )
+    record = replace(_provenance_record(), lineage_claims=claims)
+    payload = record.to_dict()
+    assert payload["schema"] == "umcd.run_provenance.v2"
+    assert UMCDRunProvenance.from_dict(payload).to_dict() == payload
+
+    jsonschema = pytest.importorskip("jsonschema")
+    schema_path = (
+        Path(__file__).resolve().parents[2] / "datasets/schema/umcd-run-provenance.v2.schema.json"
+    )
+    schema = json.loads(schema_path.read_text())
+    jsonschema.Draft202012Validator(schema).validate(payload)
+    missing_evidence = json.loads(json.dumps(payload))
+    missing_evidence["lineage_claims"][1]["evidence_sha256"] = {}
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.Draft202012Validator(schema).validate(missing_evidence)
+
+    bundle = replace(_bundle(), provenance_records=(record,))
+    stored = write_episode_bundle(tmp_path, bundle)
+    loaded = read_episode_bundle(tmp_path, stored)
+    assert loaded.provenance_records[0].to_dict() == payload
+
+
+@pytest.mark.parametrize(
+    "status,evidence",
+    [
+        ("scenario_qualified", {"native_run_manifest_sha256": "a" * 64}),
+        ("geometry_qualified", {"convergence_audit_sha256": "a" * 64}),
+        ("receiver_qualified", {"receiver_contract_sha256": "a" * 64}),
+        ("external_tested", {"external_test_report_sha256": "not-a-digest"}),
+    ],
+)
+def test_lineage_claim_rejects_incomplete_or_invalid_evidence(status, evidence):
+    with pytest.raises(ValueError):
+        LineageStatusClaim(status=status, scope="task", evidence_sha256=evidence)
+
+
+def test_provenance_reader_rejects_boolean_schema_version_even_when_one():
+    payload = _provenance_record().to_dict()
+    payload["schema_version"] = True
+    with pytest.raises(ValueError, match="schema_version must be an integer"):
+        UMCDRunProvenance.from_dict(payload)

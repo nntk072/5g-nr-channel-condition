@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://umcd.example/schema/umcd-run-provenance.v2.schema.json",
+  "title": "UMCD run provenance with artifact-scoped lineage claims",
+  "description": "Lineage claims bind evidence references by digest. Schema validity does not verify evidence content, signer authority, or scientific acceptance.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "record_id",
+    "subject_layer",
+    "source_family",
+    "producer",
+    "package_source_sha256",
+    "software_versions",
+    "backend",
+    "scene_asset_sha256",
+    "seed",
+    "physical_config",
+    "solver_config",
+    "material_config",
+    "run_identity_sha256",
+    "lineage_claims",
+    "record_sha256"
+  ],
+  "properties": {
+    "schema": {"const": "umcd.run_provenance.v2"},
+    "schema_version": {"const": 2},
+    "record_id": {"type": "string", "minLength": 1},
+    "subject_layer": {"enum": ["episode", "oracle_paths", "oracle_channels", "receiver_observations", "targets"]},
+    "source_family": {"type": "string", "minLength": 1},
+    "producer": {"type": "string", "minLength": 1},
+    "package_source_sha256": {"$ref": "#/$defs/sha256"},
+    "software_versions": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "string", "minLength": 1}},
+    "backend": {"type": "object", "minProperties": 1},
+    "scene_asset_sha256": {"type": "object", "additionalProperties": {"$ref": "#/$defs/sha256"}},
+    "seed": {"oneOf": [{"type": "integer", "minimum": 0}, {"type": "string", "minLength": 1}, {"type": "null"}]},
+    "physical_config": {"type": "object"},
+    "solver_config": {"type": "object"},
+    "material_config": {"type": "object"},
+    "run_identity_sha256": {"oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+    "lineage_claims": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/lineageClaim"},
+      "maxItems": 32
+    },
+    "record_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "lineageClaim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "status", "scope", "evidence_sha256"],
+      "properties": {
+        "schema": {"const": "umcd.lineage_status_claim.v1"},
+        "status": {"enum": ["proposed", "synthetic_debug", "native_verified", "scenario_qualified", "geometry_qualified", "receiver_qualified", "externally_calibrated", "external_tested"]},
+        "scope": {"type": "string", "minLength": 1, "pattern": "^\\S(?:.*\\S)?$"},
+        "evidence_sha256": {"type": "object", "additionalProperties": {"$ref": "#/$defs/sha256"}}
+      },
+      "allOf": [
+        {"if": {"properties": {"status": {"const": "synthetic_debug"}}, "required": ["status"]}, "then": {"properties": {"evidence_sha256": {"required": ["regression_report_sha256"]}}}},
+        {"if": {"properties": {"status": {"const": "native_verified"}}, "required": ["status"]}, "then": {"properties": {"evidence_sha256": {"required": ["native_run_manifest_sha256", "numeric_shape_gauge_report_sha256"]}}}},
+        {"if": {"properties": {"status": {"const": "scenario_qualified"}}, "required": ["status"]}, "then": {"properties": {"evidence_sha256": {"required": ["native_run_manifest_sha256", "scenario_conformance_report_sha256"]}}}},
+        {"if": {"properties": {"status": {"const": "geometry_qualified"}}, "required": ["status"]}, "then": {"properties": {"evidence_sha256": {"required": ["geometry_material_audit_sha256", "visibility_audit_sha256", "convergence_audit_sha256"]}}}},
+        {"if": {"properties": {"status": {"const": "receiver_qualified"}}, "required": ["status"]}, "then": {"properties": {"evidence_sha256": {"required": ["receiver_contract_sha256", "receiver_qualification_report_sha256"]}}}},
+        {"if": {"properties": {"status": {"const": "externally_calibrated"}}, "required": ["status"]}, "then": {"properties": {"evidence_sha256": {"required": ["calibration_report_sha256", "measurement_package_sha256", "disjointness_audit_sha256"]}}}},
+        {"if": {"properties": {"status": {"const": "external_tested"}}, "required": ["status"]}, "then": {"properties": {"evidence_sha256": {"required": ["external_test_report_sha256", "measurement_package_sha256", "label_coverage_report_sha256"]}}}}
+      ]
+    }
+  }
+}

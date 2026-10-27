@@ -10,6 +10,8 @@ from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Any
 
+from .lineage import LineageStatusClaim, validate_lineage_claims
+
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 _SUBJECT_LAYERS = {
     "episode",
@@ -41,7 +43,7 @@ def _snapshot_mapping(value: Mapping[str, Any], *, name: str) -> Mapping[str, An
         raise TypeError(f"{name} must be a string-keyed mapping")
     try:
         snapshot = json.loads(
-            json.dumps(dict(value), sort_keys=True, separators=(",", ":"), allow_nan=False)
+            json.dumps(_thaw(value), sort_keys=True, separators=(",", ":"), allow_nan=False)
         )
     except (TypeError, ValueError) as exc:
         raise TypeError(f"{name} must contain finite JSON-compatible values") from exc
@@ -69,6 +71,7 @@ class UMCDRunProvenance:
     solver_config: Mapping[str, Any]
     material_config: Mapping[str, Any]
     run_identity_sha256: str | None = None
+    lineage_claims: tuple[LineageStatusClaim, ...] | None = None
 
     def __post_init__(self) -> None:
         for name in ("record_id", "subject_layer", "source_family", "producer"):
@@ -125,12 +128,18 @@ class UMCDRunProvenance:
         )
         if not self.backend:
             raise ValueError("backend must identify the execution backend")
+        if self.lineage_claims is not None:
+            object.__setattr__(self, "lineage_claims", validate_lineage_claims(self.lineage_claims))
 
     def to_dict(self) -> dict[str, Any]:
         """Return canonical JSON data with an integrity digest."""
         core: dict[str, Any] = {
-            "schema": "umcd.run_provenance.v1",
-            "schema_version": 1,
+            "schema": (
+                "umcd.run_provenance.v2"
+                if self.lineage_claims is not None
+                else "umcd.run_provenance.v1"
+            ),
+            "schema_version": 2 if self.lineage_claims is not None else 1,
             "record_id": self.record_id,
             "subject_layer": self.subject_layer,
             "source_family": self.source_family,
@@ -145,12 +154,21 @@ class UMCDRunProvenance:
             "material_config": _thaw(self.material_config),
             "run_identity_sha256": self.run_identity_sha256,
         }
+        if self.lineage_claims is not None:
+            core["lineage_claims"] = [claim.to_dict() for claim in self.lineage_claims]
         return {**core, "record_sha256": hashlib.sha256(_canonical(core)).hexdigest()}
 
     @classmethod
     def from_dict(cls, value: Mapping[str, Any]) -> UMCDRunProvenance:
         """Parse a record and reject unsupported or tampered content."""
-        if value.get("schema") != "umcd.run_provenance.v1" or value.get("schema_version") != 1:
+        schema = value.get("schema")
+        version = value.get("schema_version")
+        if isinstance(version, bool) or not isinstance(version, int):
+            raise ValueError("UMCD provenance schema_version must be an integer")
+        if (schema, version) not in {
+            ("umcd.run_provenance.v1", 1),
+            ("umcd.run_provenance.v2", 2),
+        }:
             raise ValueError("unsupported UMCD provenance schema")
         core = {key: item for key, item in value.items() if key != "record_sha256"}
         if hashlib.sha256(_canonical(core)).hexdigest() != value.get("record_sha256"):
@@ -169,6 +187,11 @@ class UMCDRunProvenance:
             solver_config=value["solver_config"],
             material_config=value["material_config"],
             run_identity_sha256=value["run_identity_sha256"],
+            lineage_claims=(
+                tuple(LineageStatusClaim.from_dict(item) for item in value["lineage_claims"])
+                if version == 2
+                else None
+            ),
         )
         if record.to_dict() != dict(value):
             raise ValueError("UMCD provenance representation is not canonical")

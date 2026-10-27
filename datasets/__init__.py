@@ -18,6 +18,7 @@ from .episode_store import (
     read_receiver_model_inputs,
     write_episode_bundle,
 )
+from .lineage import LINEAGE_STATUSES, LineageStatusClaim
 from .model_input_audit import audit_model_input_payload
 from .network import (
     AntennaArraySpec,
@@ -186,6 +187,8 @@ __all__ = [
     "SplitSubject",
     "VerifiedOpenSSHArtifact",
     "UMCDRunProvenance",
+    "LineageStatusClaim",
+    "LINEAGE_STATUSES",
     "AnalyticalMultipathSample",
     "AnalyticalModelInputs",
     "AnalyticalPathOracle",
