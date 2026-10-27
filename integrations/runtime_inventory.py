@@ -18,7 +18,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
-RUNTIME_INVENTORY_SCHEMA = "umcd.runtime_inventory.v1"
+RUNTIME_INVENTORY_SCHEMA = "umcd.runtime_inventory.v2"
 _DISTRIBUTIONS = (
     "numpy",
     "scipy",
@@ -128,10 +128,25 @@ def _distribution_identity(name: str) -> dict[str, Any]:
 
 
 def _source_identity(repository_root: Path) -> dict[str, Any]:
+    def hash_if_present(name: str) -> str | None:
+        path = repository_root / name
+        try:
+            os.lstat(path)
+        except FileNotFoundError:
+            return None
+        return _sha256(path)
+
     result: dict[str, Any] = {}
     for name in ("pyproject.toml", "uv.lock"):
-        path = repository_root / name
-        result[name] = _sha256(path) if path.exists() else None
+        result[name] = hash_if_present(name)
+    result["runtime_inventory_sources"] = {
+        name: hash_if_present(name)
+        for name in (
+            "integrations/runtime_inventory.py",
+            "integrations/runtime_compatibility.py",
+            "scripts/report_runtime_inventory.py",
+        )
+    }
     try:
         import subprocess
 
@@ -190,6 +205,8 @@ def build_runtime_inventory(
     repository_root: str | Path,
     *,
     probe_accelerator: bool = False,
+    probe_apis: bool = False,
+    probe_rt_apis: bool = False,
 ) -> dict[str, Any]:
     """Build a JSON-ready software/model-table identity report.
 
@@ -198,9 +215,24 @@ def build_runtime_inventory(
     """
     if type(probe_accelerator) is not bool:
         raise TypeError("probe_accelerator must be a Boolean")
+    if type(probe_apis) is not bool or type(probe_rt_apis) is not bool:
+        raise TypeError("API probe options must be Booleans")
+    if probe_rt_apis and not probe_apis:
+        raise ValueError("probe_rt_apis requires probe_apis")
     root = Path(repository_root).resolve(strict=True)
     if not root.is_dir():
         raise ValueError("repository_root must be a directory")
+    if probe_apis:
+        from integrations.runtime_compatibility import build_runtime_compatibility
+
+        api_compatibility = build_runtime_compatibility(probe_rt=probe_rt_apis)
+    else:
+        api_compatibility = {
+            "schema": "umcd.runtime_compatibility.v1",
+            "status": "NOT_PROBED",
+            "phy": {"status": "NOT_PROBED", "distributions": {}, "modules": []},
+            "rt": {"status": "NOT_PROBED", "distributions": {}, "modules": []},
+        }
     return {
         "schema": RUNTIME_INVENTORY_SCHEMA,
         "status": "SELF_REPORTED_INTEGRITY_ONLY",
@@ -217,6 +249,7 @@ def build_runtime_inventory(
         "source": _source_identity(root),
         "distributions": [_distribution_identity(name) for name in _DISTRIBUTIONS],
         "accelerator": _accelerator_identity(probe_accelerator),
+        "api_compatibility": api_compatibility,
         "qualification": "NOT_QUALIFIED",
     }
 
@@ -236,6 +269,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         help="import Torch and report CUDA build/device metadata without allocating tensors",
     )
     parser.add_argument(
+        "--probe-apis",
+        action="store_true",
+        help="import and check the pinned Sionna PHY exports used by this repository",
+    )
+    parser.add_argument(
+        "--probe-rt-apis",
+        action="store_true",
+        help="also import/check pinned Sionna RT, Mitsuba, and Dr.Jit APIs",
+    )
+    parser.add_argument(
         "--output",
         type=Path,
         help="new output file; creation is exclusive and refuses to replace an existing path",
@@ -246,6 +289,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     report = build_runtime_inventory(
         args.repository_root,
         probe_accelerator=args.probe_accelerator,
+        probe_apis=args.probe_apis,
+        probe_rt_apis=args.probe_rt_apis,
     )
     payload = (json.dumps(report, sort_keys=True, allow_nan=False) + "\n").encode("utf-8")
     if args.output is None:
