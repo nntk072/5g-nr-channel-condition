@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.invalid/schema/grouped-regression-uncertainty-report.v1.schema.json",
+  "title": "Grouped regression uncertainty evaluation report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "status", "method_name", "experiment_id", "target_name", "target_unit",
+    "prediction_file", "prediction_file_sha256", "seed", "metrics", "runtime_versions",
+    "package_source_sha256"
+  ],
+  "properties": {
+    "schema": {"const": "loslab.grouped_regression_uncertainty_report.v1"},
+    "status": {"const": "DESCRIPTIVE_EVALUATION_NOT_A_RESEARCH_CLAIM"},
+    "method_name": {"$ref": "#/$defs/canonicalText"},
+    "experiment_id": {"$ref": "#/$defs/canonicalText"},
+    "target_name": {"$ref": "#/$defs/canonicalText"},
+    "target_unit": {"$ref": "#/$defs/canonicalText"},
+    "prediction_file": {"type": "string", "minLength": 1},
+    "prediction_file_sha256": {"$ref": "#/$defs/sha256"},
+    "seed": {"type": "integer", "minimum": 0},
+    "metrics": {"type": "object"},
+    "runtime_versions": {"type": "object"},
+    "package_source_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "canonicalText": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^\\S(?:.*\\S)?$"
+    },
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

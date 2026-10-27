@@ -6,6 +6,14 @@ the unit that is plausibly independent for the claim (usually a scene, trajector
 family, or measurement session), not an individual correlated radio frame.
 
 The input is UTF-8 JSON with this schema:
+[`evaluation/schema/scalar-regression-predictions.v1.schema.json`](../../evaluation/schema/scalar-regression-predictions.v1.schema.json).
+The report envelope is described by
+[`evaluation/schema/grouped-regression-uncertainty-report.v1.schema.json`](../../evaluation/schema/grouped-regression-uncertainty-report.v1.schema.json).
+The runner accepts only declared fields and canonical nonempty identifiers. It
+reads a single-link regular file without following symlinks, enforces a 64 MiB
+input limit, checks that the file remains unchanged during the read, and
+computes the recorded SHA-256 from those exact parsed bytes. Duplicate JSON
+keys and nonstandard `NaN`/infinity tokens are rejected.
 
 ```json
 {

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.invalid/schema/scalar-regression-predictions.v1.schema.json",
+  "title": "Frozen scalar regression predictions v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "predictions"],
+  "properties": {
+    "schema": {"const": "loslab.scalar_regression_predictions.v1"},
+    "method_name": {"$ref": "#/$defs/canonicalText"},
+    "experiment_id": {"$ref": "#/$defs/canonicalText"},
+    "target_name": {"$ref": "#/$defs/canonicalText"},
+    "target_unit": {"$ref": "#/$defs/canonicalText"},
+    "predictions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["sample_id", "group_id", "split", "target", "prediction", "uncertainty_scale"],
+        "properties": {
+          "sample_id": {"$ref": "#/$defs/canonicalText"},
+          "group_id": {"$ref": "#/$defs/canonicalText"},
+          "split": {"enum": ["calibration", "test"]},
+          "target": {"type": "number"},
+          "prediction": {"type": "number"},
+          "uncertainty_scale": {"type": "number", "exclusiveMinimum": 0},
+          "identifiability_stratum": {"$ref": "#/$defs/canonicalText"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "canonicalText": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^\\S(?:.*\\S)?$"
+    }
+  }
+}
