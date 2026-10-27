@@ -5,6 +5,9 @@ from __future__ import annotations
 import numpy as np
 import pytest
 from integrations.sionna import (
+    PBCHMessageClassExtension,
+    nr_bcch_bch_message_parse,
+    nr_bcch_bch_message_serialize,
     nr_pbch_payload_descramble,
     nr_pbch_payload_generate,
     nr_pbch_payload_recover,
@@ -230,18 +233,29 @@ def test_payload_generation_checks_sfn_against_mib_bits() -> None:
         )
 
 
-def test_payload_generation_rejects_bcch_bch_extension_choice() -> None:
-    higher_layer_bits = np.zeros(24, dtype=np.uint8)
-    higher_layer_bits[0] = 1
-    with pytest.raises(ValueError, match="MIB alternative"):
+@pytest.mark.parametrize("lmax", [4, 8, 10, 20, 64])
+def test_message_class_extension_bits_round_trip_through_pbch_payload(lmax: int) -> None:
+    message = PBCHMessageClassExtension(tuple(np.arange(23, dtype=np.uint8) % 2))
+    higher_layer_bits = nr_bcch_bch_message_serialize(message)
+    recovered = nr_pbch_payload_recover(
         nr_pbch_payload_generate(
             higher_layer_bits,
-            0,
-            0,
-            0,
-            0,
-            max_candidate_blocks_per_half_frame=4,
-        )
+            321,
+            683,
+            1,
+            lmax - 1,
+            max_candidate_blocks_per_half_frame=lmax,
+            k_ssb_msb=1,
+            pdcch_repetition=1,
+        ),
+        321,
+        max_candidate_blocks_per_half_frame=lmax,
+    )
+
+    np.testing.assert_array_equal(recovered.higher_layer_bits, higher_layer_bits)
+    assert nr_bcch_bch_message_parse(recovered.higher_layer_bits) == message
+    assert recovered.system_frame_number is None
+    assert recovered.half_frame_index == 1
 
 
 @pytest.mark.parametrize(

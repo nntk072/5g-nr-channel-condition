@@ -59,10 +59,15 @@ _INTERLEAVER = np.asarray(
 
 @dataclass(frozen=True)
 class PBCHPayloadRecovery:
-    """Recovered BCCH-BCH message bits and PBCH timing/index payload fields."""
+    """Recovered BCCH-BCH bits and PBCH timing/index fields.
+
+    ``system_frame_number`` is ``None`` for the opaque
+    ``messageClassExtension`` alternative because its 24-bit field does not
+    provide the six MIB SFN most-significant bits.
+    """
 
     higher_layer_bits: NDArray[np.uint8]
-    system_frame_number: int
+    system_frame_number: int | None
     half_frame_index: int
     max_candidate_blocks_per_half_frame: int
     k_ssb_msb: int | None
@@ -85,10 +90,12 @@ def nr_pbch_payload_generate(
 
     ``higher_layer_bits`` must contain the serialized 24-bit BCCH-BCH
     message. For the MIB alternative, its choice bit is zero and the six SFN
-    MSBs occupy bits 1 through 6. Timing and candidate-index bits are
-    appended, TS 38.212's category-dependent payload interleaver is applied,
-    then payload scrambling is applied. The result can be passed to
-    :func:`nr_pbch_bch_encode`.
+    MSBs occupy bits 1 through 6; those bits are checked against
+    ``system_frame_number``. The ``messageClassExtension`` alternative is
+    carried byte-for-byte as an opaque 24-bit value. Timing and
+    candidate-index bits are appended, TS 38.212's category-dependent
+    payload interleaver is applied, then payload scrambling is applied. The
+    result can be passed to :func:`nr_pbch_bch_encode`.
 
     ``max_candidate_blocks_per_half_frame`` supports 4, 8, 10, 20, or 64.
     The ``k_ssb_msb`` input is used for candidate counts 4, 8, 10, and 20.
@@ -99,9 +106,7 @@ def nr_pbch_payload_generate(
     cell_id = _integer(physical_cell_id, "physical_cell_id", 0, _CELL_ID_MAX)
     sfn = _integer(system_frame_number, "system_frame_number", 0, 1023)
     expected_sfn_msb = np.asarray([(sfn >> bit) & 1 for bit in range(9, 3, -1)], dtype=np.uint8)
-    if int(payload[0]) != 0:
-        raise ValueError("higher_layer_bits must select the BCCH-BCH MIB alternative")
-    if not np.array_equal(payload[1:7], expected_sfn_msb):
+    if int(payload[0]) == 0 and not np.array_equal(payload[1:7], expected_sfn_msb):
         raise ValueError("higher_layer_bits bits 1 through 6 must contain the six SFN MSBs")
     half_frame = _integer(half_frame_index, "half_frame_index", 0, 1)
     candidate_count = _candidate_count(max_candidate_blocks_per_half_frame)
@@ -195,9 +200,10 @@ def nr_pbch_payload_recover(
     scrambling, so their interleaved positions identify the Gold-sequence
     offset without requiring the full SFN as an input. The function then
     descrambles and deinterleaves the 32 bits. It returns the serialized
-    BCCH-BCH message; the fixed MIB choice has a separate strict field parser,
-    while general ASN.1 extensions and complete SSB-index inference remain
-    outside.
+    BCCH-BCH message; the fixed MIB choice has a separate strict field parser
+    and the messageClassExtension choice is preserved as opaque bits. ASN.1/PER
+    field decoding beyond the fixed MIB schema and complete SSB-index
+    inference remain outside.
     """
     source = _binary_vector(
         scrambled_interleaved_payload, _PAYLOAD_SIZE, "scrambled_interleaved_payload"
@@ -218,8 +224,9 @@ def nr_pbch_payload_recover(
     )
     raw = np.asarray(descrambled[destinations], dtype=np.uint8)
 
-    sfn_msb = sum(int(raw[index + 1]) << (5 - index) for index in range(6))
     sfn_lsb = sum(int(raw[24 + index]) << (3 - index) for index in range(4))
+    sfn_msb = sum(int(raw[index + 1]) << (5 - index) for index in range(6))
+    system_frame_number = ((sfn_msb << 4) | sfn_lsb) if int(raw[0]) == 0 else None
     k_ssb: int | None = None
     pdcch_repetition: int | None = None
     if candidate_count in (4, 8):
@@ -239,7 +246,7 @@ def nr_pbch_payload_recover(
     higher_layer_bits.setflags(write=False)
     return PBCHPayloadRecovery(
         higher_layer_bits=higher_layer_bits,
-        system_frame_number=(sfn_msb << 4) | sfn_lsb,
+        system_frame_number=system_frame_number,
         half_frame_index=int(raw[28]),
         max_candidate_blocks_per_half_frame=candidate_count,
         k_ssb_msb=k_ssb,

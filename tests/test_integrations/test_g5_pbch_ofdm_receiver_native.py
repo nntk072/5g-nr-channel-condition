@@ -210,7 +210,7 @@ def test_pbch_receiver_preserves_message_class_extension_choice() -> None:
     assert result.mib is None
     assert result.bcch_bch_message == message
     assert result.payload_recovery is not None
-    assert result.payload_recovery.system_frame_number == sfn
+    assert result.payload_recovery.system_frame_number is None
 
 
 @pytest.mark.native_sionna
@@ -437,10 +437,11 @@ def test_blind_pss_sss_and_candidate_search_decode_pbch_under_cfo_multipath_awgn
 @pytest.mark.native_sionna
 def test_blind_acquisition_decodes_ssb_in_second_half_of_full_radio_frame() -> None:
     sfn = 0b1010011101
-    ssb, expected_mib = _make_ssb_resource_grid(sfn)
     candidate_positions = ssb_candidate_symbols(
         "A", 3.5e9, subcarrier_spacing_hz=15_000, frequency_range="FR1"
     )
+    candidate_count = len(candidate_positions)
+    ssb, expected_mib = _make_ssb_resource_grid(sfn, candidate_count=candidate_count)
     candidate_symbol = candidate_positions[_SSB_INDEX]
     config = nr_ssb_waveform_config(
         subcarrier_spacing_hz=15_000,
@@ -475,7 +476,7 @@ def test_blind_acquisition_decodes_ssb_in_second_half_of_full_radio_frame() -> N
         fft_size=_FFT_SIZE,
         cyclic_prefix_lengths=config.cyclic_prefix_lengths,
         sampling_frequency_hz=config.sample_rate_hz,
-        max_candidate_blocks_per_half_frame=_L_MAX,
+        max_candidate_blocks_per_half_frame=candidate_count,
         noise_variance=noise_variance,
         cfo_hypotheses_hz=(-3_000.0, -1_500.0, 0.0, 1_500.0, 3_000.0),
         cfo_guard_samples=5,
@@ -499,10 +500,11 @@ def test_blind_acquisition_decodes_ssb_in_second_half_of_full_radio_frame() -> N
 @pytest.mark.native_sionna
 def test_full_radio_frame_blind_pbch_acquisition_combines_two_receive_chains() -> None:
     sfn = 0b0101101011
-    ssb, expected_mib = _make_ssb_resource_grid(sfn)
     candidate_positions = ssb_candidate_symbols(
         "A", 3.5e9, subcarrier_spacing_hz=15_000, frequency_range="FR1"
     )
+    candidate_count = len(candidate_positions)
+    ssb, expected_mib = _make_ssb_resource_grid(sfn, candidate_count=candidate_count)
     candidate_symbol = candidate_positions[_SSB_INDEX]
     config = nr_ssb_waveform_config(
         subcarrier_spacing_hz=15_000,
@@ -550,7 +552,7 @@ def test_full_radio_frame_blind_pbch_acquisition_combines_two_receive_chains() -
         fft_size=_FFT_SIZE,
         cyclic_prefix_lengths=config.cyclic_prefix_lengths,
         sampling_frequency_hz=sample_rate_hz,
-        max_candidate_blocks_per_half_frame=_L_MAX,
+        max_candidate_blocks_per_half_frame=candidate_count,
         noise_variance=np.asarray(noise_variances),
         cfo_hypotheses_hz=(-2_500.0, -1_250.0, 0.0, 1_250.0, 2_500.0),
         cfo_guard_samples=5,
@@ -773,7 +775,7 @@ def test_blind_acquisition_recovers_high_candidate_across_ssb_numerologies(
         sampling_frequency_hz=sample_rate_hz,
         max_candidate_blocks_per_half_frame=candidate_count,
         noise_variance=noise_variance,
-        cfo_hypotheses_hz=(-3_000.0, -1_500.0, 0.0, 1_500.0, 3_000.0),
+        cfo_hypotheses_hz=(-3_000.0, -1_500.0, 0.0),
         cfo_guard_samples=5,
     )
 
