@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import hashlib
+import inspect
+import json
 import pickle
 from collections.abc import Callable
 from copy import deepcopy
+from pathlib import Path
 from time import perf_counter
 from typing import Any, Sequence
 
@@ -58,6 +62,133 @@ def normalized_cfr_features(h: np.ndarray) -> np.ndarray:
     normalized = normalized * np.exp(-1j * np.angle(anchor))[:, None, None]
     flat = normalized.reshape(len(normalized), -1)
     return np.concatenate((flat.real, flat.imag), axis=1).astype(np.float32)
+
+
+def _array_sha256(array: np.ndarray) -> str:
+    """Hash a numeric array with its canonical dtype and shape framing."""
+    value = np.ascontiguousarray(array)
+    header = json.dumps(
+        {"dtype": value.dtype.str, "shape": list(value.shape)},
+        sort_keys=True,
+        separators=(",", ":"),
+        allow_nan=False,
+    ).encode("utf-8")
+    digest = hashlib.sha256()
+    digest.update(header)
+    digest.update(b"\0")
+    digest.update(value.tobytes(order="C"))
+    return digest.hexdigest()
+
+
+def _canonical_contract_sha256(contract: dict[str, Any]) -> str:
+    return hashlib.sha256(
+        json.dumps(contract, sort_keys=True, separators=(",", ":"), allow_nan=False).encode("utf-8")
+    ).hexdigest()
+
+
+def build_profile_holdout_input_contract(
+    *, model_input: Any, features: np.ndarray
+) -> dict[str, Any]:
+    """Bind the exact CFR feature matrix and transform used by profile holdout."""
+    from datasets.model_input_audit import audit_model_input_payload
+
+    model_input = audit_model_input_payload(model_input)
+    if not isinstance(features, np.ndarray) or features.ndim != 2:
+        raise ValueError("profile-holdout features must be a two-dimensional array")
+    if features.dtype != np.float32 or not np.isfinite(features).all():
+        raise ValueError("profile-holdout features must be finite float32 values")
+    source_shape = model_input.observed_cfr.shape
+    expected_feature_count = 2 * int(np.prod(source_shape[1:], dtype=np.int64))
+    if features.shape != (source_shape[0], expected_feature_count):
+        raise ValueError("profile-holdout features do not match the audited CFR input shape")
+    source = inspect.getsource(normalized_cfr_features).encode("utf-8")
+    contract: dict[str, Any] = {
+        "schema": "loslab.profile_holdout_model_input_contract.v1",
+        "source_dataclass": "datasets.channel.ChannelModelInputs",
+        "allowed_source_fields": ["observed_cfr"],
+        "excluded_fields": [
+            "data.y",
+            "data.metadata",
+            "data.group",
+            "data.domain",
+            "data.source",
+            "PathOracleTable",
+            "target_values",
+        ],
+        "target_field_used_for_supervision_only": "data.y",
+        "feature_transform": {
+            "name": "global_complex_gain_and_anchor_phase_normalization_v1",
+            "implementation_sha256": hashlib.sha256(source).hexdigest(),
+            "input_field": "observed_cfr",
+            "input_shape_per_sample": [int(size) for size in source_shape[1:]],
+            "power_normalization": "mean squared magnitude over link and subcarrier axes",
+            "phase_anchor": "first C-order maximum-magnitude CFR coefficient",
+            "flattening": "C order; concatenate all real values then all imaginary values",
+            "output_dtype": "float32",
+        },
+        "feature_matrix": {
+            "sample_count": int(features.shape[0]),
+            "shape_per_sample": [int(size) for size in features.shape[1:]],
+            "dtype": features.dtype.str,
+            "sha256": _array_sha256(features),
+        },
+        "metadata_only_profile_control": {
+            "separate_from_model_features": True,
+            "feature_fields": ["metadata.profile"],
+            "used_for_primary_model_fit_or_prediction": False,
+        },
+    }
+    contract["contract_sha256"] = _canonical_contract_sha256(contract)
+    schema_path = (
+        Path(__file__).resolve().parents[1]
+        / "datasets/schema/profile-holdout-model-input-contract.v1.schema.json"
+    )
+    import jsonschema
+
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    jsonschema.Draft202012Validator.check_schema(schema)
+    jsonschema.validate(contract, schema)
+    return contract
+
+
+def verify_profile_holdout_input_contract(
+    contract: dict[str, Any], *, features: np.ndarray | None = None
+) -> dict[str, Any]:
+    """Verify schema/hash bindings and optionally the exact feature-matrix bytes."""
+    if not isinstance(contract, dict):
+        raise TypeError("profile-holdout input contract must be an object")
+    schema_path = (
+        Path(__file__).resolve().parents[1]
+        / "datasets/schema/profile-holdout-model-input-contract.v1.schema.json"
+    )
+    import jsonschema
+
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    jsonschema.Draft202012Validator.check_schema(schema)
+    jsonschema.validate(contract, schema)
+    payload = {key: value for key, value in contract.items() if key != "contract_sha256"}
+    if _canonical_contract_sha256(payload) != contract["contract_sha256"]:
+        raise ValueError("profile-holdout input contract digest is invalid")
+    current_transform_sha256 = hashlib.sha256(
+        inspect.getsource(normalized_cfr_features).encode("utf-8")
+    ).hexdigest()
+    if contract["feature_transform"]["implementation_sha256"] != current_transform_sha256:
+        raise ValueError("profile-holdout feature transform differs from its frozen contract")
+    if features is not None:
+        if (
+            not isinstance(features, np.ndarray)
+            or list(features.shape[1:]) != contract["feature_matrix"]["shape_per_sample"]
+            or len(features) != contract["feature_matrix"]["sample_count"]
+            or features.dtype.str != contract["feature_matrix"]["dtype"]
+            or _array_sha256(features) != contract["feature_matrix"]["sha256"]
+        ):
+            raise ValueError("profile-holdout feature matrix differs from its frozen contract")
+    return {
+        "status": "PASS_PROFILE_HOLDOUT_INPUT_CONTRACT",
+        "contract_sha256": contract["contract_sha256"],
+        "feature_matrix_sha256": contract["feature_matrix"]["sha256"],
+        "feature_matrix_verified": features is not None,
+    }
 
 
 def _profile_rows(data: ChannelDataset) -> dict[str, np.ndarray]:
@@ -255,6 +386,12 @@ def run_profile_holdout(
     profile_indices = _profile_rows(data)
     model_inputs = data.model_inputs()
     features = normalized_cfr_features(model_inputs.observed_cfr)
+    model_input_contract = build_profile_holdout_input_contract(
+        model_input=model_inputs, features=features
+    )
+    model_input_contract_verification = verify_profile_holdout_input_contract(
+        model_input_contract, features=features
+    )
     profile_names = tuple("ABCDE")
     scores: dict[str, np.ndarray] = {
         method: np.full(len(data.y), np.nan, dtype=np.float64) for method in methods
@@ -328,6 +465,9 @@ def run_profile_holdout(
                     "train_indices_sha256": _index_hash(train),
                     "validation_indices_sha256": _index_hash(validation),
                     "test_indices_sha256": _index_hash(test),
+                    "train_feature_matrix_sha256": _array_sha256(features[train]),
+                    "validation_feature_matrix_sha256": _array_sha256(features[validation]),
+                    "test_feature_matrix_sha256": _array_sha256(features[test]),
                     "threshold_from_validation": float(threshold),
                     "training": training,
                     "resource_use": {
@@ -375,10 +515,12 @@ def run_profile_holdout(
     if any(not np.isfinite(scores[method]).all() for method in methods):
         raise RuntimeError("outer folds did not produce one prediction for every sample")
     return {
-        "schema": "loslab.profile_proxy_leave_one_profile_out.v1",
+        "schema": "loslab.profile_proxy_leave_one_profile_out.v2",
         "label_semantics": "PROFILE_PROXY: A/B/C=0, D/E=1",
         "metadata_only_profile_control": _metadata_only_profile_control(data),
         "feature_semantics": "global-gain-and-phase-normalized CFR real/imaginary samples",
+        "model_input_contract": model_input_contract,
+        "model_input_contract_verification": model_input_contract_verification,
         "validation_fraction_of_training_groups": validation_fraction,
         "seed": seed,
         "mlp_early_stopping": "group-disjoint outer-fold training validation, not random rows",

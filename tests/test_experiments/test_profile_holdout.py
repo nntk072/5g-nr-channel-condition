@@ -2,15 +2,22 @@
 
 from __future__ import annotations
 
+import json
+
+import jsonschema
 import numpy as np
 import pytest
+from artifacts.provenance import sha256_file
 from datasets.channel import ChannelDataset
 from experiments.profile_holdout import (
     BASELINE_CONFIGURATION,
     _model_complexity,
+    build_profile_holdout_input_contract,
     normalized_cfr_features,
     run_profile_holdout,
+    verify_profile_holdout_input_contract,
 )
+from scripts.run_profile_holdout_baselines import run as run_profile_holdout_baselines
 from sklearn.ensemble import RandomForestClassifier
 
 
@@ -67,7 +74,16 @@ def test_profile_holdout_keeps_outer_profiles_and_validation_groups_disjoint():
         _small_profile_dataset(), methods=("logreg", "mlp"), seed=23, validation_fraction=0.25
     )
 
+    assert result["schema"] == "loslab.profile_proxy_leave_one_profile_out.v2"
     assert len(result["folds"]) == 10
+    input_contract = result["model_input_contract"]
+    assert input_contract["allowed_source_fields"] == ["observed_cfr"]
+    assert input_contract["target_field_used_for_supervision_only"] == "data.y"
+    assert (
+        input_contract["metadata_only_profile_control"]["used_for_primary_model_fit_or_prediction"]
+        is False
+    )
+    assert result["model_input_contract_verification"]["feature_matrix_verified"] is True
     assert set(result["summary"]["logreg"]["per_profile"]) == set("ABCDE")
     metadata_control = result["metadata_only_profile_control"]
     assert metadata_control["feature_fields"] == ["metadata.profile"]
@@ -95,6 +111,36 @@ def test_profile_holdout_keeps_outer_profiles_and_validation_groups_disjoint():
         )
         assert resources["learned_parameter_count"] > 0
         assert resources["serialized_model_bytes"] > 0
+        for name in (
+            "train_feature_matrix_sha256",
+            "validation_feature_matrix_sha256",
+            "test_feature_matrix_sha256",
+        ):
+            assert len(row[name]) == 64
+
+
+def test_profile_holdout_input_contract_detects_feature_or_contract_drift():
+    data = _small_profile_dataset()
+    model_input = data.model_inputs()
+    features = normalized_cfr_features(model_input.observed_cfr)
+    contract = build_profile_holdout_input_contract(model_input=model_input, features=features)
+
+    audit = verify_profile_holdout_input_contract(contract, features=features)
+    assert audit["status"] == "PASS_PROFILE_HOLDOUT_INPUT_CONTRACT"
+    assert audit["feature_matrix_verified"] is True
+
+    changed_features = features.copy()
+    changed_features[0, 0] += 1.0
+    with pytest.raises(ValueError, match="feature matrix differs"):
+        verify_profile_holdout_input_contract(contract, features=changed_features)
+
+    changed_digest = {**contract, "contract_sha256": "0" * 64}
+    with pytest.raises(ValueError, match="contract digest is invalid"):
+        verify_profile_holdout_input_contract(changed_digest)
+
+    changed_contract = {**contract, "feature_semantics": "metadata.profile"}
+    with pytest.raises(jsonschema.ValidationError, match="Additional properties are not allowed"):
+        verify_profile_holdout_input_contract(changed_contract)
 
 
 def test_model_complexity_reports_random_forest_structure():
@@ -123,6 +169,7 @@ def test_profile_holdout_rejects_inconsistent_proxy_labels():
         wrong.domain,
         wrong.source,
         wrong.metadata,
+        label_semantics=wrong.label_semantics,
     )
 
     with pytest.raises(ValueError, match="does not match"):
@@ -148,3 +195,34 @@ def test_profile_holdout_rejects_conflicting_dataset_level_label_semantics():
 def test_random_forest_baseline_configuration_is_single_worker():
     assert BASELINE_CONFIGURATION["rf"]["n_estimators"] == 250
     assert BASELINE_CONFIGURATION["rf"]["n_jobs"] == 1
+
+
+def test_profile_holdout_cli_report_persists_input_contract_and_feature_hashes(tmp_path):
+    dataset_path = tmp_path / "profiles.npz"
+    data = _small_profile_dataset()
+    data.save(dataset_path)
+    source_manifest_path = dataset_path.with_suffix(dataset_path.suffix + ".manifest.json")
+    source_manifest_path.write_text(
+        json.dumps(
+            {
+                "dataset_sha256": sha256_file(dataset_path),
+                "evidence_grade": "SIMULATED_3GPP_PROFILE_PROXY_NOT_GEOMETRIC_LOS",
+                "source_revision": None,
+            }
+        ),
+        encoding="utf-8",
+    )
+    report_path = tmp_path / "profile-holdout.json"
+
+    report = run_profile_holdout_baselines(dataset_path, report_path, methods=("logreg",), seed=39)
+
+    assert report["schema"] == "loslab.profile_proxy_leave_one_profile_out.v2"
+    assert report["model_input_contract"]["allowed_source_fields"] == ["observed_cfr"]
+    assert report["model_input_contract_verification"]["feature_matrix_verified"] is True
+    saved_report = json.loads(report_path.read_text(encoding="utf-8"))
+    assert saved_report["model_input_contract"] == report["model_input_contract"]
+    assert len(saved_report["profile_holdout_folds"]) == 5
+    for fold in saved_report["profile_holdout_folds"]:
+        assert len(fold["train_feature_matrix_sha256"]) == 64
+        assert len(fold["validation_feature_matrix_sha256"]) == 64
+        assert len(fold["test_feature_matrix_sha256"]) == 64

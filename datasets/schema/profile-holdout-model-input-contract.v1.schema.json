@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:profile-holdout-model-input-contract:v1",
+  "title": "Profile holdout observation-only feature contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "source_dataclass",
+    "allowed_source_fields",
+    "excluded_fields",
+    "target_field_used_for_supervision_only",
+    "feature_transform",
+    "feature_matrix",
+    "metadata_only_profile_control",
+    "contract_sha256"
+  ],
+  "properties": {
+    "schema": { "const": "loslab.profile_holdout_model_input_contract.v1" },
+    "source_dataclass": { "const": "datasets.channel.ChannelModelInputs" },
+    "allowed_source_fields": { "const": ["observed_cfr"] },
+    "excluded_fields": {
+      "const": [
+        "data.y",
+        "data.metadata",
+        "data.group",
+        "data.domain",
+        "data.source",
+        "PathOracleTable",
+        "target_values"
+      ]
+    },
+    "target_field_used_for_supervision_only": { "const": "data.y" },
+    "feature_transform": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "implementation_sha256",
+        "input_field",
+        "input_shape_per_sample",
+        "power_normalization",
+        "phase_anchor",
+        "flattening",
+        "output_dtype"
+      ],
+      "properties": {
+        "name": { "const": "global_complex_gain_and_anchor_phase_normalization_v1" },
+        "implementation_sha256": { "$ref": "#/$defs/sha256" },
+        "input_field": { "const": "observed_cfr" },
+        "input_shape_per_sample": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "type": "integer", "minimum": 1 }
+        },
+        "power_normalization": {
+          "const": "mean squared magnitude over link and subcarrier axes"
+        },
+        "phase_anchor": { "const": "first C-order maximum-magnitude CFR coefficient" },
+        "flattening": {
+          "const": "C order; concatenate all real values then all imaginary values"
+        },
+        "output_dtype": { "const": "float32" }
+      }
+    },
+    "feature_matrix": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sample_count", "shape_per_sample", "dtype", "sha256"],
+      "properties": {
+        "sample_count": { "type": "integer", "minimum": 1 },
+        "shape_per_sample": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "integer", "minimum": 1 }
+        },
+        "dtype": { "const": "<f4" },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "metadata_only_profile_control": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["separate_from_model_features", "feature_fields", "used_for_primary_model_fit_or_prediction"],
+      "properties": {
+        "separate_from_model_features": { "const": true },
+        "feature_fields": { "const": ["metadata.profile"] },
+        "used_for_primary_model_fit_or_prediction": { "const": false }
+      }
+    },
+    "contract_sha256": { "$ref": "#/$defs/sha256" }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+  }
+}

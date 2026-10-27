@@ -83,6 +83,8 @@ def run(
         "runner_sha256": sha256_file(__file__),
         "versions": versions_used,
         "sample_count": len(data.y),
+        "model_input_contract": result["model_input_contract"],
+        "model_input_contract_verification": result["model_input_contract_verification"],
         "profile_holdout_folds": result["folds"],
         "summary": result["summary"],
         "predictions_path": str(prediction_path),
