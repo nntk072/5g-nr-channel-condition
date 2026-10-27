@@ -1839,6 +1839,10 @@ def audit_channel_datasets(
             trusted_allowed_signers_path=trusted_split_allowed_signers,
             signer_id=split_registry_signer_id,
         )
+        if require_complete_split_audit and not registry.child_bindings:
+            raise ValueError(
+                "complete split audit requires at least one frozen child binding"
+            )
         if lineage_report.get("subjects_with_provisional_split_identity", 0) != 0:
             raise ValueError(
                 "signed split-registry audit refuses provisional RT scene identities; "

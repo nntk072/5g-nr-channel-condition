@@ -1703,6 +1703,68 @@ def test_complete_split_audit_requires_signed_corpus_inventory_and_registry(tmp_
         )
 
 
+def test_complete_split_audit_rejects_registry_without_child_bindings(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from datasets.split_lineage import make_channel_dataset_split_registry
+    from scripts import audit_channel_split_lineage as audit_module
+
+    dataset_paths = [tmp_path / f"parent-{index}.npz" for index in range(4)]
+    for index, dataset_path in enumerate(dataset_paths):
+        _write_dataset(dataset_path, f"unused-parent-{index}", 0.0, f"{index + 1:064x}")
+    registry, _ = make_channel_dataset_split_registry(
+        [(path.stem, ChannelDataset.load(path)) for path in dataset_paths],
+        spatial_buffer_m=0.0,
+        policy=SplitPolicy.release_v2(seed="complete-audit-empty-children"),
+    )
+    monkeypatch.setattr(
+        audit_module,
+        "verify_signed_split_policy_registry_attestation",
+        lambda *_args, **_kwargs: (registry, object()),
+    )
+    inventory_path = tmp_path / "inventory.json"
+    inventory_path.write_text(
+        json.dumps(
+            {
+                "schema": "umcd.channel_dataset_inventory.v1",
+                "frozen": True,
+                "inventory_id": "fixture-v1",
+                "datasets": [
+                    {
+                        "name": path.stem,
+                        "path": path.name,
+                        "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                        "bytes": path.stat().st_size,
+                        "rows": 1,
+                    }
+                    for path in dataset_paths
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    inventory_signature, inventory_allowed_signers = _sign_inventory(
+        inventory_path, tmp_path
+    )
+
+    with pytest.raises(
+        ValueError, match="requires at least one frozen child binding"
+    ):
+        audit_channel_datasets(
+            [(path.stem, path) for path in dataset_paths],
+            spatial_buffer_m=0.0,
+            inventory_manifest=inventory_path,
+            inventory_signature=inventory_signature,
+            trusted_allowed_signers=inventory_allowed_signers,
+            inventory_signer_id=_INVENTORY_SIGNER,
+            split_registry_path=tmp_path / "registry.json",
+            split_registry_signature=tmp_path / "registry.json.sig",
+            trusted_split_allowed_signers=tmp_path / "split-allowed-signers",
+            split_registry_signer_id="split-reviewer@example.org",
+            require_complete_split_audit=True,
+        )
+
+
 def test_complete_split_audit_flag_requires_strict_boolean(tmp_path) -> None:
     with pytest.raises(TypeError, match="must be a boolean"):
         audit_channel_datasets(
