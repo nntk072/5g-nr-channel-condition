@@ -5,16 +5,133 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import os
 import shlex
+import stat
 from collections.abc import Mapping
 from pathlib import Path
 from types import CodeType, FunctionType, ModuleType
+from typing import Any
 from xml.etree import ElementTree
 
 import numpy as np
 
+DEFAULT_MAX_SCENE_ASSET_BYTES = 2 * 1024 * 1024 * 1024
+DEFAULT_MAX_SCENE_ASSET_SET_BYTES = 8 * 1024 * 1024 * 1024
+MAX_SCENE_ASSET_TEXT_LINE_BYTES = 1024 * 1024
 
-def scene_asset_manifest(scene_xml: str | Path) -> dict[str, object]:
+
+class _BoundedAssetReader:
+    def __init__(self, stream: Any, *, max_bytes: int) -> None:
+        self._stream = stream
+        self._max_bytes = max_bytes
+        self._bytes_read = 0
+
+    def read(self, size: int = -1) -> bytes:
+        remaining = self._max_bytes + 1 - self._bytes_read
+        if remaining <= 0:
+            raise ValueError("scene asset exceeds the configured byte limit")
+        request_size = remaining if size < 0 else min(size, remaining)
+        data = self._stream.read(request_size)
+        self._bytes_read += len(data)
+        if self._bytes_read > self._max_bytes:
+            raise ValueError("scene asset exceeds the configured byte limit")
+        return data
+
+
+def _stat_identity(info: os.stat_result) -> tuple[int, ...]:
+    return (
+        info.st_dev,
+        info.st_ino,
+        info.st_mode,
+        info.st_size,
+        info.st_mtime_ns,
+        info.st_ctime_ns,
+    )
+
+
+def _asset_references_and_digest(path: Path, *, max_bytes: int) -> tuple[list[str], int, str]:
+    """Inspect and hash one regular asset through a stable open descriptor."""
+    before_path = os.lstat(path)
+    if not stat.S_ISREG(before_path.st_mode):
+        raise ValueError(f"scene asset must be a regular file: {path}")
+    if before_path.st_size > max_bytes:
+        raise ValueError(f"scene asset exceeds the configured byte limit: {path}")
+    flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
+    descriptor = os.open(path, flags)
+    try:
+        before = os.fstat(descriptor)
+        if not stat.S_ISREG(before.st_mode) or _stat_identity(before) != _stat_identity(
+            before_path
+        ):
+            raise ValueError(f"scene asset changed while opening: {path}")
+
+        references: list[str] = []
+        if path.suffix.lower() == ".xml":
+            with os.fdopen(os.dup(descriptor), "rb") as stream:
+                bounded_stream = _BoundedAssetReader(stream, max_bytes=max_bytes)
+                for _, element in ElementTree.iterparse(bounded_stream, events=("start",)):
+                    filename = element.attrib.get("filename")
+                    if filename is not None:
+                        references.append(filename)
+                    if (
+                        element.tag == "string"
+                        and element.attrib.get("name") == "filename"
+                        and "value" in element.attrib
+                    ):
+                        references.append(element.attrib["value"])
+                    element.clear()
+        elif path.suffix.lower() in {".obj", ".mtl"}:
+            with os.fdopen(os.dup(descriptor), "rb") as stream:
+                parsed_bytes = 0
+                while line := stream.readline(
+                    min(MAX_SCENE_ASSET_TEXT_LINE_BYTES, max_bytes + 1 - parsed_bytes)
+                ):
+                    parsed_bytes += len(line)
+                    if parsed_bytes > max_bytes:
+                        raise ValueError(f"scene asset exceeds the configured byte limit: {path}")
+                    if len(line) == MAX_SCENE_ASSET_TEXT_LINE_BYTES and not line.endswith(b"\n"):
+                        raise ValueError("scene asset text line exceeds the parser limit")
+                    tokens = shlex.split(line.decode("utf-8", errors="replace"), comments=True)
+                    if not tokens:
+                        continue
+                    directive = tokens[0].lower()
+                    if path.suffix.lower() == ".obj" and directive == "mtllib":
+                        references.extend(tokens[1:])
+                    elif path.suffix.lower() == ".mtl" and (
+                        directive.startswith("map_")
+                        or directive in {"bump", "disp", "decal", "norm", "refl"}
+                    ):
+                        if len(tokens) > 1:
+                            references.append(tokens[-1])
+
+        os.lseek(descriptor, 0, os.SEEK_SET)
+        digest = hashlib.sha256()
+        byte_count = 0
+        while block := os.read(descriptor, min(1024 * 1024, max_bytes + 1 - byte_count)):
+            byte_count += len(block)
+            if byte_count > max_bytes:
+                raise ValueError(f"scene asset exceeds the configured byte limit: {path}")
+            digest.update(block)
+        after = os.fstat(descriptor)
+        after_path = os.lstat(path)
+        if (
+            byte_count != before.st_size
+            or _stat_identity(before) != _stat_identity(after)
+            or _stat_identity(before) != _stat_identity(after_path)
+        ):
+            raise ValueError(f"scene asset changed while being inspected: {path}")
+        return references, byte_count, digest.hexdigest()
+    finally:
+        os.close(descriptor)
+
+
+def scene_asset_manifest(
+    scene_xml: str | Path,
+    *,
+    max_asset_bytes: int = DEFAULT_MAX_SCENE_ASSET_BYTES,
+    max_total_bytes: int = DEFAULT_MAX_SCENE_ASSET_SET_BYTES,
+) -> dict[str, object]:
     """Hash an RT scene and recursively referenced XML, OBJ, MTL, and image files.
 
     Paths are resolved relative to each referring file, as Mitsuba does. The
@@ -22,6 +139,14 @@ def scene_asset_manifest(scene_xml: str | Path) -> dict[str, object]:
     path is returned separately for provenance. URI-backed resources that
     cannot be resolved to local files are listed and make ``complete`` false.
     """
+    for name, value in (
+        ("max_asset_bytes", max_asset_bytes),
+        ("max_total_bytes", max_total_bytes),
+    ):
+        if isinstance(value, bool) or not isinstance(value, int):
+            raise TypeError(f"{name} must be an integer")
+        if value <= 0:
+            raise ValueError(f"{name} must be positive")
     xml_path = Path(scene_xml).expanduser().resolve()
     if not xml_path.is_file():
         raise FileNotFoundError(f"RT scene XML not found: {xml_path}")
@@ -32,44 +157,27 @@ def scene_asset_manifest(scene_xml: str | Path) -> dict[str, object]:
         pending.append(sidecar)
     discovered: set[Path] = set()
     unresolved: set[str] = set()
+    asset_rows: list[dict[str, object]] = []
+    total_bytes = 0
     while pending:
         current = pending.pop().resolve()
         if current in discovered:
             continue
+        discovered.add(current)
         if not current.is_file():
             raise FileNotFoundError(f"RT scene asset not found: {current}")
-        discovered.add(current)
-        extension = current.suffix.lower()
-        if extension == ".xml":
-            root = ElementTree.parse(current).getroot()
-            references = [
-                element.attrib["filename"]
-                for element in root.iter()
-                if "filename" in element.attrib
-            ]
-            references.extend(
-                element.attrib["value"]
-                for element in root.iter("string")
-                if element.attrib.get("name") == "filename" and "value" in element.attrib
-            )
-        elif extension == ".obj":
-            references = []
-            for line in current.read_text(encoding="utf-8", errors="replace").splitlines():
-                tokens = shlex.split(line, comments=True)
-                if tokens and tokens[0].lower() == "mtllib":
-                    references.extend(tokens[1:])
-        elif extension == ".mtl":
-            references = []
-            for line in current.read_text(encoding="utf-8", errors="replace").splitlines():
-                tokens = shlex.split(line, comments=True)
-                if tokens and (
-                    tokens[0].lower().startswith("map_")
-                    or tokens[0].lower() in {"bump", "disp", "decal", "norm", "refl"}
-                ):
-                    if len(tokens) > 1:
-                        references.append(tokens[-1])
-        else:
-            references = []
+        references, byte_count, asset_sha256 = _asset_references_and_digest(
+            current, max_bytes=max_asset_bytes
+        )
+        total_bytes += byte_count
+        if total_bytes > max_total_bytes:
+            raise ValueError("scene asset set exceeds the configured total byte limit")
+
+        try:
+            label = current.relative_to(xml_path.parent).as_posix()
+        except ValueError:
+            label = f"external/{current.name}"
+        asset_rows.append({"path": label, "bytes": byte_count, "sha256": asset_sha256})
 
         for reference in references:
             if "://" in reference or reference.startswith("data:"):
@@ -80,20 +188,7 @@ def scene_asset_manifest(scene_xml: str | Path) -> dict[str, object]:
                 referenced = current.parent / referenced
             pending.append(referenced)
 
-    rows = []
-    for path in sorted(discovered, key=lambda value: value.as_posix()):
-        try:
-            label = path.relative_to(xml_path.parent).as_posix()
-        except ValueError:
-            label = f"external/{path.name}"
-        payload = path.read_bytes()
-        rows.append(
-            {
-                "path": label,
-                "bytes": len(payload),
-                "sha256": hashlib.sha256(payload).hexdigest(),
-            }
-        )
+    rows = sorted(asset_rows, key=lambda row: (str(row["path"]), str(row["sha256"])))
     canonical = json.dumps(rows, sort_keys=True, separators=(",", ":")).encode()
     return {
         "scene_xml_path": str(xml_path),

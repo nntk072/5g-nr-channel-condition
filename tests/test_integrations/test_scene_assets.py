@@ -74,6 +74,32 @@ def test_scene_asset_manifest_marks_unresolved_uri_as_incomplete(tmp_path):
     assert manifest["unresolved_references"] == ["resource://missing.png"]
 
 
+def test_scene_asset_manifest_enforces_per_asset_and_total_byte_limits(tmp_path):
+    scene = tmp_path / "scene.xml"
+    scene.write_text("<scene/>", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="per-asset|configured byte limit"):
+        scene_asset_manifest(scene, max_asset_bytes=3)
+    with pytest.raises(ValueError, match="total byte limit"):
+        scene_asset_manifest(scene, max_total_bytes=3)
+    with pytest.raises(TypeError, match="max_asset_bytes"):
+        scene_asset_manifest(scene, max_asset_bytes=True)
+
+
+def test_scene_asset_manifest_hashes_without_read_bytes(tmp_path, monkeypatch):
+    scene = tmp_path / "scene.xml"
+    scene.write_text("<scene/>", encoding="utf-8")
+
+    def fail_read_bytes(_path):
+        raise AssertionError("scene asset hashing must stream through the open descriptor")
+
+    monkeypatch.setattr(type(scene), "read_bytes", fail_read_bytes)
+    manifest = scene_asset_manifest(scene)
+
+    assert manifest["complete"] is True
+    assert manifest["asset_count"] == 1
+
+
 def test_sionna_material_manifest_tracks_active_parameters_bindings_and_callback():
     def frequency_update(frequency_hz: float) -> float:
         return frequency_hz
