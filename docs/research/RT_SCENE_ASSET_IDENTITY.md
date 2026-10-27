@@ -6,8 +6,11 @@ Wavefront OBJ material libraries, and referenced MTL textures. Each file is
 parsed and hashed through one stable descriptor, in bounded chunks, with
 mutation checks before and after inspection. The default limits are 2 GiB per
 asset and 8 GiB for the complete closure; callers can set explicit larger
-limits. A canonical asset-set hash is independent of the checkout's absolute
-root; the absolute scene path remains available as provenance. Unresolved
+limits. The remaining total-set allowance is applied to each next asset before
+that file is parsed or hashed, so exceeding the closure budget does not first
+consume the per-file allowance. A canonical asset-set hash is independent of
+the checkout's absolute root; the absolute scene path remains available as
+provenance. Unresolved
 URI/data resources are listed and make the manifest `complete: false` instead
 of being treated as hashed evidence. OBJ/MTL dependency lines are capped at
 1 MiB so malformed or pathological text cannot force an unbounded line read.

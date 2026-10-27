@@ -50,13 +50,15 @@ def _stat_identity(info: os.stat_result) -> tuple[int, ...]:
     )
 
 
-def _asset_references_and_digest(path: Path, *, max_bytes: int) -> tuple[list[str], int, str]:
+def _asset_references_and_digest(
+    path: Path, *, max_bytes: int, limit_error: str
+) -> tuple[list[str], int, str]:
     """Inspect and hash one regular asset through a stable open descriptor."""
     before_path = os.lstat(path)
     if not stat.S_ISREG(before_path.st_mode):
         raise ValueError(f"scene asset must be a regular file: {path}")
     if before_path.st_size > max_bytes:
-        raise ValueError(f"scene asset exceeds the configured byte limit: {path}")
+        raise ValueError(f"{limit_error}: {path}")
     flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
     descriptor = os.open(path, flags)
     try:
@@ -89,7 +91,7 @@ def _asset_references_and_digest(path: Path, *, max_bytes: int) -> tuple[list[st
                 ):
                     parsed_bytes += len(line)
                     if parsed_bytes > max_bytes:
-                        raise ValueError(f"scene asset exceeds the configured byte limit: {path}")
+                        raise ValueError(f"{limit_error}: {path}")
                     if len(line) == MAX_SCENE_ASSET_TEXT_LINE_BYTES and not line.endswith(b"\n"):
                         raise ValueError("scene asset text line exceeds the parser limit")
                     tokens = shlex.split(line.decode("utf-8", errors="replace"), comments=True)
@@ -111,7 +113,7 @@ def _asset_references_and_digest(path: Path, *, max_bytes: int) -> tuple[list[st
         while block := os.read(descriptor, min(1024 * 1024, max_bytes + 1 - byte_count)):
             byte_count += len(block)
             if byte_count > max_bytes:
-                raise ValueError(f"scene asset exceeds the configured byte limit: {path}")
+                raise ValueError(f"{limit_error}: {path}")
             digest.update(block)
         after = os.fstat(descriptor)
         after_path = os.lstat(path)
@@ -166,12 +168,16 @@ def scene_asset_manifest(
         discovered.add(current)
         if not current.is_file():
             raise FileNotFoundError(f"RT scene asset not found: {current}")
+        remaining_set_bytes = max_total_bytes - total_bytes
+        asset_byte_limit = min(max_asset_bytes, remaining_set_bytes)
+        if remaining_set_bytes < max_asset_bytes:
+            limit_error = "scene asset set exceeds the configured total byte limit"
+        else:
+            limit_error = "scene asset exceeds the configured per-asset byte limit"
         references, byte_count, asset_sha256 = _asset_references_and_digest(
-            current, max_bytes=max_asset_bytes
+            current, max_bytes=asset_byte_limit, limit_error=limit_error
         )
         total_bytes += byte_count
-        if total_bytes > max_total_bytes:
-            raise ValueError("scene asset set exceeds the configured total byte limit")
 
         try:
             label = current.relative_to(xml_path.parent).as_posix()
