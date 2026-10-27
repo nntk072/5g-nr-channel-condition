@@ -68,6 +68,10 @@ _MODEL_FEATURE_ROUTES = {
     "label_permuted": ("observed_cfr", "flattened_real_imag_cfr_v1"),
     "row_shuffled": ("observed_cfr", "flattened_real_imag_cfr_v1"),
     "source_only": ("source", "train_vocabulary_source_one_hot_v1"),
+    "metadata_only": (
+        "group/domain/source",
+        "train_vocabulary_group_domain_source_one_hot_v1",
+    ),
     "power_only": ("observed_cfr", "log_power_per_link_subcarrier_v1"),
     "phase_randomized": ("observed_cfr", "iid_phase_randomized_flattened_real_imag_cfr_v1"),
     "observable_features": ("observed_cfr", "logmag_pdp_moments_v1"),
@@ -82,6 +86,7 @@ _MODEL_METHODS = frozenset(
         "label_permuted",
         "row_shuffled",
         "source_only",
+        "metadata_only",
         "power_only",
         "phase_randomized",
         "logreg",
@@ -338,6 +343,90 @@ def _source_only_features(
     return features, transform
 
 
+def _metadata_only_features(
+    *,
+    group_values: np.ndarray,
+    domain_values: np.ndarray,
+    source_values: np.ndarray,
+    train_indices: np.ndarray,
+    max_feature_cells: int = 16_000_000,
+) -> tuple[np.ndarray, dict[str, Any]]:
+    """Build a bounded metadata-leakage control from group/domain/source IDs.
+
+    This diagnostic intentionally tests whether non-signal identity fields can
+    predict labels. The categorical vocabulary is fitted on training rows only;
+    unseen validation/test values map to zero. It is not a receiver feature
+    route and is excluded from deployment model recommendations.
+    """
+    fields = {
+        "domain": np.asarray(domain_values),
+        "group": np.asarray(group_values),
+        "source": np.asarray(source_values),
+    }
+    sizes = {values.shape for values in fields.values()}
+    if len(sizes) != 1 or next(iter(sizes))[0] < 1 or next(iter(sizes))[1:] != ():
+        raise ValueError("metadata-only control requires equal nonempty 1D identifier rosters")
+    row_count = next(iter(sizes))[0]
+    for name, values in fields.items():
+        if any(
+            not isinstance(value, (str, np.str_))
+            or not str(value)
+            or str(value) != str(value).strip()
+            or "\x00" in str(value)
+            for value in values
+        ):
+            raise ValueError(f"metadata-only {name} IDs must be canonical nonempty strings")
+    if (
+        not isinstance(train_indices, np.ndarray)
+        or train_indices.ndim != 1
+        or not np.issubdtype(train_indices.dtype, np.integer)
+        or np.issubdtype(train_indices.dtype, np.bool_)
+        or len(train_indices) < 1
+        or np.any(train_indices < 0)
+        or np.any(train_indices >= row_count)
+        or len(np.unique(train_indices)) != len(train_indices)
+    ):
+        raise ValueError("metadata-only training indices are invalid")
+    if (
+        isinstance(max_feature_cells, bool)
+        or not isinstance(max_feature_cells, int)
+        or max_feature_cells < 1
+    ):
+        raise ValueError("max_feature_cells must be a positive integer")
+    vocabulary = tuple(
+        sorted({(name, str(fields[name][index])) for name in fields for index in train_indices})
+    )
+    if row_count * len(vocabulary) > max_feature_cells:
+        raise ValueError(
+            "metadata-only dense feature matrix exceeds max_feature_cells; "
+            "reduce the cohort or raise the explicit diagnostic ceiling"
+        )
+    column_by_value = {value: index for index, value in enumerate(vocabulary)}
+    features = np.zeros((row_count, len(vocabulary)), dtype=np.float32)
+    for row in range(row_count):
+        for name, values in fields.items():
+            column = column_by_value.get((name, str(values[row])))
+            if column is not None:
+                features[row, column] = 1.0
+    transform = {
+        "schema": "loslab.metadata_only_vocabulary.v1",
+        "algorithm": "sorted_training_group_domain_source_one_hot_unknown_zero_v1",
+        "implementation_sha256": hashlib.sha256(
+            inspect.getsource(_metadata_only_features).encode("utf-8")
+        ).hexdigest(),
+        "fields": ["domain", "group", "source"],
+        "vocabulary": [[name, value] for name, value in vocabulary],
+        "vocabulary_sha256": canonical_hash([[name, value] for name, value in vocabulary]),
+        "group_values_sha256": _array_sha256(np.asarray(fields["group"], dtype=str)),
+        "domain_values_sha256": _array_sha256(np.asarray(fields["domain"], dtype=str)),
+        "source_values_sha256": _array_sha256(np.asarray(fields["source"], dtype=str)),
+        "training_indices_sha256": _array_sha256(train_indices),
+        "max_feature_cells": max_feature_cells,
+        "unknown_category_behavior": "all_zero_vector_for_unknown_field_value",
+    }
+    return features, transform
+
+
 def _array_sha256(array: np.ndarray) -> str:
     value = np.ascontiguousarray(array)
     header = json.dumps(
@@ -358,6 +447,8 @@ def _feature_transform_implementation_sha256(method: str) -> str:
         transform = _identity_complex_cfr
     elif method == "source_only":
         transform = _source_only_features
+    elif method == "metadata_only":
+        transform = _metadata_only_features
     elif method in ("raw_mlp", "label_permuted", "row_shuffled"):
         transform = _flatten_real_imag_cfr
     elif method == "power_only":
@@ -427,6 +518,7 @@ def build_model_input_artifact_contract(
     feature_permutation_seed: int | None = None,
     feature_permutation_run_seed: int | None = None,
     source_values: np.ndarray | None = None,
+    metadata_values: dict[str, np.ndarray] | None = None,
 ) -> dict[str, Any]:
     """Bind a saved model to its audited observation-only input route."""
     if method not in _MODEL_METHODS:
@@ -459,7 +551,9 @@ def build_model_input_artifact_contract(
         method, ("observed_cfr", "logmag_pdp_moments_v1")
     )
     input_contract_version = (
-        "v7"
+        "v8"
+        if method == "metadata_only"
+        else "v7"
         if method == "source_only"
         else "v6"
         if method == "row_shuffled"
@@ -476,10 +570,12 @@ def build_model_input_artifact_contract(
         "method": method,
         "source_dataclass": (
             "datasets.channel.ChannelDataset"
-            if method == "source_only"
+            if method in {"source_only", "metadata_only"}
             else "datasets.channel.ChannelModelInputs"
         ),
-        "allowed_source_fields": [source_feature],
+        "allowed_source_fields": (
+            ["group", "domain", "source"] if method == "metadata_only" else [source_feature]
+        ),
         "excluded_truth_and_metadata_fields": (
             [
                 "data.y",
@@ -491,6 +587,14 @@ def build_model_input_artifact_contract(
                 "target_values",
             ]
             if method == "source_only"
+            else [
+                "data.y",
+                "data.metadata",
+                "observed_cfr",
+                "PathOracleTable",
+                "target_values",
+            ]
+            if method == "metadata_only"
             else [
                 "data.y",
                 "data.metadata",
@@ -583,6 +687,21 @@ def build_model_input_artifact_contract(
         feature_contract["source_vocabulary_transform"] = source_transform
     elif source_values is not None:
         raise ValueError("source identifiers are only valid for the source_only method")
+    if method == "metadata_only":
+        expected_names = {"group", "domain", "source"}
+        if not isinstance(metadata_values, dict) or set(metadata_values) != expected_names:
+            raise ValueError("metadata-only contracts require group, domain, and source rosters")
+        expected_features, metadata_transform = _metadata_only_features(
+            group_values=metadata_values["group"],
+            domain_values=metadata_values["domain"],
+            source_values=metadata_values["source"],
+            train_indices=checked_indices["train"],
+        )
+        if not np.array_equal(expected_features, method_input):
+            raise ValueError("metadata-only features differ from the training vocabulary transform")
+        feature_contract["metadata_vocabulary_transform"] = metadata_transform
+    elif metadata_values is not None:
+        raise ValueError("metadata identifiers are only valid for the metadata_only method")
     feature_contract_sha256 = canonical_hash(feature_contract)
     return {
         "schema": f"loslab.model_input_artifact_contract.{input_contract_version}",
@@ -603,6 +722,7 @@ def verify_model_input_artifact_contract(
     target_values: np.ndarray | None = None,
     source_method_input: np.ndarray | None = None,
     source_values: np.ndarray | None = None,
+    metadata_values: dict[str, np.ndarray] | None = None,
 ) -> dict[str, Any]:
     """Verify that a saved model is bound to a canonical observation-only input contract."""
     sidecar_path = Path(model_info_path)
@@ -661,6 +781,7 @@ def verify_model_input_artifact_contract(
         "loslab.model_input_artifact_contract.v5": "v5",
         "loslab.model_input_artifact_contract.v6": "v6",
         "loslab.model_input_artifact_contract.v7": "v7",
+        "loslab.model_input_artifact_contract.v8": "v8",
     }.get(contract_schema)
     if schema_version is None:
         raise ValueError("model input artifact contract schema is unsupported")
@@ -710,6 +831,7 @@ def verify_model_input_artifact_contract(
         "loslab.model_input_artifact_contract.v5",
         "loslab.model_input_artifact_contract.v6",
         "loslab.model_input_artifact_contract.v7",
+        "loslab.model_input_artifact_contract.v8",
     }:
         expected_feature_fields.update(
             {
@@ -724,6 +846,8 @@ def verify_model_input_artifact_contract(
         expected_feature_fields.add("feature_row_permutation")
     if contract_schema == "loslab.model_input_artifact_contract.v7":
         expected_feature_fields.add("source_vocabulary_transform")
+    if contract_schema == "loslab.model_input_artifact_contract.v8":
+        expected_feature_fields.add("metadata_vocabulary_transform")
     if not isinstance(feature, dict) or set(feature) != expected_feature_fields:
         raise ValueError("model feature contract fields are invalid")
     method = feature.get("method")
@@ -741,6 +865,7 @@ def verify_model_input_artifact_contract(
             "label_permuted",
             "row_shuffled",
             "source_only",
+            "metadata_only",
             "logreg",
         }
         else "loslab.model_input_artifact.v1"
@@ -767,10 +892,11 @@ def verify_model_input_artifact_contract(
         or feature.get("source_dataclass")
         != (
             "datasets.channel.ChannelDataset"
-            if method == "source_only"
+            if method in {"source_only", "metadata_only"}
             else "datasets.channel.ChannelModelInputs"
         )
-        or feature.get("allowed_source_fields") != [expected_route[0]]
+        or feature.get("allowed_source_fields")
+        != (["group", "domain", "source"] if method == "metadata_only" else [expected_route[0]])
         or feature.get("excluded_truth_and_metadata_fields")
         != (
             [
@@ -783,6 +909,14 @@ def verify_model_input_artifact_contract(
                 "target_values",
             ]
             if method == "source_only"
+            else [
+                "data.y",
+                "data.metadata",
+                "observed_cfr",
+                "PathOracleTable",
+                "target_values",
+            ]
+            if method == "metadata_only"
             else [
                 "data.y",
                 "data.metadata",
@@ -812,6 +946,7 @@ def verify_model_input_artifact_contract(
         "loslab.model_input_artifact_contract.v5",
         "loslab.model_input_artifact_contract.v6",
         "loslab.model_input_artifact_contract.v7",
+        "loslab.model_input_artifact_contract.v8",
     }:
         if method_input is not None:
             matrix = feature["feature_matrix"]
@@ -917,6 +1052,26 @@ def verify_model_input_artifact_contract(
             features, method_input
         ):
             raise ValueError("source-only feature vocabulary does not replay from training IDs")
+    if contract_schema == "loslab.model_input_artifact_contract.v8":
+        if method != "metadata_only" or metadata_values is None:
+            raise ValueError("metadata-only contract verification requires metadata ID rosters")
+        if (
+            method_input is None
+            or partition_indices is None
+            or not isinstance(metadata_values, dict)
+            or set(metadata_values) != {"group", "domain", "source"}
+        ):
+            raise ValueError("metadata-only verification inputs are incomplete")
+        features, replayed_transform = _metadata_only_features(
+            group_values=metadata_values["group"],
+            domain_values=metadata_values["domain"],
+            source_values=metadata_values["source"],
+            train_indices=partition_indices["train"],
+        )
+        if replayed_transform != feature.get("metadata_vocabulary_transform") or not np.array_equal(
+            features, method_input
+        ):
+            raise ValueError("metadata-only feature vocabulary does not replay from training IDs")
     files = contract.get("training_input_files")
     if (
         not isinstance(files, list)
@@ -1344,6 +1499,9 @@ def run_experiment(
         "source_only_control": (
             "one-hot source identifiers with a vocabulary fit only on training rows; unseen evaluation identifiers map to all zeros"
         ),
+        "metadata_only_control": (
+            "bounded training-vocabulary one-hot group/domain/source identifiers; this is an intentional metadata-leakage diagnostic, not a receiver feature"
+        ),
         "cnn_input_representation": "per-link real/imaginary channels over ordered subcarriers",
         "cvnn_input_representation": (
             "complex convolution, phase-equivariant encoding, magnitude-invariant classifier"
@@ -1425,6 +1583,13 @@ def run_experiment(
                 if method == "power_only"
                 else phase_randomized
                 if method == "phase_randomized"
+                else _metadata_only_features(
+                    group_values=data.group,
+                    domain_values=data.domain,
+                    source_values=data.source,
+                    train_indices=train,
+                )[0]
+                if method == "metadata_only"
                 else x
             )
             if method == "label_permuted":
@@ -1457,6 +1622,7 @@ def run_experiment(
                 "label_permuted",
                 "row_shuffled",
                 "source_only",
+                "metadata_only",
                 "power_only",
                 "phase_randomized",
                 "logreg",
@@ -1472,7 +1638,7 @@ def run_experiment(
                     else "mlp"
                     if method == "row_shuffled"
                     else "logreg"
-                    if method in ("power_only", "source_only")
+                    if method in ("power_only", "source_only", "metadata_only")
                     else "mlp"
                     if method == "phase_randomized"
                     else method,
@@ -1628,6 +1794,11 @@ def run_experiment(
                 ),
                 feature_permutation_run_seed=(int(seed) if method == "row_shuffled" else None),
                 source_values=(data.source if method == "source_only" else None),
+                metadata_values=(
+                    {"group": data.group, "domain": data.domain, "source": data.source}
+                    if method == "metadata_only"
+                    else None
+                ),
             )
             model_info_path = layout.models / f"{method}_seed{seed}_modelinfo.json"
             atomic_json(
@@ -1645,6 +1816,7 @@ def run_experiment(
                             "label_permuted",
                             "row_shuffled",
                             "source_only",
+                            "metadata_only",
                             "power_only",
                             "phase_randomized",
                             "logreg",
@@ -1669,6 +1841,11 @@ def run_experiment(
                 target_values=data.y if method == "label_permuted" else None,
                 source_method_input=raw_real_imag if method == "row_shuffled" else None,
                 source_values=data.source if method == "source_only" else None,
+                metadata_values=(
+                    {"group": data.group, "domain": data.domain, "source": data.source}
+                    if method == "metadata_only"
+                    else None
+                ),
             )
             test_prediction_started = perf_counter()
             test_scores_raw = clf.predict_proba(method_input[test])[:, 1]
@@ -1771,6 +1948,8 @@ def run_experiment(
                     if method == "row_shuffled"
                     else "training-vocabulary one-hot source identifiers"
                     if method == "source_only"
+                    else "training-vocabulary one-hot group/domain/source metadata leakage control"
+                    if method == "metadata_only"
                     else "engineered observable features"
                 ),
                 "metrics": metrics,
@@ -1879,6 +2058,7 @@ def run_experiment(
         ("raw_mlp", "label_permuted"),
         ("raw_mlp", "row_shuffled"),
         ("raw_mlp", "source_only"),
+        ("raw_mlp", "metadata_only"),
         ("cnn", "raw_mlp"),
         ("cvnn", "raw_mlp"),
         ("xgb", "mlp"),

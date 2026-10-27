@@ -988,6 +988,105 @@ def test_source_only_vocabulary_fits_training_rows_and_zeros_unknowns() -> None:
     assert transform["unknown_category_behavior"] == "all_zero_vector"
 
 
+def test_metadata_only_vocabulary_is_train_fitted_bounded_and_namespaced() -> None:
+    from experiments.runner import _metadata_only_features
+
+    groups = np.asarray(["g1", "g2", "future", "future"])
+    domains = np.asarray(["d1", "d1", "d2", "d2"])
+    sources = np.asarray(["s1", "s2", "s3", "s3"])
+    features, transform = _metadata_only_features(
+        group_values=groups,
+        domain_values=domains,
+        source_values=sources,
+        train_indices=np.asarray([0, 1], dtype=np.int64),
+    )
+
+    assert features.shape == (4, 5)
+    assert transform["fields"] == ["domain", "group", "source"]
+    assert transform["unknown_category_behavior"] == "all_zero_vector_for_unknown_field_value"
+    assert np.all(features[2:, 1:] == 0.0)
+    with pytest.raises(ValueError, match="max_feature_cells"):
+        _metadata_only_features(
+            group_values=groups,
+            domain_values=domains,
+            source_values=sources,
+            train_indices=np.asarray([0, 1], dtype=np.int64),
+            max_feature_cells=1,
+        )
+
+
+def test_run_experiment_routes_metadata_only_as_replayable_shared_split_control(
+    tmp_path, monkeypatch
+) -> None:
+    import experiments.runner as runner
+
+    source = tmp_path / "debug.npz"
+    debug_multipath(n_scenes=8, links_per_scene=16, seed=101).save(source)
+    original_fit = runner.fit_sklearn
+    captures = []
+
+    def capture_fit(values, labels, *, seed, method, capacity):
+        captures.append((values.copy(), labels.copy(), method))
+        return original_fit(values, labels, seed=seed, method="logreg", capacity=capacity)
+
+    monkeypatch.setattr(runner, "fit_sklearn", capture_fit)
+    output = tmp_path / "runs" / "metadata-only"
+    run_experiment(
+        [source],
+        output,
+        methods=("metadata_only", "raw_mlp"),
+        seeds=(47,),
+        bootstrap=10,
+    )
+
+    result = json.loads((output / "results.json").read_text(encoding="utf-8"))
+    summary = json.loads((output / "summary.json").read_text(encoding="utf-8"))
+    metadata_result = next(row for row in result if row["method"] == "metadata_only")
+    raw_result = next(row for row in result if row["method"] == "raw_mlp")
+    sidecar_path = output / "models" / "metadata_only_seed47_modelinfo.json"
+    sidecar = json.loads(sidecar_path.read_text(encoding="utf-8"))
+    contract = sidecar["model_input_artifact_contract"]
+    prediction = np.load(output / "predictions" / "metadata_only_seed47.npz")
+    dataset = ChannelDataset.load(source)
+    expected_features, expected_transform = runner._metadata_only_features(
+        group_values=dataset.group,
+        domain_values=dataset.domain,
+        source_values=dataset.source,
+        train_indices=prediction["train_idx"],
+    )
+
+    assert [method for _values, _labels, method in captures] == ["logreg", "mlp"]
+    np.testing.assert_array_equal(captures[0][0], expected_features[prediction["train_idx"]])
+    np.testing.assert_array_equal(captures[0][1], dataset.y[prediction["train_idx"]])
+    assert metadata_result["split"]["indices_sha256"] == raw_result["split"]["indices_sha256"]
+    assert "metadata_only_versus_raw_mlp" in summary["paired_method_comparisons"]
+    assert contract["schema"] == "loslab.model_input_artifact_contract.v8"
+    assert contract["feature_contract"]["metadata_vocabulary_transform"] == expected_transform
+    assert contract["feature_contract"]["allowed_source_fields"] == [
+        "group",
+        "domain",
+        "source",
+    ]
+    assert (
+        verify_model_input_artifact_contract(
+            sidecar_path,
+            output / "models" / "metadata_only_seed47.joblib",
+            method_input=expected_features,
+            partition_indices={
+                "train": prediction["train_idx"],
+                "validation": prediction["val_idx"],
+                "test": prediction["test_idx"],
+            },
+            metadata_values={
+                "group": dataset.group,
+                "domain": dataset.domain,
+                "source": dataset.source,
+            },
+        )["status"]
+        == "PASS_MODEL_INPUT_ARTIFACT_BINDING"
+    )
+
+
 def test_run_experiment_routes_source_only_on_shared_split(tmp_path, monkeypatch) -> None:
     import experiments.runner as runner
 

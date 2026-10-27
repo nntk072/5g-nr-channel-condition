@@ -69,13 +69,38 @@ source-field exception, training vocabulary, exact source roster digest, and
 encoder implementation digest, and verifies the vocabulary from training
 rows.
 
+The `metadata_only` control is a broader leakage diagnostic over exactly the
+`group`, `domain`, and `source` identifiers. It uses logistic regression and
+the same per-seed split as `raw_mlp`. Each field is namespaced before its
+training-only vocabulary is one-hot encoded; field values unseen during
+training map to zero. This route is deliberately not receiver-observable and
+must not be used as a deployment model. The dense diagnostic matrix is capped
+at 16,000,000 cells and fails before allocation when the selected cohort would
+exceed that limit. Compare with:
+
+```sh
+python -m loslab experiment \
+  --input <receiver-observations.npz> \
+  --output <new-run-directory> \
+  --observation precomputed \
+  --methods metadata_only raw_mlp \
+  --seeds 11 23 47 59 71 \
+  --bootstrap 200
+```
+
+Model-input contract/schema v8 records the exact metadata field roster,
+training vocabulary, full source-roster digests, implementation identity, and
+feature-matrix digests. Verification replays the transform using the retained
+split indices and dataset identifiers.
+
 The versioned schemas are
 `datasets/schema/model-input-artifact-contract.v3.schema.json` through
-`datasets/schema/model-input-artifact-contract.v7.schema.json`; v1-v7 readers
+`datasets/schema/model-input-artifact-contract.v8.schema.json`; v1-v8 readers
 remain available. Results are simulation-only diagnostics and do not show
 that any control predicts measured or deployment channels.
 
-G8.08 remains partial. Other metadata-only, explicit oracle-leak controls, and
-physical classical estimators still need isolated routes and audit contracts
-before benchmarking. Row shuffling is restricted to the training partition
-and is not a time-series or temporal-dependence test.
+G8.08 remains partial. The metadata-only route covers group/domain/source
+identifiers; other metadata, explicit oracle-leak controls, and physical
+classical estimators still need isolated routes and audit contracts before
+benchmarking. Row shuffling is restricted to the training partition and is
+not a time-series or temporal-dependence test.
