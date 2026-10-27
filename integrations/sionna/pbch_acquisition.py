@@ -10,7 +10,7 @@ from typing import Sequence
 import numpy as np
 from numpy.typing import NDArray
 
-from .nr_sync import NRCellDetection, acquire_nr_cell
+from .nr_sync import MAX_PSS_SEARCH_CELLS, NRCellDetection, acquire_nr_cell
 from .pbch_ofdm_receiver import PBCHOFDMReception, nr_pbch_receive_ofdm
 
 _SUPPORTED_CANDIDATE_COUNTS = (4, 8, 10, 20, 64)
@@ -44,6 +44,7 @@ def nr_pbch_acquire_and_receive(
     minimum_sss_score: float = 0.4,
     device: str = "cpu",
     list_size: int = 8,
+    max_search_cells: int = MAX_PSS_SEARCH_CELLS,
 ) -> PBCHAcquisitionReception:
     """Acquire PCI/timing/CFO, then search DM-RS-visible candidate/half-frame pairs.
 
@@ -80,12 +81,9 @@ def nr_pbch_acquire_and_receive(
         raise ValueError("max_candidate_blocks_per_half_frame must be one of 4, 8, 10, 20, or 64")
 
     samples = np.asarray(capture)
-    if samples.ndim not in (1, 2) or samples.dtype.kind != "c" or not np.isfinite(samples).all():
-        raise ValueError("capture must be a finite complex vector or receive-chain matrix")
+    if samples.ndim not in (1, 2) or samples.dtype.kind != "c" or samples.size == 0:
+        raise ValueError("capture must be a nonempty complex vector or receive-chain matrix")
     single_receive_chain = samples.ndim == 1
-    samples = np.asarray(samples, dtype=np.complex128)
-    if single_receive_chain:
-        samples = samples[None, :]
     detection = acquire_nr_cell(
         samples,
         fft_size=fft_length,
@@ -96,7 +94,11 @@ def nr_pbch_acquire_and_receive(
         cfo_guard_samples=cfo_guard_samples,
         minimum_pss_score=minimum_pss_score,
         minimum_sss_score=minimum_sss_score,
+        max_search_cells=max_search_cells,
     )
+    samples = np.asarray(samples, dtype=np.complex128)
+    if single_receive_chain:
+        samples = samples[None, :]
 
     frame_samples = sum(fft_length + cp for cp in cp_lengths)
     frame_start = detection.sample_offset

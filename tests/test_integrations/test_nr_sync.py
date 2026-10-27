@@ -5,6 +5,7 @@ from typing import cast
 import numpy as np
 import pytest
 from integrations.sionna.nr_sync import (
+    MAX_PSS_SEARCH_CELLS,
     NRSyncNotFoundError,
     acquire_nr_cell,
     decode_nr_sss_symbol,
@@ -57,6 +58,35 @@ def test_pss_detection_whitens_a_high_energy_noisy_receive_chain() -> None:
 
     assert unweighted.nid2 == wrong_nid2
     assert weighted.nid2 == expected_nid2
+    assert weighted.search_cells == capture.size * 3
+    assert weighted.search_cell_limit == MAX_PSS_SEARCH_CELLS
+
+
+@pytest.mark.parametrize("acquire", [False, True])
+def test_pss_acquisition_enforces_search_budget_before_scanning_capture(acquire: bool) -> None:
+    capture = np.ones(1000, dtype=np.complex64)
+    capture[0] = np.nan
+    receiver = acquire_nr_cell if acquire else detect_nr_pss
+    with pytest.raises(ValueError, match="exceeds max_search_cells"):
+        receiver(
+            capture,
+            fft_size=256,
+            cyclic_prefix_length=32,
+            sampling_frequency_hz=7_680_000.0,
+            cfo_hypotheses_hz=(0.0, 1000.0),
+            max_search_cells=1,
+        )
+
+
+def test_pss_search_limit_cannot_raise_the_bounded_work_ceiling() -> None:
+    with pytest.raises(ValueError, match="cannot exceed the hard ceiling"):
+        detect_nr_pss(
+            np.ones(288, dtype=np.complex64),
+            fft_size=256,
+            cyclic_prefix_length=32,
+            sampling_frequency_hz=7_680_000.0,
+            max_search_cells=MAX_PSS_SEARCH_CELLS + 1,
+        )
 
 
 def test_sss_detection_whitens_a_high_energy_noisy_receive_chain() -> None:
@@ -193,6 +223,9 @@ def test_blind_pss_sss_acquisition_recovers_timing_cfo_and_cell_id() -> None:
     assert result.cfo_hz == pytest.approx(cfo_hz, abs=100.0)
     assert result.pss_score > 0.9
     assert result.sss_score > 0.9
+    expected_search_cells = (capture.size - 2 * (fft_size + cp_length)) * 3 * 13 + 336 * 127
+    assert result.search_cells == expected_search_cells
+    assert result.search_cell_limit == MAX_PSS_SEARCH_CELLS
 
 
 def test_nr_sync_rejects_invalid_identity_and_capture() -> None:
@@ -247,9 +280,7 @@ def test_pss_sss_acquisition_rejects_real_valued_capture_arrays():
     ],
 )
 def test_pss_acquisition_rejects_boolean_and_string_numeric_aliases(overrides, message):
-    capture = modulate_nr_sync_symbol(
-        nr_pss_sequence(0), fft_size=256, cyclic_prefix_length=32
-    )
+    capture = modulate_nr_sync_symbol(nr_pss_sequence(0), fft_size=256, cyclic_prefix_length=32)
     arguments = {
         "fft_size": 256,
         "cyclic_prefix_length": 32,

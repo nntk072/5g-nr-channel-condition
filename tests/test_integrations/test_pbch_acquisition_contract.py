@@ -68,3 +68,16 @@ def test_pbch_acquisition_preflights_decoder_configuration_before_cell_search(
             device=device,
             list_size=list_size,
         )
+
+
+def test_pbch_acquisition_applies_the_pss_search_work_limit_before_capture_decode():
+    with pytest.raises(ValueError, match="exceeds max_search_cells"):
+        pbch_acquisition.nr_pbch_acquire_and_receive(
+            np.ones(2000, dtype=np.complex64),
+            fft_size=512,
+            cyclic_prefix_lengths=(36, 36, 36, 36),
+            sampling_frequency_hz=30.72e6,
+            max_candidate_blocks_per_half_frame=4,
+            noise_variance=1.0,
+            max_search_cells=1,
+        )

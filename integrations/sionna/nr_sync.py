@@ -18,6 +18,7 @@ from scipy.optimize import minimize_scalar
 from scipy.signal import correlate
 
 ComplexArray = NDArray[np.complex128]
+MAX_PSS_SEARCH_CELLS = 16_000_000
 
 
 class NRSyncNotFoundError(ValueError):
@@ -33,6 +34,8 @@ class PSSDetection:
     cfo_hz: float
     normalized_score: float
     fractional_sample_offset: float = 0.0
+    search_cells: int = 0
+    search_cell_limit: int = MAX_PSS_SEARCH_CELLS
 
 
 @dataclass(frozen=True, slots=True)
@@ -47,6 +50,8 @@ class NRCellDetection:
     pss_score: float
     sss_score: float
     fractional_sample_offset: float = 0.0
+    search_cells: int = 0
+    search_cell_limit: int = MAX_PSS_SEARCH_CELLS
 
 
 def _validate_identity(nid1: int, nid2: int | None = None) -> None:
@@ -175,6 +180,7 @@ def detect_nr_pss(
     fractional_timing_hypotheses_samples: tuple[float, ...] = (0.0,),
     cfo_guard_samples: int = 0,
     minimum_score: float = 0.3,
+    max_search_cells: int = MAX_PSS_SEARCH_CELLS,
 ) -> PSSDetection:
     """Search timing/CFO hypotheses and refine CFO using repeated PSS CP samples.
 
@@ -193,6 +199,13 @@ def detect_nr_pss(
     and is unambiguous only within ``±sampling_frequency_hz/(2*fft_size)``.
     ``cfo_guard_samples`` skips CP samples contaminated by a known channel-delay
     upper bound.
+
+    The coarse PSS search is preflight-bounded by
+    ``sample_count * receive_chains * 3 * len(cfo_hypotheses_hz) *
+    len(fractional_timing_hypotheses_samples)``. The default hard ceiling is
+    16,000,000 cells; a caller may choose a smaller ``max_search_cells``. The
+    limit is checked before a full-capture finite scan or complex128 copy, and
+    the PSS result records the computed cells and applicable limit.
     """
     _validate_ofdm(fft_size, cyclic_prefix_length)
     sample_rate = _finite_real(sampling_frequency_hz, "sampling_frequency_hz")
@@ -224,19 +237,26 @@ def detect_nr_pss(
         )
     except ValueError as error:
         raise ValueError("fractional timing hypotheses must be finite") from error
-    if (
-        any(not -0.5 <= value < 0.5 for value in fractional_grid)
-        or len(set(fractional_grid)) != len(fractional_grid)
-    ):
+    if any(not -0.5 <= value < 0.5 for value in fractional_grid) or len(
+        set(fractional_grid)
+    ) != len(fractional_grid):
         raise ValueError("fractional timing hypotheses must be unique values in [-0.5, 0.5)")
+    search_cell_limit = _positive_integer(max_search_cells, "max_search_cells")
+    if search_cell_limit > MAX_PSS_SEARCH_CELLS:
+        raise ValueError(
+            f"max_search_cells cannot exceed the hard ceiling of {MAX_PSS_SEARCH_CELLS}"
+        )
     raw_samples = np.asarray(capture)
-    if (
-        raw_samples.ndim not in (1, 2)
-        or raw_samples.dtype.kind != "c"
-        or raw_samples.size == 0
-        or not np.isfinite(raw_samples).all()
-    ):
+    if raw_samples.ndim not in (1, 2) or raw_samples.dtype.kind != "c" or raw_samples.size == 0:
         raise ValueError("capture must be a finite complex vector or receive-chain matrix")
+    search_cells = _pss_search_cell_count(raw_samples.size, len(cfo_grid), len(fractional_grid))
+    if search_cells > search_cell_limit:
+        raise ValueError(
+            "PSS acquisition exceeds max_search_cells "
+            f"({search_cells} cells, limit {search_cell_limit})"
+        )
+    if not np.isfinite(raw_samples).all():
+        raise ValueError("capture must contain only finite complex samples")
     samples = np.asarray(raw_samples, dtype=np.complex128)
     if samples.ndim == 1:
         samples = samples[None, :]
@@ -268,9 +288,7 @@ def detect_nr_pss(
                 fractional_delay_samples=float(fractional_delay),
             )
             for cfo_hz in cfo_grid:
-                template = base * np.exp(
-                    2j * np.pi * cfo_hz * sample_axis / sample_rate
-                )
+                template = base * np.exp(2j * np.pi * cfo_hz * sample_axis / sample_rate)
                 correlations = np.stack(
                     [correlate(chain, template, mode="valid", method="fft") for chain in samples],
                     axis=0,
@@ -359,15 +377,15 @@ def detect_nr_pss(
         raise NRSyncNotFoundError(
             "PSS cyclic-prefix correlation has insufficient energy for CFO refinement"
         )
-    refined_cfo_hz = (
-        float(np.angle(cp_correlation)) * sample_rate / (2.0 * np.pi * fft_size)
-    )
+    refined_cfo_hz = float(np.angle(cp_correlation)) * sample_rate / (2.0 * np.pi * fft_size)
     return PSSDetection(
         best.sample_offset,
         best.nid2,
         refined_cfo_hz,
         best.normalized_score,
         best.fractional_sample_offset,
+        search_cells,
+        search_cell_limit,
     )
 
 
@@ -445,6 +463,7 @@ def acquire_nr_cell(
     cfo_guard_samples: int = 0,
     minimum_pss_score: float = 0.3,
     minimum_sss_score: float = 0.4,
+    max_search_cells: int = MAX_PSS_SEARCH_CELLS,
 ) -> NRCellDetection:
     """Acquire integer PSS timing and the 1008-cell identity from PSS/SSS.
 
@@ -457,6 +476,10 @@ def acquire_nr_cell(
     The SSS decoder reuses a PSS-derived per-subcarrier channel estimate,
     assuming a static channel over the PSS-to-SSS interval. This is a controlled
     cell-search reference, not a complete or standards-certified NR synchronizer.
+
+    The same ceiling includes both PSS search and ``receive_chains * 336 * 127``
+    SSS identity-search cells. The returned cell-detection result records this
+    combined estimate and the applicable limit.
     """
     _validate_ofdm(fft_size, cyclic_prefix_length)
     sample_rate = _finite_real(sampling_frequency_hz, "sampling_frequency_hz")
@@ -466,20 +489,39 @@ def acquire_nr_cell(
     if not 0.0 <= minimum_sss_score <= 1.0:
         raise ValueError("minimum_sss_score must be finite and in [0, 1]")
     raw_samples = np.asarray(capture)
-    if (
-        raw_samples.ndim not in (1, 2)
-        or raw_samples.dtype.kind != "c"
-        or raw_samples.size == 0
-        or not np.isfinite(raw_samples).all()
-    ):
+    if raw_samples.ndim not in (1, 2) or raw_samples.dtype.kind != "c" or raw_samples.size == 0:
         raise ValueError("capture must be a finite complex vector or receive-chain matrix")
+    search_cell_limit = _positive_integer(max_search_cells, "max_search_cells")
+    if search_cell_limit > MAX_PSS_SEARCH_CELLS:
+        raise ValueError(
+            f"max_search_cells cannot exceed the hard ceiling of {MAX_PSS_SEARCH_CELLS}"
+        )
+    cfo_count = _hypothesis_count(cfo_hypotheses_hz, "CFO hypotheses")
+    fractional_count = _hypothesis_count(
+        fractional_timing_hypotheses_samples, "fractional timing hypotheses"
+    )
+    receive_chains = raw_samples.shape[0] if raw_samples.ndim == 2 else 1
+    capture_samples = raw_samples.shape[1] if raw_samples.ndim == 2 else raw_samples.shape[0]
+    symbol_length = fft_size + cyclic_prefix_length
+    if capture_samples < 3 * symbol_length:
+        raise ValueError("capture is too short to contain both the PSS and the later SSS symbol")
+    pss_samples = receive_chains * (capture_samples - 2 * symbol_length)
+    pss_work_cells = _pss_search_cell_count(pss_samples, cfo_count, fractional_count)
+    sss_work_cells = receive_chains * 336 * 127
+    search_cells = pss_work_cells + sss_work_cells
+    if search_cells > search_cell_limit:
+        raise ValueError(
+            "NR cell acquisition exceeds max_search_cells "
+            f"({search_cells} cells, limit {search_cell_limit})"
+        )
+    if not np.isfinite(raw_samples).all():
+        raise ValueError("capture must contain only finite complex samples")
     samples = np.asarray(raw_samples, dtype=np.complex128)
     if samples.ndim == 1:
         samples = samples[None, :]
     variances = _noise_variance_by_chain(noise_variance, samples.shape[0])
-    symbol_length = fft_size + cyclic_prefix_length
-    if samples.shape[0] == 0 or samples.shape[1] < 3 * symbol_length:
-        raise ValueError("capture is too short to contain both the PSS and the later SSS symbol")
+    if samples.shape[0] == 0:
+        raise ValueError("capture must contain at least one receive chain")
     pss = detect_nr_pss(
         # Exclude candidate PSS positions too late to leave room for SSS at
         # SS/PBCH symbol index 2. Searching the trailing SSS/PBCH symbols as
@@ -493,6 +535,7 @@ def acquire_nr_cell(
         fractional_timing_hypotheses_samples=fractional_timing_hypotheses_samples,
         cfo_guard_samples=cfo_guard_samples,
         minimum_score=minimum_pss_score,
+        max_search_cells=search_cell_limit,
     )
     sss_start = pss.sample_offset + 2 * symbol_length
     sss_end = sss_start + symbol_length
@@ -531,7 +574,28 @@ def acquire_nr_cell(
         pss_score=pss.normalized_score,
         sss_score=sss_score,
         fractional_sample_offset=pss.fractional_sample_offset,
+        search_cells=pss.search_cells + sss_work_cells,
+        search_cell_limit=pss.search_cell_limit,
     )
+
+
+def _positive_integer(value: object, name: str) -> int:
+    if isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, np.integer)):
+        raise TypeError(f"{name} must be an integer")
+    result = int(value)
+    if result <= 0:
+        raise ValueError(f"{name} must be positive")
+    return result
+
+
+def _hypothesis_count(values: object, name: str) -> int:
+    if isinstance(values, (str, bytes)) or not isinstance(values, Sequence) or not values:
+        raise ValueError(f"{name} must be a nonempty sequence")
+    return len(values)
+
+
+def _pss_search_cell_count(sample_values: int, cfo_count: int, fractional_count: int) -> int:
+    return int(sample_values) * 3 * int(cfo_count) * int(fractional_count)
 
 
 def _noise_variance_by_chain(value: object, num_receive_chains: int) -> NDArray[np.float64]:
