@@ -11,13 +11,13 @@ pytest.importorskip("sionna.phy.fec.polar")
 
 from integrations.sionna import (  # noqa: E402
     PBCHMIB,
-    PBCHMessageClassExtension,
     NRSSBResourceGrid,
+    PBCHMessageClassExtension,
     PBCHOFDMReception,
     map_nr_ssb_resource_grid,
+    nr_bcch_bch_message_serialize,
     nr_pbch_acquire_and_receive,
     nr_pbch_bch_encode,
-    nr_bcch_bch_message_serialize,
     nr_pbch_mib_serialize,
     nr_pbch_payload_generate,
     nr_pbch_qpsk_modulate,
@@ -193,9 +193,7 @@ def test_pbch_receiver_preserves_message_class_extension_choice() -> None:
         half_frame_index=_HALF_FRAME,
         max_candidate_blocks_per_half_frame=_L_MAX,
     )
-    waveform = nr_ssb_ofdm_modulate(
-        ssb.grid, fft_size=_FFT_SIZE, cyclic_prefix_lengths=_CP_LENGTHS
-    )
+    waveform = nr_ssb_ofdm_modulate(ssb.grid, fft_size=_FFT_SIZE, cyclic_prefix_lengths=_CP_LENGTHS)
 
     result = nr_pbch_receive_ofdm(
         waveform,
@@ -484,8 +482,7 @@ def test_blind_acquisition_decodes_ssb_in_second_half_of_full_radio_frame() -> N
     )
 
     prior_samples = sum(
-        _FFT_SIZE + (20 if symbol % 14 in (0, 7) else 18)
-        for symbol in range(candidate_symbol)
+        _FFT_SIZE + (20 if symbol % 14 in (0, 7) else 18) for symbol in range(candidate_symbol)
     )
     expected_offset = timing_offset + radio_frame.sample_rate_hz // 200 + prior_samples
     assert result.cell_detection.sample_offset == expected_offset
@@ -560,8 +557,7 @@ def test_full_radio_frame_blind_pbch_acquisition_combines_two_receive_chains() -
     )
 
     prior_samples = sum(
-        _FFT_SIZE + (20 if symbol % 14 in (0, 7) else 18)
-        for symbol in range(candidate_symbol)
+        _FFT_SIZE + (20 if symbol % 14 in (0, 7) else 18) for symbol in range(candidate_symbol)
     )
     expected_offset = timing_offset + radio_frame.sample_rate_hz // 200 + prior_samples
     assert result.cell_detection.sample_offset == expected_offset

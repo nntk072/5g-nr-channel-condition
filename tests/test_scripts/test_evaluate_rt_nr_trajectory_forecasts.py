@@ -5,7 +5,6 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-
 from datasets.split_policy import (
     SplitChildBinding,
     SplitParentType,

@@ -5,16 +5,12 @@ from pathlib import Path
 
 import jsonschema
 import pytest
-
 from integrations.sionna.backend import RTBackendSelection
 from scripts.report_rt_backend_capabilities import build_rt_backend_capability_report
 
 
 def _schema() -> dict[str, object]:
-    path = (
-        Path(__file__).parents[2]
-        / "datasets/schema/rt-backend-capability-report.v1.schema.json"
-    )
+    path = Path(__file__).parents[2] / "datasets/schema/rt-backend-capability-report.v1.schema.json"
     schema = json.loads(path.read_text(encoding="utf-8"))
     jsonschema.Draft202012Validator.check_schema(schema)
     return schema

@@ -198,9 +198,16 @@ def decode_noisy_network_pusch(
     fft_size = grid_metadata.get("fft_size")
     symbol_count = grid_metadata.get("num_ofdm_symbols")
     subcarrier_spacing_hz = grid_metadata.get("subcarrier_spacing_hz")
-    if any(
-        isinstance(value, bool) or not isinstance(value, int) or value <= 0
-        for value in (fft_size, symbol_count, subcarrier_spacing_hz)
+    if (
+        isinstance(fft_size, bool)
+        or not isinstance(fft_size, int)
+        or fft_size <= 0
+        or isinstance(symbol_count, bool)
+        or not isinstance(symbol_count, int)
+        or symbol_count <= 0
+        or isinstance(subcarrier_spacing_hz, bool)
+        or not isinstance(subcarrier_spacing_hz, int)
+        or subcarrier_spacing_hz <= 0
     ):
         raise ValueError("receiver resource-grid dimensions and spacing must be positive integers")
     expected_sample_rate = fft_size * subcarrier_spacing_hz

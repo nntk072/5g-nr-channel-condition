@@ -6,7 +6,6 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-
 from evaluation.spherical_angular_power import (
     global_to_element_local_directions,
     map_element_frame_spherical_power,
@@ -19,9 +18,7 @@ def test_equal_solid_angle_quadrature_has_constant_full_sphere_density() -> None
     zenith_edges = np.asarray([0.0, math.pi / 2.0, math.pi])
     azimuth_edges = np.linspace(-math.pi, math.pi, 5)
     areas = spherical_cell_solid_angles(zenith_edges, azimuth_edges)
-    theta_centers = np.arccos(
-        (np.cos(zenith_edges[:-1]) + np.cos(zenith_edges[1:])) / 2.0
-    )
+    theta_centers = np.arccos((np.cos(zenith_edges[:-1]) + np.cos(zenith_edges[1:])) / 2.0)
     phi_centers = (azimuth_edges[:-1] + azimuth_edges[1:]) / 2.0
     theta, phi = np.meshgrid(theta_centers, phi_centers, indexing="ij")
 

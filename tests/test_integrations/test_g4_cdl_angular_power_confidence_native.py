@@ -37,9 +37,7 @@ _PROFILE_SHA256 = {
     "E": "04328f33d8d79b24aa3d0303fecb58b465ed7e13874930b05e76be0d97743480",
 }
 _ROOT = Path(__file__).resolve().parents[2]
-_TAP_ANGLE_REFERENCE_PATH = (
-    _ROOT / "docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
-)
+_TAP_ANGLE_REFERENCE_PATH = _ROOT / "docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
 _PROFILE_SCALAR_REFERENCE_PATH = (
     _ROOT / "docs/research/G4_CDL_PROFILE_SCALAR_REFERENCE_2026-10-26.json"
 )
@@ -117,11 +115,7 @@ def _profile_angular_sector_reference(
     angle_field, spread_field = _ANGLE_SPREAD_FIELDS[angle_name]
     is_los = bool(profile["los"])
     diffuse_components = sorted(
-        (
-            component
-            for component in profile["components"]
-            if component["component"] == "diffuse"
-        ),
+        (component for component in profile["components"] if component["component"] == "diffuse"),
         key=lambda component: float(component["normalized_delay"]),
     )
     diffuse_powers = torch.tensor(
@@ -156,9 +150,7 @@ def _profile_angular_sector_reference(
         specular_power = k_factor / (k_factor + 1.0)
         expected_tap_powers[0] += specular_power
         specular_component = next(
-            component
-            for component in profile["components"]
-            if component["component"] == "specular"
+            component for component in profile["components"] if component["component"] == "specular"
         )
         los_angle = float(specular_component["angles_deg"][angle_field])
         los_cosine = math.cos(math.radians(los_angle))
@@ -214,7 +206,6 @@ def test_cdl_angular_sector_power_matches_pinned_profile_confidence(
 ) -> None:
     """Check angular power in all four directions with simultaneous draw-level intervals."""
     profile, scalar = _independent_profile_references(model)
-    is_los = bool(profile["los"])
 
     channel = generate_cdl_frequency_response(
         model=model,

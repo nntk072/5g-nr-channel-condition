@@ -97,11 +97,17 @@ def _validate_composition(torch: Any, composition: Any) -> tuple[Any, Any]:
     powers = getattr(composition, "transmit_power_w_per_re", None)
     if not torch.is_tensor(contributions) or not torch.is_complex(contributions):
         raise TypeError("composition must contain complex PyTorch source contributions")
+    if contributions is None:
+        raise TypeError("composition must contain complex PyTorch source contributions")
     if contributions.ndim != 6:
         raise ValueError(
             "source contributions must have [batch, rx, rx_port, tx, symbol, subcarrier] axes"
         )
-    if not torch.is_tensor(received) or not torch.is_complex(received) or received.ndim != 5:
+    if received is None or not torch.is_tensor(received) or not torch.is_complex(received):
+        raise ValueError(
+            "composition received_grid must be complex [batch, rx, rx_port, symbol, subcarrier]"
+        )
+    if received.ndim != 5:
         raise ValueError(
             "composition received_grid must be complex [batch, rx, rx_port, symbol, subcarrier]"
         )
@@ -121,7 +127,9 @@ def _validate_composition(torch: Any, composition: Any) -> tuple[Any, Any]:
     summed = contributions.sum(dim=3)
     if not torch.allclose(received, summed, rtol=1e-5, atol=1e-7):
         raise ValueError("received_grid must equal the sum of source contributions")
-    if not torch.is_tensor(powers) or powers.shape != (contributions.shape[3],):
+    if powers is None or not torch.is_tensor(powers):
+        raise ValueError("transmit_power_w_per_re must provide one value per transmitter")
+    if powers.shape != (contributions.shape[3],):
         raise ValueError("transmit_power_w_per_re must provide one value per transmitter")
     if powers.device != contributions.device or not powers.is_floating_point():
         raise ValueError("transmit powers must be a real tensor on the contribution device")
@@ -341,6 +349,7 @@ def apply_network_link_budget(
         except (TypeError, ValueError, RuntimeError, OverflowError) as error:
             raise ValueError(f"{name} must contain real numeric values") from error
         shape = tuple(probe.shape)
+        selected_shape: tuple[int, ...]
         if shape == flat_shape:
             selected_shape = flat_shape
         elif shape == varying_shape:
@@ -926,6 +935,7 @@ def compose_received_waveforms(
     tx_phase_noise = None
     rx_phase_noise = None
     if phase_noise_enabled:
+        assert phase_noise_seed is not None
         phase_generator = torch.Generator(device=link_waveforms.device).manual_seed(
             phase_noise_seed
         )

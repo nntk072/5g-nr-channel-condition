@@ -11,7 +11,6 @@ from statistics import NormalDist
 from typing import Any
 
 import pytest
-
 from evaluation.g4_seed_roster import cdl_temporal_velocity_seed_roster
 
 torch = pytest.importorskip("torch")
@@ -28,8 +27,7 @@ _PROFILE_SHA256 = {
     "E": "04328f33d8d79b24aa3d0303fecb58b465ed7e13874930b05e76be0d97743480",
 }
 _CDL_ETSI_REFERENCE_PATH = (
-    Path(__file__).resolve().parents[2]
-    / "docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
+    Path(__file__).resolve().parents[2] / "docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
 )
 _CDL_ETSI_REFERENCE_SHA256 = "24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090"
 _ETSI_SOURCE_SHA256 = "b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4"
@@ -75,9 +73,7 @@ _SAMPLE_COUNT = 8192
 _FAMILYWISE_ALPHA = 0.01
 _CLAIM_COUNT = len(_MODELS) * len(_VELOCITY_DIRECTIONS) * 2
 _MAXIMUM_HALF_WIDTH = 0.05
-_SEED_ROSTER = cdl_temporal_velocity_seed_roster(
-    _MODELS, tuple(_VELOCITY_DIRECTIONS)
-)
+_SEED_ROSTER = cdl_temporal_velocity_seed_roster(_MODELS, tuple(_VELOCITY_DIRECTIONS))
 _C0_MPS = 299_792_458.0
 _RAY_ANGLE_OFFSETS = (
     0.0447,

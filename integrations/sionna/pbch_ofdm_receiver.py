@@ -13,7 +13,7 @@ from numpy.typing import NDArray
 from .pbch_bch import nr_pbch_bch_decode
 from .pbch_data import nr_pbch_scramble_bits
 from .pbch_dmrs import nr_pbch_dmrs_ssb
-from .pbch_mib import PBCHBCCHMessage, PBCHMIB, nr_bcch_bch_message_parse
+from .pbch_mib import PBCHMIB, PBCHBCCHMessage, nr_bcch_bch_message_parse
 from .pbch_payload import PBCHPayloadRecovery, nr_pbch_payload_recover
 from .ssb_grid import _pbch_data_coordinates
 from .ssb_ofdm import nr_ssb_ofdm_demodulate

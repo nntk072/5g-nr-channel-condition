@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import sys
 import types
 
@@ -67,7 +68,6 @@ def test_tdl_adapter_forwards_nondefault_num_sinusoids(monkeypatch: pytest.Monke
     torch = pytest.importorskip("torch")
 
     import integrations.sionna.tdl as tdl_adapter
-
     from datasets import StandardizedFamily, validate_standardized_channel_admission
 
     captured: dict[str, object] = {}
@@ -125,9 +125,7 @@ def test_tdl_adapter_forwards_nondefault_num_sinusoids(monkeypatch: pytest.Monke
     modules["sionna.phy.channel.tr38901.models"].parameter_file = (  # type: ignore[attr-defined]
         lambda filename, spec_version: FakeResource()
     )
-    monkeypatch.setattr(
-        tdl_adapter, "call_with_sionna_seed", lambda _device, _seed, call: call()
-    )
+    monkeypatch.setattr(tdl_adapter, "call_with_sionna_seed", lambda _device, _seed, call: call())
 
     channel = tdl_adapter.generate_tdl_frequency_response(
         model="A",
@@ -142,9 +140,10 @@ def test_tdl_adapter_forwards_nondefault_num_sinusoids(monkeypatch: pytest.Monke
     assert captured["num_sinusoids"] == 7
     assert channel.metadata["num_sinusoids"] == 7
     assert channel.metadata["profile_parameter_table_source"] == "TR 38.901:19.2:TDL-A.json"
-    assert channel.metadata["profile_parameter_table_sha256"] == hashlib.sha256(
-        FakeResource().read_bytes()
-    ).hexdigest()
+    assert (
+        channel.metadata["profile_parameter_table_sha256"]
+        == hashlib.sha256(FakeResource().read_bytes()).hexdigest()
+    )
     validate_standardized_channel_admission(
         StandardizedFamily.TDL, "A", channel.h_path[0], channel.metadata
     )
@@ -154,48 +153,6 @@ def test_tdl_adapter_forwards_nondefault_num_sinusoids(monkeypatch: pytest.Monke
         validate_standardized_channel_admission(
             StandardizedFamily.TDL, "A", channel.h_path[0], tampered_metadata
         )
-
-
-def test_cdl_profile_metadata_hashes_importlib_resource_bytes() -> None:
-    torch = pytest.importorskip("torch")
-
-    from integrations.sionna.cdl import _profile_metadata
-
-    table_bytes = b'{"profile":"CDL-A","spec_version":"19.2"}\n'
-
-    class FakeResource:
-        def read_bytes(self) -> bytes:
-            return table_bytes
-
-    class FakeResources:
-        def parameter_file(self, filename: str, spec_version: str) -> FakeResource:
-            assert filename == "CDL-A.json"
-            assert spec_version == "19.2"
-            return FakeResource()
-
-        def load_json(self, _resource: FakeResource) -> dict[str, object]:
-            return {
-                "powers": [0.0, -3.0, -6.0],
-                "los": False,
-                "delays": [0.0, 0.5, 1.0],
-                "aod": [0.0, 1.0, 2.0],
-                "aoa": [0.0, 1.0, 2.0],
-                "zod": [0.0, 1.0, 2.0],
-                "zoa": [0.0, 1.0, 2.0],
-                "cASD": 5.0,
-                "cASA": 5.0,
-                "cZSD": 5.0,
-                "cZSA": 5.0,
-                "xpr": 10.0,
-            }
-
-    metadata = _profile_metadata(
-        "A", "19.2", 100e-9, FakeResources(), torch, "cpu", torch.float32
-    )
-
-    assert metadata["parameter_table"] == "CDL-A.json"
-    assert metadata["parameter_table_source"] == "TR 38.901:19.2:CDL-A.json"
-    assert metadata["parameter_table_sha256"] == hashlib.sha256(table_bytes).hexdigest()
     tampered_metadata = dict(channel.metadata)
     tampered_metadata["profile_parameter_table_source"] = "TR 38.901:16.1:TDL-A.json"
     with pytest.raises(ValueError, match="parameter table source identity or digest is invalid"):
@@ -208,3 +165,44 @@ def test_cdl_profile_metadata_hashes_importlib_resource_bytes() -> None:
         validate_standardized_channel_admission(
             StandardizedFamily.TDL, "A", channel.h_path[0], tampered_metadata
         )
+
+
+def test_cdl_profile_metadata_hashes_importlib_resource_bytes() -> None:
+    torch = pytest.importorskip("torch")
+
+    from integrations.sionna.cdl import _profile_metadata
+
+    table_bytes = json.dumps(
+        {
+            "powers": [0.0, -3.0, -6.0],
+            "los": False,
+            "delays": [0.0, 0.5, 1.0],
+            "aod": [0.0, 1.0, 2.0],
+            "aoa": [0.0, 1.0, 2.0],
+            "zod": [0.0, 1.0, 2.0],
+            "zoa": [0.0, 1.0, 2.0],
+            "cASD": 5.0,
+            "cASA": 5.0,
+            "cZSD": 5.0,
+            "cZSA": 5.0,
+            "xpr": 10.0,
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode()
+
+    class FakeResource:
+        def read_bytes(self) -> bytes:
+            return table_bytes
+
+    class FakeResources:
+        def parameter_file(self, filename: str, spec_version: str) -> FakeResource:
+            assert filename == "CDL-A.json"
+            assert spec_version == "19.2"
+            return FakeResource()
+
+    metadata = _profile_metadata("A", "19.2", 100e-9, FakeResources(), torch, "cpu", torch.float32)
+
+    assert metadata["parameter_table"] == "CDL-A.json"
+    assert metadata["parameter_table_source"] == "TR 38.901:19.2:CDL-A.json"
+    assert metadata["parameter_table_sha256"] == hashlib.sha256(table_bytes).hexdigest()
