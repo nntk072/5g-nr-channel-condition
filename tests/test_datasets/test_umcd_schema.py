@@ -1004,6 +1004,45 @@ def test_frequency_receiver_observation_rejects_wrong_port_or_frequency_axes():
         )
 
 
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        ("subcarrier_offsets_hz", np.asarray([-1.0, 0.0, 1.0], dtype=bool), "real numeric dtype"),
+        ("subcarrier_offsets_hz", np.asarray(["-1", "0", "1"]), "real numeric dtype"),
+        ("subcarrier_offsets_hz", np.asarray([-1.0, 0.0, 1.0], dtype=object), "real numeric dtype"),
+        ("subcarrier_offsets_hz", np.asarray([-1.0 + 0j, 0.0 + 0j, 1.0 + 0j]), "real numeric dtype"),
+        ("noise_variance", True, "real numeric scalar"),
+        ("snr_db", "10", "real numeric scalar"),
+        ("carrier_hz", 3.5e9 + 0j, "real numeric scalar"),
+    ],
+)
+def test_frequency_receiver_contract_rejects_coercible_numeric_aliases(field, value, message):
+    model_inputs = FrequencyDomainModelInputs(
+        observed_cfr=np.ones((1, 1, 3), dtype=np.complex64),
+        noise_variance=0.1,
+        snr_db=10.0,
+        carrier_hz=3.5e9,
+        subcarrier_offsets_hz=np.asarray([-15e3, 0.0, 15e3]),
+    )
+    with pytest.raises(TypeError, match=message):
+        replace(model_inputs, **{field: value})
+
+
+def test_frequency_observation_ids_must_be_canonical():
+    model_inputs = FrequencyDomainModelInputs(
+        observed_cfr=np.ones((1, 1, 3), dtype=np.complex64),
+        noise_variance=0.1,
+        snr_db=10.0,
+        carrier_hz=3.5e9,
+        subcarrier_offsets_hz=np.asarray([-15e3, 0.0, 15e3]),
+    )
+    with pytest.raises(ValueError, match="canonical string"):
+        FrequencyDomainObservation(" cfr-1 ", model_inputs)
+    observation = FrequencyDomainObservation("cfr-1", model_inputs)
+    with pytest.raises(ValueError, match="canonical string"):
+        LinkedFrequencyDomainObservation(" link-1 ", 0, observation)
+
+
 def test_episode_store_roundtrip_preserves_dynamic_poses(tmp_path):
     bundle = _bundle()
     dynamic_episode = _dynamic_episode()
