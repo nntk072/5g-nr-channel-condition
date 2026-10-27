@@ -132,6 +132,14 @@ def test_run_experiment_uses_verified_signed_split_lock(tmp_path) -> None:
     assert manifest["split_policy"]["signer_id"] == signer
     assert result["split"]["registry_sha256"] == registry.to_dict()["registry_sha256"]
     assert result["split"]["mode"] == "signed_locked"
+    assert result["split"]["physical_independence_status"] == "not_established_by_runner"
+    assert (
+        result["split"]["partition_support_sha256"]
+        == manifest["split_policy"]["partition_support_sha256"]
+    )
+    assert manifest["split_policy"]["partition_support"]["qualification_status"] == (
+        "NOT_QUALIFIED"
+    )
 
 
 def test_locked_split_indices_resolves_child_rows_through_parent_bindings() -> None:
@@ -191,10 +199,24 @@ def test_locked_split_indices_resolves_child_rows_through_parent_bindings() -> N
     expected_indices = list(range(len(subjects)))
     assert sorted(np.concatenate(tuple(resolved.values())).tolist()) == expected_indices
     assert report["calibration_rows_reserved"] == len(calibration)
+    support = report["partition_support"]
+    assert support["status"] == "PASS_INPUT_SCOPED"
+    assert support["qualification_status"] == "NOT_QUALIFIED"
+    assert support["physical_independence_status"] == "not_established_by_runner"
+    assert report["partition_support_sha256"] == canonical_hash(support)
     for partition, indices in resolved.items():
         assert all(
             registry.split_for_parent(parent_by_row[index]) == partition for index in indices
         )
+        partition_support = support["partition_support"][partition]
+        assert partition_support["row_count"] == len(indices)
+        assert partition_support["class_counts"]["0"] + partition_support["class_counts"][
+            "1"
+        ] == len(indices)
+        assert partition_support["class_availability"] == {
+            label: partition_support["class_counts"][label] > 0 for label in ("0", "1")
+        }
+        assert partition_support["parent_count"] == len({parent_by_row[index] for index in indices})
 
     padded_metadata = list(data.metadata)
     padded_metadata[0] = {"split_subject_id": f" {subjects[0]}"}

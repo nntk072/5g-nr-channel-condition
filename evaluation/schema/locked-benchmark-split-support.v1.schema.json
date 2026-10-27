@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.invalid/schema/locked-benchmark-split-support.v1.schema.json",
+  "title": "Locked Benchmark Split Support Report v1",
+  "description": "Input-scoped support and assignment digests for a signed locked benchmark split. Registry components and caller-declared groups are not proof of physical independence.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "status",
+    "qualification_status",
+    "physical_independence_status",
+    "registry_sha256",
+    "partition_support"
+  ],
+  "properties": {
+    "schema": {"const": "loslab.locked_benchmark_split_support.v1"},
+    "status": {"const": "PASS_INPUT_SCOPED"},
+    "qualification_status": {"const": "NOT_QUALIFIED"},
+    "physical_independence_status": {"const": "not_established_by_runner"},
+    "registry_sha256": {"$ref": "#/$defs/sha256"},
+    "partition_support": {
+      "type": "object",
+      "required": ["train", "validation", "calibration", "test"],
+      "additionalProperties": false,
+      "properties": {
+        "train": {"$ref": "#/$defs/partition"},
+        "validation": {"$ref": "#/$defs/partition"},
+        "calibration": {"$ref": "#/$defs/partition"},
+        "test": {"$ref": "#/$defs/partition"}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "count_map": {
+      "type": "object",
+      "additionalProperties": {"type": "integer", "minimum": 0}
+    },
+    "partition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "row_count",
+        "parent_count",
+        "parent_roster_sha256",
+        "leakage_component_count",
+        "leakage_component_roster_sha256",
+        "declared_group_count",
+        "declared_group_roster_sha256",
+        "class_counts",
+        "class_availability",
+        "source_row_counts",
+        "domain_row_counts",
+        "assignment_sha256"
+      ],
+      "properties": {
+        "row_count": {"type": "integer", "minimum": 0},
+        "parent_count": {"type": "integer", "minimum": 0},
+        "parent_roster_sha256": {"$ref": "#/$defs/sha256"},
+        "leakage_component_count": {"type": "integer", "minimum": 0},
+        "leakage_component_roster_sha256": {"$ref": "#/$defs/sha256"},
+        "declared_group_count": {"type": "integer", "minimum": 0},
+        "declared_group_roster_sha256": {"$ref": "#/$defs/sha256"},
+        "class_counts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["0", "1"],
+          "properties": {
+            "0": {"type": "integer", "minimum": 0},
+            "1": {"type": "integer", "minimum": 0}
+          }
+        },
+        "class_availability": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["0", "1"],
+          "properties": {
+            "0": {"type": "boolean"},
+            "1": {"type": "boolean"}
+          }
+        },
+        "source_row_counts": {"$ref": "#/$defs/count_map"},
+        "domain_row_counts": {"$ref": "#/$defs/count_map"},
+        "assignment_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  }
+}

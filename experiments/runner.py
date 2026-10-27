@@ -1289,6 +1289,9 @@ def _locked_split_indices(
     split_for_row: list[str] = []
     represented_parents: set[str] = set()
     group_split: dict[str, str] = {}
+    parent_for_row: list[str] = []
+    component_for_row: list[str] = []
+    subject_for_row: list[str] = []
     for group, metadata in zip(data.group, data.metadata, strict=True):
         subject_id = metadata.get("split_subject_id")
         if not isinstance(subject_id, str) or not subject_id or subject_id != subject_id.strip():
@@ -1304,6 +1307,9 @@ def _locked_split_indices(
         else:
             raise ValueError(f"dataset split subject is absent from signed lock: {subject_id}")
         represented_parents.add(parent_id)
+        parent_for_row.append(parent_id)
+        component_for_row.append(registry.subject_to_component[parent_id])
+        subject_for_row.append(subject_id)
         if partition not in {"train", "validation", "test", "calibration"}:
             raise ValueError(f"unsupported locked split partition: {partition}")
         if not isinstance(group, str) or not group or group != group.strip():
@@ -1328,6 +1334,72 @@ def _locked_split_indices(
         raise ValueError(
             "signed split lock must resolve non-empty train, validation, and test rows"
         )
+    partition_indices = {
+        "train": train,
+        "validation": validation,
+        "calibration": calibration,
+        "test": test,
+    }
+    partition_support: dict[str, Any] = {}
+    for partition, indices in partition_indices.items():
+        selected = [int(index) for index in indices]
+        parent_ids = sorted({parent_for_row[index] for index in selected})
+        component_ids = sorted({component_for_row[index] for index in selected})
+        group_ids = sorted({str(data.group[index]) for index in selected})
+        source_counts: dict[str, int] = {}
+        domain_counts: dict[str, int] = {}
+        for index in selected:
+            source = data.source[index]
+            domain = data.domain[index]
+            if (
+                not isinstance(source, (str, np.str_))
+                or not str(source)
+                or str(source) != str(source).strip()
+                or not isinstance(domain, (str, np.str_))
+                or not str(domain)
+                or str(domain) != str(domain).strip()
+            ):
+                raise ValueError("signed benchmark split requires canonical source and domain IDs")
+            source_counts[str(source)] = source_counts.get(str(source), 0) + 1
+            domain_counts[str(domain)] = domain_counts.get(str(domain), 0) + 1
+        class_counts = {
+            str(label): int(np.count_nonzero(data.y[indices] == label)) for label in (0, 1)
+        }
+        assignment_rows = [
+            {
+                "row_index": index,
+                "split_subject_id": subject_for_row[index],
+                "parent_subject_id": parent_for_row[index],
+                "component_id": component_for_row[index],
+                "declared_group_id": str(data.group[index]),
+            }
+            for index in selected
+        ]
+        partition_support[partition] = {
+            "row_count": len(selected),
+            "parent_count": len(parent_ids),
+            "parent_roster_sha256": canonical_hash(parent_ids),
+            "leakage_component_count": len(component_ids),
+            "leakage_component_roster_sha256": canonical_hash(component_ids),
+            "declared_group_count": len(group_ids),
+            "declared_group_roster_sha256": canonical_hash(group_ids),
+            "class_counts": class_counts,
+            "class_availability": {label: count > 0 for label, count in class_counts.items()},
+            "source_row_counts": dict(sorted(source_counts.items())),
+            "domain_row_counts": dict(sorted(domain_counts.items())),
+            "assignment_sha256": canonical_hash(assignment_rows),
+        }
+    support_report: dict[str, Any] = {
+        "schema": "loslab.locked_benchmark_split_support.v1",
+        "status": "PASS_INPUT_SCOPED",
+        "qualification_status": "NOT_QUALIFIED",
+        "physical_independence_status": "not_established_by_runner",
+        "registry_sha256": registry.to_dict()["registry_sha256"],
+        "partition_support": partition_support,
+    }
+    _validate_evaluation_payload(
+        support_report, "locked-benchmark-split-support.v1.schema.json"
+    )
     report = {
         "mode": "signed_locked",
         "policy_sha256": registry.policy.to_dict()["policy_sha256"],
@@ -1337,6 +1409,8 @@ def _locked_split_indices(
             for split in registry.policy.split_fractions
         },
         "calibration_rows_reserved": int(np.sum(labels == "calibration")),
+        "partition_support": support_report,
+        "partition_support_sha256": canonical_hash(support_report),
     }
     return train, validation, test, calibration, report
 
@@ -1963,6 +2037,16 @@ def run_experiment(
                 "split": {
                     "mode": split_provenance["mode"],
                     "registry_sha256": split_provenance.get("registry_sha256"),
+                    "partition_support_sha256": split_provenance.get(
+                        "partition_support_sha256"
+                    ),
+                    "physical_independence_status": (
+                        split_provenance.get("partition_support", {}).get(
+                            "physical_independence_status"
+                        )
+                        if isinstance(split_provenance.get("partition_support"), dict)
+                        else "not_applicable_unlocked_pilot"
+                    ),
                     "indices_sha256": canonical_hash(
                         {
                             "train_idx": train.tolist(),
