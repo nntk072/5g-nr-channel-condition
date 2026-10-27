@@ -18,6 +18,12 @@ def _stable_json(value: Any) -> bytes:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False).encode("utf-8")
 
 
+def _require_canonical_id(value: Any, label: str) -> str:
+    if not isinstance(value, str) or not value or value != value.strip():
+        raise ValueError(f"{label} must be a non-empty canonical string")
+    return value
+
+
 @dataclass(frozen=True, slots=True)
 class EpisodeSplitRegistry:
     """Frozen split assignment for parent episodes and their connected groups.
@@ -36,25 +42,31 @@ class EpisodeSplitRegistry:
     episode_group_keys: Mapping[str, tuple[str, ...]]
 
     def __post_init__(self) -> None:
+        seed = _require_canonical_id(self.seed, "seed")
         fields = tuple(self.group_fields)
         components = dict(self.episode_to_component)
         splits = dict(self.component_to_split)
         keys = {episode: tuple(values) for episode, values in self.episode_group_keys.items()}
-        if not self.seed.strip() or not fields or len(set(fields)) != len(fields):
+        if not fields or len(set(fields)) != len(fields):
             raise ValueError("seed and unique group_fields must be non-empty")
-        if any(not field.strip() for field in fields):
-            raise ValueError("group_fields must contain non-empty names")
+        for field in fields:
+            _require_canonical_id(field, "group field")
         if not components or set(components) != set(keys):
             raise ValueError("every registered episode must have group keys and a component")
         if set(components.values()) != set(splits):
             raise ValueError("component assignments must cover every registered component")
         if set(splits.values()) - {"train", "validation", "test"}:
             raise ValueError("split names must be train, validation, or test")
+        for episode in components:
+            _require_canonical_id(episode, "episode ID")
+        for component in set(components.values()) | set(splits):
+            _require_canonical_id(component, "component ID")
         expected_key_count = len(fields)
         if any(len(value) != expected_key_count for value in keys.values()):
             raise ValueError("each episode must preserve one value for every group field")
-        if any(not item.strip() for value in keys.values() for item in value):
-            raise ValueError("episode group-key values must be non-empty")
+        for value in keys.values():
+            for item in value:
+                _require_canonical_id(item, "episode group-key value")
         key_to_components: dict[tuple[str, str], set[str]] = {}
         for episode, values in keys.items():
             component = components[episode]
@@ -62,6 +74,7 @@ class EpisodeSplitRegistry:
                 key_to_components.setdefault((field, value), set()).add(component)
         if any(len(component_ids) != 1 for component_ids in key_to_components.values()):
             raise ValueError("episodes sharing a leakage key must share one connected component")
+        object.__setattr__(self, "seed", seed)
         object.__setattr__(self, "group_fields", fields)
         object.__setattr__(self, "episode_to_component", MappingProxyType(components))
         object.__setattr__(self, "component_to_split", MappingProxyType(splits))
@@ -129,20 +142,19 @@ def make_episode_split_registry(
     identity, the entire connected component stays in one split.
     """
     fields = tuple(group_fields)
-    if not records or not seed.strip() or not fields or len(set(fields)) != len(fields):
+    _require_canonical_id(seed, "seed")
+    if not records or not fields or len(set(fields)) != len(fields):
         raise ValueError("records, seed, and unique group_fields must be non-empty")
-    if any(not field.strip() for field in fields):
-        raise ValueError("group_fields must contain non-empty names")
+    for field in fields:
+        _require_canonical_id(field, "group field")
     episode_keys: dict[str, tuple[str, ...]] = {}
     for record in records:
-        episode_id = str(record.get(episode_id_field, "")).strip()
-        if not episode_id:
-            raise ValueError(f"each record needs non-empty {episode_id_field}")
+        if not isinstance(record, Mapping):
+            raise TypeError("each episode split record must be a mapping")
+        episode_id = _require_canonical_id(record.get(episode_id_field), episode_id_field)
         if episode_id in episode_keys:
             raise ValueError(f"duplicate episode ID: {episode_id}")
-        values = tuple(str(record.get(field, "")).strip() for field in fields)
-        if any(not value for value in values):
-            raise ValueError("every episode needs a non-empty value for every group field")
+        values = tuple(_require_canonical_id(record.get(field), field) for field in fields)
         episode_keys[episode_id] = values
 
     parents = {episode: episode for episode in episode_keys}
@@ -204,15 +216,17 @@ def audit_episode_split_registry(
     seen: set[str] = set()
     first_component_for_key: dict[tuple[str, str], str] = {}
     for record in records:
-        episode = str(record.get(episode_id_field, "")).strip()
-        if not episode:
-            raise ValueError(f"each record needs non-empty {episode_id_field}")
+        if not isinstance(record, Mapping):
+            raise TypeError("each episode split audit record must be a mapping")
+        episode = _require_canonical_id(record.get(episode_id_field), episode_id_field)
         if episode in seen:
             raise ValueError(f"duplicate episode ID in split audit: {episode}")
         seen.add(episode)
         if episode not in registry.episode_to_component:
             raise ValueError(f"episode is absent from frozen split registry: {episode}")
-        values = tuple(str(record.get(field, "")).strip() for field in registry.group_fields)
+        values = tuple(
+            _require_canonical_id(record.get(field), field) for field in registry.group_fields
+        )
         if values != registry.episode_group_keys[episode]:
             raise ValueError(f"group identity changed for episode {episode}")
         component = registry.episode_to_component[episode]

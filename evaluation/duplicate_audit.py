@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from numbers import Real
 from typing import Any, Mapping, Sequence
 
 import numpy as np
@@ -59,8 +60,10 @@ def audit_cfr_near_duplicates(
         raise ValueError("cfr must be a finite complex array with sample and feature axes")
     if len(sample_ids) != values.shape[0] or len(sample_ids) == 0:
         raise ValueError("sample_ids must identify every CFR row")
-    if len(set(sample_ids)) != len(sample_ids) or any(not str(x).strip() for x in sample_ids):
-        raise ValueError("sample_ids must be non-empty and unique")
+    if any(not isinstance(x, str) or not x or x != x.strip() for x in sample_ids):
+        raise ValueError("sample_ids must be non-empty canonical strings")
+    if len(set(sample_ids)) != len(sample_ids):
+        raise ValueError("sample_ids must be unique")
     if set(sample_ids) != set(split.sample_to_split):
         raise ValueError("sample_ids must cover exactly the frozen split sample set")
     if not np.isfinite(similarity_threshold) or not 0 < similarity_threshold <= 1:
@@ -121,15 +124,33 @@ def find_cross_split_temporal_overlaps(
     """Find overlapping time windows of the same trajectory across splits."""
     observed: dict[str, tuple[str, str, float, float]] = {}
     for record in records:
-        sample_id = str(record.get("sample_id", "")).strip()
-        trajectory_id = str(record.get("trajectory_id", "")).strip()
+        if not isinstance(record, Mapping):
+            raise TypeError("each temporal audit record must be a mapping")
+        sample_id = record.get("sample_id")
+        trajectory_id = record.get("trajectory_id")
+        if not isinstance(sample_id, str) or not sample_id or sample_id != sample_id.strip():
+            raise ValueError("sample_id must be a non-empty canonical string")
+        if (
+            not isinstance(trajectory_id, str)
+            or not trajectory_id
+            or trajectory_id != trajectory_id.strip()
+        ):
+            raise ValueError("trajectory_id must be a non-empty canonical string")
         if not sample_id or sample_id in observed:
             raise ValueError(f"sample IDs must be non-empty and unique: {sample_id!r}")
         if sample_id not in split.sample_to_split:
             raise ValueError(f"sample is absent from frozen split: {sample_id}")
-        start = float(record.get("window_start_s", float("nan")))
-        end = float(record.get("window_end_s", float("nan")))
-        if not trajectory_id or not np.isfinite([start, end]).all() or end < start:
+        raw_start = record.get("window_start_s")
+        raw_end = record.get("window_end_s")
+        if (
+            isinstance(raw_start, (bool, np.bool_))
+            or not isinstance(raw_start, Real)
+            or isinstance(raw_end, (bool, np.bool_))
+            or not isinstance(raw_end, Real)
+        ):
+            raise ValueError("window boundaries must be finite real seconds")
+        start, end = float(raw_start), float(raw_end)
+        if not np.isfinite([start, end]).all() or end < start:
             raise ValueError("each record needs a trajectory and finite ordered time window")
         observed[sample_id] = (trajectory_id, split.sample_to_split[sample_id], start, end)
     if set(observed) != set(split.sample_to_split):

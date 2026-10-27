@@ -50,6 +50,15 @@ def test_cfr_fingerprint_flags_identical_zero_power_outages():
     assert audit.pairs[0].similarity == 1.0
 
 
+@pytest.mark.parametrize("sample_id", [7, " sample-0", "sample-0 "])
+def test_cfr_fingerprint_rejects_noncanonical_sample_ids(sample_id):
+    records, split = make_records()
+    ids = [row["sample_id"] for row in records]
+    ids[0] = sample_id
+    with pytest.raises(ValueError, match="canonical strings"):
+        audit_cfr_near_duplicates(ids, np.ones((len(ids), 2), dtype=np.complex64), split)
+
+
 def test_temporal_audit_flags_same_trajectory_windows_across_splits():
     records, split = make_records()
     train_id = next(sample for sample, label in split.sample_to_split.items() if label == "train")
@@ -90,3 +99,30 @@ def test_temporal_audit_requires_exact_sample_coverage():
     ]
     with pytest.raises(ValueError, match="exactly the samples"):
         find_cross_split_temporal_overlaps(temporal_records[:-1], split)
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        ("sample_id", 4, "sample_id.*canonical string"),
+        ("sample_id", " sample-0", "sample_id.*canonical string"),
+        ("trajectory_id", 4, "trajectory_id.*canonical string"),
+        ("window_start_s", True, "finite real seconds"),
+        ("window_end_s", "1.0", "finite real seconds"),
+    ],
+)
+def test_temporal_audit_rejects_coerced_ids_and_time_values(field, value, message):
+    records, split = make_records()
+    temporal_records = [
+        {
+            **row,
+            "trajectory_id": row["sample_id"],
+            "window_start_s": 0.0,
+            "window_end_s": 1.0,
+        }
+        for row in records
+    ]
+    temporal_records[0][field] = value
+
+    with pytest.raises(ValueError, match=message):
+        find_cross_split_temporal_overlaps(temporal_records, split)

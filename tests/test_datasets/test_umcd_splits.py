@@ -59,8 +59,33 @@ def test_registry_rejects_duplicate_or_incomplete_episode_identity():
         )
     incomplete = _records()
     incomplete[0]["trajectory_id"] = ""
-    with pytest.raises(ValueError, match="non-empty value"):
+    with pytest.raises(ValueError, match="canonical string"):
         make_episode_split_registry(incomplete, seed="v1", group_fields=_GROUP_FIELDS)
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("episode_id", 7),
+        ("episode_id", " episode-0"),
+        ("trajectory_id", 12),
+        ("scene_realization_id", "site-a "),
+    ],
+)
+def test_registry_rejects_coerced_or_padded_split_identities(field, value):
+    records = _records()
+    records[0][field] = value
+    with pytest.raises(ValueError, match="canonical string"):
+        make_episode_split_registry(records, seed="v1", group_fields=_GROUP_FIELDS)
+
+
+def test_registry_audit_rejects_identity_aliases_instead_of_normalizing_them():
+    records = _records()
+    registry = make_episode_split_registry(records, seed="v1", group_fields=_GROUP_FIELDS)
+    changed = [dict(record) for record in records]
+    changed[0]["trajectory_id"] = " route-0"
+    with pytest.raises(ValueError, match="canonical string"):
+        audit_episode_split_registry(registry, changed)
 
 
 def test_registry_audit_requires_exact_episodes_and_unchanged_groups():
