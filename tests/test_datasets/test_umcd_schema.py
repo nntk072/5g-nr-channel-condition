@@ -129,6 +129,47 @@ def test_network_episode_preserves_ordered_arrays_links_and_grid():
     np.testing.assert_array_equal(episode.orientation_at("gNB-1", 0), np.eye(3))
 
 
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        ("element_positions_local_m", np.ones((4, 3), dtype=bool), "real numeric dtype"),
+        ("element_positions_local_m", np.ones((4, 3), dtype=complex) * (1 + 1j), "real numeric dtype"),
+        ("orientation_local_to_world", np.eye(3, dtype=complex) * (1 + 1j), "real numeric dtype"),
+        ("port_element_weights", np.ones((2, 4), dtype=object), "numeric dtype"),
+    ],
+)
+def test_antenna_array_rejects_coercible_geometry_and_weight_dtypes(field, value, message):
+    array = _episode().arrays[0]
+    with pytest.raises(TypeError, match=message):
+        replace(array, **{field: value})
+
+
+@pytest.mark.parametrize("position", ((True, 0.0, 0.0), ("0.0", 0.0, 0.0), (0.0j, 0.0, 0.0)))
+def test_network_node_rejects_coercible_non_real_positions(position):
+    with pytest.raises(TypeError, match="real numeric coordinates"):
+        NetworkNode("node", NodeRole.UE, "array", position, 1)
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    (
+        ("positions_world_m", np.zeros((2, 2, 3), dtype=bool)),
+        ("orientations_local_to_world", np.broadcast_to(np.eye(3), (2, 2, 3, 3)).astype(complex) * (1 + 1j)),
+    ),
+)
+def test_pose_timeline_rejects_coercible_geometry_dtypes(field, value):
+    timeline = _dynamic_episode().pose_timeline
+    assert timeline is not None
+    with pytest.raises(TypeError, match="real numeric dtype"):
+        replace(timeline, **{field: value})
+
+
+@pytest.mark.parametrize("carrier", (True, "3.5e9", 3.5e9 + 0j))
+def test_network_episode_rejects_non_real_carrier_scalars(carrier):
+    with pytest.raises(TypeError, match="real numeric scalar"):
+        replace(_episode(), carrier_hz=carrier)
+
+
 def _dynamic_episode() -> NetworkEpisode:
     episode = _episode()
     positions = np.asarray(

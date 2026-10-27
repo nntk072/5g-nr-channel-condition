@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 from enum import StrEnum
+from numbers import Real
 
 import numpy as np
 
@@ -12,18 +13,21 @@ from .time_axis import TimeAxisAlignment, align_time_axes, canonical_time_axis
 
 
 def _readonly_array(value: np.ndarray, *, name: str, shape_tail: tuple[int, ...]) -> np.ndarray:
-    array = np.array(value, copy=True)
+    raw = np.asarray(value)
+    if raw.dtype.kind not in "iuf":
+        raise TypeError(f"{name} must use a real numeric dtype")
+    array = np.array(raw, dtype=np.float64, copy=True)
     if array.ndim != len(shape_tail) + 1 or array.shape[1:] != shape_tail:
         raise ValueError(f"{name} must have shape [count, {', '.join(map(str, shape_tail))}]")
-    if not np.issubdtype(array.dtype, np.number) or not np.isfinite(array).all():
+    if not np.isfinite(array).all():
         raise ValueError(f"{name} must contain finite numeric values")
     array.setflags(write=False)
     return array
 
 
 def _nonempty(value: str, *, name: str) -> str:
-    if not isinstance(value, str) or not value.strip():
-        raise ValueError(f"{name} must be a non-empty string")
+    if not isinstance(value, str) or not value.strip() or value != value.strip():
+        raise ValueError(f"{name} must be a non-empty canonical string")
     return value
 
 
@@ -70,25 +74,34 @@ class AntennaArraySpec:
         _nonempty(self.array_id, name="array_id")
         positions = _readonly_array(
             self.element_positions_local_m, name="element_positions_local_m", shape_tail=(3,)
-        ).astype(np.float64, copy=True)
-        positions.setflags(write=False)
+        )
         polarizations = tuple(self.polarization_per_element)
         if len(polarizations) != len(positions) or any(
-            not isinstance(item, str) or not item.strip() for item in polarizations
+            not isinstance(item, str) or not item.strip() or item != item.strip()
+            for item in polarizations
         ):
             raise ValueError("each array element needs a non-empty polarization label")
         ports = tuple(self.port_ids)
-        if not ports or any(not isinstance(port, str) or not port.strip() for port in ports):
+        if not ports or any(
+            not isinstance(port, str) or not port.strip() or port != port.strip()
+            for port in ports
+        ):
             raise ValueError("port_ids must contain non-empty antenna-port identifiers")
         if len(set(ports)) != len(ports):
             raise ValueError("port_ids must be unique within an antenna array")
-        weights = np.array(self.port_element_weights, dtype=np.complex128, copy=True)
+        raw_weights = np.asarray(self.port_element_weights)
+        if raw_weights.dtype.kind not in "iufc":
+            raise TypeError("port_element_weights must use a real or complex numeric dtype")
+        weights = np.array(raw_weights, dtype=np.complex128, copy=True)
         if weights.shape != (len(ports), len(positions)) or not np.isfinite(weights).all():
             raise ValueError("port_element_weights must be finite complex [port, element]")
         if np.any(np.all(np.abs(weights) == 0.0, axis=1)):
             raise ValueError("each RF port must map to at least one radiating element")
         weights.setflags(write=False)
-        orientation = np.array(self.orientation_local_to_world, dtype=np.float64, copy=True)
+        raw_orientation = np.asarray(self.orientation_local_to_world)
+        if raw_orientation.dtype.kind not in "iuf":
+            raise TypeError("orientation_local_to_world must use a real numeric dtype")
+        orientation = np.array(raw_orientation, dtype=np.float64, copy=True)
         if orientation.shape != (3, 3) or not np.isfinite(orientation).all():
             raise ValueError("orientation_local_to_world must be a finite 3x3 matrix")
         if not np.allclose(orientation.T @ orientation, np.eye(3), atol=1e-6, rtol=0):
@@ -128,7 +141,13 @@ class NetworkNode:
         _nonempty(self.array_id, name="array_id")
         if not isinstance(self.role, NodeRole):
             raise TypeError("role must be a NodeRole")
-        position = tuple(float(value) for value in self.position_world_m)
+        try:
+            raw_position = tuple(self.position_world_m)
+        except TypeError as error:
+            raise TypeError("position_world_m must contain real numeric coordinates") from error
+        if any(isinstance(value, bool) or not isinstance(value, Real) for value in raw_position):
+            raise TypeError("position_world_m must contain real numeric coordinates")
+        position = tuple(float(value) for value in raw_position)
         if len(position) != 3 or not all(math.isfinite(value) for value in position):
             raise ValueError("position_world_m must contain three finite coordinates")
         if (
@@ -186,11 +205,17 @@ class NodePoseTimeline:
         if len(set(node_ids)) != len(node_ids):
             raise ValueError("pose timeline node IDs must be unique")
         times = canonical_time_axis(self.frame_times_s, name="pose timeline frame_times_s")
-        positions = np.array(self.positions_world_m, dtype=np.float64, copy=True)
+        raw_positions = np.asarray(self.positions_world_m)
+        if raw_positions.dtype.kind not in "iuf":
+            raise TypeError("positions_world_m must use a real numeric dtype")
+        positions = np.array(raw_positions, dtype=np.float64, copy=True)
         expected_positions = (len(times), len(node_ids), 3)
         if positions.shape != expected_positions or not np.isfinite(positions).all():
             raise ValueError(f"positions_world_m must be finite with shape {expected_positions}")
-        orientations = np.array(self.orientations_local_to_world, dtype=np.float64, copy=True)
+        raw_orientations = np.asarray(self.orientations_local_to_world)
+        if raw_orientations.dtype.kind not in "iuf":
+            raise TypeError("orientations_local_to_world must use a real numeric dtype")
+        orientations = np.array(raw_orientations, dtype=np.float64, copy=True)
         expected_orientations = (len(times), len(node_ids), 3, 3)
         if orientations.shape != expected_orientations or not np.isfinite(orientations).all():
             raise ValueError(
@@ -285,11 +310,10 @@ class NetworkEpisode:
     def __post_init__(self) -> None:
         for name in ("episode_id", "split_group_id", "family_id"):
             _nonempty(getattr(self, name), name=name)
-        if (
-            isinstance(self.carrier_hz, bool)
-            or not math.isfinite(self.carrier_hz)
-            or self.carrier_hz <= 0
-        ):
+        if isinstance(self.carrier_hz, bool) or not isinstance(self.carrier_hz, Real):
+            raise TypeError("carrier_hz must be a real numeric scalar")
+        carrier_hz = float(self.carrier_hz)
+        if not math.isfinite(carrier_hz) or carrier_hz <= 0:
             raise ValueError("carrier_hz must be finite and positive")
         arrays, nodes, links = tuple(self.arrays), tuple(self.nodes), tuple(self.links)
         if not arrays or not nodes or not links:
@@ -364,6 +388,7 @@ class NetworkEpisode:
         object.__setattr__(self, "arrays", arrays)
         object.__setattr__(self, "nodes", nodes)
         object.__setattr__(self, "links", links)
+        object.__setattr__(self, "carrier_hz", carrier_hz)
         object.__setattr__(self, "frame_times_s", times)
         object.__setattr__(self, "subcarrier_offsets_hz", offsets)
         object.__setattr__(self, "pose_timeline", timeline)
