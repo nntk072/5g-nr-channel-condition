@@ -9,8 +9,63 @@ from __future__ import annotations
 
 import math
 from collections.abc import Sequence
+from numbers import Real
 
 import numpy as np
+
+
+def _real_vector(value: Sequence[float] | np.ndarray, *, name: str) -> np.ndarray:
+    raw = np.asarray(value)
+    if raw.ndim != 1 or not raw.size:
+        raise ValueError(f"{name} must be a nonempty one-dimensional real vector")
+    if raw.dtype.kind not in "iuf":
+        if raw.dtype.kind != "O" or any(
+            isinstance(item, (bool, np.bool_)) or not isinstance(item, Real)
+            for item in raw.tolist()
+        ):
+            raise TypeError(f"{name} must contain real numeric values")
+    try:
+        result = np.asarray(raw, dtype=np.float64)
+    except (TypeError, ValueError, OverflowError) as error:
+        raise TypeError(f"{name} must contain real numeric values representable as float64") from error
+    if not np.isfinite(result).all():
+        raise ValueError(f"{name} must contain only finite values representable as float64")
+    return result
+
+
+def _canonical_string_vector(value: Sequence[str] | np.ndarray, *, name: str) -> np.ndarray:
+    raw = np.asarray(value, dtype=object)
+    if raw.ndim != 1 or not raw.size:
+        raise ValueError(f"{name} must be a nonempty one-dimensional string vector")
+    if any(
+        not isinstance(item, str) or not item or item != item.strip() for item in raw.tolist()
+    ):
+        raise ValueError(f"{name} must contain canonical nonempty strings")
+    return raw.astype(str)
+
+
+def _probability_vector(
+    values: Sequence[float], *, name: str, upper_inclusive: bool
+) -> tuple[float, ...]:
+    try:
+        raw_values = tuple(values)
+    except TypeError as error:
+        raise TypeError(f"{name} must be a sequence of real numeric values") from error
+    if not raw_values:
+        raise ValueError(f"{name} must be nonempty")
+    normalized: list[float] = []
+    for value in raw_values:
+        if isinstance(value, (bool, np.bool_)) or not isinstance(value, Real):
+            raise TypeError(f"{name} must contain real numeric values")
+        number = float(value)
+        valid_upper = number <= 1.0 if upper_inclusive else number < 1.0
+        if not math.isfinite(number) or number <= 0 or not valid_upper:
+            interval = "(0, 1]" if upper_inclusive else "(0, 1)"
+            raise ValueError(f"{name} values must be finite and in {interval}")
+        normalized.append(number)
+    if len(set(normalized)) != len(normalized):
+        raise ValueError(f"{name} values must be unique")
+    return tuple(normalized)
 
 
 def _vectors(
@@ -21,17 +76,15 @@ def _vectors(
     *,
     name: str,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    y = np.asarray(target, dtype=np.float64)
-    mu = np.asarray(prediction, dtype=np.float64)
-    scale = np.asarray(uncertainty_scale, dtype=np.float64)
-    groups = np.asarray(group, dtype=str)
-    if y.ndim != 1 or not y.size or mu.shape != y.shape or scale.shape != y.shape:
+    y = _real_vector(target, name=f"{name} target")
+    mu = _real_vector(prediction, name=f"{name} prediction")
+    scale = _real_vector(uncertainty_scale, name=f"{name} uncertainty")
+    groups = _canonical_string_vector(group, name=f"{name} groups")
+    if mu.shape != y.shape or scale.shape != y.shape:
         raise ValueError(f"{name} target, prediction, and uncertainty must be nonempty vectors")
-    if groups.shape != y.shape or np.any(groups == ""):
+    if groups.shape != y.shape:
         raise ValueError(f"{name} groups must be nonempty and match the vectors")
-    if not np.isfinite(y).all() or not np.isfinite(mu).all():
-        raise ValueError(f"{name} target and prediction must be finite")
-    if not np.isfinite(scale).all() or np.any(scale <= 0):
+    if np.any(scale <= 0):
         raise ValueError(f"{name} uncertainty scales must be finite and positive")
     return y, mu, scale, groups
 
@@ -109,24 +162,20 @@ def evaluate_grouped_regression_uncertainty(
     overlap = set(cal_groups).intersection(test_groups)
     if overlap:
         raise ValueError(f"calibration and test groups overlap: {sorted(overlap)}")
-    levels = tuple(float(level) for level in coverage_levels)
-    if not levels or len(set(levels)) != len(levels):
-        raise ValueError("coverage_levels must be nonempty and unique")
-    risks = tuple(float(value) for value in risk_coverages)
-    if (
-        not risks
-        or len(set(risks)) != len(risks)
-        or any(not math.isfinite(value) or not 0.0 < value <= 1.0 for value in risks)
-    ):
-        raise ValueError("risk_coverages must be unique values in (0, 1]")
+    levels = _probability_vector(coverage_levels, name="coverage_levels", upper_inclusive=False)
+    risks = _probability_vector(risk_coverages, name="risk_coverages", upper_inclusive=True)
     if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
         raise ValueError("seed must be a nonnegative integer")
     if isinstance(bootstrap_draws, bool) or not isinstance(bootstrap_draws, int):
         raise TypeError("bootstrap_draws must be an integer")
     if bootstrap_draws < 100:
         raise ValueError("bootstrap_draws must be >= 100")
-    strata = None if test_stratum is None else np.asarray(test_stratum, dtype=str)
-    if strata is not None and (strata.shape != test_y.shape or np.any(strata == "")):
+    strata = (
+        None
+        if test_stratum is None
+        else _canonical_string_vector(test_stratum, name="test_stratum")
+    )
+    if strata is not None and strata.shape != test_y.shape:
         raise ValueError("test_stratum must contain nonempty values matching test rows")
 
     cal_error = np.abs(cal_y - cal_mu) / cal_scale

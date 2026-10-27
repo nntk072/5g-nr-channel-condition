@@ -63,7 +63,7 @@ def test_calibration_and_test_scene_overlap_is_rejected():
     [[0.0, 1.0], [1.0, float("nan")]],
 )
 def test_invalid_uncertainty_scale_is_rejected(scale):
-    with pytest.raises(ValueError, match="uncertainty scales"):
+    with pytest.raises(ValueError, match="uncertainty"):
         evaluate_grouped_regression_uncertainty(
             [0, 1],
             [0, 1],
@@ -101,3 +101,58 @@ def test_interval_coverage_is_reported_by_identifiability_stratum():
     assert by_stratum["resolved"]["sample_count"] == 2
     assert by_stratum["ambiguous"]["group_count"] == 1
     assert 0 <= by_stratum["ambiguous"]["sample_coverage"] <= 1
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "exception", "message"),
+    [
+        ("calibration_target", [1 + 2j, 3 + 4j], TypeError, "real numeric"),
+        ("test_prediction", ["1.0", "2.0"], TypeError, "real numeric"),
+        ("calibration_scale", [True, False], TypeError, "real numeric"),
+        ("test_group", [1, 2], ValueError, "canonical nonempty strings"),
+        ("test_group", ["test-a", " padded"], ValueError, "canonical nonempty strings"),
+        ("test_stratum", [1, 2], ValueError, "canonical nonempty strings"),
+    ],
+)
+def test_grouped_uncertainty_rejects_coercive_input_domains(field, value, exception, message):
+    inputs = {
+        "calibration_target": [0.0, 1.0],
+        "calibration_prediction": [0.1, 0.9],
+        "calibration_scale": [1.0, 1.0],
+        "calibration_group": ["cal-a", "cal-b"],
+        "test_target": [2.0, 3.0],
+        "test_prediction": [2.1, 2.9],
+        "test_scale": [1.0, 1.0],
+        "test_group": ["test-a", "test-b"],
+        "bootstrap_draws": 100,
+    }
+    inputs[field] = value
+    with pytest.raises(exception, match=message):
+        evaluate_grouped_regression_uncertainty(**inputs)
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "exception", "message"),
+    [
+        ("coverage_levels", ("0.8",), TypeError, "real numeric"),
+        ("coverage_levels", (True,), TypeError, "real numeric"),
+        ("risk_coverages", (1 + 0j,), TypeError, "real numeric"),
+    ],
+)
+def test_grouped_uncertainty_rejects_coercive_probability_grids(
+    field, value, exception, message
+):
+    inputs = {
+        "calibration_target": [0.0, 1.0],
+        "calibration_prediction": [0.1, 0.9],
+        "calibration_scale": [1.0, 1.0],
+        "calibration_group": ["cal-a", "cal-b"],
+        "test_target": [2.0, 3.0],
+        "test_prediction": [2.1, 2.9],
+        "test_scale": [1.0, 1.0],
+        "test_group": ["test-a", "test-b"],
+        "bootstrap_draws": 100,
+    }
+    inputs[field] = value
+    with pytest.raises(exception, match=message):
+        evaluate_grouped_regression_uncertainty(**inputs)
