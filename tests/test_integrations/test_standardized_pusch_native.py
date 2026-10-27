@@ -1,4 +1,4 @@
-"""Native CPU PUSCH/DMRS tests over standardized TDL/CDL channel truth."""
+"""Native CPU/GPU PUSCH/DMRS tests over standardized TDL/CDL channel truth."""
 
 from __future__ import annotations
 
@@ -256,14 +256,17 @@ def test_short_cp_time_channel_changes_pusch_observation_vs_ideal_cfr_control() 
     ("n_size_bwp", "seed", "tap_span_fits_cp"),
     ((6, 9346, False), (24, 9401, True)),
 )
-def test_standardized_time_domain_tdl_pusch_decodes_with_dmrs_estimate_on_cpu(
-    n_size_bwp: int, seed: int, tap_span_fits_cp: bool
+@pytest.mark.parametrize("device", ("cpu", "cuda:0"))
+def test_standardized_time_domain_tdl_pusch_decodes_with_dmrs_estimate_on_device(
+    n_size_bwp: int, seed: int, tap_span_fits_cp: bool, device: str
 ) -> None:
     from integrations.sionna.standardized_pusch import (
         audit_standardized_pusch_records_for_diagnostic,
     )
 
     run = _standardized_run(StandardizedFamily.TDL)
+    if device.startswith("cuda") and not torch.cuda.is_available():
+        pytest.skip("CUDA is unavailable")
     config = NRPUSCHConfig(n_size_bwp=n_size_bwp, subcarrier_spacing_khz=30)
     record = build_standardized_pusch_dmrs_records(
         run,
@@ -271,10 +274,10 @@ def test_standardized_time_domain_tdl_pusch_decodes_with_dmrs_estimate_on_cpu(
         seed=seed,
         noise_seed=seed + 1,
         receiver_config=config,
-        device="cpu",
+        device=device,
     )[0]
     outcome = audit_standardized_pusch_records_for_diagnostic(
-        (record,), receiver_config=config, estimate_source="dmrs_ls"
+        (record,), receiver_config=config, estimate_source="dmrs_ls", device=device
     )[0]
 
     assert (

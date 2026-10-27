@@ -568,6 +568,7 @@ def audit_standardized_pusch_records_for_diagnostic(
     *,
     receiver_config: NRPUSCHConfig,
     estimate_source: Literal["dmrs_ls", "diagonal_cfr_oracle"],
+    device: str = "cpu",
 ) -> tuple[StandardizedPUSCHDecodeOutcome, ...]:
     """Decode records and compare bits with their retained exact TX reference.
 
@@ -588,13 +589,16 @@ def audit_standardized_pusch_records_for_diagnostic(
     import torch
     from sionna.phy.nr import PUSCHReceiver
 
-    transmitter = SionnaPUSCHLSReceiver(receiver_config, device="cpu")
+    torch_device = torch.device(device)
+    if torch_device.type == "cuda" and not torch.cuda.is_available():
+        raise RuntimeError("CUDA decoding was requested but CUDA is unavailable")
+    transmitter = SionnaPUSCHLSReceiver(receiver_config, device=device)
     decoder = PUSCHReceiver(
         transmitter._transmitter,
         channel_estimator="perfect",
         return_tb_crc_status=True,
         input_domain="freq",
-        device="cpu",
+        device=device,
     )
     outcomes: list[StandardizedPUSCHDecodeOutcome] = []
     for record in records:
@@ -617,10 +621,14 @@ def audit_standardized_pusch_records_for_diagnostic(
             if estimate_source == "dmrs_ls"
             else record.targets["channel_cfr"]
         )
+        received_grid = torch.as_tensor(record.observation.received_grid, device=torch_device)
+        estimate_tensor = torch.as_tensor(estimate, device=torch_device)
         decoded_bits, crc = decoder(
-            record.observation.received_grid,
-            torch.tensor(record.provenance["noise_variance_per_complex_dimension"]),
-            h=estimate,
+            received_grid,
+            torch.as_tensor(
+                record.provenance["noise_variance_per_complex_dimension"], device=torch_device
+            ),
+            h=estimate_tensor,
         )
         reference_tensor = torch.as_tensor(reference_array, device=decoded_bits.device)
         if tuple(decoded_bits.shape) == (1, *tuple(reference_tensor.shape)):
@@ -643,6 +651,7 @@ def decode_standardized_pusch_records_for_diagnostic(
     *,
     receiver_config: NRPUSCHConfig,
     estimate_source: Literal["dmrs_ls", "diagonal_cfr_oracle"],
+    device: str = "cpu",
 ) -> tuple[bool, ...]:
     """Return TB CRC outcomes, preserving compatibility with records lacking TX bits."""
     if not records:
@@ -653,13 +662,16 @@ def decode_standardized_pusch_records_for_diagnostic(
     import torch
     from sionna.phy.nr import PUSCHReceiver
 
-    transmitter = SionnaPUSCHLSReceiver(receiver_config, device="cpu")
+    torch_device = torch.device(device)
+    if torch_device.type == "cuda" and not torch.cuda.is_available():
+        raise RuntimeError("CUDA decoding was requested but CUDA is unavailable")
+    transmitter = SionnaPUSCHLSReceiver(receiver_config, device=device)
     decoder = PUSCHReceiver(
         transmitter._transmitter,
         channel_estimator="perfect",
         return_tb_crc_status=True,
         input_domain="freq",
-        device="cpu",
+        device=device,
     )
     crc_pass: list[bool] = []
     for record in records:
@@ -669,9 +681,11 @@ def decode_standardized_pusch_records_for_diagnostic(
             else record.targets["channel_cfr"]
         )
         _, crc = decoder(
-            record.observation.received_grid,
-            torch.tensor(record.provenance["noise_variance_per_complex_dimension"]),
-            h=estimate,
+            torch.as_tensor(record.observation.received_grid, device=torch_device),
+            torch.as_tensor(
+                record.provenance["noise_variance_per_complex_dimension"], device=torch_device
+            ),
+            h=torch.as_tensor(estimate, device=torch_device),
         )
         crc_pass.append(bool(crc.all()))
     return tuple(crc_pass)
