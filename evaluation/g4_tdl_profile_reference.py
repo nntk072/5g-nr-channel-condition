@@ -14,6 +14,10 @@ _SCALABLE_REFERENCE_PATH = (
 )
 _SCALABLE_REFERENCE_SHA256 = "38b897029bd4cc6de49eece5096e69c75291eaf6dac45bebe04767ed24a4f0bd"
 _SCALABLE_SOURCE_SHA256 = "b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4"
+_FIXED_REFERENCE_PATH = _ROOT / "docs/research/G4_FIXED_TDL_TAP_PROFILE_REFERENCE_2026-10-26.json"
+_FIXED_REFERENCE_SHA256 = "fe22560a71f4e5683ea6780f73e84466155b26f5f97cc4b63e3250c102fafda3"
+_FIXED_SOURCE_SHA256 = "b3c6a73c7a40219e7270c08c7a57c84cb46f6757b303a64ec768ba04a6079e81"
+_FIXED_PROFILE_MODELS = frozenset({"A10", "A30", "B100", "C60", "C300", "D10", "D30"})
 
 
 def _read_pinned_json(path: Path, expected_sha256: str, *, label: str) -> dict[str, Any]:
@@ -105,3 +109,85 @@ def scalable_tdl_pdp_reference(
         powers = [powers[0] + powers[1], *powers[2:]]
         normalized_delays = [normalized_delays[0], *normalized_delays[2:]]
     return powers, [delay * float(delay_spread_s) for delay in normalized_delays]
+
+
+def fixed_tdl_pdp_reference(model: str) -> tuple[list[float], list[float]]:
+    """Return normalized fixed-TDL tap powers and absolute delays from ETSI rows.
+
+    Fixed TDL-D profiles transcribe the LOS path and diffuse first-tap power as
+    separate components at the same published tap index. The Sionna tap axis
+    combines those components; this reference merges their linear powers using
+    only the independently pinned TS 38.101-4 table fixture.
+    """
+    if not isinstance(model, str) or model not in _FIXED_PROFILE_MODELS:
+        raise ValueError("fixed TDL model must be A10, A30, B100, C60, C300, D10, or D30")
+    reference = _read_pinned_json(
+        _FIXED_REFERENCE_PATH, _FIXED_REFERENCE_SHA256, label="fixed TDL reference"
+    )
+    if (
+        reference.get("schema") != "loslab.g4_fixed_tdl_tap_profile_reference.v1"
+        or reference.get("source_id") != "ts-138101-4-v19.2.2"
+        or reference.get("source_sha256") != _FIXED_SOURCE_SHA256
+        or reference.get("status") != "PER_TAP_REFERENCE_ONLY_NOT_CONFORMANCE_QUALIFICATION"
+    ):
+        raise ValueError("fixed TDL reference has an invalid normative identity")
+    profiles = reference.get("profiles")
+    if not isinstance(profiles, list):
+        raise ValueError("fixed TDL reference must contain a profile list")
+    matches = [
+        row for row in profiles if isinstance(row, dict) and row.get("profile_model") == model
+    ]
+    if len(matches) != 1:
+        raise ValueError(f"fixed TDL reference must contain exactly one profile {model}")
+    profile = matches[0]
+    components = profile.get("components")
+    if not isinstance(components, list) or not components:
+        raise ValueError(f"fixed TDL {model} reference must contain component rows")
+
+    power_by_tap: dict[int, float] = {}
+    delay_by_tap_ns: dict[int, float] = {}
+    for expected_index, component in enumerate(components, start=1):
+        if not isinstance(component, dict) or component.get("component_index") != expected_index:
+            raise ValueError(f"fixed TDL {model} component rows must be ordered and contiguous")
+        tap_index = component.get("tap_index")
+        delay_ns = component.get("delay_ns")
+        power_db = component.get("power_db")
+        distribution = component.get("fading_distribution")
+        if (
+            isinstance(tap_index, bool)
+            or not isinstance(tap_index, int)
+            or tap_index < 1
+            or isinstance(delay_ns, bool)
+            or not isinstance(delay_ns, (int, float))
+            or not math.isfinite(float(delay_ns))
+            or delay_ns < 0
+            or isinstance(power_db, bool)
+            or not isinstance(power_db, (int, float))
+            or not math.isfinite(float(power_db))
+            or distribution not in {"Rayleigh", "LOS", "LOS path"}
+        ):
+            raise ValueError(f"fixed TDL {model} component fields are invalid")
+        delay = float(delay_ns)
+        if tap_index in delay_by_tap_ns and delay_by_tap_ns[tap_index] != delay:
+            raise ValueError(f"fixed TDL {model} components in one tap have different delays")
+        delay_by_tap_ns[tap_index] = delay
+        component_power = 10.0 ** (float(power_db) / 10.0)
+        if not math.isfinite(component_power) or component_power <= 0.0:
+            raise ValueError(f"fixed TDL {model} component power is not representable")
+        power_by_tap[tap_index] = power_by_tap.get(tap_index, 0.0) + component_power
+
+    tap_count = profile.get("tap_count")
+    tap_indices = sorted(power_by_tap)
+    if (
+        isinstance(tap_count, bool)
+        or not isinstance(tap_count, int)
+        or tap_indices != list(range(1, tap_count + 1))
+    ):
+        raise ValueError(f"fixed TDL {model} tap count/index roster is inconsistent")
+    total_power = math.fsum(power_by_tap.values())
+    if not math.isfinite(total_power) or total_power <= 0.0:
+        raise ValueError(f"fixed TDL {model} total reference power is invalid")
+    return (
+        [power_by_tap[index] / total_power for index in tap_indices],
+        [delay_by_tap_ns[index] * 1e-9 for index in tap_indices],
+    )

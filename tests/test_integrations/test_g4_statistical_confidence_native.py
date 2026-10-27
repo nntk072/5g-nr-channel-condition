@@ -26,7 +26,10 @@ from evaluation.g4_tdl_covariance_reference import (  # noqa: E402
     fixed_tdl_first_tap_power_components,
     scalable_tdl_first_tap_power_components,
 )
-from evaluation.g4_tdl_profile_reference import scalable_tdl_pdp_reference  # noqa: E402
+from evaluation.g4_tdl_profile_reference import (  # noqa: E402
+    fixed_tdl_pdp_reference,
+    scalable_tdl_pdp_reference,
+)
 from integrations.sionna.cdl import CDLArrayConfig, generate_cdl_frequency_response  # noqa: E402
 from integrations.sionna.tdl import generate_tdl_frequency_response  # noqa: E402
 
@@ -172,16 +175,9 @@ def test_delay_profile_and_rms_have_draw_level_confidence_intervals(
         expected_power = torch.as_tensor(independent_powers, dtype=torch.float64)
         delays = torch.as_tensor(independent_delays, dtype=torch.float64)
     else:
-        expected_values = channel.metadata.get(
-            "mean_tap_powers", channel.metadata.get("normalized_cluster_powers")
-        )
-        expected_power = torch.as_tensor(expected_values, dtype=torch.float64)
-        delays = torch.as_tensor(
-            channel.metadata.get(
-                "nominal_tap_delays_s", channel.metadata.get("nominal_cluster_delays_s")
-            ),
-            dtype=torch.float64,
-        )
+        independent_powers, independent_delays = fixed_tdl_pdp_reference(model)
+        expected_power = torch.as_tensor(independent_powers, dtype=torch.float64)
+        delays = torch.as_tensor(independent_delays, dtype=torch.float64)
     assert empirical_power.shape == expected_power.shape == delays.shape
     # A 3.5-SE bound is conservative across the profile's multiple PDP taps.
     assert _within_interval(empirical_power, power_se, expected_power)
