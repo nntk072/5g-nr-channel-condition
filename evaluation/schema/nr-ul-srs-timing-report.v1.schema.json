@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.invalid/schema/evaluation/nr-ul-srs-timing-report.v1.schema.json",
+  "title": "NR UL SRS timing report v1",
+  "type": "object",
+  "required": [
+    "schema", "measurement", "standard", "status", "receiver_category",
+    "receiver_reference_point", "timing_calibration_sha256", "limitations"
+  ],
+  "properties": {
+    "schema": {"const": "loslab.nr_ul_srs_timing_report.v1"},
+    "measurement": {"enum": ["UL_RTOA", "GNB_RX_TX_TIME_DIFFERENCE"]},
+    "standard": {"enum": [
+      "3GPP_TS_38.215_V19.2.0_clause_5.2.2",
+      "3GPP_TS_38.215_V19.2.0_clause_5.2.3"
+    ]},
+    "status": {"const": "REPORTED"},
+    "receiver_category": {"enum": [
+      "terrestrial_type_1_c", "terrestrial_type_1_o",
+      "terrestrial_type_2_o", "terrestrial_type_1_h"
+    ]},
+    "receiver_reference_point": {"enum": [
+      "rx_antenna_connector", "rx_antenna_radiating_region_center",
+      "rx_transceiver_array_boundary_connector"
+    ]},
+    "transmitter_category": {"enum": [
+      "terrestrial_type_1_c", "terrestrial_type_1_o",
+      "terrestrial_type_2_o", "terrestrial_type_1_h"
+    ]},
+    "transmitter_reference_point": {"enum": [
+      "tx_antenna_connector", "tx_antenna_radiating_region_center",
+      "tx_transceiver_array_boundary_connector"
+    ]},
+    "sfn": {"type": "integer", "minimum": 0, "maximum": 1023},
+    "subframe_number": {"type": "integer", "minimum": 0, "maximum": 9},
+    "sfn_zero_reference_time_s": {"type": "number"},
+    "srs_subframe_offset_from_sfn_zero_s": {"type": "number", "minimum": 0},
+    "ul_rtoa_reference_time_s": {"type": "number"},
+    "received_subframe_start_time_s": {"type": "number"},
+    "ul_rtoa_s": {"type": "number"},
+    "received_uplink_subframe_time_s": {"type": "number"},
+    "transmitted_downlink_subframe_time_s": {"type": "number"},
+    "gnb_rx_tx_time_difference_s": {"type": "number"},
+    "timing_calibration_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "limitations": {"type": "array", "minItems": 3, "items": {"type": "string", "minLength": 1}}
+  },
+  "oneOf": [
+    {
+      "properties": {"measurement": {"const": "UL_RTOA"}, "standard": {"const": "3GPP_TS_38.215_V19.2.0_clause_5.2.2"}},
+      "required": [
+        "sfn", "subframe_number", "sfn_zero_reference_time_s",
+        "srs_subframe_offset_from_sfn_zero_s", "ul_rtoa_reference_time_s",
+        "received_subframe_start_time_s", "ul_rtoa_s"
+      ],
+      "not": {"anyOf": [{"required": ["transmitter_category"]}, {"required": ["gnb_rx_tx_time_difference_s"]}]}
+    },
+    {
+      "properties": {"measurement": {"const": "GNB_RX_TX_TIME_DIFFERENCE"}, "standard": {"const": "3GPP_TS_38.215_V19.2.0_clause_5.2.3"}},
+      "required": [
+        "transmitter_category", "transmitter_reference_point",
+        "received_uplink_subframe_time_s", "transmitted_downlink_subframe_time_s",
+        "gnb_rx_tx_time_difference_s"
+      ],
+      "not": {"anyOf": [{"required": ["sfn"]}, {"required": ["ul_rtoa_s"]}]}
+    }
+  ],
+  "additionalProperties": false
+}

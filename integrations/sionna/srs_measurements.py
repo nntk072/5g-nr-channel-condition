@@ -26,8 +26,17 @@ _RECEIVER_REFERENCE_POINTS = {
     "satellite_type_1_o": "combined_antenna_elements_per_receiver_branch",
     "satellite_type_1_h": "rx_transceiver_array_boundary_connector",
 }
+_TIMING_REFERENCE_POINTS = {
+    "terrestrial_type_1_c": "rx_antenna_connector",
+    "terrestrial_type_1_o": "rx_antenna_radiating_region_center",
+    "terrestrial_type_2_o": "rx_antenna_radiating_region_center",
+    "terrestrial_type_1_h": "rx_transceiver_array_boundary_connector",
+}
 _SCHEMA_PATH = (
     Path(__file__).resolve().parents[2] / "evaluation/schema/nr-ul-srs-rsrp-report.v1.schema.json"
+)
+_TIMING_SCHEMA_PATH = (
+    Path(__file__).resolve().parents[2] / "evaluation/schema/nr-ul-srs-timing-report.v1.schema.json"
 )
 
 
@@ -144,6 +153,122 @@ def measure_ul_srs_rsrp(
     return report
 
 
+def report_ul_rtoa(
+    *,
+    received_subframe_start_time_s: float,
+    sfn: int,
+    subframe_number: int,
+    sfn_zero_reference_time_s: float,
+    receiver_category: str,
+    timing_calibration_sha256: str,
+) -> dict[str, Any]:
+    """Report UL-RTOA from a separately detected received SRS subframe start.
+
+    TS 38.215 defines the reference instant as ``T0 + (10*SFN + subframe)*1 ms``.
+    The received start time and SFN-zero time must use the same calibrated clock.
+    This function binds the timing result; it does not detect the first path or
+    establish clock calibration.
+    """
+
+    if receiver_category not in _TIMING_REFERENCE_POINTS:
+        raise ValueError("receiver_category must be a terrestrial TS 38.104 base-station type")
+    if isinstance(sfn, bool) or not isinstance(sfn, int) or not 0 <= sfn <= 1023:
+        raise ValueError("sfn must be an integer from 0 through 1023")
+    if (
+        isinstance(subframe_number, bool)
+        or not isinstance(subframe_number, int)
+        or not 0 <= subframe_number <= 9
+    ):
+        raise ValueError("subframe_number must be an integer from 0 through 9")
+    received = _finite_real(received_subframe_start_time_s, "received_subframe_start_time_s")
+    t0 = _finite_real(sfn_zero_reference_time_s, "sfn_zero_reference_time_s")
+    digest = _validate_digest(timing_calibration_sha256, "timing_calibration_sha256")
+    srs_time = (10 * sfn + subframe_number) * 1e-3
+    reference_time = t0 + srs_time
+    report = {
+        "schema": "loslab.nr_ul_srs_timing_report.v1",
+        "measurement": "UL_RTOA",
+        "standard": "3GPP_TS_38.215_V19.2.0_clause_5.2.2",
+        "status": "REPORTED",
+        "receiver_category": receiver_category,
+        "receiver_reference_point": _TIMING_REFERENCE_POINTS[receiver_category],
+        "sfn": sfn,
+        "subframe_number": subframe_number,
+        "sfn_zero_reference_time_s": t0,
+        "srs_subframe_offset_from_sfn_zero_s": srs_time,
+        "ul_rtoa_reference_time_s": reference_time,
+        "received_subframe_start_time_s": received,
+        "ul_rtoa_s": received - reference_time,
+        "timing_calibration_sha256": digest,
+        "limitations": [
+            "The received subframe start and SFN-zero reference are caller supplied.",
+            "First-path detection, SRS acquisition, and clock calibration are not performed or verified.",
+            "This report is arithmetic evidence only and does not qualify a positioning receiver.",
+        ],
+    }
+    _validate_timing_report_schema(report)
+    return report
+
+
+def report_gnb_rx_tx_time_difference(
+    *,
+    received_uplink_subframe_time_s: float,
+    transmitted_downlink_subframe_time_s: float,
+    receiver_category: str,
+    transmitter_category: str,
+    timing_calibration_sha256: str,
+) -> dict[str, Any]:
+    """Report gNB Rx-Tx timing from caller-supplied TRP timing observations."""
+
+    if receiver_category not in _TIMING_REFERENCE_POINTS:
+        raise ValueError("receiver_category must be a terrestrial TS 38.104 base-station type")
+    if transmitter_category not in _TIMING_REFERENCE_POINTS:
+        raise ValueError("transmitter_category must be a terrestrial TS 38.104 base-station type")
+    received = _finite_real(received_uplink_subframe_time_s, "received_uplink_subframe_time_s")
+    transmitted = _finite_real(
+        transmitted_downlink_subframe_time_s, "transmitted_downlink_subframe_time_s"
+    )
+    digest = _validate_digest(timing_calibration_sha256, "timing_calibration_sha256")
+    report = {
+        "schema": "loslab.nr_ul_srs_timing_report.v1",
+        "measurement": "GNB_RX_TX_TIME_DIFFERENCE",
+        "standard": "3GPP_TS_38.215_V19.2.0_clause_5.2.3",
+        "status": "REPORTED",
+        "receiver_category": receiver_category,
+        "receiver_reference_point": _TIMING_REFERENCE_POINTS[receiver_category],
+        "transmitter_category": transmitter_category,
+        "transmitter_reference_point": _TIMING_REFERENCE_POINTS[transmitter_category].replace(
+            "rx_", "tx_", 1
+        ),
+        "received_uplink_subframe_time_s": received,
+        "transmitted_downlink_subframe_time_s": transmitted,
+        "gnb_rx_tx_time_difference_s": received - transmitted,
+        "timing_calibration_sha256": digest,
+        "limitations": [
+            "The selected uplink and downlink TRP timing observations are caller supplied.",
+            "The closest downlink subframe selection and first-path detection are not verified.",
+            "This report is arithmetic evidence only and does not qualify a positioning receiver.",
+        ],
+    }
+    _validate_timing_report_schema(report)
+    return report
+
+
+def _finite_real(value: Any, name: str) -> float:
+    if isinstance(value, (bool, np.bool_)) or not isinstance(value, Real):
+        raise ValueError(f"{name} must be a finite real number")
+    result = float(value)
+    if not math.isfinite(result):
+        raise ValueError(f"{name} must be a finite real number")
+    return result
+
+
+def _validate_digest(value: str, name: str) -> str:
+    if not isinstance(value, str) or not _SHA256_RE.fullmatch(value):
+        raise ValueError(f"{name} must be a lowercase SHA-256 digest")
+    return value
+
+
 def _validate_report_schema(report: dict[str, Any]) -> None:
     import jsonschema
 
@@ -153,5 +278,18 @@ def _validate_report_schema(report: dict[str, Any]) -> None:
     if errors:
         raise ValueError(
             "UL SRS-RSRP report violates schema: "
+            + "; ".join(error.message for error in errors[:10])
+        )
+
+
+def _validate_timing_report_schema(report: dict[str, Any]) -> None:
+    import jsonschema
+
+    schema = json.loads(_TIMING_SCHEMA_PATH.read_text(encoding="utf-8"))
+    jsonschema.Draft202012Validator.check_schema(schema)
+    errors = list(jsonschema.Draft202012Validator(schema).iter_errors(report))
+    if errors:
+        raise ValueError(
+            "UL SRS timing report violates schema: "
             + "; ".join(error.message for error in errors[:10])
         )

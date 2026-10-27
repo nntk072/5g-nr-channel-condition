@@ -16,8 +16,15 @@ verify the calibration, mapping, bandwidth-to-RE consistency, antenna pattern,
 or receiver behavior. Zero power is retained with status
 `ZERO_POWER_DIAGNOSTIC` and `null` dBm values.
 
-This closes only the UL SRS-RSRP arithmetic/report slice. It does not implement
-UL-RTOA, gNB Rx-Tx time difference, UL-AoA, path power or TDCT reports, RRC/LPP
-ASN.1 encoding, synchronized receive acquisition, or positioning qualification.
+The same module also reports the TS 38.215 V19.2.0 UL-RTOA reference instant
+from SFN/subframe identity and the signed gNB Rx-Tx time difference from
+caller-supplied TRP timing observations. Timing reports distinguish receiver
+and transmitter reference points and bind a timing-calibration digest. They do
+not perform first-path detection, select/verify the closest downlink subframe,
+or calibrate a clock. Thus only the timing arithmetic and report semantics are
+implemented; timing acquisition remains open.
+
+UL-AoA, path power or TDCT reports, RRC/LPP ASN.1 encoding, synchronized
+receive acquisition, and positioning qualification remain open.
 The ETSI definition and receiver-specific reference points are in [TS 38.215
 V19.2.0, clause 5.2.5](https://www.etsi.org/deliver/etsi_ts/138200_138299/138215/19.02.00_60/ts_138215v190200p.pdf).
