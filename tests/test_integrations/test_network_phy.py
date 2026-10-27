@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import replace
 
 import pytest
@@ -665,6 +666,73 @@ def test_network_phase_noise_counts_oscillator_work_against_capture_bound():
             tx_phase_noise_linewidth_hz=(1_000.0,),
             phase_noise_seed=41,
             max_output_elements=111,
+        )
+
+
+def test_network_receiver_iq_imbalance_is_applied_per_link_and_retained():
+    links = torch.empty((1, 1, 2, 1, 8), dtype=torch.complex64)
+    links[:, :, 0] = 1.0 + 2.0j
+    links[:, :, 1] = 3.0 - 1.0j
+    composition = compose_received_waveforms(
+        links,
+        link_start_samples=((0, 0),),
+        capture_num_samples=8,
+        sample_rate_hz=1e6,
+        rx_iq_gain_imbalance_db=(6.0,),
+        rx_iq_phase_imbalance_rad=(0.2,),
+    )
+
+    i_gain = 10.0 ** (6.0 / 40.0)
+    q_gain = 10.0 ** (-6.0 / 40.0)
+    actual = composition.source_contributions[0, 0, 0, 0, 0]
+    assert actual.real.item() == pytest.approx(i_gain - q_gain * math.sin(0.2) * 2.0)
+    assert actual.imag.item() == pytest.approx(q_gain * math.cos(0.2) * 2.0)
+    torch.testing.assert_close(
+        composition.received_waveform,
+        composition.source_contributions.sum(dim=3),
+    )
+    torch.testing.assert_close(
+        composition.rx_iq_gain_imbalance_db,
+        torch.tensor([6.0], dtype=torch.float64),
+    )
+    torch.testing.assert_close(
+        composition.rx_iq_phase_imbalance_rad,
+        torch.tensor([0.2], dtype=torch.float64),
+    )
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"rx_iq_gain_imbalance_db": (True,)},
+        {"rx_iq_gain_imbalance_db": (float("inf"),)},
+        {"rx_iq_gain_imbalance_db": (10000.0,)},
+        {"rx_iq_phase_imbalance_rad": (float("nan"),)},
+        {"rx_iq_phase_imbalance_rad": (0.1, 0.2)},
+    ],
+)
+def test_network_receiver_iq_imbalance_rejects_invalid_inputs(kwargs):
+    links = torch.ones((1, 1, 1, 1, 16), dtype=torch.complex64)
+    args = {
+        "link_start_samples": ((0,),),
+        "capture_num_samples": 16,
+        "sample_rate_hz": 1e6,
+    }
+    args.update(kwargs)
+    with pytest.raises((TypeError, ValueError)):
+        compose_received_waveforms(links, **args)
+
+
+def test_network_receiver_iq_imbalance_work_counts_against_capture_bound():
+    links = torch.ones((1, 1, 1, 1, 16), dtype=torch.complex64)
+    with pytest.raises(ValueError, match="impairment work"):
+        compose_received_waveforms(
+            links,
+            link_start_samples=((0,),),
+            capture_num_samples=16,
+            sample_rate_hz=1e6,
+            rx_iq_gain_imbalance_db=(1.0,),
+            max_output_elements=79,
         )
 
 

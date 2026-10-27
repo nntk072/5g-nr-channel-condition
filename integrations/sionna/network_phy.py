@@ -239,6 +239,8 @@ class NetworkWaveformComposition:
     tx_phase_noise_linewidth_hz: Any
     rx_phase_noise_linewidth_hz: Any
     phase_noise_seed: int | None
+    rx_iq_gain_imbalance_db: Any
+    rx_iq_phase_imbalance_rad: Any
 
 
 @dataclass(frozen=True, slots=True)
@@ -629,6 +631,8 @@ def compose_received_waveforms(
     tx_phase_noise_linewidth_hz: Any | None = None,
     rx_phase_noise_linewidth_hz: Any | None = None,
     phase_noise_seed: int | None = None,
+    rx_iq_gain_imbalance_db: Any | None = None,
+    rx_iq_phase_imbalance_rad: Any | None = None,
     max_output_elements: int = 64_000_000,
 ) -> NetworkWaveformComposition:
     """Align and sum already propagated transmitter waveforms at each receiver.
@@ -650,11 +654,13 @@ def compose_received_waveforms(
     nonlinear RF effects. Optional transmitter and receiver linewidth vectors
     apply independent Wiener oscillators per node and batch draw; each node's
     trajectory is shared across its incident links and antenna ports. A seed
-    is required when either linewidth is positive. Do not pass an already
+    is required when either linewidth is positive. Optional receiver I/Q gain
+    and quadrature-skew vectors are applied after channel filtering; transmitter
+    I/Q imbalance must be applied before propagation. Do not pass an already
     path-loss-scaled waveform together with its gain matrix.
 
-    The output is bounded by ``max_output_elements`` across both retained link
-    contributions and the receiver sum, before allocating the capture tensors.
+    Outputs and temporary impairment work are bounded by
+    ``max_output_elements`` before allocating capture tensors.
     This is a common-sample-rate baseband composition primitive, not a complete
     asynchronous or multi-numerology network simulator.
     """
@@ -790,6 +796,43 @@ def compose_received_waveforms(
         or phase_noise_seed > 2**63 - 1
     ):
         raise ValueError("phase_noise_seed must be an integer in [0, 2**63 - 1]")
+    if rx_iq_gain_imbalance_db is None:
+        rx_iq_gain = torch.zeros(rx_count, dtype=torch.float64, device=link_waveforms.device)
+    else:
+        rx_iq_gain = _validated_real_values(
+            torch,
+            rx_iq_gain_imbalance_db,
+            shape=(rx_count,),
+            device=link_waveforms.device,
+            name="rx_iq_gain_imbalance_db",
+        )
+    if rx_iq_phase_imbalance_rad is None:
+        rx_iq_phase = torch.zeros(rx_count, dtype=torch.float64, device=link_waveforms.device)
+    else:
+        rx_iq_phase = _validated_real_values(
+            torch,
+            rx_iq_phase_imbalance_rad,
+            shape=(rx_count,),
+            device=link_waveforms.device,
+            name="rx_iq_phase_imbalance_rad",
+        )
+    iq_active = bool((rx_iq_gain != 0).any() or (rx_iq_phase != 0).any())
+    i_gain = torch.pow(10.0, rx_iq_gain / 40.0)
+    q_gain = torch.pow(10.0, -rx_iq_gain / 40.0)
+    phase_skew = torch.remainder(rx_iq_phase + math.pi, 2.0 * math.pi) - math.pi
+    iq_real_scale = i_gain.to(dtype=link_waveforms.real.dtype)
+    iq_q_scale = q_gain.to(dtype=link_waveforms.real.dtype)
+    iq_sin = torch.sin(phase_skew).to(dtype=link_waveforms.real.dtype)
+    iq_cos = torch.cos(phase_skew).to(dtype=link_waveforms.real.dtype)
+    if (
+        not bool(torch.isfinite(iq_real_scale).all())
+        or not bool(torch.isfinite(iq_q_scale).all())
+        or not bool(torch.isfinite(iq_sin).all())
+        or not bool(torch.isfinite(iq_cos).all())
+        or bool(((i_gain > 0) & (iq_real_scale == 0)).any())
+        or bool(((q_gain > 0) & (iq_q_scale == 0)).any())
+    ):
+        raise ValueError("receiver I/Q imbalance is not representable in waveform precision")
     cycles_per_sample = cfo / float(sample_rate_hz)
     if not bool(torch.isfinite(cycles_per_sample).all()):
         raise ValueError("link CFO divided by sample rate must be representable in float64")
@@ -811,13 +854,18 @@ def compose_received_waveforms(
     phase_work_elements = (
         batch * (max(tx_count, rx_count) + 2) * capture_num_samples if phase_noise_enabled else 0
     )
+    iq_work_elements = 5 * batch * rx_ports * capture_num_samples if iq_active else 0
     if (
-        contribution_elements + receive_elements + phase_state_elements + phase_work_elements
+        contribution_elements
+        + receive_elements
+        + phase_state_elements
+        + phase_work_elements
+        + iq_work_elements
         > max_output_elements
     ):
         raise ValueError(
-            "waveform outputs and oscillator state exceed max_output_elements; "
-            "reduce the capture, batch, or oscillator roster"
+            "waveform outputs, oscillator state, and impairment work exceed max_output_elements; "
+            "reduce the capture, batch, or impairment roster"
         )
 
     tx_phase_noise = None
@@ -909,9 +957,17 @@ def compose_received_waveforms(
                 oscillator = torch.polar(torch.ones_like(phase), phase)
                 if phase_noise_enabled:
                     oscillator = oscillator[:, None, :]
+                link_output = aligned * waveform_gain[rx_index, tx_index] * oscillator
+                if iq_active:
+                    i_component = (
+                        iq_real_scale[rx_index] * link_output.real
+                        - iq_q_scale[rx_index] * iq_sin[rx_index] * link_output.imag
+                    )
+                    q_component = iq_q_scale[rx_index] * iq_cos[rx_index] * link_output.imag
+                    link_output = torch.complex(i_component, q_component)
                 contributions[
                     :, rx_index, :, tx_index, destination_start : destination_start + sample_count
-                ] = aligned * waveform_gain[rx_index, tx_index] * oscillator
+                ] = link_output
     received = contributions.sum(dim=3)
     if not bool(torch.isfinite(contributions).all()) or not bool(torch.isfinite(received).all()):
         raise ValueError("composed receiver waveform is not finite")
@@ -928,6 +984,8 @@ def compose_received_waveforms(
         tx_phase_noise_linewidth_hz=tx_linewidth,
         rx_phase_noise_linewidth_hz=rx_linewidth,
         phase_noise_seed=phase_noise_seed,
+        rx_iq_gain_imbalance_db=rx_iq_gain,
+        rx_iq_phase_imbalance_rad=rx_iq_phase,
     )
 
 
