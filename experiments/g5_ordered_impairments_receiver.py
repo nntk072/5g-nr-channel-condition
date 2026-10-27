@@ -1974,7 +1974,7 @@ def build_hash_bound_result(
     except ValueError:
         source_name = source_path.name
     packages: dict[str, str | None] = {}
-    for distribution in ("torch", "sionna", "sionna-phy", "sionna-rt"):
+    for distribution in ("torch", "sionna-no-rt", "sionna", "sionna-phy", "sionna-rt"):
         try:
             packages[distribution] = importlib.metadata.version(distribution)
         except importlib.metadata.PackageNotFoundError:

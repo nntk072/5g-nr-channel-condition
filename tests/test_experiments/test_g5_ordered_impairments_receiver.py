@@ -19,6 +19,13 @@ from experiments.audit_g5_ordered_impairments_result import (  # noqa: E402
     _recompute_waveform_diagnostics,
     audit_result_file,
 )
+from experiments.g5_acceptance import (  # noqa: E402
+    G5_SNR_CURVE_BOOTSTRAP_DRAWS,
+    G5_SNR_CURVE_BOOTSTRAP_SEED,
+    G5_SNR_CURVE_INFERENCE_METHOD,
+    G5_SNR_CURVE_INFERENCE_UNIT,
+    G5_SNR_CURVE_PAIRED_CONTRAST,
+)
 from experiments.g5_ordered_impairments_receiver import (  # noqa: E402
     build_hash_bound_result,
     run_independent_ordered_impairment_probe,
@@ -319,13 +326,28 @@ def test_snr_acceptance_rejects_malformed_simultaneous_intervals(
         channel_estimator="sionna_default_ls",
         blocks_per_channel=1,
     )
-    corrected_interval = [0.0, 1.0] if branch == "corrected" else interval
-    improvement_interval = [0.0, 1.0] if branch == "improvement" else interval
+    corrected_interval = interval if branch == "corrected" else [0.0, 1.0]
+    improvement_interval = interval if branch == "improvement" else [0.0, 1.0]
     inference = {
         "status": "available",
         "cluster_count": 20,
+        "channel_seeds": list(range(17, 37)),
+        "unit": G5_SNR_CURVE_INFERENCE_UNIT,
+        "bootstrap_seed": G5_SNR_CURVE_BOOTSTRAP_SEED,
+        "bootstrap_draws": G5_SNR_CURVE_BOOTSTRAP_DRAWS,
+        "family_size": 4,
+        "method": G5_SNR_CURVE_INFERENCE_METHOD,
+        "paired_contrast_definition": G5_SNR_CURVE_PAIRED_CONTRAST,
+        "simultaneous_radius": 0.05,
         "by_condition": {
-            "corrected": [{"snr_db": 0.0, "simultaneous_95_percent_interval": corrected_interval}]
+            condition: [
+                {"snr_db": 0.0, "simultaneous_95_percent_interval": interval}
+            ]
+            for condition, interval in (
+                ("clean", [0.0, 1.0]),
+                ("uncorrected", [0.0, 1.0]),
+                ("corrected", corrected_interval),
+            )
         },
         "by_paired_contrast": [
             {"snr_db": 0.0, "simultaneous_95_percent_interval": improvement_interval}

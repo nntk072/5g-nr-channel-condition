@@ -396,6 +396,7 @@ def test_block_bound_schema_requires_complete_receiver_and_transport_block_roste
         "resource_grid": {
             "num_ofdm_symbols": 14,
             "fft_size": 72,
+            "cyclic_prefix_length_samples": 7,
             "subcarrier_spacing_hz": 30_000,
         },
         "carrier_grid": {

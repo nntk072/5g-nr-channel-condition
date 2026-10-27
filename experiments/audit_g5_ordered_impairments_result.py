@@ -873,6 +873,7 @@ def _audit_result(
             "resource_grid": {
                 "num_ofdm_symbols": 14,
                 "fft_size": 72,
+                "cyclic_prefix_length_samples": 7,
                 "subcarrier_spacing_hz": 30_000,
             },
             "carrier_grid": {
@@ -896,11 +897,16 @@ def _audit_result(
             raise ValueError("receiver_configuration declares an unsupported PUSCH mode")
         runtime = provenance.get("runtime")
         runtime_packages = runtime.get("packages") if isinstance(runtime, dict) else None
+        runtime_sionna_version = (
+            runtime_packages.get("sionna-no-rt") or runtime_packages.get("sionna")
+            if isinstance(runtime_packages, dict)
+            else None
+        )
         if (
             not isinstance(runtime_packages, dict)
             or not isinstance(receiver.get("sionna_version"), str)
             or not receiver.get("sionna_version")
-            or receiver.get("sionna_version") != runtime_packages.get("sionna")
+            or receiver.get("sionna_version") != runtime_sionna_version
         ):
             raise ValueError("receiver Sionna version disagrees with runtime provenance")
         if experiment.get("schema") in _CUDA_DEVICE_REPORT_SCHEMAS:
