@@ -456,9 +456,12 @@ def derive_spatiotemporal_leakage_relations(
     and temporal links are transitively grouped; this can conservatively merge
     a chain of pairwise-related subjects into one split component.
     """
-    if isinstance(spatial_buffer_m, bool) or not isinstance(spatial_buffer_m, (float, int)):
+    if isinstance(spatial_buffer_m, bool) or not isinstance(spatial_buffer_m, Real):
         raise TypeError("spatial_buffer_m must be a real number")
-    buffer_m = float(spatial_buffer_m)
+    try:
+        buffer_m = float(spatial_buffer_m)
+    except OverflowError as error:
+        raise ValueError("spatial_buffer_m must be finite and non-negative") from error
     if not math.isfinite(buffer_m) or buffer_m < 0:
         raise ValueError("spatial_buffer_m must be finite and non-negative")
     by_id: dict[str, SpatiotemporalFootprint] = {}

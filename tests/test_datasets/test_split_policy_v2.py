@@ -133,6 +133,18 @@ def test_split_policy_rejects_fraction_that_overflows_float_conversion() -> None
         )
 
 
+@pytest.mark.parametrize("invalid_buffer", [True, "1.0", 1.0 + 0j])
+def test_spatiotemporal_audit_rejects_coercible_buffer_types(invalid_buffer) -> None:
+    with pytest.raises(TypeError, match="spatial_buffer_m must be a real number"):
+        derive_spatiotemporal_leakage_relations([], spatial_buffer_m=invalid_buffer)
+
+
+def test_spatiotemporal_audit_accepts_numpy_real_and_rejects_overflowing_buffer() -> None:
+    assert derive_spatiotemporal_leakage_relations([], spatial_buffer_m=np.float32(1.0)) == {}
+    with pytest.raises(ValueError, match="spatial_buffer_m must be finite and non-negative"):
+        derive_spatiotemporal_leakage_relations([], spatial_buffer_m=10**1000)
+
+
 def test_derive_split_components_is_transitive_deterministic_and_nonassigning() -> None:
     a = _subject("a", (LeakageNamespace.SITE, "site-1"))
     b = _subject(
