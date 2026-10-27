@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import replace
 from pathlib import Path
@@ -21,7 +22,7 @@ from datasets.episode_store import (
     read_receiver_model_inputs,
     write_episode_bundle,
 )
-from datasets.lineage import LineageStatusClaim
+from datasets.lineage import LineageStatusClaim, audit_lineage_evidence_payloads
 from datasets.network import (
     AntennaArraySpec,
     DirectedLink,
@@ -920,6 +921,56 @@ def test_provenance_lineage_claims_are_tiered_hash_bound_and_schema_valid(tmp_pa
 def test_lineage_claim_rejects_incomplete_or_invalid_evidence(status, evidence):
     with pytest.raises(ValueError):
         LineageStatusClaim(status=status, scope="task", evidence_sha256=evidence)
+
+
+def test_lineage_evidence_audit_verifies_exact_payload_roster_and_schema():
+    evidence = b"independent numeric-shape-gauge report\n"
+    digest = hashlib.sha256(evidence).hexdigest()
+    claims = (
+        LineageStatusClaim(
+            status="synthetic_debug",
+            scope="network-phy",
+            evidence_sha256={"regression_report_sha256": digest},
+        ),
+    )
+    report = audit_lineage_evidence_payloads(claims, {digest: evidence})
+    assert report["status"] == "EVIDENCE_BYTES_VERIFIED"
+    assert report["scientific_status"] == "NOT_QUALIFIED"
+    assert report["verified_evidence_bytes"] == len(evidence)
+
+    jsonschema = pytest.importorskip("jsonschema")
+    schema_path = (
+        Path(__file__).resolve().parents[2]
+        / "datasets/schema/umcd-lineage-evidence-audit.v1.schema.json"
+    )
+    jsonschema.Draft202012Validator(json.loads(schema_path.read_text())).validate(report)
+
+
+def test_lineage_evidence_audit_rejects_missing_extra_tampered_and_oversized_payloads():
+    evidence = b"qualification report"
+    digest = hashlib.sha256(evidence).hexdigest()
+    claim = LineageStatusClaim(
+        status="synthetic_debug",
+        scope="task",
+        evidence_sha256={"regression_report_sha256": digest},
+    )
+    claims = (claim,)
+    with pytest.raises(ValueError, match="roster"):
+        audit_lineage_evidence_payloads(claims, {})
+    with pytest.raises(ValueError, match="roster"):
+        audit_lineage_evidence_payloads(claims, {digest: evidence, "0" * 64: b"extra"})
+    with pytest.raises(ValueError, match="does not match digest"):
+        audit_lineage_evidence_payloads(claims, {digest: b"tampered"})
+    with pytest.raises(ValueError, match="exceed max_total_bytes"):
+        audit_lineage_evidence_payloads(claims, {digest: evidence}, max_total_bytes=4)
+
+
+def test_lineage_evidence_audit_reports_proposed_claim_without_evidence():
+    claim = LineageStatusClaim(status="proposed", scope="planned-task", evidence_sha256={})
+    report = audit_lineage_evidence_payloads((claim,), {})
+    assert report["status"] == "NO_EVIDENCE_REQUIRED"
+    assert report["scientific_status"] == "NOT_QUALIFIED"
+    assert report["verified_evidence_sha256"] == []
 
 
 def test_provenance_reader_rejects_boolean_schema_version_even_when_one():

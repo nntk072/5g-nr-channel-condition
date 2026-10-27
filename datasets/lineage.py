@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import re
 from collections.abc import Mapping
 from dataclasses import dataclass
@@ -131,3 +133,59 @@ def validate_lineage_claims(claims: Any) -> tuple[LineageStatusClaim, ...]:
     if len(set(identities)) != len(identities):
         raise ValueError("lineage claims must have unique status/scope pairs")
     return frozen
+
+
+def audit_lineage_evidence_payloads(
+    claims: Any,
+    evidence_payloads_by_sha256: Mapping[str, bytes],
+    *,
+    max_total_bytes: int = 128 * 1024 * 1024,
+) -> dict[str, Any]:
+    """Verify that supplied evidence payloads exactly match the claim roster.
+
+    This checks byte identity only. It does not parse evidence, verify
+    signatures, establish independence, or authorize the claimed tier.
+    Callers are responsible for acquiring payloads through their trusted,
+    stable-file reader before passing them here.
+    """
+    frozen_claims = validate_lineage_claims(claims)
+    if isinstance(max_total_bytes, bool) or not isinstance(max_total_bytes, int):
+        raise TypeError("max_total_bytes must be an integer")
+    if max_total_bytes <= 0:
+        raise ValueError("max_total_bytes must be positive")
+    if not isinstance(evidence_payloads_by_sha256, Mapping):
+        raise TypeError("evidence_payloads_by_sha256 must be a digest-keyed mapping")
+
+    expected = {digest for claim in frozen_claims for digest in claim.evidence_sha256.values()}
+    if set(evidence_payloads_by_sha256) != expected:
+        raise ValueError("supplied evidence payload roster does not match lineage claims")
+    total_bytes = 0
+    for digest, payload in evidence_payloads_by_sha256.items():
+        if not isinstance(digest, str) or not _SHA256.fullmatch(digest):
+            raise ValueError("evidence payload keys must be lowercase SHA256 digests")
+        if not isinstance(payload, bytes):
+            raise TypeError("evidence payload values must be immutable bytes")
+        total_bytes += len(payload)
+        if total_bytes > max_total_bytes:
+            raise ValueError("lineage evidence payloads exceed max_total_bytes")
+        if hashlib.sha256(payload).hexdigest() != digest:
+            raise ValueError(f"lineage evidence payload does not match digest {digest}")
+
+    claims_bytes = json.dumps(
+        [claim.to_dict() for claim in frozen_claims],
+        sort_keys=True,
+        separators=(",", ":"),
+        allow_nan=False,
+    ).encode("utf-8")
+    core = {
+        "schema": "umcd.lineage_evidence_audit.v1",
+        "status": "EVIDENCE_BYTES_VERIFIED" if expected else "NO_EVIDENCE_REQUIRED",
+        "scientific_status": "NOT_QUALIFIED",
+        "lineage_claims_sha256": hashlib.sha256(claims_bytes).hexdigest(),
+        "verified_evidence_sha256": sorted(expected),
+        "verified_evidence_bytes": total_bytes,
+    }
+    report_bytes = json.dumps(core, sort_keys=True, separators=(",", ":"), allow_nan=False).encode(
+        "utf-8"
+    )
+    return {**core, "audit_sha256": hashlib.sha256(report_bytes).hexdigest()}

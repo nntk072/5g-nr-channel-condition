@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://umcd.example/schema/umcd-lineage-evidence-audit.v1.schema.json",
+  "title": "UMCD lineage evidence byte-identity audit",
+  "description": "Verifies only that supplied evidence payloads match referenced SHA-256 digests; it does not validate semantics, signatures, independence, or scientific acceptance.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "status", "scientific_status", "lineage_claims_sha256", "verified_evidence_sha256", "verified_evidence_bytes", "audit_sha256"],
+  "properties": {
+    "schema": {"const": "umcd.lineage_evidence_audit.v1"},
+    "status": {"enum": ["EVIDENCE_BYTES_VERIFIED", "NO_EVIDENCE_REQUIRED"]},
+    "scientific_status": {"const": "NOT_QUALIFIED"},
+    "lineage_claims_sha256": {"$ref": "#/$defs/sha256"},
+    "verified_evidence_sha256": {"type": "array", "items": {"$ref": "#/$defs/sha256"}, "uniqueItems": true},
+    "verified_evidence_bytes": {"type": "integer", "minimum": 0},
+    "audit_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}
