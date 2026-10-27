@@ -411,6 +411,71 @@ def write_nr_record(root: str | Path, record: NRChannelRecord) -> NRStoredRecord
     retain exact reference transport-block bits outside the model input view.
     v1-v3 remain read-only historical formats.
     """
+    # Snapshot mutable NumPy/Torch backing arrays before semantic admission so
+    # the values checked here are exactly the values passed to NPZ encoding.
+    observation = record.observation
+    received_grid = np.array(
+        _as_numpy(observation.received_grid, field="received_grid"), copy=True, order="C"
+    )
+    received_grid_mask = np.array(
+        _as_numpy(observation.received_grid_mask, field="received_grid_mask"),
+        copy=True,
+        order="C",
+    )
+    h_hat = np.array(
+        _as_numpy(observation.channel_estimate.h_hat, field="h_hat"), copy=True, order="C"
+    )
+    error_variance = np.array(
+        _as_numpy(observation.channel_estimate.error_variance, field="error_variance"),
+        copy=True,
+        order="C",
+    )
+    pilot_mask = np.array(
+        _as_numpy(observation.channel_estimate.pilot_mask, field="pilot_mask"),
+        copy=True,
+        order="C",
+    )
+    estimate_metadata = json.loads(_json_bytes(dict(observation.channel_estimate.metadata)))
+    snapshot_estimate = NRChannelEstimate(
+        h_hat=h_hat,
+        error_variance=error_variance,
+        pilot_mask=pilot_mask,
+        metadata=estimate_metadata,
+    )
+    snapshot_observation = NRObservation(
+        sample_id=observation.sample_id,
+        received_grid=received_grid,
+        received_grid_mask=received_grid_mask,
+        channel_estimate=snapshot_estimate,
+        fft_bin_indices=observation.fft_bin_indices,
+        receiver_config=observation.receiver_config,
+    )
+    snapshot_observation.model_inputs()
+    target_values = {
+        name: np.array(_as_numpy(value, field=f"target {name}"), copy=True, order="C")
+        for name, value in record.targets.items()
+    }
+    target_masks = {
+        name: np.array(_as_numpy(value, field=f"target mask {name}"), copy=True, order="C")
+        for name, value in record.target_masks.items()
+    }
+    provenance_snapshot = json.loads(_json_bytes(dict(record.provenance)))
+    reference_bits = record.reference_transport_block_bits
+    if reference_bits is not None:
+        reference_bits = np.array(
+            _as_numpy(reference_bits, field="reference_transport_block_bits"),
+            copy=True,
+            order="C",
+        )
+    record = NRChannelRecord(
+        observation=snapshot_observation,
+        targets=target_values,
+        target_masks=target_masks,
+        provenance=provenance_snapshot,
+        target_definitions=record.target_definitions,
+        target_reason_codes=record.target_reason_codes,
+        reference_transport_block_bits=reference_bits,
+    )
     record.require_versioned_target_definitions()
     record.validate_reference_transport_block_integrity()
     base = Path(root)

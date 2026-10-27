@@ -811,6 +811,34 @@ def test_nr_record_writer_requires_complete_versioned_target_semantics(tmp_path)
     assert not (tmp_path / "records").exists()
 
 
+@pytest.mark.parametrize(
+    ("mutate", "message"),
+    [
+        ("masked_target", "masked target elements.*zero storage"),
+        ("mask_reason", "masks and reason codes disagree"),
+    ],
+)
+def test_nr_record_writer_revalidates_mutable_target_arrays(tmp_path, mutate, message):
+    target = np.asarray([1.0, 0.0], dtype=np.float32)
+    mask = np.asarray([True, False], dtype=bool)
+    record = make_single_record(
+        "mutated-target-record",
+        targets={"label": target},
+        target_masks={"label": mask},
+        target_reason_codes={
+            "label": (TargetValidity.VALID, TargetValidity.NOT_OBSERVABLE)
+        },
+    )
+    if mutate == "masked_target":
+        target[1] = 4.0
+    else:
+        mask[1] = True
+
+    with pytest.raises(ValueError, match=message):
+        write_nr_record(tmp_path, record)
+    assert not (tmp_path / "records").exists()
+
+
 def test_nr_record_path_reader_bounds_and_stabilizes_manifest_snapshot(tmp_path, monkeypatch):
     import datasets.nr_store as nr_store
 
@@ -1167,7 +1195,9 @@ def test_nr_record_store_detects_tampering_and_sample_id_mutation(tmp_path):
         write_nr_record(
             tmp_path,
             NRChannelRecord(
-                observation=make_observation(received_grid=np.ones((2, 1, 2, 14, 24))),
+                observation=make_observation(
+                    received_grid=np.ones((2, 1, 2, 14, 24), dtype=np.complex64)
+                ),
                 targets={"geometric_los": np.asarray(True)},
                 target_masks={},
                 provenance={"scene_hash": "sha256:abc"},
