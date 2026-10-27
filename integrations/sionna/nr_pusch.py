@@ -136,6 +136,7 @@ class SionnaPUSCHLSReceiver:
             "resource_grid": {
                 "num_ofdm_symbols": self._resource_grid.num_ofdm_symbols,
                 "fft_size": self._resource_grid.fft_size,
+                "cyclic_prefix_length_samples": int(self._resource_grid.cyclic_prefix_length),
                 "subcarrier_spacing_hz": config.subcarrier_spacing_khz * 1000,
             },
             "carrier_grid": {

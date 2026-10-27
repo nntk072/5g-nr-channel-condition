@@ -197,6 +197,7 @@ def decode_noisy_network_pusch(
         raise ValueError("receiver metadata must declare its resource grid")
     fft_size = grid_metadata.get("fft_size")
     symbol_count = grid_metadata.get("num_ofdm_symbols")
+    cyclic_prefix_samples = grid_metadata.get("cyclic_prefix_length_samples")
     subcarrier_spacing_hz = grid_metadata.get("subcarrier_spacing_hz")
     if (
         isinstance(fft_size, bool)
@@ -205,6 +206,9 @@ def decode_noisy_network_pusch(
         or isinstance(symbol_count, bool)
         or not isinstance(symbol_count, int)
         or symbol_count <= 0
+        or isinstance(cyclic_prefix_samples, bool)
+        or not isinstance(cyclic_prefix_samples, int)
+        or cyclic_prefix_samples < 0
         or isinstance(subcarrier_spacing_hz, bool)
         or not isinstance(subcarrier_spacing_hz, int)
         or subcarrier_spacing_hz <= 0
@@ -218,6 +222,11 @@ def decode_noisy_network_pusch(
         raise ValueError("receiver must declare an execution device")
     device = torch.device(device_name)
     batch, rx_count, rx_ports, sample_count = received.shape
+    expected_sample_count = symbol_count * (fft_size + cyclic_prefix_samples)
+    if sample_count != expected_sample_count:
+        raise ValueError(
+            "network waveform sample count must exactly match the configured full-slot OFDM grid"
+        )
     estimated_grid_elements = batch * rx_count * rx_ports * symbol_count * fft_size
     if estimated_grid_elements + sum(value.numel() for value in tensors) > max_tensor_elements:
         raise ValueError("network waveform and demodulated grid exceed max_tensor_elements")

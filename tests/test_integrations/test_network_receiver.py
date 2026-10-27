@@ -24,6 +24,7 @@ class _FakePUSCHReceiver:
         "resource_grid": {
             "num_ofdm_symbols": 2,
             "fft_size": 4,
+            "cyclic_prefix_length_samples": 0,
             "subcarrier_spacing_hz": 1,
         },
     }
@@ -142,6 +143,28 @@ def test_network_receiver_requires_matching_ofdm_sample_rate_before_demodulation
     with pytest.raises(ValueError, match="sample rate does not match"):
         decode_noisy_network_pusch(
             invalid_composition,
+            noisy,
+            receiver,
+            noise_variance_w_per_re=(0.04,),
+        )
+    assert not receiver.decoded
+
+
+@pytest.mark.parametrize("sample_count", [7, 9])
+def test_network_receiver_rejects_incomplete_or_trailing_ofdm_slot_samples(sample_count):
+    links = torch.ones((1, 1, 1, 1, sample_count), dtype=torch.complex64)
+    composition = compose_received_waveforms(
+        links,
+        link_start_samples=((0,),),
+        capture_num_samples=sample_count,
+        sample_rate_hz=4.0,
+    )
+    noisy = add_independent_receiver_waveform_awgn(composition, (0.02,), seed=19)
+    receiver = _FakePUSCHReceiver()
+
+    with pytest.raises(ValueError, match="sample count must exactly match"):
+        decode_noisy_network_pusch(
+            composition,
             noisy,
             receiver,
             noise_variance_w_per_re=(0.04,),
