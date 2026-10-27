@@ -19,7 +19,9 @@ from datasets.channel_view import (
 from datasets.counterfactual import remove_direct_path_component
 from datasets.episode_store import (
     EpisodeBundle,
+    _episode_payload,
     _path_payload,
+    _read_episode,
     _validate_path_oracle_layer,
     read_episode_bundle,
     read_frequency_model_inputs,
@@ -870,18 +872,36 @@ def test_frequency_receiver_observation_rejects_wrong_port_or_frequency_axes():
 
 def test_episode_store_roundtrip_preserves_dynamic_poses(tmp_path):
     bundle = _bundle()
+    dynamic_episode = _dynamic_episode()
+    assert dynamic_episode.pose_timeline is not None
+    aligned_timeline, time_alignment = dynamic_episode.pose_timeline.align_to(
+        dynamic_episode.frame_times_s, tolerance_s=0.0
+    )
+    dynamic_episode = replace(
+        dynamic_episode,
+        pose_timeline=aligned_timeline,
+        pose_time_alignment=time_alignment,
+    )
     channel = replace(
         bundle.channel_views[0],
         channel=np.repeat(bundle.channel_views[0].channel, 2, axis=0),
         frame_times_s=(0.0, 0.1),
         valid_mask=np.repeat(bundle.channel_views[0].valid_mask, 2, axis=0),
     )
-    dynamic_bundle = replace(bundle, episode=_dynamic_episode(), channel_views=(channel,))
+    dynamic_bundle = replace(bundle, episode=dynamic_episode, channel_views=(channel,))
 
     stored = write_episode_bundle(tmp_path, dynamic_bundle)
     loaded = read_episode_bundle(tmp_path, stored)
 
     assert loaded.episode.pose_timeline is not None
+    assert loaded.episode.pose_time_alignment == time_alignment
+    jsonschema = pytest.importorskip("jsonschema")
+    alignment_schema = json.loads(
+        (Path(__file__).parents[2] / "datasets/schema/time-axis-alignment.v1.schema.json").read_text()
+    )
+    jsonschema.Draft202012Validator(alignment_schema).validate(
+        loaded.episode.pose_time_alignment.to_dict()
+    )
     np.testing.assert_array_equal(
         loaded.episode.pose_timeline.position("UE-1", 1), [22.0, 3.0, 1.5]
     )
@@ -889,6 +909,24 @@ def test_episode_store_roundtrip_preserves_dynamic_poses(tmp_path):
         loaded.episode.pose_timeline.orientation("UE-1", 1),
         dynamic_bundle.episode.pose_timeline.orientation("UE-1", 1),
     )
+
+
+def test_legacy_episode_payload_without_pose_alignment_remains_readable():
+    episode = _dynamic_episode()
+    payload = _episode_payload(episode)
+    with np.load(io.BytesIO(payload), allow_pickle=False) as archive:
+        metadata = json.loads(archive["metadata_json"].tobytes())
+        arrays = {
+            name: np.array(archive[name], copy=True)
+            for name in archive.files
+            if name != "metadata_json"
+        }
+    metadata.pop("pose_time_alignment")
+
+    loaded = _read_episode(metadata, arrays)
+
+    assert loaded.pose_timeline is not None
+    assert loaded.pose_time_alignment is None
 
 
 def test_episode_bundle_rejects_tampered_content_and_immutable_id_reuse(tmp_path):

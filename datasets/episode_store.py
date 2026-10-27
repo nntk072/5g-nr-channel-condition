@@ -43,6 +43,7 @@ from .targets import (
     TargetValue,
     migrate_legacy_target_definition_v1,
 )
+from .time_axis import TimeAxisAlignment
 
 if TYPE_CHECKING:
     from .scenario_gbsm import ScenarioGBSMRecord
@@ -410,6 +411,11 @@ def _episode_payload(episode: NetworkEpisode) -> bytes:
         "carrier_hz": episode.carrier_hz,
         "frame_times_s": list(episode.frame_times_s),
         "has_pose_timeline": episode.pose_timeline is not None,
+        "pose_time_alignment": (
+            None
+            if episode.pose_time_alignment is None
+            else episode.pose_time_alignment.to_dict()
+        ),
         "arrays": [
             {
                 "array_id": array.array_id,
@@ -1177,6 +1183,10 @@ def _read_episode(metadata: dict[str, Any], arrays: dict[str, np.ndarray]) -> Ne
             positions_world_m=arrays["pose_positions_world_m"],
             orientations_local_to_world=arrays["pose_orientations_local_to_world"],
         )
+    alignment_value = metadata.get("pose_time_alignment")
+    alignment = (
+        None if alignment_value is None else TimeAxisAlignment.from_dict(alignment_value)
+    )
     return NetworkEpisode(
         metadata["episode_id"],
         metadata["split_group_id"],
@@ -1188,6 +1198,7 @@ def _read_episode(metadata: dict[str, Any], arrays: dict[str, np.ndarray]) -> Ne
         tuple(metadata["frame_times_s"]),
         arrays["subcarrier_offsets_hz"],
         pose_timeline,
+        alignment,
     )
 
 

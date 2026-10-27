@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 from datasets.network import NodePoseTimeline
-from datasets.time_axis import align_time_axes, canonical_time_axis
+from datasets.time_axis import TimeAxisAlignment, align_time_axes, canonical_time_axis
 
 
 def test_time_axis_accepts_numpy_real_scalars_and_normalizes_to_float():
@@ -32,6 +32,19 @@ def test_time_axis_alignment_reports_matches_residuals_and_unmatched_rows():
     assert alignment.unmatched_observed_indices == (2,)
     assert alignment.complete is False
     assert alignment.to_dict()["method"] == "unique_match_within_absolute_tolerance_no_interpolation"
+
+
+def test_time_axis_alignment_report_replays_and_rejects_claim_drift():
+    report = align_time_axes((0.0, 1.0), (0.0, 1.0001), tolerance_s=0.001).to_dict()
+    assert TimeAxisAlignment.from_dict(report).complete
+
+    changed_residual = {**report, "residuals_s": [0.0, 0.0]}
+    with pytest.raises(ValueError, match="differs from deterministic replay"):
+        TimeAxisAlignment.from_dict(changed_residual)
+
+    boolean_alias = {**report, "complete": 1}
+    with pytest.raises(ValueError, match="differs from deterministic replay"):
+        TimeAxisAlignment.from_dict(boolean_alias)
 
 
 def test_time_axis_alignment_requires_unique_one_to_one_matches():

@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nntk072.github.io/5g-nr-channel-condition/schema/time-axis-alignment.v1.schema.json",
+  "title": "UMCD time-axis alignment report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "method",
+    "reference_times_s",
+    "observed_times_s",
+    "tolerance_s",
+    "observed_indices",
+    "residuals_s",
+    "unmatched_reference_indices",
+    "unmatched_observed_indices",
+    "complete"
+  ],
+  "properties": {
+    "schema": {"const": "umcd.time_axis_alignment.v1"},
+    "method": {
+      "const": "unique_match_within_absolute_tolerance_no_interpolation"
+    },
+    "reference_times_s": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "number"}
+    },
+    "observed_times_s": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "number"}
+    },
+    "tolerance_s": {"type": "number", "minimum": 0},
+    "observed_indices": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "oneOf": [
+          {"type": "integer", "minimum": 0},
+          {"type": "null"}
+        ]
+      }
+    },
+    "residuals_s": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "oneOf": [
+          {"type": "number"},
+          {"type": "null"}
+        ]
+      }
+    },
+    "unmatched_reference_indices": {
+      "type": "array",
+      "items": {"type": "integer", "minimum": 0}
+    },
+    "unmatched_observed_indices": {
+      "type": "array",
+      "items": {"type": "integer", "minimum": 0}
+    },
+    "complete": {"type": "boolean"}
+  }
+}

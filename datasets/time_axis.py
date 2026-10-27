@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import math
 from bisect import bisect_left, bisect_right
 from dataclasses import dataclass
@@ -64,6 +65,45 @@ class TimeAxisAlignment:
             "unmatched_observed_indices": list(self.unmatched_observed_indices),
             "complete": self.complete,
         }
+
+    @classmethod
+    def from_dict(cls, value: object) -> TimeAxisAlignment:
+        """Rebuild an alignment only when every stored claim matches replay."""
+        required = {
+            "schema",
+            "method",
+            "reference_times_s",
+            "observed_times_s",
+            "tolerance_s",
+            "observed_indices",
+            "residuals_s",
+            "unmatched_reference_indices",
+            "unmatched_observed_indices",
+            "complete",
+        }
+        if not isinstance(value, dict) or set(value) != required:
+            raise ValueError("time-axis alignment fields do not match v1 contract")
+        if value.get("schema") != "umcd.time_axis_alignment.v1":
+            raise ValueError("unsupported time-axis alignment schema")
+        if value.get("method") != "unique_match_within_absolute_tolerance_no_interpolation":
+            raise ValueError("unsupported time-axis alignment method")
+        tolerance = value.get("tolerance_s")
+        if isinstance(tolerance, bool) or not isinstance(tolerance, Real):
+            raise TypeError("time-axis alignment tolerance_s must be real")
+        replay = align_time_axes(
+            value.get("reference_times_s", ()),
+            value.get("observed_times_s", ()),
+            tolerance_s=tolerance,
+        )
+        expected_bytes = json.dumps(
+            replay.to_dict(), sort_keys=True, separators=(",", ":"), allow_nan=False
+        )
+        observed_bytes = json.dumps(
+            value, sort_keys=True, separators=(",", ":"), allow_nan=False
+        )
+        if expected_bytes != observed_bytes:
+            raise ValueError("time-axis alignment report differs from deterministic replay")
+        return replay
 
 
 def align_time_axes(

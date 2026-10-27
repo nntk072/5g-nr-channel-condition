@@ -280,6 +280,7 @@ class NetworkEpisode:
     frame_times_s: tuple[float, ...]
     subcarrier_offsets_hz: np.ndarray
     pose_timeline: NodePoseTimeline | None = None
+    pose_time_alignment: TimeAxisAlignment | None = None
 
     def __post_init__(self) -> None:
         for name in ("episode_id", "split_group_id", "family_id"):
@@ -351,12 +352,22 @@ class NetworkEpisode:
                     rtol=0,
                 ):
                     raise ValueError("initial pose orientation must match the antenna array pose")
+        alignment = self.pose_time_alignment
+        if alignment is not None:
+            if not isinstance(alignment, TimeAxisAlignment):
+                raise TypeError("pose_time_alignment must be a TimeAxisAlignment")
+            alignment = TimeAxisAlignment.from_dict(alignment.to_dict())
+            if timeline is None:
+                raise ValueError("pose_time_alignment requires a pose_timeline")
+            if not alignment.complete or alignment.reference_times_s != times:
+                raise ValueError("pose_time_alignment must completely match episode frame times")
         object.__setattr__(self, "arrays", arrays)
         object.__setattr__(self, "nodes", nodes)
         object.__setattr__(self, "links", links)
         object.__setattr__(self, "frame_times_s", times)
         object.__setattr__(self, "subcarrier_offsets_hz", offsets)
         object.__setattr__(self, "pose_timeline", timeline)
+        object.__setattr__(self, "pose_time_alignment", alignment)
 
     def link(self, link_id: str) -> DirectedLink:
         """Return a link by stable ID or raise ``KeyError``."""
