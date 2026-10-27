@@ -41,7 +41,13 @@ within each calibration group. It reports split-conformal intervals at 50%, 80%,
 90%, and 95%, group-simultaneous as well as sample coverage, interval width,
 selective MAE/RMSE by uncertainty ranking, a test-group bootstrap interval for
 macro group RMSE, and optional interval-coverage breakdown by
-`identifiability_stratum` using the same pooled calibration. If there are too few
+`identifiability_stratum` using the same pooled calibration. The report retains
+the sample-ranked `risk_coverage` diagnostic and additionally emits
+`group_risk_coverage`: it ranks whole test groups by their mean uncertainty scale
+(stable ties follow sorted group IDs), selects a fraction of groups, and reports
+group-macro MAE/RMSE plus the number of retained rows. This prevents a selective
+curve from treating correlated rows as separate selection units. Both curves
+are descriptive and do not prove group independence. If there are too few
 independent calibration groups for a
 requested finite-sample level, the mathematically correct interval is unbounded
 and is reported as such instead of silently clipping the quantile.

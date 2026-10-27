@@ -86,6 +86,31 @@ def test_risk_coverage_accepts_low_uncertainty_first_and_bootstraps_groups():
     assert report["error_metrics"]["bootstrap_draws"] == 200
 
 
+def test_group_risk_coverage_selects_whole_groups_by_group_mean_uncertainty():
+    report = evaluate_grouped_regression_uncertainty(
+        [0.0, 1.0, 2.0, 3.0],
+        [0.1, 0.9, 2.1, 2.9],
+        [1.0, 1.0, 1.0, 1.0],
+        ["cal-a", "cal-a", "cal-b", "cal-b"],
+        [0.0, 0.0, 100.0],
+        [0.0, 0.0, 1.0],
+        [0.1, 0.1, 0.2],
+        ["test-a", "test-a", "test-b"],
+        risk_coverages=(0.5, 1.0),
+        bootstrap_draws=100,
+    )
+
+    half, full = report["group_risk_coverage"]
+    assert half["actual_group_coverage"] == 0.5
+    assert half["accepted_groups"] == 1
+    assert half["accepted_samples"] == 2
+    assert half["group_macro_mae"] == 0.0
+    assert full["actual_group_coverage"] == 1.0
+    assert full["accepted_groups"] == 2
+    assert full["accepted_samples"] == 3
+    assert full["group_macro_mae"] == pytest.approx(49.5)
+
+
 def test_interval_coverage_is_reported_by_identifiability_stratum():
     report = evaluate_grouped_regression_uncertainty(
         [0.0, 1.0, 2.0, 3.0],

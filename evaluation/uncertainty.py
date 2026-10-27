@@ -284,6 +284,37 @@ def evaluate_grouped_regression_uncertainty(
             }
         )
 
+    unique_test_groups = np.unique(test_groups)
+    group_mean_uncertainty = np.asarray(
+        [np.mean(test_uncertainty[test_groups == group]) for group in unique_test_groups],
+        dtype=np.float64,
+    )
+    group_mae = np.asarray(
+        [np.mean(abs_error[test_groups == group]) for group in unique_test_groups],
+        dtype=np.float64,
+    )
+    group_sizes = np.asarray(
+        [np.count_nonzero(test_groups == group) for group in unique_test_groups],
+        dtype=np.int64,
+    )
+    group_order = np.argsort(group_mean_uncertainty, kind="stable")
+    group_risk_curve: list[dict[str, float | int | str]] = []
+    for fraction in risks:
+        selected_group_count = max(1, math.ceil(fraction * unique_test_groups.size))
+        selected_groups = group_order[:selected_group_count]
+        group_risk_curve.append(
+            {
+                "requested_coverage": fraction,
+                "actual_group_coverage": selected_group_count / unique_test_groups.size,
+                "accepted_groups": selected_group_count,
+                "accepted_samples": int(np.sum(group_sizes[selected_groups])),
+                "mean_group_uncertainty": float(np.mean(group_mean_uncertainty[selected_groups])),
+                "group_macro_mae": float(np.mean(group_mae[selected_groups])),
+                "group_macro_rmse": float(np.mean(np.asarray(list(group_rmse.values()))[selected_groups])),
+                "selection_rule": "ascending_mean_group_uncertainty_stable_by_group_id",
+            }
+        )
+
     bootstrap = _group_bootstrap_rmse(error, test_groups, seed=seed, draws=bootstrap_draws)
     return {
         "calibration_group_count": int(np.unique(cal_groups).size),
@@ -301,10 +332,13 @@ def evaluate_grouped_regression_uncertainty(
         "group_conformal_intervals": intervals,
         "test_interval_metrics_by_stratum": stratum_intervals,
         "risk_coverage": risk_curve,
+        "group_risk_coverage": group_risk_curve,
         "resampling_unit": "independent test group",
         "interpretation": (
             "Conformal guarantees require exchangeable independent groups. With too few calibration "
             "groups, requested finite-sample intervals are unbounded; sample-level rows are not "
-            "treated as independent calibration units. Risk-coverage is descriptive."
+            "treated as independent calibration units. Row- and group-level risk-coverage are "
+            "descriptive; group-level selection ranks groups by mean declared uncertainty and "
+            "reports macro group errors."
         ),
     }
