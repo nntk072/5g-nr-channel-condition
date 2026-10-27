@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import inspect
 import json
 import math
 from pathlib import Path
@@ -18,6 +19,9 @@ from integrations.sionna.cdl import generate_cdl_frequency_response  # noqa: E40
 from integrations.sionna.random import call_with_sionna_seed  # noqa: E402
 from integrations.sionna_runtime import sionna_phy_version  # noqa: E402
 from sionna.phy.channel.tr38901 import CDL, PanelArray  # noqa: E402
+from sionna.phy.channel.tr38901.channel_coefficients import (  # noqa: E402
+    ChannelCoefficientsGenerator,
+)
 
 _PROFILES = {
     "A": "b96f8a179646ee468717c615e8061103d1e66eb1ff1ea78301de243740254cb7",
@@ -35,6 +39,41 @@ _TAP_ANGLE_REFERENCE_PATH = (
 )
 _TAP_ANGLE_REFERENCE_SHA256 = "24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090"
 _ETSI_SOURCE_SHA256 = "b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4"
+_SIONNA_CDL_SOURCE_SHA256 = "91e90eb7498a3725f628f2f4d4dca6c8d7438ac549bd5d68a3f45563f282361d"
+_SIONNA_COEFFICIENTS_SOURCE_SHA256 = "47059c7bf0998d2a230909e70743832ee928a738a97b9b5a25a185bb4947b5fc"
+
+
+def _assert_pinned_los_diffuse_sources() -> dict[str, str]:
+    """Require the exact source files whose private LOS decomposition is used."""
+    if sionna_phy_version() != "2.2.0":
+        raise RuntimeError("LOS diffuse decomposition is pinned to Sionna 2.2.0")
+    classes = {
+        "cdl.py": (CDL, _SIONNA_CDL_SOURCE_SHA256),
+        "channel_coefficients.py": (
+            ChannelCoefficientsGenerator,
+            _SIONNA_COEFFICIENTS_SOURCE_SHA256,
+        ),
+    }
+    observed = {}
+    for filename, (source_class, expected_digest) in classes.items():
+        source_path = inspect.getsourcefile(source_class)
+        if source_path is None:
+            raise RuntimeError(f"cannot locate pinned Sionna source file {filename}")
+        actual_digest = hashlib.sha256(Path(source_path).read_bytes()).hexdigest()
+        if actual_digest != expected_digest:
+            raise RuntimeError(
+                f"Sionna {filename} differs from the independently audited reference source"
+            )
+        observed[filename] = actual_digest
+    return observed
+
+
+def test_los_diffuse_decomposition_source_is_exactly_pinned() -> None:
+    """A version label alone cannot admit changed private channel internals."""
+    assert _assert_pinned_los_diffuse_sources() == {
+        "cdl.py": _SIONNA_CDL_SOURCE_SHA256,
+        "channel_coefficients.py": _SIONNA_COEFFICIENTS_SOURCE_SHA256,
+    }
 
 
 def _independent_profile_roster() -> dict[str, dict[str, Any]]:
@@ -53,8 +92,7 @@ def _family_claim_count(profiles: dict[str, dict[str, Any]]) -> int:
 
 def _sample_los_first_cluster_diffuse_component(model: str) -> Any:
     """Generate the diffuse component before Sionna combines its LOS specular ray."""
-    if sionna_phy_version() != "2.2.0":
-        raise RuntimeError("LOS diffuse decomposition is pinned to Sionna 2.2.0 internals")
+    _assert_pinned_los_diffuse_sources()
     carrier_frequency_hz = 3.5e9
     array = PanelArray(
         num_rows_per_panel=1,
