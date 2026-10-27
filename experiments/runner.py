@@ -25,6 +25,7 @@ from artifacts.provenance import (
 from configuration.loader import resolve_config
 from datasets.channel import ChannelDataset
 from datasets.split_policy import SplitPolicyRegistry, verify_signed_split_policy_registry
+from evaluation.class_support import audit_class_support
 from evaluation.metrics import (
     binary_metrics,
     block_bootstrap_auc,
@@ -1036,6 +1037,52 @@ def run_experiment(
             _sync_torch_device(device, uses_torch)
             test_prediction_seconds = perf_counter() - test_prediction_started
             metrics = binary_metrics(data.y[test], prob, threshold=threshold)
+            source_families = np.asarray(data.source, dtype=str)
+            test_families = source_families[test]
+            expected_test_strata = tuple(
+                ("test", family_id) for family_id in sorted(set(source_families.tolist()))
+            )
+            class_support = audit_class_support(
+                labels=data.y[test],
+                independent_group_ids=data.group[test],
+                split_ids=np.full(len(test), "test", dtype=object),
+                family_ids=test_families,
+                expected_strata=expected_test_strata,
+                classes=(0, 1),
+            )
+            class_support_payload = {
+                "schema": "loslab.class_support.v1",
+                "independence_identity_source": "ChannelDataset.group",
+                "cells": [
+                    {
+                        "split_id": cell.split_id,
+                        "family_id": cell.family_id,
+                        "class_label": cell.class_label,
+                        "record_count": cell.record_count,
+                        "independent_group_count": cell.independent_group_count,
+                        "status": cell.status,
+                    }
+                    for cell in class_support.cells
+                ],
+            }
+            import jsonschema
+
+            class_support_schema_path = (
+                Path(__file__).resolve().parents[1]
+                / "evaluation/schema/class_support.v1.schema.json"
+            )
+            class_support_schema = json.loads(class_support_schema_path.read_text(encoding="utf-8"))
+            jsonschema.Draft202012Validator.check_schema(class_support_schema)
+            class_support_errors = list(
+                jsonschema.Draft202012Validator(class_support_schema).iter_errors(
+                    class_support_payload
+                )
+            )
+            if class_support_errors:
+                raise ValueError(
+                    "class support report violates schema: "
+                    + "; ".join(error.message for error in class_support_errors[:10])
+                )
             ci = block_bootstrap_auc(
                 data.y[test], prob, data.group[test], seed=seed, draws=bootstrap
             )
@@ -1052,6 +1099,7 @@ def run_experiment(
                     else "engineered observable features"
                 ),
                 "metrics": metrics,
+                "class_support": class_support_payload,
                 "confidence": ci,
                 "threshold_selection": threshold_selection,
                 "split": {
@@ -1106,6 +1154,7 @@ def run_experiment(
                 y_val=data.y[val],
                 test_group=np.asarray(data.group[test], dtype=str),
                 test_domain=np.asarray(data.domain[test], dtype=str),
+                test_source=test_families,
                 p_test=prob,
                 p_val=val_scores,
                 threshold=np.float64(threshold),
@@ -1114,10 +1163,12 @@ def run_experiment(
         atomic_json(layout.evaluation / "results.json", results)
     aggregated = {}
     for method in methods:
-        seq = [row["metrics"]["auroc"] for row in results if row["method"] == method]
+        all_scores = [row["metrics"]["auroc"] for row in results if row["method"] == method]
+        seq = [score for score in all_scores if score is not None]
         aggregated[method] = {
-            "seeds": len(seq),
-            "mean_test_auroc": float(np.mean(seq)),
+            "seeds": len(all_scores),
+            "auroc_defined_seeds": len(seq),
+            "mean_test_auroc": float(np.mean(seq)) if seq else None,
             "std_test_auroc": float(np.std(seq, ddof=1)) if len(seq) > 1 else None,
         }
     comparisons = {}

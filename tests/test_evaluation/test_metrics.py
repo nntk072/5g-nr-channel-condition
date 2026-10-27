@@ -70,9 +70,33 @@ def test_binary_metrics_perfect():
     assert m["accuracy"] == 1 and m["auroc"] == 1 and m["fp"] == 0
 
 
+def test_binary_metrics_marks_class_dependent_metrics_undefined_for_single_class():
+    metrics = binary_metrics(np.array([0, 0]), np.array([0.1, 0.2]))
+
+    assert metrics["accuracy"] == 1.0
+    assert metrics["brier"] == pytest.approx(0.025)
+    assert metrics["auroc"] is None
+    assert metrics["auprc"] is None
+    assert metrics["f1"] is None
+    assert metrics["sensitivity"] is None
+    assert metrics["specificity"] == 1.0
+    assert metrics["undefined_metric_reasons"] == {
+        "f1": "positive_class_absent",
+        "auprc": "positive_class_absent",
+        "sensitivity": "positive_class_absent",
+        "balanced_accuracy": "both_classes_required",
+        "auroc": "both_classes_required",
+    }
+
+
 def test_binary_metrics_bad_prob_rejected():
     with pytest.raises(ValueError):
         binary_metrics(np.array([0, 1]), np.array([-0.1, 0.9]))
+
+
+def test_binary_metrics_rejects_nonbinary_labels_without_integer_truncation():
+    with pytest.raises(ValueError, match="binary vector"):
+        binary_metrics(np.array([0.5, 1.0]), np.array([0.2, 0.8]))
 
 
 def test_threshold_validation():
@@ -599,9 +623,11 @@ def test_curve_comparator_pairs_estimators_by_batch_cluster(tmp_path):
     family = result["points"][0]["familywise_cluster_comparison"]
     assert family["familywise_snr_points"] == 2
     assert family["familywise_confidence_level"] == 0.95
-    assert family["familywise_cluster_bootstrap_ci95"][0] <= family[
-        "treatment_minus_control_error_rate"
-    ] <= family["familywise_cluster_bootstrap_ci95"][1]
+    assert (
+        family["familywise_cluster_bootstrap_ci95"][0]
+        <= family["treatment_minus_control_error_rate"]
+        <= family["familywise_cluster_bootstrap_ci95"][1]
+    )
     assert "mcnemar_exact_two_sided_p_value" not in result["points"][0]
 
 
@@ -615,9 +641,10 @@ def test_paired_cluster_family_bootstrap_uses_shared_roster_and_bounds_memory():
         draws=300,
     )
 
-    assert estimates[0]["familywise_cluster_bootstrap_ci95"] == estimates[1][
-        "familywise_cluster_bootstrap_ci95"
-    ]
+    assert (
+        estimates[0]["familywise_cluster_bootstrap_ci95"]
+        == estimates[1]["familywise_cluster_bootstrap_ci95"]
+    )
     assert estimates[0]["paired_trials"] == 6
     assert estimates[0]["sampling_unit"] == "independent batch seed; codewords nested"
     with pytest.raises(ValueError, match="same independent cluster roster"):

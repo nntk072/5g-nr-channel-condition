@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.invalid/schema/evaluation/class-support.v1.schema.json",
+  "title": "LOS Lab legacy experiment class support report v1",
+  "type": "object",
+  "required": ["schema", "independence_identity_source", "cells"],
+  "properties": {
+    "schema": {"const": "loslab.class_support.v1"},
+    "independence_identity_source": {"const": "ChannelDataset.group"},
+    "cells": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "split_id",
+          "family_id",
+          "class_label",
+          "record_count",
+          "independent_group_count",
+          "status"
+        ],
+        "properties": {
+          "split_id": {"type": "string", "minLength": 1},
+          "family_id": {"type": "string", "minLength": 1},
+          "class_label": {"type": "integer", "enum": [0, 1]},
+          "record_count": {"type": "integer", "minimum": 0},
+          "independent_group_count": {"type": "integer", "minimum": 0},
+          "status": {"enum": ["present", "class_absent", "no_records"]}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

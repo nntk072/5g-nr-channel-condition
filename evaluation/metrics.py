@@ -73,17 +73,21 @@ def threshold_from_validation(y: np.ndarray, score: np.ndarray) -> float:
 
 
 def binary_metrics(y: np.ndarray, probability: np.ndarray, threshold: float = 0.5) -> dict:
-    y = np.asarray(y, dtype=int)
+    raw_y = np.asarray(y)
     p = np.asarray(probability, dtype=float)
     if (
-        y.ndim != 1
-        or p.shape != y.shape
+        raw_y.ndim != 1
+        or p.shape != raw_y.shape
         or not np.all(np.isfinite(p))
         or not np.all((p >= 0) & (p <= 1))
     ):
         raise ValueError("Invalid probability vector")
-    if set(np.unique(y)) != {0, 1}:
-        raise ValueError("Both classes required to compute AUROC")
+    if not np.all(np.isin(raw_y, (0, 1))):
+        raise ValueError("labels must be a one-dimensional binary vector")
+    if raw_y.size == 0:
+        raise ValueError("labels must be nonempty")
+    y = raw_y.astype(int, copy=False)
+    present_classes = set(np.unique(y).tolist())
     pred = (p >= threshold).astype(int)
     tn, fp, fn, tp = confusion_matrix(y, pred, labels=[0, 1]).ravel()
     # ECE uses fixed-width bins, reproducible and explicitly defined.
@@ -92,16 +96,18 @@ def binary_metrics(y: np.ndarray, probability: np.ndarray, threshold: float = 0.
         take = (p >= lo) & ((p < hi) if hi < 1 else (p <= hi))
         if take.any():
             ece += float(take.mean() * abs(y[take].mean() - p[take].mean()))
-    return {
+    metrics = {
         "accuracy": float(accuracy_score(y, pred)),
-        "balanced_accuracy": float(balanced_accuracy_score(y, pred)),
-        "f1": float(f1_score(y, pred, zero_division=0)),
-        "auroc": float(roc_auc_score(y, p)),
-        "auprc": float(average_precision_score(y, p)),
+        "balanced_accuracy": (
+            float(balanced_accuracy_score(y, pred)) if len(present_classes) == 2 else None
+        ),
+        "f1": float(f1_score(y, pred, zero_division=0)) if 1 in present_classes else None,
+        "auroc": float(roc_auc_score(y, p)) if len(present_classes) == 2 else None,
+        "auprc": float(average_precision_score(y, p)) if 1 in present_classes else None,
         "brier": float(brier_score_loss(y, p)),
         "ece_10_bins": ece,
-        "sensitivity": float(tp / max(tp + fn, 1)),
-        "specificity": float(tn / max(tn + fp, 1)),
+        "sensitivity": float(tp / (tp + fn)) if 1 in present_classes else None,
+        "specificity": float(tn / (tn + fp)) if 0 in present_classes else None,
         "tn": int(tn),
         "fp": int(fp),
         "fn": int(fn),
@@ -109,6 +115,20 @@ def binary_metrics(y: np.ndarray, probability: np.ndarray, threshold: float = 0.
         "threshold": float(threshold),
         "n": int(len(y)),
     }
+    metrics["undefined_metric_reasons"] = (
+        {
+            name: "positive_class_absent"
+            for name in ("f1", "auprc", "sensitivity")
+            if 1 not in present_classes
+        }
+        | {name: "negative_class_absent" for name in ("specificity",) if 0 not in present_classes}
+        | {
+            name: "both_classes_required"
+            for name in ("balanced_accuracy", "auroc")
+            if len(present_classes) != 2
+        }
+    )
+    return metrics
 
 
 def block_bootstrap_auc(

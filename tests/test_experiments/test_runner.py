@@ -280,6 +280,13 @@ def test_run_experiment_writes_reproducible_complete_artifacts(tmp_path) -> None
     assert matrix_audit["feature_matrix_verified"] is True
     report_row = json.loads((output / "results.json").read_text(encoding="utf-8"))[0]
     assert report_row["model_input_feature_matrix_verified"] is True
+    support_cells = report_row["class_support"]["cells"]
+    assert report_row["class_support"]["schema"] == "loslab.class_support.v1"
+    assert {cell["class_label"] for cell in support_cells} == {0, 1}
+    assert all(cell["independent_group_count"] >= 1 for cell in support_cells)
+    with np.load(output / "predictions" / "logreg_seed11.npz") as prediction:
+        assert "test_source" in prediction.files
+        assert len(prediction["test_source"]) == len(prediction["y_test"])
     changed_features = features.copy()
     changed_features[0, 0] += 1.0
     with pytest.raises(ValueError, match="feature matrix differs"):
