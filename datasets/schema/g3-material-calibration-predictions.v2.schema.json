@@ -33,30 +33,36 @@
     },
     "model_id": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "pattern": "^\\S(?:.*\\S)?$"
     },
     "model_sha256": {
       "$ref": "#/$defs/sha256"
     },
     "measurement_calibration_id": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "pattern": "^\\S(?:.*\\S)?$"
     },
     "material_mapping_id": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "pattern": "^\\S(?:.*\\S)?$"
     },
     "surface_description": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "pattern": "^\\S(?:.*\\S)?$"
     },
     "uncertainty_description": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "pattern": "^\\S(?:.*\\S)?$"
     },
     "measurement_unit_independence_description": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "pattern": "^\\S(?:.*\\S)?$"
     },
     "cluster_bootstrap_seed": {
       "type": "integer"
@@ -79,7 +85,8 @@
     },
     "split_manifest_external_verification_id": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "pattern": "^\\S(?:.*\\S)?$"
     },
     "incidence_groups": {
       "type": "array",
@@ -102,7 +109,8 @@
   "$defs": {
     "nonemptyString": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "pattern": "^\\S(?:.*\\S)?$"
     },
     "numberArray": {
       "type": "array",
@@ -127,7 +135,7 @@
     },
     "sha256": {
       "type": "string",
-      "pattern": "^[0-9a-fA-F]{64}$"
+      "pattern": "^[0-9a-f]{64}$"
     },
     "stratum": {
       "type": "object",
@@ -142,7 +150,7 @@
           "$ref": "#/$defs/nonemptyString"
         },
         "polarization": {
-          "$ref": "#/$defs/nonemptyString"
+          "enum": ["V", "H"]
         },
         "incidence_stratum_id": {
           "$ref": "#/$defs/nonemptyString"
@@ -727,7 +735,7 @@
           "$ref": "#/$defs/nonemptyString"
         },
         "polarization": {
-          "$ref": "#/$defs/nonemptyString"
+          "enum": ["V", "H"]
         },
         "measurement_unit_id": {
           "$ref": "#/$defs/nonemptyString"
@@ -853,7 +861,7 @@
           "$ref": "#/$defs/nonemptyString"
         },
         "polarization": {
-          "$ref": "#/$defs/nonemptyString"
+          "enum": ["V", "H"]
         },
         "measured_integrated_power_db": {
           "type": "number"

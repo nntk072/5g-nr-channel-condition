@@ -45,8 +45,8 @@ def _finite_number(value: Any, name: str) -> float:
 
 
 def _nonempty_string(value: Any, name: str) -> str:
-    if not isinstance(value, str) or not value.strip():
-        raise ValueError(f"{name} must be a nonempty string")
+    if not isinstance(value, str) or not value or value != value.strip():
+        raise ValueError(f"{name} must be a nonempty canonical string without surrounding whitespace")
     return value
 
 
@@ -211,8 +211,8 @@ def evaluate_g3_material_calibration(payload: dict[str, Any]) -> dict[str, Any]:
         _nonempty_string(payload.get(field), field)
     _nonempty_string(payload.get("surface_description"), "surface_description")
     model_hash = payload["model_sha256"]
-    if len(model_hash) != 64 or any(ch not in "0123456789abcdef" for ch in model_hash.lower()):
-        raise ValueError("model_sha256 must be a 64-character SHA-256 hex digest")
+    if len(model_hash) != 64 or any(ch not in "0123456789abcdef" for ch in model_hash):
+        raise ValueError("model_sha256 must be a lowercase 64-character SHA-256 hex digest")
     if (
         not isinstance(payload.get("uncertainty_description"), str)
         or not payload["uncertainty_description"].strip()
@@ -256,7 +256,7 @@ def evaluate_g3_material_calibration(payload: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(item, dict):
             raise ValueError("each expected_strata entry must be an object")
         material = _nonempty_string(item.get("material_id"), "expected material_id")
-        polarization = _nonempty_string(item.get("polarization"), "expected polarization").upper()
+        polarization = _nonempty_string(item.get("polarization"), "expected polarization")
         if polarization not in {"V", "H"}:
             raise ValueError("expected polarization must be V or H")
         incidence_stratum = _nonempty_string(
@@ -277,10 +277,10 @@ def evaluate_g3_material_calibration(payload: dict[str, Any]) -> dict[str, Any]:
         payload.get("full_split_manifest_sha256"), "full_split_manifest_sha256"
     )
     if len(split_manifest_hash) != 64 or any(
-        char not in "0123456789abcdef" for char in split_manifest_hash.lower()
+        char not in "0123456789abcdef" for char in split_manifest_hash
     ):
-        raise ValueError("full_split_manifest_sha256 must be a 64-character SHA-256 hex digest")
-    if _canonical_sha256(full_split_manifest) != split_manifest_hash.lower():
+        raise ValueError("full_split_manifest_sha256 must be a lowercase 64-character SHA-256 hex digest")
+    if _canonical_sha256(full_split_manifest) != split_manifest_hash:
         raise ValueError("full_split_manifest_sha256 does not match canonical full_split_manifest")
     _nonempty_string(
         payload.get("split_manifest_external_verification_id"),
@@ -295,7 +295,7 @@ def evaluate_g3_material_calibration(payload: dict[str, Any]) -> dict[str, Any]:
             raise ValueError("each split expected stratum must be an object")
         stratum = (
             _nonempty_string(item.get("material_id"), "split expected material_id"),
-            _nonempty_string(item.get("polarization"), "split expected polarization").upper(),
+            _nonempty_string(item.get("polarization"), "split expected polarization"),
             _nonempty_string(item.get("incidence_stratum_id"), "split expected incidence stratum"),
         )
         if stratum in preregistered_strata:
@@ -351,7 +351,7 @@ def evaluate_g3_material_calibration(payload: dict[str, Any]) -> dict[str, Any]:
         material = _nonempty_string(assignment.get("material_id"), "assigned material_id")
         polarization = _nonempty_string(
             assignment.get("polarization"), "assigned polarization"
-        ).upper()
+        )
         if polarization not in {"V", "H"}:
             raise ValueError("assigned polarization must be V or H")
         incidence_stratum = _nonempty_string(
@@ -469,7 +469,7 @@ def evaluate_g3_material_calibration(payload: dict[str, Any]) -> dict[str, Any]:
             raise ValueError("all evaluated predictions must be from the test split")
         actual[group_id].add(sample_id)
         material = _nonempty_string(row.get("material_id"), "material_id")
-        polarization = _nonempty_string(row.get("polarization"), "polarization").upper()
+        polarization = _nonempty_string(row.get("polarization"), "polarization")
         if polarization not in {"V", "H"}:
             raise ValueError("polarization must be V or H")
         if material != assignment["material_id"] or polarization != assignment["polarization"]:
@@ -766,12 +766,12 @@ def evaluate_g3_material_calibration(payload: dict[str, Any]) -> dict[str, Any]:
         "surface_description": payload["surface_description"],
         "measurement_calibration_id": payload["measurement_calibration_id"],
         "model_id": payload["model_id"],
-        "model_sha256": model_hash.lower(),
+        "model_sha256": model_hash,
         "uncertainty_description": payload["uncertainty_description"],
         "measurement_unit_independence_description": measurement_unit_description,
         "measurement_unit_independence_status": "UNVERIFIED_EXTERNAL_ATTESTATION_ONLY",
         "measurement_unit_provenance_ids": sorted(measurement_unit_provenance_by_id.values()),
-        "split_manifest_sha256": split_manifest_hash.lower(),
+        "split_manifest_sha256": split_manifest_hash,
         "split_completeness_status": "CONDITIONAL_ON_EXTERNALLY_VERIFIED_RECORD",
         "split_manifest_external_verification_id": payload[
             "split_manifest_external_verification_id"

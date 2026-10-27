@@ -1036,7 +1036,7 @@
     {
       "backlog_line": 237,
       "backlog_status": "marked_done",
-      "description": "Implement and integrate material-scattering scorer/assurance software for held-out angle/material/polarization strata, acquisition-unit cluster uncertainty, family-wise interval accounting, and exact signed split-manifest binding. Regression definitions exist but are unvalidated; actual representative measurements, external split/signature authority, and scientific acceptance remain open.",
+      "description": "Implement and integrate material-scattering scorer/assurance software for held-out angle/material/polarization strata, acquisition-unit cluster uncertainty, family-wise interval accounting, and exact signed split-manifest binding. Input IDs now reject surrounding-whitespace aliases, model/split SHA-256 declarations require canonical lowercase hex, and polarization labels must be exactly `V` or `H` in both the evaluator and schema. The focused 55-test module passes. Actual representative measurements, external split/signature authority, and scientific acceptance remain open.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -4160,7 +4160,7 @@
   "schema": "loslab.implementation_feature_map.v1",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "ba151d6770d70766a6dd5d9ad53765e3278ba9b3eaa01d03c862122b614b60a5"
+    "sha256": "9967e6883de423f8cbbed739c3ae865794101c71d62e290ec6569ad98de87356"
   },
   "summary": {
     "feature_count": 177,
