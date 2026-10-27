@@ -171,6 +171,7 @@ from .srs_measurements import (
     report_gnb_rx_tx_time_difference,
     report_ul_aoa,
     report_ul_rtoa,
+    report_ul_srs_rsrpp,
 )
 from .ssb_grid import (
     NRSSBResourceGrid,
@@ -297,6 +298,7 @@ __all__ = [
     "report_gnb_rx_tx_time_difference",
     "report_ul_aoa",
     "report_ul_rtoa",
+    "report_ul_srs_rsrpp",
     "map_nr_srs_positioning_multiport_resource",
     "map_nr_srs_positioning_resource",
     "nr_low_papr_sequence_type1",

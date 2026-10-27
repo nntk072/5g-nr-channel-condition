@@ -13,6 +13,7 @@ from integrations.sionna.srs_measurements import (
     report_gnb_rx_tx_time_difference,
     report_ul_aoa,
     report_ul_rtoa,
+    report_ul_srs_rsrpp,
 )
 
 
@@ -59,6 +60,125 @@ def test_ul_srs_rsrp_zero_power_is_explicit_and_schema_valid():
     )
     assert report["status"] == "ZERO_POWER_DIAGNOSTIC"
     assert report["diversity_ul_srs_rsrp_dbm"] is None
+
+
+def test_ul_srs_rsrpp_reports_each_path_and_earliest_valid_path_per_occasion():
+    response = np.array(
+        [
+            [[2 + 0j, 0j, 1 + 1j], [1 + 0j, 0j, 2 + 0j]],
+            [[0j, 0j, 0j], [0j, 0j, 0j]],
+        ],
+        dtype=np.complex128,
+    )
+    delays = np.array([[1e-7, 0.0, 3e-7], [0.0, 0.0, 0.0]])
+    valid = np.array([[True, False, True], [False, False, False]])
+
+    report = report_ul_srs_rsrpp(
+        response,
+        delays,
+        valid,
+        occasion_ids=["occasion-1", "occasion-2"],
+        receiver_branch_ids=["branch-1", "branch-2"],
+        receiver_category="terrestrial_type_1_o",
+        measurement_frequency_bandwidth_hz=20e6,
+        watts_per_channel_response_unit_squared=1e-3,
+        power_calibration_sha256="a" * 64,
+        channel_estimator_sha256="b" * 64,
+        path_detector_sha256="c" * 64,
+    )
+
+    assert report["status"] == "OBSERVED_NOT_QUALIFIED"
+    first, no_path = report["occasion_measurements"]
+    assert first["first_detected_path_index"] == 0
+    assert first["detected_path_count"] == 2
+    assert first["receiver_branches"][0]["path_measurements"] == [
+        {
+            "path_index": 0,
+            "path_delay_s": 1e-7,
+            "first_detected_path": True,
+            "ul_srs_rsrpp_w": pytest.approx(4e-3),
+            "ul_srs_rsrpp_dbm": pytest.approx(10 * np.log10(4.0)),
+        },
+        {
+            "path_index": 2,
+            "path_delay_s": 3e-7,
+            "first_detected_path": False,
+            "ul_srs_rsrpp_w": pytest.approx(2e-3),
+            "ul_srs_rsrpp_dbm": pytest.approx(10 * np.log10(2.0)),
+        },
+    ]
+    assert no_path["status"] == "NO_DETECTED_PATH_DIAGNOSTIC"
+    assert no_path["first_detected_path_index"] is None
+    assert report["occasion_measurements"][0]["receiver_branches"][1]["path_measurements"][0][
+        "ul_srs_rsrpp_w"
+    ] == pytest.approx(1e-3)
+
+
+@pytest.mark.parametrize(
+    ("response", "delays", "valid", "message"),
+    (
+        (np.ones((1, 1, 2)), np.zeros((1, 2)), np.ones((1, 2), dtype=bool), "complex"),
+        (
+            np.ones((1, 1, 2), dtype=complex),
+            np.array([[1.0, 0.0]]),
+            np.ones((1, 2), dtype=bool),
+            "strictly increasing",
+        ),
+        (
+            np.ones((1, 1, 2), dtype=complex),
+            np.zeros((1, 2)),
+            np.zeros((1, 2), dtype=bool),
+            "exactly zero",
+        ),
+    ),
+)
+def test_ul_srs_rsrpp_rejects_malformed_path_inputs(response, delays, valid, message):
+    with pytest.raises(ValueError, match=message):
+        report_ul_srs_rsrpp(
+            response,
+            delays,
+            valid,
+            occasion_ids=["occasion-1"],
+            receiver_branch_ids=["branch-1"],
+            receiver_category="terrestrial_type_1_o",
+            measurement_frequency_bandwidth_hz=20e6,
+            watts_per_channel_response_unit_squared=1e-3,
+            power_calibration_sha256="a" * 64,
+            channel_estimator_sha256="b" * 64,
+            path_detector_sha256="c" * 64,
+        )
+
+
+def test_ul_srs_rsrpp_enforces_resource_cap_and_digest_contract():
+    args = dict(
+        occasion_ids=["occasion-1"],
+        receiver_branch_ids=["branch-1"],
+        receiver_category="terrestrial_type_1_o",
+        measurement_frequency_bandwidth_hz=20e6,
+        watts_per_channel_response_unit_squared=1e-3,
+        power_calibration_sha256="a" * 64,
+        channel_estimator_sha256="b" * 64,
+        path_detector_sha256="c" * 64,
+    )
+    response = np.ones((1, 1, 1), dtype=complex)
+    delays = np.zeros((1, 1))
+    valid = np.ones((1, 1), dtype=bool)
+    with pytest.raises(ValueError, match="maximum_measurement_values"):
+        report_ul_srs_rsrpp(
+            response,
+            delays,
+            valid,
+            maximum_measurement_values=2,
+            **args,
+        )
+    with pytest.raises(ValueError, match="channel_estimator_sha256"):
+        report_ul_srs_rsrpp(
+            response,
+            delays,
+            valid,
+            channel_estimator_sha256="not-a-digest",
+            **{key: value for key, value in args.items() if key != "channel_estimator_sha256"},
+        )
 
 
 def test_ul_rtoa_uses_sfn_subframe_reference_and_declared_receiver_point():

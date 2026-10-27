@@ -42,6 +42,9 @@ _TIMING_SCHEMA_PATH = (
 _AOA_SCHEMA_PATH = (
     Path(__file__).resolve().parents[2] / "evaluation/schema/nr-ul-srs-aoa-report.v1.schema.json"
 )
+_RSRPP_SCHEMA_PATH = (
+    Path(__file__).resolve().parents[2] / "evaluation/schema/nr-ul-srs-rsrpp-report.v1.schema.json"
+)
 _GRID_OBSERVATION_SCHEMA_PATH = (
     Path(__file__).resolve().parents[2]
     / "evaluation/schema/nr-ul-srs-rsrp-grid-observation.v1.schema.json"
@@ -756,6 +759,165 @@ def report_ul_aoa(
     return report
 
 
+def report_ul_srs_rsrpp(
+    path_channel_response: np.ndarray,
+    path_delay_s: np.ndarray,
+    path_valid_mask: np.ndarray,
+    *,
+    occasion_ids: Sequence[str],
+    receiver_branch_ids: Sequence[str],
+    receiver_category: str,
+    measurement_frequency_bandwidth_hz: float,
+    watts_per_channel_response_unit_squared: float,
+    power_calibration_sha256: str,
+    channel_estimator_sha256: str,
+    path_detector_sha256: str,
+    maximum_measurement_values: int = 1_000_000,
+) -> dict[str, Any]:
+    """Report UL SRS-RSRPP from caller-detected, calibrated path responses.
+
+    Inputs have axes ``[occasion, receiver branch, path candidate]`` for the
+    complex path response and ``[occasion, path candidate]`` for delays/mask.
+    Each complex response is the caller's linear average of estimated channel
+    response at that path delay over the configured SRS resource elements for
+    one occasion. This function converts its squared magnitude to watts and
+    marks the earliest valid delay as first path. It does not estimate the
+    channel, detect paths, associate path identities across occasions, or
+    validate the calibration/estimator declarations.
+    """
+    raw_response = np.asarray(path_channel_response)
+    raw_delays = np.asarray(path_delay_s)
+    raw_mask = np.asarray(path_valid_mask)
+    if (
+        raw_response.ndim != 3
+        or any(size <= 0 for size in raw_response.shape[:2])
+        or raw_response.shape[2] <= 0
+        or raw_response.dtype.kind != "c"
+    ):
+        raise ValueError("path_channel_response must be nonempty complex [occasion, branch, path]")
+    occasion_count, branch_count, path_count = raw_response.shape
+    if raw_delays.dtype.kind not in "iuf" or raw_delays.shape != (occasion_count, path_count):
+        raise ValueError("path_delay_s must be real [occasion, path]")
+    if raw_mask.dtype.kind != "b" or raw_mask.shape != (occasion_count, path_count):
+        raise ValueError("path_valid_mask must be Boolean [occasion, path]")
+    if isinstance(maximum_measurement_values, bool) or not isinstance(
+        maximum_measurement_values, int
+    ):
+        raise TypeError("maximum_measurement_values must be an integer")
+    if maximum_measurement_values <= 0:
+        raise ValueError("maximum_measurement_values must be positive")
+    total_values = raw_response.size + raw_delays.size + raw_mask.size
+    if total_values > maximum_measurement_values:
+        raise ValueError("UL SRS-RSRPP inputs exceed maximum_measurement_values")
+
+    # Hash and score immutable canonical snapshots of the exact admitted arrays.
+    with np.errstate(over="ignore", invalid="ignore"):
+        response = np.array(raw_response, dtype=np.complex128, copy=True, order="C")
+        delays = np.array(raw_delays, dtype=np.float64, copy=True, order="C")
+    valid = np.array(raw_mask, dtype=np.bool_, copy=True, order="C")
+    if not np.isfinite(response).all() or not np.isfinite(delays).all():
+        raise ValueError("path responses and delays must be finite")
+    if np.any(delays < 0):
+        raise ValueError("path delays must be nonnegative")
+    if np.any(response * np.logical_not(valid[:, None, :]) != 0):
+        raise ValueError("invalid path response entries must be exactly zero")
+    if np.any(delays[~valid] != 0):
+        raise ValueError("invalid path delay entries must be exactly zero")
+    for occasion_index in range(occasion_count):
+        active_delays = delays[occasion_index, valid[occasion_index]]
+        if np.any(np.diff(active_delays) <= 0):
+            raise ValueError("valid path delays must be strictly increasing per occasion")
+
+    occasions = _canonical_id_roster(occasion_ids, occasion_count, "occasion_ids")
+    branches = _canonical_id_roster(receiver_branch_ids, branch_count, "receiver_branch_ids")
+    if receiver_category not in _RECEIVER_REFERENCE_POINTS:
+        raise ValueError("receiver_category must be a TS 38.104 terrestrial/satellite type")
+    bandwidth_hz = _finite_real(
+        measurement_frequency_bandwidth_hz, "measurement_frequency_bandwidth_hz"
+    )
+    if bandwidth_hz <= 0:
+        raise ValueError("measurement_frequency_bandwidth_hz must be positive")
+    scale = _finite_real(
+        watts_per_channel_response_unit_squared,
+        "watts_per_channel_response_unit_squared",
+    )
+    if scale <= 0:
+        raise ValueError("watts_per_channel_response_unit_squared must be positive")
+    calibration_digest = _validate_digest(power_calibration_sha256, "power_calibration_sha256")
+    estimator_digest = _validate_digest(channel_estimator_sha256, "channel_estimator_sha256")
+    detector_digest = _validate_digest(path_detector_sha256, "path_detector_sha256")
+
+    with np.errstate(over="ignore", invalid="ignore"):
+        path_power_w = (response.real * response.real + response.imag * response.imag) * scale
+    if not np.isfinite(path_power_w).all():
+        raise ValueError("calibrated UL SRS path power is not finite")
+    occasion_rows: list[dict[str, Any]] = []
+    for occasion_index, occasion_id in enumerate(occasions):
+        active_path_indices = np.flatnonzero(valid[occasion_index]).tolist()
+        first_path_index = active_path_indices[0] if active_path_indices else None
+        branch_rows = []
+        for branch_index, branch_id in enumerate(branches):
+            measurements = []
+            for path_index in active_path_indices:
+                power_w = float(path_power_w[occasion_index, branch_index, path_index])
+                measurements.append(
+                    {
+                        "path_index": path_index,
+                        "path_delay_s": float(delays[occasion_index, path_index]),
+                        "first_detected_path": path_index == first_path_index,
+                        "ul_srs_rsrpp_w": power_w,
+                        "ul_srs_rsrpp_dbm": (
+                            10.0 * math.log10(power_w / 1e-3) if power_w > 0 else None
+                        ),
+                    }
+                )
+            branch_rows.append({"receiver_branch_id": branch_id, "path_measurements": measurements})
+        occasion_rows.append(
+            {
+                "occasion_id": occasion_id,
+                "status": "MEASURED" if active_path_indices else "NO_DETECTED_PATH_DIAGNOSTIC",
+                "first_detected_path_index": first_path_index,
+                "detected_path_count": len(active_path_indices),
+                "receiver_branches": branch_rows,
+            }
+        )
+
+    report = {
+        "schema": "loslab.nr_ul_srs_rsrpp_report.v1",
+        "status": (
+            "OBSERVED_NOT_QUALIFIED"
+            if any(row["detected_path_count"] for row in occasion_rows)
+            else "NO_DETECTED_PATH_DIAGNOSTIC"
+        ),
+        "measurement": "UL_SRS_RSRPP",
+        "standard": "3GPP_TS_38.215_V19.2.0_clause_5.2.6",
+        "receiver_category": receiver_category,
+        "measurement_reference_point": _RECEIVER_REFERENCE_POINTS[receiver_category],
+        "measurement_frequency_bandwidth_hz": bandwidth_hz,
+        "power_unit": "W",
+        "occasion_ids": occasions,
+        "receiver_branch_ids": branches,
+        "first_path_rule": "earliest_valid_caller_detected_path_delay_per_occasion",
+        "path_power_rule": "squared_magnitude_of_linear_averaged_path_response_times_calibration",
+        "watts_per_channel_response_unit_squared": scale,
+        "power_calibration_sha256": calibration_digest,
+        "channel_estimator_sha256": estimator_digest,
+        "path_detector_sha256": detector_digest,
+        "path_channel_response_sha256": _array_sha256(response),
+        "path_delay_sha256": _array_sha256(delays),
+        "path_valid_mask_sha256": _array_sha256(valid),
+        "occasion_measurements": occasion_rows,
+        "limitations": [
+            "Channel estimates, path detections, and calibration are caller supplied and not independently verified.",
+            "Path indices are local to each occasion; no cross-occasion path identity association is claimed.",
+            "The report preserves each receiver branch and does not synthesize a diversity-combined path measurement.",
+            "This is an observed measurement contract, not synchronized receiver or scientific qualification.",
+        ],
+    }
+    _validate_rsrpp_report_schema(report)
+    return report
+
+
 def _finite_real(value: Any, name: str) -> float:
     if isinstance(value, (bool, np.bool_)) or not isinstance(value, Real):
         raise ValueError(f"{name} must be a finite real number")
@@ -806,4 +968,17 @@ def _validate_aoa_report_schema(report: dict[str, Any]) -> None:
     if errors:
         raise ValueError(
             "UL AoA report violates schema: " + "; ".join(error.message for error in errors[:10])
+        )
+
+
+def _validate_rsrpp_report_schema(report: dict[str, Any]) -> None:
+    import jsonschema
+
+    schema = json.loads(_RSRPP_SCHEMA_PATH.read_text(encoding="utf-8"))
+    jsonschema.Draft202012Validator.check_schema(schema)
+    errors = list(jsonschema.Draft202012Validator(schema).iter_errors(report))
+    if errors:
+        raise ValueError(
+            "UL SRS-RSRPP report violates schema: "
+            + "; ".join(error.message for error in errors[:10])
         )

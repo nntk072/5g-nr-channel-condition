@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.invalid/schema/evaluation/nr-ul-srs-rsrpp-report.v1.schema.json",
+  "title": "NR UL SRS path received power report v1",
+  "type": "object",
+  "required": [
+    "schema", "status", "measurement", "standard", "receiver_category",
+    "measurement_reference_point", "measurement_frequency_bandwidth_hz",
+    "power_unit", "occasion_ids", "receiver_branch_ids", "first_path_rule",
+    "path_power_rule", "watts_per_channel_response_unit_squared",
+    "power_calibration_sha256", "channel_estimator_sha256", "path_detector_sha256",
+    "path_channel_response_sha256", "path_delay_sha256", "path_valid_mask_sha256",
+    "occasion_measurements", "limitations"
+  ],
+  "properties": {
+    "schema": {"const": "loslab.nr_ul_srs_rsrpp_report.v1"},
+    "status": {"enum": ["OBSERVED_NOT_QUALIFIED", "NO_DETECTED_PATH_DIAGNOSTIC"]},
+    "measurement": {"const": "UL_SRS_RSRPP"},
+    "standard": {"const": "3GPP_TS_38.215_V19.2.0_clause_5.2.6"},
+    "receiver_category": {
+      "enum": [
+        "terrestrial_type_1_c", "terrestrial_type_1_h", "terrestrial_type_1_o",
+        "terrestrial_type_2_o", "satellite_type_1_h", "satellite_type_1_o"
+      ]
+    },
+    "measurement_reference_point": {"type": "string", "minLength": 1},
+    "measurement_frequency_bandwidth_hz": {"type": "number", "exclusiveMinimum": 0},
+    "power_unit": {"const": "W"},
+    "occasion_ids": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "receiver_branch_ids": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "first_path_rule": {"const": "earliest_valid_caller_detected_path_delay_per_occasion"},
+    "path_power_rule": {"const": "squared_magnitude_of_linear_averaged_path_response_times_calibration"},
+    "watts_per_channel_response_unit_squared": {"type": "number", "exclusiveMinimum": 0},
+    "power_calibration_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "channel_estimator_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "path_detector_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "path_channel_response_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "path_delay_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "path_valid_mask_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "occasion_measurements": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["occasion_id", "status", "first_detected_path_index", "detected_path_count", "receiver_branches"],
+        "properties": {
+          "occasion_id": {"type": "string", "minLength": 1},
+          "status": {"enum": ["MEASURED", "NO_DETECTED_PATH_DIAGNOSTIC"]},
+          "first_detected_path_index": {"type": ["integer", "null"], "minimum": 0},
+          "detected_path_count": {"type": "integer", "minimum": 0},
+          "receiver_branches": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["receiver_branch_id", "path_measurements"],
+              "properties": {
+                "receiver_branch_id": {"type": "string", "minLength": 1},
+                "path_measurements": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["path_index", "path_delay_s", "first_detected_path", "ul_srs_rsrpp_w", "ul_srs_rsrpp_dbm"],
+                    "properties": {
+                      "path_index": {"type": "integer", "minimum": 0},
+                      "path_delay_s": {"type": "number", "minimum": 0},
+                      "first_detected_path": {"type": "boolean"},
+                      "ul_srs_rsrpp_w": {"type": "number", "minimum": 0},
+                      "ul_srs_rsrpp_dbm": {"type": ["number", "null"]}
+                    },
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "limitations": {"type": "array", "minItems": 4, "items": {"type": "string", "minLength": 1}}
+  },
+  "additionalProperties": false
+}
