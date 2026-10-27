@@ -65,10 +65,23 @@ _MODEL_FEATURE_ROUTES = {
     "cnn": ("observed_cfr", "complex_cfr_grid_v1"),
     "cvnn": ("observed_cfr", "complex_cfr_grid_v1"),
     "raw_mlp": ("observed_cfr", "flattened_real_imag_cfr_v1"),
+    "power_only": ("observed_cfr", "log_power_per_link_subcarrier_v1"),
     "observable_features": ("observed_cfr", "logmag_pdp_moments_v1"),
 }
 _MODEL_METHODS = frozenset(
-    {"rf", "histgb", "xgb", "mlp", "raw_mlp", "logreg", "cnn", "cvnn", "coral", "coral0"}
+    {
+        "rf",
+        "histgb",
+        "xgb",
+        "mlp",
+        "raw_mlp",
+        "power_only",
+        "logreg",
+        "cnn",
+        "cvnn",
+        "coral",
+        "coral0",
+    }
 )
 
 
@@ -165,6 +178,24 @@ def _flatten_real_imag_cfr(observed_cfr: np.ndarray) -> np.ndarray:
     )
 
 
+def _log_power_per_link_subcarrier(observed_cfr: np.ndarray) -> np.ndarray:
+    """Expose only per-link/per-subcarrier channel power in a fixed dB scale."""
+    observed = np.asarray(observed_cfr)
+    if observed.ndim != 3 or not np.iscomplexobj(observed):
+        raise ValueError("power-only features require complex [samples, links, subcarriers] CFR")
+    if not np.isfinite(observed).all():
+        raise ValueError("power-only CFR input must be finite")
+    with np.errstate(over="ignore", invalid="ignore"):
+        power = (
+            np.asarray(observed, dtype=np.complex128).real ** 2
+            + np.asarray(observed, dtype=np.complex128).imag ** 2
+        )
+    if not np.isfinite(power).all():
+        raise ValueError("power-only CFR power is not representable in float64")
+    log_power_db = 10.0 * np.log10(np.maximum(power, 1e-12))
+    return log_power_db.reshape(len(observed), -1)
+
+
 def _array_sha256(array: np.ndarray) -> str:
     value = np.ascontiguousarray(array)
     header = json.dumps(
@@ -185,6 +216,8 @@ def _feature_transform_implementation_sha256(method: str) -> str:
         transform = _identity_complex_cfr
     elif method == "raw_mlp":
         transform = _flatten_real_imag_cfr
+    elif method == "power_only":
+        transform = _log_power_per_link_subcarrier
     else:
         transform = observable_features
     return hashlib.sha256(inspect.getsource(transform).encode("utf-8")).hexdigest()
@@ -272,8 +305,9 @@ def build_model_input_artifact_contract(
     source_feature, transform = _MODEL_FEATURE_ROUTES.get(
         method, ("observed_cfr", "logmag_pdp_moments_v1")
     )
+    input_contract_version = "v3" if method == "power_only" else "v2"
     feature_contract = {
-        "schema": "loslab.model_input_feature_contract.v2",
+        "schema": f"loslab.model_input_feature_contract.{input_contract_version}",
         "method": method,
         "source_dataclass": "datasets.channel.ChannelModelInputs",
         "allowed_source_fields": [source_feature],
@@ -309,7 +343,7 @@ def build_model_input_artifact_contract(
     }
     feature_contract_sha256 = canonical_hash(feature_contract)
     return {
-        "schema": "loslab.model_input_artifact_contract.v2",
+        "schema": f"loslab.model_input_artifact_contract.{input_contract_version}",
         "model_sha256": model_file_sha256,
         "feature_contract": feature_contract,
         "feature_contract_sha256": feature_contract_sha256,
@@ -377,6 +411,7 @@ def verify_model_input_artifact_contract(
     schema_version = {
         "loslab.model_input_artifact_contract.v1": "v1",
         "loslab.model_input_artifact_contract.v2": "v2",
+        "loslab.model_input_artifact_contract.v3": "v3",
     }.get(contract_schema)
     if schema_version is None:
         raise ValueError("model input artifact contract schema is unsupported")
@@ -419,7 +454,10 @@ def verify_model_input_artifact_contract(
         "source_revision",
         "run_config_sha256",
     }
-    if contract_schema == "loslab.model_input_artifact_contract.v2":
+    if contract_schema in {
+        "loslab.model_input_artifact_contract.v2",
+        "loslab.model_input_artifact_contract.v3",
+    }:
         expected_feature_fields.update(
             {
                 "feature_transform_implementation_sha256",
@@ -432,7 +470,7 @@ def verify_model_input_artifact_contract(
     method = feature.get("method")
     expected_format = (
         "loslab.sklearn.v1"
-        if method in {"rf", "histgb", "xgb", "mlp", "raw_mlp", "logreg"}
+        if method in {"rf", "histgb", "xgb", "mlp", "raw_mlp", "power_only", "logreg"}
         else "loslab.model_input_artifact.v1"
     )
     include_phase = sidecar.get("include_phase")
@@ -450,11 +488,7 @@ def verify_model_input_artifact_contract(
     ):
         raise ValueError("model info wrapper disagrees with the feature contract")
     expected_route = _MODEL_FEATURE_ROUTES.get(method, ("observed_cfr", "logmag_pdp_moments_v1"))
-    expected_feature_schema = (
-        "loslab.model_input_feature_contract.v2"
-        if contract_schema == "loslab.model_input_artifact_contract.v2"
-        else "loslab.model_input_feature_contract.v1"
-    )
+    expected_feature_schema = f"loslab.model_input_feature_contract.{schema_version}"
     if (
         feature.get("schema") != expected_feature_schema
         or method not in _MODEL_METHODS
@@ -482,7 +516,10 @@ def verify_model_input_artifact_contract(
     if _stable_single_link_sha256(model_path) != contract.get("model_sha256"):
         raise ValueError("model bytes do not match the input artifact contract")
     feature_matrix_verified = False
-    if contract_schema == "loslab.model_input_artifact_contract.v2":
+    if contract_schema in {
+        "loslab.model_input_artifact_contract.v2",
+        "loslab.model_input_artifact_contract.v3",
+    }:
         if method_input is not None:
             matrix = feature["feature_matrix"]
             if (
@@ -886,6 +923,7 @@ def run_experiment(
         raise ValueError("observation must be ideal_cfr, comb_ls, or precomputed")
     x = observable_features(observable, include_phase=include_phase)
     raw_real_imag = _flatten_real_imag_cfr(observable)
+    power_only = _log_power_per_link_subcarrier(observable)
     layout = RunLayout.at(output)
     layout.ensure()
     output = layout.root
@@ -902,8 +940,14 @@ def run_experiment(
         "pilot_spacing": pilot_spacing,
         "pilot_snr_db": pilot_snr_db,
         "observation_seed": observation_seed,
-        "feature_version": "logmag+pdp+moments-v1",
+        "feature_transform_by_method": {
+            method: _MODEL_FEATURE_ROUTES.get(method, ("observed_cfr", "logmag_pdp_moments_v1"))[1]
+            for method in methods
+        },
         "raw_mlp_input_representation": "flattened real/imaginary CFR channels",
+        "power_only_input_representation": (
+            "per-link/per-subcarrier channel power in dB with a -120 dB numerical floor"
+        ),
         "cnn_input_representation": "per-link real/imaginary channels over ordered subcarriers",
         "cvnn_input_representation": (
             "complex convolution, phase-equivariant encoding, magnitude-invariant classifier"
@@ -981,6 +1025,8 @@ def run_experiment(
                 if method in ("cnn", "cvnn")
                 else raw_real_imag
                 if method == "raw_mlp"
+                else power_only
+                if method == "power_only"
                 else x
             )
             uses_torch = method in ("cnn", "cvnn", "coral", "coral0")
@@ -990,12 +1036,16 @@ def run_experiment(
 
                 torch.cuda.reset_peak_memory_stats(device)
             fit_started = perf_counter()
-            if method in ("rf", "histgb", "xgb", "mlp", "raw_mlp", "logreg"):
+            if method in ("rf", "histgb", "xgb", "mlp", "raw_mlp", "power_only", "logreg"):
                 clf = fit_sklearn(
                     method_input[train],
                     data.y[train],
                     seed=seed,
-                    method="mlp" if method == "raw_mlp" else method,
+                    method="mlp"
+                    if method == "raw_mlp"
+                    else "logreg"
+                    if method == "power_only"
+                    else method,
                     capacity=capacity,
                 )
                 extra: dict[str, Any] = {}
@@ -1144,7 +1194,8 @@ def run_experiment(
                 {
                     "format": (
                         "loslab.sklearn.v1"
-                        if method in {"rf", "histgb", "xgb", "mlp", "raw_mlp", "logreg"}
+                        if method
+                        in {"rf", "histgb", "xgb", "mlp", "raw_mlp", "power_only", "logreg"}
                         else "loslab.model_input_artifact.v1"
                     ),
                     "threshold": model_output_threshold,
@@ -1254,6 +1305,8 @@ def run_experiment(
                     if method == "cvnn"
                     else "flattened raw real/imaginary channel observation"
                     if method == "raw_mlp"
+                    else "per-link/per-subcarrier channel power in dB"
+                    if method == "power_only"
                     else "engineered observable features"
                 ),
                 "metrics": metrics,
@@ -1355,6 +1408,9 @@ def run_experiment(
         ("raw_mlp", "mlp"),
         ("raw_mlp", "rf"),
         ("raw_mlp", "histgb"),
+        ("power_only", "mlp"),
+        ("power_only", "rf"),
+        ("power_only", "raw_mlp"),
         ("cnn", "raw_mlp"),
         ("cvnn", "raw_mlp"),
         ("xgb", "mlp"),

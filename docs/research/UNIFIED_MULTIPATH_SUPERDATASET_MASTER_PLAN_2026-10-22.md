@@ -1598,7 +1598,7 @@ These criteria make a finite-budget robustness decision for the named MVP scope;
 - [ ] **G8.05** dataset release includes at least one unseen site/material/antenna domain and a frozen external measured evaluation appropriate to measured fields.
 - [ ] **G8.06** calibrations, normalization transforms and synthetic material fits trained on train-only data (or explicitly on calibration partition), never on test.
 - [ ] **G8.07** independent classic estimator baselines (PDP, peak delay, MUSIC/ESPRIT where applicable, OMP/SAGE/matched-filter etc.) used to check whether difficult ground truth is actually observable.
-- [ ] **G8.08** null/falsification controls: time shuffled, phase randomized, source-ID-only, power-only, metadata-only, label-permuted and oracle-leak checks.
+- [ ] **G8.08** null/falsification controls: time shuffled, phase randomized, source-ID-only, power-only, metadata-only, label-permuted and oracle-leak checks. The common runner now provides the power-only slice: same per-seed split as selected model baselines, observed-CFR-only log-power features, and an exact model-input contract v3. Its phase-invariance and runnable integration checks pass; see `docs/research/BASELINE_CONTROLS_WORKFLOW.md`. All other listed controls and the physical classic-estimator baselines remain open.
 - [ ] **G8.09** preregistered threshold selection and calibration do not query sealed test outcomes.
 - [ ] **G8.10** externally measured artifacts are independently source-verified, correctly timestamp-aligned and have explicit permitted target labels.
 
