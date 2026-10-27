@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:loslab:g4-cdl-joint-delay-angle-result:v2",
+  "title": "G4 CDL Joint Delay and Four-Angle Characteristic Result",
+  "description": "Seeded, profile-level outcomes for the bounded preregistered G4.07 joint delay-angle check. This result is scoped evidence and is not overall G4 qualification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "protocol", "run_date", "status", "seed_collision_audit", "design", "runtime", "command", "provenance", "outcome", "claims", "scope"],
+  "properties": {
+    "schema": { "const": "loslab.g4_cdl_joint_delay_angle_result.v2" },
+    "protocol": { "const": "G4_07_CDL_JOINT_DELAY_ANGLE_PROTOCOL_V5_2026-10-27" },
+    "run_date": { "type": "string", "format": "date" },
+    "status": { "const": "PASS_WITHIN_BOUNDED_PROTOCOL_SCOPE" },
+    "seed_collision_audit": {
+      "type": "object", "additionalProperties": false,
+      "required": ["path", "sha256", "status", "scanned_file_count"],
+      "properties": {
+        "path": { "const": "g4-cdl-joint-delay-angle-v5-seed-collision-audit-20261027.json" },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "status": { "const": "CLEAR_WITHIN_SCANNED_JSON_CORPUS" },
+        "scanned_file_count": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "design": {
+      "type": "object", "additionalProperties": false,
+      "required": ["profiles", "samples_per_profile", "seeds", "delay_harmonics", "stochastic_vectors", "stochastic_claim_count", "familywise_alpha", "simultaneous_half_width_cap"],
+      "properties": {
+        "profiles": { "const": ["A", "B", "C", "D", "E"] },
+        "samples_per_profile": { "const": 8192 },
+        "seeds": { "const": [274065, 274066, 274067, 274068, 274069] },
+        "delay_harmonics": { "const": [1, 2] },
+        "stochastic_vectors": { "const": [[1, 1, 0, 0], [1, -1, 1, 0], [1, 1, 1, 1]] },
+        "stochastic_claim_count": { "const": 60 },
+        "familywise_alpha": { "const": 0.01 },
+        "simultaneous_half_width_cap": { "const": 0.05 }
+      }
+    },
+    "runtime": {
+      "type": "object", "additionalProperties": false,
+      "required": ["sionna", "torch", "torch_cuda", "device", "phy_only_import_shim"],
+      "properties": {
+        "sionna": { "const": "2.2.0" },
+        "torch": { "type": "string", "minLength": 1 },
+        "torch_cuda": { "type": "string", "minLength": 1 },
+        "device": { "const": "cpu" },
+        "phy_only_import_shim": { "const": true }
+      }
+    },
+    "command": { "type": "string", "minLength": 1 },
+    "provenance": {
+      "type": "object", "additionalProperties": false,
+      "required": ["protocol_sha256", "test_source_sha256", "independent_reference_sha256", "test_log"],
+      "properties": {
+        "protocol_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "test_source_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "independent_reference_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "test_log": {
+          "type": "object", "additionalProperties": false,
+          "required": ["path", "sha256"],
+          "properties": {
+            "path": { "const": "g4-cdl-joint-delay-angle-v5-20261027.log" },
+            "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+          }
+        }
+      }
+    },
+    "outcome": {
+      "type": "object", "additionalProperties": false,
+      "required": ["profile_cases_passed", "deterministic_native_precision_checks_passed", "stochastic_claims_passed", "stochastic_claims_failed", "complex_characteristic_records", "min_half_width", "max_half_width"],
+      "properties": {
+        "profile_cases_passed": { "const": ["A", "B", "C", "D", "E"] },
+        "deterministic_native_precision_checks_passed": { "const": true },
+        "stochastic_claims_passed": { "const": 60 },
+        "stochastic_claims_failed": { "const": 0 },
+        "complex_characteristic_records": { "const": 30 },
+        "min_half_width": { "type": "number", "minimum": 0, "maximum": 0.05 },
+        "max_half_width": { "type": "number", "minimum": 0, "maximum": 0.05 }
+      }
+    },
+    "claims": {
+      "type": "array", "minItems": 30, "maxItems": 30,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["profile", "seed", "delay_harmonic", "angle_frequency_vector", "estimate_real", "reference_real", "half_width_real", "interval_real", "estimate_imag", "reference_imag", "half_width_imag", "interval_imag", "passed"],
+        "properties": {
+          "profile": { "enum": ["A", "B", "C", "D", "E"] },
+          "seed": { "type": "integer", "minimum": 274065, "maximum": 274069 },
+          "delay_harmonic": { "enum": [1, 2] },
+          "angle_frequency_vector": { "type": "array", "prefixItems": [{"type":"integer","minimum":-1,"maximum":1},{"type":"integer","minimum":-1,"maximum":1},{"type":"integer","minimum":-1,"maximum":1},{"type":"integer","minimum":-1,"maximum":1}], "items": false, "minItems": 4, "maxItems": 4 },
+          "estimate_real": { "type": "number" },
+          "reference_real": { "type": "number" },
+          "half_width_real": { "type": "number", "minimum": 0, "maximum": 0.05 },
+          "interval_real": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+          "estimate_imag": { "type": "number" },
+          "reference_imag": { "type": "number" },
+          "half_width_imag": { "type": "number", "minimum": 0, "maximum": 0.05 },
+          "interval_imag": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+          "passed": { "const": true }
+        }
+      }
+    },
+    "scope": { "type": "string", "minLength": 1 }
+  }
+}

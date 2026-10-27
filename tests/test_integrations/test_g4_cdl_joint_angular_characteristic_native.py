@@ -84,7 +84,7 @@ _CLAIM_COUNT = len(_MODELS) * len(_FOURIER_VECTORS) * 2
 _TERNARY_CLAIM_COUNT = len(_MODELS) * len(_TERNARY_FOURIER_VECTORS) * 2
 _MARGINAL_CLAIM_COUNT = len(_MODELS) * len(_MARGINAL_FOURIER_VECTORS) * 2
 _BOUNDED_JOINT_CLAIM_COUNT = len(_MODELS) * len(_BOUNDED_JOINT_FOURIER_VECTORS) * 2
-_JOINT_DELAY_ANGLE_SEED = 273_000
+_JOINT_DELAY_ANGLE_SEED = 274_000
 _DELAY_SPREAD_S = 100e-9
 _JOINT_DELAY_ANGLE_VECTORS = tuple(
     (delay_harmonic, angle_vector)
@@ -490,6 +490,7 @@ def test_cdl_joint_delay_angle_characteristics_match_table_reference(model: str)
     native_powers = native_powers / native_power_sums[:, None]
     z_simultaneous = NormalDist().inv_cdf(1.0 - _ALPHA / (2.0 * _JOINT_DELAY_ANGLE_CLAIM_COUNT))
 
+    claim_metrics = []
     for delay_harmonic, angle_vector in _JOINT_DELAY_ANGLE_VECTORS:
         frequency = torch.tensor(angle_vector, dtype=torch.float64)
         table_angle_moment = torch.stack(
@@ -521,3 +522,38 @@ def test_cdl_joint_delay_angle_characteristics_match_table_reference(model: str)
         assert abs(float(estimate.real - expected.real)) <= float(real_half_width) + 1e-12
         assert abs(float(estimate.imag - expected.imag)) <= float(imag_half_width) + 1e-12
         assert max(float(real_half_width), float(imag_half_width)) <= _MAX_SIMULTANEOUS_HALF_WIDTH
+        claim_metrics.append(
+            {
+                "delay_harmonic": delay_harmonic,
+                "angle_frequency_vector": list(angle_vector),
+                "estimate_real": float(estimate.real),
+                "reference_real": float(expected.real),
+                "half_width_real": float(real_half_width),
+                "interval_real": [
+                    float(estimate.real - real_half_width),
+                    float(estimate.real + real_half_width),
+                ],
+                "estimate_imag": float(estimate.imag),
+                "reference_imag": float(expected.imag),
+                "half_width_imag": float(imag_half_width),
+                "interval_imag": [
+                    float(estimate.imag - imag_half_width),
+                    float(estimate.imag + imag_half_width),
+                ],
+                "passed": True,
+            }
+        )
+    print(
+        "G4_CDL_JOINT_DELAY_ANGLE_METRICS "
+        + json.dumps(
+            {
+                "profile": model,
+                "seed": _JOINT_DELAY_ANGLE_SEED + ord(model),
+                "samples": _BATCH_SIZE,
+                "claim_metrics": claim_metrics,
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+            allow_nan=False,
+        )
+    )
