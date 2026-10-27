@@ -81,6 +81,45 @@ def test_declared_gap_blocks_pairs_that_cross_it() -> None:
     assert [(row.origin_sample_id, row.target_sample_id) for row in targets] == [("t1", "t2")]
 
 
+def test_frozen_maximum_inter_sample_gap_blocks_only_crossing_pairs() -> None:
+    trajectory = _trajectory(("t0", "t1", "t25", "t35"), (0.0, 1.0, 2.5, 3.5))
+
+    targets = build_trajectory_horizon_targets(
+        trajectory,
+        (1.0, 2.5),
+        maximum_inter_sample_gap_s=1.0,
+    )
+
+    assert [(row.origin_sample_id, row.target_sample_id) for row in targets] == [
+        ("t0", "t1"),
+        ("t25", "t35"),
+    ]
+
+
+@pytest.mark.parametrize("maximum_gap", [0.0, -1.0, float("nan"), float("inf")])
+def test_invalid_maximum_inter_sample_gap_is_rejected(maximum_gap: float) -> None:
+    trajectory = _trajectory(("t0", "t1"), (0.0, 1.0))
+
+    with pytest.raises(ValueError, match="finite and positive"):
+        build_trajectory_horizon_targets(
+            trajectory,
+            (1.0,),
+            maximum_inter_sample_gap_s=maximum_gap,
+        )
+
+
+@pytest.mark.parametrize("maximum_gap", [True, "1.0", 1 + 0j])
+def test_maximum_inter_sample_gap_rejects_coercion(maximum_gap: object) -> None:
+    trajectory = _trajectory(("t0", "t1"), (0.0, 1.0))
+
+    with pytest.raises(TypeError, match="real number or None"):
+        build_trajectory_horizon_targets(
+            trajectory,
+            (1.0,),
+            maximum_inter_sample_gap_s=maximum_gap,  # type: ignore[arg-type]
+        )
+
+
 def test_gap_marker_must_reference_a_trajectory_sample() -> None:
     trajectory = _trajectory(("t0", "t1"), (0.0, 1.0))
 

@@ -35,6 +35,7 @@ def build_trajectory_horizon_targets(
     gap_after_sample_ids: Collection[str] = (),
     split_registry: SplitPolicyRegistry | None = None,
     timestamp_tolerance_s: float = 1e-9,
+    maximum_inter_sample_gap_s: float | None = None,
 ) -> tuple[TrajectoryForecastTarget, ...]:
     """Index exact elapsed-time targets without crossing gaps or split borders.
 
@@ -43,6 +44,8 @@ def build_trajectory_horizon_targets(
     tolerance) is eligible. No row-offset assumption, interpolation, or
     nearest-sample substitution is made. A gap marker names the sample just
     before a declared discontinuity and blocks intervals crossing that edge.
+    If ``maximum_inter_sample_gap_s`` is supplied, adjacent intervals strictly
+    greater than that caller-frozen threshold are also treated as gaps.
     Targets with no matching timestamp and pairs blocked by a gap or split
     boundary are omitted. When a split registry is provided, each sample ID
     must be registered as a child and pairs are emitted only when the full
@@ -56,6 +59,9 @@ def build_trajectory_horizon_targets(
         split_registry: Frozen registry that resolves sample child IDs to splits.
         timestamp_tolerance_s: Absolute tolerance for floating-point timestamp
             matching; must be finite and non-negative.
+        maximum_inter_sample_gap_s: Optional caller-frozen positive threshold;
+            larger adjacent timestamp intervals block forecast pairs. The
+            threshold is never inferred from the trajectory.
 
     Returns:
         Eligible forecast target indices ordered by origin time then ascending
@@ -73,6 +79,15 @@ def build_trajectory_horizon_targets(
     tolerance = float(timestamp_tolerance_s)
     if not math.isfinite(tolerance) or tolerance < 0:
         raise ValueError("timestamp_tolerance_s must be finite and non-negative")
+    maximum_gap: float | None = None
+    if maximum_inter_sample_gap_s is not None:
+        if isinstance(maximum_inter_sample_gap_s, bool) or not isinstance(
+            maximum_inter_sample_gap_s, Real
+        ):
+            raise TypeError("maximum_inter_sample_gap_s must be a real number or None")
+        maximum_gap = float(maximum_inter_sample_gap_s)
+        if not math.isfinite(maximum_gap) or maximum_gap <= 0:
+            raise ValueError("maximum_inter_sample_gap_s must be finite and positive")
 
     horizons = tuple(horizons_s)
     if not horizons:
@@ -95,7 +110,12 @@ def build_trajectory_horizon_targets(
     unknown_gaps = gaps.difference(trajectory.sample_ids)
     if unknown_gaps:
         raise ValueError(f"gap markers reference unknown samples: {sorted(unknown_gaps)}")
-    gap_indices = {trajectory.sample_ids.index(sample_id) for sample_id in gaps}
+    gap_indices = {
+        index for index, sample_id in enumerate(trajectory.sample_ids) if sample_id in gaps
+    }
+    times = np.asarray(trajectory.sample_times_s, dtype=np.float64)
+    if maximum_gap is not None:
+        gap_indices.update(int(index) for index in np.flatnonzero(np.diff(times) > maximum_gap))
 
     sample_splits: tuple[str, ...] | None = None
     if split_registry is not None:
@@ -105,7 +125,6 @@ def build_trajectory_horizon_targets(
             split_registry.split_for_child(sample_id) for sample_id in trajectory.sample_ids
         )
 
-    times = np.asarray(trajectory.sample_times_s, dtype=np.float64)
     rows: list[TrajectoryForecastTarget] = []
     for origin_index, origin_time in enumerate(times):
         for horizon in normalized_horizons:

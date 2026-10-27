@@ -2659,17 +2659,19 @@
     {
       "backlog_line": 317,
       "backlog_status": "open",
-      "description": "Finish synchronized time axes across TX/RX/objects, timestamp-based future-target alignment, monotonicity/gap handling, and coherence/time-grid declarations. `build_trajectory_horizon_targets` and the RT forecast baseline can now enforce frozen child split assignments; the baseline also honors declared gaps (including its two-sample history), scores only valid target-mask elements, and the pilot can bind exact split-registry bytes/signature/trust and child kinds. Cross-entity synchronization and coherence declarations remain open.",
+      "description": "Finish synchronized time axes across TX/RX/objects, timestamp-based future-target alignment, monotonicity/gap handling, and coherence/time-grid declarations. `build_trajectory_horizon_targets` and the RT forecast baseline enforce frozen child split assignments; both honor declared gaps, and the target builder additionally blocks intervals crossing a caller-frozen maximum inter-sample gap without inferring a threshold from the trajectory. It scores only valid target-mask elements, and the pilot can bind exact split-registry bytes/signature/trust and child kinds. Focused coverage is in `tests/test_experiments/test_trajectory_targets.py`. Cross-entity synchronization and coherence declarations remain open.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
         "other_files": [],
-        "regression_files": [],
+        "regression_files": [
+          "tests/test_experiments/test_trajectory_targets.py"
+        ],
         "schemas": [],
         "source_modules": []
       },
       "feature_id": "PKG07-001",
-      "link_status": "unmapped",
+      "link_status": "linked",
       "package": {
         "number": 7,
         "title": "G6 — trajectories, future targets, multiband, and interventions"
@@ -4120,13 +4122,13 @@
   "schema": "loslab.implementation_feature_map.v1",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "581b559721c394ebf92c190038152520806cbcef70a63107a90c7e3ba775f0dd"
+    "sha256": "55b88829ec58511eebf85d02a96670d9e690752972314126d8534d1e5fb3afe8"
   },
   "summary": {
     "feature_count": 176,
-    "linked_count": 17,
+    "linked_count": 18,
     "marked_done_count": 121,
     "open_count": 55,
-    "unmapped_count": 159
+    "unmapped_count": 158
   }
 }
