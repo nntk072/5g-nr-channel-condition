@@ -340,6 +340,49 @@ def test_path_interaction_trace_rejects_partial_or_misaligned_geometry():
         )
 
 
+@pytest.mark.parametrize(
+    ("change", "message"),
+    [
+        ({"link_ids": (" link-1",)}, "canonical link IDs"),
+        ({"path_kind": (" specular ",)}, "canonical value per path"),
+        ({"coefficient_convention": " sionna_rt_path_coefficient_v1"}, "canonical string"),
+    ],
+)
+def test_path_oracle_rejects_padded_join_and_provenance_identities(change, message):
+    arguments = {
+        "link_ids": ("link-1",),
+        "frame_indices": np.asarray([0]),
+        "rx_port_indices": np.asarray([0]),
+        "tx_port_indices": np.asarray([0]),
+        "path_offsets": np.asarray([0, 1]),
+        "solve_status": (PathSolveStatus.SOLVED,),
+        "delay_s": np.asarray([1e-9]),
+        "complex_gain": np.asarray([1.0 + 0j]),
+        "interaction_order": np.asarray([0]),
+    }
+    with pytest.raises(ValueError, match=message):
+        PathOracleTable(**{**arguments, **change})
+
+
+def test_path_oracle_rejects_padded_interaction_coordinate_frame():
+    with pytest.raises(ValueError, match="canonical named coordinate frame"):
+        PathOracleTable(
+            link_ids=("link-1",),
+            frame_indices=np.asarray([0]),
+            rx_port_indices=np.asarray([0]),
+            tx_port_indices=np.asarray([0]),
+            path_offsets=np.asarray([0, 1]),
+            solve_status=(PathSolveStatus.SOLVED,),
+            delay_s=np.asarray([1e-9]),
+            complex_gain=np.asarray([1.0 + 0j]),
+            interaction_order=np.asarray([1]),
+            interaction_offsets=np.asarray([0, 1]),
+            interaction_types=np.asarray([1]),
+            object_ids=np.asarray([0]),
+            primitive_ids=np.asarray([0]),
+            interaction_vertices_m=np.asarray([[0.0, 0.0, 0.0]]),
+            interaction_vertex_frame=" scene_xyz_m ",
+        )
 def test_physical_channel_view_requires_named_axes_and_explicit_normalization():
     episode = _episode()
     arguments = {

@@ -208,7 +208,7 @@ Gate checkboxes in the master plan describe acceptance evidence, not necessarily
 - [ ] Complete absolute delay/phase/power reconstruction and same-path-set direct/indirect decomposition; preserve raw solver-valid multiplicity and solver-budget provenance.
 - [ ] Complete analytical single/multiple-path checks for close delays, coherent nulls, nonzero reference offsets, link-budget coefficients, frequency ordering, and DC/guard/odd-even FFT mappings.
 - [ ] Complete explicit/synthetic array comparison for near/far field, dual polarization, basis rotations, port order, and named axis conventions.
-- [ ] Complete sparse variable-size path/channel serialization, lossless dtype-safe round trips, zero-path handling, checksums, atomic publish, and compatibility for existing single-link records.
+- [ ] Complete sparse variable-size path/channel serialization, lossless dtype-safe round trips, zero-path handling, checksums, atomic publish, and compatibility for existing single-link records. `PathOracleTable` already stores unpadded ragged path groups and explicit zero-path outcomes; it now also rejects padded link, path-kind, interaction-frame, and coefficient-convention identities before they can enter join/provenance keys. Twelve focused path-oracle regressions and Ruff pass. Native `Paths` adapter parity, remaining sparse channel formats, and legacy single-link compatibility remain open.
 - [ ] Integrate geometry-derived LOS separately from solver-found direct paths and standardized-model LOS proxies.
 
 ### 4. G3 — criterion-driven comparison and admission software

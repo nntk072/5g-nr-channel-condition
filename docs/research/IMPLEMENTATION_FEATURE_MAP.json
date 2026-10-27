@@ -504,7 +504,7 @@
     {
       "backlog_line": 211,
       "backlog_status": "open",
-      "description": "Complete sparse variable-size path/channel serialization, lossless dtype-safe round trips, zero-path handling, checksums, atomic publish, and compatibility for existing single-link records.",
+      "description": "Complete sparse variable-size path/channel serialization, lossless dtype-safe round trips, zero-path handling, checksums, atomic publish, and compatibility for existing single-link records. `PathOracleTable` already stores unpadded ragged path groups and explicit zero-path outcomes; it now also rejects padded link, path-kind, interaction-frame, and coefficient-convention identities before they can enter join/provenance keys. Twelve focused path-oracle regressions and Ruff pass. Native `Paths` adapter parity, remaining sparse channel formats, and legacy single-link compatibility remain open.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -4252,7 +4252,7 @@
   "schema": "loslab.implementation_feature_map.v1",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "43d4a2a449bdad0d5e26e5dc00f5c70965b5f171034737dfb7be979be1d58d9b"
+    "sha256": "7e8eb723fce82fb2d18537e2408c5f247d8ac619119ba961b9240981da8e13a8"
   },
   "summary": {
     "feature_count": 181,

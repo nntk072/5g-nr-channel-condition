@@ -78,8 +78,11 @@ class PathOracleTable:
     def __post_init__(self) -> None:
         links = tuple(self.link_ids)
         status = tuple(self.solve_status)
-        if not links or any(not isinstance(link, str) or not link.strip() for link in links):
-            raise ValueError("path groups need non-empty link IDs")
+        if not links or any(
+            not isinstance(link, str) or not link.strip() or link != link.strip()
+            for link in links
+        ):
+            raise ValueError("path groups need non-empty canonical link IDs")
         group_count = len(links)
         frames = _freeze_vector(self.frame_indices, name="frame_indices", dtype=np.dtype(np.int64))
         rx_ports = _freeze_vector(
@@ -132,9 +135,13 @@ class PathOracleTable:
         )
         kinds = None if self.path_kind is None else tuple(self.path_kind)
         if kinds is not None and (
-            len(kinds) != path_count or any(not isinstance(kind, str) or not kind for kind in kinds)
+            len(kinds) != path_count
+            or any(
+                not isinstance(kind, str) or not kind.strip() or kind != kind.strip()
+                for kind in kinds
+            )
         ):
-            raise ValueError("path_kind must provide one non-empty value per path")
+            raise ValueError("path_kind must provide one non-empty canonical value per path")
 
         interaction_values = (
             self.interaction_offsets,
@@ -190,8 +197,9 @@ class PathOracleTable:
             if (
                 not isinstance(self.interaction_vertex_frame, str)
                 or not self.interaction_vertex_frame.strip()
+                or self.interaction_vertex_frame != self.interaction_vertex_frame.strip()
             ):
-                raise ValueError("interaction vertices require a named coordinate frame")
+                raise ValueError("interaction vertices require a canonical named coordinate frame")
             vertices.setflags(write=False)
             interaction_data = (
                 interaction_offsets,
@@ -205,8 +213,9 @@ class PathOracleTable:
         if (
             not isinstance(self.coefficient_convention, str)
             or not self.coefficient_convention.strip()
+            or self.coefficient_convention != self.coefficient_convention.strip()
         ):
-            raise ValueError("coefficient_convention must be a non-empty string")
+            raise ValueError("coefficient_convention must be a non-empty canonical string")
         for index, outcome in enumerate(status):
             path_number = int(offsets[index + 1] - offsets[index])
             if outcome is PathSolveStatus.SOLVED and path_number == 0:
