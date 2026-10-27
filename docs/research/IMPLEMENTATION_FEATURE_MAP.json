@@ -3,7 +3,7 @@
     {
       "backlog_line": 181,
       "backlog_status": "open",
-      "description": "Turn this backlog into a fully traceable feature map. **Partial:** `scripts.build_implementation_feature_map` indexes all 177 checklist rows by package/plan gate, resolves explicitly referenced repository paths, dotted Python module names, and registered `pyproject.toml` CLI entry points, and marks unresolved rows `unmapped`. It writes `docs/research/IMPLEMENTATION_FEATURE_MAP.json`; `loslab-build-implementation-feature-map --check` detects stale output. The current snapshot has 20 linked, 157 unmapped, 122 backlog-marked-done, and 55 open rows. Evidence links for remaining sources, schemas, CLI entries, regression files, plus audited implementation-status reconciliation remain open. Checkbox state is not scientific qualification.",
+      "description": "Turn this backlog into a fully traceable feature map. **Partial:** `scripts.build_implementation_feature_map` indexes all 181 checklist rows by package/plan gate, resolves explicitly referenced repository paths, dotted Python module names, and registered `pyproject.toml` CLI entry points, and marks unresolved rows `unmapped`. It writes `docs/research/IMPLEMENTATION_FEATURE_MAP.json`; `loslab-build-implementation-feature-map --check` detects stale output. The current snapshot has 21 linked, 160 unmapped, 126 backlog-marked-done, and 55 open rows. Evidence links for remaining sources, schemas, CLI entries, regression files, plus audited implementation-status reconciliation remain open. Checkbox state is not scientific qualification.",
       "evidence_links": {
         "cli_entries": [
           "scripts/build_implementation_feature_map.py"
@@ -1977,7 +1977,7 @@
     {
       "backlog_line": 284,
       "backlog_status": "open",
-      "description": "Complete realistic signal scaling, multi-link/multi-cell waveform superposition, interference/contamination/SINR truth, per-link path loss/beam/power, independent noise and oscillator/clock behavior, and inference-safe receiver observations. `compose_received_waveforms` aligns channel-filtered contributions with RX/TX arrival offsets; it supports flat per-link gains, caller-supplied causal complex link FIRs, CFO/phase, fractional timing, seeded node-shared Wiener phase noise, and per-receiver memoryless I/Q imbalance, then coherently sums the links. Independent receiver-node AWGN is added by the adjacent API. `apply_network_link_budget` supports caller-supplied frequency-dependent path-loss/antenna/beam-gain profiles on unit-mean small-scale fading, with an exact increasing absolute-RF subcarrier grid and a guard against double application. `network_resource_sinr` retains per-symbol/per-subcarrier desired, coherently summed interference, noise, and validity values and accepts fixed or resource-varying serving-cell maps. `decode_noisy_network_pusch` connects a bounded noisy network capture to the Sionna PUSCH demodulator/decoder, checks clean source-sum and AWGN lineage plus sample-rate/grid identity, and publishes digest-bound schema-v1 numerical outcomes as `OBSERVED_NOT_QUALIFIED`. For the exact Sionna PHY 2.2.0 unitary FFT/IFFT path it derives per-RE variance as equal to iid sample variance; explicit W/RE input remains available for other receiver conventions. An empirical 512-slot noise-only native check and one-block CUDA V100 PUSCH smoke pass. Deriving causal complex FIRs from calibrated frequency-dependent link budgets, calibrated propagation/antenna patterns, asynchronous clocks/multi-numerology, contamination truth, broad multi-cell receiver binding, alternate noise-domain conversions, synchronization/acquisition, and receiver qualification remain open. A bounded SRS-RSRP adapter connects only the UL SRS-RSRP observation path.",
+      "description": "Complete realistic signal scaling, multi-link/multi-cell waveform superposition, interference/contamination/SINR truth, per-link path loss/beam/power, independent noise and oscillator/clock behavior, and inference-safe receiver observations. `compose_received_waveforms` aligns channel-filtered contributions with RX/TX arrival offsets; it supports flat per-link gains, caller-supplied causal complex link FIRs, CFO/phase, fractional timing, seeded node-shared Wiener phase noise, and per-receiver memoryless I/Q imbalance, then coherently sums the links. Independent receiver-node AWGN is added by the adjacent API. `apply_network_link_budget` supports caller-supplied frequency-dependent path-loss/antenna/beam-gain profiles on unit-mean small-scale fading, with an exact increasing absolute-RF subcarrier grid and a guard against double application. `network_resource_sinr` retains per-symbol/per-subcarrier desired, coherently summed interference, noise, and validity values and accepts fixed or resource-varying serving-cell maps. `decode_noisy_network_pusch` connects a bounded noisy network capture to the Sionna PUSCH demodulator/decoder, checks clean source-sum/AWGN lineage and sample-rate/grid identity, and requires an exact full-slot sample count derived from the configured FFT, symbol count, and cyclic-prefix length so the Sionna demodulator cannot silently discard trailing samples. It publishes digest-bound schema-v1 numerical outcomes as `OBSERVED_NOT_QUALIFIED`. For the exact Sionna PHY 2.2.0 unitary FFT/IFFT path it derives per-RE variance as equal to iid sample variance; explicit W/RE input remains available for other receiver conventions. The focused network receiver module passes 14 tests with Ruff clean. An empirical 512-slot noise-only native check and one-block CUDA V100 PUSCH smoke pass. Deriving causal complex FIRs from calibrated frequency-dependent link budgets, calibrated propagation/antenna patterns, asynchronous clocks/multi-numerology, contamination truth, broad multi-cell receiver binding, alternate noise-domain conversions, synchronization/acquisition, and receiver qualification remain open. A bounded SRS-RSRP adapter connects only the UL SRS-RSRP observation path.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -1999,8 +1999,8 @@
     },
     {
       "backlog_line": 285,
-      "backlog_status": "open",
-      "description": "Complete impairment composition and receiver measurement paths for timing, CFO, phase noise, IQ imbalance, AWGN, Doppler, ISI/CP exceedance, acquisition, and estimation covariance; preserve parent/channel clustering in all summaries. Sample-domain CFO, fractional timing, node-shared Wiener phase noise, and receiver I/Q imbalance are implemented; the standardized PUSCH chain also supports TX/RX impairment configuration. Complete synchronized acquisition/estimation outcomes, TX-side network integration, broader impairment interactions, and receiver-side scientific qualification remain open.",
+      "backlog_status": "marked_done",
+      "description": "Reject short or trailing sample sequences at the network PUSCH handoff by binding the configured scalar cyclic-prefix length and requiring the exact configured OFDM full-slot sample count before demodulation. The focused network receiver module passes 14 tests with coverage disabled and Ruff passes. This prevents silent trailing-symbol discard; it does not establish synchronization or receiver qualification.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -2022,8 +2022,8 @@
     },
     {
       "backlog_line": 286,
-      "backlog_status": "marked_done",
-      "description": "Derive DCI 0_3 field widths for format identifier, scheduled-cell-set and scheduled-cell-combination indicators, BWP indicator, TDRA, frequency hopping, DMRS sequence initialization, UL-SCH, beta-offset indicator, channel-access CAPC, TPC command, HARQ process number, first/second DAI, SRS request, SRS offset, and CSI request from decoded state or fixed specification width. The focused SRS module now passes all 291 tests; raw decoding and conformance evidence remain open.",
+      "backlog_status": "open",
+      "description": "Complete impairment composition and receiver measurement paths for timing, CFO, phase noise, IQ imbalance, AWGN, Doppler, ISI/CP exceedance, acquisition, and estimation covariance; preserve parent/channel clustering in all summaries. Sample-domain CFO, fractional timing, node-shared Wiener phase noise, and receiver I/Q imbalance are implemented; the standardized PUSCH chain also supports TX/RX impairment configuration. Complete synchronized acquisition/estimation outcomes, TX-side network integration, broader impairment interactions, and receiver-side scientific qualification remain open.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -2046,7 +2046,7 @@
     {
       "backlog_line": 287,
       "backlog_status": "marked_done",
-      "description": "Derive DCI 0_3 priority-indicator and minimum-applicable-scheduling-offset widths from decoded configuration-presence flags, with strict Boolean inputs and regression definitions for present/absent cases. No validation has run.",
+      "description": "Derive DCI 0_3 field widths for format identifier, scheduled-cell-set and scheduled-cell-combination indicators, BWP indicator, TDRA, frequency hopping, DMRS sequence initialization, UL-SCH, beta-offset indicator, channel-access CAPC, TPC command, HARQ process number, first/second DAI, SRS request, SRS offset, and CSI request from decoded state or fixed specification width. The focused SRS module now passes all 291 tests; raw decoding and conformance evidence remain open.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -2069,7 +2069,7 @@
     {
       "backlog_line": 288,
       "backlog_status": "marked_done",
-      "description": "Derive every field width in the ordered DCI 0_3 layout from decoded configuration or fixed format rules, including TPMI codebook widths for supported one-, two-, and four-port cases. Remove the caller-supplied arbitrary-width escape hatch and make the field-order/configuration-derived roster a fail-closed invariant. Regression definitions cover the full field roster and selected TPMI branches; consolidated validation, raw ASN.1/PER decoding, CRC/polar decoding, and receiver qualification remain open.",
+      "description": "Derive DCI 0_3 priority-indicator and minimum-applicable-scheduling-offset widths from decoded configuration-presence flags, with strict Boolean inputs and regression definitions for present/absent cases. No validation has run.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -2091,8 +2091,8 @@
     },
     {
       "backlog_line": 289,
-      "backlog_status": "open",
-      "description": "Finish remaining G5.14 SRS gaps: connect the current DCI 0_3 decoded-state width resolver to real ASN.1/RRC decoding and physical configuration; complete positioning measurement/report semantics; full scheduled-cell combination, timing, and carrier feasibility; and receiver qualification under multiport, interference, synchronization, and noise conditions. The resolver derives all 31 widths in its ordered DCI 0_3 layout from explicit decoded inputs or fixed format rules and does not accept caller-supplied field-width overrides. Its 291-test focused software slice passes; CRC/polar and ASN.1/PER remain open. **Partial positioning reports:** UL SRS-RSRP power averaging, branch reporting, reference-point mapping, zero-power outcome, and versioned schema are implemented against TS 38.215 V19.2.0 clause 5.2.5. `measure_ul_srs_rsrp_from_grid` connects configured multiport SRS RE masks to calibrated complex receive grids; `measure_ul_srs_rsrp_from_noisy_network_grid` additionally binds a composed multi-transmitter grid to its coherent per-TX contributions and independent receiver-noise grid, then reports desired, coherent-interference, noise, and simulated-SINR components by receiver branch. Both report digests and remain `OBSERVED_NOT_QUALIFIED`. UL-RTOA and gNB Rx-Tx timing formulas/report contracts implement clauses 5.2.2–5.2.3 over caller-supplied timing values, without first-path detection or clock calibration. `report_ul_aoa` binds supplied angle estimates, GCS/LCS reference conventions, and channel/estimator/calibration digests under a strict schema; it does not estimate or qualify receiver AoA. `report_ul_srs_rsrpp` binds caller-supplied linear-averaged path responses, per-occasion detected-path masks/delays, first-path ordering, calibration, estimator/detector digests, and branch-resolved watt/dBm output under a strict schema; all 29 focused SRS measurement tests pass, but the report does not estimate/detect paths or qualify a receiver. `report_ul_srs_tdct_tdcp` adds a coupled report for caller-provided linear-averaged time-domain channel estimates and first-path/time-grid inputs; it derives the `2^k Tc` candidate grid, selects the highest-power times, binds SFN/subframe reference arithmetic, and reports TDCP on the branch selected for the strongest time. Its strict schema and focused cases pass within the 33-test SRS module, but it does not perform physical configuration/PER decoding, channel estimation, first-path detection, or receiver qualification. UL SRS-TDCT/TDCP report arithmetic now exists; raw ASN.1/PER, synchronized receiver qualification, and physical configuration remain open.",
+      "backlog_status": "marked_done",
+      "description": "Derive every field width in the ordered DCI 0_3 layout from decoded configuration or fixed format rules, including TPMI codebook widths for supported one-, two-, and four-port cases. Remove the caller-supplied arbitrary-width escape hatch and make the field-order/configuration-derived roster a fail-closed invariant. Regression definitions cover the full field roster and selected TPMI branches; consolidated validation, raw ASN.1/PER decoding, CRC/polar decoding, and receiver qualification remain open.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -2108,14 +2108,14 @@
         "title": "G5 — NR signals, observation chain, and receiver impact"
       },
       "plan_gates": [
-        "G5.14"
+        "G5"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
     {
       "backlog_line": 290,
-      "backlog_status": "marked_done",
-      "description": "Bind DCI 0_3 BWP-aware SRS schedules to caller-supplied per-BWP frequency extents and reject out-of-BWP allocations; retain selected BWP bounds in scheduled output rows. Regression definitions cover both boundary directions; validation is deferred.",
+      "backlog_status": "open",
+      "description": "Finish remaining G5.14 SRS gaps: connect the current DCI 0_3 decoded-state width resolver to real ASN.1/RRC decoding and physical configuration; complete positioning measurement/report semantics; full scheduled-cell combination, timing, and carrier feasibility; and receiver qualification under multiport, interference, synchronization, and noise conditions. The resolver derives all 31 widths in its ordered DCI 0_3 layout from explicit decoded inputs or fixed format rules and does not accept caller-supplied field-width overrides. Its 291-test focused software slice passes; CRC/polar and ASN.1/PER remain open. **Partial positioning reports:** UL SRS-RSRP power averaging, branch reporting, reference-point mapping, zero-power outcome, and versioned schema are implemented against TS 38.215 V19.2.0 clause 5.2.5. `measure_ul_srs_rsrp_from_grid` connects configured multiport SRS RE masks to calibrated complex receive grids; `measure_ul_srs_rsrp_from_noisy_network_grid` additionally binds a composed multi-transmitter grid to its coherent per-TX contributions and independent receiver-noise grid, then reports desired, coherent-interference, noise, and simulated-SINR components by receiver branch. Both report digests and remain `OBSERVED_NOT_QUALIFIED`. UL-RTOA and gNB Rx-Tx timing formulas/report contracts implement clauses 5.2.2–5.2.3 over caller-supplied timing values, without first-path detection or clock calibration. `report_ul_aoa` binds supplied angle estimates, GCS/LCS reference conventions, and channel/estimator/calibration digests under a strict schema; it does not estimate or qualify receiver AoA. `report_ul_srs_rsrpp` binds caller-supplied linear-averaged path responses, per-occasion detected-path masks/delays, first-path ordering, calibration, estimator/detector digests, and branch-resolved watt/dBm output under a strict schema; all 29 focused SRS measurement tests pass, but the report does not estimate/detect paths or qualify a receiver. `report_ul_srs_tdct_tdcp` adds a coupled report for caller-provided linear-averaged time-domain channel estimates and first-path/time-grid inputs; it derives the `2^k Tc` candidate grid, selects the highest-power times, binds SFN/subframe reference arithmetic, and reports TDCP on the branch selected for the strongest time. Its strict schema and focused cases pass within the 33-test SRS module, but it does not perform physical configuration/PER decoding, channel estimation, first-path detection, or receiver qualification. UL SRS-TDCT/TDCP report arithmetic now exists; raw ASN.1/PER, synchronized receiver qualification, and physical configuration remain open.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -2131,14 +2131,14 @@
         "title": "G5 — NR signals, observation chain, and receiver impact"
       },
       "plan_gates": [
-        "G5"
+        "G5.14"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
     {
       "backlog_line": 291,
       "backlog_status": "marked_done",
-      "description": "Add a bounded same-grid SRS inter-cell resource-element overlap audit with a versioned report schema, pairwise overlap counts, a capped coordinate sample, and fail-closed grid/numerology matching. Regression definitions cover overlap, disjoint combs/slots, and incomparable grids. It reports scheduled occupancy only; orthogonality, RF interference, and receiver impact remain open.",
+      "description": "Bind DCI 0_3 BWP-aware SRS schedules to caller-supplied per-BWP frequency extents and reject out-of-BWP allocations; retain selected BWP bounds in scheduled output rows. Regression definitions cover both boundary directions; validation is deferred.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -2161,7 +2161,7 @@
     {
       "backlog_line": 292,
       "backlog_status": "marked_done",
-      "description": "Add the bounded multiport SRS receive primitive for mapped ordinary/hopped/positioning grids, with rank-aware per-subcarrier LS estimates, caller-supplied per-RX noise variance, covariance reporting, and explicit availability reasons. It assumes a constant channel over the SRS resource and does not solve synchronization or channel evolution. Regression definitions are authored; validation is deferred.",
+      "description": "Add a bounded same-grid SRS inter-cell resource-element overlap audit with a versioned report schema, pairwise overlap counts, a capped coordinate sample, and fail-closed grid/numerology matching. Regression definitions cover overlap, disjoint combs/slots, and incomparable grids. It reports scheduled occupancy only; orthogonality, RF interference, and receiver impact remain open.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -2184,7 +2184,7 @@
     {
       "backlog_line": 293,
       "backlog_status": "marked_done",
-      "description": "Extend multiport SRS estimation to accept a caller-supplied per-RX/per-symbol noise-variance profile and use weighted least squares for each RX/port estimate. Retain the exact profile in the immutable result and report the corresponding weighted-LS port covariance; reject invalid, nonfinite, nonpositive, malformed, or conflicting variance inputs. The profile is caller-supplied and is not inferred from the received grid. Regression definitions compare estimates and covariance against the explicit weighted equations; validation and end-to-end multi-cell receiver qualification remain open.",
+      "description": "Add the bounded multiport SRS receive primitive for mapped ordinary/hopped/positioning grids, with rank-aware per-subcarrier LS estimates, caller-supplied per-RX noise variance, covariance reporting, and explicit availability reasons. It assumes a constant channel over the SRS resource and does not solve synchronization or channel evolution. Regression definitions are authored; validation is deferred.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -2207,7 +2207,7 @@
     {
       "backlog_line": 294,
       "backlog_status": "marked_done",
-      "description": "Report exact one-sided 95% independent-channel prevalence bounds for any CRC failure in the clean/corrected/uncorrected repeated-block conditions; independently recompute these from retained channel outcomes in the result auditor. Keep this diagnostic separate from mean BLER and the frozen acceptance verdict; version new reports v11–v14 while retaining historical readers. Regression definitions are authored; consolidated validation is deferred.",
+      "description": "Extend multiport SRS estimation to accept a caller-supplied per-RX/per-symbol noise-variance profile and use weighted least squares for each RX/port estimate. Retain the exact profile in the immutable result and report the corresponding weighted-LS port covariance; reject invalid, nonfinite, nonpositive, malformed, or conflicting variance inputs. The profile is caller-supplied and is not inferred from the received grid. Regression definitions compare estimates and covariance against the explicit weighted equations; validation and end-to-end multi-cell receiver qualification remain open.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -2230,7 +2230,7 @@
     {
       "backlog_line": 295,
       "backlog_status": "marked_done",
-      "description": "Bind new G5.09 reports to the complete adapter receiver metadata, selected decoder/estimator contract, and exact runtime Sionna version, and retain an ordered transport-block roster with stable channel/payload/block IDs, per-condition CRC outcomes, and the shared per-channel synchronization errors. Auditor validation rejects mismatched receiver configuration, seed lineage, reordered/missing/duplicated blocks, or outcome drift; new report schema versions are v15–v18 and historical versions remain supported. Regression definitions are authored; validation is deferred. The result remains a synthetic fixture, not full paired NR receiver qualification.",
+      "description": "Report exact one-sided 95% independent-channel prevalence bounds for any CRC failure in the clean/corrected/uncorrected repeated-block conditions; independently recompute these from retained channel outcomes in the result auditor. Keep this diagnostic separate from mean BLER and the frozen acceptance verdict; version new reports v11–v14 while retaining historical readers. Regression definitions are authored; consolidated validation is deferred.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -2246,14 +2246,14 @@
         "title": "G5 — NR signals, observation chain, and receiver impact"
       },
       "plan_gates": [
-        "G5.09"
+        "G5"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
     {
       "backlog_line": 296,
       "backlog_status": "marked_done",
-      "description": "Bound independent-channel G5.09 receiver work to at most 16,384 total transport blocks before constructing the Sionna receiver; keep the independent-channel and repeated-block dimensions explicit in the requested-count check. Regression definitions assert rejection before receiver initialization. This is a computational guard only and does not change acceptance criteria or establish qualification.",
+      "description": "Bind new G5.09 reports to the complete adapter receiver metadata, selected decoder/estimator contract, and exact runtime Sionna version, and retain an ordered transport-block roster with stable channel/payload/block IDs, per-condition CRC outcomes, and the shared per-channel synchronization errors. Auditor validation rejects mismatched receiver configuration, seed lineage, reordered/missing/duplicated blocks, or outcome drift; new report schema versions are v15–v18 and historical versions remain supported. Regression definitions are authored; validation is deferred. The result remains a synthetic fixture, not full paired NR receiver qualification.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -2276,7 +2276,7 @@
     {
       "backlog_line": 297,
       "backlog_status": "marked_done",
-      "description": "Bound SNR-curve input preprocessing as well as receiver work: cap the SNR count before materializing it, derive the maximum seed-roster size from the block ceiling before iterating or deduplicating, reject malformed seed/estimator inputs before receiver setup, and reject waveform-evidence channel seeds outside signed int64 before constructing the receiver because the evidence archive stores them as int64. Regression definitions cover lazy oversized rosters and the evidence-specific seed-storage bound. These caps are resource/serialization protections, not statistical sufficiency or G5 qualification.",
+      "description": "Bound independent-channel G5.09 receiver work to at most 16,384 total transport blocks before constructing the Sionna receiver; keep the independent-channel and repeated-block dimensions explicit in the requested-count check. Regression definitions assert rejection before receiver initialization. This is a computational guard only and does not change acceptance criteria or establish qualification.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -2292,14 +2292,14 @@
         "title": "G5 — NR signals, observation chain, and receiver impact"
       },
       "plan_gates": [
-        "G5"
+        "G5.09"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
     {
       "backlog_line": 298,
       "backlog_status": "marked_done",
-      "description": "Calculate CRC-failure totals and block BLER numerators directly from retained Boolean transport-block outcomes instead of round-tripping them through floating-point channel rates. Regression definitions check exact agreement against every retained channel/block outcome. This changes no acceptance criteria and does not broaden the synthetic fixture's qualification scope.",
+      "description": "Bound SNR-curve input preprocessing as well as receiver work: cap the SNR count before materializing it, derive the maximum seed-roster size from the block ceiling before iterating or deduplicating, reject malformed seed/estimator inputs before receiver setup, and reject waveform-evidence channel seeds outside signed int64 before constructing the receiver because the evidence archive stores them as int64. Regression definitions cover lazy oversized rosters and the evidence-specific seed-storage bound. These caps are resource/serialization protections, not statistical sufficiency or G5 qualification.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -2322,7 +2322,7 @@
     {
       "backlog_line": 299,
       "backlog_status": "marked_done",
-      "description": "Enforce a real, finite, nonnegative PUSCH receiver noise-variance boundary before float32 conversion, reject Boolean/complex/sparse/nonnumeric inputs, and reject finite values that overflow during conversion. Dependency-isolated regression definitions are authored; validation is deferred. This does not alter or qualify any G5 result.",
+      "description": "Calculate CRC-failure totals and block BLER numerators directly from retained Boolean transport-block outcomes instead of round-tripping them through floating-point channel rates. Regression definitions check exact agreement against every retained channel/block outcome. This changes no acceptance criteria and does not broaden the synthetic fixture's qualification scope.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -2345,7 +2345,7 @@
     {
       "backlog_line": 300,
       "backlog_status": "marked_done",
-      "description": "Apply the TS 38.211 periodic positioning-SRS Hyper-SFN parity rule for configured periods at or above `2^mu * 10240` slots, and connect it to per-symbol frequency-allocation resolution. The caller supplies already-decoded numerology, Hyper-SFN number, and index; raw RRC parsing and full positioning scheduling remain open. Regression definitions are authored; validation is deferred.",
+      "description": "Enforce a real, finite, nonnegative PUSCH receiver noise-variance boundary before float32 conversion, reject Boolean/complex/sparse/nonnumeric inputs, and reject finite values that overflow during conversion. Dependency-isolated regression definitions are authored; validation is deferred. This does not alter or qualify any G5 result.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -2368,7 +2368,7 @@
     {
       "backlog_line": 301,
       "backlog_status": "marked_done",
-      "description": "Compose decoded periodic/semi-persistent SRS resources into one resource-set schedule, allowing each resource's periodicity/offset and positioning timing to override shared defaults. Return the active resource subset for the requested slot; resource-level occasions can legitimately differ within a set. Regression definitions cover mixed active/inactive resources, wholly inactive sets, duplicate IDs, and unsupported fields. This accepts already-decoded configuration and does not add ASN.1/RRC decoding, BWP feasibility, inter-cell collision conclusions, or receiver qualification; consolidated validation remains deferred.",
+      "description": "Apply the TS 38.211 periodic positioning-SRS Hyper-SFN parity rule for configured periods at or above `2^mu * 10240` slots, and connect it to per-symbol frequency-allocation resolution. The caller supplies already-decoded numerology, Hyper-SFN number, and index; raw RRC parsing and full positioning scheduling remain open. Regression definitions are authored; validation is deferred.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -2391,7 +2391,7 @@
     {
       "backlog_line": 302,
       "backlog_status": "marked_done",
-      "description": "Extend periodic/semi-persistent SRS composition through selected-UL-BWP frequency feasibility. The exported BWP-aware API checks every active resource-symbol allocation against caller-provided absolute subcarrier bounds and preserves the selected cell/BWP identity. Regression definitions cover valid and out-of-BWP schedules. This relies on caller-resolved active-BWP state and does not decode DCI/RRC, assess inter-cell RF interference, or qualify the receiver; validation remains deferred.",
+      "description": "Compose decoded periodic/semi-persistent SRS resources into one resource-set schedule, allowing each resource's periodicity/offset and positioning timing to override shared defaults. Return the active resource subset for the requested slot; resource-level occasions can legitimately differ within a set. Regression definitions cover mixed active/inactive resources, wholly inactive sets, duplicate IDs, and unsupported fields. This accepts already-decoded configuration and does not add ASN.1/RRC decoding, BWP feasibility, inter-cell collision conclusions, or receiver qualification; consolidated validation remains deferred.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -2414,7 +2414,7 @@
     {
       "backlog_line": 303,
       "backlog_status": "marked_done",
-      "description": "Compose decoded periodic/semi-persistent SRS resource sets over a frozen multi-cell roster, with a per-cell absolute slot and active UL BWP, exact input-roster matching, per-resource timing overrides, BWP-bound checks, and explicit empty-occasion cell outputs. Regression definitions cover cell order, differing slot/BWP state, and roster mismatch. This is a scheduling/feasibility primitive; it does not prove cross-cell orthogonality or interference and is not receiver qualification. Validation remains deferred.",
+      "description": "Extend periodic/semi-persistent SRS composition through selected-UL-BWP frequency feasibility. The exported BWP-aware API checks every active resource-symbol allocation against caller-provided absolute subcarrier bounds and preserves the selected cell/BWP identity. Regression definitions cover valid and out-of-BWP schedules. This relies on caller-resolved active-BWP state and does not decode DCI/RRC, assess inter-cell RF interference, or qualify the receiver; validation remains deferred.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -2436,8 +2436,8 @@
     },
     {
       "backlog_line": 304,
-      "backlog_status": "open",
-      "description": "Finish SSB/PBCH generalization: ASN.1/PER extension handling, case/band/beam/candidate and frame integration, multiple candidates, broader channel/timing/CFO regimes, calibrated antenna/RF scaling, and robust receiver outcomes.",
+      "backlog_status": "marked_done",
+      "description": "Compose decoded periodic/semi-persistent SRS resource sets over a frozen multi-cell roster, with a per-cell absolute slot and active UL BWP, exact input-roster matching, per-resource timing overrides, BWP-bound checks, and explicit empty-occasion cell outputs. Regression definitions cover cell order, differing slot/BWP state, and roster mismatch. This is a scheduling/feasibility primitive; it does not prove cross-cell orthogonality or interference and is not receiver qualification. Validation remains deferred.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -2460,21 +2460,17 @@
     {
       "backlog_line": 305,
       "backlog_status": "open",
-      "description": "Implement PRS only as a standards-defined signal and receiver with independently specified mapping and timing observables; no generic pilot substitution. **Partial receiver path:** `integrations.sionna.nr_prs` now resolves strongest-component delay and residual CFO jointly from known mapped PRS symbols and caller-supplied delay/CFO/time grids, with a pre-search work ceiling. Its resource mapper repeats TS 38.211 Table 7.4.1.7.3-1 comb offsets across the full resource length; 55 dependency-light tests cover all supported symbol/comb pairs and one synthetic joint recovery. This frequency-domain static-channel baseline models CFO only as a common inter-symbol phase (not intra-symbol ICI) and does not perform raw-sample synchronization, first-arrival ToA, ambiguity resolution, or receiver qualification. See `integrations/sionna/nr_prs.py` and `tests/test_integrations/test_nr_prs.py`.",
+      "description": "Finish SSB/PBCH generalization: ASN.1/PER extension handling, case/band/beam/candidate and frame integration, multiple candidates, broader channel/timing/CFO regimes, calibrated antenna/RF scaling, and robust receiver outcomes.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
         "other_files": [],
-        "regression_files": [
-          "tests/test_integrations/test_nr_prs.py"
-        ],
+        "regression_files": [],
         "schemas": [],
-        "source_modules": [
-          "integrations/sionna/nr_prs.py"
-        ]
+        "source_modules": []
       },
       "feature_id": "PKG06-025",
-      "link_status": "linked",
+      "link_status": "unmapped",
       "package": {
         "number": 6,
         "title": "G5 — NR signals, observation chain, and receiver impact"
@@ -2487,7 +2483,7 @@
     {
       "backlog_line": 306,
       "backlog_status": "marked_done",
-      "description": "Implement the TS 38.211 V19.2.0 downlink PRS Gold/QPSK sequence, supported symbol/comb pairs, per-symbol comb-offset mapping relative to caller-declared point A, and a receiver-observable matched-delay profile whose strongest-component semantics, delay-grid limitation, and comb-implied ambiguity period are explicit. Add bounded single-slot multi-resource composition with per-resource masks, physical grid superposition, explicit overlapping-RE diagnostics, and exact reserved-RE collision checks while retaining the coarse reserved-symbol check. Regression definitions are authored but unrun. Full RRC decoding, SSB collision inventory orchestration, standards-complete positioning measurements/reports, wider timing/CFO/multipath qualification, and end-to-end NR receiver qualification remain open.",
+      "description": "Reject Boolean and string aliases in PSS/SSS acquisition's physical sample rate, detection thresholds, CFO grid, and fractional-timing grid before hypothesis search; reject real-valued arrays at the complex-IQ capture boundary rather than silently casting them. The focused synchronization module passes 28 tests with coverage disabled and Ruff passes. This closes input-contract ambiguity only; acquisition remains a bounded configured-numerology receiver and is not broadly qualified.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -2509,18 +2505,22 @@
     },
     {
       "backlog_line": 307,
-      "backlog_status": "marked_done",
-      "description": "Add the bounded NR DL-RSTD computation from already-estimated received subframe-start timestamps: select the unique nearest reference-TP time value, compute target-minus-reference, and bind the FR1/FR2 UE measurement reference point. Reject empty rosters, equal-distance ambiguity between distinct times, invalid IDs/times, and unsupported frequency ranges; repeated resource estimates of the same time remain equivalent. The API does not infer subframe starts from PRS samples, decode RRC reports, or claim measurement qualification; regression definitions are authored and validation remains deferred. Semantics follow ETSI TS 138 215 V19.4.0 clause 5.1.29.",
+      "backlog_status": "open",
+      "description": "Implement PRS only as a standards-defined signal and receiver with independently specified mapping and timing observables; no generic pilot substitution. **Partial receiver path:** `integrations.sionna.nr_prs` now resolves strongest-component delay and residual CFO jointly from known mapped PRS symbols and caller-supplied delay/CFO/time grids, with a pre-search work ceiling. Its resource mapper repeats TS 38.211 Table 7.4.1.7.3-1 comb offsets across the full resource length; 55 dependency-light tests cover all supported symbol/comb pairs and one synthetic joint recovery. This frequency-domain static-channel baseline models CFO only as a common inter-symbol phase (not intra-symbol ICI) and does not perform raw-sample synchronization, first-arrival ToA, ambiguity resolution, or receiver qualification. See `integrations/sionna/nr_prs.py` and `tests/test_integrations/test_nr_prs.py`.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
         "other_files": [],
-        "regression_files": [],
+        "regression_files": [
+          "tests/test_integrations/test_nr_prs.py"
+        ],
         "schemas": [],
-        "source_modules": []
+        "source_modules": [
+          "integrations/sionna/nr_prs.py"
+        ]
       },
       "feature_id": "PKG06-027",
-      "link_status": "unmapped",
+      "link_status": "linked",
       "package": {
         "number": 6,
         "title": "G5 — NR signals, observation chain, and receiver impact"
@@ -2533,7 +2533,7 @@
     {
       "backlog_line": 308,
       "backlog_status": "marked_done",
-      "description": "Resolve downlink PRS slot occasions from decoded TS 38.214 periodicity, resource slot offset, repetitions/time gap, Option-1 bit repetition, and Option-2 repetition muting; reject invalid combinations and out-of-range frame/slot coordinates. The API documents that muting bitmaps are already in logical index order because ASN.1 BIT STRING decoding is not included. Regression definitions cover positive/negative occasions and both muting options; validation is deferred. Source: ETSI TS 38.211 V19.2.0 clause 7.4.1.7.4 and TS 38.214 V19.2.0 clause 5.1.6.5.",
+      "description": "Implement the TS 38.211 V19.2.0 downlink PRS Gold/QPSK sequence, supported symbol/comb pairs, per-symbol comb-offset mapping relative to caller-declared point A, and a receiver-observable matched-delay profile whose strongest-component semantics, delay-grid limitation, and comb-implied ambiguity period are explicit. Add bounded single-slot multi-resource composition with per-resource masks, physical grid superposition, explicit overlapping-RE diagnostics, and exact reserved-RE collision checks while retaining the coarse reserved-symbol check. Regression definitions are authored but unrun. Full RRC decoding, SSB collision inventory orchestration, standards-complete positioning measurements/reports, wider timing/CFO/multipath qualification, and end-to-end NR receiver qualification remain open.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -2556,7 +2556,7 @@
     {
       "backlog_line": 309,
       "backlog_status": "marked_done",
-      "description": "Add a bounded paired diagnostic SNR-curve path for the independent ordered-impairment fixture. Every point reuses channel, payload, oscillator, and standardized AWGN random streams, records its complex noise variance and measured transmit power, and is capped across the whole requested grid. The v4 artifact is hash-bound; its channel-cluster bootstrap reports pointwise intervals and one simultaneous max-deviation band across the three receiver conditions and paired uncorrected-minus-corrected BLER effects over all SNR points. The curve auditor recomputes the effect and intervals from retained channel outcomes. The strict curve schema admits current point report versions v19/v20. All curve results remain explicitly diagnostic-only; no acceptance thresholds are introduced, regression definitions are authored, and validation is deferred.",
+      "description": "Add the bounded NR DL-RSTD computation from already-estimated received subframe-start timestamps: select the unique nearest reference-TP time value, compute target-minus-reference, and bind the FR1/FR2 UE measurement reference point. Reject empty rosters, equal-distance ambiguity between distinct times, invalid IDs/times, and unsupported frequency ranges; repeated resource estimates of the same time remain equivalent. The API does not infer subframe starts from PRS samples, decode RRC reports, or claim measurement qualification; regression definitions are authored and validation remains deferred. Semantics follow ETSI TS 138 215 V19.4.0 clause 5.1.29.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -2579,7 +2579,7 @@
     {
       "backlog_line": 310,
       "backlog_status": "marked_done",
-      "description": "Add a pre-run G5.09 SNR-family acceptance contract that binds the exact SNR grid, channel-seed roster, estimator, blocks per channel, minimum independent-channel count, corrected-BLER ceilings, and paired uncorrected-minus-corrected improvement floors. Require at least 20 independent channels as an executable floor, explicitly not a powered-sample guarantee. The runner freezes and hashes the contract before receiver calls, applies the existing simultaneous familywise 95% intervals, and emits PASS/FAIL/NOT_EVALUABLE decisions in curve schema v5 or signed-contract schema v6; the CLI accepts a bounded contract file and the independent auditor recomputes the verdict. Both freezing and the standalone verdict scorer validate the full contract domain/roster. The scorer also requires the inference cluster count to equal the frozen seed roster and validates the full SNR × condition × paired-contrast family, simultaneous method, bootstrap seed/draw count, decision unit, and bounded radius; the result auditor independently recomputes intervals from retained CRC outcomes. Acceptance rejects malformed interval endpoints. The focused acceptance suite passes 26 tests. The result is synthetic-fixture qualification only, never field/deployment qualification; Torch/Sionna execution, broader validation, and scientific admission remain open.",
+      "description": "Resolve downlink PRS slot occasions from decoded TS 38.214 periodicity, resource slot offset, repetitions/time gap, Option-1 bit repetition, and Option-2 repetition muting; reject invalid combinations and out-of-range frame/slot coordinates. The API documents that muting bitmaps are already in logical index order because ASN.1 BIT STRING decoding is not included. Regression definitions cover positive/negative occasions and both muting options; validation is deferred. Source: ETSI TS 38.211 V19.2.0 clause 7.4.1.7.4 and TS 38.214 V19.2.0 clause 5.1.6.5.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -2595,14 +2595,14 @@
         "title": "G5 — NR signals, observation chain, and receiver impact"
       },
       "plan_gates": [
-        "G5.09"
+        "G5"
       ],
       "qualification_status": "not_assessed_by_inventory"
     },
     {
       "backlog_line": 311,
       "backlog_status": "marked_done",
-      "description": "Keep G5 SNR-family contract freezing and interval scoring importable without Torch or the NR receiver engine; verify roster, estimator/block/SNR binding, structural cluster floor, pointwise frozen criteria, unresolved sample support, and malformed interval rejection in the dependency-isolated module. Focused contract tests pass; curve generation and scientific qualification remain blocked on the Halti runtime and independent evidence.",
+      "description": "Add a bounded paired diagnostic SNR-curve path for the independent ordered-impairment fixture. Every point reuses channel, payload, oscillator, and standardized AWGN random streams, records its complex noise variance and measured transmit power, and is capped across the whole requested grid. The v4 artifact is hash-bound; its channel-cluster bootstrap reports pointwise intervals and one simultaneous max-deviation band across the three receiver conditions and paired uncorrected-minus-corrected BLER effects over all SNR points. The curve auditor recomputes the effect and intervals from retained channel outcomes. The strict curve schema admits current point report versions v19/v20. All curve results remain explicitly diagnostic-only; no acceptance thresholds are introduced, regression definitions are authored, and validation is deferred.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -2625,7 +2625,7 @@
     {
       "backlog_line": 312,
       "backlog_status": "marked_done",
-      "description": "Keep retained G5.09 result auditing importable without Torch by loading the receiver only at the deterministic-replay call boundary. Inject the replay runner in audit regressions; the focused retained-result audit and Torch-free acceptance suites pass 40 tests. Tests construct temporary source-bound receipts and leave archived result bytes/hashes untouched. A separate post-hoc estimator-choice artifact check now refuses to imply reproduction when two of four source hashes differ and native runtime versions are absent; it preserves the retained outcomes without replay. Deterministic replay of source-matched artifacts, receiver execution, broader qualification, timestamped preregistration, independent signer roles, and trust custody remain open.",
+      "description": "Add a pre-run G5.09 SNR-family acceptance contract that binds the exact SNR grid, channel-seed roster, estimator, blocks per channel, minimum independent-channel count, corrected-BLER ceilings, and paired uncorrected-minus-corrected improvement floors. Require at least 20 independent channels as an executable floor, explicitly not a powered-sample guarantee. The runner freezes and hashes the contract before receiver calls, applies the existing simultaneous familywise 95% intervals, and emits PASS/FAIL/NOT_EVALUABLE decisions in curve schema v5 or signed-contract schema v6; the CLI accepts a bounded contract file and the independent auditor recomputes the verdict. Both freezing and the standalone verdict scorer validate the full contract domain/roster. The scorer also requires the inference cluster count to equal the frozen seed roster and validates the full SNR × condition × paired-contrast family, simultaneous method, bootstrap seed/draw count, decision unit, and bounded radius; the result auditor independently recomputes intervals from retained CRC outcomes. Acceptance rejects malformed interval endpoints. The focused acceptance suite passes 26 tests. The result is synthetic-fixture qualification only, never field/deployment qualification; Torch/Sionna execution, broader validation, and scientific admission remain open.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -2647,8 +2647,8 @@
     },
     {
       "backlog_line": 313,
-      "backlog_status": "open",
-      "description": "Finish receiver evaluation APIs and artifact/report binding for exact waveform, decoder/source configuration, multi-point SNR grids, and independent-channel/transport-block inference. Standalone runs retain all three condition inputs in evidence v3; curve evidence v4–v6 retains these inputs for every SNR point and binds them to shared TX/oscillator/capture/AWGN draws. Curve schemas v4–v6 and their auditor include a simultaneous interval for the paired correction effect; v5 binds an unsigned pre-run family contract, v6 adds exact-byte signature verification, and v10 adds a signed declared UTC preregistration time with chronology recomputation. Broader configuration coverage, signer-role independence, trusted timestamp authority, trust-file custody, consolidated validation, and receiver qualification remain open.",
+      "backlog_status": "marked_done",
+      "description": "Keep G5 SNR-family contract freezing and interval scoring importable without Torch or the NR receiver engine; verify roster, estimator/block/SNR binding, structural cluster floor, pointwise frozen criteria, unresolved sample support, and malformed interval rejection in the dependency-isolated module. Focused contract tests pass; curve generation and scientific qualification remain blocked on the Halti runtime and independent evidence.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -2671,7 +2671,7 @@
     {
       "backlog_line": 314,
       "backlog_status": "marked_done",
-      "description": "Retain batch-seed cluster identity in sample-domain PUSCH SNR curves and add a paired LS-versus-finite-delay-DFT comparator. Require identical channel/payload/noise lineage and SNR/codeword rosters; compute pointwise intervals and a simultaneous familywise 95% max-deviation band by resampling the same batch clusters across all SNR points. Preserve the codeword Wilson result as a labeled diagnostic and the legacy v1 curve reader. Regression definitions cover shared-roster alignment and the draw-by-grid memory ceiling; validation is deferred. This remains simulation-only and does not close broader multi-family, receiver-qualification, or G5.09 requirements.",
+      "description": "Keep retained G5.09 result auditing importable without Torch by loading the receiver only at the deterministic-replay call boundary. Inject the replay runner in audit regressions; the focused retained-result audit and Torch-free acceptance suites pass 40 tests. Tests construct temporary source-bound receipts and leave archived result bytes/hashes untouched. A separate post-hoc estimator-choice artifact check now refuses to imply reproduction when two of four source hashes differ and native runtime versions are absent; it preserves the retained outcomes without replay. Deterministic replay of source-matched artifacts, receiver execution, broader qualification, timestamped preregistration, independent signer roles, and trust custody remain open.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -2692,7 +2692,53 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 318,
+      "backlog_line": 315,
+      "backlog_status": "open",
+      "description": "Finish receiver evaluation APIs and artifact/report binding for exact waveform, decoder/source configuration, multi-point SNR grids, and independent-channel/transport-block inference. Standalone runs retain all three condition inputs in evidence v3; curve evidence v4–v6 retains these inputs for every SNR point and binds them to shared TX/oscillator/capture/AWGN draws. Curve schemas v4–v6 and their auditor include a simultaneous interval for the paired correction effect; v5 binds an unsigned pre-run family contract, v6 adds exact-byte signature verification, and v10 adds a signed declared UTC preregistration time with chronology recomputation. Broader configuration coverage, signer-role independence, trusted timestamp authority, trust-file custody, consolidated validation, and receiver qualification remain open.",
+      "evidence_links": {
+        "cli_entries": [],
+        "documentation": [],
+        "other_files": [],
+        "regression_files": [],
+        "schemas": [],
+        "source_modules": []
+      },
+      "feature_id": "PKG06-035",
+      "link_status": "unmapped",
+      "package": {
+        "number": 6,
+        "title": "G5 — NR signals, observation chain, and receiver impact"
+      },
+      "plan_gates": [
+        "G5"
+      ],
+      "qualification_status": "not_assessed_by_inventory"
+    },
+    {
+      "backlog_line": 316,
+      "backlog_status": "marked_done",
+      "description": "Retain batch-seed cluster identity in sample-domain PUSCH SNR curves and add a paired LS-versus-finite-delay-DFT comparator. Require identical channel/payload/noise lineage and SNR/codeword rosters; compute pointwise intervals and a simultaneous familywise 95% max-deviation band by resampling the same batch clusters across all SNR points. Preserve the codeword Wilson result as a labeled diagnostic and the legacy v1 curve reader. Regression definitions cover shared-roster alignment and the draw-by-grid memory ceiling; validation is deferred. This remains simulation-only and does not close broader multi-family, receiver-qualification, or G5.09 requirements.",
+      "evidence_links": {
+        "cli_entries": [],
+        "documentation": [],
+        "other_files": [],
+        "regression_files": [],
+        "schemas": [],
+        "source_modules": []
+      },
+      "feature_id": "PKG06-036",
+      "link_status": "unmapped",
+      "package": {
+        "number": 6,
+        "title": "G5 — NR signals, observation chain, and receiver impact"
+      },
+      "plan_gates": [
+        "G5.09"
+      ],
+      "qualification_status": "not_assessed_by_inventory"
+    },
+    {
+      "backlog_line": 320,
       "backlog_status": "open",
       "description": "Finish synchronized time axes across TX/RX/objects, timestamp-based future-target alignment, monotonicity/gap handling, and coherence/time-grid declarations. `build_trajectory_horizon_targets` and the RT forecast baseline enforce frozen child split assignments; both honor declared gaps, and the target builder additionally blocks intervals crossing a caller-frozen maximum inter-sample gap without inferring a threshold from the trajectory. It scores only valid target-mask elements, and the pilot can bind exact split-registry bytes/signature/trust and child kinds. Focused coverage is in `tests/test_experiments/test_trajectory_targets.py`. Cross-entity synchronization and coherence declarations remain open.",
       "evidence_links": {
@@ -2717,7 +2763,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 319,
+      "backlog_line": 321,
       "backlog_status": "open",
       "description": "Complete Doppler checks against coefficient evolution and bounded physical retracing, including path birth/death and association uncertainty; do not assume stable path indices.",
       "evidence_links": {
@@ -2740,7 +2786,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 320,
+      "backlog_line": 322,
       "backlog_status": "open",
       "description": "Complete future phase/gauge and censoring semantics, observability/missing-reason rules, and causal feature eligibility.",
       "evidence_links": {
@@ -2763,7 +2809,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 321,
+      "backlog_line": 323,
       "backlog_status": "open",
       "description": "Complete paired frequency-view solves with band/material-specific propagation; do not extrapolate measured magnitude-only data into complex CSI/ToA truth.",
       "evidence_links": {
@@ -2786,7 +2832,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 322,
+      "backlog_line": 324,
       "backlog_status": "marked_done",
       "description": "Implement paired mathematical direct-path ablation from one frozen `PathOracleTable`, preserving absolute delay/coefficient phase, recording keyed path groups, source-table digest, and removed-path count, and requiring both views to inherit one split parent. Persist the pair as an immutable content-addressed `EpisodeBundle` layer; bundle admission replays the exact CFR pair and removed-path counts from the source table and checks the episode frequency grid. The bundle schema admits the new layer. The focused counterfactual/UMCD/store slice passes 45 tests; Ruff/format checks pass. Physical blocker/occluder interventions, scene retracing, intervention-effect logging, and scientific admission remain open.",
       "evidence_links": {
@@ -2809,7 +2855,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 326,
+      "backlog_line": 328,
       "backlog_status": "marked_done",
       "description": "Make split builders and audits reject missing, blank, non-string, and padded sample/group IDs instead of coercing them into split identities. The ChannelDataset lineage builder, core split-policy constructors, UMCD episode registry/audit, and CFR/temporal duplicate audits now require canonical non-padded strings for dataset, parent, source-family, partition, group, relation, scene, coordinate-frame, time-scope, child, policy-seed, scene-roster, trajectory, episode, and signer/principal identities. Standardized-draw partition metadata fails closed when explicitly malformed; temporal window boundaries also reject Boolean/string coercion. The focused UMCD split and duplicate-audit modules pass 21 tests; Ruff and formatting pass. This preserves valid string-ID assignments and does not qualify lineage or a corpus release.",
       "evidence_links": {
@@ -2832,7 +2878,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 327,
+      "backlog_line": 329,
       "backlog_status": "marked_done",
       "description": "Reject split-fraction type coercion at `SplitPolicy` construction: require finite real numeric values and reject booleans, numeric strings, complex values, and values that overflow float normalization. The focused split-policy v2 module passes 81 tests; assignment semantics and serialized schema are unchanged. This is contract-input integrity, not proof of independent or complete physical groups.",
       "evidence_links": {
@@ -2855,7 +2901,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 328,
+      "backlog_line": 330,
       "backlog_status": "marked_done",
       "description": "Apply the same strict numeric boundary to spatial-buffer derivation: accept finite `numbers.Real` scalars (including NumPy real scalars), reject boolean/string/complex coercions, and convert overflow into a domain `ValueError`. Focused regressions are included in the split-policy module; this does not change distance semantics or establish footprint authority.",
       "evidence_links": {
@@ -2878,7 +2924,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 329,
+      "backlog_line": 331,
       "backlog_status": "marked_done",
       "description": "Add a candidate split-registry build CLI that derives the canonical leakage graph from bounded saved ChannelDataset snapshots, binds compressed/uncompressed size limits and exact input/policy hashes in a versioned report, refuses overwrite, and marks the output unqualified until external inventory authority and review are supplied. Regression definitions and a report schema are authored; validation is deferred.",
       "evidence_links": {
@@ -2901,7 +2947,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 330,
+      "backlog_line": 332,
       "backlog_status": "marked_done",
       "description": "Wire complete-provenance legacy Sionna RT ChannelDatasets through the canonical RT split-identity migration before candidate-registry construction. The builder preserves and hashes the exact original archive bytes, records the migration algorithm per input in build-report v2, and refuses incomplete or internally inconsistent asset closures before publishing either report or lock. Regression definitions cover valid migration and fail-closed publication; validation is deferred and migration claims remain unqualified pending authoritative scene provenance.",
       "evidence_links": {
@@ -2924,7 +2970,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 331,
+      "backlog_line": 333,
       "backlog_status": "marked_done",
       "description": "Derive exact shared-mesh leakage relations from complete, digest-verified scene manifests when building saved-ChannelDataset split evidence. Identical OBJ/PLY content links scene parents across otherwise different asset sets, while shared texture-only content does not; lineage audit v3 reports complete geometry-inventory coverage and shared-mesh linkage counts. Regression definitions cover overlap, texture-only non-linkage, and manifest tampering. Validation and near-duplicate/authoritative-inventory review remain open.",
       "evidence_links": {
@@ -2947,7 +2993,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 332,
+      "backlog_line": 334,
       "backlog_status": "marked_done",
       "description": "Require every newly persisted NR v3 target to have a complete, digest-verified versioned semantic definition; retain v1/v2 read compatibility and leave those historical records unchanged. `TargetDefinition.versioned()` creates canonical definitions and the writer fails before publication when a target definition is missing or its digest/fields do not validate. The v3 metadata schema requires the definition fields. Regression definitions cover missing/unversioned rejection and round trip; validation remains deferred.",
       "evidence_links": {
@@ -2970,7 +3016,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 333,
+      "backlog_line": 335,
       "backlog_status": "open",
       "description": "Complete domain-specific target units/reference/gauge/aggregation semantics, shapes, allowed ranges, and canonical migration policy across UMCD and NR target families. `TargetValue` rejects empty arrays and padded entity/confidence identities; versioned target definition fields reject surrounding whitespace before digest admission. NR v3 requires digest-bound semantic definitions, and existing mask/reason contracts remain in force. The emitted standardized profile proxy plus F03-static v2 and RT-trajectory/F04-dynamic v2/v3 geometric-visibility definitions now pin producer, reference, and aggregation declarations at admission; the target-contract module passes 22 tests with coverage disabled, and Ruff/format checks pass. Other target families, physical gauge/range rules, migration policy, and consolidated validation remain open.",
       "evidence_links": {
@@ -2993,7 +3039,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 334,
+      "backlog_line": 336,
       "backlog_status": "marked_done",
       "description": "Allow finite complex arrays in versioned UMCD `TargetValue` contracts when their canonical definition declares complex CFR, while preserving exact-shape masks, zero storage for unavailable elements, and complex dtype through episode-store round trips. Regression definitions cover construction and content-addressed persistence; consolidated validation is deferred. Per-target shape, axis, gauge, range, and migration contracts remain open.",
       "evidence_links": {
@@ -3016,7 +3062,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 335,
+      "backlog_line": 337,
       "backlog_status": "marked_done",
       "description": "Bind all four canonical NR CFR target versions to their observation shapes at versioned storage admission: standardized/TDL targets must match the receiver's complete seven-axis channel estimate, RT absolute CFR must match the effective-subcarrier count, and RT symbol CFR must match OFDM-symbol × effective-subcarrier dimensions. Regression definitions cover each valid shape and a mismatched subcarrier axis; validation remains deferred. This checks dimensional compatibility, not the physical gauge or estimator/RT truth.",
       "evidence_links": {
@@ -3039,7 +3085,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 336,
+      "backlog_line": 338,
       "backlog_status": "marked_done",
       "description": "Enforce value-domain rules for the currently canonical standardized profile-LOS proxy, NR CFR, and geometric-LOS definition versions: target-name/semantic/unit binding, complex dtype for CFR, and scalar binary domain for LOS classes. NR v3 storage admission and `TargetValue` construction invoke the validator; regression definitions cover valid and invalid cases. The broader target catalog, gauge/shape rules for all targets, legacy migration policy, and validation remain open.",
       "evidence_links": {
@@ -3062,7 +3108,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 337,
+      "backlog_line": 339,
       "backlog_status": "marked_done",
       "description": "Enforce zero storage for every NR target element excluded by its broadcasted false mask, matching the canonical `TargetValue` invariant so unavailable truth is not retained in training records. Regression definitions cover rejection and accepted zero-filled masked values; consolidated validation is deferred.",
       "evidence_links": {
@@ -3085,7 +3131,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 338,
+      "backlog_line": 340,
       "backlog_status": "marked_done",
       "description": "Require one explicit `TargetValidity` reason per NR target element whenever a mask excludes that element, enforce exact reason/mask agreement, and expose reasons through trajectories. NR record format v2 stores reason IDs as a compact uint8 codebook under `datasets/schema/nr-record-metadata.v2.schema.json`; the v1 reader migrates masked values to zero and labels absent legacy reasons `legacy_reason_unrecorded`. RT trajectory output labels no-path CFR targets `not_observable`. Regression definitions cover reason consistency, round-trip persistence, and v1 migration; consolidated validation remains deferred.",
       "evidence_links": {
@@ -3110,7 +3156,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 339,
+      "backlog_line": 341,
       "backlog_status": "marked_done",
       "description": "Implement NR trajectory target-support aggregation by explicit split × family × target inventory, with present/missing records, element/selected/masked counts, implicit masks, and absent cells visible in the canonical corpus audit. Regression definitions and report schema are authored; consolidated validation remains pending.",
       "evidence_links": {
@@ -3133,7 +3179,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 340,
+      "backlog_line": 342,
       "backlog_status": "open",
       "description": "Establish trusted custody for the inventory-signature key and exact scene/band/topology/antenna/task inventories, and provide evidence that lineage is complete. Corpus-inventory v3 and detached exact-byte signature verification integrate strata with the canonical audit and report per-cell independent-group and valid/unavailable support; signature governance and scientific threshold suitability remain external gates.",
       "evidence_links": {
@@ -3156,7 +3202,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 341,
+      "backlog_line": 343,
       "backlog_status": "marked_done",
       "description": "Add signed near-duplicate dispositions to the canonical UMCD corpus audit. Report v8 hashes each candidate and the complete candidate set and preserves verified evidence paths/digests; signed disposition v2 binds the inventory/candidate set and exactly one rationale-backed disposition per candidate. It verifies bounded stable bytes at canonical inventory-relative paths and uses a distinct reviewer principal/keyring from verified inventory/split-lock signers. Similarity remains a review cue; confirmed leakage and unresolved/incomplete comparisons make the CLI exit nonzero, while a complete signed no-leakage disposition returns zero. The operator workflow is documented in `docs/research/UMCD_NEAR_DUPLICATE_REVIEW.md`. The focused corpus-auditor module passes 39 tests with Ruff, compilation, schema, and diff checks. Evidence adequacy/truth, reviewer trust custody, and full lineage completeness remain external/open.",
       "evidence_links": {
@@ -3181,7 +3227,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 342,
+      "backlog_line": 344,
       "backlog_status": "open",
       "description": "Complete model-input leakage audit across every dataset adapter, feature transform, experiment runner, training path, and inference artifact.",
       "evidence_links": {
@@ -3204,7 +3250,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 343,
+      "backlog_line": 345,
       "backlog_status": "marked_done",
       "description": "Add a fail-closed inference-input field-roster audit for legacy CFR, analytical multipath, standardized-channel, and NR receiver adapters; wire it into each data-object boundary and expose it for extension. Analytical samples admit only frequency coordinates and observed CFR; the separate path oracle is rejected by the model-input audit. The standard-profile holdout path derives CFR features through the same audited input view, while keeping the explicitly labeled metadata-only proxy control separate. Regression definitions reject unregistered payloads and exercise the registered contracts; validation is deferred. This closes those data-object routes only; full feature-transform, experiment, training, and inference-artifact leakage review remains open.",
       "evidence_links": {
@@ -3227,7 +3273,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 344,
+      "backlog_line": 346,
       "backlog_status": "marked_done",
       "description": "Validate values as well as field names at registered model-input boundaries: allow only finite dense numeric arrays in the declared real/complex/Boolean domains, require analytical frequency/CFR shape agreement, bind standardized subcarrier offsets to CFR width, and reject Boolean scalar noise metadata. Regression definitions cover object arrays, nested metadata objects, nonfinite coordinates, and Boolean noise input. This strengthens the typed adapter boundary but does not replace the broader feature-transform, experiment, training, and inference-artifact leakage audit; consolidated validation is deferred.",
       "evidence_links": {
@@ -3250,7 +3296,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 345,
+      "backlog_line": 347,
       "backlog_status": "marked_done",
       "description": "Resolve allowlisted model-input and nested NR configuration identities against the actual class objects exported by their registered modules, rather than trusting spoofable `__module__`/`__qualname__` strings. Regression definitions reject a dataclass that copies a registered module and class name. This prevents contract-name impersonation but does not establish feature provenance or close the broader leakage audit; consolidated validation is deferred.",
       "evidence_links": {
@@ -3273,7 +3319,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 346,
+      "backlog_line": 348,
       "backlog_status": "marked_done",
       "description": "Extend observation-only feature provenance through the specialized profile-holdout runner: bind the registered `ChannelModelInputs` source field, normalized-CFR transform implementation digest, exact full feature-matrix bytes, and per-fold train/validation/test feature digests under `profile-holdout-model-input-contract.v1.schema.json`. The output explicitly isolates the metadata-only profile-proxy oracle from the primary feature route. Focused regression definitions and runnable report round-trip coverage are present; this is one specialized runner, while the all-adapter/transform/training/inference audit remains open.",
       "evidence_links": {
@@ -3296,7 +3342,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 347,
+      "backlog_line": 349,
       "backlog_status": "marked_done",
       "description": "Bind the canonical experiment runner's saved models to the exact full feature matrix, transform implementation digest, and train/validation/test feature bytes under model-input artifact contract v2. The run verifies the matrix hashes in memory before publishing run results and preserves v1 artifact verification. The focused runner suite passes 15 tests with Ruff, formatting, compilation, and schema checks; third-party inference wrappers and repository-wide audit remain open.",
       "evidence_links": {
@@ -3319,7 +3365,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 348,
+      "backlog_line": 350,
       "backlog_status": "marked_done",
       "description": "Implement immutable content-addressed NR and UMCD episode stores with manifest-last publication, deterministic reader batches, per-object content hashes, compressed-archive integrity checks, and a disk-backed SQLite manifest inventory. Bound NR record and trajectory pointer manifests to 1 MiB and trajectory content JSON to 64 MiB using stable single-link file snapshots; writer-side limits prevent creating objects the reader cannot accept. Regression definitions cover memory scaling, ordering, oversize inputs, and unsafe file types. Consolidated validation remains deferred; end-to-end RSS and cross-format retry/failure accounting remain open.",
       "evidence_links": {
@@ -3342,7 +3388,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 349,
+      "backlog_line": 351,
       "backlog_status": "open",
       "description": "Complete cross-format corruption and retry/failure accounting, audit every promised storage format under interrupted writes, and establish measured memory behavior for the actual full read/write path rather than only conservative accounting models. Episode-store corruption coverage spans all eight layer namespaces (episode, path oracle, counterfactual, channel, target, receiver observation, provenance, and scenario GBSM); targeted interruption/retry cases now include counterfactual, scenario-GBSM, provenance, and receiver-observation objects, in addition to generic mid-object and pre-manifest failure cases. Provenance subject-layer identities match scenario/counterfactual layers. NR record storage has focused regressions for content-object publication failure, manifest publication failure after object commit, immutable retry/read-back, temporary-file cleanup, and content-address tampering; NR trajectory storage covers partial record/index publication retry and trajectory-content tampering. The NR data/store and UMCD episode-store modules previously passed together (83 tests), including immutable NR path conflicts reported as `FileExistsError`. Remaining serialization formats, systematic retry coverage, and measured full-path RSS remain open.",
       "evidence_links": {
@@ -3365,7 +3411,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 350,
+      "backlog_line": 352,
       "backlog_status": "open",
       "description": "Finish signed split-lock/release audit integration: exact parent/child roster, all child artifacts and row bindings, complete footprint inventory digest, spatial/time leakage, counterfactual/trajectory/array/frequency descendants, near-duplicate checks, and externally trusted signer custody. The canonical corpus auditor derives split labels from the loaded registry and records CFR/geometry candidate matches; report v7 preserves skipped zero-norm pairs as incomplete and binds signed exact-coverage candidate dispositions. Roster-v4 episode-object validation scans references across child manifests and rejects cross-child content-addressed sharing; v5 represents shared object ownership, and v6 semantically validates scenario GBSM runs/records against frozen parent bindings and split components. The split audit report is v10 when v6 child rosters are present. Geometric near-duplicate coverage, trusted signer/inventory authority, broader descendant coverage, and complete lineage remain open.",
       "evidence_links": {
@@ -3388,9 +3434,9 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 351,
+      "backlog_line": 353,
       "backlog_status": "marked_done",
-      "description": "Add an explicit complete-split-integrity mode to the signed lineage audit. It requires a signed frozen corpus inventory and split registry, exact child-binding and child-artifact roster coverage for every frozen child kind, and semantic validation for every artifact; it rejects byte-only descendants. The report labels this as integrity verification and remains `NOT_QUALIFIED`. Regression definitions cover mandatory signed inputs and strict mode typing; consolidated validation is deferred. Broader descendant validators, authoritative inventory completeness, trusted signer governance, and near-duplicate checks remain open.",
+      "description": "Require frozen-split proximity audits to bind an explicit canonical coordinate-frame ID, reject cross-frame comparisons and padded sample-ID aliases, and retain the verified frame ID in the returned audit result. Focused spatial/split tests pass with coverage disabled and Ruff passes. This prevents meaningless Euclidean comparisons across projected frames and preserves frame provenance; it does not establish coordinate-frame authority, footprint completeness, suitable buffer size, or physical independence.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -3411,7 +3457,30 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 352,
+      "backlog_line": 354,
+      "backlog_status": "marked_done",
+      "description": "Add an explicit complete-split-integrity mode to the signed lineage audit. It requires a signed frozen corpus inventory and split registry, exact child-binding and child-artifact roster coverage for every frozen child kind, and semantic validation for every artifact; it rejects byte-only descendants. The report labels this as integrity verification and remains `NOT_QUALIFIED`. Regression definitions cover mandatory signed inputs and strict mode typing; consolidated validation is deferred. Broader descendant validators, authoritative inventory completeness, trusted signer governance, and near-duplicate checks remain open.",
+      "evidence_links": {
+        "cli_entries": [],
+        "documentation": [],
+        "other_files": [],
+        "regression_files": [],
+        "schemas": [],
+        "source_modules": []
+      },
+      "feature_id": "PKG08-027",
+      "link_status": "unmapped",
+      "package": {
+        "number": 8,
+        "title": "G7 — target contracts, release storage, lineage, and coverage"
+      },
+      "plan_gates": [
+        "G7"
+      ],
+      "qualification_status": "not_assessed_by_inventory"
+    },
+    {
+      "backlog_line": 355,
       "backlog_status": "marked_done",
       "description": "Version the seed-roster collision report to v2 and continue after result files exceed the declared input/decompression ceiling; preserve skipped file path/reason, report `INCOMPLETE_SCAN`, and exit nonzero so a partial inventory cannot be presented as clear. Keep symlink, hardlink, and mutation checks fail closed. The scanner recurses through `per_seed` records and numeric seed-keyed maps, while ignoring empty non-seed arrays and seed-related metric labels. The expanded-JSON ceiling is now 384 MiB, still bounded. The focused suite passes 22 tests. The full frozen-protocol scan covers 2,262 files across results/outputs/artifacts for all currently protocolized G4 reserved seed rosters, with no collisions, malformed fields, or incomplete files; its hash-bearing report is `docs/research/G4_SEED_ROSTER_AUDIT_2026-10-26_ALL_FROZEN.json`. This is not global seed clearance or G4 qualification.",
       "evidence_links": {
@@ -3424,7 +3493,7 @@
         "schemas": [],
         "source_modules": []
       },
-      "feature_id": "PKG08-027",
+      "feature_id": "PKG08-028",
       "link_status": "linked",
       "package": {
         "number": 8,
@@ -3436,32 +3505,9 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 353,
+      "backlog_line": 356,
       "backlog_status": "marked_done",
       "description": "Verify signed child-artifact rosters against exact frozen child bindings, hash each artifact beneath the roster directory without following symlink path components, and validate each ChannelDataset row's child ID, child kind, and parent ID. Roster v2 also traverses recognized NR trajectory stores through content/record hashes and checks every record's split subject/child/kind provenance. Legacy v1/v2 unknown supplemental types remain byte-only; v3 rejects types without semantic validators. Regression definitions cover the v3 rejection and legacy-v2 partial-semantic reporting; validation is deferred. Other semantic validators, authoritative inventory completeness, and release qualification remain open.",
-      "evidence_links": {
-        "cli_entries": [],
-        "documentation": [],
-        "other_files": [],
-        "regression_files": [],
-        "schemas": [],
-        "source_modules": []
-      },
-      "feature_id": "PKG08-028",
-      "link_status": "unmapped",
-      "package": {
-        "number": 8,
-        "title": "G7 — target contracts, release storage, lineage, and coverage"
-      },
-      "plan_gates": [
-        "G7"
-      ],
-      "qualification_status": "not_assessed_by_inventory"
-    },
-    {
-      "backlog_line": 354,
-      "backlog_status": "marked_done",
-      "description": "Report `child_artifact_semantic_rows_verified` as true only when every rostered artifact has a semantic validator; mixed legacy v2 rosters containing byte-only supplemental artifacts report false and retain their byte-only count. Regression definitions exercise a signed ChannelDataset roster plus opaque target sidecar and separately verify that exact-tree v3 rejects the unvalidated type. This corrects report semantics and tightens v3 admission; complete validators for every planned descendant artifact and trusted inventory authority remain open.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -3482,9 +3528,9 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 355,
+      "backlog_line": 357,
       "backlog_status": "marked_done",
-      "description": "Fail closed when a signed split-lock audit receives provisional RT scene identities; allow the unsigned diagnostic path to expose their count. Regression definitions exercise the signed-lock rejection. Validation remains deferred, and complete inventory authority/signature custody remain external requirements.",
+      "description": "Report `child_artifact_semantic_rows_verified` as true only when every rostered artifact has a semantic validator; mixed legacy v2 rosters containing byte-only supplemental artifacts report false and retain their byte-only count. Regression definitions exercise a signed ChannelDataset roster plus opaque target sidecar and separately verify that exact-tree v3 rejects the unvalidated type. This corrects report semantics and tightens v3 admission; complete validators for every planned descendant artifact and trusted inventory authority remain open.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -3505,9 +3551,9 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 356,
+      "backlog_line": 358,
       "backlog_status": "marked_done",
-      "description": "Bound manifest memory in split-lineage audit reads for the child-binding roster, frozen inventory, and legacy reconstruction manifest; regression definitions cover limit boundaries and invalid limits. This does not bound intentionally loaded ChannelDataset payloads or establish corpus completeness; validation remains deferred.",
+      "description": "Fail closed when a signed split-lock audit receives provisional RT scene identities; allow the unsigned diagnostic path to expose their count. Regression definitions exercise the signed-lock rejection. Validation remains deferred, and complete inventory authority/signature custody remain external requirements.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -3528,9 +3574,9 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 357,
+      "backlog_line": 359,
       "backlog_status": "marked_done",
-      "description": "Bound split-policy registry/payload, detached-signature, and allowed-signers reads to 256 MiB, 1 MiB, and 4 MiB respectively using bounded streaming reads and stable-file checks. Regression definitions cover exact-limit acceptance, overflow rejection, and invalid limits; validation is deferred. This is an input/resource bound, not evidence of signer trust or release qualification.",
+      "description": "Bound manifest memory in split-lineage audit reads for the child-binding roster, frozen inventory, and legacy reconstruction manifest; regression definitions cover limit boundaries and invalid limits. This does not bound intentionally loaded ChannelDataset payloads or establish corpus completeness; validation remains deferred.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -3551,9 +3597,9 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 358,
+      "backlog_line": 360,
       "backlog_status": "marked_done",
-      "description": "Make split-policy lock publication enforce the same 256 MiB ceiling as the canonical reader, preventing creation of immutable registries that cannot be read back; reject before creating the destination directory. Regression definition verifies no artifact is published on overflow; consolidated validation remains deferred.",
+      "description": "Bound split-policy registry/payload, detached-signature, and allowed-signers reads to 256 MiB, 1 MiB, and 4 MiB respectively using bounded streaming reads and stable-file checks. Regression definitions cover exact-limit acceptance, overflow rejection, and invalid limits; validation is deferred. This is an input/resource bound, not evidence of signer trust or release qualification.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -3574,9 +3620,9 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 359,
+      "backlog_line": 361,
       "backlog_status": "marked_done",
-      "description": "Fail closed at the split-registry JSON boundary on invalid UTF-8/JSON, non-object roots/containers, non-integer schema versions, and v2/v3 field-roster drift before registry reconstruction. Regression definitions cover malformed roots, parser errors, extra fields, wrong container types, and numeric schema-version aliases; validation is deferred. Canonical hash and reconstructed representation checks remain required.",
+      "description": "Make split-policy lock publication enforce the same 256 MiB ceiling as the canonical reader, preventing creation of immutable registries that cannot be read back; reject before creating the destination directory. Regression definition verifies no artifact is published on overflow; consolidated validation remains deferred.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -3597,9 +3643,9 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 360,
+      "backlog_line": 362,
       "backlog_status": "marked_done",
-      "description": "Add signed child-artifact roster v2 for multiple uniquely identified typed artifacts per frozen child. Require at least one ChannelDataset NPZ per child and semantically bind its rows to the frozen child/kind/parent. Traverse recognized NR trajectory stores and bind every record to the same split lineage; semantically read standalone NR record manifests and verify their split binding. Unknown supplemental types receive byte-only checks. Version the child audit to v3 and outer audit bundle to v6; regression definitions cover multi-artifact children, trajectory/record integrity, cross-parent rejection, and missing semantic primary artifacts. Consolidated validation and authoritative-inventory review remain open.",
+      "description": "Fail closed at the split-registry JSON boundary on invalid UTF-8/JSON, non-object roots/containers, non-integer schema versions, and v2/v3 field-roster drift before registry reconstruction. Regression definitions cover malformed roots, parser errors, extra fields, wrong container types, and numeric schema-version aliases; validation is deferred. Canonical hash and reconstructed representation checks remain required.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -3620,9 +3666,9 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 361,
+      "backlog_line": 363,
       "backlog_status": "marked_done",
-      "description": "Add signed child-artifact roster v3 with an exact regular-file inventory under one declared artifact subtree. Reject symlinks, hard links, special files, concurrent directory changes, excessive tree depth, and excessive file counts. Semantically validate ChannelDataset NPZ, NR trajectory manifests, and paired standalone NR record manifests/content payloads. Version child audit v4 and outer audit bundle v7. Regression definitions cover exact inventory and unlisted/unsafe entries. This proves subtree completeness only; authoritative corpus inventory, external signer custody, and release qualification remain open.",
+      "description": "Add signed child-artifact roster v2 for multiple uniquely identified typed artifacts per frozen child. Require at least one ChannelDataset NPZ per child and semantically bind its rows to the frozen child/kind/parent. Traverse recognized NR trajectory stores and bind every record to the same split lineage; semantically read standalone NR record manifests and verify their split binding. Unknown supplemental types receive byte-only checks. Version the child audit to v3 and outer audit bundle to v6; regression definitions cover multi-artifact children, trajectory/record integrity, cross-parent rejection, and missing semantic primary artifacts. Consolidated validation and authoritative-inventory review remain open.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -3643,9 +3689,9 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 362,
+      "backlog_line": 364,
       "backlog_status": "marked_done",
-      "description": "Add roster v4 for exact-tree UMCD episode stores: semantically read each episode bundle under a conservative 512 MiB shard-accounting ceiling, bind the episode ID to its frozen parent subject, and require every referenced content-addressed layer to have a typed roster entry. Roster v5 adds a canonical `child_ids` list for content objects referenced by multiple frozen child manifests; audit requires exact owner/reference-set agreement. The canonical reader validates scenario GBSM episode-layer content, including episode/split-subject identity and generation-run split-group binding. Child artifact audit v5/v6 and lineage bundle v8/v9 version the respective roster families; v1-v4 behavior is retained. Focused regression covers single-owner and shared-object round trips plus owner mismatches; consolidated validation is deferred. The accounting model is not measured RSS and does not establish authoritative inventory completeness or release qualification. Scenario batch storage remains generation-level; child releases use per-drop EpisodeBundles.",
+      "description": "Add signed child-artifact roster v3 with an exact regular-file inventory under one declared artifact subtree. Reject symlinks, hard links, special files, concurrent directory changes, excessive tree depth, and excessive file counts. Semantically validate ChannelDataset NPZ, NR trajectory manifests, and paired standalone NR record manifests/content payloads. Version child audit v4 and outer audit bundle v7. Regression definitions cover exact inventory and unlisted/unsafe entries. This proves subtree completeness only; authoritative corpus inventory, external signer custody, and release qualification remain open.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -3666,7 +3712,30 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 363,
+      "backlog_line": 365,
+      "backlog_status": "marked_done",
+      "description": "Add roster v4 for exact-tree UMCD episode stores: semantically read each episode bundle under a conservative 512 MiB shard-accounting ceiling, bind the episode ID to its frozen parent subject, and require every referenced content-addressed layer to have a typed roster entry. Roster v5 adds a canonical `child_ids` list for content objects referenced by multiple frozen child manifests; audit requires exact owner/reference-set agreement. The canonical reader validates scenario GBSM episode-layer content, including episode/split-subject identity and generation-run split-group binding. Child artifact audit v5/v6 and lineage bundle v8/v9 version the respective roster families; v1-v4 behavior is retained. Focused regression covers single-owner and shared-object round trips plus owner mismatches; consolidated validation is deferred. The accounting model is not measured RSS and does not establish authoritative inventory completeness or release qualification. Scenario batch storage remains generation-level; child releases use per-drop EpisodeBundles.",
+      "evidence_links": {
+        "cli_entries": [],
+        "documentation": [],
+        "other_files": [],
+        "regression_files": [],
+        "schemas": [],
+        "source_modules": []
+      },
+      "feature_id": "PKG08-038",
+      "link_status": "unmapped",
+      "package": {
+        "number": 8,
+        "title": "G7 — target contracts, release storage, lineage, and coverage"
+      },
+      "plan_gates": [
+        "G7"
+      ],
+      "qualification_status": "not_assessed_by_inventory"
+    },
+    {
+      "backlog_line": 366,
       "backlog_status": "marked_done",
       "description": "Implement the fail-closed ODbL release exporter and strict v2 per-artifact rights/provenance manifest, including exact field rosters, canonical artifact hashes, scene/artifact cross-bindings, generated attribution/source-offer notices, and mandatory external OpenSSH review of exact manifest bytes. The archive retains the signature and a trust-digest receipt; packaged contracts are `datasets/schema/public-release-manifest.v2.schema.json` and `datasets/schema/public-release-approval.v1.schema.json`. Regression definitions cover unknown fields, hash canonicalization, schema agreement, and missing/duplicate-field approval cases. Signatures authenticate a principal's declaration only: legal classification, recovered OSM provenance, live offer URLs, and third-party rights still require external evidence, so public release remains gated.",
       "evidence_links": {
@@ -3680,7 +3749,7 @@
         ],
         "source_modules": []
       },
-      "feature_id": "PKG08-038",
+      "feature_id": "PKG08-039",
       "link_status": "linked",
       "package": {
         "number": 8,
@@ -3692,7 +3761,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 367,
+      "backlog_line": 370,
       "backlog_status": "marked_done",
       "description": "Reject normalized profile-holdout metadata identities at its model-input boundary: profile labels must be canonical uppercase A–E, family labels canonical lowercase `tdl`/`cdl`, and group IDs remain canonical strings through split construction. Four focused regression cases pass. This closes identity normalization in this adapter only; it does not complete the all-route model-input/leakage audit or establish physical group independence.",
       "evidence_links": {
@@ -3715,7 +3784,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 368,
+      "backlog_line": 371,
       "backlog_status": "marked_done",
       "description": "Require explicit independent-group identity for target-coverage counts; the canonical UMCD auditor supplies the frozen leakage-component ID. The generic evaluator does not infer independence from record identity. Regression definitions are authored; validation is deferred.",
       "evidence_links": {
@@ -3738,7 +3807,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 369,
+      "backlog_line": 372,
       "backlog_status": "open",
       "description": "Complete class availability and effective independent-group reporting; retain undefined metrics rather than inventing values. The UMCD target-coverage report exposes leakage-component counts per split × family × target. The frozen split × family × class audit reports rows, distinct caller-declared independent groups, and empty/absent statuses; the legacy common experiment runner publishes the report under a versioned JSON Schema and retains `null` plus per-metric reasons when a required class is absent. Every per-seed model result carries strict-schema train/validation/calibration/test support under `evaluation/schema/model-partition-support.v1.schema.json`, with class availability, source/domain row counts, declared-group counts and rosters, Kish effective declared-group counts, and exact row-assignment digests. `verify_declared_partition_support` replays the reports from source data and exact split indices and rejects report/index tampering. Signed-lock runs additionally bind parent/component rosters under `evaluation/schema/locked-benchmark-split-support.v2.schema.json`; its v1 schema remains unchanged, and each model result binds the per-run support digest. All reports explicitly leave physical independence `not_established_by_runner`. Broader evaluator/model-route coverage, verified physical-independence evidence, site/array eligibility, and scientific support adequacy remain open.",
       "evidence_links": {
@@ -3764,7 +3833,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 370,
+      "backlog_line": 373,
       "backlog_status": "open",
       "description": "Separate natural and enriched stress priors; make calibration prior-aware and train-only. **Partial:** the legacy common experiment runner accepts a strict natural-target prior declaration with a caller-supplied evidence digest, fits group-balanced Platt calibration and source-prior estimation only on a separate calibration partition, then applies the frozen transforms to validation/test. Signed split locks' reserved calibration rows are honored; unlocked pilot runs carve a deterministic group-disjoint subset from training. Raw/calibrated/adjusted predictions, thresholds, split indices, and model-sidecar provenance are retained. See `docs/research/PROBABILITY_PRIOR_POLICY.md`. The workflow assumes label shift and does not verify target-prior evidence or physical group independence; other model routes, external prior evidence review, sealed-test controls, and scientific calibration remain open.",
       "evidence_links": {
@@ -3789,7 +3858,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 371,
+      "backlog_line": 374,
       "backlog_status": "open",
       "description": "Add selection/missingness/low-confidence audits and held-out site/material/antenna/external-domain eligibility. **Partial:** the legacy runner can apply a config-bound low-confidence margin to test probabilities relative to the validation-frozen operating threshold, retaining overall/source-family/domain record and caller-supplied group counts plus the exact row mask. The criterion is explicitly descriptive coverage, does not use test labels for threshold selection, and does not estimate error risk. An expected-population roster/auditor now accounts separately for included, excluded, rejected, no-path, and empty outcomes, catches missing/duplicate/unrostered rows and identity drift, binds input digests, and has a non-overwriting CLI; see `docs/research/EXPECTED_POPULATION_AUDIT.md`. Five direct audit tests and two workflow tests pass. This verifies consistency with a caller-declared roster, not population completeness or disposition truth. Held-out site/material/antenna eligibility still lacks authoritative identities and acceptance rules.",
       "evidence_links": {
@@ -3814,7 +3883,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 372,
+      "backlog_line": 375,
       "backlog_status": "open",
       "description": "Implement train-only normalization/calibration enforcement, sealed-test protections, and preregistered threshold-selection records. **Partial:** the legacy experiment runner hashes the Youden-J-on-validation threshold policy into its pre-run config, records the exact validation row/group/label/score digest for each selected threshold, and exposes a verifier that recomputes the record. A dependency-light replay/tamper test and Ruff check pass. This does not authorize sealed-test release, implement trained probability calibration, or bind an independent preregistration signature.",
       "evidence_links": {
@@ -3837,9 +3906,9 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 373,
+      "backlog_line": 376,
       "backlog_status": "open",
-      "description": "Implement classic propagation/estimation baselines and falsification/leakage controls (metadata/source-only, power-only, shuffled, phase-randomized, permuted labels, and oracle leakage). **Partial:** `power_only`, `phase_randomized`, `label_permuted`, `row_shuffled`, `source_only`, and `metadata_only` are runnable in the canonical runner. Permutation controls preserve the common split and have replayable observation/target contracts. The two metadata routes use training-only vocabularies and versioned replayable model-input contracts; `metadata_only` is bounded to 16,000,000 dense feature cells and uses only group/domain/source IDs. Other metadata, oracle-leak, and physical classic-estimator routes remain open.",
+      "description": "Implement classic propagation/estimation baselines and falsification/leakage controls (metadata/source-only, power-only, shuffled, phase-randomized, permuted labels, and oracle leakage). **Partial:** `power_only`, `phase_randomized`, `label_permuted`, `row_shuffled`, `source_only`, `metadata_only`, and `oracle_label_leak` are runnable in the canonical runner. Permutation controls preserve the common split and have replayable observation/target contracts. The metadata routes use training-only vocabularies and versioned replayable model-input contracts; `metadata_only` is bounded to 16,000,000 dense feature cells and uses only group/domain/source IDs. Additional metadata controls and physical classic-estimator routes remain open.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -3861,8 +3930,8 @@
     },
     {
       "backlog_line": 377,
-      "backlog_status": "open",
-      "description": "Complete uncertainty calibration and clustered inference at the independent physical episode/site/acquisition-unit level.",
+      "backlog_status": "marked_done",
+      "description": "Add a deliberately leaky `oracle_label_leak` falsification route to the canonical runner using the same split and scorer as ordinary methods. Persist its exact target-derived feature matrix under model-input contract/schema v9, declare `data.y` as the intentionally exposed source, mark it `deployment_eligible: false`, and require full target-roster replay during verification. The focused runner test plus existing source/metadata/label-permutation artifact-control tests pass (5 tests total); Ruff, schema parsing, and diff checks pass. This checks evaluator ceiling behavior only; it is never admissible model evidence, and physical classical estimators remain open.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -3885,6 +3954,29 @@
     {
       "backlog_line": 381,
       "backlog_status": "open",
+      "description": "Complete uncertainty calibration and clustered inference at the independent physical episode/site/acquisition-unit level.",
+      "evidence_links": {
+        "cli_entries": [],
+        "documentation": [],
+        "other_files": [],
+        "regression_files": [],
+        "schemas": [],
+        "source_modules": []
+      },
+      "feature_id": "PKG09-009",
+      "link_status": "unmapped",
+      "package": {
+        "number": 9,
+        "title": "G8 — evaluation integrity, fairness, observability, and baselines"
+      },
+      "plan_gates": [
+        "G8"
+      ],
+      "qualification_status": "not_assessed_by_inventory"
+    },
+    {
+      "backlog_line": 385,
+      "backlog_status": "open",
       "description": "Connect versioned configuration/schema registries to an immutable build DAG with content-addressed cache keys and idempotent retry semantics. **Partial:** canonical experiment materialization and candidate split-registry construction now have explicit DAG nodes; generation, storage, receiver, evaluation, and paper-output nodes remain open.",
       "evidence_links": {
         "cli_entries": [],
@@ -3906,7 +3998,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 382,
+      "backlog_line": 386,
       "backlog_status": "marked_done",
       "description": "Add the shared build-node manifest/API foundation: JSON-Schema-validate each node configuration; bind configuration-schema digest, source bundle/revision, inputs, dependency keys, and output names; verify dependency/output objects on reuse; and publish immutable outputs before the manifest. Seven focused tests cover reuse, retry after interruption, dependency presence, input drift, output-roster drift, configuration rejection, and corrupted cache objects. Integration with the planned generation, storage, and evaluation DAG remains open.",
       "evidence_links": {
@@ -3929,7 +4021,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 383,
+      "backlog_line": 387,
       "backlog_status": "marked_done",
       "description": "Wire ordered channel-dataset concatenation in the canonical experiment runner through the shared build-node API. The run manifest records cache-node identity and materialized-object digest; repeated runs reuse the same verified object. The focused runner and profile-holdout slice passes 24 tests and the build-DAG suite passes seven. This does not yet form the complete generation-to-paper DAG.",
       "evidence_links": {
@@ -3952,7 +4044,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 384,
+      "backlog_line": 388,
       "backlog_status": "marked_done",
       "description": "Wire candidate split-registry construction through an optional immutable build-DAG node. The key binds named dataset bytes, policy bytes, spatial buffer, size ceiling, runtime versions, source revision/bundle, and configuration schema; it reuses verified registry/report objects while preserving exclusive output publication and `NOT_QUALIFIED` status. The direct non-DAG CLI path remains available. Focused script tests pass; external inventory authority and signed release qualification remain open.",
       "evidence_links": {
@@ -3975,7 +4067,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 385,
+      "backlog_line": 389,
       "backlog_status": "open",
       "description": "Implement the planned generation tiers and explicit data lineage/status labels (`proposed`, `synthetic_debug`, `native_verified`, `scenario_qualified`, `geometry_qualified`, `receiver_qualified`, `externally_calibrated`, `external_tested`). **Partial:** UMCD provenance v2 persists artifact-scoped claims for every tier; higher tiers require named content hashes for their expected run/audit/measurement evidence, and the record is integrity-hashed in the episode store. Legacy v1 records remain readable. The bounded file audit opens each relative evidence path beneath a declared root without following symlinks, rejects hard links/unstable files, streams SHA-256 under a total-byte ceiling, and reports `NOT_QUALIFIED`. `loslab lineage-evidence-audit` binds that report to a v2 provenance digest and publishes without overwriting. It does not parse evidence, authenticate reviewers, or promote artifacts. Gate-specific semantic/signature auditors and generation-report propagation remain open.",
       "evidence_links": {
@@ -3998,7 +4090,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 386,
+      "backlog_line": 390,
       "backlog_status": "marked_done",
       "description": "Implement a deterministic pilot sampler/report over the declared mandatory channel-family, antenna-topology, difficulty, and natural/enriched-prior rosters; record no-path/empty/rejected/failed outcomes, runtime/storage costs, and missing coverage. Natural cell target probabilities must sum to one; the report records sample share and corresponding cell design weight, while enriched stress carries no prevalence weight. `experiments/pilot_sampling.py`, `experiments/pilot_cli.py`, the `loslab-pilot` entry point, schemas `datasets/schema/pilot-design.v1.schema.json`, `datasets/schema/pilot-candidate-roster.v1.schema.json`, `datasets/schema/pilot-sample.v1.schema.json`, `datasets/schema/pilot-outcomes.v1.schema.json`, `datasets/schema/pilot-audit.v1.schema.json`, and `tests/test_experiments/test_pilot_sampling.py` cover the SHA-256-ranked sampler and exact-roster outcome auditor. Reports bind sampler/CLI source hashes. This is input-scoped `NOT_QUALIFIED` planning/reporting only; candidate-prior representativeness, authoritative mandatory inventories, native pilot runs, and scale decisions remain open. Workflow: `docs/research/PILOT_SAMPLING_WORKFLOW.md`.",
       "evidence_links": {
@@ -4036,7 +4128,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 387,
+      "backlog_line": 391,
       "backlog_status": "open",
       "description": "Implement resource budgeting/reporting for solver, receiver, raw path, CFR, manifests, storage, and downstream analysis before scaling. **Partial:** `loslab resource-budget` consumes 10–100 measured distinct scene/link conditions per planned stratum, binds exact configuration and measurement-record digests, hashes the exact request and schemas, verifies the runtime/hardware environment digest from its declared identity fields, computes empirical higher p50/p90/p99 per-unit summaries, applies the declared 2×–3× headroom to runtime and retained bytes, and reports device peak memory separately. Its request/report schemas and non-overwriting CLI are documented in `docs/research/RESOURCE_BUDGET_WORKFLOW.md`; nine focused tests pass. This emits a conditional plan only: no representative SISO/MIMO native pilot, calibrated-scattering measurement, receiver/model benchmark, capacity result, or cost approval is supplied, so the task remains open.",
       "evidence_links": {
@@ -4061,7 +4153,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 388,
+      "backlog_line": 392,
       "backlog_status": "open",
       "description": "Implement benchmark materialization for train/validation/calibration/site-held-out/site+array-held-out/real-external partitions without copying independent physical parents across splits.",
       "evidence_links": {
@@ -4084,7 +4176,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 389,
+      "backlog_line": 393,
       "backlog_status": "open",
       "description": "Implement baseline training/evaluation for physical estimators, existing MLP, parameter-matched MLP/CNN/CV-CNN, and sparse multipath methods on identical observations and splits.",
       "evidence_links": {
@@ -4107,7 +4199,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 390,
+      "backlog_line": 394,
       "backlog_status": "open",
       "description": "Implement the proposed phase-symmetry/physics-reconstruction model and uncertainty/observability heads only after inputs, targets, and gates are qualified; retain negative results and seed-clustered intervals.",
       "evidence_links": {
@@ -4130,7 +4222,7 @@
       "qualification_status": "not_assessed_by_inventory"
     },
     {
-      "backlog_line": 391,
+      "backlog_line": 395,
       "backlog_status": "open",
       "description": "Generate paper-ready tables/figures/reproduction bundle from frozen data/code identities after all required evidence gates pass.",
       "evidence_links": {
@@ -4160,13 +4252,13 @@
   "schema": "loslab.implementation_feature_map.v1",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "9967e6883de423f8cbbed739c3ae865794101c71d62e290ec6569ad98de87356"
+    "sha256": "d3b0cca11014111cd946007c94659ae44c39742c18aca4eaf4d48d9898582307"
   },
   "summary": {
-    "feature_count": 177,
+    "feature_count": 181,
     "linked_count": 21,
-    "marked_done_count": 122,
+    "marked_done_count": 126,
     "open_count": 55,
-    "unmapped_count": 156
+    "unmapped_count": 160
   }
 }

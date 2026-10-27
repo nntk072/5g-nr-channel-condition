@@ -93,6 +93,28 @@ training vocabulary, full source-roster digests, implementation identity, and
 feature-matrix digests. Verification replays the transform using the retained
 split indices and dataset identifiers.
 
+The `oracle_label_leak` route intentionally exposes the true binary target as a
+two-column one-hot input. It uses the common split and scoring path only to
+check evaluator ceilings and detect leakage-sensitive scoring mistakes. The
+route is explicitly non-deployable and must never be included as a predictive
+model result. Its v9 artifact contract binds the full target roster and derived
+feature matrix and rejects replay when any target changes. Run this isolated
+control with:
+
+```sh
+python -m loslab experiment \
+  --input <receiver-observations.npz> \
+  --output <new-run-directory> \
+  --observation precomputed \
+  --methods oracle_label_leak raw_mlp \
+  --seeds 11 23 47 59 71 \
+  --bootstrap 200
+```
+
+The v9 contract is specific to this intentionally leaking route; earlier
+method-specific contract versions remain readable. Do not interpret its
+paired score delta as a performance estimate or qualification result.
+
 The versioned schemas are
 `datasets/schema/model-input-artifact-contract.v3.schema.json` through
 `datasets/schema/model-input-artifact-contract.v8.schema.json`; v1-v8 readers
@@ -100,7 +122,8 @@ remain available. Results are simulation-only diagnostics and do not show
 that any control predicts measured or deployment channels.
 
 G8.08 remains partial. The metadata-only route covers group/domain/source
-identifiers; other metadata, explicit oracle-leak controls, and physical
+identifiers, and the oracle-label leak is available only as an explicitly
+non-deployable evaluator ceiling. Additional metadata controls and physical
 classical estimators still need isolated routes and audit contracts before
 benchmarking. Row shuffling is restricted to the training partition and is
 not a time-series or temporal-dependence test.
