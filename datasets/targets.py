@@ -36,6 +36,24 @@ _CANONICAL_TARGET_CONTRACTS: dict[str, tuple[str, str, str, bool]] = {
         "binary_class",
         True,
     ),
+    "umcd.f03_rt_static.direct_visibility.v2": (
+        "geometric_los",
+        "geometric direct-path visibility",
+        "boolean",
+        True,
+    ),
+    "umcd.rt-trajectory.geometric-los.v2": (
+        "geometric_los",
+        "digest-bound NumPy loaded-scene direct-visibility oracle",
+        "boolean",
+        True,
+    ),
+    "umcd.f04_rt_dynamic.direct_visibility.v3": (
+        "geometric_los",
+        "geometric direct-path visibility",
+        "boolean",
+        True,
+    ),
     "profile_los_proxy.v2": (
         "profile_los_proxy",
         "standardized_profile_los_category_proxy",
@@ -94,6 +112,13 @@ _CANONICAL_TARGET_CONTRACTS: dict[str, tuple[str, str, str, bool]] = {
 # arbitrary declaration true; pin the producer and aggregation semantics at
 # the storage boundary as well.
 _CANONICAL_TARGET_PROVENANCE: dict[str, tuple[str, frozenset[str], str]] = {
+    "umcd.standardized.profile-los-proxy.v1": (
+        "Sionna standardized TDL/CDL profile model",
+        frozenset(
+            {"profile_los_component false maps to 0 and true maps to 1; not geometric LOS truth"}
+        ),
+        "one profile-category proxy per generated channel record",
+    ),
     "profile_los_proxy.v2": (
         "Sionna standardized TDL/CDL profile model",
         frozenset(
@@ -155,6 +180,26 @@ _CANONICAL_TARGET_PROVENANCE: dict[str, tuple[str, frozenset[str], str]] = {
         ),
         "one independent direct-path visibility value per frame",
     ),
+    "umcd.f03_rt_static.direct_visibility.v2": (
+        "numpy_loaded_scene_triangle_inventory",
+        frozenset(
+            {
+                "digest-bound loaded-scene triangle visibility cross-checked by Mitsuba "
+                "segment intersection and depth-zero PathSolver"
+            }
+        ),
+        "one direct-path visibility label per link; no temporal or port pooling",
+    ),
+    "umcd.rt-trajectory.geometric-los.v2": (
+        "numpy_loaded_scene_triangle_inventory",
+        frozenset(
+            {
+                "loaded-scene triangle query cross-checked with Mitsuba segment intersection "
+                "and depth-zero Sionna PathSolver for each recorded TX/RX pose and geometry digest"
+            }
+        ),
+        "one independent direct-path visibility value per frame",
+    ),
     "umcd.f03_rt_static.direct_visibility.v1": (
         "independent_segment_visibility_oracle",
         frozenset({"finite scene-segment visibility cross-checked by depth-zero PathSolver"}),
@@ -163,6 +208,16 @@ _CANONICAL_TARGET_PROVENANCE: dict[str, tuple[str, frozenset[str], str]] = {
     "umcd.f04_rt_dynamic.direct_visibility.v2": (
         "mitsuba_segment_intersection_oracle",
         frozenset({"independent finite-segment Mitsuba geometry query for the RT scene and poses"}),
+        "one visibility value per trajectory frame; no spatial or temporal pooling",
+    ),
+    "umcd.f04_rt_dynamic.direct_visibility.v3": (
+        "numpy_loaded_scene_triangle_inventory",
+        frozenset(
+            {
+                "digest-bound loaded-scene triangle query cross-checked with Mitsuba "
+                "segment intersection and depth-zero Sionna PathSolver at each recorded pose"
+            }
+        ),
         "one visibility value per trajectory frame; no spatial or temporal pooling",
     ),
 }

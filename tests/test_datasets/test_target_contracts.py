@@ -107,6 +107,75 @@ def test_geometric_los_contract_checks_name_semantics_and_scalar_domain() -> Non
         )
 
 
+@pytest.mark.parametrize(
+    ("target_name", "version", "semantic", "units", "source", "reference", "aggregation"),
+    [
+        (
+            "profile_los_proxy",
+            "umcd.standardized.profile-los-proxy.v1",
+            "standardized_profile_los_category_proxy",
+            "binary_class",
+            "Sionna standardized TDL/CDL profile model",
+            "profile_los_component false maps to 0 and true maps to 1; not geometric LOS truth",
+            "one profile-category proxy per generated channel record",
+        ),
+        (
+            "geometric_los",
+            "umcd.f03_rt_static.direct_visibility.v2",
+            "geometric direct-path visibility",
+            "boolean",
+            "numpy_loaded_scene_triangle_inventory",
+            "digest-bound loaded-scene triangle visibility cross-checked by Mitsuba "
+            "segment intersection and depth-zero PathSolver",
+            "one direct-path visibility label per link; no temporal or port pooling",
+        ),
+        (
+            "geometric_los",
+            "umcd.rt-trajectory.geometric-los.v2",
+            "digest-bound NumPy loaded-scene direct-visibility oracle",
+            "boolean",
+            "numpy_loaded_scene_triangle_inventory",
+            "loaded-scene triangle query cross-checked with Mitsuba segment intersection "
+            "and depth-zero Sionna PathSolver for each recorded TX/RX pose and geometry digest",
+            "one independent direct-path visibility value per frame",
+        ),
+        (
+            "geometric_los",
+            "umcd.f04_rt_dynamic.direct_visibility.v3",
+            "geometric direct-path visibility",
+            "boolean",
+            "numpy_loaded_scene_triangle_inventory",
+            "digest-bound loaded-scene triangle query cross-checked with Mitsuba segment "
+            "intersection and depth-zero Sionna PathSolver at each recorded pose",
+            "one visibility value per trajectory frame; no spatial or temporal pooling",
+        ),
+    ],
+)
+def test_current_producer_target_versions_pin_semantics_and_provenance(
+    target_name, version, semantic, units, source, reference, aggregation
+) -> None:
+    definition = TargetDefinition.versioned(
+        semantic=semantic,
+        units=units,
+        source=source,
+        reference=reference,
+        aggregation_rule=aggregation,
+        definition_version=version,
+    )
+    validate_canonical_target_contract(np.asarray([True]), definition, name=target_name)
+
+    altered = TargetDefinition.versioned(
+        semantic=semantic,
+        units=units,
+        source=f"{source} altered",
+        reference=reference,
+        aggregation_rule=aggregation,
+        definition_version=version,
+    )
+    with pytest.raises(ValueError, match="source differs"):
+        validate_canonical_target_contract(np.asarray([True]), altered, name=target_name)
+
+
 def test_canonical_cfr_contract_requires_complex_coefficients() -> None:
     definition = _definition(
         "umcd.tdl-pusch.effective-cfr.v1",
