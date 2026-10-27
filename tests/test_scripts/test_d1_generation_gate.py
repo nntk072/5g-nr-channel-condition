@@ -388,8 +388,8 @@ def test_trajectory_cli_fails_closed_without_approval(tmp_path: Path, monkeypatc
         ),
         encoding="utf-8",
     )
-    namespace["generate_rt_nr_trajectory"] = lambda *args, **kwargs: pytest.fail(
-        "trajectory solver must not run without authorization"
+    namespace["main"].__globals__["generate_rt_nr_trajectory"] = lambda *args, **kwargs: (
+        pytest.fail("trajectory solver must not run without authorization")
     )
     monkeypatch.setattr(
         "sys.argv", ["generate_rt_nr_trajectory", str(spec), str(tmp_path / "store")]
@@ -422,7 +422,7 @@ def test_trajectory_cli_preserves_explicit_pilot_workflow(tmp_path: Path, monkey
         ),
         encoding="utf-8",
     )
-    namespace["generate_rt_nr_trajectory"] = lambda *_args, **_kwargs: type(
+    namespace["main"].__globals__["generate_rt_nr_trajectory"] = lambda *_args, **_kwargs: type(
         "Stored",
         (),
         {
