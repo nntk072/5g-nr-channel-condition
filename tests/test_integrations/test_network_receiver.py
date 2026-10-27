@@ -119,6 +119,30 @@ def test_network_receiver_reports_declared_fir_memory_relative_to_cyclic_prefix(
     assert len(diagnostic["filter_taps_sha256"]) == 64
 
 
+def test_network_receiver_counts_retained_fir_taps_in_tensor_resource_limit():
+    links = torch.ones((1, 1, 1, 1, 8), dtype=torch.complex64)
+    taps = torch.ones((1, 1, 128), dtype=torch.complex64)
+    composition = compose_received_waveforms(
+        links,
+        link_start_samples=((0,),),
+        capture_num_samples=8,
+        sample_rate_hz=4.0,
+        link_filter_taps=taps,
+    )
+    noisy = add_independent_receiver_waveform_awgn(composition, (0.02,), seed=19)
+    receiver = _FakePUSCHReceiver()
+
+    with pytest.raises(ValueError, match="network waveform inputs exceed max_tensor_elements"):
+        decode_noisy_network_pusch(
+            composition,
+            noisy,
+            receiver,
+            noise_variance_w_per_re=(0.04,),
+            max_tensor_elements=40,
+        )
+    assert not receiver.decoded
+
+
 def test_network_receiver_rejects_broken_source_sum_and_noise_lineage_before_decode():
     composition, noisy = _network_waveform()
     receiver = _FakePUSCHReceiver()

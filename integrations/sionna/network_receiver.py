@@ -140,6 +140,7 @@ def decode_noisy_network_pusch(
     contributions = composition.source_contributions
     noise = noisy.noise_waveform
     received_noisy = noisy.received_waveform
+    link_filter_taps = composition.link_filter_taps
     if (
         not torch.is_tensor(received)
         or not torch.is_complex(received)
@@ -161,7 +162,9 @@ def decode_noisy_network_pusch(
         raise ValueError("network waveform axes must be nonempty and noise must match the capture")
     if tuple(received_noisy.shape) != tuple(received.shape):
         raise ValueError("noisy waveform must match the source composition shape")
-    tensors = (received, contributions, noise, received_noisy)
+    tensors = (received, contributions, noise, received_noisy) + (
+        (link_filter_taps,) if torch.is_tensor(link_filter_taps) else ()
+    )
     if any(value.device != received.device or value.dtype != received.dtype for value in tensors):
         raise ValueError(
             "network source, noise, and received waveforms must share dtype and device"
@@ -232,7 +235,7 @@ def decode_noisy_network_pusch(
     # not claim the total propagation delay spread or receiver timing offset:
     # link arrival offsets, fractional-delay interpolation, and acquisition
     # remain separate inputs to an end-to-end CP/ISI experiment.
-    filter_taps = composition.link_filter_taps
+    filter_taps = link_filter_taps
     if filter_taps is None:
         fir_support = torch.ones(
             (rx_count, contributions.shape[3], 1), dtype=received.dtype, device=received.device
