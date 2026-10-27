@@ -39,6 +39,16 @@ from .metrics import (
     holdout_domain,
     in_domain_split,
 )
+from .prior_shift import (
+    adjust_probabilities_between_priors,
+    adjust_probabilities_for_prior_shift,
+    validate_prior_shift_spec,
+)
+from .probability_calibration import (
+    apply_platt_calibrator,
+    fit_group_balanced_platt_calibrator,
+    invert_platt_calibrator,
+)
 from .spatial_audit import SpatialLeakageAudit, SpatialLeakagePair, audit_spatial_buffer
 from .spherical_angular_power import (
     global_to_element_local_directions,
@@ -63,6 +73,9 @@ __all__ = [
     "audit_class_support",
     "audit_group_leakage",
     "audit_spatial_buffer",
+    "adjust_probabilities_between_priors",
+    "adjust_probabilities_for_prior_shift",
+    "apply_platt_calibrator",
     "binary_metrics",
     "block_bootstrap_auc",
     "find_cross_split_temporal_overlaps",
@@ -76,17 +89,20 @@ __all__ = [
     "build_g3_qualification_run_contract",
     "build_g3_qualification_run_contract_v3",
     "verify_g3_qualification_run_contract",
+    "validate_prior_shift_spec",
     "compose_g3_joint_sample_size_design",
     "verify_g3_joint_sample_size_design",
     "evaluate_path_equivalence_roster",
     "evaluate_receiver_impact",
     "evaluate_prediction_file",
+    "fit_group_balanced_platt_calibrator",
     "freeze_split_lock",
     "global_to_element_local_directions",
     "map_element_frame_spherical_power",
     "group_split",
     "holdout_domain",
     "in_domain_split",
+    "invert_platt_calibrator",
     "map_spherical_power",
     "make_independent_split",
     "paired_seed_delta",

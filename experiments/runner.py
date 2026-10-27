@@ -29,9 +29,20 @@ from evaluation.class_support import audit_class_support
 from evaluation.metrics import (
     binary_metrics,
     block_bootstrap_auc,
+    group_split,
     holdout_domain,
     in_domain_split,
     threshold_from_validation,
+)
+from evaluation.prior_shift import (
+    adjust_probabilities_between_priors,
+    adjust_probabilities_for_prior_shift,
+    validate_prior_shift_spec,
+)
+from evaluation.probability_calibration import (
+    apply_platt_calibrator,
+    fit_group_balanced_platt_calibrator,
+    invert_platt_calibrator,
 )
 from evaluation.statistics import paired_seed_delta
 from learning import fit_complex_cnn, fit_coral_mlp, fit_real_cnn, fit_sklearn
@@ -58,6 +69,23 @@ _MODEL_FEATURE_ROUTES = {
 _MODEL_METHODS = frozenset(
     {"rf", "histgb", "xgb", "mlp", "raw_mlp", "logreg", "cnn", "cvnn", "coral", "coral0"}
 )
+
+
+def _validate_evaluation_payload(payload: dict[str, Any], schema_filename: str) -> None:
+    """Validate persisted calibration/prior metadata against its versioned contract."""
+    import jsonschema
+
+    schema_path = Path(__file__).resolve().parents[1] / "evaluation/schema" / schema_filename
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    jsonschema.Draft202012Validator.check_schema(schema)
+    errors = list(jsonschema.Draft202012Validator(schema).iter_errors(payload))
+    if errors:
+        raise ValueError(
+            f"evaluation payload violates {schema_filename}: "
+            + "; ".join(error.message for error in errors[:10])
+        )
+
+
 _CHANNEL_DATASET_BUILD_SCHEMA = {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
@@ -220,7 +248,10 @@ def build_model_input_artifact_contract(
         raise ValueError("model input must be a batched feature array")
     if not np.issubdtype(method_input.dtype, np.number) or not np.isfinite(method_input).all():
         raise ValueError("model input must contain finite numeric values")
-    if set(partition_indices) != {"train", "validation", "test"}:
+    required_partitions = {"train", "validation", "test"}
+    if not required_partitions <= set(partition_indices) or set(partition_indices) - (
+        required_partitions | {"calibration"}
+    ):
         raise ValueError("model input partitions must include train, validation, and test")
     checked_indices: dict[str, np.ndarray] = {}
     for name, indices in partition_indices.items():
@@ -461,11 +492,11 @@ def verify_model_input_artifact_contract(
                 or _array_sha256(method_input) != matrix["sha256"]
             ):
                 raise ValueError("model feature matrix differs from its frozen contract")
-            if partition_indices is None or set(partition_indices) != {
-                "train",
-                "validation",
-                "test",
-            }:
+            if (
+                partition_indices is None
+                or not {"train", "validation", "test"} <= set(partition_indices)
+                or set(partition_indices) - {"train", "validation", "test", "calibration"}
+            ):
                 raise ValueError("model feature matrix verification requires all split indices")
             index_arrays = tuple(partition_indices.values())
             if any(
@@ -508,19 +539,30 @@ def verify_model_input_artifact_contract(
     ):
         raise ValueError("model input contract has an invalid training file roster")
     split = contract.get("split")
-    if not isinstance(split, dict) or set(split) != {
+    required_split_fields = {
         "mode",
         "registry_sha256",
         "indices_sha256",
         "train_rows",
         "validation_rows",
         "test_rows",
-    }:
+    }
+    if (
+        not isinstance(split, dict)
+        or not required_split_fields <= set(split)
+        or set(split) - (required_split_fields | {"calibration_rows"})
+    ):
         raise ValueError("model input contract split binding is invalid")
     for count_key in ("train_rows", "validation_rows", "test_rows"):
         count = split[count_key]
         if isinstance(count, bool) or not isinstance(count, int) or count <= 0:
             raise ValueError("model input contract split counts must be positive integers")
+    if "calibration_rows" in split and (
+        isinstance(split["calibration_rows"], bool)
+        or not isinstance(split["calibration_rows"], int)
+        or split["calibration_rows"] <= 0
+    ):
+        raise ValueError("model input contract calibration split count must be positive")
     for digest_key in ("indices_sha256",):
         digest = split[digest_key]
         if (
@@ -693,7 +735,7 @@ def _learned_parameter_count(model: Any, training: dict[str, Any]) -> int | None
 
 def _locked_split_indices(
     data: ChannelDataset, registry: SplitPolicyRegistry
-) -> tuple[np.ndarray, np.ndarray, np.ndarray, dict[str, Any]]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, dict[str, Any]]:
     """Resolve every channel row through its frozen split parent or child ID."""
     split_for_row: list[str] = []
     represented_parents: set[str] = set()
@@ -732,6 +774,7 @@ def _locked_split_indices(
     train = np.flatnonzero(labels == "train")
     validation = np.flatnonzero(labels == "validation")
     test = np.flatnonzero(labels == "test")
+    calibration = np.flatnonzero(labels == "calibration")
     if min(len(train), len(validation), len(test)) == 0:
         raise ValueError(
             "signed split lock must resolve non-empty train, validation, and test rows"
@@ -746,7 +789,7 @@ def _locked_split_indices(
         },
         "calibration_rows_reserved": int(np.sum(labels == "calibration")),
     }
-    return train, validation, test, report
+    return train, validation, test, calibration, report
 
 
 def run_experiment(
@@ -770,9 +813,13 @@ def run_experiment(
     trusted_split_signers_path: str | Path | None = None,
     split_signer_id: str | None = None,
     build_cache_root: str | Path | None = None,
+    prior_shift: dict[str, Any] | None = None,
 ) -> dict:
     if not paths:
         raise ValueError("No datasets supplied")
+    resolved_prior_shift = None if prior_shift is None else validate_prior_shift_spec(prior_shift)
+    if resolved_prior_shift is not None:
+        _validate_evaluation_payload(resolved_prior_shift, "prior-shift.v1.schema.json")
     capacity_spec(capacity)
     dataset_build_node = None
     if build_cache_root is None:
@@ -807,7 +854,7 @@ def run_experiment(
         )
         locked_indices = _locked_split_indices(data, registry)
         split_provenance = {
-            **locked_indices[3],
+            **locked_indices[4],
             "signer_id": split_signer_id,
             "lock_file_sha256": sha256_file(lock_path),
             "signature_file_sha256": sha256_file(signature_path),
@@ -854,6 +901,7 @@ def run_experiment(
         ),
         "split_mode": split_provenance["mode"],
         "threshold_selection_policy": _VALIDATION_THRESHOLD_POLICY,
+        "prior_shift": resolved_prior_shift,
         "dataset_materialization": (
             "content_addressed_build_node_v1"
             if dataset_build_node is not None
@@ -890,15 +938,33 @@ def run_experiment(
     atomic_json(output / "manifest.json", manifest)
     results: list[dict[str, Any]] = []
     for seed in seeds:
-        train, val, test = (
-            locked_indices[:3]
-            if locked_indices is not None
-            else holdout_domain(data, holdout, seed=seed)
-            if holdout
-            else in_domain_split(data, seed=seed)
-        )
+        if locked_indices is not None:
+            train, val, test = locked_indices[:3]
+            calibration = locked_indices[3]
+        else:
+            train, val, test = (
+                holdout_domain(data, holdout, seed=seed)
+                if holdout
+                else in_domain_split(data, seed=seed)
+            )
+            calibration = np.empty(0, dtype=np.int64)
+        if resolved_prior_shift is not None:
+            if len(calibration) == 0:
+                train_pool = train
+                fit_rows, calibration_rows = group_split(
+                    data.y[train_pool],
+                    data.group[train_pool],
+                    test_fraction=0.2,
+                    seed=seed + 907,
+                )
+                train = train_pool[fit_rows]
+                calibration = train_pool[calibration_rows]
+        else:
+            calibration = np.empty(0, dtype=np.int64)
         assert not (set(data.group[train]) & set(data.group[val]))
         assert not (set(data.group[test]) & (set(data.group[train]) | set(data.group[val])))
+        assert not (set(data.group[calibration]) & (set(data.group[train]) | set(data.group[val])))
+        assert not (set(data.group[calibration]) & set(data.group[test]))
         for method in methods:
             method_input = (
                 _identity_complex_cfr(observable)
@@ -960,10 +1026,40 @@ def run_experiment(
             _sync_torch_device(device, uses_torch)
             training_seconds = perf_counter() - fit_started
             parameter_count = _learned_parameter_count(clf, extra)
+            calibration_scores_raw = np.empty(0, dtype=np.float64)
+            calibration_scores_calibrated = np.empty(0, dtype=np.float64)
+            calibrator_report = None
             validation_started = perf_counter()
-            val_scores = clf.predict_proba(method_input[val])[:, 1]
+            val_scores_raw = clf.predict_proba(method_input[val])[:, 1]
             _sync_torch_device(device, uses_torch)
             validation_prediction_seconds = perf_counter() - validation_started
+            prior_shift_report = None
+            if resolved_prior_shift is None:
+                val_scores = val_scores_raw
+                val_model_calibrated = val_scores_raw
+            else:
+                calibration_scores_raw = clf.predict_proba(method_input[calibration])[:, 1]
+                calibration_scores_calibrated, calibrator_report = (
+                    fit_group_balanced_platt_calibrator(
+                        calibration_scores_raw,
+                        data.y[calibration],
+                        data.group[calibration],
+                    )
+                )
+                _validate_evaluation_payload(
+                    calibrator_report, "group-platt-calibrator.v1.schema.json"
+                )
+                val_calibrated = apply_platt_calibrator(val_scores_raw, calibrator_report)
+                val_model_calibrated = val_calibrated
+                val_scores, prior_shift_report = adjust_probabilities_for_prior_shift(
+                    val_calibrated,
+                    data.y[calibration],
+                    data.group[calibration],
+                    resolved_prior_shift,
+                )
+                _validate_evaluation_payload(
+                    prior_shift_report, "prior-shift-adjustment.v1.schema.json"
+                )
             threshold_selection = _validation_threshold_selection_record(
                 data.y[val],
                 val_scores,
@@ -971,17 +1067,34 @@ def run_experiment(
                 val,
             )
             threshold = threshold_selection["threshold"]
+            if prior_shift_report is None:
+                model_output_threshold = threshold
+            else:
+                model_output_threshold = float(
+                    invert_platt_calibrator(
+                        adjust_probabilities_between_priors(
+                            np.asarray([threshold]),
+                            source_positive_prevalence=(
+                                resolved_prior_shift["target_positive_prevalence"]
+                            ),
+                            target_positive_prevalence=(
+                                prior_shift_report["calibration_group_weighted_positive_prevalence"]
+                            ),
+                        ),
+                        calibrator_report,
+                    )[0]
+                )
             checkpoint = (
                 layout.models / f"{method}_seed{seed}.pt"
                 if method.startswith("coral") or method in ("cnn", "cvnn")
                 else layout.models / f"{method}_seed{seed}.joblib"
             )
             if method.startswith("coral"):
-                clf.save(checkpoint, threshold=threshold, include_phase=include_phase)
+                clf.save(checkpoint, threshold=model_output_threshold, include_phase=include_phase)
             elif method == "cnn":
-                clf.save(checkpoint, threshold=threshold, include_phase=True)
+                clf.save(checkpoint, threshold=model_output_threshold, include_phase=True)
             elif method == "cvnn":
-                clf.save(checkpoint, threshold=threshold)
+                clf.save(checkpoint, threshold=model_output_threshold)
             else:
                 import joblib
 
@@ -989,17 +1102,21 @@ def run_experiment(
             split_contract = {
                 "mode": split_provenance["mode"],
                 "registry_sha256": split_provenance.get("registry_sha256"),
-                "indices_sha256": canonical_hash(
-                    {
-                        "train_idx": train.tolist(),
-                        "validation_idx": val.tolist(),
-                        "test_idx": test.tolist(),
-                    }
-                ),
                 "train_rows": int(len(train)),
                 "validation_rows": int(len(val)),
                 "test_rows": int(len(test)),
             }
+            partition_indices = {"train": train, "validation": val, "test": test}
+            indices_payload = {
+                "train_idx": train.tolist(),
+                "validation_idx": val.tolist(),
+                "test_idx": test.tolist(),
+            }
+            if len(calibration):
+                partition_indices["calibration"] = calibration
+                split_contract["calibration_rows"] = int(len(calibration))
+                indices_payload["calibration_idx"] = calibration.tolist()
+            split_contract["indices_sha256"] = canonical_hash(indices_payload)
             model_input_contract = build_model_input_artifact_contract(
                 method=method,
                 method_input=method_input,
@@ -1009,7 +1126,7 @@ def run_experiment(
                 input_file_digests=manifest["inputs"],
                 split=split_contract,
                 model_file_sha256=_stable_single_link_sha256(checkpoint),
-                partition_indices={"train": train, "validation": val, "test": test},
+                partition_indices=partition_indices,
             )
             model_info_path = layout.models / f"{method}_seed{seed}_modelinfo.json"
             atomic_json(
@@ -1020,7 +1137,11 @@ def run_experiment(
                         if method in {"rf", "histgb", "xgb", "mlp", "raw_mlp", "logreg"}
                         else "loslab.model_input_artifact.v1"
                     ),
-                    "threshold": threshold,
+                    "threshold": model_output_threshold,
+                    "threshold_probability_space": "raw_model_output",
+                    "calibrated_threshold": threshold,
+                    "probability_calibration": calibrator_report,
+                    "prior_shift": prior_shift_report,
                     "include_phase": include_phase,
                     "method": method,
                     "model_input_artifact_contract": model_input_contract,
@@ -1030,12 +1151,25 @@ def run_experiment(
                 model_info_path,
                 checkpoint,
                 method_input=method_input,
-                partition_indices={"train": train, "validation": val, "test": test},
+                partition_indices=partition_indices,
             )
             test_prediction_started = perf_counter()
-            prob = clf.predict_proba(method_input[test])[:, 1]
+            test_scores_raw = clf.predict_proba(method_input[test])[:, 1]
             _sync_torch_device(device, uses_torch)
             test_prediction_seconds = perf_counter() - test_prediction_started
+            test_calibrated = test_scores_raw
+            if resolved_prior_shift is None:
+                prob = test_scores_raw
+            else:
+                test_calibrated = apply_platt_calibrator(test_scores_raw, calibrator_report)
+                prob, test_prior_shift_report = adjust_probabilities_for_prior_shift(
+                    test_calibrated,
+                    data.y[calibration],
+                    data.group[calibration],
+                    resolved_prior_shift,
+                )
+                if test_prior_shift_report != prior_shift_report:
+                    raise RuntimeError("train-only prior-shift report changed across partitions")
             metrics = binary_metrics(data.y[test], prob, threshold=threshold)
             source_families = np.asarray(data.source, dtype=str)
             test_families = source_families[test]
@@ -1099,6 +1233,9 @@ def run_experiment(
                     else "engineered observable features"
                 ),
                 "metrics": metrics,
+                "prior_shift": prior_shift_report,
+                "probability_calibration": calibrator_report,
+                "model_output_threshold": model_output_threshold,
                 "class_support": class_support_payload,
                 "confidence": ci,
                 "threshold_selection": threshold_selection,
@@ -1110,12 +1247,19 @@ def run_experiment(
                             "train_idx": train.tolist(),
                             "validation_idx": val.tolist(),
                             "test_idx": test.tolist(),
+                            **(
+                                {"calibration_idx": calibration.tolist()}
+                                if len(calibration)
+                                else {}
+                            ),
                         }
                     ),
                     "train_size": len(train),
+                    "calibration_size": len(calibration),
                     "val_size": len(val),
                     "test_size": len(test),
                     "train_groups": len(set(data.group[train])),
+                    "calibration_groups": len(set(data.group[calibration])),
                     "validation_groups": len(set(data.group[val])),
                     "test_groups": len(set(data.group[test])),
                     "train_domains": sorted(set(data.domain[train].tolist())),
@@ -1148,6 +1292,7 @@ def run_experiment(
             np.savez_compressed(
                 layout.predictions / f"{method}_seed{seed}.npz",
                 train_idx=train,
+                calibration_idx=calibration,
                 val_idx=val,
                 test_idx=test,
                 y_test=data.y[test],
@@ -1157,6 +1302,12 @@ def run_experiment(
                 test_source=test_families,
                 p_test=prob,
                 p_val=val_scores,
+                p_test_raw=test_scores_raw,
+                p_val_raw=val_scores_raw,
+                p_test_calibrated=test_calibrated,
+                p_val_calibrated=val_model_calibrated,
+                p_calibration_raw=calibration_scores_raw,
+                p_calibration_calibrated=calibration_scores_calibrated,
                 threshold=np.float64(threshold),
             )
         atomic_json(output / "results.json", results)

@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.invalid/schema/evaluation/prior-shift-adjustment.v1.schema.json",
+  "title": "LOS Lab train-only prior-shift adjustment report v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "prior_shift_spec_sha256",
+    "training_prior_kind",
+    "training_prior_id",
+    "calibration_group_weighted_positive_prevalence",
+    "calibration_independent_group_count",
+    "calibration_labels_and_groups_sha256",
+    "target_prior_kind",
+    "target_prior_id",
+    "target_positive_prevalence",
+    "target_prior_evidence_sha256",
+    "adjustment",
+    "fit_partition",
+    "probability_evaluation_partitions"
+  ],
+  "properties": {
+    "schema": {"const": "loslab.prior_shift_adjustment.v1"},
+    "prior_shift_spec_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "training_prior_kind": {"enum": ["natural", "enriched_stress"]},
+    "training_prior_id": {"type": "string", "minLength": 1},
+    "calibration_group_weighted_positive_prevalence": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "exclusiveMaximum": 1
+    },
+    "calibration_independent_group_count": {"type": "integer", "minimum": 1},
+    "calibration_labels_and_groups_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "target_prior_kind": {"const": "natural"},
+    "target_prior_id": {"type": "string", "minLength": 1},
+    "target_positive_prevalence": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "exclusiveMaximum": 1
+    },
+    "target_prior_evidence_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "adjustment": {"const": "prior_probability_shift_odds_v1"},
+    "fit_partition": {"const": "calibration"},
+    "probability_evaluation_partitions": {"const": ["validation", "test"]}
+  },
+  "additionalProperties": false
+}

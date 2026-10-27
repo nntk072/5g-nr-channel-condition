@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.invalid/schema/evaluation/prior-shift.v1.schema.json",
+  "title": "LOS Lab prior-shift declaration v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "training_prior_kind",
+    "training_prior_id",
+    "target_prior_kind",
+    "target_prior_id",
+    "target_positive_prevalence",
+    "target_prior_evidence_sha256"
+  ],
+  "properties": {
+    "schema": {"const": "loslab.prior_shift.v1"},
+    "training_prior_kind": {"enum": ["natural", "enriched_stress"]},
+    "training_prior_id": {"type": "string", "minLength": 1, "pattern": "^\\S(?:.*\\S)?$"},
+    "target_prior_kind": {"const": "natural"},
+    "target_prior_id": {"type": "string", "minLength": 1, "pattern": "^\\S(?:.*\\S)?$"},
+    "target_positive_prevalence": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1},
+    "target_prior_evidence_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "additionalProperties": false
+}

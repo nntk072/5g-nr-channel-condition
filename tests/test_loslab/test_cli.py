@@ -30,9 +30,7 @@ def test_g3_path_roster_audit_dispatches_to_packaged_evaluator(monkeypatch, tmp_
         return 0
 
     monkeypatch.setattr(g3_path_equivalence_roster_cli, "main", audit)
-    monkeypatch.setattr(
-        "sys.argv", ["loslab", "g3-path-roster-audit", str(input_path)]
-    )
+    monkeypatch.setattr("sys.argv", ["loslab", "g3-path-roster-audit", str(input_path)])
 
     with pytest.raises(SystemExit) as error:
         main()
@@ -332,7 +330,15 @@ def test_experiment_config_dispatches_resolved_options(tmp_path, monkeypatch, ca
         "schema: loslab.experiment.v1\ninputs: [data.npz]\noutput: run\n"
         "methods: [logreg]\nseeds: [13]\nbootstrap: 10\ncapacity: large\n"
         "split_lock_path: lock.json\nsplit_signature_path: lock.json.sig\n"
-        "trusted_split_signers_path: allowed_signers\nsplit_signer_id: custodian@example.org\n",
+        "trusted_split_signers_path: allowed_signers\nsplit_signer_id: custodian@example.org\n"
+        "prior_shift:\n"
+        "  schema: loslab.prior_shift.v1\n"
+        "  training_prior_kind: enriched_stress\n"
+        "  training_prior_id: enriched-v1\n"
+        "  target_prior_kind: natural\n"
+        "  target_prior_id: field-v1\n"
+        "  target_positive_prevalence: 0.2\n"
+        f"  target_prior_evidence_sha256: {'a' * 64}\n",
         encoding="utf-8",
     )
     calls = []
@@ -357,4 +363,13 @@ def test_experiment_config_dispatches_resolved_options(tmp_path, monkeypatch, ca
     assert options["split_signature_path"] == "lock.json.sig"
     assert options["trusted_split_signers_path"] == "allowed_signers"
     assert options["split_signer_id"] == "custodian@example.org"
+    assert options["prior_shift"] == {
+        "schema": "loslab.prior_shift.v1",
+        "training_prior_kind": "enriched_stress",
+        "training_prior_id": "enriched-v1",
+        "target_prior_kind": "natural",
+        "target_prior_id": "field-v1",
+        "target_positive_prevalence": 0.2,
+        "target_prior_evidence_sha256": "a" * 64,
+    }
     assert json.loads(capsys.readouterr().out) == {"status": "ok"}

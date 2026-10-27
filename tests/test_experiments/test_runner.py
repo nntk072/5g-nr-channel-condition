@@ -178,21 +178,18 @@ def test_locked_split_indices_resolves_child_rows_through_parent_bindings() -> N
         metadata=tuple({"split_subject_id": identity} for identity in subjects),
     )
 
-    train, validation, test, report = _locked_split_indices(data, registry)
+    train, validation, test, calibration, report = _locked_split_indices(data, registry)
 
     resolved = {
         "train": train,
         "validation": validation,
         "test": test,
+        "calibration": calibration,
     }
     assert set(report["parent_counts"]) >= {"train", "validation", "test"}
-    expected_indices = [
-        index
-        for index, parent in enumerate(parent_by_row)
-        if registry.split_for_parent(parent) != "calibration"
-    ]
+    expected_indices = list(range(len(subjects)))
     assert sorted(np.concatenate(tuple(resolved.values())).tolist()) == expected_indices
-    assert report["calibration_rows_reserved"] == len(subjects) - len(expected_indices)
+    assert report["calibration_rows_reserved"] == len(calibration)
     for partition, indices in resolved.items():
         assert all(
             registry.split_for_parent(parent_by_row[index]) == partition for index in indices
@@ -223,6 +220,15 @@ def test_run_experiment_writes_reproducible_complete_artifacts(tmp_path) -> None
         methods=("logreg",),
         seeds=(11,),
         bootstrap=100,
+        prior_shift={
+            "schema": "loslab.prior_shift.v1",
+            "training_prior_kind": "natural",
+            "training_prior_id": "debug-observed-training-prior-v1",
+            "target_prior_kind": "natural",
+            "target_prior_id": "debug-natural-prior-sensitivity-v1",
+            "target_positive_prevalence": 0.25,
+            "target_prior_evidence_sha256": "a" * 64,
+        },
     )
 
     manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
@@ -253,6 +259,7 @@ def test_run_experiment_writes_reproducible_complete_artifacts(tmp_path) -> None
         "train",
         "validation",
         "test",
+        "calibration",
     }
     assert (
         verify_model_input_artifact_contract(
@@ -270,6 +277,7 @@ def test_run_experiment_writes_reproducible_complete_artifacts(tmp_path) -> None
             "train": prediction["train_idx"],
             "validation": prediction["val_idx"],
             "test": prediction["test_idx"],
+            "calibration": prediction["calibration_idx"],
         }
     matrix_audit = verify_model_input_artifact_contract(
         model_info_path,
@@ -284,9 +292,16 @@ def test_run_experiment_writes_reproducible_complete_artifacts(tmp_path) -> None
     assert report_row["class_support"]["schema"] == "loslab.class_support.v1"
     assert {cell["class_label"] for cell in support_cells} == {0, 1}
     assert all(cell["independent_group_count"] >= 1 for cell in support_cells)
+    assert report_row["prior_shift"]["fit_partition"] == "calibration"
+    assert report_row["prior_shift"]["target_prior_id"] == "debug-natural-prior-sensitivity-v1"
+    assert report_row["prior_shift"]["target_prior_evidence_sha256"] == "a" * 64
+    assert report_row["model_output_threshold"] == pytest.approx(model_info["threshold"])
+    assert model_info["prior_shift"] == report_row["prior_shift"]
     with np.load(output / "predictions" / "logreg_seed11.npz") as prediction:
         assert "test_source" in prediction.files
         assert len(prediction["test_source"]) == len(prediction["y_test"])
+        assert "p_test_raw" in prediction.files
+        assert not np.allclose(prediction["p_test"], prediction["p_test_raw"])
     changed_features = features.copy()
     changed_features[0, 0] += 1.0
     with pytest.raises(ValueError, match="feature matrix differs"):
@@ -315,6 +330,7 @@ def test_run_experiment_writes_reproducible_complete_artifacts(tmp_path) -> None
     legacy_feature.pop("feature_transform_implementation_sha256")
     legacy_feature.pop("feature_matrix")
     legacy_feature.pop("partition_feature_matrices")
+    legacy_contract["split"].pop("calibration_rows", None)
     legacy_contract["feature_contract_sha256"] = canonical_hash(legacy_feature)
     legacy_path = tmp_path / "legacy-modelinfo.json"
     legacy_path.write_text(json.dumps(legacy_info), encoding="utf-8")

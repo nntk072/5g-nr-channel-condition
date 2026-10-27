@@ -73,7 +73,8 @@
           "properties": {
             "train": { "$ref": "#/$defs/partitionMatrix" },
             "validation": { "$ref": "#/$defs/partitionMatrix" },
-            "test": { "$ref": "#/$defs/partitionMatrix" }
+            "test": { "$ref": "#/$defs/partitionMatrix" },
+            "calibration": { "$ref": "#/$defs/partitionMatrix" }
           },
           "additionalProperties": false
         },
@@ -104,7 +105,8 @@
         "indices_sha256": { "$ref": "#/$defs/sha256" },
         "train_rows": { "type": "integer", "minimum": 1 },
         "validation_rows": { "type": "integer", "minimum": 1 },
-        "test_rows": { "type": "integer", "minimum": 1 }
+        "test_rows": { "type": "integer", "minimum": 1 },
+        "calibration_rows": { "type": "integer", "minimum": 1 }
       },
       "additionalProperties": false
     }

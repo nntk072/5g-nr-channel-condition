@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.invalid/schema/evaluation/group-platt-calibrator.v1.schema.json",
+  "title": "LOS Lab group-balanced train-only Platt calibrator v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "method",
+    "slope",
+    "intercept",
+    "calibration_rows",
+    "calibration_independent_group_count",
+    "calibration_positive_prevalence",
+    "calibration_input_sha256",
+    "fit_partition",
+    "excluded_partitions"
+  ],
+  "properties": {
+    "schema": {"const": "loslab.group_platt_calibrator.v1"},
+    "method": {"const": "group_weighted_logistic_on_clipped_probability_logit_v1"},
+    "slope": {"type": "number", "exclusiveMinimum": 0},
+    "intercept": {"type": "number"},
+    "calibration_rows": {"type": "integer", "minimum": 2},
+    "calibration_independent_group_count": {"type": "integer", "minimum": 2},
+    "calibration_positive_prevalence": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1},
+    "calibration_input_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "fit_partition": {"const": "calibration"},
+    "excluded_partitions": {"const": ["validation", "test"]}
+  },
+  "additionalProperties": false
+}

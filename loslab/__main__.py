@@ -419,6 +419,7 @@ def main() -> None:
                 "split_signature_path",
                 "trusted_split_signers_path",
                 "split_signer_id",
+                "prior_shift",
             }
             unknown = set(config) - allowed
             if unknown:
@@ -445,6 +446,7 @@ def main() -> None:
                     "trusted_split_signers_path", args.split_trusted_signers
                 ),
                 "split_signer_id": config.get("split_signer_id", args.split_signer_id),
+                "prior_shift": config.get("prior_shift"),
             }
         else:
             inputs = args.input
@@ -465,6 +467,7 @@ def main() -> None:
                 "split_signature_path": args.split_signature,
                 "trusted_split_signers_path": args.split_trusted_signers,
                 "split_signer_id": args.split_signer_id,
+                "prior_shift": None,
             }
         if not inputs or not output:
             parser.error("experiment requires --input and --output, or --config with both")
