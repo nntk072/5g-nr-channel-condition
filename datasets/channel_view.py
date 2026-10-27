@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 from enum import StrEnum
+from numbers import Real
 
 import numpy as np
 
@@ -52,14 +53,17 @@ class PhysicalChannelView:
     def __post_init__(self) -> None:
         for name in ("view_id", "link_id"):
             value = getattr(self, name)
-            if not isinstance(value, str) or not value.strip():
-                raise ValueError(f"{name} must be a non-empty string")
+            if not isinstance(value, str) or not value.strip() or value != value.strip():
+                raise ValueError(f"{name} must be a non-empty canonical string")
         values = np.array(self.channel, copy=True)
         if values.ndim != 4 or not np.iscomplexobj(values) or not np.isfinite(values).all():
             raise ValueError("channel must be finite complex [frame, rx_port, tx_port, subcarrier]")
         times = canonical_time_axis(self.frame_times_s, name="frame_times_s")
         rx_ids, tx_ids = tuple(self.rx_port_ids), tuple(self.tx_port_ids)
-        if not rx_ids or not tx_ids or any(not item.strip() for item in (*rx_ids, *tx_ids)):
+        if not rx_ids or not tx_ids or any(
+            not isinstance(item, str) or not item.strip() or item != item.strip()
+            for item in (*rx_ids, *tx_ids)
+        ):
             raise ValueError("rx_port_ids and tx_port_ids must be non-empty strings")
         if len(set(rx_ids)) != len(rx_ids) or len(set(tx_ids)) != len(tx_ids):
             raise ValueError("port IDs must be unique within each link endpoint")
@@ -75,7 +79,10 @@ class PhysicalChannelView:
         valid = np.array(raw_valid, dtype=np.bool_, copy=True)
         if np.any(values[~valid] != 0.0):
             raise ValueError("masked channel elements must use zero storage")
-        frequencies = np.array(self.subcarrier_offsets_hz, dtype=np.float64, copy=True)
+        raw_frequencies = np.asarray(self.subcarrier_offsets_hz)
+        if raw_frequencies.dtype.kind not in "iuf":
+            raise TypeError("subcarrier_offsets_hz must use a real numeric dtype")
+        frequencies = np.array(raw_frequencies, dtype=np.float64, copy=True)
         if frequencies.shape != (values.shape[-1],) or not np.isfinite(frequencies).all():
             raise ValueError("subcarrier_offsets_hz must map the complete final channel axis")
         if (
@@ -84,7 +91,10 @@ class PhysicalChannelView:
             or not np.any(frequencies == 0)
         ):
             raise ValueError("baseband offsets must be strictly increasing and include DC")
-        if not math.isfinite(self.carrier_hz) or self.carrier_hz <= 0:
+        if isinstance(self.carrier_hz, bool) or not isinstance(self.carrier_hz, Real):
+            raise TypeError("carrier_hz must be a real numeric scalar")
+        carrier_hz = float(self.carrier_hz)
+        if not math.isfinite(carrier_hz) or carrier_hz <= 0:
             raise ValueError("carrier_hz must be finite and positive")
         if not isinstance(self.delay_reference, ChannelDelayReference):
             raise TypeError("delay_reference must use ChannelDelayReference")
@@ -106,6 +116,7 @@ class PhysicalChannelView:
         object.__setattr__(self, "frame_times_s", times)
         object.__setattr__(self, "rx_port_ids", rx_ids)
         object.__setattr__(self, "tx_port_ids", tx_ids)
+        object.__setattr__(self, "carrier_hz", carrier_hz)
         object.__setattr__(self, "subcarrier_offsets_hz", frequencies)
         object.__setattr__(self, "axes", tuple(self.axes))
 

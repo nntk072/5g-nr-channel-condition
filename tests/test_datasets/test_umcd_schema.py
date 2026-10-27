@@ -520,6 +520,28 @@ def test_physical_channel_view_rejects_coercible_timestamp_strings():
         replace(channel, frame_times_s=("0.0",))
 
 
+@pytest.mark.parametrize(
+    "frequencies",
+    (
+        np.asarray([True, True, True]),
+        np.asarray(["-1", "0", "1"]),
+        np.asarray([-1.0, 0.0, 1.0], dtype=object),
+        np.asarray([-1.0 + 0j, 0.0 + 0j, 1.0 + 0j]),
+    ),
+)
+def test_physical_channel_view_rejects_coercible_non_real_frequency_axes(frequencies):
+    channel = _bundle().channel_views[0]
+    with pytest.raises(TypeError, match="real numeric dtype"):
+        replace(channel, subcarrier_offsets_hz=frequencies)
+
+
+@pytest.mark.parametrize("carrier", (True, "3.5e9", 3.5e9 + 0j))
+def test_physical_channel_view_rejects_non_real_carrier_scalars(carrier):
+    channel = _bundle().channel_views[0]
+    with pytest.raises(TypeError, match="real numeric scalar"):
+        replace(channel, carrier_hz=carrier)
+
+
 def test_target_values_require_definition_hash_and_reasoned_element_masks():
     fields = {
         "semantic": "rms_delay_spread",
