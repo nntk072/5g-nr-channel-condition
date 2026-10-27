@@ -70,11 +70,15 @@ def test_network_waveform_reaches_pusch_decoder_with_bound_inputs_and_status():
     torch.testing.assert_close(receiver.noise_variance, torch.tensor([[[0.04]]]))
     assert result.received_grid.shape == (1, 1, 1, 2, 4)
     assert bool(result.crc_ok.all())
-    assert result.report["schema"] == "umcd.network_pusch_receiver_decode.v2"
+    assert result.report["schema"] == "umcd.network_pusch_receiver_decode.v3"
     assert result.report["status"] == "OBSERVED_NOT_QUALIFIED"
     assert result.report["receiver_noise_convention"] == "watts_per_resource_element"
     assert result.report["noise_variance_conversion"] == "caller_supplied_per_re_variance_v1"
     assert result.report["shape"]["transport_blocks"] == 1
+    cp_diagnostic = result.report["declared_fir_cp_diagnostic"]
+    assert cp_diagnostic["maximum_fir_memory_samples"] == 0
+    assert cp_diagnostic["exceeds_cyclic_prefix"] is False
+    assert cp_diagnostic["interpretation"].endswith("OR_QUALIFICATION")
     assert len(result.report["report_sha256"]) == 64
     report_body = dict(result.report)
     report_sha256 = report_body.pop("report_sha256")
@@ -84,6 +88,35 @@ def test_network_waveform_reaches_pusch_decoder_with_bound_inputs_and_status():
             json.dumps(report_body, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
         ).hexdigest()
     )
+
+
+def test_network_receiver_reports_declared_fir_memory_relative_to_cyclic_prefix():
+    links = torch.ones((1, 1, 1, 1, 8), dtype=torch.complex64)
+    composition = compose_received_waveforms(
+        links,
+        link_start_samples=((0,),),
+        capture_num_samples=8,
+        sample_rate_hz=4.0,
+        link_filter_taps=torch.tensor([[[1.0 + 0j, 0.0 + 0j, 0.5 + 0j]]]),
+    )
+    noisy = add_independent_receiver_waveform_awgn(composition, (0.02,), seed=19)
+    receiver = _FakePUSCHReceiver()
+
+    result = decode_noisy_network_pusch(
+        composition,
+        noisy,
+        receiver,
+        noise_variance_w_per_re=(0.04,),
+    )
+
+    diagnostic = result.report["declared_fir_cp_diagnostic"]
+    assert diagnostic["per_receiver_link_support"] == [
+        [{"first_nonzero_tap": 0, "last_nonzero_tap": 2, "memory_samples": 2}]
+    ]
+    assert diagnostic["maximum_fir_memory_samples"] == 2
+    assert diagnostic["cyclic_prefix_samples"] == 0
+    assert diagnostic["exceeds_cyclic_prefix"] is True
+    assert len(diagnostic["filter_taps_sha256"]) == 64
 
 
 def test_network_receiver_rejects_broken_source_sum_and_noise_lineage_before_decode():

@@ -6,8 +6,14 @@ existing Sionna PUSCH demodulator/decoder. It checks that per-link contributions
 sum to the clean capture, that the noisy capture equals clean capture plus the
 retained noise samples, and that the sample rate matches the configured FFT
 grid. The exact input/output tensor digests, receiver metadata digest, device,
-dimensions, and CRC totals are retained in a schema-validated v2 report. The
-previously published v1 schema remains unchanged.
+dimensions, and CRC totals are retained in a schema-validated v3 report. The
+report also records the nonzero support and memory of each declared causal
+per-link FIR relative to the receiver's configured cyclic prefix, bound to the
+exact tap tensor digest. This is explicitly a filter-support diagnostic only:
+it excludes link start offsets, fractional-delay interpolation support, and
+receiver acquisition, so it does not establish total channel memory, ISI, or
+receiver qualification. The previously published v1 and v2 schemas remain
+unchanged.
 
 For the pinned Sionna PHY 2.2.0 receiver, the adapter converts sample-domain
 variance to per-RE variance using the unitary FFT identity. Sionna applies
@@ -61,4 +67,4 @@ The receiver API and native V100 smoke prove software-path integration for one
 small synthetic PUSCH configuration only. Reports remain
 `OBSERVED_NOT_QUALIFIED`; no field or deployment qualification follows. The
 strict report contract is
-`datasets/schema/network-pusch-receiver-decode.v2.schema.json`.
+`datasets/schema/network-pusch-receiver-decode.v3.schema.json`.

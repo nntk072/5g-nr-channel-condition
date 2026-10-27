@@ -227,6 +227,50 @@ def decode_noisy_network_pusch(
         raise ValueError(
             "network waveform sample count must exactly match the configured full-slot OFDM grid"
         )
+
+    # This is a narrow audit of the explicitly supplied causal FIRs. It does
+    # not claim the total propagation delay spread or receiver timing offset:
+    # link arrival offsets, fractional-delay interpolation, and acquisition
+    # remain separate inputs to an end-to-end CP/ISI experiment.
+    filter_taps = composition.link_filter_taps
+    if filter_taps is None:
+        fir_support = torch.ones(
+            (rx_count, contributions.shape[3], 1), dtype=received.dtype, device=received.device
+        )
+    else:
+        if (
+            not torch.is_tensor(filter_taps)
+            or not torch.is_complex(filter_taps)
+            or filter_taps.ndim != 3
+            or tuple(filter_taps.shape[:2]) != (rx_count, contributions.shape[3])
+            or filter_taps.shape[2] < 1
+            or not bool(torch.isfinite(filter_taps).all())
+        ):
+            raise ValueError("link FIR taps must be finite complex [rx, tx, tap] values")
+        fir_support = filter_taps
+    fir_support = fir_support.to(device=received.device)
+    fir_support_by_link: list[list[dict[str, int]]] = []
+    maximum_fir_memory_samples = 0
+    for rx_index in range(rx_count):
+        receiver_support: list[dict[str, int]] = []
+        for tx_index in range(contributions.shape[3]):
+            active_taps = torch.nonzero(fir_support[rx_index, tx_index] != 0).reshape(-1)
+            if active_taps.numel() == 0:
+                first_tap = last_tap = -1
+                memory_samples = 0
+            else:
+                first_tap = int(active_taps[0].item())
+                last_tap = int(active_taps[-1].item())
+                memory_samples = last_tap - first_tap
+            maximum_fir_memory_samples = max(maximum_fir_memory_samples, memory_samples)
+            receiver_support.append(
+                {
+                    "first_nonzero_tap": first_tap,
+                    "last_nonzero_tap": last_tap,
+                    "memory_samples": memory_samples,
+                }
+            )
+        fir_support_by_link.append(receiver_support)
     estimated_grid_elements = batch * rx_count * rx_ports * symbol_count * fft_size
     if estimated_grid_elements + sum(value.numel() for value in tensors) > max_tensor_elements:
         raise ValueError("network waveform and demodulated grid exceed max_tensor_elements")
@@ -278,7 +322,7 @@ def decode_noisy_network_pusch(
         raise ValueError("PUSCH receiver outputs exceed max_tensor_elements")
 
     report: dict[str, Any] = {
-        "schema": "umcd.network_pusch_receiver_decode.v2",
+        "schema": "umcd.network_pusch_receiver_decode.v3",
         "status": "OBSERVED_NOT_QUALIFIED",
         "implementation_sha256": hashlib.sha256(
             inspect.getsource(decode_noisy_network_pusch).encode("utf-8")
@@ -288,8 +332,18 @@ def decode_noisy_network_pusch(
         "sample_rate_hz": float(composition.sample_rate_hz),
         "receiver_noise_convention": "watts_per_resource_element",
         "noise_variance_conversion": noise_conversion,
+        "declared_fir_cp_diagnostic": {
+            "method": "declared_causal_fir_nonzero_support_v1",
+            "interpretation": "DECLARED_FILTER_SUPPORT_ONLY_NOT_TOTAL_CHANNEL_MEMORY_OR_QUALIFICATION",
+            "cyclic_prefix_samples": int(cyclic_prefix_samples),
+            "per_receiver_link_support": fir_support_by_link,
+            "maximum_fir_memory_samples": maximum_fir_memory_samples,
+            "exceeds_cyclic_prefix": maximum_fir_memory_samples > cyclic_prefix_samples,
+            "filter_taps_sha256": _tensor_sha256(torch, fir_support),
+        },
         "limitations": [
             "synchronization and acquisition are caller-controlled",
+            "declared FIR support excludes link arrival offsets and fractional-delay interpolation",
             "synthetic decoder outcomes are not receiver qualification",
         ],
         "input_sha256": {
@@ -317,7 +371,7 @@ def decode_noisy_network_pusch(
         },
     }
     schema_path = Path(__file__).resolve().parents[2] / (
-        "datasets/schema/network-pusch-receiver-decode.v2.schema.json"
+        "datasets/schema/network-pusch-receiver-decode.v3.schema.json"
     )
     schema_bytes = schema_path.read_bytes()
     schema = json.loads(schema_bytes.decode("utf-8"))
