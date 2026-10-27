@@ -703,7 +703,11 @@ def test_estimator_curve_comparison_rejects_unmatched_channel_truth(tmp_path):
         **common,
         "configuration": {
             **common["configuration"],
-            "channel_estimator": {"kind": "sionna_ls"},
+            "channel_estimator": {
+                "kind": "sionna_ls",
+                "min_delay_samples": None,
+                "max_delay_samples": None,
+            },
         },
     }
     treatment_checks = [
@@ -714,7 +718,11 @@ def test_estimator_curve_comparison_rejects_unmatched_channel_truth(tmp_path):
         **common,
         "configuration": {
             **common["configuration"],
-            "channel_estimator": {"kind": "finite_delay_dft"},
+            "channel_estimator": {
+                "kind": "finite_delay_dft",
+                "min_delay_samples": 0,
+                "max_delay_samples": 7,
+            },
             "matched_realization_checks": treatment_checks,
         },
     }
