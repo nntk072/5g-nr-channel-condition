@@ -1528,9 +1528,12 @@ def audit_channel_datasets(
     ):
         raise ValueError("split child rosters must be (child_kind, path) pairs")
     child_roster_kinds = [kind for kind, _ in split_child_rosters]
-    if any(not isinstance(kind, str) or not kind.strip() for kind in child_roster_kinds):
-        raise ValueError("split child roster kinds must be nonempty strings")
-    if len(set(kind.strip() for kind in child_roster_kinds)) != len(child_roster_kinds):
+    if any(
+        not isinstance(kind, str) or not kind or kind != kind.strip()
+        for kind in child_roster_kinds
+    ):
+        raise ValueError("split child roster kinds must be canonical nonempty strings")
+    if len(set(child_roster_kinds)) != len(child_roster_kinds):
         raise ValueError("split child roster kinds must be unique")
     if any(
         not isinstance(entry, (tuple, list)) or len(entry) != 2
@@ -1538,9 +1541,12 @@ def audit_channel_datasets(
     ):
         raise ValueError("split child artifact rosters must be (child_kind, path) pairs")
     child_artifact_kinds = [kind for kind, _ in split_child_artifact_rosters]
-    if any(not isinstance(kind, str) or not kind.strip() for kind in child_artifact_kinds):
-        raise ValueError("split child artifact roster kinds must be nonempty strings")
-    if len(set(kind.strip() for kind in child_artifact_kinds)) != len(child_artifact_kinds):
+    if any(
+        not isinstance(kind, str) or not kind or kind != kind.strip()
+        for kind in child_artifact_kinds
+    ):
+        raise ValueError("split child artifact roster kinds must be canonical nonempty strings")
+    if len(set(child_artifact_kinds)) != len(child_artifact_kinds):
         raise ValueError("split child artifact roster kinds must be unique")
     if legacy_scene_assets_manifest is not None and not derive_legacy_rt_split_identities:
         raise ValueError(
@@ -1754,7 +1760,7 @@ def audit_channel_datasets(
         child_artifact_reports: list[dict[str, Any]] = []
         if split_child_rosters:
             expected_kinds = {binding.child_kind for binding in registry.child_bindings.values()}
-            supplied_kinds = {kind.strip() for kind in child_roster_kinds}
+            supplied_kinds = set(child_roster_kinds)
             if supplied_kinds != expected_kinds:
                 raise ValueError(
                     "split child roster files must cover every frozen child kind "
@@ -1762,22 +1768,22 @@ def audit_channel_datasets(
                     f"extra={sorted(supplied_kinds - expected_kinds)})"
                 )
             for child_kind, roster_path in sorted(
-                split_child_rosters, key=lambda item: item[0].strip()
+                split_child_rosters, key=lambda item: item[0]
             ):
                 bindings, roster_metadata = _load_split_child_roster(
-                    roster_path, expected_child_kind=child_kind.strip()
+                    roster_path, expected_child_kind=child_kind
                 )
                 child_roster_reports.append(
                     {
                         **roster_metadata,
                         "audit": audit_split_policy_child_roster(
-                            registry, bindings, child_kind=child_kind.strip()
+                            registry, bindings, child_kind=child_kind
                         ),
                     }
                 )
         if split_child_artifact_rosters:
             expected_kinds = {binding.child_kind for binding in registry.child_bindings.values()}
-            supplied_kinds = {kind.strip() for kind in child_artifact_kinds}
+            supplied_kinds = set(child_artifact_kinds)
             if supplied_kinds != expected_kinds:
                 raise ValueError(
                     "split child artifact roster files must cover every frozen child kind "
@@ -1785,7 +1791,7 @@ def audit_channel_datasets(
                     f"extra={sorted(supplied_kinds - expected_kinds)})"
                 )
             for child_kind, artifact_roster_path in sorted(
-                split_child_artifact_rosters, key=lambda item: item[0].strip()
+                split_child_artifact_rosters, key=lambda item: item[0]
             ):
                 assert trusted_split_allowed_signers is not None
                 assert split_registry_signer_id is not None
@@ -1800,12 +1806,12 @@ def audit_channel_datasets(
                 expected_child_bindings = {
                     child_id: binding
                     for child_id, binding in registry.child_bindings.items()
-                    if binding.child_kind == child_kind.strip()
+                    if binding.child_kind == child_kind
                 }
                 child_artifact_reports.append(
                     _load_split_child_artifact_roster(
                         artifact_roster_path,
-                        expected_child_kind=child_kind.strip(),
+                        expected_child_kind=child_kind,
                         expected_child_bindings=expected_child_bindings,
                         verified_artifact=verified_roster,
                         split_registry=registry,
@@ -1841,9 +1847,9 @@ def audit_channel_datasets(
             binding.child_kind for binding in registry.child_bindings.values()
         }
         if require_complete_split_audit:
-            supplied_binding_kinds = {kind.strip() for kind, _ in split_child_rosters}
+            supplied_binding_kinds = {kind for kind, _ in split_child_rosters}
             supplied_artifact_kinds = {
-                kind.strip() for kind, _ in split_child_artifact_rosters
+                kind for kind, _ in split_child_artifact_rosters
             }
             if supplied_binding_kinds != expected_child_kinds:
                 raise ValueError(
@@ -1941,7 +1947,9 @@ def _parse_split_child_roster(value: str) -> tuple[str, Path]:
     child_kind, separator, path = value.partition("=")
     if not separator or not child_kind.strip() or not path.strip():
         raise argparse.ArgumentTypeError("split child roster must be KIND=PATH")
-    return child_kind.strip(), Path(path)
+    if child_kind != child_kind.strip():
+        raise argparse.ArgumentTypeError("split child roster KIND must be canonical (no padding)")
+    return child_kind, Path(path)
 
 
 def main() -> None:

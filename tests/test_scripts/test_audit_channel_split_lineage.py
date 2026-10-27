@@ -195,9 +195,40 @@ def _write_child_roster(path: Path, child_kind: str, bindings: list[SplitChildBi
 def test_split_child_roster_cli_parser_requires_kind_and_path(tmp_path) -> None:
     parsed = _parse_split_child_roster(f"receiver_observation={tmp_path / 'roster.json'}")
     assert parsed == ("receiver_observation", tmp_path / "roster.json")
-    for malformed in ("=roster.json", "receiver_observation=", "receiver_observation"):
-        with pytest.raises(argparse.ArgumentTypeError, match="KIND=PATH"):
+    for malformed in (
+        "=roster.json",
+        "receiver_observation=",
+        "receiver_observation",
+        " receiver_observation=roster.json",
+        "receiver_observation =roster.json",
+    ):
+        with pytest.raises(argparse.ArgumentTypeError, match="KIND=PATH|canonical"):
             _parse_split_child_roster(malformed)
+
+
+@pytest.mark.parametrize(
+    "roster_argument", ["split_child_rosters", "split_child_artifact_rosters"]
+)
+def test_split_child_roster_api_rejects_padded_kind_before_reading_inputs(
+    roster_argument: str, tmp_path: Path
+) -> None:
+    dataset_path = tmp_path / "dataset.npz"
+    _write_dataset(dataset_path, "parent", 0.0, "a" * 64)
+    kwargs = {roster_argument: ((" receiver_observation ", tmp_path / "unused.json"),)}
+    if roster_argument == "split_child_artifact_rosters":
+        kwargs["split_child_rosters"] = (
+            ("receiver_observation", tmp_path / "unused-bindings.json"),
+        )
+    with pytest.raises(ValueError, match="kinds must be canonical nonempty strings"):
+        audit_channel_datasets(
+            [("dataset", dataset_path)],
+            spatial_buffer_m=0.0,
+            split_registry_path=tmp_path / "unused-registry.json",
+            split_registry_signature=tmp_path / "unused-registry.json.sig",
+            trusted_split_allowed_signers=tmp_path / "unused-allowed-signers",
+            split_registry_signer_id="reviewer@example.org",
+            **kwargs,
+        )
 
 
 def test_child_artifact_roster_schema_and_cli_contract(tmp_path) -> None:
