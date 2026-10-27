@@ -23,7 +23,7 @@ from integrations.sionna.standardized_pusch import (  # noqa: E402
 from receivers.nr import NRPUSCHConfig  # noqa: E402
 
 
-def _standardized_run(family: StandardizedFamily):
+def _standardized_run(family: StandardizedFamily, *, device: str = "cpu"):
     if family is StandardizedFamily.TDL:
         from integrations.sionna.tdl import generate_tdl_frequency_response
 
@@ -35,6 +35,7 @@ def _standardized_run(family: StandardizedFamily):
             num_subcarriers=128,
             delay_spread_s=100e-9,
             batch_size=2,
+            device=device,
         )
     else:
         from integrations.sionna.cdl import generate_cdl_frequency_response
@@ -47,6 +48,7 @@ def _standardized_run(family: StandardizedFamily):
             num_subcarriers=128,
             delay_spread_s=100e-9,
             batch_size=2,
+            device=device,
         )
     return standardized_run_from_channel(channel, family=family)
 
@@ -264,9 +266,9 @@ def test_standardized_time_domain_tdl_pusch_decodes_with_dmrs_estimate_on_device
         audit_standardized_pusch_records_for_diagnostic,
     )
 
-    run = _standardized_run(StandardizedFamily.TDL)
     if device.startswith("cuda") and not torch.cuda.is_available():
         pytest.skip("CUDA is unavailable")
+    run = _standardized_run(StandardizedFamily.TDL, device=device)
     config = NRPUSCHConfig(n_size_bwp=n_size_bwp, subcarrier_spacing_khz=30)
     record = build_standardized_pusch_dmrs_records(
         run,
