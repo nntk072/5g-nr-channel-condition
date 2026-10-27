@@ -41,6 +41,7 @@ from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 from scripts.audit_channel_split_lineage import (
     _CHILD_ARTIFACT_ROSTER_SIGNATURE_NAMESPACE,
     _load_split_child_artifact_roster,
+    _parse_dataset,
     _parse_split_child_roster,
     _read_channel_dataset_child_rows,
     _read_stable_regular_file,
@@ -204,6 +205,14 @@ def test_split_child_roster_cli_parser_requires_kind_and_path(tmp_path) -> None:
     ):
         with pytest.raises(argparse.ArgumentTypeError, match="KIND=PATH|canonical"):
             _parse_split_child_roster(malformed)
+
+
+def test_dataset_cli_parser_rejects_padded_names(tmp_path: Path) -> None:
+    parsed = _parse_dataset(f"dataset={tmp_path / 'run.npz'}")
+    assert parsed == ("dataset", tmp_path / "run.npz")
+    for malformed in (" dataset=run.npz", "dataset =run.npz"):
+        with pytest.raises(argparse.ArgumentTypeError, match="canonical"):
+            _parse_dataset(malformed)
 
 
 @pytest.mark.parametrize(
@@ -1662,6 +1671,8 @@ def test_audit_rejects_duplicate_names_and_missing_lineage(tmp_path) -> None:
 
     with pytest.raises(ValueError, match="duplicate channel dataset name"):
         audit_channel_datasets([("same", path), ("same", path)], spatial_buffer_m=0.0)
+    with pytest.raises(ValueError, match="dataset names must be canonical nonempty strings"):
+        audit_channel_datasets([(" run ", path)], spatial_buffer_m=0.0)
 
     dataset = ChannelDataset.load(path)
     metadata = dict(dataset.metadata[0])

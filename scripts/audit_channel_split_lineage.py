@@ -1580,7 +1580,7 @@ def audit_channel_datasets(
         declared_inventory, inventory_metadata = _load_frozen_inventory(
             inventory_manifest, verified_artifact
         )
-        actual_names = {name.strip() for name, _ in inputs if isinstance(name, str)}
+        actual_names = {name for name, _ in inputs if isinstance(name, str)}
         if actual_names != set(declared_inventory):
             missing = sorted(set(declared_inventory) - actual_names)
             extra = sorted(actual_names - set(declared_inventory))
@@ -1594,7 +1594,7 @@ def audit_channel_datasets(
         reconstructed_assets, reconstruction_metadata = _load_legacy_asset_reconstruction(
             legacy_scene_assets_manifest
         )
-        actual_names = {name.strip() for name, _ in inputs if isinstance(name, str)}
+        actual_names = {name for name, _ in inputs if isinstance(name, str)}
         if actual_names != set(reconstructed_assets):
             missing = sorted(set(reconstructed_assets) - actual_names)
             extra = sorted(actual_names - set(reconstructed_assets))
@@ -1609,9 +1609,9 @@ def audit_channel_datasets(
     migrated_rows = 0
     seen_names: set[str] = set()
     for name, path in inputs:
-        if not isinstance(name, str) or not name.strip():
-            raise ValueError("dataset names must be nonempty strings")
-        normalized_name = name.strip()
+        if not isinstance(name, str) or not name or name != name.strip():
+            raise ValueError("dataset names must be canonical nonempty strings")
+        normalized_name = name
         if normalized_name in seen_names:
             raise ValueError(f"duplicate channel dataset name: {normalized_name}")
         seen_names.add(normalized_name)
@@ -1940,7 +1940,9 @@ def _parse_dataset(value: str) -> tuple[str, Path]:
     name, separator, path = value.partition("=")
     if not separator or not name.strip() or not path.strip():
         raise argparse.ArgumentTypeError("dataset must be NAME=PATH")
-    return name.strip(), Path(path)
+    if name != name.strip():
+        raise argparse.ArgumentTypeError("dataset NAME must be canonical (no padding)")
+    return name, Path(path)
 
 
 def _parse_split_child_roster(value: str) -> tuple[str, Path]:
