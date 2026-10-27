@@ -121,6 +121,26 @@ def scalable_tdl_first_tap_power_components(model: str) -> tuple[float, float]:
     return first_tap_diffuse / total_power, first_tap_specular / total_power
 
 
+def scalable_tdl_rayleigh_tap_indices(model: str) -> tuple[int, ...]:
+    """Map ETSI-labeled diffuse components to native Sionna path axes.
+
+    TDL-D/E merge the coincident zero-delay LOS and diffuse terms into one
+    native tap, so that aggregate tap is omitted from Rayleigh-only checks.
+    """
+    if not isinstance(model, str) or model not in _PROFILE_MODELS:
+        raise ValueError("model must name a scalable TDL profile A, B, C, D, or E")
+    components = _load_profiles()[model]
+    has_los = any(distribution == "LOS" for _, _, distribution in components)
+    result = tuple(
+        index - (2 if has_los else 1)
+        for index, (_, _, distribution) in enumerate(components, start=1)
+        if distribution == "Rayleigh" and not (has_los and index - 2 == 0)
+    )
+    if not result or any(index < 0 for index in result):
+        raise ValueError(f"scalable TDL-{model} has no valid diffuse native tap roster")
+    return result
+
+
 @lru_cache(maxsize=1)
 def _load_fixed_profiles() -> dict[str, tuple[tuple[int, float, str], ...]]:
     payload = _FIXED_REFERENCE_PATH.read_bytes()
@@ -144,7 +164,11 @@ def _load_fixed_profiles() -> dict[str, tuple[tuple[int, float, str], ...]]:
             raise ValueError("fixed-TDL profile row must be an object")
         model = row.get("profile_model")
         components = row.get("components")
-        if model not in _FIXED_PROFILE_MODELS or model in result or not isinstance(components, list):
+        if (
+            model not in _FIXED_PROFILE_MODELS
+            or model in result
+            or not isinstance(components, list)
+        ):
             raise ValueError("fixed-TDL profile roster is invalid")
         parsed: list[tuple[int, float, str]] = []
         for index, component in enumerate(components, start=1):
