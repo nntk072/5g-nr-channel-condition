@@ -354,6 +354,46 @@ def test_path_interaction_trace_rejects_partial_or_misaligned_geometry():
 
 
 @pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("aoa_azimuth_elevation_rad", np.asarray([[True, False]])),
+        ("aod_azimuth_elevation_rad", np.asarray([["0.0", "0.0"]])),
+        ("aoa_azimuth_elevation_rad", np.asarray([[0.0, 0.0]], dtype=object)),
+        ("aod_azimuth_elevation_rad", np.asarray([[0.0 + 1j, 0.0 + 0j]])),
+        ("interaction_vertices_m", np.asarray([[True, False, True]])),
+        ("interaction_vertices_m", np.asarray([["1", "2", "3"]])),
+        ("interaction_vertices_m", np.asarray([[1.0, 2.0, 3.0]], dtype=object)),
+        ("interaction_vertices_m", np.asarray([[1.0 + 1j, 2.0, 3.0]])),
+    ],
+)
+def test_path_oracle_rejects_non_real_numeric_angle_and_vertex_dtypes(field, value):
+    arguments = {
+        "link_ids": ("link-1",),
+        "frame_indices": np.asarray([0]),
+        "rx_port_indices": np.asarray([0]),
+        "tx_port_indices": np.asarray([0]),
+        "path_offsets": np.asarray([0, 1]),
+        "solve_status": (PathSolveStatus.SOLVED,),
+        "delay_s": np.asarray([1e-9]),
+        "complex_gain": np.asarray([1.0 + 0j]),
+        "interaction_order": np.asarray([0 if field != "interaction_vertices_m" else 1]),
+    }
+    if field == "interaction_vertices_m":
+        arguments.update(
+            {
+                "interaction_offsets": np.asarray([0, 1]),
+                "interaction_types": np.asarray([1]),
+                "object_ids": np.asarray([0]),
+                "primitive_ids": np.asarray([0]),
+                "interaction_vertex_frame": "scene_xyz_m",
+            }
+        )
+
+    with pytest.raises(TypeError, match="real numeric dtype"):
+        PathOracleTable(**arguments, **{field: value})
+
+
+@pytest.mark.parametrize(
     ("change", "message"),
     [
         ({"link_ids": (" link-1",)}, "canonical link IDs"),

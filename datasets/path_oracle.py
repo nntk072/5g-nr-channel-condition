@@ -180,7 +180,10 @@ class PathOracleTable:
             primitive_ids = _freeze_vector(
                 np.asarray(self.primitive_ids), name="primitive_ids", dtype=np.dtype(np.int64)
             )
-            vertices = np.array(self.interaction_vertices_m, dtype=np.float64, copy=True)
+            raw_vertices = np.asarray(self.interaction_vertices_m)
+            if raw_vertices.dtype.kind not in "iuf":
+                raise TypeError("interaction_vertices_m must use a real numeric dtype")
+            vertices = np.array(raw_vertices, dtype=np.float64, copy=True)
             if any(
                 len(values) != interaction_count
                 for values in (interaction_types, object_ids, primitive_ids)
@@ -257,7 +260,10 @@ class PathOracleTable:
     def _optional_angles(value: np.ndarray | None, *, name: str, count: int) -> np.ndarray | None:
         if value is None:
             return None
-        array = np.array(value, dtype=np.float64, copy=True)
+        raw = np.asarray(value)
+        if raw.dtype.kind not in "iuf":
+            raise TypeError(f"{name} must use a real numeric dtype")
+        array = np.array(raw, dtype=np.float64, copy=True)
         if array.shape != (count, 2) or not np.isfinite(array).all():
             raise ValueError(f"{name} must have finite shape [path, azimuth/elevation]")
         if np.any(array[:, 0] < -np.pi) or np.any(array[:, 0] > np.pi):
