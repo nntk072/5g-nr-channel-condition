@@ -75,6 +75,7 @@ _MODEL_FEATURE_ROUTES = {
     "power_only": ("observed_cfr", "log_power_per_link_subcarrier_v1"),
     "phase_randomized": ("observed_cfr", "iid_phase_randomized_flattened_real_imag_cfr_v1"),
     "observable_features": ("observed_cfr", "logmag_pdp_moments_v1"),
+    "oracle_label_leak": ("data.y", "direct_binary_target_as_feature_leak_v1"),
 }
 _MODEL_METHODS = frozenset(
     {
@@ -89,6 +90,7 @@ _MODEL_METHODS = frozenset(
         "metadata_only",
         "power_only",
         "phase_randomized",
+        "oracle_label_leak",
         "logreg",
         "cnn",
         "cvnn",
@@ -427,6 +429,32 @@ def _metadata_only_features(
     return features, transform
 
 
+def _oracle_label_leak_features(
+    target_values: np.ndarray,
+) -> tuple[np.ndarray, dict[str, Any]]:
+    """Expose the binary target as an input for an explicitly leaking control."""
+    labels = np.asarray(target_values)
+    if (
+        labels.ndim != 1
+        or not len(labels)
+        or not np.issubdtype(labels.dtype, np.integer)
+        or np.issubdtype(labels.dtype, np.bool_)
+        or not np.isin(labels, (0, 1)).all()
+    ):
+        raise ValueError("oracle-label leakage requires a nonempty binary integer target vector")
+    features = np.eye(2, dtype=np.float32)[labels.astype(np.int64, copy=False)]
+    transform = {
+        "schema": "loslab.intentional_label_leakage.v1",
+        "status": "INTENTIONAL",
+        "source_field": "data.y",
+        "purpose": "evaluator_ceiling_and_leakage_detection_only",
+        "deployment_eligible": False,
+        "source_targets_sha256": _array_sha256(labels),
+        "leaked_features_sha256": _array_sha256(features),
+    }
+    return features, transform
+
+
 def _array_sha256(array: np.ndarray) -> str:
     value = np.ascontiguousarray(array)
     header = json.dumps(
@@ -455,6 +483,8 @@ def _feature_transform_implementation_sha256(method: str) -> str:
         transform = _log_power_per_link_subcarrier
     elif method == "phase_randomized":
         transform = _phase_randomized_real_imag_cfr
+    elif method == "oracle_label_leak":
+        transform = _oracle_label_leak_features
     else:
         transform = observable_features
     return hashlib.sha256(inspect.getsource(transform).encode("utf-8")).hexdigest()
@@ -551,6 +581,9 @@ def build_model_input_artifact_contract(
         method, ("observed_cfr", "logmag_pdp_moments_v1")
     )
     input_contract_version = (
+        "v9"
+        if method == "oracle_label_leak"
+        else
         "v8"
         if method == "metadata_only"
         else "v7"
@@ -570,11 +603,13 @@ def build_model_input_artifact_contract(
         "method": method,
         "source_dataclass": (
             "datasets.channel.ChannelDataset"
-            if method in {"source_only", "metadata_only"}
+            if method in {"source_only", "metadata_only", "oracle_label_leak"}
             else "datasets.channel.ChannelModelInputs"
         ),
         "allowed_source_fields": (
-            ["group", "domain", "source"] if method == "metadata_only" else [source_feature]
+            ["group", "domain", "source"]
+            if method == "metadata_only"
+            else [source_feature]
         ),
         "excluded_truth_and_metadata_fields": (
             [
@@ -596,6 +631,16 @@ def build_model_input_artifact_contract(
             ]
             if method == "metadata_only"
             else [
+                "data.metadata",
+                "data.group",
+                "data.domain",
+                "data.source",
+                "observed_cfr",
+                "PathOracleTable",
+                "target_values",
+            ]
+            if method == "oracle_label_leak"
+            else [
                 "data.y",
                 "data.metadata",
                 "data.group",
@@ -604,7 +649,11 @@ def build_model_input_artifact_contract(
                 "target_values",
             ]
         ),
-        "target_field_used_for_supervision_only": "data.y",
+        "target_field_used_for_supervision_only": (
+            "data.y (also intentionally leaked as a feature)"
+            if method == "oracle_label_leak"
+            else "data.y"
+        ),
         "feature_transform": transform,
         "feature_transform_implementation_sha256": _feature_transform_implementation_sha256(method),
         "include_phase": bool(include_phase) if transform == "logmag_pdp_moments_v1" else None,
@@ -644,12 +693,26 @@ def build_model_input_artifact_contract(
             run_seed=label_permutation_run_seed,
             base_seed=label_permutation_seed,
         )
+    elif method == "oracle_label_leak":
+        if (
+            target_values is None
+            or not isinstance(target_values, np.ndarray)
+            or target_values.ndim != 1
+            or len(target_values) != len(method_input)
+            or label_permutation_seed is not None
+            or label_permutation_run_seed is not None
+        ):
+            raise ValueError("oracle-label leakage contract requires the exact full target roster")
+        expected_features, leakage_contract = _oracle_label_leak_features(target_values)
+        if not np.array_equal(expected_features, method_input):
+            raise ValueError("oracle-label input differs from the declared target leakage transform")
+        feature_contract["intentional_label_leakage"] = leakage_contract
     elif (
         target_values is not None
         or label_permutation_seed is not None
         or label_permutation_run_seed is not None
     ):
-        raise ValueError("target permutation inputs are only valid for the label_permuted method")
+        raise ValueError("target values or permutation seeds are invalid for this model-input method")
     if method == "row_shuffled":
         if (
             not isinstance(source_method_input, np.ndarray)
@@ -782,6 +845,7 @@ def verify_model_input_artifact_contract(
         "loslab.model_input_artifact_contract.v6": "v6",
         "loslab.model_input_artifact_contract.v7": "v7",
         "loslab.model_input_artifact_contract.v8": "v8",
+        "loslab.model_input_artifact_contract.v9": "v9",
     }.get(contract_schema)
     if schema_version is None:
         raise ValueError("model input artifact contract schema is unsupported")
@@ -832,6 +896,7 @@ def verify_model_input_artifact_contract(
         "loslab.model_input_artifact_contract.v6",
         "loslab.model_input_artifact_contract.v7",
         "loslab.model_input_artifact_contract.v8",
+        "loslab.model_input_artifact_contract.v9",
     }:
         expected_feature_fields.update(
             {
@@ -848,6 +913,8 @@ def verify_model_input_artifact_contract(
         expected_feature_fields.add("source_vocabulary_transform")
     if contract_schema == "loslab.model_input_artifact_contract.v8":
         expected_feature_fields.add("metadata_vocabulary_transform")
+    if contract_schema == "loslab.model_input_artifact_contract.v9":
+        expected_feature_fields.add("intentional_label_leakage")
     if not isinstance(feature, dict) or set(feature) != expected_feature_fields:
         raise ValueError("model feature contract fields are invalid")
     method = feature.get("method")
@@ -866,6 +933,7 @@ def verify_model_input_artifact_contract(
             "row_shuffled",
             "source_only",
             "metadata_only",
+            "oracle_label_leak",
             "logreg",
         }
         else "loslab.model_input_artifact.v1"
@@ -892,7 +960,7 @@ def verify_model_input_artifact_contract(
         or feature.get("source_dataclass")
         != (
             "datasets.channel.ChannelDataset"
-            if method in {"source_only", "metadata_only"}
+            if method in {"source_only", "metadata_only", "oracle_label_leak"}
             else "datasets.channel.ChannelModelInputs"
         )
         or feature.get("allowed_source_fields")
@@ -918,6 +986,16 @@ def verify_model_input_artifact_contract(
             ]
             if method == "metadata_only"
             else [
+                "data.metadata",
+                "data.group",
+                "data.domain",
+                "data.source",
+                "observed_cfr",
+                "PathOracleTable",
+                "target_values",
+            ]
+            if method == "oracle_label_leak"
+            else [
                 "data.y",
                 "data.metadata",
                 "data.group",
@@ -927,13 +1005,21 @@ def verify_model_input_artifact_contract(
             ]
         )
         or feature.get("feature_transform") != expected_route[1]
-        or feature.get("target_field_used_for_supervision_only") != "data.y"
-        or "data.y" not in feature.get("excluded_truth_and_metadata_fields", [])
+        or feature.get("target_field_used_for_supervision_only")
+        != (
+            "data.y (also intentionally leaked as a feature)"
+            if method == "oracle_label_leak"
+            else "data.y"
+        )
+        or (
+            method != "oracle_label_leak"
+            and "data.y" not in feature.get("excluded_truth_and_metadata_fields", [])
+        )
         or not isinstance(feature.get("run_config_sha256"), str)
         or len(feature["run_config_sha256"]) != 64
         or any(char not in "0123456789abcdef" for char in feature["run_config_sha256"])
     ):
-        raise ValueError("model feature contract does not match an audited observation-only route")
+        raise ValueError("model feature contract does not match an audited feature route")
     if canonical_hash(feature) != contract.get("feature_contract_sha256"):
         raise ValueError("model feature contract digest does not match its contents")
     if _stable_single_link_sha256(model_path) != contract.get("model_sha256"):
@@ -947,6 +1033,7 @@ def verify_model_input_artifact_contract(
         "loslab.model_input_artifact_contract.v6",
         "loslab.model_input_artifact_contract.v7",
         "loslab.model_input_artifact_contract.v8",
+        "loslab.model_input_artifact_contract.v9",
     }:
         if method_input is not None:
             matrix = feature["feature_matrix"]
@@ -1072,6 +1159,23 @@ def verify_model_input_artifact_contract(
             features, method_input
         ):
             raise ValueError("metadata-only feature vocabulary does not replay from training IDs")
+    if contract_schema == "loslab.model_input_artifact_contract.v9":
+        if method != "oracle_label_leak" or target_values is None:
+            raise ValueError("oracle-label contract verification requires the exact target roster")
+        if (
+            method_input is None
+            or partition_indices is None
+            or not isinstance(target_values, np.ndarray)
+            or target_values.ndim != 1
+            or len(target_values) != len(method_input)
+        ):
+            raise ValueError("oracle-label verification inputs are incomplete")
+        replayed_features, replayed_leakage = _oracle_label_leak_features(target_values)
+        if (
+            replayed_leakage != feature.get("intentional_label_leakage")
+            or not np.array_equal(replayed_features, method_input)
+        ):
+            raise ValueError("intentional label leakage does not replay from source targets")
     files = contract.get("training_input_files")
     if (
         not isinstance(files, list)
@@ -1690,6 +1794,9 @@ def run_experiment(
         "metadata_only_control": (
             "bounded training-vocabulary one-hot group/domain/source identifiers; this is an intentional metadata-leakage diagnostic, not a receiver feature"
         ),
+        "oracle_label_leak_control": (
+            "true binary target is intentionally supplied as a model input for evaluator-ceiling/falsification only; never deployment-eligible"
+        ),
         "cnn_input_representation": "per-link real/imaginary channels over ordered subcarriers",
         "cvnn_input_representation": (
             "complex convolution, phase-equivariant encoding, magnitude-invariant classifier"
@@ -1788,6 +1895,8 @@ def run_experiment(
                     train_indices=train,
                 )[0]
                 if method == "metadata_only"
+                else _oracle_label_leak_features(data.y)[0]
+                if method == "oracle_label_leak"
                 else x
             )
             if method == "label_permuted":
@@ -1823,6 +1932,7 @@ def run_experiment(
                 "metadata_only",
                 "power_only",
                 "phase_randomized",
+                "oracle_label_leak",
                 "logreg",
             ):
                 clf = fit_sklearn(
@@ -1837,6 +1947,8 @@ def run_experiment(
                     if method == "row_shuffled"
                     else "logreg"
                     if method in ("power_only", "source_only", "metadata_only")
+                    else "logreg"
+                    if method == "oracle_label_leak"
                     else "mlp"
                     if method == "phase_randomized"
                     else method,
@@ -1981,7 +2093,7 @@ def run_experiment(
                 split=split_contract,
                 model_file_sha256=_stable_single_link_sha256(checkpoint),
                 partition_indices=partition_indices,
-                target_values=data.y if method == "label_permuted" else None,
+                target_values=data.y if method in {"label_permuted", "oracle_label_leak"} else None,
                 label_permutation_seed=(
                     int(label_permutation_seed) if method == "label_permuted" else None
                 ),
@@ -2015,6 +2127,7 @@ def run_experiment(
                             "row_shuffled",
                             "source_only",
                             "metadata_only",
+                            "oracle_label_leak",
                             "power_only",
                             "phase_randomized",
                             "logreg",
@@ -2036,7 +2149,7 @@ def run_experiment(
                 checkpoint,
                 method_input=method_input,
                 partition_indices=partition_indices,
-                target_values=data.y if method == "label_permuted" else None,
+                target_values=data.y if method in {"label_permuted", "oracle_label_leak"} else None,
                 source_method_input=raw_real_imag if method == "row_shuffled" else None,
                 source_values=data.source if method == "source_only" else None,
                 metadata_values=(
@@ -2269,6 +2382,8 @@ def run_experiment(
         ("raw_mlp", "row_shuffled"),
         ("raw_mlp", "source_only"),
         ("raw_mlp", "metadata_only"),
+        ("oracle_label_leak", "raw_mlp"),
+        ("oracle_label_leak", "mlp"),
         ("cnn", "raw_mlp"),
         ("cvnn", "raw_mlp"),
         ("xgb", "mlp"),

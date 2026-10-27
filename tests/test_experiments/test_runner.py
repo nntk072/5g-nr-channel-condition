@@ -1219,3 +1219,50 @@ def test_run_experiment_routes_source_only_on_shared_split(tmp_path, monkeypatch
             },
             source_values=changed_sources,
         )
+
+
+def test_oracle_label_leak_control_is_explicit_and_replayable(tmp_path):
+    source = tmp_path / "debug-oracle.npz"
+    output = tmp_path / "runs" / "oracle-label-leak"
+    debug_multipath(n_scenes=8, links_per_scene=12, n_subcarriers=16).save(source)
+
+    run_experiment([source], output, methods=("oracle_label_leak",), seeds=(43,), bootstrap=20)
+
+    dataset = ChannelDataset.load(source)
+    model_path = output / "models" / "oracle_label_leak_seed43.joblib"
+    sidecar_path = output / "models" / "oracle_label_leak_seed43_modelinfo.json"
+    sidecar = json.loads(sidecar_path.read_text(encoding="utf-8"))
+    contract = sidecar["model_input_artifact_contract"]
+    feature_contract = contract["feature_contract"]
+    prediction = np.load(output / "predictions" / "oracle_label_leak_seed43.npz")
+    partitions = {
+        "train": prediction["train_idx"],
+        "validation": prediction["val_idx"],
+        "test": prediction["test_idx"],
+    }
+
+    assert contract["schema"] == "loslab.model_input_artifact_contract.v9"
+    assert feature_contract["allowed_source_fields"] == ["data.y"]
+    assert feature_contract["intentional_label_leakage"]["status"] == "INTENTIONAL"
+    assert feature_contract["intentional_label_leakage"]["deployment_eligible"] is False
+    assert (
+        verify_model_input_artifact_contract(
+            sidecar_path,
+            model_path,
+            method_input=np.eye(2, dtype=np.float32)[dataset.y],
+            partition_indices=partitions,
+            target_values=dataset.y,
+        )["feature_matrix_verified"]
+        is True
+    )
+
+    changed_targets = dataset.y.copy()
+    changed_targets[partitions["test"][0]] = 1 - changed_targets[partitions["test"][0]]
+    with pytest.raises(ValueError, match="does not replay from source targets"):
+        verify_model_input_artifact_contract(
+            sidecar_path,
+            model_path,
+            method_input=np.eye(2, dtype=np.float32)[dataset.y],
+            partition_indices=partitions,
+            target_values=changed_targets,
+        )
