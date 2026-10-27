@@ -490,6 +490,39 @@ def test_received_waveform_composition_applies_cfo_on_capture_timeline():
     )
 
 
+def test_received_waveform_composition_applies_fractional_delay_per_link():
+    sample_count = 128
+    frequency_cycles_per_sample = 0.071
+    fractional_delay = 0.375
+    source_indices = torch.arange(sample_count, dtype=torch.float64)
+    source = torch.exp(2j * torch.pi * frequency_cycles_per_sample * source_indices).to(
+        torch.complex128
+    )
+    composition = compose_received_waveforms(
+        source.reshape(1, 1, 1, 1, sample_count),
+        link_start_samples=((3,),),
+        capture_num_samples=sample_count + 3,
+        sample_rate_hz=8.0,
+        link_fractional_delay_samples=((fractional_delay,),),
+    )
+
+    capture_indices = torch.arange(24, sample_count - 20, dtype=torch.float64) + 3
+    expected = torch.exp(
+        2j * torch.pi * frequency_cycles_per_sample * (capture_indices - 3 - fractional_delay)
+    )
+    torch.testing.assert_close(
+        composition.received_waveform[0, 0, 0, 24 + 3 : sample_count - 20 + 3],
+        expected,
+        atol=2e-5,
+        rtol=2e-5,
+    )
+    torch.testing.assert_close(
+        composition.link_fractional_delay_samples,
+        torch.tensor([[fractional_delay]], dtype=torch.float64),
+    )
+    assert composition.fractional_delay_kernel_radius == 16
+
+
 @pytest.mark.parametrize(
     "kwargs",
     [
@@ -513,6 +546,28 @@ def test_received_waveform_composition_rejects_invalid_link_oscillators(kwargs):
     args.update(kwargs)
     with pytest.raises((TypeError, ValueError)):
         compose_received_waveforms(links, **args)
+
+
+@pytest.mark.parametrize(
+    "fractional_delay",
+    [
+        ((True,),),
+        ((1.0,),),
+        ((1.0, 0.0),),
+        ((1.0 + 0.0j,),),
+        ((float("nan"),),),
+    ],
+)
+def test_received_waveform_composition_rejects_invalid_fractional_delays(fractional_delay):
+    links = torch.ones((1, 1, 1, 1, 8), dtype=torch.complex64)
+    with pytest.raises((TypeError, ValueError)):
+        compose_received_waveforms(
+            links,
+            link_start_samples=((0,),),
+            capture_num_samples=8,
+            sample_rate_hz=30.72e6,
+            link_fractional_delay_samples=fractional_delay,
+        )
 
 
 @pytest.mark.parametrize(

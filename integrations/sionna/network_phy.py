@@ -6,6 +6,8 @@ import math
 from dataclasses import dataclass
 from typing import Any, Sequence
 
+_NETWORK_FRACTIONAL_DELAY_KERNEL_RADIUS = 16
+
 
 def _contains_boolean(value: Any) -> bool:
     if isinstance(value, bool):
@@ -232,6 +234,8 @@ class NetworkWaveformComposition:
     sample_rate_hz: float
     link_cfo_hz: Any
     link_initial_phase_rad: Any
+    link_fractional_delay_samples: Any
+    fractional_delay_kernel_radius: int
 
 
 @dataclass(frozen=True, slots=True)
@@ -528,6 +532,55 @@ def compose_downlink_resource_grids(
     )
 
 
+def _fractional_delay_capture_slice(
+    torch: Any,
+    source_waveform: Any,
+    *,
+    output_indices: Any,
+    delay_samples: float,
+    kernel_radius: int,
+) -> Any:
+    """Interpolate only requested delayed samples using bounded scratch space."""
+    source_positions = output_indices - delay_samples
+    centers = torch.floor(source_positions).to(torch.int64)
+    taps = range(-kernel_radius, kernel_radius + 1)
+    weight_sum = torch.zeros_like(source_positions)
+
+    def tap_weights(tap: int) -> tuple[Any, Any]:
+        source_indices = centers + tap
+        distance = source_indices.to(source_waveform.real.dtype) - source_positions
+        normalized_distance = distance / kernel_radius
+        window = (
+            0.42
+            + 0.5 * torch.cos(math.pi * normalized_distance)
+            + 0.08 * torch.cos(2.0 * math.pi * normalized_distance)
+        )
+        window = torch.where(torch.abs(normalized_distance) <= 1.0, window, 0.0)
+        weights = torch.sinc(distance) * window
+        return source_indices, weights
+
+    for tap in taps:
+        _, weights = tap_weights(tap)
+        weight_sum += weights
+    if not bool(torch.isfinite(weight_sum).all()) or bool((weight_sum.abs() <= 1e-12).any()):
+        raise ValueError("fractional-delay interpolation weights are not normalizable")
+
+    output = torch.zeros(
+        (*source_waveform.shape[:-1], output_indices.numel()),
+        dtype=source_waveform.dtype,
+        device=source_waveform.device,
+    )
+    source_sample_count = source_waveform.shape[-1]
+    for tap in taps:
+        source_indices, weights = tap_weights(tap)
+        valid = (source_indices >= 0) & (source_indices < source_sample_count)
+        safe_indices = source_indices.clamp(0, source_sample_count - 1)
+        samples = source_waveform.index_select(-1, safe_indices)
+        normalized_weights = (weights / weight_sum).to(source_waveform.real.dtype)
+        output += samples * valid.to(source_waveform.real.dtype) * normalized_weights
+    return output
+
+
 def compose_received_waveforms(
     link_waveforms: Any,
     *,
@@ -537,6 +590,7 @@ def compose_received_waveforms(
     link_power_gain_linear: Any | None = None,
     link_cfo_hz: Any | None = None,
     link_initial_phase_rad: Any | None = None,
+    link_fractional_delay_samples: Any | None = None,
     max_output_elements: int = 64_000_000,
 ) -> NetworkWaveformComposition:
     """Align and sum already propagated transmitter waveforms at each receiver.
@@ -551,9 +605,12 @@ def compose_received_waveforms(
     Optional CFO and initial phase arrays have ``[rx, tx]`` axes. They describe
     each link's residual oscillator relative to capture time zero and are
     applied after integer alignment, so delayed links accrue phase over their
-    arrival time. This does not model fractional delay, phase-noise evolution,
-    adjacent-channel leakage, or nonlinear RF effects. Do not pass an already
-    path-loss-scaled waveform together with its gain matrix.
+    arrival time. Optional fractional delays use the same ``[rx, tx]`` axes,
+    are bounded to less than one sample, and use a 33-tap Blackman-windowed
+    sinc interpolator with zero extension outside the source waveform. This
+    does not model phase-noise evolution, adjacent-channel leakage, or
+    nonlinear RF effects. Do not pass an already path-loss-scaled waveform
+    together with its gain matrix.
 
     The output is bounded by ``max_output_elements`` across both retained link
     contributions and the receiver sum, before allocating the capture tensors.
@@ -645,6 +702,20 @@ def compose_received_waveforms(
             device=link_waveforms.device,
             name="link_initial_phase_rad",
         )
+    if link_fractional_delay_samples is None:
+        fractional_delay = torch.zeros(
+            (rx_count, tx_count), dtype=torch.float64, device=link_waveforms.device
+        )
+    else:
+        fractional_delay = _validated_real_values(
+            torch,
+            link_fractional_delay_samples,
+            shape=(rx_count, tx_count),
+            device=link_waveforms.device,
+            name="link_fractional_delay_samples",
+        )
+    if bool((fractional_delay.abs() >= 1.0).any()):
+        raise ValueError("link fractional delays must have magnitude below one sample")
     cycles_per_sample = cfo / float(sample_rate_hz)
     if not bool(torch.isfinite(cycles_per_sample).all()):
         raise ValueError("link CFO divided by sample rate must be representable in float64")
@@ -680,6 +751,24 @@ def compose_received_waveforms(
                 capture_num_samples - destination_start,
             )
             if sample_count > 0:
+                if fractional_delay[rx_index, tx_index] == 0:
+                    aligned = link_waveforms[
+                        :, rx_index, tx_index, :, source_start : source_start + sample_count
+                    ]
+                else:
+                    relative_output_indices = torch.arange(
+                        destination_start - offset,
+                        destination_start - offset + sample_count,
+                        dtype=link_waveforms.real.dtype,
+                        device=link_waveforms.device,
+                    )
+                    aligned = _fractional_delay_capture_slice(
+                        torch,
+                        link_waveforms[:, rx_index, tx_index],
+                        output_indices=relative_output_indices,
+                        delay_samples=float(fractional_delay[rx_index, tx_index].item()),
+                        kernel_radius=_NETWORK_FRACTIONAL_DELAY_KERNEL_RADIUS,
+                    )
                 destination_indices = torch.arange(
                     destination_start,
                     destination_start + sample_count,
@@ -695,13 +784,7 @@ def compose_received_waveforms(
                 oscillator = torch.polar(torch.ones_like(phase), phase)
                 contributions[
                     :, rx_index, :, tx_index, destination_start : destination_start + sample_count
-                ] = (
-                    link_waveforms[
-                        :, rx_index, tx_index, :, source_start : source_start + sample_count
-                    ]
-                    * waveform_gain[rx_index, tx_index]
-                    * oscillator
-                )
+                ] = aligned * waveform_gain[rx_index, tx_index] * oscillator
     received = contributions.sum(dim=3)
     if not bool(torch.isfinite(contributions).all()) or not bool(torch.isfinite(received).all()):
         raise ValueError("composed receiver waveform is not finite")
@@ -713,6 +796,8 @@ def compose_received_waveforms(
         sample_rate_hz=float(sample_rate_hz),
         link_cfo_hz=cfo,
         link_initial_phase_rad=initial_phase,
+        link_fractional_delay_samples=fractional_delay,
+        fractional_delay_kernel_radius=_NETWORK_FRACTIONAL_DELAY_KERNEL_RADIUS,
     )
 
 
