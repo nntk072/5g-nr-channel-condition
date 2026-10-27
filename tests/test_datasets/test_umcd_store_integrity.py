@@ -29,6 +29,7 @@ from datasets.network import (
     NetworkNode,
     NodeRole,
 )
+from datasets.nr import LinkedNRObservation, NRObservation
 from datasets.path_oracle import PathOracleTable, PathSolveStatus
 from datasets.provenance import UMCDRunProvenance
 from datasets.split_policy import (
@@ -45,6 +46,7 @@ from datasets.targets import (
     TargetValue,
     target_definition_digest,
 )
+from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
 
 def _versioned_delay_target() -> TargetValue:
@@ -262,6 +264,25 @@ def _episode_bundle_with_counterfactual() -> EpisodeBundle:
     )
 
 
+def _episode_bundle_with_receiver_observation() -> EpisodeBundle:
+    bundle = _episode_bundle()
+    estimate = NRChannelEstimate(
+        h_hat=np.ones((1, 1, 1, 1, 1, 14, 4), dtype=np.complex64),
+        error_variance=np.zeros((1, 1, 1, 1, 1, 14, 4), dtype=np.float32),
+        pilot_mask=np.ones((1, 1, 14, 4), dtype=np.bool_),
+        metadata={"estimator": "synthetic_store_integrity_fixture"},
+    )
+    observation = NRObservation(
+        sample_id="receiver-observation-fixture",
+        received_grid=np.ones((1, 1, 1, 14, 12), dtype=np.complex64),
+        channel_estimate=estimate,
+        fft_bin_indices=(0, 1, 2, 3),
+        receiver_config=NRPUSCHConfig(),
+    )
+    binding = LinkedNRObservation("gNB-0-to-UE-0", 0, observation)
+    return replace(bundle, receiver_observations=(binding,))
+
+
 def test_target_value_rejects_empty_truth_instead_of_losing_unavailability_reason():
     definition = _versioned_delay_target().definition
 
@@ -285,6 +306,7 @@ def test_target_value_rejects_empty_truth_instead_of_losing_unavailability_reaso
         "oracle_channels",
         "targets",
         "provenance",
+        "receiver_observations",
     ),
 )
 def test_episode_bundle_reader_rejects_changed_compressed_object_bytes(tmp_path, layer_name):
@@ -294,6 +316,8 @@ def test_episode_bundle_reader_rejects_changed_compressed_object_bytes(tmp_path,
         if layer_name in {"counterfactual_ablations", "provenance"}
         else _episode_bundle()
     )
+    if layer_name == "receiver_observations":
+        bundle = _episode_bundle_with_receiver_observation()
 
     stored = write_episode_bundle(store, bundle)
     loaded = read_episode_bundle(store, stored)
@@ -452,6 +476,43 @@ def test_episode_bundle_provenance_object_publication_failure_is_retryable(tmp_p
     loaded = read_episode_bundle(store, stored)
     assert loaded.provenance_records[0].record_id == "counterfactual-ablation-provenance"
     assert loaded.provenance_records[0].subject_layer == "counterfactual_ablations"
+    assert not [path for path in store.rglob(".*") if path.is_file()]
+
+
+def test_episode_bundle_receiver_observation_publication_failure_is_retryable(
+    tmp_path, monkeypatch
+):
+    import datasets.episode_store as episode_store
+
+    store = tmp_path / "umcd-receiver-observation-retry-store"
+    bundle = _episode_bundle_with_receiver_observation()
+    publish = episode_store._publish_immutable
+    injected = False
+
+    def fail_receiver_observation(path, payload):
+        nonlocal injected
+        if "receiver_observations" in path.parts and not injected:
+            injected = True
+            raise OSError("injected receiver observation publication failure")
+        publish(path, payload)
+
+    monkeypatch.setattr(episode_store, "_publish_immutable", fail_receiver_observation)
+    with pytest.raises(OSError, match="receiver observation publication failure"):
+        write_episode_bundle(store, bundle)
+
+    assert list((store / "objects" / "episode").rglob("*.npz"))
+    assert list((store / "objects" / "oracle_paths").rglob("*.npz"))
+    assert not (store / "objects" / "receiver_observations").exists()
+    assert not (store / "manifests" / "episodes").exists()
+
+    monkeypatch.setattr(episode_store, "_publish_immutable", publish)
+    stored = write_episode_bundle(store, bundle)
+    loaded = read_episode_bundle(store, stored)
+    assert loaded.receiver_observations[0].observation.sample_id == ("receiver-observation-fixture")
+    np.testing.assert_array_equal(
+        loaded.receiver_observations[0].observation.received_grid,
+        bundle.receiver_observations[0].observation.received_grid,
+    )
     assert not [path for path in store.rglob(".*") if path.is_file()]
 
 
