@@ -6,6 +6,7 @@ from integrations.sionna.srs import NRSRSMultiportResourceGrid
 from integrations.sionna.srs_measurements import (
     measure_ul_srs_rsrp,
     measure_ul_srs_rsrp_from_grid,
+    measure_ul_srs_rsrp_from_noisy_network_grid,
     report_gnb_rx_tx_time_difference,
     report_ul_rtoa,
 )
@@ -162,6 +163,89 @@ def test_grid_observation_rejects_invalid_scale_shape_and_resource_bound():
             power_scale_w_per_grid_unit_squared=1.0,
             maximum_grid_cells=1,
             **common,
+        )
+
+
+def test_noisy_network_grid_observation_binds_interference_and_receiver_noise():
+    torch = pytest.importorskip("torch")
+    from integrations.sionna.network_phy import (
+        add_independent_receiver_awgn,
+        compose_downlink_resource_grids,
+    )
+
+    channel = torch.zeros((1, 1, 1, 2, 1, 2, 3), dtype=torch.complex64)
+    channel[:, :, :, 0] = 1.0
+    channel[:, :, :, 1] = 0.5
+    transmit_grids = torch.ones((1, 2, 1, 2, 3), dtype=torch.complex64)
+    composition = compose_downlink_resource_grids(channel, transmit_grids, (1.0, 1.0))
+    noisy = add_independent_receiver_awgn(composition, (0.01,), seed=29)
+
+    mapped_grid = np.zeros((1, 2, 3), dtype=np.complex128)
+    mapped_mask = np.zeros(mapped_grid.shape, dtype=bool)
+    mapped_mask[0, 1, [0, 2]] = True
+    mapped = NRSRSMultiportResourceGrid(
+        grid=mapped_grid,
+        mask=mapped_mask,
+        symbol_indices=(1,),
+        subcarrier_indices=(0, 2),
+    )
+    report = measure_ul_srs_rsrp_from_noisy_network_grid(
+        noisy,
+        composition,
+        mapped,
+        receiver_index=0,
+        transmitter_ids=["ue-1", "ue-2"],
+        occasion_ids=["slot-1"],
+        receiver_branch_ids=["rx-branch-1"],
+        receiver_category="terrestrial_type_1_c",
+        measurement_frequency_bandwidth_hz=20e6,
+        power_scale_w_per_grid_unit_squared=0.5,
+        power_calibration_sha256="d" * 64,
+    )
+
+    assert report["status"] == "OBSERVED_NOT_QUALIFIED"
+    assert report["transmitter_ids"] == ["ue-1", "ue-2"]
+    assert report["noise_seed"] == 29
+    assert report["noise_variance_w_per_re"] == [0.01]
+    assert len(report["noise_grid_sha256"]) == 64
+    assert len(report["transmitter_contributions_sha256"]) == 64
+    assert report["measurement_report"]["configured_re_count_per_occasion"] == [2]
+    assert report["measurement_report"]["receiver_branch_measurements"][0]["ul_srs_rsrp_w"] > 0
+
+
+def test_noisy_network_grid_observation_rejects_composition_noise_mismatch():
+    torch = pytest.importorskip("torch")
+    from dataclasses import replace
+
+    from integrations.sionna.network_phy import (
+        add_independent_receiver_awgn,
+        compose_downlink_resource_grids,
+    )
+
+    channel = torch.ones((1, 1, 1, 1, 1, 1, 2), dtype=torch.complex64)
+    transmit_grids = torch.ones((1, 1, 1, 1, 2), dtype=torch.complex64)
+    composition = compose_downlink_resource_grids(channel, transmit_grids, (1.0,))
+    noisy = add_independent_receiver_awgn(composition, (0.01,), seed=31)
+    mapped = NRSRSMultiportResourceGrid(
+        grid=np.ones((1, 1, 2), dtype=np.complex128),
+        mask=np.ones((1, 1, 2), dtype=bool),
+        symbol_indices=(0,),
+        subcarrier_indices=(0, 1),
+    )
+    tampered = replace(noisy, received_grid=noisy.received_grid + 1)
+    with pytest.raises(ValueError, match="composed grid plus its noise"):
+        measure_ul_srs_rsrp_from_noisy_network_grid(
+            tampered,
+            composition,
+            mapped,
+            receiver_index=0,
+            transmitter_ids=["ue-1"],
+            occasion_ids=["slot-1"],
+            receiver_branch_ids=["rx-branch-1"],
+            receiver_category="terrestrial_type_1_c",
+            measurement_frequency_bandwidth_hz=20e6,
+            power_scale_w_per_grid_unit_squared=1.0,
+            power_calibration_sha256="e" * 64,
         )
 
 

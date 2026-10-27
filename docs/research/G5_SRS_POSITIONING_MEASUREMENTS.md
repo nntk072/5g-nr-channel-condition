@@ -27,6 +27,16 @@ the recorded digests identify the arrays used for the measurement. This connects
 receive-grid representation; calibration, synchronization, interference
 separation, and receiver performance still require evidence.
 
+For network-grid observations, `measure_ul_srs_rsrp_from_noisy_network_grid`
+accepts a `NetworkGridComposition` together with the `NoisyNetworkGrid` made
+from it. It verifies that the selected receiver grid is the coherent
+transmitter-contribution sum plus the recorded independent-noise grid, then
+binds the selected receiver's noise and per-transmitter contribution digests.
+It uses a caller-bounded cell budget and keeps transmitter contributions as
+provenance; the reported RSRP is measured on the noisy coherent sum, so
+interference cross terms are preserved. This is a synthetic aligned-grid
+observation path, not an RF calibration or qualification result.
+
 The same module also reports the TS 38.215 V19.2.0 UL-RTOA reference instant
 from SFN/subframe identity and the signed gNB Rx-Tx time difference from
 caller-supplied TRP timing observations. Timing reports distinguish receiver

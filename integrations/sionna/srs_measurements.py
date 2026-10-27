@@ -43,6 +43,10 @@ _GRID_OBSERVATION_SCHEMA_PATH = (
     Path(__file__).resolve().parents[2]
     / "evaluation/schema/nr-ul-srs-rsrp-grid-observation.v1.schema.json"
 )
+_NETWORK_GRID_OBSERVATION_SCHEMA_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "evaluation/schema/nr-ul-srs-rsrp-network-observation.v1.schema.json"
+)
 
 
 def measure_ul_srs_rsrp(
@@ -318,6 +322,202 @@ def _validate_grid_observation_schema(report: dict[str, Any]) -> None:
     if errors:
         raise ValueError(
             "SRS receive-grid observation violates schema: "
+            + "; ".join(error.message for error in errors[:10])
+        )
+
+
+def measure_ul_srs_rsrp_from_noisy_network_grid(
+    noisy_network_grid: Any,
+    network_composition: Any,
+    mapped_resource: Any,
+    *,
+    receiver_index: int,
+    transmitter_ids: Sequence[str],
+    occasion_ids: Sequence[str],
+    receiver_branch_ids: Sequence[str],
+    receiver_category: str,
+    measurement_frequency_bandwidth_hz: float,
+    power_scale_w_per_grid_unit_squared: float,
+    power_calibration_sha256: str,
+    maximum_grid_cells: int = 10_000_000,
+) -> dict[str, Any]:
+    """Measure SRS-RSRP from the noisy multi-transmitter network-grid path.
+
+    This adapter binds the receiver-grid observation to the coherent per-TX
+    contributions and independent receiver-noise grid that produced it. Batch
+    draws become measurement occasions and receive ports become branches.
+    """
+
+    try:
+        import torch
+    except ImportError as error:
+        raise RuntimeError("Install PyTorch to measure a composed network grid") from error
+
+    from integrations.sionna.network_phy import NetworkGridComposition, NoisyNetworkGrid
+
+    if not isinstance(noisy_network_grid, NoisyNetworkGrid):
+        raise TypeError("noisy_network_grid must come from add_independent_receiver_awgn")
+    if not isinstance(network_composition, NetworkGridComposition):
+        raise TypeError("network_composition must come from compose_received_grids")
+    if (
+        isinstance(receiver_index, bool)
+        or not isinstance(receiver_index, int)
+        or receiver_index < 0
+    ):
+        raise ValueError("receiver_index must be a nonnegative integer")
+
+    contributions = network_composition.source_contributions
+    composed_grid = network_composition.received_grid
+    observed_grid = noisy_network_grid.received_grid
+    noise_grid = noisy_network_grid.noise_grid
+    if (
+        not torch.is_tensor(contributions)
+        or not torch.is_complex(contributions)
+        or contributions.ndim != 6
+    ):
+        raise ValueError(
+            "network contributions must have [batch, rx, rx_port, tx, symbol, sc] axes"
+        )
+    if (
+        not torch.is_tensor(composed_grid)
+        or not torch.is_complex(composed_grid)
+        or composed_grid.ndim != 5
+        or not torch.is_tensor(observed_grid)
+        or not torch.is_complex(observed_grid)
+        or not torch.is_tensor(noise_grid)
+        or not torch.is_complex(noise_grid)
+        or tuple(observed_grid.shape) != tuple(composed_grid.shape)
+        or tuple(noise_grid.shape) != tuple(composed_grid.shape)
+        or tuple(contributions.shape[:3] + contributions.shape[4:]) != tuple(composed_grid.shape)
+    ):
+        raise ValueError("network and noisy grid axes are incompatible")
+    if receiver_index >= contributions.shape[1]:
+        raise ValueError("receiver_index must identify an existing receiver")
+    if (
+        isinstance(maximum_grid_cells, bool)
+        or not isinstance(maximum_grid_cells, int)
+        or maximum_grid_cells <= 0
+    ):
+        raise ValueError("maximum_grid_cells must be a positive integer")
+    if any(
+        tensor.device != contributions.device
+        for tensor in (composed_grid, observed_grid, noise_grid)
+    ):
+        raise ValueError("network and noise grids must share one device")
+    if any(
+        tensor.dtype != contributions.dtype for tensor in (composed_grid, observed_grid, noise_grid)
+    ):
+        raise ValueError("network and noise grids must share one complex dtype")
+    noise_variance = noisy_network_grid.noise_variance_w_per_re
+    if (
+        not torch.is_tensor(noise_variance)
+        or noise_variance.is_complex()
+        or noise_variance.shape != (contributions.shape[1],)
+        or not bool(torch.isfinite(noise_variance).all())
+        or bool((noise_variance < 0).any())
+    ):
+        raise ValueError("noise_variance_w_per_re must be finite nonnegative values per receiver")
+    noise_seed = noisy_network_grid.seed
+    if isinstance(noise_seed, bool) or not isinstance(noise_seed, int) or noise_seed < 0:
+        raise ValueError("noise seed must be a nonnegative integer")
+
+    occasion_count, branch_count, transmitter_count = (
+        contributions.shape[0],
+        contributions.shape[2],
+        contributions.shape[3],
+    )
+    transmitter_roster = _canonical_id_roster(transmitter_ids, transmitter_count, "transmitter_ids")
+    received_slice = observed_grid[:, receiver_index]
+    composed_slice = composed_grid[:, receiver_index]
+    noise_slice = noise_grid[:, receiver_index]
+    contribution_slice = contributions[:, receiver_index]
+    mapped_grid = np.asarray(mapped_resource.grid)
+    mapped_mask = np.asarray(mapped_resource.mask)
+    grid_cells = (
+        received_slice.numel()
+        + noise_slice.numel()
+        + contribution_slice.numel()
+        + mapped_grid.size
+        + mapped_mask.size
+    )
+    if grid_cells > maximum_grid_cells:
+        raise ValueError("selected network and mapped-resource grids exceed maximum_grid_cells")
+    if any(
+        not bool(torch.isfinite(values).all())
+        for values in (composed_slice, received_slice, noise_slice, contribution_slice)
+    ):
+        raise ValueError("selected network and noise grids must contain finite complex values")
+    if not torch.allclose(composed_slice, contribution_slice.sum(dim=2), rtol=1e-5, atol=1e-7):
+        raise ValueError("network received grid must equal the coherent sum of TX contributions")
+    if not torch.equal(received_slice, composed_slice + noise_slice):
+        raise ValueError("noisy network grid must equal the composed grid plus its noise grid")
+
+    received_array = _torch_array_snapshot(received_slice)
+    noise_array = _torch_array_snapshot(noise_slice)
+    contribution_array = _torch_array_snapshot(contribution_slice)
+    observation = measure_ul_srs_rsrp_from_grid(
+        received_array,
+        mapped_resource,
+        occasion_ids=occasion_ids,
+        receiver_branch_ids=receiver_branch_ids,
+        receiver_category=receiver_category,
+        measurement_frequency_bandwidth_hz=measurement_frequency_bandwidth_hz,
+        power_scale_w_per_grid_unit_squared=power_scale_w_per_grid_unit_squared,
+        power_calibration_sha256=power_calibration_sha256,
+        maximum_grid_cells=maximum_grid_cells,
+    )
+    report = {
+        "schema": "loslab.nr_ul_srs_rsrp_network_observation.v1",
+        "status": "OBSERVED_NOT_QUALIFIED",
+        "receiver_index": receiver_index,
+        "transmitter_ids": transmitter_roster,
+        "measurement_occasion_count": occasion_count,
+        "receiver_branch_count": branch_count,
+        "noise_seed": noise_seed,
+        "noise_variance_w_per_re": _torch_array_snapshot(noise_variance).tolist(),
+        "received_grid_sha256": observation["received_grid_sha256"],
+        "mapped_resource_sha256": observation["mapped_resource_sha256"],
+        "noise_grid_sha256": _array_sha256(noise_array),
+        "transmitter_contributions_sha256": _array_sha256(contribution_array),
+        "measurement_report": observation["measurement_report"],
+        "limitations": [
+            "The watts-per-grid-unit-squared scale and calibration digest are caller supplied.",
+            "Per-transmitter contributions are provenance only; SRS-RSRP is measured from their coherent sum plus receiver noise.",
+            "The network composer assumes synchronized same-numerology grids and does not qualify an RF receiver.",
+        ],
+    }
+    _validate_network_grid_observation_schema(report)
+    return report
+
+
+def _canonical_id_roster(values: Sequence[str], count: int, name: str) -> list[str]:
+    if isinstance(values, (str, bytes)):
+        raise TypeError(f"{name} must be a sequence of IDs")
+    result = list(values)
+    if (
+        len(result) != count
+        or any(
+            not isinstance(value, str) or not value or value != value.strip() for value in result
+        )
+        or len(set(result)) != len(result)
+    ):
+        raise ValueError(f"{name} must contain {count} unique canonical IDs")
+    return result
+
+
+def _torch_array_snapshot(values: Any) -> np.ndarray:
+    return np.array(values.detach().cpu().numpy(), copy=True, order="C")
+
+
+def _validate_network_grid_observation_schema(report: dict[str, Any]) -> None:
+    import jsonschema
+
+    schema = json.loads(_NETWORK_GRID_OBSERVATION_SCHEMA_PATH.read_text(encoding="utf-8"))
+    jsonschema.Draft202012Validator.check_schema(schema)
+    errors = list(jsonschema.Draft202012Validator(schema).iter_errors(report))
+    if errors:
+        raise ValueError(
+            "SRS network-grid observation violates schema: "
             + "; ".join(error.message for error in errors[:10])
         )
 
