@@ -28,6 +28,7 @@ from .network_phy import (
     network_resource_sinr,
     network_sinr,
 )
+from .network_receiver import NetworkPUSCHDecode, decode_noisy_network_pusch
 from .nr_prs import (
     NRPRSDLRSTDMeasurement,
     NRPRSResourceConfiguration,
@@ -220,6 +221,7 @@ __all__ = [
     "NetworkResourceSINR",
     "NetworkSINR",
     "NetworkWaveformComposition",
+    "NetworkPUSCHDecode",
     "NoisyNetworkGrid",
     "NoisyNetworkWaveform",
     "NRSRSMultiportChannelEstimate",
@@ -279,6 +281,7 @@ __all__ = [
     "paths_to_nr_ofdm_channel",
     "map_nr_srs_hopped_multiport_resource",
     "network_sinr",
+    "decode_noisy_network_pusch",
     "map_nr_dl_prs_resource",
     "map_nr_dl_prs_resource_set",
     "measure_nr_dl_rstd",

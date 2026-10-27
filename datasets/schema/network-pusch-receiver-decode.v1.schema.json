@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:network-pusch-receiver-decode:v1",
+  "title": "Bounded network waveform to PUSCH receiver decode report v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "schema_sha256",
+    "report_sha256",
+    "status",
+    "implementation_sha256",
+    "execution_device",
+    "receiver_metadata_sha256",
+    "sample_rate_hz",
+    "receiver_noise_convention",
+    "limitations",
+    "input_sha256",
+    "output_sha256",
+    "shape"
+  ],
+  "properties": {
+    "schema": {
+      "const": "umcd.network_pusch_receiver_decode.v1"
+    },
+    "schema_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "report_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "status": {
+      "const": "OBSERVED_NOT_QUALIFIED"
+    },
+    "implementation_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "execution_device": {
+      "type": "string",
+      "minLength": 1
+    },
+    "receiver_metadata_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "sample_rate_hz": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "receiver_noise_convention": {
+      "const": "caller_supplied_per_receive_node_watts_per_resource_element"
+    },
+    "limitations": {
+      "const": [
+        "sample-domain noise variance is retained but not converted to resource-element variance",
+        "synchronization and acquisition are caller-controlled",
+        "synthetic decoder outcomes are not receiver qualification"
+      ]
+    },
+    "input_sha256": {
+      "type": "object",
+      "required": [
+        "source_contributions",
+        "clean_received_waveform",
+        "noise_waveform",
+        "noisy_received_waveform",
+        "sample_noise_variance",
+        "receiver_noise_variance_per_re"
+      ],
+      "properties": {
+        "source_contributions": {"$ref": "#/$defs/sha256"},
+        "clean_received_waveform": {"$ref": "#/$defs/sha256"},
+        "noise_waveform": {"$ref": "#/$defs/sha256"},
+        "noisy_received_waveform": {"$ref": "#/$defs/sha256"},
+        "sample_noise_variance": {"$ref": "#/$defs/sha256"},
+        "receiver_noise_variance_per_re": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    },
+    "output_sha256": {
+      "type": "object",
+      "required": ["received_grid", "decoded_bits", "crc_ok"],
+      "properties": {
+        "received_grid": {"$ref": "#/$defs/sha256"},
+        "decoded_bits": {"$ref": "#/$defs/sha256"},
+        "crc_ok": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    },
+    "shape": {
+      "type": "object",
+      "required": [
+        "batch",
+        "receivers",
+        "receive_ports",
+        "samples",
+        "ofdm_symbols",
+        "fft_size",
+        "transport_blocks",
+        "crc_failures"
+      ],
+      "properties": {
+        "batch": {"type": "integer", "minimum": 1},
+        "receivers": {"type": "integer", "minimum": 1},
+        "receive_ports": {"type": "integer", "minimum": 1},
+        "samples": {"type": "integer", "minimum": 1},
+        "ofdm_symbols": {"type": "integer", "minimum": 1},
+        "fft_size": {"type": "integer", "minimum": 1},
+        "transport_blocks": {"type": "integer", "minimum": 1},
+        "crc_failures": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}
