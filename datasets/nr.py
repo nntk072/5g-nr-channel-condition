@@ -6,6 +6,7 @@ import hashlib
 import math
 from dataclasses import dataclass, field
 from importlib import import_module
+from numbers import Integral
 from types import MappingProxyType
 from typing import Any, Mapping
 
@@ -21,6 +22,36 @@ MAX_REFERENCE_TRANSPORT_BLOCK_BITS = 20_000_000
 
 def _freeze_mapping(values: Mapping[str, Any]) -> Mapping[str, Any]:
     return MappingProxyType(dict(values))
+
+
+def _normalize_fft_bin_indices(values: Any) -> tuple[int, ...]:
+    """Read an integer FFT-bin vector without truncating/coercing its values."""
+    if isinstance(values, np.ndarray):
+        if values.ndim != 1:
+            raise ValueError("effective_subcarrier_indices must be one-dimensional")
+        if values.dtype.kind not in "iu":
+            raise TypeError("effective_subcarrier_indices must use an integer dtype")
+        raw_indices = values.tolist()
+    else:
+        torch_module: Any = None
+        try:
+            torch_module = import_module("torch")
+        except ImportError:
+            pass
+        if torch_module is not None and torch_module.is_tensor(values):
+            if values.ndim != 1:
+                raise ValueError("effective_subcarrier_indices must be one-dimensional")
+            if values.dtype == torch_module.bool or values.is_floating_point() or values.is_complex():
+                raise TypeError("effective_subcarrier_indices must use an integer dtype")
+            raw_indices = values.detach().cpu().tolist()
+        else:
+            try:
+                raw_indices = tuple(values)
+            except TypeError as error:
+                raise TypeError("effective_subcarrier_indices must be a one-dimensional integer sequence") from error
+    if any(isinstance(index, bool) or not isinstance(index, Integral) for index in raw_indices):
+        raise TypeError("effective_subcarrier_indices must contain only integers")
+    return tuple(int(index) for index in raw_indices)
 
 
 @dataclass(frozen=True, slots=True)
@@ -120,7 +151,7 @@ class NRObservation:
         supplied indices must therefore come from the same resource grid as
         the estimate, rather than being reconstructed from bandwidth alone.
         """
-        indices = tuple(int(index) for index in effective_subcarrier_indices)
+        indices = _normalize_fft_bin_indices(effective_subcarrier_indices)
         return cls(
             sample_id=sample_id,
             received_grid=received_grid,

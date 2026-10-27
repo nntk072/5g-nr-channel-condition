@@ -122,6 +122,28 @@ def test_receiver_output_factory_preserves_the_authoritative_fft_bin_mapping():
     assert observation.fft_bin_indices == tuple(range(24))
 
 
+@pytest.mark.parametrize(
+    ("indices", "exception", "message"),
+    [
+        (np.asarray([0.0, 1.5]), TypeError, "integer"),
+        (np.asarray([False, True]), TypeError, "integer"),
+        (np.asarray([[0, 1]]), ValueError, "one-dimensional"),
+        ([0, 1.5], TypeError, "only integers"),
+    ],
+)
+def test_receiver_output_factory_rejects_coerced_fft_bin_mappings(
+    indices, exception, message
+):
+    with pytest.raises(exception, match=message):
+        NRObservation.from_receiver_output(
+            sample_id="invalid-index-types",
+            received_grid=np.zeros((2, 1, 2, 14, 24), dtype=np.complex64),
+            channel_estimate=make_observation().channel_estimate,
+            effective_subcarrier_indices=indices,
+            receiver_config=NRPUSCHConfig(n_size_bwp=2, subcarrier_spacing_khz=30),
+        )
+
+
 def test_nr_training_record_keeps_targets_and_provenance_outside_model_inputs():
     observation = make_observation()
     record = NRChannelRecord(
