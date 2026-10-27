@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.invalid/schema/compute/resource-budget-report.v1.schema.json",
+  "title": "Measurement-driven research resource-budget report v1",
+  "type": "object",
+  "required": [
+    "schema", "status", "request_id", "measurement_batch_id", "environment_sha256", "runtime_environment", "request_sha256",
+    "request_schema_sha256", "report_schema_sha256", "workflow_source_sha256", "cli_source_sha256", "estimation_method", "quantiles",
+    "headroom_factor", "pilot_condition_count", "planned_unit_count", "strata",
+    "projected_total_runtime_seconds", "projected_total_storage_bytes",
+    "projected_peak_device_memory_bytes", "limitations"
+  ],
+  "properties": {
+    "schema": {"const": "loslab.resource_budget_report.v1"},
+    "status": {"const": "MEASUREMENT_CONDITIONAL_NOT_QUALIFIED"},
+    "request_id": {"$ref": "#/$defs/id"},
+    "measurement_batch_id": {"$ref": "#/$defs/id"},
+    "environment_sha256": {"$ref": "#/$defs/sha256"},
+    "runtime_environment": {"$ref": "#/$defs/runtimeEnvironment"},
+    "request_sha256": {"$ref": "#/$defs/sha256"},
+    "request_schema_sha256": {"$ref": "#/$defs/sha256"},
+    "report_schema_sha256": {"$ref": "#/$defs/sha256"},
+    "workflow_source_sha256": {"$ref": "#/$defs/sha256"},
+    "cli_source_sha256": {"$ref": "#/$defs/sha256"},
+    "estimation_method": {"const": "empirical_higher_quantiles_times_planned_units_times_headroom"},
+    "quantiles": {"const": [0.5, 0.9, 0.99]},
+    "headroom_factor": {"type": "number", "minimum": 2.0, "maximum": 3.0},
+    "pilot_condition_count": {"type": "integer", "minimum": 10},
+    "planned_unit_count": {"type": "integer", "minimum": 1},
+    "strata": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/stratumReport"}},
+    "projected_total_runtime_seconds": {"$ref": "#/$defs/quantileMap"},
+    "projected_total_storage_bytes": {"$ref": "#/$defs/quantileMap"},
+    "projected_peak_device_memory_bytes": {"type": "integer", "minimum": 0},
+    "limitations": {"type": "array", "minItems": 5, "items": {"type": "string", "minLength": 1}}
+  },
+  "$defs": {
+    "id": {"type": "string", "minLength": 1, "pattern": "^\\S(?:.*\\S)?$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "runtimeEnvironment": {
+      "type": "object",
+      "required": ["platform", "machine", "python_version", "numpy_version", "sionna_version", "torch_version", "solver_backend", "accelerator", "accelerator_driver", "accelerator_runtime"],
+      "properties": {
+        "platform": {"$ref": "#/$defs/id"},
+        "machine": {"$ref": "#/$defs/id"},
+        "python_version": {"$ref": "#/$defs/id"},
+        "numpy_version": {"$ref": "#/$defs/id"},
+        "sionna_version": {"$ref": "#/$defs/id"},
+        "torch_version": {"$ref": "#/$defs/id"},
+        "solver_backend": {"$ref": "#/$defs/id"},
+        "accelerator": {"$ref": "#/$defs/id"},
+        "accelerator_driver": {"$ref": "#/$defs/id"},
+        "accelerator_runtime": {"$ref": "#/$defs/id"}
+      },
+      "additionalProperties": false
+    },
+    "quantileSummary": {
+      "type": "object", "required": ["p50", "p90", "p99"],
+      "properties": {"p50": {"type": "number", "minimum": 0}, "p90": {"type": "number", "minimum": 0}, "p99": {"type": "number", "minimum": 0}},
+      "additionalProperties": false
+    },
+    "quantileMap": {
+      "type": "object", "minProperties": 1,
+      "additionalProperties": {"$ref": "#/$defs/quantileSummary"}
+    },
+    "metricMap": {
+      "type": "object", "minProperties": 1,
+      "additionalProperties": {"$ref": "#/$defs/quantileSummary"}
+    },
+    "stratumReport": {
+      "type": "object",
+      "required": ["stratum_id", "family_id", "planned_units", "pilot_condition_count", "empirical_per_unit_quantiles", "headroom_factor", "projected_totals"],
+      "properties": {
+        "stratum_id": {"$ref": "#/$defs/id"},
+        "family_id": {"$ref": "#/$defs/id"},
+        "planned_units": {"type": "integer", "minimum": 1},
+        "pilot_condition_count": {"type": "integer", "minimum": 10, "maximum": 100},
+        "empirical_per_unit_quantiles": {"$ref": "#/$defs/metricMap"},
+        "headroom_factor": {"type": "number", "minimum": 2.0, "maximum": 3.0},
+        "projected_totals": {"$ref": "#/$defs/metricMap"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

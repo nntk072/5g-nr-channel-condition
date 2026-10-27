@@ -36,6 +36,12 @@ def main() -> None:
     lineage_audit.add_argument("--evidence-root", type=Path, required=True)
     lineage_audit.add_argument("--output", type=Path, required=True)
     lineage_audit.add_argument("--max-total-bytes", type=int, default=8 * 1024 * 1024 * 1024)
+    resource_budget = sub.add_parser(
+        "resource-budget",
+        help="Build a measurement-conditional compute/storage preflight without running workloads",
+    )
+    resource_budget.add_argument("--request", type=Path, required=True)
+    resource_budget.add_argument("--output", type=Path, required=True)
     city = sub.add_parser("city-scene", help="Generate reproducible 3D urban scene files")
     city.add_argument("--output-dir", required=True)
     city.add_argument("--seed", type=int, default=42)
@@ -167,6 +173,15 @@ def main() -> None:
         except (OSError, RuntimeError, TypeError, ValueError) as error:
             parser.error(str(error))
         print(json.dumps(report, indent=2, sort_keys=True, allow_nan=False))
+        return
+    if args.command == "resource-budget":
+        from compute.resource_budget import run_resource_budget
+
+        try:
+            report = run_resource_budget(args.request, args.output)
+        except (OSError, TypeError, ValueError) as error:
+            parser.error(str(error))
+        print(json.dumps({"status": report["status"], "request_id": report["request_id"]}))
         return
     if args.command == "scenario-gbsm-data":
         from .scenario_gbsm import generate_and_store

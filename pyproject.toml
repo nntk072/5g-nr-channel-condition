@@ -37,6 +37,7 @@ exclude = ["tests*", "archive*", "notebooks*", "scripts*"]
 [tool.setuptools.package-data]
 datasets = ["schema/*.json", "schema/**/*.json"]
 evaluation = ["schema/*.json"]
+compute = ["schema/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
