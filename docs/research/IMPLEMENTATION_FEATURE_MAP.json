@@ -2460,7 +2460,7 @@
     {
       "backlog_line": 305,
       "backlog_status": "open",
-      "description": "Finish SSB/PBCH generalization: ASN.1/PER extension handling, case/band/beam/candidate and frame integration, multiple candidates, broader channel/timing/CFO regimes, calibrated antenna/RF scaling, and robust receiver outcomes.",
+      "description": "Finish SSB/PBCH generalization: general ASN.1/PER extension decoding, case/band/beam/candidate and frame integration, multiple candidates, broader channel/timing/CFO regimes, calibrated antenna/RF scaling, and robust receiver outcomes. Blind PBCH acquisition rejects Boolean/string/complex/non-finite/unrepresentable sample rates and preflights decoder device/list size before search. The Polar SCL list size is constrained to powers of two through 64 (default 8) before search, OFDM demodulation, or decoder construction; the `messageClassExtension` choice is preserved through payload generation/recovery as opaque 24-bit data, and recovery marks full SFN as unknown because those MIB bits are absent. Round-trip coverage spans candidate counts 4/8/10/20/64. Candidate search remains limited to declared DM-RS-visible hypotheses, and broad receiver qualification remains open.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -2483,7 +2483,7 @@
     {
       "backlog_line": 306,
       "backlog_status": "marked_done",
-      "description": "Reject Boolean and string aliases in PSS/SSS acquisition's physical sample rate, detection thresholds, CFO grid, and fractional-timing grid before hypothesis search; reject real-valued arrays at the complex-IQ capture boundary rather than silently casting them. The focused synchronization module passes 28 tests with coverage disabled and Ruff passes. This closes input-contract ambiguity only; acquisition remains a bounded configured-numerology receiver and is not broadly qualified.",
+      "description": "Reject Boolean and string aliases in PSS/SSS acquisition's physical sample rate, detection thresholds, CFO grid, and fractional-timing grid before hypothesis search; reject real-valued arrays at the complex-IQ capture boundary rather than silently casting them. Cell acquisition now preflights a reported 16,000,000-cell ceiling over the coarse sample × receive-chain × NID2 × CFO × fractional-timing search plus receive-chain × 336 × 127 SSS identity work, before finite scanning or complex128 capture copies; callers can select a stricter limit. The NR-sync and PBCH-preflight modules pass focused tests with coverage disabled; Ruff, formatting, compilation, and whitespace checks pass. This closes workload/input boundaries only; acquisition remains configured-numerology and is not broadly qualified.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -2740,7 +2740,7 @@
     {
       "backlog_line": 320,
       "backlog_status": "open",
-      "description": "Finish synchronized time axes across TX/RX/objects, timestamp-based future-target alignment, monotonicity/gap handling, and coherence/time-grid declarations. `build_trajectory_horizon_targets` and the RT forecast baseline enforce frozen child split assignments; both honor declared gaps, and the target builder additionally blocks intervals crossing a caller-frozen maximum inter-sample gap without inferring a threshold from the trajectory. It scores only valid target-mask elements, and the pilot can bind exact split-registry bytes/signature/trust and child kinds. Focused coverage is in `tests/test_experiments/test_trajectory_targets.py`. Cross-entity synchronization and coherence declarations remain open.",
+      "description": "Finish synchronized time axes across TX/RX/objects, timestamp-based future-target alignment, monotonicity/gap handling, and coherence/time-grid declarations. Dataset time axes now share a strict finite, strictly increasing real-number contract across NR trajectories, UMCD episodes, pose timelines, and physical channel views; numeric strings, complex values, and booleans are rejected before conversion. Focused contract regressions pass. `build_trajectory_horizon_targets` and the RT forecast baseline enforce frozen child split assignments; both honor declared gaps, and the target builder additionally blocks intervals crossing a caller-frozen maximum inter-sample gap without inferring a threshold from the trajectory. It scores only valid target-mask elements, and the pilot can bind exact split-registry bytes/signature/trust and child kinds. Focused coverage is in `tests/test_experiments/test_trajectory_targets.py`. Cross-entity synchronization and coherence declarations remain open.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -3413,7 +3413,7 @@
     {
       "backlog_line": 352,
       "backlog_status": "open",
-      "description": "Finish signed split-lock/release audit integration: exact parent/child roster, all child artifacts and row bindings, complete footprint inventory digest, spatial/time leakage, counterfactual/trajectory/array/frequency descendants, near-duplicate checks, and externally trusted signer custody. The canonical corpus auditor derives split labels from the loaded registry and records CFR/geometry candidate matches; report v7 preserves skipped zero-norm pairs as incomplete and binds signed exact-coverage candidate dispositions. Roster-v4 episode-object validation scans references across child manifests and rejects cross-child content-addressed sharing; v5 represents shared object ownership, and v6 semantically validates scenario GBSM runs/records against frozen parent bindings and split components. The split audit report is v10 when v6 child rosters are present. Geometric near-duplicate coverage, trusted signer/inventory authority, broader descendant coverage, and complete lineage remain open.",
+      "description": "Finish signed split-lock/release audit integration: exact parent/child roster, all child artifacts and row bindings, complete footprint inventory digest, spatial/time leakage, counterfactual/trajectory/array/frequency descendants, near-duplicate checks, and externally trusted signer custody. The canonical corpus auditor derives split labels from the loaded registry and records CFR/geometry candidate matches; report v7 preserves skipped zero-norm pairs as incomplete and binds signed exact-coverage candidate dispositions. Roster-v4 episode-object validation scans references across child manifests and rejects cross-child content-addressed sharing; v5 represents shared object ownership, and v6 semantically validates scenario GBSM runs/records against frozen parent bindings and split components. Dataset names and child-kind IDs are now required to be canonical at CLI and direct API boundaries; padded aliases are rejected instead of trimmed before frozen-inventory and signed child-roster matching. The split audit report is v10 when v6 child rosters are present. Geometric near-duplicate coverage, trusted signer/inventory authority, broader descendant coverage, and complete lineage remain open.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -4252,7 +4252,7 @@
   "schema": "loslab.implementation_feature_map.v1",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "51786eb2d28c7f4e3123c82511b469b8f6265150ea3a9f414fdb30a483b2f730"
+    "sha256": "b70b4d55be237619ec7c38934940bd62621abafe7fb1c04cdc080643edc2330e"
   },
   "summary": {
     "feature_count": 181,
