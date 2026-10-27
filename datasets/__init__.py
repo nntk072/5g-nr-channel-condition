@@ -18,7 +18,12 @@ from .episode_store import (
     read_receiver_model_inputs,
     write_episode_bundle,
 )
-from .lineage import LINEAGE_STATUSES, LineageStatusClaim, audit_lineage_evidence_payloads
+from .lineage import (
+    LINEAGE_STATUSES,
+    LineageStatusClaim,
+    audit_lineage_evidence_files,
+    audit_lineage_evidence_payloads,
+)
 from .model_input_audit import audit_model_input_payload
 from .network import (
     AntennaArraySpec,
@@ -190,6 +195,7 @@ __all__ = [
     "LineageStatusClaim",
     "LINEAGE_STATUSES",
     "audit_lineage_evidence_payloads",
+    "audit_lineage_evidence_files",
     "AnalyticalMultipathSample",
     "AnalyticalModelInputs",
     "AnalyticalPathOracle",

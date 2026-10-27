@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from dataclasses import replace
 from pathlib import Path
 
@@ -22,7 +23,11 @@ from datasets.episode_store import (
     read_receiver_model_inputs,
     write_episode_bundle,
 )
-from datasets.lineage import LineageStatusClaim, audit_lineage_evidence_payloads
+from datasets.lineage import (
+    LineageStatusClaim,
+    audit_lineage_evidence_files,
+    audit_lineage_evidence_payloads,
+)
 from datasets.network import (
     AntennaArraySpec,
     DirectedLink,
@@ -971,6 +976,47 @@ def test_lineage_evidence_audit_reports_proposed_claim_without_evidence():
     assert report["status"] == "NO_EVIDENCE_REQUIRED"
     assert report["scientific_status"] == "NOT_QUALIFIED"
     assert report["verified_evidence_sha256"] == []
+
+
+def test_lineage_evidence_file_audit_streams_stable_files_under_root(tmp_path):
+    evidence = b"large-enough-evidence\n" * 8192
+    digest = hashlib.sha256(evidence).hexdigest()
+    evidence_root = tmp_path / "evidence"
+    evidence_root.mkdir()
+    (evidence_root / "audit.bin").write_bytes(evidence)
+    claim = LineageStatusClaim(
+        status="synthetic_debug",
+        scope="task",
+        evidence_sha256={"regression_report_sha256": digest},
+    )
+
+    report = audit_lineage_evidence_files(
+        (claim,), {digest: "audit.bin"}, evidence_root=evidence_root
+    )
+    assert report["status"] == "EVIDENCE_BYTES_VERIFIED"
+    assert report["verified_evidence_bytes"] == len(evidence)
+
+    with pytest.raises(ValueError, match="max_total_bytes"):
+        audit_lineage_evidence_files(
+            (claim,),
+            {digest: "audit.bin"},
+            evidence_root=evidence_root,
+            max_total_bytes=len(evidence) - 1,
+        )
+    with pytest.raises(ValueError, match="beneath evidence_root"):
+        audit_lineage_evidence_files(
+            (claim,), {digest: "../audit.bin"}, evidence_root=evidence_root
+        )
+
+    (evidence_root / "alias.bin").symlink_to(evidence_root / "audit.bin")
+    with pytest.raises(OSError):
+        audit_lineage_evidence_files((claim,), {digest: "alias.bin"}, evidence_root=evidence_root)
+
+    os.link(evidence_root / "audit.bin", evidence_root / "hardlink.bin")
+    with pytest.raises(ValueError, match="single-link"):
+        audit_lineage_evidence_files(
+            (claim,), {digest: "hardlink.bin"}, evidence_root=evidence_root
+        )
 
 
 def test_provenance_reader_rejects_boolean_schema_version_even_when_one():

@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
+import stat
 from collections.abc import Mapping
 from dataclasses import dataclass
+from pathlib import Path, PurePosixPath
 from types import MappingProxyType
 from typing import Any
 
@@ -171,6 +174,140 @@ def audit_lineage_evidence_payloads(
         if hashlib.sha256(payload).hexdigest() != digest:
             raise ValueError(f"lineage evidence payload does not match digest {digest}")
 
+    sizes = {digest: len(payload) for digest, payload in evidence_payloads_by_sha256.items()}
+    return _lineage_evidence_audit_report(frozen_claims, sizes)
+
+
+def audit_lineage_evidence_files(
+    claims: Any,
+    evidence_paths_by_sha256: Mapping[str, str],
+    *,
+    evidence_root: str | os.PathLike[str],
+    max_total_bytes: int = 8 * 1024 * 1024 * 1024,
+) -> dict[str, Any]:
+    """Stream and verify claimed evidence files beneath one trusted root.
+
+    All path components are opened without following symlinks. Each evidence
+    file must be a stable, single-link regular file. The report verifies byte
+    identity only and remains ``NOT_QUALIFIED``.
+    """
+    frozen_claims = validate_lineage_claims(claims)
+    if isinstance(max_total_bytes, bool) or not isinstance(max_total_bytes, int):
+        raise TypeError("max_total_bytes must be an integer")
+    if max_total_bytes <= 0:
+        raise ValueError("max_total_bytes must be positive")
+    if not isinstance(evidence_paths_by_sha256, Mapping):
+        raise TypeError("evidence_paths_by_sha256 must be a digest-keyed mapping")
+    expected = {digest for claim in frozen_claims for digest in claim.evidence_sha256.values()}
+    if set(evidence_paths_by_sha256) != expected:
+        raise ValueError("evidence file roster does not match lineage claims")
+    if not expected:
+        return _lineage_evidence_audit_report(frozen_claims, {})
+    if not hasattr(os, "O_NOFOLLOW") or not hasattr(os, "O_DIRECTORY"):
+        raise ValueError("platform lacks safe no-follow directory and file opening")
+
+    root = Path(evidence_root)
+    root_flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | getattr(os, "O_CLOEXEC", 0)
+    root_fd = os.open(root, root_flags)
+    sizes: dict[str, int] = {}
+    total_bytes = 0
+    try:
+        if not stat.S_ISDIR(os.fstat(root_fd).st_mode):
+            raise ValueError("evidence_root must be a directory")
+        for expected_digest in sorted(expected):
+            relative = evidence_paths_by_sha256[expected_digest]
+            if (
+                not isinstance(relative, str)
+                or not relative
+                or "\\" in relative
+                or relative != str(PurePosixPath(relative))
+            ):
+                raise ValueError("evidence paths must be canonical relative POSIX paths")
+            relative_path = PurePosixPath(relative)
+            parts = relative_path.parts
+            if (
+                relative_path.is_absolute()
+                or not parts
+                or any(part in {"", ".", ".."} for part in parts)
+            ):
+                raise ValueError("evidence paths must stay beneath evidence_root")
+
+            directory_fd = os.dup(root_fd)
+            file_fd: int | None = None
+            try:
+                for component in parts[:-1]:
+                    child_fd = os.open(
+                        component,
+                        root_flags,
+                        dir_fd=directory_fd,
+                    )
+                    if directory_fd != root_fd:
+                        os.close(directory_fd)
+                    directory_fd = child_fd
+                    if not stat.S_ISDIR(os.fstat(directory_fd).st_mode):
+                        raise ValueError("evidence path component must be a directory")
+                file_flags = (
+                    os.O_RDONLY | os.O_NONBLOCK | os.O_NOFOLLOW | getattr(os, "O_CLOEXEC", 0)
+                )
+                file_fd = os.open(parts[-1], file_flags, dir_fd=directory_fd)
+                before = os.fstat(file_fd)
+                named_before = os.stat(parts[-1], dir_fd=directory_fd, follow_symlinks=False)
+                if (
+                    not stat.S_ISREG(before.st_mode)
+                    or before.st_nlink != 1
+                    or _file_identity(before) != _file_identity(named_before)
+                ):
+                    raise ValueError("evidence files must be stable single-link regular files")
+                remaining = max_total_bytes - total_bytes
+                if before.st_size > remaining:
+                    raise ValueError("lineage evidence files exceed max_total_bytes")
+                digest = hashlib.sha256()
+                size = 0
+                while True:
+                    chunk = os.read(file_fd, min(1024 * 1024, remaining - size + 1))
+                    if not chunk:
+                        break
+                    size += len(chunk)
+                    if size > remaining:
+                        raise ValueError("lineage evidence files exceed max_total_bytes")
+                    digest.update(chunk)
+                after = os.fstat(file_fd)
+                named_after = os.stat(parts[-1], dir_fd=directory_fd, follow_symlinks=False)
+                if (
+                    size != before.st_size
+                    or _file_identity(after) != _file_identity(before)
+                    or _file_identity(named_after) != _file_identity(before)
+                ):
+                    raise ValueError("evidence file changed while it was being read")
+                if digest.hexdigest() != expected_digest:
+                    raise ValueError(f"evidence file does not match digest {expected_digest}")
+                total_bytes += size
+                sizes[expected_digest] = size
+            finally:
+                if file_fd is not None:
+                    os.close(file_fd)
+                if directory_fd != root_fd:
+                    os.close(directory_fd)
+        return _lineage_evidence_audit_report(frozen_claims, sizes)
+    finally:
+        os.close(root_fd)
+
+
+def _file_identity(metadata: os.stat_result) -> tuple[int, ...]:
+    return (
+        metadata.st_dev,
+        metadata.st_ino,
+        metadata.st_mode,
+        metadata.st_nlink,
+        metadata.st_size,
+        metadata.st_mtime_ns,
+        metadata.st_ctime_ns,
+    )
+
+
+def _lineage_evidence_audit_report(
+    frozen_claims: tuple[LineageStatusClaim, ...], sizes: Mapping[str, int]
+) -> dict[str, Any]:
     claims_bytes = json.dumps(
         [claim.to_dict() for claim in frozen_claims],
         sort_keys=True,
@@ -179,11 +316,11 @@ def audit_lineage_evidence_payloads(
     ).encode("utf-8")
     core = {
         "schema": "umcd.lineage_evidence_audit.v1",
-        "status": "EVIDENCE_BYTES_VERIFIED" if expected else "NO_EVIDENCE_REQUIRED",
+        "status": "EVIDENCE_BYTES_VERIFIED" if sizes else "NO_EVIDENCE_REQUIRED",
         "scientific_status": "NOT_QUALIFIED",
         "lineage_claims_sha256": hashlib.sha256(claims_bytes).hexdigest(),
-        "verified_evidence_sha256": sorted(expected),
-        "verified_evidence_bytes": total_bytes,
+        "verified_evidence_sha256": sorted(sizes),
+        "verified_evidence_bytes": sum(sizes.values()),
     }
     report_bytes = json.dumps(core, sort_keys=True, separators=(",", ":"), allow_nan=False).encode(
         "utf-8"
