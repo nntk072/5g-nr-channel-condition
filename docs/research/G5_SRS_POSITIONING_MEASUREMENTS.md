@@ -34,8 +34,12 @@ transmitter-contribution sum plus the recorded independent-noise grid, then
 binds the selected receiver's noise and per-transmitter contribution digests.
 It uses a caller-bounded cell budget and keeps transmitter contributions as
 provenance; the reported RSRP is measured on the noisy coherent sum, so
-interference cross terms are preserved. This is a synthetic aligned-grid
-observation path, not an RF calibration or qualification result.
+interference cross terms are preserved. A separate diagnostic reports each
+transmitter's configured-RE power, the desired transmitter's power, coherent
+sum power from the other transmitters, measured receiver-noise power, and the
+resulting simulated SINR by receiver branch. The decomposition remains
+`OBSERVED_NOT_QUALIFIED`: it is simulated aligned-grid truth for the declared
+composition, not RF calibration or receiver qualification.
 
 The same module also reports the TS 38.215 V19.2.0 UL-RTOA reference instant
 from SFN/subframe identity and the signed gNB Rx-Tx time difference from

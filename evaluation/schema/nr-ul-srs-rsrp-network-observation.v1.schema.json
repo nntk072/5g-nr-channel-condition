@@ -4,16 +4,17 @@
   "title": "NR UL SRS-RSRP noisy network-grid observation v1",
   "type": "object",
   "required": [
-    "schema", "status", "receiver_index", "transmitter_ids",
+    "schema", "status", "receiver_index", "desired_transmitter_id", "transmitter_ids",
     "measurement_occasion_count", "receiver_branch_count", "noise_seed",
     "noise_variance_w_per_re", "received_grid_sha256",
     "mapped_resource_sha256", "noise_grid_sha256",
-    "transmitter_contributions_sha256", "measurement_report", "limitations"
+    "transmitter_contributions_sha256", "measurement_report", "network_components", "limitations"
   ],
   "properties": {
     "schema": {"const": "loslab.nr_ul_srs_rsrp_network_observation.v1"},
     "status": {"const": "OBSERVED_NOT_QUALIFIED"},
     "receiver_index": {"type": "integer", "minimum": 0},
+    "desired_transmitter_id": {"type": "string", "minLength": 1, "pattern": "^\\S(?:.*\\S)?$"},
     "transmitter_ids": {
       "type": "array", "minItems": 1, "uniqueItems": true,
       "items": {"type": "string", "minLength": 1, "pattern": "^\\S(?:.*\\S)?$"}
@@ -38,6 +39,39 @@
         "measurement": {"const": "UL_SRS_RSRP"},
         "receiver_branch_measurements": {"type": "array", "minItems": 1}
       }
+    },
+    "network_components": {
+      "type": "object",
+      "required": ["measurement", "combiner", "transmitter_power_w_by_id", "receiver_branches", "limitations"],
+      "properties": {
+        "measurement": {"const": "OBSERVED_CONFIGURED_SRS_RE_POWER"},
+        "combiner": {"const": "coherent_sum_of_non_desired_transmitters"},
+        "transmitter_power_w_by_id": {
+          "type": "object", "minProperties": 1,
+          "additionalProperties": {"type": "number", "minimum": 0}
+        },
+        "receiver_branches": {
+          "type": "array", "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "receiver_branch_id", "desired_transmitter_power_w",
+              "coherent_interference_power_w", "measured_receiver_noise_power_w",
+              "network_sinr_linear"
+            ],
+            "properties": {
+              "receiver_branch_id": {"type": "string", "minLength": 1},
+              "desired_transmitter_power_w": {"type": "number", "minimum": 0},
+              "coherent_interference_power_w": {"type": "number", "minimum": 0},
+              "measured_receiver_noise_power_w": {"type": "number", "minimum": 0},
+              "network_sinr_linear": {"type": ["number", "null"], "minimum": 0}
+            },
+            "additionalProperties": false
+          }
+        },
+        "limitations": {"type": "array", "minItems": 3, "items": {"type": "string", "minLength": 1}}
+      },
+      "additionalProperties": false
     },
     "limitations": {"type": "array", "minItems": 3, "items": {"type": "string", "minLength": 1}}
   },

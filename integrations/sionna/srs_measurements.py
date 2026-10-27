@@ -332,6 +332,7 @@ def measure_ul_srs_rsrp_from_noisy_network_grid(
     mapped_resource: Any,
     *,
     receiver_index: int,
+    desired_transmitter_id: str,
     transmitter_ids: Sequence[str],
     occasion_ids: Sequence[str],
     receiver_branch_ids: Sequence[str],
@@ -427,6 +428,13 @@ def measure_ul_srs_rsrp_from_noisy_network_grid(
         contributions.shape[3],
     )
     transmitter_roster = _canonical_id_roster(transmitter_ids, transmitter_count, "transmitter_ids")
+    if (
+        not isinstance(desired_transmitter_id, str)
+        or not desired_transmitter_id
+        or desired_transmitter_id != desired_transmitter_id.strip()
+        or desired_transmitter_id not in transmitter_roster
+    ):
+        raise ValueError("desired_transmitter_id must identify one declared transmitter")
     received_slice = observed_grid[:, receiver_index]
     composed_slice = composed_grid[:, receiver_index]
     noise_slice = noise_grid[:, receiver_index]
@@ -466,10 +474,53 @@ def measure_ul_srs_rsrp_from_noisy_network_grid(
         power_calibration_sha256=power_calibration_sha256,
         maximum_grid_cells=maximum_grid_cells,
     )
+    configured_mask = np.any(mapped_mask, axis=0)
+    selected_contributions = contribution_array[:, :, :, configured_mask].astype(
+        np.complex128, copy=False
+    )
+    selected_noise = noise_array[:, :, configured_mask].astype(np.complex128, copy=False)
+    scale = float(power_scale_w_per_grid_unit_squared)
+    transmitter_power = np.mean(np.abs(selected_contributions) ** 2, axis=(0, 3)) * scale
+    desired_index = transmitter_roster.index(desired_transmitter_id)
+    desired_power = transmitter_power[:, desired_index]
+    interference_indices = [index for index in range(transmitter_count) if index != desired_index]
+    coherent_interference = (
+        np.take(selected_contributions, interference_indices, axis=2).sum(axis=2)
+        if interference_indices
+        else np.zeros_like(selected_noise)
+    )
+    interference_power = np.mean(np.abs(coherent_interference) ** 2, axis=(0, 2)) * scale
+    noise_power = np.mean(np.abs(selected_noise) ** 2, axis=(0, 2)) * scale
+    if (
+        not np.isfinite(transmitter_power).all()
+        or not np.isfinite(interference_power).all()
+        or not np.isfinite(noise_power).all()
+    ):
+        raise ValueError("network component powers are not representable in float64")
+    branch_component_measurements = []
+    for branch_index, branch_id in enumerate(receiver_branch_ids):
+        denominator = float(interference_power[branch_index] + noise_power[branch_index])
+        branch_component_measurements.append(
+            {
+                "receiver_branch_id": branch_id,
+                "desired_transmitter_power_w": float(desired_power[branch_index]),
+                "coherent_interference_power_w": float(interference_power[branch_index]),
+                "measured_receiver_noise_power_w": float(noise_power[branch_index]),
+                "network_sinr_linear": (
+                    float(desired_power[branch_index] / denominator) if denominator > 0 else None
+                ),
+            }
+        )
+    if any(
+        value["network_sinr_linear"] is not None and not math.isfinite(value["network_sinr_linear"])
+        for value in branch_component_measurements
+    ):
+        raise ValueError("network component SINR is not representable in float64")
     report = {
         "schema": "loslab.nr_ul_srs_rsrp_network_observation.v1",
         "status": "OBSERVED_NOT_QUALIFIED",
         "receiver_index": receiver_index,
+        "desired_transmitter_id": desired_transmitter_id,
         "transmitter_ids": transmitter_roster,
         "measurement_occasion_count": occasion_count,
         "receiver_branch_count": branch_count,
@@ -480,6 +531,20 @@ def measure_ul_srs_rsrp_from_noisy_network_grid(
         "noise_grid_sha256": _array_sha256(noise_array),
         "transmitter_contributions_sha256": _array_sha256(contribution_array),
         "measurement_report": observation["measurement_report"],
+        "network_components": {
+            "measurement": "OBSERVED_CONFIGURED_SRS_RE_POWER",
+            "combiner": "coherent_sum_of_non_desired_transmitters",
+            "transmitter_power_w_by_id": {
+                tx_id: float(transmitter_power[:, index].mean())
+                for index, tx_id in enumerate(transmitter_roster)
+            },
+            "receiver_branches": branch_component_measurements,
+            "limitations": [
+                "Component powers use the caller-supplied watts-per-grid-unit-squared scale.",
+                "Interference is coherently summed before power measurement; reported SRS-RSRP uses the full received grid.",
+                "Component decomposition is simulated network truth for this composition, not measured RF separation or receiver qualification.",
+            ],
+        },
         "limitations": [
             "The watts-per-grid-unit-squared scale and calibration digest are caller supplied.",
             "Per-transmitter contributions are provenance only; SRS-RSRP is measured from their coherent sum plus receiver noise.",

@@ -173,9 +173,11 @@ def test_noisy_network_grid_observation_binds_interference_and_receiver_noise():
         compose_downlink_resource_grids,
     )
 
-    channel = torch.zeros((1, 1, 1, 2, 1, 2, 3), dtype=torch.complex64)
-    channel[:, :, :, 0] = 1.0
-    channel[:, :, :, 1] = 0.5
+    channel = torch.zeros((1, 1, 2, 2, 1, 2, 3), dtype=torch.complex64)
+    channel[:, :, 0, 0] = 1.0
+    channel[:, :, 0, 1] = 0.5
+    channel[:, :, 1, 0] = 0.75
+    channel[:, :, 1, 1] = 0.25
     transmit_grids = torch.ones((1, 2, 1, 2, 3), dtype=torch.complex64)
     composition = compose_downlink_resource_grids(channel, transmit_grids, (1.0, 1.0))
     noisy = add_independent_receiver_awgn(composition, (0.01,), seed=29)
@@ -194,9 +196,10 @@ def test_noisy_network_grid_observation_binds_interference_and_receiver_noise():
         composition,
         mapped,
         receiver_index=0,
+        desired_transmitter_id="ue-1",
         transmitter_ids=["ue-1", "ue-2"],
         occasion_ids=["slot-1"],
-        receiver_branch_ids=["rx-branch-1"],
+        receiver_branch_ids=["rx-branch-1", "rx-branch-2"],
         receiver_category="terrestrial_type_1_c",
         measurement_frequency_bandwidth_hz=20e6,
         power_scale_w_per_grid_unit_squared=0.5,
@@ -211,6 +214,15 @@ def test_noisy_network_grid_observation_binds_interference_and_receiver_noise():
     assert len(report["transmitter_contributions_sha256"]) == 64
     assert report["measurement_report"]["configured_re_count_per_occasion"] == [2]
     assert report["measurement_report"]["receiver_branch_measurements"][0]["ul_srs_rsrp_w"] > 0
+    components = report["network_components"]
+    assert components["transmitter_power_w_by_id"]["ue-1"] > 0
+    assert components["transmitter_power_w_by_id"]["ue-2"] > 0
+    branch = components["receiver_branches"][0]
+    assert branch["desired_transmitter_power_w"] == pytest.approx(0.5)
+    assert branch["coherent_interference_power_w"] == pytest.approx(0.125)
+    assert branch["measured_receiver_noise_power_w"] > 0
+    assert branch["network_sinr_linear"] > 0
+    assert components["receiver_branches"][1]["receiver_branch_id"] == "rx-branch-2"
 
 
 def test_noisy_network_grid_observation_rejects_composition_noise_mismatch():
@@ -239,6 +251,7 @@ def test_noisy_network_grid_observation_rejects_composition_noise_mismatch():
             composition,
             mapped,
             receiver_index=0,
+            desired_transmitter_id="ue-1",
             transmitter_ids=["ue-1"],
             occasion_ids=["slot-1"],
             receiver_branch_ids=["rx-branch-1"],
