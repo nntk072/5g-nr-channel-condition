@@ -93,6 +93,10 @@ class SionnaPUSCHLSReceiver:
         pusch_config.mapping_type = config.mapping_type
         pusch_config.symbol_allocation = list(config.symbol_allocation)
         pusch_config.precoding = config.precoding
+        if getattr(pusch_config, "frequency_hopping", None) != config.frequency_hopping:
+            raise RuntimeError(
+                "Sionna PUSCH frequency-hopping mode differs from the validated receiver config"
+            )
 
         self.config = config
         self.device = device

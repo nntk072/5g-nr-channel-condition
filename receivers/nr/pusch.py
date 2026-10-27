@@ -33,6 +33,7 @@ class NRPUSCHConfig:
     n_size_grid: int | None = None
     n_start_grid: int = 0
     n_start_bwp: int = 0
+    frequency_hopping: str = "neither"
 
     def __post_init__(self) -> None:
         integer_fields = (
@@ -99,6 +100,11 @@ class NRPUSCHConfig:
             raise ValueError("num_cdm_groups_without_data must be in [1, 3]")
         if self.mapping_type not in {"A", "B"}:
             raise ValueError("mapping_type must be A or B")
+        if not isinstance(self.frequency_hopping, str) or self.frequency_hopping != "neither":
+            raise ValueError(
+                "frequency_hopping currently supports only 'neither'; "
+                "PUSCH frequency hopping is not implemented by this receiver"
+            )
         if (
             not isinstance(self.symbol_allocation, (tuple, list))
             or len(self.symbol_allocation) != 2

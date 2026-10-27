@@ -3,6 +3,19 @@
 from __future__ import annotations
 
 import pytest
+from receivers.nr import NRPUSCHConfig
+
+
+def test_pusch_frequency_hopping_defaults_to_explicit_backend_supported_mode() -> None:
+    config = NRPUSCHConfig()
+
+    assert config.frequency_hopping == "neither"
+
+
+@pytest.mark.parametrize("mode", ("intraSlot", "interSlot", "intra-slot", "unknown", True))
+def test_pusch_frequency_hopping_rejects_unimplemented_modes(mode: object) -> None:
+    with pytest.raises(ValueError, match="frequency_hopping currently supports only"):
+        NRPUSCHConfig(frequency_hopping=mode)  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize(
