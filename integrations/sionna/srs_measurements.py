@@ -45,6 +45,10 @@ _AOA_SCHEMA_PATH = (
 _RSRPP_SCHEMA_PATH = (
     Path(__file__).resolve().parents[2] / "evaluation/schema/nr-ul-srs-rsrpp-report.v1.schema.json"
 )
+_TDCT_SCHEMA_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "evaluation/schema/nr-ul-srs-tdct-tdcp-report.v1.schema.json"
+)
 _GRID_OBSERVATION_SCHEMA_PATH = (
     Path(__file__).resolve().parents[2]
     / "evaluation/schema/nr-ul-srs-rsrp-grid-observation.v1.schema.json"
@@ -918,6 +922,214 @@ def report_ul_srs_rsrpp(
     return report
 
 
+def report_ul_srs_tdct_tdcp(
+    linear_averaged_channel_response: np.ndarray,
+    candidate_time_ticks: np.ndarray,
+    first_detected_path_time_ticks: np.ndarray,
+    *,
+    occasion_ids: Sequence[str],
+    receiver_branch_ids: Sequence[str],
+    receiver_category: str,
+    sfn: int,
+    subframe_number: int,
+    sfn_zero_reference_time_s: float,
+    timing_reporting_granularity_factor: int,
+    reported_time_count: int,
+    watts_per_channel_response_unit_squared: float,
+    power_calibration_sha256: str,
+    channel_estimator_sha256: str,
+    path_detector_sha256: str,
+    maximum_measurement_values: int = 1_000_000,
+) -> dict[str, Any]:
+    """Report the coupled UL SRS-TDCT and TDCP values from caller estimates.
+
+    The complex input is the caller's linear average of estimated channel
+    response at each candidate time, with axes ``[occasion, branch, time]``.
+    Candidate times and first-path times are integer multiples of NR ``Tc``
+    from the declared SFN-zero epoch. This function constructs the
+    ``2**k * Tc`` grid beginning at the first detected path rounded down,
+    chooses the requested highest-power grid points, reports timing relative
+    to the SRS reference instant, and reports TDCP power on the receiver branch
+    selected by the strongest chosen first time. It performs no channel
+    estimation, first-path detection, clock calibration, or receiver
+    qualification.
+    """
+    tc_s = 1.0 / (480_000.0 * 4096.0)  # TS 38.211 V19.2.0, clause 4.1.
+    raw_response = np.asarray(linear_averaged_channel_response)
+    raw_times = np.asarray(candidate_time_ticks)
+    raw_first = np.asarray(first_detected_path_time_ticks)
+    if (
+        raw_response.ndim != 3
+        or any(size <= 0 for size in raw_response.shape)
+        or raw_response.dtype.kind != "c"
+    ):
+        raise ValueError(
+            "linear_averaged_channel_response must be nonempty complex [occasion, branch, time]"
+        )
+    occasion_count, branch_count, time_count = raw_response.shape
+    if raw_times.dtype.kind not in "iu" or raw_times.shape != (occasion_count, time_count):
+        raise ValueError("candidate_time_ticks must be integer [occasion, time]")
+    if raw_first.dtype.kind not in "iu" or raw_first.shape != (occasion_count,):
+        raise ValueError("first_detected_path_time_ticks must be integer [occasion]")
+    int64_max = np.iinfo(np.int64).max
+    if (
+        np.any(raw_times < 0)
+        or np.any(raw_first < 0)
+        or np.any(raw_times > int64_max)
+        or np.any(raw_first > int64_max)
+    ):
+        raise ValueError("candidate and first-path time ticks must fit nonnegative int64")
+    if isinstance(maximum_measurement_values, bool) or not isinstance(
+        maximum_measurement_values, int
+    ):
+        raise TypeError("maximum_measurement_values must be an integer")
+    if maximum_measurement_values <= 0:
+        raise ValueError("maximum_measurement_values must be positive")
+    if raw_response.size + raw_times.size + raw_first.size > maximum_measurement_values:
+        raise ValueError("UL SRS-TDCT/TDCP inputs exceed maximum_measurement_values")
+    if isinstance(timing_reporting_granularity_factor, bool) or not isinstance(
+        timing_reporting_granularity_factor, int
+    ):
+        raise TypeError("timing_reporting_granularity_factor must be an integer")
+    if not 0 <= timing_reporting_granularity_factor <= 5:
+        raise ValueError("timing_reporting_granularity_factor must be in [0, 5]")
+    if isinstance(reported_time_count, bool) or not isinstance(reported_time_count, int):
+        raise TypeError("reported_time_count must be an integer")
+    if not 1 <= reported_time_count <= time_count:
+        raise ValueError("reported_time_count must be in [1, number of candidate times]")
+    if receiver_category not in _TIMING_REFERENCE_POINTS:
+        raise ValueError("receiver_category must be a terrestrial TS 38.104 base-station type")
+    if isinstance(sfn, bool) or not isinstance(sfn, int) or not 0 <= sfn <= 1023:
+        raise ValueError("sfn must be an integer from 0 through 1023")
+    if (
+        isinstance(subframe_number, bool)
+        or not isinstance(subframe_number, int)
+        or not 0 <= subframe_number <= 9
+    ):
+        raise ValueError("subframe_number must be an integer from 0 through 9")
+
+    response = np.array(raw_response, dtype=np.complex128, copy=True, order="C")
+    times = np.array(raw_times, dtype=np.int64, copy=True, order="C")
+    first_times = np.array(raw_first, dtype=np.int64, copy=True, order="C")
+    if not np.isfinite(response).all():
+        raise ValueError("linear_averaged_channel_response must be finite")
+    granularity_ticks = 1 << timing_reporting_granularity_factor
+    for occasion_index in range(occasion_count):
+        expected_start = (int(first_times[occasion_index]) // granularity_ticks) * granularity_ticks
+        expected_end = expected_start + (time_count - 1) * granularity_ticks
+        if expected_end > int64_max:
+            raise ValueError("candidate time grid exceeds the supported int64 tick range")
+        expected = expected_start + np.arange(time_count, dtype=np.int64) * granularity_ticks
+        if not np.array_equal(times[occasion_index], expected):
+            raise ValueError(
+                "candidate_time_ticks must be consecutive 2**k*Tc instances beginning "
+                "at the rounded-down first detected path"
+            )
+    occasions = _canonical_id_roster(occasion_ids, occasion_count, "occasion_ids")
+    branches = _canonical_id_roster(receiver_branch_ids, branch_count, "receiver_branch_ids")
+    t0 = _finite_real(sfn_zero_reference_time_s, "sfn_zero_reference_time_s")
+    scale = _finite_real(
+        watts_per_channel_response_unit_squared,
+        "watts_per_channel_response_unit_squared",
+    )
+    if scale <= 0:
+        raise ValueError("watts_per_channel_response_unit_squared must be positive")
+    calibration_digest = _validate_digest(power_calibration_sha256, "power_calibration_sha256")
+    estimator_digest = _validate_digest(channel_estimator_sha256, "channel_estimator_sha256")
+    detector_digest = _validate_digest(path_detector_sha256, "path_detector_sha256")
+    with np.errstate(over="ignore", invalid="ignore"):
+        power_by_branch_w = (response.real**2 + response.imag**2) * scale
+    if not np.isfinite(power_by_branch_w).all():
+        raise ValueError("calibrated UL SRS time-domain channel power is not finite")
+
+    srs_offset_s = (10 * sfn + subframe_number) * 1e-3
+    reference_time_s = t0 + srs_offset_s
+    occasion_measurements: list[dict[str, Any]] = []
+    for occasion_index, occasion_id in enumerate(occasions):
+        strongest_branch_power_by_time = np.max(power_by_branch_w[occasion_index], axis=0)
+        selected = sorted(
+            range(time_count),
+            key=lambda time_index: (
+                -float(strongest_branch_power_by_time[time_index]),
+                int(times[occasion_index, time_index]),
+            ),
+        )[:reported_time_count]
+        first_selected_time_index = selected[0]
+        selected_branch_index = int(
+            np.argmax(power_by_branch_w[occasion_index, :, first_selected_time_index])
+        )
+        selected_times = []
+        for power_rank, time_index in enumerate(selected):
+            tick = int(times[occasion_index, time_index])
+            absolute_time_s = t0 + tick * tc_s
+            branch_powers = [
+                float(power_by_branch_w[occasion_index, branch_index, time_index])
+                for branch_index in range(branch_count)
+            ]
+            selected_power_w = branch_powers[selected_branch_index]
+            selected_times.append(
+                {
+                    "power_rank": power_rank,
+                    "candidate_index": time_index,
+                    "time_tick": tick,
+                    "absolute_time_s": absolute_time_s,
+                    "tdct_relative_to_reference_s": absolute_time_s - reference_time_s,
+                    "receiver_branch_power_w": branch_powers,
+                    "selected_branch_power_w": selected_power_w,
+                    "selected_branch_power_dbm": (
+                        10.0 * math.log10(selected_power_w / 1e-3) if selected_power_w > 0 else None
+                    ),
+                }
+            )
+        occasion_measurements.append(
+            {
+                "occasion_id": occasion_id,
+                "first_detected_path_time_tick": int(first_times[occasion_index]),
+                "candidate_time_ticks": times[occasion_index].tolist(),
+                "selected_receiver_branch_id": branches[selected_branch_index],
+                "selected_times": selected_times,
+            }
+        )
+
+    report = {
+        "schema": "loslab.nr_ul_srs_tdct_tdcp_report.v1",
+        "status": "OBSERVED_NOT_QUALIFIED",
+        "measurements": ["UL_SRS_TDCT", "UL_SRS_TDCP"],
+        "standard": "3GPP_TS_38.215_V19.2.0_clauses_5.2.9_5.2.10",
+        "receiver_category": receiver_category,
+        "measurement_reference_point": _TIMING_REFERENCE_POINTS[receiver_category],
+        "tc_s": tc_s,
+        "timing_reporting_granularity_factor": timing_reporting_granularity_factor,
+        "timing_granularity_s": granularity_ticks * tc_s,
+        "candidate_time_count": time_count,
+        "reported_time_count": reported_time_count,
+        "sfn": sfn,
+        "subframe_number": subframe_number,
+        "sfn_zero_reference_time_s": t0,
+        "srs_subframe_offset_from_sfn_zero_s": srs_offset_s,
+        "timing_reference_time_s": reference_time_s,
+        "occasion_ids": occasions,
+        "receiver_branch_ids": branches,
+        "power_unit": "W",
+        "watts_per_channel_response_unit_squared": scale,
+        "power_calibration_sha256": calibration_digest,
+        "channel_estimator_sha256": estimator_digest,
+        "path_detector_sha256": detector_digest,
+        "linear_averaged_channel_response_sha256": _array_sha256(response),
+        "candidate_time_ticks_sha256": _array_sha256(times),
+        "first_detected_path_time_ticks_sha256": _array_sha256(first_times),
+        "occasion_measurements": occasion_measurements,
+        "limitations": [
+            "Channel estimates, first-path times, calibration, and timing epoch are caller supplied and not independently verified.",
+            "The report selects the highest-power candidate times and uses the branch selected at the strongest time for all TDCP values.",
+            "No receiver synchronization, channel estimation, first-path detection, or clock calibration is performed.",
+            "This is a measurement arithmetic contract, not scientific or receiver qualification.",
+        ],
+    }
+    _validate_tdct_tdcp_report_schema(report)
+    return report
+
+
 def _finite_real(value: Any, name: str) -> float:
     if isinstance(value, (bool, np.bool_)) or not isinstance(value, Real):
         raise ValueError(f"{name} must be a finite real number")
@@ -980,5 +1192,18 @@ def _validate_rsrpp_report_schema(report: dict[str, Any]) -> None:
     if errors:
         raise ValueError(
             "UL SRS-RSRPP report violates schema: "
+            + "; ".join(error.message for error in errors[:10])
+        )
+
+
+def _validate_tdct_tdcp_report_schema(report: dict[str, Any]) -> None:
+    import jsonschema
+
+    schema = json.loads(_TDCT_SCHEMA_PATH.read_text(encoding="utf-8"))
+    jsonschema.Draft202012Validator.check_schema(schema)
+    errors = list(jsonschema.Draft202012Validator(schema).iter_errors(report))
+    if errors:
+        raise ValueError(
+            "UL SRS-TDCT/TDCP report violates schema: "
             + "; ".join(error.message for error in errors[:10])
         )

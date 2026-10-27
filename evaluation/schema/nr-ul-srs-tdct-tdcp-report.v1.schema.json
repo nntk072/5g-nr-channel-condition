@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.invalid/schema/evaluation/nr-ul-srs-tdct-tdcp-report.v1.schema.json",
+  "title": "NR UL SRS time-domain channel timing and power report v1",
+  "type": "object",
+  "required": [
+    "schema", "status", "measurements", "standard", "receiver_category",
+    "measurement_reference_point", "tc_s", "timing_reporting_granularity_factor",
+    "timing_granularity_s", "candidate_time_count", "reported_time_count", "sfn",
+    "subframe_number", "sfn_zero_reference_time_s", "srs_subframe_offset_from_sfn_zero_s",
+    "timing_reference_time_s", "occasion_ids", "receiver_branch_ids", "power_unit",
+    "watts_per_channel_response_unit_squared", "power_calibration_sha256",
+    "channel_estimator_sha256", "path_detector_sha256",
+    "linear_averaged_channel_response_sha256", "candidate_time_ticks_sha256",
+    "first_detected_path_time_ticks_sha256", "occasion_measurements", "limitations"
+  ],
+  "properties": {
+    "schema": {"const": "loslab.nr_ul_srs_tdct_tdcp_report.v1"},
+    "status": {"const": "OBSERVED_NOT_QUALIFIED"},
+    "measurements": {"const": ["UL_SRS_TDCT", "UL_SRS_TDCP"]},
+    "standard": {"const": "3GPP_TS_38.215_V19.2.0_clauses_5.2.9_5.2.10"},
+    "receiver_category": {
+      "enum": [
+        "terrestrial_type_1_c", "terrestrial_type_1_o", "terrestrial_type_2_o",
+        "terrestrial_type_1_h"
+      ]
+    },
+    "measurement_reference_point": {"type": "string", "minLength": 1},
+    "tc_s": {"const": 5.086263020833334e-10},
+    "timing_reporting_granularity_factor": {"type": "integer", "minimum": 0, "maximum": 5},
+    "timing_granularity_s": {"type": "number", "exclusiveMinimum": 0},
+    "candidate_time_count": {"type": "integer", "minimum": 1},
+    "reported_time_count": {"type": "integer", "minimum": 1},
+    "sfn": {"type": "integer", "minimum": 0, "maximum": 1023},
+    "subframe_number": {"type": "integer", "minimum": 0, "maximum": 9},
+    "sfn_zero_reference_time_s": {"type": "number"},
+    "srs_subframe_offset_from_sfn_zero_s": {"type": "number", "minimum": 0},
+    "timing_reference_time_s": {"type": "number"},
+    "occasion_ids": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "receiver_branch_ids": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "power_unit": {"const": "W"},
+    "watts_per_channel_response_unit_squared": {"type": "number", "exclusiveMinimum": 0},
+    "power_calibration_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "channel_estimator_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "path_detector_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "linear_averaged_channel_response_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "candidate_time_ticks_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "first_detected_path_time_ticks_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "occasion_measurements": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["occasion_id", "first_detected_path_time_tick", "candidate_time_ticks", "selected_receiver_branch_id", "selected_times"],
+        "properties": {
+          "occasion_id": {"type": "string", "minLength": 1},
+          "first_detected_path_time_tick": {"type": "integer", "minimum": 0},
+          "candidate_time_ticks": {"type": "array", "minItems": 1, "items": {"type": "integer", "minimum": 0}},
+          "selected_receiver_branch_id": {"type": "string", "minLength": 1},
+          "selected_times": {
+            "type": "array", "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["power_rank", "candidate_index", "time_tick", "absolute_time_s", "tdct_relative_to_reference_s", "receiver_branch_power_w", "selected_branch_power_w", "selected_branch_power_dbm"],
+              "properties": {
+                "power_rank": {"type": "integer", "minimum": 0},
+                "candidate_index": {"type": "integer", "minimum": 0},
+                "time_tick": {"type": "integer", "minimum": 0},
+                "absolute_time_s": {"type": "number"},
+                "tdct_relative_to_reference_s": {"type": "number"},
+                "receiver_branch_power_w": {"type": "array", "minItems": 1, "items": {"type": "number", "minimum": 0}},
+                "selected_branch_power_w": {"type": "number", "minimum": 0},
+                "selected_branch_power_dbm": {"type": ["number", "null"]}
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "limitations": {"type": "array", "minItems": 4, "items": {"type": "string", "minLength": 1}}
+  },
+  "additionalProperties": false
+}

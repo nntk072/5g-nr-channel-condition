@@ -14,6 +14,7 @@ from integrations.sionna.srs_measurements import (
     report_ul_aoa,
     report_ul_rtoa,
     report_ul_srs_rsrpp,
+    report_ul_srs_tdct_tdcp,
 )
 
 
@@ -178,6 +179,137 @@ def test_ul_srs_rsrpp_enforces_resource_cap_and_digest_contract():
             valid,
             channel_estimator_sha256="not-a-digest",
             **{key: value for key, value in args.items() if key != "channel_estimator_sha256"},
+        )
+
+
+def test_ul_srs_tdct_tdcp_selects_strongest_times_and_holds_diversity_branch():
+    tc_s = 1.0 / (480_000.0 * 4096.0)
+    sfn_offset_ticks = int((10 * 2 + 3) * 1e-3 / tc_s)
+    first_path_tick = sfn_offset_ticks + 11
+    start_tick = (first_path_tick // 4) * 4
+    time_ticks = np.array([[start_tick + 4 * index for index in range(4)]], dtype=np.int64)
+    response = np.array([[[1, 1.5, 1, 0], [np.sqrt(2), 1, 2, 1]]], dtype=np.complex128)
+    report = report_ul_srs_tdct_tdcp(
+        response,
+        time_ticks,
+        np.array([first_path_tick], dtype=np.int64),
+        occasion_ids=["occasion-1"],
+        receiver_branch_ids=["branch-1", "branch-2"],
+        receiver_category="terrestrial_type_1_o",
+        sfn=2,
+        subframe_number=3,
+        sfn_zero_reference_time_s=100.0,
+        timing_reporting_granularity_factor=2,
+        reported_time_count=2,
+        watts_per_channel_response_unit_squared=1e-3,
+        power_calibration_sha256="a" * 64,
+        channel_estimator_sha256="b" * 64,
+        path_detector_sha256="c" * 64,
+    )
+
+    assert report["status"] == "OBSERVED_NOT_QUALIFIED"
+    assert report["measurements"] == ["UL_SRS_TDCT", "UL_SRS_TDCP"]
+    assert report["timing_granularity_s"] == pytest.approx(4 * tc_s)
+    occasion = report["occasion_measurements"][0]
+    assert occasion["selected_receiver_branch_id"] == "branch-2"
+    assert [row["candidate_index"] for row in occasion["selected_times"]] == [2, 1]
+    assert occasion["selected_times"][0]["tdct_relative_to_reference_s"] == pytest.approx(
+        (start_tick + 8) * tc_s - 0.023
+    )
+    assert occasion["selected_times"][1]["selected_branch_power_w"] == pytest.approx(1e-3)
+
+
+def test_ul_srs_tdct_tdcp_rejects_wrong_time_grid_and_missing_power_samples():
+    response = np.ones((1, 1, 3), dtype=complex)
+    first = np.array([7], dtype=np.int64)
+    common = dict(
+        occasion_ids=["occasion-1"],
+        receiver_branch_ids=["branch-1"],
+        receiver_category="terrestrial_type_1_o",
+        sfn=1,
+        subframe_number=0,
+        sfn_zero_reference_time_s=0.0,
+        timing_reporting_granularity_factor=1,
+        reported_time_count=1,
+        watts_per_channel_response_unit_squared=1.0,
+        power_calibration_sha256="a" * 64,
+        channel_estimator_sha256="b" * 64,
+        path_detector_sha256="c" * 64,
+    )
+    with pytest.raises(ValueError, match="rounded-down first detected path"):
+        report_ul_srs_tdct_tdcp(
+            response,
+            np.array([[2, 4, 8]], dtype=np.int64),
+            first,
+            **common,
+        )
+    with pytest.raises(ValueError, match="reported_time_count"):
+        report_ul_srs_tdct_tdcp(
+            response,
+            np.array([[6, 8, 10]], dtype=np.int64),
+            first,
+            reported_time_count=4,
+            **{key: value for key, value in common.items() if key != "reported_time_count"},
+        )
+
+
+def test_ul_srs_tdct_tdcp_enforces_resource_bound_and_rejects_nonfinite_estimates():
+    response = np.ones((1, 1, 2), dtype=complex)
+    common = dict(
+        occasion_ids=["occasion-1"],
+        receiver_branch_ids=["branch-1"],
+        receiver_category="terrestrial_type_1_o",
+        sfn=0,
+        subframe_number=0,
+        sfn_zero_reference_time_s=0.0,
+        timing_reporting_granularity_factor=0,
+        reported_time_count=1,
+        watts_per_channel_response_unit_squared=1.0,
+        power_calibration_sha256="a" * 64,
+        channel_estimator_sha256="b" * 64,
+        path_detector_sha256="c" * 64,
+    )
+    with pytest.raises(ValueError, match="maximum_measurement_values"):
+        report_ul_srs_tdct_tdcp(
+            response,
+            np.array([[0, 1]], dtype=np.int64),
+            np.array([1], dtype=np.int64),
+            maximum_measurement_values=3,
+            **common,
+        )
+    nonfinite = response.copy()
+    nonfinite[0, 0, 0] = complex(np.nan, 0)
+    with pytest.raises(ValueError, match="must be finite"):
+        report_ul_srs_tdct_tdcp(
+            nonfinite,
+            np.array([[0, 1]], dtype=np.int64),
+            np.array([1], dtype=np.int64),
+            **common,
+        )
+
+
+def test_ul_srs_tdct_tdcp_rejects_tick_grid_overflow():
+    common = dict(
+        occasion_ids=["occasion-1"],
+        receiver_branch_ids=["branch-1"],
+        receiver_category="terrestrial_type_1_o",
+        sfn=0,
+        subframe_number=0,
+        sfn_zero_reference_time_s=0.0,
+        timing_reporting_granularity_factor=1,
+        reported_time_count=1,
+        watts_per_channel_response_unit_squared=1.0,
+        power_calibration_sha256="a" * 64,
+        channel_estimator_sha256="b" * 64,
+        path_detector_sha256="c" * 64,
+    )
+    maximum = np.iinfo(np.int64).max
+    with pytest.raises(ValueError, match="int64 tick range"):
+        report_ul_srs_tdct_tdcp(
+            np.ones((1, 1, 3), dtype=complex),
+            np.array([[maximum - 1, maximum - 1, maximum - 1]], dtype=np.int64),
+            np.array([maximum - 1], dtype=np.int64),
+            **common,
         )
 
 
