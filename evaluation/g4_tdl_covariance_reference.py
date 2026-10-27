@@ -141,6 +141,26 @@ def scalable_tdl_rayleigh_tap_indices(model: str) -> tuple[int, ...]:
     return result
 
 
+def scalable_tdl_rayleigh_tap_power_fractions(model: str) -> tuple[tuple[int, float], ...]:
+    """Return (native tap index, ETSI normalized power) for Rayleigh-only taps."""
+    if not isinstance(model, str) or model not in _PROFILE_MODELS:
+        raise ValueError("model must name a scalable TDL profile A, B, C, D, or E")
+    components = _load_profiles()[model]
+    linear_powers = [10.0 ** (power_db / 10.0) for _, power_db, _ in components]
+    total_power = math.fsum(linear_powers)
+    has_los = any(distribution == "LOS" for _, _, distribution in components)
+    result = tuple(
+        (index - (2 if has_los else 1), power / total_power)
+        for index, ((_, _, distribution), power) in enumerate(
+            zip(components, linear_powers, strict=True), start=1
+        )
+        if distribution == "Rayleigh" and not (has_los and index == 2)
+    )
+    if tuple(index for index, _ in result) != scalable_tdl_rayleigh_tap_indices(model):
+        raise ValueError(f"scalable TDL-{model} Rayleigh power roster is inconsistent")
+    return result
+
+
 @lru_cache(maxsize=1)
 def _load_fixed_profiles() -> dict[str, tuple[tuple[int, float, str], ...]]:
     payload = _FIXED_REFERENCE_PATH.read_bytes()
@@ -231,6 +251,26 @@ def fixed_tdl_rayleigh_tap_indices(model: str) -> tuple[int, ...]:
         for tap_index, distributions in sorted(by_tap.items())
         if all(distribution == "Rayleigh" for distribution in distributions)
     )
+
+
+def fixed_tdl_rayleigh_tap_power_fractions(model: str) -> tuple[tuple[int, float], ...]:
+    """Return (native tap index, TS 38.101-4 normalized power) for Rayleigh-only taps."""
+    if not isinstance(model, str) or model not in _FIXED_PROFILE_MODELS:
+        raise ValueError("model must name a supported fixed TDL profile")
+    components = _load_fixed_profiles()[model]
+    linear_powers = [10.0 ** (power_db / 10.0) for _, power_db, _ in components]
+    total_power = math.fsum(linear_powers)
+    by_tap: dict[int, list[tuple[float, str]]] = {}
+    for (tap_index, _, distribution), power in zip(components, linear_powers, strict=True):
+        by_tap.setdefault(tap_index, []).append((power, distribution))
+    result = tuple(
+        (tap_index - 1, math.fsum(power for power, _ in rows) / total_power)
+        for tap_index, rows in sorted(by_tap.items())
+        if all(distribution == "Rayleigh" for _, distribution in rows)
+    )
+    if tuple(index for index, _ in result) != fixed_tdl_rayleigh_tap_indices(model):
+        raise ValueError(f"fixed TDL-{model} Rayleigh power roster is inconsistent")
+    return result
 
 
 def scalable_tdl_first_tap_covariance_reference(
