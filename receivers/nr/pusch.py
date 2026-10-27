@@ -34,6 +34,7 @@ class NRPUSCHConfig:
     n_start_grid: int = 0
     n_start_bwp: int = 0
     frequency_hopping: str = "neither"
+    transform_precoding: bool = False
 
     def __post_init__(self) -> None:
         integer_fields = (
@@ -104,6 +105,13 @@ class NRPUSCHConfig:
             raise ValueError(
                 "frequency_hopping currently supports only 'neither'; "
                 "PUSCH frequency hopping is not implemented by this receiver"
+            )
+        if type(self.transform_precoding) is not bool:
+            raise TypeError("transform_precoding must be a Boolean")
+        if self.transform_precoding:
+            raise ValueError(
+                "transform_precoding is not supported: pinned Sionna PHY 2.2.0 "
+                "does not implement DFT-s-OFDM PUSCH"
             )
         if (
             not isinstance(self.symbol_allocation, (tuple, list))

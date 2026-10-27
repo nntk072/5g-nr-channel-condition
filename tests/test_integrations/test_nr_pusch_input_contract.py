@@ -10,12 +10,23 @@ def test_pusch_frequency_hopping_defaults_to_explicit_backend_supported_mode() -
     config = NRPUSCHConfig()
 
     assert config.frequency_hopping == "neither"
+    assert config.transform_precoding is False
 
 
 @pytest.mark.parametrize("mode", ("intraSlot", "interSlot", "intra-slot", "unknown", True))
 def test_pusch_frequency_hopping_rejects_unimplemented_modes(mode: object) -> None:
     with pytest.raises(ValueError, match="frequency_hopping currently supports only"):
         NRPUSCHConfig(frequency_hopping=mode)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize("value", (True, 1, "true", None))
+def test_pusch_transform_precoding_fails_closed(value: object) -> None:
+    if value is True:
+        with pytest.raises(ValueError, match="does not implement DFT-s-OFDM PUSCH"):
+            NRPUSCHConfig(transform_precoding=value)
+    else:
+        with pytest.raises(TypeError, match="transform_precoding must be a Boolean"):
+            NRPUSCHConfig(transform_precoding=value)  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize(

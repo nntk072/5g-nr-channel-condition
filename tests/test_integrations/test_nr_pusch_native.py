@@ -92,6 +92,7 @@ def test_native_pusch_grid_axes_and_fft_mapping_across_numerologies(
     assert bool((~pilot_mask.bool()).any())
     assert receiver.metadata["resource_grid"]["fft_size"] == 12 * n_size_bwp
     assert receiver.metadata["frequency_hopping"] == "neither"
+    assert receiver.metadata["transform_precoding"] is False
     assert receiver.metadata["resource_grid"]["subcarrier_spacing_hz"] == (
         subcarrier_spacing_khz * 1_000
     )

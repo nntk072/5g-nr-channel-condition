@@ -381,6 +381,8 @@ def test_block_bound_schema_requires_complete_receiver_and_transport_block_roste
         "mapping_type": "A",
         "symbol_allocation": [0, 14],
         "precoding": "non-codebook",
+        "frequency_hopping": "neither",
+        "transform_precoding": False,
         "interpolation_type": "lin",
         "n_size_grid": 6,
         "n_start_grid": 0,
@@ -427,6 +429,27 @@ def test_block_bound_schema_requires_complete_receiver_and_transport_block_roste
     report = auditor._audit_result(result, source_bytes=source_bytes, committed_source=None)
     assert report["checks"]["receiver_configuration_binding"] is True
     assert report["checks"]["transport_block_roster_binding"] is True
+
+    legacy_defaults = {
+        key: config["receiver_configuration"].pop(key)
+        for key in ("frequency_hopping", "transform_precoding")
+    }
+    _refresh_result_digest(result)
+    legacy_report = auditor._audit_result(result, source_bytes=source_bytes, committed_source=None)
+    assert legacy_report["checks"]["receiver_configuration_binding"] is True
+    config["receiver_configuration"].update(legacy_defaults)
+
+    for key, unsupported_value in (
+        ("frequency_hopping", "intraSlot"),
+        ("transform_precoding", True),
+    ):
+        original_value = config["receiver_configuration"][key]
+        config["receiver_configuration"][key] = unsupported_value
+        _refresh_result_digest(result)
+        with pytest.raises(ValueError, match="unsupported PUSCH mode"):
+            auditor._audit_result(result, source_bytes=source_bytes, committed_source=None)
+        config["receiver_configuration"][key] = original_value
+        _refresh_result_digest(result)
 
     config["per_channel_draws"][0]["transport_blocks"][0]["transport_block_id"] = "wrong-id"
     _refresh_result_digest(result)

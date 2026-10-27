@@ -880,6 +880,15 @@ def _audit_result(
         }
         if any(receiver.get(key) != value for key, value in expected_receiver_values.items()):
             raise ValueError("receiver_configuration disagrees with the frozen CPU PUSCH fixture")
+        # Older report versions predate these explicit capability fields. Their
+        # pinned Sionna 2.2.0 receiver could only run with these same defaults.
+        # Newer reports retain both fields, and neither may claim an unsupported
+        # hopping or transform-precoding mode.
+        if (
+            receiver.get("frequency_hopping", "neither") != "neither"
+            or receiver.get("transform_precoding", False) is not False
+        ):
+            raise ValueError("receiver_configuration declares an unsupported PUSCH mode")
         runtime = provenance.get("runtime")
         runtime_packages = runtime.get("packages") if isinstance(runtime, dict) else None
         if (
