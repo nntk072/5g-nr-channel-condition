@@ -67,6 +67,7 @@ _MODEL_FEATURE_ROUTES = {
     "raw_mlp": ("observed_cfr", "flattened_real_imag_cfr_v1"),
     "label_permuted": ("observed_cfr", "flattened_real_imag_cfr_v1"),
     "row_shuffled": ("observed_cfr", "flattened_real_imag_cfr_v1"),
+    "source_only": ("source", "train_vocabulary_source_one_hot_v1"),
     "power_only": ("observed_cfr", "log_power_per_link_subcarrier_v1"),
     "phase_randomized": ("observed_cfr", "iid_phase_randomized_flattened_real_imag_cfr_v1"),
     "observable_features": ("observed_cfr", "logmag_pdp_moments_v1"),
@@ -80,6 +81,7 @@ _MODEL_METHODS = frozenset(
         "raw_mlp",
         "label_permuted",
         "row_shuffled",
+        "source_only",
         "power_only",
         "phase_randomized",
         "logreg",
@@ -289,6 +291,53 @@ def _permute_training_feature_rows(
     return permuted, contract
 
 
+def _source_only_features(
+    source_values: np.ndarray, *, train_indices: np.ndarray
+) -> tuple[np.ndarray, dict[str, Any]]:
+    """Build a train-vocabulary-only one-hot control from source identifiers."""
+    values = np.asarray(source_values)
+    if values.ndim != 1 or not len(values):
+        raise ValueError("source-only control requires a nonempty 1D source roster")
+    if any(
+        not isinstance(value, (str, np.str_)) or not str(value) or str(value) != str(value).strip()
+        for value in values
+    ):
+        raise ValueError("source-only control requires nonempty canonical string identifiers")
+    if (
+        not isinstance(train_indices, np.ndarray)
+        or train_indices.ndim != 1
+        or not np.issubdtype(train_indices.dtype, np.integer)
+        or np.issubdtype(train_indices.dtype, np.bool_)
+        or len(train_indices) < 1
+        or np.any(train_indices < 0)
+        or np.any(train_indices >= len(values))
+        or len(np.unique(train_indices)) != len(train_indices)
+    ):
+        raise ValueError("source-only training indices are invalid")
+    vocabulary = tuple(sorted({str(value) for value in values[train_indices]}))
+    if not vocabulary:
+        raise ValueError("source-only training vocabulary cannot be empty")
+    column_by_value = {value: index for index, value in enumerate(vocabulary)}
+    features = np.zeros((len(values), len(vocabulary)), dtype=np.float32)
+    for row, value in enumerate(values):
+        column = column_by_value.get(str(value))
+        if column is not None:
+            features[row, column] = 1.0
+    transform = {
+        "schema": "loslab.source_only_vocabulary.v1",
+        "algorithm": "sorted_training_source_identifiers_one_hot_unknown_zero_v1",
+        "implementation_sha256": hashlib.sha256(
+            inspect.getsource(_source_only_features).encode("utf-8")
+        ).hexdigest(),
+        "vocabulary": list(vocabulary),
+        "vocabulary_sha256": canonical_hash(list(vocabulary)),
+        "source_values_sha256": _array_sha256(np.asarray(values, dtype=str)),
+        "training_indices_sha256": _array_sha256(train_indices),
+        "unknown_category_behavior": "all_zero_vector",
+    }
+    return features, transform
+
+
 def _array_sha256(array: np.ndarray) -> str:
     value = np.ascontiguousarray(array)
     header = json.dumps(
@@ -307,6 +356,8 @@ def _array_sha256(array: np.ndarray) -> str:
 def _feature_transform_implementation_sha256(method: str) -> str:
     if method in ("cnn", "cvnn"):
         transform = _identity_complex_cfr
+    elif method == "source_only":
+        transform = _source_only_features
     elif method in ("raw_mlp", "label_permuted", "row_shuffled"):
         transform = _flatten_real_imag_cfr
     elif method == "power_only":
@@ -375,6 +426,7 @@ def build_model_input_artifact_contract(
     source_method_input: np.ndarray | None = None,
     feature_permutation_seed: int | None = None,
     feature_permutation_run_seed: int | None = None,
+    source_values: np.ndarray | None = None,
 ) -> dict[str, Any]:
     """Bind a saved model to its audited observation-only input route."""
     if method not in _MODEL_METHODS:
@@ -407,7 +459,9 @@ def build_model_input_artifact_contract(
         method, ("observed_cfr", "logmag_pdp_moments_v1")
     )
     input_contract_version = (
-        "v6"
+        "v7"
+        if method == "source_only"
+        else "v6"
         if method == "row_shuffled"
         else "v5"
         if method == "label_permuted"
@@ -420,16 +474,32 @@ def build_model_input_artifact_contract(
     feature_contract = {
         "schema": f"loslab.model_input_feature_contract.{input_contract_version}",
         "method": method,
-        "source_dataclass": "datasets.channel.ChannelModelInputs",
+        "source_dataclass": (
+            "datasets.channel.ChannelDataset"
+            if method == "source_only"
+            else "datasets.channel.ChannelModelInputs"
+        ),
         "allowed_source_fields": [source_feature],
-        "excluded_truth_and_metadata_fields": [
-            "data.y",
-            "data.metadata",
-            "data.group",
-            "data.domain",
-            "PathOracleTable",
-            "target_values",
-        ],
+        "excluded_truth_and_metadata_fields": (
+            [
+                "data.y",
+                "data.metadata",
+                "data.group",
+                "data.domain",
+                "observed_cfr",
+                "PathOracleTable",
+                "target_values",
+            ]
+            if method == "source_only"
+            else [
+                "data.y",
+                "data.metadata",
+                "data.group",
+                "data.domain",
+                "PathOracleTable",
+                "target_values",
+            ]
+        ),
         "target_field_used_for_supervision_only": "data.y",
         "feature_transform": transform,
         "feature_transform_implementation_sha256": _feature_transform_implementation_sha256(method),
@@ -502,6 +572,17 @@ def build_model_input_artifact_contract(
         or feature_permutation_run_seed is not None
     ):
         raise ValueError("feature-row permutation inputs are only valid for row_shuffled")
+    if method == "source_only":
+        if not isinstance(source_values, np.ndarray) or len(source_values) != len(method_input):
+            raise ValueError("source-only contracts require the complete source identifier roster")
+        expected_features, source_transform = _source_only_features(
+            source_values, train_indices=checked_indices["train"]
+        )
+        if not np.array_equal(expected_features, method_input):
+            raise ValueError("source-only features differ from the training vocabulary transform")
+        feature_contract["source_vocabulary_transform"] = source_transform
+    elif source_values is not None:
+        raise ValueError("source identifiers are only valid for the source_only method")
     feature_contract_sha256 = canonical_hash(feature_contract)
     return {
         "schema": f"loslab.model_input_artifact_contract.{input_contract_version}",
@@ -521,6 +602,7 @@ def verify_model_input_artifact_contract(
     partition_indices: dict[str, np.ndarray] | None = None,
     target_values: np.ndarray | None = None,
     source_method_input: np.ndarray | None = None,
+    source_values: np.ndarray | None = None,
 ) -> dict[str, Any]:
     """Verify that a saved model is bound to a canonical observation-only input contract."""
     sidecar_path = Path(model_info_path)
@@ -578,6 +660,7 @@ def verify_model_input_artifact_contract(
         "loslab.model_input_artifact_contract.v4": "v4",
         "loslab.model_input_artifact_contract.v5": "v5",
         "loslab.model_input_artifact_contract.v6": "v6",
+        "loslab.model_input_artifact_contract.v7": "v7",
     }.get(contract_schema)
     if schema_version is None:
         raise ValueError("model input artifact contract schema is unsupported")
@@ -626,6 +709,7 @@ def verify_model_input_artifact_contract(
         "loslab.model_input_artifact_contract.v4",
         "loslab.model_input_artifact_contract.v5",
         "loslab.model_input_artifact_contract.v6",
+        "loslab.model_input_artifact_contract.v7",
     }:
         expected_feature_fields.update(
             {
@@ -638,6 +722,8 @@ def verify_model_input_artifact_contract(
         expected_feature_fields.add("supervision_transform")
     if contract_schema == "loslab.model_input_artifact_contract.v6":
         expected_feature_fields.add("feature_row_permutation")
+    if contract_schema == "loslab.model_input_artifact_contract.v7":
+        expected_feature_fields.add("source_vocabulary_transform")
     if not isinstance(feature, dict) or set(feature) != expected_feature_fields:
         raise ValueError("model feature contract fields are invalid")
     method = feature.get("method")
@@ -654,6 +740,7 @@ def verify_model_input_artifact_contract(
             "phase_randomized",
             "label_permuted",
             "row_shuffled",
+            "source_only",
             "logreg",
         }
         else "loslab.model_input_artifact.v1"
@@ -677,17 +764,34 @@ def verify_model_input_artifact_contract(
     if (
         feature.get("schema") != expected_feature_schema
         or method not in _MODEL_METHODS
-        or feature.get("source_dataclass") != "datasets.channel.ChannelModelInputs"
+        or feature.get("source_dataclass")
+        != (
+            "datasets.channel.ChannelDataset"
+            if method == "source_only"
+            else "datasets.channel.ChannelModelInputs"
+        )
         or feature.get("allowed_source_fields") != [expected_route[0]]
         or feature.get("excluded_truth_and_metadata_fields")
-        != [
-            "data.y",
-            "data.metadata",
-            "data.group",
-            "data.domain",
-            "PathOracleTable",
-            "target_values",
-        ]
+        != (
+            [
+                "data.y",
+                "data.metadata",
+                "data.group",
+                "data.domain",
+                "observed_cfr",
+                "PathOracleTable",
+                "target_values",
+            ]
+            if method == "source_only"
+            else [
+                "data.y",
+                "data.metadata",
+                "data.group",
+                "data.domain",
+                "PathOracleTable",
+                "target_values",
+            ]
+        )
         or feature.get("feature_transform") != expected_route[1]
         or feature.get("target_field_used_for_supervision_only") != "data.y"
         or "data.y" not in feature.get("excluded_truth_and_metadata_fields", [])
@@ -707,6 +811,7 @@ def verify_model_input_artifact_contract(
         "loslab.model_input_artifact_contract.v4",
         "loslab.model_input_artifact_contract.v5",
         "loslab.model_input_artifact_contract.v6",
+        "loslab.model_input_artifact_contract.v7",
     }:
         if method_input is not None:
             matrix = feature["feature_matrix"]
@@ -794,6 +899,24 @@ def verify_model_input_artifact_contract(
         replayed_input[partition_indices["train"]] = shuffled
         if replayed_permutation != permutation or not np.array_equal(replayed_input, method_input):
             raise ValueError("feature-row permutation does not replay from source observations")
+    if contract_schema == "loslab.model_input_artifact_contract.v7":
+        if method != "source_only" or source_values is None:
+            raise ValueError("source-only contract verification requires source identifiers")
+        if (
+            method_input is None
+            or partition_indices is None
+            or not isinstance(source_values, np.ndarray)
+            or source_values.ndim != 1
+            or len(source_values) != len(method_input)
+        ):
+            raise ValueError("source-only verification inputs are incomplete")
+        features, replayed_transform = _source_only_features(
+            source_values, train_indices=partition_indices["train"]
+        )
+        if replayed_transform != feature.get("source_vocabulary_transform") or not np.array_equal(
+            features, method_input
+        ):
+            raise ValueError("source-only feature vocabulary does not replay from training IDs")
     files = contract.get("training_input_files")
     if (
         not isinstance(files, list)
@@ -1218,6 +1341,9 @@ def run_experiment(
         "row_shuffled_training_features": (
             "training observed-CFR feature rows are deterministically permuted while their labels and all evaluation partitions remain unchanged"
         ),
+        "source_only_control": (
+            "one-hot source identifiers with a vocabulary fit only on training rows; unseen evaluation identifiers map to all zeros"
+        ),
         "cnn_input_representation": "per-link real/imaginary channels over ordered subcarriers",
         "cvnn_input_representation": (
             "complex convolution, phase-equivariant encoding, magnitude-invariant classifier"
@@ -1313,6 +1439,8 @@ def run_experiment(
                 )
                 method_input = np.array(method_input, copy=True)
                 method_input[train] = shuffled_features
+            if method == "source_only":
+                method_input, _ = _source_only_features(data.source, train_indices=train)
             uses_torch = method in ("cnn", "cvnn", "coral", "coral0")
             _sync_torch_device(device, uses_torch)
             if uses_torch and device.startswith("cuda"):
@@ -1328,6 +1456,7 @@ def run_experiment(
                 "raw_mlp",
                 "label_permuted",
                 "row_shuffled",
+                "source_only",
                 "power_only",
                 "phase_randomized",
                 "logreg",
@@ -1343,7 +1472,7 @@ def run_experiment(
                     else "mlp"
                     if method == "row_shuffled"
                     else "logreg"
-                    if method == "power_only"
+                    if method in ("power_only", "source_only")
                     else "mlp"
                     if method == "phase_randomized"
                     else method,
@@ -1498,6 +1627,7 @@ def run_experiment(
                     int(row_shuffle_seed) if method == "row_shuffled" else None
                 ),
                 feature_permutation_run_seed=(int(seed) if method == "row_shuffled" else None),
+                source_values=(data.source if method == "source_only" else None),
             )
             model_info_path = layout.models / f"{method}_seed{seed}_modelinfo.json"
             atomic_json(
@@ -1514,6 +1644,7 @@ def run_experiment(
                             "raw_mlp",
                             "label_permuted",
                             "row_shuffled",
+                            "source_only",
                             "power_only",
                             "phase_randomized",
                             "logreg",
@@ -1537,6 +1668,7 @@ def run_experiment(
                 partition_indices=partition_indices,
                 target_values=data.y if method == "label_permuted" else None,
                 source_method_input=raw_real_imag if method == "row_shuffled" else None,
+                source_values=data.source if method == "source_only" else None,
             )
             test_prediction_started = perf_counter()
             test_scores_raw = clf.predict_proba(method_input[test])[:, 1]
@@ -1637,6 +1769,8 @@ def run_experiment(
                     if method == "label_permuted"
                     else "row-shuffled flattened real/imaginary CFR"
                     if method == "row_shuffled"
+                    else "training-vocabulary one-hot source identifiers"
+                    if method == "source_only"
                     else "engineered observable features"
                 ),
                 "metrics": metrics,
@@ -1744,6 +1878,7 @@ def run_experiment(
         ("raw_mlp", "phase_randomized"),
         ("raw_mlp", "label_permuted"),
         ("raw_mlp", "row_shuffled"),
+        ("raw_mlp", "source_only"),
         ("cnn", "raw_mlp"),
         ("cvnn", "raw_mlp"),
         ("xgb", "mlp"),

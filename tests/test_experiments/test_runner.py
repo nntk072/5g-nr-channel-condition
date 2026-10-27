@@ -972,3 +972,76 @@ def test_run_experiment_routes_phase_randomization_on_shared_split(tmp_path, mon
     )
     assert contract["feature_contract"]["run_config_sha256"]
     assert randomized_result["input_representation"].startswith("phase-randomized")
+
+
+def test_source_only_vocabulary_fits_training_rows_and_zeros_unknowns() -> None:
+    from experiments.runner import _source_only_features
+
+    sources = np.asarray(["alpha", "beta", "future", "future"])
+    features, transform = _source_only_features(
+        sources, train_indices=np.asarray([0, 1], dtype=np.int64)
+    )
+
+    assert transform["vocabulary"] == ["alpha", "beta"]
+    np.testing.assert_array_equal(features[:2], np.eye(2, dtype=np.float32))
+    np.testing.assert_array_equal(features[2:], np.zeros((2, 2), dtype=np.float32))
+    assert transform["unknown_category_behavior"] == "all_zero_vector"
+
+
+def test_run_experiment_routes_source_only_on_shared_split(tmp_path, monkeypatch) -> None:
+    import experiments.runner as runner
+
+    source = tmp_path / "debug.npz"
+    debug_multipath(n_scenes=8, links_per_scene=16, seed=97).save(source)
+    original_fit = runner.fit_sklearn
+    captures = []
+
+    def capture_fit(values, labels, *, seed, method, capacity):
+        captures.append((values.copy(), labels.copy(), method))
+        return original_fit(values, labels, seed=seed, method="logreg", capacity=capacity)
+
+    monkeypatch.setattr(runner, "fit_sklearn", capture_fit)
+    output = tmp_path / "runs" / "source-only"
+    run_experiment(
+        [source],
+        output,
+        methods=("source_only", "raw_mlp"),
+        seeds=(43,),
+        bootstrap=10,
+    )
+
+    results = json.loads((output / "results.json").read_text(encoding="utf-8"))
+    source_result = next(row for row in results if row["method"] == "source_only")
+    raw_result = next(row for row in results if row["method"] == "raw_mlp")
+    summary = json.loads((output / "summary.json").read_text(encoding="utf-8"))
+    sidecar_path = output / "models" / "source_only_seed43_modelinfo.json"
+    sidecar = json.loads(sidecar_path.read_text(encoding="utf-8"))
+    contract = sidecar["model_input_artifact_contract"]
+    prediction = np.load(output / "predictions" / "source_only_seed43.npz")
+    dataset = ChannelDataset.load(source)
+    expected_features, expected_transform = runner._source_only_features(
+        dataset.source, train_indices=prediction["train_idx"]
+    )
+
+    assert [method for _values, _labels, method in captures] == ["logreg", "mlp"]
+    np.testing.assert_array_equal(captures[0][0], expected_features[prediction["train_idx"]])
+    np.testing.assert_array_equal(captures[0][1], dataset.y[prediction["train_idx"]])
+    assert source_result["split"]["indices_sha256"] == raw_result["split"]["indices_sha256"]
+    assert "source_only_versus_raw_mlp" in summary["paired_method_comparisons"]
+    assert contract["schema"] == "loslab.model_input_artifact_contract.v7"
+    assert contract["feature_contract"]["source_vocabulary_transform"] == expected_transform
+    assert contract["feature_contract"]["allowed_source_fields"] == ["source"]
+    assert (
+        verify_model_input_artifact_contract(
+            sidecar_path,
+            output / "models" / "source_only_seed43.joblib",
+            method_input=expected_features,
+            partition_indices={
+                "train": prediction["train_idx"],
+                "validation": prediction["val_idx"],
+                "test": prediction["test_idx"],
+            },
+            source_values=dataset.source,
+        )["status"]
+        == "PASS_MODEL_INPUT_ARTIFACT_BINDING"
+    )

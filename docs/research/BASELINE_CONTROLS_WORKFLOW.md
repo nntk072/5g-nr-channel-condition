@@ -59,15 +59,26 @@ permutation implementation digest, and verifies the operation from the
 retained source observations. Run it with `--methods row_shuffled raw_mlp` and
 pin `--row-shuffle-seed` (default `2029`).
 
+The `source_only` control uses only the dataset's categorical `source`
+identifier. Its sorted one-hot vocabulary is fit on the training rows; a source
+category found only in validation/calibration/test maps to an all-zero vector.
+It uses logistic regression and the common split, so compare it with
+`--methods source_only raw_mlp`. This is an intentional metadata-only leakage
+diagnostic, not an admissible observation model. Contract v7 records the
+source-field exception, training vocabulary, exact source roster digest, and
+encoder implementation digest, and verifies the vocabulary from training
+rows.
+
 The versioned schemas are
 `datasets/schema/model-input-artifact-contract.v3.schema.json` and
 `datasets/schema/model-input-artifact-contract.v4.schema.json` and
 `datasets/schema/model-input-artifact-contract.v5.schema.json` and
-`datasets/schema/model-input-artifact-contract.v6.schema.json`; v1-v6 readers
+`datasets/schema/model-input-artifact-contract.v6.schema.json` and
+`datasets/schema/model-input-artifact-contract.v7.schema.json`; v1-v7 readers
 remain available. Results are simulation-only diagnostics and do not show
 that any control predicts measured or deployment channels.
 
-G8.08 remains partial. Source-ID-only, metadata-only, explicit oracle-leak
-controls, and physical classical estimators still need isolated routes and
-audit contracts before benchmarking. Row shuffling is restricted to the
-training partition and is not a time-series or temporal-dependence test.
+G8.08 remains partial. Other metadata-only, explicit oracle-leak controls, and
+physical classical estimators still need isolated routes and audit contracts
+before benchmarking. Row shuffling is restricted to the training partition
+and is not a time-series or temporal-dependence test.
