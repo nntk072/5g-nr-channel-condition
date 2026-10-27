@@ -11,6 +11,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from .nr_sync import MAX_PSS_SEARCH_CELLS, NRCellDetection, acquire_nr_cell
+from .pbch_bch import validate_pbch_scl_list_size
 from .pbch_ofdm_receiver import PBCHOFDMReception, nr_pbch_receive_ofdm
 
 _SUPPORTED_CANDIDATE_COUNTS = (4, 8, 10, 20, 64)
@@ -67,7 +68,7 @@ def nr_pbch_acquire_and_receive(
     if cp_lengths[0] != cp_lengths[2]:
         raise ValueError("PSS and SSS cyclic-prefix lengths must match for acquisition")
     sample_rate_hz = _positive_real(sampling_frequency_hz, "sampling_frequency_hz")
-    list_size = _positive_integer(list_size, "list_size")
+    list_size = validate_pbch_scl_list_size(list_size)
     if not isinstance(device, str):
         raise TypeError("device must be a string")
     if not device:

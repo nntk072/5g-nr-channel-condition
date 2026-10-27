@@ -46,6 +46,8 @@ def test_pbch_acquisition_rejects_nonfinite_or_unrepresentable_sample_rate(
     [
         ("cpu", True, TypeError, "list_size must be an integer"),
         ("cpu", 0, ValueError, "list_size must be positive"),
+        ("cpu", 3, ValueError, "list_size must be a power of two"),
+        ("cpu", 128, ValueError, "list_size must be at most 64"),
         (None, 8, TypeError, "device must be a string"),
         ("", 8, ValueError, "device must not be empty"),
     ],
@@ -68,6 +70,28 @@ def test_pbch_acquisition_preflights_decoder_configuration_before_cell_search(
             device=device,
             list_size=list_size,
         )
+
+
+@pytest.mark.parametrize(
+    ("list_size", "exception", "message"),
+    [
+        (True, TypeError, "list_size must be an integer"),
+        (3, ValueError, "list_size must be a power of two"),
+        (128, ValueError, "list_size must be at most 64"),
+    ],
+)
+def test_pbch_bch_decoder_bounds_scl_list_size_before_decoder_construction(
+    monkeypatch, list_size, exception, message
+):
+    from integrations.sionna import pbch_bch
+
+    monkeypatch.setattr(
+        pbch_bch,
+        "_polar_decoder",
+        lambda *args: (_ for _ in ()).throw(AssertionError("decoder must not be constructed")),
+    )
+    with pytest.raises(exception, match=message):
+        pbch_bch.nr_pbch_bch_decode(np.zeros(864, dtype=np.float32), list_size=list_size)
 
 
 def test_pbch_acquisition_applies_the_pss_search_work_limit_before_capture_decode():

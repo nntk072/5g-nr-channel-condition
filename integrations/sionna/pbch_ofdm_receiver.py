@@ -10,7 +10,7 @@ from typing import Sequence
 import numpy as np
 from numpy.typing import NDArray
 
-from .pbch_bch import nr_pbch_bch_decode
+from .pbch_bch import nr_pbch_bch_decode, validate_pbch_scl_list_size
 from .pbch_data import nr_pbch_scramble_bits
 from .pbch_dmrs import nr_pbch_dmrs_ssb
 from .pbch_mib import PBCHMIB, PBCHBCCHMessage, nr_bcch_bch_message_parse
@@ -65,6 +65,7 @@ def nr_pbch_receive_ofdm(
     and perfect symbol timing/frequency synchronization. It performs neither
     PSS/SSS acquisition nor broad receiver qualification.
     """
+    list_size = validate_pbch_scl_list_size(list_size)
     fft_length = _positive_integer(fft_size, "fft_size")
     if fft_length <= _SSB_SUBCARRIERS or fft_length % 2:
         raise ValueError("fft_size must be even and greater than 240")

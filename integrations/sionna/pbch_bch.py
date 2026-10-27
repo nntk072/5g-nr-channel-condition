@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 from importlib.metadata import PackageNotFoundError
+from numbers import Integral
 from typing import Any
 
 import numpy as np
@@ -15,6 +16,26 @@ _BCH_INPUT_BITS = 32
 _POLAR_MOTHER_BITS = 512
 _RATE_MATCHED_BITS = 864
 _REPETITION_BITS = _RATE_MATCHED_BITS - _POLAR_MOTHER_BITS
+MAX_PBCH_SCL_LIST_SIZE = 64
+
+
+def validate_pbch_scl_list_size(list_size: object) -> int:
+    """Return a supported SCL list size, rejecting invalid/unbounded requests.
+
+    Sionna's Polar SCL decoder requires a power-of-two list. This receiver
+    caps that power-of-two at 64 to keep per-decoder work/cache use bounded;
+    the default remains 8.
+    """
+    if isinstance(list_size, (bool, np.bool_)) or not isinstance(list_size, Integral):
+        raise TypeError("list_size must be an integer")
+    value = int(list_size)
+    if value <= 0:
+        raise ValueError("list_size must be positive")
+    if value & (value - 1):
+        raise ValueError("list_size must be a power of two")
+    if value > MAX_PBCH_SCL_LIST_SIZE:
+        raise ValueError(f"list_size must be at most {MAX_PBCH_SCL_LIST_SIZE}")
+    return value
 
 
 def nr_pbch_bch_encode(
@@ -81,8 +102,7 @@ def nr_pbch_bch_decode(
         raise TypeError("device must be a string")
     if not device:
         raise ValueError("device must not be empty")
-    if isinstance(list_size, bool) or not isinstance(list_size, int) or list_size <= 0:
-        raise ValueError("list_size must be a positive integer")
+    list_size = validate_pbch_scl_list_size(list_size)
 
     decoder = _polar_decoder(device, list_size)
     import torch
