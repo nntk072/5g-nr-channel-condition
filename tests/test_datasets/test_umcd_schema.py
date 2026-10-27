@@ -393,6 +393,37 @@ def test_path_oracle_rejects_non_real_numeric_angle_and_vertex_dtypes(field, val
         PathOracleTable(**arguments, **{field: value})
 
 
+@pytest.mark.parametrize("field", ("frame_indices", "path_offsets", "interaction_types"))
+def test_path_oracle_rejects_integer_values_that_overflow_int64(field):
+    arguments = {
+        "link_ids": ("link-1",),
+        "frame_indices": np.asarray([0], dtype=np.uint64),
+        "rx_port_indices": np.asarray([0], dtype=np.uint64),
+        "tx_port_indices": np.asarray([0], dtype=np.uint64),
+        "path_offsets": np.asarray([0, 1], dtype=np.uint64),
+        "solve_status": (PathSolveStatus.SOLVED,),
+        "delay_s": np.asarray([1e-9]),
+        "complex_gain": np.asarray([1.0 + 0j]),
+        "interaction_order": np.asarray([0], dtype=np.uint64),
+    }
+    if field == "interaction_types":
+        arguments.update(
+            {
+                "interaction_order": np.asarray([1], dtype=np.uint64),
+                "interaction_offsets": np.asarray([0, 1], dtype=np.uint64),
+                "interaction_types": np.asarray([1], dtype=np.uint64),
+                "object_ids": np.asarray([0], dtype=np.uint64),
+                "primitive_ids": np.asarray([0], dtype=np.uint64),
+                "interaction_vertices_m": np.asarray([[0.0, 0.0, 0.0]]),
+                "interaction_vertex_frame": "scene_xyz_m",
+            }
+        )
+    arguments[field] = np.asarray([0, 2**63], dtype=np.uint64) if field == "path_offsets" else np.asarray([2**63], dtype=np.uint64)
+
+    with pytest.raises(ValueError, match="fit int64"):
+        PathOracleTable(**arguments)
+
+
 @pytest.mark.parametrize(
     ("change", "message"),
     [

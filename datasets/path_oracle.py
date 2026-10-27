@@ -25,6 +25,15 @@ def _freeze_vector(value: np.ndarray, *, name: str, dtype: np.dtype) -> np.ndarr
         raise TypeError(f"{name} must use a real or complex numeric dtype")
     if dtype.kind in "iu" and original.dtype.kind not in "iu":
         raise TypeError(f"{name} must use an integer dtype")
+    if dtype.kind in "iu":
+        limits = np.iinfo(dtype)
+        outside_range = (
+            np.any(original > limits.max)
+            if original.dtype.kind == "u"
+            else np.any(original < limits.min) or np.any(original > limits.max)
+        )
+        if outside_range:
+            raise ValueError(f"{name} values must fit {dtype.name}")
     if dtype.kind == "f" and original.dtype.kind == "c":
         raise TypeError(f"{name} must use a real numeric dtype")
     array = np.array(original, dtype=dtype, copy=True)
