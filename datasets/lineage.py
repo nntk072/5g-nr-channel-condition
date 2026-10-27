@@ -143,6 +143,7 @@ def audit_lineage_evidence_payloads(
     evidence_payloads_by_sha256: Mapping[str, bytes],
     *,
     max_total_bytes: int = 128 * 1024 * 1024,
+    provenance_record_sha256: str | None = None,
 ) -> dict[str, Any]:
     """Verify that supplied evidence payloads exactly match the claim roster.
 
@@ -152,6 +153,11 @@ def audit_lineage_evidence_payloads(
     stable-file reader before passing them here.
     """
     frozen_claims = validate_lineage_claims(claims)
+    if provenance_record_sha256 is not None and (
+        not isinstance(provenance_record_sha256, str)
+        or not _SHA256.fullmatch(provenance_record_sha256)
+    ):
+        raise ValueError("provenance_record_sha256 must be lowercase SHA256")
     if isinstance(max_total_bytes, bool) or not isinstance(max_total_bytes, int):
         raise TypeError("max_total_bytes must be an integer")
     if max_total_bytes <= 0:
@@ -175,7 +181,7 @@ def audit_lineage_evidence_payloads(
             raise ValueError(f"lineage evidence payload does not match digest {digest}")
 
     sizes = {digest: len(payload) for digest, payload in evidence_payloads_by_sha256.items()}
-    return _lineage_evidence_audit_report(frozen_claims, sizes)
+    return _lineage_evidence_audit_report(frozen_claims, sizes, provenance_record_sha256)
 
 
 def audit_lineage_evidence_files(
@@ -184,6 +190,7 @@ def audit_lineage_evidence_files(
     *,
     evidence_root: str | os.PathLike[str],
     max_total_bytes: int = 8 * 1024 * 1024 * 1024,
+    provenance_record_sha256: str | None = None,
 ) -> dict[str, Any]:
     """Stream and verify claimed evidence files beneath one trusted root.
 
@@ -192,6 +199,11 @@ def audit_lineage_evidence_files(
     identity only and remains ``NOT_QUALIFIED``.
     """
     frozen_claims = validate_lineage_claims(claims)
+    if provenance_record_sha256 is not None and (
+        not isinstance(provenance_record_sha256, str)
+        or not _SHA256.fullmatch(provenance_record_sha256)
+    ):
+        raise ValueError("provenance_record_sha256 must be lowercase SHA256")
     if isinstance(max_total_bytes, bool) or not isinstance(max_total_bytes, int):
         raise TypeError("max_total_bytes must be an integer")
     if max_total_bytes <= 0:
@@ -202,7 +214,7 @@ def audit_lineage_evidence_files(
     if set(evidence_paths_by_sha256) != expected:
         raise ValueError("evidence file roster does not match lineage claims")
     if not expected:
-        return _lineage_evidence_audit_report(frozen_claims, {})
+        return _lineage_evidence_audit_report(frozen_claims, {}, provenance_record_sha256)
     if not hasattr(os, "O_NOFOLLOW") or not hasattr(os, "O_DIRECTORY"):
         raise ValueError("platform lacks safe no-follow directory and file opening")
 
@@ -288,7 +300,7 @@ def audit_lineage_evidence_files(
                     os.close(file_fd)
                 if directory_fd != root_fd:
                     os.close(directory_fd)
-        return _lineage_evidence_audit_report(frozen_claims, sizes)
+        return _lineage_evidence_audit_report(frozen_claims, sizes, provenance_record_sha256)
     finally:
         os.close(root_fd)
 
@@ -306,7 +318,9 @@ def _file_identity(metadata: os.stat_result) -> tuple[int, ...]:
 
 
 def _lineage_evidence_audit_report(
-    frozen_claims: tuple[LineageStatusClaim, ...], sizes: Mapping[str, int]
+    frozen_claims: tuple[LineageStatusClaim, ...],
+    sizes: Mapping[str, int],
+    provenance_record_sha256: str | None,
 ) -> dict[str, Any]:
     claims_bytes = json.dumps(
         [claim.to_dict() for claim in frozen_claims],
@@ -315,9 +329,10 @@ def _lineage_evidence_audit_report(
         allow_nan=False,
     ).encode("utf-8")
     core = {
-        "schema": "umcd.lineage_evidence_audit.v1",
+        "schema": "umcd.lineage_evidence_audit.v2",
         "status": "EVIDENCE_BYTES_VERIFIED" if sizes else "NO_EVIDENCE_REQUIRED",
         "scientific_status": "NOT_QUALIFIED",
+        "provenance_record_sha256": provenance_record_sha256,
         "lineage_claims_sha256": hashlib.sha256(claims_bytes).hexdigest(),
         "verified_evidence_sha256": sorted(sizes),
         "verified_evidence_bytes": sum(sizes.values()),

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://umcd.example/schema/umcd-lineage-evidence-path-map.v1.schema.json",
+  "title": "UMCD lineage evidence digest-to-path map",
+  "description": "Maps every evidence digest in one provenance claim roster to a relative path beneath the caller-declared evidence root.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "paths"],
+  "properties": {
+    "schema": {"const": "umcd.lineage_evidence_path_map.v1"},
+    "paths": {
+      "type": "object",
+      "propertyNames": {"pattern": "^[0-9a-f]{64}$"},
+      "additionalProperties": {"type": "string", "minLength": 1}
+    }
+  }
+}

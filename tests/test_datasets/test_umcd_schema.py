@@ -946,7 +946,7 @@ def test_lineage_evidence_audit_verifies_exact_payload_roster_and_schema():
     jsonschema = pytest.importorskip("jsonschema")
     schema_path = (
         Path(__file__).resolve().parents[2]
-        / "datasets/schema/umcd-lineage-evidence-audit.v1.schema.json"
+        / "datasets/schema/umcd-lineage-evidence-audit.v2.schema.json"
     )
     jsonschema.Draft202012Validator(json.loads(schema_path.read_text())).validate(report)
 

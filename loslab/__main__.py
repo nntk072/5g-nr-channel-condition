@@ -27,6 +27,15 @@ def main() -> None:
         help="Audit retained path-equivalence records against a frozen G3 family v4 roster",
     )
     path_roster.add_argument("input", type=Path, help="versioned diagnostic input JSON")
+    lineage_audit = sub.add_parser(
+        "lineage-evidence-audit",
+        help="Verify exact UMCD provenance evidence bytes without promoting scientific status",
+    )
+    lineage_audit.add_argument("--provenance", type=Path, required=True)
+    lineage_audit.add_argument("--evidence-path-map", type=Path, required=True)
+    lineage_audit.add_argument("--evidence-root", type=Path, required=True)
+    lineage_audit.add_argument("--output", type=Path, required=True)
+    lineage_audit.add_argument("--max-total-bytes", type=int, default=8 * 1024 * 1024 * 1024)
     city = sub.add_parser("city-scene", help="Generate reproducible 3D urban scene files")
     city.add_argument("--output-dir", required=True)
     city.add_argument("--seed", type=int, default=42)
@@ -144,6 +153,21 @@ def main() -> None:
     exp.add_argument("--pilot-snr-db", type=float, default=12.0)
     exp.add_argument("--observation-seed", type=int, default=2026)
     args = parser.parse_args()
+    if args.command == "lineage-evidence-audit":
+        from .lineage_audit import audit_provenance_file
+
+        try:
+            report = audit_provenance_file(
+                args.provenance,
+                args.evidence_path_map,
+                args.evidence_root,
+                args.output,
+                max_total_bytes=args.max_total_bytes,
+            )
+        except (OSError, RuntimeError, TypeError, ValueError) as error:
+            parser.error(str(error))
+        print(json.dumps(report, indent=2, sort_keys=True, allow_nan=False))
+        return
     if args.command == "scenario-gbsm-data":
         from .scenario_gbsm import generate_and_store
 
