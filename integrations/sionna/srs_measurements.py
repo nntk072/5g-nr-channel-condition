@@ -39,6 +39,9 @@ _SCHEMA_PATH = (
 _TIMING_SCHEMA_PATH = (
     Path(__file__).resolve().parents[2] / "evaluation/schema/nr-ul-srs-timing-report.v1.schema.json"
 )
+_AOA_SCHEMA_PATH = (
+    Path(__file__).resolve().parents[2] / "evaluation/schema/nr-ul-srs-aoa-report.v1.schema.json"
+)
 _GRID_OBSERVATION_SCHEMA_PATH = (
     Path(__file__).resolve().parents[2]
     / "evaluation/schema/nr-ul-srs-rsrp-grid-observation.v1.schema.json"
@@ -688,6 +691,71 @@ def report_gnb_rx_tx_time_difference(
     return report
 
 
+def report_ul_aoa(
+    *,
+    sample_id: str,
+    azimuth_deg: float,
+    vertical_deg: float,
+    coordinate_system: str,
+    reference_frame_id: str,
+    estimated_channel_sha256: str,
+    estimator_config_sha256: str,
+    antenna_calibration_sha256: str,
+) -> dict[str, Any]:
+    """Bind a supplied UL-AoA estimate to its channel, estimator, and array calibration.
+
+    TS 38.215 defines the angle directions and places the estimate at the gNB
+    antenna. This report does not estimate the angles, validate the array
+    calibration, or claim receiver qualification.
+    """
+
+    if not isinstance(sample_id, str) or not sample_id or sample_id != sample_id.strip():
+        raise ValueError("sample_id must be a canonical non-empty string")
+    if coordinate_system not in {"GCS", "LCS"}:
+        raise ValueError("coordinate_system must be GCS or LCS")
+    if (
+        not isinstance(reference_frame_id, str)
+        or not reference_frame_id
+        or (reference_frame_id != reference_frame_id.strip())
+    ):
+        raise ValueError("reference_frame_id must be a canonical non-empty string")
+    azimuth = _finite_real(azimuth_deg, "azimuth_deg")
+    vertical = _finite_real(vertical_deg, "vertical_deg")
+    if not 0.0 <= azimuth < 360.0:
+        raise ValueError("azimuth_deg must be in [0, 360)")
+    if not 0.0 <= vertical <= 180.0:
+        raise ValueError("vertical_deg must be in [0, 180]")
+    source_digest = _validate_digest(estimated_channel_sha256, "estimated_channel_sha256")
+    estimator_digest = _validate_digest(estimator_config_sha256, "estimator_config_sha256")
+    calibration_digest = _validate_digest(antenna_calibration_sha256, "antenna_calibration_sha256")
+    report = {
+        "schema": "loslab.nr_ul_aoa_report.v1",
+        "measurement": "UL_AOA",
+        "standard": "3GPP_TS_38.215_V19.2.0_clause_5.2.4",
+        "status": "OBSERVED_NOT_QUALIFIED",
+        "sample_id": sample_id,
+        "measurement_location": "gnb_antenna",
+        "coordinate_system": coordinate_system,
+        "reference_frame_id": reference_frame_id,
+        "azimuth_reference": "geographical_north" if coordinate_system == "GCS" else "local_x_axis",
+        "azimuth_positive_direction": "counter_clockwise",
+        "vertical_reference": "zenith" if coordinate_system == "GCS" else "local_z_axis",
+        "vertical_positive_direction": "toward_horizontal_plane",
+        "azimuth_deg": azimuth,
+        "vertical_deg": vertical,
+        "estimated_channel_sha256": source_digest,
+        "estimator_config_sha256": estimator_digest,
+        "antenna_calibration_sha256": calibration_digest,
+        "limitations": [
+            "Angles are caller-supplied estimates; this function does not run an AoA estimator.",
+            "The reference frame and antenna calibration are identified by caller-supplied declarations.",
+            "This report does not validate calibration, synchronization, uncertainty, or receiver performance.",
+        ],
+    }
+    _validate_aoa_report_schema(report)
+    return report
+
+
 def _finite_real(value: Any, name: str) -> float:
     if isinstance(value, (bool, np.bool_)) or not isinstance(value, Real):
         raise ValueError(f"{name} must be a finite real number")
@@ -726,4 +794,16 @@ def _validate_timing_report_schema(report: dict[str, Any]) -> None:
         raise ValueError(
             "UL SRS timing report violates schema: "
             + "; ".join(error.message for error in errors[:10])
+        )
+
+
+def _validate_aoa_report_schema(report: dict[str, Any]) -> None:
+    import jsonschema
+
+    schema = json.loads(_AOA_SCHEMA_PATH.read_text(encoding="utf-8"))
+    jsonschema.Draft202012Validator.check_schema(schema)
+    errors = list(jsonschema.Draft202012Validator(schema).iter_errors(report))
+    if errors:
+        raise ValueError(
+            "UL AoA report violates schema: " + "; ".join(error.message for error in errors[:10])
         )

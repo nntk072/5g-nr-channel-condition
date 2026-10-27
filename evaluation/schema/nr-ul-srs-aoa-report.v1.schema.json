@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.invalid/schema/evaluation/nr-ul-srs-aoa-report.v1.schema.json",
+  "title": "NR UL SRS angle of arrival report v1",
+  "type": "object",
+  "required": [
+    "schema", "measurement", "standard", "status", "sample_id",
+    "measurement_location", "coordinate_system", "reference_frame_id",
+    "azimuth_reference", "azimuth_positive_direction", "vertical_reference",
+    "vertical_positive_direction", "azimuth_deg", "vertical_deg",
+    "estimated_channel_sha256", "estimator_config_sha256",
+    "antenna_calibration_sha256", "limitations"
+  ],
+  "properties": {
+    "schema": {"const": "loslab.nr_ul_aoa_report.v1"},
+    "measurement": {"const": "UL_AOA"},
+    "standard": {"const": "3GPP_TS_38.215_V19.2.0_clause_5.2.4"},
+    "status": {"const": "OBSERVED_NOT_QUALIFIED"},
+    "sample_id": {"type": "string", "minLength": 1, "pattern": "^\\S(?:.*\\S)?$"},
+    "measurement_location": {"const": "gnb_antenna"},
+    "coordinate_system": {"enum": ["GCS", "LCS"]},
+    "reference_frame_id": {"type": "string", "minLength": 1, "pattern": "^\\S(?:.*\\S)?$"},
+    "azimuth_reference": {"enum": ["geographical_north", "local_x_axis"]},
+    "azimuth_positive_direction": {"const": "counter_clockwise"},
+    "vertical_reference": {"enum": ["zenith", "local_z_axis"]},
+    "vertical_positive_direction": {"const": "toward_horizontal_plane"},
+    "azimuth_deg": {"type": "number", "minimum": 0, "exclusiveMaximum": 360},
+    "vertical_deg": {"type": "number", "minimum": 0, "maximum": 180},
+    "estimated_channel_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "estimator_config_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "antenna_calibration_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "limitations": {"type": "array", "minItems": 3, "items": {"type": "string", "minLength": 1}}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"coordinate_system": {"const": "GCS"}}},
+      "then": {"properties": {"azimuth_reference": {"const": "geographical_north"}, "vertical_reference": {"const": "zenith"}}}
+    },
+    {
+      "if": {"properties": {"coordinate_system": {"const": "LCS"}}},
+      "then": {"properties": {"azimuth_reference": {"const": "local_x_axis"}, "vertical_reference": {"const": "local_z_axis"}}}
+    }
+  ],
+  "additionalProperties": false
+}

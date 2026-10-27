@@ -166,6 +166,7 @@ from .srs_measurements import (
     measure_ul_srs_rsrp_from_grid,
     measure_ul_srs_rsrp_from_noisy_network_grid,
     report_gnb_rx_tx_time_difference,
+    report_ul_aoa,
     report_ul_rtoa,
 )
 from .ssb_grid import (
@@ -288,6 +289,7 @@ __all__ = [
     "measure_ul_srs_rsrp_from_grid",
     "measure_ul_srs_rsrp_from_noisy_network_grid",
     "report_gnb_rx_tx_time_difference",
+    "report_ul_aoa",
     "report_ul_rtoa",
     "map_nr_srs_positioning_multiport_resource",
     "map_nr_srs_positioning_resource",

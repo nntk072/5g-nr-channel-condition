@@ -49,7 +49,16 @@ not perform first-path detection, select/verify the closest downlink subframe,
 or calibrate a clock. Thus only the timing arithmetic and report semantics are
 implemented; timing acquisition remains open.
 
-UL-AoA, path power or TDCT reports, RRC/LPP ASN.1 encoding, synchronized
-receive acquisition, and positioning qualification remain open.
-The ETSI definition and receiver-specific reference points are in [TS 38.215
-V19.2.0, clause 5.2.5](https://www.etsi.org/deliver/etsi_ts/138200_138299/138215/19.02.00_60/ts_138215v190200p.pdf).
+`report_ul_aoa` binds caller-supplied azimuth and vertical-angle estimates to a
+sample ID, coordinate-system/reference-frame ID, estimated-channel digest,
+estimator-configuration digest, and antenna-calibration digest. Its schema
+records the TS 38.215 V19.2.0 clause 5.2.4 conventions: azimuth is measured
+counter-clockwise from geographical North in GCS or the local x-axis in LCS;
+vertical angle is measured from zenith or local z-axis toward the horizontal
+plane. The report remains `OBSERVED_NOT_QUALIFIED`; it does not estimate AoA or
+validate angle estimates, calibration, synchronization, uncertainty, or
+receiver performance.
+
+UL SRS-RSRPP, UL SRS-TDCT/TDCP, RRC/LPP ASN.1 encoding, synchronized receive
+acquisition, and positioning qualification remain open. The ETSI definitions
+are in [TS 38.215 V19.2.0, clauses 5.2.4–5.2.6 and 5.2.9–5.2.10](https://www.etsi.org/deliver/etsi_ts/138200_138299/138215/19.02.00_60/ts_138215v190200p.pdf).

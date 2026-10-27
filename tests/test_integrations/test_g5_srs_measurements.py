@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import numpy as np
 import pytest
 from integrations.sionna.srs import NRSRSMultiportResourceGrid
@@ -8,6 +11,7 @@ from integrations.sionna.srs_measurements import (
     measure_ul_srs_rsrp_from_grid,
     measure_ul_srs_rsrp_from_noisy_network_grid,
     report_gnb_rx_tx_time_difference,
+    report_ul_aoa,
     report_ul_rtoa,
 )
 
@@ -85,6 +89,66 @@ def test_gnb_rx_tx_difference_uses_rx_minus_tx_and_separate_reference_points():
     assert report["gnb_rx_tx_time_difference_s"] == pytest.approx(4e-6)
     assert report["receiver_reference_point"] == "rx_transceiver_array_boundary_connector"
     assert report["transmitter_reference_point"] == "tx_antenna_connector"
+
+
+@pytest.mark.parametrize(
+    ("coordinate_system", "azimuth_reference", "vertical_reference"),
+    (("GCS", "geographical_north", "zenith"), ("LCS", "local_x_axis", "local_z_axis")),
+)
+def test_ul_aoa_report_binds_estimate_and_coordinate_convention(
+    coordinate_system, azimuth_reference, vertical_reference
+):
+    report = report_ul_aoa(
+        sample_id="episode-01",
+        azimuth_deg=359.5,
+        vertical_deg=72.0,
+        coordinate_system=coordinate_system,
+        reference_frame_id="array-frame-fixture",
+        estimated_channel_sha256="a" * 64,
+        estimator_config_sha256="b" * 64,
+        antenna_calibration_sha256="c" * 64,
+    )
+
+    assert report["status"] == "OBSERVED_NOT_QUALIFIED"
+    assert report["azimuth_reference"] == azimuth_reference
+    assert report["vertical_reference"] == vertical_reference
+    assert report["measurement_location"] == "gnb_antenna"
+    assert report["estimated_channel_sha256"] == "a" * 64
+    schema_path = (
+        Path(__file__).resolve().parents[2]
+        / "evaluation/schema/nr-ul-srs-aoa-report.v1.schema.json"
+    )
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    import jsonschema
+
+    jsonschema.Draft202012Validator.check_schema(schema)
+    jsonschema.Draft202012Validator(schema).validate(report)
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    (
+        {"azimuth_deg": 360.0},
+        {"vertical_deg": 180.1},
+        {"coordinate_system": "ENU"},
+        {"antenna_calibration_sha256": "not-a-digest"},
+        {"azimuth_deg": True},
+    ),
+)
+def test_ul_aoa_report_rejects_invalid_angle_or_identity(overrides):
+    arguments = {
+        "sample_id": "episode-01",
+        "azimuth_deg": 10.0,
+        "vertical_deg": 72.0,
+        "coordinate_system": "GCS",
+        "reference_frame_id": "geodetic-frame-fixture",
+        "estimated_channel_sha256": "a" * 64,
+        "estimator_config_sha256": "b" * 64,
+        "antenna_calibration_sha256": "c" * 64,
+    }
+    arguments.update(overrides)
+    with pytest.raises((TypeError, ValueError)):
+        report_ul_aoa(**arguments)
 
 
 def test_grid_observation_measures_only_configured_srs_res_and_binds_inputs():
