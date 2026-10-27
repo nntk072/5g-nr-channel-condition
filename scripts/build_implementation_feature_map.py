@@ -5,7 +5,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
+import stat
 import sys
 import tomllib
 from pathlib import Path
@@ -14,7 +16,7 @@ from typing import Any
 _REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 _DEFAULT_BACKLOG = Path("docs/research/IMPLEMENTATION_BACKLOG.md")
 _DEFAULT_OUTPUT = Path("docs/research/IMPLEMENTATION_FEATURE_MAP.json")
-_SCHEMA = "loslab.implementation_feature_map.v1"
+_SCHEMA = "loslab.implementation_feature_map.v2"
 _HEADING = re.compile(r"^###\s+(\d+)\.\s+(.+?)\s*$")
 _ITEM = re.compile(r"^\s*-\s+\[([ xX])\]\s+(.+?)\s*$")
 _PLAN_GATES = re.compile(r"\bG\d+(?:\.\d+)?\b")
@@ -25,6 +27,31 @@ _PATH_SUFFIXES = {".json", ".md", ".py", ".yaml", ".yml", ".toml", ".lock"}
 
 def _sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
+
+
+def _file_sha256(relative_path: str, root: Path) -> str:
+    """Hash one stable regular-file snapshot without following symlinks."""
+    path = root / relative_path
+    if path.is_symlink():
+        raise ValueError(f"evidence path is a symlink: {relative_path}")
+    digest = hashlib.sha256()
+    try:
+        with path.open("rb") as stream:
+            before = os.fstat(stream.fileno())
+            if not stat.S_ISREG(before.st_mode):
+                raise ValueError(f"evidence path is not a regular file: {relative_path}")
+            byte_count = 0
+            for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                digest.update(chunk)
+                byte_count += len(chunk)
+            after = os.fstat(stream.fileno())
+    except OSError as error:
+        raise ValueError(f"cannot read evidence path {relative_path}: {error}") from error
+    identity_before = (before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns)
+    identity_after = (after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns)
+    if identity_before != identity_after or byte_count != before.st_size:
+        raise ValueError(f"evidence path changed while hashing: {relative_path}")
+    return digest.hexdigest()
 
 
 def _relative_path(value: str, root: Path) -> str | None:
@@ -119,23 +146,28 @@ def build_feature_map(markdown: str, *, root: Path = _REPOSITORY_ROOT) -> dict[s
         package_ordinal += 1
         checked, description = item.groups()
         paths: set[str] = set()
+        evidence_files: set[str] = set()
         cli_links: set[str] = set()
         tokens = _BACKTICK_PATH.findall(description)
         for token in tokens:
             path = _relative_path(token, root)
             if path is not None:
                 paths.add(path)
+                evidence_files.add(path)
                 continue
             if (module_path := _module_file(token.strip(), root)) is not None:
                 paths.add(module_path)
+                evidence_files.add(module_path)
             if token in console_scripts:
                 entrypoint = console_scripts[token]
                 module, _callable = entrypoint.split(":", 1)
                 if (source_path := _module_file(module, root)) is not None:
                     cli_links.add(f"{token} -> {entrypoint} ({source_path})")
+                    evidence_files.add(source_path)
         for token in _DOTTED_SYMBOL.findall(description):
             if (module_path := _module_file(token, root)) is not None:
                 paths.add(module_path)
+                evidence_files.add(module_path)
         explicit_gates = sorted(set(_PLAN_GATES.findall(description)))
         if not explicit_gates:
             explicit_gates = sorted(set(_PLAN_GATES.findall(package_title)))
@@ -150,6 +182,9 @@ def build_feature_map(markdown: str, *, root: Path = _REPOSITORY_ROOT) -> dict[s
                 "backlog_status": "marked_done" if checked.lower() == "x" else "open",
                 "description": description,
                 "evidence_links": evidence_links,
+                "evidence_file_sha256": {
+                    value: _file_sha256(value, root) for value in sorted(evidence_files)
+                },
                 "link_status": "linked" if paths or cli_links else "unmapped",
                 "qualification_status": "not_assessed_by_inventory",
             }

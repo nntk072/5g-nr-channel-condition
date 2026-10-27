@@ -1,0 +1,213 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.example/schema/implementation-feature-map.v2.schema.json",
+  "title": "Non-qualifying content-addressed implementation feature map",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "source",
+    "policy",
+    "summary",
+    "features"
+  ],
+  "properties": {
+    "schema": {
+      "const": "loslab.implementation_feature_map.v2"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "const": "docs/research/IMPLEMENTATION_BACKLOG.md"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status_semantics",
+        "qualification_claim"
+      ],
+      "properties": {
+        "status_semantics": {
+          "type": "string",
+          "minLength": 1
+        },
+        "qualification_claim": {
+          "const": "none"
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "feature_count",
+        "marked_done_count",
+        "open_count",
+        "linked_count",
+        "unmapped_count"
+      ],
+      "properties": {
+        "feature_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "marked_done_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "open_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "linked_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unmapped_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "features": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "feature_id",
+          "backlog_line",
+          "package",
+          "plan_gates",
+          "backlog_status",
+          "description",
+          "evidence_links",
+          "link_status",
+          "qualification_status",
+          "evidence_file_sha256"
+        ],
+        "properties": {
+          "feature_id": {
+            "type": "string",
+            "pattern": "^PKG[0-9]{2}-[0-9]{3}$"
+          },
+          "backlog_line": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "package": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "number",
+              "title"
+            ],
+            "properties": {
+              "number": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "plan_gates": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "backlog_status": {
+            "enum": [
+              "marked_done",
+              "open"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence_links": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source_modules",
+              "schemas",
+              "cli_entries",
+              "regression_files",
+              "documentation",
+              "other_files"
+            ],
+            "properties": {
+              "source_modules": {
+                "$ref": "#/$defs/paths"
+              },
+              "schemas": {
+                "$ref": "#/$defs/paths"
+              },
+              "cli_entries": {
+                "$ref": "#/$defs/paths"
+              },
+              "regression_files": {
+                "$ref": "#/$defs/paths"
+              },
+              "documentation": {
+                "$ref": "#/$defs/paths"
+              },
+              "other_files": {
+                "$ref": "#/$defs/paths"
+              }
+            }
+          },
+          "link_status": {
+            "enum": [
+              "linked",
+              "unmapped"
+            ]
+          },
+          "qualification_status": {
+            "const": "not_assessed_by_inventory"
+          },
+          "evidence_file_sha256": {
+            "type": "object",
+            "propertyNames": {
+              "minLength": 1
+            },
+            "additionalProperties": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "paths": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

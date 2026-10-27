@@ -27,7 +27,7 @@ def test_feature_map_covers_checklist_and_does_not_promote_qualification() -> No
         row["qualification_status"] == "not_assessed_by_inventory" for row in result["features"]
     )
     schema = json.loads(
-        (root / "datasets/schema/implementation-feature-map.v1.schema.json").read_text()
+        (root / "datasets/schema/implementation-feature-map.v2.schema.json").read_text()
     )
     jsonschema.Draft202012Validator(schema).validate(result)
 
@@ -47,6 +47,9 @@ def test_feature_map_links_only_existing_repository_files(tmp_path: Path) -> Non
     feature = result["features"][0]
 
     assert feature["evidence_links"]["cli_entries"] == ["scripts/tool.py"]
+    assert feature["evidence_file_sha256"] == {
+        "scripts/tool.py": "9f56e761d79bfdb34304a012586cb04d16b435ef6130091a97702e559260a2f2"
+    }
     assert feature["link_status"] == "linked"
 
 
@@ -70,3 +73,15 @@ def test_feature_map_resolves_dotted_modules_and_registered_cli(tmp_path: Path) 
         "loslab-runtime-inventory -> integrations.runtime_inventory:main "
         "(integrations/runtime_inventory.py)"
     ]
+    assert "integrations/runtime_inventory.py" in feature["evidence_file_sha256"]
+
+
+def test_feature_map_rejects_symlinked_evidence(tmp_path: Path) -> None:
+    import pytest
+
+    (tmp_path / "scripts").mkdir()
+    (tmp_path / "scripts/real.py").write_text("pass\n")
+    (tmp_path / "scripts/alias.py").symlink_to("real.py")
+
+    with pytest.raises(ValueError, match="symlink"):
+        build_feature_map("### 0. Package\n- [ ] Use `scripts/alias.py`.\n", root=tmp_path)
