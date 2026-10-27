@@ -12,6 +12,7 @@ from time import perf_counter
 from typing import Any, Sequence
 
 import numpy as np
+from artifacts.build_dag import BuildNodeSpec, resolve_build_artifact, run_build_node
 from artifacts.layout import RunLayout
 from artifacts.manifest import mark_complete, run_manifest
 from artifacts.provenance import (
@@ -56,6 +57,70 @@ _MODEL_FEATURE_ROUTES = {
 _MODEL_METHODS = frozenset(
     {"rf", "histgb", "xgb", "mlp", "raw_mlp", "logreg", "cnn", "cvnn", "coral", "coral0"}
 )
+_CHANNEL_DATASET_BUILD_SCHEMA = {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": ["operation", "input_order"],
+    "properties": {
+        "operation": {"const": "ordered_channel_dataset_concatenation_v1"},
+        "input_order": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "required": ["path", "sha256"],
+                "properties": {
+                    "path": {"type": "string", "minLength": 1},
+                    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+                },
+                "additionalProperties": False,
+            },
+        },
+    },
+    "additionalProperties": False,
+}
+
+
+def _materialize_channel_dataset_build_node(
+    paths: Sequence[str | Path], cache_root: str | Path
+) -> tuple[ChannelDataset, dict[str, Any]]:
+    source_paths = tuple(Path(path).expanduser().resolve() for path in paths)
+    ordered_inputs = [{"path": str(path), "sha256": sha256_file(path)} for path in source_paths]
+    input_files = {row["path"]: row["sha256"] for row in ordered_inputs}
+    source_revision = versions().get("git_sha") or "unknown"
+    source_bundle_sha256 = package_source_sha256()
+    spec = BuildNodeSpec(
+        node_id="channel_dataset.ordered_concatenation",
+        node_version="1.0.0",
+        configuration={
+            "operation": "ordered_channel_dataset_concatenation_v1",
+            "input_order": ordered_inputs,
+        },
+        configuration_schema=_CHANNEL_DATASET_BUILD_SCHEMA,
+        source_revision=source_revision,
+        source_bundle_sha256=source_bundle_sha256,
+        input_files=input_files,
+        dependencies={},
+        outputs=("channel-dataset.npz",),
+    )
+
+    def build(staging: Path) -> None:
+        combined = ChannelDataset.concatenate([ChannelDataset.load(path) for path in source_paths])
+        combined.save(staging / "channel-dataset.npz", exclusive=True)
+
+    result = run_build_node(cache_root, spec, build)
+    artifact_path = resolve_build_artifact(cache_root, result, "channel-dataset.npz")
+    data = ChannelDataset.load(artifact_path)
+    manifest_digest = sha256_file(result.manifest_path)
+    return data, {
+        "schema": "loslab.channel_dataset_materialization.v1",
+        "node_key": result.node_key,
+        "manifest_sha256": manifest_digest,
+        "artifact_sha256": result.artifacts[0]["sha256"],
+        "artifact_size_bytes": result.artifacts[0]["size_bytes"],
+        "cache_reused": result.reused,
+        "input_order": ordered_inputs,
+    }
 
 
 def _identity_complex_cfr(observed_cfr: np.ndarray) -> np.ndarray:
@@ -703,11 +768,16 @@ def run_experiment(
     split_signature_path: str | Path | None = None,
     trusted_split_signers_path: str | Path | None = None,
     split_signer_id: str | None = None,
+    build_cache_root: str | Path | None = None,
 ) -> dict:
     if not paths:
         raise ValueError("No datasets supplied")
     capacity_spec(capacity)
-    data = ChannelDataset.concatenate([ChannelDataset.load(p) for p in paths])
+    dataset_build_node = None
+    if build_cache_root is None:
+        data = ChannelDataset.concatenate([ChannelDataset.load(p) for p in paths])
+    else:
+        data, dataset_build_node = _materialize_channel_dataset_build_node(paths, build_cache_root)
     signed_split_args = (
         split_lock_path,
         split_signature_path,
@@ -783,6 +853,11 @@ def run_experiment(
         ),
         "split_mode": split_provenance["mode"],
         "threshold_selection_policy": _VALIDATION_THRESHOLD_POLICY,
+        "dataset_materialization": (
+            "content_addressed_build_node_v1"
+            if dataset_build_node is not None
+            else "direct_ordered_concatenation"
+        ),
     }
     dependency_versions = versions()
     manifest = run_manifest(
@@ -808,6 +883,7 @@ def run_experiment(
             "DEBUG_ONLY" if "synthetic_debug" in data.source else "SIMULATION_ONLY_UNVALIDATED"
         ),
         split_policy=split_provenance,
+        dataset_build_node=dataset_build_node,
     )
     atomic_json(layout.config / "resolved.json", resolve_config(config))
     atomic_json(output / "manifest.json", manifest)

@@ -354,6 +354,55 @@ def test_run_experiment_writes_reproducible_complete_artifacts(tmp_path) -> None
         verify_model_input_artifact_contract(model_info_path, model_path)
 
 
+def test_run_experiment_materializes_input_dataset_through_build_dag(tmp_path) -> None:
+    source = tmp_path / "debug.npz"
+    debug_multipath(n_scenes=4, links_per_scene=12, seed=73).save(source)
+    cache = tmp_path / "build-cache"
+
+    first_output = tmp_path / "runs" / "cache-first"
+    run_experiment(
+        [source],
+        first_output,
+        methods=("logreg",),
+        seeds=(17,),
+        bootstrap=20,
+        build_cache_root=cache,
+    )
+    first_manifest = json.loads((first_output / "manifest.json").read_text(encoding="utf-8"))
+    first_contract = json.loads(
+        (first_output / "models/logreg_seed17_modelinfo.json").read_text(encoding="utf-8")
+    )["model_input_artifact_contract"]
+
+    second_output = tmp_path / "runs" / "cache-second"
+    run_experiment(
+        [source],
+        second_output,
+        methods=("logreg",),
+        seeds=(17,),
+        bootstrap=20,
+        build_cache_root=cache,
+    )
+    second_manifest = json.loads((second_output / "manifest.json").read_text(encoding="utf-8"))
+    second_contract = json.loads(
+        (second_output / "models/logreg_seed17_modelinfo.json").read_text(encoding="utf-8")
+    )["model_input_artifact_contract"]
+
+    assert first_manifest["dataset_build_node"]["cache_reused"] is False
+    assert second_manifest["dataset_build_node"]["cache_reused"] is True
+    assert (
+        first_manifest["dataset_build_node"]["node_key"]
+        == second_manifest["dataset_build_node"]["node_key"]
+    )
+    assert (
+        first_manifest["dataset_build_node"]["artifact_sha256"]
+        == second_manifest["dataset_build_node"]["artifact_sha256"]
+    )
+    assert (
+        first_contract["feature_contract"]["feature_matrix"]
+        == second_contract["feature_contract"]["feature_matrix"]
+    )
+
+
 def test_run_experiment_refuses_to_overwrite_completed_run(tmp_path) -> None:
     source = tmp_path / "debug.npz"
     debug_multipath(n_scenes=4, links_per_scene=12, seed=7).save(source)
