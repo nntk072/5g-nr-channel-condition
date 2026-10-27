@@ -166,27 +166,16 @@ def test_scenario_gbsm_episode_rejects_split_group_drift() -> None:
 def test_scenario_gbsm_episode_bundle_tracks_moving_ut() -> None:
     channel = _native_channel()
     channel.h_path = np.repeat(channel.h_path, 2, axis=-1)
-    channel.channel_frequency_response = np.repeat(
-        channel.channel_frequency_response, 2, axis=5
-    )
+    channel.channel_frequency_response = np.repeat(channel.channel_frequency_response, 2, axis=5)
     channel.metadata["generator_configuration"]["sampling_frequency_hz"] = 2.0
     channel.metadata["generator_configuration"]["batch_size"] = 1
     channel.metadata["topology_rows"][0]["ut_velocities"] = [[1.0, 0.0, 0.0]]
     channel.metadata["topology_sha256"] = _digest(
-        {
-            key: [value]
-            for key, value in channel.metadata["topology_rows"][0].items()
-        }
+        {key: [value] for key, value in channel.metadata["topology_rows"][0].items()}
     )
-    channel.metadata["topology_row_sha256"] = [
-        _digest(channel.metadata["topology_rows"][0])
-    ]
-    channel.metadata["configuration_sha256"] = _digest(
-        channel.metadata["generator_configuration"]
-    )
-    run = scenario_gbsm_run_from_channel(
-        channel, run_id="pilot-moving", sample_ids=["drop-moving"]
-    )
+    channel.metadata["topology_row_sha256"] = [_digest(channel.metadata["topology_rows"][0])]
+    channel.metadata["configuration_sha256"] = _digest(channel.metadata["generator_configuration"])
+    run = scenario_gbsm_run_from_channel(channel, run_id="pilot-moving", sample_ids=["drop-moving"])
 
     bundle = scenario_gbsm_episode_bundle(run.records[0])
     assert bundle.episode.frame_times_s == (0.0, 0.5)
@@ -207,9 +196,7 @@ def test_scenario_gbsm_episode_bundle_maps_dual_polarized_ports_to_elements() ->
         * channel.tau_s[:, :, None, :, None, :, None, None]
         * offsets.reshape(1, 1, 1, 1, 1, 1, 1, -1)
     )
-    channel.channel_frequency_response = np.sum(
-        channel.h_path[..., None] * phase, axis=5
-    )
+    channel.channel_frequency_response = np.sum(channel.h_path[..., None] * phase, axis=5)
     configuration = channel.metadata["generator_configuration"]
     configuration["ut_array_layout"] = {
         "schema": "umcd.sionna_array_layout.v1",
@@ -422,3 +409,57 @@ def test_scenario_gbsm_is_a_distinct_episode_store_layer(tmp_path) -> None:
     jsonschema.Draft202012Validator(schema).validate(
         json.loads((tmp_path / pointer.relative_path).read_text())
     )
+
+
+def test_scenario_gbsm_episode_layer_rejects_corrupted_object(tmp_path) -> None:
+    run = scenario_gbsm_run_from_channel(
+        _native_channel(), run_id="pilot-episode-layer-corruption", sample_ids=["drop-000"]
+    )
+    bundle = scenario_gbsm_episode_bundle(run.records[0])
+    pointer = write_episode_bundle(tmp_path, bundle)
+    manifest = json.loads((tmp_path / pointer.relative_path).read_text(encoding="utf-8"))
+    scenario_layer = next(item for item in manifest["layers"] if item["layer"] == "scenario_gbsm")
+    object_path = tmp_path / scenario_layer["path"]
+    payload = bytearray(object_path.read_bytes())
+    payload[len(payload) // 2] ^= 0x01
+    object_path.write_bytes(payload)
+
+    with pytest.raises(ValueError, match="content hash"):
+        read_episode_bundle(tmp_path, pointer)
+
+
+def test_scenario_gbsm_episode_layer_publication_failure_is_retryable(
+    tmp_path, monkeypatch
+) -> None:
+    import datasets.episode_store as episode_store
+
+    run = scenario_gbsm_run_from_channel(
+        _native_channel(), run_id="pilot-episode-layer-retry", sample_ids=["drop-000"]
+    )
+    bundle = scenario_gbsm_episode_bundle(run.records[0])
+    publish = episode_store._publish_immutable
+    injected = False
+
+    def fail_scenario_layer(path, payload):
+        nonlocal injected
+        if "scenario_gbsm" in path.parts and not injected:
+            injected = True
+            raise OSError("injected scenario GBSM episode-layer publication failure")
+        publish(path, payload)
+
+    monkeypatch.setattr(episode_store, "_publish_immutable", fail_scenario_layer)
+    with pytest.raises(OSError, match="scenario GBSM episode-layer publication failure"):
+        write_episode_bundle(tmp_path, bundle)
+
+    assert list((tmp_path / "objects" / "episode").rglob("*.npz"))
+    assert not (tmp_path / "objects" / "scenario_gbsm").exists()
+    assert not (tmp_path / "manifests" / "episodes").exists()
+
+    monkeypatch.setattr(episode_store, "_publish_immutable", publish)
+    pointer = write_episode_bundle(tmp_path, bundle)
+    restored = read_episode_bundle(tmp_path, pointer)
+    assert restored.episode.episode_id == "drop-000"
+    assert len(restored.scenario_gbsm_records) == 1
+    np.testing.assert_array_equal(restored.scenario_gbsm_records[0].h_path, run.records[0].h_path)
+    np.testing.assert_array_equal(restored.scenario_gbsm_records[0].cfr, run.records[0].cfr)
+    assert not [path for path in tmp_path.rglob(".*") if path.is_file()]
