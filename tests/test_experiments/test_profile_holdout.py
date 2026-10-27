@@ -12,6 +12,7 @@ from datasets.channel import ChannelDataset
 from experiments.profile_holdout import (
     BASELINE_CONFIGURATION,
     _model_complexity,
+    _profile_rows,
     build_profile_holdout_input_contract,
     normalized_cfr_features,
     run_profile_holdout,
@@ -190,6 +191,33 @@ def test_profile_holdout_rejects_conflicting_dataset_level_label_semantics():
 
     with pytest.raises(ValueError, match="dataset-level profile_proxy"):
         run_profile_holdout(mislabeled, methods=("logreg",))
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        ("profile", "a", "canonical uppercase A-E"),
+        ("profile", " A", "canonical uppercase A-E"),
+        ("family", "TDL", "metadata family must match"),
+        ("family", "tdl ", "metadata family must match"),
+    ],
+)
+def test_profile_holdout_rejects_noncanonical_profile_and_family_metadata(field, value, message):
+    data = _small_profile_dataset()
+    metadata = list(data.metadata)
+    metadata[0] = {**metadata[0], field: value}
+    corrupted = ChannelDataset(
+        data.h,
+        data.y,
+        data.group,
+        data.domain,
+        data.source,
+        tuple(metadata),
+        label_semantics=data.label_semantics,
+    )
+
+    with pytest.raises(ValueError, match=message):
+        _profile_rows(corrupted)
 
 
 def test_random_forest_baseline_configuration_is_single_worker():

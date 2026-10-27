@@ -201,18 +201,24 @@ def _profile_rows(data: ChannelDataset) -> dict[str, np.ndarray]:
     for index, (group, metadata, label, family) in enumerate(
         zip(data.group, data.metadata, data.y, data.domain, strict=True)
     ):
-        profile = str(metadata.get("profile", "")).upper()
-        family_name = str(metadata.get("family", "")).lower()
+        profile = metadata.get("profile")
+        family_name = metadata.get("family")
         if metadata.get("label_semantics") != "PROFILE_PROXY":
             raise ValueError("all rows must use PROFILE_PROXY label semantics")
-        if family_name not in {"tdl", "cdl"} or str(family).lower() != family_name:
+        if (
+            not isinstance(family_name, str)
+            or family_name not in {"tdl", "cdl"}
+            or family != family_name
+        ):
             raise ValueError("metadata family must match a TDL/CDL dataset domain")
-        if profile not in {"A", "B", "C", "D", "E"}:
-            raise ValueError(f"unknown standardized profile: {profile!r}")
+        if not isinstance(profile, str) or profile not in {"A", "B", "C", "D", "E"}:
+            raise ValueError(f"profile must be a canonical uppercase A-E label: {profile!r}")
         expected_label = int(profile in "DE")
         if int(label) != expected_label:
             raise ValueError("profile-proxy label does not match the declared A/B/C vs D/E rule")
-        group_name = str(group)
+        if not isinstance(group, str) or not group or group != group.strip():
+            raise ValueError("group IDs must be nonempty canonical strings")
+        group_name = group
         previous = group_profile.setdefault(group_name, profile)
         if previous != profile:
             raise ValueError(f"link group crosses standardized profiles: {group_name}")
