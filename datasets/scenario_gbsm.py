@@ -268,6 +268,59 @@ class ScenarioGBSMRun:
             raise ValueError("a run cannot mix scenario models or generator configurations")
         object.__setattr__(self, "records", tuple(sorted(records, key=lambda item: item.sample_index)))
 
+    def audit_split_assignment(self, registry: Any) -> dict[str, Any]:
+        """Verify that this shared generation run stays in one frozen split component.
+
+        A scenario run may contain several parent episodes. Since those records share
+        one generator invocation and run identity, the frozen registry must include
+        their common trajectory-session relation and assign them to one component.
+        The returned digest binds the exact parent-to-component rows that were checked.
+        """
+        from .split_policy import LeakageNamespace, LeakageRelation, SplitPolicyRegistry
+
+        if not isinstance(registry, SplitPolicyRegistry):
+            raise TypeError("registry must be a SplitPolicyRegistry")
+        run_relation = LeakageRelation(
+            LeakageNamespace.TRAJECTORY_SESSION, f"scenario_gbsm_run:{self.run_id}"
+        )
+        rows: list[dict[str, str]] = []
+        for record in self.records:
+            parent_id = record.sample_id
+            subject = registry.subjects.get(parent_id)
+            if subject is None:
+                raise ValueError(
+                    f"scenario GBSM parent is absent from frozen split registry: {parent_id}"
+                )
+            if run_relation not in subject.relations:
+                raise ValueError(
+                    f"frozen split parent {parent_id!r} omits the scenario run relation"
+                )
+            rows.append(
+                {
+                    "parent_subject_id": parent_id,
+                    "component_id": registry.subject_to_component[parent_id],
+                    "split": registry.split_for_parent(parent_id),
+                }
+            )
+        component_ids = {row["component_id"] for row in rows}
+        splits = {row["split"] for row in rows}
+        if len(component_ids) != 1 or len(splits) != 1:
+            raise ValueError(
+                "scenario GBSM run parents must share one frozen split component and assignment"
+            )
+        core = {
+            "schema": "umcd.scenario_gbsm_split_audit.v1",
+            "schema_version": 1,
+            "run_id": self.run_id,
+            "run_relation": run_relation.to_dict(),
+            "registry_sha256": registry.to_dict()["registry_sha256"],
+            "parent_count": len(rows),
+            "component_id": next(iter(component_ids)),
+            "split": next(iter(splits)),
+            "parents": rows,
+        }
+        return {**core, "audit_sha256": _sha256(_canonical_json(core, label="split audit"))}
+
 
 def _sionna_orientation_matrix(angles: Sequence[float]) -> np.ndarray:
     """Convert Sionna's three Euler angles using its Z-Y-X local-to-world convention."""

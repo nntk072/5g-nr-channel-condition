@@ -30,6 +30,14 @@ from datasets.scenario_gbsm import (
     scenario_gbsm_run_to_episode_bundles,
     write_scenario_gbsm_run,
 )
+from datasets.split_policy import (
+    LeakageNamespace,
+    LeakageRelation,
+    SplitParentType,
+    SplitPolicy,
+    SplitSubject,
+    make_split_policy_registry,
+)
 
 
 def _digest(value: object) -> str:
@@ -119,6 +127,78 @@ def test_scenario_gbsm_conversion_and_store_round_trip(tmp_path) -> None:
     np.testing.assert_array_equal(restored.records[0].h_path, run.records[0].h_path)
     np.testing.assert_array_equal(restored.records[0].tau_s, run.records[0].tau_s)
     np.testing.assert_array_equal(restored.records[0].cfr, run.records[0].cfr)
+
+
+def test_scenario_gbsm_run_split_audit_binds_shared_parent_component() -> None:
+    run = _two_record_run()
+    shared_relation = LeakageRelation(
+        LeakageNamespace.TRAJECTORY_SESSION, f"scenario_gbsm_run:{run.run_id}"
+    )
+    registry = make_split_policy_registry(
+        [
+            SplitSubject(
+                record.sample_id,
+                SplitParentType.NETWORK_EPISODE,
+                "scenario_gbsm:UMi",
+                (shared_relation,),
+            )
+            for record in run.records
+        ]
+        + [
+            SplitSubject("unrelated-parent-a", SplitParentType.NETWORK_EPISODE, "fixture"),
+            SplitSubject("unrelated-parent-b", SplitParentType.NETWORK_EPISODE, "fixture"),
+        ],
+        policy=SplitPolicy(
+            seed="scenario-run-split-audit",
+            split_fractions={"train": 0.8, "validation": 0.1, "test": 0.1},
+        ),
+    )
+
+    report = run.audit_split_assignment(registry)
+    assert report["schema"] == "umcd.scenario_gbsm_split_audit.v1"
+    assert report["run_id"] == run.run_id
+    assert report["registry_sha256"] == registry.to_dict()["registry_sha256"]
+    assert report["parent_count"] == 2
+    assert {row["parent_subject_id"] for row in report["parents"]} == {
+        "drop-000",
+        "drop-001",
+    }
+    assert {row["component_id"] for row in report["parents"]} == {report["component_id"]}
+    assert {row["split"] for row in report["parents"]} == {report["split"]}
+    core = {key: value for key, value in report.items() if key != "audit_sha256"}
+    assert report["audit_sha256"] == _digest(core)
+    jsonschema = pytest.importorskip("jsonschema")
+    schema_path = (
+        Path(__file__).resolve().parents[2]
+        / "datasets/schema/scenario-gbsm-split-audit.v1.schema.json"
+    )
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    jsonschema.Draft202012Validator.check_schema(schema)
+    jsonschema.Draft202012Validator(schema).validate(report)
+
+
+def test_scenario_gbsm_run_split_audit_rejects_missing_shared_relation() -> None:
+    run = _two_record_run()
+    registry = make_split_policy_registry(
+        [
+            SplitSubject(
+                record.sample_id,
+                SplitParentType.NETWORK_EPISODE,
+                "scenario_gbsm:UMi",
+            )
+            for record in run.records
+        ]
+        + [
+            SplitSubject("unrelated-parent-a", SplitParentType.NETWORK_EPISODE, "fixture"),
+            SplitSubject("unrelated-parent-b", SplitParentType.NETWORK_EPISODE, "fixture"),
+        ],
+        policy=SplitPolicy(
+            seed="scenario-run-split-audit-missing-link",
+            split_fractions={"train": 0.8, "validation": 0.1, "test": 0.1},
+        ),
+    )
+    with pytest.raises(ValueError, match="omits the scenario run relation"):
+        run.audit_split_assignment(registry)
 
 
 def test_scenario_gbsm_conversion_assembles_canonical_episode_bundle(tmp_path) -> None:

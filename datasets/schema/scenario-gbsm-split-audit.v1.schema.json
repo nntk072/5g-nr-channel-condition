@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://umcd.example/schemas/scenario-gbsm-split-audit.v1.schema.json",
+  "title": "UMCD scenario GBSM frozen split assignment audit",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "run_id",
+    "run_relation",
+    "registry_sha256",
+    "parent_count",
+    "component_id",
+    "split",
+    "parents",
+    "audit_sha256"
+  ],
+  "properties": {
+    "schema": {"const": "umcd.scenario_gbsm_split_audit.v1"},
+    "schema_version": {"const": 1},
+    "run_id": {"type": "string", "minLength": 1},
+    "run_relation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["namespace", "identity"],
+      "properties": {
+        "namespace": {"const": "trajectory_session"},
+        "identity": {"type": "string", "minLength": 1}
+      }
+    },
+    "registry_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "parent_count": {"type": "integer", "minimum": 1},
+    "component_id": {"type": "string", "minLength": 1},
+    "split": {"enum": ["train", "validation", "calibration", "test"]},
+    "parents": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["parent_subject_id", "component_id", "split"],
+        "properties": {
+          "parent_subject_id": {"type": "string", "minLength": 1},
+          "component_id": {"type": "string", "minLength": 1},
+          "split": {"enum": ["train", "validation", "calibration", "test"]}
+        }
+      }
+    },
+    "audit_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}
