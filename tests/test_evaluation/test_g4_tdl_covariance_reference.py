@@ -87,3 +87,16 @@ def test_first_tap_covariance_rejects_invalid_inputs(
 ) -> None:
     with pytest.raises(ValueError):
         scalable_tdl_first_tap_covariance_reference(model, correlation, num_tx_ant)
+
+
+@pytest.mark.parametrize(
+    "correlation",
+    (
+        [[True]],
+        [["1.0"]],
+        np.asarray([[1.0]], dtype=object),
+    ),
+)
+def test_first_tap_covariance_rejects_coercible_non_numeric_dtypes(correlation) -> None:
+    with pytest.raises(ValueError, match="numeric"):
+        scalable_tdl_first_tap_covariance_reference("A", correlation, 1)

@@ -286,7 +286,16 @@ def scalable_tdl_first_tap_covariance_reference(
     if isinstance(num_tx_ant, bool) or not isinstance(num_tx_ant, int) or num_tx_ant <= 0:
         raise ValueError("num_tx_ant must be a positive integer")
     diffuse_power, specular_power = scalable_tdl_first_tap_power_components(model)
-    correlation = np.asarray(rx_correlation, dtype=np.complex128)
+    try:
+        raw_correlation = np.asarray(rx_correlation)
+    except (TypeError, ValueError, OverflowError) as error:
+        raise ValueError("rx_correlation must be a real or complex numeric matrix") from error
+    if raw_correlation.dtype.kind not in "iufc":
+        raise ValueError("rx_correlation must contain real or complex numeric values")
+    try:
+        correlation = raw_correlation.astype(np.complex128, copy=False)
+    except (TypeError, ValueError, OverflowError) as error:
+        raise ValueError("rx_correlation is not representable as complex128") from error
     if (
         correlation.ndim != 2
         or correlation.shape[0] != correlation.shape[1]
