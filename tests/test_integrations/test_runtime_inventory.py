@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 from pathlib import Path
 from types import SimpleNamespace
@@ -109,6 +110,85 @@ def test_runtime_inventory_rejects_fifo_identity_files_without_blocking(tmp_path
 def test_runtime_inventory_requires_strict_probe_flag(tmp_path: Path) -> None:
     with pytest.raises(TypeError, match="Boolean"):
         runtime_inventory.build_runtime_inventory(tmp_path, probe_accelerator=1)  # type: ignore[arg-type]
+    with pytest.raises(TypeError, match="probe_loaded_native_libraries"):
+        runtime_inventory.build_runtime_inventory(
+            tmp_path,
+            probe_loaded_native_libraries=1,  # type: ignore[arg-type]
+        )
+
+
+def test_loaded_native_library_inventory_hashes_mapped_files_and_reports_limits(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    library = tmp_path / "native library.so"
+    library.write_bytes(b"mapped native bytes")
+    maps = tmp_path / "maps"
+    escaped = str(library).replace(" ", r"\040")
+    mapping = f"7f000000-7f001000 r-xp 00000000 08:01 123 {escaped}\n"
+    maps.write_text(mapping + mapping, encoding="utf-8")
+
+    report = runtime_inventory._loaded_native_library_identity(maps)
+    assert report["status"] == "COMPLETE"
+    assert report["total_hashed_bytes"] == library.stat().st_size
+    assert report["libraries"] == [
+        {
+            "path": str(library),
+            "size_bytes": library.stat().st_size,
+            "sha256": hashlib.sha256(library.read_bytes()).hexdigest(),
+        }
+    ]
+
+    monkeypatch.setattr(runtime_inventory, "_MAX_NATIVE_LIBRARY_BYTES", 3)
+    limited = runtime_inventory._loaded_native_library_identity(maps)
+    assert limited["status"] == "INCOMPLETE"
+    assert limited["libraries"] == []
+    assert limited["unhashed"][0]["reason"] == "per_library_byte_limit_exceeded"
+
+
+def test_loaded_native_library_inventory_is_versioned_and_schema_validated(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source = {
+        "pyproject.toml": None,
+        "uv.lock": None,
+        "runtime_inventory_sources": {
+            "integrations/runtime_inventory.py": None,
+            "integrations/runtime_compatibility.py": None,
+            "scripts/report_runtime_inventory.py": None,
+        },
+        "git_commit": None,
+        "tracked_worktree_clean": None,
+    }
+    monkeypatch.setattr(runtime_inventory, "_source_identity", lambda _root: source)
+    monkeypatch.setattr(
+        runtime_inventory,
+        "_distribution_identity",
+        lambda name: {"name": name, "installed": False},
+    )
+    native = {
+        "status": "COMPLETE",
+        "capture_method": "linux_proc_self_maps_sha256",
+        "reason": None,
+        "limits": {
+            "max_library_bytes": 1024 * 1024 * 1024,
+            "max_total_bytes": 8 * 1024 * 1024 * 1024,
+        },
+        "libraries": [{"path": "/lib/libfixture.so", "size_bytes": 4, "sha256": "a" * 64}],
+        "unhashed": [],
+        "total_hashed_bytes": 4,
+    }
+    monkeypatch.setattr(runtime_inventory, "_loaded_native_library_identity", lambda: native)
+    report = runtime_inventory.build_runtime_inventory(tmp_path, probe_loaded_native_libraries=True)
+
+    assert report["schema"] == "umcd.runtime_inventory.v3"
+    assert report["loaded_native_libraries"] == native
+    jsonschema = pytest.importorskip("jsonschema")
+    schema_path = (
+        Path(__file__).resolve().parents[2] / "datasets/schema/runtime-inventory.v3.schema.json"
+    )
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    jsonschema.Draft202012Validator.check_schema(schema)
+    jsonschema.Draft202012Validator(schema).validate(report)
 
 
 def test_runtime_inventory_cli_does_not_replace_existing_output(

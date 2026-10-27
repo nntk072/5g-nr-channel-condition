@@ -1,0 +1,202 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/nntk072/5g-nr-channel-condition/datasets/schema/runtime-inventory.v3.schema.json",
+  "title": "UMCD runtime inventory v3",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "status", "python", "platform", "source", "distributions", "accelerator", "api_compatibility", "loaded_native_libraries", "qualification"],
+  "properties": {
+    "schema": {"const": "umcd.runtime_inventory.v3"},
+    "status": {"const": "SELF_REPORTED_INTEGRITY_ONLY"},
+    "python": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["implementation", "version", "executable"],
+      "properties": {
+        "implementation": {"type": "string", "minLength": 1},
+        "version": {"type": "string", "minLength": 1},
+        "executable": {"type": "string", "minLength": 1}
+      }
+    },
+    "platform": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system", "release", "machine"],
+      "properties": {
+        "system": {"type": "string"},
+        "release": {"type": "string"},
+        "machine": {"type": "string"}
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pyproject.toml", "uv.lock", "runtime_inventory_sources", "git_commit", "tracked_worktree_clean"],
+      "properties": {
+        "pyproject.toml": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"},
+        "uv.lock": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"},
+        "runtime_inventory_sources": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["integrations/runtime_inventory.py", "integrations/runtime_compatibility.py", "scripts/report_runtime_inventory.py"],
+          "properties": {
+            "integrations/runtime_inventory.py": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"},
+            "integrations/runtime_compatibility.py": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"},
+            "scripts/report_runtime_inventory.py": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"}
+          }
+        },
+        "git_commit": {"type": ["string", "null"]},
+        "tracked_worktree_clean": {"type": ["boolean", "null"]}
+      }
+    },
+    "distributions": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "installed"],
+            "properties": {"name": {"type": "string"}, "installed": {"const": false}}
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "installed", "version", "identity_completeness", "distribution_metadata_sha256", "identity_files", "model_table_count", "model_tables_sha256", "model_tables"],
+            "properties": {
+              "name": {"type": "string"},
+              "installed": {"const": true},
+              "version": {"type": "string", "minLength": 1},
+              "identity_completeness": {"enum": ["COMPLETE", "INCOMPLETE"]},
+              "distribution_metadata_sha256": {"$ref": "#/$defs/sha256"},
+              "identity_files": {"type": "object", "additionalProperties": {"$ref": "#/$defs/sha256"}},
+              "model_table_count": {"type": "integer", "minimum": 0},
+              "model_tables_sha256": {"$ref": "#/$defs/sha256"},
+              "model_tables": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["path", "sha256"],
+                  "properties": {"path": {"type": "string"}, "sha256": {"$ref": "#/$defs/sha256"}}
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "accelerator": {
+      "type": "object",
+      "required": ["probed", "status"],
+      "properties": {
+        "probed": {"type": "boolean"},
+        "status": {"enum": ["NOT_PROBED", "TORCH_UNAVAILABLE", "CUDA_AVAILABLE", "CUDA_UNAVAILABLE"]},
+        "torch_version": {"type": "string"},
+        "torch_cuda_build": {"type": ["string", "null"]},
+        "cuda_available": {"type": "boolean"},
+        "devices": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["index", "name", "compute_capability", "total_memory_bytes"],
+            "properties": {
+              "index": {"type": "integer", "minimum": 0},
+              "name": {"type": "string"},
+              "compute_capability": {"type": "array", "prefixItems": [{"type": "integer"}, {"type": "integer"}], "minItems": 2, "maxItems": 2},
+              "total_memory_bytes": {"type": "integer", "minimum": 0}
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "api_compatibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "status", "phy", "rt"],
+      "properties": {
+        "schema": {"const": "umcd.runtime_compatibility.v1"},
+        "status": {"enum": ["NOT_PROBED", "PHY_COMPATIBLE", "PHY_INCOMPATIBLE", "COMPATIBLE", "INCOMPATIBLE"]},
+        "phy": {"$ref": "#/$defs/apiGroup"},
+        "rt": {"$ref": "#/$defs/apiGroup"}
+      }
+    },
+    "loaded_native_libraries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "capture_method", "reason", "limits", "libraries", "unhashed", "total_hashed_bytes"],
+      "properties": {
+        "status": {"enum": ["COMPLETE", "INCOMPLETE", "UNAVAILABLE"]},
+        "capture_method": {"const": "linux_proc_self_maps_sha256"},
+        "reason": {"type": ["string", "null"]},
+        "limits": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["max_library_bytes", "max_total_bytes"],
+          "properties": {
+            "max_library_bytes": {"type": "integer", "minimum": 1},
+            "max_total_bytes": {"type": "integer", "minimum": 1}
+          }
+        },
+        "libraries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "size_bytes", "sha256"],
+            "properties": {
+              "path": {"type": "string", "minLength": 1},
+              "size_bytes": {"type": "integer", "minimum": 0},
+              "sha256": {"$ref": "#/$defs/sha256"}
+            }
+          }
+        },
+        "unhashed": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "reason"],
+            "properties": {
+              "path": {"type": "string", "minLength": 1},
+              "reason": {"type": "string", "minLength": 1},
+              "size_bytes": {"type": "integer", "minimum": 0}
+            }
+          }
+        },
+        "total_hashed_bytes": {"type": "integer", "minimum": 0}
+      }
+    },
+    "qualification": {"const": "NOT_QUALIFIED"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "apiGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "distributions", "modules"],
+      "properties": {
+        "status": {"enum": ["NOT_PROBED", "DEPENDENCY_MISSING", "COMPATIBLE", "INCOMPATIBLE"]},
+        "distributions": {"type": "object", "additionalProperties": {"type": ["string", "null"]}},
+        "expected_distributions": {"type": "object", "additionalProperties": {"type": "string"}},
+        "modules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["module", "status", "required_symbols", "missing_symbols"],
+            "properties": {
+              "module": {"type": "string"},
+              "status": {"enum": ["AVAILABLE", "MISSING_SYMBOLS", "IMPORT_ERROR"]},
+              "required_symbols": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+              "missing_symbols": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+              "error": {"type": ["string", "null"]}
+            }
+          }
+        }
+      }
+    }
+  }
+}
