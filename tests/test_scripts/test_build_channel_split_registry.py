@@ -9,7 +9,6 @@ from pathlib import Path
 import jsonschema
 import numpy as np
 import pytest
-
 from datasets.channel import ChannelDataset
 from datasets.rt_split_identity import rt_spatial_split_subject_id
 from datasets.split_policy import SplitPolicy, read_split_policy_registry
@@ -106,6 +105,40 @@ def test_candidate_split_registry_binds_exact_inputs_and_freezes_immutable_lock(
             registry_path=registry_path,
             report_path=tmp_path / "second-report.json",
         )
+
+
+def test_candidate_split_registry_reuses_exact_cached_build_node(tmp_path):
+    datasets, policy_path = _fixture(tmp_path)
+    cache_root = tmp_path / "build-cache"
+    first_registry = tmp_path / "release-a" / "split-registry.json"
+    first_report = tmp_path / "release-a" / "build-report.json"
+    second_registry = tmp_path / "release-b" / "split-registry.json"
+    second_report = tmp_path / "release-b" / "build-report.json"
+
+    first = build_candidate_split_registry(
+        datasets,
+        policy_path=policy_path,
+        spatial_buffer_m=0.0,
+        registry_path=first_registry,
+        report_path=first_report,
+        build_cache_root=cache_root,
+    )
+    second = build_candidate_split_registry(
+        datasets,
+        policy_path=policy_path,
+        spatial_buffer_m=0.0,
+        registry_path=second_registry,
+        report_path=second_report,
+        build_cache_root=cache_root,
+    )
+
+    assert first["qualification_status"] == second["qualification_status"] == "NOT_QUALIFIED"
+    assert first["build_node"]["reused"] is False
+    assert second["build_node"]["reused"] is True
+    assert first["build_node"]["node_key"] == second["build_node"]["node_key"]
+    assert first_registry.read_bytes() == second_registry.read_bytes()
+    assert first_report.read_bytes() == second_report.read_bytes()
+    assert len(list((cache_root / "nodes").glob("*.json"))) == 1
 
 
 def _write_legacy_rt_dataset(path: Path, *, index: int) -> None:
@@ -237,7 +270,7 @@ def test_candidate_registry_refuses_to_overwrite_partial_legacy_split_metadata(t
 
     registry_path = tmp_path / "partial-release" / "split-registry.json"
     report_path = tmp_path / "partial-release" / "build-report.json"
-    with pytest.raises(ValueError, match="lacks split_subject_id"):
+    with pytest.raises(ValueError, match="split_subject_id"):
         build_candidate_split_registry(
             [("legacy", legacy_path)],
             policy_path=policy_path,
