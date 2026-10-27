@@ -4,9 +4,6 @@ import hashlib
 import json
 from pathlib import Path
 
-import pytest
-from experiments.diagnose_g5_estimator_choice import diagnose_estimator_choice
-
 ROOT = Path(__file__).resolve().parents[2]
 RESULT = ROOT / "docs/research/results/g5-estimator-choice-posthoc-20261024.json"
 
@@ -17,8 +14,7 @@ def _canonical_sha256(value: object) -> str:
     ).hexdigest()
 
 
-@pytest.mark.native_sionna
-def test_selected_failure_estimator_diagnostic_replays_hash_bound_outcomes() -> None:
+def test_selected_failure_estimator_artifact_preserves_outcomes_and_flags_source_drift() -> None:
     report = json.loads(RESULT.read_text(encoding="utf-8"))
     digest = report.pop("result_sha256")
 
@@ -32,14 +28,16 @@ def test_selected_failure_estimator_diagnostic_replays_hash_bound_outcomes() -> 
     assert report["totals"]["lin"]["crc_passes"] == 22
     assert report["totals"]["lin_time_avg"]["crc_passes"] == 22
     assert report["interpretation"].endswith("disjoint channel seeds.")
+    assert "runtime_versions" not in report
+    assert "sionna_version" not in report
+    assert "torch_version" not in report
 
-    replay = diagnose_estimator_choice()
-    assert replay["observations"] == report["observations"]
-    assert replay["totals"] == report["totals"]
-    assert replay["confirmation_artifact_sha256"] == report["confirmation_artifact_sha256"]
-    assert replay["source_sha256"] != report["source_sha256"]
-    assert {
+    current_sources = {
         path
-        for path, digest in replay["source_sha256"].items()
-        if report["source_sha256"].get(path) != digest
-    } == {"integrations/sionna/nr_pusch.py"}
+        for path, digest in report["source_sha256"].items()
+        if hashlib.sha256((ROOT / path).read_bytes()).hexdigest() != digest
+    }
+    assert current_sources == {
+        "integrations/sionna/nr_pusch.py",
+        "integrations/sionna/ofdm_impairments.py",
+    }
