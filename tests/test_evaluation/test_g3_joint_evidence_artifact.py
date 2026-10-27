@@ -948,6 +948,44 @@ def test_run_manifest_verifies_detached_signature_over_exact_manifest_bytes(
     assert report["trust_file_custody"] == "not_established_by_this_verifier"
 
 
+def test_run_manifest_cli_publishes_schema_bound_report_without_overwrite(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _install_scorers(monkeypatch)
+    source = tmp_path / "joint-input.json"
+    saved = tmp_path / "joint-report.json"
+    manifest_path = tmp_path / "run-manifest.json"
+    verification_path = tmp_path / "run-verification.json"
+    _write_canonical(source, _payload())
+    artifact._write_new_artifact(saved, artifact.evaluate_g3_joint_evidence_file(source))
+    _write_run_manifest(manifest_path, source, saved)
+
+    exit_code = run_manifest.main(
+        [
+            str(manifest_path),
+            "--package-root",
+            str(tmp_path),
+            "--report-output",
+            str(verification_path),
+        ]
+    )
+
+    report = json.loads(verification_path.read_text(encoding="utf-8"))
+    assert exit_code == 0
+    assert report["schema"] == "loslab.g3_joint_evidence_run_verification.v1"
+    assert report["qualification_status"] == "NOT_QUALIFIED"
+    assert len(report["report_schema_sha256"]) == 64
+    assert run_manifest.main(
+        [
+            str(manifest_path),
+            "--package-root",
+            str(tmp_path),
+            "--report-output",
+            str(verification_path),
+        ]
+    ) == 2
+
+
 def test_run_manifest_signature_resolves_external_signer_role_policy(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

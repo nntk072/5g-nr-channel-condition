@@ -25,6 +25,7 @@ from evaluation.g3_acquisition_package import (
 from evaluation.g3_joint_evidence_artifact import (
     MAX_ARTIFACT_BYTES,
     MAX_INPUT_BYTES,
+    _write_new_artifact,
     verify_g3_joint_evidence_bytes,
 )
 from evaluation.g3_qualification_contract import verify_g3_qualification_run_contract
@@ -37,6 +38,9 @@ SCHEMA_V3_RELATIVE_PATH = "datasets/schema/g3-joint-evidence-run-manifest.v3.sch
 SIGNER_POLICY_SCHEMA = "loslab.g3_run_manifest_signer_policy.v1"
 SIGNER_POLICY_PURPOSE = "g3_joint_run_manifest_verification"
 SIGNER_POLICY_RELATIVE_PATH = "datasets/schema/g3-run-manifest-signer-policy.v1.schema.json"
+VERIFICATION_REPORT_SCHEMA_RELATIVE_PATH = (
+    "datasets/schema/g3-joint-evidence-run-verification.v1.schema.json"
+)
 INPUT_SCHEMA_RELATIVE_PATH = "datasets/schema/g3-joint-evaluator-input.v1.schema.json"
 INPUT_SCHEMA_V2_RELATIVE_PATH = "datasets/schema/g3-joint-evaluator-input.v2.schema.json"
 INPUT_SCHEMA_V3_RELATIVE_PATH = "datasets/schema/g3-joint-evaluator-input.v3.schema.json"
@@ -250,6 +254,26 @@ def _source_bundle_sha256(sources: list[dict[str, Any]]) -> str:
         for item in sources
     ]
     return hashlib.sha256(_canonical_json_bytes(records)).hexdigest()
+
+
+def _validate_run_verification_report(report: dict[str, Any]) -> None:
+    """Validate the public verifier result against its strict output contract."""
+    source_dir = Path(__file__).resolve().parents[1]
+    schema_bytes = _read_rooted_source_file(
+        source_dir,
+        VERIFICATION_REPORT_SCHEMA_RELATIVE_PATH,
+        limit=MAX_SCHEMA_BYTES,
+    )
+    report["report_schema_sha256"] = hashlib.sha256(schema_bytes).hexdigest()
+    schema = _json_bytes(schema_bytes, "G3 run verification report schema")
+    import jsonschema
+
+    errors = list(jsonschema.Draft202012Validator(schema).iter_errors(report))
+    if errors:
+        raise RuntimeError(
+            "G3 run verification report violates schema: "
+            + "; ".join(error.message for error in errors[:10])
+        )
 
 
 def _rooted_file_identity(
@@ -1068,6 +1092,7 @@ def verify_g3_joint_evidence_run_manifest(
         )
     except (ImportError, OSError, TypeError, ValueError, RuntimeError, KeyError) as error:
         errors.append(str(error))
+    _validate_run_verification_report(report)
     return report
 
 
@@ -1088,6 +1113,11 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--output", type=Path, help="new manifest destination (must not exist)"
+    )
+    parser.add_argument(
+        "--report-output",
+        type=Path,
+        help="optional durable verification-report destination (must not exist)",
     )
     parser.add_argument(
         "--package-root",
@@ -1152,6 +1182,7 @@ def main(argv: list[str] | None = None) -> int:
                 args.input,
                 args.artifact,
                 args.output,
+                args.report_output,
                 args.qualification_contract,
                 args.signature,
                 args.trusted_allowed_signers,
@@ -1186,6 +1217,8 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("manifest signature options are only valid when verifying an existing manifest")
     if args.create_run_id is not None and args.require_signed_reviewer_admission:
         parser.error("--require-signed-reviewer-admission is only valid when verifying a manifest")
+    if args.create_run_id is not None and args.report_output is not None:
+        parser.error("--report-output is only valid when verifying an existing manifest")
     if args.create_run_id is not None:
         if (
             args.manifest is not None
@@ -1238,6 +1271,12 @@ def main(argv: list[str] | None = None) -> int:
         policy_signer_id=args.policy_signer_id,
         require_signed_reviewer_admission=args.require_signed_reviewer_admission,
     )
+    if args.report_output is not None:
+        try:
+            _write_new_artifact(args.report_output, report)
+        except OSError as error:
+            print(f"G3 verification report write error: {error}", file=sys.stderr)
+            return 2
     print(json.dumps(report, sort_keys=True, allow_nan=False))
     return 0 if report["status"] == "PASS_INPUT_SCOPED_RECOMPUTATION" else 1
 
