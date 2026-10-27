@@ -158,6 +158,7 @@ def main() -> None:
     exp.add_argument("--pilot-spacing", type=int, default=4)
     exp.add_argument("--pilot-snr-db", type=float, default=12.0)
     exp.add_argument("--observation-seed", type=int, default=2026)
+    exp.add_argument("--phase-randomization-seed", type=int, default=2027)
     args = parser.parse_args()
     if args.command == "lineage-evidence-audit":
         from .lineage_audit import audit_provenance_file
@@ -430,6 +431,7 @@ def main() -> None:
                 "pilot_spacing",
                 "pilot_snr_db",
                 "observation_seed",
+                "phase_randomization_seed",
                 "split_lock_path",
                 "split_signature_path",
                 "trusted_split_signers_path",
@@ -456,6 +458,9 @@ def main() -> None:
                 "pilot_spacing": config.get("pilot_spacing", args.pilot_spacing),
                 "pilot_snr_db": config.get("pilot_snr_db", args.pilot_snr_db),
                 "observation_seed": config.get("observation_seed", args.observation_seed),
+                "phase_randomization_seed": config.get(
+                    "phase_randomization_seed", args.phase_randomization_seed
+                ),
                 "split_lock_path": config.get("split_lock_path", args.split_lock),
                 "split_signature_path": config.get("split_signature_path", args.split_signature),
                 "trusted_split_signers_path": config.get(
@@ -480,6 +485,7 @@ def main() -> None:
                 "pilot_spacing": args.pilot_spacing,
                 "pilot_snr_db": args.pilot_snr_db,
                 "observation_seed": args.observation_seed,
+                "phase_randomization_seed": args.phase_randomization_seed,
                 "split_lock_path": args.split_lock,
                 "split_signature_path": args.split_signature,
                 "trusted_split_signers_path": args.split_trusted_signers,

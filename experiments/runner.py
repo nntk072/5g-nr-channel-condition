@@ -66,6 +66,7 @@ _MODEL_FEATURE_ROUTES = {
     "cvnn": ("observed_cfr", "complex_cfr_grid_v1"),
     "raw_mlp": ("observed_cfr", "flattened_real_imag_cfr_v1"),
     "power_only": ("observed_cfr", "log_power_per_link_subcarrier_v1"),
+    "phase_randomized": ("observed_cfr", "iid_phase_randomized_flattened_real_imag_cfr_v1"),
     "observable_features": ("observed_cfr", "logmag_pdp_moments_v1"),
 }
 _MODEL_METHODS = frozenset(
@@ -76,6 +77,7 @@ _MODEL_METHODS = frozenset(
         "mlp",
         "raw_mlp",
         "power_only",
+        "phase_randomized",
         "logreg",
         "cnn",
         "cvnn",
@@ -196,6 +198,23 @@ def _log_power_per_link_subcarrier(observed_cfr: np.ndarray) -> np.ndarray:
     return log_power_db.reshape(len(observed), -1)
 
 
+def _phase_randomized_real_imag_cfr(observed_cfr: np.ndarray, *, seed: int) -> np.ndarray:
+    """Apply independent seeded phase per sample/link/tone, preserving CFR magnitude."""
+    observed = np.asarray(observed_cfr)
+    if observed.ndim != 3 or not np.iscomplexobj(observed):
+        raise ValueError(
+            "phase-randomized features require complex [samples, links, subcarriers] CFR"
+        )
+    if not np.isfinite(observed).all():
+        raise ValueError("phase-randomized CFR input must be finite")
+    if isinstance(seed, bool) or not isinstance(seed, (int, np.integer)) or not 0 <= seed < 2**63:
+        raise ValueError("phase_randomization_seed must be an integer in [0, 2**63)")
+    rng = np.random.default_rng(int(seed))
+    phase = rng.uniform(-np.pi, np.pi, size=observed.shape)
+    randomized = np.asarray(observed, dtype=np.complex128) * np.exp(1j * phase)
+    return _flatten_real_imag_cfr(randomized)
+
+
 def _array_sha256(array: np.ndarray) -> str:
     value = np.ascontiguousarray(array)
     header = json.dumps(
@@ -218,6 +237,8 @@ def _feature_transform_implementation_sha256(method: str) -> str:
         transform = _flatten_real_imag_cfr
     elif method == "power_only":
         transform = _log_power_per_link_subcarrier
+    elif method == "phase_randomized":
+        transform = _phase_randomized_real_imag_cfr
     else:
         transform = observable_features
     return hashlib.sha256(inspect.getsource(transform).encode("utf-8")).hexdigest()
@@ -305,7 +326,9 @@ def build_model_input_artifact_contract(
     source_feature, transform = _MODEL_FEATURE_ROUTES.get(
         method, ("observed_cfr", "logmag_pdp_moments_v1")
     )
-    input_contract_version = "v3" if method == "power_only" else "v2"
+    input_contract_version = (
+        "v4" if method == "phase_randomized" else "v3" if method == "power_only" else "v2"
+    )
     feature_contract = {
         "schema": f"loslab.model_input_feature_contract.{input_contract_version}",
         "method": method,
@@ -412,6 +435,7 @@ def verify_model_input_artifact_contract(
         "loslab.model_input_artifact_contract.v1": "v1",
         "loslab.model_input_artifact_contract.v2": "v2",
         "loslab.model_input_artifact_contract.v3": "v3",
+        "loslab.model_input_artifact_contract.v4": "v4",
     }.get(contract_schema)
     if schema_version is None:
         raise ValueError("model input artifact contract schema is unsupported")
@@ -457,6 +481,7 @@ def verify_model_input_artifact_contract(
     if contract_schema in {
         "loslab.model_input_artifact_contract.v2",
         "loslab.model_input_artifact_contract.v3",
+        "loslab.model_input_artifact_contract.v4",
     }:
         expected_feature_fields.update(
             {
@@ -470,7 +495,8 @@ def verify_model_input_artifact_contract(
     method = feature.get("method")
     expected_format = (
         "loslab.sklearn.v1"
-        if method in {"rf", "histgb", "xgb", "mlp", "raw_mlp", "power_only", "logreg"}
+        if method
+        in {"rf", "histgb", "xgb", "mlp", "raw_mlp", "power_only", "phase_randomized", "logreg"}
         else "loslab.model_input_artifact.v1"
     )
     include_phase = sidecar.get("include_phase")
@@ -519,6 +545,7 @@ def verify_model_input_artifact_contract(
     if contract_schema in {
         "loslab.model_input_artifact_contract.v2",
         "loslab.model_input_artifact_contract.v3",
+        "loslab.model_input_artifact_contract.v4",
     }:
         if method_input is not None:
             matrix = feature["feature_matrix"]
@@ -843,6 +870,7 @@ def run_experiment(
     pilot_spacing: int = 4,
     pilot_snr_db: float = 12.0,
     observation_seed: int = 2026,
+    phase_randomization_seed: int = 2027,
     device: str = "cpu",
     coral_penalty: float = 0.1,
     capacity: str = "medium",
@@ -856,6 +884,12 @@ def run_experiment(
 ) -> dict:
     if not paths:
         raise ValueError("No datasets supplied")
+    if (
+        isinstance(phase_randomization_seed, bool)
+        or not isinstance(phase_randomization_seed, (int, np.integer))
+        or not 0 <= phase_randomization_seed < 2**63
+    ):
+        raise ValueError("phase_randomization_seed must be an integer in [0, 2**63)")
     resolved_prior_shift = None if prior_shift is None else validate_prior_shift_spec(prior_shift)
     if resolved_prior_shift is not None:
         _validate_evaluation_payload(resolved_prior_shift, "prior-shift.v1.schema.json")
@@ -924,6 +958,9 @@ def run_experiment(
     x = observable_features(observable, include_phase=include_phase)
     raw_real_imag = _flatten_real_imag_cfr(observable)
     power_only = _log_power_per_link_subcarrier(observable)
+    phase_randomized = _phase_randomized_real_imag_cfr(
+        observable, seed=int(phase_randomization_seed)
+    )
     layout = RunLayout.at(output)
     layout.ensure()
     output = layout.root
@@ -940,6 +977,7 @@ def run_experiment(
         "pilot_spacing": pilot_spacing,
         "pilot_snr_db": pilot_snr_db,
         "observation_seed": observation_seed,
+        "phase_randomization_seed": int(phase_randomization_seed),
         "feature_transform_by_method": {
             method: _MODEL_FEATURE_ROUTES.get(method, ("observed_cfr", "logmag_pdp_moments_v1"))[1]
             for method in methods
@@ -947,6 +985,9 @@ def run_experiment(
         "raw_mlp_input_representation": "flattened real/imaginary CFR channels",
         "power_only_input_representation": (
             "per-link/per-subcarrier channel power in dB with a -120 dB numerical floor"
+        ),
+        "phase_randomized_input_representation": (
+            "flattened real/imaginary CFR after independent seeded phase per sample, link, and subcarrier"
         ),
         "cnn_input_representation": "per-link real/imaginary channels over ordered subcarriers",
         "cvnn_input_representation": (
@@ -1027,6 +1068,8 @@ def run_experiment(
                 if method == "raw_mlp"
                 else power_only
                 if method == "power_only"
+                else phase_randomized
+                if method == "phase_randomized"
                 else x
             )
             uses_torch = method in ("cnn", "cvnn", "coral", "coral0")
@@ -1036,7 +1079,16 @@ def run_experiment(
 
                 torch.cuda.reset_peak_memory_stats(device)
             fit_started = perf_counter()
-            if method in ("rf", "histgb", "xgb", "mlp", "raw_mlp", "power_only", "logreg"):
+            if method in (
+                "rf",
+                "histgb",
+                "xgb",
+                "mlp",
+                "raw_mlp",
+                "power_only",
+                "phase_randomized",
+                "logreg",
+            ):
                 clf = fit_sklearn(
                     method_input[train],
                     data.y[train],
@@ -1045,6 +1097,8 @@ def run_experiment(
                     if method == "raw_mlp"
                     else "logreg"
                     if method == "power_only"
+                    else "mlp"
+                    if method == "phase_randomized"
                     else method,
                     capacity=capacity,
                 )
@@ -1195,7 +1249,16 @@ def run_experiment(
                     "format": (
                         "loslab.sklearn.v1"
                         if method
-                        in {"rf", "histgb", "xgb", "mlp", "raw_mlp", "power_only", "logreg"}
+                        in {
+                            "rf",
+                            "histgb",
+                            "xgb",
+                            "mlp",
+                            "raw_mlp",
+                            "power_only",
+                            "phase_randomized",
+                            "logreg",
+                        }
                         else "loslab.model_input_artifact.v1"
                     ),
                     "threshold": model_output_threshold,
@@ -1307,6 +1370,8 @@ def run_experiment(
                     if method == "raw_mlp"
                     else "per-link/per-subcarrier channel power in dB"
                     if method == "power_only"
+                    else "phase-randomized flattened real/imaginary CFR"
+                    if method == "phase_randomized"
                     else "engineered observable features"
                 ),
                 "metrics": metrics,
@@ -1411,6 +1476,7 @@ def run_experiment(
         ("power_only", "mlp"),
         ("power_only", "rf"),
         ("power_only", "raw_mlp"),
+        ("raw_mlp", "phase_randomized"),
         ("cnn", "raw_mlp"),
         ("cvnn", "raw_mlp"),
         ("xgb", "mlp"),

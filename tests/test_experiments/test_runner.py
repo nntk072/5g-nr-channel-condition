@@ -763,3 +763,65 @@ def test_run_experiment_routes_power_only_to_observation_derived_features(
     assert not np.iscomplexobj(captures[0][0])
     assert result["split"]["indices_sha256"] == rf_result["split"]["indices_sha256"]
     assert "rf_versus_power_only" in summary["paired_method_comparisons"]
+
+
+def test_phase_randomized_features_are_seeded_and_preserve_magnitude() -> None:
+    from experiments.runner import _phase_randomized_real_imag_cfr
+
+    source = np.asarray(
+        [[[1 + 2j, -0.5 + 0.25j, 0j], [0.1 - 0.3j, 2j, -1 + 1j]]],
+        dtype=np.complex128,
+    )
+    first = _phase_randomized_real_imag_cfr(source, seed=2027)
+    replay = _phase_randomized_real_imag_cfr(source, seed=2027)
+    other_seed = _phase_randomized_real_imag_cfr(source, seed=2028)
+    links, tones = source.shape[1:]
+    randomized = first.reshape(1, 2, links, tones)
+    randomized_cfr = randomized[:, 0] + 1j * randomized[:, 1]
+
+    np.testing.assert_array_equal(first, replay)
+    assert not np.array_equal(first, other_seed)
+    np.testing.assert_allclose(np.abs(randomized_cfr), np.abs(source), rtol=1e-14, atol=1e-14)
+
+
+def test_run_experiment_routes_phase_randomization_on_shared_split(tmp_path, monkeypatch) -> None:
+    import experiments.runner as runner
+
+    source = tmp_path / "debug.npz"
+    debug_multipath(n_scenes=8, links_per_scene=16, seed=79).save(source)
+    original_fit = runner.fit_sklearn
+    captures = []
+
+    def capture_fit(values, labels, *, seed, method, capacity):
+        captures.append((values.copy(), method))
+        return original_fit(values, labels, seed=seed, method=method, capacity=capacity)
+
+    monkeypatch.setattr(runner, "fit_sklearn", capture_fit)
+    output = tmp_path / "runs" / "phase-randomized"
+    run_experiment(
+        [source],
+        output,
+        methods=("phase_randomized", "raw_mlp"),
+        seeds=(31,),
+        phase_randomization_seed=413,
+        bootstrap=10,
+    )
+
+    results = json.loads((output / "results.json").read_text(encoding="utf-8"))
+    randomized_result = next(row for row in results if row["method"] == "phase_randomized")
+    raw_result = next(row for row in results if row["method"] == "raw_mlp")
+    summary = json.loads((output / "summary.json").read_text(encoding="utf-8"))
+    sidecar = json.loads(
+        (output / "models" / "phase_randomized_seed31_modelinfo.json").read_text(encoding="utf-8")
+    )
+    contract = sidecar["model_input_artifact_contract"]
+    assert [method for _values, method in captures] == ["mlp", "mlp"]
+    assert not np.iscomplexobj(captures[0][0])
+    assert randomized_result["split"]["indices_sha256"] == raw_result["split"]["indices_sha256"]
+    assert "phase_randomized_versus_raw_mlp" in summary["paired_method_comparisons"]
+    assert contract["schema"] == "loslab.model_input_artifact_contract.v4"
+    assert contract["feature_contract"]["feature_transform"] == (
+        "iid_phase_randomized_flattened_real_imag_cfr_v1"
+    )
+    assert contract["feature_contract"]["run_config_sha256"]
+    assert randomized_result["input_representation"].startswith("phase-randomized")
