@@ -5,18 +5,20 @@ from __future__ import annotations
 import hashlib
 import math
 from dataclasses import dataclass
-from importlib.metadata import PackageNotFoundError, version
+from importlib.metadata import PackageNotFoundError
 from numbers import Real
 from typing import Any, Sequence
 
 from datasets.standardized_specs import (
     FIXED_TDL_DOPPLER_CASES,
-    STANDARDIZED_PROFILE_APPLICABILITY,
     SPEED_OF_LIGHT_MPS,
+    STANDARDIZED_PROFILE_APPLICABILITY,
     carrier_frequency_range,
     standardized_profile_applicability,
     tdl_resolved_profile_parameter_sha256,
 )
+
+from integrations.sionna_runtime import sionna_phy_version
 
 from .random import call_with_sionna_seed
 
@@ -267,7 +269,7 @@ def generate_tdl_frequency_response(
     )
     cfr = torch.sum(h_time_path.unsqueeze(-1) * phase, dim=-2)
     try:
-        sionna_version = version("sionna")
+        sionna_version = sionna_phy_version()
     except PackageNotFoundError:
         sionna_version = "unknown"
     k_factor_linear = float(tdl.k_factor.detach().cpu()) if tdl.los else None

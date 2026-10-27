@@ -19,6 +19,8 @@ from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import Any
 
+from integrations.sionna_runtime import sionna_phy_version
+
 SCHEMA = "umcd.g5_doppler_operating_point_scan.v1"
 CHANNEL_SEEDS = tuple(range(83_001, 83_017))
 BLOCKS_PER_CHANNEL = 8
@@ -46,6 +48,11 @@ def _revision() -> str:
 
 
 def _installed_version(distribution: str) -> str:
+    if distribution == "sionna":
+        try:
+            return sionna_phy_version()
+        except PackageNotFoundError:
+            return "not-installed"
     try:
         return version(distribution)
     except PackageNotFoundError:

@@ -17,7 +17,8 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "pytest-cov>=6", "ruff>=0.7", "mypy>=1.10", "jsonschema>=4.23,<5"]
-sionna = ["sionna==2.2.0", "torch>=2.9"]
+sionna = ["sionna-no-rt==2.2.0", "torch>=2.9"]
+sionna-rt = ["sionna-no-rt==2.2.0", "sionna-rt==2.2.0", "torch>=2.9"]
 boosting = ["xgboost-cpu>=2.1,<4"]
 plots = ["matplotlib>=3.8,<4", "Pillow>=10"]
 
@@ -59,7 +60,7 @@ addopts = [
 ]
 markers = [
   "integration: tests for optional integrations and external libraries",
-  "native_sionna: requires the native Sionna 2.2 PHY/RT stack",
+  "native_sionna: requires Sionna 2.2 PHY; RT cases additionally require the sionna-rt extra",
 ]
 
 [tool.ruff]

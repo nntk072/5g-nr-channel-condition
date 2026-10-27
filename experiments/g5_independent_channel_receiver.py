@@ -14,6 +14,8 @@ from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import Any
 
+from integrations.sionna_runtime import sionna_phy_version
+
 SCHEMA = "umcd.g5_independent_channel_receiver.v3"
 CHANNEL_SEEDS = tuple(range(73_001, 73_065))
 BLOCKS_PER_CHANNEL = 8
@@ -97,6 +99,11 @@ def _revision() -> str:
 
 
 def _installed_version(distribution: str) -> str:
+    if distribution == "sionna":
+        try:
+            return sionna_phy_version()
+        except PackageNotFoundError:
+            return "not-installed"
     try:
         return version(distribution)
     except PackageNotFoundError:

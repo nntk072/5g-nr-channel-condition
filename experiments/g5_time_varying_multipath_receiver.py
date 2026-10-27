@@ -18,6 +18,8 @@ from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import Any
 
+from integrations.sionna_runtime import sionna_phy_version
+
 SCHEMA = "umcd.g5_time_varying_multipath_receiver.v2"
 DOPPLERS_HZ = (0.0, 350.0, 750.0, 1500.0)
 CONFIRMATORY_DOPPLER_HZ = 750.0
@@ -70,6 +72,11 @@ def exact_paired_binomial_p_value(reference_pass: list[bool], comparison_pass: l
 
 
 def _installed_version(distribution: str) -> str:
+    if distribution == "sionna":
+        try:
+            return sionna_phy_version()
+        except PackageNotFoundError:
+            return "not-installed"
     try:
         return version(distribution)
     except PackageNotFoundError:

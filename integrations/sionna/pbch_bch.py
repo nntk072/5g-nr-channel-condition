@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 from functools import lru_cache
-from importlib.metadata import PackageNotFoundError, version
+from importlib.metadata import PackageNotFoundError
 from typing import Any
 
 import numpy as np
 from numpy.typing import NDArray
+
+from integrations.sionna_runtime import sionna_phy_version
 
 _BCH_INPUT_BITS = 32
 _POLAR_MOTHER_BITS = 512
@@ -121,7 +123,7 @@ def _rate_matched_llrs(llrs: NDArray[np.generic]) -> NDArray[np.float64]:
 @lru_cache(maxsize=4)
 def _polar_encoder(device: str) -> Any:
     try:
-        installed_version = version("sionna")
+        installed_version = sionna_phy_version()
     except PackageNotFoundError as error:
         raise RuntimeError(
             "PBCH BCH encoding requires the optional Sionna 2.2.0 dependency; "

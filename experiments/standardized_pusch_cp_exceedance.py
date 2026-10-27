@@ -19,6 +19,7 @@ from typing import Any, Sequence
 
 import numpy as np
 from evaluation.statistics import paired_cluster_binary_error_comparison
+from integrations.sionna_runtime import sionna_phy_version
 
 SCHEMA = "umcd.g5_cp_exceedance_receiver_probe.v5"
 CURVE_SCHEMA = "umcd.g5_cp_exceedance_snr_curve.v4"
@@ -68,6 +69,11 @@ def _paired_table(left: Sequence[bool], right: Sequence[bool]) -> dict[str, int]
 
 
 def _package_version(name: str) -> str:
+    if name == "sionna":
+        try:
+            return sionna_phy_version()
+        except PackageNotFoundError:
+            return "not-installed"
     try:
         return version(name)
     except PackageNotFoundError:

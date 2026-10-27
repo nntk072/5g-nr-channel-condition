@@ -12,6 +12,8 @@ from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import Any
 
+from integrations.sionna_runtime import sionna_phy_version
+
 from experiments.g5_independent_channel_receiver import (
     clopper_pearson_upper_bound,
     cluster_bootstrap_interval,
@@ -73,6 +75,11 @@ def _git_revision() -> str:
 
 
 def _installed_version(distribution: str) -> str:
+    if distribution == "sionna":
+        try:
+            return sionna_phy_version()
+        except PackageNotFoundError:
+            return "not-installed"
     try:
         return version(distribution)
     except PackageNotFoundError:

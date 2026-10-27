@@ -27,16 +27,18 @@ python -m pytest
 python -m loslab doctor
 ```
 
-Sionna PHY and ray tracing are optional integrations. Install the Sionna extra
-only in an environment with compatible PyTorch, CUDA, Mitsuba, and Dr.Jit; see
-the quickstart before running native simulations.
+Sionna PHY and ray tracing are optional integrations. The <code>sionna</code>
+extra installs the PHY-only distribution and PyTorch. RT workflows can add the
+<code>sionna-rt</code> extra, which also installs Mitsuba and Dr.Jit; select an
+RT backend supported by the host before running native RT simulations.
 
 ## NR PUSCH channel estimation
 
 The optional Sionna PHY integration includes an initial DMRS-based PUSCH LS
-receiver. Install it with <code>python -m pip install -e '.[sionna]'</code> in a
-compatible environment. Select a PyTorch build that matches the host CUDA setup
-before installing the extra when GPU execution is required.
+receiver. Install it with <code>python -m pip install -e '.[sionna]'</code>.
+Select a PyTorch build that matches the host CUDA setup before installing the
+extra when GPU execution is required. This PHY-only extra avoids importing the
+Mitsuba-based RT backend; use <code>.[sionna-rt]</code> for RT workflows.
 
 The receiver accepts a complex resource grid with axes
 <code>[batch, rx, rx_antenna, ofdm_symbol, fft_bin]</code> and returns channel

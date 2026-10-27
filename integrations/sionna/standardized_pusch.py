@@ -630,7 +630,9 @@ def audit_standardized_pusch_records_for_diagnostic(
             ),
             h=estimate_tensor,
         )
-        reference_tensor = torch.as_tensor(reference_array, device=decoded_bits.device)
+        reference_tensor = torch.as_tensor(
+            np.array(reference_array, copy=True), device=decoded_bits.device
+        )
         if tuple(decoded_bits.shape) == (1, *tuple(reference_tensor.shape)):
             reference_tensor = reference_tensor.unsqueeze(0)
         if tuple(decoded_bits.shape) != tuple(reference_tensor.shape):

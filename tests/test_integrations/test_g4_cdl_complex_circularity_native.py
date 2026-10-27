@@ -5,7 +5,6 @@ from __future__ import annotations
 import hashlib
 import json
 import math
-from importlib.metadata import version
 from pathlib import Path
 from statistics import NormalDist
 from typing import Any
@@ -17,6 +16,7 @@ pytest.importorskip("sionna.phy")
 
 from integrations.sionna.cdl import generate_cdl_frequency_response  # noqa: E402
 from integrations.sionna.random import call_with_sionna_seed  # noqa: E402
+from integrations.sionna_runtime import sionna_phy_version  # noqa: E402
 from sionna.phy.channel.tr38901 import CDL, PanelArray  # noqa: E402
 
 _PROFILES = {
@@ -53,7 +53,7 @@ def _family_claim_count(profiles: dict[str, dict[str, Any]]) -> int:
 
 def _sample_los_first_cluster_diffuse_component(model: str) -> Any:
     """Generate the diffuse component before Sionna combines its LOS specular ray."""
-    if version("sionna") != "2.2.0":
+    if sionna_phy_version() != "2.2.0":
         raise RuntimeError("LOS diffuse decomposition is pinned to Sionna 2.2.0 internals")
     carrier_frequency_hz = 3.5e9
     array = PanelArray(

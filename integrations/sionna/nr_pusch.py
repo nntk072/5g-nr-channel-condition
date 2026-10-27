@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 from dataclasses import asdict
-from importlib.metadata import PackageNotFoundError, version
+from importlib.metadata import PackageNotFoundError
 from typing import Any
 
 from datasets.nr import NRObservation
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
+
+from integrations.sionna_runtime import sionna_phy_version
 
 from .random import call_with_sionna_seed
 
@@ -113,7 +115,7 @@ class SionnaPUSCHLSReceiver:
             device=device,
         )
         try:
-            sionna_version = version("sionna")
+            sionna_version = sionna_phy_version()
         except PackageNotFoundError:
             sionna_version = "unknown"
         self._metadata: dict[str, Any] = {

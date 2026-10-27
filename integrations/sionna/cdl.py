@@ -6,7 +6,7 @@ import hashlib
 import json
 import math
 from dataclasses import asdict, dataclass
-from importlib.metadata import PackageNotFoundError, version
+from importlib.metadata import PackageNotFoundError
 from numbers import Real
 from typing import Any, Sequence
 
@@ -14,6 +14,8 @@ from datasets.standardized_specs import (
     cdl_parameter_table_binding_sha256,
     standardized_profile_applicability,
 )
+
+from integrations.sionna_runtime import sionna_phy_version
 
 from .random import call_with_sionna_seed
 
@@ -346,7 +348,7 @@ def generate_cdl_frequency_response(
     cfr = torch.sum(h_time_path.unsqueeze(-1) * phase, dim=-2)
 
     try:
-        sionna_version = version("sionna")
+        sionna_version = sionna_phy_version()
     except PackageNotFoundError:
         sionna_version = "unknown"
     metadata = _profile_metadata(

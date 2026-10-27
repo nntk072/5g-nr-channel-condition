@@ -12,11 +12,13 @@ import hashlib
 import json
 import math
 from dataclasses import asdict, dataclass
-from importlib.metadata import PackageNotFoundError, version
+from importlib.metadata import PackageNotFoundError
 from numbers import Real
 from typing import Any, Mapping
 
 import numpy as np
+
+from integrations.sionna_runtime import sionna_phy_version
 
 from .cdl import CDLArrayConfig
 from .random import call_with_sionna_seed
@@ -313,7 +315,7 @@ def generate_scenario_gbsm_frequency_response(
 
     try:
         from sionna.phy.channel.tr38901 import InF, InH, PanelArray, RMa, UMa, UMi
-        sionna_version = version("sionna")
+        sionna_version = sionna_phy_version()
     except ImportError as error:
         raise RuntimeError("Sionna 2.2 PHY is required for scenario GBSM generation") from error
     except PackageNotFoundError as error:

@@ -19,6 +19,8 @@ from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import Any
 
+from integrations.sionna_runtime import sionna_phy_version
+
 SCHEMA = "umcd.g5_doppler_awgn_receiver.v1"
 BATCH_SEEDS = tuple(range(29_061, 29_073))
 BLOCKS_PER_BATCH = 16
@@ -73,6 +75,11 @@ def wilson_interval(failures: int, trials: int) -> tuple[float, float]:
 
 
 def _installed_version(distribution: str) -> str:
+    if distribution == "sionna":
+        try:
+            return sionna_phy_version()
+        except PackageNotFoundError:
+            return "not-installed"
     try:
         return version(distribution)
     except PackageNotFoundError:
