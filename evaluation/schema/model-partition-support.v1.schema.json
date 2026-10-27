@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.invalid/schema/model-partition-support.v1.schema.json",
+  "title": "Model Partition Support Report v1",
+  "description": "Input-scoped observed row/class/group support. Caller-declared groups are not evidence of physical independence.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "row_count",
+    "class_counts",
+    "class_availability",
+    "declared_group_count",
+    "declared_group_roster_sha256",
+    "effective_declared_group_count_kish",
+    "source_row_counts",
+    "domain_row_counts",
+    "assignment_sha256",
+    "independence_identity_source",
+    "physical_independence_status"
+  ],
+  "properties": {
+    "row_count": {"type": "integer", "minimum": 0},
+    "class_counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["0", "1"],
+      "properties": {
+        "0": {"type": "integer", "minimum": 0},
+        "1": {"type": "integer", "minimum": 0}
+      }
+    },
+    "class_availability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["0", "1"],
+      "properties": {
+        "0": {"type": "boolean"},
+        "1": {"type": "boolean"}
+      }
+    },
+    "declared_group_count": {"type": "integer", "minimum": 0},
+    "declared_group_roster_sha256": {"$ref": "#/$defs/sha256"},
+    "effective_declared_group_count_kish": {"type": "number", "minimum": 0},
+    "source_row_counts": {"$ref": "#/$defs/count_map"},
+    "domain_row_counts": {"$ref": "#/$defs/count_map"},
+    "assignment_sha256": {"$ref": "#/$defs/sha256"},
+    "independence_identity_source": {"const": "ChannelDataset.group"},
+    "physical_independence_status": {"const": "not_established_by_runner"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "count_map": {
+      "type": "object",
+      "additionalProperties": {"type": "integer", "minimum": 0}
+    }
+  }
+}

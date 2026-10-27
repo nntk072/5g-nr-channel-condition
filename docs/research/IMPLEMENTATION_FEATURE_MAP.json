@@ -3,7 +3,7 @@
     {
       "backlog_line": 181,
       "backlog_status": "open",
-      "description": "Turn this backlog into a fully traceable feature map. **Partial:** `scripts.build_implementation_feature_map` indexes all 176 checklist rows by package/plan gate, resolves explicitly referenced repository paths, dotted Python module names, and registered `pyproject.toml` CLI entry points, and marks unresolved rows `unmapped`. It writes `docs/research/IMPLEMENTATION_FEATURE_MAP.json`; `loslab-build-implementation-feature-map --check` detects stale output. The current snapshot has 18 linked, 158 unmapped, 121 backlog-marked-done, and 55 open rows. Evidence links for remaining sources, schemas, CLI entries, regression files, plus audited implementation-status reconciliation remain open. Checkbox state is not scientific qualification.",
+      "description": "Turn this backlog into a fully traceable feature map. **Partial:** `scripts.build_implementation_feature_map` indexes all 177 checklist rows by package/plan gate, resolves explicitly referenced repository paths, dotted Python module names, and registered `pyproject.toml` CLI entry points, and marks unresolved rows `unmapped`. It writes `docs/research/IMPLEMENTATION_FEATURE_MAP.json`; `loslab-build-implementation-feature-map --check` detects stale output. The current snapshot has 20 linked, 157 unmapped, 122 backlog-marked-done, and 55 open rows. Evidence links for remaining sources, schemas, CLI entries, regression files, plus audited implementation-status reconciliation remain open. Checkbox state is not scientific qualification.",
       "evidence_links": {
         "cli_entries": [
           "scripts/build_implementation_feature_map.py"
@@ -3737,16 +3737,17 @@
     {
       "backlog_line": 369,
       "backlog_status": "open",
-      "description": "Complete class availability and effective independent-group reporting; retain undefined metrics rather than inventing values. The UMCD target-coverage report exposes leakage-component counts per split × family × target. The frozen split × family × class audit reports rows, distinct caller-declared independent groups, and empty/absent statuses; the legacy common experiment runner publishes the report under a versioned JSON Schema and retains `null` plus per-metric reasons when a required class is absent. `experiments/runner.py` emits a strict per-partition v2 support report for signed-lock runs, with class availability, source/domain row coverage, parent/component/group counts and roster digests, Kish effective declared-group count (accounting for unequal rows per declared group), and exact row-assignment digests; each model result binds its digest. The v1 reader contract remains unchanged. The report explicitly leaves physical independence `not_established_by_runner`. Focused signed-lock partition and runner integration tests pass. Other model routes, verified physical independence evidence, site/array eligibility, and broader evaluation support accounting remain open.",
+      "description": "Complete class availability and effective independent-group reporting; retain undefined metrics rather than inventing values. The UMCD target-coverage report exposes leakage-component counts per split × family × target. The frozen split × family × class audit reports rows, distinct caller-declared independent groups, and empty/absent statuses; the legacy common experiment runner publishes the report under a versioned JSON Schema and retains `null` plus per-metric reasons when a required class is absent. Every per-seed model result now carries strict-schema train/validation/calibration/test support under `evaluation/schema/model-partition-support.v1.schema.json`, with class availability, source/domain row counts, declared-group counts and roster digests, Kish effective declared-group counts, and exact row-assignment digests. Signed-lock runs additionally bind parent/component rosters under `evaluation/schema/locked-benchmark-split-support.v2.schema.json`; its v1 schema remains unchanged, and each model result binds the per-run support digest. All reports explicitly leave physical independence `not_established_by_runner`. Broader evaluator/model-route coverage, verified physical-independence evidence, site/array eligibility, and scientific support adequacy remain open.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
         "other_files": [],
         "regression_files": [],
-        "schemas": [],
-        "source_modules": [
-          "experiments/runner.py"
-        ]
+        "schemas": [
+          "evaluation/schema/locked-benchmark-split-support.v2.schema.json",
+          "evaluation/schema/model-partition-support.v1.schema.json"
+        ],
+        "source_modules": []
       },
       "feature_id": "PKG09-003",
       "link_status": "linked",
@@ -4156,7 +4157,7 @@
   "schema": "loslab.implementation_feature_map.v1",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "5d12c0b2a29ee75e8ebe0d76b17f965f9b280b684aef3ae018999054c4462751"
+    "sha256": "bbf8e010c169ae037db49b1238099f2b58d0ad7281f29a208771e532777a3f6b"
   },
   "summary": {
     "feature_count": 177,

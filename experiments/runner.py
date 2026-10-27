@@ -1295,6 +1295,50 @@ def _kish_effective_group_count(group_row_counts: Sequence[int]) -> float:
     return total * total / squared if squared else 0.0
 
 
+def _declared_partition_support(
+    data: ChannelDataset, indices: np.ndarray
+) -> dict[str, Any]:
+    """Summarize observed row/class/group support without asserting independence."""
+    selected = [int(index) for index in indices]
+    group_counts: dict[str, int] = {}
+    source_counts: dict[str, int] = {}
+    domain_counts: dict[str, int] = {}
+    for index in selected:
+        group_id = str(data.group[index])
+        source_id = str(data.source[index])
+        domain_id = str(data.domain[index])
+        if any(not value or value != value.strip() for value in (group_id, source_id, domain_id)):
+            raise ValueError("partition support requires canonical group/source/domain IDs")
+        group_counts[group_id] = group_counts.get(group_id, 0) + 1
+        source_counts[source_id] = source_counts.get(source_id, 0) + 1
+        domain_counts[domain_id] = domain_counts.get(domain_id, 0) + 1
+    groups = sorted(group_counts)
+    class_counts = {
+        str(label): int(np.count_nonzero(data.y[indices] == label)) for label in (0, 1)
+    }
+    assignments = [
+        {"row_index": index, "declared_group_id": str(data.group[index])}
+        for index in selected
+    ]
+    report = {
+        "row_count": len(selected),
+        "class_counts": class_counts,
+        "class_availability": {label: count > 0 for label, count in class_counts.items()},
+        "declared_group_count": len(groups),
+        "declared_group_roster_sha256": canonical_hash(groups),
+        "effective_declared_group_count_kish": _kish_effective_group_count(
+            list(group_counts.values())
+        ),
+        "source_row_counts": dict(sorted(source_counts.items())),
+        "domain_row_counts": dict(sorted(domain_counts.items())),
+        "assignment_sha256": canonical_hash(assignments),
+        "independence_identity_source": "ChannelDataset.group",
+        "physical_independence_status": "not_established_by_runner",
+    }
+    _validate_evaluation_payload(report, "model-partition-support.v1.schema.json")
+    return report
+
+
 def _locked_split_indices(
     data: ChannelDataset, registry: SplitPolicyRegistry
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, dict[str, Any]]:
@@ -1668,6 +1712,16 @@ def run_experiment(
         assert not (set(data.group[test]) & (set(data.group[train]) | set(data.group[val])))
         assert not (set(data.group[calibration]) & (set(data.group[train]) | set(data.group[val])))
         assert not (set(data.group[calibration]) & set(data.group[test]))
+        partition_support = {
+            name: _declared_partition_support(data, indices)
+            for name, indices in (
+                ("train", train),
+                ("validation", val),
+                ("calibration", calibration),
+                ("test", test),
+            )
+        }
+        partition_support_sha256 = canonical_hash(partition_support)
         for method in methods:
             method_input = (
                 _identity_complex_cfr(observable)
@@ -2058,6 +2112,8 @@ def run_experiment(
                 "split": {
                     "mode": split_provenance["mode"],
                     "registry_sha256": split_provenance.get("registry_sha256"),
+                    "declared_partition_support": partition_support,
+                    "declared_partition_support_sha256": partition_support_sha256,
                     "partition_support_sha256": split_provenance.get(
                         "partition_support_sha256"
                     ),

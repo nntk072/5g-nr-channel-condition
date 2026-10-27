@@ -323,6 +323,16 @@ def test_run_experiment_writes_reproducible_complete_artifacts(tmp_path) -> None
     assert matrix_audit["feature_matrix_verified"] is True
     report_row = json.loads((output / "results.json").read_text(encoding="utf-8"))[0]
     assert report_row["model_input_feature_matrix_verified"] is True
+    partition_support = report_row["split"]["declared_partition_support"]
+    assert report_row["split"]["declared_partition_support_sha256"] == canonical_hash(
+        partition_support
+    )
+    assert set(partition_support) == {"train", "validation", "calibration", "test"}
+    for partition, indices in partitions.items():
+        support = partition_support[partition]
+        assert support["row_count"] == len(indices)
+        assert support["physical_independence_status"] == "not_established_by_runner"
+        assert support["effective_declared_group_count_kish"] <= support["declared_group_count"]
     support_cells = report_row["class_support"]["cells"]
     assert report_row["class_support"]["schema"] == "loslab.class_support.v1"
     assert {cell["class_label"] for cell in support_cells} == {0, 1}
