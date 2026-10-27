@@ -14,6 +14,7 @@ from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
 from .model_input_audit import audit_model_input_payload
 from .targets import TargetDefinition, TargetValidity, validate_canonical_target_contract
+from .time_axis import canonical_time_axis
 
 MAX_REFERENCE_TRANSPORT_BLOCK_BITS = 20_000_000
 
@@ -238,9 +239,7 @@ class NRChannelRecord:
                 )
                 unavailable = target.masked_select(torch_module.logical_not(expanded_mask))
                 if unavailable.numel() and bool(torch_module.any(unavailable != 0).item()):
-                    raise ValueError(
-                        f"masked target elements for {name!r} must use zero storage"
-                    )
+                    raise ValueError(f"masked target elements for {name!r} must use zero storage")
             else:
                 target_array = np.asarray(target)
                 mask_array = (
@@ -248,9 +247,7 @@ class NRChannelRecord:
                     if torch_module is not None and torch_module.is_tensor(mask)
                     else np.asarray(mask)
                 )
-                expanded_mask = np.broadcast_to(
-                    mask_array.astype(bool, copy=False), target_shape
-                )
+                expanded_mask = np.broadcast_to(mask_array.astype(bool, copy=False), target_shape)
                 if np.any(target_array[~expanded_mask] != 0):
                     raise ValueError(f"masked target elements for {name!r} must use zero storage")
         for name, target in self.targets.items():
@@ -263,9 +260,7 @@ class NRChannelRecord:
                     mask_array = raw_mask.detach().cpu().numpy()
                 else:
                     mask_array = np.asarray(raw_mask)
-                expanded_mask = np.broadcast_to(
-                    mask_array.astype(bool, copy=False), target_shape
-                )
+                expanded_mask = np.broadcast_to(mask_array.astype(bool, copy=False), target_shape)
             flat_mask = expanded_mask.reshape(-1)
             if name in self.target_reason_codes:
                 reasons = tuple(self.target_reason_codes[name])
@@ -286,9 +281,7 @@ class NRChannelRecord:
                 selected != (reason is TargetValidity.VALID)
                 for selected, reason in zip(flat_mask, reasons, strict=True)
             ):
-                raise ValueError(
-                    f"target masks and reason codes disagree for target {name!r}"
-                )
+                raise ValueError(f"target masks and reason codes disagree for target {name!r}")
             normalized_reasons[name] = reasons
         if not self.provenance:
             raise ValueError("provenance must not be empty")
@@ -297,7 +290,9 @@ class NRChannelRecord:
         reference_digest_key = "reference_transport_block_sha256"
         normalized_provenance = dict(self.provenance)
         declared_reference_fields = {
-            key for key in (reference_shape_key, reference_digest_key) if key in normalized_provenance
+            key
+            for key in (reference_shape_key, reference_digest_key)
+            if key in normalized_provenance
         }
         if reference_bits is not None:
             if torch_module is not None and torch_module.is_tensor(reference_bits):
@@ -364,8 +359,7 @@ class NRChannelRecord:
             or not isinstance(reference_shape, tuple)
             or any(type(size) is not int or size <= 0 for size in reference_shape)
             or reference_shape != tuple(reference_array.shape)
-            or reference_digest
-            != hashlib.sha256(reference_array.tobytes(order="C")).hexdigest()
+            or reference_digest != hashlib.sha256(reference_array.tobytes(order="C")).hexdigest()
         ):
             raise ValueError(
                 "reference transport-block payload differs from its provenance shape/digest"
@@ -374,9 +368,7 @@ class NRChannelRecord:
     def require_versioned_target_definitions(self) -> None:
         """Require a digest-verified semantic definition for every persisted target."""
         if set(self.target_definitions) != set(self.targets):
-            raise ValueError(
-                "canonical NR records require one target definition for every target"
-            )
+            raise ValueError("canonical NR records require one target definition for every target")
         for name, definition in self.target_definitions.items():
             try:
                 definition.require_versioned()
@@ -434,16 +426,7 @@ class NRTrajectory:
         times = tuple(self.sample_times_s)
         if not records or len(times) != len(records):
             raise ValueError("sample_times_s must provide one time for every trajectory record")
-        if any(isinstance(value, bool) for value in times):
-            raise TypeError("sample_times_s values must be real timestamps, not booleans")
-        try:
-            times = tuple(float(value) for value in times)
-        except (TypeError, ValueError) as exc:
-            raise TypeError("sample_times_s values must be real timestamps") from exc
-        if any(not math.isfinite(value) for value in times):
-            raise ValueError("sample_times_s values must be finite")
-        if any(right <= left for left, right in zip(times, times[1:])):
-            raise ValueError("sample_times_s must be strictly increasing")
+        times = canonical_time_axis(times, name="sample_times_s")
         sample_ids = tuple(record.observation.sample_id for record in records)
         if len(set(sample_ids)) != len(sample_ids):
             raise ValueError("trajectory sample IDs must be unique")
@@ -485,9 +468,7 @@ class NRTrajectory:
         masks = tuple(record.target_masks.get(name) for record in self.records)
         return values, masks
 
-    def target_reason_series(
-        self, name: str
-    ) -> tuple[tuple[TargetValidity, ...] | None, ...]:
+    def target_reason_series(self, name: str) -> tuple[tuple[TargetValidity, ...] | None, ...]:
         """Return per-record element reasons, preserving missing target records as None."""
         if name not in self.target_names:
             raise KeyError(f"unknown trajectory target: {name}")

@@ -303,10 +303,7 @@ def test_nr_trajectory_keeps_time_ordered_multitarget_masks_out_of_model_inputs(
         (TargetValidity.VALID,),
         None,
     )
-    assert (
-        trajectory.target_reason_series("channel_cfr")[1][-1]
-        is TargetValidity.NOT_OBSERVABLE
-    )
+    assert trajectory.target_reason_series("channel_cfr")[1][-1] is TargetValidity.NOT_OBSERVABLE
     assert not bool(trajectory.target_series("channel_cfr")[1][1][-1])
     assert trajectory.target_support_counts("los") == {
         "record_count": 2,
@@ -449,7 +446,11 @@ def test_nr_target_support_audit_rejects_duplicate_trajectory_assignments():
     trajectory = NRTrajectory(
         "reused-route",
         (0.0,),
-        (make_single_record("reused-sample", targets={"target": np.asarray(1.0)}, target_masks={}),),
+        (
+            make_single_record(
+                "reused-sample", targets={"target": np.asarray(1.0)}, target_masks={}
+            ),
+        ),
     )
 
     with pytest.raises(ValueError, match="duplicate trajectory assignment"):
@@ -460,7 +461,9 @@ def test_nr_target_support_audit_rejects_duplicate_trajectory_assignments():
 
 
 def test_nr_target_support_audit_rejects_reused_samples_across_trajectories():
-    record = make_single_record("shared-sample", targets={"target": np.asarray(1.0)}, target_masks={})
+    record = make_single_record(
+        "shared-sample", targets={"target": np.asarray(1.0)}, target_masks={}
+    )
     first = NRTrajectory("route-first", (0.0,), (record,))
     second = NRTrajectory("route-second", (1.0,), (record,))
 
@@ -472,9 +475,7 @@ def test_nr_target_support_audit_rejects_reused_samples_across_trajectories():
 
 
 def test_nr_target_support_audit_keeps_expected_empty_cells_visible():
-    report = audit_nr_trajectory_target_support(
-        (), (("test", "site-a", "los"),)
-    )
+    report = audit_nr_trajectory_target_support((), (("test", "site-a", "los"),))
 
     assert report["trajectory_count"] == 0
     assert report["cells"] == [
@@ -515,6 +516,13 @@ def test_nr_trajectory_rejects_duplicate_samples_and_nonmonotone_times():
         )
     with pytest.raises(ValueError, match="sample IDs must be unique"):
         NRTrajectory("route", (0.0, 1.0), (record, record))
+
+
+@pytest.mark.parametrize("invalid_time", ["0.1", 0.1 + 0.0j, True])
+def test_nr_trajectory_rejects_coercible_nonreal_timestamps(invalid_time):
+    record = make_single_record("one", targets={"target": np.asarray(1.0)}, target_masks={})
+    with pytest.raises(TypeError, match="real numeric timestamps"):
+        NRTrajectory("route", (invalid_time,), (record,))
 
 
 @pytest.mark.parametrize("trajectory_id", [None, 1, True])
@@ -774,9 +782,7 @@ def test_nr_record_writer_requires_complete_versioned_target_semantics(tmp_path)
         targets={"label": np.asarray(1)},
         target_masks={},
         provenance={"source": "test"},
-        target_definitions={
-            "label": TargetDefinition("legacy label", "class", "test")
-        },
+        target_definitions={"label": TargetDefinition("legacy label", "class", "test")},
     )
     with pytest.raises(ValueError, match="is not versioned"):
         write_nr_record(tmp_path, legacy)
@@ -801,9 +807,7 @@ def test_nr_v1_record_migrates_missing_reasons_as_explicit_legacy(tmp_path):
         "legacy-reason-record",
         targets={"target": np.asarray([3.0, 0.0], dtype=np.float32)},
         target_masks={"target": np.asarray([True, False])},
-        target_reason_codes={
-            "target": (TargetValidity.VALID, TargetValidity.NOT_OBSERVABLE)
-        },
+        target_reason_codes={"target": (TargetValidity.VALID, TargetValidity.NOT_OBSERVABLE)},
     )
     original = write_nr_record(tmp_path, record)
     with np.load(tmp_path / original.relative_path, allow_pickle=False) as archive:
@@ -903,8 +907,7 @@ def test_nr_trajectory_round_trip_preserves_order_masks_and_content_addressing(t
             targets={"channel_cfr": np.asarray([2] * 12 + [0] * 12, np.complex64)},
             target_masks={"channel_cfr": np.asarray([True] * 12 + [False] * 12)},
             target_reason_codes={
-                "channel_cfr": (TargetValidity.VALID,) * 12
-                + (TargetValidity.NOT_OBSERVABLE,) * 12
+                "channel_cfr": (TargetValidity.VALID,) * 12 + (TargetValidity.NOT_OBSERVABLE,) * 12
             },
         ),
     )
@@ -990,9 +993,7 @@ def test_nr_trajectory_partial_record_publication_is_retryable(tmp_path, monkeyp
         publish(path, payload)
 
     monkeypatch.setattr(nr_store, "_publish_immutable", fail_before_second_record_object)
-    with pytest.raises(
-        OSError, match="injected second trajectory record publication failure"
-    ):
+    with pytest.raises(OSError, match="injected second trajectory record publication failure"):
         write_nr_trajectory(tmp_path, trajectory)
 
     assert len(list((tmp_path / "manifests").glob("*.json"))) == 1
@@ -1035,9 +1036,7 @@ def test_nr_trajectory_store_rejects_oversized_manifest_before_loading_content(
     tmp_path, monkeypatch
 ):
     record = make_single_record("route-large-manifest-0", targets={"label": np.asarray(1)})
-    stored = write_nr_trajectory(
-        tmp_path, NRTrajectory("route-large-manifest", (0.0,), (record,))
-    )
+    stored = write_nr_trajectory(tmp_path, NRTrajectory("route-large-manifest", (0.0,), (record,)))
     manifest_path = tmp_path / stored.manifest_relative_path
     manifest_path.write_bytes(b" " * 33)
 
@@ -1074,9 +1073,7 @@ def test_nr_trajectory_store_rejects_hardlinked_manifest(tmp_path):
 
 def test_nr_trajectory_store_rejects_oversized_content_before_hashing(tmp_path, monkeypatch):
     record = make_single_record("route-large-content-0", targets={"label": np.asarray(1)})
-    stored = write_nr_trajectory(
-        tmp_path, NRTrajectory("route-large-content", (0.0,), (record,))
-    )
+    stored = write_nr_trajectory(tmp_path, NRTrajectory("route-large-content", (0.0,), (record,)))
     (tmp_path / stored.relative_path).write_bytes(b"x" * 17)
 
     import datasets.nr_store as nr_store

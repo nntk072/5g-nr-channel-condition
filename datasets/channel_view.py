@@ -9,6 +9,7 @@ from enum import StrEnum
 import numpy as np
 
 from .network import NetworkEpisode
+from .time_axis import canonical_time_axis
 
 
 class ChannelDelayReference(StrEnum):
@@ -56,12 +57,8 @@ class PhysicalChannelView:
         values = np.array(self.channel, copy=True)
         if values.ndim != 4 or not np.iscomplexobj(values) or not np.isfinite(values).all():
             raise ValueError("channel must be finite complex [frame, rx_port, tx_port, subcarrier]")
-        times = tuple(float(value) for value in self.frame_times_s)
+        times = canonical_time_axis(self.frame_times_s, name="frame_times_s")
         rx_ids, tx_ids = tuple(self.rx_port_ids), tuple(self.tx_port_ids)
-        if not times or any(not math.isfinite(value) for value in times):
-            raise ValueError("frame_times_s must be non-empty and finite")
-        if any(right <= left for left, right in zip(times, times[1:])):
-            raise ValueError("frame_times_s must be strictly increasing")
         if not rx_ids or not tx_ids or any(not item.strip() for item in (*rx_ids, *tx_ids)):
             raise ValueError("rx_port_ids and tx_port_ids must be non-empty strings")
         if len(set(rx_ids)) != len(rx_ids) or len(set(tx_ids)) != len(tx_ids):

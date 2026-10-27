@@ -8,6 +8,8 @@ from enum import StrEnum
 
 import numpy as np
 
+from .time_axis import canonical_time_axis
+
 
 def _readonly_array(value: np.ndarray, *, name: str, shape_tail: tuple[int, ...]) -> np.ndarray:
     array = np.array(value, copy=True)
@@ -183,16 +185,7 @@ class NodePoseTimeline:
             raise ValueError("pose timeline needs non-empty node IDs")
         if len(set(node_ids)) != len(node_ids):
             raise ValueError("pose timeline node IDs must be unique")
-        if any(
-            not isinstance(time, (int, float)) or isinstance(time, bool)
-            for time in self.frame_times_s
-        ):
-            raise TypeError("pose timeline frame times must be real numbers")
-        times = tuple(float(time) for time in self.frame_times_s)
-        if not times or any(not math.isfinite(time) for time in times):
-            raise ValueError("pose timeline frame times must be finite and non-empty")
-        if any(right <= left for left, right in zip(times, times[1:])):
-            raise ValueError("pose timeline frame times must be strictly increasing")
+        times = canonical_time_axis(self.frame_times_s, name="pose timeline frame_times_s")
         positions = np.array(self.positions_world_m, dtype=np.float64, copy=True)
         expected_positions = (len(times), len(node_ids), 3)
         if positions.shape != expected_positions or not np.isfinite(positions).all():
@@ -295,13 +288,7 @@ class NetworkEpisode:
                 raise ValueError(f"link {link.link_id!r} has an invalid TX port map")
             if max(link.rx_port_indices) >= rx_array.num_ports:
                 raise ValueError(f"link {link.link_id!r} has an invalid RX port map")
-        if any(isinstance(value, bool) for value in self.frame_times_s):
-            raise TypeError("frame_times_s values must be real times, not booleans")
-        times = tuple(float(value) for value in self.frame_times_s)
-        if not times or any(not math.isfinite(value) for value in times):
-            raise ValueError("frame_times_s must be a non-empty finite time axis")
-        if any(right <= left for left, right in zip(times, times[1:])):
-            raise ValueError("frame_times_s must be strictly increasing")
+        times = canonical_time_axis(self.frame_times_s, name="frame_times_s")
         raw_offsets = np.asarray(self.subcarrier_offsets_hz)
         if raw_offsets.dtype.kind not in "iuf":
             raise TypeError("subcarrier_offsets_hz must use a real numeric dtype")

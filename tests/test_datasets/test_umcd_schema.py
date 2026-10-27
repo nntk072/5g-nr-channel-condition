@@ -171,6 +171,17 @@ def test_pose_timeline_validates_and_exposes_time_varying_node_poses():
         )
 
 
+@pytest.mark.parametrize("invalid_time", ["0.1", 0.1 + 0.0j, True])
+def test_episode_and_pose_time_axes_reject_coercible_nonreal_values(invalid_time):
+    with pytest.raises(TypeError, match="real numeric timestamps"):
+        replace(_episode(), frame_times_s=(invalid_time,))
+
+    timeline = _dynamic_episode().pose_timeline
+    assert timeline is not None
+    with pytest.raises(TypeError, match="real numeric timestamps"):
+        replace(timeline, frame_times_s=(0.0, invalid_time))
+
+
 @pytest.mark.parametrize(
     ("mutate", "message"),
     [
@@ -383,6 +394,8 @@ def test_path_oracle_rejects_padded_interaction_coordinate_frame():
             interaction_vertices_m=np.asarray([[0.0, 0.0, 0.0]]),
             interaction_vertex_frame=" scene_xyz_m ",
         )
+
+
 def test_physical_channel_view_requires_named_axes_and_explicit_normalization():
     episode = _episode()
     arguments = {
@@ -426,6 +439,12 @@ def test_physical_channel_view_requires_named_axes_and_explicit_normalization():
                 "power_scale": ChannelPowerScale.NORMALIZED,
             }
         )
+
+
+def test_physical_channel_view_rejects_coercible_timestamp_strings():
+    channel = _bundle().channel_views[0]
+    with pytest.raises(TypeError, match="real numeric timestamps"):
+        replace(channel, frame_times_s=("0.0",))
 
 
 def test_target_values_require_definition_hash_and_reasoned_element_masks():
