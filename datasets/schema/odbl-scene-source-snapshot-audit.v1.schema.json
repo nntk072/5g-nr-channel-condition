@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.invalid/schema/odbl-scene-source-snapshot-audit.v1.schema.json",
+  "title": "ODbL scene source snapshot audit v1",
+  "description": "Source-repository evidence for pinned OSM-derived built-in scenes; this is not a rights clearance or public release approval.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "status", "public_release_eligible", "source_checkout", "policy_sha256", "software_source", "scenes", "unresolved_provenance", "limitations"],
+  "properties": {
+    "schema": {"const": "umcd.odbl_scene_source_snapshot_audit.v1"},
+    "status": {"enum": ["SOURCE_SNAPSHOT_VERIFIED", "SOURCE_SNAPSHOT_MISMATCH"]},
+    "public_release_eligible": {"const": false},
+    "source_checkout": {"type": "string", "minLength": 1},
+    "policy_sha256": {"$ref": "#/$defs/sha256"},
+    "software_source": {
+      "type": "object", "additionalProperties": false,
+      "required": ["expected_commit", "observed_commit", "rt_submodule_expected_commit", "rt_submodule_gitlink_commit", "rt_submodule_observed_commit", "root_worktree_clean", "rt_worktree_clean", "commits_match_policy"],
+      "properties": {
+        "expected_commit": {"$ref": "#/$defs/gitObjectId"},
+        "observed_commit": {"$ref": "#/$defs/gitObjectId"},
+        "rt_submodule_expected_commit": {"$ref": "#/$defs/gitObjectId"},
+        "rt_submodule_gitlink_commit": {"$ref": "#/$defs/gitObjectId"},
+        "rt_submodule_observed_commit": {"$ref": "#/$defs/gitObjectId"},
+        "root_worktree_clean": {"type": "boolean"},
+        "rt_worktree_clean": {"type": "boolean"},
+        "commits_match_policy": {"type": "boolean"}
+      }
+    },
+    "scenes": {
+      "type": "array", "minItems": 3,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["scene_id", "source_scene_xml", "rt_git_path", "tracked_file_count", "git_tree_inventory_sha256", "git_blob_inventory_sha256", "xml_last_change", "asset_count", "asset_tree_sha256", "assets_complete", "unresolved_references", "policy_asset_count_matches", "policy_asset_tree_matches"],
+        "properties": {
+          "scene_id": {"enum": ["etoile", "florence", "munich"]},
+          "source_scene_xml": {"type": "string", "minLength": 1},
+          "rt_git_path": {"type": "string", "minLength": 1},
+          "tracked_file_count": {"type": "integer", "minimum": 1},
+          "git_tree_inventory_sha256": {"$ref": "#/$defs/sha256"},
+          "git_blob_inventory_sha256": {"$ref": "#/$defs/sha256"},
+          "xml_last_change": {
+            "type": "object", "additionalProperties": false,
+            "required": ["commit", "authored_at"],
+            "properties": {"commit": {"$ref": "#/$defs/gitObjectId"}, "authored_at": {"type": "string", "format": "date-time"}}
+          },
+          "asset_count": {"type": "integer", "minimum": 1},
+          "asset_tree_sha256": {"$ref": "#/$defs/sha256"},
+          "assets_complete": {"type": "boolean"},
+          "unresolved_references": {"type": "array", "items": {"type": "string"}},
+          "policy_asset_count_matches": {"type": "boolean"},
+          "policy_asset_tree_matches": {"type": "boolean"}
+        }
+      }
+    },
+    "unresolved_provenance": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "limitations": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "gitObjectId": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
+  }
+}

@@ -29,3 +29,18 @@ material state. Scene XML/assets and the Sionna RT/Mitsuba/Dr.Jit versions must
 therefore be retained together for replay. A complete local hash is
 reproducibility provenance, not evidence that geometry or radio materials are
 physically qualified.
+
+## Pinned ODbL scene source snapshot
+
+Run `loslab-audit-odbl-scene-source /path/to/sionna-checkout audit.json` to
+compare the Sionna root commit and RT submodule against the accepted ODbL policy,
+record Git tree/blob inventory digests and the last XML history event, and
+recompute the three recursive scene asset hashes. The command returns success
+only when both source checkouts are clean, both commits match policy, and every
+asset closure matches. It performs no scene loading or propagation generation.
+
+The report is source-history evidence only. Git timestamps are not OSM extract
+timestamps; missing OSM object IDs, conversion records, and per-file third-party
+license closure stay explicitly unresolved. The report always sets
+`public_release_eligible` to false. Continue to use the signed release-specific
+manifest and independent rights review before any public redistribution.

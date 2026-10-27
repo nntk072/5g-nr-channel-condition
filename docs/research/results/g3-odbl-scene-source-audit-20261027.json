@@ -1,0 +1,84 @@
+{
+  "limitations": [
+    "Git object identity and scene byte hashes prove a source snapshot only; they do not establish OSM extraction provenance or legal rights.",
+    "Git author dates identify source-history events, not OSM extract or conversion dates.",
+    "No scene generation, public packaging, legal approval, or scientific qualification was performed."
+  ],
+  "policy_sha256": "529508f89e7c4f72e0688ef302c1f9c6c84d542594da13aa416cf44dd84a1fbc",
+  "public_release_eligible": false,
+  "scenes": [
+    {
+      "asset_count": 566,
+      "asset_tree_sha256": "d0b6ee5c9406e8b75c5fc17388e16037e988b5057d37bc40fe55699fefba115d",
+      "assets_complete": true,
+      "git_blob_inventory_sha256": "f5854003979d5b7c7e7ef4f0f442cae58305ba683c700c037821e9bb9e30c47f",
+      "git_tree_inventory_sha256": "cf3ece229ef72e994a6fe3eb1891468f10a6809d05236188d3ef4e6d598688b4",
+      "policy_asset_count_matches": true,
+      "policy_asset_tree_matches": true,
+      "rt_git_path": "src/sionna/rt/scenes/etoile/etoile.xml",
+      "scene_id": "etoile",
+      "source_scene_xml": "src/sionna/rt/scenes/etoile/etoile.xml",
+      "tracked_file_count": 566,
+      "unresolved_references": [],
+      "xml_last_change": {
+        "authored_at": "2025-09-18T16:35:17+02:00",
+        "commit": "275875d3fab62dd70ad18ddcd3058dea7b8a7176"
+      }
+    },
+    {
+      "asset_count": 2640,
+      "asset_tree_sha256": "f5bb0decbe1806daecd10455d846db86a9590f29ff334398d07c18876f038651",
+      "assets_complete": true,
+      "git_blob_inventory_sha256": "7c6bc060b8d776e2d06f2ea76172398d7582f8a2f5bee0cd86ad05221be0eb9e",
+      "git_tree_inventory_sha256": "9aac35e2d7a355483bc90d00f84b33378a9cfe24979c76fde62154790f3f192a",
+      "policy_asset_count_matches": true,
+      "policy_asset_tree_matches": true,
+      "rt_git_path": "src/sionna/rt/scenes/florence/florence.xml",
+      "scene_id": "florence",
+      "source_scene_xml": "src/sionna/rt/scenes/florence/florence.xml",
+      "tracked_file_count": 2640,
+      "unresolved_references": [],
+      "xml_last_change": {
+        "authored_at": "2025-03-17T18:24:02+01:00",
+        "commit": "b81c6cea7898a1518cb8a101a13f0f73e87e941e"
+      }
+    },
+    {
+      "asset_count": 2368,
+      "asset_tree_sha256": "df2ea477117f85ce9abffbc46ba30130d49789b3576cb28363350c2b1996670b",
+      "assets_complete": true,
+      "git_blob_inventory_sha256": "4545447f3ddf10dabbe8ef86d6985580a99ef50d9160f27e1af3862e43a859a1",
+      "git_tree_inventory_sha256": "650efa105d4844b4c1ed39e3c443e3ef6fbddc018c0aee3c214391b60a5bf6b8",
+      "policy_asset_count_matches": true,
+      "policy_asset_tree_matches": true,
+      "rt_git_path": "src/sionna/rt/scenes/munich/munich.xml",
+      "scene_id": "munich",
+      "source_scene_xml": "src/sionna/rt/scenes/munich/munich.xml",
+      "tracked_file_count": 2368,
+      "unresolved_references": [],
+      "xml_last_change": {
+        "authored_at": "2025-03-17T18:24:02+01:00",
+        "commit": "b81c6cea7898a1518cb8a101a13f0f73e87e941e"
+      }
+    }
+  ],
+  "schema": "umcd.odbl_scene_source_snapshot_audit.v1",
+  "software_source": {
+    "commits_match_policy": true,
+    "expected_commit": "2f0a3820269b53fd022780a6f2f5f720f7ceb9b4",
+    "observed_commit": "2f0a3820269b53fd022780a6f2f5f720f7ceb9b4",
+    "root_worktree_clean": true,
+    "rt_submodule_expected_commit": "15b5ee036917a4c2a9b6420e05570b77717e2fcc",
+    "rt_submodule_gitlink_commit": "15b5ee036917a4c2a9b6420e05570b77717e2fcc",
+    "rt_submodule_observed_commit": "15b5ee036917a4c2a9b6420e05570b77717e2fcc",
+    "rt_worktree_clean": true
+  },
+  "source_checkout": "/home/l2nguyen/sionna-reference",
+  "status": "SOURCE_SNAPSHOT_VERIFIED",
+  "unresolved_provenance": [
+    "OSM extract/update timestamp and upstream object/change-set identifiers are not established by Git scene history.",
+    "Original scene conversion recipe is not established by the inspected source tree.",
+    "Per-file third-party content and license closure remains unreviewed.",
+    "Release-specific legal classification, attribution placement, and source-data offer remain unreviewed."
+  ]
+}

@@ -192,7 +192,7 @@ Gate checkboxes in the master plan describe acceptance evidence, not necessarily
 - [ ] Bind every material/property override, pose/motion state, antenna/pattern, carrier, solver option, and asset closure into immutable runtime cache identity.
 - [ ] Complete RNG stream and run-replay provenance contracts, including command, UTC time, commit/source/config hashes, input hashes, backend identity, and failure/retry state.
 - [ ] Add strict result-corpus promotion rules while retaining honest diagnostics for historical artifacts whose provenance cannot be reconstructed.
-- [ ] Complete release-specific ODbL asset/extract/conversion provenance, attribution, source offer, and third-party license closure for every artifact; keep unreviewed OSM-derived outputs nonpublic.
+- [ ] Complete release-specific ODbL asset/extract/conversion provenance, attribution, source offer, and third-party license closure for every artifact; keep unreviewed OSM-derived outputs nonpublic. **Source snapshot tooling implemented:** `scripts/audit_odbl_scene_source_snapshot.py` binds pinned Sionna/RT Git commits and recursive asset hashes but cannot recover the currently missing source-database provenance or rights evidence; see `docs/research/RT_SCENE_ASSET_IDENTITY.md`.
 
 ### 2. G1 — geometry, scene identity, and visibility truth
 

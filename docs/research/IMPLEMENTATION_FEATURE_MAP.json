@@ -268,17 +268,21 @@
     {
       "backlog_line": 195,
       "backlog_status": "open",
-      "description": "Complete release-specific ODbL asset/extract/conversion provenance, attribution, source offer, and third-party license closure for every artifact; keep unreviewed OSM-derived outputs nonpublic.",
+      "description": "Complete release-specific ODbL asset/extract/conversion provenance, attribution, source offer, and third-party license closure for every artifact; keep unreviewed OSM-derived outputs nonpublic. **Source snapshot tooling implemented:** `scripts/audit_odbl_scene_source_snapshot.py` binds pinned Sionna/RT Git commits and recursive asset hashes but cannot recover the currently missing source-database provenance or rights evidence; see `docs/research/RT_SCENE_ASSET_IDENTITY.md`.",
       "evidence_links": {
-        "cli_entries": [],
-        "documentation": [],
+        "cli_entries": [
+          "scripts/audit_odbl_scene_source_snapshot.py"
+        ],
+        "documentation": [
+          "docs/research/RT_SCENE_ASSET_IDENTITY.md"
+        ],
         "other_files": [],
         "regression_files": [],
         "schemas": [],
         "source_modules": []
       },
       "feature_id": "PKG01-008",
-      "link_status": "unmapped",
+      "link_status": "linked",
       "package": {
         "number": 1,
         "title": "G0 — runtime, source identity, assets, provenance, and licensing"
@@ -4103,13 +4107,13 @@
   "schema": "loslab.implementation_feature_map.v1",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "f715357af3f89eb3fba93fa588bc2355e65ee6d73f6357d89d4fd3efe0ae7273"
+    "sha256": "50155ab1dc656924e707e59660a629e376f2cea2ccefb914dc6d8590a5a4fdca"
   },
   "summary": {
     "feature_count": 176,
-    "linked_count": 16,
+    "linked_count": 17,
     "marked_done_count": 120,
     "open_count": 56,
-    "unmapped_count": 160
+    "unmapped_count": 159
   }
 }

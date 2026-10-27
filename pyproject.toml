@@ -25,6 +25,7 @@ plots = ["matplotlib>=3.8,<4", "Pillow>=10"]
 [project.scripts]
 loslab = "loslab.__main__:main"
 loslab-audit-channel-population = "scripts.audit_channel_population:main"
+loslab-audit-odbl-scene-source = "scripts.audit_odbl_scene_source_snapshot:main"
 loslab-runtime-inventory = "integrations.runtime_inventory:main"
 loslab-build-implementation-feature-map = "scripts.build_implementation_feature_map:main"
 
