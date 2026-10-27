@@ -78,21 +78,48 @@ def _real_noise_profile(torch: Any, values: Any, *, rx_count: int, device: Any) 
     return profile
 
 
+def _unitary_sionna_noise_conversion(
+    torch: Any, sample_variance: Any, *, rx_count: int, fft_size: int, device: Any
+) -> Any:
+    """Map iid time-sample noise variance through Sionna 2.2's unitary FFT pair."""
+    if (
+        not torch.is_tensor(sample_variance)
+        or sample_variance.layout != torch.strided
+        or sample_variance.dtype == torch.bool
+        or sample_variance.is_complex()
+        or not sample_variance.is_floating_point()
+        or tuple(sample_variance.shape) != (rx_count,)
+        or isinstance(fft_size, bool)
+        or not isinstance(fft_size, int)
+        or fft_size < 1
+    ):
+        raise ValueError("sample-domain noise variance or FFT size violates the Sionna contract")
+    variance = sample_variance.to(device=device, dtype=torch.float64)
+    if not bool(torch.isfinite(variance).all()) or bool((variance < 0).any()):
+        raise ValueError("sample-domain noise variance must be finite and nonnegative")
+    # Sionna PHY 2.2 applies 1/sqrt(N) to both the FFT and IFFT. The OFDM
+    # demodulator discards CP samples, applies that unitary FFT, multiplies by
+    # a unit-magnitude phase correction, and reorders bins. Each operation
+    # preserves the variance of iid proper-complex AWGN on the retained samples.
+    return variance
+
+
 def decode_noisy_network_pusch(
     composition: NetworkWaveformComposition,
     noisy: NoisyNetworkWaveform,
     receiver: Any,
     *,
-    noise_variance_w_per_re: Any,
+    noise_variance_w_per_re: Any | None = None,
     max_tensor_elements: int = 16_000_000,
 ) -> NetworkPUSCHDecode:
     """Demodulate a composed network capture and decode it with NR PUSCH.
 
-    The caller supplies receiver-domain per-RE noise variance explicitly. The
-    function records sample-domain AWGN variance but does not silently convert
-    it to per-RE variance: that conversion depends on the complete waveform,
-    FFT normalization, and receiver convention. The returned report is always
-    ``OBSERVED_NOT_QUALIFIED`` and does not establish receiver qualification.
+    For the pinned Sionna PHY 2.2 receiver, iid proper-complex sample AWGN maps
+    to equal per-RE variance because its FFT/IFFT pair is unitary and CP removal,
+    phase compensation, and bin reordering preserve variance. An explicit
+    receiver-domain profile may be supplied for other declared conventions.
+    The returned report is always ``OBSERVED_NOT_QUALIFIED`` and does not
+    establish receiver qualification.
     """
     try:
         import torch
@@ -183,16 +210,31 @@ def decode_noisy_network_pusch(
     if not isinstance(device_name, str) or not device_name:
         raise ValueError("receiver must declare an execution device")
     device = torch.device(device_name)
-    n0 = _real_noise_profile(
-        torch,
-        noise_variance_w_per_re,
-        rx_count=received.shape[1],
-        device=device,
-    )
     batch, rx_count, rx_ports, sample_count = received.shape
     estimated_grid_elements = batch * rx_count * rx_ports * symbol_count * fft_size
     if estimated_grid_elements + sum(value.numel() for value in tensors) > max_tensor_elements:
         raise ValueError("network waveform and demodulated grid exceed max_tensor_elements")
+    if noise_variance_w_per_re is None:
+        if metadata.get("sionna_version") != "2.2.0":
+            raise ValueError(
+                "implicit sample-to-RE noise conversion requires the pinned Sionna PHY 2.2.0 receiver"
+            )
+        n0 = _unitary_sionna_noise_conversion(
+            torch,
+            noisy.noise_variance_w_per_sample,
+            rx_count=rx_count,
+            fft_size=fft_size,
+            device=device,
+        )
+        noise_conversion = "sionna_phy_2_2_0_unitary_dft_preserves_variance_v1"
+    else:
+        n0 = _real_noise_profile(
+            torch,
+            noise_variance_w_per_re,
+            rx_count=rx_count,
+            device=device,
+        )
+        noise_conversion = "caller_supplied_per_re_variance_v1"
 
     waveform_on_device = received_noisy.to(device=device, dtype=torch.complex64)
     received_grid = receiver.demodulate_slot_waveform(waveform_on_device)
@@ -220,7 +262,7 @@ def decode_noisy_network_pusch(
         raise ValueError("PUSCH receiver outputs exceed max_tensor_elements")
 
     report: dict[str, Any] = {
-        "schema": "umcd.network_pusch_receiver_decode.v1",
+        "schema": "umcd.network_pusch_receiver_decode.v2",
         "status": "OBSERVED_NOT_QUALIFIED",
         "implementation_sha256": hashlib.sha256(
             inspect.getsource(decode_noisy_network_pusch).encode("utf-8")
@@ -228,9 +270,9 @@ def decode_noisy_network_pusch(
         "execution_device": str(received_grid.device),
         "receiver_metadata_sha256": hashlib.sha256(metadata_bytes).hexdigest(),
         "sample_rate_hz": float(composition.sample_rate_hz),
-        "receiver_noise_convention": "caller_supplied_per_receive_node_watts_per_resource_element",
+        "receiver_noise_convention": "watts_per_resource_element",
+        "noise_variance_conversion": noise_conversion,
         "limitations": [
-            "sample-domain noise variance is retained but not converted to resource-element variance",
             "synchronization and acquisition are caller-controlled",
             "synthetic decoder outcomes are not receiver qualification",
         ],
@@ -259,7 +301,7 @@ def decode_noisy_network_pusch(
         },
     }
     schema_path = Path(__file__).resolve().parents[2] / (
-        "datasets/schema/network-pusch-receiver-decode.v1.schema.json"
+        "datasets/schema/network-pusch-receiver-decode.v2.schema.json"
     )
     schema_bytes = schema_path.read_bytes()
     schema = json.loads(schema_bytes.decode("utf-8"))

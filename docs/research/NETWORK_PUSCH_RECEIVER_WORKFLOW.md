@@ -6,15 +6,18 @@ existing Sionna PUSCH demodulator/decoder. It checks that per-link contributions
 sum to the clean capture, that the noisy capture equals clean capture plus the
 retained noise samples, and that the sample rate matches the configured FFT
 grid. The exact input/output tensor digests, receiver metadata digest, device,
-dimensions, and CRC totals are retained in a schema-validated v1 report.
+dimensions, and CRC totals are retained in a schema-validated v2 report. The
+previously published v1 schema remains unchanged.
 
-The caller must provide receiver-domain noise variance in watts per resource
-element. The adapter retains sample-domain variance separately and does not
-convert between them. Until the OFDM normalization and variance conversion are
-verified for each supported receiver convention, callers must supply the
-receiver-side value from a declared calibration or independently validated
-calculation. Sample alignment, synchronization, and acquisition are also
-caller-controlled.
+For the pinned Sionna PHY 2.2.0 receiver, the adapter converts sample-domain
+variance to per-RE variance using the unitary FFT identity. Sionna applies
+`1/sqrt(N)` in both FFT and IFFT; CP removal selects iid samples, phase
+compensation has unit magnitude, and bin reordering is a permutation. Thus
+proper-complex iid sample noise with variance `sigma²` remains at variance
+`sigma²` per resource element. A native 512-slot noise-only check measures the
+demodulated variance against that value. Other receiver versions still require
+an explicit caller-supplied W/RE profile. Sample alignment, synchronization,
+and acquisition remain caller-controlled.
 
 ```python
 import torch
@@ -49,7 +52,7 @@ result = decode_noisy_network_pusch(
     composition,
     noisy,
     receiver,
-    noise_variance_w_per_re=(1e-6,),  # caller-declared W/RE convention
+    noise_variance_w_per_re=None,  # uses the pinned Sionna 2.2.0 unitary-FFT identity
 )
 print(result.report["status"], result.crc_ok)
 ```
@@ -58,4 +61,4 @@ The receiver API and native V100 smoke prove software-path integration for one
 small synthetic PUSCH configuration only. Reports remain
 `OBSERVED_NOT_QUALIFIED`; no field or deployment qualification follows. The
 strict report contract is
-`datasets/schema/network-pusch-receiver-decode.v1.schema.json`.
+`datasets/schema/network-pusch-receiver-decode.v2.schema.json`.

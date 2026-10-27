@@ -10,7 +10,10 @@ from integrations.sionna.network_phy import (  # noqa: E402
     add_independent_receiver_waveform_awgn,
     compose_received_waveforms,
 )
-from integrations.sionna.network_receiver import decode_noisy_network_pusch  # noqa: E402
+from integrations.sionna.network_receiver import (  # noqa: E402
+    _unitary_sionna_noise_conversion,
+    decode_noisy_network_pusch,
+)
 
 
 class _FakePUSCHReceiver:
@@ -66,11 +69,10 @@ def test_network_waveform_reaches_pusch_decoder_with_bound_inputs_and_status():
     torch.testing.assert_close(receiver.noise_variance, torch.tensor([[[0.04]]]))
     assert result.received_grid.shape == (1, 1, 1, 2, 4)
     assert bool(result.crc_ok.all())
-    assert result.report["schema"] == "umcd.network_pusch_receiver_decode.v1"
+    assert result.report["schema"] == "umcd.network_pusch_receiver_decode.v2"
     assert result.report["status"] == "OBSERVED_NOT_QUALIFIED"
-    assert result.report["receiver_noise_convention"] == (
-        "caller_supplied_per_receive_node_watts_per_resource_element"
-    )
+    assert result.report["receiver_noise_convention"] == "watts_per_resource_element"
+    assert result.report["noise_variance_conversion"] == "caller_supplied_per_re_variance_v1"
     assert result.report["shape"]["transport_blocks"] == 1
     assert len(result.report["report_sha256"]) == 64
     report_body = dict(result.report)
@@ -147,6 +149,18 @@ def test_network_receiver_requires_matching_ofdm_sample_rate_before_demodulation
     assert not receiver.decoded
 
 
+@pytest.mark.parametrize("fft_size", [1, 24, 256, 4096])
+def test_unitary_sionna_fft_preserves_iid_sample_noise_variance(fft_size):
+    converted = _unitary_sionna_noise_conversion(
+        torch,
+        torch.tensor((0.0, 0.25), dtype=torch.float64),
+        rx_count=2,
+        fft_size=fft_size,
+        device="cpu",
+    )
+    torch.testing.assert_close(converted, torch.tensor((0.0, 0.25), dtype=torch.float64))
+
+
 @pytest.mark.native_sionna
 def test_native_network_waveform_decodes_on_selected_pusch_device():
     pytest.importorskip("sionna.phy")
@@ -160,6 +174,19 @@ def test_native_network_waveform_decodes_on_selected_pusch_device():
     )
     tx_grid, _tx_bits = receiver.transmit(batch_size=1, seed=12_345)
     tx_waveform = receiver.modulate_slot_grid(tx_grid)
+    sample_variance = 2e-4
+    noise_generator = torch.Generator(device="cpu").manual_seed(54_319)
+    noise_only_cpu = (
+        torch.complex(
+            torch.randn((512, 1, 1, tx_waveform.shape[-1]), generator=noise_generator),
+            torch.randn((512, 1, 1, tx_waveform.shape[-1]), generator=noise_generator),
+        )
+        * (sample_variance / 2.0) ** 0.5
+    )
+    noise_only_grid = receiver.demodulate_slot_waveform(noise_only_cpu.to(device))
+    measured_noise_variance = noise_only_grid.abs().square().mean()
+    assert float(measured_noise_variance) == pytest.approx(sample_variance, rel=0.015)
+
     links = tx_waveform[:, None, :, :1, :]
     composition = compose_received_waveforms(
         links,
@@ -177,10 +204,19 @@ def test_native_network_waveform_decodes_on_selected_pusch_device():
         composition,
         noisy,
         receiver,
-        noise_variance_w_per_re=(1e-6,),
+        noise_variance_w_per_re=None,
     )
 
     assert result.report["execution_device"] == device
     assert result.report["status"] == "OBSERVED_NOT_QUALIFIED"
     assert result.report["shape"]["transport_blocks"] == 1
+    torch.testing.assert_close(
+        result.noise_variance_w_per_re,
+        noisy.noise_variance_w_per_sample.to(result.noise_variance_w_per_re.device),
+        rtol=0,
+        atol=0,
+    )
+    assert result.report["noise_variance_conversion"] == (
+        "sionna_phy_2_2_0_unitary_dft_preserves_variance_v1"
+    )
     assert bool(result.crc_ok.all())
