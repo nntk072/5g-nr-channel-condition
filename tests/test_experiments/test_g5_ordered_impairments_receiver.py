@@ -589,6 +589,40 @@ def test_independent_probe_schema_versions_bind_estimator_and_waveform_retention
     assert experiment._independent_report_schema("sionna_default_ls", True).endswith(".v19")
     assert experiment._independent_report_schema("finite_delay_dft", False).endswith(".v17")
     assert experiment._independent_report_schema("finite_delay_dft", True).endswith(".v20")
+    assert experiment._independent_report_schema(
+        "sionna_default_ls", False, device="cuda:0"
+    ).endswith(".v21")
+    assert experiment._independent_report_schema(
+        "sionna_default_ls", True, device="cuda:0"
+    ).endswith(".v22")
+    assert experiment._independent_report_schema(
+        "finite_delay_dft", False, device="cuda:0"
+    ).endswith(".v23")
+    assert experiment._independent_report_schema(
+        "finite_delay_dft", True, device="cuda:0"
+    ).endswith(".v24")
+
+
+def test_independent_probe_rejects_unsupported_device_before_receiver_setup() -> None:
+    with pytest.raises(ValueError, match="device must be cpu or"):
+        experiment._run_independent_ordered_impairment_probe(
+            channel_seeds=(1,), blocks_per_channel=1, device="gpu"
+        )
+
+
+def test_independent_probe_rejects_malformed_cuda_device_before_receiver_setup() -> None:
+    with pytest.raises(ValueError, match="device must be cpu or"):
+        experiment._run_independent_ordered_impairment_probe(
+            channel_seeds=(1,), blocks_per_channel=1, device="cuda"
+        )
+
+
+def test_independent_probe_rejects_unavailable_cuda_before_receiver_setup(monkeypatch) -> None:
+    monkeypatch.setattr(experiment.torch.cuda, "is_available", lambda: False)
+    with pytest.raises(RuntimeError, match="no available CUDA device"):
+        experiment._run_independent_ordered_impairment_probe(
+            channel_seeds=(1,), blocks_per_channel=1, device="cuda:0"
+        )
 
 
 def test_bounded_npz_writer_streams_channel_chunks_without_array_stacking() -> None:

@@ -37,13 +37,16 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 _RESULT_SCHEMA = "umcd.g5_ordered_impairments_result.v2"
 _G5_SNR_ACCEPTANCE_SIGNATURE_NAMESPACE = "umcd-g5-snr-acceptance-v1"
 _BLOCK_BOUND_REPORT_SCHEMAS = {
-    f"umcd.g5_ordered_impairments_independent_channels.v{version}" for version in range(15, 21)
+    f"umcd.g5_ordered_impairments_independent_channels.v{version}" for version in range(15, 25)
 }
 _PER_CHANNEL_WAVEFORM_DIAGNOSTIC_SCHEMAS = {
-    f"umcd.g5_ordered_impairments_independent_channels.v{version}" for version in range(7, 21)
+    f"umcd.g5_ordered_impairments_independent_channels.v{version}" for version in range(7, 25)
 }
 _CFO_CHANNEL_TAIL_SCHEMAS = {
-    f"umcd.g5_ordered_impairments_independent_channels.v{version}" for version in range(6, 21)
+    f"umcd.g5_ordered_impairments_independent_channels.v{version}" for version in range(6, 25)
+}
+_CUDA_DEVICE_REPORT_SCHEMAS = {
+    f"umcd.g5_ordered_impairments_independent_channels.v{version}" for version in range(21, 25)
 }
 _MAX_RESULT_BYTES = 32 * 1024 * 1024
 _HEX = set("0123456789abcdef")
@@ -833,6 +836,11 @@ def _audit_result(
         receiver = config.get("receiver_configuration")
         if not isinstance(receiver, dict):
             raise ValueError("new receiver reports require a complete receiver_configuration")
+        execution_device = (
+            config.get("execution_device", "cpu")
+            if experiment.get("schema") in _CUDA_DEVICE_REPORT_SCHEMAS
+            else "cpu"
+        )
         expected_receiver_values = {
             "n_size_bwp": 6,
             "subcarrier_spacing_khz": 30,
@@ -853,7 +861,7 @@ def _audit_result(
             "n_start_grid": 0,
             "n_start_bwp": 0,
             "receiver": "PUSCHLSChannelEstimator",
-            "device": "cpu",
+            "device": execution_device,
             "error_variance_semantics": (
                 "sionna_linear_interpolated_marginal_variance_not_exact_covariance"
             ),
@@ -881,6 +889,15 @@ def _audit_result(
             or receiver.get("sionna_version") != runtime_packages.get("sionna")
         ):
             raise ValueError("receiver Sionna version disagrees with runtime provenance")
+        if experiment.get("schema") in _CUDA_DEVICE_REPORT_SCHEMAS:
+            runtime = provenance.get("runtime")
+            if (
+                not isinstance(execution_device, str)
+                or not execution_device.startswith("cuda:")
+                or not isinstance(runtime, dict)
+                or runtime.get("torch_device") != execution_device
+            ):
+                raise ValueError("CUDA execution device disagrees with receiver/runtime provenance")
 
         for seed, record in zip(seeds, records, strict=True):
             blocks = record.get("transport_blocks")
@@ -1015,6 +1032,10 @@ def _audit_result(
                 "umcd.g5_ordered_impairments_independent_channels.v18",
                 "umcd.g5_ordered_impairments_independent_channels.v19",
                 "umcd.g5_ordered_impairments_independent_channels.v20",
+                "umcd.g5_ordered_impairments_independent_channels.v21",
+                "umcd.g5_ordered_impairments_independent_channels.v22",
+                "umcd.g5_ordered_impairments_independent_channels.v23",
+                "umcd.g5_ordered_impairments_independent_channels.v24",
             }
             else False
         )
@@ -1135,6 +1156,10 @@ def _audit_result(
         "umcd.g5_ordered_impairments_independent_channels.v18",
         "umcd.g5_ordered_impairments_independent_channels.v19",
         "umcd.g5_ordered_impairments_independent_channels.v20",
+        "umcd.g5_ordered_impairments_independent_channels.v21",
+        "umcd.g5_ordered_impairments_independent_channels.v22",
+        "umcd.g5_ordered_impairments_independent_channels.v23",
+        "umcd.g5_ordered_impairments_independent_channels.v24",
     }:
         retained_crc_tails = inference.get("crc_channel_failure_diagnostics")
         checks["crc_channel_cluster_tail_bounds"] = (
@@ -1192,6 +1217,10 @@ def _audit_result(
         "umcd.g5_ordered_impairments_independent_channels.v18",
         "umcd.g5_ordered_impairments_independent_channels.v19",
         "umcd.g5_ordered_impairments_independent_channels.v20",
+        "umcd.g5_ordered_impairments_independent_channels.v21",
+        "umcd.g5_ordered_impairments_independent_channels.v22",
+        "umcd.g5_ordered_impairments_independent_channels.v23",
+        "umcd.g5_ordered_impairments_independent_channels.v24",
     }:
         all_pass &= checks["waveform_equation_recomputation"] is True
     if experiment.get("schema") in {

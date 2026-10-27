@@ -67,6 +67,22 @@ def test_failed_fixture_keeps_conditional_interpretation():
     assert result["interpretation"]["g5_09_closed"] is False
 
 
+def test_cuda_result_binds_receiver_and_runtime_device():
+    report = _minimal_probe_report()
+    report["schema"] = "umcd.g5_ordered_impairments_independent_channels.v21"
+    report["config"] = {
+        **report["config"],
+        "execution_device": "cuda:0",
+        "receiver_configuration": {"device": "cuda:0"},
+    }
+    result = experiment.build_hash_bound_result(report, created_utc="2026-10-23T00:00:00+00:00")
+
+    assert result["provenance"]["runtime"]["torch_device"] == "cuda:0"
+    assert experiment.verify_hash_bound_result(result)
+    result["provenance"]["runtime"]["torch_device"] = "cpu"
+    assert not experiment.verify_hash_bound_result(result)
+
+
 def test_full_cpu_replay_matches_the_original_frozen_fixture():
     repository = Path(__file__).resolve().parents[2]
     results = repository / "experiments" / "results"

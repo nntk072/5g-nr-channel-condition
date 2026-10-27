@@ -301,23 +301,33 @@ def _proper_complex_noise(shape: Any, seed: int, variance: float) -> torch.Tenso
     return torch.complex(real, imag) * math.sqrt(variance / 2.0)
 
 
-def _standard_complex_noise_draws(shape: Any, seed: int) -> tuple[torch.Tensor, torch.Tensor]:
-    """Return the seeded, unscaled real and imaginary Gaussian draws."""
+def _standard_complex_noise_draws(
+    shape: Any, seed: int, *, device: str = "cpu"
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Return CPU-seeded unscaled Gaussian draws on the requested device."""
     generator = torch.Generator(device="cpu").manual_seed(seed)
     real = torch.randn(shape, generator=generator, dtype=torch.float32)
     imag = torch.randn(shape, generator=generator, dtype=torch.float32)
-    return real, imag
+    return real.to(device=device), imag.to(device=device)
 
 
-def _phase_noise(shape: Any, seed: int, sample_rate_hz: float, linewidth_hz: float) -> torch.Tensor:
+def _phase_noise(
+    shape: Any,
+    seed: int,
+    sample_rate_hz: float,
+    linewidth_hz: float,
+    *,
+    device: str = "cpu",
+) -> torch.Tensor:
     generator = torch.Generator(device="cpu").manual_seed(seed)
-    return generate_wiener_phase_noise_rad(
+    phase = generate_wiener_phase_noise_rad(
         shape[-1],
         sampling_frequency_hz=sample_rate_hz,
         linewidth_hz=linewidth_hz,
         generator=generator,
         leading_shape=tuple(shape[:-1]),
     )
+    return phase.to(device=device)
 
 
 def _known_chain(
@@ -697,7 +707,22 @@ def _independent_report_schema(
     channel_estimator: str,
     has_waveform_evidence: bool,
     has_condition_input_evidence: bool = True,
+    device: str = "cpu",
 ) -> str:
+    if device != "cpu":
+        if channel_estimator == "finite_delay_dft":
+            return (
+                "umcd.g5_ordered_impairments_independent_channels.v24"
+                if has_waveform_evidence and has_condition_input_evidence
+                else "umcd.g5_ordered_impairments_independent_channels.v23"
+            )
+        if channel_estimator == "sionna_default_ls":
+            return (
+                "umcd.g5_ordered_impairments_independent_channels.v22"
+                if has_waveform_evidence and has_condition_input_evidence
+                else "umcd.g5_ordered_impairments_independent_channels.v21"
+            )
+        raise ValueError("channel_estimator must be sionna_default_ls or finite_delay_dft")
     if channel_estimator == "finite_delay_dft":
         return (
             "umcd.g5_ordered_impairments_independent_channels.v20"
@@ -725,11 +750,33 @@ def _run_independent_ordered_impairment_probe(
     channel_estimator: str = "sionna_default_ls",
     noise_variance: float = NOISE_VARIANCE,
     include_condition_inputs: bool = True,
+    device: str = "cpu",
 ) -> dict[str, Any]:
     """Run paired ordered-impairment PUSCH trials over independent two-path channels."""
     evidence_path = Path(waveform_evidence_output) if waveform_evidence_output is not None else None
     if not isinstance(include_condition_inputs, bool):
         raise TypeError("include_condition_inputs must be a Boolean")
+    if not isinstance(device, str) or not (device == "cpu" or device.startswith("cuda:")):
+        raise ValueError("device must be cpu or an explicit CUDA device such as cuda:0")
+    if device != "cpu":
+        try:
+            parsed_device = torch.device(device)
+        except (RuntimeError, ValueError) as exc:
+            raise ValueError(
+                "device must be cpu or an explicit CUDA device such as cuda:0"
+            ) from exc
+        if (
+            parsed_device.type != "cuda"
+            or parsed_device.index is None
+            or str(parsed_device) != device
+        ):
+            raise ValueError("device must be cpu or an explicit CUDA device such as cuda:0")
+        if not torch.cuda.is_available():
+            raise RuntimeError(
+                "CUDA was requested, but this PyTorch runtime has no available CUDA device"
+            )
+        if parsed_device.index >= torch.cuda.device_count():
+            raise ValueError(f"CUDA device index {parsed_device.index} is not available")
     if evidence_path is not None:
         if "\\" in evidence_path.name or not evidence_path.name.endswith(".npz"):
             raise ValueError("waveform evidence output must be a sibling-safe .npz filename")
@@ -762,7 +809,7 @@ def _run_independent_ordered_impairment_probe(
         )
 
     config = NRPUSCHConfig(n_size_bwp=6, subcarrier_spacing_khz=30)
-    receiver = SionnaPUSCHLSReceiver(config, device="cpu")
+    receiver = SionnaPUSCHLSReceiver(config, device=device)
     decode_pusch, estimator_config = _configure_probe_decoder(receiver, channel_estimator)
     grid = receiver.resource_grid
     sample_rate_hz = float(grid.fft_size * config.subcarrier_spacing_khz * 1_000)
@@ -817,8 +864,12 @@ def _run_independent_ordered_impairment_probe(
         tx_phase_seed = channel_seed + TX_PHASE_SEED_OFFSET + 1_000_000
         rx_phase_seed = channel_seed + RX_PHASE_SEED_OFFSET + 1_000_000
         noise_seed = channel_seed + NOISE_SEED_OFFSET + 1_000_000
-        tx_phase = _phase_noise(shape, tx_phase_seed, sample_rate_hz, TX_LINEWIDTH_HZ)
-        rx_phase = _phase_noise(shape, rx_phase_seed, sample_rate_hz, RX_LINEWIDTH_HZ)
+        tx_phase = _phase_noise(
+            shape, tx_phase_seed, sample_rate_hz, TX_LINEWIDTH_HZ, device=device
+        )
+        rx_phase = _phase_noise(
+            shape, rx_phase_seed, sample_rate_hz, RX_LINEWIDTH_HZ, device=device
+        )
 
         tx_iq_reference = apply_iq_imbalance(
             tx_waveform,
@@ -832,7 +883,7 @@ def _run_independent_ordered_impairment_probe(
                 ..., : tx_reference.shape[-1]
             ]
             channel_reference = channel_reference + coefficient * delayed
-        sample_axis = torch.arange(tx_waveform.shape[-1], dtype=torch.float32)
+        sample_axis = torch.arange(tx_waveform.shape[-1], dtype=torch.float32, device=device)
         cfo_phase = 2.0 * math.pi * CFO_HZ * sample_axis / sample_rate_hz
         rx_reference = channel_reference * torch.polar(torch.ones_like(cfo_phase), cfo_phase)
         rx_reference = rx_reference * torch.polar(torch.ones_like(rx_phase), rx_phase)
@@ -857,7 +908,7 @@ def _run_independent_ordered_impairment_probe(
             path_coefficients=path_coefficients,
             path_delays_samples=path_delays,
         )
-        awgn_real, awgn_imag = _standard_complex_noise_draws(shape, noise_seed)
+        awgn_real, awgn_imag = _standard_complex_noise_draws(shape, noise_seed, device=device)
         noise = torch.complex(awgn_real, awgn_imag) * math.sqrt(noise_variance / 2.0)
         noisy_capture = actual_capture + noise
         noisy_input_hashes.append(
@@ -930,10 +981,11 @@ def _run_independent_ordered_impairment_probe(
             clean_capture, offset_samples=-TIMING_OFFSET_SAMPLES
         )[..., : tx_waveform.shape[-1]]
         clean_grid = receiver.demodulate_slot_waveform(clean_aligned)
-        _, clean_crc = decode_pusch(clean_grid, torch.tensor(noise_variance))
+        receiver_noise_variance = torch.tensor(noise_variance, device=device)
+        _, clean_crc = decode_pusch(clean_grid, receiver_noise_variance)
 
         uncorrected_grid = receiver.demodulate_slot_waveform(noisy_capture)
-        _, uncorrected_crc = decode_pusch(uncorrected_grid, torch.tensor(noise_variance))
+        _, uncorrected_crc = decode_pusch(uncorrected_grid, receiver_noise_variance)
         acquired_timing = estimate_integer_timing_offset_from_cp(
             noisy_capture,
             fft_size=int(grid.fft_size),
@@ -972,7 +1024,7 @@ def _run_independent_ordered_impairment_probe(
                 receiver_input_hashes[condition].append(_sha256(receiver_array.tobytes()))
                 evidence_receiver_inputs[condition].append(receiver_array.copy())
         corrected_grid = receiver.demodulate_slot_waveform(corrected)
-        _, corrected_crc = decode_pusch(corrected_grid, torch.tensor(noise_variance))
+        _, corrected_crc = decode_pusch(corrected_grid, receiver_noise_variance)
 
         outcomes = {
             "clean": [bool(value) for value in clean_crc.reshape(-1).tolist()],
@@ -1215,9 +1267,10 @@ def _run_independent_ordered_impairment_probe(
             channel_estimator,
             waveform_evidence is not None,
             has_condition_input_evidence=include_condition_inputs,
+            device=device,
         ),
         "scope": (
-            "synthetic 6-RB/30-kHz CPU PUSCH over independently seeded static two-path channels; "
+            f"synthetic 6-RB/30-kHz {device} PUSCH over independently seeded static two-path channels; "
             "combined IQ imbalance, Wiener phase noise, CFO, integer timing and AWGN receiver "
             "fixture with one CP-derived timing/CFO estimate shared over repeated blocks in each "
             "channel cluster, using fixed timing and family-maximum CFO guards without per-channel "
@@ -1230,6 +1283,7 @@ def _run_independent_ordered_impairment_probe(
             "fft_size": int(grid.fft_size),
             "cyclic_prefix_samples": cp_length,
             "channel_seeds": list(channel_seeds),
+            **({"execution_device": device} if device != "cpu" else {}),
             "blocks_per_channel": blocks_per_channel,
             "payload_seed_offset": 1_000_000,
             "noise_seed_offset": NOISE_SEED_OFFSET + 1_000_000,
@@ -1288,6 +1342,7 @@ def run_independent_ordered_impairment_probe(
     channel_estimator: str = "sionna_default_ls",
     noise_variance: float = NOISE_VARIANCE,
     include_condition_inputs: bool = True,
+    device: str = "cpu",
 ) -> dict[str, Any]:
     """Run the independent-channel probe with bounded CPU threads."""
     original_torch_threads = torch.get_num_threads()
@@ -1300,6 +1355,7 @@ def run_independent_ordered_impairment_probe(
             channel_estimator=channel_estimator,
             noise_variance=noise_variance,
             include_condition_inputs=include_condition_inputs,
+            device=device,
         )
     finally:
         torch.set_num_threads(original_torch_threads)
@@ -1916,6 +1972,8 @@ def build_hash_bound_result(
                 if report.get("acceptance", {}).get("criteria_frozen_before_run", {}).get("status")
                 == "descriptive_only"
                 else "This verdict applies only to the declared deterministic synthetic CPU fixture."
+                if report.get("config", {}).get("execution_device", "cpu") == "cpu"
+                else "This verdict applies only to the declared deterministic synthetic fixture and execution device."
             ),
             "deployment_qualification": False,
             "g5_09_closed": False,
@@ -1946,7 +2004,7 @@ def build_hash_bound_result(
                 "python": platform.python_version(),
                 "platform": platform.platform(),
                 "packages": packages,
-                "torch_device": "cpu",
+                "torch_device": report.get("config", {}).get("execution_device", "cpu"),
             },
         },
     }
@@ -1973,6 +2031,22 @@ def verify_hash_bound_result(result: dict[str, Any]) -> bool:
         != _sha256(_canonical_json_bytes(experiment.get("config")))
     ):
         return False
+    if experiment.get("schema") in {
+        f"umcd.g5_ordered_impairments_independent_channels.v{version}" for version in range(21, 25)
+    }:
+        config = experiment.get("config")
+        receiver = config.get("receiver_configuration") if isinstance(config, dict) else None
+        runtime = provenance.get("runtime")
+        device = config.get("execution_device") if isinstance(config, dict) else None
+        if (
+            not isinstance(device, str)
+            or not device.startswith("cuda:")
+            or not isinstance(receiver, dict)
+            or receiver.get("device") != device
+            or not isinstance(runtime, dict)
+            or runtime.get("torch_device") != device
+        ):
+            return False
     protocol = provenance.get("protocol")
     if not isinstance(protocol, dict):
         return False
@@ -2059,6 +2133,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--seed-count", type=int, default=len(PAYLOAD_SEEDS))
     parser.add_argument("--blocks-per-seed", type=int, default=BLOCKS_PER_SEED)
+    parser.add_argument(
+        "--device",
+        default="cpu",
+        help="PUSCH receiver execution device for the bounded independent-channel probe",
+    )
     parser.add_argument(
         "--independent-channel-count",
         type=int,
@@ -2191,6 +2270,8 @@ def main() -> None:
             else None
         )
         if args.snr_db is not None:
+            if args.device != "cpu":
+                parser.error("--device CUDA is supported for one-point probes, not SNR curves")
             if args.output is not None and evidence_path is not None:
                 if evidence_path.parent.resolve() != args.output.parent.resolve():
                     parser.error("waveform evidence must be a sibling of the result JSON")
@@ -2243,6 +2324,7 @@ def main() -> None:
             blocks_per_channel=args.blocks_per_seed,
             waveform_evidence_output=evidence_path,
             channel_estimator=args.channel_estimator,
+            device=args.device,
         )
         if args.output is not None:
             result = build_hash_bound_result(report)
@@ -2253,6 +2335,8 @@ def main() -> None:
         return
     if args.channel_estimator != "sionna_default_ls":
         parser.error("--channel-estimator requires --independent-channel-count")
+    if args.device != "cpu":
+        parser.error("--device requires --independent-channel-count")
     if args.snr_db is not None:
         parser.error("--snr-db requires --independent-channel-count")
     if args.channel_seed_start is not None:
