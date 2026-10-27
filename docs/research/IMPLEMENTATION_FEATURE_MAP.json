@@ -1384,7 +1384,7 @@
     {
       "backlog_line": 255,
       "backlog_status": "open",
-      "description": "Inventory each remaining G4 gate against existing native checks and implement only genuine gaps: hash-pinned tables, tap/delay/power and LOS partition, angular geometry, array/orientation, polarization, covariance, circularity, and temporal evolution. The frozen CDL joint delay/four-angle characteristic and fixed-TDL Rayleigh properness have pinned-reference native regression definitions; scalable TDL-A–E first-tap covariance and scalable/fixed TDL Doppler expectation inputs now come from independent ETSI component fixtures rather than adapter metadata. Scalable TDL-A–E now also have a source-bound three-lag Jakes temporal covariance protocol across all ETSI-labeled Rayleigh taps (95 taps, 570 simultaneous coordinates) with a fresh audited seed roster. A matching scalable-TDL proper-complex protocol covers every ETSI-labeled Rayleigh tap outside the merged TDL-D/E LOS tap. Native statistical generation remains intentionally unrun until consolidated validation; none establishes the full delay-angle law or G4 qualification.",
+      "description": "Inventory each remaining G4 gate against existing native checks and implement only genuine gaps: hash-pinned tables, tap/delay/power and LOS partition, angular geometry, array/orientation, polarization, covariance, circularity, and temporal evolution. The frozen CDL joint delay/four-angle characteristic and fixed-TDL Rayleigh properness have pinned-reference native regression definitions; scalable TDL-A–E first-tap covariance and scalable/fixed TDL Doppler expectation inputs now come from independent ETSI component fixtures rather than adapter metadata. Scalable TDL-A–E have a source-bound three-lag Jakes temporal covariance protocol across all 95 ETSI-labeled Rayleigh taps (570 simultaneous coordinates); fixed TDL A10/A30/B100/C60/C300/D10/D30 now have a matching protocol across 82 Rayleigh-only taps (492 coordinates), both with fresh audited seed rosters. A scalable-TDL proper-complex protocol covers every ETSI-labeled Rayleigh tap outside the merged TDL-D/E LOS tap. These protocol definitions close a software-contract gap only: native statistical generation remains intentionally deferred until consolidated validation; none establishes the full delay-angle law or G4 qualification.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
@@ -1591,7 +1591,7 @@
     {
       "backlog_line": 264,
       "backlog_status": "open",
-      "description": "Complete confidence-controlled tests for remaining profile/configuration/topology combinations and criteria at the gate's required statistical unit; do not mistake deterministic table checks or helper self-consistency for a population qualification. Frozen software protocols now include fixed-TDL proper-complex checks, scalable TDL temporal covariance, and a scalable TDL Doppler-spectrum CDF family (five audited seeds; `docs/research/G4_07_SCALABLE_TDL_DOPPLER_SPECTRUM_PROTOCOL_V1_2026-10-27.md`). The Doppler spectrum's four portable cases pass; all new native statistical generation remains deferred until consolidated validation, and G4 qualification remains open.",
+      "description": "Complete confidence-controlled tests for remaining profile/configuration/topology combinations and criteria at the gate's required statistical unit; do not mistake deterministic table checks or helper self-consistency for a population qualification. Frozen software protocols now include fixed-TDL proper-complex and temporal covariance checks, scalable TDL temporal covariance, and a scalable TDL Doppler-spectrum CDF family (five audited seeds; `docs/research/G4_07_SCALABLE_TDL_DOPPLER_SPECTRUM_PROTOCOL_V1_2026-10-27.md`). The Doppler spectrum's four portable cases pass; all new native statistical generation remains deferred until consolidated validation, and G4 qualification remains open.",
       "evidence_links": {
         "cli_entries": [],
         "documentation": [
@@ -4122,7 +4122,7 @@
   "schema": "loslab.implementation_feature_map.v1",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "cdb4f54fac1679febe28b88ffda47400d9b2c5a8d6afe209c0978ab36d4c1a6d"
+    "sha256": "eaf2983fbbc2fdddf75cbea4fc4af11930d0df66e0c0809be72ca197e97f3966"
   },
   "summary": {
     "feature_count": 176,
