@@ -41,11 +41,25 @@ def _mock_sionna_scene():
 
 
 def _identity(*, complete: bool = True) -> dict:
+    asset_rows = [
+        {
+            "path": "scene.xml",
+            "bytes": 10,
+            "sha256": hashlib.sha256(b"scene bytes").hexdigest(),
+        }
+    ]
+    asset_manifest = {
+        "scene_xml_path": "/fixture/scene.xml",
+        "asset_count": len(asset_rows),
+        "assets": asset_rows,
+        "asset_set_sha256": hashlib.sha256(
+            json.dumps(asset_rows, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest(),
+        "unresolved_references": [],
+        "complete": complete,
+    }
     return rt_run_identity(
-        scene_asset_manifest={
-            "complete": complete,
-            "asset_set_sha256": "scene-v1",
-        },
+        scene_asset_manifest=asset_manifest,
         physical_config={"carrier_hz": 3.5e9},
         solver_config={"max_depth": 2},
         seed=9,

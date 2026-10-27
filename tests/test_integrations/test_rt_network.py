@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
+
 import numpy as np
 import pytest
 from datasets.network import (
@@ -212,8 +215,24 @@ def test_rt_episode_writer_publishes_layer_bound_provenance(monkeypatch, tmp_pat
             solve_status=kwargs["solve_status"],
         ),
     )
+    asset_rows = [
+        {
+            "path": "scene.xml",
+            "bytes": 10,
+            "sha256": hashlib.sha256(b"scene bytes").hexdigest(),
+        }
+    ]
     identity = rt_run_identity(
-        scene_asset_manifest={"complete": True, "asset_set_sha256": "a" * 64},
+        scene_asset_manifest={
+            "scene_xml_path": "/fixture/scene.xml",
+            "asset_count": 1,
+            "assets": asset_rows,
+            "asset_set_sha256": hashlib.sha256(
+                json.dumps(asset_rows, sort_keys=True, separators=(",", ":")).encode()
+            ).hexdigest(),
+            "unresolved_references": [],
+            "complete": True,
+        },
         physical_config={"carrier_hz": 3.5e9},
         solver_config={"max_depth": 2},
         seed=9,

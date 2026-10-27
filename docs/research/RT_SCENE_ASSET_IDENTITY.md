@@ -23,6 +23,15 @@ asset changes detectable. Runtime backend and solver configuration are stored
 separately, so the scene asset hash does not pretend to identify carrier,
 materials converted at runtime, solver settings, or random seeds.
 
+Before issuing a reusable run/cache key, `integrations.sionna.rt_identity`
+revalidates the complete manifest envelope, every relative asset path, byte
+count and SHA-256, the empty unresolved-reference roster, and the set digest
+recomputed from the exact canonical asset rows. A caller cannot make an
+incomplete or internally inconsistent inventory reusable by setting only
+`complete: true` and supplying a digest string. This verifies manifest
+consistency; source-byte capture remains the responsibility of
+`scene_asset_manifest` and the separately documented stable-file checks.
+
 The resolver follows XML `filename` references and OBJ/MTL dependencies. It
 does not parse arbitrary custom plugin formats or hash runtime-generated
 material state. Scene XML/assets and the Sionna RT/Mitsuba/Dr.Jit versions must

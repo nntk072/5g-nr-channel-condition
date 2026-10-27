@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+import hashlib
+import json
+
+import pytest
 from integrations.sionna.rt_identity import (
     rt_run_identity,
     rt_runtime_fingerprint,
@@ -8,9 +12,30 @@ from integrations.sionna.rt_identity import (
 )
 
 
+def _scene_assets(payload: bytes = b"scene bytes") -> dict[str, object]:
+    rows = [
+        {
+            "path": "scene.xml",
+            "bytes": len(payload),
+            "sha256": hashlib.sha256(payload).hexdigest(),
+        }
+    ]
+    asset_set_sha256 = hashlib.sha256(
+        json.dumps(rows, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+    return {
+        "scene_xml_path": "/scenes/scene.xml",
+        "asset_count": len(rows),
+        "assets": rows,
+        "asset_set_sha256": asset_set_sha256,
+        "unresolved_references": [],
+        "complete": True,
+    }
+
+
 def _inputs():
     return {
-        "scene_asset_manifest": {"complete": True, "asset_set_sha256": "scene-v1"},
+        "scene_asset_manifest": _scene_assets(),
         "physical_config": {"carrier_hz": 3.5e9},
         "solver_config": {"max_depth": 2, "diffraction": False},
         "seed": 7,
@@ -38,7 +63,6 @@ def test_rt_run_identity_is_stable_and_ignores_probe_diagnostics():
 def test_rt_run_identity_changes_for_each_result_affecting_input():
     baseline = rt_run_identity(**_inputs())["cache_key_sha256"]
     mutations = (
-        ("scene_asset_manifest", "asset_set_sha256", "scene-v2"),
         ("physical_config", "carrier_hz", 2.6e9),
         ("solver_config", "max_depth", 3),
         ("backend_selection", "variant", "cuda_ad_mono_polarized"),
@@ -54,6 +78,40 @@ def test_rt_run_identity_changes_for_each_result_affecting_input():
     inputs = _inputs()
     inputs["package_source_sha256"] = "source-v2"
     assert rt_run_identity(**inputs)["cache_key_sha256"] != baseline
+    inputs = _inputs()
+    inputs["scene_asset_manifest"] = _scene_assets(b"changed scene bytes")
+    assert rt_run_identity(**inputs)["cache_key_sha256"] != baseline
+
+
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    [
+        (lambda manifest: manifest.update(assets=[]), "nonempty assets roster"),
+        (lambda manifest: manifest.update(asset_count=2), "asset_count"),
+        (lambda manifest: manifest.update(unresolved_references=["missing.obj"]), "unresolved"),
+        (lambda manifest: manifest["assets"][0].update(sha256="scene-v2"), "lowercase SHA-256"),
+        (
+            lambda manifest: manifest["assets"][0].update(path="./scene.xml"),
+            "canonical relative paths",
+        ),
+        (
+            lambda manifest: manifest["assets"][0].update(path="../scene.xml"),
+            "canonical relative paths",
+        ),
+    ],
+)
+def test_rt_run_identity_rejects_incomplete_or_inconsistent_complete_manifests(mutation, message):
+    inputs = _inputs()
+    mutation(inputs["scene_asset_manifest"])
+    with pytest.raises(ValueError, match=message):
+        rt_run_identity(**inputs)
+
+
+def test_rt_run_identity_rejects_asset_set_digest_drift():
+    inputs = _inputs()
+    inputs["scene_asset_manifest"]["asset_set_sha256"] = "0" * 64
+    with pytest.raises(ValueError, match="does not match its exact assets roster"):
+        rt_run_identity(**inputs)
 
 
 def test_incomplete_scene_closure_never_receives_reusable_key():
@@ -146,7 +204,6 @@ def test_static_rt_solver_config_validates_and_records_all_switches():
 
 def test_complete_rt_identity_converts_to_layer_specific_umcd_provenance():
     inputs = _inputs()
-    inputs["scene_asset_manifest"]["asset_set_sha256"] = "a" * 64
     inputs["package_source_sha256"] = "b" * 64
     identity = rt_run_identity(**inputs)
 
@@ -160,7 +217,9 @@ def test_complete_rt_identity_converts_to_layer_specific_umcd_provenance():
     )
 
     assert record.run_identity_sha256 == identity["cache_key_sha256"]
-    assert record.scene_asset_sha256["asset_set"] == "a" * 64
+    assert (
+        record.scene_asset_sha256["asset_set"] == inputs["scene_asset_manifest"]["asset_set_sha256"]
+    )
     assert record.software_versions["python"] == "3.12.0"
     assert record.solver_config["max_depth"] == 2
 
@@ -183,7 +242,6 @@ def test_rt_identity_provenance_adapter_rejects_incomplete_or_tampered_identity(
         raise AssertionError("incomplete RT identity must be rejected")
 
     inputs = _inputs()
-    inputs["scene_asset_manifest"]["asset_set_sha256"] = "a" * 64
     inputs["package_source_sha256"] = "b" * 64
     identity = rt_run_identity(**inputs)
     identity["inputs"]["solver_config"]["max_depth"] = 99

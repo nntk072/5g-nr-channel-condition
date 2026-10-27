@@ -2,13 +2,84 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import os
 import platform
+import re
 import subprocess
+from pathlib import PurePosixPath
 from typing import Any, Mapping
 
 from artifacts.provenance import canonical_hash
 from datasets.provenance import UMCDRunProvenance
+
+_SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
+_SCENE_ASSET_MANIFEST_FIELDS = {
+    "scene_xml_path",
+    "asset_count",
+    "assets",
+    "asset_set_sha256",
+    "unresolved_references",
+    "complete",
+}
+
+
+def _validated_scene_asset_set_sha256(scene_asset_manifest: Mapping[str, Any]) -> str | None:
+    """Validate a closed scene inventory and recompute its content-set digest."""
+    if scene_asset_manifest.get("complete") is not True:
+        return None
+    if set(scene_asset_manifest) != _SCENE_ASSET_MANIFEST_FIELDS:
+        raise ValueError("complete scene asset manifest has missing or unknown fields")
+    scene_path = scene_asset_manifest.get("scene_xml_path")
+    assets = scene_asset_manifest.get("assets")
+    unresolved = scene_asset_manifest.get("unresolved_references")
+    count = scene_asset_manifest.get("asset_count")
+    if not isinstance(scene_path, str) or not scene_path:
+        raise ValueError("complete scene asset manifest needs a scene_xml_path")
+    if not isinstance(assets, list) or not assets:
+        raise ValueError("complete scene asset manifest needs a nonempty assets roster")
+    if isinstance(count, bool) or not isinstance(count, int) or count != len(assets):
+        raise ValueError("scene asset_count must match its assets roster")
+    if unresolved != []:
+        raise ValueError("complete scene asset manifest cannot have unresolved references")
+    normalized: list[dict[str, Any]] = []
+    seen_paths: set[str] = set()
+    for row in assets:
+        if not isinstance(row, Mapping) or set(row) != {"path", "bytes", "sha256"}:
+            raise ValueError("scene asset rows must contain exactly path, bytes, and sha256")
+        path = row["path"]
+        byte_count = row["bytes"]
+        digest = row["sha256"]
+        normalized_path = PurePosixPath(path).as_posix() if isinstance(path, str) else None
+        if (
+            not isinstance(path, str)
+            or not path
+            or path != path.strip()
+            or normalized_path != path
+            or path.startswith("/")
+            or "\\" in path
+            or ".." in path.split("/")
+            or any(ord(character) < 32 for character in path)
+            or path in seen_paths
+        ):
+            raise ValueError("scene asset paths must be unique canonical relative paths")
+        if isinstance(byte_count, bool) or not isinstance(byte_count, int) or byte_count < 0:
+            raise ValueError("scene asset byte counts must be nonnegative integers")
+        if not isinstance(digest, str) or not _SHA256_PATTERN.fullmatch(digest):
+            raise ValueError("scene asset digests must be lowercase SHA-256 values")
+        seen_paths.add(path)
+        normalized.append({"path": path, "bytes": byte_count, "sha256": digest})
+    normalized.sort(key=lambda row: (row["path"], row["sha256"]))
+    computed = hashlib.sha256(
+        json.dumps(normalized, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+    declared = scene_asset_manifest.get("asset_set_sha256")
+    if not isinstance(declared, str) or not _SHA256_PATTERN.fullmatch(declared):
+        raise ValueError("complete scene asset manifest needs a canonical asset-set SHA-256")
+    if declared != computed:
+        raise ValueError("scene asset-set digest does not match its exact assets roster")
+    return computed
 
 
 def rt_runtime_fingerprint(base_versions: Mapping[str, str]) -> dict[str, str]:
@@ -73,16 +144,14 @@ def rt_run_identity(
         raise ValueError("seed must be a nonnegative integer")
     if not package_source_sha256:
         raise ValueError("package_source_sha256 must be nonempty")
-    if not bool(scene_asset_manifest.get("complete")):
+    asset_hash = _validated_scene_asset_set_sha256(scene_asset_manifest)
+    if asset_hash is None:
         return {
             "schema": "loslab.rt_run_identity.v1",
             "complete": False,
             "cache_key_sha256": None,
             "reason": "scene asset closure is incomplete",
         }
-    asset_hash = scene_asset_manifest.get("asset_set_sha256")
-    if not isinstance(asset_hash, str) or not asset_hash:
-        raise ValueError("complete scene manifest must include asset_set_sha256")
     backend = {
         "backend": backend_selection.get("backend"),
         "variant": backend_selection.get("variant"),
