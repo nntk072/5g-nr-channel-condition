@@ -14,6 +14,8 @@ from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 from .model_input_audit import audit_model_input_payload
 from .targets import TargetDefinition, TargetValidity, validate_canonical_target_contract
 
+MAX_REFERENCE_TRANSPORT_BLOCK_BITS = 20_000_000
+
 
 def _freeze_mapping(values: Mapping[str, Any]) -> Mapping[str, Any]:
     return MappingProxyType(dict(values))
@@ -166,7 +168,12 @@ class LinkedNRObservation:
 
 @dataclass(frozen=True, slots=True)
 class NRChannelRecord:
-    """Training/evaluation record separating model inputs from private truth."""
+    """Training/evaluation record separating model inputs from private truth.
+
+    ``reference_transport_block_bits`` is evaluation-side TX truth. It is kept
+    outside ``NRObservation`` and ``NRModelInputs`` so it cannot enter the
+    receiver-visible model feature contract.
+    """
 
     observation: NRObservation
     targets: Mapping[str, Any]
@@ -174,6 +181,7 @@ class NRChannelRecord:
     provenance: Mapping[str, Any]
     target_definitions: Mapping[str, TargetDefinition] = field(default_factory=dict)
     target_reason_codes: Mapping[str, tuple[TargetValidity, ...]] = field(default_factory=dict)
+    reference_transport_block_bits: Any | None = None
 
     def __post_init__(self) -> None:
         if not self.targets:
@@ -283,6 +291,24 @@ class NRChannelRecord:
             normalized_reasons[name] = reasons
         if not self.provenance:
             raise ValueError("provenance must not be empty")
+        reference_bits = self.reference_transport_block_bits
+        if reference_bits is not None:
+            if torch_module is not None and torch_module.is_tensor(reference_bits):
+                reference_bits = reference_bits.detach().cpu().numpy()
+            reference_array = np.asarray(reference_bits)
+            if (
+                reference_array.ndim != 2
+                or any(size <= 0 for size in reference_array.shape)
+                or reference_array.size > MAX_REFERENCE_TRANSPORT_BLOCK_BITS
+                or reference_array.dtype.kind not in "biu"
+                or np.any((reference_array != 0) & (reference_array != 1))
+            ):
+                raise ValueError(
+                    "reference_transport_block_bits must be a bounded binary [TX, bit] array"
+                )
+            reference_array = np.array(reference_array, dtype=np.uint8, copy=True)
+            reference_array.setflags(write=False)
+            object.__setattr__(self, "reference_transport_block_bits", reference_array)
         definitions = dict(self.target_definitions)
         if definitions and set(definitions) != set(self.targets):
             raise ValueError("target definitions must describe every declared target")

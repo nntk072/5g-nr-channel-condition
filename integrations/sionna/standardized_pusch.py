@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import math
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
 from typing import Any, Literal, Sequence
 
 import numpy as np
@@ -292,7 +292,15 @@ def build_standardized_pusch_dmrs_records(
                 [noise_seed, record.sample_index]
             ).generate_state(2, dtype=np.uint32)
             child_noise_seed = (int(noise_seed_words[0]) << 32) | int(noise_seed_words[1])
-        transmit_grid, _ = receiver.transmit(1, seed=child_seed)
+        transmit_grid, transmitted_bits = receiver.transmit(1, seed=child_seed)
+        reference_transport_block_bits = np.asarray(
+            transmitted_bits.detach().cpu().numpy()[0], dtype=np.uint8
+        )
+        if reference_transport_block_bits.ndim != 2:
+            raise RuntimeError("Sionna transmitter returned an unexpected transport-block shape")
+        transport_block_sha256 = hashlib.sha256(
+            reference_transport_block_bits.tobytes(order="C")
+        ).hexdigest()
         tx_phase_noise_seed = None
         rx_phase_noise_seed = None
         transmit_waveform = None
@@ -501,6 +509,8 @@ def build_standardized_pusch_dmrs_records(
                         "E[|n|^2] is noise_variance_per_complex_dimension"
                     ),
                     "pusch_transmit_seed": child_seed,
+                    "reference_transport_block_sha256": transport_block_sha256,
+                    "reference_transport_block_shape": list(reference_transport_block_bits.shape),
                     "noise_variance_per_complex_dimension": float(noise_variance),
                     "noise_variance_per_real_dimension": float(noise_variance) / 2.0,
                     "noise_seed": child_noise_seed,
@@ -537,9 +547,94 @@ def build_standardized_pusch_dmrs_records(
                     "channel_cfr": channel_definition,
                     "profile_los_proxy": profile_definition,
                 },
+                reference_transport_block_bits=reference_transport_block_bits,
             )
         )
     return tuple(records)
+
+
+@dataclass(frozen=True, slots=True)
+class StandardizedPUSCHDecodeOutcome:
+    """Per-record diagnostic decode, including exact reference-payload errors."""
+
+    sample_id: str
+    transport_block_crc_pass: bool
+    payload_bit_errors: int
+    payload_bit_count: int
+
+
+def audit_standardized_pusch_records_for_diagnostic(
+    records: Sequence[NRChannelRecord],
+    *,
+    receiver_config: NRPUSCHConfig,
+    estimate_source: Literal["dmrs_ls", "diagonal_cfr_oracle"],
+) -> tuple[StandardizedPUSCHDecodeOutcome, ...]:
+    """Decode records and compare bits with their retained exact TX reference.
+
+    The reference payload is evaluation-side data, stored outside
+    ``NRObservation`` and never exposed to ``NRModelInputs``. This diagnostic
+    cross-checks the payload bit error count and transport-block CRC; it is not
+    a preregistered receiver qualification result.
+
+    ``diagonal_cfr_oracle`` is an analysis-only control for separating channel
+    estimation error from off-diagonal ISI/ICI. It must not be exposed as a
+    model input or interpreted as a general receiver configuration.
+    """
+    if not records:
+        raise ValueError("records must not be empty")
+    if estimate_source not in {"dmrs_ls", "diagonal_cfr_oracle"}:
+        raise ValueError("unsupported diagnostic estimate source")
+
+    import torch
+    from sionna.phy.nr import PUSCHReceiver
+
+    transmitter = SionnaPUSCHLSReceiver(receiver_config, device="cpu")
+    decoder = PUSCHReceiver(
+        transmitter._transmitter,
+        channel_estimator="perfect",
+        return_tb_crc_status=True,
+        input_domain="freq",
+        device="cpu",
+    )
+    outcomes: list[StandardizedPUSCHDecodeOutcome] = []
+    for record in records:
+        reference_bits = record.reference_transport_block_bits
+        if reference_bits is None:
+            raise ValueError(
+                f"record {record.observation.sample_id!r} has no retained TX reference payload"
+            )
+        reference_array = np.asarray(reference_bits, dtype=np.uint8)
+        expected_shape = record.provenance.get("reference_transport_block_shape")
+        expected_digest = record.provenance.get("reference_transport_block_sha256")
+        if (
+            expected_shape != list(reference_array.shape)
+            or expected_digest != hashlib.sha256(reference_array.tobytes(order="C")).hexdigest()
+        ):
+            raise ValueError("retained TX reference payload differs from its provenance digest")
+        estimate = (
+            record.observation.channel_estimate.h_hat
+            if estimate_source == "dmrs_ls"
+            else record.targets["channel_cfr"]
+        )
+        decoded_bits, crc = decoder(
+            record.observation.received_grid,
+            torch.tensor(record.provenance["noise_variance_per_complex_dimension"]),
+            h=estimate,
+        )
+        reference_tensor = torch.as_tensor(reference_array, device=decoded_bits.device)
+        if tuple(decoded_bits.shape) == (1, *tuple(reference_tensor.shape)):
+            reference_tensor = reference_tensor.unsqueeze(0)
+        if tuple(decoded_bits.shape) != tuple(reference_tensor.shape):
+            raise ValueError("decoded payload shape differs from retained TX reference payload")
+        outcomes.append(
+            StandardizedPUSCHDecodeOutcome(
+                sample_id=record.observation.sample_id,
+                transport_block_crc_pass=bool(crc.all()),
+                payload_bit_errors=int(torch.count_nonzero(decoded_bits != reference_tensor)),
+                payload_bit_count=int(reference_tensor.numel()),
+            )
+        )
+    return tuple(outcomes)
 
 
 def decode_standardized_pusch_records_for_diagnostic(
@@ -548,17 +643,7 @@ def decode_standardized_pusch_records_for_diagnostic(
     receiver_config: NRPUSCHConfig,
     estimate_source: Literal["dmrs_ls", "diagonal_cfr_oracle"],
 ) -> tuple[bool, ...]:
-    """Decode diagnostic records and return transport-block CRC outcomes.
-
-    Receiver records do not persist the transmitted payload. Regenerating bits
-    from a seed is not a valid independent BLER cross-check unless the exact
-    transmitter draw is retained with each record, so TB CRC is the sole block
-    error outcome returned by this diagnostic.
-
-    ``diagonal_cfr_oracle`` is an analysis-only control for separating channel
-    estimation error from off-diagonal ISI/ICI. It must not be exposed as a
-    model input or interpreted as a general receiver configuration.
-    """
+    """Return TB CRC outcomes, preserving compatibility with records lacking TX bits."""
     if not records:
         raise ValueError("records must not be empty")
     if estimate_source not in {"dmrs_ls", "diagonal_cfr_oracle"}:

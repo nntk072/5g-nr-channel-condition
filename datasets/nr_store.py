@@ -305,7 +305,7 @@ def iter_nr_record_shards(
                 )
                 if resolved_manifest.name != expected_manifest_name:
                     raise ValueError("NR record manifest filename does not match its sample ID")
-                if stored.schema_version not in {1, 2, 3}:
+                if stored.schema_version not in {1, 2, 3, 4}:
                     raise ValueError(
                         f"unsupported NR record schema version: {stored.schema_version}"
                     )
@@ -407,8 +407,9 @@ def write_nr_record(root: str | Path, record: NRChannelRecord) -> NRStoredRecord
     NPZ loading always uses ``allow_pickle=False``. A repeated write of the
     same sample and content is idempotent; changing an existing sample ID is
     rejected so published manifests cannot silently drift. New records use
-    schema v3 and require digest-verified semantic definitions for every
-    target; v1/v2 remain read-only historical formats.
+    schema v4, require digest-verified semantic target definitions, and may
+    retain exact reference transport-block bits outside the model input view.
+    v1-v3 remain read-only historical formats.
     """
     record.require_versioned_target_definitions()
     base = Path(root)
@@ -423,6 +424,11 @@ def write_nr_record(root: str | Path, record: NRChannelRecord) -> NRStoredRecord
         ),
         "pilot_mask": _as_numpy(record.observation.channel_estimate.pilot_mask, field="pilot_mask"),
     }
+    reference_payload_present = record.reference_transport_block_bits is not None
+    if reference_payload_present:
+        arrays["reference_transport_block_bits"] = _as_numpy(
+            record.reference_transport_block_bits, field="reference_transport_block_bits"
+        )
     target_keys: dict[str, str] = {}
     mask_keys: dict[str, str] = {}
     reason_keys: dict[str, str] = {}
@@ -444,7 +450,7 @@ def write_nr_record(root: str | Path, record: NRChannelRecord) -> NRStoredRecord
         )
 
     metadata = {
-        "schema_version": 3,
+        "schema_version": 4,
         "sample_id": record.observation.sample_id,
         "receiver_config": asdict(record.observation.receiver_config),
         "fft_bin_indices": list(record.observation.fft_bin_indices),
@@ -453,6 +459,7 @@ def write_nr_record(root: str | Path, record: NRChannelRecord) -> NRStoredRecord
         "target_masks": mask_keys,
         "target_reason_codes": reason_keys,
         "target_reason_codebook": [reason.value for reason in TargetValidity],
+        "reference_transport_block_bits_present": reference_payload_present,
         "provenance": dict(record.provenance),
         "target_definitions": {
             name: asdict(definition) for name, definition in record.target_definitions.items()
@@ -466,7 +473,9 @@ def write_nr_record(root: str | Path, record: NRChannelRecord) -> NRStoredRecord
     relative_path = f"records/{digest[:2]}/{digest}.npz"
     _publish_immutable(base / relative_path, payload)
 
-    manifest = NRStoredRecord(record.observation.sample_id, digest, relative_path)
+    manifest = NRStoredRecord(
+        record.observation.sample_id, digest, relative_path, schema_version=4
+    )
     sample_key = hashlib.sha256(manifest.sample_id.encode()).hexdigest()
     manifest_path = base / "manifests" / f"{sample_key}.json"
     manifest_data = _json_bytes(asdict(manifest)) + b"\n"
@@ -503,7 +512,7 @@ def read_nr_record(root: str | Path, manifest: NRStoredRecord | str | Path) -> N
         if not isinstance(raw_manifest, dict):
             raise ValueError("NR record manifest must be a JSON object")
         stored = NRStoredRecord(**raw_manifest)
-    if stored.schema_version not in {1, 2, 3}:
+    if stored.schema_version not in {1, 2, 3, 4}:
         raise ValueError(f"unsupported NR record schema version: {stored.schema_version}")
     if Path(stored.relative_path).is_absolute() or ".." in Path(stored.relative_path).parts:
         raise ValueError("manifest record path must remain inside the store")
@@ -525,6 +534,17 @@ def read_nr_record(root: str | Path, manifest: NRStoredRecord | str | Path) -> N
             pilot_mask=archive["pilot_mask"],
             metadata=metadata["estimate_metadata"],
         )
+        reference_payload_present = False
+        reference_payload_bits = None
+        if stored.schema_version == 4:
+            reference_payload_present = metadata.get("reference_transport_block_bits_present")
+            if not isinstance(reference_payload_present, bool):
+                raise ValueError("NR v4 record reference-payload presence flag must be Boolean")
+            archived_reference_payload = "reference_transport_block_bits" in archive.files
+            if archived_reference_payload != reference_payload_present:
+                raise ValueError("NR v4 reference-payload flag differs from the stored arrays")
+            if reference_payload_present:
+                reference_payload_bits = archive["reference_transport_block_bits"]
         observation = NRObservation(
             sample_id=metadata["sample_id"],
             received_grid=archive["received_grid"],
@@ -541,10 +561,10 @@ def read_nr_record(root: str | Path, manifest: NRStoredRecord | str | Path) -> N
         masks: Mapping[str, np.ndarray] = {
             name: archive[key] for name, key in metadata["target_masks"].items()
         }
-        if stored.schema_version in {2, 3}:
+        if stored.schema_version in {2, 3, 4}:
             raw_reasons = metadata.get("target_reason_codes")
             if not isinstance(raw_reasons, dict) or set(raw_reasons) != set(targets):
-                raise ValueError("NR v2/v3 record must store reason codes for every target")
+                raise ValueError("NR v2/v3/v4 record must store reason codes for every target")
             if metadata.get("target_reason_codebook") != [
                 reason.value for reason in TargetValidity
             ]:
@@ -585,8 +605,9 @@ def read_nr_record(root: str | Path, manifest: NRStoredRecord | str | Path) -> N
             provenance=metadata["provenance"],
             target_definitions=definitions,
             target_reason_codes=reason_codes,
+            reference_transport_block_bits=reference_payload_bits,
         )
-        if stored.schema_version == 3:
+        if stored.schema_version in {3, 4}:
             record.require_versioned_target_definitions()
         return record
 

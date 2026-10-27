@@ -135,6 +135,15 @@ def test_standardized_tdl_cdl_to_pusch_dmrs_is_seeded_and_target_is_separate(
         assert record.targets["profile_los_proxy"].tolist() == [profile_label]
         assert record.target_masks["profile_los_proxy"].tolist() == [True]
         assert record.provenance["geometric_los_label"] is None
+        assert record.reference_transport_block_bits is not None
+        np.testing.assert_array_equal(
+            record.reference_transport_block_bits,
+            repeated.reference_transport_block_bits,
+        )
+        assert record.provenance["reference_transport_block_shape"] == list(
+            record.reference_transport_block_bits.shape
+        )
+        assert not hasattr(observation.model_inputs(), "reference_transport_block_bits")
         assert record.provenance["pusch_transmit_seed"] == record.provenance["noise_seed"] - 1
         assert record.provenance["channel_mode"] == "time_domain"
         assert record.provenance["receiver_link_model"].startswith(
@@ -176,6 +185,9 @@ def test_standardized_tdl_cdl_to_pusch_dmrs_is_seeded_and_target_is_separate(
             restored.observation.channel_estimate.h_hat, estimate.h_hat.cpu().numpy()
         )
         np.testing.assert_allclose(restored.targets["channel_cfr"], truth.cpu().numpy())
+        np.testing.assert_array_equal(
+            restored.reference_transport_block_bits, record.reference_transport_block_bits
+        )
 
 
 def test_time_channel_supports_grid_outside_source_cfr_bandwidth_but_control_rejects() -> None:
@@ -247,8 +259,9 @@ def test_short_cp_time_channel_changes_pusch_observation_vs_ideal_cfr_control() 
 def test_standardized_time_domain_tdl_pusch_decodes_with_dmrs_estimate_on_cpu(
     n_size_bwp: int, seed: int, tap_span_fits_cp: bool
 ) -> None:
-    from integrations.sionna.nr_pusch import SionnaPUSCHLSReceiver
-    from sionna.phy.nr import PUSCHReceiver
+    from integrations.sionna.standardized_pusch import (
+        audit_standardized_pusch_records_for_diagnostic,
+    )
 
     run = _standardized_run(StandardizedFamily.TDL)
     config = NRPUSCHConfig(n_size_bwp=n_size_bwp, subcarrier_spacing_khz=30)
@@ -260,26 +273,17 @@ def test_standardized_time_domain_tdl_pusch_decodes_with_dmrs_estimate_on_cpu(
         receiver_config=config,
         device="cpu",
     )[0]
-    tx_receiver = SionnaPUSCHLSReceiver(config, device="cpu")
-    _, transmitted_bits = tx_receiver.transmit(1, seed=record.provenance["pusch_transmit_seed"])
-    decoder = PUSCHReceiver(
-        tx_receiver._transmitter,
-        channel_estimator="perfect",
-        return_tb_crc_status=True,
-        input_domain="freq",
-        device="cpu",
-    )
-    decoded_bits, crc_ok = decoder(
-        record.observation.received_grid,
-        torch.tensor(record.provenance["noise_variance_per_complex_dimension"]),
-        h=record.observation.channel_estimate.h_hat,
-    )
+    outcome = audit_standardized_pusch_records_for_diagnostic(
+        (record,), receiver_config=config, estimate_source="dmrs_ls"
+    )[0]
 
     assert (
         record.provenance["sampled_time_channel"]["tap_span_fits_cyclic_prefix"] is tap_span_fits_cp
     )
-    torch.testing.assert_close(decoded_bits, transmitted_bits)
-    assert bool(crc_ok.all())
+    assert outcome.sample_id == record.observation.sample_id
+    assert outcome.payload_bit_count == record.reference_transport_block_bits.size
+    assert outcome.payload_bit_errors == 0
+    assert outcome.transport_block_crc_pass is True
 
 
 @pytest.mark.native_sionna

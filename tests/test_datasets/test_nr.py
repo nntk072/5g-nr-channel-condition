@@ -2,6 +2,7 @@ import hashlib
 import io
 import json
 import os
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -42,7 +43,14 @@ def make_observation(**overrides):
     return NRObservation(**values)
 
 
-def make_single_record(sample_id, *, targets, target_masks=None, target_reason_codes=None):
+def make_single_record(
+    sample_id,
+    *,
+    targets,
+    target_masks=None,
+    target_reason_codes=None,
+    reference_transport_block_bits=None,
+):
     estimate = NRChannelEstimate(
         h_hat=np.zeros((1, 1, 2, 1, 1, 14, 24), dtype=np.complex64),
         error_variance=np.zeros((1, 1, 1, 1, 1, 14, 24), dtype=np.float32),
@@ -71,6 +79,7 @@ def make_single_record(sample_id, *, targets, target_masks=None, target_reason_c
             for name in targets
         },
         target_reason_codes=target_reason_codes or {},
+        reference_transport_block_bits=reference_transport_block_bits,
     )
 
 
@@ -528,6 +537,7 @@ def test_nr_record_round_trip_is_lossless_pickle_free_and_content_addressed(tmp_
         },
         target_masks={"geometric_los": np.asarray(True)},
         provenance={"scene_hash": "sha256:abc", "simulator": "Sionna 2.2"},
+        reference_transport_block_bits=np.asarray([[1, 0, 1, 1, 0]], dtype=np.uint8),
         target_definitions={
             "geometric_los": TargetDefinition.versioned(
                 semantic="depth-zero RT visibility oracle",
@@ -549,7 +559,7 @@ def test_nr_record_round_trip_is_lossless_pickle_free_and_content_addressed(tmp_
     )
 
     stored = write_nr_record(tmp_path, record)
-    assert stored.schema_version == 3
+    assert stored.schema_version == 4
     assert write_nr_record(tmp_path, record) == stored
     restored = read_nr_record(tmp_path, stored)
 
@@ -564,6 +574,37 @@ def test_nr_record_round_trip_is_lossless_pickle_free_and_content_addressed(tmp_
     assert restored.provenance == record.provenance
     assert restored.target_definitions == record.target_definitions
     assert restored.target_reason_codes == record.target_reason_codes
+    np.testing.assert_array_equal(
+        restored.reference_transport_block_bits, record.reference_transport_block_bits
+    )
+    assert not hasattr(observation.model_inputs(), "reference_transport_block_bits")
+    with np.load(tmp_path / stored.relative_path, allow_pickle=False) as archive:
+        metadata = json.loads(archive["metadata_json"].tobytes().decode("utf-8"))
+    schema_path = (
+        Path(__file__).resolve().parents[2] / "datasets/schema/nr-record-metadata.v4.schema.json"
+    )
+    import jsonschema
+
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    jsonschema.Draft202012Validator.check_schema(schema)
+    jsonschema.Draft202012Validator(schema).validate(metadata)
+
+
+@pytest.mark.parametrize(
+    "reference_bits",
+    (
+        np.asarray([], dtype=np.uint8),
+        np.asarray([[0, 2]], dtype=np.uint8),
+        np.asarray([[0.0, 1.0]], dtype=np.float32),
+    ),
+)
+def test_nr_record_rejects_invalid_reference_transport_bits(reference_bits):
+    with pytest.raises(ValueError, match="reference_transport_block_bits"):
+        make_single_record(
+            "invalid-reference-payload",
+            targets={"label": np.asarray(1)},
+            reference_transport_block_bits=reference_bits,
+        )
 
 
 def test_nr_v2_record_without_target_definitions_remains_readable(tmp_path):
