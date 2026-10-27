@@ -40,15 +40,27 @@ def audit_spatial_buffer(
     *,
     buffer_m: float,
     coordinate_field: str = "coordinates_m",
+    coordinate_frame_field: str = "coordinate_frame_id",
 ) -> SpatialLeakageAudit:
     """Report cross-split samples closer than ``buffer_m`` in projected space.
 
-    Coordinates must be finite 2D/3D points in metres in one common projected
-    coordinate frame. They are QA-only metadata and must not be model inputs.
+    Coordinates must be finite 2D/3D points in metres and share one explicit,
+    canonical projected coordinate-frame identity. They are QA-only metadata
+    and must not be model inputs.
     Every sample in the frozen split must be provided exactly once.
     """
-    if not np.isfinite(buffer_m) or buffer_m <= 0:
+    if isinstance(buffer_m, (bool, np.bool_)) or not np.isfinite(buffer_m) or buffer_m <= 0:
         raise ValueError("buffer_m must be finite and positive")
+    if (
+        not isinstance(coordinate_field, str)
+        or not coordinate_field
+        or coordinate_field != coordinate_field.strip()
+        or not isinstance(coordinate_frame_field, str)
+        or not coordinate_frame_field
+        or coordinate_frame_field != coordinate_frame_field.strip()
+        or coordinate_field == coordinate_frame_field
+    ):
+        raise ValueError("coordinate field names must be distinct nonempty canonical strings")
     if not records:
         raise ValueError("records must not be empty")
 
@@ -57,13 +69,32 @@ def audit_spatial_buffer(
     labels: list[str] = []
     seen: set[str] = set()
     expected_dims: int | None = None
+    coordinate_frame_id: str | None = None
     for record in records:
-        sample_id = str(record.get("sample_id", "")).strip()
-        if not sample_id or sample_id in seen:
+        sample_value = record.get("sample_id")
+        if (
+            not isinstance(sample_value, str)
+            or not sample_value
+            or sample_value != sample_value.strip()
+        ):
+            raise ValueError("sample IDs must be non-empty canonical strings")
+        sample_id = sample_value
+        if sample_id in seen:
             raise ValueError(f"sample IDs must be non-empty and unique: {sample_id!r}")
         seen.add(sample_id)
         if sample_id not in split.sample_to_split:
             raise ValueError(f"sample is absent from frozen split: {sample_id}")
+        frame_value = record.get(coordinate_frame_field)
+        if (
+            not isinstance(frame_value, str)
+            or not frame_value
+            or frame_value != frame_value.strip()
+        ):
+            raise ValueError(f"{coordinate_frame_field} must be a non-empty canonical string")
+        if coordinate_frame_id is None:
+            coordinate_frame_id = frame_value
+        elif frame_value != coordinate_frame_id:
+            raise ValueError("all coordinates must use the same coordinate frame")
         point = np.asarray(record.get(coordinate_field), dtype=np.float64)
         if point.ndim != 1 or point.size not in {2, 3} or not np.isfinite(point).all():
             raise ValueError(f"{coordinate_field} must be a finite 2D/3D point in metres")

@@ -21,7 +21,14 @@ def test_spatial_audit_reports_cross_split_neighbors_within_meter_buffer():
     points[train_id] = [0.0, 0.0]
     points[test_id] = [0.25, 0.0]
     points[validation_id] = [100.0, 0.0]
-    spatial_records = [{**row, "coordinates_m": points[row["sample_id"]]} for row in rows]
+    spatial_records = [
+        {
+            **row,
+            "coordinates_m": points[row["sample_id"]],
+            "coordinate_frame_id": "EPSG:32632",
+        }
+        for row in rows
+    ]
 
     report = audit_spatial_buffer(spatial_records, split, buffer_m=0.5)
 
@@ -37,7 +44,11 @@ def test_spatial_audit_reports_cross_split_neighbors_within_meter_buffer():
 def test_spatial_audit_is_clean_for_well_separated_projected_samples():
     rows, split = make_records()
     spatial_records = [
-        {**row, "coordinates_m": [index * 100.0, index * 25.0, 4.0]}
+        {
+            **row,
+            "coordinates_m": [index * 100.0, index * 25.0, 4.0],
+            "coordinate_frame_id": "EPSG:32632",
+        }
         for index, row in enumerate(rows)
     ]
 
@@ -50,11 +61,28 @@ def test_spatial_audit_is_clean_for_well_separated_projected_samples():
 @pytest.mark.parametrize(
     ("records", "message"),
     [
-        ([{"sample_id": "sample-0", "coordinates_m": [0.0, 0.0]}], "exactly the samples"),
         (
             [
-                {"sample_id": "sample-0", "coordinates_m": [0.0, 0.0]},
-                {"sample_id": "sample-0", "coordinates_m": [1.0, 1.0]},
+                {
+                    "sample_id": "sample-0",
+                    "coordinates_m": [0.0, 0.0],
+                    "coordinate_frame_id": "EPSG:32632",
+                }
+            ],
+            "exactly the samples",
+        ),
+        (
+            [
+                {
+                    "sample_id": "sample-0",
+                    "coordinates_m": [0.0, 0.0],
+                    "coordinate_frame_id": "EPSG:32632",
+                },
+                {
+                    "sample_id": "sample-0",
+                    "coordinates_m": [1.0, 1.0],
+                    "coordinate_frame_id": "EPSG:32632",
+                },
             ],
             "unique",
         ),
@@ -68,8 +96,35 @@ def test_spatial_audit_rejects_incomplete_or_duplicate_records(records, message)
 
 def test_spatial_audit_rejects_nonmetric_or_mixed_coordinate_shapes():
     rows, split = make_records()
-    records = [{**row, "coordinates_m": [float(index), 0.0]} for index, row in enumerate(rows)]
+    records = [
+        {
+            **row,
+            "coordinates_m": [float(index), 0.0],
+            "coordinate_frame_id": "EPSG:32632",
+        }
+        for index, row in enumerate(rows)
+    ]
     records[2]["coordinates_m"] = [2.0, 0.0, 1.0]
 
     with pytest.raises(ValueError, match="same dimension"):
+        audit_spatial_buffer(records, split, buffer_m=1.0)
+
+
+def test_spatial_audit_rejects_mixed_coordinate_frames_and_noncanonical_ids():
+    rows, split = make_records()
+    records = [
+        {
+            **row,
+            "coordinates_m": [float(index), 0.0],
+            "coordinate_frame_id": "EPSG:32632",
+        }
+        for index, row in enumerate(rows)
+    ]
+    records[1]["coordinate_frame_id"] = "EPSG:32633"
+    with pytest.raises(ValueError, match="same coordinate frame"):
+        audit_spatial_buffer(records, split, buffer_m=1.0)
+
+    records[1]["coordinate_frame_id"] = "EPSG:32632"
+    records[0]["sample_id"] = f" {records[0]['sample_id']}"
+    with pytest.raises(ValueError, match="canonical strings"):
         audit_spatial_buffer(records, split, buffer_m=1.0)

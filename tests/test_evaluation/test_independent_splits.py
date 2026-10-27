@@ -123,6 +123,7 @@ def test_four_way_split_supports_spatial_buffer_audit():
             "sample_id": f"sample-{index}",
             "scene_group_id": f"scene-{index}",
             "coordinates_m": [float(index * 100), 0.0],
+            "coordinate_frame_id": "EPSG:32632",
         }
         for index in range(12)
     ]
