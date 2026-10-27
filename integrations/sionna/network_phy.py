@@ -1,4 +1,4 @@
-"""Aligned multi-transmitter NR resource-grid composition and noise models."""
+"""Aligned multi-transmitter NR grid/waveform composition and noise models."""
 
 from __future__ import annotations
 
@@ -227,6 +227,7 @@ class NetworkWaveformComposition:
     source_contributions: Any
     received_waveform: Any
     link_start_samples: Any
+    link_power_gain_linear: Any
     sample_rate_hz: float
 
 
@@ -530,16 +531,21 @@ def compose_received_waveforms(
     link_start_samples: Any,
     capture_num_samples: int,
     sample_rate_hz: float,
+    link_power_gain_linear: Any | None = None,
     max_output_elements: int = 64_000_000,
 ) -> NetworkWaveformComposition:
     """Align and sum already propagated transmitter waveforms at each receiver.
 
     ``link_waveforms`` has axes ``[batch, rx, tx, rx_port, sample]`` and holds
-    one channel-filtered contribution per transmitter/receiver pair. Positive
-    start offsets insert leading zeros; negative offsets clip samples that
-    arrived before the capture window. Samples outside the capture are
-    discarded. The function does not apply transmit-power, path-loss, channel,
-    or RF-impairment models; apply those per link before calling it.
+    one small-scale channel-filtered contribution per transmitter/receiver
+    pair. Optional ``link_power_gain_linear`` supplies a nonnegative flat
+    power gain for each RX/TX pair (for example, ``NetworkLinkBudget`` gains);
+    its square root is applied once to the waveform amplitude. Positive start
+    offsets insert leading zeros; negative offsets clip samples that arrived
+    before the capture window. Samples outside the capture are discarded. The
+    function does not apply a channel or RF-impairment model; apply those per
+    link before calling it. Do not pass an already path-loss-scaled waveform
+    together with its gain matrix.
 
     The output is bounded by ``max_output_elements`` across both retained link
     contributions and the receiver sum, before allocating the capture tensors.
@@ -596,6 +602,25 @@ def compose_received_waveforms(
     if tuple(offset_probe.shape) != (rx_count, tx_count):
         raise ValueError(f"link_start_samples must have shape {(rx_count, tx_count)}")
     offsets = offset_probe.to(torch.int64)
+    if link_power_gain_linear is None:
+        power_gain = torch.ones(
+            (rx_count, tx_count), dtype=torch.float64, device=link_waveforms.device
+        )
+    else:
+        power_gain = _validated_real_values(
+            torch,
+            link_power_gain_linear,
+            shape=(rx_count, tx_count),
+            device=link_waveforms.device,
+            name="link_power_gain_linear",
+            nonnegative=True,
+        )
+    amplitude_gain = torch.sqrt(power_gain)
+    waveform_gain = amplitude_gain.to(dtype=link_waveforms.real.dtype)
+    if not bool(torch.isfinite(waveform_gain).all()) or bool(
+        ((amplitude_gain > 0) & (waveform_gain == 0)).any()
+    ):
+        raise ValueError("link power gain is not representable in the waveform precision")
 
     contribution_elements = batch * rx_count * rx_ports * tx_count * capture_num_samples
     receive_elements = batch * rx_count * rx_ports * capture_num_samples
@@ -621,9 +646,12 @@ def compose_received_waveforms(
             if sample_count > 0:
                 contributions[
                     :, rx_index, :, tx_index, destination_start : destination_start + sample_count
-                ] = link_waveforms[
-                    :, rx_index, tx_index, :, source_start : source_start + sample_count
-                ]
+                ] = (
+                    link_waveforms[
+                        :, rx_index, tx_index, :, source_start : source_start + sample_count
+                    ]
+                    * waveform_gain[rx_index, tx_index]
+                )
     received = contributions.sum(dim=3)
     if not bool(torch.isfinite(contributions).all()) or not bool(torch.isfinite(received).all()):
         raise ValueError("composed receiver waveform is not finite")
@@ -631,6 +659,7 @@ def compose_received_waveforms(
         source_contributions=contributions,
         received_waveform=received,
         link_start_samples=offsets,
+        link_power_gain_linear=power_gain,
         sample_rate_hz=float(sample_rate_hz),
     )
 
@@ -650,6 +679,7 @@ def add_independent_receiver_waveform_awgn(
     received = getattr(composition, "received_waveform", None)
     contributions = getattr(composition, "source_contributions", None)
     offsets = getattr(composition, "link_start_samples", None)
+    power_gain = getattr(composition, "link_power_gain_linear", None)
     if not torch.is_tensor(received) or not torch.is_complex(received) or received.ndim != 4:
         raise TypeError("composition must contain complex [batch, rx, rx_port, sample] waveforms")
     if not torch.is_tensor(contributions) or not torch.is_complex(contributions):
@@ -670,6 +700,15 @@ def add_independent_receiver_waveform_awgn(
         or offsets.shape != (received.shape[1], contributions.shape[3])
     ):
         raise ValueError("composition must contain one sample offset per receiver/transmitter")
+    if (
+        not torch.is_tensor(power_gain)
+        or tuple(power_gain.shape) != (received.shape[1], contributions.shape[3])
+        or power_gain.device != received.device
+        or not power_gain.is_floating_point()
+        or not bool(torch.isfinite(power_gain).all())
+        or bool((power_gain < 0).any())
+    ):
+        raise ValueError("composition must contain finite nonnegative RX/TX power gains")
     if (
         isinstance(composition.sample_rate_hz, bool)
         or not isinstance(composition.sample_rate_hz, (int, float))

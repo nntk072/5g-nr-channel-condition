@@ -431,12 +431,51 @@ def test_waveform_receiver_noise_is_reproducible_and_distinct_per_receiver():
     )
 
 
+def test_received_waveform_composition_applies_per_link_power_gain_once():
+    links = torch.ones((1, 1, 2, 1, 4), dtype=torch.complex64)
+    small_scale_channel = torch.ones((1, 1, 1, 2, 1, 1, 1), dtype=torch.complex64)
+    budget = apply_network_link_budget(
+        small_scale_channel,
+        path_loss_db=((0.0, 6.020599913279624),),
+        tx_antenna_gain_dbi=(0.0, 0.0),
+        rx_antenna_gain_dbi=(0.0,),
+        tx_beam_gain_dbi=((0.0, 0.0),),
+        rx_beam_gain_dbi=((0.0, 0.0),),
+        transmit_power_w_per_re=(1.0, 1.0),
+        input_channel_semantics="unit_mean_small_scale_fading",
+    )
+    composition = compose_received_waveforms(
+        links,
+        link_start_samples=((0, 0),),
+        capture_num_samples=4,
+        sample_rate_hz=30.72e6,
+        link_power_gain_linear=budget.power_gain_linear,
+    )
+
+    torch.testing.assert_close(
+        composition.source_contributions[0, 0, 0, :, 0],
+        torch.tensor([1.0, 0.5], dtype=torch.complex64),
+    )
+    torch.testing.assert_close(
+        composition.received_waveform,
+        torch.full((1, 1, 1, 4), 1.5 + 0.0j, dtype=torch.complex64),
+    )
+    torch.testing.assert_close(
+        composition.link_power_gain_linear,
+        torch.tensor([[1.0, 0.25]], dtype=torch.float64),
+    )
+
+
 @pytest.mark.parametrize(
     "kwargs",
     [
         {"link_start_samples": ((False,),)},
         {"link_start_samples": ((0.0,),)},
         {"link_start_samples": ((0, 0),)},
+        {"link_power_gain_linear": ((1.0, -0.1),)},
+        {"link_power_gain_linear": ((True,),)},
+        {"link_power_gain_linear": ((1e-300,),)},
+        {"link_power_gain_linear": ((1e300,),)},
         {"capture_num_samples": 0},
         {"sample_rate_hz": float("nan")},
         {"max_output_elements": 1},
