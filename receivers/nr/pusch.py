@@ -2,9 +2,124 @@
 
 from __future__ import annotations
 
+import hashlib
 from dataclasses import dataclass
 from typing import Any, Mapping
 
+import numpy as np
+
+
+@dataclass(frozen=True, slots=True)
+class NRPUSCHFrequencyHopGrid:
+    """Carrier-grid composition of two caller-mapped intra-slot hop segments."""
+
+    frequency_grid: np.ndarray
+    metadata: Mapping[str, Any]
+
+
+def compose_pusch_intra_slot_hops(
+    bwp_allocation_grid: np.ndarray,
+    *,
+    carrier_grid_size_rb: int,
+    carrier_grid_start_rb: int,
+    bwp_start_rb: int,
+    bwp_size_rb: int,
+    allocation_start_symbol: int,
+    first_hop_rb_start: int,
+    second_hop_rb_start: int,
+    first_hop_symbol_count: int,
+) -> NRPUSCHFrequencyHopGrid:
+    """Map two already-generated PUSCH hop segments into a carrier slot grid.
+
+    ``bwp_allocation_grid`` has the Sionna transmitter layout
+    ``[batch, tx, stream, allocated_symbol, allocated_subcarrier]``. The first
+    ``first_hop_symbol_count`` symbols go to ``first_hop_rb_start`` and the
+    remaining symbols go to ``second_hop_rb_start``; hop starts are RB offsets
+    from the BWP start. The symbol boundary and frequency allocations must be
+    resolved by the caller. This composes resource grids only; it does not
+    generate hop-specific DMRS, decode RRC/DCI, or enable the pinned Sionna
+    receiver's hopping mode.
+    """
+    values = {
+        "carrier_grid_size_rb": carrier_grid_size_rb,
+        "carrier_grid_start_rb": carrier_grid_start_rb,
+        "bwp_start_rb": bwp_start_rb,
+        "bwp_size_rb": bwp_size_rb,
+        "allocation_start_symbol": allocation_start_symbol,
+        "first_hop_rb_start": first_hop_rb_start,
+        "second_hop_rb_start": second_hop_rb_start,
+        "first_hop_symbol_count": first_hop_symbol_count,
+    }
+    for name, value in values.items():
+        if isinstance(value, bool) or not isinstance(value, int):
+            raise TypeError(f"{name} must be an integer")
+    if carrier_grid_size_rb < 1 or carrier_grid_size_rb > 275:
+        raise ValueError("carrier_grid_size_rb must be in [1, 275]")
+    if bwp_size_rb < 1 or bwp_size_rb > 275:
+        raise ValueError("bwp_size_rb must be in [1, 275]")
+    carrier_end_rb = carrier_grid_start_rb + carrier_grid_size_rb
+    bwp_end_rb = bwp_start_rb + bwp_size_rb
+    if carrier_grid_start_rb < 0 or carrier_end_rb > 275:
+        raise ValueError("carrier grid must fit within CRB indices [0, 274]")
+    if bwp_start_rb < carrier_grid_start_rb or bwp_end_rb > carrier_end_rb:
+        raise ValueError("BWP must lie within the carrier grid")
+
+    grid = np.asarray(bwp_allocation_grid)
+    if grid.ndim != 5 or any(size < 1 for size in grid.shape[:3]) or grid.shape[3] < 2:
+        raise ValueError("bwp_allocation_grid must have five axes and at least two symbols")
+    if grid.dtype.kind != "c" or grid.dtype.itemsize not in {8, 16} or not np.isfinite(grid).all():
+        raise ValueError("bwp_allocation_grid must contain finite complex64 or complex128 values")
+    allocation_rb_count, remainder = divmod(grid.shape[4], 12)
+    if remainder or not 1 <= allocation_rb_count <= bwp_size_rb:
+        raise ValueError("allocated subcarrier width must be 12 times an in-BWP RB count")
+    if not 0 <= allocation_start_symbol < 14 or allocation_start_symbol + grid.shape[3] > 14:
+        raise ValueError("PUSCH symbol allocation must fit within the 14-symbol slot")
+    if not 1 <= first_hop_symbol_count < grid.shape[3]:
+        raise ValueError("first_hop_symbol_count must split the allocation into two nonempty hops")
+    if any(
+        hop_start < 0 or hop_start + allocation_rb_count > bwp_size_rb
+        for hop_start in (first_hop_rb_start, second_hop_rb_start)
+    ):
+        raise ValueError("each hop allocation must fit within the configured BWP")
+
+    output = np.zeros(
+        (*grid.shape[:3], 14, carrier_grid_size_rb * 12), dtype=grid.dtype
+    )
+    bwp_offset_in_carrier = bwp_start_rb - carrier_grid_start_rb
+    first_start = (bwp_offset_in_carrier + first_hop_rb_start) * 12
+    second_start = (bwp_offset_in_carrier + second_hop_rb_start) * 12
+    allocation_end_symbol = allocation_start_symbol + grid.shape[3]
+    hop_boundary_symbol = allocation_start_symbol + first_hop_symbol_count
+    output[
+        ..., allocation_start_symbol:hop_boundary_symbol, first_start : first_start + grid.shape[4]
+    ] = grid[..., :first_hop_symbol_count, :]
+    output[
+        ..., hop_boundary_symbol:allocation_end_symbol, second_start : second_start + grid.shape[4]
+    ] = grid[..., first_hop_symbol_count:, :]
+    source_digest = hashlib.sha256(np.ascontiguousarray(grid).tobytes()).hexdigest()
+    output_digest = hashlib.sha256(np.ascontiguousarray(output).tobytes()).hexdigest()
+    metadata = {
+        "schema": "loslab.nr_pusch_intra_slot_hop_grid.v1",
+        "scope": "frequency_domain_grid_composition_only",
+        "carrier_grid_start_rb": carrier_grid_start_rb,
+        "carrier_grid_size_rb": carrier_grid_size_rb,
+        "bwp_start_rb": bwp_start_rb,
+        "bwp_size_rb": bwp_size_rb,
+        "allocation_rb_count": allocation_rb_count,
+        "allocation_start_symbol": allocation_start_symbol,
+        "allocation_symbol_count": int(grid.shape[3]),
+        "allocation_grid_shape": [int(size) for size in grid.shape],
+        "complex_dtype": str(grid.dtype),
+        "carrier_grid_shape": [int(size) for size in output.shape],
+        "first_hop_symbol_count": first_hop_symbol_count,
+        "hop_boundary_symbol": hop_boundary_symbol,
+        "first_hop_start_crb": bwp_start_rb + first_hop_rb_start,
+        "second_hop_start_crb": bwp_start_rb + second_hop_rb_start,
+        "source_grid_sha256": source_digest,
+        "carrier_grid_sha256": output_digest,
+        "receiver_hopping_qualification": "NOT_QUALIFIED",
+    }
+    return NRPUSCHFrequencyHopGrid(output, metadata)
 
 @dataclass(frozen=True, slots=True)
 class NRPUSCHConfig:

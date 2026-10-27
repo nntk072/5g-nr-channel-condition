@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.invalid/schema/nr-pusch-intra-slot-hop-grid.v1.schema.json",
+  "title": "NR PUSCH Intra-slot Hop Grid Composition v1",
+  "description": "Caller-resolved composition of two already-mapped frequency-domain PUSCH hop segments; this does not qualify a hopping receiver.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "scope",
+    "carrier_grid_start_rb",
+    "carrier_grid_size_rb",
+    "bwp_start_rb",
+    "bwp_size_rb",
+    "allocation_rb_count",
+    "allocation_start_symbol",
+    "allocation_symbol_count",
+    "allocation_grid_shape",
+    "complex_dtype",
+    "carrier_grid_shape",
+    "first_hop_symbol_count",
+    "hop_boundary_symbol",
+    "first_hop_start_crb",
+    "second_hop_start_crb",
+    "source_grid_sha256",
+    "carrier_grid_sha256",
+    "receiver_hopping_qualification"
+  ],
+  "properties": {
+    "schema": {"const": "loslab.nr_pusch_intra_slot_hop_grid.v1"},
+    "scope": {"const": "frequency_domain_grid_composition_only"},
+    "carrier_grid_start_rb": {"type": "integer", "minimum": 0, "maximum": 274},
+    "carrier_grid_size_rb": {"type": "integer", "minimum": 1, "maximum": 275},
+    "bwp_start_rb": {"type": "integer", "minimum": 0, "maximum": 274},
+    "bwp_size_rb": {"type": "integer", "minimum": 1, "maximum": 275},
+    "allocation_rb_count": {"type": "integer", "minimum": 1, "maximum": 275},
+    "allocation_start_symbol": {"type": "integer", "minimum": 0, "maximum": 13},
+    "allocation_symbol_count": {"type": "integer", "minimum": 2, "maximum": 14},
+    "allocation_grid_shape": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {"type": "integer", "minimum": 1}
+    },
+    "complex_dtype": {"enum": ["complex64", "complex128"]},
+    "carrier_grid_shape": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {"type": "integer", "minimum": 1}
+    },
+    "first_hop_symbol_count": {"type": "integer", "minimum": 1, "maximum": 13},
+    "hop_boundary_symbol": {"type": "integer", "minimum": 1, "maximum": 13},
+    "first_hop_start_crb": {"type": "integer", "minimum": 0, "maximum": 274},
+    "second_hop_start_crb": {"type": "integer", "minimum": 0, "maximum": 274},
+    "source_grid_sha256": {"$ref": "#/$defs/sha256"},
+    "carrier_grid_sha256": {"$ref": "#/$defs/sha256"},
+    "receiver_hopping_qualification": {"const": "NOT_QUALIFIED"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}
