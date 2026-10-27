@@ -285,7 +285,9 @@ def map_nr_dl_prs_resource(
     indices_by_symbol: list[NDArray[np.int64]] = []
     for symbol in symbols:
         symbol_offset = int(symbol - start_symbol)
-        k_prime = _PRS_SYMBOL_OFFSETS[comb_size][symbol_offset]
+        # TS 38.211 Table 7.4.1.7.3-1 repeats the comb-specific offset cycle
+        # for PRS resources longer than one comb period.
+        k_prime = _PRS_SYMBOL_OFFSETS[comb_size][symbol_offset % comb_size]
         residue = (resource_element_offset + k_prime) % comb_size
         local_indices = np.arange(residue, 12 * resource_bandwidth_rbs, comb_size)
         subcarriers = np.asarray(resource_start_subcarrier + local_indices, dtype=np.int64)
@@ -613,6 +615,22 @@ class NRPRSTimingProfile:
     peak_to_median_ratio: float
     comb_ambiguity_period_s: float
     semantics: str = "strongest_component_delay_on_caller_grid"
+
+
+@dataclass(frozen=True, slots=True, eq=False)
+class NRPRSDelayCFOProfile:
+    """Joint grid-search profile for PRS strongest-component delay and residual CFO."""
+
+    delay_grid_s: FloatArray
+    cfo_grid_hz: FloatArray
+    profile_power: FloatArray
+    peak_delay_s: float
+    peak_cfo_hz: float
+    peak_power: float
+    delay_comb_ambiguity_period_s: float
+    semantics: str = (
+        "strongest_component_delay_and_residual_cfo_on_caller_grids_static_channel_no_ici"
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -980,4 +998,132 @@ def nr_dl_prs_matched_delay_profile(
         peak_power=peak_power,
         peak_to_median_ratio=ratio,
         comb_ambiguity_period_s=ambiguity_period,
+    )
+
+
+def nr_dl_prs_delay_cfo_profile(
+    received_grid: ComplexArray,
+    resource: NRPRSResourceGrid,
+    *,
+    delay_grid_s: FloatArray,
+    cfo_grid_hz: FloatArray,
+    symbol_times_s: FloatArray,
+    max_work_cells: int = 16_000_000,
+) -> NRPRSDelayCFOProfile:
+    """Jointly search PRS strongest-component delay and residual CFO.
+
+    The receiver removes the known PRS symbols, correlates across each symbol's
+    mapped subcarriers for every delay, then coherently combines those symbol
+    responses after each CFO hypothesis. Symbol times are explicit offsets from
+    one common phase reference. This is a bounded, receiver-observable static
+    channel baseline: it does not estimate first-path ToA, resolve comb aliases,
+    acquire timing/CFO from raw samples, or model channel evolution. The caller
+    must choose grids that cover its capture and residual-frequency range. CFO
+    is modeled as common inter-symbol phase rotation; intra-symbol ICI is omitted.
+    """
+    received = np.asarray(received_grid)
+    if (
+        received.shape != resource.grid.shape
+        or not np.iscomplexobj(received)
+        or not np.isfinite(received).all()
+    ):
+        raise ValueError("received_grid must be finite complex and match the mapped PRS grid")
+    spacing = resource.subcarrier_spacing_hz
+    if (
+        isinstance(spacing, bool)
+        or not isinstance(spacing, Real)
+        or not math.isfinite(float(spacing))
+        or spacing <= 0.0
+    ):
+        raise ValueError("resource.subcarrier_spacing_hz must be finite and positive")
+    comb_size = _integer(resource.comb_size, label="resource.comb_size", minimum=1)
+
+    raw_delays = np.asarray(delay_grid_s)
+    if raw_delays.dtype.kind not in "iuf":
+        raise TypeError("delay_grid_s must contain real numeric values")
+    delays = np.asarray(raw_delays, dtype=np.float64)
+    if (
+        delays.ndim != 1
+        or delays.size < 2
+        or not np.isfinite(delays).all()
+        or np.any(delays < 0)
+        or np.any(np.diff(delays) <= 0)
+    ):
+        raise ValueError("delay_grid_s must be finite, nonnegative, and strictly increasing")
+
+    raw_cfo = np.asarray(cfo_grid_hz)
+    if raw_cfo.dtype.kind not in "iuf":
+        raise TypeError("cfo_grid_hz must contain real numeric values")
+    cfo = np.asarray(raw_cfo, dtype=np.float64)
+    if (
+        cfo.ndim != 1
+        or cfo.size < 2
+        or not np.isfinite(cfo).all()
+        or np.any(np.diff(cfo) <= 0)
+    ):
+        raise ValueError("cfo_grid_hz must be finite and strictly increasing with at least two rows")
+
+    raw_times = np.asarray(symbol_times_s)
+    if raw_times.dtype.kind not in "iuf":
+        raise TypeError("symbol_times_s must contain real numeric values")
+    symbol_times = np.asarray(raw_times, dtype=np.float64)
+    symbol_count = len(resource.symbol_indices)
+    if (
+        symbol_times.ndim != 1
+        or symbol_times.size != symbol_count
+        or symbol_times.size < 2
+        or not np.isfinite(symbol_times).all()
+        or np.any(np.diff(symbol_times) <= 0)
+    ):
+        raise ValueError("symbol_times_s must be finite, increasing, and match PRS symbols")
+
+    work_limit = _integer(max_work_cells, label="max_work_cells", minimum=1)
+    resource_elements = sum(len(indices) for indices in resource.subcarrier_indices)
+    work_cells = int(delays.size) * (
+        resource_elements + int(cfo.size) * int(symbol_times.size)
+    )
+    profile_cells = int(delays.size) * int(cfo.size)
+    if work_cells > work_limit or profile_cells > work_limit:
+        raise ValueError(
+            "PRS delay/CFO search exceeds max_work_cells "
+            f"({work_cells} work cells, {profile_cells} profile cells, limit {work_limit})"
+        )
+
+    per_symbol_response: list[np.ndarray] = []
+    for symbol, subcarriers in zip(resource.symbol_indices, resource.subcarrier_indices, strict=True):
+        transmit = resource.grid[symbol, subcarriers]
+        if not np.isfinite(transmit).all() or np.any(np.abs(transmit) == 0):
+            raise ValueError("mapped PRS resource elements must have finite nonzero symbols")
+        observed = received[symbol, subcarriers]
+        channel = observed * np.conjugate(transmit) / (np.abs(transmit) ** 2)
+        frequencies = subcarriers.astype(np.float64) * float(spacing)
+        responses = np.empty(delays.size, dtype=np.complex128)
+        for delay_index, delay in enumerate(delays):
+            steering = np.exp(2j * np.pi * frequencies * delay)
+            responses[delay_index] = np.mean(channel * steering)
+        per_symbol_response.append(responses)
+
+    stacked = np.stack(per_symbol_response, axis=0)
+    profile = np.empty((cfo.size, delays.size), dtype=np.float64)
+    for cfo_index, frequency_offset in enumerate(cfo):
+        correction = np.exp(-2j * np.pi * frequency_offset * symbol_times)
+        coherent = np.mean(stacked * correction[:, None], axis=0)
+        profile[cfo_index] = np.abs(coherent) ** 2
+    if not np.isfinite(profile).all():
+        raise ValueError("PRS delay/CFO matched-filter profile overflowed")
+    peak_cfo_index, peak_delay_index = np.unravel_index(int(np.argmax(profile)), profile.shape)
+    ambiguity_period = 1.0 / (comb_size * float(spacing))
+    delays = np.array(delays, copy=True)
+    cfo = np.array(cfo, copy=True)
+    profile.setflags(write=False)
+    delays.setflags(write=False)
+    cfo.setflags(write=False)
+    return NRPRSDelayCFOProfile(
+        delay_grid_s=delays,
+        cfo_grid_hz=cfo,
+        profile_power=profile,
+        peak_delay_s=float(delays[peak_delay_index]),
+        peak_cfo_hz=float(cfo[peak_cfo_index]),
+        peak_power=float(profile[peak_cfo_index, peak_delay_index]),
+        delay_comb_ambiguity_period_s=ambiguity_period,
     )

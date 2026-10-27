@@ -30,6 +30,7 @@ from .network_phy import (
 )
 from .network_receiver import NetworkPUSCHDecode, decode_noisy_network_pusch
 from .nr_prs import (
+    NRPRSDelayCFOProfile,
     NRPRSDLRSTDMeasurement,
     NRPRSResourceConfiguration,
     NRPRSResourceGrid,
@@ -45,6 +46,7 @@ from .nr_prs import (
     map_nr_dl_prs_resource_set,
     measure_nr_dl_rstd,
     nr_dl_prs_c_init,
+    nr_dl_prs_delay_cfo_profile,
     nr_dl_prs_matched_delay_profile,
     nr_dl_prs_resource_occasion,
     nr_dl_prs_sequence,
@@ -196,6 +198,7 @@ __all__ = [
     "NRGridChannel",
     "NRPRSResourceConfiguration",
     "NRPRSDLRSTDMeasurement",
+    "NRPRSDelayCFOProfile",
     "NRPRSTDReport",
     "NRPRSTDReportElement",
     "NRPRSResourceGrid",
@@ -344,6 +347,7 @@ __all__ = [
     "srs_cyclic_shift_count",
     "nr_pbch_dmrs_ssb",
     "nr_dl_prs_c_init",
+    "nr_dl_prs_delay_cfo_profile",
     "nr_dl_prs_matched_delay_profile",
     "nr_dl_prs_resource_occasion",
     "nr_dl_prs_sequence",

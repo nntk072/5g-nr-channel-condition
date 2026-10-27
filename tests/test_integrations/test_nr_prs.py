@@ -9,6 +9,7 @@ import jsonschema
 import numpy as np
 import pytest
 from integrations.sionna.nr_prs import (
+    NRPRSDelayCFOProfile,
     NRPRSDLRSTDMeasurement,
     NRPRSResourceConfiguration,
     NRPRSResourceSetTiming,
@@ -19,6 +20,7 @@ from integrations.sionna.nr_prs import (
     map_nr_dl_prs_resource_set,
     measure_nr_dl_rstd,
     nr_dl_prs_c_init,
+    nr_dl_prs_delay_cfo_profile,
     nr_dl_prs_matched_delay_profile,
     nr_dl_prs_resource_occasion,
     nr_dl_prs_sequence,
@@ -140,6 +142,53 @@ def test_prs_mapping_uses_symbol_specific_comb_offsets_and_point_a_indices():
     assert np.count_nonzero(resource.grid[0]) == 0
     assert not resource.grid.flags.writeable
     assert not resource.resource_mask.flags.writeable
+
+
+@pytest.mark.parametrize(
+    ("num_symbols", "comb_size"),
+    [
+        (1, 2),
+        (2, 2),
+        (4, 2),
+        (6, 2),
+        (12, 2),
+        (1, 4),
+        (4, 4),
+        (12, 4),
+        (1, 6),
+        (6, 6),
+        (12, 6),
+        (1, 12),
+        (12, 12),
+    ],
+)
+def test_prs_mapping_repeats_normative_comb_offset_cycle(
+    num_symbols: int, comb_size: int
+) -> None:
+    normative_offsets = {
+        2: (0, 1),
+        4: (0, 2, 1, 3),
+        6: (0, 3, 1, 4, 2, 5),
+        12: (0, 6, 3, 9, 1, 7, 4, 10, 2, 8, 5, 11),
+    }
+    resource = map_nr_dl_prs_resource(
+        slot_symbol_count=14,
+        subcarrier_count=24,
+        resource_start_subcarrier=0,
+        resource_bandwidth_rbs=1,
+        prs_sequence_id=19,
+        slot_index=0,
+        numerology=0,
+        subcarrier_spacing_hz=15_000.0,
+        comb_size=comb_size,
+        resource_element_offset=0,
+        start_symbol=1,
+        num_symbols=num_symbols,
+    )
+
+    for symbol_offset, indices in enumerate(resource.subcarrier_indices):
+        k_prime = normative_offsets[comb_size][symbol_offset % comb_size]
+        np.testing.assert_array_equal(indices, np.arange(k_prime, 12, comb_size))
 
 
 def test_prs_mapping_rejects_reserved_ssb_symbols_and_unsupported_pairs():
@@ -288,6 +337,77 @@ def test_prs_matched_delay_profile_recovers_a_single_delayed_component():
     assert result.peak_power > 0
     assert result.peak_to_median_ratio > 1.0
     assert not result.profile_power.flags.writeable
+
+
+def test_prs_joint_delay_cfo_profile_recovers_static_link_hypotheses():
+    resource = map_nr_dl_prs_resource(
+        slot_symbol_count=14,
+        subcarrier_count=96,
+        resource_start_subcarrier=0,
+        resource_bandwidth_rbs=4,
+        prs_sequence_id=501,
+        slot_index=2,
+        numerology=0,
+        subcarrier_spacing_hz=15_000.0,
+        comb_size=2,
+        resource_element_offset=0,
+        start_symbol=2,
+        num_symbols=4,
+    )
+    symbol_times = np.arange(4, dtype=np.float64) * 0.5e-3
+    true_delay_s = 80e-9
+    true_cfo_hz = 250.0
+    received = np.zeros_like(resource.grid)
+    for row, (symbol, subcarriers) in enumerate(
+        zip(resource.symbol_indices, resource.subcarrier_indices, strict=True)
+    ):
+        frequency = subcarriers.astype(np.float64) * resource.subcarrier_spacing_hz
+        channel = 0.8 * np.exp(-2j * np.pi * frequency * true_delay_s)
+        cfo = np.exp(2j * np.pi * true_cfo_hz * symbol_times[row])
+        received[symbol, subcarriers] = resource.grid[symbol, subcarriers] * channel * cfo
+
+    result = nr_dl_prs_delay_cfo_profile(
+        received,
+        resource,
+        delay_grid_s=np.arange(0.0, 201e-9, 10e-9),
+        cfo_grid_hz=np.arange(0.0, 501.0, 25.0),
+        symbol_times_s=symbol_times,
+    )
+
+    assert isinstance(result, NRPRSDelayCFOProfile)
+    assert result.semantics.endswith("static_channel_no_ici")
+    assert result.peak_delay_s == pytest.approx(true_delay_s, abs=1e-15)
+    assert result.peak_cfo_hz == pytest.approx(true_cfo_hz, abs=1e-12)
+    assert result.profile_power.shape == (21, 21)
+    assert result.delay_comb_ambiguity_period_s == pytest.approx(1 / 30_000.0)
+    assert result.peak_power == pytest.approx(0.8**2, rel=1e-12)
+    assert not result.profile_power.flags.writeable
+
+
+def test_prs_joint_delay_cfo_profile_bounds_work_before_search():
+    resource = map_nr_dl_prs_resource(
+        slot_symbol_count=14,
+        subcarrier_count=24,
+        resource_start_subcarrier=0,
+        resource_bandwidth_rbs=2,
+        prs_sequence_id=8,
+        slot_index=0,
+        numerology=0,
+        subcarrier_spacing_hz=15_000.0,
+        comb_size=2,
+        resource_element_offset=0,
+        start_symbol=2,
+        num_symbols=2,
+    )
+    with pytest.raises(ValueError, match="exceeds max_work_cells"):
+        nr_dl_prs_delay_cfo_profile(
+            resource.grid,
+            resource,
+            delay_grid_s=np.asarray([0.0, 1e-9]),
+            cfo_grid_hz=np.asarray([-1.0, 1.0]),
+            symbol_times_s=np.asarray([0.0, 1e-3]),
+            max_work_cells=1,
+        )
 
 
 def test_prs_resource_set_schedule_resolves_periodicity_and_repetitions():
