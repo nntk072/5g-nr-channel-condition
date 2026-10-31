@@ -80,6 +80,23 @@ python -m evaluation.g3_joint_evidence_artifact evaluate joint-input.json joint-
 python -m evaluation.g3_joint_evidence_artifact verify joint-input.json joint-report.json
 ```
 
+After installing the project, the same evaluator is available as
+`loslab-g3-joint-evidence`. A frozen contract-bound run uses the canonical input,
+the exact frozen qualification contract, and new output paths for the report and
+run receipt:
+
+```bash
+loslab-g3-joint-evidence evaluate-preregistered joint-input.json joint-report.json \
+  --qualification-contract g3-qualification-contract.json \
+  --run-manifest g3-run-manifest.json
+```
+
+This command validates the contract against the current evaluator source bundle
+and input before scoring, then writes the numerical artifact and run receipt
+without overwriting existing files. Its output remains `NOT_QUALIFIED`; the
+command does not establish external provenance, reviewer authority, or scientific
+admission.
+
 The evaluator refuses to overwrite an existing report. Replay checks the exact
 input bytes, canonical artifact encoding, all five branch outputs, and every
 recorded digest. Its pass status means only that the report matches a
