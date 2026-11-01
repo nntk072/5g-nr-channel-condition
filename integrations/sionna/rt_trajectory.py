@@ -84,7 +84,11 @@ def _load_cached_trajectory(
         )
     previous_inputs = previous_identity.get("inputs")
     if (
-        previous_identity.get("schema") != "loslab.rt_run_identity.v1"
+        previous_identity.get("schema")
+        not in {
+            "loslab.rt_run_identity.v1",
+            "loslab.rt_run_identity.v2",
+        }
         or not previous_identity.get("complete")
         or not isinstance(previous_inputs, dict)
         or canonical_hash(previous_inputs) != key
@@ -96,7 +100,11 @@ def _load_cached_trajectory(
         record_inputs = record_identity.get("inputs") if isinstance(record_identity, dict) else None
         if (
             not isinstance(record_identity, dict)
-            or record_identity.get("schema") != "loslab.rt_run_identity.v1"
+            or record_identity.get("schema")
+            not in {
+                "loslab.rt_run_identity.v1",
+                "loslab.rt_run_identity.v2",
+            }
             or not record_identity.get("complete")
             or record_identity.get("cache_key_sha256") != key
             or not isinstance(record_inputs, dict)
@@ -403,8 +411,8 @@ def generate_rt_nr_trajectory(
         physical_config={
             "trajectory": asdict(config),
             "positions_m": [list(position) for position in positions],
-            "material_state": material_manifest,
         },
+        material_config=material_manifest,
         solver_config=solver_config,
         seed=config.seed,
         backend_selection=selection.as_dict(),

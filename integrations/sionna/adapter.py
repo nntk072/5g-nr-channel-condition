@@ -545,11 +545,13 @@ def _attach_rt_execution_provenance(
     )
     execution = {
         "schema": "loslab.rt_execution_provenance.v1",
-        "schema_sha256": hashlib.sha256(_RT_EXECUTION_PROVENANCE_SCHEMA_PATH.read_bytes()).hexdigest(),
+        "schema_sha256": hashlib.sha256(
+            _RT_EXECUTION_PROVENANCE_SCHEMA_PATH.read_bytes()
+        ).hexdigest(),
         "started_at_utc": started_at_utc,
-        "completed_at_utc": datetime.now(timezone.utc).isoformat(timespec="microseconds").replace(
-            "+00:00", "Z"
-        ),
+        "completed_at_utc": datetime.now(timezone.utc)
+        .isoformat(timespec="microseconds")
+        .replace("+00:00", "Z"),
         "python_executable": python_executable,
         "command_argv": list(command_argv),
         "base_seed": seed,
@@ -608,13 +610,13 @@ def _publish_static_rt_sample_umcd(
             "scene": asdict(scene_config),
             "grid": asdict(grid),
             "rx_position_m": list(rx_position),
-            "material_state": dict(material_manifest),
             "scene_geometry": {
                 "scene_geometry_sha256": scene_geometry_inventory.scene_geometry_sha256,
                 "scene_object_count": len(scene_geometry_inventory.object_names),
                 "scene_triangle_count": len(scene_geometry_inventory.triangles_m),
             },
         },
+        material_config=material_manifest,
         solver_config=static_rt_solver_config(
             scene_config.max_depth, scene_config.max_num_paths_per_src
         ),
@@ -758,8 +760,8 @@ def generate_raytraced(
     Report how often LOS really contains >=2 valid paths; default rejects
     direct-only LOS. NLOS must contain at least one observable indirect path.
     """
-    execution_started_at = datetime.now(timezone.utc).isoformat(timespec="microseconds").replace(
-        "+00:00", "Z"
+    execution_started_at = (
+        datetime.now(timezone.utc).isoformat(timespec="microseconds").replace("+00:00", "Z")
     )
     command_argv = tuple(sys.argv)
     python_executable = sys.executable
@@ -1364,13 +1366,13 @@ def generate_raytraced(
         physical_config={
             "scene": asdict(cfg),
             "grid": asdict(grid),
-            "material_state": material_manifest,
             "scene_geometry": {
                 "scene_geometry_sha256": scene_geometry_inventory.scene_geometry_sha256,
                 "scene_object_count": len(scene_geometry_inventory.object_names),
                 "scene_triangle_count": len(scene_geometry_inventory.triangles_m),
             },
         },
+        material_config=material_manifest,
         solver_config=solver_config,
         seed=seed,
         backend_selection=selection.as_dict(),
@@ -1524,13 +1526,13 @@ def generate_raytraced_cached(
         physical_config={
             "scene": asdict(cfg),
             "grid": asdict(grid),
-            "material_state": material_manifest,
             "scene_geometry": {
                 "scene_geometry_sha256": scene_geometry_inventory.scene_geometry_sha256,
                 "scene_object_count": len(scene_geometry_inventory.object_names),
                 "scene_triangle_count": len(scene_geometry_inventory.triangles_m),
             },
         },
+        material_config=material_manifest,
         solver_config=static_rt_solver_config(cfg.max_depth, cfg.max_num_paths_per_src),
         seed=seed,
         backend_selection=selection.as_dict(),

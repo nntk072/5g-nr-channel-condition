@@ -61,6 +61,7 @@ def _identity(*, complete: bool = True) -> dict:
     return rt_run_identity(
         scene_asset_manifest=asset_manifest,
         physical_config={"carrier_hz": 3.5e9},
+        material_config={},
         solver_config={"max_depth": 2},
         seed=9,
         backend_selection={
@@ -279,13 +280,13 @@ def test_cache_aware_rt_generator_reuses_dataset_without_retracing(tmp_path, mon
             physical_config={
                 "scene": adapter.asdict(config),
                 "grid": adapter.asdict(grid),
-                "material_state": _material_manifest_override,
                 "scene_geometry": {
                     "scene_geometry_sha256": fake_inventory.scene_geometry_sha256,
                     "scene_object_count": len(fake_inventory.object_names),
                     "scene_triangle_count": len(fake_inventory.triangles_m),
                 },
             },
+            material_config=_material_manifest_override,
             solver_config=static_rt_solver_config(config.max_depth),
             seed=seed,
             backend_selection=_backend_selection.as_dict(),
@@ -379,6 +380,7 @@ def test_cache_aware_rt_generator_bypasses_unresolved_scene_assets(tmp_path, mon
                     "scene_triangle_count": len(fake_inventory.triangles_m),
                 },
             },
+            material_config={},
             solver_config=static_rt_solver_config(config.max_depth),
             seed=seed,
             backend_selection=_backend_selection.as_dict(),

@@ -63,3 +63,5 @@ detached signature binds these declarations but cannot make unknown source
 history or unreviewed rights complete. The three selected scenes therefore
 remain research-only until their original source records and independent
 rights assessments are recovered.
+
+New RT cache identities use `loslab.rt_run_identity.v2`, which requires the material manifest as an explicit hashed input. UMCD provenance is derived from that identity and rejects a separately supplied material declaration that differs. Cache/trajectory readers continue to accept v1 identity records for historical replay; new generation emits v2.

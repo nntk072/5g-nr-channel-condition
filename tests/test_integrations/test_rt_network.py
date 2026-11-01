@@ -234,6 +234,7 @@ def test_rt_episode_writer_publishes_layer_bound_provenance(monkeypatch, tmp_pat
             "complete": True,
         },
         physical_config={"carrier_hz": 3.5e9},
+        material_config={"wall": {"scattering_coefficient": 0.2}},
         solver_config={"max_depth": 2},
         seed=9,
         backend_selection={

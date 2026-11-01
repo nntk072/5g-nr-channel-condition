@@ -27,7 +27,10 @@ class RTCacheConflictError(RuntimeError):
 
 
 def _cache_key(identity: Mapping[str, Any]) -> str:
-    if identity.get("schema") != "loslab.rt_run_identity.v1" or not identity.get("complete"):
+    if identity.get("schema") not in {
+        "loslab.rt_run_identity.v1",
+        "loslab.rt_run_identity.v2",
+    } or not identity.get("complete"):
         raise ValueError("only complete Sionna RT run identities can be cached")
     key = identity.get("cache_key_sha256")
     if not isinstance(key, str) or not _KEY_PATTERN.fullmatch(key):

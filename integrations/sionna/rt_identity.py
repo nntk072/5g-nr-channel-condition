@@ -126,6 +126,7 @@ def rt_run_identity(
     *,
     scene_asset_manifest: Mapping[str, Any],
     physical_config: Mapping[str, Any],
+    material_config: Mapping[str, Any],
     solver_config: Mapping[str, Any],
     seed: int,
     backend_selection: Mapping[str, Any],
@@ -144,10 +145,12 @@ def rt_run_identity(
         raise ValueError("seed must be a nonnegative integer")
     if not package_source_sha256:
         raise ValueError("package_source_sha256 must be nonempty")
+    if not isinstance(material_config, Mapping):
+        raise TypeError("material_config must be a mapping")
     asset_hash = _validated_scene_asset_set_sha256(scene_asset_manifest)
     if asset_hash is None:
         return {
-            "schema": "loslab.rt_run_identity.v1",
+            "schema": "loslab.rt_run_identity.v2",
             "complete": False,
             "cache_key_sha256": None,
             "reason": "scene asset closure is incomplete",
@@ -162,6 +165,7 @@ def rt_run_identity(
     inputs = {
         "scene_asset_set_sha256": asset_hash,
         "physical_config": dict(physical_config),
+        "material_config": dict(material_config),
         "solver_config": dict(solver_config),
         "seed": seed,
         "backend": backend,
@@ -169,7 +173,7 @@ def rt_run_identity(
         "package_source_sha256": package_source_sha256,
     }
     return {
-        "schema": "loslab.rt_run_identity.v1",
+        "schema": "loslab.rt_run_identity.v2",
         "complete": True,
         "cache_key_sha256": canonical_hash(inputs),
         "inputs": inputs,
@@ -183,15 +187,15 @@ def umcd_provenance_from_rt_identity(
     subject_layer: str,
     source_family: str,
     producer: str,
-    material_config: Mapping[str, Any],
+    material_config: Mapping[str, Any] | None = None,
 ) -> UMCDRunProvenance:
     """Convert a complete RT cache identity into a layer provenance record.
 
-    Material state is supplied explicitly because the generic RT identity only
-    includes materials when the caller placed them in its physical config.
-    This adapter refuses incomplete or internally inconsistent identities.
+    The material manifest is a required v2 cache-key input. This adapter uses
+    the bound value and rejects a separately supplied override that differs.
+    It refuses incomplete or internally inconsistent identities.
     """
-    if identity.get("schema") != "loslab.rt_run_identity.v1" or not identity.get("complete"):
+    if identity.get("schema") != "loslab.rt_run_identity.v2" or not identity.get("complete"):
         raise ValueError("only complete RT run identities can become UMCD provenance")
     inputs = identity.get("inputs")
     cache_key = identity.get("cache_key_sha256")
@@ -204,6 +208,7 @@ def umcd_provenance_from_rt_identity(
     versions = inputs.get("runtime_versions")
     physical_config = inputs.get("physical_config")
     solver_config = inputs.get("solver_config")
+    bound_material_config = inputs.get("material_config")
     package_sha = inputs.get("package_source_sha256")
     seed = inputs.get("seed")
     if (
@@ -212,11 +217,17 @@ def umcd_provenance_from_rt_identity(
         or not isinstance(versions, Mapping)
         or not isinstance(physical_config, Mapping)
         or not isinstance(solver_config, Mapping)
+        or not isinstance(bound_material_config, Mapping)
         or not isinstance(package_sha, str)
         or isinstance(seed, bool)
         or not isinstance(seed, int)
     ):
         raise ValueError("RT identity is missing required reproducibility inputs")
+    if material_config is not None:
+        if not isinstance(material_config, Mapping):
+            raise TypeError("material_config override must be a mapping")
+        if canonical_hash(dict(material_config)) != canonical_hash(dict(bound_material_config)):
+            raise ValueError("material_config does not match the cache-key-bound RT identity")
     if any(
         not isinstance(key, str) or not isinstance(value, str) for key, value in versions.items()
     ):
@@ -233,7 +244,7 @@ def umcd_provenance_from_rt_identity(
         seed=seed,
         physical_config=physical_config,
         solver_config=solver_config,
-        material_config=material_config,
+        material_config=bound_material_config,
         run_identity_sha256=cache_key,
     )
 

@@ -37,6 +37,7 @@ def _inputs():
     return {
         "scene_asset_manifest": _scene_assets(),
         "physical_config": {"carrier_hz": 3.5e9},
+        "material_config": {"wall": {"scattering_coefficient": 0.0}},
         "solver_config": {"max_depth": 2, "diffraction": False},
         "seed": 7,
         "backend_selection": {
@@ -64,6 +65,7 @@ def test_rt_run_identity_changes_for_each_result_affecting_input():
     baseline = rt_run_identity(**_inputs())["cache_key_sha256"]
     mutations = (
         ("physical_config", "carrier_hz", 2.6e9),
+        ("material_config", "wall", {"scattering_coefficient": 0.5}),
         ("solver_config", "max_depth", 3),
         ("backend_selection", "variant", "cuda_ad_mono_polarized"),
         ("runtime_versions", "numpy", "2.3.0"),
@@ -213,7 +215,7 @@ def test_complete_rt_identity_converts_to_layer_specific_umcd_provenance():
         subject_layer="oracle_paths",
         source_family="F03-RT-STATIC",
         producer="Sionna 2.2 PathSolver",
-        material_config={"wall": {"scattering_coefficient": 0.0}},
+        material_config=inputs["material_config"],
     )
 
     assert record.run_identity_sha256 == identity["cache_key_sha256"]
@@ -222,6 +224,43 @@ def test_complete_rt_identity_converts_to_layer_specific_umcd_provenance():
     )
     assert record.software_versions["python"] == "3.12.0"
     assert record.solver_config["max_depth"] == 2
+    assert record.material_config == inputs["material_config"]
+
+
+def test_rt_identity_provenance_rejects_unbound_material_overrides():
+    identity = rt_run_identity(**_inputs())
+
+    try:
+        umcd_provenance_from_rt_identity(
+            identity,
+            record_id="rt-generation-1",
+            subject_layer="oracle_paths",
+            source_family="F03-RT-STATIC",
+            producer="Sionna 2.2 PathSolver",
+            material_config={"wall": {"scattering_coefficient": 0.5}},
+        )
+    except ValueError as error:
+        assert "cache-key-bound" in str(error)
+    else:
+        raise AssertionError("unbound material override must not enter RT provenance")
+
+
+def test_rt_identity_provenance_rejects_non_mapping_material_override():
+    identity = rt_run_identity(**_inputs())
+
+    try:
+        umcd_provenance_from_rt_identity(
+            identity,
+            record_id="rt-generation-1",
+            subject_layer="oracle_paths",
+            source_family="F03-RT-STATIC",
+            producer="Sionna 2.2 PathSolver",
+            material_config="wall-scattering-override",
+        )
+    except TypeError as error:
+        assert "must be a mapping" in str(error)
+    else:
+        raise AssertionError("non-mapping material override must be rejected")
 
 
 def test_rt_identity_provenance_adapter_rejects_incomplete_or_tampered_identity():
@@ -230,7 +269,7 @@ def test_rt_identity_provenance_adapter_rejects_incomplete_or_tampered_identity(
         "subject_layer": "oracle_paths",
         "source_family": "F03-RT-STATIC",
         "producer": "Sionna 2.2 PathSolver",
-        "material_config": {},
+        "material_config": _inputs()["material_config"],
     }
     incomplete = rt_run_identity(**_inputs())
     incomplete["complete"] = False
