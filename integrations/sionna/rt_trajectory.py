@@ -32,7 +32,7 @@ from datasets.nr_store import (
     write_nr_trajectory,
 )
 from datasets.targets import TargetValidity, TargetValue, target_definition_digest
-from propagation.scene_visibility import extract_scene_triangle_inventory
+from propagation.scene_visibility import SceneTriangleInventory, extract_scene_triangle_inventory
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
 from integrations.sionna.candidate_audit import instrument_path_solver_candidate_counter
@@ -262,6 +262,74 @@ class RTTrajectoryConfig:
         return positions, times
 
 
+def rt_trajectory_solver_config(config: RTTrajectoryConfig) -> dict[str, object]:
+    """Return the exact PathSolver switches used for each trajectory frame."""
+    return {
+        "deterministic": True,
+        "max_depth": config.max_depth,
+        "samples_per_src": config.samples_per_src,
+        "max_num_paths_per_src": config.max_num_paths_per_src,
+        "los": True,
+        "specular_reflection": True,
+        "diffuse_reflection": True,
+        "refraction": True,
+        "diffraction": False,
+    }
+
+
+def build_rt_trajectory_generation_request(
+    *,
+    config: RTTrajectoryConfig,
+    spec_sha256: str,
+    store_root: str | Path,
+    umcd_store_root: str | Path | None,
+    package_source_digest: str,
+    backend: Mapping[str, Any],
+    scene_ref: object,
+    scene_asset_manifest: Mapping[str, Any],
+    runtime_versions: Mapping[str, str],
+    material_manifest: Mapping[str, Any],
+    scene_geometry_inventory: SceneTriangleInventory,
+) -> dict[str, Any]:
+    """Build a D1 request from exact active scene state before path solving."""
+    return {
+        "operation": "rt_nr_trajectory",
+        "spec_sha256": spec_sha256,
+        "config": {
+            **asdict(config),
+            "total_work_units": config.num_steps * config.samples_per_src,
+            "antenna_config": sionna_rt_siso_antenna_config(
+                orientation_policy="look_at_peer_each_step"
+            ),
+            "solver_config": rt_trajectory_solver_config(config),
+        },
+        "store": str(Path(store_root).expanduser().resolve()),
+        "umcd_store": str(Path(umcd_store_root).expanduser().resolve())
+        if umcd_store_root is not None
+        else None,
+        "package_source_sha256": package_source_digest,
+        "backend": dict(backend),
+        "scene_asset_identity": {
+            "scene_reference": str(scene_ref),
+            "asset_set_sha256": scene_asset_manifest["asset_set_sha256"],
+            "asset_count": scene_asset_manifest["asset_count"],
+            "complete": scene_asset_manifest["complete"],
+            "runtime_versions": dict(runtime_versions),
+        },
+        "material_state_sha256": canonical_hash(dict(material_manifest)),
+        "scene_geometry": {
+            "scene_geometry_sha256": scene_geometry_inventory.scene_geometry_sha256,
+            "scene_object_count": len(scene_geometry_inventory.object_names),
+            "scene_triangle_count": len(scene_geometry_inventory.triangles_m),
+        },
+        "destinations": [
+            str(Path(value).expanduser().resolve())
+            for value in (store_root, umcd_store_root)
+            if value is not None
+        ],
+    }
+
+
 def generate_rt_nr_trajectory(
     config: RTTrajectoryConfig,
     store_root: str | Path,
@@ -328,59 +396,13 @@ def generate_rt_nr_trajectory(
         require_d1_authorization,
     )
 
-    request = {
-        "operation": "rt_nr_trajectory",
-        "spec_sha256": spec_sha256,
-        "config": {
-            **asdict(config),
-            "total_work_units": config.num_steps * config.samples_per_src,
-            "antenna_config": sionna_rt_siso_antenna_config(
-                orientation_policy="look_at_peer_each_step"
-            ),
-        },
-        "store": str(Path(store_root).expanduser().resolve()),
-        "umcd_store": str(Path(umcd_store_root).expanduser().resolve())
-        if umcd_store_root is not None
-        else None,
-        "package_source_sha256": package_source_sha256(),
-        "backend": selection.as_dict(),
-        "scene_asset_identity": {
-            "scene_reference": str(scene_ref),
-            "asset_set_sha256": scene_asset_hashes["asset_set_sha256"],
-            "asset_count": scene_asset_hashes["asset_count"],
-            "complete": scene_asset_hashes["complete"],
-            "runtime_versions": runtime_versions,
-        },
-        "destinations": [
-            str(Path(value).expanduser().resolve())
-            for value in (store_root, umcd_store_root)
-            if value is not None
-        ],
-    }
-    if authorization is None:
-        authorization = authorize_d1_generation(
-            request,
-            pilot=pilot,
-            approval_manifest=approval_manifest,
-            expected_approval_sha256=expected_approval_sha256,
-        )
-    require_d1_authorization(authorization, request, expected_operation="rt_nr_trajectory")  # type: ignore[arg-type]
-    if pilot:
-        from integrations.sionna.d1_generation_gate import require_pilot_destination
-
-        require_pilot_destination(authorization, store_root, publisher="trajectory_store")  # type: ignore[arg-type]
-        if umcd_store_root is not None:
-            require_pilot_destination(authorization, umcd_store_root, publisher="umcd_bundle")  # type: ignore[arg-type]
-
     scene = rt.load_scene(str(scene_ref) if isinstance(scene_ref, Path) else scene_ref)
     if scene_path.is_file():
         loaded_scene_assets = scene_asset_manifest(scene_path)
         if loaded_scene_assets.get("asset_set_sha256") != scene_asset_hashes.get(
             "asset_set_sha256"
         ):
-            raise PermissionError(
-                "RT trajectory scene assets changed between authorization and scene load"
-            )
+            raise PermissionError("RT trajectory scene assets changed during scene inspection")
     scene.frequency = config.carrier_hz
     material_manifest = sionna_scene_material_manifest(scene)
     raw_scene_objects = getattr(scene, "objects", None)
@@ -402,20 +424,39 @@ def generate_rt_nr_trajectory(
     }
     positions, times = config.positions_and_times()
     source_sha256 = package_source_sha256()
+    static_scene_geometry_inventory = extract_scene_triangle_inventory(scene)
     runtime_fingerprint = rt_runtime_fingerprint(
         {key: value for key, value in runtime_versions.items() if key != "git_sha"}
     )
-    solver_config = {
-        "deterministic": True,
-        "max_depth": config.max_depth,
-        "samples_per_src": config.samples_per_src,
-        "max_num_paths_per_src": config.max_num_paths_per_src,
-        "los": True,
-        "specular_reflection": True,
-        "diffuse_reflection": True,
-        "refraction": True,
-        "diffraction": False,
-    }
+    solver_config = rt_trajectory_solver_config(config)
+    request = build_rt_trajectory_generation_request(
+        config=config,
+        spec_sha256=spec_sha256,
+        store_root=store_root,
+        umcd_store_root=umcd_store_root,
+        package_source_digest=source_sha256,
+        backend=selection.as_dict(),
+        scene_ref=scene_ref,
+        scene_asset_manifest=scene_asset_hashes,
+        runtime_versions=runtime_versions,
+        material_manifest=material_manifest,
+        scene_geometry_inventory=static_scene_geometry_inventory,
+    )
+    if authorization is None:
+        authorization = authorize_d1_generation(
+            request,
+            pilot=pilot,
+            approval_manifest=approval_manifest,
+            expected_approval_sha256=expected_approval_sha256,
+        )
+    require_d1_authorization(authorization, request, expected_operation="rt_nr_trajectory")  # type: ignore[arg-type]
+    if pilot:
+        from integrations.sionna.d1_generation_gate import require_pilot_destination
+
+        require_pilot_destination(authorization, store_root, publisher="trajectory_store")  # type: ignore[arg-type]
+        if umcd_store_root is not None:
+            require_pilot_destination(authorization, umcd_store_root, publisher="umcd_bundle")  # type: ignore[arg-type]
+
     run_identity = rt_run_identity(
         scene_asset_manifest=scene_asset_hashes,
         physical_config={
@@ -438,9 +479,6 @@ def generate_rt_nr_trajectory(
             return cached
     if umcd_store_root is not None and not run_identity["complete"]:
         raise ValueError("UMCD publication requires a complete scene and RT run identity")
-    static_scene_geometry_inventory = (
-        None if config.moving_scene_objects else extract_scene_triangle_inventory(scene)
-    )
     try:
         from sionna.rt import PathSolver, PlanarArray, Receiver, Transmitter
     except ImportError as exc:

@@ -216,20 +216,22 @@
     {
       "backlog_line": 221,
       "backlog_status": "open",
-      "description": "Bind every material/property override, pose/motion state, antenna/pattern, carrier, solver option, and asset closure into immutable runtime cache identity. **Partial:** RT identity v2 requires the material configuration as a dedicated cache-key input; static, trajectory, cache, and network producers pass it explicitly. `umcd_provenance_from_rt_identity` now derives material provenance from the bound value and rejects a different caller override. RT cache and trajectory readers retain v1 compatibility. The focused identity/cache/network slice passes 33 tests with one native skip; antenna-pattern closure, full pose/material override audit, and consolidated validation remain open. Evidence: `integrations/sionna/rt_identity.py`, `integrations/sionna/rt_cache.py`, `integrations/sionna/rt_trajectory.py`, `integrations/sionna/adapter.py`, `tests/test_integrations/test_rt_identity.py`.",
+      "description": "Bind every material/property override, pose/motion state, antenna/pattern, carrier, solver option, and asset closure into immutable runtime cache identity. **Partial:** RT identity v2 requires material configuration as a dedicated hashed input; static and trajectory producers pass it explicitly. Static identity/D1 requests bind the current isotropic one-element PlanarArray and fixed-default orientation. Trajectory identity/D1 requests bind the same arrays, look-at-peer orientation policy, exact active material-state digest, loaded-scene geometry digest, and explicit PathSolver switches; authorization now occurs after read-only scene inspection but before any path solve. Route positions and moving-object motion are already in physical config. UMCD provenance derives material provenance from its bound value and rejects caller overrides that differ. RT cache and trajectory readers retain v1 compatibility. The focused trajectory contract module passes 24 tests, including material/geometry request drift and authorization reuse rejection. Arbitrary array/material override APIs, full motion/property-state audit, and consolidated validation remain open. Evidence: `integrations/sionna/rt_identity.py`, `integrations/sionna/rt_cache.py`, `integrations/sionna/rt_trajectory.py`, `integrations/sionna/adapter.py`, `tests/test_integrations/test_rt_identity.py`, `tests/test_integrations/test_rt_trajectory_contract.py`.",
       "evidence_file_sha256": {
-        "integrations/sionna/adapter.py": "775af6127679afcf4ad553bdfa34ea32ec06835586aae34061e398e26a11ab3e",
+        "integrations/sionna/adapter.py": "7bdeefb77e7bd9134104e8e11fc56be10f63c477378119cc8e86dace63991f8b",
         "integrations/sionna/rt_cache.py": "8a48b0847b6631ffad4d932608bb7a3118b0a5183fdf30af21ffb2f650213714",
-        "integrations/sionna/rt_identity.py": "635737f64fbb506531aa7de4c3fb1a475d9558f6e06dc1ae7345d26362bc34cd",
-        "integrations/sionna/rt_trajectory.py": "9a6563c47d7fd2f1c9faa4a449dc77e8e12eb63193380f33e186aa45d35eb9a6",
-        "tests/test_integrations/test_rt_identity.py": "e46bc21cd9d03da1f702733190ee7e13bbc2fac05648c3a39a11a4ee5536c4c7"
+        "integrations/sionna/rt_identity.py": "537ede784bf9ae83ec2191a7290bb057d1daff4c3313a2f8d338c6ca52949269",
+        "integrations/sionna/rt_trajectory.py": "072eda1195af0be587fe26259392ef4153cd0e762667e2732c3f67ce5ac23eaa",
+        "tests/test_integrations/test_rt_identity.py": "3b2349b5471105d4e0cd09e0861e2fcb2555880086662c79c5b89bc1337d114c",
+        "tests/test_integrations/test_rt_trajectory_contract.py": "e6934f10661ed95d865f7ca6644af054af8012273a86f575f14f6acd289b42c2"
       },
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
         "other_files": [],
         "regression_files": [
-          "tests/test_integrations/test_rt_identity.py"
+          "tests/test_integrations/test_rt_identity.py",
+          "tests/test_integrations/test_rt_trajectory_contract.py"
         ],
         "schemas": [],
         "source_modules": [
@@ -332,7 +334,7 @@
     {
       "backlog_line": 228,
       "backlog_status": "open",
-      "description": "Complete the independent geometric segment-visibility oracle and its explicit clear/blocked/ambiguous outcomes, including grazing, mesh contact, thin-wall transmission, and transform/unit edge cases. **Implementation partial, native verification pending:** `propagation.scene_visibility` extracts a digest-bound inventory from loaded Mitsuba/Sionna triangle buffers. Static RT generation now reuses one inventory as the canonical NumPy label source and signs its digest into the D1 request/run identity; Mitsuba and depth-zero PathSolver are fail-closed cross-checks. Dynamic trajectories reuse static geometry or re-extract after each moved-object transform and retain per-frame geometry digests and agreement evidence. Focused mock and geometry tests pass; native screen-scene initialization exceeded three minutes without reaching the test. Source asset closure/watertightness audits, material/thin-wall semantics, native verification, and ODbL-city scene review remain open.",
+      "description": "Complete the independent geometric segment-visibility oracle and its explicit clear/blocked/ambiguous outcomes, including grazing, mesh contact, thin-wall transmission, and transform/unit edge cases. **Implementation partial, native verification pending:** `propagation.scene_visibility` extracts a digest-bound inventory from loaded Mitsuba/Sionna triangle buffers. Static RT generation now reuses one inventory as the canonical NumPy label source and signs its digest into the D1 request/run identity. Trajectory D1 authorization also binds the exact initial loaded-scene geometry digest before any path solve; dynamic trajectories re-extract after each moved-object transform and retain per-frame geometry digests and agreement evidence. Mitsuba and depth-zero PathSolver are fail-closed cross-checks. Focused mock and geometry tests pass; native screen-scene initialization exceeded three minutes without reaching the test. Source asset closure/watertightness audits, material/thin-wall semantics, native verification, and ODbL-city scene review remain open.",
       "evidence_file_sha256": {
         "propagation/scene_visibility.py": "9afedb819449e78062ad8e10094063d689f6d899fa48e10376ee3f0f974e4fa0"
       },
@@ -4563,7 +4565,7 @@
   "schema": "loslab.implementation_feature_map.v2",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "4a880a861edcb1febf22ac74d5074529b4e0626885db827f2c19427d3e657e12"
+    "sha256": "e7931112a6ba9c1effb14212f3fc100e8c5d084720437729eca2a01b80090b68"
   },
   "summary": {
     "feature_count": 181,
