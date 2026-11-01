@@ -23,6 +23,10 @@ _PLAN_GATES = re.compile(r"\bG\d+(?:\.\d+)?\b")
 _BACKTICK_PATH = re.compile(r"`([^`]+)`")
 _DOTTED_SYMBOL = re.compile(r"\b[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)+\b")
 _PATH_SUFFIXES = {".json", ".md", ".py", ".yaml", ".yml", ".toml", ".lock"}
+_PLAIN_PATH = re.compile(
+    r"(?<![A-Za-z0-9_.-])(?:[A-Za-z0-9_.-]+/)+[A-Za-z0-9_.-]+"
+    r"\.(?:json|md|py|yaml|yml|toml|lock)\b"
+)
 
 
 def _sha256(data: bytes) -> str:
@@ -148,7 +152,7 @@ def build_feature_map(markdown: str, *, root: Path = _REPOSITORY_ROOT) -> dict[s
         paths: set[str] = set()
         evidence_files: set[str] = set()
         cli_links: set[str] = set()
-        tokens = _BACKTICK_PATH.findall(description)
+        tokens = [*_BACKTICK_PATH.findall(description), *_PLAIN_PATH.findall(description)]
         for token in tokens:
             path = _relative_path(token, root)
             if path is not None:

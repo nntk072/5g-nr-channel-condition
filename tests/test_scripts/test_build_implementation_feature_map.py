@@ -53,6 +53,24 @@ def test_feature_map_links_only_existing_repository_files(tmp_path: Path) -> Non
     assert feature["link_status"] == "linked"
 
 
+def test_feature_map_resolves_unformatted_repository_paths(tmp_path: Path) -> None:
+    (tmp_path / "evaluation").mkdir()
+    (tmp_path / "evaluation/audit.py").write_text("pass\n")
+    text = (
+        "### 0. Package\n"
+        "- [ ] Evidence is recorded in evaluation/audit.py; "
+        "missing/path.json and an ordinary phrase are not evidence.\n"
+    )
+
+    feature = build_feature_map(text, root=tmp_path)["features"][0]
+
+    assert feature["evidence_links"]["source_modules"] == ["evaluation/audit.py"]
+    assert feature["evidence_file_sha256"] == {
+        "evaluation/audit.py": "9f56e761d79bfdb34304a012586cb04d16b435ef6130091a97702e559260a2f2"
+    }
+    assert feature["link_status"] == "linked"
+
+
 def test_feature_map_resolves_dotted_modules_and_registered_cli(tmp_path: Path) -> None:
     integrations = tmp_path / "integrations"
     integrations.mkdir()

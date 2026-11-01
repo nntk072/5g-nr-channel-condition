@@ -64,8 +64,9 @@ def _export_with_external_approval(tmp_path, manifest_path, archive_path):
 
 
 def _manifest(payload: bytes) -> dict[str, Any]:
+    recipe = b"reproducible conversion recipe v1\n"
     return {
-        "schema": "umcd.public_release.v2",
+        "schema": "umcd.public_release.v3",
         "release_id": "test-release",
         "source_software_revision": "a" * 40,
         "scenes": [
@@ -78,10 +79,23 @@ def _manifest(payload: bytes) -> dict[str, Any]:
                 "source_software_revision": "a" * 40,
                 "attribution_location": "LICENSES/README.txt",
                 "source_data_offer_url": "https://example.org/osm-source-data",
-                "extract_or_update_date_or_documented_gap": "upstream source records recovered",
-                "source_ids_or_documented_gap": "OSM replication sequence 1",
-                "conversion_recipe_or_documented_gap": "conversion recipe archived at release URL",
-                "third_party_license_closure": "complete",
+                "osm_extract_timestamp": "2026-01-01T00:00:00Z",
+                "osm_source_object_ids": ["node/1", "way/2", "relation/3"],
+                "conversion_recipe_artifact_path": "metadata/conversion-recipe.txt",
+                "conversion_recipe_sha256": hashlib.sha256(recipe).hexdigest(),
+                "third_party_license_closure": {
+                    "review_evidence_sha256": "b" * 64,
+                    "assets": [
+                        {
+                            "asset_path": "textures/provider-logo.png",
+                            "asset_sha256": "c" * 64,
+                            "rights_holder": "Example rights holder",
+                            "license_id": "CC-BY-4.0",
+                            "license_url": "https://creativecommons.org/licenses/by/4.0/",
+                            "source_url": "https://example.org/assets/logo",
+                        }
+                    ],
+                },
             }
         ],
         "artifacts": [
@@ -97,7 +111,18 @@ def _manifest(payload: bytes) -> dict[str, Any]:
                 ],
                 "redistribution": "permitted",
                 "lineage_complete": True,
-            }
+            },
+            {
+                "path": "metadata/conversion-recipe.txt",
+                "sha256": hashlib.sha256(recipe).hexdigest(),
+                "license": "Apache-2.0",
+                "license_url": "https://www.apache.org/licenses/LICENSE-2.0",
+                "scene_ids": [],
+                "scene_classifications": {},
+                "source_scene_tree_sha256": [],
+                "redistribution": "permitted",
+                "lineage_complete": True,
+            },
         ],
     }
 
@@ -105,8 +130,37 @@ def _manifest(payload: bytes) -> dict[str, Any]:
 def test_odbl_release_export_requires_complete_scene_assessment(tmp_path) -> None:
     payload = b"sample derived data"
     manifest = _manifest(payload)
-    manifest["scenes"][0]["third_party_license_closure"] = "not independently recorded"
+    manifest["scenes"][0]["third_party_license_closure"] = {
+        "review_evidence_sha256": "not-a-digest",
+        "assets": [],
+    }
     with pytest.raises(ValueError, match="third-party license closure is incomplete"):
+        validate_public_release_manifest(manifest)
+
+
+def test_odbl_release_rejects_documented_provenance_gaps() -> None:
+    manifest = _manifest(b"payload")
+    manifest["scenes"][0]["osm_source_object_ids"] = ["source IDs unavailable"]
+
+    with pytest.raises(ValueError, match="canonical OSM object IDs"):
+        validate_public_release_manifest(manifest)
+
+
+def test_odbl_release_conversion_recipe_must_be_the_declared_artifact() -> None:
+    manifest = _manifest(b"payload")
+    manifest["scenes"][0]["conversion_recipe_sha256"] = "e" * 64
+
+    with pytest.raises(ValueError, match="hash-bound"):
+        validate_public_release_manifest(manifest)
+
+
+def test_odbl_release_rejects_unsafe_third_party_asset_paths() -> None:
+    manifest = _manifest(b"payload")
+    manifest["scenes"][0]["third_party_license_closure"]["assets"][0]["asset_path"] = (
+        "../license.txt"
+    )
+
+    with pytest.raises(ValueError, match="unsafe third-party asset path"):
         validate_public_release_manifest(manifest)
 
 
@@ -154,7 +208,7 @@ def test_public_release_export_requires_external_manifest_approval(tmp_path) -> 
 def test_public_release_export_rejects_duplicate_manifest_json_fields(tmp_path) -> None:
     manifest_path = tmp_path / "release.json"
     manifest_path.write_text(
-        '{"schema":"umcd.public_release.v2","schema":"umcd.public_release.v2"}',
+        '{"schema":"umcd.public_release.v3","schema":"umcd.public_release.v3"}',
         encoding="utf-8",
     )
     with pytest.raises(ValueError, match="duplicate JSON field"):
@@ -186,12 +240,12 @@ def test_public_release_artifact_requires_lowercase_sha256() -> None:
         validate_public_release_manifest(manifest)
 
 
-def test_public_release_v2_schema_is_packaged_and_accepts_valid_manifest() -> None:
+def test_public_release_v3_schema_is_packaged_and_accepts_valid_manifest() -> None:
     import jsonschema
 
     schema = json.loads(
         files("datasets")
-        .joinpath("schema", "public-release-manifest.v2.schema.json")
+        .joinpath("schema", "public-release-manifest.v3.schema.json")
         .read_text(encoding="utf-8")
     )
     jsonschema.Draft202012Validator.check_schema(schema)
@@ -202,6 +256,10 @@ def test_odbl_release_export_binds_asset_hash_and_adds_notices(tmp_path) -> None
     payload = b"sample derived data"
     (tmp_path / "data").mkdir()
     (tmp_path / "data/sample.bin").write_bytes(payload)
+    (tmp_path / "metadata").mkdir()
+    (tmp_path / "metadata/conversion-recipe.txt").write_bytes(
+        b"reproducible conversion recipe v1\n"
+    )
     manifest_path = tmp_path / "release.json"
     manifest_path.write_text(json.dumps(_manifest(payload)), encoding="utf-8")
     archive_path = tmp_path / "release.zip"
@@ -215,6 +273,9 @@ def test_odbl_release_export_binds_asset_hash_and_adds_notices(tmp_path) -> None
         assert "© OpenStreetMap contributors" in notices
         assert "https://opendatacommons.org/licenses/odbl/1-0/" in notices
         assert "Source database offer: https://example.org/osm-source-data" in notices
+        assert "OSM source object count: 3" in notices
+        assert "conversion-recipe.txt" in notices
+        assert "textures/provider-logo.png" in notices
         approval = json.loads(archive.read("release-approval.json"))
         assert approval["signer_id"] == _RELEASE_SIGNER_ID
         assert approval["signature_namespace"] == PUBLIC_RELEASE_SIGNATURE_NAMESPACE
@@ -222,7 +283,7 @@ def test_odbl_release_export_binds_asset_hash_and_adds_notices(tmp_path) -> None
 
         approval_schema = json.loads(
             files("datasets")
-            .joinpath("schema", "public-release-approval.v1.schema.json")
+            .joinpath("schema", "public-release-approval.v2.schema.json")
             .read_text(encoding="utf-8")
         )
         jsonschema.Draft202012Validator.check_schema(approval_schema)
@@ -236,6 +297,10 @@ def test_odbl_release_export_binds_asset_hash_and_adds_notices(tmp_path) -> None
 def test_public_release_export_rejects_artifact_hash_mismatch(tmp_path) -> None:
     (tmp_path / "data").mkdir()
     (tmp_path / "data/sample.bin").write_bytes(b"tampered")
+    (tmp_path / "metadata").mkdir()
+    (tmp_path / "metadata/conversion-recipe.txt").write_bytes(
+        b"reproducible conversion recipe v1\n"
+    )
     manifest_path = tmp_path / "release.json"
     manifest_path.write_text(json.dumps(_manifest(b"original")), encoding="utf-8")
 
@@ -317,6 +382,10 @@ def test_public_release_classifies_each_artifact_scene_pair_and_emits_both_notic
     payload = b"shared source-derived bytes"
     (tmp_path / "data").mkdir()
     (tmp_path / "data/database.bin").write_bytes(payload)
+    (tmp_path / "metadata").mkdir()
+    (tmp_path / "metadata/conversion-recipe.txt").write_bytes(
+        b"reproducible conversion recipe v1\n"
+    )
     (tmp_path / "figures").mkdir()
     (tmp_path / "figures/plot.bin").write_bytes(payload)
     manifest = _manifest(payload)

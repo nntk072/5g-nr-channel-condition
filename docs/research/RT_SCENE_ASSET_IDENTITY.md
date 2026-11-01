@@ -53,3 +53,13 @@ timestamps; missing OSM object IDs, conversion records, and per-file third-party
 license closure stay explicitly unresolved. The report always sets
 `public_release_eligible` to false. Continue to use the signed release-specific
 manifest and independent rights review before any public redistribution.
+
+The public-release exporter uses manifest v3, which no longer treats a
+documented provenance gap or the string `complete` as sufficient evidence. It
+requires a timezone-bearing OSM extract timestamp, explicit node/way/relation
+IDs, a conversion recipe included among the hash-bound release artifacts, and
+a structured third-party license inventory with review-evidence digest. The
+detached signature binds these declarations but cannot make unknown source
+history or unreviewed rights complete. The three selected scenes therefore
+remain research-only until their original source records and independent
+rights assessments are recovered.

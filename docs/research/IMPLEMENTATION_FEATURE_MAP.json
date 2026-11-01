@@ -3,10 +3,10 @@
     {
       "backlog_line": 210,
       "backlog_status": "open",
-      "description": "Turn this backlog into a fully traceable feature map. **Partial:** `scripts.build_implementation_feature_map` indexes checklist rows by package/plan gate, resolves explicitly referenced repository paths, dotted Python module names, and registered `pyproject.toml` CLI entry points, and marks unresolved rows `unmapped`. Map v2 records a stable SHA-256 for every linked evidence file and rejects symlinked or mutating evidence snapshots; `loslab-build-implementation-feature-map --check` detects stale output. The `scripts` package is now included in distribution discovery so all four registered `scripts.*` console entry points import after install; the four `--help` paths pass. The current map has 181 checklist rows, 25 linked and 156 unmapped; G5 network receiver and G7 split-lineage rows now resolve their source/schema/regression evidence. Evidence links for other rows without explicit references, plus audited implementation-status reconciliation, remain open. Checkbox state is not scientific qualification.",
+      "description": "Turn this backlog into a fully traceable feature map. **Partial:** `scripts.build_implementation_feature_map` indexes checklist rows by package/plan gate, resolves explicitly referenced repository paths (both formatted and plain), dotted Python module names, and registered `pyproject.toml` CLI entry points, and marks unresolved rows `unmapped`. Map v2 records a stable SHA-256 for every linked evidence file and rejects symlinked or mutating evidence snapshots; `loslab-build-implementation-feature-map --check` detects stale output. The `scripts` package is now included in distribution discovery so all four registered `scripts.*` console entry points import after install; the four `--help` paths pass. The current map has 181 checklist rows, 25 linked and 156 unmapped; G5 network receiver and G7 split-lineage rows now resolve their source/schema/regression evidence. Evidence links for other rows without explicit references, plus audited implementation-status reconciliation, remain open. Checkbox state is not scientific qualification.",
       "evidence_file_sha256": {
         "pyproject.toml": "ac7ff4e6e377b478f4c72b558937a20992a9f80d6c722fd1e438d4d4b9524ad8",
-        "scripts/build_implementation_feature_map.py": "68e282ff84452ae9c2b567fb881c6c22fbcb496e050c606fa9c684ba4e62153b"
+        "scripts/build_implementation_feature_map.py": "d9fccc125e0b9f9679a92a8231b5e2b31e7bcb4a9b287442420bcc984f3515ff"
       },
       "evidence_links": {
         "cli_entries": [
@@ -181,7 +181,7 @@
       "backlog_status": "open",
       "description": "Finish dependency/API compatibility matrix and exact native source, wheel, runtime, and model-table identities. `integrations.runtime_inventory` and `loslab-runtime-inventory` bind lock/config bytes, installed distribution RECORD/WHEEL/direct-URL identities, Sionna TR 38.901 model-table bytes, Python/platform, Git revision, and optional CUDA device metadata under schema v2. Schema v3 adds opt-in Linux loaded-ELF file identity from `/proc/self/maps`, bounded to 1-GiB per file and 8-GiB total with explicit incomplete status; a live CUDA/PHY probe hashed 130 files completely. Its opt-in `integrations.runtime_compatibility` check covers every currently used Sionna PHY/RT, Mitsuba, and Dr.Jit export against pinned versions. In the PHY-only environment the PHY probe is compatible and the RT probe reports missing `sionna-rt` before attempting RT imports. The scene-asset manifest hashes each local asset from one stable descriptor using bounded streaming (2-GiB per asset/8-GiB total defaults). See `docs/research/RUNTIME_INVENTORY_WORKFLOW.md` and `docs/research/RT_SCENE_ASSET_IDENTITY.md`. Full dependency-matrix coverage, independent runtime attestation, and trust admission remain open.",
       "evidence_file_sha256": {
-        "docs/research/RT_SCENE_ASSET_IDENTITY.md": "ebfd7061f5b3533bf0c8701ddb17d7a068d86c06acfe7814eef20e0bbe2d0238",
+        "docs/research/RT_SCENE_ASSET_IDENTITY.md": "18c3c047b1a5a4f44ab8f6d551ea5b710505a967ecbf2b252ec74c4b611bcaeb",
         "docs/research/RUNTIME_INVENTORY_WORKFLOW.md": "e7ca018443e72200281f6ae5d0547f5fd140f334babf6aa4aa5f906551989510",
         "integrations/runtime_compatibility.py": "db08077dfef8f11e32873bf219049e7d2265af523b6728c357413913f0c841d5",
         "integrations/runtime_inventory.py": "00117ea5d536304fabb04b39a8800a9a598d1070fd4e8444153c0609aa7bef28"
@@ -290,7 +290,7 @@
       "backlog_status": "open",
       "description": "Complete release-specific ODbL asset/extract/conversion provenance, attribution, source offer, and third-party license closure for every artifact; keep unreviewed OSM-derived outputs nonpublic. **Source snapshot tooling implemented:** `scripts/audit_odbl_scene_source_snapshot.py` binds pinned Sionna/RT Git commits and recursive asset hashes but cannot recover the currently missing source-database provenance or rights evidence; see `docs/research/RT_SCENE_ASSET_IDENTITY.md`.",
       "evidence_file_sha256": {
-        "docs/research/RT_SCENE_ASSET_IDENTITY.md": "ebfd7061f5b3533bf0c8701ddb17d7a068d86c06acfe7814eef20e0bbe2d0238",
+        "docs/research/RT_SCENE_ASSET_IDENTITY.md": "18c3c047b1a5a4f44ab8f6d551ea5b710505a967ecbf2b252ec74c4b611bcaeb",
         "scripts/audit_odbl_scene_source_snapshot.py": "28ca6f124c6c06678c7332122b7c14aca42cacac64058ec9a7008f677dc6c15f"
       },
       "evidence_links": {
@@ -3986,21 +3986,27 @@
     {
       "backlog_line": 396,
       "backlog_status": "marked_done",
-      "description": "Implement the fail-closed ODbL release exporter and strict v2 per-artifact rights/provenance manifest, including exact field rosters, canonical artifact hashes, scene/artifact cross-bindings, generated attribution/source-offer notices, and mandatory external OpenSSH review of exact manifest bytes. The archive retains the signature and a trust-digest receipt; packaged contracts are `datasets/schema/public-release-manifest.v2.schema.json` and `datasets/schema/public-release-approval.v1.schema.json`. Regression definitions cover unknown fields, hash canonicalization, schema agreement, and missing/duplicate-field approval cases. Signatures authenticate a principal's declaration only: legal classification, recovered OSM provenance, live offer URLs, and third-party rights still require external evidence, so public release remains gated.",
+      "description": "Implement the fail-closed ODbL release exporter and strict v3 per-artifact rights/provenance manifest, including exact field rosters, canonical artifact hashes, scene/artifact cross-bindings, generated notices, and mandatory external OpenSSH review of exact manifest bytes. V3 requires exact timezone-bearing OSM extract time, explicit canonical source object IDs, a conversion recipe artifact bound by SHA-256, and a structured per-asset third-party license inventory bound to review-evidence SHA-256; documented provenance gaps cannot pass release validation. The archive retains the signature and a trust-digest receipt under `datasets/schema/public-release-approval.v2.schema.json`. These contracts make review evidence auditable but do not establish its truth; the actual Etoile/Florence/Munich source records, live data offers, third-party inventory, and independent legal disposition remain external blockers, so no public release is eligible. Implementation evidence is `datasets/public_release.py`, `datasets/schema/public-release-manifest.v3.schema.json`, `datasets/schema/public-release-approval.v2.schema.json`, and `tests/test_datasets/test_public_release.py`.",
       "evidence_file_sha256": {
-        "datasets/schema/public-release-approval.v1.schema.json": "ad4f711b41970f5ceb02f578edcbfc1d56f30c30728cd97425cd41627cab2026",
-        "datasets/schema/public-release-manifest.v2.schema.json": "9c6cf5425f7849a1ed7e862bc20a736f62e307d872445bb5b2df0330278c58dd"
+        "datasets/public_release.py": "241797ba22d252b525fe15b57b5a4f8586aa1ca1dda3cf9dfc9834109305e63e",
+        "datasets/schema/public-release-approval.v2.schema.json": "677c18988f29aa6cba49ead722a1adb57d6643cd81a626f519f00a5ec5f235c6",
+        "datasets/schema/public-release-manifest.v3.schema.json": "de40b862eca27c2d024fafa36349617eac157ff0a2bffd77ddcb53549615576a",
+        "tests/test_datasets/test_public_release.py": "a578729b239b04f090fa8a6f1275d558072bb73dbca5767771cce11164c21dfb"
       },
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
         "other_files": [],
-        "regression_files": [],
-        "schemas": [
-          "datasets/schema/public-release-approval.v1.schema.json",
-          "datasets/schema/public-release-manifest.v2.schema.json"
+        "regression_files": [
+          "tests/test_datasets/test_public_release.py"
         ],
-        "source_modules": []
+        "schemas": [
+          "datasets/schema/public-release-approval.v2.schema.json",
+          "datasets/schema/public-release-manifest.v3.schema.json"
+        ],
+        "source_modules": [
+          "datasets/public_release.py"
+        ]
       },
       "feature_id": "PKG08-039",
       "link_status": "linked",
@@ -4544,7 +4550,7 @@
   "schema": "loslab.implementation_feature_map.v2",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "24f1736d4ccb838240a4474bde4cd09b626ce11feb68f133945abc534963d474"
+    "sha256": "f74d7f9d34ccc09ee6934802626e59367d0ece10c328532b95073c08fc865275"
   },
   "summary": {
     "feature_count": 181,

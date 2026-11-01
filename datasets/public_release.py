@@ -21,7 +21,7 @@ _POLICY_PATH = (
 _ODBL_URL = "https://opendatacommons.org/licenses/odbl/1-0/"
 _OSM_COPYRIGHT_URL = "https://www.openstreetmap.org/copyright"
 _OSM_CREDIT = "© OpenStreetMap contributors"
-PUBLIC_RELEASE_SIGNATURE_NAMESPACE = "umcd-public-release-manifest-v2@github.com"
+PUBLIC_RELEASE_SIGNATURE_NAMESPACE = "umcd-public-release-manifest-v3@github.com"
 _MAX_RELEASE_MANIFEST_BYTES = 16 * 1024 * 1024
 _MAX_RELEASE_SIGNATURE_BYTES = 64 * 1024
 _RESERVED_ARCHIVE_PATHS = (
@@ -41,9 +41,10 @@ _SCENE_FIELDS = {
     "source_software_revision",
     "attribution_location",
     "source_data_offer_url",
-    "extract_or_update_date_or_documented_gap",
-    "source_ids_or_documented_gap",
-    "conversion_recipe_or_documented_gap",
+    "osm_extract_timestamp",
+    "osm_source_object_ids",
+    "conversion_recipe_artifact_path",
+    "conversion_recipe_sha256",
     "third_party_license_closure",
 }
 _ARTIFACT_FIELDS = {
@@ -202,7 +203,7 @@ def validate_public_release_manifest(manifest: Any) -> dict[str, Any]:
     if (
         not isinstance(manifest, dict)
         or set(manifest) != _MANIFEST_FIELDS
-        or manifest.get("schema") != "umcd.public_release.v2"
+        or manifest.get("schema") != "umcd.public_release.v3"
     ):
         raise ValueError("unsupported public release manifest")
     _required_text(manifest.get("release_id"), name="release_id")
@@ -247,11 +248,39 @@ def validate_public_release_manifest(manifest: Any) -> dict[str, Any]:
         for field in (
             "source_software_revision",
             "attribution_location",
-            "extract_or_update_date_or_documented_gap",
-            "source_ids_or_documented_gap",
-            "conversion_recipe_or_documented_gap",
+            "osm_extract_timestamp",
+            "conversion_recipe_artifact_path",
         ):
             _required_text(scene.get(field), name=f"{scene_id}.{field}")
+        try:
+            from datetime import datetime
+
+            extract_time = datetime.fromisoformat(
+                scene["osm_extract_timestamp"].replace("Z", "+00:00")
+            )
+        except ValueError as error:
+            raise ValueError(
+                f"scene {scene_id!r} needs an ISO-8601 OSM extract timestamp"
+            ) from error
+        if extract_time.tzinfo is None or extract_time.utcoffset() is None:
+            raise ValueError(f"scene {scene_id!r} OSM extract timestamp must include a timezone")
+        source_ids = scene.get("osm_source_object_ids")
+        if (
+            not isinstance(source_ids, list)
+            or not source_ids
+            or any(
+                not isinstance(value, str)
+                or not value
+                or value != value.strip()
+                or re.fullmatch(r"(?:node|way|relation)/[1-9][0-9]*", value) is None
+                for value in source_ids
+            )
+            or len(set(source_ids)) != len(source_ids)
+        ):
+            raise ValueError(f"scene {scene_id!r} needs unique canonical OSM object IDs")
+        recipe_digest = scene.get("conversion_recipe_sha256")
+        if not isinstance(recipe_digest, str) or _SHA256_RE.fullmatch(recipe_digest) is None:
+            raise ValueError(f"scene {scene_id!r} conversion recipe needs lowercase SHA-256")
         _required_https_url(
             scene.get("source_data_offer_url"), name=f"{scene_id}.source_data_offer_url"
         )
@@ -261,8 +290,51 @@ def validate_public_release_manifest(manifest: Any) -> dict[str, Any]:
             )
         if scene["source_software_revision"] != manifest["source_software_revision"]:
             raise ValueError(f"scene {scene_id!r} software revision differs from the release")
-        if scene.get("third_party_license_closure") != "complete":
-            raise ValueError(f"scene {scene_id!r} third-party license closure is incomplete")
+        closure = scene.get("third_party_license_closure")
+        if (
+            not isinstance(closure, dict)
+            or set(closure) != {"review_evidence_sha256", "assets"}
+            or not isinstance(closure.get("review_evidence_sha256"), str)
+            or _SHA256_RE.fullmatch(closure["review_evidence_sha256"]) is None
+            or not isinstance(closure.get("assets"), list)
+        ):
+            raise ValueError(
+                f"scene {scene_id!r} third-party license closure is incomplete or lacks "
+                "a hash-bound review"
+            )
+        seen_asset_paths: set[str] = set()
+        for entry in closure["assets"]:
+            fields = {
+                "asset_path",
+                "asset_sha256",
+                "rights_holder",
+                "license_id",
+                "license_url",
+                "source_url",
+            }
+            if not isinstance(entry, dict) or set(entry) != fields:
+                raise ValueError(f"scene {scene_id!r} has an invalid third-party asset entry")
+            asset_path = _required_text(entry.get("asset_path"), name="third-party asset path")
+            parsed_path = PurePosixPath(asset_path)
+            if (
+                parsed_path.is_absolute()
+                or "\\" in asset_path
+                or parsed_path.as_posix() != asset_path
+                or any(part in {"", ".", ".."} or ":" in part for part in asset_path.split("/"))
+            ):
+                raise ValueError(f"scene {scene_id!r} has an unsafe third-party asset path")
+            if asset_path in seen_asset_paths:
+                raise ValueError(f"scene {scene_id!r} repeats a third-party asset path")
+            seen_asset_paths.add(asset_path)
+            digest = entry.get("asset_sha256")
+            if not isinstance(digest, str) or _SHA256_RE.fullmatch(digest) is None:
+                raise ValueError(
+                    f"scene {scene_id!r} third-party asset hash must be lowercase SHA-256"
+                )
+            for field in ("rights_holder", "license_id"):
+                _required_text(entry.get(field), name=f"third-party {field}")
+            _required_https_url(entry.get("license_url"), name="third-party license_url")
+            _required_https_url(entry.get("source_url"), name="third-party source_url")
 
     artifact_paths: set[str] = set()
     referenced_scene_ids: set[str] = set()
@@ -344,6 +416,18 @@ def validate_public_release_manifest(manifest: Any) -> dict[str, Any]:
             )
     if referenced_scene_ids != declared_ids:
         raise ValueError("every ODbL scene assessment must be referenced by a release artifact")
+    for scene in scenes:
+        recipe_path = scene["conversion_recipe_artifact_path"]
+        recipe_artifact = next((row for row in artifacts if row["path"] == recipe_path), None)
+        if (
+            recipe_artifact is None
+            or recipe_artifact["sha256"] != scene["conversion_recipe_sha256"]
+            or recipe_artifact["scene_ids"]
+        ):
+            raise ValueError(
+                f"scene {scene['scene_id']!r} conversion recipe must be a hash-bound, "
+                "independently licensed release artifact"
+            )
     return manifest
 
 
@@ -419,7 +503,7 @@ def export_public_release(
     if hashlib.sha256(signature_bytes).hexdigest() != signature_identity["signature_sha256"]:
         raise ValueError("public release manifest signature changed after verification")
     approval = {
-        "schema": "umcd.public_release_approval.v1",
+        "schema": "umcd.public_release_approval.v2",
         "manifest_sha256": hashlib.sha256(manifest_bytes).hexdigest(),
         "signature_sha256": signature_identity["signature_sha256"],
         "allowed_signers_sha256": signature_identity["allowed_signers_sha256"],
@@ -461,6 +545,15 @@ def export_public_release(
                     f"  Copyright notice: {scene['copyright_notice_url']}",
                     f"  Attribution location: {scene['attribution_location']}",
                     f"  Source database offer: {scene['source_data_offer_url']}",
+                    f"  OSM extract time: {scene['osm_extract_timestamp']}",
+                    f"  OSM source object count: {len(scene['osm_source_object_ids'])}",
+                    f"  Conversion recipe: {scene['conversion_recipe_artifact_path']} ({scene['conversion_recipe_sha256']})",
+                    f"  Third-party license review evidence: {scene['third_party_license_closure']['review_evidence_sha256']}",
+                    *(
+                        f"  Third-party asset {entry['asset_path']}: {entry['rights_holder']} / "
+                        f"{entry['license_id']} ({entry['license_url']}); source: {entry['source_url']}"
+                        for entry in scene["third_party_license_closure"]["assets"]
+                    ),
                     "",
                 ]
             )
