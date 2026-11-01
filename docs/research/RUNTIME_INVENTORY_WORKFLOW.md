@@ -51,7 +51,7 @@ CUDA 13.0 build and fails CUDA initialization on that driver. After syncing the
 locked `sionna` extra, install the official CUDA 12.6 wheel in `.venv`:
 
 ```sh
-uv sync --locked --extra sionna
+uv sync --locked --extra sionna --extra dev
 uv pip install --python .venv/bin/python \
   --index-url https://download.pytorch.org/whl/cu126 \
   --reinstall 'torch==2.14.1+cu126'
@@ -80,7 +80,11 @@ The extra wheel selection is a host-specific runtime choice; record its exact
 distribution identity with `--probe-accelerator` and, when needed, the opt-in
 native-library inventory. A successful CUDA kernel smoke establishes device
 execution only. Sionna receiver initialization and the bounded receiver
-protocol must still be verified separately. PyTorch's published version/wheel
+protocol must still be verified separately. Keep `sionna-rt` out of this
+PHY-only environment: the installed RT package makes Sionna's top-level
+initializer import Mitsuba/Dr.Jit even for `sionna.phy.nr`, and Dr.Jit 1.5
+skips its CUDA backend on the server's Volta 7.0 devices. Use a separate
+RT-enabled environment for RT-only work. PyTorch's published version/wheel
 matrix is at <https://pytorch.org/get-started/previous-versions/>.
 
 Validate v2 receipts against `datasets/schema/runtime-inventory.v2.schema.json`
