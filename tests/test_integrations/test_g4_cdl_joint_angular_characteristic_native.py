@@ -69,11 +69,6 @@ _TERNARY_FOURIER_VECTORS = tuple(
     for vector in itertools.product((-1, 0, 1), repeat=len(_ANGLE_FIELDS))
     if sum(frequency != 0 for frequency in vector) >= 2
 )
-_MARGINAL_FOURIER_VECTORS = tuple(
-    tuple(harmonic if index == angle else 0 for index in range(len(_ANGLE_FIELDS)))
-    for angle in range(len(_ANGLE_FIELDS))
-    for harmonic in (1, 2)
-)
 _BOUNDED_JOINT_FOURIER_VECTORS = tuple(
     vector
     for vector in itertools.product((-2, -1, 0, 1, 2), repeat=len(_ANGLE_FIELDS))
@@ -82,7 +77,6 @@ _BOUNDED_JOINT_FOURIER_VECTORS = tuple(
 )
 _CLAIM_COUNT = len(_MODELS) * len(_FOURIER_VECTORS) * 2
 _TERNARY_CLAIM_COUNT = len(_MODELS) * len(_TERNARY_FOURIER_VECTORS) * 2
-_MARGINAL_CLAIM_COUNT = len(_MODELS) * len(_MARGINAL_FOURIER_VECTORS) * 2
 _BOUNDED_JOINT_CLAIM_COUNT = len(_MODELS) * len(_BOUNDED_JOINT_FOURIER_VECTORS) * 2
 _JOINT_DELAY_ANGLE_SEED = 274_000
 _DELAY_SPREAD_S = 100e-9
@@ -174,7 +168,7 @@ def _profile_native_precision_reference(parameters: dict[str, Any]) -> tuple[Any
     )
 
 
-def _native_diffuse_rays(model: str, seed: int = _SEED) -> Any:
+def _native_diffuse_rays(model: str, seed: int = _SEED, batch_size: int = _BATCH_SIZE) -> Any:
     """Generate native CDL ray angles and powers on CPU for one profile."""
     from sionna.phy.channel.tr38901 import CDL, PanelArray
 
@@ -200,7 +194,7 @@ def _native_diffuse_rays(model: str, seed: int = _SEED) -> Any:
         spec_version="19.2",
     )
     return call_with_sionna_seed(
-        "cpu", seed + ord(model), lambda: model_instance._create_rays(batch_size=_BATCH_SIZE)
+        "cpu", seed + ord(model), lambda: model_instance._create_rays(batch_size=batch_size)
     )
 
 
@@ -318,58 +312,45 @@ def test_cdl_four_angle_ternary_fourier_family_matches_table_reference(model: st
 
 @pytest.mark.native_sionna
 @pytest.mark.parametrize("model", _MODELS)
-def test_cdl_single_angle_fourier_marginals_match_table_reference(model: str) -> None:
-    """Check first/second Fourier harmonics of each marginal on reserved fresh draws."""
+def test_cdl_single_angle_atoms_and_powers_match_table_reference(model: str) -> None:
+    """Check all deterministic angle atoms and powers against the pinned table."""
     table_path = profile_resources.parameter_file(f"CDL-{model}.json", "19.2")
     assert hashlib.sha256(table_path.read_bytes()).hexdigest() == _PROFILE_SHA256[model]
     parameters = _independent_profile_parameters(model)
-    expected_powers, table_angles_deg = _profile_diffuse_reference(parameters)
-    rays = _native_diffuse_rays(model, seed=250_000)
+    _, expected_powers, expected_angles_rad = _profile_native_precision_reference(parameters)
+    rays = _native_diffuse_rays(model, seed=250_000, batch_size=8)
 
     native_angles_rad = torch.stack(
         [getattr(rays, name)[:, 0, 0] for name in _ANGLE_FIELDS], dim=-1
     ).to(torch.float64)
     native_powers = rays.powers[:, 0, 0].to(torch.float64)
     expected_clusters = int(expected_powers.numel())
-    assert native_angles_rad.shape == (_BATCH_SIZE, expected_clusters, 20, 4)
-    assert native_powers.shape == (_BATCH_SIZE, expected_clusters)
-    native_power_sums = native_powers.sum(dim=-1)
+    assert native_angles_rad.shape == (8, expected_clusters, 20, 4)
+    assert native_powers.shape == (8, expected_clusters)
+
+    # Ray positions and powers are table-defined. Sionna randomly permutes each
+    # angle within each cluster, so align clusters by delay and compare each
+    # marginal's unordered atom roster for all seeded rows.
+    cluster_order = torch.argsort(rays.delays[:, 0, 0], dim=-1)
+    native_angles_rad = torch.gather(
+        native_angles_rad,
+        1,
+        cluster_order[..., None, None].expand(-1, -1, 20, len(_ANGLE_FIELDS)),
+    )
+    native_powers = torch.gather(native_powers, 1, cluster_order)
+    expected_angles_rad = expected_angles_rad.unsqueeze(0).expand_as(native_angles_rad)
     torch.testing.assert_close(
-        native_power_sums,
-        torch.ones(_BATCH_SIZE, dtype=torch.float64),
-        atol=2e-7,
+        torch.sort(native_angles_rad, dim=-2).values,
+        torch.sort(expected_angles_rad, dim=-2).values,
+        atol=0.0,
         rtol=0.0,
     )
-    native_powers = native_powers / native_power_sums[:, None]
-
-    z_simultaneous = NormalDist().inv_cdf(1.0 - _ALPHA / (2.0 * _MARGINAL_CLAIM_COUNT))
-    for vector in _MARGINAL_FOURIER_VECTORS:
-        frequency = torch.tensor(vector, dtype=torch.float64)
-        table_cluster_moments = torch.stack(
-            [
-                torch.exp(
-                    1j * math.pi / 180.0 * table_angles_deg[..., index] * frequency[index]
-                ).mean(dim=-1)
-                for index in range(len(_ANGLE_FIELDS))
-            ],
-            dim=-1,
-        ).prod(dim=-1)
-        expected = torch.sum(expected_powers * table_cluster_moments)
-
-        native_phase = torch.sum(native_angles_rad * frequency[None, None, None, :], dim=-1)
-        native_cluster_moments = torch.exp(1j * native_phase).mean(dim=-1)
-        draw_moments = torch.sum(native_powers * native_cluster_moments, dim=-1)
-        estimate = draw_moments.mean()
-        real_half_width = (
-            z_simultaneous * draw_moments.real.std(unbiased=True) / math.sqrt(_BATCH_SIZE)
-        )
-        imag_half_width = (
-            z_simultaneous * draw_moments.imag.std(unbiased=True) / math.sqrt(_BATCH_SIZE)
-        )
-
-        assert abs(float(estimate.real - expected.real)) <= float(real_half_width) + 1e-12
-        assert abs(float(estimate.imag - expected.imag)) <= float(imag_half_width) + 1e-12
-        assert max(float(real_half_width), float(imag_half_width)) <= _MAX_SIMULTANEOUS_HALF_WIDTH
+    torch.testing.assert_close(
+        native_powers,
+        expected_powers.unsqueeze(0).expand_as(native_powers),
+        atol=1e-7,
+        rtol=0.0,
+    )
 
 
 @pytest.mark.native_sionna

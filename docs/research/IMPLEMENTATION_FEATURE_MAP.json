@@ -1297,7 +1297,7 @@
         "datasets/schema/g3-run-verification-signature-receipt.v1.schema.json": "f69f2ffac57955c2ef635991b93fe72259f7f8617bd7282265b332cd04caba77",
         "evaluation/g3_joint_evidence_run_manifest.py": "9427fe1c8c765f471abb7854569ce0d5e31d4f7d6e8b9fbb1a3436230dce507d",
         "scripts/verify_g3_run_report_signature.py": "252675b08c7b60e781e7d73aba3208bc288bfe65ddbda87f0f4c4ea73832159f",
-        "tests/test_evaluation/test_g3_run_report_signature.py": "f3dde27e430d7c1fd01ee0ab202b70ec9fd04b7938995bc8093751bdb61ef427"
+        "tests/test_evaluation/test_g3_run_report_signature.py": "86afea91deddcaac74da4db670f9f29b466ccfe1479061a310e82cd351b94dee"
       },
       "evidence_links": {
         "cli_entries": [
@@ -4575,7 +4575,7 @@
   "schema": "loslab.implementation_feature_map.v2",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "61c014291554b9f3162d0efacb55f6c530988e1c85f9d8b48e97399c74d81794"
+    "sha256": "1b9236af3cc21b98f73a3cb77340e0494a3fd0d30cf63240545b86ac6270d905"
   },
   "summary": {
     "feature_count": 181,
