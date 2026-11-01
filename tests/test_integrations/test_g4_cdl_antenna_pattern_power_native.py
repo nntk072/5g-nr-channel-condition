@@ -411,6 +411,70 @@ def _pattern_orientation_seed(model: str, pattern_name: str, orientation_case: s
     return _ONE_END_VECTOR_FIELD_SEED_START + case_index
 
 
+def _record_case_result(
+    record_property: Any,
+    *,
+    cohort: str,
+    model: str,
+    seed: int,
+    patterns: tuple[str, str],
+    orientations: tuple[tuple[float, float, float], tuple[float, float, float]],
+    source_digest: str,
+    expected: Any,
+    estimate: Any,
+    half_width: Any,
+) -> None:
+    """Attach complete per-cluster summaries for the dedicated report runner."""
+    claims = []
+    for index, (reference, observed, width) in enumerate(
+        zip(expected.tolist(), estimate.tolist(), half_width.tolist(), strict=True)
+    ):
+        claims.append(
+            {
+                "cluster_index": index,
+                "reference": float(reference),
+                "estimate": float(observed),
+                "half_width": float(width),
+                "interval": [float(observed - width), float(observed + width)],
+                "passed": abs(observed - reference) <= width,
+            }
+        )
+    record_property(
+        "g4_cdl_directional_pattern_case",
+        json.dumps(
+            {
+                "cohort": cohort,
+                "profile": model,
+                "seed": seed,
+                "patterns": list(patterns),
+                "orientations_rad": [list(row) for row in orientations],
+                "parameter_table_sha256": source_digest,
+                "sample_count": _BATCH_SIZE,
+                "familywise_alpha": _FAMILYWISE_ALPHA,
+                "family_claim_count": (
+                    _CLUSTER_CLAIM_COUNT
+                    if cohort == "one_end_zero"
+                    else _ORIENTATION_CLAIM_COUNT
+                    if cohort == "one_end_tilted"
+                    else _BOTH_ENDS_CLAIM_COUNT
+                ),
+                "total_expected_power": float(expected.sum()),
+                "maximum_half_width": float(half_width.max()),
+                "maximum_allowed_half_width": _MAX_INTERVAL_FRACTION_OF_TOTAL_POWER
+                * float(expected.sum()),
+                "passed": bool(
+                    (torch.abs(estimate - expected) <= half_width).all()
+                    and half_width.max() <= _MAX_INTERVAL_FRACTION_OF_TOTAL_POWER * expected.sum()
+                ),
+                "claims": claims,
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+            allow_nan=False,
+        ),
+    )
+
+
 @pytest.mark.native_sionna
 @pytest.mark.parametrize("model", tuple("ABCDE"))
 @pytest.mark.parametrize("pattern", _PROFILE_ANTENNA_PATTERNS)
@@ -419,14 +483,16 @@ def test_cdl_directional_element_cluster_power_matches_independent_reference(
     model: str,
     pattern: tuple[str, float, float, float, float, float],
     orientation_case: str,
+    record_property: Any,
 ) -> None:
     """Check directional UT patterns against an independent per-cluster law."""
     pattern_name = pattern[0]
     orientation_rad = _ORIENTATIONS[orientation_case]
     expected, source_digest = _independent_profile_cluster_power(model, pattern, orientation_rad)
+    seed = _pattern_orientation_seed(model, pattern_name, orientation_case)
     channel = generate_cdl_frequency_response(
         model=model,
-        seed=_pattern_orientation_seed(model, pattern_name, orientation_case),
+        seed=seed,
         carrier_frequency_hz=3.5e9,
         subcarrier_spacing_hz=30_000.0,
         num_subcarriers=8,
@@ -448,6 +514,18 @@ def test_cdl_directional_element_cluster_power_matches_independent_reference(
     )
     z_simultaneous = NormalDist().inv_cdf(1.0 - _FAMILYWISE_ALPHA / (2.0 * family_claim_count))
     half_width = z_simultaneous * standard_error
+    _record_case_result(
+        record_property,
+        cohort="one_end_zero" if orientation_case == "zero" else "one_end_tilted",
+        model=model,
+        seed=seed,
+        patterns=(pattern_name, "omni"),
+        orientations=(orientation_rad, (0.0, 0.0, 0.0)),
+        source_digest=source_digest,
+        expected=expected,
+        estimate=estimate,
+        half_width=half_width,
+    )
 
     assert tuple(draw_level_power.shape) == (_BATCH_SIZE, expected.numel())
     assert channel.metadata["batch_axis_semantics"] == "independent_stochastic_channel_draws"
@@ -471,6 +549,7 @@ def test_cdl_directional_patterns_at_both_link_ends_match_independent_reference(
         tuple[str, float, float, float, float, float],
     ],
     orientation_case: str,
+    record_property: Any,
 ) -> None:
     """Check independent UT/BS patterns and orientations under one fresh family."""
     ut_pattern, bs_pattern = pattern_pair
@@ -506,6 +585,18 @@ def test_cdl_directional_patterns_at_both_link_ends_match_independent_reference(
     standard_error = draw_level_power.std(dim=0, unbiased=True) / math.sqrt(_BATCH_SIZE)
     z_simultaneous = NormalDist().inv_cdf(1.0 - _FAMILYWISE_ALPHA / (2.0 * _BOTH_ENDS_CLAIM_COUNT))
     half_width = z_simultaneous * standard_error
+    _record_case_result(
+        record_property,
+        cohort="both_ends_zero" if orientation_case == "zero" else "both_ends_tilted",
+        model=model,
+        seed=seed,
+        patterns=(ut_pattern[0], bs_pattern[0]),
+        orientations=(ut_orientation, bs_orientation),
+        source_digest=source_digest,
+        expected=expected,
+        estimate=estimate,
+        half_width=half_width,
+    )
 
     assert tuple(draw_level_power.shape) == (_BATCH_SIZE, expected.numel())
     assert channel.metadata["batch_axis_semantics"] == "independent_stochastic_channel_draws"

@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:loslab:g4-cdl-directional-pattern-power-result:v1",
+  "title": "G4 CDL Directional Pattern Power Result",
+  "description": "Retained per-cluster outcomes for the bounded frozen vector-field CDL check; this is not overall G4 qualification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "protocol", "run_date", "status", "seed_collision_audit", "design", "runtime", "command", "provenance", "outcome", "cases", "scope"],
+  "properties": {
+    "schema": {"const": "loslab.g4_cdl_directional_pattern_power_result.v1"},
+    "protocol": {"const": "G4_07_CDL_DIRECTIONAL_PATTERN_VECTOR_FIELD_PROTOCOL_2026-11-01"},
+    "run_date": {"type": "string", "format": "date"},
+    "status": {"enum": ["PASS_WITHIN_BOUNDED_PROTOCOL_SCOPE", "FAILED_OR_INCOMPLETE"]},
+    "seed_collision_audit": {
+      "type": "object", "additionalProperties": false,
+      "required": ["path", "sha256", "status", "scanned_file_count"],
+      "properties": {
+        "path": {"const": "G4_CDL_ANTENNA_PATTERN_VECTOR_FIELD_SEED_AUDIT_2026-11-01.json"},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "status": {"const": "CLEAR_WITHIN_SCANNED_JSON_CORPUS"},
+        "scanned_file_count": {"const": 2276}
+      }
+    },
+    "design": {
+      "type": "object", "additionalProperties": false,
+      "required": ["profiles", "patterns", "samples_per_case", "one_end_seed_range", "both_ends_seed_range", "familywise_alpha", "maximum_half_width_fraction_of_total_power", "case_count", "cluster_claim_count"],
+      "properties": {
+        "profiles": {"const": ["A", "B", "C", "D", "E"]},
+        "patterns": {"const": ["38.901", "38.901-handheld"]},
+        "samples_per_case": {"const": 16384},
+        "one_end_seed_range": {"const": [2700000, 2700029]},
+        "both_ends_seed_range": {"const": [2701000, 2701039]},
+        "familywise_alpha": {"const": 0.01},
+        "maximum_half_width_fraction_of_total_power": {"const": 0.05},
+        "case_count": {"const": 70},
+        "cluster_claim_count": {"const": 1358}
+      }
+    },
+    "runtime": {
+      "type": "object", "additionalProperties": false,
+      "required": ["sionna", "torch", "torch_cuda", "device"],
+      "properties": {
+        "sionna": {"const": "2.2.0"},
+        "torch": {"type": "string", "minLength": 1},
+        "torch_cuda": {"type": "string", "minLength": 1},
+        "device": {"const": "cpu"}
+      }
+    },
+    "command": {"type": "string", "minLength": 1},
+    "provenance": {
+      "type": "object", "additionalProperties": false,
+      "required": ["git_revision", "clean_worktree_at_run_start", "runner_source_sha256", "test_source_sha256", "protocol_sha256", "schema_sha256", "reference_sha256"],
+      "properties": {
+        "git_revision": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "clean_worktree_at_run_start": {"const": true},
+        "runner_source_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "test_source_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "protocol_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "schema_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "reference_sha256": {
+          "type": "object", "additionalProperties": false,
+          "required": ["G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json", "G4_CDL_PROFILE_SCALAR_REFERENCE_2026-10-26.json"],
+          "properties": {
+            "G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "G4_CDL_PROFILE_SCALAR_REFERENCE_2026-10-26.json": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+          }
+        }
+      }
+    },
+    "outcome": {
+      "type": "object", "additionalProperties": false,
+      "required": ["pytest_exit_code", "cases_observed", "cases_passed", "claims_passed", "claims_failed"],
+      "properties": {
+        "pytest_exit_code": {"type": "integer", "minimum": 0},
+        "cases_observed": {"type": "integer", "minimum": 0, "maximum": 70},
+        "cases_passed": {"type": "integer", "minimum": 0, "maximum": 70},
+        "claims_passed": {"type": "integer", "minimum": 0, "maximum": 1358},
+        "claims_failed": {"type": "integer", "minimum": 0, "maximum": 1358}
+      }
+    },
+    "cases": {
+      "type": "array", "minItems": 0, "maxItems": 70,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["cohort", "profile", "seed", "patterns", "orientations_rad", "parameter_table_sha256", "sample_count", "familywise_alpha", "family_claim_count", "total_expected_power", "maximum_half_width", "maximum_allowed_half_width", "passed", "claims", "test_nodeid", "test_outcome"],
+        "properties": {
+          "cohort": {"enum": ["one_end_zero", "one_end_tilted", "both_ends_zero", "both_ends_tilted"]},
+          "profile": {"enum": ["A", "B", "C", "D", "E"]},
+          "seed": {"type": "integer", "minimum": 2700000, "maximum": 2701039},
+          "patterns": {"type": "array", "items": {"enum": ["38.901", "38.901-handheld", "omni"]}, "minItems": 2, "maxItems": 2},
+          "orientations_rad": {"type": "array", "items": {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3}, "minItems": 2, "maxItems": 2},
+          "parameter_table_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "sample_count": {"const": 16384},
+          "familywise_alpha": {"const": 0.01},
+          "family_claim_count": {"enum": [194, 388, 776]},
+          "total_expected_power": {"type": "number", "exclusiveMinimum": 0},
+          "maximum_half_width": {"type": "number", "minimum": 0},
+          "maximum_allowed_half_width": {"type": "number", "exclusiveMinimum": 0},
+          "passed": {"type": "boolean"},
+          "claims": {
+            "type": "array", "minItems": 13, "maxItems": 24,
+            "items": {
+              "type": "object", "additionalProperties": false,
+              "required": ["cluster_index", "reference", "estimate", "half_width", "interval", "passed"],
+              "properties": {
+                "cluster_index": {"type": "integer", "minimum": 0, "maximum": 23},
+                "reference": {"type": "number", "minimum": 0},
+                "estimate": {"type": "number", "minimum": 0},
+                "half_width": {"type": "number", "minimum": 0},
+                "interval": {"type": "array", "items": {"type": "number", "minimum": 0}, "minItems": 2, "maxItems": 2},
+                "passed": {"type": "boolean"}
+              }
+            }
+          },
+          "test_nodeid": {"type": "string", "minLength": 1},
+          "test_outcome": {"enum": ["passed", "failed", "skipped"]}
+        }
+      }
+    },
+    "audit": {"type": "object"},
+    "scope": {"type": "string", "minLength": 1}
+  }
+}

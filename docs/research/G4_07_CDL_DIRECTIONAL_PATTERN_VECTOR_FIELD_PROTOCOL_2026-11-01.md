@@ -1,12 +1,25 @@
 # G4.07 CDL Directional-Pattern Vector-Field Protocol
 
-**Status:** Revised independent reference and fresh seeds are frozen; the
-70-case native CPU suite passed on 2026-11-01 (70 passed in 149.79 s). The run
-receipt is the focused pytest result; per-claim numerical values were not
-retained as a separate result artifact, so this is bounded regression evidence
-and not a consolidated qualification report. This supersedes the scalar-gain reference in the
-2026-10-25 dual-endpoint protocol. The previous cohort was inspected only to
-diagnose the reference defect and is not evidence for this revised analysis.
+**Status:** This document freezes the revised independent reference and fresh
+seeds. It supersedes the scalar-gain reference in the 2026-10-25 dual-endpoint
+protocol. The previous cohort was inspected only to diagnose the reference
+defect and is not evidence for this revised analysis. Use the retained-result
+runner below for native execution; a passing regression is bounded evidence,
+not a consolidated qualification report.
+
+## Retained-result workflow
+
+Run `./.venv/bin/python -m scripts.run_g4_cdl_directional_pattern_power
+--output docs/research/results/g4-cdl-directional-pattern-power-result-20261101.json`.
+The runner uses the frozen seeds and draw count, captures the per-cluster
+reference, estimate, interval, and case identity from each test, checks the
+exact 70-case/1,358-claim roster and interval arithmetic, validates the strict
+result schema, and publishes without overwriting an existing file. A
+nonpassing or incomplete run is retained as such and exits nonzero. The result
+binds the test/protocol/schema/reference digests and the seed-audit digest. The
+summary audit recomputes interval membership, cluster counts, power totals,
+case identity, and the frozen family roster; it does not reconstruct sample
+variance without raw draws.
 
 ## Scope and frozen cases
 
