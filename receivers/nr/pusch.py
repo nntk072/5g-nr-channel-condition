@@ -9,6 +9,9 @@ from typing import Any, Mapping
 
 import numpy as np
 
+MAX_CARRIER_GRID_START_CRB = 2199
+MAX_CRB_END_EXCLUSIVE = 2474
+
 
 @dataclass(frozen=True, slots=True)
 class NRPUSCHFrequencyHopGrid:
@@ -69,8 +72,20 @@ def compose_pusch_intra_slot_hops(
         raise ValueError("bwp_size_rb must be in [1, 275]")
     carrier_end_rb = carrier_grid_start_rb + carrier_grid_size_rb
     bwp_end_rb = bwp_start_rb + bwp_size_rb
-    if carrier_grid_start_rb < 0 or carrier_end_rb > 275:
-        raise ValueError("carrier grid must fit within CRB indices [0, 274]")
+    if (
+        carrier_grid_start_rb < 0
+        or carrier_grid_start_rb > MAX_CARRIER_GRID_START_CRB
+        or carrier_end_rb > MAX_CRB_END_EXCLUSIVE
+    ):
+        raise ValueError(
+            "carrier grid must fit within the supported absolute CRB range "
+            f"[0, {MAX_CRB_END_EXCLUSIVE - 1}] and start no later than "
+            f"{MAX_CARRIER_GRID_START_CRB}"
+        )
+    if bwp_start_rb >= MAX_CRB_END_EXCLUSIVE or bwp_end_rb > MAX_CRB_END_EXCLUSIVE:
+        raise ValueError(
+            f"BWP must fit within absolute CRB indices [0, {MAX_CRB_END_EXCLUSIVE - 1}]"
+        )
     if bwp_start_rb < carrier_grid_start_rb or bwp_end_rb > carrier_end_rb:
         raise ValueError("BWP must lie within the carrier grid")
 

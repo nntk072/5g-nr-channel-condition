@@ -119,6 +119,49 @@ def test_pusch_intra_slot_hops_map_bwp_segments_to_absolute_carrier_crbs():
         verify_pusch_intra_slot_hops(bwp_grid, result.frequency_grid, changed_metadata)
 
 
+@pytest.mark.parametrize(
+    ("carrier_start", "carrier_size", "bwp_start", "bwp_size", "expected_offset"),
+    [
+        (2199, 4, 2200, 2, 12),
+        (2199, 275, 2472, 2, 273 * 12),
+    ],
+)
+def test_pusch_intra_slot_hops_support_absolute_crbs_above_274(
+    carrier_start, carrier_size, bwp_start, bwp_size, expected_offset
+):
+    import json
+    from pathlib import Path
+
+    import jsonschema
+
+    allocation = np.ones((1, 1, 1, 4, 12), dtype=np.complex64)
+    result = compose_pusch_intra_slot_hops(
+        allocation,
+        carrier_grid_size_rb=carrier_size,
+        carrier_grid_start_rb=carrier_start,
+        bwp_start_rb=bwp_start,
+        bwp_size_rb=bwp_size,
+        allocation_start_symbol=2,
+        first_hop_rb_start=0,
+        second_hop_rb_start=1,
+        first_hop_symbol_count=2,
+    )
+
+    assert result.metadata["first_hop_start_crb"] == bwp_start
+    assert result.metadata["second_hop_start_crb"] == bwp_start + 1
+    np.testing.assert_array_equal(
+        result.frequency_grid[..., 2:4, expected_offset : expected_offset + 12], 1.0
+    )
+    np.testing.assert_array_equal(
+        result.frequency_grid[..., 4:6, expected_offset + 12 : expected_offset + 24], 1.0
+    )
+    schema = json.loads(
+        Path("datasets/schema/nr-pusch-intra-slot-hop-grid.v1.schema.json").read_text()
+    )
+    jsonschema.Draft202012Validator(schema).validate(result.metadata)
+    verify_pusch_intra_slot_hops(allocation, result.frequency_grid, result.metadata)
+
+
 def test_pusch_intra_slot_hops_bounds_allocation_before_creating_carrier_grid(monkeypatch):
     import receivers.nr.pusch as pusch
 
