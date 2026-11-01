@@ -14,7 +14,7 @@ import stat
 import zipfile
 import zlib
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any, Mapping, Sequence
 
 import jsonschema
 import numpy as np
@@ -92,6 +92,33 @@ def _require_exact_child_object_owners(
     owners = [child_id for child_id, referenced_path in references if referenced_path == object_path]
     if len(owners) != len(set(owners)) or sorted(owners) != sorted(artifact_child_ids):
         raise ValueError(f"{label} manifest owners differ from the signed child roster")
+
+
+def _require_shared_content_owners_share_split(
+    artifact_type: str,
+    owner_child_ids: Sequence[str],
+    expected_child_bindings: Mapping[str, SplitChildBinding],
+    split_registry: Any,
+) -> None:
+    """Reject content-addressed arrays whose frozen owners cross split boundaries."""
+    if artifact_type not in {
+        "umcd_episode_store_content_npz",
+        "scenario_gbsm_record_content_npz",
+    }:
+        return
+    try:
+        owner_splits = {
+            split_registry.split_for_parent(expected_child_bindings[owner].parent_subject_id)
+            for owner in owner_child_ids
+        }
+    except KeyError as error:
+        raise ValueError(
+            f"shared {artifact_type} object owner is absent from the frozen split registry"
+        ) from error
+    if len(owner_splits) > 1:
+        raise ValueError(
+            f"shared {artifact_type} object has owners assigned to different frozen splits"
+        )
 
 
 def _stat_identity(metadata: os.stat_result) -> tuple[int, int, int, int, int, int, int]:
@@ -772,22 +799,13 @@ def _load_split_child_artifact_roster(
         ):
             if any(owner not in expected_child_bindings for owner in owner_child_ids):
                 raise ValueError(f"split child artifact {index} references an unknown child ID")
-            if artifact_type == "umcd_episode_store_content_npz" and split_registry is not None:
-                try:
-                    owner_splits = {
-                        split_registry.split_for_parent(
-                            expected_child_bindings[owner].parent_subject_id
-                        )
-                        for owner in owner_child_ids
-                    }
-                except KeyError as error:
-                    raise ValueError(
-                        "shared UMCD content object owner is absent from the frozen split registry"
-                    ) from error
-                if len(owner_splits) > 1:
-                    raise ValueError(
-                        "shared UMCD content object has owners assigned to different frozen splits"
-                    )
+            if split_registry is not None:
+                _require_shared_content_owners_share_split(
+                    artifact_type,
+                    owner_child_ids,
+                    expected_child_bindings,
+                    split_registry,
+                )
             declaration["child_ids"] = list(owner_child_ids)
         else:
             declaration["child_id"] = owner_child_ids[0]

@@ -50,6 +50,7 @@ from scripts.audit_channel_split_lineage import (
     _read_channel_dataset_child_rows,
     _read_stable_regular_file,
     _require_exact_child_object_owners,
+    _require_shared_content_owners_share_split,
     _validate_split_audit_report,
     audit_channel_datasets,
     main,
@@ -975,6 +976,21 @@ def test_child_artifact_roster_v4_semantically_binds_umcd_episode_store(tmp_path
     assert cross_split_registry.split_for_parent("parent-1") != (
         cross_split_registry.split_for_parent("parent-2")
     )
+    cross_split_bindings = {
+        "child-1": SplitChildBinding("child-1", "parent-1", "episode_bundle"),
+        "child-2": SplitChildBinding("child-2", "parent-2", "episode_bundle"),
+    }
+    for artifact_type in (
+        "umcd_episode_store_content_npz",
+        "scenario_gbsm_record_content_npz",
+    ):
+        with pytest.raises(ValueError, match="owners assigned to different frozen splits"):
+            _require_shared_content_owners_share_split(
+                artifact_type,
+                ("child-1", "child-2"),
+                cross_split_bindings,
+                cross_split_registry,
+            )
     with pytest.raises(ValueError, match="owners assigned to different frozen splits"):
         _load_split_child_artifact_roster(
             tmp_path / "shared-roster.json",
@@ -1013,6 +1029,20 @@ def test_child_artifact_roster_v4_semantically_binds_umcd_episode_store(tmp_path
     assert same_split_registry.split_for_parent("parent-1") == (
         same_split_registry.split_for_parent("parent-2")
     )
+    same_split_bindings = {
+        "child-1": SplitChildBinding("child-1", "parent-1", "episode_bundle"),
+        "child-2": SplitChildBinding("child-2", "parent-2", "episode_bundle"),
+    }
+    for artifact_type in (
+        "umcd_episode_store_content_npz",
+        "scenario_gbsm_record_content_npz",
+    ):
+        _require_shared_content_owners_share_split(
+            artifact_type,
+            ("child-1", "child-2"),
+            same_split_bindings,
+            same_split_registry,
+        )
     same_split_audit = _load_split_child_artifact_roster(
         tmp_path / "shared-roster.json",
         expected_child_kind="episode_bundle",
