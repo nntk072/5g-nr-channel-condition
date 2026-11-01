@@ -70,4 +70,6 @@ strict report contract is
 `datasets/schema/network-pusch-receiver-decode.v4.schema.json`. It hashes the
 exact complex64 waveform after device transfer and casting, alongside the
 original composed and noisy sample tensors, so the demodulator's actual input
-is reproducible even when the source waveform used higher precision.
+is reproducible even when the source waveform used higher precision. Decoder
+outputs are accepted only as dense Boolean or real 0/1 bit tensors paired with
+Boolean CRC outcomes.

@@ -313,14 +313,33 @@ def decode_noisy_network_pusch(
     if (
         not torch.is_tensor(decoded_bits)
         or decoded_bits.numel() < 1
+        or decoded_bits.ndim < 2
+        or decoded_bits.layout != torch.strided
+        or decoded_bits.is_complex()
+        or not (
+            decoded_bits.dtype == torch.bool
+            or decoded_bits.is_floating_point()
+            or decoded_bits.dtype
+            in {
+                torch.uint8,
+                torch.int8,
+                torch.int16,
+                torch.int32,
+                torch.int64,
+            }
+        )
+        or not bool(((decoded_bits == 0) | (decoded_bits == 1)).all())
         or not torch.is_tensor(crc_ok)
+        or crc_ok.layout != torch.strided
         or crc_ok.dtype != torch.bool
         or crc_ok.numel() < 1
+        or crc_ok.ndim < 1
         or decoded_bits.shape[0] != batch
-        or crc_ok.shape[0] != batch
-        or not bool(torch.isfinite(decoded_bits).all())
+        or tuple(crc_ok.shape) != tuple(decoded_bits.shape[:-1])
     ):
-        raise ValueError("PUSCH receiver must return nonempty batch-aligned bits and Boolean CRCs")
+        raise ValueError(
+            "PUSCH receiver must return dense binary batch-aligned bits and Boolean CRCs"
+        )
     if decoded_bits.numel() + crc_ok.numel() > max_tensor_elements:
         raise ValueError("PUSCH receiver outputs exceed max_tensor_elements")
 

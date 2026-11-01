@@ -119,6 +119,45 @@ def test_network_receiver_hashes_the_complex64_waveform_actually_demodulated():
     assert inputs["demodulator_waveform"] != inputs["noisy_received_waveform"]
 
 
+@pytest.mark.parametrize(
+    "decoded_bits",
+    [
+        pytest.param(torch.full((1, 1, 12), 0.5), id="fractional-float"),
+        pytest.param(torch.full((1, 1, 12), 2, dtype=torch.int32), id="integer-out-of-range"),
+        pytest.param(torch.zeros((1, 1, 12), dtype=torch.complex64), id="complex"),
+        pytest.param(torch.tensor(0.0), id="scalar"),
+        pytest.param(
+            torch.sparse_coo_tensor([[0]], [0.0], size=(1,), check_invariants=True),
+            id="sparse",
+        ),
+    ],
+)
+def test_network_receiver_rejects_nonbinary_decoder_outputs(decoded_bits):
+    class InvalidBitReceiver(_FakePUSCHReceiver):
+        def decode_pusch(self, received_grid, noise_variance):
+            self.decoded = True
+            return decoded_bits, torch.tensor([[True]])
+
+    composition, noisy = _network_waveform()
+    receiver = InvalidBitReceiver()
+
+    with pytest.raises(ValueError, match="dense binary batch-aligned bits"):
+        decode_noisy_network_pusch(composition, noisy, receiver, noise_variance_w_per_re=(0.04,))
+
+
+def test_network_receiver_requires_crc_shape_to_match_the_decoded_transport_block_axes():
+    class MismatchedCRCReceiver(_FakePUSCHReceiver):
+        def decode_pusch(self, received_grid, noise_variance):
+            self.decoded = True
+            return torch.zeros((1, 2, 12), dtype=torch.bool), torch.tensor([[True]])
+
+    composition, noisy = _network_waveform()
+    receiver = MismatchedCRCReceiver()
+
+    with pytest.raises(ValueError, match="dense binary batch-aligned bits"):
+        decode_noisy_network_pusch(composition, noisy, receiver, noise_variance_w_per_re=(0.04,))
+
+
 def test_network_receiver_reports_declared_fir_memory_relative_to_cyclic_prefix():
     links = torch.ones((1, 1, 1, 1, 8), dtype=torch.complex64)
     composition = compose_received_waveforms(
