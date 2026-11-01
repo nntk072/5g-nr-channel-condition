@@ -1,3 +1,5 @@
+import hashlib
+
 import numpy as np
 import pytest
 from receivers.nr import (
@@ -75,15 +77,20 @@ def test_pusch_intra_slot_hops_map_bwp_segments_to_absolute_carrier_crbs():
         Path("datasets/schema/nr-pusch-intra-slot-hop-grid.v1.schema.json").read_text()
     )
     jsonschema.Draft202012Validator(schema).validate(result.metadata)
-    replay = verify_pusch_intra_slot_hops(
-        bwp_grid, result.frequency_grid, result.metadata
-    )
+    replay = verify_pusch_intra_slot_hops(bwp_grid, result.frequency_grid, result.metadata)
     assert replay["status"] == "PASS_INPUT_SCOPED_REPLAY"
     assert replay["qualification_status"] == "NOT_QUALIFIED"
     replay_schema = json.loads(
         Path("datasets/schema/nr-pusch-hop-grid-replay.v1.schema.json").read_text()
     )
     jsonschema.Draft202012Validator(replay_schema).validate(replay)
+    with pytest.raises(ValueError, match="input and output exceed max_output_elements"):
+        verify_pusch_intra_slot_hops(
+            bwp_grid,
+            result.frequency_grid,
+            result.metadata,
+            max_output_elements=100,
+        )
 
     changed_grid = result.frequency_grid.copy()
     changed_grid[0, 0, 0, 4, 120] += 1
@@ -96,6 +103,58 @@ def test_pusch_intra_slot_hops_map_bwp_segments_to_absolute_carrier_crbs():
         verify_pusch_intra_slot_hops(bwp_grid, result.frequency_grid, changed_metadata)
 
 
+def test_pusch_intra_slot_hops_bounds_allocation_before_creating_carrier_grid(monkeypatch):
+    import receivers.nr.pusch as pusch
+
+    bwp_grid = np.ones((1, 1, 1, 6, 24), dtype=np.complex64)
+    options = {
+        "carrier_grid_size_rb": 52,
+        "carrier_grid_start_rb": 0,
+        "bwp_start_rb": 8,
+        "bwp_size_rb": 24,
+        "allocation_start_symbol": 4,
+        "first_hop_rb_start": 2,
+        "second_hop_rb_start": 14,
+        "first_hop_symbol_count": 3,
+    }
+
+    def unexpected_allocation(*args, **kwargs):
+        raise AssertionError("resource rejection must precede output allocation")
+
+    monkeypatch.setattr(pusch.np, "zeros", unexpected_allocation)
+    with pytest.raises(TypeError, match="must be a NumPy array"):
+        pusch.compose_pusch_intra_slot_hops(bwp_grid.tolist(), **options)
+    with pytest.raises(ValueError, match="input and output exceed max_output_elements"):
+        pusch.compose_pusch_intra_slot_hops(bwp_grid, **options, max_output_elements=100)
+
+
+def test_pusch_intra_slot_hops_hashes_strided_inputs_without_dtype_or_order_drift():
+    base = np.arange(1 * 1 * 1 * 6 * 48, dtype=np.float32).reshape(1, 1, 1, 6, 48)
+    complex_grid = (base + 1j * base).astype(np.complex64)
+    strided_grid = complex_grid[..., ::2]
+    options = {
+        "carrier_grid_size_rb": 52,
+        "carrier_grid_start_rb": 0,
+        "bwp_start_rb": 8,
+        "bwp_size_rb": 24,
+        "allocation_start_symbol": 4,
+        "first_hop_rb_start": 2,
+        "second_hop_rb_start": 14,
+        "first_hop_symbol_count": 3,
+    }
+    expected_source_digest = hashlib.sha256(
+        np.ascontiguousarray(strided_grid).tobytes()
+    ).hexdigest()
+
+    result = compose_pusch_intra_slot_hops(strided_grid, **options)
+
+    assert result.metadata["source_grid_sha256"] == expected_source_digest
+    assert (
+        result.metadata["carrier_grid_sha256"]
+        == hashlib.sha256(np.ascontiguousarray(result.frequency_grid).tobytes()).hexdigest()
+    )
+
+
 @pytest.mark.parametrize(
     ("changes", "exception"),
     [
@@ -103,6 +162,7 @@ def test_pusch_intra_slot_hops_map_bwp_segments_to_absolute_carrier_crbs():
         ({"second_hop_rb_start": 23}, ValueError),
         ({"allocation_start_symbol": 9}, ValueError),
         ({"carrier_grid_size_rb": True}, TypeError),
+        ({"max_output_elements": True}, ValueError),
     ],
 )
 def test_pusch_intra_slot_hop_composition_rejects_invalid_layout(changes, exception):

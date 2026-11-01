@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import math
 from dataclasses import dataclass
 from typing import Any, Mapping
 
@@ -28,6 +29,7 @@ def compose_pusch_intra_slot_hops(
     first_hop_rb_start: int,
     second_hop_rb_start: int,
     first_hop_symbol_count: int,
+    max_output_elements: int = 64_000_000,
 ) -> NRPUSCHFrequencyHopGrid:
     """Map two already-generated PUSCH hop segments into a carrier slot grid.
 
@@ -38,7 +40,9 @@ def compose_pusch_intra_slot_hops(
     from the BWP start. The symbol boundary and frequency allocations must be
     resolved by the caller. This composes resource grids only; it does not
     generate hop-specific DMRS, decode RRC/DCI, or enable the pinned Sionna
-    receiver's hopping mode.
+    receiver's hopping mode. ``max_output_elements`` bounds the input and dense
+    carrier-grid output together before allocation. Finiteness checks and
+    hashes stream through a fixed-size buffer, avoiding grid-sized temporaries.
     """
     values = {
         "carrier_grid_size_rb": carrier_grid_size_rb,
@@ -53,6 +57,12 @@ def compose_pusch_intra_slot_hops(
     for name, value in values.items():
         if isinstance(value, bool) or not isinstance(value, int):
             raise TypeError(f"{name} must be an integer")
+    if (
+        isinstance(max_output_elements, bool)
+        or not isinstance(max_output_elements, int)
+        or max_output_elements <= 0
+    ):
+        raise ValueError("max_output_elements must be a positive integer")
     if carrier_grid_size_rb < 1 or carrier_grid_size_rb > 275:
         raise ValueError("carrier_grid_size_rb must be in [1, 275]")
     if bwp_size_rb < 1 or bwp_size_rb > 275:
@@ -64,14 +74,25 @@ def compose_pusch_intra_slot_hops(
     if bwp_start_rb < carrier_grid_start_rb or bwp_end_rb > carrier_end_rb:
         raise ValueError("BWP must lie within the carrier grid")
 
-    grid = np.asarray(bwp_allocation_grid)
+    if not isinstance(bwp_allocation_grid, np.ndarray):
+        raise TypeError("bwp_allocation_grid must be a NumPy array")
+    grid = bwp_allocation_grid
     if grid.ndim != 5 or any(size < 1 for size in grid.shape[:3]) or grid.shape[3] < 2:
         raise ValueError("bwp_allocation_grid must have five axes and at least two symbols")
-    if grid.dtype.kind != "c" or grid.dtype.itemsize not in {8, 16} or not np.isfinite(grid).all():
-        raise ValueError("bwp_allocation_grid must contain finite complex64 or complex128 values")
+    if grid.dtype.kind != "c" or grid.dtype.itemsize not in {8, 16}:
+        raise ValueError("bwp_allocation_grid must contain complex64 or complex128 values")
     allocation_rb_count, remainder = divmod(grid.shape[4], 12)
     if remainder or not 1 <= allocation_rb_count <= bwp_size_rb:
         raise ValueError("allocated subcarrier width must be 12 times an in-BWP RB count")
+    output_shape = (*grid.shape[:3], 14, carrier_grid_size_rb * 12)
+    work_elements = grid.size + math.prod(output_shape)
+    if work_elements > max_output_elements:
+        raise ValueError(
+            "PUSCH hop-grid input and output exceed max_output_elements; "
+            f"required {work_elements}, limit {max_output_elements}"
+        )
+    if not _array_is_finite_c_order(grid):
+        raise ValueError("bwp_allocation_grid must contain only finite values")
     if not 0 <= allocation_start_symbol < 14 or allocation_start_symbol + grid.shape[3] > 14:
         raise ValueError("PUSCH symbol allocation must fit within the 14-symbol slot")
     if not 1 <= first_hop_symbol_count < grid.shape[3]:
@@ -82,9 +103,7 @@ def compose_pusch_intra_slot_hops(
     ):
         raise ValueError("each hop allocation must fit within the configured BWP")
 
-    output = np.zeros(
-        (*grid.shape[:3], 14, carrier_grid_size_rb * 12), dtype=grid.dtype
-    )
+    output = np.zeros(output_shape, dtype=grid.dtype)
     bwp_offset_in_carrier = bwp_start_rb - carrier_grid_start_rb
     first_start = (bwp_offset_in_carrier + first_hop_rb_start) * 12
     second_start = (bwp_offset_in_carrier + second_hop_rb_start) * 12
@@ -96,8 +115,8 @@ def compose_pusch_intra_slot_hops(
     output[
         ..., hop_boundary_symbol:allocation_end_symbol, second_start : second_start + grid.shape[4]
     ] = grid[..., first_hop_symbol_count:, :]
-    source_digest = hashlib.sha256(np.ascontiguousarray(grid).tobytes()).hexdigest()
-    output_digest = hashlib.sha256(np.ascontiguousarray(output).tobytes()).hexdigest()
+    source_digest = _sha256_array_c_order(grid)
+    output_digest = _sha256_array_c_order(output)
     metadata = {
         "schema": "loslab.nr_pusch_intra_slot_hop_grid.v1",
         "scope": "frequency_domain_grid_composition_only",
@@ -126,6 +145,8 @@ def verify_pusch_intra_slot_hops(
     bwp_allocation_grid: np.ndarray,
     carrier_slot_grid: np.ndarray,
     metadata: Mapping[str, Any],
+    *,
+    max_output_elements: int = 64_000_000,
 ) -> dict[str, Any]:
     """Replay and verify a saved PUSCH hop-grid composition and its digests."""
     if not isinstance(metadata, Mapping) or metadata.get("schema") != (
@@ -160,10 +181,13 @@ def verify_pusch_intra_slot_hops(
         first_hop_rb_start=first_offset,
         second_hop_rb_start=second_offset,
         first_hop_symbol_count=metadata["first_hop_symbol_count"],
+        max_output_elements=max_output_elements,
     )
     if dict(metadata) != replay.metadata:
         raise ValueError("PUSCH hop-grid metadata does not replay from the source grid")
-    observed = np.asarray(carrier_slot_grid)
+    if not isinstance(carrier_slot_grid, np.ndarray):
+        raise TypeError("carrier_slot_grid must be a NumPy array")
+    observed = carrier_slot_grid
     if observed.dtype != replay.frequency_grid.dtype or not np.array_equal(
         observed, replay.frequency_grid
     ):
@@ -175,6 +199,35 @@ def verify_pusch_intra_slot_hops(
         "source_grid_sha256": replay.metadata["source_grid_sha256"],
         "carrier_grid_sha256": replay.metadata["carrier_grid_sha256"],
     }
+
+
+def _sha256_array_c_order(array: np.ndarray) -> str:
+    """Hash array bytes in C order using a bounded iterator buffer."""
+    digest = hashlib.sha256()
+    for chunk in np.nditer(
+        array,
+        flags=["external_loop", "buffered"],
+        op_flags=["readonly"],
+        order="C",
+        buffersize=65_536,
+    ):
+        digest.update(chunk.tobytes(order="C"))
+    return digest.hexdigest()
+
+
+def _array_is_finite_c_order(array: np.ndarray) -> bool:
+    """Check finiteness with bounded temporary storage for strided arrays."""
+    for chunk in np.nditer(
+        array,
+        flags=["external_loop", "buffered"],
+        op_flags=["readonly"],
+        order="C",
+        buffersize=65_536,
+    ):
+        if not bool(np.isfinite(chunk).all()):
+            return False
+    return True
+
 
 @dataclass(frozen=True, slots=True)
 class NRPUSCHConfig:
@@ -359,9 +412,7 @@ class NRChannelEstimate:
                     raise TypeError(f"{name} must be a dense numeric tensor")
                 is_complex = value.is_complex()
                 is_bool = value.dtype == torch.bool
-                is_real = value.is_floating_point() or (
-                    not is_complex and not is_bool
-                )
+                is_real = value.is_floating_point() or (not is_complex and not is_bool)
                 if not (is_complex or is_bool or is_real):
                     raise TypeError(f"{name} must be a dense numeric tensor")
                 finite = bool(torch.isfinite(value).all())
