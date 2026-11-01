@@ -370,10 +370,13 @@ def _fixture(
         offsets = np.asarray([-30_000.0, 0.0, 30_000.0])
         changed_episode = replace(changed.episode, subcarrier_offsets_hz=offsets)
         changed_views = tuple(
-            replace(view, subcarrier_offsets_hz=offsets)
-            for view in changed.channel_views
+            replace(view, subcarrier_offsets_hz=offsets) for view in changed.channel_views
         )
-        bundles = (bundles[0], replace(changed, episode=changed_episode, channel_views=changed_views), bundles[2])
+        bundles = (
+            bundles[0],
+            replace(changed, episode=changed_episode, channel_views=changed_views),
+            bundles[2],
+        )
     if zero_channels:
         bundles = tuple(
             replace(
@@ -505,7 +508,7 @@ def test_audit_report_is_deterministic_hash_bound_and_nonqualifying(tmp_path):
 
     assert first == second
     assert first["qualification"] == "not_claimed"
-    assert first["schema"] == "umcd.corpus_audit_report.v9"
+    assert first["schema"] == "umcd.corpus_audit_report.v10"
     assert first["external_gates"]["legal_assessment"]["status"] == "external_unverified"
     assert first["external_gates"]["external_lock_attestation"]["status"] == "external_unverified"
     assert first["checks"]["bundle_store_integrity"]["bundle_count"] == 3
@@ -514,7 +517,13 @@ def test_audit_report_is_deterministic_hash_bound_and_nonqualifying(tmp_path):
         cell["independent_group_count"] >= cell["minimum_independent_group_count"]
         for cell in first["checks"]["target_coverage"]["cells"]
     )
-    assert first["checks"]["near_duplicate_review"]["status"] == "review_required"
+    review = first["checks"]["near_duplicate_review"]
+    assert review["status"] == "review_required"
+    assert review["geometry_pair_comparison_count"] == 3
+    assert review["total_pair_comparison_count"] == (
+        review["channel_pair_comparison_count"] + review["geometry_pair_comparison_count"]
+    )
+    assert review["candidate_count"] >= review["geometry_candidate_count"]
     core = {key: value for key, value in first.items() if key != "report_sha256"}
     assert (
         first["report_sha256"]
@@ -524,7 +533,7 @@ def test_audit_report_is_deterministic_hash_bound_and_nonqualifying(tmp_path):
     )
 
 
-def test_corpus_audit_report_v9_schema_rejects_unknown_near_duplicate_status(tmp_path):
+def test_corpus_audit_report_v10_schema_rejects_unknown_near_duplicate_status(tmp_path):
     report = audit_inventory(_fixture(tmp_path))
     malformed = json.loads(json.dumps(report))
     malformed["checks"]["near_duplicate_review"]["status"] = "skipped_but_clean"
@@ -546,7 +555,7 @@ def test_zero_norm_cross_split_cfrs_mark_near_duplicate_review_incomplete(
     report = audit_inventory(_fixture(tmp_path, zero_channels=True))
     review = report["checks"]["near_duplicate_review"]
 
-    assert report["schema"] == "umcd.corpus_audit_report.v9"
+    assert report["schema"] == "umcd.corpus_audit_report.v10"
     assert review["status"] == "incomplete_comparisons"
     assert review["candidate_count"] == 0
     assert review["cross_split_pair_count"] > 0
@@ -581,7 +590,7 @@ def test_signed_near_duplicate_dispositions_bind_exact_inventory_and_candidate_s
     inventory_path = _fixture(tmp_path)
     initial = audit_inventory(inventory_path)
     review = initial["checks"]["near_duplicate_review"]
-    assert initial["schema"] == "umcd.corpus_audit_report.v9"
+    assert initial["schema"] == "umcd.corpus_audit_report.v10"
     assert review["candidate_set_sha256"]
     assert all(len(item["candidate_id"]) == 64 for item in review["candidates"])
     assert review["disposition_status"] == "not_provided"
@@ -611,8 +620,7 @@ def test_signed_near_duplicate_dispositions_bind_exact_inventory_and_candidate_s
     )
     assert len(reviewed["dispositions"]) == reviewed["candidate_count"]
     assert all(
-        (inventory_path.parent / evidence["path"]).is_file()
-        and len(evidence["sha256"]) == 64
+        (inventory_path.parent / evidence["path"]).is_file() and len(evidence["sha256"]) == 64
         for row in reviewed["dispositions"]
         for evidence in row["evidence_files"]
     )

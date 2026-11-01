@@ -5,7 +5,30 @@ from typing import cast
 
 import numpy as np
 import pytest
-from evaluation.near_duplicate_audit import CFRArray, ChannelRecord, audit_near_duplicates
+from evaluation.near_duplicate_audit import (
+    CFRArray,
+    ChannelRecord,
+    GeometryRecord,
+    audit_geometry_duplicates,
+    audit_near_duplicates,
+)
+
+
+def test_geometry_duplicates_are_found_without_matching_channel_view_ids() -> None:
+    candidates = audit_geometry_duplicates(
+        (
+            GeometryRecord("episode-a", "train", "same-scene-site-geometry"),
+            GeometryRecord("episode-b", "test", "same-scene-site-geometry"),
+            GeometryRecord("episode-c", "validation", "different-geometry"),
+            GeometryRecord("episode-d", "train", None),
+        )
+    )
+
+    assert len(candidates) == 1
+    candidate = candidates[0]
+    assert (candidate.sample_id_a, candidate.sample_id_b) == ("episode-a", "episode-b")
+    assert candidate.geometry_hash_match
+    assert candidate.normalized_complex_inner_product_magnitude is None
 
 
 def _record(
@@ -129,9 +152,9 @@ def test_incompatible_channel_contexts_are_skipped_instead_of_scored() -> None:
     )
 
     assert report.candidates == ()
-    assert [(item.sample_id_a, item.sample_id_b, item.reason) for item in report.skipped_comparisons] == [
-        ("a", "b", "incompatible_channel_context")
-    ]
+    assert [
+        (item.sample_id_a, item.sample_id_b, item.reason) for item in report.skipped_comparisons
+    ] == [("a", "b", "incompatible_channel_context")]
 
 
 def test_missing_channel_context_is_skipped_even_when_cfr_shapes_match() -> None:
@@ -144,9 +167,7 @@ def test_missing_channel_context_is_skipped_even_when_cfr_shapes_match() -> None
     )
 
     assert report.candidates == ()
-    assert [item.reason for item in report.skipped_comparisons] == [
-        "missing_channel_context"
-    ]
+    assert [item.reason for item in report.skipped_comparisons] == ["missing_channel_context"]
 
 
 def test_missing_context_does_not_require_equal_cfr_shapes() -> None:

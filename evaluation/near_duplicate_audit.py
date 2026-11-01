@@ -27,6 +27,15 @@ class ChannelRecord:
 
 
 @dataclass(frozen=True, slots=True)
+class GeometryRecord:
+    """One episode's split and geometry fingerprint, independent of channel views."""
+
+    sample_id: str
+    split_id: str
+    family_site_geometry_hash: str | None
+
+
+@dataclass(frozen=True, slots=True)
 class NearDuplicateCandidate:
     """A cross-split pair that merits review, with the signals that matched."""
 
@@ -56,6 +65,55 @@ class NearDuplicateAuditReport:
     threshold: float
     candidates: tuple[NearDuplicateCandidate, ...]
     skipped_comparisons: tuple[SkippedComparison, ...]
+
+
+def audit_geometry_duplicates(
+    records: tuple[GeometryRecord, ...],
+) -> tuple[NearDuplicateCandidate, ...]:
+    """Flag exact geometry fingerprints across splits, including episodes without CFR views."""
+    if not isinstance(records, tuple) or not records:
+        raise ValueError("records must be a nonempty tuple")
+    seen_ids: set[str] = set()
+    for record in records:
+        for value, name in ((record.sample_id, "sample_id"), (record.split_id, "split_id")):
+            if not isinstance(value, str) or not value or value != value.strip():
+                raise ValueError(f"{name} must be a canonical nonempty string")
+        fingerprint = record.family_site_geometry_hash
+        if fingerprint is not None and (
+            not isinstance(fingerprint, str)
+            or not fingerprint
+            or fingerprint != fingerprint.strip()
+        ):
+            raise ValueError(
+                "family_site_geometry_hash must be None or a canonical nonempty string"
+            )
+        if record.sample_id in seen_ids:
+            raise ValueError(f"duplicate sample_id {record.sample_id!r}")
+        seen_ids.add(record.sample_id)
+
+    groups: dict[str, list[GeometryRecord]] = {}
+    for record in records:
+        if record.family_site_geometry_hash is not None:
+            groups.setdefault(record.family_site_geometry_hash, []).append(record)
+    candidates: list[NearDuplicateCandidate] = []
+    for group in groups.values():
+        ordered = sorted(group, key=lambda item: item.sample_id)
+        for index, first in enumerate(ordered):
+            for second in ordered[index + 1 :]:
+                if first.split_id != second.split_id:
+                    candidates.append(
+                        NearDuplicateCandidate(
+                            sample_id_a=first.sample_id,
+                            sample_id_b=second.sample_id,
+                            split_id_a=first.split_id,
+                            split_id_b=second.split_id,
+                            geometry_hash_match=True,
+                            normalized_complex_inner_product_magnitude=None,
+                            comparison_context_id_a=None,
+                            comparison_context_id_b=None,
+                        )
+                    )
+    return tuple(sorted(candidates, key=lambda item: (item.sample_id_a, item.sample_id_b)))
 
 
 def _validate_record(record: ChannelRecord) -> None:
@@ -162,12 +220,10 @@ def audit_near_duplicates(
                 and first.family_site_geometry_hash == second.family_site_geometry_hash
             )
             has_context = (
-                first.comparison_context_id is not None
-                and second.comparison_context_id is not None
+                first.comparison_context_id is not None and second.comparison_context_id is not None
             )
             compatible_context = (
-                has_context
-                and first.comparison_context_id == second.comparison_context_id
+                has_context and first.comparison_context_id == second.comparison_context_id
             )
             similarity = (
                 _normalized_inner_product_magnitude(first.cfr, second.cfr)

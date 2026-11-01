@@ -35,7 +35,12 @@ from datasets.split_policy import (
     read_split_policy_registry,
     verify_openssh_signed_artifact,
 )
-from evaluation.near_duplicate_audit import ChannelRecord, audit_near_duplicates
+from evaluation.near_duplicate_audit import (
+    ChannelRecord,
+    GeometryRecord,
+    audit_geometry_duplicates,
+    audit_near_duplicates,
+)
 from evaluation.target_coverage import (
     ExpectedInventoryCell,
     TargetRecord,
@@ -49,7 +54,8 @@ _SCENE_ROSTER_SCHEMA = "umcd.corpus_audit_inventory.v4"
 _REPORT_SCHEMA_V6 = "umcd.corpus_audit_report.v6"
 _REPORT_SCHEMA_V7 = "umcd.corpus_audit_report.v7"
 _REPORT_SCHEMA_V8 = "umcd.corpus_audit_report.v8"
-_REPORT_SCHEMA = "umcd.corpus_audit_report.v9"
+_REPORT_SCHEMA_V9 = "umcd.corpus_audit_report.v9"
+_REPORT_SCHEMA = "umcd.corpus_audit_report.v10"
 _REPORT_SCHEMA_PATHS = {
     _REPORT_SCHEMA_V6: Path(__file__).resolve().parents[1]
     / "datasets/schema/umcd-corpus-audit-report.v6.schema.json",
@@ -57,8 +63,10 @@ _REPORT_SCHEMA_PATHS = {
     / "datasets/schema/umcd-corpus-audit-report.v7.schema.json",
     _REPORT_SCHEMA_V8: Path(__file__).resolve().parents[1]
     / "datasets/schema/umcd-corpus-audit-report.v8.schema.json",
-    _REPORT_SCHEMA: Path(__file__).resolve().parents[1]
+    _REPORT_SCHEMA_V9: Path(__file__).resolve().parents[1]
     / "datasets/schema/umcd-corpus-audit-report.v9.schema.json",
+    _REPORT_SCHEMA: Path(__file__).resolve().parents[1]
+    / "datasets/schema/umcd-corpus-audit-report.v10.schema.json",
 }
 _DUPLICATE_DISPOSITION_SCHEMA = "umcd.near_duplicate_dispositions.v2"
 _DUPLICATE_DISPOSITION_SCHEMA_PATH = (
@@ -203,7 +211,9 @@ def _load_signed_near_duplicate_dispositions(
                 or "\\" in relative
                 or relative in {".", ".."}
             ):
-                raise ValueError("near-duplicate evidence path must be canonical and inventory-relative")
+                raise ValueError(
+                    "near-duplicate evidence path must be canonical and inventory-relative"
+                )
             if relative in seen_paths:
                 raise ValueError("near-duplicate evidence paths must be unique per candidate")
             seen_paths.add(relative)
@@ -1002,6 +1012,7 @@ def audit_inventory(
         _validated_target_task_bindings(inventory) if is_stratified_inventory else None
     )
     duplicate_groups: dict[str, list[ChannelRecord]] = defaultdict(list)
+    geometry_records: list[GeometryRecord] = []
     for episode_id in sorted(bundles):
         bundle = bundles[episode_id]
         split_id = registry.split_for_parent(episode_id)
@@ -1050,6 +1061,13 @@ def audit_inventory(
                         )
                     )
         geometry_hash = _bundle_geometry_hash(bundle)
+        geometry_records.append(
+            GeometryRecord(
+                sample_id=episode_id,
+                split_id=split_id,
+                family_site_geometry_hash=geometry_hash,
+            )
+        )
         for view in bundle.channel_views:
             duplicate_groups[view.view_id].append(
                 ChannelRecord(
@@ -1099,14 +1117,30 @@ def audit_inventory(
     threshold = inventory.get("duplicate_threshold", 0.999)
     if isinstance(threshold, bool) or not isinstance(threshold, (float, int)):
         raise ValueError("duplicate_threshold must be numeric")
-    pair_count = 0
-    comparison_count = 0
+    channel_cross_split_pair_count = 0
+    channel_comparison_count = 0
     for group in duplicate_groups.values():
         counts: dict[str, int] = defaultdict(int)
         for item in group:
             counts[item.split_id] += 1
-        pair_count += (len(group) ** 2 - sum(count**2 for count in counts.values())) // 2
-        comparison_count += len(group) * (len(group) - 1) // 2
+        channel_cross_split_pair_count += (
+            len(group) ** 2 - sum(count**2 for count in counts.values())
+        ) // 2
+        channel_comparison_count += len(group) * (len(group) - 1) // 2
+    geometry_split_counts: dict[str, int] = defaultdict(int)
+    geometry_hash_split_counts: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
+    for item in geometry_records:
+        geometry_split_counts[item.split_id] += 1
+        if item.family_site_geometry_hash is not None:
+            geometry_hash_split_counts[item.family_site_geometry_hash][item.split_id] += 1
+    geometry_cross_split_pair_count = (
+        len(geometry_records) ** 2 - sum(count**2 for count in geometry_split_counts.values())
+    ) // 2
+    geometry_comparison_count = sum(
+        (sum(split_counts.values()) ** 2 - sum(count**2 for count in split_counts.values())) // 2
+        for split_counts in geometry_hash_split_counts.values()
+    )
+    comparison_count = channel_comparison_count + geometry_comparison_count
     if comparison_count > max_pair_comparisons:
         raise ValueError("duplicate pair comparison budget exceeded")
     duplicate_reports = [
@@ -1115,6 +1149,9 @@ def audit_inventory(
         if len(group) > 1
     ]
     candidates = [item for report in duplicate_reports for item in report.candidates]
+    geometry_candidates = audit_geometry_duplicates(tuple(geometry_records))
+    candidates.extend(geometry_candidates)
+    pair_count = channel_cross_split_pair_count + geometry_cross_split_pair_count
     skipped = [item for report in duplicate_reports for item in report.skipped_comparisons]
     comparable_group_count = sum(
         any(
@@ -1217,6 +1254,11 @@ def audit_inventory(
                 "comparable_group_count": comparable_group_count,
                 "cross_split_pair_count": pair_count,
                 "total_pair_comparison_count": comparison_count,
+                "channel_cross_split_pair_count": channel_cross_split_pair_count,
+                "channel_pair_comparison_count": channel_comparison_count,
+                "geometry_cross_split_pair_count": geometry_cross_split_pair_count,
+                "geometry_pair_comparison_count": geometry_comparison_count,
+                "geometry_candidate_count": len(geometry_candidates),
                 "candidate_count": len(candidates),
                 "candidates": candidate_rows,
                 "skipped_comparison_count": len(skipped),
