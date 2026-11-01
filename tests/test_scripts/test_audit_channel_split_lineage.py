@@ -76,6 +76,57 @@ def test_split_audit_report_schema_rejects_qualified_claims_and_unknown_fields()
         _validate_split_audit_report({**report, "unreviewed_claim": True})
 
 
+def test_split_audit_report_schema_checks_signed_registry_summary_counts() -> None:
+    report = {
+        "schema": "loslab.channel_split_lineage_audit_bundle.v10",
+        "status": "NOT_QUALIFIED",
+        "spatial_buffer_m": 0,
+        "identity_derivation": {
+            "mode": "disabled",
+            "datasets_upgraded_in_memory": [],
+            "rows_upgraded_in_memory": 0,
+            "input_hashes_cover_original_bytes": True,
+        },
+        "input_completeness": {"status": "unverified_input_scope", "authority": "none"},
+        "inputs": [{"name": "sample", "path": "sample.npz", "sha256": "a" * 64, "bytes": 0, "rows": 0}],
+        "lineage": {},
+        "subjects": [],
+        "interpretation": "Diagnostic only.",
+        "split_registry_verification": {
+            "status": "PASS_SIGNED_PARENT_AND_FOOTPRINT_AUDIT",
+            "schema": "umcd.split_registry.v3",
+            "registry_sha256": "a" * 64,
+            "signer_id": "reviewer",
+            "signature_namespace": "split-registry-v1",
+            "registry_file_sha256": "a" * 64,
+            "signature_sha256": "a" * 64,
+            "allowed_signers_sha256": "a" * 64,
+            "parent_roster_audit": {},
+            "spatiotemporal_audit": {},
+            "children_audited": False,
+            "child_bindings_verified": False,
+            "child_artifact_existence_verified": False,
+            "child_artifact_bytes_verified": False,
+            "child_artifact_semantic_rows_verified": False,
+            "child_artifact_semantic_count": 0,
+            "child_artifact_byte_only_count": 0,
+            "child_artifact_trajectory_sample_count": 0,
+            "child_artifact_trajectory_count": 0,
+            "child_artifact_episode_count": 0,
+            "child_artifact_scenario_gbsm_run_count": 0,
+            "child_artifact_scenario_gbsm_parent_count": 0,
+            "complete_split_integrity_audit": False,
+            "child_roster_audits": [],
+            "child_artifact_roster_audits": [],
+        },
+    }
+    _validate_split_audit_report(report)
+    verification = dict(report["split_registry_verification"])
+    verification["child_artifact_episode_count"] = -1
+    with pytest.raises(ValueError, match="child_artifact_episode_count"):
+        _validate_split_audit_report({**report, "split_registry_verification": verification})
+
+
 def test_content_addressed_child_object_owners_must_match_frozen_roster() -> None:
     _require_exact_child_object_owners(
         "objects/oracle_paths/aa/object.npz",

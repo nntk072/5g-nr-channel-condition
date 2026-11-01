@@ -51,7 +51,7 @@
       }
     },
     "interpretation": {"type": "string", "minLength": 1},
-    "split_registry_verification": {"type": "object"}
+    "split_registry_verification": {"$ref": "#/$defs/splitRegistryVerification"}
   },
   "$defs": {
     "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
@@ -85,6 +85,72 @@
         "authority": {"type": "string", "minLength": 1}
       },
       "additionalProperties": true
+    },
+    "splitRegistryVerification": {
+      "type": "object",
+      "required": [
+        "status",
+        "schema",
+        "registry_sha256",
+        "signer_id",
+        "signature_namespace",
+        "registry_file_sha256",
+        "signature_sha256",
+        "allowed_signers_sha256",
+        "parent_roster_audit",
+        "spatiotemporal_audit",
+        "children_audited",
+        "child_bindings_verified",
+        "child_artifact_existence_verified",
+        "child_artifact_bytes_verified",
+        "child_artifact_semantic_rows_verified",
+        "child_artifact_semantic_count",
+        "child_artifact_byte_only_count",
+        "child_artifact_trajectory_sample_count",
+        "child_artifact_trajectory_count",
+        "child_artifact_episode_count",
+        "child_artifact_scenario_gbsm_run_count",
+        "child_artifact_scenario_gbsm_parent_count",
+        "complete_split_integrity_audit",
+        "child_roster_audits",
+        "child_artifact_roster_audits"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "PASS_SIGNED_COMPLETE_SPLIT_INTEGRITY",
+            "PASS_SIGNED_PARENT_FOOTPRINT_CHILD_BINDINGS_AND_ARTIFACT_BYTES",
+            "PASS_SIGNED_PARENT_FOOTPRINT_CHILD_BINDINGS_AND_SEMANTIC_ARTIFACT_ROWS",
+            "PASS_SIGNED_PARENT_FOOTPRINT_AND_CHILD_BINDING_ROSTERS",
+            "PASS_SIGNED_PARENT_AND_FOOTPRINT_AUDIT"
+          ]
+        },
+        "schema": {"type": "string", "minLength": 1},
+        "registry_sha256": {"$ref": "#/$defs/sha256"},
+        "signer_id": {"type": "string", "minLength": 1},
+        "signature_namespace": {"type": "string", "minLength": 1},
+        "registry_file_sha256": {"$ref": "#/$defs/sha256"},
+        "signature_sha256": {"$ref": "#/$defs/sha256"},
+        "allowed_signers_sha256": {"$ref": "#/$defs/sha256"},
+        "parent_roster_audit": {"type": "object"},
+        "spatiotemporal_audit": {"type": "object"},
+        "children_audited": {"type": "boolean"},
+        "child_bindings_verified": {"type": "boolean"},
+        "child_artifact_existence_verified": {"type": "boolean"},
+        "child_artifact_bytes_verified": {"type": "boolean"},
+        "child_artifact_semantic_rows_verified": {"type": "boolean"},
+        "child_artifact_semantic_count": {"type": "integer", "minimum": 0},
+        "child_artifact_byte_only_count": {"type": "integer", "minimum": 0},
+        "child_artifact_trajectory_sample_count": {"type": "integer", "minimum": 0},
+        "child_artifact_trajectory_count": {"type": "integer", "minimum": 0},
+        "child_artifact_episode_count": {"type": "integer", "minimum": 0},
+        "child_artifact_scenario_gbsm_run_count": {"type": "integer", "minimum": 0},
+        "child_artifact_scenario_gbsm_parent_count": {"type": "integer", "minimum": 0},
+        "complete_split_integrity_audit": {"type": "boolean"},
+        "child_roster_audits": {"type": "array", "items": {"type": "object"}},
+        "child_artifact_roster_audits": {"type": "array", "items": {"type": "object"}}
+      },
+      "additionalProperties": false
     },
     "input": {
       "type": "object",
