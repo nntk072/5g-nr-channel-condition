@@ -1240,7 +1240,7 @@
     {
       "backlog_line": 262,
       "backlog_status": "marked_done",
-      "description": "Add a hash-bound joint numerical-criterion roll-up for material pilot margins, complex CSI, propagation metrics, receiver impact, and path equivalence. Missing or empty criterion rows remain unresolved; branch-specific outcome types prevent malformed strings or cross-branch `NOT_APPLICABLE` values from counting as passes. Propagation `NOT_APPLICABLE` metrics are neutral only when the branch explicitly reports at least one assessable metric; all-NA/missing-assessability families remain unresolved. The roll-up preserves `NOT_QUALIFIED` even when every numerical criterion passes. Artifact and bundle schemas advance to v2, with the new schema included in the current run-manifest source roster. The focused joint-evaluator suite passes 25 tests; the current 10-module contract/planning/criterion/path-roster CLI slice also exits successfully. Full validation and scientific evidence remain deferred.",
+      "description": "Add a hash-bound joint numerical-criterion roll-up for material pilot margins, complex CSI, propagation metrics, receiver impact, and path equivalence. Missing or empty criterion rows remain unresolved; branch-specific outcome types prevent malformed strings or cross-branch `NOT_APPLICABLE` values from counting as passes. Propagation `NOT_APPLICABLE` metrics are neutral only when the branch explicitly reports at least one assessable metric; all-NA/missing-assessability families remain unresolved. The roll-up preserves `NOT_QUALIFIED` even when every numerical criterion passes. Artifact and bundle schemas advance to v2, with the new schema included in the current run-manifest source roster. The focused `test_g3_joint_evaluation.py` and `test_g3_joint_evidence_artifact.py` modules pass 82 tests in the current worktree. This verifies numerical criterion roll-up, artifact schema, and replay integrity only; full validation and scientific evidence remain deferred.",
       "evidence_file_sha256": {},
       "evidence_links": {
         "cli_entries": [],
@@ -4515,7 +4515,7 @@
   "schema": "loslab.implementation_feature_map.v2",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "0c83dde9ff04060b30a843d2319fe614ce48e2659be588308c40560e99125b70"
+    "sha256": "dbf7dac05fc790cc0e2a9463e751a2bc4bb812ae3400fc736048736118b8dc54"
   },
   "summary": {
     "feature_count": 181,
