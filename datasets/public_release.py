@@ -311,6 +311,8 @@ def validate_public_release_manifest(manifest: Any) -> dict[str, Any]:
                 "license_id",
                 "license_url",
                 "source_url",
+                "redistribution_permission",
+                "attribution_text",
             }
             if not isinstance(entry, dict) or set(entry) != fields:
                 raise ValueError(f"scene {scene_id!r} has an invalid third-party asset entry")
@@ -335,6 +337,12 @@ def validate_public_release_manifest(manifest: Any) -> dict[str, Any]:
                 _required_text(entry.get(field), name=f"third-party {field}")
             _required_https_url(entry.get("license_url"), name="third-party license_url")
             _required_https_url(entry.get("source_url"), name="third-party source_url")
+            _required_text(entry.get("attribution_text"), name="third-party attribution_text")
+            if entry.get("redistribution_permission") != "permitted":
+                raise ValueError(
+                    f"scene {scene_id!r} third-party asset {asset_path!r} "
+                    "is not cleared for redistribution"
+                )
 
     artifact_paths: set[str] = set()
     referenced_scene_ids: set[str] = set()
@@ -552,6 +560,7 @@ def export_public_release(
                     *(
                         f"  Third-party asset {entry['asset_path']}: {entry['rights_holder']} / "
                         f"{entry['license_id']} ({entry['license_url']}); source: {entry['source_url']}"
+                        f"; attribution: {entry['attribution_text']}"
                         for entry in scene["third_party_license_closure"]["assets"]
                     ),
                     "",

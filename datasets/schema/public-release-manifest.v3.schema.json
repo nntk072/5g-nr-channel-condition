@@ -57,14 +57,16 @@
               "type": "array",
               "items": {
                 "type": "object", "additionalProperties": false,
-                "required": ["asset_path", "asset_sha256", "rights_holder", "license_id", "license_url", "source_url"],
+                "required": ["asset_path", "asset_sha256", "rights_holder", "license_id", "license_url", "source_url", "redistribution_permission", "attribution_text"],
                 "properties": {
                   "asset_path": {"type": "string", "minLength": 1},
                   "asset_sha256": {"$ref": "#/$defs/sha256"},
                   "rights_holder": {"type": "string", "minLength": 1},
                   "license_id": {"type": "string", "minLength": 1},
                   "license_url": {"type": "string", "format": "uri"},
-                  "source_url": {"type": "string", "format": "uri"}
+                  "source_url": {"type": "string", "format": "uri"},
+                  "redistribution_permission": {"const": "permitted"},
+                  "attribution_text": {"type": "string", "minLength": 1}
                 }
               }
             }

@@ -3986,12 +3986,12 @@
     {
       "backlog_line": 396,
       "backlog_status": "marked_done",
-      "description": "Implement the fail-closed ODbL release exporter and strict v3 per-artifact rights/provenance manifest, including exact field rosters, canonical artifact hashes, scene/artifact cross-bindings, generated notices, and mandatory external OpenSSH review of exact manifest bytes. V3 requires exact timezone-bearing OSM extract time, explicit canonical source object IDs, a conversion recipe artifact bound by SHA-256, and a structured per-asset third-party license inventory bound to review-evidence SHA-256; documented provenance gaps cannot pass release validation. The archive retains the signature and a trust-digest receipt under `datasets/schema/public-release-approval.v2.schema.json`. These contracts make review evidence auditable but do not establish its truth; the actual Etoile/Florence/Munich source records, live data offers, third-party inventory, and independent legal disposition remain external blockers, so no public release is eligible. Implementation evidence is `datasets/public_release.py`, `datasets/schema/public-release-manifest.v3.schema.json`, `datasets/schema/public-release-approval.v2.schema.json`, and `tests/test_datasets/test_public_release.py`.",
+      "description": "Implement the fail-closed ODbL release exporter and strict v3 per-artifact rights/provenance manifest, including exact field rosters, canonical artifact hashes, scene/artifact cross-bindings, generated notices, and mandatory external OpenSSH review of exact manifest bytes. V3 requires exact timezone-bearing OSM extract time, explicit canonical source object IDs, a conversion recipe artifact bound by SHA-256, and a structured per-asset third-party license inventory bound to review-evidence SHA-256; each asset must declare redistribution permission and generated attribution text. Documented provenance gaps and assets without redistribution rights cannot pass release validation. The archive retains the signature and a trust-digest receipt under `datasets/schema/public-release-approval.v2.schema.json`. These contracts make review evidence auditable but do not establish its truth; the actual Etoile/Florence/Munich source records, live data offers, third-party inventory, and independent legal disposition remain external blockers, so no public release is eligible. Implementation evidence is `datasets/public_release.py`, `datasets/schema/public-release-manifest.v3.schema.json`, `datasets/schema/public-release-approval.v2.schema.json`, and `tests/test_datasets/test_public_release.py`.",
       "evidence_file_sha256": {
-        "datasets/public_release.py": "241797ba22d252b525fe15b57b5a4f8586aa1ca1dda3cf9dfc9834109305e63e",
+        "datasets/public_release.py": "c7250e3eca5c2cdc296fa282ef7ee40790b12f1bc3cf0f570dee0cc862166173",
         "datasets/schema/public-release-approval.v2.schema.json": "677c18988f29aa6cba49ead722a1adb57d6643cd81a626f519f00a5ec5f235c6",
-        "datasets/schema/public-release-manifest.v3.schema.json": "de40b862eca27c2d024fafa36349617eac157ff0a2bffd77ddcb53549615576a",
-        "tests/test_datasets/test_public_release.py": "a578729b239b04f090fa8a6f1275d558072bb73dbca5767771cce11164c21dfb"
+        "datasets/schema/public-release-manifest.v3.schema.json": "896529865236815276fad33dca00c96097657cb90317805cc2c8d8717d8c1692",
+        "tests/test_datasets/test_public_release.py": "bd83eaad1780ce585b9e5d59eeabea858a000cb4435c04c7252b9fe42127d542"
       },
       "evidence_links": {
         "cli_entries": [],
@@ -4550,7 +4550,7 @@
   "schema": "loslab.implementation_feature_map.v2",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "f74d7f9d34ccc09ee6934802626e59367d0ece10c328532b95073c08fc865275"
+    "sha256": "e90c138767b7e265518268f78cba9c12f93eb3c30184163619668568dd75d5fe"
   },
   "summary": {
     "feature_count": 181,

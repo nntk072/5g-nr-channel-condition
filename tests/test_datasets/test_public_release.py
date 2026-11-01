@@ -93,6 +93,8 @@ def _manifest(payload: bytes) -> dict[str, Any]:
                             "license_id": "CC-BY-4.0",
                             "license_url": "https://creativecommons.org/licenses/by/4.0/",
                             "source_url": "https://example.org/assets/logo",
+                            "redistribution_permission": "permitted",
+                            "attribution_text": "Example creator",
                         }
                     ],
                 },
@@ -161,6 +163,16 @@ def test_odbl_release_rejects_unsafe_third_party_asset_paths() -> None:
     )
 
     with pytest.raises(ValueError, match="unsafe third-party asset path"):
+        validate_public_release_manifest(manifest)
+
+
+def test_odbl_release_requires_third_party_redistribution_permission() -> None:
+    manifest = _manifest(b"payload")
+    manifest["scenes"][0]["third_party_license_closure"]["assets"][0][
+        "redistribution_permission"
+    ] = "not_permitted"
+
+    with pytest.raises(ValueError, match="not cleared for redistribution"):
         validate_public_release_manifest(manifest)
 
 
@@ -276,6 +288,7 @@ def test_odbl_release_export_binds_asset_hash_and_adds_notices(tmp_path) -> None
         assert "OSM source object count: 3" in notices
         assert "conversion-recipe.txt" in notices
         assert "textures/provider-logo.png" in notices
+        assert "attribution: Example creator" in notices
         approval = json.loads(archive.read("release-approval.json"))
         assert approval["signer_id"] == _RELEASE_SIGNER_ID
         assert approval["signature_namespace"] == PUBLIC_RELEASE_SIGNATURE_NAMESPACE
