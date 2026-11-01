@@ -369,6 +369,54 @@ class SionnaPUSCHLSReceiver:
             device=self.device,
         )(waveform)
 
+    def demodulate_carrier_slot_waveform(self, waveform: Any) -> Any:
+        """OFDM-demodulate one full-carrier slot using the carrier FFT and CP.
+
+        ``modulate_carrier_slot_grid`` scales the BWP cyclic-prefix length in
+        proportion to the configured carrier/BWP FFT sizes. This inverse uses
+        that same declared convention and rejects short or trailing samples
+        before calling Sionna's demodulator.
+        """
+        try:
+            from sionna.phy.ofdm import OFDMDemodulator
+        except ImportError as exc:
+            raise RuntimeError("Install the optional Sionna 2.2 PHY dependencies") from exc
+
+        torch = self._torch
+        samples = torch.as_tensor(waveform, device=self.device)
+        if samples.layout != torch.strided or not torch.is_complex(samples):
+            raise ValueError("waveform must be a dense complex tensor")
+        if samples.ndim != 4 or any(size <= 0 for size in samples.shape[:3]):
+            raise ValueError("waveform must have [batch, rx, rx_ant, time] axes")
+        if not bool(torch.isfinite(samples).all()):
+            raise ValueError("waveform must be finite")
+
+        fft_size = 12 * self.config.carrier_grid_size
+        cp_length = round(
+            int(self._resource_grid.cyclic_prefix_length)
+            * self.config.carrier_grid_size
+            / self.config.n_size_bwp
+        )
+        expected_samples = 14 * (fft_size + cp_length)
+        if samples.shape[-1] != expected_samples:
+            raise ValueError(
+                "waveform must contain exactly one configured full-carrier slot "
+                f"({expected_samples} samples), got {samples.shape[-1]}"
+            )
+        demodulator = OFDMDemodulator(
+            fft_size=fft_size,
+            l_min=0,
+            cyclic_prefix_length=cp_length,
+            device=self.device,
+        )
+        return demodulator(samples)
+
+    def decode_carrier_slot_waveform(self, waveform: Any, noise_variance: Any) -> tuple[Any, Any]:
+        """Demodulate a carrier slot, select this BWP allocation, and decode PUSCH."""
+        carrier_grid = self.demodulate_carrier_slot_waveform(waveform)
+        allocation_grid = self.extract_bwp_allocation_from_carrier_slot(carrier_grid)
+        return self.decode_pusch(allocation_grid, noise_variance)
+
     def decode_pusch(self, received_grid: Any, noise_variance: Any) -> tuple[Any, Any]:
         """Decode with this receiver's configured DM-RS estimator and return CRC status."""
         if self._decoder is None:

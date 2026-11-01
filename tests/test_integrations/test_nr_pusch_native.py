@@ -147,9 +147,6 @@ def test_pusch_adapter_supports_isolated_perfect_csi_diagnostic_decode() -> None
 @pytest.mark.native_sionna
 def test_offset_bwp_maps_into_carrier_fft_bins_and_decodes() -> None:
     """Map a 6-RB BWP at CRB 7 into a grid starting at CRB 2, then decode."""
-    from sionna.phy.nr import PUSCHReceiver
-    from sionna.phy.ofdm import OFDMDemodulator
-
     receiver = SionnaPUSCHLSReceiver(
         NRPUSCHConfig(
             n_size_bwp=6,
@@ -175,30 +172,13 @@ def test_offset_bwp_maps_into_carrier_fft_bins_and_decodes() -> None:
     assert receiver.metadata["carrier_grid"]["bwp_start_rb_in_grid"] == 5
 
     waveform = receiver.modulate_carrier_slot_grid(carrier_slot_grid)
-    cp_samples = round(
-        int(receiver.resource_grid.cyclic_prefix_length)
-        * receiver.config.carrier_grid_size
-        / receiver.config.n_size_bwp
-    )
-    demodulator = OFDMDemodulator(
-        fft_size=24 * 12,
-        l_min=0,
-        cyclic_prefix_length=cp_samples,
-        device="cpu",
-    )
-    recovered_carrier_grid = demodulator(waveform)
+    recovered_carrier_grid = receiver.demodulate_carrier_slot_waveform(waveform)
     torch.testing.assert_close(recovered_carrier_grid, carrier_slot_grid, rtol=1e-5, atol=1e-6)
-    recovered_bwp_grid = receiver.extract_bwp_allocation_from_carrier_slot(recovered_carrier_grid)
-
-    decoder = PUSCHReceiver(
-        receiver._transmitter,
-        return_tb_crc_status=True,
-        input_domain="freq",
-        device="cpu",
-    )
-    decoded_bits, crc_ok = decoder(recovered_bwp_grid, torch.tensor(1e-7))
+    decoded_bits, crc_ok = receiver.decode_carrier_slot_waveform(waveform, torch.tensor(1e-7))
     torch.testing.assert_close(decoded_bits, transmitted_bits)
     assert bool(crc_ok.all())
+    with pytest.raises(ValueError, match="exactly one configured full-carrier slot"):
+        receiver.demodulate_carrier_slot_waveform(waveform[..., :-1])
 
 
 @pytest.mark.native_sionna
