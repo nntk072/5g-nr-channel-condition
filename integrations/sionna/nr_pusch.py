@@ -53,6 +53,47 @@ def _validated_noise_variance(torch: Any, value: Any, *, device: str) -> Any:
     return noise
 
 
+def _validated_pusch_inputs(
+    torch: Any,
+    received_grid: Any,
+    noise_variance: Any,
+    *,
+    device: str,
+    expected_grid_tail: tuple[int, int],
+) -> tuple[Any, Any]:
+    """Validate and normalize the received PUSCH grid and broadcastable AWGN."""
+    try:
+        grid = torch.as_tensor(received_grid, device=device)
+    except (TypeError, ValueError, RuntimeError, OverflowError) as error:
+        raise ValueError("received_grid must be a dense complex tensor") from error
+    if grid.layout != torch.strided or not torch.is_complex(grid):
+        raise ValueError("received_grid must be a dense complex tensor")
+    if grid.ndim != 5 or tuple(grid.shape[-2:]) != expected_grid_tail:
+        raise ValueError(
+            "received_grid must have [batch, rx, rx_ant, "
+            f"{expected_grid_tail[0]} symbols, {expected_grid_tail[1]} subcarriers] shape"
+        )
+    if any(size <= 0 for size in grid.shape[:3]):
+        raise ValueError("batch, receive, and receive-antenna dimensions must be positive")
+    if not bool(torch.isfinite(grid).all()):
+        raise ValueError("received_grid must be finite")
+    grid = grid.to(device=device, dtype=torch.complex64)
+    if not bool(torch.isfinite(grid).all()):
+        raise ValueError("received_grid must remain finite when converted to complex64")
+
+    noise = _validated_noise_variance(torch, noise_variance, device=device)
+    if noise.ndim > 3:
+        raise ValueError("noise_variance must broadcast over [batch, rx, rx_ant]")
+    leading_shape = tuple(int(size) for size in grid.shape[:3])
+    noise = noise.reshape((*noise.shape, *((1,) * (3 - noise.ndim))))
+    if any(
+        noise_size not in (1, grid_size)
+        for noise_size, grid_size in zip(noise.shape, leading_shape, strict=True)
+    ):
+        raise ValueError("noise_variance must broadcast over [batch, rx, rx_ant]")
+    return grid, noise
+
+
 class SionnaPUSCHLSReceiver:
     """Estimate channels from a received PUSCH resource grid using NR DMRS.
 
@@ -172,36 +213,17 @@ class SionnaPUSCHLSReceiver:
         higher-rank tensors may add receive and receive-antenna dimensions.
         """
         torch = self._torch
-        if not torch.is_tensor(received_grid):
-            received_grid = torch.as_tensor(received_grid, device=self.device)
-        if not torch.is_complex(received_grid):
-            raise ValueError("received_grid must have a complex dtype")
-        received_grid = received_grid.to(device=self.device, dtype=torch.complex64)
         expected_tail = (
             self._resource_grid.num_ofdm_symbols,
             self._resource_grid.fft_size,
         )
-        if received_grid.ndim != 5 or tuple(received_grid.shape[-2:]) != expected_tail:
-            raise ValueError(
-                "received_grid must have [batch, rx, rx_ant, "
-                f"{expected_tail[0]} symbols, {expected_tail[1]} subcarriers] shape"
-            )
-        if any(size <= 0 for size in received_grid.shape[:3]):
-            raise ValueError("batch, receive, and receive-antenna dimensions must be positive")
-        if not bool(torch.isfinite(received_grid).all()):
-            raise ValueError("received_grid must be finite")
-
-        noise = _validated_noise_variance(torch, noise_variance, device=self.device)
-        if noise.ndim > 3:
-            raise ValueError("noise_variance must broadcast over [batch, rx, rx_ant]")
-        leading_shape = tuple(int(size) for size in received_grid.shape[:3])
-        noise_shape = (*noise.shape, *((1,) * (3 - noise.ndim)))
-        noise = noise.reshape(noise_shape)
-        if any(
-            noise_size not in (1, grid_size)
-            for noise_size, grid_size in zip(noise.shape, leading_shape, strict=True)
-        ):
-            raise ValueError("noise_variance must broadcast over [batch, rx, rx_ant]")
+        received_grid, noise = _validated_pusch_inputs(
+            torch,
+            received_grid,
+            noise_variance,
+            device=self.device,
+            expected_grid_tail=expected_tail,
+        )
 
         h_hat, error_variance = self._estimator(received_grid, noise)
         return NRChannelEstimate(
@@ -419,6 +441,16 @@ class SionnaPUSCHLSReceiver:
 
     def decode_pusch(self, received_grid: Any, noise_variance: Any) -> tuple[Any, Any]:
         """Decode with this receiver's configured DM-RS estimator and return CRC status."""
+        received_grid, noise = _validated_pusch_inputs(
+            self._torch,
+            received_grid,
+            noise_variance,
+            device=self.device,
+            expected_grid_tail=(
+                self._resource_grid.num_ofdm_symbols,
+                self._resource_grid.fft_size,
+            ),
+        )
         if self._decoder is None:
             try:
                 from sionna.phy.nr import PUSCHReceiver
@@ -431,7 +463,7 @@ class SionnaPUSCHLSReceiver:
                 input_domain="freq",
                 device=self.device,
             )
-        return self._decoder(received_grid, noise_variance)
+        return self._decoder(received_grid, noise)
 
     def make_decoder_with_estimator(self, channel_estimator: Any) -> Any:
         """Build a PUSCH decoder with a caller-supplied estimator inside the adapter boundary."""
