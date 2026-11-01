@@ -70,9 +70,14 @@ The receiver API and native V100 smoke prove software-path integration for one
 small synthetic PUSCH configuration only. Reports remain
 `OBSERVED_NOT_QUALIFIED`; no field or deployment qualification follows. The
 strict report contract is
-`datasets/schema/network-pusch-receiver-decode.v5.schema.json`. It hashes the
+`datasets/schema/network-pusch-receiver-decode.v6.schema.json`. It hashes the
 exact complex64 waveform after device transfer and casting, alongside the
 original composed and noisy sample tensors, so the demodulator's actual input
 is reproducible even when the source waveform used higher precision. Decoder
 outputs are accepted only as dense Boolean or real 0/1 bit tensors paired with
 Boolean CRC outcomes.
+
+The v6 CP diagnostic reports both declared FIR memory and a conservative
+composed-support span from integer link arrivals, fractional-delay interpolation,
+and nonzero FIR taps. It does not see propagation memory already embedded in an
+input link waveform and does not establish synchronization or ISI qualification.

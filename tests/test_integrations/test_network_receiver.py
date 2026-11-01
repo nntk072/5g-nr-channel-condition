@@ -84,7 +84,7 @@ def test_network_waveform_reaches_pusch_decoder_with_bound_inputs_and_status():
     torch.testing.assert_close(receiver.noise_variance, torch.tensor([[[0.04]]]))
     assert result.received_grid.shape == (1, 1, 1, 2, 4)
     assert bool(result.crc_ok.all())
-    assert result.report["schema"] == "umcd.network_pusch_receiver_decode.v5"
+    assert result.report["schema"] == "umcd.network_pusch_receiver_decode.v6"
     assert result.report["status"] == "OBSERVED_NOT_QUALIFIED"
     receiver_implementation = result.report["receiver_implementation"]
     assert receiver_implementation["qualified_class_name"].endswith("._FakePUSCHReceiver")
@@ -103,6 +103,8 @@ def test_network_waveform_reaches_pusch_decoder_with_bound_inputs_and_status():
     cp_diagnostic = result.report["declared_fir_cp_diagnostic"]
     assert cp_diagnostic["maximum_fir_memory_samples"] == 0
     assert cp_diagnostic["exceeds_cyclic_prefix"] is False
+    assert cp_diagnostic["maximum_composed_support_span_samples"] == 0
+    assert cp_diagnostic["composed_support_exceeds_cyclic_prefix"] is False
     assert cp_diagnostic["interpretation"].endswith("OR_QUALIFICATION")
     assert len(result.report["report_sha256"]) == 64
     report_body = dict(result.report)
@@ -205,10 +207,11 @@ def test_network_receiver_reports_declared_fir_memory_relative_to_cyclic_prefix(
     links = torch.ones((1, 1, 1, 1, 8), dtype=torch.complex64)
     composition = compose_received_waveforms(
         links,
-        link_start_samples=((0,),),
+        link_start_samples=((3,),),
         capture_num_samples=8,
         sample_rate_hz=4.0,
         link_filter_taps=torch.tensor([[[1.0 + 0j, 0.0 + 0j, 0.5 + 0j]]]),
+        link_fractional_delay_samples=((0.5,),),
     )
     noisy = add_independent_receiver_waveform_awgn(composition, (0.02,), seed=19)
     receiver = _FakePUSCHReceiver()
@@ -227,7 +230,43 @@ def test_network_receiver_reports_declared_fir_memory_relative_to_cyclic_prefix(
     assert diagnostic["maximum_fir_memory_samples"] == 2
     assert diagnostic["cyclic_prefix_samples"] == 0
     assert diagnostic["exceeds_cyclic_prefix"] is True
+    assert diagnostic["per_receiver_composed_support"] == [
+        {
+            "first_effective_support_sample_relative_to_capture": -12.5,
+            "last_effective_support_sample_relative_to_capture": 21.5,
+            "span_upper_bound_samples": 35,
+        }
+    ]
+    assert diagnostic["maximum_composed_support_span_samples"] == 35
+    assert diagnostic["composed_support_exceeds_cyclic_prefix"] is True
     assert len(diagnostic["filter_taps_sha256"]) == 64
+
+
+def test_network_receiver_cp_diagnostic_includes_relative_link_arrival_offsets():
+    links = torch.ones((1, 1, 2, 1, 8), dtype=torch.complex64)
+    composition = compose_received_waveforms(
+        links,
+        link_start_samples=((0, 4),),
+        capture_num_samples=8,
+        sample_rate_hz=4.0,
+    )
+    noisy = add_independent_receiver_waveform_awgn(composition, (0.02,), seed=19)
+    result = decode_noisy_network_pusch(
+        composition,
+        noisy,
+        _FakePUSCHReceiver(),
+        noise_variance_w_per_re=(0.04,),
+    )
+    diagnostic = result.report["declared_fir_cp_diagnostic"]
+    assert diagnostic["per_receiver_composed_support"] == [
+        {
+            "first_effective_support_sample_relative_to_capture": 0.0,
+            "last_effective_support_sample_relative_to_capture": 4.0,
+            "span_upper_bound_samples": 4,
+        }
+    ]
+    assert diagnostic["maximum_composed_support_span_samples"] == 4
+    assert diagnostic["composed_support_exceeds_cyclic_prefix"] is True
 
 
 def test_network_receiver_counts_retained_fir_taps_in_tensor_resource_limit():

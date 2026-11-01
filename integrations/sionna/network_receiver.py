@@ -274,18 +274,37 @@ def decode_noisy_network_pusch(
         fir_support = filter_taps
     fir_support = fir_support.to(device=received.device)
     fir_support_by_link: list[list[dict[str, int]]] = []
+    composed_support_by_receiver: list[dict[str, float | int | None]] = []
     maximum_fir_memory_samples = 0
     for rx_index in range(rx_count):
         receiver_support: list[dict[str, int]] = []
+        effective_support_bounds: list[tuple[float, float]] = []
         for tx_index in range(contributions.shape[3]):
             active_taps = torch.nonzero(fir_support[rx_index, tx_index] != 0).reshape(-1)
             if active_taps.numel() == 0:
                 first_tap = last_tap = -1
                 memory_samples = 0
+                effective_first = effective_last = None
             else:
                 first_tap = int(active_taps[0].item())
                 last_tap = int(active_taps[-1].item())
                 memory_samples = last_tap - first_tap
+                start_sample = int(composition.link_start_samples[rx_index, tx_index].item())
+                fractional_delay = float(
+                    composition.link_fractional_delay_samples[rx_index, tx_index].item()
+                )
+                interpolation_radius = (
+                    composition.fractional_delay_kernel_radius
+                    if fractional_delay != 0.0
+                    else 0
+                )
+                effective_first = (
+                    start_sample + fractional_delay + first_tap - interpolation_radius
+                )
+                effective_last = (
+                    start_sample + fractional_delay + last_tap + interpolation_radius
+                )
+                effective_support_bounds.append((effective_first, effective_last))
             maximum_fir_memory_samples = max(maximum_fir_memory_samples, memory_samples)
             receiver_support.append(
                 {
@@ -295,6 +314,24 @@ def decode_noisy_network_pusch(
                 }
             )
         fir_support_by_link.append(receiver_support)
+        if effective_support_bounds:
+            support_start = min(bound[0] for bound in effective_support_bounds)
+            support_end = max(bound[1] for bound in effective_support_bounds)
+            support_span = math.ceil(support_end) - math.floor(support_start)
+        else:
+            support_start = support_end = None
+            support_span = 0
+        composed_support_by_receiver.append(
+            {
+                "first_effective_support_sample_relative_to_capture": support_start,
+                "last_effective_support_sample_relative_to_capture": support_end,
+                "span_upper_bound_samples": support_span,
+            }
+        )
+    maximum_composed_support_span_samples = max(
+        (int(row["span_upper_bound_samples"]) for row in composed_support_by_receiver),
+        default=0,
+    )
     estimated_grid_elements = batch * rx_count * rx_ports * symbol_count * fft_size
     estimated_receiver_waveform_elements = batch * rx_count * rx_ports * sample_count
     estimated_total_elements = (
@@ -373,7 +410,7 @@ def decode_noisy_network_pusch(
         raise ValueError("PUSCH receiver outputs exceed max_tensor_elements")
 
     report: dict[str, Any] = {
-        "schema": "umcd.network_pusch_receiver_decode.v5",
+        "schema": "umcd.network_pusch_receiver_decode.v6",
         "status": "OBSERVED_NOT_QUALIFIED",
         "implementation_sha256": hashlib.sha256(
             inspect.getsource(decode_noisy_network_pusch).encode("utf-8")
@@ -392,10 +429,20 @@ def decode_noisy_network_pusch(
             "maximum_fir_memory_samples": maximum_fir_memory_samples,
             "exceeds_cyclic_prefix": maximum_fir_memory_samples > cyclic_prefix_samples,
             "filter_taps_sha256": _tensor_sha256(torch, fir_support),
+            "composition_support_method": "capture_offset_fractional_interpolator_and_declared_fir_v1",
+            "fractional_delay_kernel_radius_samples": int(
+                composition.fractional_delay_kernel_radius
+            ),
+            "per_receiver_composed_support": composed_support_by_receiver,
+            "maximum_composed_support_span_samples": maximum_composed_support_span_samples,
+            "composed_support_exceeds_cyclic_prefix": (
+                maximum_composed_support_span_samples > cyclic_prefix_samples
+            ),
         },
         "limitations": [
             "synchronization and acquisition are caller-controlled",
-            "declared FIR support excludes link arrival offsets and fractional-delay interpolation",
+            "composed-delay support excludes propagation memory already embedded in each input link waveform",
+            "composed-delay support is a conservative CP diagnostic, not synchronization or ISI qualification",
             "receiver method hashes identify adapter source only and do not attest installed runtime bytes",
             "synthetic decoder outcomes are not receiver qualification",
         ],
@@ -425,7 +472,7 @@ def decode_noisy_network_pusch(
         },
     }
     schema_path = Path(__file__).resolve().parents[2] / (
-        "datasets/schema/network-pusch-receiver-decode.v5.schema.json"
+        "datasets/schema/network-pusch-receiver-decode.v6.schema.json"
     )
     schema_bytes = schema_path.read_bytes()
     schema = json.loads(schema_bytes.decode("utf-8"))

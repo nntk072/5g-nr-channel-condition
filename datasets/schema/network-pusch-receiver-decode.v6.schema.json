@@ -1,0 +1,335 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:network-pusch-receiver-decode:v6",
+  "title": "Bounded network waveform to PUSCH receiver decode report v6",
+  "type": "object",
+  "required": [
+    "schema",
+    "schema_sha256",
+    "report_sha256",
+    "status",
+    "implementation_sha256",
+    "execution_device",
+    "receiver_metadata_sha256",
+    "sample_rate_hz",
+    "receiver_noise_convention",
+    "noise_variance_conversion",
+    "declared_fir_cp_diagnostic",
+    "limitations",
+    "input_sha256",
+    "output_sha256",
+    "shape",
+    "receiver_implementation"
+  ],
+  "properties": {
+    "schema": {
+      "const": "umcd.network_pusch_receiver_decode.v6"
+    },
+    "schema_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "report_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "status": {
+      "const": "OBSERVED_NOT_QUALIFIED"
+    },
+    "implementation_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "execution_device": {
+      "type": "string",
+      "minLength": 1
+    },
+    "receiver_metadata_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "sample_rate_hz": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "receiver_noise_convention": {
+      "const": "watts_per_resource_element"
+    },
+    "noise_variance_conversion": {
+      "enum": [
+        "sionna_phy_2_2_0_unitary_dft_preserves_variance_v1",
+        "caller_supplied_per_re_variance_v1"
+      ]
+    },
+    "limitations": {
+      "const": [
+        "synchronization and acquisition are caller-controlled",
+        "composed-delay support excludes propagation memory already embedded in each input link waveform",
+        "composed-delay support is a conservative CP diagnostic, not synchronization or ISI qualification",
+        "receiver method hashes identify adapter source only and do not attest installed runtime bytes",
+        "synthetic decoder outcomes are not receiver qualification"
+      ]
+    },
+    "input_sha256": {
+      "type": "object",
+      "required": [
+        "source_contributions",
+        "clean_received_waveform",
+        "noise_waveform",
+        "noisy_received_waveform",
+        "demodulator_waveform",
+        "sample_noise_variance",
+        "receiver_noise_variance_per_re"
+      ],
+      "properties": {
+        "source_contributions": {
+          "$ref": "#/$defs/sha256"
+        },
+        "clean_received_waveform": {
+          "$ref": "#/$defs/sha256"
+        },
+        "noise_waveform": {
+          "$ref": "#/$defs/sha256"
+        },
+        "noisy_received_waveform": {
+          "$ref": "#/$defs/sha256"
+        },
+        "demodulator_waveform": {
+          "$ref": "#/$defs/sha256"
+        },
+        "sample_noise_variance": {
+          "$ref": "#/$defs/sha256"
+        },
+        "receiver_noise_variance_per_re": {
+          "$ref": "#/$defs/sha256"
+        }
+      },
+      "additionalProperties": false
+    },
+    "output_sha256": {
+      "type": "object",
+      "required": [
+        "received_grid",
+        "decoded_bits",
+        "crc_ok"
+      ],
+      "properties": {
+        "received_grid": {
+          "$ref": "#/$defs/sha256"
+        },
+        "decoded_bits": {
+          "$ref": "#/$defs/sha256"
+        },
+        "crc_ok": {
+          "$ref": "#/$defs/sha256"
+        }
+      },
+      "additionalProperties": false
+    },
+    "shape": {
+      "type": "object",
+      "required": [
+        "batch",
+        "receivers",
+        "receive_ports",
+        "samples",
+        "ofdm_symbols",
+        "fft_size",
+        "transport_blocks",
+        "crc_failures"
+      ],
+      "properties": {
+        "batch": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "receivers": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "receive_ports": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "samples": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "ofdm_symbols": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "fft_size": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "transport_blocks": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "crc_failures": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "declared_fir_cp_diagnostic": {
+      "type": "object",
+      "required": [
+        "method",
+        "interpretation",
+        "cyclic_prefix_samples",
+        "per_receiver_link_support",
+        "maximum_fir_memory_samples",
+        "exceeds_cyclic_prefix",
+        "filter_taps_sha256",
+        "composition_support_method",
+        "fractional_delay_kernel_radius_samples",
+        "per_receiver_composed_support",
+        "maximum_composed_support_span_samples",
+        "composed_support_exceeds_cyclic_prefix"
+      ],
+      "properties": {
+        "method": {
+          "const": "declared_causal_fir_nonzero_support_v1"
+        },
+        "interpretation": {
+          "const": "DECLARED_FILTER_SUPPORT_ONLY_NOT_TOTAL_CHANNEL_MEMORY_OR_QUALIFICATION"
+        },
+        "cyclic_prefix_samples": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "per_receiver_link_support": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": [
+                "first_nonzero_tap",
+                "last_nonzero_tap",
+                "memory_samples"
+              ],
+              "properties": {
+                "first_nonzero_tap": {
+                  "type": "integer",
+                  "minimum": -1
+                },
+                "last_nonzero_tap": {
+                  "type": "integer",
+                  "minimum": -1
+                },
+                "memory_samples": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "maximum_fir_memory_samples": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "exceeds_cyclic_prefix": {
+          "type": "boolean"
+        },
+        "filter_taps_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "composition_support_method": {
+          "const": "capture_offset_fractional_interpolator_and_declared_fir_v1"
+        },
+        "fractional_delay_kernel_radius_samples": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "per_receiver_composed_support": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "first_effective_support_sample_relative_to_capture",
+              "last_effective_support_sample_relative_to_capture",
+              "span_upper_bound_samples"
+            ],
+            "properties": {
+              "first_effective_support_sample_relative_to_capture": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "last_effective_support_sample_relative_to_capture": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "span_upper_bound_samples": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "maximum_composed_support_span_samples": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "composed_support_exceeds_cyclic_prefix": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "receiver_implementation": {
+      "type": "object",
+      "required": [
+        "qualified_class_name",
+        "method_sha256"
+      ],
+      "properties": {
+        "qualified_class_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "method_sha256": {
+          "type": "object",
+          "required": [
+            "demodulate_slot_waveform",
+            "decode_pusch"
+          ],
+          "properties": {
+            "demodulate_slot_waveform": {
+              "$ref": "#/$defs/sha256"
+            },
+            "decode_pusch": {
+              "$ref": "#/$defs/sha256"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}
