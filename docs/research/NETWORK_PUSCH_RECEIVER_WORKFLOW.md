@@ -6,14 +6,15 @@ existing Sionna PUSCH demodulator/decoder. It checks that per-link contributions
 sum to the clean capture, that the noisy capture equals clean capture plus the
 retained noise samples, and that the sample rate matches the configured FFT
 grid. The exact input/output tensor digests, receiver metadata digest, device,
-dimensions, and CRC totals are retained in a schema-validated v4 report. The
+dimensions, and CRC totals are retained in a schema-validated v5 report. The
 report also records the nonzero support and memory of each declared causal
 per-link FIR relative to the receiver's configured cyclic prefix, bound to the
 exact tap tensor digest. This is explicitly a filter-support diagnostic only:
 it excludes link start offsets, fractional-delay interpolation support, and
 receiver acquisition, so it does not establish total channel memory, ISI, or
-receiver qualification. The previously published v1-v3 schemas remain
-unchanged; v4 also hashes the exact cast/device-transferred demodulator input.
+receiver qualification. The previously published v1-v4 schemas remain
+unchanged; v4 hashes the exact cast/device-transferred demodulator input, and
+v5 additionally hashes both Python receiver-adapter methods.
 Before allocation, the resource ceiling counts source/noise tensors, the
 converted full-slot receiver waveform, and the demodulated resource grid.
 
@@ -69,7 +70,7 @@ The receiver API and native V100 smoke prove software-path integration for one
 small synthetic PUSCH configuration only. Reports remain
 `OBSERVED_NOT_QUALIFIED`; no field or deployment qualification follows. The
 strict report contract is
-`datasets/schema/network-pusch-receiver-decode.v4.schema.json`. It hashes the
+`datasets/schema/network-pusch-receiver-decode.v5.schema.json`. It hashes the
 exact complex64 waveform after device transfer and casting, alongside the
 original composed and noisy sample tensors, so the demodulator's actual input
 is reproducible even when the source waveform used higher precision. Decoder

@@ -46,6 +46,26 @@ def _tensor_sha256(torch: Any, value: Any) -> str:
     return digest.hexdigest()
 
 
+def _receiver_implementation_identity(receiver: Any) -> dict[str, Any]:
+    """Hash the Python adapter methods that demodulate and decode the capture."""
+    method_digests: dict[str, str] = {}
+    for name in ("demodulate_slot_waveform", "decode_pusch"):
+        method = getattr(receiver, name, None)
+        if not callable(method):
+            raise ValueError(f"receiver must expose callable {name}")
+        implementation = getattr(method, "__func__", method)
+        try:
+            source = inspect.getsource(implementation).encode("utf-8")
+        except (OSError, TypeError) as error:
+            raise ValueError(f"receiver {name} implementation source is unavailable") from error
+        method_digests[name] = hashlib.sha256(source).hexdigest()
+    receiver_type = type(receiver)
+    return {
+        "qualified_class_name": f"{receiver_type.__module__}.{receiver_type.__qualname__}",
+        "method_sha256": method_digests,
+    }
+
+
 def _real_noise_profile(torch: Any, values: Any, *, rx_count: int, device: Any) -> Any:
     if isinstance(values, bool):
         raise ValueError("noise_variance_w_per_re must be real and non-Boolean")
@@ -189,6 +209,7 @@ def decode_noisy_network_pusch(
     metadata = getattr(receiver, "metadata", None)
     if not isinstance(metadata, dict):
         raise ValueError("receiver must expose JSON-serializable metadata")
+    receiver_implementation = _receiver_implementation_identity(receiver)
     try:
         metadata_bytes = json.dumps(
             metadata, sort_keys=True, separators=(",", ":"), allow_nan=False
@@ -352,13 +373,14 @@ def decode_noisy_network_pusch(
         raise ValueError("PUSCH receiver outputs exceed max_tensor_elements")
 
     report: dict[str, Any] = {
-        "schema": "umcd.network_pusch_receiver_decode.v4",
+        "schema": "umcd.network_pusch_receiver_decode.v5",
         "status": "OBSERVED_NOT_QUALIFIED",
         "implementation_sha256": hashlib.sha256(
             inspect.getsource(decode_noisy_network_pusch).encode("utf-8")
         ).hexdigest(),
         "execution_device": str(received_grid.device),
         "receiver_metadata_sha256": hashlib.sha256(metadata_bytes).hexdigest(),
+        "receiver_implementation": receiver_implementation,
         "sample_rate_hz": float(composition.sample_rate_hz),
         "receiver_noise_convention": "watts_per_resource_element",
         "noise_variance_conversion": noise_conversion,
@@ -374,6 +396,7 @@ def decode_noisy_network_pusch(
         "limitations": [
             "synchronization and acquisition are caller-controlled",
             "declared FIR support excludes link arrival offsets and fractional-delay interpolation",
+            "receiver method hashes identify adapter source only and do not attest installed runtime bytes",
             "synthetic decoder outcomes are not receiver qualification",
         ],
         "input_sha256": {
@@ -402,7 +425,7 @@ def decode_noisy_network_pusch(
         },
     }
     schema_path = Path(__file__).resolve().parents[2] / (
-        "datasets/schema/network-pusch-receiver-decode.v4.schema.json"
+        "datasets/schema/network-pusch-receiver-decode.v5.schema.json"
     )
     schema_bytes = schema_path.read_bytes()
     schema = json.loads(schema_bytes.decode("utf-8"))

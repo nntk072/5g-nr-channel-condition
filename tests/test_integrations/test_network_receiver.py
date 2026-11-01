@@ -1,5 +1,7 @@
 import hashlib
+import inspect
 import json
+import math
 from dataclasses import replace
 
 import pytest
@@ -11,6 +13,7 @@ from integrations.sionna.network_phy import (  # noqa: E402
     compose_received_waveforms,
 )
 from integrations.sionna.network_receiver import (  # noqa: E402
+    _receiver_implementation_identity,
     _tensor_sha256,
     _unitary_sionna_noise_conversion,
     decode_noisy_network_pusch,
@@ -46,6 +49,14 @@ class _FakePUSCHReceiver:
         return torch.zeros((1, 1, 12), dtype=torch.bool), torch.tensor([[True]])
 
 
+def test_network_receiver_implementation_identity_rejects_uninspectable_methods():
+    class BuiltinMethodReceiver(_FakePUSCHReceiver):
+        demodulate_slot_waveform = math.sqrt
+
+    with pytest.raises(ValueError, match="implementation source is unavailable"):
+        _receiver_implementation_identity(BuiltinMethodReceiver())
+
+
 def _network_waveform():
     link_waveforms = torch.ones((1, 1, 1, 1, 8), dtype=torch.complex64)
     composition = compose_received_waveforms(
@@ -73,8 +84,16 @@ def test_network_waveform_reaches_pusch_decoder_with_bound_inputs_and_status():
     torch.testing.assert_close(receiver.noise_variance, torch.tensor([[[0.04]]]))
     assert result.received_grid.shape == (1, 1, 1, 2, 4)
     assert bool(result.crc_ok.all())
-    assert result.report["schema"] == "umcd.network_pusch_receiver_decode.v4"
+    assert result.report["schema"] == "umcd.network_pusch_receiver_decode.v5"
     assert result.report["status"] == "OBSERVED_NOT_QUALIFIED"
+    receiver_implementation = result.report["receiver_implementation"]
+    assert receiver_implementation["qualified_class_name"].endswith("._FakePUSCHReceiver")
+    assert receiver_implementation["method_sha256"] == {
+        name: hashlib.sha256(
+            inspect.getsource(getattr(_FakePUSCHReceiver, name)).encode()
+        ).hexdigest()
+        for name in ("demodulate_slot_waveform", "decode_pusch")
+    }
     assert result.report["receiver_noise_convention"] == "watts_per_resource_element"
     assert result.report["noise_variance_conversion"] == "caller_supplied_per_re_variance_v1"
     assert result.report["input_sha256"]["demodulator_waveform"] == _tensor_sha256(
