@@ -94,6 +94,46 @@ def _validated_pusch_inputs(
     return grid, noise
 
 
+def _validated_pusch_decoder_outputs(
+    torch: Any, result: Any, *, expected_batch_size: int
+) -> tuple[Any, Any]:
+    """Require Sionna PUSCH decoder outputs to be binary bits and Boolean CRCs."""
+    if not isinstance(result, (tuple, list)) or len(result) != 2:
+        raise ValueError("PUSCH decoder must return decoded bits and CRC status")
+    decoded_bits, crc_ok = result
+    integer_types = {
+        torch.uint8,
+        torch.int8,
+        torch.int16,
+        torch.int32,
+        torch.int64,
+    }
+    if (
+        not torch.is_tensor(decoded_bits)
+        or decoded_bits.layout != torch.strided
+        or decoded_bits.numel() < 1
+        or decoded_bits.ndim < 2
+        or decoded_bits.is_complex()
+        or not (
+            decoded_bits.dtype == torch.bool
+            or decoded_bits.is_floating_point()
+            or decoded_bits.dtype in integer_types
+        )
+        or not bool(((decoded_bits == 0) | (decoded_bits == 1)).all())
+        or not torch.is_tensor(crc_ok)
+        or crc_ok.layout != torch.strided
+        or crc_ok.dtype != torch.bool
+        or crc_ok.numel() < 1
+        or crc_ok.ndim < 1
+        or decoded_bits.shape[0] != expected_batch_size
+        or tuple(crc_ok.shape) != tuple(decoded_bits.shape[:-1])
+    ):
+        raise ValueError(
+            "PUSCH decoder must return dense binary batch-aligned bits and Boolean CRCs"
+        )
+    return decoded_bits, crc_ok
+
+
 class SionnaPUSCHLSReceiver:
     """Estimate channels from a received PUSCH resource grid using NR DMRS.
 
@@ -463,7 +503,10 @@ class SionnaPUSCHLSReceiver:
                 input_domain="freq",
                 device=self.device,
             )
-        return self._decoder(received_grid, noise)
+        result = self._decoder(received_grid, noise)
+        return _validated_pusch_decoder_outputs(
+            self._torch, result, expected_batch_size=int(received_grid.shape[0])
+        )
 
     def make_decoder_with_estimator(self, channel_estimator: Any) -> Any:
         """Build a PUSCH decoder with a caller-supplied estimator inside the adapter boundary."""
@@ -483,6 +526,38 @@ class SionnaPUSCHLSReceiver:
         self, received_grid: Any, noise_variance: Any, channel_truth: Any
     ) -> tuple[Any, Any]:
         """Diagnostic oracle-CSI decode, isolated behind the optional Sionna adapter."""
+        received_grid, noise = _validated_pusch_inputs(
+            self._torch,
+            received_grid,
+            noise_variance,
+            device=self.device,
+            expected_grid_tail=(
+                self._resource_grid.num_ofdm_symbols,
+                self._resource_grid.fft_size,
+            ),
+        )
+        try:
+            channel = self._torch.as_tensor(channel_truth, device=self.device)
+        except (TypeError, ValueError, RuntimeError, OverflowError) as error:
+            raise ValueError("channel_truth must be a dense finite complex tensor") from error
+        if (
+            channel.layout != self._torch.strided
+            or not self._torch.is_complex(channel)
+            or channel.ndim != 7
+            or tuple(channel.shape[:3]) != tuple(received_grid.shape[:3])
+            or any(size <= 0 for size in channel.shape[3:5])
+            or tuple(channel.shape[-2:])
+            != (self._resource_grid.num_ofdm_symbols, self._resource_grid.fft_size)
+        ):
+            raise ValueError(
+                "channel_truth must have [batch, rx, rx_ant, tx, tx_ant, symbols, "
+                "subcarriers] axes matching the PUSCH grid"
+            )
+        if not bool(self._torch.isfinite(channel).all()):
+            raise ValueError("channel_truth must be finite")
+        channel = channel.to(device=self.device, dtype=self._torch.complex64)
+        if not bool(self._torch.isfinite(channel).all()):
+            raise ValueError("channel_truth must remain finite when converted to complex64")
         if self._perfect_csi_decoder is None:
             try:
                 from sionna.phy.nr import PUSCHReceiver
@@ -497,4 +572,7 @@ class SionnaPUSCHLSReceiver:
                 input_domain="freq",
                 device=self.device,
             )
-        return self._perfect_csi_decoder(received_grid, noise_variance, h=channel_truth)
+        result = self._perfect_csi_decoder(received_grid, noise, h=channel)
+        return _validated_pusch_decoder_outputs(
+            self._torch, result, expected_batch_size=int(received_grid.shape[0])
+        )

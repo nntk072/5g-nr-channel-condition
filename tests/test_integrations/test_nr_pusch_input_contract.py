@@ -84,7 +84,7 @@ def test_pusch_noise_variance_accepts_nonnegative_real_tensors() -> None:
     torch.testing.assert_close(result, torch.tensor([0.0, 2.0]))
 
 
-def _adapter_with_recording_decoder(torch, expected_tail=(14, 48)):
+def _adapter_with_recording_decoder(torch, expected_tail=(14, 48), outputs=None):
     from types import SimpleNamespace
 
     from integrations.sionna.nr_pusch import SionnaPUSCHLSReceiver
@@ -92,11 +92,15 @@ def _adapter_with_recording_decoder(torch, expected_tail=(14, 48)):
     class RecordingDecoder:
         calls = 0
 
-        def __call__(self, received_grid, noise_variance):
+        def __init__(self, outputs):
+            self.outputs = outputs
+
+        def __call__(self, received_grid, noise_variance, **kwargs):
             self.calls += 1
             self.received_grid = received_grid
             self.noise_variance = noise_variance
-            return "decoded", "crc"
+            self.channel_truth = kwargs.get("h")
+            return self.outputs
 
     receiver = object.__new__(SionnaPUSCHLSReceiver)
     receiver._torch = torch
@@ -104,7 +108,12 @@ def _adapter_with_recording_decoder(torch, expected_tail=(14, 48)):
     receiver._resource_grid = SimpleNamespace(
         num_ofdm_symbols=expected_tail[0], fft_size=expected_tail[1]
     )
-    receiver._decoder = RecordingDecoder()
+    if outputs is None:
+        outputs = (
+            torch.zeros((2, 1, 4), dtype=torch.float32),
+            torch.ones((2, 1), dtype=torch.bool),
+        )
+    receiver._decoder = RecordingDecoder(outputs)
     return receiver, receiver._decoder
 
 
@@ -115,7 +124,8 @@ def test_pusch_decoder_validates_and_normalizes_grid_and_noise_before_backend_ca
 
     result = receiver.decode_pusch(grid, torch.tensor([0.1, 0.2], dtype=torch.float64))
 
-    assert result == ("decoded", "crc")
+    assert tuple(result[0].shape) == (2, 1, 4)
+    assert tuple(result[1].shape) == (2, 1)
     assert decoder.calls == 1
     assert decoder.received_grid.dtype == torch.complex64
     assert decoder.received_grid.device.type == "cpu"
@@ -177,5 +187,98 @@ def test_pusch_decoder_rejects_invalid_inputs_before_backend_call(
 
     with pytest.raises(ValueError, match=message):
         receiver.decode_pusch(grid_factory(torch), noise)
+
+    assert decoder.calls == 0
+
+
+@pytest.mark.parametrize(
+    ("bits", "crc", "message"),
+    [
+        (
+            lambda torch: torch.tensor([[[0.0, 0.5]]]),
+            lambda torch: torch.ones((1, 1), dtype=torch.bool),
+            "binary",
+        ),
+        (
+            lambda torch: torch.ones((1, 1, 2), dtype=torch.complex64),
+            lambda torch: torch.ones((1, 1), dtype=torch.bool),
+            "binary",
+        ),
+        (
+            lambda torch: torch.ones((1, 1, 2), dtype=torch.float32),
+            lambda torch: torch.ones((1, 1)),
+            "binary",
+        ),
+        (
+            lambda torch: torch.zeros((1, 1, 2), dtype=torch.float32),
+            lambda torch: torch.ones((1, 1), dtype=torch.bool),
+            "batch-aligned",
+        ),
+        (
+            lambda torch: torch.zeros((2, 1, 2), dtype=torch.float32),
+            lambda torch: torch.ones((2, 2), dtype=torch.bool),
+            "batch-aligned",
+        ),
+        (
+            lambda torch: torch.sparse_coo_tensor(
+                torch.tensor([[0], [0], [0]]), torch.tensor([1.0]), (2, 1, 2), check_invariants=True
+            ),
+            lambda torch: torch.ones((2, 1), dtype=torch.bool),
+            "batch-aligned",
+        ),
+    ],
+)
+def test_pusch_decoder_rejects_malformed_backend_outputs(bits, crc, message) -> None:
+    torch = pytest.importorskip("torch")
+    receiver, decoder = _adapter_with_recording_decoder(torch, outputs=(bits(torch), crc(torch)))
+
+    with pytest.raises(ValueError, match=message):
+        receiver.decode_pusch(torch.ones((2, 1, 1, 14, 48), dtype=torch.complex64), 0.1)
+
+    assert decoder.calls == 1
+
+
+def test_perfect_csi_decoder_validates_channel_truth_and_binary_outputs() -> None:
+    torch = pytest.importorskip("torch")
+    receiver, decoder = _adapter_with_recording_decoder(torch)
+    receiver._perfect_csi_decoder = decoder
+    grid = torch.ones((2, 1, 1, 14, 48), dtype=torch.complex64)
+    channel_truth = torch.ones((2, 1, 1, 1, 1, 14, 48), dtype=torch.complex128)
+
+    bits, crc = receiver.decode_pusch_with_channel_truth(grid, 0.1, channel_truth)
+
+    assert tuple(bits.shape) == (2, 1, 4)
+    assert tuple(crc.shape) == (2, 1)
+    assert decoder.calls == 1
+    assert decoder.channel_truth.dtype == torch.complex64
+
+
+@pytest.mark.parametrize(
+    ("channel_factory", "message"),
+    [
+        (lambda torch: torch.ones((2, 1, 14, 48), dtype=torch.complex64), "axes matching"),
+        (
+            lambda torch: torch.ones((1, 1, 1, 1, 1, 14, 48), dtype=torch.complex64),
+            "axes matching",
+        ),
+        (
+            lambda torch: torch.full((2, 1, 1, 1, 1, 14, 48), complex(float("nan"), 0)),
+            "channel_truth must be finite",
+        ),
+    ],
+)
+def test_perfect_csi_decoder_rejects_malformed_channel_truth_before_backend_call(
+    channel_factory, message
+) -> None:
+    torch = pytest.importorskip("torch")
+    receiver, decoder = _adapter_with_recording_decoder(torch)
+    receiver._perfect_csi_decoder = decoder
+
+    with pytest.raises(ValueError, match=message):
+        receiver.decode_pusch_with_channel_truth(
+            torch.ones((2, 1, 1, 14, 48), dtype=torch.complex64),
+            0.1,
+            channel_factory(torch),
+        )
 
     assert decoder.calls == 0
