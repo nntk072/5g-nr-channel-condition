@@ -5,7 +5,9 @@ import numpy as np
 import pytest
 from integrations.sionna.adapter import (
     GridConfig,
+    RayScene,
     _phy_cir_to_cfr,
+    build_rt_data_generation_request,
     count_valid_paths,
     direct_indirect_diagnostics,
     has_valid_path,
@@ -45,6 +47,48 @@ def test_ray_oracle_missing_field_fails():
 def test_grid_invalid():
     with pytest.raises(ValueError):
         GridConfig(n_subcarriers=4)
+
+
+def test_rt_data_request_binds_effective_path_solver_switches(monkeypatch):
+    import integrations.sionna.adapter as adapter
+
+    monkeypatch.setattr(adapter, "package_source_sha256", lambda: "a" * 64)
+    monkeypatch.setattr(adapter, "versions", lambda: {"sionna-rt": "2.2.0"})
+    scene = RayScene(max_depth=4, max_num_paths_per_src=1234)
+    inventory = types.SimpleNamespace(
+        scene_geometry_sha256="b" * 64,
+        object_names=("wall",),
+        triangles_m=np.zeros((2, 3, 3), dtype=np.float64),
+    )
+    backend = types.SimpleNamespace(
+        as_dict=lambda: {"backend": "llvm_cpu", "variant": "llvm_ad_mono_polarized"}
+    )
+
+    request = build_rt_data_generation_request(
+        scene,
+        GridConfig(n_subcarriers=8),
+        17,
+        selection=backend,
+        scene_ref="scene.xml",
+        scene_assets={
+            "asset_set_sha256": "c" * 64,
+            "asset_count": 1,
+            "complete": True,
+        },
+        material_manifest={"wall": {"scattering_coefficient": 0.0}},
+        scene_geometry_inventory=inventory,
+    )
+
+    assert request["config"]["solver_config"] == {
+        "deterministic": True,
+        "max_depth": 4,
+        "max_num_paths_per_src": 1234,
+        "los": True,
+        "specular_reflection": True,
+        "diffuse_reflection": True,
+        "refraction": True,
+        "diffraction": False,
+    }
 
 
 def test_rt_cfr_accepts_real_imag_tuple_and_preserves_all_links(monkeypatch):

@@ -439,6 +439,9 @@ def build_rt_data_generation_request(
             **asdict(scene_config),
             "total_work_units": scene_config.max_attempts * scene_config.samples_per_src,
             "antenna_config": sionna_rt_siso_antenna_config(orientation_policy="fixed_default"),
+            "solver_config": static_rt_solver_config(
+                scene_config.max_depth, scene_config.max_num_paths_per_src
+            ),
         },
         "grid": asdict(grid),
         "package_source_sha256": package_source_sha256(),
