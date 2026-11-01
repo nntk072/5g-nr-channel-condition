@@ -325,7 +325,7 @@ def decode_noisy_network_pusch(
         raise ValueError("PUSCH receiver outputs exceed max_tensor_elements")
 
     report: dict[str, Any] = {
-        "schema": "umcd.network_pusch_receiver_decode.v3",
+        "schema": "umcd.network_pusch_receiver_decode.v4",
         "status": "OBSERVED_NOT_QUALIFIED",
         "implementation_sha256": hashlib.sha256(
             inspect.getsource(decode_noisy_network_pusch).encode("utf-8")
@@ -354,6 +354,7 @@ def decode_noisy_network_pusch(
             "clean_received_waveform": _tensor_sha256(torch, received),
             "noise_waveform": _tensor_sha256(torch, noise),
             "noisy_received_waveform": _tensor_sha256(torch, received_noisy),
+            "demodulator_waveform": _tensor_sha256(torch, waveform_on_device),
             "sample_noise_variance": _tensor_sha256(torch, noisy.noise_variance_w_per_sample),
             "receiver_noise_variance_per_re": _tensor_sha256(torch, n0),
         },
@@ -374,7 +375,7 @@ def decode_noisy_network_pusch(
         },
     }
     schema_path = Path(__file__).resolve().parents[2] / (
-        "datasets/schema/network-pusch-receiver-decode.v3.schema.json"
+        "datasets/schema/network-pusch-receiver-decode.v4.schema.json"
     )
     schema_bytes = schema_path.read_bytes()
     schema = json.loads(schema_bytes.decode("utf-8"))

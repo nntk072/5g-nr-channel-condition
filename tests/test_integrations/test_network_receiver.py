@@ -11,6 +11,7 @@ from integrations.sionna.network_phy import (  # noqa: E402
     compose_received_waveforms,
 )
 from integrations.sionna.network_receiver import (  # noqa: E402
+    _tensor_sha256,
     _unitary_sionna_noise_conversion,
     decode_noisy_network_pusch,
 )
@@ -32,9 +33,11 @@ class _FakePUSCHReceiver:
     def __init__(self):
         self.decoded = False
         self.noise_variance = None
+        self.demodulator_waveform = None
 
     def demodulate_slot_waveform(self, waveform):
         assert waveform.shape == (1, 1, 1, 8)
+        self.demodulator_waveform = waveform.clone()
         return torch.ones((1, 1, 1, 2, 4), dtype=torch.complex64, device=waveform.device)
 
     def decode_pusch(self, received_grid, noise_variance):
@@ -70,10 +73,13 @@ def test_network_waveform_reaches_pusch_decoder_with_bound_inputs_and_status():
     torch.testing.assert_close(receiver.noise_variance, torch.tensor([[[0.04]]]))
     assert result.received_grid.shape == (1, 1, 1, 2, 4)
     assert bool(result.crc_ok.all())
-    assert result.report["schema"] == "umcd.network_pusch_receiver_decode.v3"
+    assert result.report["schema"] == "umcd.network_pusch_receiver_decode.v4"
     assert result.report["status"] == "OBSERVED_NOT_QUALIFIED"
     assert result.report["receiver_noise_convention"] == "watts_per_resource_element"
     assert result.report["noise_variance_conversion"] == "caller_supplied_per_re_variance_v1"
+    assert result.report["input_sha256"]["demodulator_waveform"] == _tensor_sha256(
+        torch, receiver.demodulator_waveform
+    )
     assert result.report["shape"]["transport_blocks"] == 1
     cp_diagnostic = result.report["declared_fir_cp_diagnostic"]
     assert cp_diagnostic["maximum_fir_memory_samples"] == 0
@@ -88,6 +94,29 @@ def test_network_waveform_reaches_pusch_decoder_with_bound_inputs_and_status():
             json.dumps(report_body, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
         ).hexdigest()
     )
+
+
+def test_network_receiver_hashes_the_complex64_waveform_actually_demodulated():
+    links = torch.full((1, 1, 1, 1, 8), 1.0 + 2.0**-30 + 0.25j, dtype=torch.complex128)
+    composition = compose_received_waveforms(
+        links,
+        link_start_samples=((0,),),
+        capture_num_samples=8,
+        sample_rate_hz=4.0,
+    )
+    noisy = add_independent_receiver_waveform_awgn(composition, (0.0,), seed=19)
+    receiver = _FakePUSCHReceiver()
+
+    result = decode_noisy_network_pusch(
+        composition, noisy, receiver, noise_variance_w_per_re=(0.04,)
+    )
+
+    inputs = result.report["input_sha256"]
+    assert noisy.received_waveform.dtype == torch.complex128
+    assert receiver.demodulator_waveform.dtype == torch.complex64
+    assert inputs["noisy_received_waveform"] == _tensor_sha256(torch, noisy.received_waveform)
+    assert inputs["demodulator_waveform"] == _tensor_sha256(torch, receiver.demodulator_waveform)
+    assert inputs["demodulator_waveform"] != inputs["noisy_received_waveform"]
 
 
 def test_network_receiver_reports_declared_fir_memory_relative_to_cyclic_prefix():

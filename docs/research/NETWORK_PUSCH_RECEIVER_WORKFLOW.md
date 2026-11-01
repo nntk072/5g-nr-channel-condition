@@ -67,4 +67,7 @@ The receiver API and native V100 smoke prove software-path integration for one
 small synthetic PUSCH configuration only. Reports remain
 `OBSERVED_NOT_QUALIFIED`; no field or deployment qualification follows. The
 strict report contract is
-`datasets/schema/network-pusch-receiver-decode.v3.schema.json`.
+`datasets/schema/network-pusch-receiver-decode.v4.schema.json`. It hashes the
+exact complex64 waveform after device transfer and casting, alongside the
+original composed and noisy sample tensors, so the demodulator's actual input
+is reproducible even when the source waveform used higher precision.
