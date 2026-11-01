@@ -37,9 +37,9 @@ where = ["."]
 include = [
   "artifacts*", "configuration*", "datasets*", "propagation*", "receivers*",
   "models*", "learning*", "evaluation*", "experiments*", "integrations*",
-  "compute*", "loslab*",
+  "compute*", "loslab*", "scripts",
 ]
-exclude = ["tests*", "archive*", "notebooks*", "scripts*"]
+exclude = ["tests*", "archive*", "notebooks*"]
 
 [tool.setuptools.package-data]
 datasets = ["schema/*.json", "schema/**/*.json"]
