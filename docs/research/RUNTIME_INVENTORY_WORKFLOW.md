@@ -43,6 +43,46 @@ Run from the repository root:
 .venv/bin/python scripts/report_runtime_inventory.py --probe-accelerator --probe-apis --probe-loaded-native-libraries --output runtime-inventory-native-v3.json
 ```
 
+## V100 CUDA environment
+
+On the Halti V100 host, the installed NVIDIA driver is 575.57.08 and exposes
+CUDA 12.9. The PyPI PyTorch 2.14.1 wheel selected by the current lock is the
+CUDA 13.0 build and fails CUDA initialization on that driver. After syncing the
+locked `sionna` extra, install the official CUDA 12.6 wheel in `.venv`:
+
+```sh
+uv sync --locked --extra sionna
+uv pip install --python .venv/bin/python \
+  --index-url https://download.pytorch.org/whl/cu126 \
+  --reinstall 'torch==2.14.1+cu126'
+```
+
+Repeat the second command after a locked sync, because the lock records the
+PyPI distribution and does not select a CUDA-specific wheel index. Confirm the
+runtime and both devices before any receiver run:
+
+```sh
+.venv/bin/python - <<'PY'
+import torch
+
+assert torch.__version__ == "2.14.1+cu126", torch.__version__
+assert torch.version.cuda == "12.6", torch.version.cuda
+assert torch.cuda.is_available()
+for index in range(torch.cuda.device_count()):
+    print(index, torch.cuda.get_device_name(index), torch.cuda.get_device_capability(index))
+assert torch.cuda.get_device_capability(0) == (7, 0)
+value = torch.ones((16, 16), device="cuda:0")
+assert (value @ value).sum().item() == 4096
+PY
+```
+
+The extra wheel selection is a host-specific runtime choice; record its exact
+distribution identity with `--probe-accelerator` and, when needed, the opt-in
+native-library inventory. A successful CUDA kernel smoke establishes device
+execution only. Sionna receiver initialization and the bounded receiver
+protocol must still be verified separately. PyTorch's published version/wheel
+matrix is at <https://pytorch.org/get-started/previous-versions/>.
+
 Validate v2 receipts against `datasets/schema/runtime-inventory.v2.schema.json`
 and opt-in native-library v3 receipts against
 `datasets/schema/runtime-inventory.v3.schema.json` (the v1 schema remains for
