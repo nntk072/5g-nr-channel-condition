@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/nntk072/5g-nr-channel-condition/datasets/schema/channel-split-lineage-audit-bundle.v1.schema.json",
+  "title": "Channel split lineage audit bundle v1",
+  "description": "Structural contract shared by historical and current versioned channel split lineage audit bundles. This validates report shape, not split independence or scientific qualification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "status",
+    "spatial_buffer_m",
+    "identity_derivation",
+    "input_completeness",
+    "inputs",
+    "lineage",
+    "subjects",
+    "interpretation"
+  ],
+  "properties": {
+    "schema": {
+      "enum": [
+        "loslab.channel_split_lineage_audit_bundle.v1",
+        "loslab.channel_split_lineage_audit_bundle.v2",
+        "loslab.channel_split_lineage_audit_bundle.v3",
+        "loslab.channel_split_lineage_audit_bundle.v4",
+        "loslab.channel_split_lineage_audit_bundle.v5",
+        "loslab.channel_split_lineage_audit_bundle.v6",
+        "loslab.channel_split_lineage_audit_bundle.v7",
+        "loslab.channel_split_lineage_audit_bundle.v8",
+        "loslab.channel_split_lineage_audit_bundle.v9",
+        "loslab.channel_split_lineage_audit_bundle.v10"
+      ]
+    },
+    "status": {"const": "NOT_QUALIFIED"},
+    "spatial_buffer_m": {"type": "number", "minimum": 0},
+    "identity_derivation": {"$ref": "#/$defs/identityDerivation"},
+    "input_completeness": {"$ref": "#/$defs/inputCompleteness"},
+    "inputs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/input"}
+    },
+    "lineage": {"type": "object"},
+    "subjects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["subject_id"],
+        "properties": {"subject_id": {"type": "string", "minLength": 1}},
+        "additionalProperties": true
+      }
+    },
+    "interpretation": {"type": "string", "minLength": 1},
+    "split_registry_verification": {"type": "object"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "identityDerivation": {
+      "type": "object",
+      "required": [
+        "mode",
+        "datasets_upgraded_in_memory",
+        "rows_upgraded_in_memory",
+        "input_hashes_cover_original_bytes"
+      ],
+      "properties": {
+        "mode": {
+          "enum": [
+            "disabled",
+            "opt_in_complete_rt_legacy_metadata",
+            "opt_in_historical_rt_scene_asset_reconstruction"
+          ]
+        },
+        "datasets_upgraded_in_memory": {"type": "array", "items": {"type": "string"}},
+        "rows_upgraded_in_memory": {"type": "integer", "minimum": 0},
+        "input_hashes_cover_original_bytes": {"const": true}
+      },
+      "additionalProperties": true
+    },
+    "inputCompleteness": {
+      "type": "object",
+      "required": ["status", "authority"],
+      "properties": {
+        "status": {"type": "string", "minLength": 1},
+        "authority": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": true
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "path", "sha256", "bytes", "rows"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "bytes": {"type": "integer", "minimum": 0},
+        "rows": {"type": "integer", "minimum": 0}
+      }
+    }
+  }
+}

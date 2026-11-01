@@ -16,6 +16,7 @@ import zlib
 from pathlib import Path
 from typing import Any, Sequence
 
+import jsonschema
 import numpy as np
 from datasets.channel import ChannelDataset
 from datasets.legacy_rt_split import upgrade_legacy_rt_split_metadata
@@ -38,6 +39,9 @@ _CHILD_ARTIFACT_ROSTER_SIGNATURE_NAMESPACE = "umcd-channel-child-artifact-roster
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 _GIT_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 _REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
+_SPLIT_AUDIT_SCHEMA_PATH = (
+    _REPOSITORY_ROOT / "datasets/schema/channel-split-lineage-audit-bundle.v1.schema.json"
+)
 _MAX_CHILD_ROSTER_BYTES = 16 * 1024 * 1024
 _MAX_CHILD_METADATA_NPY_BYTES = 64 * 1024 * 1024
 _MAX_CHILD_ARRAY_HEADER_BYTES = 64 * 1024
@@ -2030,7 +2034,21 @@ def audit_channel_datasets(
             "child_roster_audits": child_roster_reports,
             "child_artifact_roster_audits": child_artifact_reports,
         }
+    _validate_split_audit_report(report)
     return report
+
+
+def _validate_split_audit_report(report: dict[str, Any]) -> None:
+    try:
+        schema = json.loads(_SPLIT_AUDIT_SCHEMA_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise RuntimeError(f"cannot load channel split audit report schema: {error}") from error
+    validator = jsonschema.Draft202012Validator(schema)
+    errors = sorted(validator.iter_errors(report), key=lambda error: tuple(map(str, error.path)))
+    if errors:
+        error = errors[0]
+        location = ".".join(str(part) for part in error.path) or "<root>"
+        raise ValueError(f"channel split audit report violates schema at {location}: {error.message}")
 
 
 def _parse_dataset(value: str) -> tuple[str, Path]:

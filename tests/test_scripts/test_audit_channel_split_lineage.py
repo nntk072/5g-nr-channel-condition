@@ -46,9 +46,34 @@ from scripts.audit_channel_split_lineage import (
     _read_channel_dataset_child_rows,
     _read_stable_regular_file,
     _require_exact_child_object_owners,
+    _validate_split_audit_report,
     audit_channel_datasets,
     main,
 )
+
+
+def test_split_audit_report_schema_rejects_qualified_claims_and_unknown_fields() -> None:
+    report = {
+        "schema": "loslab.channel_split_lineage_audit_bundle.v10",
+        "status": "NOT_QUALIFIED",
+        "spatial_buffer_m": 0,
+        "identity_derivation": {
+            "mode": "disabled",
+            "datasets_upgraded_in_memory": [],
+            "rows_upgraded_in_memory": 0,
+            "input_hashes_cover_original_bytes": True,
+        },
+        "input_completeness": {"status": "unverified_input_scope", "authority": "none"},
+        "inputs": [{"name": "sample", "path": "sample.npz", "sha256": "a" * 64, "bytes": 0, "rows": 0}],
+        "lineage": {},
+        "subjects": [],
+        "interpretation": "Diagnostic only.",
+    }
+    _validate_split_audit_report(report)
+    with pytest.raises(ValueError, match="violates schema"):
+        _validate_split_audit_report({**report, "status": "QUALIFIED"})
+    with pytest.raises(ValueError, match="violates schema"):
+        _validate_split_audit_report({**report, "unreviewed_claim": True})
 
 
 def test_content_addressed_child_object_owners_must_match_frozen_roster() -> None:

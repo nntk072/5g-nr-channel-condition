@@ -5,7 +5,7 @@
       "backlog_status": "open",
       "description": "Turn this backlog into a fully traceable feature map. **Partial:** `scripts.build_implementation_feature_map` indexes checklist rows by package/plan gate, resolves explicitly referenced repository paths, dotted Python module names, and registered `pyproject.toml` CLI entry points, and marks unresolved rows `unmapped`. Map v2 records a stable SHA-256 for every linked evidence file and rejects symlinked or mutating evidence snapshots; `loslab-build-implementation-feature-map --check` detects stale output. The `scripts` package is now included in distribution discovery so all four registered `scripts.*` console entry points import after install; the four `--help` paths pass. The regenerated map has 181 checklist rows, 22 linked and 159 unmapped. Evidence links for rows without explicit source/schema/CLI/regression references, plus audited implementation-status reconciliation, remain open. Checkbox state is not scientific qualification.",
       "evidence_file_sha256": {
-        "pyproject.toml": "c41848bb9986423649b03655aaaf70371731a387a97745e04dee806b2776a48b",
+        "pyproject.toml": "ac7ff4e6e377b478f4c72b558937a20992a9f80d6c722fd1e438d4d4b9524ad8",
         "scripts/build_implementation_feature_map.py": "68e282ff84452ae9c2b567fb881c6c22fbcb496e050c606fa9c684ba4e62153b"
       },
       "evidence_links": {
@@ -660,8 +660,8 @@
       "backlog_status": "marked_done",
       "description": "Version the G3 run-manifest contract through v3: v2 binds `pyproject.toml` and `uv.lock`; v3 additionally records the pre-scoring Python/platform/machine, numerical/Sionna package versions, and source revision and adds the runtime provider/schema to its frozen source bundle. Retain v1/v2 schema/source roster readers. Regression definitions cover new capture and v2 replay; validation is deferred. Installed binary, loaded-library, hardware, trust-custody, and runtime-attestation evidence remain open.",
       "evidence_file_sha256": {
-        "pyproject.toml": "c41848bb9986423649b03655aaaf70371731a387a97745e04dee806b2776a48b",
-        "uv.lock": "c5e429fc2c7bf3dbda2114400e9b083279006d102be1cadce8451c25e21f7d44"
+        "pyproject.toml": "ac7ff4e6e377b478f4c72b558937a20992a9f80d6c722fd1e438d4d4b9524ad8",
+        "uv.lock": "1a86b0e67d969dcbada00f3e1cade6af5c29857578a245c56200b1cc317e0550"
       },
       "evidence_links": {
         "cli_entries": [],
@@ -3613,18 +3613,22 @@
     {
       "backlog_line": 371,
       "backlog_status": "open",
-      "description": "Finish signed split-lock/release audit integration: exact parent/child roster, all child artifacts and row bindings, complete footprint inventory digest, spatial/time leakage, counterfactual/trajectory/array/frequency descendants, near-duplicate checks, and externally trusted signer custody. The canonical corpus auditor derives split labels from the loaded registry and records CFR/geometry candidate matches; report v7 preserves skipped zero-norm pairs as incomplete and binds signed exact-coverage candidate dispositions. Current report v9 fingerprints exact CFR coordinate/normalization context and records incompatible cross-split comparisons as incomplete; focused scorer (21) and corpus (40) tests pass. Roster-v4 episode-object validation scans references across child manifests and rejects cross-child content-addressed sharing; v5 represents shared object ownership, and v6 semantically validates scenario GBSM runs/records against frozen parent bindings and split components. Dataset names and child-kind IDs are now required to be canonical at CLI and direct API boundaries; padded aliases are rejected instead of trimmed before frozen-inventory and signed child-roster matching. The split audit report is v10 when v6 child rosters are present. Complete audits now reject a signed registry with no child bindings (focused regression passed once with dev-only dependencies; repeating after restoring GPU extras stalled during imports). Geometric near-duplicate coverage, trusted signer/inventory authority, broader descendant coverage, and complete lineage remain open.",
-      "evidence_file_sha256": {},
+      "description": "Finish signed split-lock/release audit integration: exact parent/child roster, all child artifacts and row bindings, complete footprint inventory digest, spatial/time leakage, counterfactual/trajectory/array/frequency descendants, near-duplicate checks, and externally trusted signer custody. The canonical corpus auditor derives split labels from the loaded registry and records CFR/geometry candidate matches; report v7 preserves skipped zero-norm pairs as incomplete and binds signed exact-coverage candidate dispositions. Current report v9 fingerprints exact CFR coordinate/normalization context and records incompatible cross-split comparisons as incomplete; focused scorer (21) and corpus (40) tests pass. Roster-v4 episode-object validation scans references across child manifests and rejects cross-child content-addressed sharing; v5 represents shared object ownership, and v6 semantically validates scenario GBSM runs/records against frozen parent bindings and split components. Dataset names and child-kind IDs are now required to be canonical at CLI and direct API boundaries; padded aliases are rejected instead of trimmed before frozen-inventory and signed child-roster matching. The split audit report is v10 when v6 child rosters are present. Complete audits now reject a signed registry with no child bindings. Audit bundles are validated against `datasets/schema/channel-split-lineage-audit-bundle.v1.schema.json` before return; runtime schema-validation dependency and malformed/false-qualification regressions are covered by the focused split-audit suite (89 passed). Geometric near-duplicate coverage, trusted signer/inventory authority, broader descendant coverage, and complete lineage remain open.",
+      "evidence_file_sha256": {
+        "datasets/schema/channel-split-lineage-audit-bundle.v1.schema.json": "192a087fcb82657a49f1d42a265d73dcf52654f236eb1a6784af3111a3edc89a"
+      },
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
         "other_files": [],
         "regression_files": [],
-        "schemas": [],
+        "schemas": [
+          "datasets/schema/channel-split-lineage-audit-bundle.v1.schema.json"
+        ],
         "source_modules": []
       },
       "feature_id": "PKG08-025",
-      "link_status": "unmapped",
+      "link_status": "linked",
       "package": {
         "number": 8,
         "title": "G7 — target contracts, release storage, lineage, and coverage"
@@ -4511,13 +4515,13 @@
   "schema": "loslab.implementation_feature_map.v2",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "e3895110e05444e7cd14b3baeb7676a4221222f3b99a8e7a7d9d8d34e76ae583"
+    "sha256": "631886b623579fc9681bddb5c1be6ff96c609d99046cc64098074f32bb49dc49"
   },
   "summary": {
     "feature_count": 181,
-    "linked_count": 22,
+    "linked_count": 23,
     "marked_done_count": 126,
     "open_count": 55,
-    "unmapped_count": 159
+    "unmapped_count": 158
   }
 }
