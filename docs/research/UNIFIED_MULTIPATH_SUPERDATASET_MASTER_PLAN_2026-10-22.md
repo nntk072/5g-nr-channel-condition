@@ -1,3 +1,5 @@
+**Edition 3.738 G0 trajectory requests require a canonical spec digest (2026-11-01, focused validation):** The trajectory request builder and generator reject absent or malformed specification SHA-256 values before scene work. Four malformed forms are tested. The API still relies on the caller to hash the intended specification bytes.
+
 **Edition 3.737 G0 trajectory cache identity binds loaded geometry (2026-11-01, focused validation):** The trajectory cache key now includes the exact loaded geometry digest used by the D1 request, in addition to scene assets, material state, motion config, solver options, and antenna policy. A regression confirms geometry changes alter the key; broader RT validation remains open.
 
 **Edition 3.736 G0 static RT approval binds effective solver options (2026-11-01, focused validation):** The D1 request now includes the exact static PathSolver switches, depth, and candidate path cap used by generation and cache identity. The adapter contract module passes 16 focused tests with Ruff and formatting clean; production RT remains gated.

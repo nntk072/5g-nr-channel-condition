@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import re
 from collections.abc import Mapping
 from dataclasses import asdict, dataclass, replace
 from pathlib import Path
@@ -47,6 +48,14 @@ from integrations.sionna.rt_identity import (
     rt_runtime_fingerprint,
     sionna_rt_siso_antenna_config,
 )
+
+_SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
+
+
+def _require_sha256_digest(value: object, name: str) -> str:
+    if not isinstance(value, str) or _SHA256_PATTERN.fullmatch(value) is None:
+        raise ValueError(f"{name} must be a lowercase SHA-256 digest")
+    return value
 
 
 def _load_cached_trajectory(
@@ -312,6 +321,7 @@ def build_rt_trajectory_generation_request(
     scene_geometry_inventory: SceneTriangleInventory,
 ) -> dict[str, Any]:
     """Build a D1 request from exact active scene state before path solving."""
+    spec_sha256 = _require_sha256_digest(spec_sha256, "spec_sha256")
     return {
         "operation": "rt_nr_trajectory",
         "spec_sha256": spec_sha256,
@@ -372,6 +382,7 @@ def generate_rt_nr_trajectory(
     """
     if authorization is None and not pilot and approval_manifest is None:
         raise PermissionError("direct RT trajectory generation requires D1 authorization")
+    spec_sha256 = _require_sha256_digest(spec_sha256, "spec_sha256")
     try:
         import torch
     except ImportError as exc:

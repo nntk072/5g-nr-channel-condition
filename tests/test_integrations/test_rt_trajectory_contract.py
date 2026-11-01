@@ -66,6 +66,17 @@ def test_rt_trajectory_authorization_request_binds_active_scene_state() -> None:
     )
 
 
+@pytest.mark.parametrize("spec_digest", [None, "A" * 64, "not-a-digest", "0" * 63])
+def test_rt_trajectory_request_rejects_missing_or_noncanonical_spec_digest(
+    spec_digest: object,
+) -> None:
+    inputs = _trajectory_request_inputs()
+    inputs["spec_sha256"] = spec_digest
+
+    with pytest.raises(ValueError, match="spec_sha256 must be a lowercase SHA-256 digest"):
+        build_rt_trajectory_generation_request(**inputs)
+
+
 def test_rt_trajectory_authorization_rejects_changed_material_or_geometry() -> None:
     request = build_rt_trajectory_generation_request(**_trajectory_request_inputs())
     authorization = authorize_d1_generation(request, pilot=True)
