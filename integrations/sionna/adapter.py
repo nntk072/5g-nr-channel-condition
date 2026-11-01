@@ -11,8 +11,10 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import sys
 from copy import copy
 from dataclasses import asdict, dataclass, replace
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Mapping, Protocol, Sequence, cast
 
@@ -46,6 +48,10 @@ from integrations.sionna.rt_identity import (
     rt_run_identity,
     rt_runtime_fingerprint,
     static_rt_solver_config,
+)
+
+_RT_EXECUTION_PROVENANCE_SCHEMA_PATH = (
+    Path(__file__).resolve().parents[2] / "datasets/schema/rt-execution-provenance.v1.schema.json"
 )
 
 if TYPE_CHECKING:
@@ -522,6 +528,43 @@ class RaytraceGenerationError(RuntimeError):
         self.generation_report = dict(generation_report)
 
 
+def _attach_rt_execution_provenance(
+    report: dict[str, Any],
+    *,
+    started_at_utc: str,
+    command_argv: Sequence[str],
+    python_executable: str,
+    seed: int,
+) -> None:
+    """Bind invocation and UTC execution bounds to the deterministic RT identity."""
+    identity = report.get("rt_run_identity")
+    identity_sha256 = (
+        identity.get("cache_key_sha256")
+        if isinstance(identity, Mapping) and identity.get("complete") is True
+        else None
+    )
+    execution = {
+        "schema": "loslab.rt_execution_provenance.v1",
+        "schema_sha256": hashlib.sha256(_RT_EXECUTION_PROVENANCE_SCHEMA_PATH.read_bytes()).hexdigest(),
+        "started_at_utc": started_at_utc,
+        "completed_at_utc": datetime.now(timezone.utc).isoformat(timespec="microseconds").replace(
+            "+00:00", "Z"
+        ),
+        "python_executable": python_executable,
+        "command_argv": list(command_argv),
+        "base_seed": seed,
+        "attempt_seed_scheme": "base_seed_plus_zero_based_candidate_attempt_index",
+        "candidate_attempt_count": report["attempt_counts"]["attempts_started"],
+        "terminal_status": report["status"],
+        "failure_stage": (
+            None if report.get("solver_failure") is None else report["solver_failure"]["stage"]
+        ),
+        "rt_cache_key_sha256": identity_sha256,
+    }
+    report["execution_provenance"] = execution
+    report["execution_provenance_sha256"] = canonical_hash(execution)
+
+
 def _publish_static_rt_sample_umcd(
     *,
     store_root: str | Path,
@@ -715,6 +758,11 @@ def generate_raytraced(
     Report how often LOS really contains >=2 valid paths; default rejects
     direct-only LOS. NLOS must contain at least one observable indirect path.
     """
+    execution_started_at = datetime.now(timezone.utc).isoformat(timespec="microseconds").replace(
+        "+00:00", "Z"
+    )
+    command_argv = tuple(sys.argv)
+    python_executable = sys.executable
     if authorization is None and not pilot and approval_manifest is None:
         raise PermissionError("direct RT dataset generation requires D1 authorization")
     try:
@@ -1251,7 +1299,7 @@ def generate_raytraced(
     ):
         raise RuntimeError("RT class report does not match accepted sample count")
     generation_report = {
-        "schema": "loslab.raytraced_generation_report.v3",
+        "schema": "loslab.raytraced_generation_report.v4",
         "label_semantics": "geometric_direct_path_oracle",
         "label_oracle": {
             "primary": "numpy_loaded_scene_triangle_inventory",
@@ -1330,6 +1378,13 @@ def generate_raytraced(
         package_source_sha256=package_sha256,
     )
     if solver_failure is not None:
+        _attach_rt_execution_provenance(
+            generation_report,
+            started_at_utc=execution_started_at,
+            command_argv=command_argv,
+            python_executable=python_executable,
+            seed=seed,
+        )
         raise RaytraceGenerationError(
             f"Sionna RT failed during {solver_failure['stage']} at candidate "
             f"{solver_failure['attempt_index']}: {solver_failure['message']}",
@@ -1337,11 +1392,25 @@ def generate_raytraced(
         )
     if min(hits.values()) < cfg.per_class:
         generation_report["status"] = "insufficient_samples"
+        _attach_rt_execution_provenance(
+            generation_report,
+            started_at_utc=execution_started_at,
+            command_argv=command_argv,
+            python_executable=python_executable,
+            seed=seed,
+        )
         raise RaytraceGenerationError(
             f"Insufficient visible paths after {cfg.max_attempts} attempts: "
             + f"LOS={hits[1]}, NLOS={hits[0]}. Change scene/positions/solver budgets.",
             generation_report,
         )
+    _attach_rt_execution_provenance(
+        generation_report,
+        started_at_utc=execution_started_at,
+        command_argv=command_argv,
+        python_executable=python_executable,
+        seed=seed,
+    )
     return ChannelDataset(
         np.stack(samples),
         np.asarray(ys),

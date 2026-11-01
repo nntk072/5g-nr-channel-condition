@@ -1,5 +1,9 @@
+import hashlib
+from pathlib import Path
+
 import numpy as np
 import pytest
+from artifacts.provenance import canonical_hash
 from datasets.channel import ChannelDataset
 from scripts.audit_rt_label_complexity import summarize_rt_dataset
 
@@ -100,4 +104,79 @@ def test_rt_label_complexity_rejects_label_oracle_disagreement(tmp_path):
     ).save(path)
 
     with pytest.raises(ValueError, match="geometry label and direct-path oracle disagree"):
+        summarize_rt_dataset(path)
+
+
+def test_rt_label_complexity_verifies_v4_execution_provenance(tmp_path):
+    path = tmp_path / "rt.npz"
+    _make_rt_dataset(path)
+    dataset = ChannelDataset.load(path)
+    generation = dict(dataset.generation_report)
+    generation.update(
+        {
+            "schema": "loslab.raytraced_generation_report.v4",
+            "status": "completed",
+            "seed": 42,
+            "rt_run_identity": {"complete": True, "cache_key_sha256": "a" * 64},
+        }
+    )
+    execution = {
+        "schema": "loslab.rt_execution_provenance.v1",
+        "schema_sha256": hashlib.sha256(
+            (Path(__file__).resolve().parents[2] / "datasets/schema/rt-execution-provenance.v1.schema.json").read_bytes()
+        ).hexdigest(),
+        "started_at_utc": "2026-11-01T00:00:00.000000Z",
+        "completed_at_utc": "2026-11-01T00:00:01.000000Z",
+        "python_executable": "/usr/bin/python3",
+        "command_argv": ["loslab-generate-rt", "--seed", "42"],
+        "base_seed": 42,
+        "attempt_seed_scheme": "base_seed_plus_zero_based_candidate_attempt_index",
+        "candidate_attempt_count": 5,
+        "terminal_status": "completed",
+        "failure_stage": None,
+        "rt_cache_key_sha256": "a" * 64,
+    }
+    generation["execution_provenance"] = execution
+    generation["execution_provenance_sha256"] = canonical_hash(execution)
+    ChannelDataset(
+        h=dataset.h,
+        y=dataset.y,
+        group=dataset.group,
+        domain=dataset.domain,
+        source=dataset.source,
+        metadata=dataset.metadata,
+        generation_report=generation,
+        label_semantics=dataset.label_semantics,
+    ).save(path)
+    summarize_rt_dataset(path)
+
+    tampered = dict(execution)
+    tampered["command_argv"] = ["different-command"]
+    generation["execution_provenance"] = tampered
+    ChannelDataset(
+        h=dataset.h,
+        y=dataset.y,
+        group=dataset.group,
+        domain=dataset.domain,
+        source=dataset.source,
+        metadata=dataset.metadata,
+        generation_report=generation,
+        label_semantics=dataset.label_semantics,
+    ).save(path)
+    with pytest.raises(ValueError, match="execution provenance digest is invalid"):
+        summarize_rt_dataset(path)
+
+    tampered["base_seed"] = 43
+    generation["execution_provenance_sha256"] = canonical_hash(tampered)
+    ChannelDataset(
+        h=dataset.h,
+        y=dataset.y,
+        group=dataset.group,
+        domain=dataset.domain,
+        source=dataset.source,
+        metadata=dataset.metadata,
+        generation_report=generation,
+        label_semantics=dataset.label_semantics,
+    ).save(path)
+    with pytest.raises(ValueError, match="does not match generation inputs or outcomes"):
         summarize_rt_dataset(path)

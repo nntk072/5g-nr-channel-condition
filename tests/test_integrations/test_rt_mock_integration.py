@@ -1,10 +1,14 @@
 """Mock the Sionna 2.x boundary; not a substitute for a native RT smoke test."""
 
+import json
 import sys
 import types
+from datetime import datetime
+from pathlib import Path
 
 import numpy as np
 import pytest
+from artifacts.provenance import canonical_hash
 from integrations.sionna.adapter import (
     GridConfig,
     RayScene,
@@ -257,7 +261,29 @@ def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
         for row, group in zip(d.metadata, d.group, strict=True)
     )
     report = d.generation_report
-    assert report["schema"] == "loslab.raytraced_generation_report.v3"
+    assert report["schema"] == "loslab.raytraced_generation_report.v4"
+    execution = report["execution_provenance"]
+    assert execution["schema"] == "loslab.rt_execution_provenance.v1"
+    assert datetime.fromisoformat(execution["started_at_utc"].replace("Z", "+00:00"))
+    assert datetime.fromisoformat(execution["completed_at_utc"].replace("Z", "+00:00"))
+    assert execution["base_seed"] == 13
+    assert execution["attempt_seed_scheme"] == (
+        "base_seed_plus_zero_based_candidate_attempt_index"
+    )
+    assert execution["candidate_attempt_count"] == report["attempt_counts"]["attempts_started"]
+    assert execution["terminal_status"] == report["status"]
+    assert execution["rt_cache_key_sha256"] == report["rt_run_identity"]["cache_key_sha256"]
+    assert execution["command_argv"]
+    assert report["execution_provenance_sha256"] == canonical_hash(execution)
+    jsonschema = pytest.importorskip("jsonschema")
+    schema = json.loads(
+        (
+            Path(__file__).resolve().parents[2]
+            / "datasets/schema/rt-execution-provenance.v1.schema.json"
+        ).read_text(encoding="utf-8")
+    )
+    jsonschema.Draft202012Validator.check_schema(schema)
+    jsonschema.Draft202012Validator(schema).validate(execution)
     assert report["label_semantics"] == "geometric_direct_path_oracle"
     assert report["label_oracle"] == {
         "primary": "numpy_loaded_scene_triangle_inventory",

@@ -7,11 +7,19 @@ import hashlib
 import json
 import math
 from collections import Counter
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+import jsonschema
 import numpy as np
+from artifacts.provenance import canonical_hash
 from datasets.channel import ChannelDataset
+
+_EXECUTION_PROVENANCE_SCHEMA = (
+    Path(__file__).resolve().parents[1]
+    / "datasets/schema/rt-execution-provenance.v1.schema.json"
+)
 
 
 def _sha256(path: Path) -> str:
@@ -35,6 +43,95 @@ def _distribution(values: list[float]) -> dict[str, float | None]:
     }
 
 
+def _verify_execution_provenance(generation: dict[str, Any]) -> None:
+    if generation.get("schema") != "loslab.raytraced_generation_report.v4":
+        return
+    execution = generation.get("execution_provenance")
+    fields = {
+        "schema",
+        "schema_sha256",
+        "started_at_utc",
+        "completed_at_utc",
+        "python_executable",
+        "command_argv",
+        "base_seed",
+        "attempt_seed_scheme",
+        "candidate_attempt_count",
+        "terminal_status",
+        "failure_stage",
+        "rt_cache_key_sha256",
+    }
+    if not isinstance(execution, dict) or set(execution) != fields:
+        raise ValueError("RT execution provenance has an invalid field roster")
+    schema_bytes = _EXECUTION_PROVENANCE_SCHEMA.read_bytes()
+    schema = json.loads(schema_bytes)
+    try:
+        jsonschema.Draft202012Validator(schema).validate(execution)
+    except jsonschema.ValidationError as error:
+        raise ValueError("RT execution provenance violates its v1 schema") from error
+    schema_digest = hashlib.sha256(schema_bytes).hexdigest()
+    if execution["schema_sha256"] != schema_digest:
+        raise ValueError("RT execution provenance schema digest is invalid")
+    if execution.get("schema") != "loslab.rt_execution_provenance.v1":
+        raise ValueError("RT execution provenance has an unsupported schema")
+    try:
+        started = datetime.fromisoformat(execution["started_at_utc"].replace("Z", "+00:00"))
+        completed = datetime.fromisoformat(execution["completed_at_utc"].replace("Z", "+00:00"))
+    except (AttributeError, TypeError, ValueError) as error:
+        raise ValueError("RT execution provenance timestamps are invalid") from error
+    if (
+        started.tzinfo is None
+        or completed.tzinfo is None
+        or started.utcoffset() is None
+        or completed.utcoffset() is None
+        or completed < started
+        or not execution["started_at_utc"].endswith("Z")
+        or not execution["completed_at_utc"].endswith("Z")
+    ):
+        raise ValueError("RT execution provenance timestamps must be ordered UTC instants")
+    if (
+        started.isoformat(timespec="microseconds").replace("+00:00", "Z")
+        != execution["started_at_utc"]
+        or completed.isoformat(timespec="microseconds").replace("+00:00", "Z")
+        != execution["completed_at_utc"]
+    ):
+        raise ValueError("RT execution provenance timestamps are not canonical UTC text")
+    if (
+        not isinstance(execution["python_executable"], str)
+        or not execution["python_executable"]
+        or not isinstance(execution["command_argv"], list)
+        or not execution["command_argv"]
+        or any(not isinstance(argument, str) for argument in execution["command_argv"])
+        or isinstance(execution["base_seed"], bool)
+        or not isinstance(execution["base_seed"], int)
+        or execution["base_seed"] < 0
+        or execution["base_seed"] != generation.get("seed")
+        or execution["attempt_seed_scheme"]
+        != "base_seed_plus_zero_based_candidate_attempt_index"
+        or isinstance(execution["candidate_attempt_count"], bool)
+        or not isinstance(execution["candidate_attempt_count"], int)
+        or execution["candidate_attempt_count"] != generation["attempt_counts"]["attempts_started"]
+        or execution["terminal_status"] != generation.get("status")
+    ):
+        raise ValueError("RT execution provenance does not match generation inputs or outcomes")
+    failure = generation.get("solver_failure")
+    expected_failure_stage = failure.get("stage") if isinstance(failure, dict) else None
+    identity = generation.get("rt_run_identity")
+    expected_identity = (
+        identity.get("cache_key_sha256")
+        if isinstance(identity, dict) and identity.get("complete") is True
+        else None
+    )
+    if (
+        execution["failure_stage"] != expected_failure_stage
+        or execution["rt_cache_key_sha256"] != expected_identity
+    ):
+        raise ValueError("RT execution provenance differs from failure or cache identity")
+    digest = generation.get("execution_provenance_sha256")
+    if not isinstance(digest, str) or canonical_hash(execution) != digest:
+        raise ValueError("RT execution provenance digest is invalid")
+
+
 def summarize_rt_dataset(path: Path) -> dict[str, Any]:
     """Summarize accepted path mechanisms and retain generator selection counts."""
     dataset = ChannelDataset.load(path)
@@ -48,8 +145,14 @@ def summarize_rt_dataset(path: Path) -> dict[str, Any]:
     if len(scenes) != 1:
         raise ValueError(f"expected one scene domain in {path}, got {sorted(scenes)}")
     generation = dataset.generation_report
-    if generation.get("schema") != "loslab.raytraced_generation_report.v1":
+    if generation.get("schema") not in {
+        "loslab.raytraced_generation_report.v1",
+        "loslab.raytraced_generation_report.v2",
+        "loslab.raytraced_generation_report.v3",
+        "loslab.raytraced_generation_report.v4",
+    }:
         raise ValueError(f"missing recognized RT generation report in {path}")
+    _verify_execution_provenance(generation)
 
     mechanism_counts: Counter[str] = Counter()
     path_histograms: dict[str, Counter[str]] = {
