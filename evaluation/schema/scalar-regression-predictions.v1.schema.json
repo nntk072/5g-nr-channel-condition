@@ -11,6 +11,12 @@
     "experiment_id": {"$ref": "#/$defs/canonicalText"},
     "target_name": {"$ref": "#/$defs/canonicalText"},
     "target_unit": {"$ref": "#/$defs/canonicalText"},
+    "dataset_source_sha256": {"$ref": "#/$defs/sha256"},
+    "seed": {"type": "integer", "minimum": 0},
+    "split_policy": {"$ref": "#/$defs/canonicalText"},
+    "calibration_and_test_are_disjoint_groups": {"const": true},
+    "research_status": {"$ref": "#/$defs/canonicalText"},
+    "identifiability_weight": {"type": "number", "exclusiveMinimum": 0},
     "predictions": {
       "type": "array",
       "minItems": 1,
@@ -25,12 +31,23 @@
           "target": {"type": "number"},
           "prediction": {"type": "number"},
           "uncertainty_scale": {"type": "number", "exclusiveMinimum": 0},
-          "identifiability_stratum": {"$ref": "#/$defs/canonicalText"}
+          "identifiability_stratum": {"$ref": "#/$defs/canonicalText"},
+          "condition": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["bandwidth_hz", "snr_db", "separation_fraction_of_reciprocal_bandwidth"],
+            "properties": {
+              "bandwidth_hz": {"type": "number"},
+              "snr_db": {"type": "number"},
+              "separation_fraction_of_reciprocal_bandwidth": {"type": "number"}
+            }
+          }
         }
       }
     }
   },
   "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "canonicalText": {
       "type": "string",
       "minLength": 1,

@@ -52,6 +52,8 @@ def _signed_report(tmp_path: Path) -> tuple[Path, Path, Path, Path]:
         "signed_reviewer_admission_status": "not_requested",
         "signer_policy_custody": "not_established_by_this_verifier",
         "runtime_identity_status": "not_recorded",
+        "runtime_inventory_signature_status": "not_provided",
+        "runtime_inventory_binding_status": "not_provided",
         "report_schema_sha256": report_schema_hash,
         "errors": [],
         "limitations": ["Synthetic test report; no scientific qualification."],

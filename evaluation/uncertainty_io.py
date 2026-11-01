@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import os
 import stat
 from pathlib import Path
@@ -21,6 +22,12 @@ _PREDICTION_FIELDS = {
     "experiment_id",
     "target_name",
     "target_unit",
+    "dataset_source_sha256",
+    "seed",
+    "split_policy",
+    "calibration_and_test_are_disjoint_groups",
+    "research_status",
+    "identifiability_weight",
 }
 _PREDICTION_ROW_FIELDS = {
     "sample_id",
@@ -30,6 +37,7 @@ _PREDICTION_ROW_FIELDS = {
     "prediction",
     "uncertainty_scale",
     "identifiability_stratum",
+    "condition",
 }
 
 
@@ -121,6 +129,38 @@ def evaluate_prediction_file(
         raise ValueError("prediction input has unknown or invalid top-level fields")
     if payload.get("schema") != "loslab.scalar_regression_predictions.v1":
         raise ValueError("unsupported prediction schema")
+    provenance: dict[str, Any] = {}
+    if "dataset_source_sha256" in payload:
+        digest = payload["dataset_source_sha256"]
+        if (
+            not isinstance(digest, str)
+            or len(digest) != 64
+            or any(character not in "0123456789abcdef" for character in digest)
+        ):
+            raise ValueError("dataset_source_sha256 must be a lowercase SHA-256 digest")
+        provenance["dataset_source_sha256"] = digest
+    if "seed" in payload:
+        source_seed = payload["seed"]
+        if isinstance(source_seed, bool) or not isinstance(source_seed, int) or source_seed < 0:
+            raise ValueError("prediction seed must be a nonnegative integer")
+        provenance["seed"] = source_seed
+    if "split_policy" in payload:
+        provenance["split_policy"] = _canonical_text(payload["split_policy"], name="split_policy")
+    if "calibration_and_test_are_disjoint_groups" in payload:
+        if payload["calibration_and_test_are_disjoint_groups"] is not True:
+            raise ValueError("calibration and test predictions must use disjoint groups")
+        provenance["calibration_and_test_are_disjoint_groups"] = True
+    if "research_status" in payload:
+        provenance["research_status"] = _canonical_text(
+            payload["research_status"], name="research_status"
+        )
+    if "identifiability_weight" in payload:
+        weight = payload["identifiability_weight"]
+        if isinstance(weight, bool) or not isinstance(weight, (int, float)):
+            raise ValueError("identifiability_weight must be finite and positive")
+        if not math.isfinite(float(weight)) or float(weight) <= 0:
+            raise ValueError("identifiability_weight must be finite and positive")
+        provenance["identifiability_weight"] = float(weight)
     rows = payload.get("predictions")
     if not isinstance(rows, list) or not rows:
         raise ValueError("predictions must be a nonempty list")
@@ -149,6 +189,21 @@ def evaluate_prediction_file(
                 row["identifiability_stratum"],
                 name=f"prediction {sample_id} identifiability_stratum",
             )
+        if "condition" in row:
+            condition = row["condition"]
+            if not isinstance(condition, dict) or set(condition) != {
+                "bandwidth_hz",
+                "snr_db",
+                "separation_fraction_of_reciprocal_bandwidth",
+            }:
+                raise ValueError(f"prediction {sample_id} has an invalid condition descriptor")
+            if any(
+                isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or not math.isfinite(float(value))
+                for value in condition.values()
+            ):
+                raise ValueError(f"prediction {sample_id} condition values must be finite numbers")
         by_split[split].append(row)
     if not by_split["calibration"] or not by_split["test"]:
         raise ValueError("both calibration and test predictions are required")
@@ -183,6 +238,7 @@ def evaluate_prediction_file(
         "target_unit": _canonical_text(
             payload.get("target_unit", "unspecified"), name="target_unit"
         ),
+        "input_provenance": provenance,
         "prediction_file": str(source),
         "prediction_file_sha256": hashlib.sha256(source_bytes).hexdigest(),
         "seed": seed,

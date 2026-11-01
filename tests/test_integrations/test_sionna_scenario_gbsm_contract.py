@@ -45,14 +45,15 @@ def test_scenario_gbsm_returns_explicit_one_link_path_and_cfr_contract(scenario:
     assert channel.metadata["scenario_los_rows"] == [True]
     assert len(channel.metadata["topology_sha256"]) == 64
     assert len(channel.metadata["configuration_sha256"]) == 64
+    array_layout = channel.metadata["generator_configuration"]["ut_array_layout"]
+    assert array_layout["port_order"] == "native_sionna_port_order"
+    assert array_layout["normalized_element_positions_wavelengths"]
     assert channel.metadata["status"] == (
         "NATIVE_GENERATION_CODE_ONLY_NOT_CONFORMANCE_QUALIFICATION"
     )
     import torch
 
-    frequencies = (
-        torch.arange(12, dtype=channel.tau_s.dtype) - 6
-    ) * 30e3
+    frequencies = (torch.arange(12, dtype=channel.tau_s.dtype) - 6) * 30e3
     expected_cfr = (
         channel.h_path.movedim(-2, -1).unsqueeze(-1)
         * torch.exp(

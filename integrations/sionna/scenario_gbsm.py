@@ -93,7 +93,9 @@ def _topology_state(torch: Any, name: str, value: Any, *, device: str) -> Any:
 
 def _preflight_numpy_topology(topology: Mapping[str, Any]) -> None:
     """Reject malformed NumPy/list topology before importing native dependencies."""
-    if any(type(value).__module__.split(".", maxsplit=1)[0] == "torch" for value in topology.values()):
+    if any(
+        type(value).__module__.split(".", maxsplit=1)[0] == "torch" for value in topology.values()
+    ):
         return
 
     numeric: dict[str, np.ndarray] = {}
@@ -153,38 +155,91 @@ def _native_array_layout(
 ) -> dict[str, Any]:
     """Capture the exact normalized element positions used by the native array."""
     try:
-        normalized = array.normalized_positions
-        components = []
-        for axis in ("x", "y", "z"):
-            component = getattr(normalized, axis)
-            if hasattr(component, "detach") and hasattr(component, "cpu"):
-                component = component.detach().cpu().numpy()
-            elif hasattr(component, "numpy"):
-                component = component.numpy()
-            components.append(np.asarray(component, dtype=np.float64).reshape(-1))
-        positions = np.column_stack(components)
-        array_size = int(array.array_size)
-        port_count = int(array.num_ant)
-        patterns = tuple(array.antenna_pattern.patterns)
+        normalized = getattr(array, "normalized_positions", None)
+        patterns: tuple[Any, ...] | None
+        if normalized is not None:
+            components = []
+            for axis in ("x", "y", "z"):
+                component = getattr(normalized, axis)
+                if hasattr(component, "detach") and hasattr(component, "cpu"):
+                    component = component.detach().cpu().numpy()
+                elif hasattr(component, "numpy"):
+                    component = component.numpy()
+                components.append(np.asarray(component, dtype=np.float64).reshape(-1))
+            positions = np.column_stack(components)
+            array_size = int(array.array_size)
+            port_count = int(array.num_ant)
+            patterns = tuple(array.antenna_pattern.patterns)
+            labels = (
+                [polarization_type]
+                if polarization == "single"
+                else (["V", "H"] if polarization_type == "VH" else ["+45", "-45"])
+            )
+            if not patterns or port_count != array_size * len(patterns):
+                raise ValueError(
+                    "Sionna PanelArray port count disagrees with its element/pattern layout"
+                )
+            if len(labels) != len(patterns):
+                raise ValueError(
+                    "Sionna PanelArray pattern count disagrees with polarization settings"
+                )
+            port_labels = [label for label in labels for _ in range(array_size)]
+            port_order = "pattern_major_element_minor"
+        else:
+            # Sionna 2.2 PanelArray exposes antenna positions in metres, while
+            # its pattern generator uses wavelength-normalized geometry.
+            # Convert using the wavelength buffer registered by that version.
+            native_positions = array.ant_pos
+            if hasattr(native_positions, "detach"):
+                native_positions = native_positions.detach().cpu().numpy()
+            elif hasattr(native_positions, "numpy"):
+                native_positions = native_positions.numpy()
+            wavelength = getattr(array, "lambda_0", getattr(array, "_lambda_0", None))
+            if wavelength is None:
+                raise ValueError("Sionna PanelArray does not expose its carrier wavelength")
+            if hasattr(wavelength, "detach"):
+                wavelength = wavelength.detach().cpu().numpy()
+            elif hasattr(wavelength, "numpy"):
+                wavelength = wavelength.numpy()
+            wavelength_array = np.asarray(wavelength, dtype=np.float64)
+            if wavelength_array.size != 1 or not np.isfinite(wavelength_array).all():
+                raise ValueError("Sionna PanelArray wavelength must be one finite scalar")
+            wavelength_m = float(wavelength_array.reshape(-1)[0])
+            if wavelength_m <= 0:
+                raise ValueError("Sionna PanelArray wavelength must be positive")
+            positions = np.asarray(native_positions, dtype=np.float64) / wavelength_m
+            array_size = int(positions.shape[0])
+            port_count = int(array.num_ant)
+            if positions.shape != (port_count, 3):
+                raise ValueError("Sionna PanelArray port positions disagree with its port count")
+            polarization_indices: dict[int, str] = {}
+            if polarization == "single":
+                polarization_indices = {index: polarization_type for index in range(port_count)}
+            else:
+                pol1 = array.ant_ind_pol1
+                pol2 = array.ant_ind_pol2
+                if hasattr(pol1, "detach"):
+                    pol1 = pol1.detach().cpu().numpy()
+                if hasattr(pol2, "detach"):
+                    pol2 = pol2.detach().cpu().numpy()
+                pol1_label, pol2_label = ("V", "H") if polarization_type == "VH" else ("+45", "-45")
+                polarization_indices = {
+                    **{int(index): pol1_label for index in np.asarray(pol1).reshape(-1)},
+                    **{int(index): pol2_label for index in np.asarray(pol2).reshape(-1)},
+                }
+            if set(polarization_indices) != set(range(port_count)):
+                raise ValueError("Sionna PanelArray polarization indices do not cover every port")
+            port_labels = [polarization_indices[index] for index in range(port_count)]
+            port_order = "native_sionna_port_order"
     except (AttributeError, TypeError, ValueError) as error:
         raise TypeError("Sionna PanelArray lacks the pinned normalized layout API") from error
     if positions.shape != (array_size, 3) or not np.isfinite(positions).all():
         raise ValueError("Sionna PanelArray normalized positions have an invalid shape or values")
-    if not patterns or port_count != array_size * len(patterns):
-        raise ValueError("Sionna PanelArray port count disagrees with its element/pattern layout")
-    if polarization == "single":
-        labels = [polarization_type]
-    elif polarization_type == "VH":
-        labels = ["V", "H"]
-    else:
-        labels = ["+45", "-45"]
-    if len(labels) != len(patterns):
-        raise ValueError("Sionna PanelArray pattern count disagrees with polarization settings")
     return {
         "schema": "umcd.sionna_array_layout.v1",
         "normalized_element_positions_wavelengths": positions.tolist(),
-        "pattern_labels_in_port_order": labels,
-        "port_order": "pattern_major_element_minor",
+        "pattern_labels_in_port_order": port_labels,
+        "port_order": port_order,
     }
 
 
@@ -247,9 +302,7 @@ def generate_scenario_gbsm_frequency_response(
         raise TypeError("pathloss and shadow-fading controls must be Boolean")
     if not isinstance(spec_version, str) or spec_version not in {"16.1", "19.2"}:
         raise ValueError("spec_version must be a supported TR 38.901 version: 16.1 or 19.2")
-    if not isinstance(device, str) or (
-        device != "cpu" and not device.startswith("cuda")
-    ):
+    if not isinstance(device, str) or (device != "cpu" and not device.startswith("cuda")):
         raise ValueError("device must be cpu or a CUDA device such as cuda:0")
     if not isinstance(ut_array, CDLArrayConfig) or not isinstance(bs_array, CDLArrayConfig):
         raise TypeError("ut_array and bs_array must be CDLArrayConfig values")
@@ -278,8 +331,7 @@ def generate_scenario_gbsm_frequency_response(
             f"and use only {sorted(allowed_options)}"
         )
     if scenario in {"UMi", "UMa"} and (
-        not isinstance(options["o2i_model"], str)
-        or options["o2i_model"] not in {"low", "high"}
+        not isinstance(options["o2i_model"], str) or options["o2i_model"] not in {"low", "high"}
     ):
         raise ValueError("UMi/UMa o2i_model must be low or high")
 
@@ -304,9 +356,7 @@ def generate_scenario_gbsm_frequency_response(
             converted[name] = _topology_tensor(torch, name, raw_value, device=device)
             if tuple(converted[name].shape) != (batch_size, 1, 3):
                 raise ValueError(f"topology {name} must have shape [batch, 1, 3]")
-    converted["in_state"] = _topology_state(
-        torch, "in_state", topology["in_state"], device=device
-    )
+    converted["in_state"] = _topology_state(torch, "in_state", topology["in_state"], device=device)
     converted["los"] = _topology_state(torch, "los", topology["los"], device=device)
     if tuple(converted["in_state"].shape) != (batch_size, 1):
         raise ValueError("topology in_state must have shape [batch, 1]")
@@ -315,15 +365,14 @@ def generate_scenario_gbsm_frequency_response(
 
     try:
         from sionna.phy.channel.tr38901 import InF, InH, PanelArray, RMa, UMa, UMi
+
         sionna_version = sionna_phy_version()
     except ImportError as error:
         raise RuntimeError("Sionna 2.2 PHY is required for scenario GBSM generation") from error
     except PackageNotFoundError as error:
         raise RuntimeError("Sionna package version metadata is required") from error
     if not sionna_version.startswith("2.2."):
-        raise RuntimeError(
-            f"scenario GBSM adapter requires Sionna 2.2.x, found {sionna_version}"
-        )
+        raise RuntimeError(f"scenario GBSM adapter requires Sionna 2.2.x, found {sionna_version}")
     if device.startswith("cuda") and not torch.cuda.is_available():
         raise RuntimeError(f"CUDA device requested but unavailable: {device}")
 
@@ -381,11 +430,7 @@ def generate_scenario_gbsm_frequency_response(
         raise ValueError("Sionna scenario model returned unexpected path/delay ranks")
     if h_path.shape[0] != batch_size or tau_s.shape[0] != batch_size:
         raise ValueError("Sionna scenario model changed the declared topology batch size")
-    if (
-        h_path.shape[1] != 1
-        or h_path.shape[3] != 1
-        or tuple(tau_s.shape[1:3]) != (1, 1)
-    ):
+    if h_path.shape[1] != 1 or h_path.shape[3] != 1 or tuple(tau_s.shape[1:3]) != (1, 1):
         raise ValueError("Sionna scenario model returned more than one BS/UT link per row")
     if h_path.shape[-1] != num_time_steps or h_path.shape[-2] != tau_s.shape[-1]:
         raise ValueError("Sionna scenario path and delay axes do not align")
@@ -405,10 +450,7 @@ def generate_scenario_gbsm_frequency_response(
         torch.arange(num_subcarriers, dtype=tau_s.dtype, device=device) - num_subcarriers // 2
     ) * subcarrier_spacing_hz
     phase = torch.exp(
-        -2j
-        * torch.pi
-        * tau_for_cfr.unsqueeze(-1)
-        * frequencies.reshape(1, 1, 1, 1, 1, 1, 1, -1)
+        -2j * torch.pi * tau_for_cfr.unsqueeze(-1) * frequencies.reshape(1, 1, 1, 1, 1, 1, 1, -1)
     )
     cfr = torch.sum(h_time_path.unsqueeze(-1) * phase, dim=-2)
     if not bool(torch.isfinite(cfr).all().item()):

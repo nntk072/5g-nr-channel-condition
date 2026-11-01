@@ -42,6 +42,10 @@ def test_runner_publishes_complete_hashed_predictions_and_group_reports(tmp_path
     assert prediction["schema"] == "loslab.scalar_regression_predictions.v1"
     assert {row["split"] for row in prediction["predictions"]} == {"calibration", "test"}
     report = json.loads((output / "identifiability_on_uncertainty_report.json").read_text())
+    assert (
+        report["input_provenance"]["dataset_source_sha256"] == prediction["dataset_source_sha256"]
+    )
+    assert report["input_provenance"]["calibration_and_test_are_disjoint_groups"] is True
     assert report["metrics"]["calibration_group_count"] == 6
     assert report["metrics"]["group_conformal_intervals"]["0.95"]["finite_sample_unbounded"]
     paired = json.loads((output / "paired_test_comparisons.json").read_text())

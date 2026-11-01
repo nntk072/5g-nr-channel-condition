@@ -18,6 +18,7 @@
     "target_unit": {"$ref": "#/$defs/canonicalText"},
     "prediction_file": {"type": "string", "minLength": 1},
     "prediction_file_sha256": {"$ref": "#/$defs/sha256"},
+    "input_provenance": {"$ref": "#/$defs/inputProvenance"},
     "seed": {"type": "integer", "minimum": 0},
     "metrics": {"$ref": "#/$defs/metrics"},
     "runtime_versions": {"$ref": "#/$defs/runtimeVersions"},
@@ -30,6 +31,18 @@
       "pattern": "^\\S(?:.*\\S)?$"
     },
     "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "inputProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "dataset_source_sha256": {"$ref": "#/$defs/sha256"},
+        "seed": {"type": "integer", "minimum": 0},
+        "split_policy": {"$ref": "#/$defs/canonicalText"},
+        "calibration_and_test_are_disjoint_groups": {"const": true},
+        "research_status": {"$ref": "#/$defs/canonicalText"},
+        "identifiability_weight": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
     "nullableNumber": {"type": ["number", "null"]},
     "coverageKey": {"type": "string", "pattern": "^[0-9]+(?:\\.[0-9]+)?$"},
     "metrics": {
