@@ -42,7 +42,11 @@ from integrations.sionna.los_oracle import (
     independent_mesh_segment_visibility,
     segment_visibility,
 )
-from integrations.sionna.rt_identity import rt_run_identity, rt_runtime_fingerprint
+from integrations.sionna.rt_identity import (
+    rt_run_identity,
+    rt_runtime_fingerprint,
+    sionna_rt_siso_antenna_config,
+)
 
 
 def _load_cached_trajectory(
@@ -327,7 +331,13 @@ def generate_rt_nr_trajectory(
     request = {
         "operation": "rt_nr_trajectory",
         "spec_sha256": spec_sha256,
-        "config": {**asdict(config), "total_work_units": config.num_steps * config.samples_per_src},
+        "config": {
+            **asdict(config),
+            "total_work_units": config.num_steps * config.samples_per_src,
+            "antenna_config": sionna_rt_siso_antenna_config(
+                orientation_policy="look_at_peer_each_step"
+            ),
+        },
         "store": str(Path(store_root).expanduser().resolve()),
         "umcd_store": str(Path(umcd_store_root).expanduser().resolve())
         if umcd_store_root is not None
@@ -410,6 +420,9 @@ def generate_rt_nr_trajectory(
         scene_asset_manifest=scene_asset_hashes,
         physical_config={
             "trajectory": asdict(config),
+            "antenna_config": sionna_rt_siso_antenna_config(
+                orientation_policy="look_at_peer_each_step"
+            ),
             "positions_m": [list(position) for position in positions],
         },
         material_config=material_manifest,

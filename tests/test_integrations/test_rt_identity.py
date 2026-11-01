@@ -7,6 +7,7 @@ import pytest
 from integrations.sionna.rt_identity import (
     rt_run_identity,
     rt_runtime_fingerprint,
+    sionna_rt_siso_antenna_config,
     static_rt_solver_config,
     umcd_provenance_from_rt_identity,
 )
@@ -83,6 +84,34 @@ def test_rt_run_identity_changes_for_each_result_affecting_input():
     inputs = _inputs()
     inputs["scene_asset_manifest"] = _scene_assets(b"changed scene bytes")
     assert rt_run_identity(**inputs)["cache_key_sha256"] != baseline
+
+
+def test_rt_run_identity_binds_antenna_pattern_and_orientation_policy():
+    baseline_inputs = _inputs()
+    baseline_inputs["physical_config"]["antenna_config"] = sionna_rt_siso_antenna_config(
+        orientation_policy="fixed_default"
+    )
+    baseline = rt_run_identity(**baseline_inputs)["cache_key_sha256"]
+
+    changed_inputs = _inputs()
+    changed_inputs["physical_config"]["antenna_config"] = sionna_rt_siso_antenna_config(
+        orientation_policy="look_at_peer_each_step"
+    )
+    assert rt_run_identity(**changed_inputs)["cache_key_sha256"] != baseline
+
+    changed_pattern = sionna_rt_siso_antenna_config(orientation_policy="fixed_default")
+    changed_pattern["tx_array"]["pattern"] = "38.901"
+    changed_inputs["physical_config"]["antenna_config"] = changed_pattern
+    assert rt_run_identity(**changed_inputs)["cache_key_sha256"] != baseline
+
+
+def test_sionna_rt_antenna_config_rejects_unknown_orientation_policy():
+    try:
+        sionna_rt_siso_antenna_config(orientation_policy="caller_magic")
+    except ValueError as error:
+        assert "orientation policy" in str(error)
+    else:
+        raise AssertionError("unknown antenna orientation policy must be rejected")
 
 
 @pytest.mark.parametrize(

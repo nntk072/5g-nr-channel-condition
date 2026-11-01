@@ -271,3 +271,37 @@ def static_rt_solver_config(
         "refraction": True,
         "diffraction": False,
     }
+
+
+def sionna_rt_siso_antenna_config(*, orientation_policy: str) -> dict[str, object]:
+    """Describe the effective single-port array and node-orientation policy.
+
+    Keep these values in the physical RT cache identity instead of relying on
+    the package-source hash to indirectly identify hard-coded array defaults.
+    """
+    if orientation_policy not in {"fixed_default", "look_at_peer_each_step"}:
+        raise ValueError("unsupported Sionna RT antenna orientation policy")
+    return {
+        "schema": "loslab.sionna_rt_antenna_config.v1",
+        "tx_array": {
+            "type": "PlanarArray",
+            "num_rows": 1,
+            "num_cols": 1,
+            "pattern": "iso",
+            "polarization": "V",
+        },
+        "rx_array": {
+            "type": "PlanarArray",
+            "num_rows": 1,
+            "num_cols": 1,
+            "pattern": "iso",
+            "polarization": "V",
+        },
+        "node_orientation": {
+            "policy": orientation_policy,
+            "frame": "world_xyz_radians",
+            "fixed_default_radians": [0.0, 0.0, 0.0]
+            if orientation_policy == "fixed_default"
+            else None,
+        },
+    }

@@ -47,6 +47,7 @@ from integrations.sionna.random import call_with_sionna_seed
 from integrations.sionna.rt_identity import (
     rt_run_identity,
     rt_runtime_fingerprint,
+    sionna_rt_siso_antenna_config,
     static_rt_solver_config,
 )
 
@@ -437,6 +438,7 @@ def build_rt_data_generation_request(
         "config": {
             **asdict(scene_config),
             "total_work_units": scene_config.max_attempts * scene_config.samples_per_src,
+            "antenna_config": sionna_rt_siso_antenna_config(orientation_policy="fixed_default"),
         },
         "grid": asdict(grid),
         "package_source_sha256": package_source_sha256(),
@@ -609,6 +611,7 @@ def _publish_static_rt_sample_umcd(
         physical_config={
             "scene": asdict(scene_config),
             "grid": asdict(grid),
+            "antenna_config": sionna_rt_siso_antenna_config(orientation_policy="fixed_default"),
             "rx_position_m": list(rx_position),
             "scene_geometry": {
                 "scene_geometry_sha256": scene_geometry_inventory.scene_geometry_sha256,
@@ -1366,6 +1369,7 @@ def generate_raytraced(
         physical_config={
             "scene": asdict(cfg),
             "grid": asdict(grid),
+            "antenna_config": sionna_rt_siso_antenna_config(orientation_policy="fixed_default"),
             "scene_geometry": {
                 "scene_geometry_sha256": scene_geometry_inventory.scene_geometry_sha256,
                 "scene_object_count": len(scene_geometry_inventory.object_names),
@@ -1526,6 +1530,7 @@ def generate_raytraced_cached(
         physical_config={
             "scene": asdict(cfg),
             "grid": asdict(grid),
+            "antenna_config": sionna_rt_siso_antenna_config(orientation_policy="fixed_default"),
             "scene_geometry": {
                 "scene_geometry_sha256": scene_geometry_inventory.scene_geometry_sha256,
                 "scene_object_count": len(scene_geometry_inventory.object_names),
