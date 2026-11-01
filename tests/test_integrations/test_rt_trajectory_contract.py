@@ -1,5 +1,7 @@
 """Framework-independent RT trajectory configuration checks."""
 
+import hashlib
+import json
 from dataclasses import replace
 
 import numpy as np
@@ -9,9 +11,11 @@ from integrations.sionna.d1_generation_gate import (
     authorize_d1_generation,
     require_d1_authorization,
 )
+from integrations.sionna.rt_identity import rt_run_identity
 from integrations.sionna.rt_trajectory import (
     RTTrajectoryConfig,
     build_rt_trajectory_generation_request,
+    rt_trajectory_physical_config,
 )
 from propagation.scene_visibility import SceneTriangleInventory
 
@@ -102,6 +106,52 @@ def test_rt_trajectory_authorization_request_changes_with_scene_or_solver(
 
     changed_request = build_rt_trajectory_generation_request(**inputs)
     assert canonical_hash(changed_request) != canonical_hash(baseline)
+
+
+def test_rt_trajectory_cache_identity_binds_loaded_scene_geometry() -> None:
+    inputs = _trajectory_request_inputs()
+    config = inputs["config"]
+    positions, _ = config.positions_and_times()
+    inventory = inputs["scene_geometry_inventory"]
+    rows = [
+        {
+            "path": "scene.xml",
+            "bytes": 1,
+            "sha256": hashlib.sha256(b"x").hexdigest(),
+        }
+    ]
+    assets = {
+        "scene_xml_path": "scene.xml",
+        "asset_count": 1,
+        "assets": rows,
+        "asset_set_sha256": hashlib.sha256(
+            json.dumps(rows, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest(),
+        "unresolved_references": [],
+        "complete": True,
+    }
+
+    def identity(scene_inventory):
+        return rt_run_identity(
+            scene_asset_manifest=assets,
+            physical_config=rt_trajectory_physical_config(config, positions, scene_inventory),
+            material_config=inputs["material_manifest"],
+            solver_config={"max_depth": config.max_depth},
+            seed=config.seed,
+            backend_selection=inputs["backend"],
+            runtime_versions=inputs["runtime_versions"],
+            package_source_sha256=inputs["package_source_digest"],
+        )["cache_key_sha256"]
+
+    first_key = identity(inventory)
+    changed_inventory = SceneTriangleInventory(
+        object_names=inventory.object_names,
+        triangles_m=inventory.triangles_m,
+        triangle_object_names=inventory.triangle_object_names,
+        scene_geometry_sha256="e" * 64,
+        meters_per_unit=inventory.meters_per_unit,
+    )
+    assert identity(changed_inventory) != first_key
 
 
 def test_rt_trajectory_config_generates_ordered_constant_velocity_route() -> None:

@@ -277,6 +277,26 @@ def rt_trajectory_solver_config(config: RTTrajectoryConfig) -> dict[str, object]
     }
 
 
+def rt_trajectory_physical_config(
+    config: RTTrajectoryConfig,
+    positions: tuple[tuple[float, float, float], ...],
+    scene_geometry_inventory: SceneTriangleInventory,
+) -> dict[str, object]:
+    """Return the trajectory and loaded geometry values that determine RT output."""
+    return {
+        "trajectory": asdict(config),
+        "antenna_config": sionna_rt_siso_antenna_config(
+            orientation_policy="look_at_peer_each_step"
+        ),
+        "positions_m": [list(position) for position in positions],
+        "scene_geometry": {
+            "scene_geometry_sha256": scene_geometry_inventory.scene_geometry_sha256,
+            "scene_object_count": len(scene_geometry_inventory.object_names),
+            "scene_triangle_count": len(scene_geometry_inventory.triangles_m),
+        },
+    }
+
+
 def build_rt_trajectory_generation_request(
     *,
     config: RTTrajectoryConfig,
@@ -459,13 +479,9 @@ def generate_rt_nr_trajectory(
 
     run_identity = rt_run_identity(
         scene_asset_manifest=scene_asset_hashes,
-        physical_config={
-            "trajectory": asdict(config),
-            "antenna_config": sionna_rt_siso_antenna_config(
-                orientation_policy="look_at_peer_each_step"
-            ),
-            "positions_m": [list(position) for position in positions],
-        },
+        physical_config=rt_trajectory_physical_config(
+            config, positions, static_scene_geometry_inventory
+        ),
         material_config=material_manifest,
         solver_config=solver_config,
         seed=config.seed,

@@ -216,14 +216,14 @@
     {
       "backlog_line": 221,
       "backlog_status": "open",
-      "description": "Bind every material/property override, pose/motion state, antenna/pattern, carrier, solver option, and asset closure into immutable runtime cache identity and D1 requests. **Partial:** RT identity v2 requires material configuration as a dedicated hashed input; static and trajectory producers pass it explicitly. Static identity/D1 requests bind the current isotropic one-element PlanarArray, fixed-default orientation, and exact PathSolver switches/path cap. Trajectory identity/D1 requests bind the same arrays, look-at-peer orientation policy, exact active material-state digest, loaded-scene geometry digest, and explicit PathSolver switches; authorization now occurs after read-only scene inspection but before any path solve. Route positions and moving-object motion are already in physical config. UMCD provenance derives material provenance from its bound value and rejects caller overrides that differ. RT cache and trajectory readers retain v1 compatibility. The focused static-request, trajectory-contract, and RT-identity modules pass 59 tests; Ruff, formatting, and compilation pass. Arbitrary array/material override APIs, full motion/property-state audit, and consolidated validation remain open. Evidence: `integrations/sionna/rt_identity.py`, `integrations/sionna/rt_cache.py`, `integrations/sionna/rt_trajectory.py`, `integrations/sionna/adapter.py`, `tests/test_integrations/test_rt_identity.py`, `tests/test_integrations/test_rt_trajectory_contract.py`, `tests/test_integrations/test_sionna_adapter.py`.",
+      "description": "Bind every material/property override, pose/motion state, antenna/pattern, carrier, solver option, and asset closure into immutable runtime cache identity and D1 requests. **Partial:** RT identity v2 requires material configuration as a dedicated hashed input; static and trajectory producers pass it explicitly. Static identity/D1 requests bind the current isotropic one-element PlanarArray, fixed-default orientation, and exact PathSolver switches/path cap. Trajectory identity/D1 requests bind the same arrays, look-at-peer orientation policy, exact active material-state digest, loaded-scene geometry digest, and explicit PathSolver switches; trajectory cache identity now also includes the loaded geometry digest. Authorization follows read-only scene inspection but precedes any path solve. Route positions and moving-object motion are in physical config. UMCD provenance derives material provenance from its bound value and rejects caller overrides that differ. RT cache and trajectory readers retain v1 compatibility. The focused static-request, trajectory-contract, and RT-identity modules pass 60 tests; Ruff, formatting, and compilation pass. Arbitrary array/material override APIs, full motion/property-state audit, and consolidated validation remain open. Evidence: `integrations/sionna/rt_identity.py`, `integrations/sionna/rt_cache.py`, `integrations/sionna/rt_trajectory.py`, `integrations/sionna/adapter.py`, `tests/test_integrations/test_rt_identity.py`, `tests/test_integrations/test_rt_trajectory_contract.py`, `tests/test_integrations/test_sionna_adapter.py`.",
       "evidence_file_sha256": {
         "integrations/sionna/adapter.py": "0a40f6369daeef0d0ba481888912c58f10386a6d811470741c3ca3f54900e5a7",
         "integrations/sionna/rt_cache.py": "8a48b0847b6631ffad4d932608bb7a3118b0a5183fdf30af21ffb2f650213714",
         "integrations/sionna/rt_identity.py": "537ede784bf9ae83ec2191a7290bb057d1daff4c3313a2f8d338c6ca52949269",
-        "integrations/sionna/rt_trajectory.py": "072eda1195af0be587fe26259392ef4153cd0e762667e2732c3f67ce5ac23eaa",
+        "integrations/sionna/rt_trajectory.py": "985cd9f69a1ce0467a2bab6e415bf5ed7099ff747702b0148b010925b3f6022b",
         "tests/test_integrations/test_rt_identity.py": "3b2349b5471105d4e0cd09e0861e2fcb2555880086662c79c5b89bc1337d114c",
-        "tests/test_integrations/test_rt_trajectory_contract.py": "e6934f10661ed95d865f7ca6644af054af8012273a86f575f14f6acd289b42c2",
+        "tests/test_integrations/test_rt_trajectory_contract.py": "e9f4004811fdf5d1ed0ce06ede82ca644c02a694c66c4e2476bf2176ebd49b42",
         "tests/test_integrations/test_sionna_adapter.py": "706047f6d93b7f9aaf8963b9c97cdb33ae8f984f80ec94ac2f25676953f66eae"
       },
       "evidence_links": {
@@ -4567,7 +4567,7 @@
   "schema": "loslab.implementation_feature_map.v2",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "c6cc1faa46f0db49158b59cb9f86ebe0be0743fc05381f4abdd8cf1af2b4dda0"
+    "sha256": "5623f83e02e1675b1efc8e9c9faef080ed43c2ff149b17d7c763bfa7bbf366c8"
   },
   "summary": {
     "feature_count": 181,
