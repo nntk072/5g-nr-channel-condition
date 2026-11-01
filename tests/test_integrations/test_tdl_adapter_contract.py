@@ -17,6 +17,7 @@ import pytest
         ("tdl", {"subcarrier_spacing_hz": "30000"}, "subcarrier_spacing_hz"),
         ("tdl", {"delay_spread_s": True}, "delay_spread_s"),
         ("tdl", {"los_angle_of_arrival_rad": False}, "los_angle_of_arrival_rad"),
+        ("tdl", {"precision": "half"}, "precision"),
         ("tdl", {"min_speed_mps": "walking"}, "min_speed_mps"),
         ("cdl", {"sampling_frequency_hz": True}, "sampling_frequency_hz"),
         ("cdl", {"delay_spread_s": "1e-7"}, "delay_spread_s"),
@@ -135,10 +136,13 @@ def test_tdl_adapter_forwards_nondefault_num_sinusoids(monkeypatch: pytest.Monke
         num_subcarriers=8,
         delay_spread_s=100e-9,
         num_sinusoids=7,
+        precision="double",
     )
 
     assert captured["num_sinusoids"] == 7
+    assert captured["precision"] == "double"
     assert channel.metadata["num_sinusoids"] == 7
+    assert channel.metadata["precision"] == "double"
     assert channel.metadata["profile_parameter_table_source"] == "TR 38.901:19.2:TDL-A.json"
     assert (
         channel.metadata["profile_parameter_table_sha256"]
@@ -156,6 +160,12 @@ def test_tdl_adapter_forwards_nondefault_num_sinusoids(monkeypatch: pytest.Monke
     tampered_metadata = dict(channel.metadata)
     tampered_metadata["profile_parameter_table_source"] = "TR 38.901:16.1:TDL-A.json"
     with pytest.raises(ValueError, match="parameter table source identity or digest is invalid"):
+        validate_standardized_channel_admission(
+            StandardizedFamily.TDL, "A", channel.h_path[0], tampered_metadata
+        )
+    tampered_metadata = dict(channel.metadata)
+    tampered_metadata["precision"] = "single"
+    with pytest.raises(ValueError, match="resolved TDL profile parameter digest is invalid"):
         validate_standardized_channel_admission(
             StandardizedFamily.TDL, "A", channel.h_path[0], tampered_metadata
         )

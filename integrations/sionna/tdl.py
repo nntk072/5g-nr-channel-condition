@@ -72,6 +72,7 @@ def generate_tdl_frequency_response(
     num_sinusoids: int = 20,
     spec_version: str = "19.2",
     device: str = "cpu",
+    precision: str = "single",
 ) -> SionnaTDLChannel:
     """Generate a reproducible Sionna TDL realization and map taps to CFR.
 
@@ -85,6 +86,9 @@ def generate_tdl_frequency_response(
     dataset admission. ``fixed_profile_conformance_case`` optionally names one
     TS 38.101-4 V19.2.2 Annex B.2.2 fixed-profile/Doppler combination; when
     present, its profile, frequency range, and maximum Doppler are enforced.
+    ``precision`` selects Sionna's ``single`` or ``double`` arithmetic and is
+    recorded in metadata; single precision can round tabulated delays when
+    represented in seconds.
     """
     applicability = standardized_profile_applicability("tdl", model)
     if not applicability.fixed_profile and spec_version not in applicability.supported_versions:
@@ -188,6 +192,8 @@ def generate_tdl_frequency_response(
         effective_max_speed_mps = case_max_speed_mps
     if device != "cpu" and not device.startswith("cuda"):
         raise ValueError("device must be cpu or a CUDA device such as cuda:0")
+    if not isinstance(precision, str) or precision not in {"single", "double"}:
+        raise ValueError("precision must be 'single' or 'double'")
 
     try:
         import torch
@@ -234,6 +240,7 @@ def generate_tdl_frequency_response(
         num_rx_ant=num_rx_ant,
         num_tx_ant=num_tx_ant,
         rx_corr_mat=rx_corr_tensor,
+        precision=precision,
         spec_version=spec_version,
         device=device,
     )
@@ -275,6 +282,7 @@ def generate_tdl_frequency_response(
     k_factor_linear = float(tdl.k_factor.detach().cpu()) if tdl.los else None
     metadata: dict[str, Any] = {
             "sionna_version": sionna_version,
+            "precision": precision,
             "spec_version": spec_version,
             "fixed_profile_spec_version": "19.2.2" if model in _FIXED_TDL_MODELS else None,
             "profile_proxy": model,

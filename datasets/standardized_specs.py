@@ -246,9 +246,11 @@ _TDL_RESOLVED_PROFILE_FIELDS = (
 def tdl_resolved_profile_parameter_sha256(metadata: Mapping[str, object]) -> str:
     """Hash the exact resolved TDL profile parameters carried by a record.
 
-    This binds the emitted tap table and, when present, its exact packaged JSON
-    table identity to metadata. The table hash is not an independently sourced
-    standards reference or a hash of Sionna's executable source distribution.
+    This binds the emitted tap table, optional arithmetic-precision identity,
+    and (when present) exact packaged JSON table identity to metadata. Legacy
+    records without precision remain compatible. The table hash is not an
+    independently sourced standards reference or a hash of Sionna's executable
+    source distribution.
     """
     try:
         payload = {name: metadata[name] for name in _TDL_RESOLVED_PROFILE_FIELDS}
@@ -256,6 +258,11 @@ def tdl_resolved_profile_parameter_sha256(metadata: Mapping[str, object]) -> str
         source_sha256 = metadata.get("profile_parameter_table_sha256")
         if (source_id is None) != (source_sha256 is None):
             raise ValueError("TDL parameter table source identity and digest must appear together")
+        precision = metadata.get("precision")
+        if precision is not None:
+            if not isinstance(precision, str) or precision not in {"single", "double"}:
+                raise ValueError("TDL runtime precision must be 'single' or 'double'")
+            payload["precision"] = precision
         if source_id is not None:
             if not isinstance(source_id, str) or not source_id:
                 raise ValueError("TDL parameter table source identity must be nonempty")

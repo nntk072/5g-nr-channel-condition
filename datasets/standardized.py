@@ -128,6 +128,11 @@ def validate_standardized_channel_admission(
     expected_delay_semantics = applicability.delay_profile_semantics
     if metadata.get("delay_profile_semantics") != expected_delay_semantics:
         raise ValueError(prefix + "delay profile semantics disagree with the admitted profile")
+    precision = metadata.get("precision")
+    if precision is not None and (
+        not isinstance(precision, str) or precision not in {"single", "double"}
+    ):
+        raise ValueError(prefix + "TDL precision must be 'single' or 'double'")
     resolved_profile_digest = metadata.get("resolved_profile_parameters_sha256")
     parameter_table_source = metadata.get("profile_parameter_table_source")
     parameter_table_sha256 = metadata.get("profile_parameter_table_sha256")

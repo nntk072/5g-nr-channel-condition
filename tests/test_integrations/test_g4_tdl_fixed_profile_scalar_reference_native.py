@@ -7,6 +7,7 @@ import math
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import pytest
 
 _ROOT = Path(__file__).resolve().parents[2]
@@ -163,6 +164,7 @@ def test_fixed_tdl_reported_rms_delay_spread_matches_etsi_scalar(
         spec_version="19.2",
         num_time_steps=1,
         device="cpu",
+        precision="double",
     )
 
     metadata = channel.metadata
@@ -248,6 +250,7 @@ def test_fixed_tdl_resolved_delay_clusters_match_each_etsi_tap(
         spec_version="19.2",
         num_time_steps=1,
         device="cpu",
+        precision="double",
     )
     expected_by_tap: dict[int, list[dict[str, Any]]] = {}
     for component in profile["components"]:
@@ -280,3 +283,43 @@ def test_fixed_tdl_resolved_delay_clusters_match_each_etsi_tap(
     assert actual_relative_power_db == pytest.approx(
         expected_relative_power_db, abs=0.11, rel=0.0
     )
+
+
+@pytest.mark.native_sionna
+@pytest.mark.parametrize("model", ["A10", "A30", "B100", "C60", "C300", "D10", "D30"])
+def test_fixed_tdl_single_precision_delay_rounding_matches_float32_representation(
+    model: str,
+) -> None:
+    tdl = _native_tdl_adapter()
+    profile = next(
+        row
+        for row in _load_tap_profile_reference()["profiles"]
+        if row["profile_model"] == model
+    )
+    bandwidth_hz = (
+        float(profile["minimum_channel_bandwidth_hz_exclusive"]) + 1.0
+        if profile["minimum_channel_bandwidth_hz_exclusive"] is not None
+        else 100e6
+    )
+    carrier_hz = 28e9 if model in {"A10", "C60", "D10"} else 3.5e9
+    channel = tdl.generate_tdl_frequency_response(
+        model=model,
+        seed=38_101,
+        carrier_frequency_hz=carrier_hz,
+        subcarrier_spacing_hz=30e3,
+        num_subcarriers=24,
+        channel_bandwidth_hz=bandwidth_hz,
+        spec_version="19.2",
+        num_time_steps=1,
+        device="cpu",
+    )
+    expected_by_tap: dict[int, float] = {}
+    for row in profile["components"]:
+        expected_by_tap.setdefault(int(row["tap_index"]), float(row["delay_ns"]))
+    expected = [
+        float(np.float32(delay_ns) * np.float32(1e-9)) * 1e9
+        for _, delay_ns in sorted(expected_by_tap.items())
+    ]
+    actual = [float(delay) * 1e9 for delay in channel.metadata["nominal_tap_delays_s"]]
+    assert channel.metadata["precision"] == "single"
+    assert actual == pytest.approx(expected, abs=1e-12, rel=0.0)
