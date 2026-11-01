@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import hashlib
 import json
-import math
 from pathlib import Path
-from statistics import NormalDist
 from typing import Any
 
+import numpy as np
 import pytest
+from evaluation.g4_complex_circularity import evaluate_complex_circularity_family
 from integrations.sionna.tdl import generate_tdl_frequency_response
 
 _ROOT = Path(__file__).resolve().parents[2]
@@ -23,7 +23,6 @@ _SEED_START = 1_730_000
 _SAMPLE_COUNT = 32_768
 _FAMILYWISE_ALPHA = 0.01
 _MAXIMUM_HALF_WIDTH = 0.05
-_NORMAL_DIST = NormalDist()
 
 
 def _load_reference() -> dict[str, Any]:
@@ -121,7 +120,6 @@ def test_fixed_tdl_rayleigh_tap_mean_and_pseudocovariance_match_proper_complex_r
     profile = next(row for row in reference["profiles"] if row["profile_model"] == model)
     rayleigh_taps = _rayleigh_tap_indices(profile)
     claim_count = 4 * _rayleigh_component_count(reference)
-    simultaneous_z = _NORMAL_DIST.inv_cdf(1.0 - _FAMILYWISE_ALPHA / (2.0 * claim_count))
     minimum_bandwidth_hz = profile["minimum_channel_bandwidth_hz_exclusive"]
     channel_bandwidth_hz = (
         float(minimum_bandwidth_hz) + 1.0 if minimum_bandwidth_hz is not None else 100e6
@@ -147,45 +145,26 @@ def test_fixed_tdl_rayleigh_tap_mean_and_pseudocovariance_match_proper_complex_r
     assert channel.metadata["batch_axis_semantics"] == "independent_stochastic_channel_draws"
     assert tuple(channel.h_path.shape) == (_SAMPLE_COUNT, 1, 1, 1, 1, int(profile["tap_count"]), 1)
 
-    for tap_index in rayleigh_taps:
-        samples = channel.h_path[:, 0, 0, 0, 0, tap_index, 0].to(torch.complex128)
-        power = samples.abs().square().mean()
-        mean_scale = torch.sqrt(power)
-        normalized_mean = samples.mean() / mean_scale
-        mean_half_widths = (
-            simultaneous_z
-            * torch.stack((samples.real.std(unbiased=True), samples.imag.std(unbiased=True)))
-            / (mean_scale * math.sqrt(_SAMPLE_COUNT))
+    coefficients = (
+        torch.stack(
+            [
+                channel.h_path[:, 0, 0, 0, 0, tap_index, 0].to(torch.complex128)
+                for tap_index in rayleigh_taps
+            ],
+            dim=1,
         )
-        assert bool(
-            (
-                torch.stack((normalized_mean.real, normalized_mean.imag)).abs() <= mean_half_widths
-            ).all()
-        ), (
-            model,
-            tap_index,
-            normalized_mean.tolist(),
-            mean_half_widths.tolist(),
-        )
-
-        pseudo_covariance = samples.square().mean() / power
-        influence = samples.square() - pseudo_covariance * power
-        pseudo_half_widths = (
-            simultaneous_z
-            * torch.stack((influence.real.std(unbiased=True), influence.imag.std(unbiased=True)))
-            / (power * math.sqrt(_SAMPLE_COUNT))
-        )
-        assert bool(
-            (
-                torch.stack((pseudo_covariance.real, pseudo_covariance.imag)).abs()
-                <= pseudo_half_widths
-            ).all()
-        ), (
-            model,
-            tap_index,
-            pseudo_covariance.tolist(),
-            pseudo_half_widths.tolist(),
-        )
-        assert float(torch.maximum(mean_half_widths.max(), pseudo_half_widths.max())) <= (
-            _MAXIMUM_HALF_WIDTH
-        )
+        .cpu()
+        .numpy()
+    )
+    result = evaluate_complex_circularity_family(
+        coefficients,
+        familywise_alpha=_FAMILYWISE_ALPHA,
+        maximum_coordinate_half_width=_MAXIMUM_HALF_WIDTH,
+        family_claim_count=claim_count,
+    )
+    assert result["pass"], (
+        model,
+        np.flatnonzero(~result["mean_contains_zero"]).tolist(),
+        np.flatnonzero(~result["pseudocovariance_contains_zero"]).tolist(),
+        result["maximum_coordinate_half_width"],
+    )
