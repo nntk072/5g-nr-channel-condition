@@ -119,6 +119,30 @@ def test_network_receiver_hashes_the_complex64_waveform_actually_demodulated():
     assert inputs["demodulator_waveform"] != inputs["noisy_received_waveform"]
 
 
+def test_network_receiver_resource_preflight_counts_converted_demodulator_waveform():
+    links = torch.ones((1, 1, 1, 1, 8), dtype=torch.complex128)
+    composition = compose_received_waveforms(
+        links,
+        link_start_samples=((0,),),
+        capture_num_samples=8,
+        sample_rate_hz=4.0,
+    )
+    noisy = add_independent_receiver_waveform_awgn(composition, (0.0,), seed=19)
+    receiver = _FakePUSCHReceiver()
+
+    with pytest.raises(ValueError, match="receiver waveform.*max_tensor_elements"):
+        decode_noisy_network_pusch(
+            composition,
+            noisy,
+            receiver,
+            noise_variance_w_per_re=(0.04,),
+            max_tensor_elements=40,
+        )
+
+    assert receiver.demodulator_waveform is None
+    assert not receiver.decoded
+
+
 @pytest.mark.parametrize(
     "decoded_bits",
     [

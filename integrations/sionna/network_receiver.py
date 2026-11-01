@@ -275,8 +275,16 @@ def decode_noisy_network_pusch(
             )
         fir_support_by_link.append(receiver_support)
     estimated_grid_elements = batch * rx_count * rx_ports * symbol_count * fft_size
-    if estimated_grid_elements + sum(value.numel() for value in tensors) > max_tensor_elements:
-        raise ValueError("network waveform and demodulated grid exceed max_tensor_elements")
+    estimated_receiver_waveform_elements = batch * rx_count * rx_ports * sample_count
+    estimated_total_elements = (
+        estimated_grid_elements
+        + estimated_receiver_waveform_elements
+        + sum(value.numel() for value in tensors)
+    )
+    if estimated_total_elements > max_tensor_elements:
+        raise ValueError(
+            "network inputs, receiver waveform, and demodulated grid exceed max_tensor_elements"
+        )
     if noise_variance_w_per_re is None:
         if metadata.get("sionna_version") != "2.2.0":
             raise ValueError(
