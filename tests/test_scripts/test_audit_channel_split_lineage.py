@@ -30,11 +30,15 @@ from datasets.split_lineage import make_channel_dataset_split_registry
 from datasets.split_policy import (
     SPLIT_POLICY_SIGNATURE_NAMESPACE,
     LeakageNamespace,
+    LeakageRelation,
     SplitChildBinding,
+    SplitParentType,
     SplitPolicy,
+    SplitSubject,
     VerifiedOpenSSHArtifact,
     bind_split_children,
     freeze_split_policy_registry,
+    make_split_policy_registry,
 )
 from datasets.targets import TargetDefinition
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
@@ -957,6 +961,70 @@ def test_child_artifact_roster_v4_semantically_binds_umcd_episode_store(tmp_path
     )
     assert shared_entry["child_ids"] == ["child-1", "child-2"]
     assert len(shared_entry["episode_manifest_paths"]) == 2
+
+    cross_split_registry = make_split_policy_registry(
+        tuple(
+            SplitSubject(parent_id, SplitParentType.NETWORK_EPISODE, "fixture-family")
+            for parent_id in ("parent-1", "parent-2", "parent-3")
+        ),
+        policy=SplitPolicy(
+            seed="shared-object-cross-split-regression",
+            split_fractions={"train": 1 / 3, "validation": 1 / 3, "test": 1 / 3},
+        ),
+    )
+    assert cross_split_registry.split_for_parent("parent-1") != (
+        cross_split_registry.split_for_parent("parent-2")
+    )
+    with pytest.raises(ValueError, match="owners assigned to different frozen splits"):
+        _load_split_child_artifact_roster(
+            tmp_path / "shared-roster.json",
+            expected_child_kind="episode_bundle",
+            expected_child_bindings={
+                "child-1": SplitChildBinding("child-1", "parent-1", "episode_bundle"),
+                "child-2": SplitChildBinding("child-2", "parent-2", "episode_bundle"),
+            },
+            verified_artifact=shared_verified,
+            split_registry=cross_split_registry,
+        )
+
+    shared_relation = LeakageRelation(LeakageNamespace.SITE, "shared-site")
+    same_split_registry = make_split_policy_registry(
+        (
+            SplitSubject(
+                "parent-1",
+                SplitParentType.NETWORK_EPISODE,
+                "fixture-family",
+                (shared_relation,),
+            ),
+            SplitSubject(
+                "parent-2",
+                SplitParentType.NETWORK_EPISODE,
+                "fixture-family",
+                (shared_relation,),
+            ),
+            SplitSubject("parent-3", SplitParentType.NETWORK_EPISODE, "fixture-family"),
+            SplitSubject("parent-4", SplitParentType.NETWORK_EPISODE, "fixture-family"),
+        ),
+        policy=SplitPolicy(
+            seed="shared-object-same-split-regression",
+            split_fractions={"train": 1 / 3, "validation": 1 / 3, "test": 1 / 3},
+        ),
+    )
+    assert same_split_registry.split_for_parent("parent-1") == (
+        same_split_registry.split_for_parent("parent-2")
+    )
+    same_split_audit = _load_split_child_artifact_roster(
+        tmp_path / "shared-roster.json",
+        expected_child_kind="episode_bundle",
+        expected_child_bindings={
+            "child-1": SplitChildBinding("child-1", "parent-1", "episode_bundle"),
+            "child-2": SplitChildBinding("child-2", "parent-2", "episode_bundle"),
+        },
+        verified_artifact=shared_verified,
+        split_registry=same_split_registry,
+    )["audit"]
+    assert same_split_audit["semantic_artifact_count"] > 0
+
 
 @pytest.mark.parametrize("declared_parent", ["parent-1", "other-parent"])
 def test_nr_trajectory_child_artifact_validates_store_and_split_lineage(

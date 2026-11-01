@@ -772,6 +772,22 @@ def _load_split_child_artifact_roster(
         ):
             if any(owner not in expected_child_bindings for owner in owner_child_ids):
                 raise ValueError(f"split child artifact {index} references an unknown child ID")
+            if artifact_type == "umcd_episode_store_content_npz" and split_registry is not None:
+                try:
+                    owner_splits = {
+                        split_registry.split_for_parent(
+                            expected_child_bindings[owner].parent_subject_id
+                        )
+                        for owner in owner_child_ids
+                    }
+                except KeyError as error:
+                    raise ValueError(
+                        "shared UMCD content object owner is absent from the frozen split registry"
+                    ) from error
+                if len(owner_splits) > 1:
+                    raise ValueError(
+                        "shared UMCD content object has owners assigned to different frozen splits"
+                    )
             declaration["child_ids"] = list(owner_child_ids)
         else:
             declaration["child_id"] = owner_child_ids[0]
