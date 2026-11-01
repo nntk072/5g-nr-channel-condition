@@ -84,6 +84,22 @@ def test_pusch_intra_slot_hops_map_bwp_segments_to_absolute_carrier_crbs():
         Path("datasets/schema/nr-pusch-hop-grid-replay.v1.schema.json").read_text()
     )
     jsonschema.Draft202012Validator(replay_schema).validate(replay)
+    with pytest.raises(TypeError, match="carrier_slot_grid must be a NumPy array"):
+        verify_pusch_intra_slot_hops(
+            bwp_grid,
+            result.frequency_grid.tolist(),
+            result.metadata,
+            max_output_elements=1,
+        )
+    malformed_shape_metadata = dict(result.metadata)
+    malformed_shape_metadata["carrier_grid_shape"] = [1, 1, 1, 13, 624]
+    with pytest.raises(ValueError, match="shape differs from replay metadata"):
+        verify_pusch_intra_slot_hops(
+            bwp_grid,
+            result.frequency_grid,
+            malformed_shape_metadata,
+            max_output_elements=1,
+        )
     with pytest.raises(ValueError, match="input and output exceed max_output_elements"):
         verify_pusch_intra_slot_hops(
             bwp_grid,

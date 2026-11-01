@@ -149,10 +149,28 @@ def verify_pusch_intra_slot_hops(
     max_output_elements: int = 64_000_000,
 ) -> dict[str, Any]:
     """Replay and verify a saved PUSCH hop-grid composition and its digests."""
+    if not isinstance(carrier_slot_grid, np.ndarray):
+        raise TypeError("carrier_slot_grid must be a NumPy array")
     if not isinstance(metadata, Mapping) or metadata.get("schema") != (
         "loslab.nr_pusch_intra_slot_hop_grid.v1"
     ):
         raise ValueError("unsupported PUSCH hop-grid metadata schema")
+    declared_grid_shape = metadata.get("carrier_grid_shape")
+    if (
+        not isinstance(declared_grid_shape, list)
+        or len(declared_grid_shape) != 5
+        or any(
+            isinstance(size, bool) or not isinstance(size, int) or size <= 0
+            for size in declared_grid_shape
+        )
+    ):
+        raise ValueError("PUSCH hop-grid metadata contains a malformed carrier-grid shape")
+    if tuple(declared_grid_shape) != carrier_slot_grid.shape:
+        raise ValueError("observed carrier grid shape differs from replay metadata")
+    if carrier_slot_grid.dtype.kind != "c" or carrier_slot_grid.dtype.itemsize not in {8, 16}:
+        raise ValueError("carrier_slot_grid must contain complex64 or complex128 values")
+    if metadata.get("complex_dtype") != str(carrier_slot_grid.dtype):
+        raise ValueError("observed carrier grid dtype differs from replay metadata")
     integer_fields = (
         "carrier_grid_size_rb",
         "carrier_grid_start_rb",
@@ -185,8 +203,6 @@ def verify_pusch_intra_slot_hops(
     )
     if dict(metadata) != replay.metadata:
         raise ValueError("PUSCH hop-grid metadata does not replay from the source grid")
-    if not isinstance(carrier_slot_grid, np.ndarray):
-        raise TypeError("carrier_slot_grid must be a NumPy array")
     observed = carrier_slot_grid
     if observed.dtype != replay.frequency_grid.dtype or not np.array_equal(
         observed, replay.frequency_grid
