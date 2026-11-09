@@ -58,3 +58,21 @@ def test_reference_rejects_out_of_contract_inputs(
         cdl_joint_tx_rx_spatiotemporal_covariance_reference(
             model, velocity, tx_count=tx_count, rx_count=rx_count
         )
+
+
+@pytest.mark.parametrize(("tx_count", "rx_count"), [(4, 4), (1, 4), (4, 1)])
+def test_larger_topology_zero_lag_reference_is_unit_power_hermitian(
+    tx_count: int, rx_count: int
+) -> None:
+    reference = cdl_joint_tx_rx_spatiotemporal_covariance_reference(
+        "C", (0.0, 0.0, 0.0), lag_s=0.0, tx_count=tx_count, rx_count=rx_count
+    )
+    port_count = tx_count * rx_count
+    assert len(reference) == port_count
+    assert all(len(row) == port_count for row in reference)
+    for row in range(port_count):
+        assert reference[row][row] == pytest.approx(1.0 + 0.0j, abs=1e-12)
+        for column in range(port_count):
+            assert reference[column][row] == pytest.approx(
+                reference[row][column].conjugate(), abs=1e-12
+            )
