@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
@@ -104,7 +105,9 @@ def _expected_native_tap_count(model: str) -> int:
 
 @pytest.mark.native_sionna
 @pytest.mark.parametrize("model", _MODELS)
-def test_tdl_rayleigh_tap_power_cdfs_match_table_scaled_exponential_family(model: str) -> None:
+def test_tdl_rayleigh_tap_power_cdfs_match_table_scaled_exponential_family(
+    model: str, record_property
+) -> None:
     """Check each ETSI Rayleigh-only tap against its table-scaled Exp(1) power law."""
     torch = pytest.importorskip("torch")
     pytest.importorskip("sionna.phy")
@@ -160,3 +163,20 @@ def test_tdl_rayleigh_tap_power_cdfs_match_table_scaled_exponential_family(model
     assert len(results) == _EXPECTED_TAP_COUNTS[model]
     assert all(result.passed for result in results), (model, results)
     assert all(result.simultaneous_upper_bound <= 0.05 for result in results)
+    record_property(
+        "g4_tdl_rayleigh_marginal_case",
+        json.dumps(
+            {
+                "model": model,
+                "seed": _SEED_START + _MODELS.index(model),
+                "native_tap_count": _expected_native_tap_count(model),
+                "rayleigh_tap_count": len(results),
+                "batch_axis_semantics": channel.metadata["batch_axis_semantics"],
+                "sionna_version": channel.metadata["sionna_version"],
+                "parameter_table_source": channel.metadata["profile_parameter_table_source"],
+                "parameter_table_sha256": expected_table_hash,
+                "claims": [asdict(result) for result in results],
+            },
+            sort_keys=True,
+        ),
+    )
