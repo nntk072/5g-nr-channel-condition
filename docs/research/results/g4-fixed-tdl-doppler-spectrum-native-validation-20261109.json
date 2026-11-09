@@ -1,0 +1,705 @@
+{
+  "all_passed": true,
+  "base_commit": "d55fb4288ffb0ce6c22927e8d5e56ca20f040712",
+  "carrier_frequency_hz": 3500000000.0,
+  "claims": [
+    {
+      "absolute_error": 0.0008169909084600191,
+      "absolute_error_plus_half_width": 0.002570631726670233,
+      "expected_jakes_cdf": 0.23005345616261585,
+      "mean_cdf": 0.23087044707107587,
+      "model": "A10",
+      "normalized_frequency_cutoff": -0.75,
+      "passed": true,
+      "simultaneous_half_width": 0.0017536408182102139
+    },
+    {
+      "absolute_error": 0.0006138474954208717,
+      "absolute_error_plus_half_width": 0.0022905309476185178,
+      "expected_jakes_cdf": 0.3333333333333333,
+      "mean_cdf": 0.3339471808287542,
+      "model": "A10",
+      "normalized_frequency_cutoff": -0.5,
+      "passed": true,
+      "simultaneous_half_width": 0.001676683452197646
+    },
+    {
+      "absolute_error": 0.000312351334588179,
+      "absolute_error_plus_half_width": 0.0023624065272835567,
+      "expected_jakes_cdf": 0.41956937674483374,
+      "mean_cdf": 0.4198817280794219,
+      "model": "A10",
+      "normalized_frequency_cutoff": -0.25,
+      "passed": true,
+      "simultaneous_half_width": 0.0020500551926953777
+    },
+    {
+      "absolute_error": 0.0004573179818792572,
+      "absolute_error_plus_half_width": 0.0028115827316562043,
+      "expected_jakes_cdf": 0.5,
+      "mean_cdf": 0.49954268201812074,
+      "model": "A10",
+      "normalized_frequency_cutoff": 0.0,
+      "passed": true,
+      "simultaneous_half_width": 0.002354264749776947
+    },
+    {
+      "absolute_error": 0.0008618755588681859,
+      "absolute_error_plus_half_width": 0.0029841701565334285,
+      "expected_jakes_cdf": 0.5804306232551663,
+      "mean_cdf": 0.5812924988140344,
+      "model": "A10",
+      "normalized_frequency_cutoff": 0.25,
+      "passed": true,
+      "simultaneous_half_width": 0.0021222945976652426
+    },
+    {
+      "absolute_error": 4.184319158229144e-05,
+      "absolute_error_plus_half_width": 0.0018223127184036408,
+      "expected_jakes_cdf": 0.6666666666666667,
+      "mean_cdf": 0.666708509858249,
+      "model": "A10",
+      "normalized_frequency_cutoff": 0.5,
+      "passed": true,
+      "simultaneous_half_width": 0.0017804695268213494
+    },
+    {
+      "absolute_error": 3.835824119824416e-05,
+      "absolute_error_plus_half_width": 0.001846082990781224,
+      "expected_jakes_cdf": 0.7699465438373841,
+      "mean_cdf": 0.7699081855961859,
+      "model": "A10",
+      "normalized_frequency_cutoff": 0.75,
+      "passed": true,
+      "simultaneous_half_width": 0.0018077247495829798
+    },
+    {
+      "absolute_error": 0.0013596884721240599,
+      "absolute_error_plus_half_width": 0.0033586847300042483,
+      "expected_jakes_cdf": 0.23005345616261585,
+      "mean_cdf": 0.23141314463473991,
+      "model": "A30",
+      "normalized_frequency_cutoff": -0.75,
+      "passed": true,
+      "simultaneous_half_width": 0.0019989962578801884
+    },
+    {
+      "absolute_error": 0.0008035592323223373,
+      "absolute_error_plus_half_width": 0.0027786479401872926,
+      "expected_jakes_cdf": 0.3333333333333333,
+      "mean_cdf": 0.33413689256565565,
+      "model": "A30",
+      "normalized_frequency_cutoff": -0.5,
+      "passed": true,
+      "simultaneous_half_width": 0.0019750887078649553
+    },
+    {
+      "absolute_error": 5.961213198324433e-05,
+      "absolute_error_plus_half_width": 0.0024009198931542386,
+      "expected_jakes_cdf": 0.41956937674483374,
+      "mean_cdf": 0.419628988876817,
+      "model": "A30",
+      "normalized_frequency_cutoff": -0.25,
+      "passed": true,
+      "simultaneous_half_width": 0.0023413077611709942
+    },
+    {
+      "absolute_error": 0.0001671856560910845,
+      "absolute_error_plus_half_width": 0.0026818782313053615,
+      "expected_jakes_cdf": 0.5,
+      "mean_cdf": 0.5001671856560911,
+      "model": "A30",
+      "normalized_frequency_cutoff": 0.0,
+      "passed": true,
+      "simultaneous_half_width": 0.002514692575214277
+    },
+    {
+      "absolute_error": 0.00044666860394115826,
+      "absolute_error_plus_half_width": 0.0027762727045021647,
+      "expected_jakes_cdf": 0.5804306232551663,
+      "mean_cdf": 0.5799839546512251,
+      "model": "A30",
+      "normalized_frequency_cutoff": 0.25,
+      "passed": true,
+      "simultaneous_half_width": 0.0023296041005610064
+    },
+    {
+      "absolute_error": 5.7677374731834874e-05,
+      "absolute_error_plus_half_width": 0.002200825496102812,
+      "expected_jakes_cdf": 0.6666666666666667,
+      "mean_cdf": 0.6666089892919349,
+      "model": "A30",
+      "normalized_frequency_cutoff": 0.5,
+      "passed": true,
+      "simultaneous_half_width": 0.002143148121370977
+    },
+    {
+      "absolute_error": 0.00023909567866708947,
+      "absolute_error_plus_half_width": 0.0023027609665716795,
+      "expected_jakes_cdf": 0.7699465438373841,
+      "mean_cdf": 0.7697074481587171,
+      "model": "A30",
+      "normalized_frequency_cutoff": 0.75,
+      "passed": true,
+      "simultaneous_half_width": 0.00206366528790459
+    },
+    {
+      "absolute_error": 0.00037612361634709046,
+      "absolute_error_plus_half_width": 0.0025868211325786356,
+      "expected_jakes_cdf": 0.23005345616261585,
+      "mean_cdf": 0.23042957977896295,
+      "model": "B100",
+      "normalized_frequency_cutoff": -0.75,
+      "passed": true,
+      "simultaneous_half_width": 0.002210697516231545
+    },
+    {
+      "absolute_error": 0.0005119941850300069,
+      "absolute_error_plus_half_width": 0.0024797290643334326,
+      "expected_jakes_cdf": 0.3333333333333333,
+      "mean_cdf": 0.3338453275183633,
+      "model": "B100",
+      "normalized_frequency_cutoff": -0.5,
+      "passed": true,
+      "simultaneous_half_width": 0.0019677348793034257
+    },
+    {
+      "absolute_error": 0.0013014970618350774,
+      "absolute_error_plus_half_width": 0.0038499635728687907,
+      "expected_jakes_cdf": 0.41956937674483374,
+      "mean_cdf": 0.4208708738066688,
+      "model": "B100",
+      "normalized_frequency_cutoff": -0.25,
+      "passed": true,
+      "simultaneous_half_width": 0.0025484665110337133
+    },
+    {
+      "absolute_error": 0.00018665176703280828,
+      "absolute_error_plus_half_width": 0.002986788244645649,
+      "expected_jakes_cdf": 0.5,
+      "mean_cdf": 0.5001866517670328,
+      "model": "B100",
+      "normalized_frequency_cutoff": 0.0,
+      "passed": true,
+      "simultaneous_half_width": 0.0028001364776128407
+    },
+    {
+      "absolute_error": 0.00034717291785679727,
+      "absolute_error_plus_half_width": 0.0028410936523194253,
+      "expected_jakes_cdf": 0.5804306232551663,
+      "mean_cdf": 0.580777796173023,
+      "model": "B100",
+      "normalized_frequency_cutoff": 0.25,
+      "passed": true,
+      "simultaneous_half_width": 0.002493920734462628
+    },
+    {
+      "absolute_error": 0.0012481971664306535,
+      "absolute_error_plus_half_width": 0.003408878474217443,
+      "expected_jakes_cdf": 0.6666666666666667,
+      "mean_cdf": 0.6679148638330974,
+      "model": "B100",
+      "normalized_frequency_cutoff": 0.5,
+      "passed": true,
+      "simultaneous_half_width": 0.0021606813077867893
+    },
+    {
+      "absolute_error": 0.0008867793326545748,
+      "absolute_error_plus_half_width": 0.0030809707180470395,
+      "expected_jakes_cdf": 0.7699465438373841,
+      "mean_cdf": 0.7708333231700387,
+      "model": "B100",
+      "normalized_frequency_cutoff": 0.75,
+      "passed": true,
+      "simultaneous_half_width": 0.0021941913853924648
+    },
+    {
+      "absolute_error": 0.0006228353293484812,
+      "absolute_error_plus_half_width": 0.0027194838223414063,
+      "expected_jakes_cdf": 0.23005345616261585,
+      "mean_cdf": 0.23067629149196434,
+      "model": "C60",
+      "normalized_frequency_cutoff": -0.75,
+      "passed": true,
+      "simultaneous_half_width": 0.002096648492992925
+    },
+    {
+      "absolute_error": 0.0009264657105262919,
+      "absolute_error_plus_half_width": 0.0030597113033137414,
+      "expected_jakes_cdf": 0.3333333333333333,
+      "mean_cdf": 0.3342597990438596,
+      "model": "C60",
+      "normalized_frequency_cutoff": -0.5,
+      "passed": true,
+      "simultaneous_half_width": 0.0021332455927874495
+    },
+    {
+      "absolute_error": 0.00018934546170334965,
+      "absolute_error_plus_half_width": 0.0025650599334699907,
+      "expected_jakes_cdf": 0.41956937674483374,
+      "mean_cdf": 0.4197587222065371,
+      "model": "C60",
+      "normalized_frequency_cutoff": -0.25,
+      "passed": true,
+      "simultaneous_half_width": 0.002375714471766641
+    },
+    {
+      "absolute_error": 0.0012171461790757565,
+      "absolute_error_plus_half_width": 0.0039621900679080195,
+      "expected_jakes_cdf": 0.5,
+      "mean_cdf": 0.5012171461790758,
+      "model": "C60",
+      "normalized_frequency_cutoff": 0.0,
+      "passed": true,
+      "simultaneous_half_width": 0.002745043888832263
+    },
+    {
+      "absolute_error": 0.0008224827212485186,
+      "absolute_error_plus_half_width": 0.003272152479929233,
+      "expected_jakes_cdf": 0.5804306232551663,
+      "mean_cdf": 0.5812531059764148,
+      "model": "C60",
+      "normalized_frequency_cutoff": 0.25,
+      "passed": true,
+      "simultaneous_half_width": 0.0024496697586807144
+    },
+    {
+      "absolute_error": 0.0002271578157782006,
+      "absolute_error_plus_half_width": 0.002388434519704769,
+      "expected_jakes_cdf": 0.6666666666666667,
+      "mean_cdf": 0.6664395088508885,
+      "model": "C60",
+      "normalized_frequency_cutoff": 0.5,
+      "passed": true,
+      "simultaneous_half_width": 0.0021612767039265682
+    },
+    {
+      "absolute_error": 0.0006044415138138914,
+      "absolute_error_plus_half_width": 0.002581893272547129,
+      "expected_jakes_cdf": 0.7699465438373841,
+      "mean_cdf": 0.770550985351198,
+      "model": "C60",
+      "normalized_frequency_cutoff": 0.75,
+      "passed": true,
+      "simultaneous_half_width": 0.0019774517587332376
+    },
+    {
+      "absolute_error": 0.0011517491519887346,
+      "absolute_error_plus_half_width": 0.0031664369260163364,
+      "expected_jakes_cdf": 0.23005345616261585,
+      "mean_cdf": 0.2312052053146046,
+      "model": "C300",
+      "normalized_frequency_cutoff": -0.75,
+      "passed": true,
+      "simultaneous_half_width": 0.002014687774027602
+    },
+    {
+      "absolute_error": 0.00037715897985973745,
+      "absolute_error_plus_half_width": 0.002483303525753548,
+      "expected_jakes_cdf": 0.3333333333333333,
+      "mean_cdf": 0.33371049231319305,
+      "model": "C300",
+      "normalized_frequency_cutoff": -0.5,
+      "passed": true,
+      "simultaneous_half_width": 0.0021061445458938105
+    },
+    {
+      "absolute_error": 0.0009465110525999076,
+      "absolute_error_plus_half_width": 0.003460788746854587,
+      "expected_jakes_cdf": 0.41956937674483374,
+      "mean_cdf": 0.42051588779743365,
+      "model": "C300",
+      "normalized_frequency_cutoff": -0.25,
+      "passed": true,
+      "simultaneous_half_width": 0.0025142776942546794
+    },
+    {
+      "absolute_error": 0.0015034853840979467,
+      "absolute_error_plus_half_width": 0.003871853897350813,
+      "expected_jakes_cdf": 0.5,
+      "mean_cdf": 0.501503485384098,
+      "model": "C300",
+      "normalized_frequency_cutoff": 0.0,
+      "passed": true,
+      "simultaneous_half_width": 0.0023683685132528665
+    },
+    {
+      "absolute_error": 0.0008387286857707288,
+      "absolute_error_plus_half_width": 0.0032386390746471485,
+      "expected_jakes_cdf": 0.5804306232551663,
+      "mean_cdf": 0.581269351940937,
+      "model": "C300",
+      "normalized_frequency_cutoff": 0.25,
+      "passed": true,
+      "simultaneous_half_width": 0.0023999103888764197
+    },
+    {
+      "absolute_error": 0.0007653108763810978,
+      "absolute_error_plus_half_width": 0.0029089557351137103,
+      "expected_jakes_cdf": 0.6666666666666667,
+      "mean_cdf": 0.6674319775430478,
+      "model": "C300",
+      "normalized_frequency_cutoff": 0.5,
+      "passed": true,
+      "simultaneous_half_width": 0.0021436448587326125
+    },
+    {
+      "absolute_error": 0.0005364985667712929,
+      "absolute_error_plus_half_width": 0.0027284812468341287,
+      "expected_jakes_cdf": 0.7699465438373841,
+      "mean_cdf": 0.7694100452706129,
+      "model": "C300",
+      "normalized_frequency_cutoff": 0.75,
+      "passed": true,
+      "simultaneous_half_width": 0.0021919826800628358
+    },
+    {
+      "absolute_error": 0.00038401533226553597,
+      "absolute_error_plus_half_width": 0.002863756214741728,
+      "expected_jakes_cdf": 0.23005345616261585,
+      "mean_cdf": 0.2304374714948814,
+      "model": "D10",
+      "normalized_frequency_cutoff": -0.75,
+      "passed": true,
+      "simultaneous_half_width": 0.002479740882476192
+    },
+    {
+      "absolute_error": 0.0014692560056940307,
+      "absolute_error_plus_half_width": 0.003735914514099801,
+      "expected_jakes_cdf": 0.3333333333333333,
+      "mean_cdf": 0.33480258933902735,
+      "model": "D10",
+      "normalized_frequency_cutoff": -0.5,
+      "passed": true,
+      "simultaneous_half_width": 0.00226665850840577
+    },
+    {
+      "absolute_error": 0.0005208642528360397,
+      "absolute_error_plus_half_width": 0.003247633915847134,
+      "expected_jakes_cdf": 0.41956937674483374,
+      "mean_cdf": 0.4200902409976698,
+      "model": "D10",
+      "normalized_frequency_cutoff": -0.25,
+      "passed": true,
+      "simultaneous_half_width": 0.0027267696630110944
+    },
+    {
+      "absolute_error": 0.00016813166002482838,
+      "absolute_error_plus_half_width": 0.003267017483041238,
+      "expected_jakes_cdf": 0.5,
+      "mean_cdf": 0.5001681316600248,
+      "model": "D10",
+      "normalized_frequency_cutoff": 0.0,
+      "passed": true,
+      "simultaneous_half_width": 0.00309888582301641
+    },
+    {
+      "absolute_error": 0.00048695009844546,
+      "absolute_error_plus_half_width": 0.003326696713545655,
+      "expected_jakes_cdf": 0.5804306232551663,
+      "mean_cdf": 0.5799436731567208,
+      "model": "D10",
+      "normalized_frequency_cutoff": 0.25,
+      "passed": true,
+      "simultaneous_half_width": 0.002839746615100195
+    },
+    {
+      "absolute_error": 0.00016294426112517524,
+      "absolute_error_plus_half_width": 0.0024070795396939453,
+      "expected_jakes_cdf": 0.6666666666666667,
+      "mean_cdf": 0.6665037224055416,
+      "model": "D10",
+      "normalized_frequency_cutoff": 0.5,
+      "passed": true,
+      "simultaneous_half_width": 0.00224413527856877
+    },
+    {
+      "absolute_error": 0.0008198077320088482,
+      "absolute_error_plus_half_width": 0.0031988905688944977,
+      "expected_jakes_cdf": 0.7699465438373841,
+      "mean_cdf": 0.7691267361053753,
+      "model": "D10",
+      "normalized_frequency_cutoff": 0.75,
+      "passed": true,
+      "simultaneous_half_width": 0.0023790828368856496
+    },
+    {
+      "absolute_error": 0.00023494848211408348,
+      "absolute_error_plus_half_width": 0.0028147260368581463,
+      "expected_jakes_cdf": 0.23005345616261585,
+      "mean_cdf": 0.23028840464472994,
+      "model": "D30",
+      "normalized_frequency_cutoff": -0.75,
+      "passed": true,
+      "simultaneous_half_width": 0.002579777554744063
+    },
+    {
+      "absolute_error": 0.002142624805152815,
+      "absolute_error_plus_half_width": 0.004503950244578487,
+      "expected_jakes_cdf": 0.3333333333333333,
+      "mean_cdf": 0.33547595813848613,
+      "model": "D30",
+      "normalized_frequency_cutoff": -0.5,
+      "passed": true,
+      "simultaneous_half_width": 0.0023613254394256717
+    },
+    {
+      "absolute_error": 0.00030882224490696997,
+      "absolute_error_plus_half_width": 0.00309857201825612,
+      "expected_jakes_cdf": 0.41956937674483374,
+      "mean_cdf": 0.4198781989897407,
+      "model": "D30",
+      "normalized_frequency_cutoff": -0.25,
+      "passed": true,
+      "simultaneous_half_width": 0.00278974977334915
+    },
+    {
+      "absolute_error": 0.0015276712608411902,
+      "absolute_error_plus_half_width": 0.004681235513459387,
+      "expected_jakes_cdf": 0.5,
+      "mean_cdf": 0.5015276712608412,
+      "model": "D30",
+      "normalized_frequency_cutoff": 0.0,
+      "passed": true,
+      "simultaneous_half_width": 0.0031535642526181965
+    },
+    {
+      "absolute_error": 0.0007270672126089561,
+      "absolute_error_plus_half_width": 0.0033918740395764637,
+      "expected_jakes_cdf": 0.5804306232551663,
+      "mean_cdf": 0.5797035560425573,
+      "model": "D30",
+      "normalized_frequency_cutoff": 0.25,
+      "passed": true,
+      "simultaneous_half_width": 0.0026648068269675075
+    },
+    {
+      "absolute_error": 0.002367688974071247,
+      "absolute_error_plus_half_width": 0.004834431703521352,
+      "expected_jakes_cdf": 0.6666666666666667,
+      "mean_cdf": 0.669034355640738,
+      "model": "D30",
+      "normalized_frequency_cutoff": 0.5,
+      "passed": true,
+      "simultaneous_half_width": 0.002466742729450105
+    },
+    {
+      "absolute_error": 0.0009148092404616115,
+      "absolute_error_plus_half_width": 0.0034028814830065176,
+      "expected_jakes_cdf": 0.7699465438373841,
+      "mean_cdf": 0.7708613530778458,
+      "model": "D30",
+      "normalized_frequency_cutoff": 0.75,
+      "passed": true,
+      "simultaneous_half_width": 0.002488072242544906
+    }
+  ],
+  "criteria_changed": false,
+  "date": "2026-11-09",
+  "draws_per_profile": 256,
+  "expected_jakes_cdf": [
+    0.23005345616261585,
+    0.3333333333333333,
+    0.41956937674483374,
+    0.5,
+    0.5804306232551663,
+    0.6666666666666667,
+    0.7699465438373841
+  ],
+  "familywise_alpha": 0.01,
+  "limitations": [
+    "This validates only seven normalized-frequency CDF points of the equal-weight normalized diffuse-tap periodogram under the frozen fixed-TDL configuration.",
+    "The mixed LOS-plus-diffuse first tap in D10/D30 is excluded by the frozen protocol.",
+    "It does not establish the continuous Doppler law, inter-tap dependence, spatial behavior, measured-channel validity, receiver impact, or overall G4 qualification.",
+    "The seed audit establishes no global seed exclusivity.",
+    "Production RT generation and advanced training remain gated."
+  ],
+  "maximum_absolute_cdf_error": 0.05,
+  "maximum_doppler_hz": 350.2422999580597,
+  "normalized_frequency_cutoffs": [
+    -0.75,
+    -0.5,
+    -0.25,
+    0.0,
+    0.25,
+    0.5,
+    0.75
+  ],
+  "profile_results": [
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "claim_count": 7,
+      "maximum_absolute_error_plus_half_width": 0.0029841701565334285,
+      "maximum_doppler_hz": 350.2422999580597,
+      "model": "A10",
+      "num_sinusoids": 20,
+      "passed": true,
+      "rayleigh_tap_count": 16,
+      "seed": 1760000,
+      "sionna_version": "2.2.0",
+      "worst_claim": {
+        "absolute_error": 0.0008618755588681859,
+        "absolute_error_plus_half_width": 0.0029841701565334285,
+        "expected_jakes_cdf": 0.5804306232551663,
+        "mean_cdf": 0.5812924988140344,
+        "normalized_frequency_cutoff": 0.25,
+        "simultaneous_half_width": 0.0021222945976652426
+      }
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "claim_count": 7,
+      "maximum_absolute_error_plus_half_width": 0.0033586847300042483,
+      "maximum_doppler_hz": 350.2422999580597,
+      "model": "A30",
+      "num_sinusoids": 20,
+      "passed": true,
+      "rayleigh_tap_count": 12,
+      "seed": 1760001,
+      "sionna_version": "2.2.0",
+      "worst_claim": {
+        "absolute_error": 0.0013596884721240599,
+        "absolute_error_plus_half_width": 0.0033586847300042483,
+        "expected_jakes_cdf": 0.23005345616261585,
+        "mean_cdf": 0.23141314463473991,
+        "normalized_frequency_cutoff": -0.75,
+        "simultaneous_half_width": 0.0019989962578801884
+      }
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "claim_count": 7,
+      "maximum_absolute_error_plus_half_width": 0.0038499635728687907,
+      "maximum_doppler_hz": 350.2422999580597,
+      "model": "B100",
+      "num_sinusoids": 20,
+      "passed": true,
+      "rayleigh_tap_count": 12,
+      "seed": 1760002,
+      "sionna_version": "2.2.0",
+      "worst_claim": {
+        "absolute_error": 0.0013014970618350774,
+        "absolute_error_plus_half_width": 0.0038499635728687907,
+        "expected_jakes_cdf": 0.41956937674483374,
+        "mean_cdf": 0.4208708738066688,
+        "normalized_frequency_cutoff": -0.25,
+        "simultaneous_half_width": 0.0025484665110337133
+      }
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "claim_count": 7,
+      "maximum_absolute_error_plus_half_width": 0.0039621900679080195,
+      "maximum_doppler_hz": 350.2422999580597,
+      "model": "C60",
+      "num_sinusoids": 20,
+      "passed": true,
+      "rayleigh_tap_count": 12,
+      "seed": 1760003,
+      "sionna_version": "2.2.0",
+      "worst_claim": {
+        "absolute_error": 0.0012171461790757565,
+        "absolute_error_plus_half_width": 0.0039621900679080195,
+        "expected_jakes_cdf": 0.5,
+        "mean_cdf": 0.5012171461790758,
+        "normalized_frequency_cutoff": 0.0,
+        "simultaneous_half_width": 0.002745043888832263
+      }
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "claim_count": 7,
+      "maximum_absolute_error_plus_half_width": 0.003871853897350813,
+      "maximum_doppler_hz": 350.2422999580597,
+      "model": "C300",
+      "num_sinusoids": 20,
+      "passed": true,
+      "rayleigh_tap_count": 12,
+      "seed": 1760004,
+      "sionna_version": "2.2.0",
+      "worst_claim": {
+        "absolute_error": 0.0015034853840979467,
+        "absolute_error_plus_half_width": 0.003871853897350813,
+        "expected_jakes_cdf": 0.5,
+        "mean_cdf": 0.501503485384098,
+        "normalized_frequency_cutoff": 0.0,
+        "simultaneous_half_width": 0.0023683685132528665
+      }
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "claim_count": 7,
+      "maximum_absolute_error_plus_half_width": 0.003735914514099801,
+      "maximum_doppler_hz": 350.2422999580597,
+      "model": "D10",
+      "num_sinusoids": 20,
+      "passed": true,
+      "rayleigh_tap_count": 9,
+      "seed": 1760005,
+      "sionna_version": "2.2.0",
+      "worst_claim": {
+        "absolute_error": 0.0014692560056940307,
+        "absolute_error_plus_half_width": 0.003735914514099801,
+        "expected_jakes_cdf": 0.3333333333333333,
+        "mean_cdf": 0.33480258933902735,
+        "normalized_frequency_cutoff": -0.5,
+        "simultaneous_half_width": 0.00226665850840577
+      }
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "claim_count": 7,
+      "maximum_absolute_error_plus_half_width": 0.004834431703521352,
+      "maximum_doppler_hz": 350.2422999580597,
+      "model": "D30",
+      "num_sinusoids": 20,
+      "passed": true,
+      "rayleigh_tap_count": 9,
+      "seed": 1760006,
+      "sionna_version": "2.2.0",
+      "worst_claim": {
+        "absolute_error": 0.002367688974071247,
+        "absolute_error_plus_half_width": 0.004834431703521352,
+        "expected_jakes_cdf": 0.6666666666666667,
+        "mean_cdf": 0.669034355640738,
+        "normalized_frequency_cutoff": 0.5,
+        "simultaneous_half_width": 0.002466742729450105
+      }
+    }
+  ],
+  "profiles": [
+    "A10",
+    "A30",
+    "B100",
+    "C60",
+    "C300",
+    "D10",
+    "D30"
+  ],
+  "qualification_claim": "none",
+  "runtime": {
+    "platform": "Linux-5.4.0-216-generic-x86_64-with-glibc2.39",
+    "python": "3.12.13",
+    "torch": "2.14.1+cu126"
+  },
+  "sampling_frequency_hz": 1400.9691998322387,
+  "schema": "loslab.g4_fixed_tdl_doppler_spectrum_native_validation.v1",
+  "seed_audit": {
+    "global_exclusivity_established": false,
+    "path": "docs/research/G4_FIXED_TDL_DOPPLER_SPECTRUM_SEED_AUDIT_2026-11-09.json",
+    "scanned_file_count": 2281,
+    "sha256": "de4c3892401533e68a916e426546104c639bbefa21c55fd9c026a6b3a1a6c07e",
+    "status": "CLEAR_WITHIN_SCANNED_JSON_CORPUS"
+  },
+  "simultaneous_claim_count": 49,
+  "sinusoid_count": 20,
+  "source_hashes": {
+    "docs/research/G4_FIXED_TDL_TAP_PROFILE_REFERENCE_2026-10-26.json": "fe22560a71f4e5683ea6780f73e84466155b26f5f97cc4b63e3250c102fafda3",
+    "evaluation/g4_doppler_spectrum.py": "92d364cc4c69d446549ebe8f68b7b1e948e592f81201c1588e0f031cdc2213f2",
+    "evaluation/g4_tdl_covariance_reference.py": "026be1e82d94d4e151ffa61cf097f354320b344363e6d701fa7d0a1e405e3bdb",
+    "integrations/sionna/tdl.py": "33186b1bc5419ac49ccf29314650985eb5de7ce3e3dce9da8064cbc2936ff8a3",
+    "tests/test_integrations/test_g4_fixed_tdl_doppler_spectrum_native.py": "39b88d8374dc582e8641eecc504ccff9e340c49bda6a789bd08540767906d3de"
+  },
+  "speed_mps": 30.0,
+  "time_samples_per_draw": 2048
+}
