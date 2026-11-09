@@ -1,0 +1,2871 @@
+{
+  "case_count": 17,
+  "cases": [
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "draw_count": 4096,
+      "family": "TDL",
+      "model": "A",
+      "passed": true,
+      "power_claim_count": 23,
+      "power_claims": [
+        {
+          "absolute_error": 0.0002832405146419095,
+          "estimate": 0.01346469791632221,
+          "half_width_z_times_se": 0.0007177109024778968,
+          "passes_interval": true,
+          "standard_error": 0.00020506025785082765,
+          "tap_or_cluster_index_zero_based": 0,
+          "target": 0.0131814574016803
+        },
+        {
+          "absolute_error": 0.0018763271147416716,
+          "estimate": 0.2902551936259612,
+          "half_width_z_times_se": 0.015295222693154397,
+          "passes_interval": true,
+          "standard_error": 0.004370063626615542,
+          "tap_or_cluster_index_zero_based": 1,
+          "target": 0.2883788665112195
+        },
+        {
+          "absolute_error": 0.003005093179341861,
+          "estimate": 0.170760357258251,
+          "half_width_z_times_se": 0.009086579966302785,
+          "passes_interval": true,
+          "standard_error": 0.002596165704657939,
+          "tap_or_cluster_index_zero_based": 2,
+          "target": 0.17376545043759287
+        },
+        {
+          "absolute_error": 0.0006221850864887718,
+          "estimate": 0.1141835095077175,
+          "half_width_z_times_se": 0.006093347483023649,
+          "passes_interval": true,
+          "standard_error": 0.0017409564237210425,
+          "tap_or_cluster_index_zero_based": 3,
+          "target": 0.11480569459420627
+        },
+        {
+          "absolute_error": 0.001447172773852451,
+          "estimate": 0.07388466896621693,
+          "half_width_z_times_se": 0.0038941509514687223,
+          "passes_interval": true,
+          "standard_error": 0.001112614557562492,
+          "tap_or_cluster_index_zero_based": 4,
+          "target": 0.07243749619236448
+        },
+        {
+          "absolute_error": 0.00013668237450187998,
+          "estimate": 0.043511225347432125,
+          "half_width_z_times_se": 0.002245726899647787,
+          "passes_interval": true,
+          "standard_error": 0.0006416362570422248,
+          "tap_or_cluster_index_zero_based": 5,
+          "target": 0.043647907721934005
+        },
+        {
+          "absolute_error": 0.00016809114064430392,
+          "estimate": 0.029341516181635496,
+          "half_width_z_times_se": 0.0015705238421237998,
+          "passes_interval": true,
+          "standard_error": 0.0004487210977496571,
+          "tap_or_cluster_index_zero_based": 6,
+          "target": 0.0295096073222798
+        },
+        {
+          "absolute_error": 0.0007314110425682488,
+          "estimate": 0.026433204574175306,
+          "half_width_z_times_se": 0.0014324106421783299,
+          "passes_interval": true,
+          "standard_error": 0.00040926018347952286,
+          "tap_or_cluster_index_zero_based": 7,
+          "target": 0.025701793531607058
+        },
+        {
+          "absolute_error": 0.0007443584276499923,
+          "estimate": 0.050537461633076486,
+          "half_width_z_times_se": 0.0026411122744787853,
+          "passes_interval": true,
+          "standard_error": 0.0007546035069939387,
+          "tap_or_cluster_index_zero_based": 8,
+          "target": 0.05128182006072648
+        },
+        {
+          "absolute_error": 0.00018157023561973275,
+          "estimate": 0.007230907987581303,
+          "half_width_z_times_se": 0.0003965679700897808,
+          "passes_interval": true,
+          "standard_error": 0.00011330513431136594,
+          "tap_or_cluster_index_zero_based": 9,
+          "target": 0.007412478223201036
+        },
+        {
+          "absolute_error": 0.0022812707811417365,
+          "estimate": 0.060809150949989954,
+          "half_width_z_times_se": 0.0032558782100423535,
+          "passes_interval": true,
+          "standard_error": 0.0009302509171549582,
+          "tap_or_cluster_index_zero_based": 10,
+          "target": 0.06309042173113169
+        },
+        {
+          "absolute_error": 9.961650153630756e-06,
+          "estimate": 0.006175392490299754,
+          "half_width_z_times_se": 0.0003297156174066944,
+          "passes_interval": true,
+          "standard_error": 9.420446211619841e-05,
+          "tap_or_cluster_index_zero_based": 11,
+          "target": 0.006165430840146123
+        },
+        {
+          "absolute_error": 0.00025825374487277106,
+          "estimate": 0.01685272543233042,
+          "half_width_z_times_se": 0.0009144387360290121,
+          "passes_interval": true,
+          "standard_error": 0.00026126821029400345,
+          "tap_or_cluster_index_zero_based": 12,
+          "target": 0.01659447168745765
+        },
+        {
+          "absolute_error": 0.00018119563535489575,
+          "estimate": 0.008890098175836303,
+          "half_width_z_times_se": 0.00048020449972599054,
+          "passes_interval": true,
+          "standard_error": 0.0001372012856359973,
+          "tap_or_cluster_index_zero_based": 13,
+          "target": 0.008708902540481407
+        },
+        {
+          "absolute_error": 0.0002661609057123225,
+          "estimate": 0.02425247025728089,
+          "half_width_z_times_se": 0.00129911263823813,
+          "passes_interval": true,
+          "standard_error": 0.0003711750394966086,
+          "tap_or_cluster_index_zero_based": 14,
+          "target": 0.023986309351568567
+        },
+        {
+          "absolute_error": 0.00011753897494055227,
+          "estimate": 0.021260281737011166,
+          "half_width_z_times_se": 0.0011092519292732193,
+          "passes_interval": true,
+          "standard_error": 0.00031692912264949123,
+          "tap_or_cluster_index_zero_based": 15,
+          "target": 0.02137782071195172
+        },
+        {
+          "absolute_error": 8.18432021060609e-05,
+          "estimate": 0.015405018869667692,
+          "half_width_z_times_se": 0.0008204059861373669,
+          "passes_interval": true,
+          "standard_error": 0.00023440171032496198,
+          "tap_or_cluster_index_zero_based": 16,
+          "target": 0.015486862071773752
+        },
+        {
+          "absolute_error": 0.00011244824890672533,
+          "estimate": 0.006805278932459684,
+          "half_width_z_times_se": 0.000366232815493334,
+          "passes_interval": true,
+          "standard_error": 0.00010463794728380972,
+          "tap_or_cluster_index_zero_based": 17,
+          "target": 0.006917727181366409
+        },
+        {
+          "absolute_error": 4.780673531937143e-05,
+          "estimate": 0.0043132427395912165,
+          "half_width_z_times_se": 0.00023183826579406511,
+          "passes_interval": true,
+          "standard_error": 6.623950451259003e-05,
+          "tap_or_cluster_index_zero_based": 18,
+          "target": 0.004265436004271845
+        },
+        {
+          "absolute_error": 2.5565726598946337e-05,
+          "estimate": 0.0036894737284095813,
+          "half_width_z_times_se": 0.00020084956426768007,
+          "passes_interval": true,
+          "standard_error": 5.738558979076573e-05,
+          "tap_or_cluster_index_zero_based": 19,
+          "target": 0.0037150394550085277
+        },
+        {
+          "absolute_error": 2.4253439031829242e-05,
+          "estimate": 0.006284788734081338,
+          "half_width_z_times_se": 0.000338057793668373,
+          "passes_interval": true,
+          "standard_error": 9.658794104810658e-05,
+          "tap_or_cluster_index_zero_based": 20,
+          "target": 0.006309042173113167
+        },
+        {
+          "absolute_error": 8.918047964819303e-06,
+          "estimate": 0.0029420426842631624,
+          "half_width_z_times_se": 0.00015624947328816302,
+          "passes_interval": true,
+          "standard_error": 4.464270665376086e-05,
+          "tap_or_cluster_index_zero_based": 21,
+          "target": 0.0029509607322279817
+        },
+        {
+          "absolute_error": 2.9950081438175915e-06,
+          "estimate": 0.000306008514545493,
+          "half_width_z_times_se": 1.6747898358344485e-05,
+          "passes_interval": true,
+          "standard_error": 4.785113816669853e-06,
+          "tap_or_cluster_index_zero_based": 22,
+          "target": 0.0003090035226893106
+        }
+      ],
+      "reference_kind": "ETSI_TR_38_901_V19_2_0_TDL_FIXTURE",
+      "rms_delay_claim": {
+        "absolute_error_s": 7.659909775714035e-11,
+        "estimate_s": 9.992919481829158e-08,
+        "half_width_z_times_se_s": 9.965776007686215e-10,
+        "passes_interval": true,
+        "standard_error_s": 2.847364573624633e-10,
+        "target_s": 1.0000579391604872e-07
+      },
+      "seed": 7311
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "draw_count": 4096,
+      "family": "TDL",
+      "model": "B",
+      "passed": true,
+      "power_claim_count": 23,
+      "power_claims": [
+        {
+          "absolute_error": 0.003029424268597092,
+          "estimate": 0.14401286595220508,
+          "half_width_z_times_se": 0.0076763403997299985,
+          "passes_interval": true,
+          "standard_error": 0.002193240114208571,
+          "tap_or_cluster_index_zero_based": 0,
+          "target": 0.140983441683608
+        },
+        {
+          "absolute_error": 0.0005527246071938691,
+          "estimate": 0.08550364887140705,
+          "half_width_z_times_se": 0.004505681106725519,
+          "passes_interval": true,
+          "standard_error": 0.001287337459064434,
+          "tap_or_cluster_index_zero_based": 1,
+          "target": 0.08495092426421318
+        },
+        {
+          "absolute_error": 0.000970647719780067,
+          "estimate": 0.05515587134377509,
+          "half_width_z_times_se": 0.0029349799972356572,
+          "passes_interval": true,
+          "standard_error": 0.0008385657134959021,
+          "tap_or_cluster_index_zero_based": 2,
+          "target": 0.056126519063555154
+        },
+        {
+          "absolute_error": 0.000365687769253803,
+          "estimate": 0.06711322993973479,
+          "half_width_z_times_se": 0.0035814649127454312,
+          "passes_interval": true,
+          "standard_error": 0.0010232756893558375,
+          "tap_or_cluster_index_zero_based": 3,
+          "target": 0.06747891770898859
+        },
+        {
+          "absolute_error": 0.0002949339877218026,
+          "estimate": 0.01505771264665931,
+          "half_width_z_times_se": 0.0007936288607701172,
+          "passes_interval": true,
+          "standard_error": 0.00022675110307717635,
+          "tap_or_cluster_index_zero_based": 4,
+          "target": 0.014762778658937508
+        },
+        {
+          "absolute_error": 0.0003348954609526944,
+          "estimate": 0.106611981850667,
+          "half_width_z_times_se": 0.005502520162267262,
+          "passes_interval": true,
+          "standard_error": 0.001572148617790646,
+          "tap_or_cluster_index_zero_based": 5,
+          "target": 0.1069468773116197
+        },
+        {
+          "absolute_error": 0.00036706872793398904,
+          "estimate": 0.0640747973969007,
+          "half_width_z_times_se": 0.003429645418574637,
+          "passes_interval": true,
+          "standard_error": 0.000979898691021325,
+          "tap_or_cluster_index_zero_based": 6,
+          "target": 0.06444186612483468
+        },
+        {
+          "absolute_error": 0.0012116168078876305,
+          "estimate": 0.04378793553394855,
+          "half_width_z_times_se": 0.0023728604188731116,
+          "passes_interval": true,
+          "standard_error": 0.0006779601196780319,
+          "tap_or_cluster_index_zero_based": 7,
+          "target": 0.04257631872606092
+        },
+        {
+          "absolute_error": 0.00035562196401544427,
+          "estimate": 0.024144492215755875,
+          "half_width_z_times_se": 0.001261802880337771,
+          "passes_interval": true,
+          "standard_error": 0.00036051510866793457,
+          "tap_or_cluster_index_zero_based": 8,
+          "target": 0.02450011417977132
+        },
+        {
+          "absolute_error": 0.0017308127129864875,
+          "estimate": 0.06892828841167287,
+          "half_width_z_times_se": 0.0037802654170010926,
+          "passes_interval": true,
+          "standard_error": 0.0010800758334288836,
+          "tap_or_cluster_index_zero_based": 9,
+          "target": 0.07065910112465935
+        },
+        {
+          "absolute_error": 0.0006567224206585967,
+          "estimate": 0.01750546313384771,
+          "half_width_z_times_se": 0.0009372874867436591,
+          "passes_interval": true,
+          "standard_error": 0.0002677964247839026,
+          "tap_or_cluster_index_zero_based": 10,
+          "target": 0.018162185554506306
+        },
+        {
+          "absolute_error": 2.8675985555556144e-05,
+          "estimate": 0.017777439723325072,
+          "half_width_z_times_se": 0.0009491703640021948,
+          "passes_interval": true,
+          "standard_error": 0.00027119153257205563,
+          "tap_or_cluster_index_zero_based": 11,
+          "target": 0.017748763737769516
+        },
+        {
+          "absolute_error": 0.0007265344140919908,
+          "estimate": 0.047410539569260585,
+          "half_width_z_times_se": 0.002572523581186265,
+          "passes_interval": true,
+          "standard_error": 0.00073500673748179,
+          "tap_or_cluster_index_zero_based": 12,
+          "target": 0.046684005155168594
+        },
+        {
+          "absolute_error": 0.000789497797684946,
+          "estimate": 0.0387356818045681,
+          "half_width_z_times_se": 0.002092333325132081,
+          "passes_interval": true,
+          "standard_error": 0.0005978095214663089,
+          "tap_or_cluster_index_zero_based": 13,
+          "target": 0.037946184006883155
+        },
+        {
+          "absolute_error": 0.00027820158159977057,
+          "estimate": 0.025348996731838103,
+          "half_width_z_times_se": 0.0013578493861055127,
+          "passes_interval": true,
+          "standard_error": 0.0003879569674587179,
+          "tap_or_cluster_index_zero_based": 14,
+          "target": 0.025070795150238332
+        },
+        {
+          "absolute_error": 0.0005004828762912583,
+          "estimate": 0.09052607247059097,
+          "half_width_z_times_se": 0.0047231838787136025,
+          "passes_interval": true,
+          "standard_error": 0.0013494811082038864,
+          "tap_or_cluster_index_zero_based": 15,
+          "target": 0.09102655534688223
+        },
+        {
+          "absolute_error": 0.0001294760468427622,
+          "estimate": 0.024370638132928557,
+          "half_width_z_times_se": 0.0012978768524468983,
+          "passes_interval": true,
+          "standard_error": 0.00037082195784197096,
+          "tap_or_cluster_index_zero_based": 16,
+          "target": 0.02450011417977132
+        },
+        {
+          "absolute_error": 0.0001380870937242127,
+          "estimate": 0.008357005332697107,
+          "half_width_z_times_se": 0.0004497405035137832,
+          "passes_interval": true,
+          "standard_error": 0.00012849728671822377,
+          "tap_or_cluster_index_zero_based": 17,
+          "target": 0.00849509242642132
+        },
+        {
+          "absolute_error": 0.00016545973849558908,
+          "estimate": 0.014928238397433097,
+          "half_width_z_times_se": 0.0008023978903374465,
+          "passes_interval": true,
+          "standard_error": 0.0002292565400964133,
+          "tap_or_cluster_index_zero_based": 18,
+          "target": 0.014762778658937508
+        },
+        {
+          "absolute_error": 7.028443143494364e-05,
+          "estimate": 0.010143063061639146,
+          "half_width_z_times_se": 0.000552173543171242,
+          "passes_interval": true,
+          "standard_error": 0.00015776386947749773,
+          "tap_or_cluster_index_zero_based": 19,
+          "target": 0.01021334749307409
+        },
+        {
+          "absolute_error": 1.753710800714032e-05,
+          "estimate": 0.00454459763808523,
+          "half_width_z_times_se": 0.00024445318862133773,
+          "passes_interval": true,
+          "standard_error": 6.984376817752506e-05,
+          "tap_or_cluster_index_zero_based": 20,
+          "target": 0.00456213474609237
+        },
+        {
+          "absolute_error": 5.122118270428633e-05,
+          "estimate": 0.016898716597911714,
+          "half_width_z_times_se": 0.0008974769708075161,
+          "passes_interval": true,
+          "standard_error": 0.00025642199165929033,
+          "tap_or_cluster_index_zero_based": 21,
+          "target": 0.016949937780616
+        },
+        {
+          "absolute_error": 0.00010129677583466112,
+          "estimate": 0.010349950141556263,
+          "half_width_z_times_se": 0.000566454540787065,
+          "passes_interval": true,
+          "standard_error": 0.00016184415451059,
+          "tap_or_cluster_index_zero_based": 22,
+          "target": 0.010451246917390924
+        }
+      ],
+      "reference_kind": "ETSI_TR_38_901_V19_2_0_TDL_FIXTURE",
+      "rms_delay_claim": {
+        "absolute_error_s": 1.521483304762649e-10,
+        "estimate_s": 9.984672069617071e-08,
+        "half_width_z_times_se_s": 8.383299201595015e-10,
+        "passes_interval": true,
+        "standard_error_s": 2.3952283433128613e-10,
+        "target_s": 9.999886902664698e-08
+      },
+      "seed": 7311
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "draw_count": 4096,
+      "family": "TDL",
+      "model": "C",
+      "passed": true,
+      "power_claim_count": 24,
+      "power_claims": [
+        {
+          "absolute_error": 0.00047349197979108804,
+          "estimate": 0.06133223674328114,
+          "half_width_z_times_se": 0.0033287114315338,
+          "passes_interval": true,
+          "standard_error": 0.0009510604090096571,
+          "tap_or_cluster_index_zero_based": 0,
+          "target": 0.06180572872307223
+        },
+        {
+          "absolute_error": 0.0031149401312904057,
+          "estimate": 0.13224541001701962,
+          "half_width_z_times_se": 0.007011985008705853,
+          "passes_interval": true,
+          "standard_error": 0.0020034242882016723,
+          "tap_or_cluster_index_zero_based": 1,
+          "target": 0.1291304698857292
+        },
+        {
+          "absolute_error": 0.0006128726428201725,
+          "estimate": 0.07665053054811777,
+          "half_width_z_times_se": 0.004027760349113545,
+          "passes_interval": true,
+          "standard_error": 0.0011507886711752987,
+          "tap_or_cluster_index_zero_based": 2,
+          "target": 0.0760376579052976
+        },
+        {
+          "absolute_error": 0.001226569659908,
+          "estimate": 0.05018119633854323,
+          "half_width_z_times_se": 0.0027126191699962878,
+          "passes_interval": true,
+          "standard_error": 0.000775034048570368,
+          "tap_or_cluster_index_zero_based": 3,
+          "target": 0.05140776599845123
+        },
+        {
+          "absolute_error": 0.0005809367774806257,
+          "estimate": 0.09514480301281014,
+          "half_width_z_times_se": 0.0050316591581727865,
+          "passes_interval": true,
+          "standard_error": 0.001437616902335082,
+          "tap_or_cluster_index_zero_based": 4,
+          "target": 0.09572573979029077
+        },
+        {
+          "absolute_error": 0.0005147532175648339,
+          "estimate": 0.1697123588622529,
+          "half_width_z_times_se": 0.00909291998467961,
+          "passes_interval": true,
+          "standard_error": 0.0025979771384798886,
+          "tap_or_cluster_index_zero_based": 5,
+          "target": 0.17022711207981772
+        },
+        {
+          "absolute_error": 6.971995733855152e-05,
+          "estimate": 0.1025022582361097,
+          "half_width_z_times_se": 0.005552841974707887,
+          "passes_interval": true,
+          "standard_error": 0.0015865262784879675,
+          "tap_or_cluster_index_zero_based": 6,
+          "target": 0.10257197819344825
+        },
+        {
+          "absolute_error": 0.0006834496343165325,
+          "estimate": 0.06866371857455145,
+          "half_width_z_times_se": 0.003606178363161279,
+          "passes_interval": true,
+          "standard_error": 0.0010303366751889368,
+          "tap_or_cluster_index_zero_based": 7,
+          "target": 0.06934716820886798
+        },
+        {
+          "absolute_error": 0.0004884131745512728,
+          "estimate": 0.03048782902648295,
+          "half_width_z_times_se": 0.001598439054584124,
+          "passes_interval": true,
+          "standard_error": 0.00045669687273832115,
+          "tap_or_cluster_index_zero_based": 8,
+          "target": 0.03097624220103422
+        },
+        {
+          "absolute_error": 0.00031576229444875425,
+          "estimate": 0.033507403816572766,
+          "half_width_z_times_se": 0.0017947469475777615,
+          "passes_interval": true,
+          "standard_error": 0.0005127848421650747,
+          "tap_or_cluster_index_zero_based": 9,
+          "target": 0.03319164152212401
+        },
+        {
+          "absolute_error": 0.00017640475247546195,
+          "estimate": 0.014312272269971754,
+          "half_width_z_times_se": 0.0007698125855552503,
+          "passes_interval": true,
+          "standard_error": 0.0002199464530157858,
+          "tap_or_cluster_index_zero_based": 10,
+          "target": 0.014488677022447216
+        },
+        {
+          "absolute_error": 0.00027835656273400913,
+          "estimate": 0.013492187055132776,
+          "half_width_z_times_se": 0.0007039416821231462,
+          "passes_interval": true,
+          "standard_error": 0.0002011261948923275,
+          "tap_or_cluster_index_zero_based": 11,
+          "target": 0.013213830492398767
+        },
+        {
+          "absolute_error": 0.00019117093130804202,
+          "estimate": 0.05279637762633202,
+          "half_width_z_times_se": 0.002826901183597516,
+          "passes_interval": true,
+          "standard_error": 0.0008076860524564331,
+          "tap_or_cluster_index_zero_based": 12,
+          "target": 0.05260520669502398
+        },
+        {
+          "absolute_error": 0.000992287451705584,
+          "estimate": 0.03457319721177643,
+          "half_width_z_times_se": 0.001848767484444804,
+          "passes_interval": true,
+          "standard_error": 0.000528219281269944,
+          "tap_or_cluster_index_zero_based": 13,
+          "target": 0.035565484663482014
+        },
+        {
+          "absolute_error": 2.9490899247863744e-05,
+          "estimate": 0.02299249647989221,
+          "half_width_z_times_se": 0.001247613245733101,
+          "passes_interval": true,
+          "standard_error": 0.0003564609273523146,
+          "tap_or_cluster_index_zero_based": 14,
+          "target": 0.022963005580644347
+        },
+        {
+          "absolute_error": 7.927268658650469e-06,
+          "estimate": 0.00815550910571658,
+          "half_width_z_times_se": 0.00044059039876214926,
+          "passes_interval": true,
+          "standard_error": 0.00012588297107489978,
+          "tap_or_cluster_index_zero_based": 15,
+          "target": 0.00814758183705793
+        },
+        {
+          "absolute_error": 0.00012575146772693564,
+          "estimate": 0.0070604682886137304,
+          "half_width_z_times_se": 0.00038189481184843643,
+          "passes_interval": true,
+          "standard_error": 0.00010911280338526755,
+          "tap_or_cluster_index_zero_based": 16,
+          "target": 0.006934716820886795
+        },
+        {
+          "absolute_error": 6.440088758207299e-06,
+          "estimate": 0.006941156909645002,
+          "half_width_z_times_se": 0.00037408242261216816,
+          "passes_interval": true,
+          "standard_error": 0.0001068806921749052,
+          "tap_or_cluster_index_zero_based": 17,
+          "target": 0.006934716820886795
+        },
+        {
+          "absolute_error": 8.089415628564911e-05,
+          "estimate": 0.004558323398848971,
+          "half_width_z_times_se": 0.0002484951676740973,
+          "passes_interval": true,
+          "standard_error": 7.099861933545637e-05,
+          "tap_or_cluster_index_zero_based": 18,
+          "target": 0.004477429242563322
+        },
+        {
+          "absolute_error": 4.46916631271577e-06,
+          "estimate": 0.0033236333185251155,
+          "half_width_z_times_se": 0.00017729501656483417,
+          "passes_interval": true,
+          "standard_error": 5.065571901852405e-05,
+          "tap_or_cluster_index_zero_based": 19,
+          "target": 0.0033191641522123997
+        },
+        {
+          "absolute_error": 2.185857068628689e-05,
+          "estimate": 0.004254053160397259,
+          "half_width_z_times_se": 0.00022737932537041843,
+          "passes_interval": true,
+          "standard_error": 6.496552153440526e-05,
+          "tap_or_cluster_index_zero_based": 20,
+          "target": 0.0042759117310835456
+        },
+        {
+          "absolute_error": 8.626462471227406e-06,
+          "estimate": 0.004590348429819202,
+          "half_width_z_times_se": 0.00024757088723096325,
+          "passes_interval": true,
+          "standard_error": 7.073453920884664e-05,
+          "tap_or_cluster_index_zero_based": 21,
+          "target": 0.004581721967347975
+        },
+        {
+          "absolute_error": 1.341835513953742e-05,
+          "estimate": 0.001191102237408606,
+          "half_width_z_times_se": 6.25699641008775e-05,
+          "passes_interval": true,
+          "standard_error": 1.7877132600250714e-05,
+          "tap_or_cluster_index_zero_based": 22,
+          "target": 0.0011776838822690687
+        },
+        {
+          "absolute_error": 5.204995041710025e-06,
+          "estimate": 0.0008881595885209146,
+          "half_width_z_times_se": 4.683211823632572e-05,
+          "passes_interval": true,
+          "standard_error": 1.3380605210378777e-05,
+          "tap_or_cluster_index_zero_based": 23,
+          "target": 0.0008933645835626247
+        }
+      ],
+      "reference_kind": "ETSI_TR_38_901_V19_2_0_TDL_FIXTURE",
+      "rms_delay_claim": {
+        "absolute_error_s": 1.9863764137413589e-10,
+        "estimate_s": 1.0019821985523628e-07,
+        "half_width_z_times_se_s": 1.0112789556922388e-09,
+        "passes_interval": true,
+        "standard_error_s": 2.889368444834968e-10,
+        "target_s": 9.999958221386215e-08
+      },
+      "seed": 7311
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "draw_count": 4096,
+      "family": "TDL",
+      "model": "D",
+      "passed": true,
+      "power_claim_count": 13,
+      "power_claims": [
+        {
+          "absolute_error": 0.004030669134850395,
+          "estimate": 0.9253290471788205,
+          "half_width_z_times_se": 0.015117826631805747,
+          "passes_interval": true,
+          "standard_error": 0.004319379037658785,
+          "tap_or_cluster_index_zero_based": 0,
+          "target": 0.9293597163136709
+        },
+        {
+          "absolute_error": 7.185510013076046e-05,
+          "estimate": 0.012183647272060893,
+          "half_width_z_times_se": 0.0006445578571596788,
+          "passes_interval": true,
+          "standard_error": 0.0001841593877599082,
+          "tap_or_cluster_index_zero_based": 1,
+          "target": 0.012255502372191654
+        },
+        {
+          "absolute_error": 8.186955593742894e-05,
+          "estimate": 0.007302800880583684,
+          "half_width_z_times_se": 0.000391917986322513,
+          "passes_interval": true,
+          "standard_error": 0.000111976567520718,
+          "tap_or_cluster_index_zero_based": 2,
+          "target": 0.007384670436521113
+        },
+        {
+          "absolute_error": 4.112810339878311e-05,
+          "estimate": 0.0049201314765036745,
+          "half_width_z_times_se": 0.0002604074037814964,
+          "passes_interval": true,
+          "standard_error": 7.440211536614183e-05,
+          "tap_or_cluster_index_zero_based": 3,
+          "target": 0.004879003373104891
+        },
+        {
+          "absolute_error": 9.739723305209058e-06,
+          "estimate": 0.015067822115819252,
+          "half_width_z_times_se": 0.0008188288439444674,
+          "passes_interval": true,
+          "standard_error": 0.00023395109826984784,
+          "tap_or_cluster_index_zero_based": 4,
+          "target": 0.01507756183912446
+        },
+        {
+          "absolute_error": 0.00011103325204900663,
+          "estimate": 0.009196162672842366,
+          "half_width_z_times_se": 0.00049275521693561,
+          "passes_interval": true,
+          "standard_error": 0.0001407872048387457,
+          "tap_or_cluster_index_zero_based": 5,
+          "target": 0.00908512942079336
+        },
+        {
+          "absolute_error": 2.1717556433599808e-05,
+          "estimate": 0.006024203039052822,
+          "half_width_z_times_se": 0.00032496999810054615,
+          "passes_interval": true,
+          "standard_error": 9.284857088587033e-05,
+          "tap_or_cluster_index_zero_based": 6,
+          "target": 0.0060024854826192225
+        },
+        {
+          "absolute_error": 2.99882193112418e-05,
+          "estimate": 0.004797931916678294,
+          "half_width_z_times_se": 0.00025181074789242214,
+          "passes_interval": true,
+          "standard_error": 7.194592796926347e-05,
+          "tap_or_cluster_index_zero_based": 7,
+          "target": 0.004767943697367052
+        },
+        {
+          "absolute_error": 7.897318808263842e-06,
+          "estimate": 0.0015349790182573129,
+          "half_width_z_times_se": 8.06222083759196e-05,
+          "passes_interval": true,
+          "standard_error": 2.303491667883417e-05,
+          "tap_or_cluster_index_zero_based": 8,
+          "target": 0.0015428763370655767
+        },
+        {
+          "absolute_error": 1.3303377484820411e-05,
+          "estimate": 0.004071481622321196,
+          "half_width_z_times_se": 0.00021355568088954894,
+          "passes_interval": true,
+          "standard_error": 6.101590882558541e-05,
+          "tap_or_cluster_index_zero_based": 9,
+          "target": 0.004058178244836376
+        },
+        {
+          "absolute_error": 8.239554797360125e-06,
+          "estimate": 0.0030866825668015296,
+          "half_width_z_times_se": 0.0001614778570023049,
+          "passes_interval": true,
+          "standard_error": 4.613653057208712e-05,
+          "tap_or_cluster_index_zero_based": 10,
+          "target": 0.0030784430120041695
+        },
+        {
+          "absolute_error": 6.814202932981569e-06,
+          "estimate": 0.000922860724093174,
+          "half_width_z_times_se": 4.9565072326081536e-05,
+          "passes_interval": true,
+          "standard_error": 1.4161449236023297e-05,
+          "tap_or_cluster_index_zero_based": 11,
+          "target": 0.0009296749270261556
+        },
+        {
+          "absolute_error": 1.0013136749169186e-05,
+          "estimate": 0.001568801406925835,
+          "half_width_z_times_se": 8.383205581892908e-05,
+          "passes_interval": true,
+          "standard_error": 2.395201594826545e-05,
+          "tap_or_cluster_index_zero_based": 12,
+          "target": 0.001578814543675004
+        }
+      ],
+      "reference_kind": "ETSI_TR_38_901_V19_2_0_TDL_FIXTURE",
+      "rms_delay_claim": {
+        "absolute_error_s": 1.8151317715205874e-10,
+        "estimate_s": 9.955356986221517e-08,
+        "half_width_z_times_se_s": 1.384850877093293e-09,
+        "passes_interval": true,
+        "standard_error_s": 3.9567167916951224e-10,
+        "target_s": 9.937205668506311e-08
+      },
+      "seed": 7311
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "draw_count": 4096,
+      "family": "TDL",
+      "model": "E",
+      "passed": true,
+      "power_claim_count": 14,
+      "power_claims": [
+        {
+          "absolute_error": 0.0011915285479224824,
+          "estimate": 0.9010606089577777,
+          "half_width_z_times_se": 0.005543471616347087,
+          "passes_interval": true,
+          "standard_error": 0.001583849033242025,
+          "tap_or_cluster_index_zero_based": 0,
+          "target": 0.8998690804098552
+        },
+        {
+          "absolute_error": 0.00048215097444260363,
+          "estimate": 0.024165751400053725,
+          "half_width_z_times_se": 0.0013241699311286861,
+          "passes_interval": true,
+          "standard_error": 0.00037833426603676746,
+          "tap_or_cluster_index_zero_based": 1,
+          "target": 0.023683600425611122
+        },
+        {
+          "absolute_error": 0.000336880782007205,
+          "estimate": 0.01428281862860524,
+          "half_width_z_times_se": 0.0007677170057157736,
+          "passes_interval": true,
+          "standard_error": 0.00021934771591879246,
+          "tap_or_cluster_index_zero_based": 2,
+          "target": 0.013945937846598035
+        },
+        {
+          "absolute_error": 0.0001948836152264547,
+          "estimate": 0.009233727538733194,
+          "half_width_z_times_se": 0.0004862638379949413,
+          "passes_interval": true,
+          "standard_error": 0.0001389325251414118,
+          "tap_or_cluster_index_zero_based": 3,
+          "target": 0.009428611153959649
+        },
+        {
+          "absolute_error": 8.890577233524894e-05,
+          "estimate": 0.00452902826693527,
+          "half_width_z_times_se": 0.00023971382452247632,
+          "passes_interval": true,
+          "standard_error": 6.848966414927895e-05,
+          "tap_or_cluster_index_zero_based": 4,
+          "target": 0.004617934039270519
+        },
+        {
+          "absolute_error": 0.0001030365836750648,
+          "estimate": 0.005284443796485799,
+          "half_width_z_times_se": 0.00028278475227136137,
+          "passes_interval": true,
+          "standard_error": 8.079564350610325e-05,
+          "tap_or_cluster_index_zero_based": 5,
+          "target": 0.005181407212810734
+        },
+        {
+          "absolute_error": 0.00011356902119261797,
+          "estimate": 0.012542899210128022,
+          "half_width_z_times_se": 0.0006809591811428577,
+          "passes_interval": true,
+          "standard_error": 0.0001945597660408165,
+          "tap_or_cluster_index_zero_based": 6,
+          "target": 0.012429330188935404
+        },
+        {
+          "absolute_error": 0.00011123823384710102,
+          "estimate": 0.007600650287673538,
+          "half_width_z_times_se": 0.00040442103317678534,
+          "passes_interval": true,
+          "standard_error": 0.00011554886662193867,
+          "tap_or_cluster_index_zero_based": 7,
+          "target": 0.007489412053826437
+        },
+        {
+          "absolute_error": 1.547095666574929e-05,
+          "estimate": 0.004932734516726489,
+          "half_width_z_times_se": 0.0002618160538789207,
+          "passes_interval": true,
+          "standard_error": 7.480458682254878e-05,
+          "tap_or_cluster_index_zero_based": 8,
+          "target": 0.004948205473392238
+        },
+        {
+          "absolute_error": 5.5993459334615324e-05,
+          "estimate": 0.0052461042316875595,
+          "half_width_z_times_se": 0.00028113359252598686,
+          "passes_interval": true,
+          "standard_error": 8.032388357885339e-05,
+          "tap_or_cluster_index_zero_based": 9,
+          "target": 0.005302097691022175
+        },
+        {
+          "absolute_error": 2.1617686663426457e-05,
+          "estimate": 0.0024583597259653575,
+          "half_width_z_times_se": 0.00012878003630488138,
+          "passes_interval": true,
+          "standard_error": 3.679429608710897e-05,
+          "tap_or_cluster_index_zero_based": 10,
+          "target": 0.002479977412628784
+        },
+        {
+          "absolute_error": 5.458784054183062e-05,
+          "estimate": 0.0085444077319414,
+          "half_width_z_times_se": 0.0004520086501125964,
+          "passes_interval": true,
+          "standard_error": 0.00012914532860359897,
+          "tap_or_cluster_index_zero_based": 11,
+          "target": 0.00859899557248323
+        },
+        {
+          "absolute_error": 4.437575816703277e-06,
+          "estimate": 0.0009384235395792616,
+          "half_width_z_times_se": 5.03973567198772e-05,
+          "passes_interval": true,
+          "standard_error": 1.4399244777107772e-05,
+          "tap_or_cluster_index_zero_based": 12,
+          "target": 0.0009428611153959648
+        },
+        {
+          "absolute_error": 1.5684311979869857e-05,
+          "estimate": 0.0010668650922305975,
+          "half_width_z_times_se": 5.5133397396766057e-05,
+          "passes_interval": true,
+          "standard_error": 1.5752399256218873e-05,
+          "tap_or_cluster_index_zero_based": 13,
+          "target": 0.0010825494042104673
+        }
+      ],
+      "reference_kind": "ETSI_TR_38_901_V19_2_0_TDL_FIXTURE",
+      "rms_delay_claim": {
+        "absolute_error_s": 5.227117903033867e-10,
+        "estimate_s": 9.950136640013871e-08,
+        "half_width_z_times_se_s": 1.3829101566679068e-09,
+        "passes_interval": true,
+        "standard_error_s": 3.9511718761940193e-10,
+        "target_s": 1.000240781904421e-07
+      },
+      "seed": 7311
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "draw_count": 4096,
+      "family": "CDL",
+      "model": "A",
+      "passed": true,
+      "power_claim_count": 23,
+      "power_claims": [
+        {
+          "absolute_error": 0.0003923152177759473,
+          "estimate": 0.012789142183904353,
+          "half_width_z_times_se": 0.0006855693440839662,
+          "passes_interval": true,
+          "standard_error": 0.00019587695545256176,
+          "tap_or_cluster_index_zero_based": 0,
+          "target": 0.0131814574016803
+        },
+        {
+          "absolute_error": 0.0027710616943391053,
+          "estimate": 0.2856078048168804,
+          "half_width_z_times_se": 0.015438041147508089,
+          "passes_interval": true,
+          "standard_error": 0.004410868899288025,
+          "tap_or_cluster_index_zero_based": 1,
+          "target": 0.2883788665112195
+        },
+        {
+          "absolute_error": 0.005201067468140502,
+          "estimate": 0.17896651790573337,
+          "half_width_z_times_se": 0.009297559181487123,
+          "passes_interval": true,
+          "standard_error": 0.002656445480424892,
+          "tap_or_cluster_index_zero_based": 2,
+          "target": 0.17376545043759287
+        },
+        {
+          "absolute_error": 0.0005026440326641735,
+          "estimate": 0.0719348521597003,
+          "half_width_z_times_se": 0.0038801916683913326,
+          "passes_interval": true,
+          "standard_error": 0.0011086261909689522,
+          "tap_or_cluster_index_zero_based": 3,
+          "target": 0.07243749619236448
+        },
+        {
+          "absolute_error": 0.00037230663158233784,
+          "estimate": 0.04327560109035167,
+          "half_width_z_times_se": 0.0023245970108583727,
+          "passes_interval": true,
+          "standard_error": 0.0006641705745309636,
+          "tap_or_cluster_index_zero_based": 4,
+          "target": 0.043647907721934005
+        },
+        {
+          "absolute_error": 0.0002927380293489337,
+          "estimate": 0.02599453156095599,
+          "half_width_z_times_se": 0.001388761840219712,
+          "passes_interval": true,
+          "standard_error": 0.00039678909720563204,
+          "tap_or_cluster_index_zero_based": 5,
+          "target": 0.025701793531607058
+        },
+        {
+          "absolute_error": 0.0010438080246250453,
+          "estimate": 0.11584950261883131,
+          "half_width_z_times_se": 0.006142488346118585,
+          "passes_interval": true,
+          "standard_error": 0.0017549966703195956,
+          "tap_or_cluster_index_zero_based": 6,
+          "target": 0.11480569459420627
+        },
+        {
+          "absolute_error": 4.444954678400198e-05,
+          "estimate": 0.0294651577754958,
+          "half_width_z_times_se": 0.0015827228986097397,
+          "passes_interval": true,
+          "standard_error": 0.00045220654245992564,
+          "tap_or_cluster_index_zero_based": 7,
+          "target": 0.0295096073222798
+        },
+        {
+          "absolute_error": 0.0004942408363807008,
+          "estimate": 0.05177606089710718,
+          "half_width_z_times_se": 0.0027859325140708914,
+          "passes_interval": true,
+          "standard_error": 0.000795980718305969,
+          "tap_or_cluster_index_zero_based": 8,
+          "target": 0.05128182006072648
+        },
+        {
+          "absolute_error": 0.00021447506520213232,
+          "estimate": 0.007626953288403168,
+          "half_width_z_times_se": 0.000406725148435927,
+          "passes_interval": true,
+          "standard_error": 0.0001162071852674077,
+          "tap_or_cluster_index_zero_based": 9,
+          "target": 0.007412478223201036
+        },
+        {
+          "absolute_error": 0.00038037008204869216,
+          "estimate": 0.06347079181318038,
+          "half_width_z_times_se": 0.003391402126237563,
+          "passes_interval": true,
+          "standard_error": 0.0009689720360678752,
+          "tap_or_cluster_index_zero_based": 10,
+          "target": 0.06309042173113169
+        },
+        {
+          "absolute_error": 0.00038676180822361586,
+          "estimate": 0.016207709879234034,
+          "half_width_z_times_se": 0.0008675291261831729,
+          "passes_interval": true,
+          "standard_error": 0.00024786546462376367,
+          "tap_or_cluster_index_zero_based": 11,
+          "target": 0.01659447168745765
+        },
+        {
+          "absolute_error": 0.00014757521667637784,
+          "estimate": 0.006313006056822501,
+          "half_width_z_times_se": 0.00032730525665681663,
+          "passes_interval": true,
+          "standard_error": 9.351578761623333e-05,
+          "tap_or_cluster_index_zero_based": 12,
+          "target": 0.006165430840146123
+        },
+        {
+          "absolute_error": 0.0002546139313837556,
+          "estimate": 0.008963516471865163,
+          "half_width_z_times_se": 0.0004702736796617709,
+          "passes_interval": true,
+          "standard_error": 0.00013436390847479168,
+          "tap_or_cluster_index_zero_based": 13,
+          "target": 0.008708902540481407
+        },
+        {
+          "absolute_error": 0.00018982121036711583,
+          "estimate": 0.024176130561935683,
+          "half_width_z_times_se": 0.001256981624288831,
+          "passes_interval": true,
+          "standard_error": 0.000359137606939666,
+          "tap_or_cluster_index_zero_based": 14,
+          "target": 0.023986309351568567
+        },
+        {
+          "absolute_error": 0.00034648829332619563,
+          "estimate": 0.021724309005277914,
+          "half_width_z_times_se": 0.00118485620368195,
+          "passes_interval": true,
+          "standard_error": 0.0003385303439091286,
+          "tap_or_cluster_index_zero_based": 15,
+          "target": 0.02137782071195172
+        },
+        {
+          "absolute_error": 0.0003727722605070625,
+          "estimate": 0.01511408981126669,
+          "half_width_z_times_se": 0.0007945724034397933,
+          "passes_interval": true,
+          "standard_error": 0.0002270206866970838,
+          "tap_or_cluster_index_zero_based": 16,
+          "target": 0.015486862071773752
+        },
+        {
+          "absolute_error": 1.4961909534295069e-05,
+          "estimate": 0.006902765271832114,
+          "half_width_z_times_se": 0.0003778581770970801,
+          "passes_interval": true,
+          "standard_error": 0.00010795947917059432,
+          "tap_or_cluster_index_zero_based": 17,
+          "target": 0.006917727181366409
+        },
+        {
+          "absolute_error": 1.2878039077527693e-05,
+          "estimate": 0.004252557965194317,
+          "half_width_z_times_se": 0.00022885441502676292,
+          "passes_interval": true,
+          "standard_error": 6.538697572193226e-05,
+          "tap_or_cluster_index_zero_based": 18,
+          "target": 0.004265436004271845
+        },
+        {
+          "absolute_error": 3.6168764410128996e-05,
+          "estimate": 0.0036788706905983987,
+          "half_width_z_times_se": 0.00019479374212980486,
+          "passes_interval": true,
+          "standard_error": 5.565535489422996e-05,
+          "tap_or_cluster_index_zero_based": 19,
+          "target": 0.0037150394550085277
+        },
+        {
+          "absolute_error": 7.171636501556583e-06,
+          "estimate": 0.00630187053661161,
+          "half_width_z_times_se": 0.0003357222970078463,
+          "passes_interval": true,
+          "standard_error": 9.592065628795609e-05,
+          "tap_or_cluster_index_zero_based": 20,
+          "target": 0.006309042173113167
+        },
+        {
+          "absolute_error": 9.152503725649418e-06,
+          "estimate": 0.0029418082285023323,
+          "half_width_z_times_se": 0.00016166819123736499,
+          "passes_interval": true,
+          "standard_error": 4.619091178210428e-05,
+          "tap_or_cluster_index_zero_based": 21,
+          "target": 0.0029509607322279817
+        },
+        {
+          "absolute_error": 9.911013856707103e-06,
+          "estimate": 0.0003189145365460177,
+          "half_width_z_times_se": 1.7003873815068185e-05,
+          "passes_interval": true,
+          "standard_error": 4.8582496614480524e-06,
+          "tap_or_cluster_index_zero_based": 22,
+          "target": 0.0003090035226893106
+        }
+      ],
+      "reference_kind": "ETSI_TR_38_901_V19_2_0_CLUSTER_FIXTURE",
+      "rms_delay_claim": {
+        "absolute_error_s": 2.4026498020857484e-10,
+        "estimate_s": 9.976552893584015e-08,
+        "half_width_z_times_se_s": 9.720531087771408e-10,
+        "passes_interval": true,
+        "standard_error_s": 2.777294596506117e-10,
+        "target_s": 1.0000579391604872e-07
+      },
+      "seed": 7311
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "draw_count": 4096,
+      "family": "CDL",
+      "model": "B",
+      "passed": true,
+      "power_claim_count": 23,
+      "power_claims": [
+        {
+          "absolute_error": 0.004196047555197535,
+          "estimate": 0.13678739412841046,
+          "half_width_z_times_se": 0.007332567118857564,
+          "passes_interval": true,
+          "standard_error": 0.002095019176816447,
+          "tap_or_cluster_index_zero_based": 0,
+          "target": 0.140983441683608
+        },
+        {
+          "absolute_error": 0.0008162953839780246,
+          "estimate": 0.08413462888023515,
+          "half_width_z_times_se": 0.004547753350408806,
+          "passes_interval": true,
+          "standard_error": 0.0012993581001168018,
+          "tap_or_cluster_index_zero_based": 1,
+          "target": 0.08495092426421318
+        },
+        {
+          "absolute_error": 0.0006135188114491374,
+          "estimate": 0.06809243652043773,
+          "half_width_z_times_se": 0.0036103477882809287,
+          "passes_interval": true,
+          "standard_error": 0.0010315279395088368,
+          "tap_or_cluster_index_zero_based": 2,
+          "target": 0.06747891770898859
+        },
+        {
+          "absolute_error": 0.0016799613178730619,
+          "estimate": 0.057806480381428216,
+          "half_width_z_times_se": 0.0030031269492178194,
+          "passes_interval": true,
+          "standard_error": 0.0008580362712050912,
+          "tap_or_cluster_index_zero_based": 3,
+          "target": 0.056126519063555154
+        },
+        {
+          "absolute_error": 0.00010243735999583732,
+          "estimate": 0.01466034129894167,
+          "half_width_z_times_se": 0.0007907840529082136,
+          "passes_interval": true,
+          "standard_error": 0.00022593830083091816,
+          "tap_or_cluster_index_zero_based": 4,
+          "target": 0.014762778658937508
+        },
+        {
+          "absolute_error": 0.000912243354488057,
+          "estimate": 0.10603463395713164,
+          "half_width_z_times_se": 0.005695768142914656,
+          "passes_interval": true,
+          "standard_error": 0.0016273623265470446,
+          "tap_or_cluster_index_zero_based": 5,
+          "target": 0.1069468773116197
+        },
+        {
+          "absolute_error": 0.00023612503420384484,
+          "estimate": 0.024736239213975164,
+          "half_width_z_times_se": 0.0013309914253688728,
+          "passes_interval": true,
+          "standard_error": 0.00038028326439110653,
+          "tap_or_cluster_index_zero_based": 6,
+          "target": 0.02450011417977132
+        },
+        {
+          "absolute_error": 0.0020444743881396915,
+          "estimate": 0.07270357551279905,
+          "half_width_z_times_se": 0.0038770884768511023,
+          "passes_interval": true,
+          "standard_error": 0.0011077395648146006,
+          "tap_or_cluster_index_zero_based": 7,
+          "target": 0.07065910112465935
+        },
+        {
+          "absolute_error": 9.70613214306415e-05,
+          "estimate": 0.06434480480340404,
+          "half_width_z_times_se": 0.0034562854291335294,
+          "passes_interval": true,
+          "standard_error": 0.0009875101226095799,
+          "tap_or_cluster_index_zero_based": 8,
+          "target": 0.06444186612483468
+        },
+        {
+          "absolute_error": 0.00048492976254634057,
+          "estimate": 0.04306124848860726,
+          "half_width_z_times_se": 0.0023005538035648886,
+          "passes_interval": true,
+          "standard_error": 0.0006573010867328252,
+          "tap_or_cluster_index_zero_based": 9,
+          "target": 0.04257631872606092
+        },
+        {
+          "absolute_error": 0.0004248291584090756,
+          "estimate": 0.018173592896178592,
+          "half_width_z_times_se": 0.000942231396062467,
+          "passes_interval": true,
+          "standard_error": 0.000269208970303562,
+          "tap_or_cluster_index_zero_based": 10,
+          "target": 0.017748763737769516
+        },
+        {
+          "absolute_error": 0.00010949521252808653,
+          "estimate": 0.018271680767034393,
+          "half_width_z_times_se": 0.0009763012987734165,
+          "passes_interval": true,
+          "standard_error": 0.00027894322822097616,
+          "tap_or_cluster_index_zero_based": 11,
+          "target": 0.018162185554506306
+        },
+        {
+          "absolute_error": 0.00108804741029047,
+          "estimate": 0.045595957744878124,
+          "half_width_z_times_se": 0.002440555857164619,
+          "passes_interval": true,
+          "standard_error": 0.0006973016734756054,
+          "tap_or_cluster_index_zero_based": 12,
+          "target": 0.046684005155168594
+        },
+        {
+          "absolute_error": 0.0011093987685878992,
+          "estimate": 0.039055582775471054,
+          "half_width_z_times_se": 0.0020490633073125012,
+          "passes_interval": true,
+          "standard_error": 0.0005854466592321433,
+          "tap_or_cluster_index_zero_based": 13,
+          "target": 0.037946184006883155
+        },
+        {
+          "absolute_error": 0.00019840616117474882,
+          "estimate": 0.02526920131141308,
+          "half_width_z_times_se": 0.0013138132972927538,
+          "passes_interval": true,
+          "standard_error": 0.00037537522779792967,
+          "tap_or_cluster_index_zero_based": 14,
+          "target": 0.025070795150238332
+        },
+        {
+          "absolute_error": 0.0014753250879067925,
+          "estimate": 0.09250188043478902,
+          "half_width_z_times_se": 0.005045105335091206,
+          "passes_interval": true,
+          "standard_error": 0.0014414586671689159,
+          "tap_or_cluster_index_zero_based": 15,
+          "target": 0.09102655534688223
+        },
+        {
+          "absolute_error": 0.0005897268796107233,
+          "estimate": 0.023910387300160596,
+          "half_width_z_times_se": 0.0012570081301633794,
+          "passes_interval": true,
+          "standard_error": 0.0003591451800466798,
+          "tap_or_cluster_index_zero_based": 16,
+          "target": 0.02450011417977132
+        },
+        {
+          "absolute_error": 1.8373111923391042e-05,
+          "estimate": 0.008476719314497928,
+          "half_width_z_times_se": 0.00046401660504607654,
+          "passes_interval": true,
+          "standard_error": 0.00013257617287030759,
+          "tap_or_cluster_index_zero_based": 17,
+          "target": 0.00849509242642132
+        },
+        {
+          "absolute_error": 4.45697642978294e-05,
+          "estimate": 0.014718208894639678,
+          "half_width_z_times_se": 0.0007920708219920612,
+          "passes_interval": true,
+          "standard_error": 0.0002263059491405889,
+          "tap_or_cluster_index_zero_based": 18,
+          "target": 0.014762778658937508
+        },
+        {
+          "absolute_error": 9.943520870028463e-05,
+          "estimate": 0.010113912284373805,
+          "half_width_z_times_se": 0.0005355248917550321,
+          "passes_interval": true,
+          "standard_error": 0.0001530071119300092,
+          "tap_or_cluster_index_zero_based": 19,
+          "target": 0.01021334749307409
+        },
+        {
+          "absolute_error": 5.186253732038758e-06,
+          "estimate": 0.004556948492360331,
+          "half_width_z_times_se": 0.0002427643028256964,
+          "passes_interval": true,
+          "standard_error": 6.93612293787704e-05,
+          "tap_or_cluster_index_zero_based": 20,
+          "target": 0.00456213474609237
+        },
+        {
+          "absolute_error": 5.2570813120891846e-05,
+          "estimate": 0.01689736696749511,
+          "half_width_z_times_se": 0.0009286012375556633,
+          "passes_interval": true,
+          "standard_error": 0.0002653146393016181,
+          "tap_or_cluster_index_zero_based": 21,
+          "target": 0.016949937780616
+        },
+        {
+          "absolute_error": 0.00033521582257055316,
+          "estimate": 0.010786462739961478,
+          "half_width_z_times_se": 0.0005751122345161163,
+          "passes_interval": true,
+          "standard_error": 0.00016431778129031893,
+          "tap_or_cluster_index_zero_based": 22,
+          "target": 0.010451246917390924
+        }
+      ],
+      "reference_kind": "ETSI_TR_38_901_V19_2_0_CLUSTER_FIXTURE",
+      "rms_delay_claim": {
+        "absolute_error_s": 9.083184570722788e-11,
+        "estimate_s": 1.000897008723542e-07,
+        "half_width_z_times_se_s": 8.603146380649831e-10,
+        "passes_interval": true,
+        "standard_error_s": 2.458041823042809e-10,
+        "target_s": 9.999886902664698e-08
+      },
+      "seed": 7311
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "draw_count": 4096,
+      "family": "CDL",
+      "model": "C",
+      "passed": true,
+      "power_claim_count": 24,
+      "power_claims": [
+        {
+          "absolute_error": 0.00031022157476477685,
+          "estimate": 0.06211595029783701,
+          "half_width_z_times_se": 0.00326161863920963,
+          "passes_interval": true,
+          "standard_error": 0.0009318910397741801,
+          "tap_or_cluster_index_zero_based": 0,
+          "target": 0.06180572872307223
+        },
+        {
+          "absolute_error": 0.0013522455875079886,
+          "estimate": 0.1304827154732372,
+          "half_width_z_times_se": 0.007018056947463089,
+          "passes_interval": true,
+          "standard_error": 0.002005159127846597,
+          "tap_or_cluster_index_zero_based": 1,
+          "target": 0.1291304698857292
+        },
+        {
+          "absolute_error": 0.0007806432443789729,
+          "estimate": 0.09650638303466974,
+          "half_width_z_times_se": 0.005223395112232185,
+          "passes_interval": true,
+          "standard_error": 0.00149239860349491,
+          "tap_or_cluster_index_zero_based": 2,
+          "target": 0.09572573979029077
+        },
+        {
+          "absolute_error": 0.00010940218886335007,
+          "estimate": 0.07614706009416095,
+          "half_width_z_times_se": 0.004044039727834576,
+          "passes_interval": true,
+          "standard_error": 0.0011554399222384502,
+          "tap_or_cluster_index_zero_based": 3,
+          "target": 0.0760376579052976
+        },
+        {
+          "absolute_error": 0.0002246849997040723,
+          "estimate": 0.051632450998155305,
+          "half_width_z_times_se": 0.0027345312782567294,
+          "passes_interval": true,
+          "standard_error": 0.000781294650930494,
+          "tap_or_cluster_index_zero_based": 4,
+          "target": 0.05140776599845123
+        },
+        {
+          "absolute_error": 0.0013569117247914098,
+          "estimate": 0.17158402380460913,
+          "half_width_z_times_se": 0.009104017535190549,
+          "passes_interval": true,
+          "standard_error": 0.0026011478671972995,
+          "tap_or_cluster_index_zero_based": 5,
+          "target": 0.17022711207981772
+        },
+        {
+          "absolute_error": 0.0025216514769885318,
+          "estimate": 0.10509362967043678,
+          "half_width_z_times_se": 0.005687350801223099,
+          "passes_interval": true,
+          "standard_error": 0.0016249573717780283,
+          "tap_or_cluster_index_zero_based": 6,
+          "target": 0.10257197819344825
+        },
+        {
+          "absolute_error": 0.0009351300645798893,
+          "estimate": 0.06841203814428809,
+          "half_width_z_times_se": 0.0035863214754938556,
+          "passes_interval": true,
+          "standard_error": 0.0010246632787125301,
+          "tap_or_cluster_index_zero_based": 7,
+          "target": 0.06934716820886798
+        },
+        {
+          "absolute_error": 0.0006002499605470939,
+          "estimate": 0.031576492161581315,
+          "half_width_z_times_se": 0.0016822799858758784,
+          "passes_interval": true,
+          "standard_error": 0.00048065142453596526,
+          "tap_or_cluster_index_zero_based": 8,
+          "target": 0.03097624220103422
+        },
+        {
+          "absolute_error": 0.00020727010028815523,
+          "estimate": 0.032984371421835856,
+          "half_width_z_times_se": 0.0017812537161903915,
+          "passes_interval": true,
+          "standard_error": 0.0005089296331972547,
+          "tap_or_cluster_index_zero_based": 9,
+          "target": 0.03319164152212401
+        },
+        {
+          "absolute_error": 1.003234449459267e-06,
+          "estimate": 0.014487673787997757,
+          "half_width_z_times_se": 0.0007643087600106465,
+          "passes_interval": true,
+          "standard_error": 0.0002183739314316133,
+          "tap_or_cluster_index_zero_based": 10,
+          "target": 0.014488677022447216
+        },
+        {
+          "absolute_error": 0.00010217183785512715,
+          "estimate": 0.01311165865454364,
+          "half_width_z_times_se": 0.0007000168158432906,
+          "passes_interval": true,
+          "standard_error": 0.00020000480452665446,
+          "tap_or_cluster_index_zero_based": 11,
+          "target": 0.013213830492398767
+        },
+        {
+          "absolute_error": 0.0012504738345999536,
+          "estimate": 0.051354732860424024,
+          "half_width_z_times_se": 0.002791478711451808,
+          "passes_interval": true,
+          "standard_error": 0.000797565346129088,
+          "tap_or_cluster_index_zero_based": 12,
+          "target": 0.05260520669502398
+        },
+        {
+          "absolute_error": 0.0001614904778096532,
+          "estimate": 0.03540399418567236,
+          "half_width_z_times_se": 0.0018666419789685096,
+          "passes_interval": true,
+          "standard_error": 0.0005333262797052884,
+          "tap_or_cluster_index_zero_based": 13,
+          "target": 0.035565484663482014
+        },
+        {
+          "absolute_error": 8.664766864641127e-05,
+          "estimate": 0.023049653249290758,
+          "half_width_z_times_se": 0.001242084120752293,
+          "passes_interval": true,
+          "standard_error": 0.000354881177357798,
+          "tap_or_cluster_index_zero_based": 14,
+          "target": 0.022963005580644347
+        },
+        {
+          "absolute_error": 9.908907009152125e-05,
+          "estimate": 0.00824667090714945,
+          "half_width_z_times_se": 0.0004368517059402117,
+          "passes_interval": true,
+          "standard_error": 0.00012481477312577477,
+          "tap_or_cluster_index_zero_based": 15,
+          "target": 0.00814758183705793
+        },
+        {
+          "absolute_error": 7.358502005107466e-05,
+          "estimate": 0.0070083018409378695,
+          "half_width_z_times_se": 0.00037206055185407395,
+          "passes_interval": true,
+          "standard_error": 0.0001063030148154497,
+          "tap_or_cluster_index_zero_based": 16,
+          "target": 0.006934716820886795
+        },
+        {
+          "absolute_error": 0.0002914746182931128,
+          "estimate": 0.007226191439179908,
+          "half_width_z_times_se": 0.00038309902449878524,
+          "passes_interval": true,
+          "standard_error": 0.00010945686414251008,
+          "tap_or_cluster_index_zero_based": 17,
+          "target": 0.006934716820886795
+        },
+        {
+          "absolute_error": 3.4413743734279523e-06,
+          "estimate": 0.004473987868189894,
+          "half_width_z_times_se": 0.00024144107009831762,
+          "passes_interval": true,
+          "standard_error": 6.898316288523361e-05,
+          "tap_or_cluster_index_zero_based": 18,
+          "target": 0.004477429242563322
+        },
+        {
+          "absolute_error": 4.662436223945793e-05,
+          "estimate": 0.0033657885144518576,
+          "half_width_z_times_se": 0.00018230168388651136,
+          "passes_interval": true,
+          "standard_error": 5.2086195396146104e-05,
+          "tap_or_cluster_index_zero_based": 19,
+          "target": 0.0033191641522123997
+        },
+        {
+          "absolute_error": 5.872752732752513e-06,
+          "estimate": 0.004270038978350793,
+          "half_width_z_times_se": 0.0002325386151568273,
+          "passes_interval": true,
+          "standard_error": 6.643960433052209e-05,
+          "tap_or_cluster_index_zero_based": 20,
+          "target": 0.0042759117310835456
+        },
+        {
+          "absolute_error": 0.00012721609665350235,
+          "estimate": 0.004454505870694472,
+          "half_width_z_times_se": 0.00023278364391355943,
+          "passes_interval": true,
+          "standard_error": 6.650961254673127e-05,
+          "tap_or_cluster_index_zero_based": 21,
+          "target": 0.004581721967347975
+        },
+        {
+          "absolute_error": 5.219192992809551e-06,
+          "estimate": 0.0011724646892762591,
+          "half_width_z_times_se": 6.282127708268255e-05,
+          "passes_interval": true,
+          "standard_error": 1.794893630933787e-05,
+          "tap_or_cluster_index_zero_based": 22,
+          "target": 0.0011776838822690687
+        },
+        {
+          "absolute_error": 7.822982893365758e-06,
+          "estimate": 0.0008855416006692589,
+          "half_width_z_times_se": 4.7560349307560794e-05,
+          "passes_interval": true,
+          "standard_error": 1.3588671230731656e-05,
+          "tap_or_cluster_index_zero_based": 23,
+          "target": 0.0008933645835626247
+        }
+      ],
+      "reference_kind": "ETSI_TR_38_901_V19_2_0_CLUSTER_FIXTURE",
+      "rms_delay_claim": {
+        "absolute_error_s": 1.5000135584963364e-10,
+        "estimate_s": 9.984958085801252e-08,
+        "half_width_z_times_se_s": 1.0189676939213093e-09,
+        "passes_interval": true,
+        "standard_error_s": 2.911336268346598e-10,
+        "target_s": 9.999958221386215e-08
+      },
+      "seed": 7311
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "draw_count": 4096,
+      "family": "CDL",
+      "model": "D",
+      "passed": true,
+      "power_claim_count": 13,
+      "power_claims": [
+        {
+          "absolute_error": 0.004122511506908122,
+          "estimate": 0.9252372048067627,
+          "half_width_z_times_se": 0.014912020718423354,
+          "passes_interval": true,
+          "standard_error": 0.004260577348120958,
+          "tap_or_cluster_index_zero_based": 0,
+          "target": 0.9293597163136709
+        },
+        {
+          "absolute_error": 9.07712384350598e-05,
+          "estimate": 0.012346273610626714,
+          "half_width_z_times_se": 0.0006747771264376471,
+          "passes_interval": true,
+          "standard_error": 0.00019279346469647062,
+          "tap_or_cluster_index_zero_based": 1,
+          "target": 0.012255502372191654
+        },
+        {
+          "absolute_error": 0.00015631907857597323,
+          "estimate": 0.00722835135794514,
+          "half_width_z_times_se": 0.00037857653515815395,
+          "passes_interval": true,
+          "standard_error": 0.00010816472433090113,
+          "tap_or_cluster_index_zero_based": 2,
+          "target": 0.007384670436521113
+        },
+        {
+          "absolute_error": 3.227708807497943e-05,
+          "estimate": 0.004846726285029912,
+          "half_width_z_times_se": 0.00025759920353259357,
+          "passes_interval": true,
+          "standard_error": 7.359977243788388e-05,
+          "tap_or_cluster_index_zero_based": 3,
+          "target": 0.004879003373104891
+        },
+        {
+          "absolute_error": 0.00017249979330135473,
+          "estimate": 0.015250061632425815,
+          "half_width_z_times_se": 0.0008174570847793246,
+          "passes_interval": true,
+          "standard_error": 0.000233559167079807,
+          "tap_or_cluster_index_zero_based": 4,
+          "target": 0.01507756183912446
+        },
+        {
+          "absolute_error": 0.00011445498493866963,
+          "estimate": 0.004882398682305722,
+          "half_width_z_times_se": 0.0002581878175462305,
+          "passes_interval": true,
+          "standard_error": 7.376794787035156e-05,
+          "tap_or_cluster_index_zero_based": 5,
+          "target": 0.004767943697367052
+        },
+        {
+          "absolute_error": 1.877003272348493e-06,
+          "estimate": 0.009087006424065708,
+          "half_width_z_times_se": 0.0004927116591371489,
+          "passes_interval": true,
+          "standard_error": 0.0001407747597534711,
+          "tap_or_cluster_index_zero_based": 6,
+          "target": 0.00908512942079336
+        },
+        {
+          "absolute_error": 0.00018555368604400609,
+          "estimate": 0.0061880391686632286,
+          "half_width_z_times_se": 0.00032719876420705545,
+          "passes_interval": true,
+          "standard_error": 9.348536120201584e-05,
+          "tap_or_cluster_index_zero_based": 7,
+          "target": 0.0060024854826192225
+        },
+        {
+          "absolute_error": 7.143217363157674e-06,
+          "estimate": 0.0015500195544287344,
+          "half_width_z_times_se": 8.348064565851842e-05,
+          "passes_interval": true,
+          "standard_error": 2.385161304529098e-05,
+          "tap_or_cluster_index_zero_based": 8,
+          "target": 0.0015428763370655767
+        },
+        {
+          "absolute_error": 1.4376667486021288e-05,
+          "estimate": 0.004072554912322397,
+          "half_width_z_times_se": 0.00022195021240724948,
+          "passes_interval": true,
+          "standard_error": 6.341434640207128e-05,
+          "tap_or_cluster_index_zero_based": 9,
+          "target": 0.004058178244836376
+        },
+        {
+          "absolute_error": 5.868950932388407e-06,
+          "estimate": 0.003072574061071781,
+          "half_width_z_times_se": 0.00016548533220341822,
+          "passes_interval": true,
+          "standard_error": 4.728152348669092e-05,
+          "tap_or_cluster_index_zero_based": 10,
+          "target": 0.0030784430120041695
+        },
+        {
+          "absolute_error": 5.240893420389858e-06,
+          "estimate": 0.0009244340336057658,
+          "half_width_z_times_se": 4.9439986278078866e-05,
+          "passes_interval": true,
+          "standard_error": 1.412571036516539e-05,
+          "tap_or_cluster_index_zero_based": 11,
+          "target": 0.0009296749270261556
+        },
+        {
+          "absolute_error": 4.2097802743905474e-05,
+          "estimate": 0.0016209123464189096,
+          "half_width_z_times_se": 8.513511921945435e-05,
+          "passes_interval": true,
+          "standard_error": 2.4324319776986957e-05,
+          "tap_or_cluster_index_zero_based": 12,
+          "target": 0.001578814543675004
+        }
+      ],
+      "reference_kind": "ETSI_TR_38_901_V19_2_0_CLUSTER_FIXTURE",
+      "rms_delay_claim": {
+        "absolute_error_s": 5.804702405743839e-10,
+        "estimate_s": 9.995252692563751e-08,
+        "half_width_z_times_se_s": 1.4082015876420714e-09,
+        "passes_interval": true,
+        "standard_error_s": 4.0234331075487757e-10,
+        "target_s": 9.937205668506312e-08
+      },
+      "seed": 7311
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "draw_count": 4096,
+      "family": "CDL",
+      "model": "E",
+      "passed": true,
+      "power_claim_count": 14,
+      "power_claims": [
+        {
+          "absolute_error": 0.0003780178910639531,
+          "estimate": 0.8994910625187913,
+          "half_width_z_times_se": 0.0054946530962887204,
+          "passes_interval": true,
+          "standard_error": 0.0015699008846539202,
+          "tap_or_cluster_index_zero_based": 0,
+          "target": 0.8998690804098552
+        },
+        {
+          "absolute_error": 0.0001709999644629659,
+          "estimate": 0.023854600390074088,
+          "half_width_z_times_se": 0.0012565871812862213,
+          "passes_interval": true,
+          "standard_error": 0.00035902490893892033,
+          "tap_or_cluster_index_zero_based": 1,
+          "target": 0.023683600425611122
+        },
+        {
+          "absolute_error": 7.560412795410039e-05,
+          "estimate": 0.013870333718643935,
+          "half_width_z_times_se": 0.0007392986437789319,
+          "passes_interval": true,
+          "standard_error": 0.00021122818393683768,
+          "tap_or_cluster_index_zero_based": 2,
+          "target": 0.013945937846598035
+        },
+        {
+          "absolute_error": 9.649785075141644e-06,
+          "estimate": 0.004608284254195377,
+          "half_width_z_times_se": 0.00024181347606515454,
+          "passes_interval": true,
+          "standard_error": 6.908956459004415e-05,
+          "tap_or_cluster_index_zero_based": 3,
+          "target": 0.004617934039270519
+        },
+        {
+          "absolute_error": 0.00013370897342938372,
+          "estimate": 0.009294902180530265,
+          "half_width_z_times_se": 0.0004978419399699754,
+          "passes_interval": true,
+          "standard_error": 0.00014224055427713582,
+          "tap_or_cluster_index_zero_based": 4,
+          "target": 0.009428611153959649
+        },
+        {
+          "absolute_error": 3.2582162877653822e-06,
+          "estimate": 0.005178148996522969,
+          "half_width_z_times_se": 0.00027844800100836585,
+          "passes_interval": true,
+          "standard_error": 7.955657171667595e-05,
+          "tap_or_cluster_index_zero_based": 5,
+          "target": 0.005181407212810734
+        },
+        {
+          "absolute_error": 0.00019539936123928042,
+          "estimate": 0.012624729550174685,
+          "half_width_z_times_se": 0.0006834722641901245,
+          "passes_interval": true,
+          "standard_error": 0.000195277789768607,
+          "tap_or_cluster_index_zero_based": 6,
+          "target": 0.012429330188935404
+        },
+        {
+          "absolute_error": 0.0002021990377379726,
+          "estimate": 0.00769161109156441,
+          "half_width_z_times_se": 0.0004000383393204702,
+          "passes_interval": true,
+          "standard_error": 0.0001142966683772772,
+          "tap_or_cluster_index_zero_based": 7,
+          "target": 0.007489412053826437
+        },
+        {
+          "absolute_error": 5.354365500077982e-05,
+          "estimate": 0.005001749128393018,
+          "half_width_z_times_se": 0.0002705257342176114,
+          "passes_interval": true,
+          "standard_error": 7.729306691931753e-05,
+          "tap_or_cluster_index_zero_based": 8,
+          "target": 0.004948205473392238
+        },
+        {
+          "absolute_error": 3.6462293129605784e-05,
+          "estimate": 0.005338559984151781,
+          "half_width_z_times_se": 0.0002853284357209028,
+          "passes_interval": true,
+          "standard_error": 8.152241020597223e-05,
+          "tap_or_cluster_index_zero_based": 9,
+          "target": 0.005302097691022175
+        },
+        {
+          "absolute_error": 1.3956404007001329e-05,
+          "estimate": 0.0024660210086217826,
+          "half_width_z_times_se": 0.00013091816402453839,
+          "passes_interval": true,
+          "standard_error": 3.740518972129668e-05,
+          "tap_or_cluster_index_zero_based": 10,
+          "target": 0.002479977412628784
+        },
+        {
+          "absolute_error": 2.409744762232359e-05,
+          "estimate": 0.008623093020105554,
+          "half_width_z_times_se": 0.0004628351224497557,
+          "passes_interval": true,
+          "standard_error": 0.00013223860641421592,
+          "tap_or_cluster_index_zero_based": 11,
+          "target": 0.00859899557248323
+        },
+        {
+          "absolute_error": 1.55606701135061e-05,
+          "estimate": 0.0009584217855094709,
+          "half_width_z_times_se": 5.066606017312352e-05,
+          "passes_interval": true,
+          "standard_error": 1.4476017192321006e-05,
+          "tap_or_cluster_index_zero_based": 12,
+          "target": 0.0009428611153959648
+        },
+        {
+          "absolute_error": 8.681353043365125e-06,
+          "estimate": 0.0010738680511671022,
+          "half_width_z_times_se": 5.8158237683506104e-05,
+          "passes_interval": true,
+          "standard_error": 1.6616639338144602e-05,
+          "tap_or_cluster_index_zero_based": 13,
+          "target": 0.0010825494042104673
+        }
+      ],
+      "reference_kind": "ETSI_TR_38_901_V19_2_0_CLUSTER_FIXTURE",
+      "rms_delay_claim": {
+        "absolute_error_s": 2.611345526492549e-11,
+        "estimate_s": 1.0002804123086761e-07,
+        "half_width_z_times_se_s": 1.4428864366673357e-09,
+        "passes_interval": true,
+        "standard_error_s": 4.122532676192388e-10,
+        "target_s": 1.0000192777560268e-07
+      },
+      "seed": 7311
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "draw_count": 4096,
+      "family": "TDL",
+      "model": "A10",
+      "passed": true,
+      "power_claim_count": 16,
+      "power_claims": [
+        {
+          "absolute_error": 0.0003103621203480976,
+          "estimate": 0.013481478648296297,
+          "half_width_z_times_se": 0.0007333922472784657,
+          "passes_interval": true,
+          "standard_error": 0.00020954064207956164,
+          "tap_or_cluster_index_zero_based": 0,
+          "target": 0.013171116527948199
+        },
+        {
+          "absolute_error": 0.004425913994530961,
+          "estimate": 0.5409912250091189,
+          "half_width_z_times_se": 0.028387284561818223,
+          "passes_interval": true,
+          "standard_error": 0.008110652731948064,
+          "tap_or_cluster_index_zero_based": 1,
+          "target": 0.5365653110145879
+        },
+        {
+          "absolute_error": 0.004881682578779523,
+          "estimate": 0.21849218036395435,
+          "half_width_z_times_se": 0.011614194640866998,
+          "passes_interval": true,
+          "standard_error": 0.0033183413259619994,
+          "tap_or_cluster_index_zero_based": 2,
+          "target": 0.21361049778517482
+        },
+        {
+          "absolute_error": 0.000778135400212647,
+          "estimate": 0.05046345399330909,
+          "half_width_z_times_se": 0.0026779674935451594,
+          "passes_interval": true,
+          "standard_error": 0.0007651335695843313,
+          "tap_or_cluster_index_zero_based": 3,
+          "target": 0.05124158939352174
+        },
+        {
+          "absolute_error": 9.487732554130067e-05,
+          "estimate": 0.007311785797021599,
+          "half_width_z_times_se": 0.0004000749287118564,
+          "passes_interval": true,
+          "standard_error": 0.00011430712248910183,
+          "tap_or_cluster_index_zero_based": 4,
+          "target": 0.0074066631225629
+        },
+        {
+          "absolute_error": 3.0483796772159955e-05,
+          "estimate": 0.06301044340086859,
+          "half_width_z_times_se": 0.0033710957171736956,
+          "passes_interval": true,
+          "standard_error": 0.0009631702049067701,
+          "tap_or_cluster_index_zero_based": 5,
+          "target": 0.06304092719764075
+        },
+        {
+          "absolute_error": 0.00033993630596039145,
+          "estimate": 0.0225488409118626,
+          "half_width_z_times_se": 0.0012189251922741517,
+          "passes_interval": true,
+          "standard_error": 0.0003482643406497576,
+          "tap_or_cluster_index_zero_based": 6,
+          "target": 0.02288877721782299
+        },
+        {
+          "absolute_error": 0.00023178086678555046,
+          "estimate": 0.008470289526174388,
+          "half_width_z_times_se": 0.0004439118252260502,
+          "passes_interval": true,
+          "standard_error": 0.00012683195006458578,
+          "tap_or_cluster_index_zero_based": 7,
+          "target": 0.008702070392959938
+        },
+        {
+          "absolute_error": 9.006500188815658e-05,
+          "estimate": 0.023877427052871325,
+          "half_width_z_times_se": 0.00126858230238094,
+          "passes_interval": true,
+          "standard_error": 0.0003624520863945543,
+          "tap_or_cluster_index_zero_based": 8,
+          "target": 0.02396749205475948
+        },
+        {
+          "absolute_error": 0.00015931920060607493,
+          "estimate": 0.021201730577911415,
+          "half_width_z_times_se": 0.0011429388993597898,
+          "passes_interval": true,
+          "standard_error": 0.00032655397124565426,
+          "tap_or_cluster_index_zero_based": 9,
+          "target": 0.02136104977851749
+        },
+        {
+          "absolute_error": 9.764674616560484e-05,
+          "estimate": 0.015377065858344363,
+          "half_width_z_times_se": 0.0008177303128314847,
+          "passes_interval": true,
+          "standard_error": 0.00023363723223756704,
+          "tap_or_cluster_index_zero_based": 10,
+          "target": 0.015474712604509968
+        },
+        {
+          "absolute_error": 3.224146667921146e-05,
+          "estimate": 0.0069445416803655124,
+          "half_width_z_times_se": 0.0003687771065431514,
+          "passes_interval": true,
+          "standard_error": 0.00010536488758375754,
+          "tap_or_cluster_index_zero_based": 11,
+          "target": 0.006912300213686301
+        },
+        {
+          "absolute_error": 1.758430908710938e-05,
+          "estimate": 0.004279674072212136,
+          "half_width_z_times_se": 0.0002284228063278231,
+          "passes_interval": true,
+          "standard_error": 6.52636589508066e-05,
+          "tap_or_cluster_index_zero_based": 12,
+          "target": 0.004262089763125027
+        },
+        {
+          "absolute_error": 2.4948063449526346e-05,
+          "estimate": 0.0036871769373569077,
+          "half_width_z_times_se": 0.0002002794515486026,
+          "passes_interval": true,
+          "standard_error": 5.722270044245789e-05,
+          "tap_or_cluster_index_zero_based": 13,
+          "target": 0.003712125000806434
+        },
+        {
+          "absolute_error": 3.5343735759561096e-06,
+          "estimate": 0.006300558346188118,
+          "half_width_z_times_se": 0.00033531238615483775,
+          "passes_interval": true,
+          "standard_error": 9.580353890138221e-05,
+          "tap_or_cluster_index_zero_based": 14,
+          "target": 0.006304092719764074
+        },
+        {
+          "absolute_error": 2.559262572063791e-05,
+          "estimate": 0.001404777838332599,
+          "half_width_z_times_se": 7.501448095958696e-05,
+          "passes_interval": true,
+          "standard_error": 2.1432708845596275e-05,
+          "tap_or_cluster_index_zero_based": 15,
+          "target": 0.001379185212611961
+        }
+      ],
+      "reference_kind": "ETSI_TS_38_101_4_V19_2_2_TDL_FIXTURE",
+      "rms_delay_claim": {
+        "absolute_error_s": 3.580837294200855e-11,
+        "estimate_s": 9.960077812775607e-09,
+        "half_width_z_times_se_s": 1.3829524583697584e-10,
+        "passes_interval": true,
+        "standard_error_s": 3.9512927381993097e-11,
+        "target_s": 9.995886185717616e-09
+      },
+      "seed": 7311
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "draw_count": 4096,
+      "family": "TDL",
+      "model": "A30",
+      "passed": true,
+      "power_claim_count": 12,
+      "power_claims": [
+        {
+          "absolute_error": 1.760524094873532e-05,
+          "estimate": 0.013062456004563149,
+          "half_width_z_times_se": 0.0007154238829524929,
+          "passes_interval": true,
+          "standard_error": 0.00020440682370071226,
+          "tap_or_cluster_index_zero_based": 0,
+          "target": 0.013080061245511884
+        },
+        {
+          "absolute_error": 0.0020537888114731673,
+          "estimate": 0.4661518750017546,
+          "half_width_z_times_se": 0.025441272477836896,
+          "passes_interval": true,
+          "standard_error": 0.007268934993667684,
+          "tap_or_cluster_index_zero_based": 1,
+          "target": 0.4640980861902814
+        },
+        {
+          "absolute_error": 0.002179193871388152,
+          "estimate": 0.14124082572782437,
+          "half_width_z_times_se": 0.007499626967829864,
+          "passes_interval": true,
+          "standard_error": 0.002142750562237104,
+          "tap_or_cluster_index_zero_based": 2,
+          "target": 0.14342001959921252
+        },
+        {
+          "absolute_error": 0.0012062608829293553,
+          "estimate": 0.14462628048214188,
+          "half_width_z_times_se": 0.0078032085945787455,
+          "passes_interval": true,
+          "standard_error": 0.0022294881698796416,
+          "tap_or_cluster_index_zero_based": 3,
+          "target": 0.14342001959921252
+        },
+        {
+          "absolute_error": 0.00023184323094159465,
+          "estimate": 0.05065550000700082,
+          "half_width_z_times_se": 0.0026813201910943405,
+          "passes_interval": true,
+          "standard_error": 0.0007660914831698116,
+          "tap_or_cluster_index_zero_based": 4,
+          "target": 0.05088734323794242
+        },
+        {
+          "absolute_error": 0.0008515679087119504,
+          "estimate": 0.06939251996438978,
+          "half_width_z_times_se": 0.003624195828365314,
+          "passes_interval": true,
+          "standard_error": 0.0010354845223900897,
+          "tap_or_cluster_index_zero_based": 5,
+          "target": 0.07024408787310173
+        },
+        {
+          "absolute_error": 0.0003831438080307212,
+          "estimate": 0.02234739746451242,
+          "half_width_z_times_se": 0.0011604604251192752,
+          "passes_interval": true,
+          "standard_error": 0.00033156012146265005,
+          "tap_or_cluster_index_zero_based": 6,
+          "target": 0.02273054127254314
+        },
+        {
+          "absolute_error": 0.0003348718996123365,
+          "estimate": 0.033190500265527945,
+          "half_width_z_times_se": 0.0017269156626926348,
+          "passes_interval": true,
+          "standard_error": 0.0004934044750550385,
+          "tap_or_cluster_index_zero_based": 7,
+          "target": 0.03285562836591561
+        },
+        {
+          "absolute_error": 0.00024163310403072652,
+          "estimate": 0.03710625445827509,
+          "half_width_z_times_se": 0.0019912130604801044,
+          "passes_interval": true,
+          "standard_error": 0.0005689180172800298,
+          "tap_or_cluster_index_zero_based": 8,
+          "target": 0.03686462135424436
+        },
+        {
+          "absolute_error": 0.00027930477468209557,
+          "estimate": 0.011412242442754017,
+          "half_width_z_times_se": 0.0006070694520837747,
+          "passes_interval": true,
+          "standard_error": 0.00017344841488107848,
+          "tap_or_cluster_index_zero_based": 9,
+          "target": 0.011132937668071921
+        },
+        {
+          "absolute_error": 8.484092802005065e-05,
+          "estimate": 0.010238200755175342,
+          "half_width_z_times_se": 0.0005466706887666553,
+          "passes_interval": true,
+          "standard_error": 0.00015619162536190153,
+          "tap_or_cluster_index_zero_based": 10,
+          "target": 0.010153359827155291
+        },
+        {
+          "absolute_error": 1.9033382068124865e-05,
+          "estimate": 0.0010942603847390667,
+          "half_width_z_times_se": 5.911895272787285e-05,
+          "passes_interval": true,
+          "standard_error": 1.6891129350820814e-05,
+          "tap_or_cluster_index_zero_based": 11,
+          "target": 0.0011132937668071915
+        }
+      ],
+      "reference_kind": "ETSI_TS_38_101_4_V19_2_2_TDL_FIXTURE",
+      "rms_delay_claim": {
+        "absolute_error_s": 7.283794387347076e-11,
+        "estimate_s": 3.007345302440442e-08,
+        "half_width_z_times_se_s": 4.074668378774953e-10,
+        "passes_interval": true,
+        "standard_error_s": 1.1641909653642724e-10,
+        "target_s": 3.000061508053095e-08
+      },
+      "seed": 7311
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "draw_count": 4096,
+      "family": "TDL",
+      "model": "B100",
+      "passed": true,
+      "power_claim_count": 12,
+      "power_claims": [
+        {
+          "absolute_error": 0.00018347547429470312,
+          "estimate": 0.13615072150666815,
+          "half_width_z_times_se": 0.007456903773703923,
+          "passes_interval": true,
+          "standard_error": 0.002130543935343978,
+          "tap_or_cluster_index_zero_based": 0,
+          "target": 0.13633419698096286
+        },
+        {
+          "absolute_error": 0.0003635519173058738,
+          "estimate": 0.0825130292179348,
+          "half_width_z_times_se": 0.004503331583490935,
+          "passes_interval": true,
+          "standard_error": 0.0012866661667116958,
+          "tap_or_cluster_index_zero_based": 1,
+          "target": 0.08214947730062892
+        },
+        {
+          "absolute_error": 0.0018042228924177173,
+          "estimate": 0.11693789874390115,
+          "half_width_z_times_se": 0.006209186418583267,
+          "passes_interval": true,
+          "standard_error": 0.001774053262452362,
+          "tap_or_cluster_index_zero_based": 2,
+          "target": 0.11874212163631886
+        },
+        {
+          "absolute_error": 0.0009987059190209036,
+          "estimate": 0.11974082755533977,
+          "half_width_z_times_se": 0.006460531616390395,
+          "passes_interval": true,
+          "standard_error": 0.0018458661761115414,
+          "tap_or_cluster_index_zero_based": 3,
+          "target": 0.11874212163631886
+        },
+        {
+          "absolute_error": 0.000579685070228042,
+          "estimate": 0.1266547906079597,
+          "half_width_z_times_se": 0.006704149531165396,
+          "passes_interval": true,
+          "standard_error": 0.0019154712946186847,
+          "tap_or_cluster_index_zero_based": 4,
+          "target": 0.12723447567818774
+        },
+        {
+          "absolute_error": 0.0012537716442796304,
+          "estimate": 0.10216629289509024,
+          "half_width_z_times_se": 0.005335887137649202,
+          "passes_interval": true,
+          "standard_error": 0.0015245391821854864,
+          "tap_or_cluster_index_zero_based": 5,
+          "target": 0.10342006453936987
+        },
+        {
+          "absolute_error": 0.0005906822909050452,
+          "estimate": 0.0344526022057996,
+          "half_width_z_times_se": 0.001789062088530169,
+          "passes_interval": true,
+          "standard_error": 0.0005111605967229054,
+          "tap_or_cluster_index_zero_based": 6,
+          "target": 0.035043284496704644
+        },
+        {
+          "absolute_error": 0.000837294120090884,
+          "estimate": 0.08298677142071981,
+          "half_width_z_times_se": 0.004317836561566963,
+          "passes_interval": true,
+          "standard_error": 0.0012336675890191324,
+          "tap_or_cluster_index_zero_based": 7,
+          "target": 0.08214947730062892
+        },
+        {
+          "absolute_error": 0.0007432942907825146,
+          "estimate": 0.11414114010192256,
+          "half_width_z_times_se": 0.0061250948581092176,
+          "passes_interval": true,
+          "standard_error": 0.0017500271023169194,
+          "tap_or_cluster_index_zero_based": 8,
+          "target": 0.11339784581114004
+        },
+        {
+          "absolute_error": 0.0008018171555801701,
+          "estimate": 0.032761672463207714,
+          "half_width_z_times_se": 0.0017427434255370539,
+          "passes_interval": true,
+          "standard_error": 0.0004979266930105868,
+          "tap_or_cluster_index_zero_based": 9,
+          "target": 0.031959855307627544
+        },
+        {
+          "absolute_error": 0.00020258315504160726,
+          "estimate": 0.0244466126925853,
+          "half_width_z_times_se": 0.0013053315588464644,
+          "passes_interval": true,
+          "standard_error": 0.00037295187395613267,
+          "tap_or_cluster_index_zero_based": 10,
+          "target": 0.024244029537543694
+        },
+        {
+          "absolute_error": 0.000454470074740157,
+          "estimate": 0.026128579699827847,
+          "half_width_z_times_se": 0.0014116331957209896,
+          "passes_interval": true,
+          "standard_error": 0.000403323770205997,
+          "tap_or_cluster_index_zero_based": 11,
+          "target": 0.026583049774568004
+        }
+      ],
+      "reference_kind": "ETSI_TS_38_101_4_V19_2_2_TDL_FIXTURE",
+      "rms_delay_claim": {
+        "absolute_error_s": 1.2997890022508252e-10,
+        "estimate_s": 1.0024019040041328e-07,
+        "half_width_z_times_se_s": 1.277157939806846e-09,
+        "passes_interval": true,
+        "standard_error_s": 3.649022685162417e-10,
+        "target_s": 1.0037016930063837e-07
+      },
+      "seed": 7311
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "draw_count": 4096,
+      "family": "TDL",
+      "model": "C60",
+      "passed": true,
+      "power_claim_count": 12,
+      "power_claims": [
+        {
+          "absolute_error": 8.3823783399474e-05,
+          "estimate": 0.06219502172229642,
+          "half_width_z_times_se": 0.003406388808102278,
+          "passes_interval": true,
+          "standard_error": 0.0009732539451720795,
+          "tap_or_cluster_index_zero_based": 0,
+          "target": 0.062278845505695894
+        },
+        {
+          "absolute_error": 0.001549851998579821,
+          "estimate": 0.3517695371285603,
+          "half_width_z_times_se": 0.01919860271511734,
+          "passes_interval": true,
+          "standard_error": 0.005485315061462097,
+          "tap_or_cluster_index_zero_based": 1,
+          "target": 0.3502196851299805
+        },
+        {
+          "absolute_error": 0.005701988017594806,
+          "estimate": 0.36956516567341513,
+          "half_width_z_times_se": 0.019623227673681794,
+          "passes_interval": true,
+          "standard_error": 0.005606636478194799,
+          "tap_or_cluster_index_zero_based": 2,
+          "target": 0.37526715369100994
+        },
+        {
+          "absolute_error": 0.00040660380348761516,
+          "estimate": 0.04875037805424781,
+          "half_width_z_times_se": 0.002630292135512699,
+          "passes_interval": true,
+          "standard_error": 0.0007515120387179139,
+          "tap_or_cluster_index_zero_based": 3,
+          "target": 0.048343774250760196
+        },
+        {
+          "absolute_error": 6.066375727279208e-05,
+          "estimate": 0.01325431730964164,
+          "half_width_z_times_se": 0.0007015836123803837,
+          "passes_interval": true,
+          "standard_error": 0.00020045246068010962,
+          "tap_or_cluster_index_zero_based": 4,
+          "target": 0.013314981066914432
+        },
+        {
+          "absolute_error": 0.0006426172816117737,
+          "estimate": 0.05236527710361513,
+          "half_width_z_times_se": 0.002734906006542805,
+          "passes_interval": true,
+          "standard_error": 0.0007814017161550871,
+          "tap_or_cluster_index_zero_based": 5,
+          "target": 0.053007894385226906
+        },
+        {
+          "absolute_error": 0.000604075386771312,
+          "estimate": 0.03523365956845681,
+          "half_width_z_times_se": 0.0018296210025150247,
+          "passes_interval": true,
+          "standard_error": 0.0005227488578614356,
+          "tap_or_cluster_index_zero_based": 6,
+          "target": 0.03583773495522812
+        },
+        {
+          "absolute_error": 0.0002358351612154648,
+          "estimate": 0.023374620294081605,
+          "half_width_z_times_se": 0.001216191310188491,
+          "passes_interval": true,
+          "standard_error": 0.000347483231482426,
+          "tap_or_cluster_index_zero_based": 7,
+          "target": 0.02313878513286614
+        },
+        {
+          "absolute_error": 0.00010020389739212772,
+          "estimate": 0.015387847629532353,
+          "half_width_z_times_se": 0.000825749820517835,
+          "passes_interval": true,
+          "standard_error": 0.00023592852014795283,
+          "tap_or_cluster_index_zero_based": 8,
+          "target": 0.015287643732140225
+        },
+        {
+          "absolute_error": 0.00028432115915352947,
+          "estimate": 0.011617208023148862,
+          "half_width_z_times_se": 0.000617972511137949,
+          "passes_interval": true,
+          "standard_error": 0.00017656357461084257,
+          "tap_or_cluster_index_zero_based": 9,
+          "target": 0.011332886863995332
+        },
+        {
+          "absolute_error": 6.402221502652995e-05,
+          "estimate": 0.0077259940858172005,
+          "half_width_z_times_se": 0.00041253093143390113,
+          "passes_interval": true,
+          "standard_error": 0.00011786598040968604,
+          "tap_or_cluster_index_zero_based": 10,
+          "target": 0.0076619718707906705
+        },
+        {
+          "absolute_error": 7.366205850697308e-05,
+          "estimate": 0.004234981356884632,
+          "half_width_z_times_se": 0.00022880081226305234,
+          "passes_interval": true,
+          "standard_error": 6.537166064658638e-05,
+          "tap_or_cluster_index_zero_based": 11,
+          "target": 0.004308643415391605
+        }
+      ],
+      "reference_kind": "ETSI_TS_38_101_4_V19_2_2_TDL_FIXTURE",
+      "rms_delay_claim": {
+        "absolute_error_s": 2.3995661139288784e-10,
+        "estimate_s": 6.021935331445119e-08,
+        "half_width_z_times_se_s": 9.790348352630712e-10,
+        "passes_interval": true,
+        "standard_error_s": 2.7972423864659175e-10,
+        "target_s": 5.99793967030583e-08
+      },
+      "seed": 7311
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "draw_count": 4096,
+      "family": "TDL",
+      "model": "C300",
+      "passed": true,
+      "power_claim_count": 12,
+      "power_claims": [
+        {
+          "absolute_error": 8.328004513567105e-05,
+          "estimate": 0.06179478230021396,
+          "half_width_z_times_se": 0.0033844679067610126,
+          "passes_interval": true,
+          "standard_error": 0.0009669908305031464,
+          "tap_or_cluster_index_zero_based": 0,
+          "target": 0.06187806234534963
+        },
+        {
+          "absolute_error": 0.0013412005775805258,
+          "estimate": 0.30440684378070504,
+          "half_width_z_times_se": 0.016613678691076002,
+          "passes_interval": true,
+          "standard_error": 0.004746765340307429,
+          "tap_or_cluster_index_zero_based": 1,
+          "target": 0.3030656432031245
+        },
+        {
+          "absolute_error": 0.0007820180337813273,
+          "estimate": 0.05068591245111287,
+          "half_width_z_times_se": 0.0026913283454290974,
+          "passes_interval": true,
+          "standard_error": 0.000768950955836885,
+          "tap_or_cluster_index_zero_based": 2,
+          "target": 0.051467930484894196
+        },
+        {
+          "absolute_error": 0.0014334301717670583,
+          "estimate": 0.1718597655902776,
+          "half_width_z_times_se": 0.009272572017471399,
+          "passes_interval": true,
+          "standard_error": 0.002649306290706114,
+          "tap_or_cluster_index_zero_based": 3,
+          "target": 0.17042633541851054
+        },
+        {
+          "absolute_error": 0.0007945310445164611,
+          "estimate": 0.17360154368933467,
+          "half_width_z_times_se": 0.009189156650784227,
+          "passes_interval": true,
+          "standard_error": 0.0026254733287954936,
+          "tap_or_cluster_index_zero_based": 4,
+          "target": 0.17439607473385113
+        },
+        {
+          "absolute_error": 0.0003759637986236637,
+          "estimate": 0.030636531090458007,
+          "half_width_z_times_se": 0.0016000685452075224,
+          "passes_interval": true,
+          "standard_error": 0.00045716244148786357,
+          "tap_or_cluster_index_zero_based": 5,
+          "target": 0.03101249488908167
+        },
+        {
+          "absolute_error": 0.0008096289835954062,
+          "estimate": 0.04722303849455267,
+          "half_width_z_times_se": 0.0024522080191838828,
+          "passes_interval": true,
+          "standard_error": 0.0007006308626239664,
+          "tap_or_cluster_index_zero_based": 6,
+          "target": 0.04803266747814808
+        },
+        {
+          "absolute_error": 0.0006757902676489957,
+          "estimate": 0.06697932864138734,
+          "half_width_z_times_se": 0.0034849625837805125,
+          "passes_interval": true,
+          "standard_error": 0.0009957035953658607,
+          "tap_or_cluster_index_zero_based": 7,
+          "target": 0.06630353837373834
+        },
+        {
+          "absolute_error": 0.00038734325483365944,
+          "estimate": 0.05948043403201475,
+          "half_width_z_times_se": 0.0031918666815559304,
+          "passes_interval": true,
+          "standard_error": 0.0009119619090159801,
+          "tap_or_cluster_index_zero_based": 8,
+          "target": 0.05909309077718109
+        },
+        {
+          "absolute_error": 0.0003810714387587708,
+          "estimate": 0.01557033457120316,
+          "half_width_z_times_se": 0.0008282574143224699,
+          "passes_interval": true,
+          "standard_error": 0.00023664497552070568,
+          "tap_or_cluster_index_zero_based": 9,
+          "target": 0.015189263132444389
+        },
+        {
+          "absolute_error": 9.627922138957107e-05,
+          "estimate": 0.011618513614879422,
+          "half_width_z_times_se": 0.0006203727569707456,
+          "passes_interval": true,
+          "standard_error": 0.00017724935913449876,
+          "tap_or_cluster_index_zero_based": 10,
+          "target": 0.011522234393489851
+        },
+        {
+          "absolute_error": 0.00013014762667235176,
+          "estimate": 0.007482517143514167,
+          "half_width_z_times_se": 0.0004042534890611869,
+          "passes_interval": true,
+          "standard_error": 0.00011550099687462483,
+          "tap_or_cluster_index_zero_based": 11,
+          "target": 0.007612664770186519
+        }
+      ],
+      "reference_kind": "ETSI_TS_38_101_4_V19_2_2_TDL_FIXTURE",
+      "rms_delay_claim": {
+        "absolute_error_s": 6.30837014374088e-10,
+        "estimate_s": 2.996640854067369e-07,
+        "half_width_z_times_se_s": 4.969084291999794e-09,
+        "passes_interval": true,
+        "standard_error_s": 1.4197383691427982e-09,
+        "target_s": 3.0029492242111096e-07
+      },
+      "seed": 7311
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "draw_count": 4096,
+      "family": "TDL",
+      "model": "D10",
+      "passed": true,
+      "power_claim_count": 10,
+      "power_claims": [
+        {
+          "absolute_error": 0.0019974284649847407,
+          "estimate": 0.9402466897954582,
+          "half_width_z_times_se": 0.017088215090859716,
+          "passes_interval": true,
+          "standard_error": 0.0048823471688170614,
+          "tap_or_cluster_index_zero_based": 0,
+          "target": 0.942244118260443
+        },
+        {
+          "absolute_error": 0.00014731420532416734,
+          "estimate": 0.007370897970928769,
+          "half_width_z_times_se": 0.00038962071851066115,
+          "passes_interval": true,
+          "standard_error": 0.00011132020528876033,
+          "tap_or_cluster_index_zero_based": 1,
+          "target": 0.007223583765604602
+        },
+        {
+          "absolute_error": 0.000333704029428665,
+          "estimate": 0.019561697718767146,
+          "half_width_z_times_se": 0.001067428248920684,
+          "passes_interval": true,
+          "standard_error": 0.000304979499691624,
+          "tap_or_cluster_index_zero_based": 2,
+          "target": 0.01989540174819581
+        },
+        {
+          "absolute_error": 6.974507787582337e-05,
+          "estimate": 0.013694510030400786,
+          "half_width_z_times_se": 0.000755756122802156,
+          "passes_interval": true,
+          "standard_error": 0.000215930320800616,
+          "tap_or_cluster_index_zero_based": 3,
+          "target": 0.01376425510827661
+        },
+        {
+          "absolute_error": 4.899486902477934e-05,
+          "estimate": 0.0058225544517262195,
+          "half_width_z_times_se": 0.0003078679223808856,
+          "passes_interval": true,
+          "standard_error": 8.79622635373959e-05,
+          "tap_or_cluster_index_zero_based": 4,
+          "target": 0.005871549320750999
+        },
+        {
+          "absolute_error": 1.167604105787993e-05,
+          "estimate": 0.0014975445201798956,
+          "half_width_z_times_se": 8.136138542815606e-05,
+          "passes_interval": true,
+          "standard_error": 2.3246110122330302e-05,
+          "tap_or_cluster_index_zero_based": 5,
+          "target": 0.0015092205612377756
+        },
+        {
+          "absolute_error": 0.00010757824225538642,
+          "estimate": 0.003862076292678719,
+          "half_width_z_times_se": 0.00020470347431642756,
+          "passes_interval": true,
+          "standard_error": 5.848670694755073e-05,
+          "tap_or_cluster_index_zero_based": 6,
+          "target": 0.003969654534934105
+        },
+        {
+          "absolute_error": 3.710645406226117e-05,
+          "estimate": 0.003048397364876179,
+          "half_width_z_times_se": 0.00016592834736178,
+          "passes_interval": true,
+          "standard_error": 4.740809924622286e-05,
+          "tap_or_cluster_index_zero_based": 7,
+          "target": 0.003011290910813918
+        },
+        {
+          "absolute_error": 2.612720977395529e-05,
+          "estimate": 0.000956705064539749,
+          "half_width_z_times_se": 5.0396089853948775e-05,
+          "passes_interval": true,
+          "standard_error": 1.4398882815413935e-05,
+          "tap_or_cluster_index_zero_based": 8,
+          "target": 0.0009305778547657937
+        },
+        {
+          "absolute_error": 1.838925222820637e-05,
+          "estimate": 0.0015987371872056822,
+          "half_width_z_times_se": 8.394493069447869e-05,
+          "passes_interval": true,
+          "standard_error": 2.3984265912708197e-05,
+          "tap_or_cluster_index_zero_based": 9,
+          "target": 0.0015803479349774758
+        }
+      ],
+      "reference_kind": "ETSI_TS_38_101_4_V19_2_2_TDL_FIXTURE",
+      "rms_delay_claim": {
+        "absolute_error_s": 1.488480715957094e-11,
+        "estimate_s": 9.926621376894177e-09,
+        "half_width_z_times_se_s": 1.4430312228929537e-10,
+        "passes_interval": true,
+        "standard_error_s": 4.122946351122725e-11,
+        "target_s": 9.911736569734606e-09
+      },
+      "seed": 7311
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "draw_count": 4096,
+      "family": "TDL",
+      "model": "D30",
+      "passed": true,
+      "power_claim_count": 10,
+      "power_claims": [
+        {
+          "absolute_error": 0.001996303601580207,
+          "estimate": 0.9397396565364033,
+          "half_width_z_times_se": 0.017078999880470278,
+          "passes_interval": true,
+          "standard_error": 0.0048797142515629366,
+          "tap_or_cluster_index_zero_based": 0,
+          "target": 0.9417359601379836
+        },
+        {
+          "absolute_error": 0.00015066392464563923,
+          "estimate": 0.007538520104356905,
+          "half_width_z_times_se": 0.0003984811091619297,
+          "passes_interval": true,
+          "standard_error": 0.00011385174547483707,
+          "tap_or_cluster_index_zero_based": 1,
+          "target": 0.007387856179711266
+        },
+        {
+          "absolute_error": 0.0003335206332361444,
+          "estimate": 0.019551151400863276,
+          "half_width_z_times_se": 0.0010668527700719277,
+          "passes_interval": true,
+          "standard_error": 0.00030481507716340793,
+          "tap_or_cluster_index_zero_based": 2,
+          "target": 0.01988467203409942
+        },
+        {
+          "absolute_error": 6.970622692668849e-05,
+          "estimate": 0.01368712573282893,
+          "half_width_z_times_se": 0.0007553486114080994,
+          "passes_interval": true,
+          "standard_error": 0.00021581388897374268,
+          "tap_or_cluster_index_zero_based": 3,
+          "target": 0.01375683195975562
+        },
+        {
+          "absolute_error": 5.0109019552884056e-05,
+          "estimate": 0.005954965932347955,
+          "half_width_z_times_se": 0.0003148691878758526,
+          "passes_interval": true,
+          "standard_error": 8.996262510738646e-05,
+          "tap_or_cluster_index_zero_based": 4,
+          "target": 0.006005074951900839
+        },
+        {
+          "absolute_error": 1.1941503297903909e-05,
+          "estimate": 0.0015316004298597807,
+          "half_width_z_times_se": 8.321163855606007e-05,
+          "passes_interval": true,
+          "standard_error": 2.377475387316002e-05,
+          "tap_or_cluster_index_zero_based": 5,
+          "target": 0.0015435419331576846
+        },
+        {
+          "absolute_error": 0.00011002434934825195,
+          "estimate": 0.003949904591584726,
+          "half_width_z_times_se": 0.00020935868053117174,
+          "passes_interval": true,
+          "standard_error": 5.9816765866049064e-05,
+          "tap_or_cluster_index_zero_based": 6,
+          "target": 0.004059928940932978
+        },
+        {
+          "absolute_error": 3.794987312344617e-05,
+          "estimate": 0.003117720923927189,
+          "half_width_z_times_se": 0.00016970172167708392,
+          "passes_interval": true,
+          "standard_error": 4.848620619345255e-05,
+          "tap_or_cluster_index_zero_based": 7,
+          "target": 0.003079771050803743
+        },
+        {
+          "absolute_error": 2.611309688860925e-05,
+          "estimate": 0.0009561890852205182,
+          "half_width_z_times_se": 5.036890916159425e-05,
+          "passes_interval": true,
+          "standard_error": 1.4391116903312643e-05,
+          "tap_or_cluster_index_zero_based": 8,
+          "target": 0.000930075988331909
+        },
+        {
+          "absolute_error": 1.8807358084222455e-05,
+          "estimate": 0.0016350941814073073,
+          "half_width_z_times_se": 8.585392763275345e-05,
+          "passes_interval": true,
+          "standard_error": 2.452969360935813e-05,
+          "tap_or_cluster_index_zero_based": 9,
+          "target": 0.0016162868233230848
+        }
+      ],
+      "reference_kind": "ETSI_TS_38_101_4_V19_2_2_TDL_FIXTURE",
+      "rms_delay_claim": {
+        "absolute_error_s": 4.444891496488454e-11,
+        "estimate_s": 3.0054753128724494e-08,
+        "half_width_z_times_se_s": 4.3809705752562455e-10,
+        "passes_interval": true,
+        "standard_error_s": 1.2517058786446415e-10,
+        "target_s": 3.001030421375961e-08
+      },
+      "seed": 7311
+    }
+  ],
+  "cdl_reference_sha256": "24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090",
+  "draw_count_per_case": 4096,
+  "generated_utc_date": "2026-11-09",
+  "git_head": "34e2a3c53e9ad331972f6fd2a55d76c6f12def1c",
+  "maximum_power_absolute_error": 0.005701988017594806,
+  "maximum_power_half_width": 0.028387284561818223,
+  "maximum_rms_absolute_error_s": 6.30837014374088e-10,
+  "maximum_rms_half_width_s": 4.969084291999794e-09,
+  "passing_power_claim_count": 278,
+  "passing_rms_claim_count": 17,
+  "power_claim_count": 278,
+  "python_test_sha256": "3cdb0a10294c10caf3742d888f289e5b442b304adae11dfeab6295e221b4bfb3",
+  "rms_claim_count": 17,
+  "runtime": {
+    "sionna_version": null,
+    "torch_version": "2.14.1+cu126"
+  },
+  "schema": "loslab.g4_pdp_rms_native_validation.v1",
+  "scope": "Existing draw-level PDP and ensemble RMS-delay confidence regression only; no global family-wise guarantee or additional precision cap is introduced by this retention artifact.",
+  "seed": 7311,
+  "status": "PASS_WITHIN_BOUNDED_PROTOCOL_SCOPE",
+  "test_nodeid": "tests/test_integrations/test_g4_statistical_confidence_native.py::test_delay_profile_and_rms_have_draw_level_confidence_intervals",
+  "total_claim_count": 295,
+  "z_multiplier": 3.5
+}
