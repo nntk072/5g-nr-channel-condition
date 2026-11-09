@@ -39,6 +39,15 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _sionna_version() -> str:
+    for distribution in ("sionna", "sionna-no-rt"):
+        try:
+            return importlib.metadata.version(distribution)
+        except importlib.metadata.PackageNotFoundError:
+            pass
+    raise RuntimeError("neither sionna nor sionna-no-rt distribution is installed")
+
+
 class _Collector:
     def __init__(self) -> None:
         self.cases: list[dict[str, Any]] = []
@@ -156,7 +165,7 @@ def main(argv: list[str] | None = None) -> int:
             "platform": platform.platform(),
             "python": platform.python_version(),
             "torch": importlib.metadata.version("torch"),
-            "sionna": importlib.metadata.version("sionna"),
+            "sionna": _sionna_version(),
             "device": "cpu",
         },
         "source_hashes": {str(path.relative_to(ROOT)): _sha256(path) for path in SOURCE_PATHS},
