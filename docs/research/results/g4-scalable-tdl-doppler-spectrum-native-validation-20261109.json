@@ -1,0 +1,524 @@
+{
+  "all_passed": true,
+  "base_commit": "45b61f8c6f6a6e5611392db28d6dd66052459f09",
+  "carrier_frequency_hz": 3500000000.0,
+  "claims": [
+    {
+      "absolute_error": 0.0008659712781389495,
+      "absolute_error_plus_half_width": 0.0024340378015630603,
+      "expected_jakes_cdf": 0.23005345616261585,
+      "mean_cdf": 0.2309194274407548,
+      "model": "A",
+      "normalized_frequency_cutoff": -0.75,
+      "passed": true,
+      "simultaneous_half_width": 0.0015680665234241108
+    },
+    {
+      "absolute_error": 0.0003831172724236276,
+      "absolute_error_plus_half_width": 0.0017274076671053523,
+      "expected_jakes_cdf": 0.3333333333333333,
+      "mean_cdf": 0.33371645060575694,
+      "model": "A",
+      "normalized_frequency_cutoff": -0.5,
+      "passed": true,
+      "simultaneous_half_width": 0.0013442903946817247
+    },
+    {
+      "absolute_error": 0.0006841370718178585,
+      "absolute_error_plus_half_width": 0.0022995356951778876,
+      "expected_jakes_cdf": 0.41956937674483374,
+      "mean_cdf": 0.4202535138166516,
+      "model": "A",
+      "normalized_frequency_cutoff": -0.25,
+      "passed": true,
+      "simultaneous_half_width": 0.001615398623360029
+    },
+    {
+      "absolute_error": 0.0003714226277089505,
+      "absolute_error_plus_half_width": 0.002237419738153168,
+      "expected_jakes_cdf": 0.5,
+      "mean_cdf": 0.500371422627709,
+      "model": "A",
+      "normalized_frequency_cutoff": 0.0,
+      "passed": true,
+      "simultaneous_half_width": 0.0018659971104442172
+    },
+    {
+      "absolute_error": 1.928266074291418e-05,
+      "absolute_error_plus_half_width": 0.0018917401350791955,
+      "expected_jakes_cdf": 0.5804306232551663,
+      "mean_cdf": 0.5804499059159092,
+      "model": "A",
+      "normalized_frequency_cutoff": 0.25,
+      "passed": true,
+      "simultaneous_half_width": 0.0018724574743362813
+    },
+    {
+      "absolute_error": 0.0002919392355765771,
+      "absolute_error_plus_half_width": 0.0016604737094751407,
+      "expected_jakes_cdf": 0.6666666666666667,
+      "mean_cdf": 0.6663747274310902,
+      "model": "A",
+      "normalized_frequency_cutoff": 0.5,
+      "passed": true,
+      "simultaneous_half_width": 0.0013685344738985636
+    },
+    {
+      "absolute_error": 0.00022021155614160293,
+      "absolute_error_plus_half_width": 0.0017088671667430126,
+      "expected_jakes_cdf": 0.7699465438373841,
+      "mean_cdf": 0.7701667553935257,
+      "model": "A",
+      "normalized_frequency_cutoff": 0.75,
+      "passed": true,
+      "simultaneous_half_width": 0.0014886556106014097
+    },
+    {
+      "absolute_error": 0.0009023842994439757,
+      "absolute_error_plus_half_width": 0.002473942407980382,
+      "expected_jakes_cdf": 0.23005345616261585,
+      "mean_cdf": 0.23095584046205983,
+      "model": "B",
+      "normalized_frequency_cutoff": -0.75,
+      "passed": true,
+      "simultaneous_half_width": 0.001571558108536406
+    },
+    {
+      "absolute_error": 0.0015587878233278007,
+      "absolute_error_plus_half_width": 0.0030850110199740254,
+      "expected_jakes_cdf": 0.3333333333333333,
+      "mean_cdf": 0.3348921211566611,
+      "model": "B",
+      "normalized_frequency_cutoff": -0.5,
+      "passed": true,
+      "simultaneous_half_width": 0.0015262231966462244
+    },
+    {
+      "absolute_error": 0.0010904670004501238,
+      "absolute_error_plus_half_width": 0.002613460140398164,
+      "expected_jakes_cdf": 0.41956937674483374,
+      "mean_cdf": 0.42065984374528387,
+      "model": "B",
+      "normalized_frequency_cutoff": -0.25,
+      "passed": true,
+      "simultaneous_half_width": 0.0015229931399480406
+    },
+    {
+      "absolute_error": 0.0002569744667508811,
+      "absolute_error_plus_half_width": 0.002109745055639832,
+      "expected_jakes_cdf": 0.5,
+      "mean_cdf": 0.5002569744667509,
+      "model": "B",
+      "normalized_frequency_cutoff": 0.0,
+      "passed": true,
+      "simultaneous_half_width": 0.0018527705888889505
+    },
+    {
+      "absolute_error": 0.00048812380331197947,
+      "absolute_error_plus_half_width": 0.00226846784599653,
+      "expected_jakes_cdf": 0.5804306232551663,
+      "mean_cdf": 0.5809187470584782,
+      "model": "B",
+      "normalized_frequency_cutoff": 0.25,
+      "passed": true,
+      "simultaneous_half_width": 0.0017803440426845504
+    },
+    {
+      "absolute_error": 0.00019758187297402863,
+      "absolute_error_plus_half_width": 0.001584572365411452,
+      "expected_jakes_cdf": 0.6666666666666667,
+      "mean_cdf": 0.6664690847936927,
+      "model": "B",
+      "normalized_frequency_cutoff": 0.5,
+      "passed": true,
+      "simultaneous_half_width": 0.0013869904924374234
+    },
+    {
+      "absolute_error": 0.0002547983098716289,
+      "absolute_error_plus_half_width": 0.001818704683739823,
+      "expected_jakes_cdf": 0.7699465438373841,
+      "mean_cdf": 0.7702013421472558,
+      "model": "B",
+      "normalized_frequency_cutoff": 0.75,
+      "passed": true,
+      "simultaneous_half_width": 0.001563906373868194
+    },
+    {
+      "absolute_error": 0.0007858997801999668,
+      "absolute_error_plus_half_width": 0.002289814845677394,
+      "expected_jakes_cdf": 0.23005345616261585,
+      "mean_cdf": 0.23083935594281582,
+      "model": "C",
+      "normalized_frequency_cutoff": -0.75,
+      "passed": true,
+      "simultaneous_half_width": 0.0015039150654774268
+    },
+    {
+      "absolute_error": 0.00027831519625587386,
+      "absolute_error_plus_half_width": 0.00170983794651901,
+      "expected_jakes_cdf": 0.3333333333333333,
+      "mean_cdf": 0.3336116485295892,
+      "model": "C",
+      "normalized_frequency_cutoff": -0.5,
+      "passed": true,
+      "simultaneous_half_width": 0.001431522750263136
+    },
+    {
+      "absolute_error": 0.0009466226095401487,
+      "absolute_error_plus_half_width": 0.0025048851482879627,
+      "expected_jakes_cdf": 0.41956937674483374,
+      "mean_cdf": 0.4205159993543739,
+      "model": "C",
+      "normalized_frequency_cutoff": -0.25,
+      "passed": true,
+      "simultaneous_half_width": 0.0015582625387478139
+    },
+    {
+      "absolute_error": 0.0004213403510879843,
+      "absolute_error_plus_half_width": 0.002263193437239485,
+      "expected_jakes_cdf": 0.5,
+      "mean_cdf": 0.500421340351088,
+      "model": "C",
+      "normalized_frequency_cutoff": 0.0,
+      "passed": true,
+      "simultaneous_half_width": 0.0018418530861515005
+    },
+    {
+      "absolute_error": 9.962163512799993e-05,
+      "absolute_error_plus_half_width": 0.0017237831953703401,
+      "expected_jakes_cdf": 0.5804306232551663,
+      "mean_cdf": 0.5803310016200383,
+      "model": "C",
+      "normalized_frequency_cutoff": 0.25,
+      "passed": true,
+      "simultaneous_half_width": 0.0016241615602423402
+    },
+    {
+      "absolute_error": 0.00036352230351510695,
+      "absolute_error_plus_half_width": 0.00179680975856494,
+      "expected_jakes_cdf": 0.6666666666666667,
+      "mean_cdf": 0.6670301889701818,
+      "model": "C",
+      "normalized_frequency_cutoff": 0.5,
+      "passed": true,
+      "simultaneous_half_width": 0.001433287455049833
+    },
+    {
+      "absolute_error": 0.0002270879035983775,
+      "absolute_error_plus_half_width": 0.0017086686168521282,
+      "expected_jakes_cdf": 0.7699465438373841,
+      "mean_cdf": 0.7701736317409825,
+      "model": "C",
+      "normalized_frequency_cutoff": 0.75,
+      "passed": true,
+      "simultaneous_half_width": 0.0014815807132537507
+    },
+    {
+      "absolute_error": 0.0005104705148033517,
+      "absolute_error_plus_half_width": 0.002536094297448174,
+      "expected_jakes_cdf": 0.23005345616261585,
+      "mean_cdf": 0.2305639266774192,
+      "model": "D",
+      "normalized_frequency_cutoff": -0.75,
+      "passed": true,
+      "simultaneous_half_width": 0.0020256237826448225
+    },
+    {
+      "absolute_error": 0.00016934013367331247,
+      "absolute_error_plus_half_width": 0.002184290640475644,
+      "expected_jakes_cdf": 0.3333333333333333,
+      "mean_cdf": 0.33316399319966,
+      "model": "D",
+      "normalized_frequency_cutoff": -0.5,
+      "passed": true,
+      "simultaneous_half_width": 0.0020149505068023316
+    },
+    {
+      "absolute_error": 0.0005058714957661969,
+      "absolute_error_plus_half_width": 0.0027571262802842935,
+      "expected_jakes_cdf": 0.41956937674483374,
+      "mean_cdf": 0.42007524824059994,
+      "model": "D",
+      "normalized_frequency_cutoff": -0.25,
+      "passed": true,
+      "simultaneous_half_width": 0.0022512547845180966
+    },
+    {
+      "absolute_error": 0.00028124583313943186,
+      "absolute_error_plus_half_width": 0.002966084834739756,
+      "expected_jakes_cdf": 0.5,
+      "mean_cdf": 0.49971875416686057,
+      "model": "D",
+      "normalized_frequency_cutoff": 0.0,
+      "passed": true,
+      "simultaneous_half_width": 0.002684839001600324
+    },
+    {
+      "absolute_error": 0.0006787361664554181,
+      "absolute_error_plus_half_width": 0.0031747209862527377,
+      "expected_jakes_cdf": 0.5804306232551663,
+      "mean_cdf": 0.5811093594216217,
+      "model": "D",
+      "normalized_frequency_cutoff": 0.25,
+      "passed": true,
+      "simultaneous_half_width": 0.0024959848197973196
+    },
+    {
+      "absolute_error": 0.00010682070155398904,
+      "absolute_error_plus_half_width": 0.0021547362688180997,
+      "expected_jakes_cdf": 0.6666666666666667,
+      "mean_cdf": 0.6667734873682207,
+      "model": "D",
+      "normalized_frequency_cutoff": 0.5,
+      "passed": true,
+      "simultaneous_half_width": 0.0020479155672641107
+    },
+    {
+      "absolute_error": 0.000404067047284129,
+      "absolute_error_plus_half_width": 0.00239758510972202,
+      "expected_jakes_cdf": 0.7699465438373841,
+      "mean_cdf": 0.7703506108846683,
+      "model": "D",
+      "normalized_frequency_cutoff": 0.75,
+      "passed": true,
+      "simultaneous_half_width": 0.001993518062437891
+    },
+    {
+      "absolute_error": 0.0006870294296258406,
+      "absolute_error_plus_half_width": 0.0024985630769765697,
+      "expected_jakes_cdf": 0.23005345616261585,
+      "mean_cdf": 0.2307404855922417,
+      "model": "E",
+      "normalized_frequency_cutoff": -0.75,
+      "passed": true,
+      "simultaneous_half_width": 0.0018115336473507292
+    },
+    {
+      "absolute_error": 0.00015377235300473302,
+      "absolute_error_plus_half_width": 0.002070486250346364,
+      "expected_jakes_cdf": 0.3333333333333333,
+      "mean_cdf": 0.3331795609803286,
+      "model": "E",
+      "normalized_frequency_cutoff": -0.5,
+      "passed": true,
+      "simultaneous_half_width": 0.001916713897341631
+    },
+    {
+      "absolute_error": 0.0004026786861065501,
+      "absolute_error_plus_half_width": 0.002579737732356172,
+      "expected_jakes_cdf": 0.41956937674483374,
+      "mean_cdf": 0.4199720554309403,
+      "model": "E",
+      "normalized_frequency_cutoff": -0.25,
+      "passed": true,
+      "simultaneous_half_width": 0.002177059046249622
+    },
+    {
+      "absolute_error": 0.00043508314964152417,
+      "absolute_error_plus_half_width": 0.002893603109643807,
+      "expected_jakes_cdf": 0.5,
+      "mean_cdf": 0.4995649168503585,
+      "model": "E",
+      "normalized_frequency_cutoff": 0.0,
+      "passed": true,
+      "simultaneous_half_width": 0.0024585199600022827
+    },
+    {
+      "absolute_error": 0.0008364922004464592,
+      "absolute_error_plus_half_width": 0.002935804892648781,
+      "expected_jakes_cdf": 0.5804306232551663,
+      "mean_cdf": 0.5795941310547198,
+      "model": "E",
+      "normalized_frequency_cutoff": 0.25,
+      "passed": true,
+      "simultaneous_half_width": 0.002099312692202322
+    },
+    {
+      "absolute_error": 9.965269910350294e-05,
+      "absolute_error_plus_half_width": 0.0020412484552765446,
+      "expected_jakes_cdf": 0.6666666666666667,
+      "mean_cdf": 0.6667663193657702,
+      "model": "E",
+      "normalized_frequency_cutoff": 0.5,
+      "passed": true,
+      "simultaneous_half_width": 0.0019415957561730419
+    },
+    {
+      "absolute_error": 0.0004215007455723452,
+      "absolute_error_plus_half_width": 0.0024459922485765085,
+      "expected_jakes_cdf": 0.7699465438373841,
+      "mean_cdf": 0.7703680445829565,
+      "model": "E",
+      "normalized_frequency_cutoff": 0.75,
+      "passed": true,
+      "simultaneous_half_width": 0.0020244915030041633
+    }
+  ],
+  "criteria_changed": false,
+  "date": "2026-11-09",
+  "delay_spread_seconds": 1e-07,
+  "draws_per_profile": 256,
+  "expected_jakes_cdf": [
+    0.23005345616261585,
+    0.3333333333333333,
+    0.41956937674483374,
+    0.5,
+    0.5804306232551663,
+    0.6666666666666667,
+    0.7699465438373841
+  ],
+  "familywise_alpha": 0.01,
+  "limitations": [
+    "This validates only seven normalized-frequency CDF points of the equal-weight normalized diffuse-tap periodogram under the frozen scalable-TDL configuration.",
+    "The merged LOS-plus-diffuse zero-delay tap in scalable TDL-D/E is excluded by the frozen protocol.",
+    "It does not establish the continuous Doppler law, inter-tap dependence, spatial behavior, measured-channel validity, receiver impact, or overall G4 qualification.",
+    "The seed audit establishes no global seed exclusivity.",
+    "Production RT generation and advanced training remain gated."
+  ],
+  "maximum_absolute_cdf_error": 0.05,
+  "maximum_doppler_hz": 350.2422999580597,
+  "normalized_frequency_cutoffs": [
+    -0.75,
+    -0.5,
+    -0.25,
+    0.0,
+    0.25,
+    0.5,
+    0.75
+  ],
+  "profile_results": [
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "claim_count": 7,
+      "maximum_absolute_error_plus_half_width": 0.0024340378015630603,
+      "maximum_doppler_hz": 350.2422999580597,
+      "model": "A",
+      "num_sinusoids": 20,
+      "passed": true,
+      "rayleigh_tap_count": 23,
+      "seed": 1743000,
+      "sionna_version": "2.2.0",
+      "worst_claim": {
+        "absolute_error": 0.0008659712781389495,
+        "absolute_error_plus_half_width": 0.0024340378015630603,
+        "expected_jakes_cdf": 0.23005345616261585,
+        "mean_cdf": 0.2309194274407548,
+        "normalized_frequency_cutoff": -0.75,
+        "simultaneous_half_width": 0.0015680665234241108
+      }
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "claim_count": 7,
+      "maximum_absolute_error_plus_half_width": 0.0030850110199740254,
+      "maximum_doppler_hz": 350.2422999580597,
+      "model": "B",
+      "num_sinusoids": 20,
+      "passed": true,
+      "rayleigh_tap_count": 23,
+      "seed": 1743001,
+      "sionna_version": "2.2.0",
+      "worst_claim": {
+        "absolute_error": 0.0015587878233278007,
+        "absolute_error_plus_half_width": 0.0030850110199740254,
+        "expected_jakes_cdf": 0.3333333333333333,
+        "mean_cdf": 0.3348921211566611,
+        "normalized_frequency_cutoff": -0.5,
+        "simultaneous_half_width": 0.0015262231966462244
+      }
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "claim_count": 7,
+      "maximum_absolute_error_plus_half_width": 0.0025048851482879627,
+      "maximum_doppler_hz": 350.2422999580597,
+      "model": "C",
+      "num_sinusoids": 20,
+      "passed": true,
+      "rayleigh_tap_count": 24,
+      "seed": 1743002,
+      "sionna_version": "2.2.0",
+      "worst_claim": {
+        "absolute_error": 0.0009466226095401487,
+        "absolute_error_plus_half_width": 0.0025048851482879627,
+        "expected_jakes_cdf": 0.41956937674483374,
+        "mean_cdf": 0.4205159993543739,
+        "normalized_frequency_cutoff": -0.25,
+        "simultaneous_half_width": 0.0015582625387478139
+      }
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "claim_count": 7,
+      "maximum_absolute_error_plus_half_width": 0.0031747209862527377,
+      "maximum_doppler_hz": 350.2422999580597,
+      "model": "D",
+      "num_sinusoids": 20,
+      "passed": true,
+      "rayleigh_tap_count": 12,
+      "seed": 1743003,
+      "sionna_version": "2.2.0",
+      "worst_claim": {
+        "absolute_error": 0.0006787361664554181,
+        "absolute_error_plus_half_width": 0.0031747209862527377,
+        "expected_jakes_cdf": 0.5804306232551663,
+        "mean_cdf": 0.5811093594216217,
+        "normalized_frequency_cutoff": 0.25,
+        "simultaneous_half_width": 0.0024959848197973196
+      }
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "claim_count": 7,
+      "maximum_absolute_error_plus_half_width": 0.002935804892648781,
+      "maximum_doppler_hz": 350.2422999580597,
+      "model": "E",
+      "num_sinusoids": 20,
+      "passed": true,
+      "rayleigh_tap_count": 13,
+      "seed": 1743004,
+      "sionna_version": "2.2.0",
+      "worst_claim": {
+        "absolute_error": 0.0008364922004464592,
+        "absolute_error_plus_half_width": 0.002935804892648781,
+        "expected_jakes_cdf": 0.5804306232551663,
+        "mean_cdf": 0.5795941310547198,
+        "normalized_frequency_cutoff": 0.25,
+        "simultaneous_half_width": 0.002099312692202322
+      }
+    }
+  ],
+  "profiles": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E"
+  ],
+  "qualification_claim": "none",
+  "runtime": {
+    "platform": "Linux-5.4.0-216-generic-x86_64-with-glibc2.39",
+    "python": "3.12.13",
+    "torch": "2.14.1+cu126"
+  },
+  "sampling_frequency_hz": 1400.9691998322387,
+  "schema": "loslab.g4_scalable_tdl_doppler_spectrum_native_validation.v1",
+  "seed_audit": {
+    "global_exclusivity_established": false,
+    "path": "docs/research/G4_SCALABLE_TDL_DOPPLER_SPECTRUM_SEED_AUDIT_2026-11-09.json",
+    "scanned_file_count": 2283,
+    "sha256": "b39ca236b213af61e6aa9beec92c0eb228104d213b88898d703e7e4f62e3065a",
+    "status": "CLEAR_WITHIN_SCANNED_JSON_CORPUS"
+  },
+  "simultaneous_claim_count": 35,
+  "sinusoid_count": 20,
+  "source_hashes": {
+    "docs/research/G4_SCALABLE_TDL_POWER_DELAY_REFERENCE_2026-10-26.json": "38b897029bd4cc6de49eece5096e69c75291eaf6dac45bebe04767ed24a4f0bd",
+    "evaluation/g4_doppler_spectrum.py": "92d364cc4c69d446549ebe8f68b7b1e948e592f81201c1588e0f031cdc2213f2",
+    "evaluation/g4_tdl_covariance_reference.py": "026be1e82d94d4e151ffa61cf097f354320b344363e6d701fa7d0a1e405e3bdb",
+    "integrations/sionna/tdl.py": "33186b1bc5419ac49ccf29314650985eb5de7ce3e3dce9da8064cbc2936ff8a3",
+    "tests/test_integrations/test_g4_scalable_tdl_doppler_spectrum_native.py": "ecf93a04b49421889b7127581c99fdb1923824fbc5456f36f16227d6644e4b1a"
+  },
+  "speed_mps": 30.0,
+  "time_samples_per_draw": 2048
+}
