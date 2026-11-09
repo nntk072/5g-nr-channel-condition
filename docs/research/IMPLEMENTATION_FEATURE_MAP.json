@@ -2145,9 +2145,9 @@
       "description": "Complete realistic signal scaling, multi-link/multi-cell waveform superposition, interference/contamination/SINR truth, per-link path loss/beam/power, independent noise and oscillator/clock behavior, and inference-safe receiver observations. `compose_received_waveforms` aligns channel-filtered contributions with RX/TX arrival offsets; it supports flat per-link gains, caller-supplied causal complex link FIRs, CFO/phase, fractional timing, seeded node-shared Wiener phase noise, and per-receiver memoryless I/Q imbalance, then coherently sums the links. Independent receiver-node AWGN is added by the adjacent API. `apply_network_link_budget` supports caller-supplied frequency-dependent path-loss/antenna/beam-gain profiles on unit-mean small-scale fading, with an exact increasing absolute-RF subcarrier grid and a guard against double application. `network_resource_sinr` retains per-symbol/per-subcarrier desired, coherently summed interference, noise, and validity values and accepts fixed or resource-varying serving-cell maps. `decode_noisy_network_pusch` connects a bounded noisy network capture to the Sionna PUSCH demodulator/decoder, checks clean source-sum/AWGN lineage and sample-rate/grid identity, and requires an exact full-slot sample count derived from the configured FFT, symbol count, and cyclic-prefix length so the Sionna demodulator cannot silently discard trailing samples. It publishes digest-bound schema-v1 numerical outcomes as `OBSERVED_NOT_QUALIFIED`. For the exact Sionna PHY 2.2.0 unitary FFT/IFFT path it derives per-RE variance as equal to iid sample variance; explicit W/RE input remains available for other receiver conventions. The focused network receiver module passes 14 tests with Ruff clean. An empirical 512-slot noise-only native check and one-block CUDA V100 PUSCH smoke pass. Deriving causal complex FIRs from calibrated frequency-dependent link budgets, calibrated propagation/antenna patterns, asynchronous clocks/multi-numerology, contamination truth, broad multi-cell receiver binding, alternate noise-domain conversions, synchronization/acquisition, and receiver qualification remain open. A bounded SRS-RSRP adapter connects only the UL SRS-RSRP observation path. Its network waveform and receiver implementation, strict report schema, and focused regressions are `integrations/sionna/network_phy.py`, `integrations/sionna/network_receiver.py`, `datasets/schema/network-pusch-receiver-decode.v6.schema.json`, and `tests/test_integrations/test_network_receiver.py`.",
       "evidence_file_sha256": {
         "datasets/schema/network-pusch-receiver-decode.v6.schema.json": "9aa25e031db309c26f89274e091c7a1ea178820e997e0bbd7560a60110ed3da8",
-        "integrations/sionna/network_phy.py": "c8254739f476d34849ea59f4327b047a5e7b61ce3e194794008a8b0451d0e6d0",
+        "integrations/sionna/network_phy.py": "3c0af4f3233fa442683c61462e06b7c896b2d74f22e709e9e02fa8a3597d8080",
         "integrations/sionna/network_receiver.py": "412248b42c7aa82056847e3a7482ff99443d39df588c2c4130148db9373b3435",
-        "tests/test_integrations/test_network_receiver.py": "2a263a2bc28f99d9f32b1d13b86434c249bb141ae103fc542f13bdc48c300749"
+        "tests/test_integrations/test_network_receiver.py": "80b20c7a6d59af26c9f23ea73e85c78c3a9956b9975dd6e72361ffeb37865e5a"
       },
       "evidence_links": {
         "cli_entries": [],
@@ -4575,7 +4575,7 @@
   "schema": "loslab.implementation_feature_map.v2",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "69f16d137362814789a0648d91d6ae96f3f9fffefad05e525939c2f796df4948"
+    "sha256": "27bf50fe183dfd7f9834dacd9461539f99a065960abd65e6788c4d57ab71ac42"
   },
   "summary": {
     "feature_count": 181,

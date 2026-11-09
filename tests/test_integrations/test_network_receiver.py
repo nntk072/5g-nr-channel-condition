@@ -10,6 +10,7 @@ torch = pytest.importorskip("torch")
 
 from integrations.sionna.network_phy import (  # noqa: E402
     add_independent_receiver_waveform_awgn,
+    apply_network_transmitter_iq_imbalance,
     compose_received_waveforms,
 )
 from integrations.sionna.network_receiver import (  # noqa: E402
@@ -18,6 +19,7 @@ from integrations.sionna.network_receiver import (  # noqa: E402
     _unitary_sionna_noise_conversion,
     decode_noisy_network_pusch,
 )
+from integrations.sionna.ofdm_impairments import apply_iq_imbalance  # noqa: E402
 
 
 class _FakePUSCHReceiver:
@@ -67,6 +69,82 @@ def _network_waveform():
     )
     noisy = add_independent_receiver_waveform_awgn(composition, (0.02,), seed=19)
     return composition, noisy
+
+
+@pytest.mark.parametrize("device", ("cpu", "cuda"))
+def test_network_transmitter_iq_imbalance_precedes_per_link_propagation(device: str):
+    if device == "cuda" and not torch.cuda.is_available():
+        pytest.skip("CUDA is unavailable")
+    transmit = torch.tensor(
+        [[[[1.0 + 2.0j, -0.5 + 0.25j, 0.2 - 0.7j]], [[0.3 - 0.2j, 1.5 + 0.5j, -0.1 + 1.1j]]]],
+        dtype=torch.complex64,
+        device=device,
+    )
+    gain_db = (0.7, -0.4)
+    phase_rad = (0.08, -0.12)
+
+    tx_stage = apply_network_transmitter_iq_imbalance(
+        transmit,
+        tx_iq_gain_imbalance_db=gain_db,
+        tx_iq_phase_imbalance_rad=phase_rad,
+    )
+
+    expected_per_tx = torch.stack(
+        [
+            apply_iq_imbalance(
+                transmit[:, tx_index],
+                gain_imbalance_db=gain_db[tx_index],
+                phase_imbalance_rad=phase_rad[tx_index],
+            )
+            for tx_index in range(2)
+        ],
+        dim=1,
+    )
+    torch.testing.assert_close(tx_stage.waveform, expected_per_tx)
+    assert tx_stage.signal_stage == "transmitter_iq_imbalance_before_propagation"
+    assert tuple(tx_stage.tx_iq_gain_imbalance_db.shape) == (2,)
+    assert tx_stage.tx_iq_gain_imbalance_db.tolist() == list(gain_db)
+    assert tx_stage.tx_iq_phase_imbalance_rad.tolist() == list(phase_rad)
+
+    channel = torch.tensor(
+        [[[[[0.7 + 0.4j]], [[-0.2 + 0.9j]]]]], dtype=torch.complex64, device=device
+    )
+    propagated = tx_stage.waveform.unsqueeze(1) * channel
+    composition = compose_received_waveforms(
+        propagated,
+        link_start_samples=((0, 0),),
+        capture_num_samples=3,
+        sample_rate_hz=30_720_000.0,
+    )
+    torch.testing.assert_close(composition.received_waveform, propagated.sum(dim=2))
+
+    h = channel[0, 0, 0, 0, 0]
+    tx_first_then_channel = tx_stage.waveform[:, 0, 0] * h
+    channel_first_then_tx = apply_iq_imbalance(
+        transmit[:, 0, 0] * h,
+        gain_imbalance_db=gain_db[0],
+        phase_imbalance_rad=phase_rad[0],
+    )
+    assert not torch.allclose(tx_first_then_channel, channel_first_then_tx)
+
+
+@pytest.mark.parametrize(
+    ("gain", "phase", "error"),
+    [
+        ((0.0,), (0.0, 0.0), "tx_iq_gain_imbalance_db must have shape"),
+        ((False, 0.0), (0.0, 0.0), "tx_iq_gain_imbalance_db must contain real numeric values"),
+        ((0.0, 0.0), (0.0, float("inf")), "tx_iq_phase_imbalance_rad must be finite"),
+    ],
+)
+def test_network_transmitter_iq_imbalance_rejects_invalid_node_profiles(gain, phase, error):
+    waveform = torch.ones((1, 2, 1, 4), dtype=torch.complex64)
+
+    with pytest.raises(ValueError, match=error):
+        apply_network_transmitter_iq_imbalance(
+            waveform,
+            tx_iq_gain_imbalance_db=gain,
+            tx_iq_phase_imbalance_rad=phase,
+        )
 
 
 def test_network_waveform_reaches_pusch_decoder_with_bound_inputs_and_status():

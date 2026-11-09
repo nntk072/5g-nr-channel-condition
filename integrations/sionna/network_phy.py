@@ -253,6 +253,16 @@ class NetworkWaveformComposition:
 
 
 @dataclass(frozen=True, slots=True)
+class NetworkTransmitterWaveform:
+    """Per-transmitter waveform after memoryless TX I/Q imbalance, before propagation."""
+
+    waveform: Any
+    tx_iq_gain_imbalance_db: Any
+    tx_iq_phase_imbalance_rad: Any
+    signal_stage: str = "transmitter_iq_imbalance_before_propagation"
+
+
+@dataclass(frozen=True, slots=True)
 class NoisyNetworkWaveform:
     """Receiver-specific independent complex AWGN added to a network capture."""
 
@@ -260,6 +270,93 @@ class NoisyNetworkWaveform:
     noise_waveform: Any
     noise_variance_w_per_sample: Any
     seed: int
+
+
+def apply_network_transmitter_iq_imbalance(
+    transmit_waveforms: Any,
+    *,
+    tx_iq_gain_imbalance_db: Any,
+    tx_iq_phase_imbalance_rad: Any,
+    max_output_elements: int = 64_000_000,
+) -> NetworkTransmitterWaveform:
+    """Apply node-specific TX I/Q imbalance before per-link propagation.
+
+    ``transmit_waveforms`` has ``[batch, tx, tx_port, sample]`` axes. Each TX
+    has one reciprocal branch gain ratio and Q-branch phase skew, shared over
+    its ports and samples. The returned waveform is ready to be propagated
+    independently toward the network's receivers and then passed into
+    :func:`compose_received_waveforms` after per-link channel filtering.
+    """
+    try:
+        import torch
+    except ImportError as error:
+        raise RuntimeError("Install PyTorch to apply network transmitter impairments") from error
+
+    if (
+        not torch.is_tensor(transmit_waveforms)
+        or transmit_waveforms.layout != torch.strided
+        or not torch.is_complex(transmit_waveforms)
+        or transmit_waveforms.ndim != 4
+    ):
+        raise TypeError(
+            "transmit_waveforms must be a dense complex [batch, tx, port, sample] tensor"
+        )
+    if any(size <= 0 for size in transmit_waveforms.shape):
+        raise ValueError("transmit_waveforms axes must be non-empty")
+    if not bool(torch.isfinite(transmit_waveforms).all()):
+        raise ValueError("transmit_waveforms must contain only finite samples")
+    if (
+        isinstance(max_output_elements, bool)
+        or not isinstance(max_output_elements, int)
+        or max_output_elements <= 0
+    ):
+        raise ValueError("max_output_elements must be a positive integer")
+    batch, tx_count, tx_ports, sample_count = transmit_waveforms.shape
+    retained_cells = batch * tx_count * tx_ports * sample_count
+    if 4 * retained_cells > max_output_elements:
+        raise ValueError("transmitter-IQ waveform and temporary arrays exceed max_output_elements")
+    gain_db = _validated_real_values(
+        torch,
+        tx_iq_gain_imbalance_db,
+        shape=(tx_count,),
+        device=transmit_waveforms.device,
+        name="tx_iq_gain_imbalance_db",
+    )
+    phase_rad = _validated_real_values(
+        torch,
+        tx_iq_phase_imbalance_rad,
+        shape=(tx_count,),
+        device=transmit_waveforms.device,
+        name="tx_iq_phase_imbalance_rad",
+    )
+    phase_used_rad = torch.remainder(phase_rad + math.pi, 2.0 * math.pi) - math.pi
+    i_gain = torch.pow(10.0, gain_db / 40.0)
+    q_gain = torch.pow(10.0, -gain_db / 40.0)
+    real_dtype = transmit_waveforms.real.dtype
+    i_scale = i_gain.to(dtype=real_dtype)
+    q_scale = q_gain.to(dtype=real_dtype)
+    phase_sin = torch.sin(phase_used_rad).to(dtype=real_dtype)
+    phase_cos = torch.cos(phase_used_rad).to(dtype=real_dtype)
+    scales = (i_gain, q_gain, i_scale, q_scale, phase_sin, phase_cos)
+    if any(not bool(torch.isfinite(value).all()) for value in scales):
+        raise ValueError("transmitter I/Q imbalance is not representable in waveform precision")
+    if bool(((i_gain > 0) & (i_scale == 0)).any()) or bool(((q_gain > 0) & (q_scale == 0)).any()):
+        raise ValueError("transmitter I/Q imbalance underflows waveform precision")
+    expanded_shape = (1, tx_count, 1, 1)
+    i_scale = i_scale.reshape(expanded_shape)
+    q_scale = q_scale.reshape(expanded_shape)
+    phase_sin = phase_sin.reshape(expanded_shape)
+    phase_cos = phase_cos.reshape(expanded_shape)
+    output_real = i_scale * transmit_waveforms.real - q_scale * phase_sin * transmit_waveforms.imag
+    output_imag = q_scale * phase_cos * transmit_waveforms.imag
+    output = torch.complex(output_real, output_imag)
+    if not bool(torch.isfinite(output).all()):
+        raise ValueError("transmitter I/Q imbalance produced non-finite waveform samples")
+    return NetworkTransmitterWaveform(
+        waveform=output,
+        tx_iq_gain_imbalance_db=gain_db,
+        tx_iq_phase_imbalance_rad=phase_rad,
+    )
 
 
 def apply_network_link_budget(
