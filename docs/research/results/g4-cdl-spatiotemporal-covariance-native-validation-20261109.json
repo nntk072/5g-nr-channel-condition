@@ -1,0 +1,1057 @@
+{
+  "all_passed": true,
+  "base_commit": "239b3194d8966eee01c46333dfd14ec7495ffe2e",
+  "case_count": 10,
+  "cases": [
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "claims": [
+        {
+          "absolute_error": 0.0019049798130562623,
+          "column": 0,
+          "component": "real",
+          "estimate": 0.4297747477426084,
+          "half_width": 0.02080524048472637,
+          "passed": true,
+          "reference": 0.43167972755566464,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.0013125294926000786,
+          "column": 0,
+          "component": "imag",
+          "estimate": -0.33073323212606753,
+          "half_width": 0.018371907463046105,
+          "passed": true,
+          "reference": -0.3320457616186676,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.0010285382161469014,
+          "column": 1,
+          "component": "real",
+          "estimate": -0.6285458312030748,
+          "half_width": 0.019678897275454837,
+          "passed": true,
+          "reference": -0.6275172929869279,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.0033425135555833763,
+          "column": 1,
+          "component": "imag",
+          "estimate": -0.16969688838833916,
+          "half_width": 0.015767247251648426,
+          "passed": true,
+          "reference": -0.17303940194392253,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.0057114034542236625,
+          "column": 0,
+          "component": "real",
+          "estimate": 0.31858272512024627,
+          "half_width": 0.020784124387078655,
+          "passed": true,
+          "reference": 0.32429412857446993,
+          "row": 1
+        },
+        {
+          "absolute_error": 0.006250233104365149,
+          "column": 0,
+          "component": "imag",
+          "estimate": -0.041608649831051045,
+          "half_width": 0.020230406378002906,
+          "passed": true,
+          "reference": -0.035358416726685896,
+          "row": 1
+        },
+        {
+          "absolute_error": 0.002059704201569812,
+          "column": 1,
+          "component": "real",
+          "estimate": 0.43373943175723445,
+          "half_width": 0.019391796661770887,
+          "passed": true,
+          "reference": 0.43167972755566464,
+          "row": 1
+        },
+        {
+          "absolute_error": 0.006685745099549223,
+          "column": 1,
+          "component": "imag",
+          "estimate": -0.3253600165191184,
+          "half_width": 0.01719777998733326,
+          "passed": true,
+          "reference": -0.3320457616186676,
+          "row": 1
+        }
+      ],
+      "draw_count": 16384,
+      "family_claim_count": 80,
+      "familywise_alpha": 0.01,
+      "maximum_half_width": 0.02080524048472637,
+      "model": "A",
+      "parameter_table_sha256": "b96f8a179646ee468717c615e8061103d1e66eb1ff1ea78301de243740254cb7",
+      "seed": 2810000,
+      "test_nodeid": "tests/test_integrations/test_g4_cdl_spatiotemporal_covariance_native.py::test_cdl_joint_spatiotemporal_covariance_matches_independent_reference[x-A]",
+      "test_outcome": "passed",
+      "velocity_label": "x",
+      "velocity_mps": [
+        30.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "claims": [
+        {
+          "absolute_error": 0.0011942401868556551,
+          "column": 0,
+          "component": "real",
+          "estimate": 0.5778790470559633,
+          "half_width": 0.02067022661334699,
+          "passed": true,
+          "reference": 0.5790732872428189,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.001630639265325251,
+          "column": 0,
+          "component": "imag",
+          "estimate": -0.22112346250499826,
+          "half_width": 0.015898968004166233,
+          "passed": true,
+          "reference": -0.2227541017703235,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.005287718441696676,
+          "column": 1,
+          "component": "real",
+          "estimate": -0.4758284126447373,
+          "half_width": 0.017458266604637236,
+          "passed": true,
+          "reference": -0.481116131086434,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.0015743201420084785,
+          "column": 1,
+          "component": "imag",
+          "estimate": -0.4793362840793386,
+          "half_width": 0.015988960261391613,
+          "passed": true,
+          "reference": -0.4777619639373301,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.0007856042931696505,
+          "column": 0,
+          "component": "real",
+          "estimate": 0.5327906188631516,
+          "half_width": 0.02064283059654094,
+          "passed": true,
+          "reference": 0.5335762231563212,
+          "row": 1
+        },
+        {
+          "absolute_error": 0.0039844663034241945,
+          "column": 0,
+          "component": "imag",
+          "estimate": 0.15360919229882564,
+          "half_width": 0.016674724323051088,
+          "passed": true,
+          "reference": 0.15759365860224983,
+          "row": 1
+        },
+        {
+          "absolute_error": 0.0070746903342118195,
+          "column": 1,
+          "component": "real",
+          "estimate": 0.5719985969086071,
+          "half_width": 0.018322150139627146,
+          "passed": true,
+          "reference": 0.5790732872428189,
+          "row": 1
+        },
+        {
+          "absolute_error": 0.005212776011158354,
+          "column": 1,
+          "component": "imag",
+          "estimate": -0.21754132575916516,
+          "half_width": 0.01611343403733285,
+          "passed": true,
+          "reference": -0.2227541017703235,
+          "row": 1
+        }
+      ],
+      "draw_count": 16384,
+      "family_claim_count": 80,
+      "familywise_alpha": 0.01,
+      "maximum_half_width": 0.02067022661334699,
+      "model": "A",
+      "parameter_table_sha256": "b96f8a179646ee468717c615e8061103d1e66eb1ff1ea78301de243740254cb7",
+      "seed": 2810001,
+      "test_nodeid": "tests/test_integrations/test_g4_cdl_spatiotemporal_covariance_native.py::test_cdl_joint_spatiotemporal_covariance_matches_independent_reference[oblique_122-A]",
+      "test_outcome": "passed",
+      "velocity_label": "oblique_122",
+      "velocity_mps": [
+        10.0,
+        20.0,
+        20.0
+      ]
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "claims": [
+        {
+          "absolute_error": 0.001618231487443056,
+          "column": 0,
+          "component": "real",
+          "estimate": 0.49223455126322885,
+          "half_width": 0.015875756352824892,
+          "passed": true,
+          "reference": 0.4906163197757858,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.0074812602132008355,
+          "column": 0,
+          "component": "imag",
+          "estimate": -0.6160340399880583,
+          "half_width": 0.018510779459524593,
+          "passed": true,
+          "reference": -0.6235153002012591,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.008629238858889027,
+          "column": 1,
+          "component": "real",
+          "estimate": -0.1939182137709432,
+          "half_width": 0.020766037437392203,
+          "passed": true,
+          "reference": -0.18528897491205418,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.005187706574042425,
+          "column": 1,
+          "component": "imag",
+          "estimate": -0.12155582427781735,
+          "half_width": 0.021105512932983427,
+          "passed": true,
+          "reference": -0.12674353085185977,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.0013583360178310855,
+          "column": 0,
+          "component": "real",
+          "estimate": -0.3622574214899539,
+          "half_width": 0.019828317305293778,
+          "passed": true,
+          "reference": -0.3608990854721228,
+          "row": 1
+        },
+        {
+          "absolute_error": 0.0028973232126939252,
+          "column": 0,
+          "component": "imag",
+          "estimate": -0.21712563815200592,
+          "half_width": 0.019808715369810857,
+          "passed": true,
+          "reference": -0.22002296136469984,
+          "row": 1
+        },
+        {
+          "absolute_error": 0.0067705235601762115,
+          "column": 1,
+          "component": "real",
+          "estimate": 0.497386843335962,
+          "half_width": 0.01664012038641709,
+          "passed": true,
+          "reference": 0.4906163197757858,
+          "row": 1
+        },
+        {
+          "absolute_error": 0.0017408448587938885,
+          "column": 1,
+          "component": "imag",
+          "estimate": -0.625256145060053,
+          "half_width": 0.01900807438617848,
+          "passed": true,
+          "reference": -0.6235153002012591,
+          "row": 1
+        }
+      ],
+      "draw_count": 16384,
+      "family_claim_count": 80,
+      "familywise_alpha": 0.01,
+      "maximum_half_width": 0.021105512932983427,
+      "model": "B",
+      "parameter_table_sha256": "7c87c092cb2bb44891d301ee3c1991cdda1c6b64094a03f18746ec5fa14ee2a2",
+      "seed": 2810002,
+      "test_nodeid": "tests/test_integrations/test_g4_cdl_spatiotemporal_covariance_native.py::test_cdl_joint_spatiotemporal_covariance_matches_independent_reference[x-B]",
+      "test_outcome": "passed",
+      "velocity_label": "x",
+      "velocity_mps": [
+        30.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "claims": [
+        {
+          "absolute_error": 0.0011761641725644978,
+          "column": 0,
+          "component": "real",
+          "estimate": 0.762978079981374,
+          "half_width": 0.02167320963538096,
+          "passed": true,
+          "reference": 0.7618019158088095,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.00023568289780334997,
+          "column": 0,
+          "component": "imag",
+          "estimate": 0.028368264778504623,
+          "half_width": 0.013718351499568958,
+          "passed": true,
+          "reference": 0.028603947676307973,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.004625030842811295,
+          "column": 1,
+          "component": "real",
+          "estimate": -0.29112267188382035,
+          "half_width": 0.020442624879420584,
+          "passed": true,
+          "reference": -0.28649764104100905,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.0054456148435247514,
+          "column": 1,
+          "component": "imag",
+          "estimate": -0.055304609931357676,
+          "half_width": 0.020280596569486116,
+          "passed": true,
+          "reference": -0.049858995087832925,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.006071515524110227,
+          "column": 0,
+          "component": "real",
+          "estimate": 0.3282195779953259,
+          "half_width": 0.02155891253177023,
+          "passed": true,
+          "reference": 0.33429109351943614,
+          "row": 1
+        },
+        {
+          "absolute_error": 0.0005173463739743811,
+          "column": 0,
+          "component": "imag",
+          "estimate": -0.14496818125802427,
+          "half_width": 0.01978612488227741,
+          "passed": true,
+          "reference": -0.14548552763199865,
+          "row": 1
+        },
+        {
+          "absolute_error": 0.0033630977061817058,
+          "column": 1,
+          "component": "real",
+          "estimate": 0.7584388181026278,
+          "half_width": 0.020825595459692953,
+          "passed": true,
+          "reference": 0.7618019158088095,
+          "row": 1
+        },
+        {
+          "absolute_error": 0.005546446121160231,
+          "column": 1,
+          "component": "imag",
+          "estimate": 0.034150393797468204,
+          "half_width": 0.013545273531162187,
+          "passed": true,
+          "reference": 0.028603947676307973,
+          "row": 1
+        }
+      ],
+      "draw_count": 16384,
+      "family_claim_count": 80,
+      "familywise_alpha": 0.01,
+      "maximum_half_width": 0.02167320963538096,
+      "model": "B",
+      "parameter_table_sha256": "7c87c092cb2bb44891d301ee3c1991cdda1c6b64094a03f18746ec5fa14ee2a2",
+      "seed": 2810003,
+      "test_nodeid": "tests/test_integrations/test_g4_cdl_spatiotemporal_covariance_native.py::test_cdl_joint_spatiotemporal_covariance_matches_independent_reference[oblique_122-B]",
+      "test_outcome": "passed",
+      "velocity_label": "oblique_122",
+      "velocity_mps": [
+        10.0,
+        20.0,
+        20.0
+      ]
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "claims": [
+        {
+          "absolute_error": 0.0056150667223671125,
+          "column": 0,
+          "component": "real",
+          "estimate": 0.5212967514416043,
+          "half_width": 0.01730288288222637,
+          "passed": true,
+          "reference": 0.5269118181639714,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.0014807958412605404,
+          "column": 0,
+          "component": "imag",
+          "estimate": -0.435930061403761,
+          "half_width": 0.01755675129967786,
+          "passed": true,
+          "reference": -0.43741085724502154,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.0021723911546214503,
+          "column": 1,
+          "component": "real",
+          "estimate": -0.2047457390895605,
+          "half_width": 0.021407140691476218,
+          "passed": true,
+          "reference": -0.20691813024418196,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.0024390676856099747,
+          "column": 1,
+          "component": "imag",
+          "estimate": -0.011310368959606696,
+          "half_width": 0.020607529285146736,
+          "passed": true,
+          "reference": -0.008871301273996721,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.00044496279788081017,
+          "column": 0,
+          "component": "real",
+          "estimate": -0.46771168819724235,
+          "half_width": 0.01843850585494061,
+          "passed": true,
+          "reference": -0.46815665099512316,
+          "row": 1
+        },
+        {
+          "absolute_error": 0.0008904327272699075,
+          "column": 0,
+          "component": "imag",
+          "estimate": -0.2177872646327712,
+          "half_width": 0.018296664727148797,
+          "passed": true,
+          "reference": -0.2186776973600411,
+          "row": 1
+        },
+        {
+          "absolute_error": 0.0029331406960815265,
+          "column": 1,
+          "component": "real",
+          "estimate": 0.5298449588600529,
+          "half_width": 0.01868171632196527,
+          "passed": true,
+          "reference": 0.5269118181639714,
+          "row": 1
+        },
+        {
+          "absolute_error": 0.002285905057005766,
+          "column": 1,
+          "component": "imag",
+          "estimate": -0.4396967623020273,
+          "half_width": 0.018920966649764108,
+          "passed": true,
+          "reference": -0.43741085724502154,
+          "row": 1
+        }
+      ],
+      "draw_count": 16384,
+      "family_claim_count": 80,
+      "familywise_alpha": 0.01,
+      "maximum_half_width": 0.021407140691476218,
+      "model": "C",
+      "parameter_table_sha256": "f2044ecc3b72a1967221805ba70b1f0dab9634bb831478c1337b737ced6e4a28",
+      "seed": 2810004,
+      "test_nodeid": "tests/test_integrations/test_g4_cdl_spatiotemporal_covariance_native.py::test_cdl_joint_spatiotemporal_covariance_matches_independent_reference[x-C]",
+      "test_outcome": "passed",
+      "velocity_label": "x",
+      "velocity_mps": [
+        30.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "claims": [
+        {
+          "absolute_error": 0.010833838439359034,
+          "column": 0,
+          "component": "real",
+          "estimate": 0.6914707712382447,
+          "half_width": 0.021170302163392392,
+          "passed": true,
+          "reference": 0.7023046096776038,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.0019204864095193896,
+          "column": 0,
+          "component": "imag",
+          "estimate": 0.23671764121942662,
+          "half_width": 0.014063239584825762,
+          "passed": true,
+          "reference": 0.23479715480990723,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.005117318615113886,
+          "column": 1,
+          "component": "real",
+          "estimate": -0.2679017494702431,
+          "half_width": 0.019707911216028735,
+          "passed": true,
+          "reference": -0.273019068085357,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.0011071524346910125,
+          "column": 1,
+          "component": "imag",
+          "estimate": -0.041714190122877554,
+          "half_width": 0.020236562469832527,
+          "passed": true,
+          "reference": -0.04060703768818654,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.009687601192904238,
+          "column": 0,
+          "component": "real",
+          "estimate": 0.27212966439198505,
+          "half_width": 0.020565200222303896,
+          "passed": true,
+          "reference": 0.2624420631990808,
+          "row": 1
+        },
+        {
+          "absolute_error": 0.00231233778975648,
+          "column": 0,
+          "component": "imag",
+          "estimate": -0.32946421385766556,
+          "half_width": 0.018768505193976912,
+          "passed": true,
+          "reference": -0.3271518760679091,
+          "row": 1
+        },
+        {
+          "absolute_error": 0.006766630043028021,
+          "column": 1,
+          "component": "real",
+          "estimate": 0.7090712397206318,
+          "half_width": 0.020746444919669534,
+          "passed": true,
+          "reference": 0.7023046096776038,
+          "row": 1
+        },
+        {
+          "absolute_error": 0.0032557819200736415,
+          "column": 1,
+          "component": "imag",
+          "estimate": 0.23805293672998087,
+          "half_width": 0.014769544979445173,
+          "passed": true,
+          "reference": 0.23479715480990723,
+          "row": 1
+        }
+      ],
+      "draw_count": 16384,
+      "family_claim_count": 80,
+      "familywise_alpha": 0.01,
+      "maximum_half_width": 0.021170302163392392,
+      "model": "C",
+      "parameter_table_sha256": "f2044ecc3b72a1967221805ba70b1f0dab9634bb831478c1337b737ced6e4a28",
+      "seed": 2810005,
+      "test_nodeid": "tests/test_integrations/test_g4_cdl_spatiotemporal_covariance_native.py::test_cdl_joint_spatiotemporal_covariance_matches_independent_reference[oblique_122-C]",
+      "test_outcome": "passed",
+      "velocity_label": "oblique_122",
+      "velocity_mps": [
+        10.0,
+        20.0,
+        20.0
+      ]
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "claims": [
+        {
+          "absolute_error": 0.0005468493087992798,
+          "column": 0,
+          "component": "real",
+          "estimate": 0.08319591747471294,
+          "half_width": 0.005593354167714585,
+          "passed": true,
+          "reference": 0.08264906816591366,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.0001620373783344231,
+          "column": 0,
+          "component": "imag",
+          "estimate": -0.965416456295621,
+          "half_width": 0.00709414540605782,
+          "passed": true,
+          "reference": -0.9652544189172866,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.002367431927008959,
+          "column": 1,
+          "component": "real",
+          "estimate": 0.03601482706261335,
+          "half_width": 0.0073820367750556054,
+          "passed": true,
+          "reference": 0.03364739513560439,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.002725340174243307,
+          "column": 1,
+          "component": "imag",
+          "estimate": -0.9306665151408929,
+          "half_width": 0.0059389764607050465,
+          "passed": true,
+          "reference": -0.9333918553151362,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.0015966711156744744,
+          "column": 0,
+          "component": "real",
+          "estimate": -0.006311062122509894,
+          "half_width": 0.007137084952160673,
+          "passed": true,
+          "reference": -0.0047143910068354195,
+          "row": 1
+        },
+        {
+          "absolute_error": 0.0030795061070930663,
+          "column": 0,
+          "component": "imag",
+          "estimate": -0.9428526760971714,
+          "half_width": 0.005716276103530675,
+          "passed": true,
+          "reference": -0.9397731699900783,
+          "row": 1
+        },
+        {
+          "absolute_error": 8.393072362597453e-05,
+          "column": 1,
+          "component": "real",
+          "estimate": 0.08256513744228769,
+          "half_width": 0.005591721769817463,
+          "passed": true,
+          "reference": 0.08264906816591366,
+          "row": 1
+        },
+        {
+          "absolute_error": 0.0005557816013350703,
+          "column": 1,
+          "component": "imag",
+          "estimate": -0.9646986373159515,
+          "half_width": 0.007449788555092138,
+          "passed": true,
+          "reference": -0.9652544189172866,
+          "row": 1
+        }
+      ],
+      "draw_count": 16384,
+      "family_claim_count": 80,
+      "familywise_alpha": 0.01,
+      "maximum_half_width": 0.007449788555092138,
+      "model": "D",
+      "parameter_table_sha256": "a8960f176347de457c0cb90fbc8cf137ac98bb1c5295b096f004d8d5c6e40176",
+      "seed": 2810006,
+      "test_nodeid": "tests/test_integrations/test_g4_cdl_spatiotemporal_covariance_native.py::test_cdl_joint_spatiotemporal_covariance_matches_independent_reference[x-D]",
+      "test_outcome": "passed",
+      "velocity_label": "x",
+      "velocity_mps": [
+        30.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "claims": [
+        {
+          "absolute_error": 0.00021913046633303956,
+          "column": 0,
+          "component": "real",
+          "estimate": 0.9219170641024373,
+          "half_width": 0.007581809006652032,
+          "passed": true,
+          "reference": 0.9221361945687704,
+          "row": 0
+        },
+        {
+          "absolute_error": 9.330779254057564e-05,
+          "column": 0,
+          "component": "imag",
+          "estimate": -0.3045639286345345,
+          "half_width": 0.0037682107595777676,
+          "passed": true,
+          "reference": -0.30447062084199394,
+          "row": 0
+        },
+        {
+          "absolute_error": 3.062794149077952e-05,
+          "column": 1,
+          "component": "real",
+          "estimate": 0.8570620470422862,
+          "half_width": 0.004513285367923415,
+          "passed": true,
+          "reference": 0.8570314191007954,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.0021141895384867992,
+          "column": 1,
+          "component": "imag",
+          "estimate": -0.32428967832064726,
+          "half_width": 0.008947866589235126,
+          "passed": true,
+          "reference": -0.32217548878216046,
+          "row": 0
+        },
+        {
+          "absolute_error": 5.098202064190982e-05,
+          "column": 0,
+          "component": "real",
+          "estimate": 0.8772889402670707,
+          "half_width": 0.004114560613261243,
+          "passed": true,
+          "reference": 0.8772379582464288,
+          "row": 1
+        },
+        {
+          "absolute_error": 0.0020647087865772185,
+          "column": 0,
+          "component": "imag",
+          "estimate": -0.36183370884845745,
+          "half_width": 0.007344978197747573,
+          "passed": true,
+          "reference": -0.36389841763503467,
+          "row": 1
+        },
+        {
+          "absolute_error": 0.0007003431669313498,
+          "column": 1,
+          "component": "real",
+          "estimate": 0.9228365377357017,
+          "half_width": 0.009251964770434556,
+          "passed": true,
+          "reference": 0.9221361945687704,
+          "row": 1
+        },
+        {
+          "absolute_error": 0.0019507162453490934,
+          "column": 1,
+          "component": "imag",
+          "estimate": -0.30642133708734304,
+          "half_width": 0.003922425886744691,
+          "passed": true,
+          "reference": -0.30447062084199394,
+          "row": 1
+        }
+      ],
+      "draw_count": 16384,
+      "family_claim_count": 80,
+      "familywise_alpha": 0.01,
+      "maximum_half_width": 0.009251964770434556,
+      "model": "D",
+      "parameter_table_sha256": "a8960f176347de457c0cb90fbc8cf137ac98bb1c5295b096f004d8d5c6e40176",
+      "seed": 2810007,
+      "test_nodeid": "tests/test_integrations/test_g4_cdl_spatiotemporal_covariance_native.py::test_cdl_joint_spatiotemporal_covariance_matches_independent_reference[oblique_122-D]",
+      "test_outcome": "passed",
+      "velocity_label": "oblique_122",
+      "velocity_mps": [
+        10.0,
+        20.0,
+        20.0
+      ]
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "claims": [
+        {
+          "absolute_error": 0.0031160000690057255,
+          "column": 0,
+          "component": "real",
+          "estimate": 0.07899258347809082,
+          "half_width": 0.009360955270481067,
+          "passed": true,
+          "reference": 0.0758765834090851,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.0007051633748408337,
+          "column": 0,
+          "component": "imag",
+          "estimate": -0.8926147475699688,
+          "half_width": 0.009803734171598095,
+          "passed": true,
+          "reference": -0.891909584195128,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.002360159490341902,
+          "column": 1,
+          "component": "real",
+          "estimate": -0.00656405565331391,
+          "half_width": 0.010242646657545268,
+          "passed": true,
+          "reference": -0.008924215143655812,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.0016851612000426952,
+          "column": 1,
+          "component": "imag",
+          "estimate": -0.8736625707090201,
+          "half_width": 0.009222777906998885,
+          "passed": true,
+          "reference": -0.8719774095089774,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.0053789069509007775,
+          "column": 0,
+          "component": "real",
+          "estimate": 0.08855105679346856,
+          "half_width": 0.009931539407713654,
+          "passed": true,
+          "reference": 0.08317214984256778,
+          "row": 1
+        },
+        {
+          "absolute_error": 0.0014053016749893121,
+          "column": 0,
+          "component": "imag",
+          "estimate": -0.8803834469069644,
+          "half_width": 0.008998099439936286,
+          "passed": true,
+          "reference": -0.878978145231975,
+          "row": 1
+        },
+        {
+          "absolute_error": 0.0038825956824466434,
+          "column": 1,
+          "component": "real",
+          "estimate": 0.07975917909153174,
+          "half_width": 0.009591607884433804,
+          "passed": true,
+          "reference": 0.0758765834090851,
+          "row": 1
+        },
+        {
+          "absolute_error": 0.0035378484261059384,
+          "column": 1,
+          "component": "imag",
+          "estimate": -0.8954474326212339,
+          "half_width": 0.009874694693775674,
+          "passed": true,
+          "reference": -0.891909584195128,
+          "row": 1
+        }
+      ],
+      "draw_count": 16384,
+      "family_claim_count": 80,
+      "familywise_alpha": 0.01,
+      "maximum_half_width": 0.010242646657545268,
+      "model": "E",
+      "parameter_table_sha256": "04328f33d8d79b24aa3d0303fecb58b465ed7e13874930b05e76be0d97743480",
+      "seed": 2810008,
+      "test_nodeid": "tests/test_integrations/test_g4_cdl_spatiotemporal_covariance_native.py::test_cdl_joint_spatiotemporal_covariance_matches_independent_reference[x-E]",
+      "test_outcome": "passed",
+      "velocity_label": "x",
+      "velocity_mps": [
+        30.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "claims": [
+        {
+          "absolute_error": 0.0026323545198925213,
+          "column": 0,
+          "component": "real",
+          "estimate": 0.9180386730969389,
+          "half_width": 0.006406869326934378,
+          "passed": true,
+          "reference": 0.9154063185770464,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.001726077531135406,
+          "column": 0,
+          "component": "imag",
+          "estimate": -0.2689552965568199,
+          "half_width": 0.005997560588283538,
+          "passed": true,
+          "reference": -0.2706813740879553,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.0020597576287623154,
+          "column": 1,
+          "component": "real",
+          "estimate": 0.8108809221592536,
+          "half_width": 0.005945642619948297,
+          "passed": true,
+          "reference": 0.8129406797880159,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.000326111225488368,
+          "column": 1,
+          "component": "imag",
+          "estimate": -0.27891988569059134,
+          "half_width": 0.010940698114508485,
+          "passed": true,
+          "reference": -0.2792459969160797,
+          "row": 0
+        },
+        {
+          "absolute_error": 0.0008590004998905165,
+          "column": 0,
+          "component": "real",
+          "estimate": 0.9126236387787561,
+          "half_width": 0.006307029747866447,
+          "passed": true,
+          "reference": 0.9117646382788656,
+          "row": 1
+        },
+        {
+          "absolute_error": 0.0024540694478091263,
+          "column": 0,
+          "component": "imag",
+          "estimate": -0.29032010139196873,
+          "half_width": 0.006145316334060369,
+          "passed": true,
+          "reference": -0.29277417083977786,
+          "row": 1
+        },
+        {
+          "absolute_error": 0.002959571768859859,
+          "column": 1,
+          "component": "real",
+          "estimate": 0.9124467468081865,
+          "half_width": 0.011198988357187656,
+          "passed": true,
+          "reference": 0.9154063185770464,
+          "row": 1
+        },
+        {
+          "absolute_error": 0.001377360824724505,
+          "column": 1,
+          "component": "imag",
+          "estimate": -0.2693040132632308,
+          "half_width": 0.005677047517110608,
+          "passed": true,
+          "reference": -0.2706813740879553,
+          "row": 1
+        }
+      ],
+      "draw_count": 16384,
+      "family_claim_count": 80,
+      "familywise_alpha": 0.01,
+      "maximum_half_width": 0.011198988357187656,
+      "model": "E",
+      "parameter_table_sha256": "04328f33d8d79b24aa3d0303fecb58b465ed7e13874930b05e76be0d97743480",
+      "seed": 2810009,
+      "test_nodeid": "tests/test_integrations/test_g4_cdl_spatiotemporal_covariance_native.py::test_cdl_joint_spatiotemporal_covariance_matches_independent_reference[oblique_122-E]",
+      "test_outcome": "passed",
+      "velocity_label": "oblique_122",
+      "velocity_mps": [
+        10.0,
+        20.0,
+        20.0
+      ]
+    }
+  ],
+  "criteria_changed": false,
+  "date": "2026-11-09",
+  "draws_per_case": 16384,
+  "familywise_alpha": 0.01,
+  "limitations": [
+    "Bounded Sionna PHY 2.2.0 CPU model-consistency evidence for the frozen two-element CDL joint space-time covariance family only.",
+    "The family covers CDL-A through E, two velocity vectors, one 3.5 GHz carrier, one 30 m/s speed, one 0.7 ms lag, a zero-oriented half-wavelength two-element single-V omni UT array, and a single-V omni BS port.",
+    "It does not establish continuous orientation or velocity coverage, arbitrary arrays or patterns, mutual coupling, multiport transmit covariance, measured-channel truth, RT/material truth, receiver validity, or overall G4 qualification.",
+    "The seed audit establishes no global seed exclusivity.",
+    "Production D1 generation and advanced training remain gated."
+  ],
+  "maximum_interval_half_width": 0.05,
+  "maximum_observed_absolute_error": 0.010833838439359034,
+  "maximum_observed_half_width": 0.02167320963538096,
+  "profiles": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E"
+  ],
+  "qualification_claim": "none",
+  "runtime": {
+    "device": "cpu",
+    "platform": "Linux-5.4.0-216-generic-x86_64-with-glibc2.39",
+    "python": "3.12.13",
+    "sionna": "2.2.0",
+    "torch": "2.14.1+cu126"
+  },
+  "schema": "loslab.g4_cdl_spatiotemporal_covariance_native_validation.v1",
+  "seed_audit": {
+    "global_exclusivity_established": false,
+    "path": "docs/research/G4_CDL_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-09.json",
+    "scanned_file_count": 2291,
+    "sha256": "9d7db46da94a9e9ce256e81f887f128a732e9bd38476bf8b1344c83b60ece67f",
+    "status": "CLEAR_WITHIN_SCANNED_JSON_CORPUS"
+  },
+  "simultaneous_claim_count": 80,
+  "source_hashes": {
+    "docs/research/G4_07_CDL_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-09.md": "8f4abdc228fe5cd4896cb48173ffcab89a06dedbab2860c620a9c197559287a8",
+    "docs/research/G4_CDL_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-09.json": "9d7db46da94a9e9ce256e81f887f128a732e9bd38476bf8b1344c83b60ece67f",
+    "docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json": "24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090",
+    "evaluation/g4_cdl_spatiotemporal_covariance.py": "179a87c6ffcc89696a32787c01f628612f5741c548782db2f1855c3fbe06f818",
+    "scripts/run_g4_cdl_spatiotemporal_covariance.py": "10ace671faee1779a6cd9fa5a14eea693246ae79bb058520e5d56dea4eaaa25b",
+    "tests/test_integrations/test_g4_cdl_spatiotemporal_covariance_native.py": "a38b385ab339ad4f0228ec6cf68fb19f706d88462489b4452ad1610681267ba0"
+  },
+  "velocity_labels": [
+    "x",
+    "oblique_122"
+  ]
+}
