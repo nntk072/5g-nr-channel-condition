@@ -1,0 +1,72 @@
+{
+  "base_commit": "bf56efe7a0dbf4574a1276c4d9985571fb0e483c",
+  "criteria_changed": false,
+  "date": "2026-11-09",
+  "diagnosis": [
+    "Rotated LOS H receive amplitude follows the LCS-to-GCS basis as -sin(psi) for the declared single-V transmitter.",
+    "Rotated diffuse V and H components share the underlying co-polar and cross-polar phasors, producing covariance cos(psi)*sin(psi)*(1/XPR-1) with the corresponding array spatial phases."
+  ],
+  "families": {
+    "cdl_abc_rotated_nlos": {
+      "draws_per_case": 8192,
+      "familywise_confidence": 0.99,
+      "max_half_width": 0.05,
+      "native_cases_passed": 9,
+      "native_cases_total": 9,
+      "orientations": 3,
+      "profiles": [
+        "A",
+        "B",
+        "C"
+      ],
+      "simultaneous_claims": 144
+    },
+    "cdl_de_rotated_los": {
+      "deterministic_step11_cases_passed": 6,
+      "deterministic_step11_cases_total": 6,
+      "draws_per_case": 16384,
+      "familywise_confidence": 0.99,
+      "max_half_width": 0.05,
+      "orientations": 3,
+      "profiles": [
+        "D",
+        "E"
+      ],
+      "simultaneous_claims": 96,
+      "statistical_cases_passed": 6,
+      "statistical_cases_total": 6
+    },
+    "cdl_de_zero_orientation_control": {
+      "native_cases_passed": 2,
+      "native_cases_total": 2
+    }
+  },
+  "limitations": [
+    "Discrete standardized-model configurations only.",
+    "No measured-channel or geometric-RT validation.",
+    "G4 remains open; this evidence does not authorize production RT generation or advanced training."
+  ],
+  "qualification_claim": "none",
+  "schema": "loslab.g4_rotated_dual_pol_covariance_validation.v1",
+  "seed_audits": {
+    "abc": {
+      "global_exclusivity_established": false,
+      "path": "docs/research/G4_SEED_ROSTER_AUDIT_2026-11-09_ROTATED_ABC.json",
+      "scanned_file_count": 2277,
+      "sha256": "58c0c2d8acd20866a7918b70d2a8e9a55c35110f343b1ba7082d6ca9c7b20015",
+      "status": "CLEAR_WITHIN_SCANNED_JSON_CORPUS"
+    },
+    "de": {
+      "global_exclusivity_established": false,
+      "path": "docs/research/G4_SEED_ROSTER_AUDIT_2026-11-09_ROTATED_DE.json",
+      "scanned_file_count": 2277,
+      "sha256": "8967f8acc3f4a310398d3076535fd75f4ee180aa73a89c887fdeeb10028b22d5",
+      "status": "CLEAR_WITHIN_SCANNED_JSON_CORPUS"
+    }
+  },
+  "test_sources": {
+    "tests/test_integrations/test_g4_cdl_abc_rotated_dual_pol_array_covariance_native.py": "b0d33298d16e43f2536c735a5eb978a3d8e06f3e5162acc74da3d5b743c11ed6",
+    "tests/test_integrations/test_g4_cdl_de_los_dual_pol_array_covariance_native.py": "7d0e1c00a28eebdb522d4221d0689fb2f05fe869f5c3a84641a964c97741e148",
+    "tests/test_integrations/test_g4_cdl_de_rotated_los_dual_pol_array_covariance_native.py": "38251e6f1b8ae4c1f61e376275f8b10f6a9b70b5c85e79f56ed3aa65467c7b45"
+  }
+}

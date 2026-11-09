@@ -19,10 +19,10 @@ qualification.
   --seed-range 1720100 1720109` against the declared result inventory and
   retain its structured output with the run evidence. Report v2 marks skipped
   oversized files as `INCOMPLETE_SCAN` and the CLI exits 2; such a report is
-  not seed-collision clearance. The current repository-wide research scan is
-  incomplete: 263 files were checked with zero malformed fields and zero
-  collisions for this roster, but one oversized compressed artifact remains
-  unscanned.
+  not seed-collision clearance. The fresh 2026-11-09 repository audit scanned
+  2,277 eligible JSON/JSON.GZ files with zero malformed fields, incomplete files,
+  or collisions for this roster and returned `CLEAR_WITHIN_SCANNED_JSON_CORPUS`;
+  this remains corpus-scoped rather than global seed exclusivity.
 - Reference: diffuse powers, AoA/ZoA, cluster spreads, and XPR come from
   `G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json`, whose SHA-256 is
   `24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090`; the
@@ -31,8 +31,10 @@ qualification.
 - Observable: the 4-by-4 covariance of the cluster-summed narrowband vector,
   in V-element0, V-element1, H-element0, H-element1 order. The independent
   expectation applies the TR 38.901 receive polarization-basis rotation and
-  rotates the local-y array axis from the declared UT Euler angles. Independent
-  cross-polar phases imply zero V/H ensemble covariance for these NLOS cases.
+  rotates the local-y array axis from the declared UT Euler angles. After basis
+  rotation, the same independent co-polar and cross-polar phasors contribute to
+  both V and H components, so the oracle retains the nonzero V/H covariance
+  `cos(psi) sin(psi) (1/XPR - 1)` and its inter-element spatial phases.
 - Inference: two-sided Bonferroni 99% intervals cover 16 real Hermitian
   components × three profiles × three orientations (144 claims). Every
   interval must contain the independent reference and have half-width no
@@ -43,5 +45,7 @@ The frozen orientation set does not establish continuous-orientation behavior,
 mutual coupling, arbitrary array geometries, directional element patterns,
 temporal evolution, geometric RT truth, or overall G4 qualification. Do not
 interpret 8,192 draws as ground truth or use this finite family to authorize
-production RT generation. The regression and seed-collision audit are authored
-but have not been executed in this implementation pass.
+production RT generation. On 2026-11-09 the corrected frozen family passed all
+9/9 native profile/orientation cases under the unchanged 144-claim family,
+8,192-draw budget, and 0.05 half-width ceiling. The fresh seed audit was clear
+within the 2,277-file scanned corpus; G4 remains open.

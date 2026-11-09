@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+from dataclasses import asdict
 from pathlib import Path
 from statistics import NormalDist
 from typing import Any
@@ -15,7 +16,12 @@ torch = pytest.importorskip("torch")
 pytest.importorskip("sionna.phy")
 
 from integrations.sionna.cdl import CDLArrayConfig, generate_cdl_frequency_response  # noqa: E402
+from sionna.phy.channel.tr38901 import PanelArray  # noqa: E402
 from sionna.phy.channel.tr38901 import models as profile_resources  # noqa: E402
+from sionna.phy.channel.tr38901.channel_coefficients import (  # noqa: E402
+    ChannelCoefficientsGenerator,
+    Topology,
+)
 
 _BATCH_SIZE = 16_384
 _SEED_START = 1_720_000
@@ -31,8 +37,7 @@ _ROTATED_UT_ORIENTATIONS_RAD = (
     (0.28, -0.36, 0.0),
 )
 _REFERENCE_PATH = (
-    Path(__file__).resolve().parents[2]
-    / "docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
+    Path(__file__).resolve().parents[2] / "docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
 )
 _SCALAR_PATH = (
     Path(__file__).resolve().parents[2]
@@ -64,6 +69,41 @@ _RAY_OFFSETS = (
     -2.1551,
 )
 _PORTS = 4  # V-element0, V-element1, H-element0, H-element1
+
+
+def _los_receive_vector(
+    specular: dict[str, Any], orientation_rad: tuple[float, float, float]
+) -> Any:
+    alpha, beta, gamma = orientation_rad
+    los_angles = specular["angles_deg"]
+    los_aoa = math.radians(float(los_angles["aoa"]))
+    los_zoa = math.radians(float(los_angles["zoa"]))
+    los_delta = los_aoa - alpha
+    los_real = math.sin(gamma) * math.cos(los_zoa) * math.sin(los_delta)
+    los_real += math.cos(gamma) * (
+        math.cos(beta) * math.sin(los_zoa)
+        - math.sin(beta) * math.cos(los_zoa) * math.cos(los_delta)
+    )
+    los_imag = math.sin(gamma) * math.cos(los_delta)
+    los_imag += math.sin(beta) * math.cos(gamma) * math.sin(los_delta)
+    los_psi = math.atan2(los_imag, los_real)
+    local_y = torch.tensor(
+        (
+            math.cos(alpha) * math.sin(beta) * math.sin(gamma) - math.sin(alpha) * math.cos(gamma),
+            math.sin(alpha) * math.sin(beta) * math.sin(gamma) + math.cos(alpha) * math.cos(gamma),
+            math.cos(beta) * math.sin(gamma),
+        ),
+        dtype=torch.float64,
+    )
+    los_projection = (
+        math.sin(los_zoa) * math.cos(los_aoa) * float(local_y[0])
+        + math.sin(los_zoa) * math.sin(los_aoa) * float(local_y[1])
+        + math.cos(los_zoa) * float(local_y[2])
+    )
+    steering = torch.exp(1j * math.pi * los_projection * torch.arange(2, dtype=torch.float64))
+    return torch.cat((math.cos(los_psi) * steering, -math.sin(los_psi) * steering)).to(
+        torch.complex128
+    )
 
 
 def _reference(model: str, orientation_rad: tuple[float, float, float]) -> tuple[Any, str]:
@@ -98,35 +138,35 @@ def _reference(model: str, orientation_rad: tuple[float, float, float]) -> tuple
     )
     powers /= powers.sum()
     aoa = torch.deg2rad(
-        torch.tensor(
-            [float(row["angles_deg"]["aoa"]) for row in diffuse], dtype=torch.float64
-        )[:, None, None]
+        torch.tensor([float(row["angles_deg"]["aoa"]) for row in diffuse], dtype=torch.float64)[
+            :, None, None
+        ]
         + float(spread["asa"]) * offsets[None, None, :]
     )
     zoa = torch.deg2rad(
-        torch.tensor(
-            [float(row["angles_deg"]["zoa"]) for row in diffuse], dtype=torch.float64
-        )[:, None, None]
+        torch.tensor([float(row["angles_deg"]["zoa"]) for row in diffuse], dtype=torch.float64)[
+            :, None, None
+        ]
         + float(spread["zsa"]) * offsets[None, :, None]
     )
     delta_azimuth = aoa - alpha
     real = math.sin(gamma) * torch.cos(zoa) * torch.sin(delta_azimuth)
     real += math.cos(gamma) * (
-        math.cos(beta) * torch.sin(zoa)
-        - math.sin(beta) * torch.cos(zoa) * torch.cos(delta_azimuth)
+        math.cos(beta) * torch.sin(zoa) - math.sin(beta) * torch.cos(zoa) * torch.cos(delta_azimuth)
     )
     imag = math.sin(gamma) * torch.cos(delta_azimuth)
     imag += math.sin(beta) * math.cos(gamma) * torch.sin(delta_azimuth)
     psi = torch.atan2(imag, real)
-    v_power = torch.cos(psi).square() + torch.sin(psi).square() / xpr
-    h_power = torch.sin(psi).square() + torch.cos(psi).square() / xpr
+    cos_psi = torch.cos(psi)
+    sin_psi = torch.sin(psi)
+    v_power = cos_psi.square() + sin_psi.square() / xpr
+    h_power = sin_psi.square() + cos_psi.square() / xpr
+    vh_covariance = cos_psi * sin_psi * (1.0 / xpr - 1.0)
 
     local_y = torch.tensor(
         (
-            math.cos(alpha) * math.sin(beta) * math.sin(gamma)
-            - math.sin(alpha) * math.cos(gamma),
-            math.sin(alpha) * math.sin(beta) * math.sin(gamma)
-            + math.cos(alpha) * math.cos(gamma),
+            math.cos(alpha) * math.sin(beta) * math.sin(gamma) - math.sin(alpha) * math.cos(gamma),
+            math.sin(alpha) * math.sin(beta) * math.sin(gamma) + math.cos(alpha) * math.cos(gamma),
             math.cos(beta) * math.sin(gamma),
         ),
         dtype=torch.float64,
@@ -138,8 +178,8 @@ def _reference(model: str, orientation_rad: tuple[float, float, float]) -> tuple
     )
     spatial_phase = torch.exp(-1j * math.pi * direction_projection)
     covariance = torch.zeros((_PORTS, _PORTS), dtype=torch.complex128)
-    for weight, v_ray_power, h_ray_power, ray_phase in zip(
-        powers, v_power, h_power, spatial_phase, strict=True
+    for weight, v_ray_power, h_ray_power, vh_ray, ray_phase in zip(
+        powers, v_power, h_power, vh_covariance, spatial_phase, strict=True
     ):
         covariance[0, 0] += weight * v_ray_power.mean()
         covariance[1, 1] += weight * v_ray_power.mean()
@@ -150,31 +190,21 @@ def _reference(model: str, orientation_rad: tuple[float, float, float]) -> tuple
         covariance[2, 3] += weight * (h_ray_power * ray_phase).mean()
         covariance[3, 2] += weight * (h_ray_power * ray_phase).mean().conj()
 
-    los_angles = specular["angles_deg"]
-    los_aoa = math.radians(float(los_angles["aoa"]))
-    los_zoa = math.radians(float(los_angles["zoa"]))
-    los_delta = los_aoa - alpha
-    los_real = math.sin(gamma) * math.cos(los_zoa) * math.sin(los_delta)
-    los_real += math.cos(gamma) * (
-        math.cos(beta) * math.sin(los_zoa)
-        - math.sin(beta) * math.cos(los_zoa) * math.cos(los_delta)
-    )
-    los_imag = math.sin(gamma) * math.cos(los_delta)
-    los_imag += math.sin(beta) * math.cos(gamma) * math.sin(los_delta)
-    los_psi = math.atan2(los_imag, los_real)
-    los_projection = (
-        math.sin(los_zoa) * math.cos(los_aoa) * float(local_y[0])
-        + math.sin(los_zoa) * math.sin(los_aoa) * float(local_y[1])
-        + math.cos(los_zoa) * float(local_y[2])
-    )
-    steering = torch.exp(1j * math.pi * los_projection * torch.arange(2, dtype=torch.float64))
-    los_vector = torch.cat(
-        (math.cos(los_psi) * steering, math.sin(los_psi) * steering)
-    ).to(torch.complex128)
+        vh_same = weight * vh_ray.mean()
+        vh_forward = weight * (vh_ray * ray_phase).mean()
+        vh_reverse = weight * (vh_ray * ray_phase.conj()).mean()
+        covariance[0, 2] += vh_same
+        covariance[2, 0] += vh_same.conj()
+        covariance[0, 3] += vh_forward
+        covariance[3, 0] += vh_forward.conj()
+        covariance[1, 2] += vh_reverse
+        covariance[2, 1] += vh_reverse.conj()
+        covariance[1, 3] += vh_same
+        covariance[3, 1] += vh_same.conj()
+
+    los_vector = _los_receive_vector(specular, orientation_rad)
     covariance /= k_factor + 1.0
-    covariance += (k_factor / (k_factor + 1.0)) * (
-        los_vector[:, None] * los_vector[None, :].conj()
-    )
+    covariance += (k_factor / (k_factor + 1.0)) * (los_vector[:, None] * los_vector[None, :].conj())
     return covariance, table_digest
 
 
@@ -184,6 +214,61 @@ def _hermitian_components(matrix: Any) -> Any:
         for column in range(row + 1, _PORTS):
             components.extend((matrix[row, column].real, matrix[row, column].imag))
     return torch.stack(components).to(torch.float64)
+
+
+@pytest.mark.native_sionna
+@pytest.mark.parametrize("orientation_rad", _ROTATED_UT_ORIENTATIONS_RAD)
+@pytest.mark.parametrize("model", tuple(_PROFILE_SHA256))
+def test_rotated_los_reference_vector_matches_sionna_step_11(
+    model: str, orientation_rad: tuple[float, float, float]
+) -> None:
+    reference = json.loads(_REFERENCE_PATH.read_bytes())
+    profile = next(row for row in reference["profiles"] if row["profile_model"] == model)
+    specular = next(row for row in profile["components"] if row["component"] == "specular")
+
+    ut_config = CDLArrayConfig(
+        num_cols_per_panel=2,
+        element_horizontal_spacing=0.5,
+        polarization="dual",
+        polarization_type="VH",
+        antenna_pattern="omni",
+    )
+    bs_config = CDLArrayConfig(polarization="single", polarization_type="V", antenna_pattern="omni")
+    ut_array = PanelArray(**asdict(ut_config), carrier_frequency=3.5e9, device="cpu")
+    bs_array = PanelArray(**asdict(bs_config), carrier_frequency=3.5e9, device="cpu")
+    generator = ChannelCoefficientsGenerator(
+        carrier_frequency=3.5e9,
+        tx_array=bs_array,
+        rx_array=ut_array,
+        subclustering=False,
+        device="cpu",
+    )
+    dtype = generator.dtype
+    angles = specular["angles_deg"]
+
+    def angle_tensor(name: str) -> Any:
+        return torch.tensor([[[math.radians(float(angles[name]))]]], dtype=dtype)
+
+    topology = Topology(
+        velocities=torch.zeros((1, 1, 3), dtype=dtype),
+        moving_end="rx",
+        los_aoa=angle_tensor("aoa"),
+        los_aod=angle_tensor("aod"),
+        los_zoa=angle_tensor("zoa"),
+        los_zod=angle_tensor("zod"),
+        los=torch.ones((1, 1, 1), dtype=torch.bool),
+        distance_3d=torch.zeros((1, 1, 1), dtype=dtype),
+        tx_orientations=torch.zeros((1, 1, 3), dtype=dtype),
+        rx_orientations=torch.tensor([[orientation_rad]], dtype=dtype),
+    )
+    actual = generator._step_11_los(topology, torch.zeros(1, dtype=dtype))[0, 0, 0, 0, :, 0, 0].to(
+        torch.complex128
+    )
+    actual_covariance = actual[:, None] * actual[None, :].conj()
+    expected = _los_receive_vector(specular, orientation_rad)
+    expected_covariance = expected[:, None] * expected[None, :].conj()
+
+    assert torch.allclose(actual_covariance, expected_covariance, rtol=2e-6, atol=2e-6)
 
 
 @pytest.mark.native_sionna
@@ -235,9 +320,7 @@ def test_rotated_los_cdl_de_dual_polarized_array_covariance_matches_reference(
     expected_components = _hermitian_components(expected)
     standard_error = observations.std(dim=0, unbiased=True) / math.sqrt(_BATCH_SIZE)
     family_size = (
-        len(_PROFILE_SHA256)
-        * len(_ROTATED_UT_ORIENTATIONS_RAD)
-        * expected_components.numel()
+        len(_PROFILE_SHA256) * len(_ROTATED_UT_ORIENTATIONS_RAD) * expected_components.numel()
     )
     z_simultaneous = NormalDist().inv_cdf(1.0 - _ALPHA / (2.0 * family_size))
     half_width = z_simultaneous * standard_error

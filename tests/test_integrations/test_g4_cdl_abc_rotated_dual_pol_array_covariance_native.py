@@ -106,8 +106,11 @@ def _reference(model: str, orientation_rad: tuple[float, float, float]) -> tuple
     psi_imag += math.sin(beta) * math.cos(gamma) * torch.sin(delta)
     psi = torch.atan2(psi_imag, psi_real)
     xpr = 10.0 ** (float(profile["xpr_db"]) / 10.0)
-    v_power = torch.cos(psi).square() + torch.sin(psi).square() / xpr
-    h_power = torch.sin(psi).square() + torch.cos(psi).square() / xpr
+    cos_psi = torch.cos(psi)
+    sin_psi = torch.sin(psi)
+    v_power = cos_psi.square() + sin_psi.square() / xpr
+    h_power = sin_psi.square() + cos_psi.square() / xpr
+    vh_covariance = cos_psi * sin_psi * (1.0 / xpr - 1.0)
 
     local_y = torch.tensor(
         (
@@ -124,7 +127,9 @@ def _reference(model: str, orientation_rad: tuple[float, float, float]) -> tuple
     )
     spatial_phase = torch.exp(-1j * math.pi * projection)
     covariance = torch.zeros((4, 4), dtype=torch.complex128)
-    for weight, v_ray, h_ray, phase in zip(powers, v_power, h_power, spatial_phase, strict=True):
+    for weight, v_ray, h_ray, vh_ray, phase in zip(
+        powers, v_power, h_power, vh_covariance, spatial_phase, strict=True
+    ):
         covariance[0, 0] += weight * v_ray.mean()
         covariance[1, 1] += weight * v_ray.mean()
         covariance[0, 1] += weight * (v_ray * phase).mean()
@@ -133,6 +138,18 @@ def _reference(model: str, orientation_rad: tuple[float, float, float]) -> tuple
         covariance[3, 3] += weight * h_ray.mean()
         covariance[2, 3] += weight * (h_ray * phase).mean()
         covariance[3, 2] += weight * (h_ray * phase).mean().conj()
+
+        vh_same = weight * vh_ray.mean()
+        vh_forward = weight * (vh_ray * phase).mean()
+        vh_reverse = weight * (vh_ray * phase.conj()).mean()
+        covariance[0, 2] += vh_same
+        covariance[2, 0] += vh_same.conj()
+        covariance[0, 3] += vh_forward
+        covariance[3, 0] += vh_forward.conj()
+        covariance[1, 2] += vh_reverse
+        covariance[2, 1] += vh_reverse.conj()
+        covariance[1, 3] += vh_same
+        covariance[3, 1] += vh_same.conj()
     return covariance, table_digest
 
 
