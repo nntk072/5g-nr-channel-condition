@@ -1,0 +1,367 @@
+{
+  "base_commit": "c3c52723e1a499c81b002b983a49c42586c798f1",
+  "cases": [
+    {
+      "claims": [
+        {
+          "component": "Re(C[0,0])",
+          "estimate": 1.0020065161826306,
+          "half_width": 0.012947696663920224,
+          "lower": 0.9890588195187103,
+          "passed": true,
+          "reference": 1.0,
+          "upper": 1.0149542128465507
+        },
+        {
+          "component": "Re(C[1,1])",
+          "estimate": 1.0020678295220888,
+          "half_width": 0.012883669164865927,
+          "lower": 0.9891841603572229,
+          "passed": true,
+          "reference": 1.0,
+          "upper": 1.0149514986869548
+        },
+        {
+          "component": "Re(C[2,2])",
+          "estimate": 0.00883331895958312,
+          "half_width": 0.000245283211122497,
+          "lower": 0.008588035748460622,
+          "passed": true,
+          "reference": 0.008909768301534695,
+          "upper": 0.009078602170705616
+        },
+        {
+          "component": "Re(C[3,3])",
+          "estimate": 0.008895243136682371,
+          "half_width": 0.0002504632885930349,
+          "lower": 0.008644779848089337,
+          "passed": true,
+          "reference": 0.008909768301534695,
+          "upper": 0.009145706425275405
+        },
+        {
+          "component": "Re(C[0,1])",
+          "estimate": 0.9100115463006844,
+          "half_width": 0.009930186148509178,
+          "lower": 0.9000813601521752,
+          "passed": true,
+          "reference": 0.9085194499316165,
+          "upper": 0.9199417324491935
+        },
+        {
+          "component": "Im(C[0,1])",
+          "estimate": -0.018997212961740086,
+          "half_width": 0.00834899703972669,
+          "lower": -0.027346210001466774,
+          "passed": true,
+          "reference": -0.019698107557184798,
+          "upper": -0.010648215922013397
+        },
+        {
+          "component": "Re(C[0,2])",
+          "estimate": 0.0003847942412806351,
+          "half_width": 0.0018794197319972799,
+          "lower": -0.0014946254907166447,
+          "passed": true,
+          "reference": 0.0,
+          "upper": 0.002264213973277915
+        },
+        {
+          "component": "Im(C[0,2])",
+          "estimate": 0.000706626631194028,
+          "half_width": 0.0018692682037330433,
+          "lower": -0.0011626415725390154,
+          "passed": true,
+          "reference": 0.0,
+          "upper": 0.0025758948349270715
+        },
+        {
+          "component": "Re(C[0,3])",
+          "estimate": -7.19045600406188e-06,
+          "half_width": 0.0018753756109921352,
+          "lower": -0.001882566066996197,
+          "passed": true,
+          "reference": 0.0,
+          "upper": 0.0018681851549880734
+        },
+        {
+          "component": "Im(C[0,3])",
+          "estimate": -0.0002468417697518555,
+          "half_width": 0.0018720309550918639,
+          "lower": -0.0021188727248437193,
+          "passed": true,
+          "reference": 0.0,
+          "upper": 0.0016251891853400085
+        },
+        {
+          "component": "Re(C[1,2])",
+          "estimate": 5.308852451472835e-05,
+          "half_width": 0.0018825153330860322,
+          "lower": -0.001829426808571304,
+          "passed": true,
+          "reference": 0.0,
+          "upper": 0.0019356038576007605
+        },
+        {
+          "component": "Im(C[1,2])",
+          "estimate": 0.0004095375996015441,
+          "half_width": 0.0018682727766181453,
+          "lower": -0.001458735177016601,
+          "passed": true,
+          "reference": 0.0,
+          "upper": 0.0022778103762196894
+        },
+        {
+          "component": "Re(C[1,3])",
+          "estimate": -0.0004383724821653289,
+          "half_width": 0.001893092127083093,
+          "lower": -0.002331464609248422,
+          "passed": true,
+          "reference": 0.0,
+          "upper": 0.001454719644917764
+        },
+        {
+          "component": "Im(C[1,3])",
+          "estimate": -0.00015450195822872247,
+          "half_width": 0.0018661108418414534,
+          "lower": -0.0020206128000701757,
+          "passed": true,
+          "reference": 0.0,
+          "upper": 0.0017116088836127308
+        },
+        {
+          "component": "Re(C[2,3])",
+          "estimate": 0.001715196952126962,
+          "half_width": 0.00017711875371254933,
+          "lower": 0.0015380781984144125,
+          "passed": true,
+          "reference": 0.0016432099167921648,
+          "upper": 0.0018923157058395113
+        },
+        {
+          "component": "Im(C[2,3])",
+          "estimate": -0.001518872554140789,
+          "half_width": 0.00017528608499878942,
+          "lower": -0.0016941586391395784,
+          "passed": true,
+          "reference": -0.0015646763003307896,
+          "upper": -0.0013435864691419995
+        }
+      ],
+      "draws": 16384,
+      "family_claim_count": 32,
+      "maximum_half_width": 0.012947696663920224,
+      "parameter_table_sha256": "a8960f176347de457c0cb90fbc8cf137ac98bb1c5295b096f004d8d5c6e40176",
+      "passed": true,
+      "profile": "D",
+      "seed": 1710000
+    },
+    {
+      "claims": [
+        {
+          "component": "Re(C[0,0])",
+          "estimate": 0.9954799499578071,
+          "half_width": 0.012512556888036456,
+          "lower": 0.9829673930697707,
+          "passed": true,
+          "reference": 1.0,
+          "upper": 1.0079925068458435
+        },
+        {
+          "component": "Re(C[1,1])",
+          "estimate": 0.9922535466493536,
+          "half_width": 0.0125673220838477,
+          "lower": 0.9796862245655059,
+          "passed": true,
+          "reference": 1.0,
+          "upper": 1.0048208687332014
+        },
+        {
+          "component": "Re(C[2,2])",
+          "estimate": 0.016708908364194534,
+          "half_width": 0.00046608058620976173,
+          "lower": 0.01624282777798477,
+          "passed": true,
+          "reference": 0.016763908171499163,
+          "upper": 0.017174988950404296
+        },
+        {
+          "component": "Re(C[3,3])",
+          "estimate": 0.01719516287539135,
+          "half_width": 0.0004831913665409842,
+          "lower": 0.016711971508850364,
+          "passed": true,
+          "reference": 0.016763908171499163,
+          "upper": 0.017678354241932336
+        },
+        {
+          "component": "Re(C[0,1])",
+          "estimate": 0.910697763146747,
+          "half_width": 0.009777887399680427,
+          "lower": 0.9009198757470666,
+          "passed": true,
+          "reference": 0.915551822370495,
+          "upper": 0.9204756505464274
+        },
+        {
+          "component": "Im(C[0,1])",
+          "estimate": -0.015338709502096905,
+          "half_width": 0.007988444518134123,
+          "lower": -0.023327154020231028,
+          "passed": true,
+          "reference": -0.015711025698429748,
+          "upper": -0.0073502649839627815
+        },
+        {
+          "component": "Re(C[0,2])",
+          "estimate": -0.0004912365734514389,
+          "half_width": 0.0025678403389395314,
+          "lower": -0.0030590769123909705,
+          "passed": true,
+          "reference": 0.0,
+          "upper": 0.0020766037654880924
+        },
+        {
+          "component": "Im(C[0,2])",
+          "estimate": -7.595538734336669e-05,
+          "half_width": 0.0025838354543447615,
+          "lower": -0.002659790841688128,
+          "passed": true,
+          "reference": 0.0,
+          "upper": 0.002507880067001395
+        },
+        {
+          "component": "Re(C[0,3])",
+          "estimate": 1.309414758935459e-05,
+          "half_width": 0.0025890274660046665,
+          "lower": -0.0025759333184153118,
+          "passed": true,
+          "reference": 0.0,
+          "upper": 0.0026021216135940213
+        },
+        {
+          "component": "Im(C[0,3])",
+          "estimate": 0.0008351977570472683,
+          "half_width": 0.0026215053627215885,
+          "lower": -0.0017863076056743202,
+          "passed": true,
+          "reference": 0.0,
+          "upper": 0.003456703119768857
+        },
+        {
+          "component": "Re(C[1,2])",
+          "estimate": -0.0004680998020809977,
+          "half_width": 0.0025514563692747767,
+          "lower": -0.0030195561713557743,
+          "passed": true,
+          "reference": 0.0,
+          "upper": 0.002083356567193779
+        },
+        {
+          "component": "Im(C[1,2])",
+          "estimate": 0.00019565826659815512,
+          "half_width": 0.0025681276853451083,
+          "lower": -0.0023724694187469532,
+          "passed": true,
+          "reference": 0.0,
+          "upper": 0.0027637859519432633
+        },
+        {
+          "component": "Re(C[1,3])",
+          "estimate": -0.0005000569622849972,
+          "half_width": 0.002584085332273385,
+          "lower": -0.003084142294558382,
+          "passed": true,
+          "reference": 0.0,
+          "upper": 0.002084028369988388
+        },
+        {
+          "component": "Im(C[1,3])",
+          "estimate": 0.000580451833173161,
+          "half_width": 0.0026168943096585,
+          "lower": -0.0020364424764853393,
+          "passed": true,
+          "reference": 0.0,
+          "upper": 0.0031973461428316608
+        },
+        {
+          "component": "Re(C[2,3])",
+          "estimate": 0.0034205406016819323,
+          "half_width": 0.00033798736305353964,
+          "lower": 0.0030825532386283927,
+          "passed": true,
+          "reference": 0.003379773987424221,
+          "upper": 0.003758527964735472
+        },
+        {
+          "component": "Im(C[2,3])",
+          "estimate": -0.0025365531322888725,
+          "half_width": 0.0003353608174494171,
+          "lower": -0.0028719139497382896,
+          "passed": true,
+          "reference": -0.0024900297676023453,
+          "upper": -0.0022011923148394555
+        }
+      ],
+      "draws": 16384,
+      "family_claim_count": 32,
+      "maximum_half_width": 0.0125673220838477,
+      "parameter_table_sha256": "04328f33d8d79b24aa3d0303fecb58b465ed7e13874930b05e76be0d97743480",
+      "passed": true,
+      "profile": "E",
+      "seed": 1710001
+    }
+  ],
+  "date": "2026-11-09",
+  "design": {
+    "draws_per_profile": 16384,
+    "endpoint_orientation_rad": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "familywise_alpha": 0.01,
+    "familywise_confidence": 0.99,
+    "maximum_half_width": 0.05,
+    "profiles": [
+      "D",
+      "E"
+    ],
+    "seeds": [
+      1710000,
+      1710001
+    ],
+    "simultaneous_claim_count": 32
+  },
+  "formalization_note": "Standalone claim-level retention of the already-executed frozen zero-orientation control; this is not a new protocol and no criterion, seed, draw count, or family size was changed.",
+  "limitations": [
+    "Bounded standardized-model regression only.",
+    "No rotated-orientation, arbitrary-array, directional-pattern, RT, or measured-channel qualification.",
+    "G4 remains open; this result does not authorize production RT generation or advanced training."
+  ],
+  "prior_retained_summary": {
+    "native_cases_passed": 2,
+    "native_cases_total": 2,
+    "path": "docs/research/results/g4-cdl-rotated-dual-pol-covariance-validation-20261109.json",
+    "sha256": "f2171708b51629b66210f72fde014c0a5ade3e737c594471ca2d04ab6e93de8e"
+  },
+  "provenance": {
+    "device": "cpu",
+    "protocol_path": "docs/research/G4_07_CDL_DE_LOS_DUAL_POL_ARRAY_COVARIANCE_PROTOCOL_2026-10-26.md",
+    "protocol_sha256": "0968a7c250ce58f23825ad3753a56274d70c9d57232b94f84324c5d0499118e6",
+    "reference_sha256": "24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090",
+    "scalar_reference_sha256": "3b5920e7c12b0e36c8e09d1c7f14025cfbb23b6d805e1044124bfcf147185620",
+    "sionna_version": "2.2.0",
+    "test_path": "tests/test_integrations/test_g4_cdl_de_los_dual_pol_array_covariance_native.py",
+    "test_sha256": "7d0e1c00a28eebdb522d4221d0689fb2f05fe869f5c3a84641a964c97741e148",
+    "torch_version": "2.14.1+cu126"
+  },
+  "schema": "loslab.g4_cdl_de_zero_orientation_covariance_native_validation.v1",
+  "seed_collision_audit": {
+    "global_exclusivity_established": false,
+    "scanned_file_count": 2284,
+    "sha256": "09f510297e65fa303f45fd93db46387d9c19eb0fdaad70e1b4196edb821765fa",
+    "status": "CLEAR_WITHIN_SCANNED_JSON_CORPUS"
+  },
+  "status": "PASS_WITHIN_BOUNDED_PROTOCOL_SCOPE"
+}

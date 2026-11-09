@@ -17,4 +17,8 @@ The pinned CDL table transcription provides the specular-to-diffuse power ratio.
 
 ## Limits
 
-This is a bounded standardized-model regression definition, not statistical qualification of G4. It does not cover rotated LOS polarization, other array sizes/geometries, directional element patterns, mutual coupling, multiport TX, temporal evolution, RT, or measured channels. The test and protocol are authored but have not been executed; no result is claimed. Passing this finite family cannot authorize production RT corpus generation.
+This is a bounded standardized-model regression definition, not statistical qualification of G4. It does not cover rotated LOS polarization, other array sizes/geometries, directional element patterns, mutual coupling, multiport TX, temporal evolution, RT, or measured channels. Passing this finite family cannot authorize production RT corpus generation.
+
+## Retained execution record (2026-11-09)
+
+The original frozen family was re-executed without changing seeds, 16,384 draws/profile, the 32-claim two-sided Bonferroni 99% family, or the 0.05 half-width ceiling. A fresh pre-run seed audit found no collisions, malformed seed fields, or incomplete files across 2,284 saved JSON/JSON.GZ artifacts. The exact native pytest family passes 2/2. The standalone claim-level formalization retains all 32 intervals: all 32 contain their independent reference; the largest half-width is 0.01294770 for CDL-D and 0.01256732 for CDL-E. Result: docs/research/results/g4-cdl-de-zero-orientation-covariance-native-validation-20261109.json (SHA-256 41a0203794fabd0b15bf4e201f42167939ba0d654fdf3c770306dbd91368c863); seed audit: docs/research/G4_CDL_DE_ZERO_ORIENTATION_COVARIANCE_SEED_AUDIT_2026-11-09.json. This formalizes the previously reported 2/2 zero-orientation control rather than introducing a new protocol. G4 remains open.
