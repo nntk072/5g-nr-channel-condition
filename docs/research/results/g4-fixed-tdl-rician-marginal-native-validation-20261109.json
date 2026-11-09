@@ -1,0 +1,75 @@
+{
+  "all_passed": true,
+  "base_commit": "9efef80",
+  "criteria_changed": false,
+  "date": "2026-11-09",
+  "draws_per_profile": 32768,
+  "familywise_alpha": 0.01,
+  "limitations": [
+    "This validates only the fixed TDL-D10/D30 first-tap normalized-power marginal under the frozen Sionna PHY 2.2.0 CPU configuration.",
+    "It does not establish LOS phase evolution, temporal or spatial conformance, measured-channel validity, receiver impact, or overall G4 qualification.",
+    "The seed audit establishes no global seed exclusivity.",
+    "Production RT generation and advanced training remain gated."
+  ],
+  "maximum_simultaneous_cdf_error": 0.05,
+  "native_metadata": {
+    "D10": {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "profile_los_component": true,
+      "profile_parameter_table_sha256": "4ff96632bf508813492f0e34168ab1b09981afc25760cfed0031013e662c6e73",
+      "profile_parameter_table_source": "TS 38.101-4:19.2.2:TDL-D10.json",
+      "sionna_version": "2.2.0"
+    },
+    "D30": {
+      "batch_axis_semantics": "independent_stochastic_channel_draws",
+      "profile_los_component": true,
+      "profile_parameter_table_sha256": "6da72f15e0da4fb972cf6a2c9c4ec2d2c1330f598f15e71c83cfbb324b59353c",
+      "profile_parameter_table_source": "TS 38.101-4:19.2.2:TDL-D30.json",
+      "sionna_version": "2.2.0"
+    }
+  },
+  "qualification_claim": "none",
+  "results": [
+    {
+      "confidence_radius": 0.00956151105734694,
+      "diffuse_power": 0.05354916624337742,
+      "draw_count": 32768,
+      "empirical_ks_distance": 0.0038644795348833916,
+      "model": "D10",
+      "passed": true,
+      "simultaneous_upper_bound": 0.013425990592230331,
+      "specular_power": 0.8886949520170655
+    },
+    {
+      "confidence_radius": 0.00956151105734694,
+      "diffuse_power": 0.0535202868444508,
+      "draw_count": 32768,
+      "empirical_ks_distance": 0.006019307565193199,
+      "model": "D30",
+      "passed": true,
+      "simultaneous_upper_bound": 0.015580818622540139,
+      "specular_power": 0.8882156732935327
+    }
+  ],
+  "runtime": {
+    "platform": "Linux-5.4.0-216-generic-x86_64-with-glibc2.39",
+    "python": "3.12.13"
+  },
+  "schema": "loslab.g4_fixed_tdl_rician_marginal_native_validation.v1",
+  "seed_audit": {
+    "global_exclusivity_established": false,
+    "path": "docs/research/G4_FIXED_TDL_RICIAN_MARGINAL_SEED_AUDIT_2026-11-09.json",
+    "scanned_file_count": 2279,
+    "sha256": "4092015345dc2307749cdc41df10d5a96821b29bb1f457589f8471e798664c28",
+    "status": "CLEAR_WITHIN_SCANNED_JSON_CORPUS"
+  },
+  "seeds": {
+    "D10": 1880010,
+    "D30": 1880011
+  },
+  "source_hashes": {
+    "docs/research/G4_FIXED_TDL_TAP_PROFILE_REFERENCE_2026-10-26.json": "fe22560a71f4e5683ea6780f73e84466155b26f5f97cc4b63e3250c102fafda3",
+    "evaluation/g4_tdl_rician_marginal.py": "d95f1bbf63d43363aeee44e4b29aac845dca76652621c7349a6b1842f04fc0a1",
+    "tests/test_integrations/test_g4_fixed_tdl_rician_marginal_native.py": "4981a80365f2e67c443e4f48328eacc50f9405314b14ea83506f706a0ace3586"
+  }
+}

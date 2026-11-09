@@ -1528,29 +1528,21 @@
     {
       "backlog_line": 301,
       "backlog_status": "open",
-      "description": "Inventory each remaining G4 gate against existing native checks and implement only genuine gaps: hash-pinned tables, tap/delay/power and LOS partition, angular geometry, array/orientation, polarization, covariance, circularity, and temporal evolution. The frozen CDL joint delay/four-angle characteristic and fixed-TDL Rayleigh properness have pinned-reference native regression definitions; scalable TDL-A–E first-tap covariance and scalable/fixed TDL Doppler expectation inputs now come from independent ETSI component fixtures rather than adapter metadata. Scalable TDL-A–E have a source-bound three-lag Jakes temporal covariance protocol across all 95 ETSI-labeled Rayleigh taps (570 simultaneous coordinates); fixed TDL A10/A30/B100/C60/C300/D10/D30 now have a matching protocol across 82 Rayleigh-only taps (492 coordinates), both with fresh audited seed rosters. A scalable-TDL proper-complex protocol covers every ETSI-labeled Rayleigh tap outside the merged TDL-D/E LOS tap. A fixed-TDL-D10/D30 first-tap Rician marginal scorer and native regression now derive the noncentral-chi-square reference from the byte-pinned ETSI component fixture; portable tests and a fresh seed audit are retained in `evaluation/g4_tdl_rician_marginal.py`, `tests/test_evaluation/test_g4_tdl_rician_marginal.py`, `tests/test_integrations/test_g4_fixed_tdl_rician_marginal_native.py`, and `docs/research/G4_07_FIXED_TDL_RICIAN_MARGINAL_PROTOCOL_2026-10-27.md` and `docs/research/G4_FIXED_TDL_RICIAN_MARGINAL_SEED_AUDIT_2026-10-27.json`. The receipt is kept outside the scanned roots so the pre-run audit can be repeated without self-collision. The native family needs a retained consolidated rerun; no G4 qualification is claimed. These protocol definitions close software-contract gaps only: aside from the two bounded D10/D30 Rician implementation samples noted in its protocol, further native statistical generation remains deferred until consolidated validation; none establishes the full delay-angle law or G4 qualification.",
+      "description": "Inventory each remaining G4 gate against existing native checks and implement only genuine gaps: hash-pinned tables, tap/delay/power and LOS partition, angular geometry, array/orientation, polarization, covariance, circularity, and temporal evolution. The frozen CDL joint delay/four-angle characteristic and fixed-TDL Rayleigh properness have pinned-reference native regression definitions; scalable TDL-A–E first-tap covariance and scalable/fixed TDL Doppler expectation inputs now come from independent ETSI component fixtures rather than adapter metadata. Scalable TDL-A–E have a source-bound three-lag Jakes temporal covariance protocol across all 95 ETSI-labeled Rayleigh taps (570 simultaneous coordinates); fixed TDL A10/A30/B100/C60/C300/D10/D30 now have a matching protocol across 82 Rayleigh-only taps (492 coordinates), both with fresh audited seed rosters. A scalable-TDL proper-complex protocol covers every ETSI-labeled Rayleigh tap outside the merged TDL-D/E LOS tap. A fixed-TDL-D10/D30 first-tap Rician marginal scorer and native regression derive the noncentral-chi-square reference from the byte-pinned ETSI component fixture. The 2026-11-09 fresh seed audit (`docs/research/G4_FIXED_TDL_RICIAN_MARGINAL_SEED_AUDIT_2026-11-09.json`) is clear within 2,279 scanned JSON/JSON.GZ files for seeds 1,880,010–1,880,011, without claiming global exclusivity. The focused portable plus native slice passes 12/12 tests, and the frozen 32,768-draw/profile rerun passes both profiles: D10 simultaneous CDF upper bound 0.01342599 and D30 0.01558082 versus the unchanged 0.05 ceiling. The retained result is `docs/research/results/g4-fixed-tdl-rician-marginal-native-validation-20261109.json`. This closes only the declared first-tap marginal family; the broader temporal, spatial, delay-angle, measured/RT, receiver, and G4 qualification questions remain open.",
       "evidence_file_sha256": {
-        "docs/research/G4_07_FIXED_TDL_RICIAN_MARGINAL_PROTOCOL_2026-10-27.md": "d2f17278f1cba20514d077cfdf2724a67ef68d5a260eaf29a75afa8fd3e331cb",
-        "docs/research/G4_FIXED_TDL_RICIAN_MARGINAL_SEED_AUDIT_2026-10-27.json": "3640230f34c566c72854201cf133a8ab0be70b9ab3fcdc95eab2b3c26995890e",
-        "evaluation/g4_tdl_rician_marginal.py": "d95f1bbf63d43363aeee44e4b29aac845dca76652621c7349a6b1842f04fc0a1",
-        "tests/test_evaluation/test_g4_tdl_rician_marginal.py": "7dffd3b429877f8d73a0a4c0782db733b1beae9e6426333cb8e93bcd46df4938",
-        "tests/test_integrations/test_g4_fixed_tdl_rician_marginal_native.py": "2ff642ce695d4a4efe74215d9c6ce16bfba9a2fa1ad0b22b26ba09aa397d9c25"
+        "docs/research/G4_FIXED_TDL_RICIAN_MARGINAL_SEED_AUDIT_2026-11-09.json": "4092015345dc2307749cdc41df10d5a96821b29bb1f457589f8471e798664c28",
+        "docs/research/results/g4-fixed-tdl-rician-marginal-native-validation-20261109.json": "c646ff4762c275575bc075ce021190c0d4c0f0c8c563425a1d8ed1dc874f1f56"
       },
       "evidence_links": {
         "cli_entries": [],
         "documentation": [
-          "docs/research/G4_07_FIXED_TDL_RICIAN_MARGINAL_PROTOCOL_2026-10-27.md",
-          "docs/research/G4_FIXED_TDL_RICIAN_MARGINAL_SEED_AUDIT_2026-10-27.json"
+          "docs/research/G4_FIXED_TDL_RICIAN_MARGINAL_SEED_AUDIT_2026-11-09.json",
+          "docs/research/results/g4-fixed-tdl-rician-marginal-native-validation-20261109.json"
         ],
         "other_files": [],
-        "regression_files": [
-          "tests/test_evaluation/test_g4_tdl_rician_marginal.py",
-          "tests/test_integrations/test_g4_fixed_tdl_rician_marginal_native.py"
-        ],
+        "regression_files": [],
         "schemas": [],
-        "source_modules": [
-          "evaluation/g4_tdl_rician_marginal.py"
-        ]
+        "source_modules": []
       },
       "feature_id": "PKG05-005",
       "link_status": "linked",
@@ -1758,7 +1750,7 @@
     {
       "backlog_line": 310,
       "backlog_status": "open",
-      "description": "Complete confidence-controlled tests for remaining profile/configuration/topology combinations and criteria at the gate's required statistical unit; do not mistake deterministic table checks or helper self-consistency for a population qualification. Frozen software protocols include fixed-TDL proper-complex, temporal covariance, and Doppler-spectrum CDF checks; scalable TDL temporal covariance and a scalable TDL Doppler-spectrum CDF family are also defined. The fixed-TDL proper-complex native cohort now passes all seven profiles, and scalable TDL proper-complex passes A–E, using the common scorer and audited seed rosters. The shared Doppler estimator's four portable cases pass, and the fixed-profile tap roster comes from the independent TS 38.101-4 fixture. A bounded fixed-TDL-D Rician first-tap marginal family is also defined against separate ETSI LOS/diffuse component powers; its portable scorer and reference tests pass, while native confirmation remains. Broader native statistical families remain deferred and G4 qualification remains open.",
+      "description": "Complete confidence-controlled tests for remaining profile/configuration/topology combinations and criteria at the gate's required statistical unit; do not mistake deterministic table checks or helper self-consistency for a population qualification. Frozen software protocols include fixed-TDL proper-complex, temporal covariance, and Doppler-spectrum CDF checks; scalable TDL temporal covariance and a scalable TDL Doppler-spectrum CDF family are also defined. The fixed-TDL proper-complex native cohort now passes all seven profiles, and scalable TDL proper-complex passes A–E, using the common scorer and audited seed rosters. The shared Doppler estimator's four portable cases pass, and the fixed-profile tap roster comes from the independent TS 38.101-4 fixture. A bounded fixed-TDL-D Rician first-tap marginal family is also defined against separate ETSI LOS/diffuse component powers; its portable/native focused slice passes 12/12 tests and the retained frozen D10/D30 run passes both simultaneous DKW criteria. Broader native statistical families remain deferred and G4 qualification remains open.",
       "evidence_file_sha256": {},
       "evidence_links": {
         "cli_entries": [],
@@ -4593,7 +4585,7 @@
   "schema": "loslab.implementation_feature_map.v2",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "52268038528b2a76eb9eb24d427291101ccdd3ccce1bfe0e3c839a04205b49c5"
+    "sha256": "76a78348ade34d3d8f2dbd46513ee74381324ca6236cdde7b1defab6e4c65d33"
   },
   "summary": {
     "feature_count": 181,
