@@ -1,0 +1,945 @@
+{
+  "case_count": 15,
+  "cases": [
+    {
+      "claims": [
+        {
+          "absolute_error": 0.0035417856545021387,
+          "estimate": 1.0035417856545021,
+          "half_width": 0.01948611183836226,
+          "interval_pass": true,
+          "precision_cap": 0.025,
+          "precision_pass": true,
+          "rx_port": 0,
+          "standard_error": 0.005831582989067614,
+          "target": 1.0,
+          "tx_port": 0
+        },
+        {
+          "absolute_error": 6.589791093797315e-05,
+          "estimate": 0.09993410208906203,
+          "half_width": 0.0019150916000473183,
+          "interval_pass": true,
+          "precision_cap": 0.025,
+          "precision_pass": true,
+          "rx_port": 0,
+          "standard_error": 0.000573126937276208,
+          "target": 0.1,
+          "tx_port": 1
+        },
+        {
+          "absolute_error": 0.00010930282842341876,
+          "estimate": 0.09989069717157659,
+          "half_width": 0.001909846072521335,
+          "interval_pass": true,
+          "precision_cap": 0.025,
+          "precision_pass": true,
+          "rx_port": 1,
+          "standard_error": 0.0005715571151719857,
+          "target": 0.1,
+          "tx_port": 0
+        },
+        {
+          "absolute_error": 0.006684244448678767,
+          "estimate": 0.9933157555513212,
+          "half_width": 0.018928797756200426,
+          "interval_pass": true,
+          "precision_cap": 0.025,
+          "precision_pass": true,
+          "rx_port": 1,
+          "standard_error": 0.0056647963387567776,
+          "target": 1.0,
+          "tx_port": 1
+        }
+      ],
+      "draw_count": 4096,
+      "family_size": 12,
+      "group": "nlos_xpr_port_matrix",
+      "model": "A",
+      "parameter_table_sha256": "b96f8a179646ee468717c615e8061103d1e66eb1ff1ea78301de243740254cb7",
+      "passed": true,
+      "seed": 472,
+      "z_simultaneous": 3.3414789560386255
+    },
+    {
+      "claims": [
+        {
+          "absolute_error": 0.00023929505686559605,
+          "estimate": 0.9997607049431344,
+          "half_width": 0.01388133581128286,
+          "interval_pass": true,
+          "precision_cap": 0.03962232981152783,
+          "precision_pass": true,
+          "rx_port": 0,
+          "standard_error": 0.004154249059745508,
+          "target": 1.0,
+          "tx_port": 0
+        },
+        {
+          "absolute_error": 0.0008094425989684795,
+          "estimate": 0.15767987664714284,
+          "half_width": 0.002154038872082744,
+          "interval_pass": true,
+          "precision_cap": 0.03962232981152783,
+          "precision_pass": true,
+          "rx_port": 0,
+          "standard_error": 0.0006446363722237504,
+          "target": 0.15848931924611132,
+          "tx_port": 1
+        },
+        {
+          "absolute_error": 0.0002489255664904766,
+          "estimate": 0.15824039367962084,
+          "half_width": 0.0021469512578030266,
+          "interval_pass": true,
+          "precision_cap": 0.03962232981152783,
+          "precision_pass": true,
+          "rx_port": 1,
+          "standard_error": 0.0006425152712463196,
+          "target": 0.15848931924611132,
+          "tx_port": 0
+        },
+        {
+          "absolute_error": 0.0016260105688922222,
+          "estimate": 0.9983739894311078,
+          "half_width": 0.013573701575886261,
+          "interval_pass": true,
+          "precision_cap": 0.03962232981152783,
+          "precision_pass": true,
+          "rx_port": 1,
+          "standard_error": 0.004062183767866098,
+          "target": 1.0,
+          "tx_port": 1
+        }
+      ],
+      "draw_count": 4096,
+      "family_size": 12,
+      "group": "nlos_xpr_port_matrix",
+      "model": "B",
+      "parameter_table_sha256": "7c87c092cb2bb44891d301ee3c1991cdda1c6b64094a03f18746ec5fa14ee2a2",
+      "passed": true,
+      "seed": 473,
+      "z_simultaneous": 3.3414789560386255
+    },
+    {
+      "claims": [
+        {
+          "absolute_error": 0.004275947861072993,
+          "estimate": 1.004275947861073,
+          "half_width": 0.01539373430445964,
+          "interval_pass": true,
+          "precision_cap": 0.049881557874222,
+          "precision_pass": true,
+          "rx_port": 0,
+          "standard_error": 0.004606862562052208,
+          "target": 1.0,
+          "tx_port": 0
+        },
+        {
+          "absolute_error": 0.0005786561433517579,
+          "estimate": 0.20010488764023976,
+          "half_width": 0.003063812804249585,
+          "interval_pass": true,
+          "precision_cap": 0.049881557874222,
+          "precision_pass": true,
+          "rx_port": 0,
+          "standard_error": 0.0009169032169760487,
+          "target": 0.199526231496888,
+          "tx_port": 1
+        },
+        {
+          "absolute_error": 0.00012123974670905091,
+          "estimate": 0.19964747124359705,
+          "half_width": 0.002977184121462268,
+          "interval_pass": true,
+          "precision_cap": 0.049881557874222,
+          "precision_pass": true,
+          "rx_port": 1,
+          "standard_error": 0.0008909779653353752,
+          "target": 0.199526231496888,
+          "tx_port": 0
+        },
+        {
+          "absolute_error": 0.007909413169421287,
+          "estimate": 1.0079094131694213,
+          "half_width": 0.01547572989026017,
+          "interval_pass": true,
+          "precision_cap": 0.049881557874222,
+          "precision_pass": true,
+          "rx_port": 1,
+          "standard_error": 0.004631401272868372,
+          "target": 1.0,
+          "tx_port": 1
+        }
+      ],
+      "draw_count": 4096,
+      "family_size": 12,
+      "group": "nlos_xpr_port_matrix",
+      "model": "C",
+      "parameter_table_sha256": "f2044ecc3b72a1967221805ba70b1f0dab9634bb831478c1337b737ced6e4a28",
+      "passed": true,
+      "seed": 474,
+      "z_simultaneous": 3.3414789560386255
+    },
+    {
+      "claims": [
+        {
+          "absolute_error": 0.0013220650660445976,
+          "estimate": 2.0164974715370247,
+          "half_width": 0.017123626315326136,
+          "interval_pass": true,
+          "precision_cap": 0.020178195366030695,
+          "precision_pass": true,
+          "standard_error": 0.00610025661551956,
+          "target": 2.0178195366030693
+        }
+      ],
+      "draw_count": 4096,
+      "family_size": 2,
+      "group": "los_aggregate_frobenius_power",
+      "model": "D",
+      "parameter_table_sha256": "a8960f176347de457c0cb90fbc8cf137ac98bb1c5295b096f004d8d5c6e40176",
+      "passed": true,
+      "seed": 475,
+      "z_simultaneous": 2.8070337683438114
+    },
+    {
+      "claims": [
+        {
+          "absolute_error": 0.002566805660456861,
+          "estimate": 2.0309610106825415,
+          "half_width": 0.00662197902816504,
+          "interval_pass": true,
+          "precision_cap": 0.020335278163429983,
+          "precision_pass": true,
+          "standard_error": 0.0023590663934449562,
+          "target": 2.0335278163429984
+        }
+      ],
+      "draw_count": 4096,
+      "family_size": 2,
+      "group": "los_aggregate_frobenius_power",
+      "model": "E",
+      "parameter_table_sha256": "04328f33d8d79b24aa3d0303fecb58b465ed7e13874930b05e76be0d97743480",
+      "passed": true,
+      "seed": 476,
+      "z_simultaneous": 2.8070337683438114
+    },
+    {
+      "claims": [
+        {
+          "absolute_error": 0.0027639143395910004,
+          "estimate": 0.7331892041167194,
+          "half_width": 0.011491113932750645,
+          "interval_pass": true,
+          "precision_cap": 0.06823916246130604,
+          "precision_pass": true,
+          "rx_port": 0,
+          "standard_error": 0.0031377111809662195,
+          "target": 0.7359531184563104,
+          "tx_port": 0
+        },
+        {
+          "absolute_error": 0.0011898246201099694,
+          "estimate": 0.2717668252251142,
+          "half_width": 0.004691599688765376,
+          "interval_pass": true,
+          "precision_cap": 0.06823916246130604,
+          "precision_pass": true,
+          "rx_port": 0,
+          "standard_error": 0.0012810668213897862,
+          "target": 0.27295664984522416,
+          "tx_port": 1
+        },
+        {
+          "absolute_error": 0.0010177978187288494,
+          "estimate": 0.273974447663953,
+          "half_width": 0.004710845029387797,
+          "interval_pass": true,
+          "precision_cap": 0.06823916246130604,
+          "precision_pass": true,
+          "rx_port": 1,
+          "standard_error": 0.0012863218663580873,
+          "target": 0.27295664984522416,
+          "tx_port": 0
+        },
+        {
+          "absolute_error": 0.0016196502526092393,
+          "estimate": 0.7375727687089196,
+          "half_width": 0.011658602827044121,
+          "interval_pass": true,
+          "precision_cap": 0.06823916246130604,
+          "precision_pass": true,
+          "rx_port": 1,
+          "standard_error": 0.0031834449348379394,
+          "target": 0.7359531184563104,
+          "tx_port": 1
+        }
+      ],
+      "draw_count": 4096,
+      "family_size": 40,
+      "group": "los_rotated_port_matrix",
+      "model": "D",
+      "orientation_case": "tx_tilted",
+      "parameter_table_sha256": "a8960f176347de457c0cb90fbc8cf137ac98bb1c5295b096f004d8d5c6e40176",
+      "passed": true,
+      "rx_orientation_rad": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "seed": 475,
+      "tx_orientation_rad": [
+        -0.3,
+        0.25,
+        0.5
+      ],
+      "z_simultaneous": 3.662259930887615
+    },
+    {
+      "claims": [
+        {
+          "absolute_error": 0.003006224621466047,
+          "estimate": 0.8168008244744883,
+          "half_width": 0.013077626788468045,
+          "interval_pass": true,
+          "precision_cap": 0.04727567980139505,
+          "precision_pass": true,
+          "rx_port": 0,
+          "standard_error": 0.0035709171482261348,
+          "target": 0.8198070490959544,
+          "tx_port": 0
+        },
+        {
+          "absolute_error": 0.0010304198094234773,
+          "estimate": 0.19013313901500367,
+          "half_width": 0.003446537271944355,
+          "interval_pass": true,
+          "precision_cap": 0.04727567980139505,
+          "precision_pass": true,
+          "rx_port": 0,
+          "standard_error": 0.0009410957542571327,
+          "target": 0.1891027192055802,
+          "tx_port": 1
+        },
+        {
+          "absolute_error": 0.0014947864365633112,
+          "estimate": 0.18760793276901688,
+          "half_width": 0.0034553487430388223,
+          "interval_pass": true,
+          "precision_cap": 0.04727567980139505,
+          "precision_pass": true,
+          "rx_port": 1,
+          "standard_error": 0.000943501774381524,
+          "target": 0.1891027192055802,
+          "tx_port": 0
+        },
+        {
+          "absolute_error": 0.00021306831192746678,
+          "estimate": 0.8195939807840269,
+          "half_width": 0.01308390464546843,
+          "interval_pass": true,
+          "precision_cap": 0.04727567980139505,
+          "precision_pass": true,
+          "rx_port": 1,
+          "standard_error": 0.0035726313512370786,
+          "target": 0.8198070490959544,
+          "tx_port": 1
+        }
+      ],
+      "draw_count": 4096,
+      "family_size": 40,
+      "group": "los_rotated_port_matrix",
+      "model": "D",
+      "orientation_case": "rx_tilted",
+      "parameter_table_sha256": "a8960f176347de457c0cb90fbc8cf137ac98bb1c5295b096f004d8d5c6e40176",
+      "passed": true,
+      "rx_orientation_rad": [
+        0.6,
+        0.2,
+        -0.4
+      ],
+      "seed": 485,
+      "tx_orientation_rad": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "z_simultaneous": 3.662259930887615
+    },
+    {
+      "claims": [
+        {
+          "absolute_error": 9.397605370020656e-05,
+          "estimate": 0.34490817217202246,
+          "half_width": 0.007217797633392123,
+          "interval_pass": true,
+          "precision_cap": 0.08620354902958056,
+          "precision_pass": true,
+          "rx_port": 0,
+          "standard_error": 0.0019708589148784857,
+          "target": 0.34481419611832226,
+          "tx_port": 0
+        },
+        {
+          "absolute_error": 0.00023661386439854937,
+          "estimate": 0.664332186047611,
+          "half_width": 0.008469963194574208,
+          "interval_pass": true,
+          "precision_cap": 0.08620354902958056,
+          "precision_pass": true,
+          "rx_port": 0,
+          "standard_error": 0.0023127695342261955,
+          "target": 0.6640955721832125,
+          "tx_port": 1
+        },
+        {
+          "absolute_error": 0.0016874301772725753,
+          "estimate": 0.6624081420059399,
+          "half_width": 0.008380316797821679,
+          "interval_pass": true,
+          "precision_cap": 0.08620354902958056,
+          "precision_pass": true,
+          "rx_port": 1,
+          "standard_error": 0.002288291097838748,
+          "target": 0.6640955721832125,
+          "tx_port": 0
+        },
+        {
+          "absolute_error": 0.001315098011035909,
+          "estimate": 0.34349909810728635,
+          "half_width": 0.007183390820776293,
+          "interval_pass": true,
+          "precision_cap": 0.08620354902958056,
+          "precision_pass": true,
+          "rx_port": 1,
+          "standard_error": 0.0019614639474908237,
+          "target": 0.34481419611832226,
+          "tx_port": 1
+        }
+      ],
+      "draw_count": 4096,
+      "family_size": 40,
+      "group": "los_rotated_port_matrix",
+      "model": "D",
+      "orientation_case": "both_tilted",
+      "parameter_table_sha256": "a8960f176347de457c0cb90fbc8cf137ac98bb1c5295b096f004d8d5c6e40176",
+      "passed": true,
+      "rx_orientation_rad": [
+        0.6,
+        0.2,
+        -0.4
+      ],
+      "seed": 495,
+      "tx_orientation_rad": [
+        -0.3,
+        0.25,
+        0.5
+      ],
+      "z_simultaneous": 3.662259930887615
+    },
+    {
+      "claims": [
+        {
+          "absolute_error": 0.0009161816241682885,
+          "estimate": 0.9217823946825134,
+          "half_width": 0.011217291498075134,
+          "interval_pass": true,
+          "precision_cap": 0.02155279799871324,
+          "precision_pass": true,
+          "rx_port": 0,
+          "standard_error": 0.0030629424753464782,
+          "target": 0.9226985763066817,
+          "tx_port": 0
+        },
+        {
+          "absolute_error": 0.00015717069381314397,
+          "estimate": 0.08605402130103981,
+          "half_width": 0.0027274546592449636,
+          "interval_pass": true,
+          "precision_cap": 0.02155279799871324,
+          "precision_pass": true,
+          "rx_port": 0,
+          "standard_error": 0.0007447463344263266,
+          "target": 0.08621119199485296,
+          "tx_port": 1
+        },
+        {
+          "absolute_error": 0.0005192013438419935,
+          "estimate": 0.08673039333869495,
+          "half_width": 0.0027719985639402,
+          "interval_pass": true,
+          "precision_cap": 0.02155279799871324,
+          "precision_pass": true,
+          "rx_port": 1,
+          "standard_error": 0.0007569092899608455,
+          "target": 0.08621119199485296,
+          "tx_port": 0
+        },
+        {
+          "absolute_error": 0.003046316543252936,
+          "estimate": 0.9257448928499347,
+          "half_width": 0.011311991939240155,
+          "interval_pass": true,
+          "precision_cap": 0.02155279799871324,
+          "precision_pass": true,
+          "rx_port": 1,
+          "standard_error": 0.0030888009460591425,
+          "target": 0.9226985763066817,
+          "tx_port": 1
+        }
+      ],
+      "draw_count": 4096,
+      "family_size": 40,
+      "group": "los_rotated_port_matrix",
+      "model": "D",
+      "orientation_case": "crossed",
+      "parameter_table_sha256": "a8960f176347de457c0cb90fbc8cf137ac98bb1c5295b096f004d8d5c6e40176",
+      "passed": true,
+      "rx_orientation_rad": [
+        -0.2,
+        0.45,
+        0.8
+      ],
+      "seed": 505,
+      "tx_orientation_rad": [
+        0.4,
+        -0.3,
+        0.6
+      ],
+      "z_simultaneous": 3.662259930887615
+    },
+    {
+      "claims": [
+        {
+          "absolute_error": 0.0006622575045490686,
+          "estimate": 0.7336985576557542,
+          "half_width": 0.004560632104933156,
+          "interval_pass": true,
+          "precision_cap": 0.07060077325279897,
+          "precision_pass": true,
+          "rx_port": 0,
+          "standard_error": 0.0012453054100471247,
+          "target": 0.7343608151603033,
+          "tx_port": 0
+        },
+        {
+          "absolute_error": 0.0008175037051607603,
+          "estimate": 0.2815855893060351,
+          "half_width": 0.002024498940543344,
+          "interval_pass": true,
+          "precision_cap": 0.07060077325279897,
+          "precision_pass": true,
+          "rx_port": 0,
+          "standard_error": 0.000552800450745906,
+          "target": 0.28240309301119587,
+          "tx_port": 1
+        },
+        {
+          "absolute_error": 0.0006328720502865592,
+          "estimate": 0.2817702209609093,
+          "half_width": 0.0019546522599039784,
+          "interval_pass": true,
+          "precision_cap": 0.07060077325279897,
+          "precision_pass": true,
+          "rx_port": 1,
+          "standard_error": 0.0005337284345707905,
+          "target": 0.28240309301119587,
+          "tx_port": 0
+        },
+        {
+          "absolute_error": 0.0004451862800251005,
+          "estimate": 0.7339156288802782,
+          "half_width": 0.004535889400501256,
+          "interval_pass": true,
+          "precision_cap": 0.07060077325279897,
+          "precision_pass": true,
+          "rx_port": 1,
+          "standard_error": 0.0012385492799802172,
+          "target": 0.7343608151603033,
+          "tx_port": 1
+        }
+      ],
+      "draw_count": 4096,
+      "family_size": 40,
+      "group": "los_rotated_port_matrix",
+      "model": "E",
+      "orientation_case": "tx_tilted",
+      "parameter_table_sha256": "04328f33d8d79b24aa3d0303fecb58b465ed7e13874930b05e76be0d97743480",
+      "passed": true,
+      "rx_orientation_rad": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "seed": 476,
+      "tx_orientation_rad": [
+        -0.3,
+        0.25,
+        0.5
+      ],
+      "z_simultaneous": 3.662259930887615
+    },
+    {
+      "claims": [
+        {
+          "absolute_error": 0.00038798432511399916,
+          "estimate": 0.816492069716459,
+          "half_width": 0.005075583859100886,
+          "interval_pass": true,
+          "precision_cap": 0.04997096353248152,
+          "precision_pass": true,
+          "rx_port": 0,
+          "standard_error": 0.001385915788306901,
+          "target": 0.816880054041573,
+          "tx_port": 0
+        },
+        {
+          "absolute_error": 7.831988091097641e-05,
+          "estimate": 0.19996217401083705,
+          "half_width": 0.0015522139880421427,
+          "interval_pass": true,
+          "precision_cap": 0.04997096353248152,
+          "precision_pass": true,
+          "rx_port": 0,
+          "standard_error": 0.00042384047482559094,
+          "target": 0.19988385412992607,
+          "tx_port": 1
+        },
+        {
+          "absolute_error": 0.0004136217158090538,
+          "estimate": 0.19947023241411702,
+          "half_width": 0.0015567921856527674,
+          "interval_pass": true,
+          "precision_cap": 0.04997096353248152,
+          "precision_pass": true,
+          "rx_port": 1,
+          "standard_error": 0.0004250905765925388,
+          "target": 0.19988385412992607,
+          "tx_port": 0
+        },
+        {
+          "absolute_error": 0.000755646087420625,
+          "estimate": 0.8176357001289937,
+          "half_width": 0.004999048818733302,
+          "interval_pass": true,
+          "precision_cap": 0.04997096353248152,
+          "precision_pass": true,
+          "rx_port": 1,
+          "standard_error": 0.0013650174791175165,
+          "target": 0.816880054041573,
+          "tx_port": 1
+        }
+      ],
+      "draw_count": 4096,
+      "family_size": 40,
+      "group": "los_rotated_port_matrix",
+      "model": "E",
+      "orientation_case": "rx_tilted",
+      "parameter_table_sha256": "04328f33d8d79b24aa3d0303fecb58b465ed7e13874930b05e76be0d97743480",
+      "passed": true,
+      "rx_orientation_rad": [
+        0.6,
+        0.2,
+        -0.4
+      ],
+      "seed": 486,
+      "tx_orientation_rad": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "z_simultaneous": 3.662259930887615
+    },
+    {
+      "claims": [
+        {
+          "absolute_error": 0.0014548748037273018,
+          "estimate": 0.33906476775784816,
+          "half_width": 0.0029959855402775437,
+          "interval_pass": true,
+          "precision_cap": 0.08440247323853022,
+          "precision_pass": true,
+          "rx_port": 0,
+          "standard_error": 0.0008180701525332234,
+          "target": 0.33760989295412086,
+          "tx_port": 0
+        },
+        {
+          "absolute_error": 0.0019494212404084221,
+          "estimate": 0.6811034364577866,
+          "half_width": 0.0034651439812081863,
+          "interval_pass": true,
+          "precision_cap": 0.08440247323853022,
+          "precision_pass": true,
+          "rx_port": 0,
+          "standard_error": 0.0009461764174582621,
+          "target": 0.6791540152173782,
+          "tx_port": 1
+        },
+        {
+          "absolute_error": 0.0008783030062822217,
+          "estimate": 0.6800323182236604,
+          "half_width": 0.003401433081612787,
+          "interval_pass": true,
+          "precision_cap": 0.08440247323853022,
+          "precision_pass": true,
+          "rx_port": 1,
+          "standard_error": 0.0009287798096811736,
+          "target": 0.6791540152173782,
+          "tx_port": 0
+        },
+        {
+          "absolute_error": 0.0013335179154351784,
+          "estimate": 0.33894341086955604,
+          "half_width": 0.0030115873065927083,
+          "interval_pass": true,
+          "precision_cap": 0.08440247323853022,
+          "precision_pass": true,
+          "rx_port": 1,
+          "standard_error": 0.0008223302997127229,
+          "target": 0.33760989295412086,
+          "tx_port": 1
+        }
+      ],
+      "draw_count": 4096,
+      "family_size": 40,
+      "group": "los_rotated_port_matrix",
+      "model": "E",
+      "orientation_case": "both_tilted",
+      "parameter_table_sha256": "04328f33d8d79b24aa3d0303fecb58b465ed7e13874930b05e76be0d97743480",
+      "passed": true,
+      "rx_orientation_rad": [
+        0.6,
+        0.2,
+        -0.4
+      ],
+      "seed": 496,
+      "tx_orientation_rad": [
+        -0.3,
+        0.25,
+        0.5
+      ],
+      "z_simultaneous": 3.662259930887615
+    },
+    {
+      "claims": [
+        {
+          "absolute_error": 2.7008713040066468e-05,
+          "estimate": 0.9188901018548181,
+          "half_width": 0.004422242076941774,
+          "interval_pass": true,
+          "precision_cap": 0.02447520375743029,
+          "precision_pass": true,
+          "rx_port": 0,
+          "standard_error": 0.0012075172599422684,
+          "target": 0.918863093141778,
+          "tx_port": 0
+        },
+        {
+          "absolute_error": 0.00028063315074346173,
+          "estimate": 0.09818144818046462,
+          "half_width": 0.0015065793029521962,
+          "interval_pass": true,
+          "precision_cap": 0.02447520375743029,
+          "precision_pass": true,
+          "rx_port": 0,
+          "standard_error": 0.00041137967576950483,
+          "target": 0.09790081502972116,
+          "tx_port": 1
+        },
+        {
+          "absolute_error": 0.00022676658867014365,
+          "estimate": 0.09767404844105101,
+          "half_width": 0.0015264847839396188,
+          "interval_pass": true,
+          "precision_cap": 0.02447520375743029,
+          "precision_pass": true,
+          "rx_port": 1,
+          "standard_error": 0.00041681497565620567,
+          "target": 0.09790081502972116,
+          "tx_port": 0
+        },
+        {
+          "absolute_error": 9.199586668451332e-06,
+          "estimate": 0.9188538935551096,
+          "half_width": 0.004398045208407868,
+          "interval_pass": true,
+          "precision_cap": 0.02447520375743029,
+          "precision_pass": true,
+          "rx_port": 1,
+          "standard_error": 0.001200910173337129,
+          "target": 0.918863093141778,
+          "tx_port": 1
+        }
+      ],
+      "draw_count": 4096,
+      "family_size": 40,
+      "group": "los_rotated_port_matrix",
+      "model": "E",
+      "orientation_case": "crossed",
+      "parameter_table_sha256": "04328f33d8d79b24aa3d0303fecb58b465ed7e13874930b05e76be0d97743480",
+      "passed": true,
+      "rx_orientation_rad": [
+        -0.2,
+        0.45,
+        0.8
+      ],
+      "seed": 506,
+      "tx_orientation_rad": [
+        0.4,
+        -0.3,
+        0.6
+      ],
+      "z_simultaneous": 3.662259930887615
+    },
+    {
+      "claims": [
+        {
+          "absolute_error": 6.544662012641922e-05,
+          "estimate": 1.0000654466201264,
+          "half_width": 0.001974376830927124,
+          "interval_pass": true,
+          "precision_cap": 0.0022274420753836737,
+          "precision_pass": true,
+          "rx_port": 0,
+          "standard_error": 0.0005391143360074384,
+          "target": 1.0,
+          "tx_port": 0
+        },
+        {
+          "absolute_error": 1.965980346704463e-06,
+          "estimate": 0.00890780232118799,
+          "half_width": 2.6764572504101743e-05,
+          "interval_pass": true,
+          "precision_cap": 0.0022274420753836737,
+          "precision_pass": true,
+          "rx_port": 0,
+          "standard_error": 7.308212144738417e-06,
+          "target": 0.008909768301534695,
+          "tx_port": 1
+        },
+        {
+          "absolute_error": 1.8096482786073703e-05,
+          "estimate": 0.008891671818748621,
+          "half_width": 2.6782465758004798e-05,
+          "interval_pass": true,
+          "precision_cap": 0.0022274420753836737,
+          "precision_pass": true,
+          "rx_port": 1,
+          "standard_error": 7.31309799507147e-06,
+          "target": 0.008909768301534695,
+          "tx_port": 0
+        },
+        {
+          "absolute_error": 0.00047520600259787216,
+          "estimate": 0.9995247939974021,
+          "half_width": 0.0019691624635755156,
+          "interval_pass": true,
+          "precision_cap": 0.0022274420753836737,
+          "precision_pass": true,
+          "rx_port": 1,
+          "standard_error": 0.0005376905246313998,
+          "target": 1.0,
+          "tx_port": 1
+        }
+      ],
+      "draw_count": 262144,
+      "family_size": 40,
+      "group": "los_aligned_port_matrix",
+      "model": "D",
+      "parameter_table_sha256": "a8960f176347de457c0cb90fbc8cf137ac98bb1c5295b096f004d8d5c6e40176",
+      "passed": true,
+      "seeds": [
+        1475,
+        1476,
+        1477,
+        1478,
+        1479,
+        1480,
+        1481,
+        1482
+      ],
+      "z_simultaneous": 3.662259930887615
+    },
+    {
+      "claims": [
+        {
+          "absolute_error": 0.0008210006657316526,
+          "estimate": 0.9991789993342683,
+          "half_width": 0.0030374670550557896,
+          "interval_pass": true,
+          "precision_cap": 0.004190977042874791,
+          "precision_pass": true,
+          "rx_port": 0,
+          "standard_error": 0.0008293969058388503,
+          "target": 1.0,
+          "tx_port": 0
+        },
+        {
+          "absolute_error": 4.26645247825902e-06,
+          "estimate": 0.016768174623977422,
+          "half_width": 0.000157348212682117,
+          "interval_pass": true,
+          "precision_cap": 0.004190977042874791,
+          "precision_pass": true,
+          "rx_port": 0,
+          "standard_error": 4.2964785583633e-05,
+          "target": 0.016763908171499163,
+          "tx_port": 1
+        },
+        {
+          "absolute_error": 9.184564643841334e-05,
+          "estimate": 0.01667206252506075,
+          "half_width": 0.00015582383669873067,
+          "interval_pass": true,
+          "precision_cap": 0.004190977042874791,
+          "precision_pass": true,
+          "rx_port": 1,
+          "standard_error": 4.254854642744158e-05,
+          "target": 0.016763908171499163,
+          "tx_port": 0
+        },
+        {
+          "absolute_error": 8.104483956272723e-06,
+          "estimate": 0.9999918955160437,
+          "half_width": 0.0030519808902876237,
+          "interval_pass": true,
+          "precision_cap": 0.004190977042874791,
+          "precision_pass": true,
+          "rx_port": 1,
+          "standard_error": 0.0008333599875167574,
+          "target": 1.0,
+          "tx_port": 1
+        }
+      ],
+      "draw_count": 16384,
+      "family_size": 40,
+      "group": "los_aligned_port_matrix",
+      "model": "E",
+      "parameter_table_sha256": "04328f33d8d79b24aa3d0303fecb58b465ed7e13874930b05e76be0d97743480",
+      "passed": true,
+      "seeds": [
+        1476
+      ],
+      "z_simultaneous": 3.662259930887615
+    }
+  ],
+  "claim_count": 54,
+  "familywise_alpha": 0.01,
+  "generated_utc_date": "2026-11-09",
+  "git_head": "327d354864d405f6cef1dd0f76e12548bb04fdcd",
+  "maximum_absolute_error": 0.007909413169421287,
+  "maximum_half_width": 0.01948611183836226,
+  "maximum_half_width_to_precision_cap_ratio": 0.886387508230507,
+  "passing_interval_claim_count": 54,
+  "passing_precision_claim_count": 54,
+  "reference_sha256": {
+    "profile_scalar": "3b5920e7c12b0e36c8e09d1c7f14025cfbb23b6d805e1044124bfcf147185620",
+    "tap_angle": "24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090"
+  },
+  "schema": "loslab.g4_cdl_dual_vh_power_native_validation.v1",
+  "scope": "Current independent-reference dual-VH omni CDL-A-E polarization-power regression only; claims remain partitioned into the pre-existing NLOS 12-claim, LOS aggregate 2-claim, and LOS rotated-plus-aligned 40-claim families.",
+  "status": "PASS_WITHIN_BOUNDED_PROTOCOL_SCOPE",
+  "test_sha256": "6709cf0300cc847aec39659925b42786c6d6519f6a11137b05b2a79f529e22d7"
+}
