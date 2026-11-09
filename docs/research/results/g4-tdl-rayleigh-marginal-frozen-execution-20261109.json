@@ -1,0 +1,64 @@
+{
+  "command": "./.venv/bin/python -m pytest --no-cov -q -m native_sionna tests/test_integrations/test_g4_tdl_rayleigh_marginal_native.py",
+  "diagnosis": "The test confused the Rayleigh-only claim count with the total native output tap-axis length for scalable TDL-D/E. Sionna exposes the merged zero-delay LOS+diffuse tap in the native axis; the frozen Rayleigh scorer already excludes that aggregate through explicit native tap indices.",
+  "failures": [
+    {
+      "asserted_expected_num_profile_taps": 12,
+      "observed_num_profile_taps": 13,
+      "profile": "D",
+      "seed": 1780003,
+      "stage": "native_output_metadata_contract",
+      "statistical_cdf_scoring_reached": false
+    },
+    {
+      "asserted_expected_num_profile_taps": 13,
+      "observed_num_profile_taps": 14,
+      "profile": "E",
+      "seed": 1780004,
+      "stage": "native_output_metadata_contract",
+      "statistical_cdf_scoring_reached": false
+    }
+  ],
+  "frozen_design": {
+    "draws_per_profile": 32768,
+    "family_tap_count": 177,
+    "familywise_alpha": 0.01,
+    "maximum_simultaneous_cdf_error": 0.05,
+    "profiles": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "A10",
+      "A30",
+      "B100",
+      "C60",
+      "C300",
+      "D10",
+      "D30"
+    ],
+    "seed_range": [
+      1780000,
+      1780011
+    ]
+  },
+  "git_revision": "bbf6323df01c2385508141169a7e689cabe881be",
+  "pytest_exit_code": 1,
+  "run_date": "2026-11-09",
+  "schema": "loslab.g4_tdl_rayleigh_marginal_frozen_execution.v1",
+  "scientific_interpretation": "This execution is retained as a software-contract failure. It is not evidence that the frozen Rayleigh marginal criterion failed, and it must not be converted into a statistical pass by changing seeds, draw count, family-wise alpha, DKW construction, or the 0.05 ceiling.",
+  "seed_audit": {
+    "path": "docs/research/G4_TDL_RAYLEIGH_MARGINAL_SEED_AUDIT_2026-11-09.json",
+    "scanned_file_count": 2289,
+    "sha256": "b60dc17df65ccc2e39b1a716ec3b2479a4895e83d22340dc58b9cd3a6d5ad23f",
+    "status": "CLEAR_WITHIN_SCANNED_JSON_CORPUS"
+  },
+  "source_digests": {
+    "protocol_sha256": "2688fbc1e3e0c654e08f7a166a94d3c53ce0b62a0885e89a9f686a88f6c41816",
+    "reference_helper_sha256": "026be1e82d94d4e151ffa61cf097f354320b344363e6d701fa7d0a1e405e3bdb",
+    "scorer_sha256": "6ce7744f039fdbf6ba0c6cb5acd5aded261dc2e4f934cf8e974167a6e32eb6e1",
+    "test_sha256": "2033f60b29c7e8547905b7a73366841eca9ec7c890f861a8a54799cddc150c8d"
+  },
+  "status": "FAILED_SOFTWARE_CONTRACT_BEFORE_ALL_STATISTICAL_CLAIMS"
+}

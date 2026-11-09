@@ -37,7 +37,7 @@ _EXPECTED_TAP_COUNTS = {
     "D10": 9,
     "D30": 9,
 }
-_SCALABLE_NATIVE_TAP_COUNTS = {"A": 23, "B": 23, "C": 24, "D": 12, "E": 13}
+_SCALABLE_NATIVE_TAP_COUNTS = {"A": 23, "B": 23, "C": 24, "D": 13, "E": 14}
 _SEED_START = 1_780_000
 _DRAW_COUNT = 32_768
 _FAMILY_TAP_COUNT = 177
@@ -155,6 +155,7 @@ def test_tdl_rayleigh_tap_power_cdfs_match_table_scaled_exponential_family(model
         expected_powers,
         alpha=_ALPHA,
         maximum_simultaneous_cdf_error=_MAXIMUM_SIMULTANEOUS_CDF_ERROR,
+        family_tap_count=_FAMILY_TAP_COUNT,
     )
     assert len(results) == _EXPECTED_TAP_COUNTS[model]
     assert all(result.passed for result in results), (model, results)

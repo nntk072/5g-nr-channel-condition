@@ -81,6 +81,7 @@ def score_rayleigh_tap_marginal_family(
     *,
     alpha: float = 0.01,
     maximum_simultaneous_cdf_error: float = 0.05,
+    family_tap_count: int | None = None,
 ) -> tuple[RayleighTapMarginalResult, ...]:
     """Score independent-draw TDL coefficients against table-scaled Rayleigh marginals.
 
@@ -126,8 +127,22 @@ def score_rayleigh_tap_marginal_family(
         normalized.append((tap_index, mean_value))
         seen.add(tap_index)
     normalized.sort()
+    if family_tap_count is None:
+        resolved_family_tap_count = len(normalized)
+    else:
+        if (
+            isinstance(family_tap_count, bool)
+            or not isinstance(family_tap_count, int)
+            or family_tap_count < len(normalized)
+        ):
+            raise ValueError(
+                "family_tap_count must be an integer at least as large as the scored tap roster"
+            )
+        resolved_family_tap_count = family_tap_count
 
-    radius = rayleigh_marginal_dkw_radius(samples.shape[0], len(normalized), alpha=alpha)
+    radius = rayleigh_marginal_dkw_radius(
+        samples.shape[0], resolved_family_tap_count, alpha=alpha
+    )
     return tuple(
         RayleighTapMarginalResult(
             tap_index=tap_index,
