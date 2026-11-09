@@ -1,0 +1,98 @@
+{
+  "command": "./.venv/bin/python -m pytest --no-cov -q -m native_sionna tests/test_integrations/test_g4_cdl_joint_tx_rx_spatiotemporal_covariance_native.py",
+  "date": "2026-11-09",
+  "frozen_design": {
+    "carrier_frequency_hz": 3500000000.0,
+    "draws_per_profile": 16384,
+    "familywise_alpha": 0.01,
+    "lag_s": 0.0007,
+    "maximum_interval_half_width": 0.05,
+    "port_count": 4,
+    "profiles": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E"
+    ],
+    "rx_count": 2,
+    "seeds": [
+      2811000,
+      2811001,
+      2811002,
+      2811003,
+      2811004
+    ],
+    "simultaneous_claim_count": 160,
+    "tx_count": 2,
+    "velocity_mps": [
+      10.0,
+      20.0,
+      20.0
+    ]
+  },
+  "limitations": [
+    "The frozen family failed one of 160 simultaneous claims; it is not a passing validation result.",
+    "The post-hoc larger-draw diagnostic is not admissible to override the frozen failure.",
+    "No claim is made about measured channels, RT/material truth, receiver validity, overall G4 qualification, production D1 generation, or advanced training."
+  ],
+  "outcome": {
+    "cases_failed": 1,
+    "cases_passed": 4,
+    "cases_total": 5,
+    "failed_claim": {
+      "absolute_error": 0.022121680868351035,
+      "column": 1,
+      "component": "real",
+      "estimate": 0.30513253445518573,
+      "excess_beyond_interval": 0.0003121761210339129,
+      "reference": 0.2830108535868347,
+      "row": 0,
+      "seed": 2811001,
+      "simultaneous_half_width": 0.021809504747317122
+    },
+    "failed_claim_count": 1,
+    "failed_profile": "B",
+    "inferred_claims_passed": 159,
+    "maximum_half_width_observed_in_failed_profile_diagnostic": 0.02493985193820794,
+    "pytest_exit_code": 1,
+    "status": "FROZEN_FAILURE"
+  },
+  "post_hoc_diagnostic": {
+    "admissible_as_replacement": false,
+    "draw_count": 65536,
+    "interpretation": "diagnostic is centered on the oracle but cannot replace the frozen 16,384-draw failure",
+    "profile": "B",
+    "same_claim": {
+      "column": 1,
+      "component": "real",
+      "estimate": 0.28362493149882156,
+      "reference": 0.2830108535868347,
+      "row": 0,
+      "signed_error": 0.0006140779119868656,
+      "standard_error": 0.0027261093478789266,
+      "z_score": 0.22525798991322718
+    },
+    "seed": 2811001
+  },
+  "qualification_claim": "none",
+  "repository_base_commit": "0ce9106d0c23471be1f26be63a43bbc99f427990",
+  "schema": "loslab.g4_cdl_joint_tx_rx_spatiotemporal_initial_frozen_execution.v1",
+  "seed_audit": {
+    "global_exclusivity_established": false,
+    "path": "docs/research/G4_CDL_JOINT_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-09.json",
+    "scanned_file_count": 2292,
+    "sha256": "7f9b7ed95e1748934a40fabec03544f43327ead68fc830ef40fafad8080fa90d",
+    "status": "CLEAR_WITHIN_SCANNED_JSON_CORPUS"
+  },
+  "source_hashes": {
+    "docs/research/G4_07_CDL_JOINT_TX_RX_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-09.md": "73ce371cf6df293bbc7ff68530b26206bb922f0d0ebdf3a40bb4ec0dfafa1863",
+    "docs/research/G4_CDL_JOINT_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-09.json": "7f9b7ed95e1748934a40fabec03544f43327ead68fc830ef40fafad8080fa90d",
+    "docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json": "24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090",
+    "evaluation/g4_cdl_joint_tx_rx_spatiotemporal_covariance.py": "0d503dae03ed900d5bb187f1d2aba2c28956fbc0dad2c4ca56ed9f3e96027b85",
+    "scripts/run_g4_cdl_joint_tx_rx_spatiotemporal_covariance.py": "ae6447491a788ade09494866e04b52fe8fa4fb3f5273f6342c3a97220ce4a048",
+    "tests/test_evaluation/test_g4_cdl_joint_tx_rx_spatiotemporal_covariance.py": "e1b59721534e24b98cc7174897799d12cac02c8efce1d53154478786f37dea23",
+    "tests/test_integrations/test_g4_cdl_joint_tx_rx_spatiotemporal_covariance_native.py": "db9a67dab2f516c070ec0e43ef0223f924382851cb047c18849f13a0575bcbe5"
+  },
+  "source_state": "protocol/test/reference files were untracked at execution time; exact bytes are bound below and retained unchanged except subsequent auditability-only recording changes"
+}
