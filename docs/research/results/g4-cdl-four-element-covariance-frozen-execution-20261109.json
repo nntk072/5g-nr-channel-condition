@@ -1,0 +1,114 @@
+{
+  "base_commit": "c011f5b",
+  "components_per_profile": 16,
+  "criteria_changed": false,
+  "date": "2026-11-09",
+  "draws_per_profile": 8192,
+  "failure_interpretation": {
+    "absolute_error": 0.013574301393057264,
+    "component": "re_01",
+    "excess_over_half_width": 0.000604889833590426,
+    "half_width": 0.012969411559466838,
+    "profile": "E",
+    "statement": "The frozen 8192-draw profile-E family fails one of 16 simultaneous covariance coordinates. This result is retained as a failure and is not converted to a pass."
+  },
+  "familywise_confidence_per_profile": 0.99,
+  "frozen_protocol_outcome": "FAIL",
+  "frozen_seed": 6714,
+  "limitations": [
+    "This is one fixed four-element half-wavelength ULA at zero orientation and one carrier/configuration.",
+    "The larger CDL-E diagnostic is post hoc and diagnostic only.",
+    "No seed-exclusivity claim is made for seed 6714 or diagnostic seed 3000000.",
+    "G4 remains open and this result does not authorize production RT generation or advanced training."
+  ],
+  "max_half_width": 0.05,
+  "metadata_correction": {
+    "statement": "The test metadata assertion now expects profile_los_component=true for CDL-D/E and false for CDL-A/B/C. This does not affect covariance estimates or acceptance thresholds."
+  },
+  "native_test_summary_after_metadata_fix": {
+    "failed": 1,
+    "failed_test": "test_cdl_four_element_spatial_covariance_matches_independent_ray_reference[E]",
+    "passed": 9
+  },
+  "posthoc_diagnostic": {
+    "admissible_for_frozen_acceptance": false,
+    "component": "re_01",
+    "draws": 65536,
+    "estimate": 0.916242337930814,
+    "expected": 0.9155518223704949,
+    "model": "E",
+    "seed": 3000000,
+    "standard_error": 0.0013400159209879922,
+    "statement": "A separate larger diagnostic cohort is consistent with the independent oracle but was run after observing the frozen failure; it cannot replace or override the frozen outcome.",
+    "z_score": 0.5153039971420305
+  },
+  "profile_results": [
+    {
+      "failed_components": [],
+      "max_half_width": 0.03808650546924036,
+      "model": "A",
+      "pass": true,
+      "profile_los_component": false,
+      "worst_component": "im_02",
+      "worst_error": 0.01603371583876409,
+      "worst_half_width": 0.025703157618455333
+    },
+    {
+      "failed_components": [],
+      "max_half_width": 0.03839940274201573,
+      "model": "B",
+      "pass": true,
+      "profile_los_component": false,
+      "worst_component": "diag_2",
+      "worst_error": 0.020675851020714675,
+      "worst_half_width": 0.03657172644019508
+    },
+    {
+      "failed_components": [],
+      "max_half_width": 0.03849725636379197,
+      "model": "C",
+      "pass": true,
+      "profile_los_component": false,
+      "worst_component": "im_12",
+      "worst_error": 0.014479476068207153,
+      "worst_half_width": 0.02659444781412432
+    },
+    {
+      "failed_components": [],
+      "max_half_width": 0.017637908644494143,
+      "model": "D",
+      "pass": true,
+      "profile_los_component": true,
+      "worst_component": "im_23",
+      "worst_error": 0.006782391035783184,
+      "worst_half_width": 0.011278410240828528
+    },
+    {
+      "failed_components": [
+        "re_01"
+      ],
+      "max_half_width": 0.017115682592909753,
+      "model": "E",
+      "pass": false,
+      "profile_los_component": true,
+      "worst_component": "re_01",
+      "worst_error": 0.013574301393057264,
+      "worst_half_width": 0.012969411559466838
+    }
+  ],
+  "profiles": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E"
+  ],
+  "qualification_claim": "none",
+  "reference_sha256": "24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090",
+  "schema": "loslab.g4_cdl_four_element_covariance_frozen_execution.v1",
+  "seed_exclusivity_established": false,
+  "source_pdf_sha256": "b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4",
+  "test_source_sha256": {
+    "tests/test_integrations/test_g4_cdl_spatial_covariance_4element_native.py": "71193b36a4bcafd9269561c1da5ba2143b0161fad8f1f2fd4560402e26950295"
+  }
+}

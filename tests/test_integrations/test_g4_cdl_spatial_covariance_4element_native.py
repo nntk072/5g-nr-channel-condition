@@ -215,6 +215,6 @@ def test_cdl_four_element_spatial_covariance_matches_independent_ray_reference(
     torch.testing.assert_close(empirical, empirical.mH, rtol=0.0, atol=1e-7)
     assert float(torch.linalg.eigvalsh(empirical).min()) >= -1e-7
 
-    assert channel.metadata["profile_los_component"] is False
+    assert channel.metadata["profile_los_component"] is (model in {"D", "E"})
     assert channel.metadata["batch_axis_semantics"] == "independent_stochastic_channel_draws"
     assert channel.metadata["parameter_table_sha256"] == source_digest
