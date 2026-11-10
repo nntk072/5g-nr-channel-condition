@@ -7,6 +7,8 @@ from dataclasses import asdict
 
 import pytest
 from evaluation.g4_cdl_handheld_ut_spatiotemporal_covariance import (
+    handheld_ut_dual_geometry,
+    handheld_ut_port_field_gcs,
     handheld_ut_single_v_field_gcs,
     handheld_ut_single_v_geometry,
 )
@@ -61,6 +63,31 @@ def _tx_array() -> PanelArray:
         polarization_type="V",
         antenna_pattern="omni",
         carrier_frequency=_CARRIER_FREQUENCY_HZ,
+        precision="double",
+        device="cpu",
+    )
+
+
+def _handheld_dual(roster: str, polarization_type: str) -> HandheldUTArray:
+    return HandheldUTArray(
+        carrier_frequency=_CARRIER_FREQUENCY_HZ,
+        polarization="dual",
+        polarization_type=polarization_type,
+        antenna_locations=roster,
+        antenna_pattern="38.901-handheld",
+        device_depth=0.15,
+        device_width=0.07,
+        precision="double",
+        device="cpu",
+    )
+
+
+def _generator_dual(roster: str, polarization_type: str) -> ChannelCoefficientsGenerator:
+    return ChannelCoefficientsGenerator(
+        carrier_frequency=_CARRIER_FREQUENCY_HZ,
+        tx_array=_tx_array(),
+        rx_array=_handheld_dual(roster, polarization_type),
+        subclustering=False,
         precision="double",
         device="cpu",
     )
@@ -226,3 +253,69 @@ def test_cdl_adapter_uses_physical_handheld_ut_array(roster: str, port_count: in
     assert channel.metadata["bs_array_kind"] == "panel"
     assert channel.metadata["ut_array"]["antenna_locations"] == roster
     assert channel.metadata["rx_antenna_count"] == port_count
+
+
+@pytest.mark.native_sionna
+@pytest.mark.parametrize("polarization_type", ("VH", "cross"))
+@pytest.mark.parametrize("roster", ("tr38901-4", "tr38901"))
+def test_dual_handheld_geometry_matches_independent_construction(
+    roster: str, polarization_type: str
+) -> None:
+    array = _handheld_dual(roster, polarization_type)
+    positions, bases, components = handheld_ut_dual_geometry(
+        roster, polarization_type=polarization_type
+    )
+    torch.testing.assert_close(
+        array.ant_pos,
+        torch.tensor(positions, dtype=array.ant_pos.dtype),
+        atol=1e-15,
+        rtol=1e-15,
+    )
+    torch.testing.assert_close(
+        array.port_basis,
+        torch.tensor(bases, dtype=array.port_basis.dtype).transpose(-1, -2),
+        atol=1e-15,
+        rtol=1e-15,
+    )
+    torch.testing.assert_close(
+        array.port_field_component,
+        torch.tensor(components, dtype=array.port_field_component.dtype),
+    )
+
+
+@pytest.mark.native_sionna
+@pytest.mark.parametrize("polarization_type", ("VH", "cross"))
+@pytest.mark.parametrize("roster", ("tr38901-4", "tr38901"))
+@pytest.mark.parametrize("angles", _ANGLES_DEG)
+def test_dual_handheld_step_11_fields_match_independent_port_geometry(
+    roster: str, polarization_type: str, angles: dict[str, float]
+) -> None:
+    generator = _generator_dual(roster, polarization_type)
+    topology = _topology(generator)
+    aoa = _angle_tensor(generator, angles["aoa"])
+    aod = _angle_tensor(generator, angles["aod"])
+    zoa = _angle_tensor(generator, angles["zoa"])
+    zod = _angle_tensor(generator, angles["zod"])
+    jones = torch.tensor(_JONES, dtype=torch.complex128).reshape(1, 1, 1, 1, 1, 2, 2)
+
+    field = generator._step_11_field_matrix(topology, aoa, aod, zoa, zod, jones)[0, 0, 0, 0, 0].to(
+        torch.complex128
+    )
+    receive_direction = _unit_direction(angles["aoa"], angles["zoa"])
+    transmit_direction = _unit_direction(angles["aod"], angles["zod"])
+    tx_field = _vh_basis((0.0, 0.0, 0.0), transmit_direction)[0]
+    _, bases, components = handheld_ut_dual_geometry(roster, polarization_type=polarization_type)
+
+    for rx_port, (basis, component) in enumerate(zip(bases, components, strict=True)):
+        rx_field = handheld_ut_port_field_gcs(
+            receive_direction,
+            endpoint_orientation_rad=_UT_ORIENTATION,
+            port_basis_device=basis,
+            field_component=component,
+        )
+        expected = sum(
+            rx_field[row] * _JONES[row][column] * tx_field[column]
+            for row in range(2)
+            for column in range(2)
+        )
+        assert complex(field[rx_port, 0]) == pytest.approx(expected, abs=2e-12)

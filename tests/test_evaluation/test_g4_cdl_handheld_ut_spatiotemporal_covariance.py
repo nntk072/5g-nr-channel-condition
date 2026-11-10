@@ -6,7 +6,9 @@ import math
 
 import pytest
 from evaluation.g4_cdl_handheld_ut_spatiotemporal_covariance import (
+    cdl_handheld_ut_dual_spatiotemporal_covariance_reference,
     cdl_handheld_ut_spatiotemporal_covariance_reference,
+    handheld_ut_dual_geometry,
     handheld_ut_single_v_field_gcs,
     handheld_ut_single_v_geometry,
 )
@@ -90,4 +92,48 @@ def test_handheld_reference_rejects_invalid_rosters(bad_roster) -> None:
             _VELOCITY,
             antenna_locations=bad_roster,
             ut_orientation_rad=_ORIENTATION,
+        )
+
+
+@pytest.mark.parametrize("polarization_type", ("VH", "cross"))
+@pytest.mark.parametrize(("roster", "location_count"), (("tr38901-4", 4), ("tr38901", 8)))
+def test_dual_handheld_geometry_duplicates_locations_and_orders_components(
+    polarization_type: str, roster: str, location_count: int
+) -> None:
+    positions, bases, components = handheld_ut_dual_geometry(
+        roster, polarization_type=polarization_type
+    )
+    assert len(positions) == 2 * location_count
+    assert len(bases) == 2 * location_count
+    assert positions[:location_count] == positions[location_count:]
+    assert bases[:location_count] == bases[location_count:]
+    assert components == tuple([0] * location_count + [1] * location_count)
+
+
+@pytest.mark.parametrize(("roster", "port_count"), (("tr38901-4", 8), ("tr38901", 16)))
+def test_dual_handheld_covariance_reference_has_expected_shape_and_finite_values(
+    roster: str, port_count: int
+) -> None:
+    matrix = cdl_handheld_ut_dual_spatiotemporal_covariance_reference(
+        "D",
+        _VELOCITY,
+        antenna_locations=roster,
+        ut_orientation_rad=_ORIENTATION,
+        polarization_type="cross",
+    )
+    assert len(matrix) == port_count
+    assert all(len(row) == port_count for row in matrix)
+    assert all(
+        math.isfinite(value.real) and math.isfinite(value.imag) for row in matrix for value in row
+    )
+
+
+def test_dual_handheld_reference_rejects_invalid_polarization_type() -> None:
+    with pytest.raises(ValueError, match="polarization_type"):
+        cdl_handheld_ut_dual_spatiotemporal_covariance_reference(
+            "A",
+            _VELOCITY,
+            antenna_locations="tr38901-4",
+            ut_orientation_rad=_ORIENTATION,
+            polarization_type="slant",
         )
