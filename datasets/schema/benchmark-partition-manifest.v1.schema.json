@@ -1,0 +1,217 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/nntk072/5g-nr-channel-condition/datasets/schema/benchmark-partition-manifest.v1.schema.json",
+  "title": "UMCD benchmark partition manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "status",
+    "registry_sha256",
+    "registry_attestation",
+    "declaration_attestation",
+    "cohorts",
+    "complete_six_cohort_coverage",
+    "datasets",
+    "manifest_sha256"
+  ],
+  "properties": {
+    "schema": {
+      "const": "umcd.benchmark_partition_manifest.v1"
+    },
+    "status": {
+      "const": "CANDIDATE_NOT_SCIENTIFICALLY_QUALIFIED"
+    },
+    "registry_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "registry_attestation": {
+      "$ref": "#/$defs/attestation"
+    },
+    "declaration_attestation": {
+      "$ref": "#/$defs/attestation"
+    },
+    "cohorts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "train",
+        "validation",
+        "calibration",
+        "site_held_out",
+        "site_array_held_out",
+        "real_external"
+      ],
+      "properties": {
+        "train": {
+          "$ref": "#/$defs/cohortSummary"
+        },
+        "validation": {
+          "$ref": "#/$defs/cohortSummary"
+        },
+        "calibration": {
+          "$ref": "#/$defs/cohortSummary"
+        },
+        "site_held_out": {
+          "$ref": "#/$defs/cohortSummary"
+        },
+        "site_array_held_out": {
+          "$ref": "#/$defs/cohortSummary"
+        },
+        "real_external": {
+          "$ref": "#/$defs/cohortSummary"
+        }
+      }
+    },
+    "complete_six_cohort_coverage": {
+      "type": "boolean"
+    },
+    "datasets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/dataset"
+      }
+    },
+    "manifest_sha256": {
+      "$ref": "#/$defs/sha256"
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "identity": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!\\s)(?:.*\\S)?$"
+    },
+    "attestation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_sha256",
+        "signature_sha256",
+        "allowed_signers_sha256",
+        "signer_id",
+        "namespace"
+      ],
+      "properties": {
+        "artifact_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "signature_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "allowed_signers_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "signer_id": {
+          "$ref": "#/$defs/identity"
+        },
+        "namespace": {
+          "$ref": "#/$defs/identity"
+        }
+      }
+    },
+    "cohortSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "parent_subjects",
+        "independent_components",
+        "rows",
+        "site_count",
+        "array_count"
+      ],
+      "properties": {
+        "parent_subjects": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "independent_components": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rows": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "site_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "array_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "row_index",
+        "parent_id",
+        "component_id",
+        "cohort"
+      ],
+      "properties": {
+        "row_index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "parent_id": {
+          "$ref": "#/$defs/identity"
+        },
+        "component_id": {
+          "$ref": "#/$defs/identity"
+        },
+        "cohort": {
+          "enum": [
+            "train",
+            "validation",
+            "calibration",
+            "site_held_out",
+            "site_array_held_out",
+            "real_external"
+          ]
+        }
+      }
+    },
+    "dataset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "file_sha256",
+        "row_count",
+        "label_semantics",
+        "rows"
+      ],
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/identity"
+        },
+        "file_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "row_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "label_semantics": {
+          "$ref": "#/$defs/identity"
+        },
+        "rows": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/row"
+          }
+        }
+      }
+    }
+  }
+}

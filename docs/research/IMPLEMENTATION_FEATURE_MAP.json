@@ -5,7 +5,7 @@
       "backlog_status": "open",
       "description": "Turn this backlog into a fully traceable feature map. **Partial:** `scripts.build_implementation_feature_map` indexes checklist rows by package/plan gate, resolves explicitly referenced repository paths (both formatted and plain), dotted Python module names, and registered `pyproject.toml` CLI entry points, and marks unresolved rows `unmapped`. Map v2 records a stable SHA-256 for every linked evidence file and rejects symlinked or mutating evidence snapshots; `loslab-build-implementation-feature-map --check` detects stale output. The `scripts` package is now included in distribution discovery so all four registered `scripts.*` console entry points import after install; the four `--help` paths pass. The current map has 181 checklist rows, 26 linked and 155 unmapped; G5 network receiver and G7 split-lineage rows now resolve their source/schema/regression evidence. Evidence links for other rows without explicit references, plus audited implementation-status reconciliation, remain open. Checkbox state is not scientific qualification.",
       "evidence_file_sha256": {
-        "pyproject.toml": "ac7ff4e6e377b478f4c72b558937a20992a9f80d6c722fd1e438d4d4b9524ad8",
+        "pyproject.toml": "67f868f40cdb3ceea45e2174bb31518383e0bf00e79e6e644bbbc67e288dba7c",
         "scripts/build_implementation_feature_map.py": "d9fccc125e0b9f9679a92a8231b5e2b31e7bcb4a9b287442420bcc984f3515ff"
       },
       "evidence_links": {
@@ -280,19 +280,34 @@
     },
     {
       "backlog_line": 263,
-      "backlog_status": "open",
-      "description": "Add strict result-corpus promotion rules while retaining honest diagnostics for historical artifacts whose provenance cannot be reconstructed.",
-      "evidence_file_sha256": {},
+      "backlog_status": "marked_done",
+      "description": "Add strict result-corpus promotion rules while retaining honest diagnostics for historical artifacts whose provenance cannot be reconstructed. scripts/build_result_promotion_manifest.py consumes an exact requested-file policy, reuses the read-only research-result provenance auditor, hashes admitted bytes, rejects requested files with any provenance issue, and retains incomplete nonrequested artifacts as diagnostic_only without rewriting them. Schemas: datasets/schema/research-result-promotion-policy.v1.schema.json and datasets/schema/research-result-promotion-manifest.v1.schema.json; focused fail-closed coverage: tests/test_scripts/test_build_result_promotion_manifest.py; workflow: docs/research/RESULT_PROMOTION_POLICY.md. Promotion readiness is provenance admission only and remains NOT_QUALIFIED.",
+      "evidence_file_sha256": {
+        "datasets/schema/research-result-promotion-manifest.v1.schema.json": "2b796f42ca93b7ec363830f49b774dd200a2e88aedd14af711a5a79f8a42591d",
+        "datasets/schema/research-result-promotion-policy.v1.schema.json": "1d5e07c336d94fc36f30f0c32e74174bf06b416409e039be2c443bed3df80430",
+        "docs/research/RESULT_PROMOTION_POLICY.md": "4e954dd7e9a7771e74dcee455762aa17c5ba50bf6c88bcb4e8e1e9069cb72170",
+        "scripts/build_result_promotion_manifest.py": "5a735c376bbcfba67bb9c4c5d0ce8dba8946a5ec62b0edcb7966301dd5e7e8f4",
+        "tests/test_scripts/test_build_result_promotion_manifest.py": "417470c0c88c24f7850ddf5d502d87bb428c58f3b044d9045a982154877e60a7"
+      },
       "evidence_links": {
-        "cli_entries": [],
-        "documentation": [],
+        "cli_entries": [
+          "scripts/build_result_promotion_manifest.py"
+        ],
+        "documentation": [
+          "docs/research/RESULT_PROMOTION_POLICY.md"
+        ],
         "other_files": [],
-        "regression_files": [],
-        "schemas": [],
+        "regression_files": [
+          "tests/test_scripts/test_build_result_promotion_manifest.py"
+        ],
+        "schemas": [
+          "datasets/schema/research-result-promotion-manifest.v1.schema.json",
+          "datasets/schema/research-result-promotion-policy.v1.schema.json"
+        ],
         "source_modules": []
       },
       "feature_id": "PKG01-007",
-      "link_status": "unmapped",
+      "link_status": "linked",
       "package": {
         "number": 1,
         "title": "G0 — runtime, source identity, assets, provenance, and licensing"
@@ -688,7 +703,7 @@
       "backlog_status": "marked_done",
       "description": "Version the G3 run-manifest contract through v3: v2 binds `pyproject.toml` and `uv.lock`; v3 additionally records the pre-scoring Python/platform/machine, numerical/Sionna package versions, and source revision and adds the runtime provider/schema to its frozen source bundle. Retain v1/v2 schema/source roster readers. Regression definitions cover new capture and v2 replay; validation is deferred. Installed binary, loaded-library, hardware, trust-custody, and runtime-attestation evidence remain open.",
       "evidence_file_sha256": {
-        "pyproject.toml": "ac7ff4e6e377b478f4c72b558937a20992a9f80d6c722fd1e438d4d4b9524ad8",
+        "pyproject.toml": "67f868f40cdb3ceea45e2174bb31518383e0bf00e79e6e644bbbc67e288dba7c",
         "uv.lock": "1a86b0e67d969dcbada00f3e1cade6af5c29857578a245c56200b1cc317e0550"
       },
       "evidence_links": {
@@ -4559,19 +4574,37 @@
     },
     {
       "backlog_line": 463,
-      "backlog_status": "open",
-      "description": "Implement benchmark materialization for train/validation/calibration/site-held-out/site+array-held-out/real-external partitions without copying independent physical parents across splits.",
-      "evidence_file_sha256": {},
+      "backlog_status": "marked_done",
+      "description": "Implement benchmark materialization for train/validation/calibration/site-held-out/site+array-held-out/real-external partitions without copying independent physical parents across splits. The signed, non-copying materializer in evaluation/benchmark_partitions.py and scripts/materialize_benchmark_partitions.py binds exact source dataset hashes and row indices to the canonical signed split lock plus a separately signed cohort declaration, rejects independent-component crossing, enforces site and site+array holdout identity separation, and requires evidence digests for real-external parents. Contracts are datasets/schema/benchmark-cohort-declaration.v1.schema.json and datasets/schema/benchmark-partition-manifest.v1.schema.json; focused split-boundary/schema/non-overwrite coverage: tests/test_evaluation/test_benchmark_partitions.py; workflow: docs/research/BENCHMARK_PARTITION_MATERIALIZATION.md. Output remains CANDIDATE_NOT_SCIENTIFICALLY_QUALIFIED; external inventory authority, signer custody, rights review, and measurement validity remain scientific/release gates.",
+      "evidence_file_sha256": {
+        "datasets/schema/benchmark-cohort-declaration.v1.schema.json": "ff4b4e8bfcf11c5600ad597800ff10f82752e895ed6d4b7e651942f47e033ce1",
+        "datasets/schema/benchmark-partition-manifest.v1.schema.json": "dff3038d8745edccd4e1bf88afe8fcaa07bccaacf11000898c70870ad78198c7",
+        "docs/research/BENCHMARK_PARTITION_MATERIALIZATION.md": "95e5051284be27c6f05edf09866d1bf7714ffb1e567bfbd53a18c68bbc489743",
+        "evaluation/benchmark_partitions.py": "6a20f060070fe7c1c681930b8a45d1a93ac4c1a28c97e669481a8b2f92f695f7",
+        "scripts/materialize_benchmark_partitions.py": "865f66a79fbb7b3de921c026ceca508fa4fba7d3252b7eec16c7e5456b43be06",
+        "tests/test_evaluation/test_benchmark_partitions.py": "e96935b7940744e5e43c9172492e660ef8a02e120f90d81f4bffccd5be831e19"
+      },
       "evidence_links": {
-        "cli_entries": [],
-        "documentation": [],
+        "cli_entries": [
+          "scripts/materialize_benchmark_partitions.py"
+        ],
+        "documentation": [
+          "docs/research/BENCHMARK_PARTITION_MATERIALIZATION.md"
+        ],
         "other_files": [],
-        "regression_files": [],
-        "schemas": [],
-        "source_modules": []
+        "regression_files": [
+          "tests/test_evaluation/test_benchmark_partitions.py"
+        ],
+        "schemas": [
+          "datasets/schema/benchmark-cohort-declaration.v1.schema.json",
+          "datasets/schema/benchmark-partition-manifest.v1.schema.json"
+        ],
+        "source_modules": [
+          "evaluation/benchmark_partitions.py"
+        ]
       },
       "feature_id": "PKG10-008",
-      "link_status": "unmapped",
+      "link_status": "linked",
       "package": {
         "number": 10,
         "title": "End-to-end dataset pipeline and research outputs"
@@ -4661,13 +4694,13 @@
   "schema": "loslab.implementation_feature_map.v2",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "f82e6c07c7b9340c36c748a882a558078037fc11de43c45694637469c0fa1cbc"
+    "sha256": "afed91a027645df6ac8da84c4a0103127c6644a370ded9afd9332667d86246be"
   },
   "summary": {
     "feature_count": 182,
-    "linked_count": 35,
-    "marked_done_count": 127,
-    "open_count": 55,
-    "unmapped_count": 147
+    "linked_count": 37,
+    "marked_done_count": 129,
+    "open_count": 53,
+    "unmapped_count": 145
   }
 }

@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/nntk072/5g-nr-channel-condition/datasets/schema/benchmark-cohort-declaration.v1.schema.json",
+  "title": "UMCD benchmark cohort declaration v1",
+  "description": "Signed input-scoped declaration for decomposing the canonical test split into site-held-out, site+array-held-out, and real-external benchmark cohorts. Schema validity is not scientific qualification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "test_cohorts",
+    "site_ids",
+    "array_ids",
+    "external_evidence"
+  ],
+  "properties": {
+    "schema": {
+      "const": "umcd.benchmark_cohort_declaration.v1"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "test_cohorts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "site_held_out",
+        "site_array_held_out",
+        "real_external"
+      ],
+      "properties": {
+        "site_held_out": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/identity"
+          }
+        },
+        "site_array_held_out": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/identity"
+          }
+        },
+        "real_external": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/identity"
+          }
+        }
+      }
+    },
+    "site_ids": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "$ref": "#/$defs/identity"
+      }
+    },
+    "array_ids": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "$ref": "#/$defs/identity"
+      }
+    },
+    "external_evidence": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/externalEvidence"
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "identity": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!\\s)(?:.*\\S)?$"
+    },
+    "externalEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "measurement_inventory_sha256",
+        "measurement_protocol_sha256",
+        "rights_review_sha256"
+      ],
+      "properties": {
+        "measurement_inventory_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "measurement_protocol_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "rights_review_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,224 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/nntk072/5g-nr-channel-condition/datasets/schema/research-result-promotion-manifest.v1.schema.json",
+  "title": "Research result promotion manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "status",
+    "qualification_status",
+    "results_root",
+    "policy",
+    "audit_summary",
+    "requested",
+    "diagnostic_legacy",
+    "promoted_file_count",
+    "rejected_file_count",
+    "manifest_sha256"
+  ],
+  "properties": {
+    "schema": {
+      "const": "loslab.research_result_promotion_manifest.v1"
+    },
+    "status": {
+      "enum": [
+        "PROMOTION_READY",
+        "PROMOTION_REJECTED"
+      ]
+    },
+    "qualification_status": {
+      "const": "NOT_QUALIFIED"
+    },
+    "results_root": {
+      "type": "string",
+      "minLength": 1
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "audit_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scanned_files",
+        "valid_json_files",
+        "malformed_files",
+        "files_with_issues",
+        "issue_counts"
+      ],
+      "properties": {
+        "scanned_files": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "valid_json_files": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "malformed_files": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "files_with_issues": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "issue_counts": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "requested": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/resultRow"
+      }
+    },
+    "diagnostic_legacy": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/diagnosticRow"
+      }
+    },
+    "promoted_file_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "rejected_file_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "manifest_sha256": {
+      "$ref": "#/$defs/sha256"
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "issue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "field",
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "field": {
+          "type": "string",
+          "minLength": 1
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "resultRow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256",
+        "size_bytes",
+        "issue_count",
+        "issues",
+        "promotion_status"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "issue_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "issues": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/issue"
+          }
+        },
+        "promotion_status": {
+          "enum": [
+            "eligible",
+            "rejected"
+          ]
+        }
+      }
+    },
+    "diagnosticRow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256",
+        "size_bytes",
+        "issue_count",
+        "issues",
+        "retention_status"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "issue_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "issues": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/issue"
+          }
+        },
+        "retention_status": {
+          "const": "diagnostic_only"
+        }
+      }
+    }
+  }
+}
