@@ -26,10 +26,54 @@ def test_feature_map_covers_checklist_and_does_not_promote_qualification() -> No
     assert all(
         row["qualification_status"] == "not_assessed_by_inventory" for row in result["features"]
     )
+    allowed_statuses = {"code_complete", "partial", "absent", "externally_blocked"}
+    assert {row["implementation_status"] for row in result["features"]} <= allowed_statuses
+    assert (
+        sum(result["summary"]["implementation_status_counts"].values())
+        == result["summary"]["feature_count"]
+    )
+    assert all(
+        row["implementation_status"] == "code_complete"
+        for row in result["features"]
+        if row["backlog_status"] == "marked_done"
+    )
     schema = json.loads(
-        (root / "datasets/schema/implementation-feature-map.v2.schema.json").read_text()
+        (root / "datasets/schema/implementation-feature-map.v3.schema.json").read_text()
     )
     jsonschema.Draft202012Validator(schema).validate(result)
+
+
+def test_feature_map_classifies_all_implementation_states_conservatively(tmp_path: Path) -> None:
+    (tmp_path / "scripts").mkdir()
+    (tmp_path / "scripts/tool.py").write_text("pass\n")
+    text = (
+        "### 0. Package\n"
+        "- [x] Finished feature.\n"
+        "- [ ] Partial implementation in `scripts/tool.py`.\n"
+        "- [ ] **Partial:** implementation exists but evidence is not linked here.\n"
+        "- [ ] No implementation evidence yet.\n"
+        "- [ ] **Externally blocked:** requires independent authority.\n"
+    )
+
+    features = build_feature_map(text, root=tmp_path)["features"]
+
+    assert [feature["implementation_status"] for feature in features] == [
+        "code_complete",
+        "partial",
+        "partial",
+        "absent",
+        "externally_blocked",
+    ]
+    assert [feature["implementation_status_basis"] for feature in features] == [
+        "checked_backlog_item",
+        "linked_repository_evidence",
+        "explicit_partial_marker",
+        "open_without_linked_or_partial_evidence",
+        "explicit_external_blocker",
+    ]
+    assert all(
+        feature["qualification_status"] == "not_assessed_by_inventory" for feature in features
+    )
 
 
 def test_feature_map_rejects_checklist_items_outside_a_package() -> None:

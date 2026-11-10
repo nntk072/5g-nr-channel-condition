@@ -16,7 +16,7 @@ from typing import Any
 _REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 _DEFAULT_BACKLOG = Path("docs/research/IMPLEMENTATION_BACKLOG.md")
 _DEFAULT_OUTPUT = Path("docs/research/IMPLEMENTATION_FEATURE_MAP.json")
-_SCHEMA = "loslab.implementation_feature_map.v2"
+_SCHEMA = "loslab.implementation_feature_map.v3"
 _HEADING = re.compile(r"^###\s+(\d+)\.\s+(.+?)\s*$")
 _ITEM = re.compile(r"^\s*-\s+\[([ xX])\]\s+(.+?)\s*$")
 _PLAN_GATES = re.compile(r"\bG\d+(?:\.\d+)?\b")
@@ -27,6 +27,10 @@ _PLAIN_PATH = re.compile(
     r"(?<![A-Za-z0-9_.-])(?:[A-Za-z0-9_.-]+/)+[A-Za-z0-9_.-]+"
     r"\.(?:json|md|py|yaml|yml|toml|lock)\b"
 )
+_EXTERNAL_BLOCKED = re.compile(
+    r"\*\*Externally blocked:\*\*|(?:^|\s)Externally blocked:", re.IGNORECASE
+)
+_EXPLICIT_PARTIAL = re.compile(r"\*\*Partial:\*\*", re.IGNORECASE)
 
 
 def _sha256(data: bytes) -> str:
@@ -129,6 +133,19 @@ def _console_scripts(root: Path) -> dict[str, str]:
     }
 
 
+def _implementation_status(checked: str, description: str, *, linked: bool) -> tuple[str, str]:
+    """Classify implementation state without making a scientific qualification claim."""
+    if checked.lower() == "x":
+        return "code_complete", "checked_backlog_item"
+    if _EXTERNAL_BLOCKED.search(description):
+        return "externally_blocked", "explicit_external_blocker"
+    if linked:
+        return "partial", "linked_repository_evidence"
+    if _EXPLICIT_PARTIAL.search(description):
+        return "partial", "explicit_partial_marker"
+    return "absent", "open_without_linked_or_partial_evidence"
+
+
 def build_feature_map(markdown: str, *, root: Path = _REPOSITORY_ROOT) -> dict[str, Any]:
     """Parse checklist items and resolve only evidence paths present in this checkout."""
     features: list[dict[str, Any]] = []
@@ -177,6 +194,10 @@ def build_feature_map(markdown: str, *, root: Path = _REPOSITORY_ROOT) -> dict[s
             explicit_gates = sorted(set(_PLAN_GATES.findall(package_title)))
         evidence_links = _classify_paths(sorted(paths))
         evidence_links["cli_entries"] = sorted(set(evidence_links["cli_entries"]) | cli_links)
+        linked = bool(paths or cli_links)
+        implementation_status, implementation_status_basis = _implementation_status(
+            checked, description, linked=linked
+        )
         features.append(
             {
                 "feature_id": f"PKG{int(package_number):02d}-{package_ordinal:03d}",
@@ -184,12 +205,14 @@ def build_feature_map(markdown: str, *, root: Path = _REPOSITORY_ROOT) -> dict[s
                 "package": {"number": int(package_number), "title": package_title},
                 "plan_gates": explicit_gates or [f"backlog-package-{package_number}"],
                 "backlog_status": "marked_done" if checked.lower() == "x" else "open",
+                "implementation_status": implementation_status,
+                "implementation_status_basis": implementation_status_basis,
                 "description": description,
                 "evidence_links": evidence_links,
                 "evidence_file_sha256": {
                     value: _file_sha256(value, root) for value in sorted(evidence_files)
                 },
-                "link_status": "linked" if paths or cli_links else "unmapped",
+                "link_status": "linked" if linked else "unmapped",
                 "qualification_status": "not_assessed_by_inventory",
             }
         )
@@ -203,8 +226,9 @@ def build_feature_map(markdown: str, *, root: Path = _REPOSITORY_ROOT) -> dict[s
         },
         "policy": {
             "status_semantics": (
-                "backlog_status records only the checkbox state; it is not an independent "
-                "implementation audit or scientific qualification"
+                "backlog_status records checkbox state; implementation_status is a conservative "
+                "inventory classification derived from checkbox state, linked repository evidence, "
+                "and explicit Partial/Externally blocked markers; neither is scientific qualification"
             ),
             "qualification_claim": "none",
         },
@@ -214,6 +238,10 @@ def build_feature_map(markdown: str, *, root: Path = _REPOSITORY_ROOT) -> dict[s
             "open_count": sum(row["backlog_status"] == "open" for row in features),
             "linked_count": sum(row["link_status"] == "linked" for row in features),
             "unmapped_count": sum(row["link_status"] == "unmapped" for row in features),
+            "implementation_status_counts": {
+                status: sum(row["implementation_status"] == status for row in features)
+                for status in ("code_complete", "partial", "absent", "externally_blocked")
+            },
         },
         "features": features,
     }
