@@ -73,6 +73,75 @@ class CDLArrayConfig:
 
 
 @dataclass(frozen=True, slots=True)
+class CDLHandheldUTArrayConfig:
+    """Serializable physical TR 38.901 handheld-UT array configuration."""
+
+    polarization: str = "single"
+    polarization_type: str = "V"
+    antenna_locations: str | tuple[int, ...] = "tr38901"
+    antenna_pattern: str = "38.901-handheld"
+    device_depth: float = 0.15
+    device_width: float = 0.07
+    port_power_offsets_db: tuple[float, ...] | None = None
+
+    def __post_init__(self) -> None:
+        if self.polarization not in {"single", "dual"}:
+            raise ValueError("polarization must be 'single' or 'dual'")
+        allowed_types = {"V", "H"} if self.polarization == "single" else {"VH", "cross"}
+        if self.polarization_type not in allowed_types:
+            raise ValueError(
+                f"polarization_type must be one of {sorted(allowed_types)} "
+                f"for {self.polarization} polarization"
+            )
+        if self.antenna_pattern not in {"omni", "38.901", "38.901-handheld"}:
+            raise ValueError("antenna_pattern must be 'omni', '38.901', or '38.901-handheld'")
+
+        if isinstance(self.antenna_locations, str):
+            if self.antenna_locations not in {"tr38901", "tr38901-4"}:
+                raise ValueError(
+                    "antenna_locations must be 'tr38901', 'tr38901-4', or a tuple of indices 1..8"
+                )
+            location_count = 8 if self.antenna_locations == "tr38901" else 4
+        elif isinstance(self.antenna_locations, tuple):
+            if not self.antenna_locations:
+                raise ValueError("antenna_locations must contain at least one candidate index")
+            if any(
+                isinstance(index, bool) or not isinstance(index, int) or index not in range(1, 9)
+                for index in self.antenna_locations
+            ):
+                raise ValueError("handheld candidate indices must be integers from 1 to 8")
+            if len(set(self.antenna_locations)) != len(self.antenna_locations):
+                raise ValueError("handheld candidate indices must be unique")
+            location_count = len(self.antenna_locations)
+        else:
+            raise TypeError("antenna_locations must be a named roster or an immutable tuple")
+
+        for name in ("device_depth", "device_width"):
+            value = getattr(self, name)
+            if (
+                isinstance(value, bool)
+                or not isinstance(value, Real)
+                or value <= 0
+                or not math.isfinite(value)
+            ):
+                raise ValueError(f"{name} must be finite and positive")
+
+        if self.port_power_offsets_db is not None:
+            if not isinstance(self.port_power_offsets_db, tuple):
+                raise TypeError("port_power_offsets_db must be an immutable tuple when set")
+            expected_ports = location_count * (2 if self.polarization == "dual" else 1)
+            if len(self.port_power_offsets_db) != expected_ports:
+                raise ValueError(
+                    f"port_power_offsets_db must contain {expected_ports} values for this roster"
+                )
+            if any(
+                isinstance(value, bool) or not isinstance(value, Real) or not math.isfinite(value)
+                for value in self.port_power_offsets_db
+            ):
+                raise ValueError("port_power_offsets_db values must be finite real numbers")
+
+
+@dataclass(frozen=True, slots=True)
 class SionnaCDLChannel:
     """CDL clusters and CFR at explicit channel time samples.
 
@@ -93,10 +162,7 @@ def _validate_vector(name: str, value: Sequence[float] | None) -> list[float] | 
         return None
     if len(value) != 3:
         raise ValueError(f"{name} must contain exactly three components")
-    if any(
-        isinstance(component, bool) or not isinstance(component, Real)
-        for component in value
-    ):
+    if any(isinstance(component, bool) or not isinstance(component, Real) for component in value):
         raise ValueError(f"{name} components must be finite real numbers")
     result = [float(component) for component in value]
     if not all(math.isfinite(component) for component in result):
@@ -196,7 +262,7 @@ def generate_cdl_frequency_response(
     batch_size: int = 1,
     num_time_steps: int = 1,
     sampling_frequency_hz: float = 1.0,
-    ut_array: CDLArrayConfig = CDLArrayConfig(),
+    ut_array: CDLArrayConfig | CDLHandheldUTArrayConfig = CDLArrayConfig(),
     bs_array: CDLArrayConfig = CDLArrayConfig(),
     direction: str = "downlink",
     ut_orientation_rad: Sequence[float] | None = None,
@@ -294,7 +360,7 @@ def generate_cdl_frequency_response(
 
     try:
         import torch
-        from sionna.phy.channel.tr38901 import CDL, PanelArray
+        from sionna.phy.channel.tr38901 import CDL, HandheldUTArray, PanelArray
         from sionna.phy.channel.tr38901 import models as profile_resources
     except ImportError as exc:
         raise RuntimeError(
@@ -303,11 +369,23 @@ def generate_cdl_frequency_response(
     if device.startswith("cuda") and not torch.cuda.is_available():
         raise RuntimeError(f"CUDA device requested but unavailable: {device}")
 
+    if not isinstance(ut_array, (CDLArrayConfig, CDLHandheldUTArrayConfig)):
+        raise TypeError("ut_array must be CDLArrayConfig or CDLHandheldUTArrayConfig")
+    if not isinstance(bs_array, CDLArrayConfig):
+        raise TypeError("bs_array must be CDLArrayConfig")
+
     ut_orientation_effective = ut_orientation or [math.pi, 0.0, 0.0]
     bs_orientation_effective = bs_orientation or [0.0, 0.0, 0.0]
-    ut_array_object = PanelArray(
-        **asdict(ut_array), carrier_frequency=carrier_frequency_hz, device=device
-    )
+    if isinstance(ut_array, CDLHandheldUTArrayConfig):
+        ut_array_object = HandheldUTArray(
+            **asdict(ut_array), carrier_frequency=carrier_frequency_hz, device=device
+        )
+        ut_array_kind = "handheld_ut"
+    else:
+        ut_array_object = PanelArray(
+            **asdict(ut_array), carrier_frequency=carrier_frequency_hz, device=device
+        )
+        ut_array_kind = "panel"
     bs_array_object = PanelArray(
         **asdict(bs_array), carrier_frequency=carrier_frequency_hz, device=device
     )
@@ -392,7 +470,9 @@ def generate_cdl_frequency_response(
             "normalize_delays": normalize_delays,
             "delay_reference": "profile_excess_delay",
             "ut_array": asdict(ut_array),
+            "ut_array_kind": ut_array_kind,
             "bs_array": asdict(bs_array),
+            "bs_array_kind": "panel",
             "ut_orientation_rad": ut_orientation_effective,
             "bs_orientation_rad": bs_orientation_effective,
             "ut_velocity_mps": ut_velocity,

@@ -1,7 +1,11 @@
 from typing import Any, cast
 
 import pytest
-from integrations.sionna.cdl import CDLArrayConfig, generate_cdl_frequency_response
+from integrations.sionna.cdl import (
+    CDLArrayConfig,
+    CDLHandheldUTArrayConfig,
+    generate_cdl_frequency_response,
+)
 
 
 @pytest.mark.parametrize(
@@ -54,3 +58,33 @@ def test_cdl_array_config_is_immutable_and_json_ready():
     assert config.polarization == "dual"
     with pytest.raises(AttributeError):
         config.num_cols_per_panel = 3
+
+
+@pytest.mark.parametrize(
+    ("values", "message"),
+    [
+        ({"antenna_locations": "corners"}, "antenna_locations must be"),
+        ({"antenna_locations": (1, 1)}, "candidate indices must be unique"),
+        ({"antenna_locations": (0, 2)}, "candidate indices must be integers"),
+        ({"device_depth": 0.0}, "device_depth must be finite and positive"),
+        (
+            {"antenna_locations": "tr38901-4", "port_power_offsets_db": (0.0,)},
+            "port_power_offsets_db must contain 4 values",
+        ),
+    ],
+)
+def test_cdl_handheld_ut_array_config_rejects_invalid_geometry(values, message):
+    with pytest.raises(ValueError, match=message):
+        CDLHandheldUTArrayConfig(**values)
+
+
+def test_cdl_handheld_ut_array_config_is_immutable_and_json_ready():
+    config = CDLHandheldUTArrayConfig(
+        antenna_locations=(1, 7, 3, 5),
+        port_power_offsets_db=(0.0, 0.0, 0.0, 0.0),
+    )
+
+    assert config.antenna_locations == (1, 7, 3, 5)
+    assert config.antenna_pattern == "38.901-handheld"
+    with pytest.raises(AttributeError):
+        config.device_depth = 0.2
