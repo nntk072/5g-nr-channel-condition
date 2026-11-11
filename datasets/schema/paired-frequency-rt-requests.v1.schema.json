@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:loslab:paired-frequency-rt-requests:v1",
+  "title": "Paired frequency RT request plan",
+  "description": "Two independently gated carrier/material-specific RT requests sharing a frozen trajectory and scene identity. The manifest is a plan, not generated scientific evidence.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "pair_id", "shared_source", "requests", "generation_authorization", "generation_executed", "plan_sha256"],
+  "properties": {
+    "schema": {"const": "loslab.paired_frequency_rt_requests.v1"},
+    "pair_id": {"type": "string", "minLength": 1},
+    "shared_source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scene_reference", "scene_asset_set_sha256", "scene_geometry_sha256", "trajectory_id", "seed", "sample_times_s"],
+      "properties": {
+        "scene_reference": {"type": "string", "minLength": 1},
+        "scene_asset_set_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "scene_geometry_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "trajectory_id": {"type": "string", "minLength": 1},
+        "seed": {"type": "integer", "minimum": 0},
+        "sample_times_s": {"type": "array", "minItems": 1, "items": {"type": "number"}}
+      }
+    },
+    "requests": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "object"}},
+    "generation_authorization": {"const": "each_request_requires_independent_D1_authorization"},
+    "generation_executed": {"const": false},
+    "plan_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

@@ -9727,7 +9727,7 @@
       "requirement": "Complete paired frequency-view solves with band/material-specific propagation; do not extrapolate measured magnitude-only data into complex CSI/ToA truth.",
       "scope": {
         "status": "mandatory",
-        "support_envelope": "A typed manifest pairing two complex PhysicalChannelViews from distinct band-specific solves, with each carrier bound to its run provenance and both runs bound to the same scene geometry/assets and source/split parent. No measured magnitude-only data can supply either complex view; no cross-band phase coherence is asserted.",
+        "support_envelope": "A typed manifest pairing two complex PhysicalChannelViews from distinct band-specific solves, plus a non-executing request planner that prepares independently authorizable same-route/carrier/material RT requests. Each carrier is bound to its run provenance and both runs are bound to the same scene geometry/assets and source/split parent. The contract does not convert magnitude-only measurements to complex views; no cross-band phase coherence is asserted.",
         "authority_basis": "The backlog requires paired frequency-view solves with band/material-specific propagation and explicitly prohibits promoting magnitude-only measurements into complex CSI/ToA truth."
       },
       "implementation": {
@@ -9737,15 +9737,18 @@
           "datasets/frequency_pair.py",
           "datasets/channel_view.py",
           "datasets/provenance.py",
+          "integrations/sionna/rt_trajectory.py",
           "datasets/schema/umcd-paired-frequency-views.v1.schema.json",
+          "datasets/schema/paired-frequency-rt-requests.v1.schema.json",
+          "tests/test_integrations/test_rt_trajectory_contract.py",
           "tests/test_datasets/test_frequency_pair.py"
         ],
-        "basis": "PairedFrequencyViews accepts only two typed complex channel views with distinct carriers, matching link/time/ports and delay/power contracts, carrier-bound oracle-channel provenance declaring an RT source family, matching scene geometry and source asset digests, and explicit source-scene/parent/split identifiers. Its manifest retains per-band complex-view, material, solver and run-provenance digests and does not assert phase coherence. The producer family declaration is not source authentication. The contract does not generate or store paired RT bundles, automatically prove that the caller's source/split IDs match external registries, or qualify cross-band truth."
+        "basis": "PairedFrequencyViews accepts only two typed complex channel views with distinct carriers, matching link/time/ports and delay/power contracts, carrier-bound oracle-channel provenance declaring an RT source family, matching scene geometry and source asset digests, and explicit source-scene/parent/split identifiers. Its manifest retains per-band complex-view, material, solver and run-provenance digests and does not assert phase coherence. build_paired_frequency_rt_requests prepares two requests with a common route/seed/scene geometry/assets and independent carrier/material manifests and a content hash but does not execute either request; each retains the D1 authorization gate. Producer family/source IDs remain claims. Pair publication, bundle/split-registry binding, automatic source identity proof, and scientific qualification remain open."
       },
       "verification": {
         "status": "pass",
-        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_frequency_pair.py",
-        "commit": "Working tree based on c615f0c; four focused pair-manifest schema, distinct-band, carrier-provenance, and scene-geometry checks passed."
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_frequency_pair.py tests/test_integrations/test_rt_trajectory_contract.py",
+        "commit": "Working tree based on c3f150f; 34 non-generating RT request-plan and paired-view contract checks passed."
       },
       "qualification": {
         "status": "not_qualified",

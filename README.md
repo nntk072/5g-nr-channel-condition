@@ -119,6 +119,11 @@ source family; this remains a producer claim and does not authenticate the
 source or qualify either solve. Magnitude-only measurement archives remain
 ineligible as complex CSI/ToA truth.
 
+`integrations.sionna.build_paired_frequency_rt_requests` prepares two
+band-specific RT trajectory requests with the same route, seed, scene geometry,
+and asset set but separate carrier and material manifests. Each request still
+requires its own D1 authorization; the planner does not run the solver.
+
 `TargetValue` entries marked `censored` now require an explicit finite lower
 and/or upper bound per element. The target layer stores these intervals and
 reads earlier target layers without interval metadata; legacy censored values

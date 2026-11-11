@@ -8,6 +8,7 @@ import math
 import re
 from collections.abc import Mapping
 from dataclasses import asdict, dataclass, replace
+from numbers import Real
 from pathlib import Path
 from typing import Any, cast
 
@@ -359,6 +360,96 @@ def build_rt_trajectory_generation_request(
             if value is not None
         ],
     }
+
+
+def build_paired_frequency_rt_requests(
+    *,
+    pair_id: str,
+    base_config: RTTrajectoryConfig,
+    carrier_frequencies_hz: tuple[float, float],
+    material_manifests: tuple[Mapping[str, Any], Mapping[str, Any]],
+    spec_sha256: str,
+    store_root: str | Path,
+    umcd_store_root: str | Path | None,
+    package_source_digest: str,
+    backend: Mapping[str, Any],
+    scene_ref: object,
+    scene_asset_manifest: Mapping[str, Any],
+    runtime_versions: Mapping[str, str],
+    scene_geometry_inventory: SceneTriangleInventory,
+) -> dict[str, Any]:
+    """Build two independently authorizable band-specific RT requests.
+
+    The requests share one frozen route, seed, scene asset set, geometry,
+    solver budget, and store roots. Carrier and complete material manifest are
+    independently bound per request. This function only prepares requests; it
+    does not invoke Sionna or bypass the D1 generation gate.
+    """
+    if not isinstance(pair_id, str) or not pair_id.strip() or pair_id != pair_id.strip():
+        raise ValueError("pair_id must be a non-empty canonical string")
+    if not isinstance(base_config, RTTrajectoryConfig):
+        raise TypeError("base_config must be an RTTrajectoryConfig")
+    if (
+        not isinstance(carrier_frequencies_hz, tuple)
+        or len(carrier_frequencies_hz) != 2
+        or any(
+            isinstance(value, bool)
+            or not isinstance(value, Real)
+            or not math.isfinite(float(value))
+            or float(value) <= 0
+            for value in carrier_frequencies_hz
+        )
+    ):
+        raise ValueError("carrier_frequencies_hz must contain two finite positive real values")
+    frequencies = tuple(float(value) for value in carrier_frequencies_hz)
+    if frequencies[0] == frequencies[1]:
+        raise ValueError("paired frequency requests must use distinct carriers")
+    if (
+        not isinstance(material_manifests, tuple)
+        or len(material_manifests) != 2
+        or any(not isinstance(value, Mapping) or not value for value in material_manifests)
+    ):
+        raise ValueError("material_manifests must contain two non-empty band-specific mappings")
+    requests = []
+    for index, (frequency, material_manifest) in enumerate(
+        zip(frequencies, material_manifests, strict=True)
+    ):
+        config = replace(
+            base_config,
+            trajectory_id=f"{base_config.trajectory_id}-{pair_id}-band-{index}",
+            carrier_hz=frequency,
+        )
+        requests.append(
+            build_rt_trajectory_generation_request(
+                config=config,
+                spec_sha256=spec_sha256,
+                store_root=store_root,
+                umcd_store_root=umcd_store_root,
+                package_source_digest=package_source_digest,
+                backend=backend,
+                scene_ref=scene_ref,
+                scene_asset_manifest=scene_asset_manifest,
+                runtime_versions=runtime_versions,
+                material_manifest=material_manifest,
+                scene_geometry_inventory=scene_geometry_inventory,
+            )
+        )
+    plan: dict[str, Any] = {
+        "schema": "loslab.paired_frequency_rt_requests.v1",
+        "pair_id": pair_id,
+        "shared_source": {
+            "scene_reference": str(scene_ref),
+            "scene_asset_set_sha256": scene_asset_manifest["asset_set_sha256"],
+            "scene_geometry_sha256": scene_geometry_inventory.scene_geometry_sha256,
+            "trajectory_id": base_config.trajectory_id,
+            "seed": base_config.seed,
+            "sample_times_s": list(base_config.positions_and_times()[1]),
+        },
+        "requests": requests,
+        "generation_authorization": "each_request_requires_independent_D1_authorization",
+        "generation_executed": False,
+    }
+    return {**plan, "plan_sha256": canonical_hash(plan)}
 
 
 def generate_rt_nr_trajectory(

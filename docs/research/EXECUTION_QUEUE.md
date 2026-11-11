@@ -206,7 +206,10 @@ complex views to the same scene geometry/assets and source/split parent, with
 per-view content hashes, separate material/solver/run provenance digests and no
 cross-band phase claim.
 Four focused pair-contract checks pass. This does not generate paired solves;
-the RT workflow, bundle linkage, split-registry integration, and scientific
+`build_paired_frequency_rt_requests` now prepares shared-scene, same-route
+requests with independent band/material configs; a 34-test non-generating RT
+contract plus pair-contract slice passes. It does not execute solves. Pair
+publication, bundle linkage, split-registry integration, and scientific
 qualification remain open.
 
 The frozen CDL-E four-element covariance miss is now linked to

@@ -3,6 +3,7 @@
 import hashlib
 import json
 from dataclasses import replace
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -14,6 +15,7 @@ from integrations.sionna.d1_generation_gate import (
 from integrations.sionna.rt_identity import rt_run_identity
 from integrations.sionna.rt_trajectory import (
     RTTrajectoryConfig,
+    build_paired_frequency_rt_requests,
     build_rt_trajectory_generation_request,
     rt_trajectory_physical_config,
 )
@@ -64,6 +66,42 @@ def test_rt_trajectory_authorization_request_binds_active_scene_state() -> None:
     assert request["config"]["antenna_config"]["node_orientation"]["policy"] == (
         "look_at_peer_each_step"
     )
+
+
+def test_paired_frequency_request_plan_shares_scene_and_route_without_generating():
+    jsonschema = pytest.importorskip("jsonschema")
+    inputs = _trajectory_request_inputs()
+    config = inputs.pop("config")
+    inputs.pop("material_manifest")
+    manifest = build_paired_frequency_rt_requests(
+        pair_id="drop-a",
+        base_config=config,
+        carrier_frequencies_hz=(3.5e9, 28e9),
+        material_manifests=(
+            {"wall": {"frequency_hz": 3.5e9, "permittivity": 4.2}},
+            {"wall": {"frequency_hz": 28e9, "permittivity": 3.1}},
+        ),
+        **inputs,
+    )
+
+    schema = json.loads(
+        (
+            Path(__file__).parents[2]
+            / "datasets/schema/paired-frequency-rt-requests.v1.schema.json"
+        ).read_text()
+    )
+    jsonschema.Draft202012Validator(schema).validate(manifest)
+    assert manifest["plan_sha256"] == canonical_hash(
+        {key: value for key, value in manifest.items() if key != "plan_sha256"}
+    )
+    assert manifest["generation_executed"] is False
+    assert [item["config"]["carrier_hz"] for item in manifest["requests"]] == [3.5e9, 28e9]
+    assert [item["config"]["seed"] for item in manifest["requests"]] == [config.seed] * 2
+    assert (
+        manifest["requests"][0]["material_state_sha256"]
+        != manifest["requests"][1]["material_state_sha256"]
+    )
+    assert manifest["shared_source"]["scene_geometry_sha256"] == "a" * 64
 
 
 @pytest.mark.parametrize("spec_digest", [None, "A" * 64, "not-a-digest", "0" * 63])
