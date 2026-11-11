@@ -1337,30 +1337,58 @@
       "backlog_aliases": [],
       "requirement": "Gate G3 — ray budget and physics fidelity",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "MVP geometric-RT data admission under unified-plan §13; the gate includes twelve ray-budget/physics-fidelity checks plus the separately frozen task-specific complex-CSI, delay/angular, path-truth, and NR receiver-impact acceptance contract.",
+        "authority_basis": "The governing plan marks G3 as a hard scientific correctness gate and explicitly keeps production D1 generation closed until the applicable task criteria pass."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "governing-plan requirement needs source-level reconciliation"
+        "status": "partial",
+        "evidence": [
+          "evaluation/g3_qualification_contract.py",
+          "evaluation/g3_joint_acceptance.py",
+          "evaluation/g3_material_calibration.py",
+          "evaluation/g3_complex_csi.py",
+          "evaluation/g3_propagation_metrics.py",
+          "evaluation/g3_receiver_impact.py",
+          "evaluation/g3_path_equivalence.py",
+          "scripts/run_rt_solver_convergence.py",
+          "integrations/sionna/rt_trajectory.py",
+          "docs/research/CITY43_ZERO_SCATTERING_PHASE0_DIAGNOSIS_2026-10-27.md"
+        ],
+        "basis": "Task-specific numerical margins, preregistration/evaluator contracts, convergence diagnostics, and candidate-cap rejection/reporting exist. The twelve criterion-specific source audits are still open as a batch, and code cannot establish independent acquisition-unit provenance, calibrated nonzero scattering, adequate external sample-size assumptions, or receiver qualification."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_material_calibration.py",
+        "commit": "43beaf1"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [],
-      "external_blockers": [],
+      "dependencies": [
+        "DS.G3.01",
+        "DS.G3.02",
+        "DS.G3.03",
+        "DS.G3.04",
+        "DS.G3.05",
+        "DS.G3.06",
+        "DS.G3.07",
+        "DS.G3.08",
+        "DS.G3.09",
+        "DS.G3.10",
+        "DS.G3.11",
+        "DS.G3.12"
+      ],
+      "external_blockers": [
+        "No admitted calibrated nonzero-scattering material dataset with held-out incidence-angle groups and independently attested acquisition units.",
+        "No complete externally justified independent-unit sample-size design across material, CSI, delay/angular, path-equivalence, and G5-qualified receiver branches.",
+        "No qualification-ready frozen candidate/challenger run manifest and representative receiver/storage resource estimate."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Criterion-driven G3 admission across complex CSI, delay/angular statistics, receiver-relevant path truth, and paired G5-qualified PUSCH receiver impact, with independently justified sample units and a frozen run-specific manifest.",
+        "pass_rule": "Every applicable preregistered criterion and its powered independent-unit design passes; unresolved, missing, cap-saturated, or externally unverified branches keep the gate closed. Focused contract tests are software preflight only.",
+        "next_task": "Continue E01.DS.GATES with criterion-level source/status audit; keep qualification and production D1 blocked on the listed material, unit, receiver, and run-readiness evidence."
       },
       "plan_mark": "not_checklist"
     },

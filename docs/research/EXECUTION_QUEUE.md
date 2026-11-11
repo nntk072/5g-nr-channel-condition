@@ -282,9 +282,12 @@ qualified. `PKG10-009` software is complete for the planned baseline routes:
 CFR-derived estimators and sparse OMP/BIC, raw MLP, and parameter-matched
 MLP/CNN/CV-CNN on shared splits with replayable input contracts. Scientific
 evaluation and qualification remain gated on qualified inputs and frozen
-acceptance evidence. Continue with gated `PKG10-010`–`011`; keep advanced
-modeling and paper outputs behind their scientific acceptance gates.
-then `E01.DS.GATES`, `E01.RS.PHASES`, `E01.RS.APPENDIX_E`, and
+acceptance evidence. `PKG10-010`–`011` remain gated on qualified inputs,
+targets, and scientific criteria. `E01.DS.GATES` is active: the top-level G3
+contract now has a bounded source disposition, while its twelve individual
+criterion rows still require source-level reconciliation. Contract/evaluator
+preflight (108 tests) passes but does not qualify G3. Continue with the
+remaining dataset-gate criteria, then `E01.RS.PHASES`, `E01.RS.APPENDIX_E`, and
 `E01.CROSSWALK`.
 Each package batch is the fixed set of `PKGnn-*` IDs in the ledger and closes
 only after every row has inspected source/test integration, implementation
