@@ -1,7 +1,7 @@
 {
   "schema": "loslab.requirement-ledger.v1",
   "status_note": "Initial traceability index: all 182 backlog IDs, all 104 numbered unified-plan gate criteria, and 30 dataset/research gate or phase records. Except source-audited PKG00/01/02 rows, entries remain unreviewed. Checked plan boxes are preserved as source marks, never treated as implementation or scientific qualification. Feature-map heuristics do not determine ledger status.",
-  "source_checkpoint": "42e9d08 baseline; E00 37cc827; E01 queue fb49282; PKG01 implementation 12eebb5; numbered acceptance ledger e04c704",
+  "source_checkpoint": "42e9d08 baseline; E00 37cc827; queue fb49282; PKG01 12eebb5; criterion ledger 9681d19; PKG03 audit 4e3174a",
   "requirements": [
     {
       "requirement_id": "DS.G0",
@@ -4928,30 +4928,40 @@
       ],
       "requirement": "Complete native `Paths` API/version adapters with shape, dtype, valid-mask, padding, normalization, and path-source assertions. `sionna_paths_to_oracle_table` requires Boolean validity, real floating coefficient/delay/Doppler/angle/vertex fields, and integer interaction/object/primitive fields before conversion; `PathOracleTable` now independently rejects Boolean, string, object, and complex dtypes for persisted AoA/AoD matrices and interaction vertices before float conversion, and rejects integer values that overflow its int64 index representation. Invalid padded entries remain excluded by the validity/interaction masks. The adapter and path-table contract slices have dependency-light regression coverage. Native SISO/MIMO version parity, normalization semantics, and source/budget lineage checks remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Complete native `Paths` API/version adapters with shape, dtype, valid-mask, padding, normalization, and path-source assertions. `sionna_paths_to_oracle_table` requires Boolean validity, real floating coefficient/delay/Doppler/angle/vertex fields, and integer interaction/object/primitive fields before conversion; `PathOracleTable` now independently rejects Boolean, string, object, and complex dtypes for persisted AoA/AoD matrices and interaction vertices before float conversion, and rejects integer values that overflow its int64 index representation. Invalid padded entries remain excluded by the validity/interaction masks. The adapter and path-table contract slices have dependency-light regression coverage. Native SISO/MIMO version parity, normalization semantics, and source/budget lineage checks remain open.",
+        "authority_basis": "Unified plan G2.01–G2.04 requires native API, dtype/mask, padding and normalization contracts for the declared solver support."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "integrations/sionna/path_oracle.py",
+          "datasets/path_oracle.py",
+          "datasets/schema/umcd-path-oracle-layer.v1.schema.json",
+          "tests/test_datasets/test_sionna_paths_adapter.py"
+        ],
+        "basis": "The conversion and persisted path table enforce dtypes, integer overflow, valid masks, padded-entry exclusion, absolute delays and named geometry frames. Current validation is dependency-light; native Sionna SISO/MIMO version parity, all normalization behavior and source/budget lineage are not closed."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_sionna_paths_adapter.py tests/test_datasets/test_analytical.py tests/test_integrations/test_array_layouts.py tests/test_datasets/test_umcd_store_integrity.py tests/test_datasets/test_target_contracts.py tests/test_datasets/test_standardized.py tests/test_datasets/test_umcd_schema.py tests/test_datasets/test_counterfactual.py; ./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_integrations/test_rt_to_nr_contract.py tests/test_integrations/test_g2_nr_frequency_order.py",
+        "commit": "9681d19"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Dependency-light contract tests establish software behavior only; scientific/native qualification remains under DS.G1–DS.G4."
+        ]
       },
-      "dependencies": [],
+      "dependencies": [
+        "DS.G2",
+        "DS.G7"
+      ],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "The conversion and persisted path table enforce dtypes, integer overflow, valid masks, padded-entry exclusion, absolute delays and named geometry frames. Current validation is dependency-light; native Sionna SISO/MIMO version parity, all normalization behavior and source/budget lineage are not closed.",
+        "pass_rule": "Source and focused software contract audited; remaining native, physical or storage-format gaps remain separate tasks.",
+        "next_task": "E01.DS.GATES"
       },
       "plan_mark": "not_checklist"
     },
@@ -4965,30 +4975,40 @@
       ],
       "requirement": "Complete absolute delay/phase/power reconstruction and same-path-set direct/indirect decomposition; preserve raw solver-valid multiplicity and solver-budget provenance.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Complete absolute delay/phase/power reconstruction and same-path-set direct/indirect decomposition; preserve raw solver-valid multiplicity and solver-budget provenance.",
+        "authority_basis": "Unified plan G2.05–G2.11 requires same-path reconstruction, phase/power conventions, direct/indirect decomposition and solver-valid path retention within the declared solver contract."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "integrations/sionna/adapter.py",
+          "integrations/sionna/path_oracle.py",
+          "integrations/sionna/path_lineage.py",
+          "integrations/sionna/rt_identity.py"
+        ],
+        "basis": "Direct and indirect CFR are derived by masking the same path result, while absolute phase/power conventions and valid path rows are represented. Complete path-budget/source lineage and broader same-path reconstruction across native configurations remain open."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_sionna_paths_adapter.py tests/test_datasets/test_analytical.py tests/test_integrations/test_array_layouts.py tests/test_datasets/test_umcd_store_integrity.py tests/test_datasets/test_target_contracts.py tests/test_datasets/test_standardized.py tests/test_datasets/test_umcd_schema.py tests/test_datasets/test_counterfactual.py; ./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_integrations/test_rt_to_nr_contract.py tests/test_integrations/test_g2_nr_frequency_order.py",
+        "commit": "9681d19"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Dependency-light contract tests establish software behavior only; scientific/native qualification remains under DS.G1–DS.G4."
+        ]
       },
-      "dependencies": [],
+      "dependencies": [
+        "DS.G2",
+        "DS.G7"
+      ],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Direct and indirect CFR are derived by masking the same path result, while absolute phase/power conventions and valid path rows are represented. Complete path-budget/source lineage and broader same-path reconstruction across native configurations remain open.",
+        "pass_rule": "Source and focused software contract audited; remaining native, physical or storage-format gaps remain separate tasks.",
+        "next_task": "E01.DS.GATES"
       },
       "plan_mark": "not_checklist"
     },
@@ -5002,30 +5022,42 @@
       ],
       "requirement": "Complete analytical single/multiple-path checks for close delays, coherent nulls, nonzero reference offsets, link-budget coefficients, frequency ordering, and DC/guard/odd-even FFT mappings.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Complete analytical single/multiple-path checks for close delays, coherent nulls, nonzero reference offsets, link-budget coefficients, frequency ordering, and DC/guard/odd-even FFT mappings.",
+        "authority_basis": "Unified plan G2.07/G2.12 requires analytical path cases and exact frequency-grid mapping; declared support is limited to implemented numerical conventions."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "datasets/analytical.py",
+          "integrations/sionna/rt_to_nr.py",
+          "integrations/sionna/tdl.py",
+          "tests/test_datasets/test_analytical.py",
+          "tests/test_integrations/test_rt_to_nr_contract.py",
+          "tests/test_integrations/test_g2_nr_frequency_order.py"
+        ],
+        "basis": "Analytical one-to-three-path CFR and frequency ordering contracts exist and pass focused tests. Close-delay/null/reference-offset/link-budget coverage across every required profile and native-path equivalence remain incomplete."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_sionna_paths_adapter.py tests/test_datasets/test_analytical.py tests/test_integrations/test_array_layouts.py tests/test_datasets/test_umcd_store_integrity.py tests/test_datasets/test_target_contracts.py tests/test_datasets/test_standardized.py tests/test_datasets/test_umcd_schema.py tests/test_datasets/test_counterfactual.py; ./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_integrations/test_rt_to_nr_contract.py tests/test_integrations/test_g2_nr_frequency_order.py",
+        "commit": "9681d19"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Dependency-light contract tests establish software behavior only; scientific/native qualification remains under DS.G1–DS.G4."
+        ]
       },
-      "dependencies": [],
+      "dependencies": [
+        "DS.G2",
+        "DS.G7"
+      ],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Analytical one-to-three-path CFR and frequency ordering contracts exist and pass focused tests. Close-delay/null/reference-offset/link-budget coverage across every required profile and native-path equivalence remain incomplete.",
+        "pass_rule": "Source and focused software contract audited; remaining native, physical or storage-format gaps remain separate tasks.",
+        "next_task": "E01.DS.GATES"
       },
       "plan_mark": "not_checklist"
     },
@@ -5039,30 +5071,43 @@
       ],
       "requirement": "Complete explicit/synthetic array comparison for near/far field, dual polarization, basis rotations, port order, and named axis conventions.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Complete explicit/synthetic array comparison for near/far field, dual polarization, basis rotations, port order, and named axis conventions.",
+        "authority_basis": "Unified plan G2.13/G2.14 and §18 require explicit/synthetic array and polarization semantics, with array claims limited to the tested topology envelope."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "integrations/sionna/array_layouts.py",
+          "datasets/network.py",
+          "integrations/sionna/path_oracle.py",
+          "tests/test_integrations/test_array_layouts.py",
+          "tests/test_integrations/test_rt_network.py"
+        ],
+        "basis": "Canonical port maps, explicit array layouts, polarization metadata and named axes exist. Representative near/far-field explicit-versus-synthetic parity and broader dual-polarization basis validation are not established by the focused software tests."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_sionna_paths_adapter.py tests/test_datasets/test_analytical.py tests/test_integrations/test_array_layouts.py tests/test_datasets/test_umcd_store_integrity.py tests/test_datasets/test_target_contracts.py tests/test_datasets/test_standardized.py tests/test_datasets/test_umcd_schema.py tests/test_datasets/test_counterfactual.py; ./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_integrations/test_rt_to_nr_contract.py tests/test_integrations/test_g2_nr_frequency_order.py",
+        "commit": "9681d19"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Dependency-light contract tests establish software behavior only; scientific/native qualification remains under DS.G1–DS.G4."
+        ]
       },
-      "dependencies": [],
-      "external_blockers": [],
+      "dependencies": [
+        "DS.G2",
+        "DS.G7"
+      ],
+      "external_blockers": [
+        "measured antenna-pattern/port calibration for physical array claims"
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Canonical port maps, explicit array layouts, polarization metadata and named axes exist. Representative near/far-field explicit-versus-synthetic parity and broader dual-polarization basis validation are not established by the focused software tests.",
+        "pass_rule": "Source and focused software contract audited; remaining native, physical or storage-format gaps remain separate tasks.",
+        "next_task": "E01.DS.GATES"
       },
       "plan_mark": "not_checklist"
     },
@@ -5076,30 +5121,42 @@
       ],
       "requirement": "Complete sparse variable-size path/channel serialization, lossless dtype-safe round trips, zero-path handling, checksums, atomic publish, and compatibility for existing single-link records. `PathOracleTable` already stores unpadded ragged path groups and explicit zero-path outcomes; it also rejects padded link, path-kind, interaction-frame, and coefficient-convention identities before they can enter join/provenance keys. Remaining sparse channel formats and legacy single-link compatibility remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Complete sparse variable-size path/channel serialization, lossless dtype-safe round trips, zero-path handling, checksums, atomic publish, and compatibility for existing single-link records. `PathOracleTable` already stores unpadded ragged path groups and explicit zero-path outcomes; it also rejects padded link, path-kind, interaction-frame, and coefficient-convention identities before they can enter join/provenance keys. Remaining sparse channel formats and legacy single-link compatibility remain open.",
+        "authority_basis": "Unified plan G7 and storage §4.4 require immutable dtype-safe path/channel storage and explicit empty outcomes; current format is scoped to ragged path groups and dense per-link views."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "datasets/path_oracle.py",
+          "datasets/channel_view.py",
+          "datasets/episode_store.py",
+          "datasets/schema/umcd-path-oracle-layer.v1.schema.json",
+          "tests/test_datasets/test_umcd_store_integrity.py",
+          "tests/test_datasets/test_umcd_schema.py"
+        ],
+        "basis": "Path oracles preserve unpadded ragged groups, zero-path states, checksums and immutable episode bundles. PhysicalChannelView stores dense per-link arrays; sparse variable-size channel encoding and complete legacy single-link migration/compatibility remain open."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_sionna_paths_adapter.py tests/test_datasets/test_analytical.py tests/test_integrations/test_array_layouts.py tests/test_datasets/test_umcd_store_integrity.py tests/test_datasets/test_target_contracts.py tests/test_datasets/test_standardized.py tests/test_datasets/test_umcd_schema.py tests/test_datasets/test_counterfactual.py; ./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_integrations/test_rt_to_nr_contract.py tests/test_integrations/test_g2_nr_frequency_order.py",
+        "commit": "9681d19"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Dependency-light contract tests establish software behavior only; scientific/native qualification remains under DS.G1–DS.G4."
+        ]
       },
-      "dependencies": [],
+      "dependencies": [
+        "DS.G2",
+        "DS.G7"
+      ],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Path oracles preserve unpadded ragged groups, zero-path states, checksums and immutable episode bundles. PhysicalChannelView stores dense per-link arrays; sparse variable-size channel encoding and complete legacy single-link migration/compatibility remain open.",
+        "pass_rule": "Source and focused software contract audited; remaining native, physical or storage-format gaps remain separate tasks.",
+        "next_task": "M1.SPARSE_CHANNEL_STORE"
       },
       "plan_mark": "not_checklist"
     },
@@ -5113,30 +5170,44 @@
       ],
       "requirement": "Integrate geometry-derived LOS separately from solver-found direct paths and standardized-model LOS proxies.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Integrate geometry-derived LOS separately from solver-found direct paths and standardized-model LOS proxies.",
+        "authority_basis": "Unified plan §5.7 and G1/G7 require geometric direct-path labels to remain distinct from solver path discovery and standardized profile proxies."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/los_oracle.py",
+          "datasets/targets.py",
+          "datasets/standardized.py",
+          "datasets/scenario_gbsm.py",
+          "tests/test_datasets/test_analytical.py",
+          "tests/test_datasets/test_target_contracts.py",
+          "tests/test_datasets/test_standardized.py",
+          "tests/test_datasets/test_counterfactual.py"
+        ],
+        "basis": "Separate typed target semantics exist for geometric LOS/direct-path truth, solver-discovered paths, standardized profile LOS proxies and counterfactual ablations; adversarial semantics regressions pass. Source validity and scientific fidelity still depend on the separate G1/G3 evidence gates."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_sionna_paths_adapter.py tests/test_datasets/test_analytical.py tests/test_integrations/test_array_layouts.py tests/test_datasets/test_umcd_store_integrity.py tests/test_datasets/test_target_contracts.py tests/test_datasets/test_standardized.py tests/test_datasets/test_umcd_schema.py tests/test_datasets/test_counterfactual.py; ./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_integrations/test_rt_to_nr_contract.py tests/test_integrations/test_g2_nr_frequency_order.py",
+        "commit": "9681d19"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Dependency-light contract tests establish software behavior only; scientific/native qualification remains under DS.G1–DS.G4."
+        ]
       },
-      "dependencies": [],
+      "dependencies": [
+        "DS.G2",
+        "DS.G7"
+      ],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Separate typed target semantics exist for geometric LOS/direct-path truth, solver-discovered paths, standardized profile LOS proxies and counterfactual ablations; adversarial semantics regressions pass. Source validity and scientific fidelity still depend on the separate G1/G3 evidence gates.",
+        "pass_rule": "Source and focused software contract audited; remaining native, physical or storage-format gaps remain separate tasks.",
+        "next_task": "E01.DS.GATES"
       },
       "plan_mark": "not_checklist"
     },
