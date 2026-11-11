@@ -10477,32 +10477,41 @@
       "backlog_aliases": [
         "PKG08-016"
       ],
-      "requirement": "Add signed near-duplicate dispositions to the canonical UMCD corpus audit. Report v8 hashes each candidate and the complete candidate set and preserves verified evidence paths/digests; signed disposition v2 binds the inventory/candidate set and exactly one rationale-backed disposition per candidate. It verifies bounded stable bytes at canonical inventory-relative paths and uses a distinct reviewer principal/keyring from verified inventory/split-lock signers. Similarity remains a review cue; confirmed leakage and unresolved/incomplete comparisons make the CLI exit nonzero, while a complete signed no-leakage disposition returns zero. The operator workflow is documented in `docs/research/UMCD_NEAR_DUPLICATE_REVIEW.md`. The focused corpus-auditor module passes 39 tests with Ruff, compilation, schema, and diff checks. Evidence adequacy/truth, reviewer trust custody, and full lineage completeness remain external/open.",
+      "requirement": " signed near-duplicate dispositions to the canonical UMCD corpus audit. Report v8 hashes each candidate and the complete candidate set and preserves verified evidence paths/digests; signed disposition v2 binds the inventory/candidate set and exactly one rationale-backed disposition per candidate. It verifies bounded stable bytes at canonical inventory-relative paths and uses a distinct reviewer principal/keyring from verified inventory/split-lock signers. Similarity remains a review cue; confirmed leakage and unresolved/incomplete comparisons make the CLI exit nonzero, while a complete signed no-leakage disposition returns zero. The operator workflow is documented in `docs/research/UMCD_NEAR_DUPLICATE_REVIEW.md`. The focused corpus-auditor module passes 40 tests with Ruff, compilation, schema, and diff checks. Evidence adequacy/truth, reviewer trust custody, and full lineage completeness remain external/open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Candidate generation, evidence-byte verification, signed disposition verification and fail-closed corpus-audit result only; reviewer trust and evidence truth remain external.",
+        "authority_basis": "Mandatory implementation-backlog deliverable for unified-plan G7 near-duplicate review and release integrity."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "scripts/audit_umcd_corpus.py",
+          "datasets/schema/umcd-corpus-audit-report.v8.schema.json",
+          "datasets/schema/umcd-near-duplicate-dispositions.v2.schema.json",
+          "docs/research/UMCD_NEAR_DUPLICATE_REVIEW.md",
+          "tests/test_scripts/test_audit_umcd_corpus.py"
+        ],
+        "basis": "The corpus auditor hashes the complete candidate set and evidence files, verifies exact signed dispositions against the inventory/candidate roster with a distinct reviewer principal/keyring, and returns nonzero for unresolved or confirmed leakage. Source and focused tests establish software behavior only."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_scripts/test_audit_umcd_corpus.py (40 passed).",
+        "commit": "Focused verification run on fce4396 worktree; evidence truth and reviewer custody remain unverified."
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Independent reviewer key custody and authorization for the production near-duplicate disposition.",
+        "Adequacy and truth of evidence supporting each candidate disposition; complete authoritative corpus lineage."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Signed exact-coverage near-duplicate disposition manifest with retained evidence references and corpus-audit result.",
+        "pass_rule": "Every candidate has one valid, rationale-backed disposition; all evidence bytes match; unresolved or confirmed leakage keeps the audit nonzero. Release qualification additionally requires external trust and complete lineage.",
+        "next_task": "PKG08-017"
       },
       "plan_mark": "not_checklist"
     },

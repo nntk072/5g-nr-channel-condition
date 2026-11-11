@@ -3846,7 +3846,7 @@
     {
       "backlog_line": 414,
       "backlog_status": "marked_done",
-      "description": "Add signed near-duplicate dispositions to the canonical UMCD corpus audit. Report v8 hashes each candidate and the complete candidate set and preserves verified evidence paths/digests; signed disposition v2 binds the inventory/candidate set and exactly one rationale-backed disposition per candidate. It verifies bounded stable bytes at canonical inventory-relative paths and uses a distinct reviewer principal/keyring from verified inventory/split-lock signers. Similarity remains a review cue; confirmed leakage and unresolved/incomplete comparisons make the CLI exit nonzero, while a complete signed no-leakage disposition returns zero. The operator workflow is documented in `docs/research/UMCD_NEAR_DUPLICATE_REVIEW.md`. The focused corpus-auditor module passes 39 tests with Ruff, compilation, schema, and diff checks. Evidence adequacy/truth, reviewer trust custody, and full lineage completeness remain external/open.",
+      "description": "Add signed near-duplicate dispositions to the canonical UMCD corpus audit. Report v8 hashes each candidate and the complete candidate set and preserves verified evidence paths/digests; signed disposition v2 binds the inventory/candidate set and exactly one rationale-backed disposition per candidate. It verifies bounded stable bytes at canonical inventory-relative paths and uses a distinct reviewer principal/keyring from verified inventory/split-lock signers. Similarity remains a review cue; confirmed leakage and unresolved/incomplete comparisons make the CLI exit nonzero, while a complete signed no-leakage disposition returns zero. The operator workflow is documented in `docs/research/UMCD_NEAR_DUPLICATE_REVIEW.md`. The focused corpus-auditor module passes 40 tests with Ruff, compilation, schema, and diff checks. Evidence adequacy/truth, reviewer trust custody, and full lineage completeness remain external/open.",
       "evidence_file_sha256": {
         "docs/research/UMCD_NEAR_DUPLICATE_REVIEW.md": "5ad7d2796bbb0a8081137a0e272aee8eaa7e53174c94fca8b2a93a07ee50fcda"
       },
@@ -5103,7 +5103,7 @@
   "schema": "loslab.implementation_feature_map.v3",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "7ecb07a4afb27e4424b97302c604751433b761deea575ebffeae8040109de172"
+    "sha256": "7af1ebddebd4bdc426deace2df2cba82073d6d6ae0a7a8d3181545cc70203bbe"
   },
   "summary": {
     "feature_count": 182,

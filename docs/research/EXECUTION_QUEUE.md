@@ -228,11 +228,12 @@ or an oracle/implementation discrepancy. Keep the original result failed. The
 separate post-hoc 65,536-draw diagnostic cannot replace it.
 
 `E01.PKG07` is source-audited. `E01.PKG08` is active: rows `PKG08-001` through
-`PKG08-014` now have source/test evidence and separate software/qualification
-statuses; `PKG08-015` is audited as partial with production key custody and
-authoritative inventory recorded as external blockers. The 219-test target/NR/
-storage slice and 3 signature/tamper regressions pass. Continue with
-`PKG08-016` through `PKG08-039`,
+`PKG08-016` now have source/test evidence and separate software/qualification
+statuses. `PKG08-015` is partial with signer custody and authoritative inventory
+recorded as external blockers; `PKG08-016` has a complete software audit, with
+reviewer custody and evidence truth still external. The 219-test target/NR/
+storage slice, signature/tamper checks, and 40-test corpus-auditor module pass.
+Continue with `PKG08-017` through `PKG08-039`,
 then packages 09–10, `E01.DS.GATES`, `E01.RS.PHASES`, `E01.RS.APPENDIX_E`, and
 `E01.CROSSWALK`.
 Each package batch is the fixed set of `PKGnn-*` IDs in the ledger and closes
