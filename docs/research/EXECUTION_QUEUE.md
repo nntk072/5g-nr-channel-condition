@@ -310,7 +310,11 @@ receiver and G5 acceptance evidence. Its selected native/receiver suites were
 not run. `E01.DS.GATES.G6` now has criterion dispositions for timestamp-based
 targets, path evolution, gauge/censoring, intervention, and split leakage.
 Physical motion/intervention evidence and deployment-causal input admission
-remain partial. Next audit G7–G8 and the research phase records.
+remain partial. `E01.DS.GATES.G7` now maps target validity, storage,
+input-firewall, split, duplicate-screening, coverage, and export controls.
+Full family inventory, training-route coverage, production memory scale, and
+per-scene release evidence remain open. Next audit G8 and the research phase
+records.
 Each package batch is the fixed set of `PKGnn-*` IDs in the ledger and closes
 only after every row has inspected source/test integration, implementation
 state, exact verification, qualification state, dependencies and closure
@@ -429,6 +433,23 @@ complete one-to-one requirement coverage and resolves dependencies/blockers.
   deployment-causal input firewall remain open.
 - **Next:** audit G7–G8 and research phase gates; implement any demonstrated
   input-eligibility gaps before a frozen temporal qualification design.
+
+#### E01.DS.GATES.G7 — storage, labels, privacy, and split integrity (source audit complete 2026-11-11)
+
+- **Requirements:** `DS.G7`, `DS.G7.01`–`DS.G7.15`.
+- **Delivered:** child records trace to typed targets/missingness, immutable
+  storage, signed split and lineage controls, duplicate screening, target
+  coverage, model-input firewalls, and ODbL export enforcement. Software
+  contracts remain distinct from authoritative corpus completeness and legal
+  release review.
+- **Verification:** evidence paths and ledger structure validated by
+  `uv run --no-sync --locked python -m scripts.validate_requirement_ledger`.
+  No consolidated G7 suite or release build was run.
+- **Disposition:** G7 remains `not_qualified`; the authoritative family/site
+  inventory, full model-route matrix, production-scale memory evidence, and
+  Etoile/Florence/Munich release-specific ODbL records remain open.
+- **Next:** audit G8 and research phases; integrate remaining source-family,
+  model-route, support, and release checks against the frozen candidate roster.
 
 For every batch, retain the exact source files inspected in that ledger row;
 do not copy the whole chronological status history. If a row is already

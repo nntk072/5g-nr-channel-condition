@@ -1,7 +1,7 @@
 {
   "schema": "loslab.requirement-ledger.v1",
-  "status_note": "Traceability index covering all 182 backlog IDs, 104 numbered unified-plan criteria, and 30 dataset/research gate or phase records. Source audits are complete for PKG00-05. PKG05 rows 001/002/003/004/005/007/008/009/010/011/012/013/014/016/017/018/019/020/021/022/023/024/025 have bounded dispositions; 006/015/026 remain partial aggregate G4 scope. PKG06 rows 001–036 are source-audited with bounded complete/partial dispositions; PKG07-001/002/003/004/005 are source-audited partials with focused regression slices; remaining package/gate audits stay open. Checked plan boxes are preserved as source marks, never treated as implementation or scientific qualification. Feature-map heuristics do not determine ledger status. DS.G3.01–DS.G3.12 were source-audited at 32fa52c; their software states and external scientific blockers are separate, and every G3 qualification remains not_qualified. DS.G0.01–DS.G0.08 source-audited after G3; environment, host solver smoke, dynamic identity edge coverage, legacy report provenance, and per-scene ODbL release evidence remain explicit blockers. DS.G1.01–DS.G1.10 source-audited; independent geometry/LOS contracts are bounded, while native solver behavior, motion interpolation, and scene-family independence remain open. DS.G2.01–DS.G2.15 source-audited; analytical/mask/storage contracts exist, while selected-host native API, path/CFR, power-scale, MIMO and polarization evidence remain open. DS.G4.01–DS.G4.09 source-audited against pinned profile adapters, reference contracts, statistical test families, and standardized admission. Full suites were not run in this implementation pass; G4 remains not_qualified, with G4.07 explicitly partial for bounded support coverage. DS.G5.01–DS.G5.15 source-audited; software routes cover bounded NR waveform, estimator, noise, impairment, observation, and input-firewall contracts, while calibrated receiver evidence and criterion-driven G5 qualification remain open. DS.G6.01–DS.G6.10 source-audited; time, target, path-evolution, gauge, censoring and split contracts are bounded, while calibrated motion, physical interventions and deployment-causal input admission remain open.",
-  "source_checkpoint": "82c5009; DS.G6 source audit recorded 2026-11-11",
+  "status_note": "Traceability index covering all 182 backlog IDs, 104 numbered unified-plan criteria, and 30 dataset/research gate or phase records. Source audits are complete for PKG00-05. PKG05 rows 001/002/003/004/005/007/008/009/010/011/012/013/014/016/017/018/019/020/021/022/023/024/025 have bounded dispositions; 006/015/026 remain partial aggregate G4 scope. PKG06 rows 001–036 are source-audited with bounded complete/partial dispositions; PKG07-001/002/003/004/005 are source-audited partials with focused regression slices; remaining package/gate audits stay open. Checked plan boxes are preserved as source marks, never treated as implementation or scientific qualification. Feature-map heuristics do not determine ledger status. DS.G3.01–DS.G3.12 were source-audited at 32fa52c; their software states and external scientific blockers are separate, and every G3 qualification remains not_qualified. DS.G0.01–DS.G0.08 source-audited after G3; environment, host solver smoke, dynamic identity edge coverage, legacy report provenance, and per-scene ODbL release evidence remain explicit blockers. DS.G1.01–DS.G1.10 source-audited; independent geometry/LOS contracts are bounded, while native solver behavior, motion interpolation, and scene-family independence remain open. DS.G2.01–DS.G2.15 source-audited; analytical/mask/storage contracts exist, while selected-host native API, path/CFR, power-scale, MIMO and polarization evidence remain open. DS.G4.01–DS.G4.09 source-audited against pinned profile adapters, reference contracts, statistical test families, and standardized admission. Full suites were not run in this implementation pass; G4 remains not_qualified, with G4.07 explicitly partial for bounded support coverage. DS.G5.01–DS.G5.15 source-audited; software routes cover bounded NR waveform, estimator, noise, impairment, observation, and input-firewall contracts, while calibrated receiver evidence and criterion-driven G5 qualification remain open. DS.G6.01–DS.G6.10 source-audited; time, target, path-evolution, gauge, censoring and split contracts are bounded, while calibrated motion, physical interventions and deployment-causal input admission remain open. DS.G7.01–DS.G7.15 source-audited; storage/mask/split/release/model-input software contracts are bounded, with full family inventory, input-route coverage, production-scale memory and per-scene ODbL eligibility still open.",
+  "source_checkpoint": "781be39; DS.G7 source audit recorded 2026-11-11",
   "requirements": [
     {
       "requirement_id": "DS.G0",
@@ -3656,14 +3656,23 @@
       "backlog_aliases": [],
       "requirement": "Gate G7 — storage, label validity, privacy, split integrity",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Hard storage, target validity, input firewall, split integrity, privacy, and label compatibility gate for every MVP cohort and release.",
+        "authority_basis": "Governing unified-plan Gate G7 is a hard stop gate; all fifteen numbered criteria were source-audited against dataset, target, storage, split, model-input, and export contracts."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "governing-plan requirement needs source-level reconciliation"
+        "status": "partial",
+        "evidence": [
+          "datasets/targets.py",
+          "datasets/nr.py",
+          "datasets/episode_store.py",
+          "datasets/split_lineage.py",
+          "datasets/public_release.py",
+          "datasets/model_input_audit.py",
+          "evaluation/near_duplicate_audit.py",
+          "evaluation/target_coverage.py"
+        ],
+        "basis": "Typed target/missingness contracts, immutable storage, split lineage, near-duplicate screening, target coverage, model-input firewalls, and ODbL export controls exist. Complete cross-family field/label maps, authoritative split inventory/signing, model-route reconciliation, production-scale memory evidence, and scene-specific release clearance remain incomplete."
       },
       "verification": {
         "status": "not_run",
@@ -3675,11 +3684,15 @@
         "evidence": []
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "No complete authoritative corpus/family inventory and external split-review custody.",
+        "Model-input producer/consumer and source-family label audits remain incomplete.",
+        "Production corpus RSS/scale and ODbL public-release eligibility remain unverified."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "G7.01–G7.15 auditable data contracts, held-out split lock, complete target/family support, scalable immutable storage, and scene-specific redistribution eligibility.",
+        "pass_rule": "All used families have complete typed target definitions, no leakage across authoritative physical-unit groups, verified storage and support reports, no oracle-input leak, and rights/redistribution status enforced by the export path; missing evidence or unsupported families remain unavailable.",
+        "next_task": "Continue G8 and research-phase audits; resolve source-family registry, model-route matrix, and ODbL release evidence against the frozen candidate inventory before final dataset materialization."
       },
       "plan_mark": "not_checklist"
     },
@@ -3692,14 +3705,20 @@
       "requirement": "all required fields present and typed; missing target fields carry reason codes rather than invented zero (partial: NR record v2 requires per-element reason codes consistent with validity masks; v1 migration exposes absent historical reasons as `legacy_reason_unrecorded`. Full required-field rosters and semantics remain open).",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G7.01 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard dataset validity, storage, privacy, release, and split-integrity criterion for any MVP training/evaluation cohort; software contracts cannot attest external inventory, trust custody, or physical independence.",
+        "authority_basis": "Mandatory numbered acceptance criterion G7.01 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "datasets/nr.py",
+          "datasets/targets.py",
+          "datasets/schema/nr-record-metadata.v4.schema.json",
+          "tests/test_datasets/test_nr_observation_mask.py",
+          "tests/test_datasets/test_target_contracts.py"
+        ],
+        "basis": "Typed NR records and target layers enforce validity masks, reason codes, and backward-compatible legacy-reason markers; complete field rosters and semantic coverage across every target family are not yet audited."
       },
       "verification": {
         "status": "not_run",
@@ -3710,14 +3729,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "A complete canonical required-field/semantics matrix across all dataset families is missing."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "all required fields present and typed; missing target fields carry reason codes rather than invented zero (partial: NR record v2 requires per-element reason codes consistent with validity masks; v1 migration exposes absent historical reasons as `legacy_reason_unrecorded`. Full required-field rosters and semantics remain open).",
+        "pass_rule": "The exact input inventory, split lock, storage bytes, target definitions, privacy/license status, and source-family label semantics pass their frozen audit; software fixtures do not establish inventory completeness, physical independence, legal clearance, or release eligibility.",
+        "next_task": "Finish the dataset-family, input-route, memory-budget, and ODbL release audits against the authoritative cohort inventory; retain per-family support/shortfall rather than silently merging or imputing."
       }
     },
     {
@@ -3729,14 +3748,18 @@
       "requirement": "each numeric target's units/gauge/aggregation source is registered and versioned.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G7.02 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard dataset validity, storage, privacy, release, and split-integrity criterion for any MVP training/evaluation cohort; software contracts cannot attest external inventory, trust custody, or physical independence.",
+        "authority_basis": "Mandatory numbered acceptance criterion G7.02 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "datasets/targets.py",
+          "datasets/schema/umcd-target-layer.v1.schema.json",
+          "tests/test_datasets/test_target_contracts.py"
+        ],
+        "basis": "Canonical target definitions bind units, gauge/reference, aggregation, source, and version into a stable digest; legacy/noncanonical paths retain compatibility boundaries."
       },
       "verification": {
         "status": "not_run",
@@ -3747,14 +3770,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Legacy targets outside the canonical registry remain separately scoped and cannot be silently promoted."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "each numeric target's units/gauge/aggregation source is registered and versioned.",
+        "pass_rule": "The exact input inventory, split lock, storage bytes, target definitions, privacy/license status, and source-family label semantics pass their frozen audit; software fixtures do not establish inventory completeness, physical independence, legal clearance, or release eligibility.",
+        "next_task": "Finish the dataset-family, input-route, memory-budget, and ODbL release audits against the authoritative cohort inventory; retain per-family support/shortfall rather than silently merging or imputing."
       }
     },
     {
@@ -3766,14 +3789,20 @@
       "requirement": "nulls/infs/NaNs, negative powers, invalid durations, missing array axes handled explicitly.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G7.03 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard dataset validity, storage, privacy, release, and split-integrity criterion for any MVP training/evaluation cohort; software contracts cannot attest external inventory, trust custody, or physical independence.",
+        "authority_basis": "Mandatory numbered acceptance criterion G7.03 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "datasets/nr.py",
+          "datasets/targets.py",
+          "datasets/observations.py",
+          "tests/test_datasets/test_nr_observation_mask.py",
+          "tests/test_datasets/test_target_contracts.py"
+        ],
+        "basis": "Numeric records validate finite values, power/range constraints, durations, axes, and explicit missingness/mask states at admission."
       },
       "verification": {
         "status": "not_run",
@@ -3784,14 +3813,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Complete malformed-data assurance across every historical importer and alternate storage format is not established."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "nulls/infs/NaNs, negative powers, invalid durations, missing array axes handled explicitly.",
+        "pass_rule": "The exact input inventory, split lock, storage bytes, target definitions, privacy/license status, and source-family label semantics pass their frozen audit; software fixtures do not establish inventory completeness, physical independence, legal clearance, or release eligibility.",
+        "next_task": "Finish the dataset-family, input-route, memory-budget, and ODbL release audits against the authoritative cohort inventory; retain per-family support/shortfall rather than silently merging or imputing."
       }
     },
     {
@@ -3803,14 +3832,18 @@
       "requirement": "target-mask shapes broadcast correctly and selection counts reported (partial: `NRChannelRecord` checks broadcastability, zero storage, and reason agreement; `NRTrajectory.target_support_counts()` reports present/missing records, selected/masked elements, and records relying on implicit all-valid masks, while `target_reason_series()` exposes element reasons. This is trajectory-local accounting; a release-wide report by split/family/target/reason remains open).",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G7.04 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard dataset validity, storage, privacy, release, and split-integrity criterion for any MVP training/evaluation cohort; software contracts cannot attest external inventory, trust custody, or physical independence.",
+        "authority_basis": "Mandatory numbered acceptance criterion G7.04 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "datasets/nr.py",
+          "datasets/observations.py",
+          "tests/test_datasets/test_nr_observation_mask.py"
+        ],
+        "basis": "NR mask broadcasting and reason-code consistency are checked; target-support summaries count present/masked elements and selected axes."
       },
       "verification": {
         "status": "not_run",
@@ -3821,14 +3854,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Support reporting is only meaningful for an authoritative and complete corpus inventory."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "target-mask shapes broadcast correctly and selection counts reported (partial: `NRChannelRecord` checks broadcastability, zero storage, and reason agreement; `NRTrajectory.target_support_counts()` reports present/missing records, selected/masked elements, and records relying on implicit all-valid masks, while `target_reason_series()` exposes element reasons. This is trajectory-local accounting; a release-wide report by split/family/target/reason remains open).",
+        "pass_rule": "The exact input inventory, split lock, storage bytes, target definitions, privacy/license status, and source-family label semantics pass their frozen audit; software fixtures do not establish inventory completeness, physical independence, legal clearance, or release eligibility.",
+        "next_task": "Finish the dataset-family, input-route, memory-budget, and ODbL release audits against the authoritative cohort inventory; retain per-family support/shortfall rather than silently merging or imputing."
       }
     },
     {
@@ -3840,14 +3873,19 @@
       "requirement": "empty physical channels are valid records; loss functions handle them without divide-by-zero.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G7.05 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard dataset validity, storage, privacy, release, and split-integrity criterion for any MVP training/evaluation cohort; software contracts cannot attest external inventory, trust custody, or physical independence.",
+        "authority_basis": "Mandatory numbered acceptance criterion G7.05 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "datasets/analytical.py",
+          "datasets/targets.py",
+          "tests/test_datasets/test_analytical.py",
+          "tests/test_datasets/test_target_contracts.py"
+        ],
+        "basis": "Empty/no-path channels have explicit unavailable/no-path states and analytical channel utilities avoid invalid reductions; complete training-loss handling for every learner and all-empty batch remains unverified."
       },
       "verification": {
         "status": "not_run",
@@ -3858,14 +3896,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "No end-to-end model/evaluator assurance for empty physical records across all model families."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "empty physical channels are valid records; loss functions handle them without divide-by-zero.",
+        "pass_rule": "The exact input inventory, split lock, storage bytes, target definitions, privacy/license status, and source-family label semantics pass their frozen audit; software fixtures do not establish inventory completeness, physical independence, legal clearance, or release eligibility.",
+        "next_task": "Finish the dataset-family, input-route, memory-budget, and ODbL release audits against the authoritative cohort inventory; retain per-family support/shortfall rather than silently merging or imputing."
       }
     },
     {
@@ -3877,14 +3915,18 @@
       "requirement": "immutable writes verified by re-read and SHA checks including compressed chunk integrity.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G7.06 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard dataset validity, storage, privacy, release, and split-integrity criterion for any MVP training/evaluation cohort; software contracts cannot attest external inventory, trust custody, or physical independence.",
+        "authority_basis": "Mandatory numbered acceptance criterion G7.06 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "datasets/episode_store.py",
+          "datasets/channel.py",
+          "tests/test_datasets/test_umcd_store_integrity.py"
+        ],
+        "basis": "Episode and channel writes use immutable/no-overwrite semantics with content digest verification and round-trip checks, including compressed archive integrity."
       },
       "verification": {
         "status": "not_run",
@@ -3895,14 +3937,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "The tests establish the software contract on fixtures, not integrity/custody of an external production corpus."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "immutable writes verified by re-read and SHA checks including compressed chunk integrity.",
+        "pass_rule": "The exact input inventory, split lock, storage bytes, target definitions, privacy/license status, and source-family label semantics pass their frozen audit; software fixtures do not establish inventory completeness, physical independence, legal clearance, or release eligibility.",
+        "next_task": "Finish the dataset-family, input-route, memory-budget, and ODbL release audits against the authoritative cohort inventory; retain per-family support/shortfall rather than silently merging or imputing."
       }
     },
     {
@@ -3914,14 +3956,20 @@
       "requirement": "input adapter cannot access oracle labels, file paths, source profile category or scene IDs unless experiment explicitly allows them (partial: legacy `ChannelDataset.model_inputs()` returns a read-only CFR-only view and the experiment runner builds features from it; typed NR and standardized learning views also expose receiver inputs separately. Regression definitions check the legacy field boundary, but every downstream adapter/training path and corpus-wide leakage surface has not been audited).",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G7.07 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard dataset validity, storage, privacy, release, and split-integrity criterion for any MVP training/evaluation cohort; software contracts cannot attest external inventory, trust custody, or physical independence.",
+        "authority_basis": "Mandatory numbered acceptance criterion G7.07 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "datasets/nr.py",
+          "datasets/observations.py",
+          "datasets/targets.py",
+          "datasets/model_input_audit.py",
+          "tests/test_datasets/test_nr_model_input_firewall.py"
+        ],
+        "basis": "Typed receiver/model-input routes separate oracle targets and metadata from observations, and a legacy CFR-only view exists; every downstream adapter, generated entry point, and corpus-specific leakage route has not been exhaustively audited."
       },
       "verification": {
         "status": "not_run",
@@ -3932,14 +3980,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "End-to-end input route reconciliation and saved-checkpoint replay remain incomplete for the full producer inventory."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "input adapter cannot access oracle labels, file paths, source profile category or scene IDs unless experiment explicitly allows them (partial: legacy `ChannelDataset.model_inputs()` returns a read-only CFR-only view and the experiment runner builds features from it; typed NR and standardized learning views also expose receiver inputs separately. Regression definitions check the legacy field boundary, but every downstream adapter/training path and corpus-wide leakage surface has not been audited).",
+        "pass_rule": "The exact input inventory, split lock, storage bytes, target definitions, privacy/license status, and source-family label semantics pass their frozen audit; software fixtures do not establish inventory completeness, physical independence, legal clearance, or release eligibility.",
+        "next_task": "Finish the dataset-family, input-route, memory-budget, and ODbL release audits against the authoritative cohort inventory; retain per-family support/shortfall rather than silently merging or imputing."
       }
     },
     {
@@ -3951,14 +3999,21 @@
       "requirement": "train/val/cal/test split lock signed before model tuning; neighboring spatial buffers and overlapping time windows detected. Version-2 relation identities bind their derivation evidence, and split-registry v3 can bind the complete footprint inventory digest; new spatial/time-linked locks cannot be frozen without that audit. Legacy v2 locks remain readable. No authoritative complete release inventory has yet been applied, independently reviewed, or externally signed.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G7.08 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard dataset validity, storage, privacy, release, and split-integrity criterion for any MVP training/evaluation cohort; software contracts cannot attest external inventory, trust custody, or physical independence.",
+        "authority_basis": "Mandatory numbered acceptance criterion G7.08 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "datasets/split_policy.py",
+          "datasets/splits.py",
+          "datasets/split_lineage.py",
+          "tests/test_datasets/test_split_policy_signing.py",
+          "tests/test_datasets/test_split_lineage_audit.py",
+          "tests/test_evaluation/test_independent_splits.py"
+        ],
+        "basis": "Signed split locks, spatial/time buffer audits, relation identities, and footprint-digest contracts exist; complete authoritative release inventory, external signing custody, and physical unit independence are absent."
       },
       "verification": {
         "status": "not_run",
@@ -3969,14 +4024,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "No complete authoritative candidate inventory or independent reviewer/signature custody for final split lock."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "train/val/cal/test split lock signed before model tuning; neighboring spatial buffers and overlapping time windows detected. Version-2 relation identities bind their derivation evidence, and split-registry v3 can bind the complete footprint inventory digest; new spatial/time-linked locks cannot be frozen without that audit. Legacy v2 locks remain readable. No authoritative complete release inventory has yet been applied, independently reviewed, or externally signed.",
+        "pass_rule": "The exact input inventory, split lock, storage bytes, target definitions, privacy/license status, and source-family label semantics pass their frozen audit; software fixtures do not establish inventory completeness, physical independence, legal clearance, or release eligibility.",
+        "next_task": "Finish the dataset-family, input-route, memory-budget, and ODbL release audits against the authoritative cohort inventory; retain per-family support/shortfall rather than silently merging or imputing."
       }
     },
     {
@@ -3988,14 +4043,18 @@
       "requirement": "counterfactual twins, noise variants, resampled bandwidth copies and repeated routes inherit parent split.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G7.09 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard dataset validity, storage, privacy, release, and split-integrity criterion for any MVP training/evaluation cohort; software contracts cannot attest external inventory, trust custody, or physical independence.",
+        "authority_basis": "Mandatory numbered acceptance criterion G7.09 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "datasets/split_lineage.py",
+          "datasets/splits.py",
+          "tests/test_datasets/test_split_lineage_audit.py"
+        ],
+        "basis": "Parent/component lineage mechanisms bind derived views, variants, and intervention descendants to parent split identity and reject cross-partition descendants."
       },
       "verification": {
         "status": "not_run",
@@ -4006,14 +4065,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "The source parent grouping is only as authoritative as the supplied lineage inventory."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "counterfactual twins, noise variants, resampled bandwidth copies and repeated routes inherit parent split.",
+        "pass_rule": "The exact input inventory, split lock, storage bytes, target definitions, privacy/license status, and source-family label semantics pass their frozen audit; software fixtures do not establish inventory completeness, physical independence, legal clearance, or release eligibility.",
+        "next_task": "Finish the dataset-family, input-route, memory-budget, and ODbL release audits against the authoritative cohort inventory; retain per-family support/shortfall rather than silently merging or imputing."
       }
     },
     {
@@ -4025,14 +4084,17 @@
       "requirement": "exact cross-split geometry/site hashes and context-compatible channel correlation flag review candidates across the complete episode inventory, independent of channel-view IDs or CFR-view presence. This is screening evidence rather than an automatic leakage verdict; approximate spatial matching, authoritative inventory review, reviewer custody, and disposition of a frozen release roster remain open.",
       "plan_mark": "checked",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G7.10 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard dataset validity, storage, privacy, release, and split-integrity criterion for any MVP training/evaluation cohort; software contracts cannot attest external inventory, trust custody, or physical independence.",
+        "authority_basis": "Mandatory numbered acceptance criterion G7.10 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "evaluation/near_duplicate_audit.py",
+          "tests/test_evaluation/test_near_duplicate_audit.py"
+        ],
+        "basis": "Cross-split geometry/site and compatible-channel candidate screening can report review candidates independent of view IDs; the report is explicitly not an automatic leakage verdict."
       },
       "verification": {
         "status": "not_run",
@@ -4043,14 +4105,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Complete inventory and independent review/disposition of flagged candidates remain absent."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "exact cross-split geometry/site hashes and context-compatible channel correlation flag review candidates across the complete episode inventory, independent of channel-view IDs or CFR-view presence. This is screening evidence rather than an automatic leakage verdict; approximate spatial matching, authoritative inventory review, reviewer custody, and disposition of a frozen release roster remain open.",
+        "pass_rule": "The exact input inventory, split lock, storage bytes, target definitions, privacy/license status, and source-family label semantics pass their frozen audit; software fixtures do not establish inventory completeness, physical independence, legal clearance, or release eligibility.",
+        "next_task": "Finish the dataset-family, input-route, memory-budget, and ODbL release audits against the authoritative cohort inventory; retain per-family support/shortfall rather than silently merging or imputing."
       }
     },
     {
@@ -4062,14 +4124,19 @@
       "requirement": "measured license and non-redistribution enforced by export routine, not only written documentation (partial: `datasets.public_release.export_public_release` packages by streaming from safely opened, hash-verified descriptors into the temporary ZIP and requires explicitly licensed artifacts; it blocks artifacts not cleared for redistribution and binds OSM-derived files to the audited Etoile/Florence/Munich asset-tree hashes, attribution, ODbL and OSM copyright URLs, a per-release classification, source-data offer, software revision, and complete third-party license closure. Tests reject incomplete closure, lineage mismatch, restricted redistribution, noncanonical paths, generated-metadata collisions, symlink/hard-link aliases, and in-flight artifact mutation while preserving an existing archive on failure. The current scene audit still has unknown extract/conversion/third-party closure, so no OSM-derived public release can pass without a completed release-specific assessment. The manifest is a reviewed declaration; it cannot independently prove the provenance of arbitrary input bytes or provide legal classification.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G7.11 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard dataset validity, storage, privacy, release, and split-integrity criterion for any MVP training/evaluation cohort; software contracts cannot attest external inventory, trust custody, or physical independence.",
+        "authority_basis": "Mandatory numbered acceptance criterion G7.11 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "datasets/public_release.py",
+          "datasets/schema/public-release-manifest.v3.schema.json",
+          "tests/test_datasets/test_public_release.py",
+          "docs/research/results/g3-odbl-scene-source-audit-20261027.json"
+        ],
+        "basis": "Export enforces declared redistribution eligibility, verifies hashes and ODbL source/attribution/offer/third-party manifest fields, and writes through safe temporary archive paths; current Etoile/Florence/Munich scene source and third-party closure remains incomplete."
       },
       "verification": {
         "status": "not_run",
@@ -4080,14 +4147,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "No scene-specific complete ODbL conversion/source-offer/third-party review for public release."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "measured license and non-redistribution enforced by export routine, not only written documentation (partial: `datasets.public_release.export_public_release` packages by streaming from safely opened, hash-verified descriptors into the temporary ZIP and requires explicitly licensed artifacts; it blocks artifacts not cleared for redistribution and binds OSM-derived files to the audited Etoile/Florence/Munich asset-tree hashes, attribution, ODbL and OSM copyright URLs, a per-release classification, source-data offer, software revision, and complete third-party license closure. Tests reject incomplete closure, lineage mismatch, restricted redistribution, noncanonical paths, generated-metadata collisions, symlink/hard-link aliases, and in-flight artifact mutation while preserving an existing archive on failure. The current scene audit still has unknown extract/conversion/third-party closure, so no OSM-derived public release can pass without a completed release-specific assessment. The manifest is a reviewed declaration; it cannot independently prove the provenance of arbitrary input bytes or provide legal classification.",
+        "pass_rule": "The exact input inventory, split lock, storage bytes, target definitions, privacy/license status, and source-family label semantics pass their frozen audit; software fixtures do not establish inventory completeness, physical independence, legal clearance, or release eligibility.",
+        "next_task": "Finish the dataset-family, input-route, memory-budget, and ODbL release audits against the authoritative cohort inventory; retain per-family support/shortfall rather than silently merging or imputing."
       }
     },
     {
@@ -4099,14 +4166,17 @@
       "requirement": "compressed data does not materially change physical target values; dtype and quantization error audited (partial: `tests/test_datasets/test_umcd_store_integrity.py::test_g7_12_compressed_round_trip_preserves_physical_values_and_dtypes` checks byte-exact complex128 path coefficients, complex64/complex128 CFRs, and float32/float64 targets with validity masks, reason codes and definitions across the compressed episode-store round trip. The exercised NPZ ZIP compression is lossless and has no quantizer. Alternate storage formats and the complete release corpus remain unaudited.)",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G7.12 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard dataset validity, storage, privacy, release, and split-integrity criterion for any MVP training/evaluation cohort; software contracts cannot attest external inventory, trust custody, or physical independence.",
+        "authority_basis": "Mandatory numbered acceptance criterion G7.12 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "datasets/episode_store.py",
+          "tests/test_datasets/test_umcd_store_integrity.py"
+        ],
+        "basis": "The compressed NPZ round-trip fixture checks exact stored values/dtypes/masks/reasons for complex128/complex64 and float targets; ZIP compression is lossless and does not quantize."
       },
       "verification": {
         "status": "not_run",
@@ -4117,14 +4187,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Alternate storage formats and complete release corpus have not been audited."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "compressed data does not materially change physical target values; dtype and quantization error audited (partial: `tests/test_datasets/test_umcd_store_integrity.py::test_g7_12_compressed_round_trip_preserves_physical_values_and_dtypes` checks byte-exact complex128 path coefficients, complex64/complex128 CFRs, and float32/float64 targets with validity masks, reason codes and definitions across the compressed episode-store round trip. The exercised NPZ ZIP compression is lossless and has no quantizer. Alternate storage formats and the complete release corpus remain unaudited.)",
+        "pass_rule": "The exact input inventory, split lock, storage bytes, target definitions, privacy/license status, and source-family label semantics pass their frozen audit; software fixtures do not establish inventory completeness, physical independence, legal clearance, or release eligibility.",
+        "next_task": "Finish the dataset-family, input-route, memory-budget, and ODbL release audits against the authoritative cohort inventory; retain per-family support/shortfall rather than silently merging or imputing."
       }
     },
     {
@@ -4136,14 +4206,18 @@
       "requirement": "dataset can be loaded in shards with consistent deterministic order and no process-wide 100 GB materialization (partial: existing tests cover deterministic bounded shard loading; `tests/test_datasets/test_nr_store_memory_scaling.py` measures a synthetic 0/8/128/8,192-manifest inventory separately from compressed archive bytes, uncompressed-member equivalents, and manifest inventory growth. This does not measure a production corpus or establish an RSS cap; see [G7.13 synthetic memory measurement](G7_13_SYNTHETIC_MEMORY_MEASUREMENT_2026-10-23.md)).",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G7.13 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard dataset validity, storage, privacy, release, and split-integrity criterion for any MVP training/evaluation cohort; software contracts cannot attest external inventory, trust custody, or physical independence.",
+        "authority_basis": "Mandatory numbered acceptance criterion G7.13 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "datasets/nr_store.py",
+          "tests/test_datasets/test_nr_store_streaming.py",
+          "tests/test_datasets/test_nr_store_memory_scaling.py"
+        ],
+        "basis": "Sharded deterministic loading and bounded synthetic manifest scaling exist; no RSS limit or production corpus materialization claim is proven by the synthetic measurement."
       },
       "verification": {
         "status": "not_run",
@@ -4154,14 +4228,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Production data volume and process RSS cap have not been measured on the intended Halti storage/environment."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "dataset can be loaded in shards with consistent deterministic order and no process-wide 100 GB materialization (partial: existing tests cover deterministic bounded shard loading; `tests/test_datasets/test_nr_store_memory_scaling.py` measures a synthetic 0/8/128/8,192-manifest inventory separately from compressed archive bytes, uncompressed-member equivalents, and manifest inventory growth. This does not measure a production corpus or establish an RSS cap; see [G7.13 synthetic memory measurement](G7_13_SYNTHETIC_MEMORY_MEASUREMENT_2026-10-23.md)).",
+        "pass_rule": "The exact input inventory, split lock, storage bytes, target definitions, privacy/license status, and source-family label semantics pass their frozen audit; software fixtures do not establish inventory completeness, physical independence, legal clearance, or release eligibility.",
+        "next_task": "Finish the dataset-family, input-route, memory-budget, and ODbL release audits against the authoritative cohort inventory; retain per-family support/shortfall rather than silently merging or imputing."
       }
     },
     {
@@ -4173,14 +4247,18 @@
       "requirement": "target-level valid-count coverage report generated for every split and family.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G7.14 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard dataset validity, storage, privacy, release, and split-integrity criterion for any MVP training/evaluation cohort; software contracts cannot attest external inventory, trust custody, or physical independence.",
+        "authority_basis": "Mandatory numbered acceptance criterion G7.14 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "evaluation/target_coverage.py",
+          "tests/test_evaluation/test_target_coverage.py",
+          "datasets/targets.py"
+        ],
+        "basis": "Inventory-driven target coverage reports valid/unavailable counts by split and target definition, with exact support accounting rather than implicit zeros."
       },
       "verification": {
         "status": "not_run",
@@ -4191,14 +4269,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Final cohort coverage cannot be assessed until the authoritative split/family inventory is admitted."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "target-level valid-count coverage report generated for every split and family.",
+        "pass_rule": "The exact input inventory, split lock, storage bytes, target definitions, privacy/license status, and source-family label semantics pass their frozen audit; software fixtures do not establish inventory completeness, physical independence, legal clearance, or release eligibility.",
+        "next_task": "Finish the dataset-family, input-route, memory-budget, and ODbL release audits against the authoritative cohort inventory; retain per-family support/shortfall rather than silently merging or imputing."
       }
     },
     {
@@ -4210,14 +4288,20 @@
       "requirement": "released dataset 'main' tests do not silently combine source-family-specific labels into fake universal classes.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G7.15 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard dataset validity, storage, privacy, release, and split-integrity criterion for any MVP training/evaluation cohort; software contracts cannot attest external inventory, trust custody, or physical independence.",
+        "authority_basis": "Mandatory numbered acceptance criterion G7.15 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "datasets/standardized.py",
+          "datasets/scenario_gbsm.py",
+          "datasets/targets.py",
+          "tests/test_datasets/test_standardized.py",
+          "tests/test_datasets/test_scenario_gbsm_store.py"
+        ],
+        "basis": "Standardized profile proxies and scenario model categories are separately named and forbidden from populating geometric-LOS targets; broader cross-family main-dataset composition and every source-family-specific label route are not audited."
       },
       "verification": {
         "status": "not_run",
@@ -4228,14 +4312,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "A full dataset-family label compatibility registry and published main-dataset consumer audit remain incomplete."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "released dataset 'main' tests do not silently combine source-family-specific labels into fake universal classes.",
+        "pass_rule": "The exact input inventory, split lock, storage bytes, target definitions, privacy/license status, and source-family label semantics pass their frozen audit; software fixtures do not establish inventory completeness, physical independence, legal clearance, or release eligibility.",
+        "next_task": "Finish the dataset-family, input-route, memory-budget, and ODbL release audits against the authoritative cohort inventory; retain per-family support/shortfall rather than silently merging or imputing."
       }
     },
     {
