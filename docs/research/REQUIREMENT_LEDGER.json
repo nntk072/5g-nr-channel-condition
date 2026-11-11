@@ -10673,32 +10673,37 @@
       "backlog_aliases": [
         "PKG08-020"
       ],
-      "requirement": "Resolve allowlisted model-input and nested NR configuration identities against the actual class objects exported by their registered modules, rather than trusting spoofable `__module__`/`__qualname__` strings. Regression definitions reject a dataclass that copies a registered module and class name. This prevents contract-name impersonation but does not establish feature provenance or close the broader leakage audit; consolidated validation is deferred.",
+      "requirement": "olve allowlisted model-input and nested NR configuration identities against the actual class objects exported by their registered modules, rather than trusting spoofable `__module__`/`__qualname__` strings. Regression definitions reject a dataclass that copies a registered module and class name. This prevents contract-name impersonation but does not establish feature provenance or close the broader leakage audit; the focused model-input audit module passes 8 tests including the spoofed-class rejection.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Adapter spoof-resistance identity and NR config binding.",
+        "authority_basis": "Mandatory model-input leakage/provenance requirement, limited to the exact named route in this criterion."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "datasets/model_input_audit.py",
+          "tests/test_datasets/test_model_input_audit.py"
+        ],
+        "basis": "The registry compares runtime class identities with the actual objects exported from registered modules, including the nested NR receiver config; spoofed `__module__`/`__qualname__` aliases reject."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_datasets/test_model_input_audit.py (8 passed).",
+        "commit": "Focused verification run on 17ab9fc worktree; broad leakage qualification remains open."
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [],
+      "dependencies": [
+        "PKG08-018"
+      ],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "datasets/model_input_audit.py and tests/test_datasets/test_model_input_audit.py prove identity validation; 8 focused tests pass.",
+        "pass_rule": "The registered dataclass and nested receiver configuration class must be the actual exported class objects; a copied module/name identity must reject.",
+        "next_task": "PKG08-021"
       },
       "plan_mark": "not_checklist"
     },
@@ -10710,32 +10715,39 @@
       "backlog_aliases": [
         "PKG08-021"
       ],
-      "requirement": "Extend observation-only feature provenance through the specialized profile-holdout runner: bind the registered `ChannelModelInputs` source field, normalized-CFR transform implementation digest, exact full feature-matrix bytes, and per-fold train/validation/test feature digests under `profile-holdout-model-input-contract.v1.schema.json`. The output explicitly isolates the metadata-only profile-proxy oracle from the primary feature route. Focused regression definitions and runnable report round-trip coverage are present; this is one specialized runner, while the all-adapter/transform/training/inference audit remains open.",
+      "requirement": "end observation-only feature provenance through the specialized profile-holdout runner: bind the registered `ChannelModelInputs` source field, normalized-CFR transform implementation digest, exact full feature-matrix bytes, and per-fold train/validation/test feature digests under `profile-holdout-model-input-contract.v1.schema.json`. The output explicitly isolates the metadata-only profile-proxy oracle from the primary feature route. The profile-holdout module passes 12 tests, including contract-drift and runnable report-roundtrip checks; this is one specialized runner, while the all-adapter/transform/training/inference audit remains open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Specialized profile-holdout observation feature provenance only.",
+        "authority_basis": "Mandatory model-input leakage/provenance requirement, limited to the exact named route in this criterion."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "experiments/profile_holdout.py",
+          "datasets/schema/profile-holdout-model-input-contract.v1.schema.json",
+          "tests/test_experiments/test_profile_holdout.py"
+        ],
+        "basis": "The profile-holdout path audits the ChannelModelInputs source, binds normalized-CFR transform implementation and full feature matrix, verifies replay, records per-fold train/validation/test feature digests, and labels metadata.profile control as excluded from fit/prediction."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_experiments/test_profile_holdout.py (12 passed).",
+        "commit": "Focused verification run on 17ab9fc worktree; broad leakage qualification remains open."
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [],
+      "dependencies": [
+        "PKG08-018",
+        "PKG08-019"
+      ],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "experiments/profile_holdout.py, its strict input-contract schema, and tests/test_experiments/test_profile_holdout.py establish contract/schema/hash replay and metadata separation; 12 focused tests pass.",
+        "pass_rule": "The output contract verifies the exact audited source route, transform identity, full matrix, each fold partition matrix and the non-predictive status of the metadata proxy control.",
+        "next_task": "PKG08-022"
       },
       "plan_mark": "not_checklist"
     },

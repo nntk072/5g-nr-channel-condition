@@ -3961,7 +3961,7 @@
     {
       "backlog_line": 418,
       "backlog_status": "marked_done",
-      "description": "Resolve allowlisted model-input and nested NR configuration identities against the actual class objects exported by their registered modules, rather than trusting spoofable `__module__`/`__qualname__` strings. Regression definitions reject a dataclass that copies a registered module and class name. This prevents contract-name impersonation but does not establish feature provenance or close the broader leakage audit; consolidated validation is deferred.",
+      "description": "Resolve allowlisted model-input and nested NR configuration identities against the actual class objects exported by their registered modules, rather than trusting spoofable `__module__`/`__qualname__` strings. Regression definitions reject a dataclass that copies a registered module and class name. This prevents contract-name impersonation but does not establish feature provenance or close the broader leakage audit; the focused model-input audit module passes 8 tests including the spoofed-class rejection.",
       "evidence_file_sha256": {},
       "evidence_links": {
         "cli_entries": [],
@@ -3987,7 +3987,7 @@
     {
       "backlog_line": 419,
       "backlog_status": "marked_done",
-      "description": "Extend observation-only feature provenance through the specialized profile-holdout runner: bind the registered `ChannelModelInputs` source field, normalized-CFR transform implementation digest, exact full feature-matrix bytes, and per-fold train/validation/test feature digests under `profile-holdout-model-input-contract.v1.schema.json`. The output explicitly isolates the metadata-only profile-proxy oracle from the primary feature route. Focused regression definitions and runnable report round-trip coverage are present; this is one specialized runner, while the all-adapter/transform/training/inference audit remains open.",
+      "description": "Extend observation-only feature provenance through the specialized profile-holdout runner: bind the registered `ChannelModelInputs` source field, normalized-CFR transform implementation digest, exact full feature-matrix bytes, and per-fold train/validation/test feature digests under `profile-holdout-model-input-contract.v1.schema.json`. The output explicitly isolates the metadata-only profile-proxy oracle from the primary feature route. The profile-holdout module passes 12 tests, including contract-drift and runnable report-roundtrip checks; this is one specialized runner, while the all-adapter/transform/training/inference audit remains open.",
       "evidence_file_sha256": {},
       "evidence_links": {
         "cli_entries": [],
@@ -5103,7 +5103,7 @@
   "schema": "loslab.implementation_feature_map.v3",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "fc887105773b847e59d6bda06faa355082e0309bb9c63dcb813fdb0c78794e2a"
+    "sha256": "8d75bca7404e60bccb2df8d6352b90f1a85c2c53841ec0bae61a799a3411ad73"
   },
   "summary": {
     "feature_count": 182,
