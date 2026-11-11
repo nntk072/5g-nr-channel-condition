@@ -10868,11 +10868,11 @@
           "tests/test_datasets/test_umcd_store_integrity.py",
           "tests/test_datasets/test_standardized.py"
         ],
-        "basis": "Focused coverage now includes immutable NR record/trajectory stores, all eight UMCD episode layer corruption/retry paths, scenario GBSM run storage, and standardized channel plus learning store object/manifest retries. Public NR and UMCD end-to-end write/read RSS diagnostics use small synthetic fixtures. The row remains partial because actual-path size scaling, audit of any additional promised format, and a justified corpus memory envelope are not established."
+        "basis": "Focused coverage includes immutable NR record/trajectory stores, all eight UMCD episode layer corruption/retry paths, scenario GBSM run storage, and standardized channel plus learning store object/manifest retries. Public NR and UMCD write/read process-RSS diagnostics now include a pre-store high-water baseline. The NR 16/128/512-record sweep is 35.0/35.7/36.5 MiB incremental high-water RSS relative to a 572,334,080-byte baseline; UMCD has only one small bundle measurement. Representative UMCD scaling and a corpus memory envelope remain open."
       },
       "verification": {
         "status": "pass",
-        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_datasets/test_nr_store_memory_scaling.py tests/test_datasets/test_nr_store_streaming.py tests/test_datasets/test_umcd_store_integrity.py (43 passed); .venv/bin/python scripts/measure_nr_store_memory.py --records 16 --shard-bytes 1048576 (16 written/read, peak RSS 609644544 bytes, 43763 store bytes).; .venv/bin/pytest --no-cov -o addopts='' -s -q tests/test_datasets/test_umcd_store_integrity.py::test_umcd_episode_store_process_peak_rss_diagnostic (1 passed; peak RSS 144494592 bytes, 9384 store bytes).; .venv/bin/pytest --no-cov -o addopts='' -q tests/test_datasets/test_umcd_store_integrity.py (24 passed); .venv/bin/pytest --no-cov -o addopts='' -q tests/test_datasets/test_standardized.py -k standardized_store_publication_failure_is_retryable (5 passed, 54 deselected).",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_datasets/test_nr_store_memory_scaling.py tests/test_datasets/test_nr_store_streaming.py tests/test_datasets/test_umcd_store_integrity.py (43 passed); .venv/bin/python scripts/measure_nr_store_memory.py --records 16 --shard-bytes 1048576 (16 written/read, peak RSS 609644544 bytes, 43763 store bytes).; .venv/bin/pytest --no-cov -o addopts='' -s -q tests/test_datasets/test_umcd_store_integrity.py::test_umcd_episode_store_process_peak_rss_diagnostic (1 passed; peak RSS 144494592 bytes, 9384 store bytes).; .venv/bin/pytest --no-cov -o addopts='' -q tests/test_datasets/test_umcd_store_integrity.py (24 passed); .venv/bin/pytest --no-cov -o addopts='' -q tests/test_datasets/test_standardized.py -k standardized_store_publication_failure_is_retryable (5 passed, 54 deselected).; .venv/bin/python scripts/measure_nr_store_memory.py --records 16/128/512 --shard-bytes 1048576, run separately per record count (all completed; 16/128/512 records read and written; incremental high-water RSS 36679680/37429248/38301696 bytes; disk 43763/350196/1400935 bytes); isolated UMCD one-bundle diagnostic passed (incremental high-water 0 bytes above 572334080-byte test-process baseline).",
         "commit": "Focused worktree verification on 2026-11-11; small synthetic RSS observations are not qualification or corpus bounds."
       },
       "qualification": {
@@ -10884,7 +10884,7 @@
       "closure": {
         "deliverable": "Per-format immutable-store integrity/failure evidence and measured bounded full-path memory behavior for NR and UMCD storage.",
         "pass_rule": "Every promised format has content-corruption and interruption/retry coverage, and retained representative full-path RSS/scaling evidence supports an explicit memory envelope; no scientific qualification is inferred.",
-        "next_task": "Run repeated actual-path NR and UMCD store size-scaling diagnostics with isolated process RSS, then source-audit remaining serialized formats before setting a corpus memory envelope."
+        "next_task": "Extend the isolated public UMCD write/read diagnostic to multiple bundle counts and larger array payloads, then compare observed high-water deltas with the explicit conservative shard accounting; retain corpus memory envelope as open until representative planned corpus sizes and runtime environment are fixed."
       },
       "plan_mark": "not_checklist"
     },

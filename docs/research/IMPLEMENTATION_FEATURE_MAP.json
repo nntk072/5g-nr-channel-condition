@@ -4062,14 +4062,10 @@
     {
       "backlog_line": 422,
       "backlog_status": "open",
-      "description": "Complete cross-format corruption and retry/failure accounting, audit every promised storage format under interrupted writes, and establish measured memory behavior for the actual full read/write path rather than only conservative accounting models. Episode-store corruption coverage spans all eight layer namespaces; injected retry regressions now exercise episode/path/channel/target/counterfactual/receiver/provenance/scenario publication interruptions and manifest-last retries. NR record and trajectory stores have content publication, manifest/index publication, immutable retry/read-back, temporary-file cleanup, and tamper checks. Standardized channel and learning stores now have injected retry/read-back checks at record, observation, target, and manifest publication points (five focused cases). The 24-test UMCD integrity module and five standardized retry cases pass; earlier focused NR streaming/memory tests (43) and six trajectory-store cases pass. `scripts/measure_nr_store_memory.py` measures peak RSS through public NR write and deterministic shard-read APIs; a 16-record fixture reported 609,644,544 bytes peak RSS and 43,763 disk bytes. An isolated UMCD process completed public bundle write/read at 144,494,592 bytes peak RSS for a 9,384-byte fixture. These are small-fixture process observations, not memory bounds. Remaining work is repeatable size-scaling for the actual full paths, audit for any additional promised serialization format, and an empirically justified corpus memory envelope.",
-      "evidence_file_sha256": {
-        "scripts/measure_nr_store_memory.py": "fd723eddf93a1f5fb285be9f5927e5350c668f8217fff2d293cc6ed838b5ba04"
-      },
+      "description": "Complete cross-format corruption and retry/failure accounting, audit every promised storage format under interrupted writes, and establish measured memory behavior for the actual full read/write path rather than only conservative accounting models. Episode-store corruption coverage spans all eight layer namespaces; injected retry regressions now exercise episode/path/channel/target/counterfactual/receiver/provenance/scenario publication interruptions and manifest-last retries. NR record and trajectory stores have content publication, manifest/index publication, immutable retry/read-back, temporary-file cleanup, and tamper checks. Standardized channel and learning stores now have injected retry/read-back checks at record, observation, target, and manifest publication points (five focused cases). The 24-test UMCD integrity module, five standardized retry cases, six NR trajectory-store cases, and 43-test NR streaming/memory/UMCD slice pass. Three isolated public NR write/read runs processed 16/128/512 records at 43,763/350,196/1,400,935 on-disk bytes and measured incremental process high-water RSS of 36,679,680/37,429,248/38,301,696 bytes relative to a 572,334,080-byte pre-store high-water baseline. An isolated UMCD one-bundle run measured no peak increase above the same test-process baseline for its 9,384-byte fixture. These are small synthetic observations, not memory bounds; the NR first-pass overhead and Python/ML runtime dominate this tiny fixture. Remaining work is a meaningful UMCD size sweep with denser/larger bundles, broader repeatability, and an empirically justified corpus memory envelope.",
+      "evidence_file_sha256": {},
       "evidence_links": {
-        "cli_entries": [
-          "scripts/measure_nr_store_memory.py"
-        ],
+        "cli_entries": [],
         "documentation": [],
         "other_files": [],
         "regression_files": [],
@@ -4077,9 +4073,9 @@
         "source_modules": []
       },
       "feature_id": "PKG08-024",
-      "implementation_status": "partial",
-      "implementation_status_basis": "linked_repository_evidence",
-      "link_status": "linked",
+      "implementation_status": "absent",
+      "implementation_status_basis": "open_without_linked_or_partial_evidence",
+      "link_status": "unmapped",
       "package": {
         "number": 8,
         "title": "G7 — target contracts, release storage, lineage, and coverage"
@@ -5104,19 +5100,19 @@
   "schema": "loslab.implementation_feature_map.v3",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "ce10e8545db0d8396bb541dbf5296bb3dc27d7f43cd038c954217139ca1c6ef6"
+    "sha256": "86cd610050e725b90cbe43f910e1905fd10ffd2b8fd3eb8e8a3953eab03c6363"
   },
   "summary": {
     "feature_count": 182,
     "implementation_status_counts": {
-      "absent": 26,
+      "absent": 27,
       "code_complete": 130,
       "externally_blocked": 0,
-      "partial": 26
+      "partial": 25
     },
-    "linked_count": 44,
+    "linked_count": 43,
     "marked_done_count": 130,
     "open_count": 52,
-    "unmapped_count": 138
+    "unmapped_count": 139
   }
 }

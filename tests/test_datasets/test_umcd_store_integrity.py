@@ -686,6 +686,7 @@ def test_g7_complex_cfr_target_survives_episode_store_round_trip(tmp_path):
 
 def test_umcd_episode_store_process_peak_rss_diagnostic(tmp_path):
     """Measure an isolated process exercising the public UMCD read/write path."""
+    baseline_rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     bundle = _episode_bundle()
     stored = write_episode_bundle(tmp_path, bundle)
     loaded = read_episode_bundle(tmp_path, stored)
@@ -693,6 +694,9 @@ def test_umcd_episode_store_process_peak_rss_diagnostic(tmp_path):
 
     raw_rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     peak_rss_bytes = int(raw_rss * 1024 if sys.platform.startswith("linux") else raw_rss)
+    baseline_rss_bytes = int(
+        baseline_rss * 1024 if sys.platform.startswith("linux") else baseline_rss
+    )
     store_bytes = sum(path.stat().st_size for path in tmp_path.rglob("*") if path.is_file())
     report = {
         "schema": "synthetic.umcd_episode_store_rss_measurement.v1",
@@ -700,7 +704,9 @@ def test_umcd_episode_store_process_peak_rss_diagnostic(tmp_path):
         "bundles_written": 1,
         "bundles_read": 1,
         "store_disk_bytes": store_bytes,
+        "process_peak_rss_before_store_bytes": baseline_rss_bytes,
         "process_peak_rss_bytes": peak_rss_bytes,
+        "incremental_peak_rss_bytes": max(0, peak_rss_bytes - baseline_rss_bytes),
         "scope": "one-process public UMCD episode-bundle write and complete read",
     }
     print(json.dumps(report, sort_keys=True))

@@ -70,6 +70,7 @@ def main() -> int:
     if min(args.records, args.symbols, args.subcarriers, args.shard_bytes) <= 0:
         parser.error("all numeric arguments must be positive")
 
+    baseline_peak_rss_bytes = _max_rss_bytes()
     with tempfile.TemporaryDirectory(prefix="nr-store-rss-") as temporary:
         root = Path(temporary)
         for index in range(args.records):
@@ -85,6 +86,7 @@ def main() -> int:
             len(shard) for shard in iter_nr_record_shards(root, max_shard_bytes=args.shard_bytes)
         )
         stored_bytes = sum(path.stat().st_size for path in root.rglob("*") if path.is_file())
+    process_peak_rss_bytes = _max_rss_bytes()
 
     print(
         json.dumps(
@@ -97,7 +99,11 @@ def main() -> int:
                 "subcarriers": args.subcarriers,
                 "shard_budget_bytes": args.shard_bytes,
                 "store_disk_bytes": stored_bytes,
-                "process_peak_rss_bytes": _max_rss_bytes(),
+                "process_peak_rss_before_store_bytes": baseline_peak_rss_bytes,
+                "process_peak_rss_bytes": process_peak_rss_bytes,
+                "incremental_peak_rss_bytes": max(
+                    0, process_peak_rss_bytes - baseline_peak_rss_bytes
+                ),
                 "platform": platform.platform(),
                 "scope": "one-process public NR store serialization and full deterministic read pass",
             },
