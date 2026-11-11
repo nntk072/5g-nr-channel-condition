@@ -4062,10 +4062,14 @@
     {
       "backlog_line": 422,
       "backlog_status": "open",
-      "description": "Complete cross-format corruption and retry/failure accounting, audit every promised storage format under interrupted writes, and establish measured memory behavior for the actual full read/write path rather than only conservative accounting models. Episode-store corruption coverage spans all eight layer namespaces (episode, path oracle, counterfactual, channel, target, receiver observation, provenance, and scenario GBSM); targeted interruption/retry cases now include counterfactual, scenario-GBSM, provenance, and receiver-observation objects, in addition to generic mid-object and pre-manifest failure cases. Provenance subject-layer identities match scenario/counterfactual layers. NR record storage has focused regressions for content-object publication failure, manifest publication failure after object commit, immutable retry/read-back, temporary-file cleanup, and content-address tampering; NR trajectory storage covers partial record/index publication retry and trajectory-content tampering. The NR data/store and UMCD episode-store modules previously passed together (83 tests), including immutable NR path conflicts reported as `FileExistsError`. Remaining serialization formats, systematic retry coverage, and measured full-path RSS remain open.",
-      "evidence_file_sha256": {},
+      "description": "Complete cross-format corruption and retry/failure accounting, audit every promised storage format under interrupted writes, and establish measured memory behavior for the actual full read/write path rather than only conservative accounting models. Episode-store corruption coverage spans all eight layer namespaces (episode, path oracle, counterfactual, channel, target, receiver observation, provenance, and scenario GBSM); targeted interruption/retry cases now include counterfactual, scenario-GBSM, provenance, and receiver-observation objects, in addition to generic mid-object and pre-manifest failure cases. Provenance subject-layer identities match scenario/counterfactual layers. NR record storage has focused regressions for content-object publication failure, manifest publication failure after object commit, immutable retry/read-back, temporary-file cleanup, and content-address tampering; NR trajectory storage covers partial record/index publication retry and trajectory-content tampering. The NR data/store, NR streaming, and UMCD integrity slices pass 43 focused tests. `scripts/measure_nr_store_memory.py` now measures process peak RSS while exercising public NR write and complete deterministic shard-read APIs; a 16-record synthetic run reported 609,644,544 bytes peak RSS and 43,763 on-disk bytes. This is one-process, small-fixture diagnostic only. Remaining serialization-format failure matrices, actual UMCD full-path RSS, scaling runs, and an empirically justified corpus memory envelope remain open.",
+      "evidence_file_sha256": {
+        "scripts/measure_nr_store_memory.py": "fd723eddf93a1f5fb285be9f5927e5350c668f8217fff2d293cc6ed838b5ba04"
+      },
       "evidence_links": {
-        "cli_entries": [],
+        "cli_entries": [
+          "scripts/measure_nr_store_memory.py"
+        ],
         "documentation": [],
         "other_files": [],
         "regression_files": [],
@@ -4073,9 +4077,9 @@
         "source_modules": []
       },
       "feature_id": "PKG08-024",
-      "implementation_status": "absent",
-      "implementation_status_basis": "open_without_linked_or_partial_evidence",
-      "link_status": "unmapped",
+      "implementation_status": "partial",
+      "implementation_status_basis": "linked_repository_evidence",
+      "link_status": "linked",
       "package": {
         "number": 8,
         "title": "G7 — target contracts, release storage, lineage, and coverage"
@@ -5100,19 +5104,19 @@
   "schema": "loslab.implementation_feature_map.v3",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "dde427e8173497747f4149bac27c35467a132ebbaf6cd6046bd25245ad50d379"
+    "sha256": "47e69c37ecfb0a441e92bfc775aea252cf8510cca6ac213be09c78b3fdce3fa1"
   },
   "summary": {
     "feature_count": 182,
     "implementation_status_counts": {
-      "absent": 27,
+      "absent": 26,
       "code_complete": 130,
       "externally_blocked": 0,
-      "partial": 25
+      "partial": 26
     },
-    "linked_count": 43,
+    "linked_count": 44,
     "marked_done_count": 130,
     "open_count": 52,
-    "unmapped_count": 139
+    "unmapped_count": 138
   }
 }

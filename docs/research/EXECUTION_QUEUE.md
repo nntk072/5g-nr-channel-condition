@@ -227,18 +227,16 @@ does not resolve whether the one native miss reflects finite-sample variation
 or an oracle/implementation discrepancy. Keep the original result failed. The
 separate post-hoc 65,536-draw diagnostic cannot replace it.
 
-`E01.PKG07` is source-audited. `E01.PKG08` is active: rows `PKG08-001` through
-`PKG08-016` now have source/test evidence and separate software/qualification
-statuses. `PKG08-015` is partial with signer custody and authoritative inventory
-recorded as external blockers; `PKG08-016` has a complete software audit, with
-reviewer custody and evidence truth still external. The 219-test target/NR/
-storage slice, signature/tamper checks, and 40-test corpus-auditor module pass.
-`PKG08-017` remains partial after its scalar-boundary test slice (7 passed);
-its full closure depends on auditing `PKG08-018` through `PKG08-022`. `PKG08-018` is source-audited complete for its named data-object routes (10
-focused adapter/profile-holdout tests); `PKG08-019` now has 8 passing focused
-value/shape regressions and is complete within the registered-adapter scope.
-Continue with `PKG08-020` through `PKG08-022`, then return to close or disposition `PKG08-017`, followed by
-`PKG08-023` through `PKG08-039`,
+`E01.PKG07` is source-audited. `E01.PKG08` is active. Rows `PKG08-001` through
+`PKG08-022` have source/test evidence and separate software/qualification
+statuses. `PKG08-015` remains partial on trusted signer custody and authoritative
+inventory; `PKG08-016` is software-complete while reviewer custody/evidence
+truth remain external. `PKG08-017` and the broader producer audit remain
+partial. The NR streaming, synthetic memory-scaling, and UMCD integrity slices
+pass 43 focused tests. A bounded synthetic RSS command now exercises the public
+NR write/read path; actual UMCD RSS, broader failure matrices, and corpus-scale
+memory claims remain open. Continue with `PKG08-023`/`PKG08-024` source audit
+and remaining storage gaps, then `PKG08-025` through `PKG08-039`,
 then packages 09–10, `E01.DS.GATES`, `E01.RS.PHASES`, `E01.RS.APPENDIX_E`, and
 `E01.CROSSWALK`.
 Each package batch is the fixed set of `PKGnn-*` IDs in the ledger and closes

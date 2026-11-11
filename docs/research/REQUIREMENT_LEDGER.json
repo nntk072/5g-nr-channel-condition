@@ -10845,19 +10845,26 @@
       ],
       "requirement": "Complete cross-format corruption and retry/failure accounting, audit every promised storage format under interrupted writes, and establish measured memory behavior for the actual full read/write path rather than only conservative accounting models. Episode-store corruption coverage spans all eight layer namespaces (episode, path oracle, counterfactual, channel, target, receiver observation, provenance, and scenario GBSM); targeted interruption/retry cases now include counterfactual, scenario-GBSM, provenance, and receiver-observation objects, in addition to generic mid-object and pre-manifest failure cases. Provenance subject-layer identities match scenario/counterfactual layers. NR record storage has focused regressions for content-object publication failure, manifest publication failure after object commit, immutable retry/read-back, temporary-file cleanup, and content-address tampering; NR trajectory storage covers partial record/index publication retry and trajectory-content tampering. The NR data/store and UMCD episode-store modules previously passed together (83 tests), including immutable NR path conflicts reported as `FileExistsError`. Remaining serialization formats, systematic retry coverage, and measured full-path RSS remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Synthetic bounded NR store measurements and focused immutable-store corruption/retry regressions only; production-corpus memory limits and complete cross-format failure accounting remain open.",
+        "authority_basis": "Mandatory storage-integrity and bounded-memory deliverable in the implementation backlog; scientific release qualification is separate."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "datasets/episode_store.py",
+          "datasets/nr_store.py",
+          "tests/test_datasets/test_nr_store_memory_scaling.py",
+          "tests/test_datasets/test_nr_store_streaming.py",
+          "tests/test_datasets/test_umcd_store_integrity.py",
+          "scripts/measure_nr_store_memory.py"
+        ],
+        "basis": "Focused existing coverage exercises immutable NR and UMCD stores, and the new bounded diagnostic measures process peak RSS across public NR write plus complete deterministic shard read. UMCD full-path RSS, remaining format failure matrices, scaling runs, and a corpus memory envelope are not delivered."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_datasets/test_nr_store_memory_scaling.py tests/test_datasets/test_nr_store_streaming.py tests/test_datasets/test_umcd_store_integrity.py (43 passed); .venv/bin/python scripts/measure_nr_store_memory.py --records 16 --shard-bytes 1048576 (16 written/read, peak RSS 609644544 bytes, 43763 store bytes).",
+        "commit": "Focused worktree verification on 2026-11-11; measurement is a one-process synthetic NR diagnostic, not qualification."
       },
       "qualification": {
         "status": "not_qualified",
@@ -10866,9 +10873,9 @@
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Per-format immutable-store integrity/failure evidence and measured bounded full-path memory behavior for NR and UMCD storage.",
+        "pass_rule": "Every promised format has content-corruption and interruption/retry coverage, and retained representative full-path RSS/scaling evidence supports an explicit memory envelope; no scientific qualification is inferred.",
+        "next_task": "Add UMCD end-to-end RSS measurement and complete remaining format failure matrices; retain corpus-scale memory claims as blocked until representative storage/input sizes are available."
       },
       "plan_mark": "not_checklist"
     },

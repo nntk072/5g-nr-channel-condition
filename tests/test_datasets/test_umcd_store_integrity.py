@@ -41,6 +41,7 @@ from datasets.split_policy import (
     make_split_policy_registry,
 )
 from datasets.targets import (
+    CensoringInterval,
     TargetDefinition,
     TargetValidity,
     TargetValue,
@@ -69,6 +70,7 @@ def _versioned_delay_target() -> TargetValue:
         valid_mask=np.asarray([True, False, True]),
         reason_codes=(TargetValidity.VALID, TargetValidity.CENSORED, TargetValidity.VALID),
         confidence="synthetic_fixture",
+        censoring_intervals=(None, CensoringInterval(lower=0.0), None),
     )
 
 
