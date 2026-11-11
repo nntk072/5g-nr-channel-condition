@@ -1,7 +1,7 @@
 {
   "schema": "loslab.requirement-ledger.v1",
-  "status_note": "Traceability index covering all 182 backlog IDs, 104 numbered unified-plan criteria, and 30 dataset/research gate or phase records. Source audits are complete for PKG00-05. PKG05 rows 001/002/003/004/005/007/008/009/010/011/012/013/014/016/017/018/019/020/021/022/023/024/025 have bounded dispositions; 006/015/026 remain partial aggregate G4 scope. PKG06 rows 001–036 are source-audited with bounded complete/partial dispositions; PKG07-001/002/003/004/005 are source-audited partials with focused regression slices; remaining package/gate audits stay open. Checked plan boxes are preserved as source marks, never treated as implementation or scientific qualification. Feature-map heuristics do not determine ledger status. DS.G3.01–DS.G3.12 were source-audited at 32fa52c; their software states and external scientific blockers are separate, and every G3 qualification remains not_qualified. DS.G0.01–DS.G0.08 source-audited after G3; environment, host solver smoke, dynamic identity edge coverage, legacy report provenance, and per-scene ODbL release evidence remain explicit blockers. DS.G1.01–DS.G1.10 source-audited; independent geometry/LOS contracts are bounded, while native solver behavior, motion interpolation, and scene-family independence remain open. DS.G2.01–DS.G2.15 source-audited; analytical/mask/storage contracts exist, while selected-host native API, path/CFR, power-scale, MIMO and polarization evidence remain open. DS.G4.01–DS.G4.09 source-audited against pinned profile adapters, reference contracts, statistical test families, and standardized admission. Full suites were not run in this implementation pass; G4 remains not_qualified, with G4.07 explicitly partial for bounded support coverage. DS.G5.01–DS.G5.15 source-audited; software routes cover bounded NR waveform, estimator, noise, impairment, observation, and input-firewall contracts, while calibrated receiver evidence and criterion-driven G5 qualification remain open. DS.G6.01–DS.G6.10 source-audited; time, target, path-evolution, gauge, censoring and split contracts are bounded, while calibrated motion, physical interventions and deployment-causal input admission remain open. DS.G7.01–DS.G7.15 source-audited; storage/mask/split/release/model-input software contracts are bounded, with full family inventory, input-route coverage, production-scale memory and per-scene ODbL eligibility still open.",
-  "source_checkpoint": "781be39; DS.G7 source audit recorded 2026-11-11",
+  "status_note": "Traceability index covering all 182 backlog IDs, 104 numbered unified-plan criteria, and 30 dataset/research gate or phase records. Source audits are complete for PKG00-05. PKG05 rows 001/002/003/004/005/007/008/009/010/011/012/013/014/016/017/018/019/020/021/022/023/024/025 have bounded dispositions; 006/015/026 remain partial aggregate G4 scope. PKG06 rows 001–036 are source-audited with bounded complete/partial dispositions; PKG07-001/002/003/004/005 are source-audited partials with focused regression slices; remaining package/gate audits stay open. Checked plan boxes are preserved as source marks, never treated as implementation or scientific qualification. Feature-map heuristics do not determine ledger status. DS.G3.01–DS.G3.12 were source-audited at 32fa52c; their software states and external scientific blockers are separate, and every G3 qualification remains not_qualified. DS.G0.01–DS.G0.08 source-audited after G3; environment, host solver smoke, dynamic identity edge coverage, legacy report provenance, and per-scene ODbL release evidence remain explicit blockers. DS.G1.01–DS.G1.10 source-audited; independent geometry/LOS contracts are bounded, while native solver behavior, motion interpolation, and scene-family independence remain open. DS.G2.01–DS.G2.15 source-audited; analytical/mask/storage contracts exist, while selected-host native API, path/CFR, power-scale, MIMO and polarization evidence remain open. DS.G4.01–DS.G4.09 source-audited against pinned profile adapters, reference contracts, statistical test families, and standardized admission. Full suites were not run in this implementation pass; G4 remains not_qualified, with G4.07 explicitly partial for bounded support coverage. DS.G5.01–DS.G5.15 source-audited; software routes cover bounded NR waveform, estimator, noise, impairment, observation, and input-firewall contracts, while calibrated receiver evidence and criterion-driven G5 qualification remain open. DS.G6.01–DS.G6.10 source-audited; time, target, path-evolution, gauge, censoring and split contracts are bounded, while calibrated motion, physical interventions and deployment-causal input admission remain open. DS.G7.01–DS.G7.15 source-audited; storage/mask/split/release/model-input software contracts are bounded, with full family inventory, input-route coverage, production-scale memory and per-scene ODbL eligibility still open. DS.G8.01–DS.G8.10 source-audited; metrics/support, priors, null controls, leakage boundaries and some baselines are implemented, but selection bias, full classic baselines, physically independent cohorts and external measured evaluation remain open.",
+  "source_checkpoint": "67b7914; DS.G8 source audit recorded 2026-11-11",
   "requirements": [
     {
       "requirement_id": "DS.G0",
@@ -4330,14 +4330,23 @@
       "backlog_aliases": [],
       "requirement": "Gate G8 — independent statistical and fairness checks",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Hard statistical validity, fairness, observability, leakage, and external-domain gate for all MVP evaluation and deployment claims.",
+        "authority_basis": "Governing unified-plan Gate G8 is a hard stop gate; all ten numbered criteria were source-audited against evaluation statistics, calibration, priors, baseline routes, split contracts, and external-data requirements."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "governing-plan requirement needs source-level reconciliation"
+        "status": "partial",
+        "evidence": [
+          "evaluation/statistics.py",
+          "evaluation/class_support.py",
+          "evaluation/low_confidence.py",
+          "evaluation/population_audit.py",
+          "evaluation/target_coverage.py",
+          "experiments/runner.py",
+          "experiments/pilot_sampling.py",
+          "datasets/public_release.py"
+        ],
+        "basis": "Effective-group support, single-class handling, prior-separated pilots, missing/low-confidence accounting, split-bound tuning/calibration, and null controls exist. Selection-bias closure, complete classic baseline roster, external held-out measured data, and representative independent-unit sampling remain incomplete."
       },
       "verification": {
         "status": "not_run",
@@ -4349,11 +4358,16 @@
         "evidence": []
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "No authoritative representative frozen cohort or physically independent sampling-unit evidence.",
+        "No complete deployed prior or source-family selection-bias assessment.",
+        "No independently sourced measured held-out domain with permitted labels and verified clocks.",
+        "Some applicable classic observability baselines remain absent/uncataloged."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "G8.01–G8.10 statistically valid, leakage-free evaluation with family/prior coverage, observability baselines, and independently verified measured-domain evaluation where claimed.",
+        "pass_rule": "Every claimed result uses its frozen support and independent-unit design, passes preregistered controls/threshold/calibration rules without sealed-test queries, and includes permitted/source-verified external evaluation where required; otherwise the claim is withheld.",
+        "next_task": "Finish the remaining dataset-gate records, then reconcile research phases and complete the crosswalk before authorizing advanced training or benchmark evaluation."
       },
       "plan_mark": "not_checklist"
     },
@@ -4366,14 +4380,19 @@
       "requirement": "held-out scenes have both label classes for AUROC or explicitly mark AUROC undefined.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G8.01 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard statistical-validity, fairness, baseline, leakage, and measured-domain criterion for any MVP performance claim; model-score software contracts do not establish representative independent inputs.",
+        "authority_basis": "Mandatory numbered acceptance criterion G8.01 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "evaluation/statistics.py",
+          "evaluation/class_support.py",
+          "experiments/runner.py",
+          "tests/test_evaluation/test_class_support.py"
+        ],
+        "basis": "Evaluation reports class support and refuses or explicitly marks undefined single-class AUROC cases rather than inventing a ranking metric."
       },
       "verification": {
         "status": "not_run",
@@ -4384,14 +4403,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Actual held-out scene class presence depends on the incomplete authoritative corpus inventory."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "held-out scenes have both label classes for AUROC or explicitly mark AUROC undefined.",
+        "pass_rule": "Run on an authoritative frozen cohort with valid independent units, separate natural/stress priors, predeclared controls/baselines, no test leakage, and independently verified measured-domain evidence where claimed; software-only/synthetic checks do not qualify model performance.",
+        "next_task": "Complete the source-family candidate inventory and baseline/input-route gaps; before model training, freeze the cohort, sampling unit, priors, null controls, threshold/calibration rules, and external evaluation permissions."
       }
     },
     {
@@ -4403,14 +4422,20 @@
       "requirement": "effective group sample counts used for CIs; not millions of correlated frames treated as millions of trials.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G8.02 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard statistical-validity, fairness, baseline, leakage, and measured-domain criterion for any MVP performance claim; model-score software contracts do not establish representative independent inputs.",
+        "authority_basis": "Mandatory numbered acceptance criterion G8.02 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "evaluation/class_support.py",
+          "evaluation/statistics.py",
+          "experiments/runner.py",
+          "tests/test_evaluation/test_class_support.py",
+          "tests/test_evaluation/test_paired_regression_statistics.py"
+        ],
+        "basis": "Per-partition reports retain row and declared-group counts plus Kish effective group size; paired uncertainty procedures use declared group/seed units rather than treating correlated frames as independent trials."
       },
       "verification": {
         "status": "not_run",
@@ -4421,14 +4446,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Caller-declared groups do not prove physical independence; authoritative unit identity and powered design are missing."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "effective group sample counts used for CIs; not millions of correlated frames treated as millions of trials.",
+        "pass_rule": "Run on an authoritative frozen cohort with valid independent units, separate natural/stress priors, predeclared controls/baselines, no test leakage, and independently verified measured-domain evidence where claimed; software-only/synthetic checks do not qualify model performance.",
+        "next_task": "Complete the source-family candidate inventory and baseline/input-route gaps; before model training, freeze the cohort, sampling unit, priors, null controls, threshold/calibration rules, and external evaluation permissions."
       }
     },
     {
@@ -4440,14 +4465,19 @@
       "requirement": "natural deployment priors and balanced stress priors evaluated separately; calibration corrected only with documented priors.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G8.03 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard statistical-validity, fairness, baseline, leakage, and measured-domain criterion for any MVP performance claim; model-score software contracts do not establish representative independent inputs.",
+        "authority_basis": "Mandatory numbered acceptance criterion G8.03 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "experiments/pilot_sampling.py",
+          "evaluation/probability_calibration.py",
+          "experiments/runner.py",
+          "tests/test_experiments/test_pilot_sampling.py"
+        ],
+        "basis": "Natural-prevalence and enriched-stress priors/rosters are separately represented; calibration APIs retain explicit labels and prior fields rather than silently pooling the two populations."
       },
       "verification": {
         "status": "not_run",
@@ -4458,14 +4488,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Natural deployment prevalence and a validated sampling frame are not externally established."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "natural deployment priors and balanced stress priors evaluated separately; calibration corrected only with documented priors.",
+        "pass_rule": "Run on an authoritative frozen cohort with valid independent units, separate natural/stress priors, predeclared controls/baselines, no test leakage, and independently verified measured-domain evidence where claimed; software-only/synthetic checks do not qualify model performance.",
+        "next_task": "Complete the source-family candidate inventory and baseline/input-route gaps; before model training, freeze the cohort, sampling unit, priors, null controls, threshold/calibration rules, and external evaluation permissions."
       }
     },
     {
@@ -4477,14 +4507,20 @@
       "requirement": "missing/low-confidence oracle items tracked and selection-bias audited.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G8.04 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard statistical-validity, fairness, baseline, leakage, and measured-domain criterion for any MVP performance claim; model-score software contracts do not establish representative independent inputs.",
+        "authority_basis": "Mandatory numbered acceptance criterion G8.04 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "evaluation/low_confidence.py",
+          "evaluation/population_audit.py",
+          "evaluation/target_coverage.py",
+          "tests/test_evaluation/test_low_confidence.py",
+          "tests/test_evaluation/test_population_audit.py"
+        ],
+        "basis": "Missing/low-confidence outcomes and target-support coverage can be reported; a cohort-wide selection-bias analysis linking unavailable oracle cases to scene/material/solver covariates is not complete."
       },
       "verification": {
         "status": "not_run",
@@ -4495,14 +4531,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "No complete external candidate frame or admitted oracle-availability model for selection-bias assessment."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "missing/low-confidence oracle items tracked and selection-bias audited.",
+        "pass_rule": "Run on an authoritative frozen cohort with valid independent units, separate natural/stress priors, predeclared controls/baselines, no test leakage, and independently verified measured-domain evidence where claimed; software-only/synthetic checks do not qualify model performance.",
+        "next_task": "Complete the source-family candidate inventory and baseline/input-route gaps; before model training, freeze the cohort, sampling unit, priors, null controls, threshold/calibration rules, and external evaluation permissions."
       }
     },
     {
@@ -4514,14 +4550,18 @@
       "requirement": "dataset release includes at least one unseen site/material/antenna domain and a frozen external measured evaluation appropriate to measured fields.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G8.05 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard statistical-validity, fairness, baseline, leakage, and measured-domain criterion for any MVP performance claim; model-score software contracts do not establish representative independent inputs.",
+        "authority_basis": "Mandatory numbered acceptance criterion G8.05 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "datasets/public_release.py",
+          "datasets/scenario_gbsm.py",
+          "evaluation/population_audit.py"
+        ],
+        "basis": "The data model and release path can represent source families and separate measured artifacts, but no complete unseen-site/material/antenna-domain release cohort or frozen external measured evaluation is present."
       },
       "verification": {
         "status": "not_run",
@@ -4532,14 +4572,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "No externally verified measured dataset with permitted labels and release-eligible license/provenance for the claimed held-out domain."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "dataset release includes at least one unseen site/material/antenna domain and a frozen external measured evaluation appropriate to measured fields.",
+        "pass_rule": "Run on an authoritative frozen cohort with valid independent units, separate natural/stress priors, predeclared controls/baselines, no test leakage, and independently verified measured-domain evidence where claimed; software-only/synthetic checks do not qualify model performance.",
+        "next_task": "Complete the source-family candidate inventory and baseline/input-route gaps; before model training, freeze the cohort, sampling unit, priors, null controls, threshold/calibration rules, and external evaluation permissions."
       }
     },
     {
@@ -4551,14 +4591,20 @@
       "requirement": "calibrations, normalization transforms and synthetic material fits trained on train-only data (or explicitly on calibration partition), never on test.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G8.06 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard statistical-validity, fairness, baseline, leakage, and measured-domain criterion for any MVP performance claim; model-score software contracts do not establish representative independent inputs.",
+        "authority_basis": "Mandatory numbered acceptance criterion G8.06 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "experiments/runner.py",
+          "datasets/splits.py",
+          "evaluation/probability_calibration.py",
+          "datasets/splits.py",
+          "tests/test_experiments/test_runner.py"
+        ],
+        "basis": "The canonical runner binds disjoint train/validation/calibration/test assignments and routes tuning/calibration separately from sealed test rows; saved input/split contracts are replay checked."
       },
       "verification": {
         "status": "not_run",
@@ -4569,14 +4615,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Physical split independence and authorized qualified input availability remain external prerequisites."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "calibrations, normalization transforms and synthetic material fits trained on train-only data (or explicitly on calibration partition), never on test.",
+        "pass_rule": "Run on an authoritative frozen cohort with valid independent units, separate natural/stress priors, predeclared controls/baselines, no test leakage, and independently verified measured-domain evidence where claimed; software-only/synthetic checks do not qualify model performance.",
+        "next_task": "Complete the source-family candidate inventory and baseline/input-route gaps; before model training, freeze the cohort, sampling unit, priors, null controls, threshold/calibration rules, and external evaluation permissions."
       }
     },
     {
@@ -4588,14 +4634,20 @@
       "requirement": "independent classic estimator baselines (PDP, peak delay, MUSIC/ESPRIT where applicable, OMP/SAGE/matched-filter etc.) used to check whether difficult ground truth is actually observable.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G8.07 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard statistical-validity, fairness, baseline, leakage, and measured-domain criterion for any MVP performance claim; model-score software contracts do not establish representative independent inputs.",
+        "authority_basis": "Mandatory numbered acceptance criterion G8.07 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "experiments/runner.py",
+          "datasets/analytical.py",
+          "integrations/sionna/path_power_threshold.py",
+          "tests/test_datasets/test_analytical.py",
+          "tests/test_integrations/test_rt_path_power_threshold.py"
+        ],
+        "basis": "Receiver-visible estimators, PDP/delay statistics, and bounded sparse OMP/BIC routes are implemented; complete classic baseline coverage such as applicable MUSIC/ESPRIT or SAGE/matched-filter routes across the claimed support is not established."
       },
       "verification": {
         "status": "not_run",
@@ -4606,14 +4658,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Some requested classic estimators remain absent or scope-dependent; no qualified truth cohort is available for observability comparison."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "independent classic estimator baselines (PDP, peak delay, MUSIC/ESPRIT where applicable, OMP/SAGE/matched-filter etc.) used to check whether difficult ground truth is actually observable.",
+        "pass_rule": "Run on an authoritative frozen cohort with valid independent units, separate natural/stress priors, predeclared controls/baselines, no test leakage, and independently verified measured-domain evidence where claimed; software-only/synthetic checks do not qualify model performance.",
+        "next_task": "Complete the source-family candidate inventory and baseline/input-route gaps; before model training, freeze the cohort, sampling unit, priors, null controls, threshold/calibration rules, and external evaluation permissions."
       }
     },
     {
@@ -4625,14 +4677,19 @@
       "requirement": "null/falsification controls: time shuffled, phase randomized, source-ID-only, power-only, metadata-only, label-permuted and oracle-leak checks. The common runner provides observed-CFR-only log power under contract v3, seeded phase randomization under v4, training-row shuffling under v6, source-only under v7, metadata-only under v8, group-only and domain-only under v11/v12, training-label permutation under v5, and an explicitly non-deployable oracle-label leakage control under v9. Two additional CFR-only routes now provide a normalized delay/K-like PDP proxy and a bounded sparse OMP/BIC feature baseline under v13; these are mathematical software baselines, not calibrated physical estimators. See `docs/research/BASELINE_CONTROLS_WORKFLOW.md`. The criterion-driven control suite, parameter-matched neural comparisons, and scientific evaluation remain open.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G8.08 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard statistical-validity, fairness, baseline, leakage, and measured-domain criterion for any MVP performance claim; model-score software contracts do not establish representative independent inputs.",
+        "authority_basis": "Mandatory numbered acceptance criterion G8.08 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "experiments/runner.py",
+          "datasets/model_input_audit.py",
+          "tests/test_experiments/test_runner.py",
+          "tests/test_datasets/test_nr_model_input_firewall.py"
+        ],
+        "basis": "The common runner exposes bounded metadata-only, source-ID-only, power-only/log-power, time-order/phase controls and oracle-firewall routes as explicit diagnostics; these are not ordinary deployment predictors."
       },
       "verification": {
         "status": "not_run",
@@ -4643,14 +4700,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Not all controls are materialized against every future source family until the final route inventory is frozen."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "null/falsification controls: time shuffled, phase randomized, source-ID-only, power-only, metadata-only, label-permuted and oracle-leak checks. The common runner provides observed-CFR-only log power under contract v3, seeded phase randomization under v4, training-row shuffling under v6, source-only under v7, metadata-only under v8, group-only and domain-only under v11/v12, training-label permutation under v5, and an explicitly non-deployable oracle-label leakage control under v9. Two additional CFR-only routes now provide a normalized delay/K-like PDP proxy and a bounded sparse OMP/BIC feature baseline under v13; these are mathematical software baselines, not calibrated physical estimators. See `docs/research/BASELINE_CONTROLS_WORKFLOW.md`. The criterion-driven control suite, parameter-matched neural comparisons, and scientific evaluation remain open.",
+        "pass_rule": "Run on an authoritative frozen cohort with valid independent units, separate natural/stress priors, predeclared controls/baselines, no test leakage, and independently verified measured-domain evidence where claimed; software-only/synthetic checks do not qualify model performance.",
+        "next_task": "Complete the source-family candidate inventory and baseline/input-route gaps; before model training, freeze the cohort, sampling unit, priors, null controls, threshold/calibration rules, and external evaluation permissions."
       }
     },
     {
@@ -4662,14 +4719,19 @@
       "requirement": "preregistered threshold selection and calibration do not query sealed test outcomes.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G8.09 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard statistical-validity, fairness, baseline, leakage, and measured-domain criterion for any MVP performance claim; model-score software contracts do not establish representative independent inputs.",
+        "authority_basis": "Mandatory numbered acceptance criterion G8.09 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "experiments/runner.py",
+          "datasets/splits.py",
+          "evaluation/probability_calibration.py",
+          "tests/test_experiments/test_runner.py"
+        ],
+        "basis": "Model selection is bound to train/validation splits and calibration uses a separate calibration partition; sealed test results are scored only after the candidate is frozen."
       },
       "verification": {
         "status": "not_run",
@@ -4680,14 +4742,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "External reviewer custody and benchmark-cohort availability are not yet complete."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "preregistered threshold selection and calibration do not query sealed test outcomes.",
+        "pass_rule": "Run on an authoritative frozen cohort with valid independent units, separate natural/stress priors, predeclared controls/baselines, no test leakage, and independently verified measured-domain evidence where claimed; software-only/synthetic checks do not qualify model performance.",
+        "next_task": "Complete the source-family candidate inventory and baseline/input-route gaps; before model training, freeze the cohort, sampling unit, priors, null controls, threshold/calibration rules, and external evaluation permissions."
       }
     },
     {
@@ -4699,14 +4761,19 @@
       "requirement": "externally measured artifacts are independently source-verified, correctly timestamp-aligned and have explicit permitted target labels.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G8.10 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard statistical-validity, fairness, baseline, leakage, and measured-domain criterion for any MVP performance claim; model-score software contracts do not establish representative independent inputs.",
+        "authority_basis": "Mandatory numbered acceptance criterion G8.10 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "datasets/public_release.py",
+          "datasets/provenance.py",
+          "evaluation/population_audit.py",
+          "tests/test_datasets/test_public_release.py"
+        ],
+        "basis": "Hash-bound source, timestamp, target-label, license, and provenance contracts exist for externally measured artifacts; no admitted independently source-verified and time-aligned measured corpus is available."
       },
       "verification": {
         "status": "not_run",
@@ -4717,14 +4784,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "No external measured source package with independently verified bytes, clock alignment, permitted target labels, and custody."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "externally measured artifacts are independently source-verified, correctly timestamp-aligned and have explicit permitted target labels.",
+        "pass_rule": "Run on an authoritative frozen cohort with valid independent units, separate natural/stress priors, predeclared controls/baselines, no test leakage, and independently verified measured-domain evidence where claimed; software-only/synthetic checks do not qualify model performance.",
+        "next_task": "Complete the source-family candidate inventory and baseline/input-route gaps; before model training, freeze the cohort, sampling unit, priors, null controls, threshold/calibration rules, and external evaluation permissions."
       }
     },
     {

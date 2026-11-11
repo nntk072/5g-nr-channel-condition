@@ -313,8 +313,13 @@ Physical motion/intervention evidence and deployment-causal input admission
 remain partial. `E01.DS.GATES.G7` now maps target validity, storage,
 input-firewall, split, duplicate-screening, coverage, and export controls.
 Full family inventory, training-route coverage, production memory scale, and
-per-scene release evidence remain open. Next audit G8 and the research phase
-records.
+per-scene release evidence remain open. `E01.DS.GATES.G8` is now source-audited
+for effective groups, prior-separated cohorts, null controls, split-bound
+tuning, and measured-data gaps. No model training or sealed-test evaluation
+ran. Dataset gate source audits G0–G8 are complete; next reconcile
+`E01.RS.PHASES`, `E01.RS.APPENDIX_E`, and `E01.CROSSWALK`, then implement the
+remaining dependency-ready code gaps before broad validation or advanced
+training.
 Each package batch is the fixed set of `PKGnn-*` IDs in the ledger and closes
 only after every row has inspected source/test integration, implementation
 state, exact verification, qualification state, dependencies and closure
@@ -450,6 +455,23 @@ complete one-to-one requirement coverage and resolves dependencies/blockers.
   Etoile/Florence/Munich release-specific ODbL records remain open.
 - **Next:** audit G8 and research phases; integrate remaining source-family,
   model-route, support, and release checks against the frozen candidate roster.
+
+#### E01.DS.GATES.G8 — independent statistics and fairness (source audit complete 2026-11-11)
+
+- **Requirements:** `DS.G8`, `DS.G8.01`–`DS.G8.10`.
+- **Delivered:** criteria now map to class/effective-group support, pilot
+  priors, low-confidence and population accounting, split-bound
+  threshold/calibration, baseline/null-control routes, and external
+  measured-data contracts.
+- **Verification:** source paths and ledger structure validated by
+  `uv run --no-sync --locked python -m scripts.validate_requirement_ledger`.
+  No training, sealed-test query, or measured-data evaluation ran.
+- **Disposition:** G8 remains `not_qualified`; physical independent-unit
+  authority, selection-bias closure, complete classic baseline roster, and
+  source-verified measured held-out data remain open.
+- **Next:** reconcile research phases and Appendix E, then finish the
+  requirement crosswalk and implementation dependencies before advanced
+  training or broad evaluation.
 
 For every batch, retain the exact source files inspected in that ledger row;
 do not copy the whole chronological status history. If a row is already
