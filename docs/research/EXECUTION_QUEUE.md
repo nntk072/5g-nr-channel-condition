@@ -116,7 +116,34 @@ qualification remain open. `PKG06-002` also source-audits cleanly: shared
 proper-complex AWGN, the PUSCH estimator and seeded TDL noise reject invalid
 variance types/ranges and float32 overflow/underflow before use. Its focused
 slice passes 61 tests with one expected Torch sparse-invariant warning. These
-input-contract tests do not qualify a receiver.
+input-contract tests do not qualify a receiver. `PKG06-005` is complete in the
+bounded software scope: network PUSCH handoff rejects incomplete and trailing
+slot samples before demodulation; its focused 3-test slice passes. This does not
+establish acquisition or receiver qualification. `PKG06-003/004/006` remain
+partial: static BWP PUSCH decode and bounded network superposition/impairments
+exist, while hop-specific DMRS, transform precoding, calibrated propagation,
+complete acquisition/estimation and broad multi-cell receiver integration are
+not implemented or qualified. Keep those backend and evidence gaps visible;
+do not treat the single V100 smoke case as a G5 result.
+
+`PKG06-011/012/013/014` are now source-audited as complete within their
+bounded software contracts. The SRS schedule API enforces selected UL-BWP
+subcarrier bounds; the same-grid occupancy report rejects incomparable grid
+contexts and caps expansion; the multiport estimator records rank and
+availability per subcarrier; and its optional per-RX/per-symbol variance
+profile drives weighted LS and is retained read-only. Seven selected
+regressions pass. These checks do not establish multi-cell RF behavior,
+synchronization, or receiver qualification. Continue with `PKG06-010` and then
+the remaining package rows in dependency order.
+
+`PKG06-015` through `PKG06-020` are also source-audited within their bounded
+software scope. The retained-result path recomputes one-sided channel failure
+bounds and CRC/block counts from Boolean outcomes, binds ordered receiver and
+transport-block rosters, caps requested work before receiver initialization,
+and validates PUSCH noise before float32 conversion. Forty-five selected
+software/input-contract checks pass. The synthetic report remains
+`not_qualified`; these controls do not satisfy G5 acceptance. `PKG06-010` and
+`PKG06-021` onward remain to be reconciled in the active package audit.
 
 The frozen CDL-E four-element covariance miss is now linked to
 `M1.G4_CDL_E_FAILURE_DISPOSITION`. Its exact `Re(C[0,1])` discrepancy is
