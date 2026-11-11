@@ -97,6 +97,47 @@ def make_single_record(
     )
 
 
+def test_numpy_nr_record_construction_does_not_import_torch(monkeypatch):
+    import builtins
+
+    real_import = builtins.__import__
+
+    def reject_eager_torch_import(name, *args, **kwargs):
+        if name == "torch":
+            pytest.fail("NumPy-only NR record construction must not import Torch")
+        return real_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", reject_eager_torch_import)
+    record = make_single_record("numpy-only-record", targets={"label": np.asarray(1)})
+    assert record.observation.received_grid.dtype == np.dtype(np.complex64)
+
+
+def test_torch_nr_observation_and_target_validation_remains_supported():
+    torch = pytest.importorskip("torch")
+    estimate = NRChannelEstimate(
+        h_hat=torch.zeros((1, 1, 2, 1, 1, 14, 24), dtype=torch.complex64),
+        error_variance=torch.zeros((1, 1, 1, 1, 1, 14, 24), dtype=torch.float32),
+        pilot_mask=torch.zeros((1, 1, 14, 24), dtype=torch.bool),
+        metadata={"receiver": "torch-contract-test"},
+    )
+    observation = NRObservation(
+        sample_id="torch-observation",
+        received_grid=torch.zeros((1, 1, 2, 14, 24), dtype=torch.complex64),
+        channel_estimate=estimate,
+        fft_bin_indices=tuple(range(24)),
+        receiver_config=NRPUSCHConfig(n_size_bwp=2, subcarrier_spacing_khz=30),
+    )
+    record = NRChannelRecord(
+        observation=observation,
+        targets={"label": torch.asarray(1.0)},
+        target_masks={},
+        provenance={"source": "torch-contract-test"},
+    )
+
+    assert torch.is_tensor(observation.received_grid_mask)
+    assert record.targets["label"].shape == torch.Size([])
+
+
 def test_nr_observation_builds_inference_payload_without_sample_oracle_ids():
     observation = make_observation()
     model_inputs = observation.model_inputs()
@@ -150,9 +191,7 @@ def test_receiver_output_factory_preserves_the_authoritative_fft_bin_mapping():
         ([0, 1.5], TypeError, "only integers"),
     ],
 )
-def test_receiver_output_factory_rejects_coerced_fft_bin_mappings(
-    indices, exception, message
-):
+def test_receiver_output_factory_rejects_coerced_fft_bin_mappings(indices, exception, message):
     with pytest.raises(exception, match=message):
         NRObservation.from_receiver_output(
             sample_id="invalid-index-types",
@@ -844,9 +883,7 @@ def test_nr_record_writer_revalidates_mutable_target_arrays(tmp_path, mutate, me
         "mutated-target-record",
         targets={"label": target},
         target_masks={"label": mask},
-        target_reason_codes={
-            "label": (TargetValidity.VALID, TargetValidity.NOT_OBSERVABLE)
-        },
+        target_reason_codes={"label": (TargetValidity.VALID, TargetValidity.NOT_OBSERVABLE)},
     )
     if mutate == "masked_target":
         target[1] = 4.0

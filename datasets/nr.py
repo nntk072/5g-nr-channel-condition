@@ -24,6 +24,17 @@ def _freeze_mapping(values: Mapping[str, Any]) -> Mapping[str, Any]:
     return MappingProxyType(dict(values))
 
 
+def _torch_module_for_tensor_candidate(value: Any) -> Any | None:
+    """Load Torch only when a value is a Torch-defined class instance."""
+    if type(value).__module__.partition(".")[0] != "torch":
+        return None
+    try:
+        torch_module = import_module("torch")
+    except ImportError:
+        return None
+    return torch_module if torch_module.is_tensor(value) else None
+
+
 def _normalize_fft_bin_indices(values: Any) -> tuple[int, ...]:
     """Read an integer FFT-bin vector without truncating/coercing its values."""
     if isinstance(values, np.ndarray):
@@ -33,22 +44,24 @@ def _normalize_fft_bin_indices(values: Any) -> tuple[int, ...]:
             raise TypeError("effective_subcarrier_indices must use an integer dtype")
         raw_indices = values.tolist()
     else:
-        torch_module: Any = None
-        try:
-            torch_module = import_module("torch")
-        except ImportError:
-            pass
+        torch_module = _torch_module_for_tensor_candidate(values)
         if torch_module is not None and torch_module.is_tensor(values):
             if values.ndim != 1:
                 raise ValueError("effective_subcarrier_indices must be one-dimensional")
-            if values.dtype == torch_module.bool or values.is_floating_point() or values.is_complex():
+            if (
+                values.dtype == torch_module.bool
+                or values.is_floating_point()
+                or values.is_complex()
+            ):
                 raise TypeError("effective_subcarrier_indices must use an integer dtype")
             raw_indices = values.detach().cpu().tolist()
         else:
             try:
                 raw_indices = tuple(values)
             except TypeError as error:
-                raise TypeError("effective_subcarrier_indices must be a one-dimensional integer sequence") from error
+                raise TypeError(
+                    "effective_subcarrier_indices must be a one-dimensional integer sequence"
+                ) from error
     if any(isinstance(index, bool) or not isinstance(index, Integral) for index in raw_indices):
         raise TypeError("effective_subcarrier_indices must contain only integers")
     return tuple(int(index) for index in raw_indices)
@@ -95,11 +108,20 @@ class NRObservation:
             raise ValueError("received_grid must have [batch, rx, rx_ant, symbol, fft_bin] axes")
         if any(size <= 0 for size in grid_shape):
             raise ValueError("received_grid axes must be non-empty")
-        torch_module: Any = None
-        try:
-            torch_module = import_module("torch")
-        except ImportError:
-            pass
+        torch_module = next(
+            (
+                module
+                for value in (
+                    self.received_grid,
+                    self.channel_estimate.h_hat,
+                    self.channel_estimate.error_variance,
+                    self.channel_estimate.pilot_mask,
+                    self.received_grid_mask,
+                )
+                if (module := _torch_module_for_tensor_candidate(value)) is not None
+            ),
+            None,
+        )
         mask = self.received_grid_mask
         if mask is None:
             mask = (
@@ -242,15 +264,11 @@ class NRChannelRecord:
     def __post_init__(self) -> None:
         if not self.targets:
             raise ValueError("at least one explicitly named target is required")
-        torch_module: Any = None
-        try:
-            torch_module = import_module("torch")
-        except ImportError:
-            pass
         for name, target in self.targets.items():
             if not isinstance(name, str) or not name.strip():
                 raise ValueError("target names must be non-empty strings")
-            if torch_module is not None and torch_module.is_tensor(target):
+            torch_module = _torch_module_for_tensor_candidate(target)
+            if torch_module is not None:
                 if target.numel() == 0:
                     raise ValueError(f"target {name!r} must be non-empty")
                 finite = bool(torch_module.isfinite(target).all().item())
@@ -537,12 +555,6 @@ class NRTrajectory:
         """
         if name not in self.target_names:
             raise KeyError(f"unknown trajectory target: {name}")
-        torch_module: Any = None
-        try:
-            torch_module = import_module("torch")
-        except ImportError:
-            pass
-
         present_record_count = 0
         missing_record_count = 0
         element_count = 0
@@ -562,7 +574,7 @@ class NRTrajectory:
             if mask is None:
                 selected_element_count += target_size
                 implicit_all_valid_mask_record_count += 1
-            elif torch_module is not None and torch_module.is_tensor(mask):
+            elif (torch_module := _torch_module_for_tensor_candidate(mask)) is not None:
                 expanded = torch_module.broadcast_to(mask, target_shape)
                 selected_element_count += int(torch_module.count_nonzero(expanded).item())
             else:

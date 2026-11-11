@@ -3878,7 +3878,7 @@
       "backlog_status": "open",
       "description": "Complete model-input leakage audit across every dataset adapter, feature transform, experiment runner, training path, and inference artifact. `datasets.model_input_audit._validated_real_scalar` now converts registered scalar inputs through bounded float normalization and reports overflow as a domain `ValueError`. The analytical two-path runner now exposes a registered `TwoPathModelInputs` view containing only observed CFR, pilot mask, frequencies, and noise variance; training, prediction, and its profile-likelihood baseline consume this audited view, excluding delay/gain truth and split IDs from the input object. The 10-case audit/input-view suite passes. The two-path checkpoints still lack a dedicated model-input artifact contract, and the separate CAEZ Ridge forecast route remains outside this audit; full feature-transform, runner, training, and inference-artifact coverage remains open.",
       "evidence_file_sha256": {
-        "datasets/model_input_audit.py": "831ed7da4328ab8aa0f55dea061d2335faf4b9fa9d2f559a982fde8fc832c7ec"
+        "datasets/model_input_audit.py": "a0581344d11a0aab861a247aa1117a3121b6d9b2734e83fdc0e2d64435832c8a"
       },
       "evidence_links": {
         "cli_entries": [],
@@ -4062,7 +4062,7 @@
     {
       "backlog_line": 422,
       "backlog_status": "open",
-      "description": "Complete cross-format corruption and retry/failure accounting, audit every promised storage format under interrupted writes, and establish measured memory behavior for the actual full read/write path rather than only conservative accounting models. Episode-store corruption coverage spans all eight layer namespaces; injected retry regressions now exercise episode/path/channel/target/counterfactual/receiver/provenance/scenario publication interruptions and manifest-last retries. NR record and trajectory stores have content publication, manifest/index publication, immutable retry/read-back, temporary-file cleanup, and tamper checks. Standardized channel and learning stores now have injected retry/read-back checks at record, observation, target, and manifest publication points (five focused cases). The 24-test UMCD integrity module, five standardized retry cases, six NR trajectory-store cases, and 43-test NR streaming/memory/UMCD slice pass. Three isolated public NR write/read runs processed 16/128/512 records at 43,763/350,196/1,400,935 on-disk bytes and measured incremental process high-water RSS of 36,679,680/37,429,248/38,301,696 bytes relative to a 572,334,080-byte pre-store high-water baseline. An isolated UMCD one-bundle run measured no peak increase above the same test-process baseline for its 9,384-byte fixture. These are small synthetic observations, not memory bounds; the NR first-pass overhead and Python/ML runtime dominate this tiny fixture. Remaining work is a meaningful UMCD size sweep with denser/larger bundles, broader repeatability, and an empirically justified corpus memory envelope.",
+      "description": "Complete cross-format corruption and retry/failure accounting, audit every promised storage format under interrupted writes, and establish measured memory behavior for the actual full read/write path rather than only conservative accounting models. Episode-store corruption coverage spans all eight layer namespaces; injected retry regressions exercise episode/path/channel/target/counterfactual/receiver/provenance/scenario publication interruptions and manifest-last retries. NR record and trajectory stores have content publication, manifest/index publication, immutable retry/read-back, temporary-file cleanup, and tamper checks. Standardized channel and learning stores have injected retry/read-back checks at record, observation, target, and manifest publication points (five focused cases). The 24-test UMCD integrity module, five standardized retry cases, six NR trajectory-store cases, and focused NR streaming/memory slice pass. NumPy-only NR validation now avoids importing Torch unless an actual Torch tensor is supplied; a regression rejects eager imports, while a Torch-input regression preserves tensor support. Three isolated public NR write/read runs processed 16/128/512 records at 43,763/350,196/1,400,935 on-disk bytes and measured live incremental RSS of 2,097,152/2,670,592/2,998,272 bytes. UMCD runs processed 1/8/32 bundles at 1/24/4,096 subcarriers per channel view, with 9,397/57,630/4,516,938 on-disk bytes and 2,506,752/2,248,704/10,080,256 incremental RSS bytes. Both use a 2 ms `/proc` RSS sampler and are small synthetic observations, not memory bounds or scientific qualification. Representative production-corpus sizes, repeatability under the target runtime, and an empirically justified memory envelope remain open.",
       "evidence_file_sha256": {},
       "evidence_links": {
         "cli_entries": [],
@@ -5100,7 +5100,7 @@
   "schema": "loslab.implementation_feature_map.v3",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "86cd610050e725b90cbe43f910e1905fd10ffd2b8fd3eb8e8a3953eab03c6363"
+    "sha256": "483a5fdce83315bd0bb405b17fb749534825a381f9e4319df074b572a519d9b8"
   },
   "summary": {
     "feature_count": 182,

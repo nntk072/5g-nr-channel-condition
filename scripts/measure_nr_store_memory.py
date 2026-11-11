@@ -11,9 +11,9 @@ from __future__ import annotations
 import argparse
 import json
 import platform
-import resource
 import sys
 import tempfile
+import threading
 from pathlib import Path
 
 import numpy as np
@@ -54,10 +54,37 @@ def _record(sample_id: str, *, symbols: int, subcarriers: int) -> NRChannelRecor
     )
 
 
-def _max_rss_bytes() -> int:
+def _current_rss_bytes() -> int:
+    if sys.platform.startswith("linux"):
+        for line in Path("/proc/self/status").read_text(encoding="ascii").splitlines():
+            if line.startswith("VmRSS:"):
+                return int(line.split()[1]) * 1024
+        raise RuntimeError("Linux process status does not report VmRSS")
+    import resource
+
     value = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-    # Linux reports KiB; macOS reports bytes.
-    return int(value * 1024 if sys.platform.startswith("linux") else value)
+    return int(value if sys.platform == "darwin" else value * 1024)
+
+
+class _RssSampler:
+    def __init__(self) -> None:
+        self.baseline = _current_rss_bytes()
+        self.peak = self.baseline
+        self._stop = threading.Event()
+        self._thread = threading.Thread(target=self._sample, daemon=True)
+
+    def _sample(self) -> None:
+        while not self._stop.wait(0.002):
+            self.peak = max(self.peak, _current_rss_bytes())
+
+    def start(self) -> None:
+        self._thread.start()
+
+    def stop(self) -> tuple[int, int]:
+        self._stop.set()
+        self._thread.join()
+        self.peak = max(self.peak, _current_rss_bytes())
+        return self.baseline, self.peak
 
 
 def main() -> int:
@@ -70,7 +97,8 @@ def main() -> int:
     if min(args.records, args.symbols, args.subcarriers, args.shard_bytes) <= 0:
         parser.error("all numeric arguments must be positive")
 
-    baseline_peak_rss_bytes = _max_rss_bytes()
+    rss = _RssSampler()
+    rss.start()
     with tempfile.TemporaryDirectory(prefix="nr-store-rss-") as temporary:
         root = Path(temporary)
         for index in range(args.records):
@@ -86,7 +114,7 @@ def main() -> int:
             len(shard) for shard in iter_nr_record_shards(root, max_shard_bytes=args.shard_bytes)
         )
         stored_bytes = sum(path.stat().st_size for path in root.rglob("*") if path.is_file())
-    process_peak_rss_bytes = _max_rss_bytes()
+    baseline_rss_bytes, process_peak_rss_bytes = rss.stop()
 
     print(
         json.dumps(
@@ -99,11 +127,9 @@ def main() -> int:
                 "subcarriers": args.subcarriers,
                 "shard_budget_bytes": args.shard_bytes,
                 "store_disk_bytes": stored_bytes,
-                "process_peak_rss_before_store_bytes": baseline_peak_rss_bytes,
+                "process_rss_before_store_bytes": baseline_rss_bytes,
                 "process_peak_rss_bytes": process_peak_rss_bytes,
-                "incremental_peak_rss_bytes": max(
-                    0, process_peak_rss_bytes - baseline_peak_rss_bytes
-                ),
+                "incremental_peak_rss_bytes": max(0, process_peak_rss_bytes - baseline_rss_bytes),
                 "platform": platform.platform(),
                 "scope": "one-process public NR store serialization and full deterministic read pass",
             },

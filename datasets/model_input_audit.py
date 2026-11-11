@@ -80,12 +80,14 @@ def _validated_array(
 ) -> tuple[int, ...]:
     """Admit only dense numeric arrays with the declared inference-time domain."""
     is_torch_tensor = False
-    try:
-        import torch
+    torch = None
+    if type(value).__module__.partition(".")[0] == "torch":
+        try:
+            import torch
 
-        is_torch_tensor = torch.is_tensor(value)
-    except ImportError:
-        torch = None
+            is_torch_tensor = torch.is_tensor(value)
+        except ImportError:
+            pass
 
     if isinstance(value, np.ndarray):
         if value.dtype.kind not in "biufc":

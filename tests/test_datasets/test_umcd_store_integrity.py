@@ -5,7 +5,9 @@ from __future__ import annotations
 import json
 import resource
 import sys
+import threading
 from dataclasses import replace
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -50,6 +52,37 @@ from datasets.targets import (
     target_definition_digest,
 )
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
+
+
+def _current_rss_bytes() -> int:
+    if sys.platform.startswith("linux"):
+        for line in Path("/proc/self/status").read_text(encoding="ascii").splitlines():
+            if line.startswith("VmRSS:"):
+                return int(line.split()[1]) * 1024
+        raise RuntimeError("Linux process status does not report VmRSS")
+    value = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    return int(value if sys.platform == "darwin" else value * 1024)
+
+
+class _RssSampler:
+    def __init__(self):
+        self.baseline = _current_rss_bytes()
+        self.peak = self.baseline
+        self._stop = threading.Event()
+        self._thread = threading.Thread(target=self._sample, daemon=True)
+
+    def _sample(self):
+        while not self._stop.wait(0.002):
+            self.peak = max(self.peak, _current_rss_bytes())
+
+    def start(self):
+        self._thread.start()
+
+    def stop(self):
+        self._stop.set()
+        self._thread.join()
+        self.peak = max(self.peak, _current_rss_bytes())
+        return self.baseline, self.peak
 
 
 def _versioned_delay_target() -> TargetValue:
@@ -686,17 +719,14 @@ def test_g7_complex_cfr_target_survives_episode_store_round_trip(tmp_path):
 
 def test_umcd_episode_store_process_peak_rss_diagnostic(tmp_path):
     """Measure an isolated process exercising the public UMCD read/write path."""
-    baseline_rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    rss = _RssSampler()
+    rss.start()
     bundle = _episode_bundle()
     stored = write_episode_bundle(tmp_path, bundle)
     loaded = read_episode_bundle(tmp_path, stored)
     assert loaded.episode.episode_id == bundle.episode.episode_id
 
-    raw_rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-    peak_rss_bytes = int(raw_rss * 1024 if sys.platform.startswith("linux") else raw_rss)
-    baseline_rss_bytes = int(
-        baseline_rss * 1024 if sys.platform.startswith("linux") else baseline_rss
-    )
+    baseline_rss_bytes, peak_rss_bytes = rss.stop()
     store_bytes = sum(path.stat().st_size for path in tmp_path.rglob("*") if path.is_file())
     report = {
         "schema": "synthetic.umcd_episode_store_rss_measurement.v1",
@@ -704,10 +734,64 @@ def test_umcd_episode_store_process_peak_rss_diagnostic(tmp_path):
         "bundles_written": 1,
         "bundles_read": 1,
         "store_disk_bytes": store_bytes,
-        "process_peak_rss_before_store_bytes": baseline_rss_bytes,
+        "process_rss_before_store_bytes": baseline_rss_bytes,
         "process_peak_rss_bytes": peak_rss_bytes,
         "incremental_peak_rss_bytes": max(0, peak_rss_bytes - baseline_rss_bytes),
         "scope": "one-process public UMCD episode-bundle write and complete read",
     }
     print(json.dumps(report, sort_keys=True))
     assert store_bytes > 0 and peak_rss_bytes > 0
+
+
+@pytest.mark.parametrize("bundle_count,subcarrier_count", ((1, 1), (8, 24), (32, 4096)))
+def test_umcd_episode_store_process_peak_rss_scaling(tmp_path, bundle_count, subcarrier_count):
+    """Observe full inventory/read RSS as synthetic bundle count and layer width grow."""
+    rss = _RssSampler()
+    rss.start()
+    base_bundle = _episode_bundle()
+    offsets = (np.arange(subcarrier_count, dtype=np.float64) - subcarrier_count // 2) * 15_000.0
+
+    for index in range(bundle_count):
+        episode = replace(
+            base_bundle.episode,
+            episode_id=f"g7-memory-scaling-{index:04d}",
+            split_group_id=f"g7-memory-scaling-group-{index:04d}",
+            subcarrier_offsets_hz=offsets,
+        )
+        channels = tuple(
+            replace(
+                view,
+                channel=np.repeat(view.channel, subcarrier_count, axis=-1)
+                * (1.0 + 0.001 * np.arange(subcarrier_count, dtype=np.float64) + 0.01 * index),
+                valid_mask=np.repeat(view.valid_mask, subcarrier_count, axis=-1),
+                subcarrier_offsets_hz=offsets,
+            )
+            for view in base_bundle.channel_views
+        )
+        bundle = replace(base_bundle, episode=episode, channel_views=channels)
+        write_episode_bundle(tmp_path, bundle)
+
+    loaded_count = sum(
+        len(shard)
+        for shard in iter_episode_bundle_shards(tmp_path, max_shard_bytes=64 * 1024 * 1024)
+    )
+    assert loaded_count == bundle_count
+    baseline_rss_bytes, peak_rss_bytes = rss.stop()
+    store_bytes = sum(path.stat().st_size for path in tmp_path.rglob("*") if path.is_file())
+    print(
+        json.dumps(
+            {
+                "schema": "synthetic.umcd_episode_store_rss_scaling.v1",
+                "production": False,
+                "bundles_written": bundle_count,
+                "bundles_read": loaded_count,
+                "subcarriers_per_channel_view": subcarrier_count,
+                "store_disk_bytes": store_bytes,
+                "process_rss_before_store_bytes": baseline_rss_bytes,
+                "process_peak_rss_bytes": peak_rss_bytes,
+                "incremental_peak_rss_bytes": max(0, peak_rss_bytes - baseline_rss_bytes),
+                "scope": "one-process public UMCD writes plus complete SQLite-inventoried shard read",
+            },
+            sort_keys=True,
+        )
+    )

@@ -425,10 +425,15 @@ class NRChannelEstimate:
         if not isinstance(self.metadata, Mapping) or not self.metadata:
             raise ValueError("estimate metadata must not be empty")
 
-        try:
-            import torch
-        except ImportError:
-            torch = None
+        torch = None
+        if any(
+            type(value).__module__.partition(".")[0] == "torch"
+            for value in (self.h_hat, self.error_variance, self.pilot_mask)
+        ):
+            try:
+                import torch
+            except ImportError:
+                pass
 
         def array_domain(value: Any, name: str) -> tuple[str, bool, bool]:
             if isinstance(value, np.ndarray):

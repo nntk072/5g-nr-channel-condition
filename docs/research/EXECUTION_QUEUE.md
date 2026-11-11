@@ -237,9 +237,11 @@ stores: 43 streaming/memory/UMCD tests and six focused NR trajectory-store tests
 pass. `PKG08-024` adds retry injection across all UMCD episode layers and the
 standardized channel/learning stores (five standardized cases pass). Bounded
 synthetic RSS diagnostics exercise public NR and UMCD write/read paths. The NR
-16/128/512-record sweep is retained with pre-store high-water baselines;
-representative UMCD scaling is still missing. `PKG08-024` remains partial:
-corpus-scale memory evidence and final scope audit are open. Continue with
+16/128/512-record sweep and UMCD 1/8/32-bundle, 1/24/4096-subcarrier sweep are
+retained with live-RSS baselines. NumPy-only NR validation avoids loading Torch,
+reducing measured incremental RSS in the 16-record fixture from hundreds of MiB
+to about 2 MiB. `PKG08-024` remains partial: representative corpus sizing,
+repeatability on the production runtime, and final scope audit are open. Continue with
 `PKG08-024`, then
 `PKG08-025` through `PKG08-039`,
 then packages 09–10, `E01.DS.GATES`, `E01.RS.PHASES`, `E01.RS.APPENDIX_E`, and
