@@ -283,18 +283,38 @@ CFR-derived estimators and sparse OMP/BIC, raw MLP, and parameter-matched
 MLP/CNN/CV-CNN on shared splits with replayable input contracts. Scientific
 evaluation and qualification remain gated on qualified inputs and frozen
 acceptance evidence. `PKG10-010`–`011` remain gated on qualified inputs,
-targets, and scientific criteria. `E01.DS.GATES` is active: the top-level G3
-contract now has a bounded source disposition, while its twelve individual
-criterion rows still require source-level reconciliation. Contract/evaluator
-preflight (108 tests) passes but does not qualify G3. Continue with the
-remaining dataset-gate criteria, then `E01.RS.PHASES`, `E01.RS.APPENDIX_E`, and
-`E01.CROSSWALK`.
+targets, and scientific criteria. `E01.DS.GATES` remains active: the G3
+top-level contract and its twelve criterion rows now have source-level
+dispositions. All twelve criteria remain scientifically `not_qualified`;
+software-complete rows cover only bounded cap fail-closed handling, diffuse
+accounting, documented model limits, LOS semantic separation, and prior
+logging. The selected non-native contract suite passes 83 tests with 2 native
+tests skipped; the separate G3 evaluator preflight passed 108 tests. Neither
+suite qualifies G3. Next audit the remaining top-level dataset gates G0–G2 and
+G4–G8 against the governing plan and their source/test paths, in dependency
+order; then reconcile research phases, Appendix E, and the full crosswalk.
 Each package batch is the fixed set of `PKGnn-*` IDs in the ledger and closes
 only after every row has inspected source/test integration, implementation
 state, exact verification, qualification state, dependencies and closure
 rule. The three gate batches collect the exact mandatory/conditional scope and
 acceptance definitions from their governing sections. `E01.CROSSWALK` checks
 complete one-to-one requirement coverage and resolves dependencies/blockers.
+
+#### E01.DS.GATES.G3 — criterion-level source reconciliation (closed 2026-11-11)
+
+- **Requirements:** `DS.G3`, `DS.G3.01`–`DS.G3.12`.
+- **Delivered:** each criterion now names its bounded software evidence,
+  exact scope, external blocker, software verification state, qualification
+  rule, and next scientific task. Existing retained diagnostics are indexed;
+  no convergence or production RT run was launched.
+- **Verification:** `uv run --no-sync --locked pytest -q --no-cov -m 'not native_sionna' tests/test_scripts/test_rt_solver_convergence.py tests/test_integrations/test_rt_path_power_threshold.py tests/test_scripts/test_audit_rt_solver_replay.py tests/test_experiments/test_pilot_sampling.py tests/test_integrations/test_sionna_adapter.py tests/test_integrations/test_rt_trajectory_contract.py` (83 passed, 2 skipped); `./.venv/bin/python -m scripts.validate_requirement_ledger`.
+- **Disposition:** software statuses are bounded; every G3 criterion and the
+  top-level gate remain `not_qualified`. The current implementation has no
+  admitted calibrated material package, independent-unit/power justification,
+  or G5-qualified receiver result.
+- **Next:** audit the other dataset gate records in dependency order; do not
+  run G3 qualification until those evidence prerequisites and the frozen
+  run-specific design are admitted.
 
 For every batch, retain the exact source files inspected in that ledger row;
 do not copy the whole chronological status history. If a row is already

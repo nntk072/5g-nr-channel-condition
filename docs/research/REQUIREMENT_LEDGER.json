@@ -1,7 +1,7 @@
 {
   "schema": "loslab.requirement-ledger.v1",
-  "status_note": "Traceability index covering all 182 backlog IDs, 104 numbered unified-plan criteria, and 30 dataset/research gate or phase records. Source audits are complete for PKG00-05. PKG05 rows 001/002/003/004/005/007/008/009/010/011/012/013/014/016/017/018/019/020/021/022/023/024/025 have bounded dispositions; 006/015/026 remain partial aggregate G4 scope. PKG06 rows 001–036 are source-audited with bounded complete/partial dispositions; PKG07-001/002/003/004/005 are source-audited partials with focused regression slices;  remaining package/gate audits stay open. Checked plan boxes are preserved as source marks, never treated as implementation or scientific qualification. Feature-map heuristics do not determine ledger status.",
-  "source_checkpoint": "42e9d08 baseline; E00 37cc827; queue fb49282; PKG01 12eebb5; criterion ledger 9681d19; PKG03 f3e5faf; PKG04 G3 audit ba34d1f",
+  "status_note": "Traceability index covering all 182 backlog IDs, 104 numbered unified-plan criteria, and 30 dataset/research gate or phase records. Source audits are complete for PKG00-05. PKG05 rows 001/002/003/004/005/007/008/009/010/011/012/013/014/016/017/018/019/020/021/022/023/024/025 have bounded dispositions; 006/015/026 remain partial aggregate G4 scope. PKG06 rows 001–036 are source-audited with bounded complete/partial dispositions; PKG07-001/002/003/004/005 are source-audited partials with focused regression slices; remaining package/gate audits stay open. Checked plan boxes are preserved as source marks, never treated as implementation or scientific qualification. Feature-map heuristics do not determine ledger status. DS.G3.01–DS.G3.12 were source-audited at 32fa52c; their software states and external scientific blockers are separate, and every G3 qualification remains not_qualified.",
+  "source_checkpoint": "42e9d08 baseline; E00 37cc827; queue fb49282; PKG01 12eebb5; criterion ledger 9681d19; PKG03 f3e5faf; PKG04 G3 audit ba34d1f; G3 criteria audit 32fa52c",
   "requirements": [
     {
       "requirement_id": "DS.G0",
@@ -1355,7 +1355,7 @@
           "integrations/sionna/rt_trajectory.py",
           "docs/research/CITY43_ZERO_SCATTERING_PHASE0_DIAGNOSIS_2026-10-27.md"
         ],
-        "basis": "Task-specific numerical margins, preregistration/evaluator contracts, convergence diagnostics, and candidate-cap rejection/reporting exist. The twelve criterion-specific source audits are still open as a batch, and code cannot establish independent acquisition-unit provenance, calibrated nonzero scattering, adequate external sample-size assumptions, or receiver qualification."
+        "basis": "Task-specific numerical margins, preregistration/evaluator contracts, convergence diagnostics, and candidate-cap rejection/reporting exist. DS.G3.01–DS.G3.12 now each have bounded source dispositions; code cannot establish independent acquisition-unit provenance, calibrated nonzero scattering, adequate external sample-size assumptions, or receiver qualification."
       },
       "verification": {
         "status": "pass",
@@ -1388,7 +1388,7 @@
       "closure": {
         "deliverable": "Criterion-driven G3 admission across complex CSI, delay/angular statistics, receiver-relevant path truth, and paired G5-qualified PUSCH receiver impact, with independently justified sample units and a frozen run-specific manifest.",
         "pass_rule": "Every applicable preregistered criterion and its powered independent-unit design passes; unresolved, missing, cap-saturated, or externally unverified branches keep the gate closed. Focused contract tests are software preflight only.",
-        "next_task": "Continue E01.DS.GATES with criterion-level source/status audit; keep qualification and production D1 blocked on the listed material, unit, receiver, and run-readiness evidence."
+        "next_task": "Continue E01.DS.GATES with the remaining dataset gate records; keep qualification and production D1 blocked on the listed material, unit, receiver, and run-readiness evidence."
       },
       "plan_mark": "not_checklist"
     },
@@ -1401,32 +1401,37 @@
       "requirement": "`max_depth` sweep stabilizes relevant delay/power/angular results for representative LOS and NLOS links.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G3.01 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard scientific admission criterion for MVP geometric-RT data claims under unified-plan §13; implementation completion is limited to the explicitly named software behavior and does not qualify a scene, run, or release.",
+        "authority_basis": "Mandatory numbered acceptance criterion G3.01 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "scripts/run_rt_solver_convergence.py",
+          "tests/test_scripts/test_rt_solver_convergence.py",
+          "docs/research/results/rt-box-los-nlos-convergence-depth20-100k-20261022.json",
+          "docs/research/results/rt-city43-spatial-los-nlos-100k-vs-1m-20261022.json"
+        ],
+        "basis": "Matched depth sweeps and observable/CFR diagnostics exist, but retained depth-20 and City43 comparisons still change materially; a finite largest depth is not ground truth and no production depth is qualified."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov -m 'not native_sionna' tests/test_scripts/test_rt_solver_convergence.py tests/test_integrations/test_rt_path_power_threshold.py tests/test_scripts/test_audit_rt_solver_replay.py tests/test_experiments/test_pilot_sampling.py tests/test_integrations/test_sionna_adapter.py tests/test_integrations/test_rt_trajectory_contract.py",
+        "commit": "32fa52c"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Depth and solver-model growth remain unresolved; material calibration and representative independent scene/link roster are absent."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "`max_depth` sweep stabilizes relevant delay/power/angular results for representative LOS and NLOS links.",
+        "pass_rule": "The criterion-specific evidence must meet its frozen scientific tolerance on an independently justified representative unit roster, with complete provenance and no unresolved failure; source contracts and synthetic diagnostics alone do not pass the gate.",
+        "next_task": "Freeze representative link strata, tolerances, and independent scene units only after material and sample-design prerequisites; then evaluate retained evidence or preregister a new bounded matrix."
       }
     },
     {
@@ -1438,32 +1443,37 @@
       "requirement": "`samples_per_src` sweep stabilizes quantiles/distributions, separately for specular/diffuse components.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G3.02 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard scientific admission criterion for MVP geometric-RT data claims under unified-plan §13; implementation completion is limited to the explicitly named software behavior and does not qualify a scene, run, or release.",
+        "authority_basis": "Mandatory numbered acceptance criterion G3.02 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "scripts/run_rt_solver_convergence.py",
+          "tests/test_scripts/test_rt_solver_convergence.py",
+          "docs/research/results/rt-city43-spatial-los-nlos-s0-20k-vs-1m-20261022.json",
+          "docs/research/results/rt-city43-spatial-los-nlos-20k-vs-1m-20261022.json"
+        ],
+        "basis": "Budget comparisons retain path and complex-CFR changes, with separate specular/diffuse diagnostics; the budget series does not establish stable component distributions or a truth budget."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov -m 'not native_sionna' tests/test_scripts/test_rt_solver_convergence.py tests/test_integrations/test_rt_path_power_threshold.py tests/test_scripts/test_audit_rt_solver_replay.py tests/test_experiments/test_pilot_sampling.py tests/test_integrations/test_sionna_adapter.py tests/test_integrations/test_rt_trajectory_contract.py",
+        "commit": "32fa52c"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Independent scene/link replication and a powered, preregistered tolerance design are not admitted."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "`samples_per_src` sweep stabilizes quantiles/distributions, separately for specular/diffuse components.",
+        "pass_rule": "The criterion-specific evidence must meet its frozen scientific tolerance on an independently justified representative unit roster, with complete provenance and no unresolved failure; source contracts and synthetic diagnostics alone do not pass the gate.",
+        "next_task": "After G3.03 and the independent-unit design, preregister component-wise distribution/quantile margins and assess by scene/link stratum."
       }
     },
     {
@@ -1475,32 +1485,37 @@
       "requirement": "diffuse model enabled **and** nonzero material scattering coefficient validated; flag-only enablement insufficient.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G3.03 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard scientific admission criterion for MVP geometric-RT data claims under unified-plan §13; implementation completion is limited to the explicitly named software behavior and does not qualify a scene, run, or release.",
+        "authority_basis": "Mandatory numbered acceptance criterion G3.03 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "evaluation/g3_material_calibration.py",
+          "tests/test_evaluation/test_g3_material_calibration.py",
+          "docs/research/G3_SCENE_FAMILY_LICENSE_AUDIT_2026-10-23.md",
+          "docs/research/results/g3-fr3-building-scattering-audit-20261024.json"
+        ],
+        "basis": "A strict measurement-only evaluator and acquisition-package contracts exist, but repository literature and source audits do not provide admitted calibrated 3.5-GHz nonzero-scattering measurements for the ODbL scenes."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_material_calibration.py",
+        "commit": "43beaf1"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Target-frequency bistatic measurement data, authenticated specimen/instrument/calibration provenance, independent held-out incidence groups, and external attestations are missing."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "diffuse model enabled **and** nonzero material scattering coefficient validated; flag-only enablement insufficient.",
+        "pass_rule": "The criterion-specific evidence must meet its frozen scientific tolerance on an independently justified representative unit roster, with complete provenance and no unresolved failure; source contracts and synthetic diagnostics alone do not pass the gate.",
+        "next_task": "Obtain and review admissible target-frequency measurement packages; keep synthetic S=0.5 runs mechanism-only until evaluator admission passes."
       }
     },
     {
@@ -1512,32 +1527,37 @@
       "requirement": "diffuse ray count changes with sample budget without being mistaken for changing physical path count.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G3.04 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard scientific admission criterion for MVP geometric-RT data claims under unified-plan §13; implementation completion is limited to the explicitly named software behavior and does not qualify a scene, run, or release.",
+        "authority_basis": "Mandatory numbered acceptance criterion G3.04 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "scripts/run_rt_solver_convergence.py",
+          "tests/test_scripts/test_rt_solver_convergence.py",
+          "docs/research/results/rt-city43-scattering-control-s0-v4-20261022.json",
+          "docs/research/results/rt-city43-scattering-control-concrete-s05-v4-20261022.json"
+        ],
+        "basis": "The bounded runner records diffuse candidates/path classes separately from ray-sample budgets; retained paired zero/nonzero-scattering controls show the mechanism response. This completes instrumentation, not a physical scattering claim."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov -m 'not native_sionna' tests/test_scripts/test_rt_solver_convergence.py tests/test_integrations/test_rt_path_power_threshold.py tests/test_scripts/test_audit_rt_solver_replay.py tests/test_experiments/test_pilot_sampling.py tests/test_integrations/test_sionna_adapter.py tests/test_integrations/test_rt_trajectory_contract.py",
+        "commit": "32fa52c"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Mechanism evidence uses synthetic material intervention; calibrated physical interpretation is blocked by DS.G3.03."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "diffuse ray count changes with sample budget without being mistaken for changing physical path count.",
+        "pass_rule": "The criterion-specific evidence must meet its frozen scientific tolerance on an independently justified representative unit roster, with complete provenance and no unresolved failure; source contracts and synthetic diagnostics alone do not pass the gate.",
+        "next_task": "No further instrumentation task; after G3.03, confirm this invariant in the frozen qualifying manifest and preserve diffuse/specular accounting."
       }
     },
     {
@@ -1549,17 +1569,24 @@
       "requirement": "`max_num_paths_per_src` clipping is audited; no silent path truncation in stress cases.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G3.05 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard scientific admission criterion for MVP geometric-RT data claims under unified-plan §13; implementation completion is limited to the explicitly named software behavior and does not qualify a scene, run, or release.",
+        "authority_basis": "Mandatory numbered acceptance criterion G3.05 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/candidate_audit.py",
+          "integrations/sionna/adapter.py",
+          "integrations/sionna/rt_trajectory.py",
+          "tests/test_integrations/test_rt_mock_integration.py",
+          "tests/test_integrations/test_rt_trajectory_native.py",
+          "docs/research/PHYSICS_VERIFICATION_STATUS.md"
+        ],
+        "basis": "Current static and trajectory builders count pre-validation candidates per source and fail closed on cap saturation; cap identity is recorded. This is bounded implementation coverage, not cap sufficiency across the release domain."
       },
       "verification": {
-        "status": "not_run",
+        "status": "incomplete",
         "command": null,
         "commit": null
       },
@@ -1567,14 +1594,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Broader scene/material/depth/sample/link stress matrix and future backend/multi-source coverage are not qualified."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "`max_num_paths_per_src` clipping is audited; no silent path truncation in stress cases.",
+        "pass_rule": "The criterion-specific evidence must meet its frozen scientific tolerance on an independently justified representative unit roster, with complete provenance and no unresolved failure; source contracts and synthetic diagnostics alone do not pass the gate.",
+        "next_task": "Add the cap stress matrix to the later frozen qualification design; preserve hard rejection for saturated samples and do not infer a universal safe cap."
       }
     },
     {
@@ -1586,17 +1613,21 @@
       "requirement": "refraction penetration/slab assumptions recorded; thick-object results not called high-fidelity without calibration.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G3.06 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard scientific admission criterion for MVP geometric-RT data claims under unified-plan §13; implementation completion is limited to the explicitly named software behavior and does not qualify a scene, run, or release.",
+        "authority_basis": "Mandatory numbered acceptance criterion G3.06 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/adapter.py",
+          "docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md",
+          "docs/research/PHYSICS_VERIFICATION_STATUS.md"
+        ],
+        "basis": "The supported solver assumptions and thin-slab/refraction limitations are documented, and unsupported high-fidelity thick-object claims are excluded absent calibration. This is a claim-boundary implementation only."
       },
       "verification": {
-        "status": "not_run",
+        "status": "incomplete",
         "command": null,
         "commit": null
       },
@@ -1604,14 +1635,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "No calibrated thick-object transmission/refraction evidence; scene-material validity remains open."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "refraction penetration/slab assumptions recorded; thick-object results not called high-fidelity without calibration.",
+        "pass_rule": "The criterion-specific evidence must meet its frozen scientific tolerance on an independently justified representative unit roster, with complete provenance and no unresolved failure; source contracts and synthetic diagnostics alone do not pass the gate.",
+        "next_task": "Keep the limitation in dataset/run claims; if thick-object fidelity enters the accepted envelope, define and source its separate calibration protocol first."
       }
     },
     {
@@ -1623,17 +1654,21 @@
       "requirement": "first-order edge diffraction limitations acknowledged; deep diffraction NLOS stress marked model-limited.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G3.07 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard scientific admission criterion for MVP geometric-RT data claims under unified-plan §13; implementation completion is limited to the explicitly named software behavior and does not qualify a scene, run, or release.",
+        "authority_basis": "Mandatory numbered acceptance criterion G3.07 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "integrations/sionna/adapter.py",
+          "docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md",
+          "docs/research/PHYSICS_VERIFICATION_STATUS.md"
+        ],
+        "basis": "The adapter records the bounded first-order diffraction configuration and plan/status artifacts acknowledge model limits, but broad deep-diffraction NLOS stress admission is not demonstrated."
       },
       "verification": {
-        "status": "not_run",
+        "status": "incomplete",
         "command": null,
         "commit": null
       },
@@ -1641,14 +1676,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "No calibrated diffraction benchmark or representative deep-interaction NLOS qualification."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "first-order edge diffraction limitations acknowledged; deep diffraction NLOS stress marked model-limited.",
+        "pass_rule": "The criterion-specific evidence must meet its frozen scientific tolerance on an independently justified representative unit roster, with complete provenance and no unresolved failure; source contracts and synthetic diagnostics alone do not pass the gate.",
+        "next_task": "Maintain explicit model-limited labeling; freeze a diffraction-specific stress cohort only if deep-diffraction claims remain in MVP scope."
       }
     },
     {
@@ -1660,32 +1695,38 @@
       "requirement": "deterministic solver replay passes on pinned exact environment; numerical backend changes recorded and quantified.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G3.08 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard scientific admission criterion for MVP geometric-RT data claims under unified-plan §13; implementation completion is limited to the explicitly named software behavior and does not qualify a scene, run, or release.",
+        "authority_basis": "Mandatory numbered acceptance criterion G3.08 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "scripts/audit_rt_solver_replay.py",
+          "tests/test_scripts/test_audit_rt_solver_replay.py",
+          "docs/research/PHYSICS_VERIFICATION_STATUS.md",
+          "docs/research/results/rt-box-los-nlos-convergence-depth6-s05-cap1000-replay-20261022.json",
+          "docs/research/results/rt-city43-spatial-los-nlos-replay-audit-20261022.json"
+        ],
+        "basis": "Replay tooling quantifies tolerance-based complex-CFR agreement and hashes for retained same-backend fixtures, while reports show non-bitwise cases; pinned-environment evidence covers selected configurations only."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov -m 'not native_sionna' tests/test_scripts/test_rt_solver_convergence.py tests/test_integrations/test_rt_path_power_threshold.py tests/test_scripts/test_audit_rt_solver_replay.py tests/test_experiments/test_pilot_sampling.py tests/test_integrations/test_sionna_adapter.py tests/test_integrations/test_rt_trajectory_contract.py",
+        "commit": "32fa52c"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "No representative configuration/backend matrix, signed hardware/runtime attestation, or quantified backend-change envelope."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "deterministic solver replay passes on pinned exact environment; numerical backend changes recorded and quantified.",
+        "pass_rule": "The criterion-specific evidence must meet its frozen scientific tolerance on an independently justified representative unit roster, with complete provenance and no unresolved failure; source contracts and synthetic diagnostics alone do not pass the gate.",
+        "next_task": "Use replay tooling in the later frozen run matrix; identify backend/version transitions and predeclare numerical tolerances before execution."
       }
     },
     {
@@ -1697,32 +1738,36 @@
       "requirement": "weak-power tails do not spuriously vanish solely from aggressive fixed threshold; threshold sensitivity reported.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G3.09 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard scientific admission criterion for MVP geometric-RT data claims under unified-plan §13; implementation completion is limited to the explicitly named software behavior and does not qualify a scene, run, or release.",
+        "authority_basis": "Mandatory numbered acceptance criterion G3.09 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "integrations/sionna/path_power_threshold.py",
+          "tests/test_integrations/test_rt_path_power_threshold.py",
+          "docs/research/results/rt-city43-nlos-path-power-threshold-20261022.json"
+        ],
+        "basis": "Threshold sensitivity diagnostics and explicit coefficient-power filtering exist; canonical generation retains full paths and does not treat the diagnostic threshold as receiver detectability."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov -m 'not native_sionna' tests/test_scripts/test_rt_solver_convergence.py tests/test_integrations/test_rt_path_power_threshold.py tests/test_scripts/test_audit_rt_solver_replay.py tests/test_experiments/test_pilot_sampling.py tests/test_integrations/test_sionna_adapter.py tests/test_integrations/test_rt_trajectory_contract.py",
+        "commit": "32fa52c"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Weak-tail preservation across representative scene/material/backend cases and receiver-relevant detectability evidence are absent."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "weak-power tails do not spuriously vanish solely from aggressive fixed threshold; threshold sensitivity reported.",
+        "pass_rule": "The criterion-specific evidence must meet its frozen scientific tolerance on an independently justified representative unit roster, with complete provenance and no unresolved failure; source contracts and synthetic diagnostics alone do not pass the gate.",
+        "next_task": "Include threshold sensitivity and full-path retention checks in the frozen qualifying roster; keep path censoring distinct from receiver observability."
       }
     },
     {
@@ -1734,32 +1779,37 @@
       "requirement": "empty/full/direct path outcomes audited by class with retries and reference budgets.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G3.10 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard scientific admission criterion for MVP geometric-RT data claims under unified-plan §13; implementation completion is limited to the explicitly named software behavior and does not qualify a scene, run, or release.",
+        "authority_basis": "Mandatory numbered acceptance criterion G3.10 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "experiments/pilot_sampling.py",
+          "tests/test_experiments/test_pilot_sampling.py",
+          "integrations/sionna/adapter.py",
+          "docs/research/PILOT_SAMPLING_WORKFLOW.md"
+        ],
+        "basis": "The deterministic pilot design records natural/enriched priors, retries, and terminal outcome classes; source-level path-generation outcomes have bounded handling but a complete qualified class/reference-budget audit is not assembled."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov -m 'not native_sionna' tests/test_scripts/test_rt_solver_convergence.py tests/test_integrations/test_rt_path_power_threshold.py tests/test_scripts/test_audit_rt_solver_replay.py tests/test_experiments/test_pilot_sampling.py tests/test_integrations/test_sionna_adapter.py tests/test_integrations/test_rt_trajectory_contract.py",
+        "commit": "32fa52c"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "No admitted representative scene roster, retry/reference-budget evidence, or qualified per-class outcome report."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "empty/full/direct path outcomes audited by class with retries and reference budgets.",
+        "pass_rule": "The criterion-specific evidence must meet its frozen scientific tolerance on an independently justified representative unit roster, with complete provenance and no unresolved failure; source contracts and synthetic diagnostics alone do not pass the gate.",
+        "next_task": "Define the exact pilot class roster and retry/reference budgets after split/family prerequisites; retain every terminal outcome and report priors separately."
       }
     },
     {
@@ -1771,17 +1821,22 @@
       "requirement": "geometric-LOS/solver-direct disagreement excluded from headline until resolved or labeled low-confidence.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G3.11 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard scientific admission criterion for MVP geometric-RT data claims under unified-plan §13; implementation completion is limited to the explicitly named software behavior and does not qualify a scene, run, or release.",
+        "authority_basis": "Mandatory numbered acceptance criterion G3.11 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "propagation/visibility.py",
+          "propagation/scene_visibility.py",
+          "integrations/sionna/adapter.py",
+          "tests/test_integrations/test_sionna_adapter.py"
+        ],
+        "basis": "Geometric visibility and solver-direct paths are represented as separate quantities; disagreement can be labeled or excluded without silently redefining geometric LOS. This closes semantic boundary software only."
       },
       "verification": {
-        "status": "not_run",
+        "status": "incomplete",
         "command": null,
         "commit": null
       },
@@ -1789,14 +1844,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Representative scene/link disagreement audit and qualified low-confidence/exclusion policy evidence are not complete."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "geometric-LOS/solver-direct disagreement excluded from headline until resolved or labeled low-confidence.",
+        "pass_rule": "The criterion-specific evidence must meet its frozen scientific tolerance on an independently justified representative unit roster, with complete provenance and no unresolved failure; source contracts and synthetic diagnostics alone do not pass the gate.",
+        "next_task": "No new interface task; include the disagreement audit and frozen exclusion/low-confidence rule in the later qualifying cohort."
       }
     },
     {
@@ -1808,32 +1863,36 @@
       "requirement": "realized natural vs deliberately stratified class priors both logged.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G3.12 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard scientific admission criterion for MVP geometric-RT data claims under unified-plan §13; implementation completion is limited to the explicitly named software behavior and does not qualify a scene, run, or release.",
+        "authority_basis": "Mandatory numbered acceptance criterion G3.12 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "experiments/pilot_sampling.py",
+          "tests/test_experiments/test_pilot_sampling.py",
+          "docs/research/PILOT_SAMPLING_WORKFLOW.md"
+        ],
+        "basis": "The sampler defines and records natural-prevalence versus enriched-stress rosters/weights and exact outcome accounting. No actual representative native pilot or prior validation is implied."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov -m 'not native_sionna' tests/test_scripts/test_rt_solver_convergence.py tests/test_integrations/test_rt_path_power_threshold.py tests/test_scripts/test_audit_rt_solver_replay.py tests/test_experiments/test_pilot_sampling.py tests/test_integrations/test_sionna_adapter.py tests/test_integrations/test_rt_trajectory_contract.py",
+        "commit": "32fa52c"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "External candidate-frame authority and evidence that natural-prior weights represent intended deployment prevalence are missing."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "realized natural vs deliberately stratified class priors both logged.",
+        "pass_rule": "The criterion-specific evidence must meet its frozen scientific tolerance on an independently justified representative unit roster, with complete provenance and no unresolved failure; source contracts and synthetic diagnostics alone do not pass the gate.",
+        "next_task": "Before qualification, bind the sampler to the audited split/family registry and source prevalence evidence; retain both prior summaries."
       }
     },
     {
