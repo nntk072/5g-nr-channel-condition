@@ -1,7 +1,7 @@
 {
   "schema": "loslab.requirement-ledger.v1",
-  "status_note": "Traceability index covering all 182 backlog IDs, 104 numbered unified-plan criteria, and 30 dataset/research gate or phase records. Source audits are complete for PKG00-05. PKG05 rows 001/002/003/004/005/007/008/009/010/011/012/013/014/016/017/018/019/020/021/022/023/024/025 have bounded dispositions; 006/015/026 remain partial aggregate G4 scope. PKG06 rows 001–036 are source-audited with bounded complete/partial dispositions; PKG07-001/002/003/004/005 are source-audited partials with focused regression slices; remaining package/gate audits stay open. Checked plan boxes are preserved as source marks, never treated as implementation or scientific qualification. Feature-map heuristics do not determine ledger status. DS.G3.01–DS.G3.12 were source-audited at 32fa52c; their software states and external scientific blockers are separate, and every G3 qualification remains not_qualified. DS.G0.01–DS.G0.08 source-audited after G3; environment, host solver smoke, dynamic identity edge coverage, legacy report provenance, and per-scene ODbL release evidence remain explicit blockers.",
-  "source_checkpoint": "1e7e333; DS.G0 source audit recorded 2026-11-11",
+  "status_note": "Traceability index covering all 182 backlog IDs, 104 numbered unified-plan criteria, and 30 dataset/research gate or phase records. Source audits are complete for PKG00-05. PKG05 rows 001/002/003/004/005/007/008/009/010/011/012/013/014/016/017/018/019/020/021/022/023/024/025 have bounded dispositions; 006/015/026 remain partial aggregate G4 scope. PKG06 rows 001–036 are source-audited with bounded complete/partial dispositions; PKG07-001/002/003/004/005 are source-audited partials with focused regression slices; remaining package/gate audits stay open. Checked plan boxes are preserved as source marks, never treated as implementation or scientific qualification. Feature-map heuristics do not determine ledger status. DS.G3.01–DS.G3.12 were source-audited at 32fa52c; their software states and external scientific blockers are separate, and every G3 qualification remains not_qualified. DS.G0.01–DS.G0.08 source-audited after G3; environment, host solver smoke, dynamic identity edge coverage, legacy report provenance, and per-scene ODbL release evidence remain explicit blockers. DS.G1.01–DS.G1.10 source-audited; independent geometry/LOS contracts are bounded, while native solver behavior, motion interpolation, and scene-family independence remain open.",
+  "source_checkpoint": "df008fc; DS.G1 source audit recorded 2026-11-11",
   "requirements": [
     {
       "requirement_id": "DS.G0",
@@ -402,30 +402,41 @@
       "backlog_aliases": [],
       "requirement": "Gate G1 — geometry, LOS semantics and physical scenes",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Hard scene geometry, LOS-label, and asset-independence gate for MVP geometric-RT admission. Child criteria define which software contracts exist; native and physical-scene evidence remain separately gated.",
+        "authority_basis": "Governing unified-plan Gate G1 is a hard stop gate; all ten numbered child criteria were source-audited."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "governing-plan requirement needs source-level reconciliation"
+        "status": "partial",
+        "evidence": [
+          "propagation/visibility.py",
+          "propagation/scene_visibility.py",
+          "integrations/sionna/los_oracle.py",
+          "integrations/sionna/adapter.py",
+          "integrations/sionna/rt_trajectory.py",
+          "datasets/split_lineage.py"
+        ],
+        "basis": "Independent geometric visibility, ambiguity handling, semantic separation, and split-bound scene identities exist. Native solver convergence, full scene-frame/antenna audits, motion interpolation, and independent scene-family registry remain incomplete."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_propagation/test_geometry.py tests/test_propagation/test_visibility.py tests/test_propagation/test_scene_visibility.py tests/test_integrations/test_rt_trajectory_contract.py tests/test_datasets/test_rt_split_identity.py tests/test_datasets/test_split_lineage_audit.py; uv run --no-sync --locked python -m scripts.validate_requirement_ledger",
+        "commit": "df008fc"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "No current-host native free-space/visibility oracle qualification.",
+        "No G3-qualified convergence or material evidence for production scene claims.",
+        "No complete independent scene-family registry with authoritative site groups."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "G1.01–G1.10 independent geometry, LOS semantics, native solver agreement, continuity, and independent scene-family evidence.",
+        "pass_rule": "All applicable child criteria pass on exact hash-bound scene assets and the separately admitted runtime; unresolved ambiguity, nonconvergence, unverified coordinate frames, or missing independence evidence keeps G1 closed.",
+        "next_task": "Continue G1/G2 and G4–G8 source audits; after G0.02 and scene-registry prerequisites, execute only the bounded native oracle checks required by the frozen criteria."
       },
       "plan_mark": "not_checklist"
     },
@@ -438,32 +449,37 @@
       "requirement": "free-space straight path has the expected geometric visibility and propagation delay `d/c` within numerical tolerance.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G1.01 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard geometry and LOS-semantic admission criteria for MVP scene labels and geometric-RT claims; completed oracle contracts do not qualify native solver behavior or a physical scene.",
+        "authority_basis": "Mandatory numbered acceptance criterion G1.01 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "propagation/visibility.py",
+          "integrations/sionna/path_oracle.py",
+          "tests/test_integrations/test_rt_to_nr_native.py",
+          "tests/test_propagation/test_geometry.py"
+        ],
+        "basis": "The independent geometric LOS and free-space delay oracle exist, with a native RT-to-NR test asserting d/c; the selected software suite did not run the native PathSolver case on Halti."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "incomplete",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_propagation/test_geometry.py tests/test_propagation/test_visibility.py tests/test_propagation/test_scene_visibility.py tests/test_integrations/test_rt_trajectory_contract.py tests/test_datasets/test_rt_split_identity.py tests/test_datasets/test_split_lineage_audit.py",
+        "commit": "df008fc"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "No current-host native free-space PathSolver receipt."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "free-space straight path has the expected geometric visibility and propagation delay `d/c` within numerical tolerance.",
+        "pass_rule": "Pass only with the stated geometry/LOS property verified against an independent oracle on representative, hash-bound scene assets; native solver agreement and physical propagation claims require their separate gates. Ambiguous or unsupported cases remain unavailable.",
+        "next_task": "Run the bounded known-path native case only after the pinned runtime/backend gate G0.02 passes."
       }
     },
     {
@@ -475,32 +491,37 @@
       "requirement": "independent segment-intersection oracle vs depth-zero `PathSolver` agrees in well-conditioned configurations.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G1.02 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard geometry and LOS-semantic admission criteria for MVP scene labels and geometric-RT claims; completed oracle contracts do not qualify native solver behavior or a physical scene.",
+        "authority_basis": "Mandatory numbered acceptance criterion G1.02 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "propagation/scene_visibility.py",
+          "integrations/sionna/los_oracle.py",
+          "tests/test_integrations/test_los_oracle_native.py",
+          "tests/test_propagation/test_scene_visibility.py"
+        ],
+        "basis": "Independent mesh-segment and Mitsuba/PathSolver oracles are separate, and direct-visibility target contracts record cross-check semantics; broad well-conditioned agreement evidence is not established by this non-native slice."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "incomplete",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_propagation/test_geometry.py tests/test_propagation/test_visibility.py tests/test_propagation/test_scene_visibility.py tests/test_integrations/test_rt_trajectory_contract.py tests/test_datasets/test_rt_split_identity.py tests/test_datasets/test_split_lineage_audit.py",
+        "commit": "df008fc"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Native paired oracle comparison across representative meshes and transforms remains unverified."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "independent segment-intersection oracle vs depth-zero `PathSolver` agrees in well-conditioned configurations.",
+        "pass_rule": "Pass only with the stated geometry/LOS property verified against an independent oracle on representative, hash-bound scene assets; native solver agreement and physical propagation claims require their separate gates. Ambiguous or unsupported cases remain unavailable.",
+        "next_task": "Freeze a small analytical geometry roster and execute the independent/native comparison after G0.02."
       }
     },
     {
@@ -512,32 +533,37 @@
       "requirement": "near-edge/grazing/mesh-contact links flagged ambiguous, not forced into confident labels.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G1.03 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard geometry and LOS-semantic admission criteria for MVP scene labels and geometric-RT claims; completed oracle contracts do not qualify native solver behavior or a physical scene.",
+        "authority_basis": "Mandatory numbered acceptance criterion G1.03 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "propagation/visibility.py",
+          "integrations/sionna/los_oracle.py",
+          "tests/test_propagation/test_visibility.py",
+          "tests/test_propagation/test_scene_visibility.py"
+        ],
+        "basis": "Near-parallel, grazing, endpoint-contact, and coplanar cases are explicitly classified ambiguous rather than coerced to visible/blocked in the software oracle."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_propagation/test_geometry.py tests/test_propagation/test_visibility.py tests/test_propagation/test_scene_visibility.py tests/test_integrations/test_rt_trajectory_contract.py tests/test_datasets/test_rt_split_identity.py tests/test_datasets/test_split_lineage_audit.py",
+        "commit": "df008fc"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Native contact behavior and scene-family rates of ambiguous outcomes remain unqualified."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "near-edge/grazing/mesh-contact links flagged ambiguous, not forced into confident labels.",
+        "pass_rule": "Pass only with the stated geometry/LOS property verified against an independent oracle on representative, hash-bound scene assets; native solver agreement and physical propagation claims require their separate gates. Ambiguous or unsupported cases remain unavailable.",
+        "next_task": "Retain ambiguity and test its prevalence in a later frozen candidate scene roster; never coerce it into confident LOS/NLOS."
       }
     },
     {
@@ -549,32 +575,38 @@
       "requirement": "antennas outside forbidden solids; units/coordinate frames and object transforms consistent.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G1.04 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard geometry and LOS-semantic admission criteria for MVP scene labels and geometric-RT claims; completed oracle contracts do not qualify native solver behavior or a physical scene.",
+        "authority_basis": "Mandatory numbered acceptance criterion G1.04 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "propagation/geometry.py",
+          "propagation/scene_visibility.py",
+          "integrations/sionna/array_layouts.py",
+          "integrations/sionna/adapter.py",
+          "tests/test_propagation/test_geometry.py"
+        ],
+        "basis": "Geometry validates explicit metre-valued coordinates and mesh transforms; endpoint and antenna layouts are represented separately, but a complete scene-wide forbidden-solid and unit/frame audit is not demonstrated."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_propagation/test_geometry.py tests/test_propagation/test_visibility.py tests/test_propagation/test_scene_visibility.py tests/test_integrations/test_rt_trajectory_contract.py tests/test_datasets/test_rt_split_identity.py tests/test_datasets/test_split_lineage_audit.py",
+        "commit": "df008fc"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Every candidate scene needs authoritative units, coordinate-frame, transform, and antenna-clearance inventory."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "antennas outside forbidden solids; units/coordinate frames and object transforms consistent.",
+        "pass_rule": "Pass only with the stated geometry/LOS property verified against an independent oracle on representative, hash-bound scene assets; native solver agreement and physical propagation claims require their separate gates. Ambiguous or unsupported cases remain unavailable.",
+        "next_task": "Bind a per-scene geometry/frame/antenna clearance report to the scene registry before qualification."
       }
     },
     {
@@ -586,32 +618,37 @@
       "requirement": "geometry manipulations (add opaque blocker, open door) produce expected visibility **when physical model supports it**.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G1.05 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard geometry and LOS-semantic admission criteria for MVP scene labels and geometric-RT claims; completed oracle contracts do not qualify native solver behavior or a physical scene.",
+        "authority_basis": "Mandatory numbered acceptance criterion G1.05 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "propagation/visibility.py",
+          "propagation/scene_visibility.py",
+          "tests/test_propagation/test_scene_visibility.py",
+          "docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md"
+        ],
+        "basis": "Analytical blocker and visibility changes are covered for supported triangle geometry; physical door/material interventions and their RF effects are not inferred from the geometric oracle."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "incomplete",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_propagation/test_geometry.py tests/test_propagation/test_visibility.py tests/test_propagation/test_scene_visibility.py tests/test_integrations/test_rt_trajectory_contract.py tests/test_datasets/test_rt_split_identity.py tests/test_datasets/test_split_lineage_audit.py",
+        "commit": "df008fc"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "No admitted scene intervention roster or native material-aware comparison."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "geometry manipulations (add opaque blocker, open door) produce expected visibility **when physical model supports it**.",
+        "pass_rule": "Pass only with the stated geometry/LOS property verified against an independent oracle on representative, hash-bound scene assets; native solver agreement and physical propagation claims require their separate gates. Ambiguous or unsupported cases remain unavailable.",
+        "next_task": "Keep geometric interventions separate from RF claims; define supported door/blocker interventions before claiming their propagation effect."
       }
     },
     {
@@ -623,32 +660,38 @@
       "requirement": "transmissive thin wall handled separately from geometrically unobstructed LOS; physical transmission is not 'direct free-space LOS'.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G1.06 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard geometry and LOS-semantic admission criteria for MVP scene labels and geometric-RT claims; completed oracle contracts do not qualify native solver behavior or a physical scene.",
+        "authority_basis": "Mandatory numbered acceptance criterion G1.06 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "propagation/visibility.py",
+          "integrations/sionna/los_oracle.py",
+          "integrations/sionna/adapter.py",
+          "datasets/targets.py",
+          "tests/test_propagation/test_scene_visibility.py"
+        ],
+        "basis": "Geometric direct visibility is separately represented from solver paths and material transmission; transmissive surfaces do not redefine an unobstructed geometric LOS label."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_propagation/test_geometry.py tests/test_propagation/test_visibility.py tests/test_propagation/test_scene_visibility.py tests/test_integrations/test_rt_trajectory_contract.py tests/test_datasets/test_rt_split_identity.py tests/test_datasets/test_split_lineage_audit.py",
+        "commit": "df008fc"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Scene-specific material transmission remains a separate physics-fidelity question under G3."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "transmissive thin wall handled separately from geometrically unobstructed LOS; physical transmission is not 'direct free-space LOS'.",
+        "pass_rule": "Pass only with the stated geometry/LOS property verified against an independent oracle on representative, hash-bound scene assets; native solver agreement and physical propagation claims require their separate gates. Ambiguous or unsupported cases remain unavailable.",
+        "next_task": "No interface work remains; preserve semantic separation in reports and use G3 material evidence for transmission claims."
       }
     },
     {
@@ -660,32 +703,38 @@
       "requirement": "blocked scene with diffraction/reflection retains indirect paths when actual geometry supports them.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G1.07 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard geometry and LOS-semantic admission criteria for MVP scene labels and geometric-RT claims; completed oracle contracts do not qualify native solver behavior or a physical scene.",
+        "authority_basis": "Mandatory numbered acceptance criterion G1.07 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "integrations/sionna/adapter.py",
+          "integrations/sionna/rt_trajectory.py",
+          "scripts/run_rt_solver_convergence.py",
+          "tests/test_integrations/test_rt_mock_integration.py",
+          "tests/test_integrations/test_rt_trajectory_native.py"
+        ],
+        "basis": "The solver adapter supports bounded reflection/diffraction modes and retains path-level outcomes; this source audit and analytic suite do not establish representative native indirect-path retention for blocked physical scenes."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "incomplete",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_propagation/test_geometry.py tests/test_propagation/test_visibility.py tests/test_propagation/test_scene_visibility.py tests/test_integrations/test_rt_trajectory_contract.py tests/test_datasets/test_rt_split_identity.py tests/test_datasets/test_split_lineage_audit.py",
+        "commit": "df008fc"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Native geometry/material/path-retention evidence and convergence remain open; deep-order NLOS is model-limited."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "blocked scene with diffraction/reflection retains indirect paths when actual geometry supports them.",
+        "pass_rule": "Pass only with the stated geometry/LOS property verified against an independent oracle on representative, hash-bound scene assets; native solver agreement and physical propagation claims require their separate gates. Ambiguous or unsupported cases remain unavailable.",
+        "next_task": "Audit retained path-level evidence by frozen blockage/interaction strata after G0.02; do not imply a universal solver guarantee."
       }
     },
     {
@@ -697,32 +746,37 @@
       "requirement": "LOS-rich scene contains valid direct **and** multiple indirect paths after configured solver convergence.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G1.08 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard geometry and LOS-semantic admission criteria for MVP scene labels and geometric-RT claims; completed oracle contracts do not qualify native solver behavior or a physical scene.",
+        "authority_basis": "Mandatory numbered acceptance criterion G1.08 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "scripts/run_rt_solver_convergence.py",
+          "docs/research/results/rt-city43-spatial-los-nlos-depth10-s05-1m-20261022.json.gz",
+          "docs/research/results/rt-box-los-nlos-convergence-depth20-100k-20261022.json",
+          "tests/test_scripts/test_rt_solver_convergence.py"
+        ],
+        "basis": "LOS-rich fixtures contain direct and indirect paths, but depth and ray-budget diagnostics remain nonconverged; no configured solver setting is accepted as converged production truth."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "incomplete",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_propagation/test_geometry.py tests/test_propagation/test_visibility.py tests/test_propagation/test_scene_visibility.py tests/test_integrations/test_rt_trajectory_contract.py tests/test_datasets/test_rt_split_identity.py tests/test_datasets/test_split_lineage_audit.py",
+        "commit": "df008fc"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "No finite budget/depth has established stability across scene families; G3.01 and G3.02 remain open."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "LOS-rich scene contains valid direct **and** multiple indirect paths after configured solver convergence.",
+        "pass_rule": "Pass only with the stated geometry/LOS property verified against an independent oracle on representative, hash-bound scene assets; native solver agreement and physical propagation claims require their separate gates. Ambiguous or unsupported cases remain unavailable.",
+        "next_task": "Keep candidate scenes `unverified_rt`; require G3 convergence acceptance before any LOS-rich scene enters production D1."
       }
     },
     {
@@ -734,32 +788,37 @@
       "requirement": "scene motion interpolation never causes discontinuous teleportation; timestamps/poses monotonic.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G1.09 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard geometry and LOS-semantic admission criteria for MVP scene labels and geometric-RT claims; completed oracle contracts do not qualify native solver behavior or a physical scene.",
+        "authority_basis": "Mandatory numbered acceptance criterion G1.09 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "datasets/network.py",
+          "integrations/sionna/rt_trajectory.py",
+          "tests/test_integrations/test_rt_trajectory_contract.py",
+          "tests/test_experiments/test_trajectory_targets.py"
+        ],
+        "basis": "Trajectory contracts bind strictly ordered timestamps and per-step poses and reject invalid time grids; an explicit continuous scene-motion interpolation contract and teleport-free interpolation guarantee are not implemented."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_propagation/test_geometry.py tests/test_propagation/test_visibility.py tests/test_propagation/test_scene_visibility.py tests/test_integrations/test_rt_trajectory_contract.py tests/test_datasets/test_rt_split_identity.py tests/test_datasets/test_split_lineage_audit.py",
+        "commit": "df008fc"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "No frozen motion interpolation law for moving scene objects; independently aligned clocks are not established for general sources."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "scene motion interpolation never causes discontinuous teleportation; timestamps/poses monotonic.",
+        "pass_rule": "Pass only with the stated geometry/LOS property verified against an independent oracle on representative, hash-bound scene assets; native solver agreement and physical propagation claims require their separate gates. Ambiguous or unsupported cases remain unavailable.",
+        "next_task": "Freeze supported interpolation modes and continuity rules before implementing continuous motion; otherwise require discrete retraces and label unsampled intervals unavailable."
       }
     },
     {
@@ -771,32 +830,38 @@
       "requirement": "scene families are independent; no hashed assets/mesh variants duplicate into frozen held-out site unintentionally.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G1.10 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard geometry and LOS-semantic admission criteria for MVP scene labels and geometric-RT claims; completed oracle contracts do not qualify native solver behavior or a physical scene.",
+        "authority_basis": "Mandatory numbered acceptance criterion G1.10 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "datasets/split_lineage.py",
+          "datasets/rt_split_identity.py",
+          "datasets/splits.py",
+          "tests/test_datasets/test_rt_split_identity.py",
+          "tests/test_datasets/test_split_lineage_audit.py"
+        ],
+        "basis": "Scene asset digests and geometry relations can be bound to split groups and audited for leakage; a complete scene-family/site registry with authoritative independence groups is not present."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_propagation/test_geometry.py tests/test_propagation/test_visibility.py tests/test_propagation/test_scene_visibility.py tests/test_integrations/test_rt_trajectory_contract.py tests/test_datasets/test_rt_split_identity.py tests/test_datasets/test_split_lineage_audit.py",
+        "commit": "df008fc"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Scene/site independence authority and full family candidate inventory remain missing; hash identity alone does not establish physical independence."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "scene families are independent; no hashed assets/mesh variants duplicate into frozen held-out site unintentionally.",
+        "pass_rule": "Pass only with the stated geometry/LOS property verified against an independent oracle on representative, hash-bound scene assets; native solver agreement and physical propagation claims require their separate gates. Ambiguous or unsupported cases remain unavailable.",
+        "next_task": "Complete the planned scene-family registry and join it to the signed split registry before claiming independent held-out sites."
       }
     },
     {

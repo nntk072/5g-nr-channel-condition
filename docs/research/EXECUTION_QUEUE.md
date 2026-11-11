@@ -293,9 +293,13 @@ tests skipped; the separate G3 evaluator preflight passed 108 tests. Neither
 suite qualifies G3. `E01.DS.GATES.G0` is also source-audited: selected runtime,
 asset-closure, provenance, promotion, and ODbL release-contract checks pass,
 but Halti-specific native runtime evidence and scene-specific public-release
-receipts remain open. Next audit G1, G2, and G4–G8 against the governing plan
-and their source/test paths, in dependency order; then reconcile research
-phases, Appendix E, and the full crosswalk.
+receipts remain open. `E01.DS.GATES.G1` now has source dispositions for its
+ten geometry/LOS criteria; the analytical ambiguity and split-identity
+contracts pass their selected suite, while native solver agreement, scene
+motion interpolation, and independent-site registry evidence remain open.
+Next audit G2 and G4–G8 against the governing plan and their source/test paths,
+in dependency order; then reconcile research phases, Appendix E, and the full
+crosswalk.
 Each package batch is the fixed set of `PKGnn-*` IDs in the ledger and closes
 only after every row has inspected source/test integration, implementation
 state, exact verification, qualification state, dependencies and closure
@@ -333,6 +337,21 @@ complete one-to-one requirement coverage and resolves dependencies/blockers.
   remain open.
 - **Next:** continue with G1/G2 and G4–G8 source audits; retain accepted ODbL
   use policy and require scene-specific evidence before redistribution.
+
+#### E01.DS.GATES.G1 — geometry, LOS semantics, and scene identity (source audit complete 2026-11-11)
+
+- **Requirements:** `DS.G1`, `DS.G1.01`–`DS.G1.10`.
+- **Delivered:** the ledger distinguishes independent geometry/ambiguity and
+  semantic-separation contracts from native PathSolver agreement, scene-wide
+  frame/antenna review, dynamic-scene interpolation, solver convergence, and
+  independent-site evidence. Existing assets and diagnostics are indexed;
+  no RT generation was launched.
+- **Verification:** `uv run --no-sync --locked pytest -q --no-cov tests/test_propagation/test_geometry.py tests/test_propagation/test_visibility.py tests/test_propagation/test_scene_visibility.py tests/test_integrations/test_rt_trajectory_contract.py tests/test_datasets/test_rt_split_identity.py tests/test_datasets/test_split_lineage_audit.py` (exit 0); `uv run --no-sync --locked python -m scripts.validate_requirement_ledger`.
+- **Disposition:** G1 remains `not_qualified`. Native free-space/visibility
+  checks require the Halti runtime gate; production scene claims also require
+  G3 convergence/material acceptance and the scene-family registry.
+- **Next:** audit G2 and the remaining dataset gate records; schedule bounded
+  native oracle checks only after G0.02 and scene prerequisites pass.
 
 For every batch, retain the exact source files inspected in that ledger row;
 do not copy the whole chronological status history. If a row is already
