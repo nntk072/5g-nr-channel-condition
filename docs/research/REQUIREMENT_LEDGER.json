@@ -9686,17 +9686,18 @@
           "datasets/targets.py",
           "datasets/model_input_audit.py",
           "datasets/schema/umcd-physical-channel-layer.v1.schema.json",
+          "datasets/schema/umcd-target-layer.v1.schema.json",
           "tests/test_datasets/test_umcd_schema.py",
           "tests/test_datasets/test_target_contracts.py",
           "tests/test_datasets/test_model_input_audit.py",
           "tests/test_evaluation/test_target_coverage.py"
         ],
-        "basis": "Physical channel layers now preserve an optional phase_gauge_id with backward-compatible reads; coherent phase comparison fails closed unless gauge, link/time/port axes, frequency grid, delay reference, and power reference agree. TargetValue already requires element masks with explicit TargetValidity reason codes and hash-bound target references; model-input payloads reject target-bearing/unregistered fields. A phase gauge is only a producer declaration. Censor intervals, observability-to-acquisition bindings, phase-reference calibration evidence, and causal timestamp/lineage eligibility across all transforms/runners remain open."
+        "basis": "Physical channel layers now preserve an optional phase_gauge_id with backward-compatible reads; coherent phase comparison fails closed unless gauge, link/time/port axes, frequency grid, delay reference, and power reference agree. TargetValue requires element masks with explicit TargetValidity reason codes, hash-bound target references, and per-element finite censoring bounds whenever CENSORED is used; bounds persist through storage and target-map evaluation. Legacy targets without interval metadata retain unavailable masks, while old CENSORED reasons are downgraded to LEGACY_REASON_UNRECORDED. Model-input payloads reject target-bearing/unregistered fields. A phase gauge is only a producer declaration. Source-specific censor generation, observability-to-acquisition bindings, phase-reference calibration evidence, and causal timestamp/lineage eligibility across all transforms/runners remain open."
       },
       "verification": {
         "status": "pass",
-        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_model_input_audit.py tests/test_datasets/test_target_contracts.py tests/test_evaluation/test_target_coverage.py\n./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_umcd_schema.py::test_physical_channel_view_requires_named_axes_and_explicit_normalization tests/test_datasets/test_umcd_schema.py::test_phase_gauge_comparison_requires_matching_reference_and_physical_grid tests/test_datasets/test_umcd_schema.py::test_phase_gauge_is_preserved_in_content_addressed_channel_layer tests/test_datasets/test_umcd_schema.py::test_legacy_episode_payload_without_pose_alignment_remains_readable",
-        "commit": "Working tree based on c6d7dd7; 54 target/model-input checks and four phase-gauge/storage compatibility checks passed."
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_model_input_audit.py tests/test_datasets/test_target_contracts.py tests/test_evaluation/test_target_coverage.py\n./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_umcd_schema.py::test_physical_channel_view_requires_named_axes_and_explicit_normalization tests/test_datasets/test_umcd_schema.py::test_phase_gauge_comparison_requires_matching_reference_and_physical_grid tests/test_datasets/test_umcd_schema.py::test_phase_gauge_is_preserved_in_content_addressed_channel_layer tests/test_datasets/test_umcd_schema.py::test_censoring_interval_is_preserved_in_content_addressed_target_layer tests/test_datasets/test_umcd_schema.py::test_legacy_episode_payload_without_pose_alignment_remains_readable",
+        "commit": "Working tree based on c615f0c; 59 target/model-input/evaluation checks and five phase-gauge/censoring/storage compatibility checks passed."
       },
       "qualification": {
         "status": "not_qualified",
@@ -9742,7 +9743,7 @@
       "verification": {
         "status": "pass",
         "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_frequency_pair.py",
-        "commit": "Working tree based on c6d7dd7; focused pair-manifest schema, distinct-band, carrier-provenance, and scene-geometry checks passed."
+        "commit": "Working tree based on c615f0c; four focused pair-manifest schema, distinct-band, carrier-provenance, and scene-geometry checks passed."
       },
       "qualification": {
         "status": "not_qualified",

@@ -25,6 +25,7 @@ from datasets.episode_store import (
     _episode_payload,
     _path_payload,
     _read_episode,
+    _target_payload,
     _validate_path_oracle_layer,
     read_episode_bundle,
     read_frequency_model_inputs,
@@ -63,6 +64,7 @@ from datasets.split_policy import (
     make_split_policy_registry,
 )
 from datasets.targets import (
+    CensoringInterval,
     TargetDefinition,
     TargetValidity,
     TargetValue,
@@ -633,6 +635,29 @@ def test_phase_gauge_is_preserved_in_content_addressed_channel_layer(tmp_path):
     loaded = read_episode_bundle(tmp_path, stored)
 
     assert loaded.channel_views[0].phase_gauge_id == "cal-chain-7"
+
+
+def test_censoring_interval_is_preserved_in_content_addressed_target_layer(tmp_path):
+    jsonschema = pytest.importorskip("jsonschema")
+    bundle = _bundle()
+    target = replace(
+        bundle.targets[0],
+        values=np.asarray([0.0]),
+        valid_mask=np.asarray([False]),
+        reason_codes=(TargetValidity.CENSORED,),
+        censoring_intervals=(CensoringInterval(lower=10e-9),),
+    )
+    with np.load(io.BytesIO(_target_payload(target)), allow_pickle=False) as archive:
+        target_metadata = json.loads(archive["metadata_json"].tobytes())
+    target_schema = json.loads(
+        (Path(__file__).parents[2] / "datasets/schema/umcd-target-layer.v1.schema.json").read_text()
+    )
+    jsonschema.Draft202012Validator(target_schema).validate(target_metadata)
+    stored = write_episode_bundle(tmp_path, replace(bundle, targets=(target,)))
+    loaded = read_episode_bundle(tmp_path, stored)
+
+    assert loaded.targets[0].reason_codes == (TargetValidity.CENSORED,)
+    assert loaded.targets[0].censoring_intervals == (CensoringInterval(lower=10e-9),)
 
 
 def test_physical_channel_view_rejects_coercible_timestamp_strings():

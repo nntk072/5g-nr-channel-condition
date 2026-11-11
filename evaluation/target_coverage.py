@@ -14,11 +14,12 @@ from dataclasses import dataclass
 from typing import TypeAlias
 
 from datasets.targets import (
-    TargetDefinition as DatasetTargetDefinition,
-)
-from datasets.targets import (
+    CensoringInterval,
     TargetValidity,
     TargetValue,
+)
+from datasets.targets import (
+    TargetDefinition as DatasetTargetDefinition,
 )
 
 NumericValue: TypeAlias = int | float | None
@@ -38,7 +39,7 @@ class TargetDefinition:
 
 @dataclass(frozen=True, slots=True)
 class TargetObservation:
-    """Per-element values, availability mask, and unavailable reason codes."""
+    """Per-element values, availability, reasons, and optional censor bounds."""
 
     target_id: str
     units: str
@@ -46,6 +47,7 @@ class TargetObservation:
     values: tuple[NumericValue, ...]
     valid_mask: tuple[bool, ...]
     reason_codes: tuple[str | None, ...]
+    censoring_intervals: tuple[CensoringInterval | None, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -163,6 +165,7 @@ def convert_target_map(
                     None if reason is TargetValidity.VALID else reason.value
                     for reason in target_value.reason_codes
                 ),
+                censoring_intervals=target_value.censoring_intervals,
             )
         )
     if not target_map:
@@ -269,9 +272,9 @@ def audit_target_coverage(
         assignment = (*_stratum_key(cell), cell.task_id)
         targets_by_assignment.setdefault(assignment, set()).add(cell.target_id)
 
-    aggregates: dict[tuple[str, str, str, str, str, str, str, str], tuple[int, int, Counter[str]]] = {
-        key: (0, 0, Counter()) for key in inventory
-    }
+    aggregates: dict[
+        tuple[str, str, str, str, str, str, str, str], tuple[int, int, Counter[str]]
+    ] = {key: (0, 0, Counter()) for key in inventory}
     independent_groups: dict[tuple[str, str, str, str, str, str, str, str], set[str]] = {
         key: set() for key in inventory
     }
@@ -296,9 +299,7 @@ def audit_target_coverage(
         seen_record_ids.add(record.record_id)
         group_id = record.independent_group_id
         if group_id is None:
-            raise ValueError(
-                f"record {record.record_id!r} lacks an explicit independent_group_id"
-            )
+            raise ValueError(f"record {record.record_id!r} lacks an explicit independent_group_id")
         _require_nonempty(group_id, f"independent_group_id for record {record.record_id!r}")
         group_id = group_id.strip()
 
@@ -398,7 +399,16 @@ def audit_target_coverage(
 
     results: list[CoverageCellResult] = []
     for key in sorted(inventory):
-        split_id, family_id, scene_id, band_id, topology_id, antenna_config_id, task_id, target_id = key
+        (
+            split_id,
+            family_id,
+            scene_id,
+            band_id,
+            topology_id,
+            antenna_config_id,
+            task_id,
+            target_id,
+        ) = key
         valid_count, unavailable_count, reasons = aggregates[key]
         total = valid_count + unavailable_count
         results.append(

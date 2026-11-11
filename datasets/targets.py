@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from dataclasses import dataclass
 from enum import StrEnum
+from numbers import Real
 from typing import Any
 
 import numpy as np
@@ -398,6 +400,33 @@ class TargetDefinition:
             raise ValueError("target definition SHA-256 does not match its canonical fields")
 
 
+@dataclass(frozen=True, slots=True)
+class CensoringInterval:
+    """An open or closed numeric bound known for one censored target value."""
+
+    lower: float | None = None
+    upper: float | None = None
+
+    def __post_init__(self) -> None:
+        for name in ("lower", "upper"):
+            value = getattr(self, name)
+            if value is not None and (
+                isinstance(value, bool)
+                or not isinstance(value, Real)
+                or not math.isfinite(float(value))
+            ):
+                raise ValueError(f"censoring {name} bound must be a finite real number or null")
+            if value is not None:
+                object.__setattr__(self, name, float(value))
+        if self.lower is None and self.upper is None:
+            raise ValueError("a censoring interval must include at least one finite bound")
+        if self.lower is not None and self.upper is not None and self.lower >= self.upper:
+            raise ValueError("censoring lower bound must be less than upper bound")
+
+    def to_dict(self) -> dict[str, float | None]:
+        return {"lower": self.lower, "upper": self.upper}
+
+
 @dataclass(frozen=True, slots=True, eq=False)
 class TargetValue:
     """One target field with a reason code for every valid or unavailable value."""
@@ -408,6 +437,7 @@ class TargetValue:
     valid_mask: np.ndarray
     reason_codes: tuple[TargetValidity, ...]
     confidence: str
+    censoring_intervals: tuple[CensoringInterval | None, ...] | None = None
 
     def __post_init__(self) -> None:
         if (
@@ -446,6 +476,18 @@ class TargetValue:
             raise ValueError("reason_codes must contain one TargetValidity per target element")
         flat_values = values.reshape(-1)
         flat_valid = valid.reshape(-1)
+        intervals = (
+            (None,) * values.size
+            if self.censoring_intervals is None
+            else tuple(self.censoring_intervals)
+        )
+        if len(intervals) != values.size or any(
+            interval is not None and not isinstance(interval, CensoringInterval)
+            for interval in intervals
+        ):
+            raise ValueError(
+                "censoring_intervals must contain one interval or null per target element"
+            )
         for index, (is_valid, reason, value) in enumerate(zip(flat_valid, reasons, flat_values)):
             if is_valid != (reason is TargetValidity.VALID):
                 raise ValueError("valid_mask and reason_codes disagree")
@@ -455,6 +497,14 @@ class TargetValue:
                 )
             if is_valid and not bool(np.isfinite(value)):
                 raise ValueError("valid target values must be finite")
+            if (reason is TargetValidity.CENSORED) != (intervals[index] is not None):
+                raise ValueError(
+                    "censored targets require an interval; other reasons must not carry one"
+                )
+            if reason is TargetValidity.CENSORED and values.dtype.kind == "c":
+                raise ValueError(
+                    "numeric censoring intervals cannot describe complex target values"
+                )
         values.setflags(write=False)
         valid.setflags(write=False)
         validate_canonical_target_contract(
@@ -465,6 +515,7 @@ class TargetValue:
         object.__setattr__(self, "values", values)
         object.__setattr__(self, "valid_mask", valid)
         object.__setattr__(self, "reason_codes", reasons)
+        object.__setattr__(self, "censoring_intervals", intervals)
 
     @property
     def valid_count(self) -> int:

@@ -119,6 +119,12 @@ source family; this remains a producer claim and does not authenticate the
 source or qualify either solve. Magnitude-only measurement archives remain
 ineligible as complex CSI/ToA truth.
 
+`TargetValue` entries marked `censored` now require an explicit finite lower
+and/or upper bound per element. The target layer stores these intervals and
+reads earlier target layers without interval metadata; legacy censored values
+retain their unavailable mask and are marked `legacy_reason_unrecorded`. Other
+unavailable reasons cannot carry censor bounds.
+
 <code>propagation.path_steering_diagnostics</code> measures rank, condition
 number, and mutual coherence of candidate path steering vectors on a specified
 finite set of subcarrier frequencies. It demonstrates exact coincidence and

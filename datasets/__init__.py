@@ -154,7 +154,7 @@ from .standardized_specs import (
     standardized_profile_applicability_report,
 )
 from .synthetic import debug_multipath
-from .targets import TargetValidity, TargetValue, definition_digest
+from .targets import CensoringInterval, TargetValidity, TargetValue, definition_digest
 
 __all__ = [
     "ChannelDataset",
@@ -226,6 +226,7 @@ __all__ = [
     "NRStoredRecord",
     "NRTrajectory",
     "TargetDefinition",
+    "CensoringInterval",
     "audit_nr_trajectory_target_support",
     "TargetValidity",
     "TargetValue",

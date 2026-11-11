@@ -5,12 +5,13 @@ from dataclasses import replace
 import numpy as np
 import pytest
 from datasets.targets import (
-    TargetDefinition as DatasetTargetDefinition,
-)
-from datasets.targets import (
+    CensoringInterval,
     TargetValidity,
     TargetValue,
     target_definition_digest,
+)
+from datasets.targets import (
+    TargetDefinition as DatasetTargetDefinition,
 )
 from evaluation.target_coverage import (
     ExpectedInventoryCell,
@@ -68,9 +69,7 @@ def _inventory(
     *cells: tuple[str, str, str], minimum_independent_groups: int = 1
 ) -> tuple[ExpectedInventoryCell, ...]:
     return tuple(
-        ExpectedInventoryCell(
-            *cell, minimum_independent_groups=minimum_independent_groups
-        )
+        ExpectedInventoryCell(*cell, minimum_independent_groups=minimum_independent_groups)
         for cell in cells
     )
 
@@ -129,14 +128,26 @@ def test_target_coverage_keeps_scene_band_topology_antenna_and_task_cells_separa
     )
     inventory = (
         ExpectedInventoryCell(
-            "test", "urban", "path_loss", 1,
-            scene_id="scene-a", band_id="n78", topology_id="2x2",
-            antenna_config_id="array-a", task_id="path-loss",
+            "test",
+            "urban",
+            "path_loss",
+            1,
+            scene_id="scene-a",
+            band_id="n78",
+            topology_id="2x2",
+            antenna_config_id="array-a",
+            task_id="path-loss",
         ),
         ExpectedInventoryCell(
-            "test", "urban", "path_loss", 1,
-            scene_id="scene-b", band_id="n78", topology_id="2x2",
-            antenna_config_id="array-a", task_id="path-loss",
+            "test",
+            "urban",
+            "path_loss",
+            1,
+            scene_id="scene-b",
+            band_id="n78",
+            topology_id="2x2",
+            antenna_config_id="array-a",
+            task_id="path-loss",
         ),
     )
 
@@ -153,7 +164,10 @@ def test_target_coverage_keeps_scene_band_topology_antenna_and_task_cells_separa
 def test_unspecified_target_record_cannot_fill_named_scene_inventory() -> None:
     inventory = (
         ExpectedInventoryCell(
-            "test", "urban", "path_loss", 1,
+            "test",
+            "urban",
+            "path_loss",
+            1,
             scene_id="reviewed-scene",
             band_id="n78",
             topology_id="2x2",
@@ -384,6 +398,12 @@ def test_target_map_bridge_preserves_canonical_definition_and_maps_unavailable_v
             TargetValidity.VALID,
         ),
         confidence="rt_solver_truth",
+        censoring_intervals=(
+            None,
+            None,
+            CensoringInterval(lower=2.0e-9),
+            None,
+        ),
     )
 
     definitions, observations = convert_target_map({"delay_spread": target_value})
@@ -404,6 +424,7 @@ def test_target_map_bridge_preserves_canonical_definition_and_maps_unavailable_v
             values=(1.5e-9, None, None, 4.5e-9),
             valid_mask=(True, False, False, True),
             reason_codes=(None, "not_observable", "censored", None),
+            censoring_intervals=(None, None, CensoringInterval(lower=2.0e-9), None),
         ),
     )
 

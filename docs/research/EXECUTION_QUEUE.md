@@ -188,14 +188,19 @@ validate physical path completeness. `PKG07-003` now also preserves the
 optional `phase_gauge_id` in backward-readable channel layers and provides a
 fail-closed coherent-comparison disposition over gauge, link/time/port axes,
 frequency grid, delay reference, and power reference. Four focused
-phase-gauge/storage checks and the existing 54 target/model-input checks pass;
-calibration evidence, formal censor intervals, and pipeline-wide causal
-eligibility remain open. `PKG07-004` now has a `PairedFrequencyViews` contract
-and schema binding two distinct-carrier complex views to the same scene
-geometry/assets and source/split parent, with per-view content hashes,
-separate material/solver/run provenance digests and no cross-band phase claim.
-The focused contract tests pass. This does not generate paired solves; the RT
-workflow, bundle linkage, split-registry integration, and scientific
+phase-gauge/storage checks and 59 target/model-input/evaluation checks pass.
+`TargetValue` now requires explicit per-element bounds when a reason is
+`CENSORED`, persists the intervals, and reads pre-interval layers
+backward-compatibly; source-specific censor generation and observability
+bindings remain open. Calibration evidence and pipeline-wide causal eligibility
+also remain open. Older censored targets without intervals retain their
+unavailable mask and migrate to `LEGACY_REASON_UNRECORDED`. `PKG07-004` now has
+a `PairedFrequencyViews` contract and schema binding two distinct-carrier
+complex views to the same scene geometry/assets and source/split parent, with
+per-view content hashes, separate material/solver/run provenance digests and no
+cross-band phase claim.
+Four focused pair-contract checks pass. This does not generate paired solves;
+the RT workflow, bundle linkage, split-registry integration, and scientific
 qualification remain open.
 
 The frozen CDL-E four-element covariance miss is now linked to

@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 from datasets.nr import NRChannelRecord, NRObservation
 from datasets.targets import (
+    CensoringInterval,
     TargetDefinition,
     TargetValidity,
     TargetValue,
@@ -240,6 +241,58 @@ def test_target_value_accepts_versioned_complex_cfr_with_masked_zeros() -> None:
             reason_codes=(TargetValidity.VALID,),
             confidence="synthetic_fixture",
         )
+
+
+def test_censored_target_requires_finite_nonempty_interval_bounds():
+    definition = _definition(
+        "umcd.synthetic.censored-delay.v1",
+        semantic="censored delay",
+        units="s",
+    )
+    target = TargetValue(
+        entity_id="episode-link",
+        definition=definition,
+        values=np.asarray([0.0]),
+        valid_mask=np.asarray([False]),
+        reason_codes=(TargetValidity.CENSORED,),
+        confidence="synthetic_fixture",
+        censoring_intervals=(CensoringInterval(lower=10e-9),),
+    )
+    assert target.censoring_intervals == (CensoringInterval(lower=10e-9),)
+
+    with pytest.raises(ValueError, match="require an interval"):
+        TargetValue(
+            entity_id="episode-link",
+            definition=definition,
+            values=np.asarray([0.0]),
+            valid_mask=np.asarray([False]),
+            reason_codes=(TargetValidity.CENSORED,),
+            confidence="synthetic_fixture",
+        )
+    with pytest.raises(ValueError, match="must not carry one"):
+        TargetValue(
+            entity_id="episode-link",
+            definition=definition,
+            values=np.asarray([0.0]),
+            valid_mask=np.asarray([False]),
+            reason_codes=(TargetValidity.NOT_OBSERVABLE,),
+            confidence="synthetic_fixture",
+            censoring_intervals=(CensoringInterval(upper=10e-9),),
+        )
+
+
+@pytest.mark.parametrize(
+    "bounds",
+    [
+        {"lower": None, "upper": None},
+        {"lower": 2.0, "upper": 1.0},
+        {"lower": float("nan"), "upper": None},
+        {"lower": True, "upper": None},
+    ],
+)
+def test_censoring_interval_rejects_invalid_numeric_bounds(bounds):
+    with pytest.raises(ValueError):
+        CensoringInterval(**bounds)
 
 
 @pytest.mark.parametrize("entity_id", [" episode-link", "episode-link "])

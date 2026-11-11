@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.dev/schema/umcd-target-layer.v1.schema.json",
+  "title": "UMCD target layer metadata",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "entity_id", "definition", "reason_codes", "confidence"],
+  "properties": {
+    "schema": {"const": "umcd.target.v2"},
+    "entity_id": {"type": "string", "minLength": 1},
+    "definition": {"type": "object"},
+    "reason_codes": {
+      "type": "array",
+      "items": {
+        "enum": ["valid", "not_applicable", "not_observable", "reference_missing", "low_confidence_ground_truth", "solver_failure", "censored", "outside_calibrated_domain", "sensor_dropout", "saturated", "timestamp_gap", "license_restricted", "legacy_reason_unrecorded"]
+      }
+    },
+    "confidence": {"type": "string", "minLength": 1},
+    "censoring_intervals": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {"type": "null"},
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "lower": {"type": ["number", "null"]},
+              "upper": {"type": ["number", "null"]}
+            },
+            "anyOf": [{"required": ["lower"]}, {"required": ["upper"]}],
+            "not": {"properties": {"lower": {"const": null}, "upper": {"const": null}}, "required": ["lower", "upper"]}
+          }
+        ]
+      }
+    }
+  }
+}

@@ -38,6 +38,7 @@ from .observations import (
 from .path_oracle import PathOracleTable, PathSolveStatus
 from .provenance import UMCDRunProvenance
 from .targets import (
+    CensoringInterval,
     TargetDefinition,
     TargetValidity,
     TargetValue,
@@ -663,6 +664,10 @@ def _target_payload(target: TargetValue) -> bytes:
         "definition": asdict(target.definition),
         "reason_codes": [reason.value for reason in target.reason_codes],
         "confidence": target.confidence,
+        "censoring_intervals": [
+            None if interval is None else interval.to_dict()
+            for interval in target.censoring_intervals
+        ],
     }
     return _pack_npz(metadata, values=target.values, valid_mask=target.valid_mask)
 
@@ -1337,16 +1342,32 @@ def read_episode_bundle(
             definition = migrate_legacy_target_definition_v1(definition_payload)
         else:
             definition = TargetDefinition(**definition_payload)
+        target_reasons = tuple(TargetValidity(item) for item in target_metadata["reason_codes"])
+        if "censoring_intervals" not in target_metadata:
+            # Legacy targets did not carry interval bounds. Preserve their
+            # unavailable mask while marking the old censor detail unrecorded.
+            target_reasons = tuple(
+                TargetValidity.LEGACY_REASON_UNRECORDED
+                if reason is TargetValidity.CENSORED
+                else reason
+                for reason in target_reasons
+            )
         targets.append(
             TargetValue(
                 entity_id=target_metadata["entity_id"],
                 definition=definition,
                 values=arrays["values"],
                 valid_mask=arrays["valid_mask"],
-                reason_codes=tuple(
-                    TargetValidity(item) for item in target_metadata["reason_codes"]
-                ),
+                reason_codes=target_reasons,
                 confidence=target_metadata["confidence"],
+                censoring_intervals=(
+                    None
+                    if "censoring_intervals" not in target_metadata
+                    else tuple(
+                        None if item is None else CensoringInterval(**item)
+                        for item in target_metadata["censoring_intervals"]
+                    )
+                ),
             )
         )
     observations: list[LinkedNRObservation | LinkedFrequencyDomainObservation] = []
