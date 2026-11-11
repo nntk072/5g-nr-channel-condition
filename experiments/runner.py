@@ -50,7 +50,7 @@ from evaluation.probability_calibration import (
 )
 from evaluation.statistics import paired_seed_delta
 from learning import fit_complex_cnn, fit_coral_mlp, fit_real_cnn, fit_sklearn
-from models.capacity import capacity_spec
+from models.capacity import capacity_spec, matched_capacity_names
 from models.multipath import fit_sparse_multipath
 from propagation.physics import delay_k_proxy_features, observable_features
 from receivers.pilots import comb_ls_estimate
@@ -2044,6 +2044,29 @@ def _run_experiment_impl(
     x = observable_features(observable, include_phase=include_phase)
     raw_real_imag = _flatten_real_imag_cfr(observable)
     power_only = _log_power_per_link_subcarrier(observable)
+    if capacity == "matched":
+        if not {"raw_mlp", "cnn", "cvnn"} <= set(methods):
+            raise ValueError("capacity='matched' requires raw_mlp, cnn, and cvnn in one run")
+        matched_capacities = matched_capacity_names(
+            links=int(observable.shape[1]), subcarriers=int(observable.shape[2])
+        )
+        model_capacities = {
+            method: str(
+                matched_capacities[
+                    "mlp_capacity"
+                    if method == "raw_mlp"
+                    else "real_cnn_capacity"
+                    if method == "cnn"
+                    else "complex_cnn_capacity"
+                ]
+            )
+            if method in {"raw_mlp", "cnn", "cvnn"}
+            else "medium"
+            for method in methods
+        }
+    else:
+        matched_capacities = None
+        model_capacities = {method: capacity for method in methods}
     delay_k_proxy = delay_k_proxy_features(observable) if "delay_k_proxy" in methods else None
     sparse_multipath = (
         _sparse_multipath_features(observable) if "sparse_multipath" in methods else None
@@ -2062,6 +2085,8 @@ def _run_experiment_impl(
         "include_phase": include_phase,
         "device": device,
         "capacity": capacity,
+        "model_capacities": model_capacities,
+        "parameter_match": matched_capacities,
         "coral_penalty": coral_penalty,
         "observation": observation,
         "pilot_spacing": pilot_spacing,
@@ -2301,7 +2326,7 @@ def _run_experiment_impl(
                     else "mlp"
                     if method == "phase_randomized"
                     else method,
-                    capacity=capacity,
+                    capacity=model_capacities[method],
                 )
                 extra: dict[str, Any] = {}
             elif method == "cnn":
@@ -2312,7 +2337,7 @@ def _run_experiment_impl(
                     data.y[val],
                     seed=seed,
                     device=device,
-                    capacity=capacity,
+                    capacity=model_capacities[method],
                 )
             elif method == "cvnn":
                 clf, extra = fit_complex_cnn(
@@ -2322,7 +2347,7 @@ def _run_experiment_impl(
                     data.y[val],
                     seed=seed,
                     device=device,
-                    capacity=capacity,
+                    capacity=model_capacities[method],
                 )
             elif method in ("coral", "coral0"):
                 clf, extra = fit_coral_mlp(
@@ -2334,7 +2359,7 @@ def _run_experiment_impl(
                     seed=seed,
                     penalty=coral_penalty if method == "coral" else 0.0,
                     device=device,
-                    capacity=capacity,
+                    capacity=model_capacities[method],
                 )
             else:
                 raise ValueError(f"Unknown method {method}")
@@ -2603,6 +2628,7 @@ def _run_experiment_impl(
             result = {
                 "seed": int(seed),
                 "method": method,
+                "capacity": model_capacities[method],
                 "input_representation": (
                     "complex observation split into real/imaginary channels"
                     if method == "cnn"
@@ -2680,6 +2706,24 @@ def _run_experiment_impl(
                     "validation_prediction_samples": int(len(val)),
                     "test_prediction_samples": int(len(test)),
                     "learned_parameter_count": parameter_count,
+                    "parameter_match": (
+                        {
+                            "target_parameters": int(matched_capacities["target_parameters"]),
+                            "actual_parameters": parameter_count,
+                            "relative_error": (
+                                abs(
+                                    int(parameter_count)
+                                    - int(matched_capacities["target_parameters"])
+                                )
+                                / int(matched_capacities["target_parameters"])
+                                if parameter_count is not None
+                                else None
+                            ),
+                            "input_shape": [int(observable.shape[1]), int(observable.shape[2])],
+                        }
+                        if matched_capacities is not None and method in {"raw_mlp", "cnn", "cvnn"}
+                        else None
+                    ),
                     "peak_cuda_memory_bytes": (
                         int(torch.cuda.max_memory_allocated(device))
                         if uses_torch and device.startswith("cuda")

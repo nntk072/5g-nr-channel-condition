@@ -19,7 +19,7 @@ def _real_imaginary_channels(values: Any) -> np.ndarray:
 
 def build_real_cnn(input_channels: int, capacity: str = "medium"):
     """Build a compact 1D CNN that preserves subcarrier order."""
-    from models.capacity import capacity_spec
+    from models.capacity import architecture_widths
 
     if isinstance(input_channels, bool) or not isinstance(input_channels, int):
         raise TypeError("input_channels must be an integer")
@@ -27,7 +27,7 @@ def build_real_cnn(input_channels: int, capacity: str = "medium"):
         raise ValueError("input_channels must be positive")
     from torch import nn
 
-    width1, width2, width3 = capacity_spec(capacity).convolution_widths
+    width1, width2, width3 = architecture_widths(capacity, "real_cnn")
 
     class RealCFRConvNet(nn.Module):
         def __init__(self, channels: int):

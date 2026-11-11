@@ -153,11 +153,31 @@ python -m loslab experiment \
 ```
 
 The runner's shared split makes these routes comparable on the same sample
-partition, but their representations differ. This software wiring does not
-provide parameter-matched neural architectures, independent-site evidence,
-receiver qualification, or a scientific performance claim. Use only after
-the applicable input/split gates pass; production generation and advanced
-training remain gated.
+partition, but their representations differ. For a receiver-input
+parameter-count-matched neural trio, request `--capacity matched` with all
+three methods in one run. The runner uses the medium raw-CFR MLP width tuple as
+the reference budget, derives real-CNN and complex-CNN widths from the CFR
+link/tone shape, and rejects either CNN if its nearest channel-width
+configuration differs by more than 10%. Each result records resolved widths,
+target/actual trainable parameter counts, and relative difference. This
+matches parameter count, not optimizer compute, receptive field, or
+representational capacity; it does not imply scientific fairness or
+qualification. Do not launch the cohort until the relevant input, split, and
+research acceptance gates are ready.
+
+```sh
+python -m loslab experiment \
+  --input <receiver-observations.npz> \
+  --output <new-run-directory> \
+  --observation precomputed \
+  --methods raw_mlp cnn cvnn \
+  --capacity matched \
+  --seeds 11 23 47 59 71 \
+  --bootstrap 200
+```
+
+Independent-site evidence, receiver qualification, and scientific performance
+claims remain open. Production generation and advanced training remain gated.
 
 The versioned schemas are
 `datasets/schema/model-input-artifact-contract.v3.schema.json` through

@@ -12462,14 +12462,16 @@
         "status": "partial",
         "evidence": [
           "experiments/runner.py",
+          "models/capacity.py",
           "datasets/schema/model-input-artifact-contract.v13.schema.json",
+          "tests/test_learning/test_capacity.py",
           "docs/research/BASELINE_CONTROLS_WORKFLOW.md"
         ],
-        "basis": "The remaining parameter-matched MLP/CNN/CV-CNN architecture and budget audit, broader physical estimator set, and scientific evaluation are not implemented."
+        "basis": "The broader physical estimator set and criterion-specific scientific evaluation are not implemented. The shape-dependent parameter match is software-only and does not establish scientific fairness or model qualification."
       },
       "verification": {
         "status": "pass",
-        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_experiments/test_runner.py -k 'delay_k_proxy or receiver_visible_physical_baseline or audited_observable_feature_baseline'",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_learning/test_capacity.py tests/test_experiments/test_runner.py -k 'capacity or delay_k_proxy or receiver_visible_physical_baseline or audited_observable_feature_baseline'",
         "commit": null
       },
       "qualification": {
@@ -12481,7 +12483,7 @@
       "closure": {
         "deliverable": null,
         "pass_rule": null,
-        "next_task": "Implement and audit parameter-matched MLP/CNN/CV-CNN configurations over identical receiver observations and split locks; add the planned physical estimators and task-specific evaluation reports without launching qualification until G3/G4/G5 criteria and evidence are ready."
+        "next_task": "Implement the remaining physical estimator baselines and criterion-specific scientific evaluation contracts; defer benchmark qualification until G3/G4/G5 criteria and required evidence are satisfied."
       },
       "plan_mark": "not_checklist"
     },

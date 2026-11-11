@@ -800,6 +800,70 @@ def test_run_experiment_routes_receiver_visible_physical_baseline(tmp_path, meth
     assert result["model_input_artifact_contract_status"] == "PASS_MODEL_INPUT_ARTIFACT_BINDING"
 
 
+def test_parameter_matched_neural_trio_uses_common_split_and_records_budget(
+    tmp_path, monkeypatch
+) -> None:
+    from models.capacity import matched_capacity_names
+    from models.complex_cnn import build_complex_cnn
+    from models.real_cnn import build_real_cnn
+
+    source = tmp_path / "debug.npz"
+    debug_multipath(n_scenes=8, links_per_scene=8, n_subcarriers=16, seed=89).save(source)
+    profile = matched_capacity_names(links=1, subcarriers=16)
+    seen_capacities = {}
+
+    class Predictor:
+        def predict_proba(self, values):
+            scores = np.linspace(0.1, 0.9, len(values), dtype=np.float64)
+            return np.column_stack((1.0 - scores, scores))
+
+        def save(self, path, **kwargs):
+            path.write_bytes(b"synthetic parameter-matching predictor")
+
+    original_fit_sklearn = runner_module.fit_sklearn
+
+    def capture_sklearn(x, y, *, seed, method, capacity):
+        seen_capacities["raw_mlp"] = capacity
+        return original_fit_sklearn(x, y, seed=seed, method=method, capacity=capacity)
+
+    def fake_real_cnn(x, y, x_validation, y_validation, *, seed, device, capacity):
+        seen_capacities["cnn"] = capacity
+        model = build_real_cnn(2 * x.shape[1], capacity)
+        count = sum(parameter.numel() for parameter in model.parameters())
+        return Predictor(), {"trainable_parameters": count}
+
+    def fake_complex_cnn(x, y, x_validation, y_validation, *, seed, device, capacity):
+        seen_capacities["cvnn"] = capacity
+        model = build_complex_cnn(x.shape[1], capacity)
+        count = sum(parameter.numel() for parameter in model.parameters())
+        return Predictor(), {"trainable_parameters": count}
+
+    monkeypatch.setattr(runner_module, "fit_sklearn", capture_sklearn)
+    monkeypatch.setattr(runner_module, "fit_real_cnn", fake_real_cnn)
+    monkeypatch.setattr(runner_module, "fit_complex_cnn", fake_complex_cnn)
+    output = tmp_path / "runs" / "matched"
+    run_experiment(
+        [source],
+        output,
+        methods=("raw_mlp", "cnn", "cvnn"),
+        seeds=(23,),
+        bootstrap=100,
+        capacity="matched",
+    )
+
+    assert seen_capacities == {
+        "raw_mlp": profile["mlp_capacity"],
+        "cnn": profile["real_cnn_capacity"],
+        "cvnn": profile["complex_cnn_capacity"],
+    }
+    rows = json.loads((output / "results.json").read_text(encoding="utf-8"))
+    assert len({row["split"]["indices_sha256"] for row in rows}) == 1
+    for row in rows:
+        match = row["compute"]["parameter_match"]
+        assert match["target_parameters"] == profile["target_parameters"]
+        assert match["relative_error"] <= 0.1
+
+
 def test_run_experiment_routes_raw_observations_to_real_cnn(tmp_path, monkeypatch) -> None:
     import experiments.runner as runner
 

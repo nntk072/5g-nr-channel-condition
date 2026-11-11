@@ -7,9 +7,9 @@ def build_domain_mlp(input_dim: int, capacity: str = "medium"):
     """Build the shared MLP embedding and classification head."""
     from torch import nn
 
-    from models.capacity import capacity_spec
+    from models.capacity import architecture_widths
 
-    width1, width2, head_width = capacity_spec(capacity).mlp_widths
+    width1, width2, head_width = architecture_widths(capacity, "mlp")
 
     class DomainMLP(nn.Module):
         def __init__(self, dimension: int):

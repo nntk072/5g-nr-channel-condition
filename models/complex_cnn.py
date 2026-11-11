@@ -19,7 +19,7 @@ def _complex_parts(values: Any) -> tuple[np.ndarray, np.ndarray]:
 
 def build_complex_cnn(input_channels: int, capacity: str = "medium"):
     """Build a global-phase-equivariant complex encoder and invariant classifier."""
-    from models.capacity import capacity_spec
+    from models.capacity import architecture_widths
 
     if isinstance(input_channels, bool) or not isinstance(input_channels, int):
         raise TypeError("input_channels must be an integer")
@@ -29,7 +29,7 @@ def build_complex_cnn(input_channels: int, capacity: str = "medium"):
     from torch import nn
     from torch.nn import functional as functional
 
-    width1, width2, width3 = capacity_spec(capacity).convolution_widths
+    width1, width2, width3 = architecture_widths(capacity, "complex_cnn")
 
     class ComplexConv1d(nn.Module):
         def __init__(self, in_channels: int, out_channels: int, kernel_size: int):

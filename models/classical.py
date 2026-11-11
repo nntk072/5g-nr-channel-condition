@@ -11,10 +11,10 @@ from sklearn.preprocessing import StandardScaler
 
 def make_estimator(method: str, seed: int = 42, capacity: str = "medium"):
     """Create an unfitted baseline estimator with fixed research defaults."""
-    from models.capacity import capacity_spec
+    from models.capacity import architecture_widths
 
     if method == "mlp":
-        hidden_layer_sizes = capacity_spec(capacity).mlp_widths
+        hidden_layer_sizes = architecture_widths(capacity, "mlp")
         return make_pipeline(
             StandardScaler(),
             MLPClassifier(
