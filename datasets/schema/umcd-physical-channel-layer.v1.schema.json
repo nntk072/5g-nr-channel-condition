@@ -30,6 +30,7 @@
     "power_scale": {"enum": ["absolute_power_gain", "normalized_power"]},
     "normalization_recipe": {"type": ["string", "null"]},
     "phase_gauge_id": {"type": ["string", "null"], "minLength": 1},
+    "source_time_alignment_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
     "axes": {"const": ["frame", "rx_port", "tx_port", "subcarrier"]}
   }
 }

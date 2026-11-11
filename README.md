@@ -131,6 +131,12 @@ missing and extra samples plus residuals; it can be replayed when the episode
 bundle is read. The report does not interpolate or prove that the caller's
 source clock IDs or tolerance are physically justified.
 
+When an episode carries this report, its channel views must reference the
+report's digest. The bounded RT trajectory adapter records the shared solver,
+TX-pose, and RX-pose frame grid on both the episode and generated channel view;
+this proves software linkage to that declared grid, not external clock
+calibration or scene-object motion synchronization.
+
 <code>propagation.path_steering_diagnostics</code> measures rank, condition
 number, and mutual coherence of candidate path steering vectors on a specified
 finite set of subcarrier frequencies. It demonstrates exact coincidence and

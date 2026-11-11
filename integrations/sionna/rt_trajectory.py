@@ -33,6 +33,7 @@ from datasets.nr_store import (
     write_nr_trajectory,
 )
 from datasets.targets import TargetValidity, TargetValue, target_definition_digest
+from datasets.time_axis import align_named_time_axes
 from propagation.scene_visibility import SceneTriangleInventory, extract_scene_triangle_inventory
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
@@ -991,6 +992,16 @@ def generate_rt_nr_trajectory(
         from datasets.episode_store import StoredEpisodeBundle
 
         base_episode = scene_network.episode
+        source_time_alignment = align_named_time_axes(
+            times,
+            {
+                "rt_solver_output_grid": times,
+                "tx_pose_generation_grid": times,
+                "rx_pose_generation_grid": times,
+            },
+            tolerance_s=0.0,
+            require_complete=True,
+        )
         pose_timeline = NodePoseTimeline(
             node_ids=tuple(node.node_id for node in base_episode.nodes),
             frame_times_s=times,
@@ -1001,6 +1012,7 @@ def generate_rt_nr_trajectory(
             base_episode,
             frame_times_s=times,
             pose_timeline=pose_timeline,
+            source_time_alignment=source_time_alignment,
         )
         link = episode.links[0]
         tx_array = episode.array(episode.node(link.tx_node_id).array_id)
@@ -1016,6 +1028,7 @@ def generate_rt_nr_trajectory(
             subcarrier_offsets_hz=subcarrier_offsets_hz,
             delay_reference=ChannelDelayReference.ABSOLUTE_PROPAGATION,
             power_scale=ChannelPowerScale.ABSOLUTE,
+            source_time_alignment_sha256=source_time_alignment.sha256,
             valid_mask=np.broadcast_to(
                 (np.asarray(total_path_counts) > 0).reshape(config.num_steps, 1, 1, 1),
                 (config.num_steps, 1, 1, fft_size),

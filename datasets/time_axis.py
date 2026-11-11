@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 from bisect import bisect_left, bisect_right
@@ -146,6 +147,14 @@ class MultiSourceTimeAlignment:
     def complete(self) -> bool:
         """Whether every named source supplies every reference frame."""
         return all(alignment.complete for _, alignment in self.source_alignments)
+
+    @property
+    def sha256(self) -> str:
+        """Canonical digest used to bind generated channels to this alignment."""
+        payload = json.dumps(
+            self.to_dict(), sort_keys=True, separators=(",", ":"), allow_nan=False
+        ).encode("utf-8")
+        return hashlib.sha256(payload).hexdigest()
 
     def to_dict(self) -> dict[str, object]:
         """Return all source matches, residuals, missing frames, and extra samples."""

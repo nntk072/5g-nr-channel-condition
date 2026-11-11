@@ -62,6 +62,7 @@ def _view_digest(view: PhysicalChannelView) -> str:
         "power_scale": view.power_scale.value,
         "normalization_recipe": view.normalization_recipe,
         "phase_gauge_id": view.phase_gauge_id,
+        "source_time_alignment_sha256": view.source_time_alignment_sha256,
         "axes": list(view.axes),
         "shape": list(view.channel.shape),
         "dtype": view.channel.dtype.str,

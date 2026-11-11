@@ -175,9 +175,12 @@ curves remain diagnostic; no G5 acceptance verdict has passed. All
 `E01.PKG07` is active. `PKG07-001` remains partial after strict time-axis,
 stored alignment, and split-bound trajectory checks. Named multi-source clock
 alignment is now recorded and replayed with each episode grid, with no
-interpolation; TX/RX/object source declarations, generated channel/pose
-coherence binding, and physically justified tolerances remain open. Fifteen
-focused time-axis and episode-store checks pass. `PKG07-005` remains
+interpolation. The RT trajectory adapter binds its generated complex channel
+to the digest of the declared solver/TX-pose/RX-pose grid. This records
+software linkage but does not prove independent clock calibration; scene-object
+source declarations and physically justified tolerances remain open. The
+combined time-axis, episode-store, and non-generating RT contract slice passes
+50 checks. `PKG07-005` remains
 partial after mathematical direct-path ablation and immutable bundle replay
 checks; scene-based physical interventions and scientific effect admission
 remain open. Fifteen time-axis/counterfactual checks and nineteen persisted

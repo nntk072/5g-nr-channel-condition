@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import re
 from dataclasses import dataclass
 from enum import StrEnum
 from numbers import Real
@@ -48,6 +49,8 @@ class PhysicalChannelView:
     separately retained. A normalized channel must name its exact transform.
     ``phase_gauge_id`` is an optional producer declaration; it does not prove
     calibration, reference-plane validity, or coherent phase accuracy.
+    ``source_time_alignment_sha256`` binds generated channel frames to the
+    episode's replayable named-source timing report when one is available.
     """
 
     view_id: str
@@ -64,6 +67,7 @@ class PhysicalChannelView:
     valid_mask: np.ndarray | None = None
     axes: tuple[str, ...] = ("frame", "rx_port", "tx_port", "subcarrier")
     phase_gauge_id: str | None = None
+    source_time_alignment_sha256: str | None = None
 
     def __post_init__(self) -> None:
         for name in ("view_id", "link_id"):
@@ -142,6 +146,13 @@ class PhysicalChannelView:
         object.__setattr__(self, "tx_port_ids", tx_ids)
         object.__setattr__(self, "carrier_hz", carrier_hz)
         object.__setattr__(self, "phase_gauge_id", gauge_id)
+        alignment_digest = self.source_time_alignment_sha256
+        if alignment_digest is not None and (
+            not isinstance(alignment_digest, str)
+            or re.fullmatch(r"[0-9a-f]{64}", alignment_digest) is None
+        ):
+            raise ValueError("source_time_alignment_sha256 must be null or lowercase SHA-256")
+        object.__setattr__(self, "source_time_alignment_sha256", alignment_digest)
         object.__setattr__(self, "subcarrier_offsets_hz", frequencies)
         object.__setattr__(self, "axes", tuple(self.axes))
 
@@ -164,6 +175,14 @@ class PhysicalChannelView:
             raise ValueError("channel RX port IDs do not match the directed-link port map")
         if self.tx_port_ids != expected_tx_ports:
             raise ValueError("channel TX port IDs do not match the directed-link port map")
+        source_alignment = episode.source_time_alignment
+        if source_alignment is None:
+            if self.source_time_alignment_sha256 is not None:
+                raise ValueError(
+                    "channel source-time digest requires episode source-time alignment"
+                )
+        elif self.source_time_alignment_sha256 != source_alignment.sha256:
+            raise ValueError("channel source-time digest must match the episode alignment report")
 
 
 def phase_comparison_disposition(

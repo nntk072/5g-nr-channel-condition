@@ -1181,7 +1181,10 @@ def test_episode_store_roundtrip_preserves_dynamic_poses(tmp_path):
         channel=np.repeat(bundle.channel_views[0].channel, 2, axis=0),
         frame_times_s=(0.0, 0.1),
         valid_mask=np.repeat(bundle.channel_views[0].valid_mask, 2, axis=0),
+        source_time_alignment_sha256=source_alignment.sha256,
     )
+    with pytest.raises(ValueError, match="must match the episode alignment"):
+        replace(channel, source_time_alignment_sha256="0" * 64).validate_for(dynamic_episode)
     dynamic_bundle = replace(bundle, episode=dynamic_episode, channel_views=(channel,))
 
     stored = write_episode_bundle(tmp_path, dynamic_bundle)
@@ -1190,6 +1193,7 @@ def test_episode_store_roundtrip_preserves_dynamic_poses(tmp_path):
     assert loaded.episode.pose_timeline is not None
     assert loaded.episode.pose_time_alignment == time_alignment
     assert loaded.episode.source_time_alignment == source_alignment
+    assert loaded.channel_views[0].source_time_alignment_sha256 == source_alignment.sha256
     jsonschema = pytest.importorskip("jsonschema")
     alignment_schema = json.loads(
         (
@@ -1208,6 +1212,16 @@ def test_episode_store_roundtrip_preserves_dynamic_poses(tmp_path):
     jsonschema.Draft202012Validator(multi_alignment_schema).validate(
         loaded.episode.source_time_alignment.to_dict()
     )
+    with np.load(
+        io.BytesIO(_channel_payload(loaded.channel_views[0])), allow_pickle=False
+    ) as archive:
+        channel_metadata = json.loads(archive["metadata_json"].tobytes())
+    channel_schema = json.loads(
+        (
+            Path(__file__).parents[2] / "datasets/schema/umcd-physical-channel-layer.v1.schema.json"
+        ).read_text()
+    )
+    jsonschema.Draft202012Validator(channel_schema).validate(channel_metadata)
     np.testing.assert_array_equal(
         loaded.episode.pose_timeline.position("UE-1", 1), [22.0, 3.0, 1.5]
     )

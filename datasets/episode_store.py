@@ -652,6 +652,7 @@ def _channel_payload(view: PhysicalChannelView) -> bytes:
         "power_scale": view.power_scale.value,
         "normalization_recipe": view.normalization_recipe,
         "phase_gauge_id": view.phase_gauge_id,
+        "source_time_alignment_sha256": view.source_time_alignment_sha256,
         "axes": list(view.axes),
     }
     return _pack_npz(
@@ -1340,6 +1341,7 @@ def read_episode_bundle(
                 power_scale=ChannelPowerScale(channel_metadata["power_scale"]),
                 normalization_recipe=channel_metadata["normalization_recipe"],
                 phase_gauge_id=channel_metadata.get("phase_gauge_id"),
+                source_time_alignment_sha256=channel_metadata.get("source_time_alignment_sha256"),
                 valid_mask=arrays.get("valid_mask"),
                 axes=tuple(channel_metadata["axes"]),
             )
