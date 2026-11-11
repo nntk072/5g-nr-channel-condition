@@ -89,7 +89,9 @@ does not claim source audit completion.
 `E01.PKG04` is closed as a source audit. The G3 contract/evaluator/acquisition/signature suite passed 483 tests in 231.06 seconds. This validates software contracts, not external material/CSI/path evidence or G5 receiver qualification; all G3 receipts remain `NOT_QUALIFIED`. PKG04-032 preserves the bounded City43 Phase-0 diagnosis from existing path-level evidence and does not reopen convergence experiments.
 
 `E01.PKG05` is in progress. Source inspection and focused tests confirmed the
-code-scope implementation for `PKG05-002/003` (canonical profile applicability
+bounded result for `PKG05-001` (G4.10 retained as 10/10 cases and 3,200/3,200
+claims passing within its preregistered scope), plus the code-scope
+implementation for `PKG05-002/003` (canonical profile applicability
 and capability matrix), `PKG05-004/005` (scenario GBSM record/store/EpisodeBundle
 and bounded CLI), `PKG05-007/010` (TDL/CDL profile/table identity binding), and
 `PKG05-016` (capability matrix). The focused software slice passed 136 tests;
@@ -98,9 +100,8 @@ hash-bound reports had no checked-in publication workflow. The initial schema
 check exposed tuple-valued applicability rows that did not conform to the
 report schema; the report builder now emits JSON arrays directly. Publisher
 schema and determinism checks pass; the remaining PKG05 rows are still being
-audited. The
-retained CDL-E four-element covariance failure remains unchanged, and no G4
-qualification status is advanced.
+audited. The retained CDL-E four-element covariance failure remains unchanged.
+G4.10 qualifies only within its frozen case family; overall G4 remains open.
 
 The next batch is `E01.PKG05`, then packages 06–10 in numeric order, followed by
 `E01.DS.GATES`, `E01.RS.PHASES`, `E01.RS.APPENDIX_E`, and `E01.CROSSWALK`.

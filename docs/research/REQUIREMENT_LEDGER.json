@@ -1,6 +1,6 @@
 {
   "schema": "loslab.requirement-ledger.v1",
-  "status_note": "Traceability index covering all 182 backlog IDs, 104 numbered unified-plan criteria, and 30 dataset/research gate or phase records. Source audits are complete for PKG00-04 and selected PKG05 code-scope rows (PKG05-002/003/004/005/007/008/009/010/016). Other PKG05 scientific/source audits and later batches remain open. Checked plan boxes are preserved as source marks, never treated as implementation or scientific qualification. Feature-map heuristics do not determine ledger status.",
+  "status_note": "Traceability index covering all 182 backlog IDs, 104 numbered unified-plan criteria, and 30 dataset/research gate or phase records. Source audits are complete for PKG00-04 and selected PKG05 rows (PKG05-001/002/003/004/005/007/008/009/010/016). Other PKG05 scientific/source audits and later batches remain open. Checked plan boxes are preserved as source marks, never treated as implementation or scientific qualification. Feature-map heuristics do not determine ledger status.",
   "source_checkpoint": "42e9d08 baseline; E00 37cc827; queue fb49282; PKG01 12eebb5; criterion ledger 9681d19; PKG03 f3e5faf; PKG04 G3 audit ba34d1f",
   "requirements": [
     {
@@ -6848,30 +6848,38 @@
       ],
       "requirement": "Retain the preregistered G4.10 physical dual-cross handheld CDL covariance family and its 10 passing native cases and 3,200 passing simultaneous claims. Sources: docs/research/G4_10_CDL_PHYSICAL_DUAL_CROSS_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-10.md, docs/research/G4_CDL_PHYSICAL_DUAL_CROSS_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json, docs/research/results/g4-cdl-physical-dual-cross-handheld-ut-spatiotemporal-covariance-native-validation-20261110.json. This closes the named bounded case family; broader G4 remains open.",
       "scope": {
-        "status": "unreviewed",
+        "status": "mandatory",
         "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "authority_basis": "The backlog identifies a preregistered bounded G4.10 physical dual-cross HandheldUTArray covariance family and explicitly limits closure to that case family; broader G4 remains open."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/g4_cdl_handheld_ut_spatiotemporal_covariance.py",
+          "tests/test_integrations/test_g4_cdl_dual_cross_handheld_ut_spatiotemporal_covariance_native.py",
+          "docs/research/G4_10_CDL_PHYSICAL_DUAL_CROSS_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-10.md"
+        ],
+        "basis": "Frozen protocol, analytic oracle, and native runner implement the named bounded family with source/reference/seed-audit identities retained."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "Retained frozen native result dated 2026-11-10; no native rerun during this source audit. Result records 10/10 cases and 3,200/3,200 simultaneous claims passing.",
+        "commit": "Retained result base_commit da44b2e0d2110e5b51b80ce87895341158764351"
       },
       "qualification": {
-        "status": "not_qualified",
-        "evidence": []
+        "status": "qualified_within_scope",
+        "evidence": [
+          "docs/research/results/g4-cdl-physical-dual-cross-handheld-ut-spatiotemporal-covariance-native-validation-20261110.json",
+          "docs/research/G4_CDL_PHYSICAL_DUAL_CROSS_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json",
+          "PASS_WITHIN_BOUNDED_PROTOCOL_SCOPE only; 10 cases, 3,200 claims. This does not qualify overall G4, measured or RT truth, G5, or production D1."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Retain the preregistered G4.10 finite physical dual-cross handheld covariance result and its exact seed/source identities.",
+        "pass_rule": "The retained result reports all 10 cases and all 3,200 simultaneous claims passing under the frozen protocol. Broader G4 remains unqualified.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
