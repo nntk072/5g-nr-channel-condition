@@ -890,6 +890,30 @@ def test_frame_visibility_target_matches_episode_timestamp_roster():
         EpisodeBundle(episode, None, (), (truncated,))
 
 
+def test_static_visibility_target_requires_one_value_per_link():
+    definition = TargetDefinition.versioned(
+        semantic="geometric direct-path visibility",
+        units="boolean",
+        source="numpy_loaded_scene_triangle_inventory",
+        reference=(
+            "digest-bound loaded-scene triangle visibility cross-checked by Mitsuba "
+            "segment intersection and depth-zero PathSolver"
+        ),
+        aggregation_rule="one direct-path visibility label per link; no temporal or port pooling",
+        definition_version="umcd.f03_rt_static.direct_visibility.v2",
+    )
+
+    with pytest.raises(ValueError, match="exactly one value"):
+        TargetValue(
+            entity_id="gNB-1-to-UE-1",
+            definition=definition,
+            values=np.asarray([1, 0], dtype=np.uint8),
+            valid_mask=np.ones(2, dtype=np.bool_),
+            reason_codes=(TargetValidity.VALID,) * 2,
+            confidence="geometry_verified",
+        )
+
+
 def test_episode_bundle_roundtrip_keeps_layers_content_addressed_and_pickle_free(tmp_path):
     bundle = _bundle()
     stored = write_episode_bundle(tmp_path, bundle)

@@ -9823,23 +9823,31 @@
       ],
       "requirement": "Make split builders and audits reject missing, blank, non-string, and padded sample/group IDs instead of coercing them into split identities. The ChannelDataset lineage builder, core split-policy constructors, UMCD episode registry/audit, and CFR/temporal duplicate audits now require canonical non-padded strings for dataset, parent, source-family, partition, group, relation, scene, coordinate-frame, time-scope, child, policy-seed, scene-roster, trajectory, episode, and signer/principal identities. Standardized-draw partition metadata fails closed when explicitly malformed; temporal window boundaries also reject Boolean/string coercion. The focused UMCD split and duplicate-audit modules pass 21 tests; Ruff and formatting pass. This preserves valid string-ID assignments and does not qualify lineage or a corpus release.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Implementation and focused contract behavior only; no release qualification or external authority is implied.",
+        "authority_basis": "Audited against the requirement text and corresponding checked G7 implementation-backlog entries."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "datasets/channel.py",
+          "datasets/split_lineage.py",
+          "datasets/split_policy.py",
+          "tests/test_datasets/test_umcd_splits.py",
+          "tests/test_datasets/test_split_lineage_audit.py"
+        ],
+        "basis": "Source-level audit confirmed the stated contract is implemented in the listed modules and has focused regression coverage; broader lineage and release qualification remain separate."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_split_policy_v2.py tests/test_datasets/test_umcd_splits.py tests/test_datasets/test_split_lineage_audit.py tests/test_datasets/test_target_contracts.py tests/test_datasets/test_umcd_schema.py tests/test_scripts/test_build_channel_split_registry.py (260 passed); ./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_nr.py tests/test_datasets/test_nr_store_streaming.py tests/test_datasets/test_nr_observation_mask.py (95 passed).",
+        "commit": "Working tree based on 70c3fec; focused verification run 2026-11-11."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Focused software regressions verify the listed input contracts only; physical independence, authoritative scene inventory, trusted external review, and scientific release criteria remain open."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
@@ -9860,23 +9868,28 @@
       ],
       "requirement": "Reject split-fraction type coercion at `SplitPolicy` construction: require finite real numeric values and reject booleans, numeric strings, complex values, and values that overflow float normalization. The focused split-policy v2 module passes 81 tests; assignment semantics and serialized schema are unchanged. This is contract-input integrity, not proof of independent or complete physical groups.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Implementation and focused contract behavior only; no release qualification or external authority is implied.",
+        "authority_basis": "Audited against the requirement text and corresponding checked G7 implementation-backlog entries."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "datasets/split_policy.py",
+          "tests/test_datasets/test_split_policy_v2.py"
+        ],
+        "basis": "Source-level audit confirmed the stated contract is implemented in the listed modules and has focused regression coverage; broader lineage and release qualification remain separate."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_split_policy_v2.py tests/test_datasets/test_umcd_splits.py tests/test_datasets/test_split_lineage_audit.py tests/test_datasets/test_target_contracts.py tests/test_datasets/test_umcd_schema.py tests/test_scripts/test_build_channel_split_registry.py (260 passed); ./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_nr.py tests/test_datasets/test_nr_store_streaming.py tests/test_datasets/test_nr_observation_mask.py (95 passed).",
+        "commit": "Working tree based on 70c3fec; focused verification run 2026-11-11."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Focused software regressions verify the listed input contracts only; physical independence, authoritative scene inventory, trusted external review, and scientific release criteria remain open."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
@@ -9897,23 +9910,29 @@
       ],
       "requirement": "Apply the same strict numeric boundary to spatial-buffer derivation: accept finite `numbers.Real` scalars (including NumPy real scalars), reject boolean/string/complex coercions, and convert overflow into a domain `ValueError`. Focused regressions are included in the split-policy module; this does not change distance semantics or establish footprint authority.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Implementation and focused contract behavior only; no release qualification or external authority is implied.",
+        "authority_basis": "Audited against the requirement text and corresponding checked G7 implementation-backlog entries."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "datasets/split_policy.py",
+          "evaluation/spatial_audit.py",
+          "tests/test_datasets/test_split_policy_v2.py"
+        ],
+        "basis": "Source-level audit confirmed the stated contract is implemented in the listed modules and has focused regression coverage; broader lineage and release qualification remain separate."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_split_policy_v2.py tests/test_datasets/test_umcd_splits.py tests/test_datasets/test_split_lineage_audit.py tests/test_datasets/test_target_contracts.py tests/test_datasets/test_umcd_schema.py tests/test_scripts/test_build_channel_split_registry.py (260 passed); ./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_nr.py tests/test_datasets/test_nr_store_streaming.py tests/test_datasets/test_nr_observation_mask.py (95 passed).",
+        "commit": "Working tree based on 70c3fec; focused verification run 2026-11-11."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Focused software regressions verify the listed input contracts only; physical independence, authoritative scene inventory, trusted external review, and scientific release criteria remain open."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
@@ -9934,23 +9953,29 @@
       ],
       "requirement": "Add a candidate split-registry build CLI that derives the canonical leakage graph from bounded saved ChannelDataset snapshots, binds compressed/uncompressed size limits and exact input/policy hashes in a versioned report, refuses overwrite, and marks the output unqualified until external inventory authority and review are supplied. Regression definitions and a report schema are authored; validation is deferred.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Implementation and focused contract behavior only; no release qualification or external authority is implied.",
+        "authority_basis": "Audited against the requirement text and corresponding checked G7 implementation-backlog entries."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "scripts/build_channel_split_registry.py",
+          "datasets/schema/channel-split-registry-build-report.v2.schema.json",
+          "tests/test_scripts/test_build_channel_split_registry.py"
+        ],
+        "basis": "Source-level audit confirmed the stated contract is implemented in the listed modules and has focused regression coverage; broader lineage and release qualification remain separate."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_split_policy_v2.py tests/test_datasets/test_umcd_splits.py tests/test_datasets/test_split_lineage_audit.py tests/test_datasets/test_target_contracts.py tests/test_datasets/test_umcd_schema.py tests/test_scripts/test_build_channel_split_registry.py (260 passed); ./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_nr.py tests/test_datasets/test_nr_store_streaming.py tests/test_datasets/test_nr_observation_mask.py (95 passed).",
+        "commit": "Working tree based on 70c3fec; focused verification run 2026-11-11."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Focused software regressions verify the listed input contracts only; physical independence, authoritative scene inventory, trusted external review, and scientific release criteria remain open."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
@@ -9971,26 +9996,34 @@
       ],
       "requirement": "Wire complete-provenance legacy Sionna RT ChannelDatasets through the canonical RT split-identity migration before candidate-registry construction. The builder preserves and hashes the exact original archive bytes, records the migration algorithm per input in build-report v2, and refuses incomplete or internally inconsistent asset closures before publishing either report or lock. Regression definitions cover valid migration and fail-closed publication; validation is deferred and migration claims remain unqualified pending authoritative scene provenance.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Implementation and focused contract behavior only; no release qualification or external authority is implied.",
+        "authority_basis": "Audited against the requirement text and corresponding checked G7 implementation-backlog entries."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "datasets/legacy_rt_split.py",
+          "scripts/build_channel_split_registry.py",
+          "tests/test_scripts/test_build_channel_split_registry.py"
+        ],
+        "basis": "Source-level audit confirmed the stated contract is implemented in the listed modules and has focused regression coverage; broader lineage and release qualification remain separate."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_split_policy_v2.py tests/test_datasets/test_umcd_splits.py tests/test_datasets/test_split_lineage_audit.py tests/test_datasets/test_target_contracts.py tests/test_datasets/test_umcd_schema.py tests/test_scripts/test_build_channel_split_registry.py (260 passed); ./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_nr.py tests/test_datasets/test_nr_store_streaming.py tests/test_datasets/test_nr_observation_mask.py (95 passed).",
+        "commit": "Working tree based on 70c3fec; focused verification run 2026-11-11."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Focused software regressions verify the listed input contracts only; physical independence, authoritative scene inventory, trusted external review, and scientific release criteria remain open."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Authoritative source-scene inventory and independent review are still required before migration identities or shared-mesh links can qualify a corpus release."
+      ],
       "closure": {
         "deliverable": null,
         "pass_rule": null,
@@ -10008,26 +10041,34 @@
       ],
       "requirement": "Derive exact shared-mesh leakage relations from complete, digest-verified scene manifests when building saved-ChannelDataset split evidence. Identical OBJ/PLY content links scene parents across otherwise different asset sets, while shared texture-only content does not; lineage audit v3 reports complete geometry-inventory coverage and shared-mesh linkage counts. Regression definitions cover overlap, texture-only non-linkage, and manifest tampering. Validation and near-duplicate/authoritative-inventory review remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Implementation and focused contract behavior only; no release qualification or external authority is implied.",
+        "authority_basis": "Audited against the requirement text and corresponding checked G7 implementation-backlog entries."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "datasets/split_lineage.py",
+          "scripts/build_channel_split_registry.py",
+          "tests/test_scripts/test_build_channel_split_registry.py"
+        ],
+        "basis": "Source-level audit confirmed the stated contract is implemented in the listed modules and has focused regression coverage; broader lineage and release qualification remain separate."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_split_policy_v2.py tests/test_datasets/test_umcd_splits.py tests/test_datasets/test_split_lineage_audit.py tests/test_datasets/test_target_contracts.py tests/test_datasets/test_umcd_schema.py tests/test_scripts/test_build_channel_split_registry.py (260 passed); ./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_nr.py tests/test_datasets/test_nr_store_streaming.py tests/test_datasets/test_nr_observation_mask.py (95 passed).",
+        "commit": "Working tree based on 70c3fec; focused verification run 2026-11-11."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Focused software regressions verify the listed input contracts only; physical independence, authoritative scene inventory, trusted external review, and scientific release criteria remain open."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Authoritative source-scene inventory and independent review are still required before migration identities or shared-mesh links can qualify a corpus release."
+      ],
       "closure": {
         "deliverable": null,
         "pass_rule": null,
@@ -10045,26 +10086,35 @@
       ],
       "requirement": "Require every newly persisted NR v3 target to have a complete, digest-verified versioned semantic definition; retain v1/v2 read compatibility and leave those historical records unchanged. `TargetDefinition.versioned()` creates canonical definitions and the writer fails before publication when a target definition is missing or its digest/fields do not validate. The v3 metadata schema requires the definition fields. Regression definitions cover missing/unversioned rejection and round trip; validation remains deferred.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Implementation and focused contract behavior only; no release qualification or external authority is implied.",
+        "authority_basis": "Audited against the requirement text and corresponding checked G7 implementation-backlog entries."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "datasets/nr.py",
+          "datasets/targets.py",
+          "tests/test_datasets/test_nr.py",
+          "tests/test_datasets/test_nr_store_streaming.py"
+        ],
+        "basis": "Source-level audit confirmed the stated contract is implemented in the listed modules and has focused regression coverage; broader lineage and release qualification remain separate."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_split_policy_v2.py tests/test_datasets/test_umcd_splits.py tests/test_datasets/test_split_lineage_audit.py tests/test_datasets/test_target_contracts.py tests/test_datasets/test_umcd_schema.py tests/test_scripts/test_build_channel_split_registry.py (260 passed); ./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_nr.py tests/test_datasets/test_nr_store_streaming.py tests/test_datasets/test_nr_observation_mask.py (95 passed).",
+        "commit": "Working tree based on 70c3fec; focused verification run 2026-11-11."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Focused software regressions verify the listed input contracts only; physical independence, authoritative scene inventory, trusted external review, and scientific release criteria remain open."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Definition digests establish declaration integrity, not the scientific truth of each producer/reference claim."
+      ],
       "closure": {
         "deliverable": null,
         "pass_rule": null,
