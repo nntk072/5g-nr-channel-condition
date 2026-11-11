@@ -161,6 +161,8 @@ def main() -> None:
     exp.add_argument("--phase-randomization-seed", type=int, default=2027)
     exp.add_argument("--label-permutation-seed", type=int, default=2028)
     exp.add_argument("--row-shuffle-seed", type=int, default=2029)
+    exp.add_argument("--attempt-index", type=int, default=0)
+    exp.add_argument("--retry-of-manifest-sha256")
     args = parser.parse_args()
     if args.command == "lineage-evidence-audit":
         from .lineage_audit import audit_provenance_file
@@ -442,6 +444,8 @@ def main() -> None:
                 "split_signer_id",
                 "prior_shift",
                 "low_confidence_margin",
+                "attempt_index",
+                "retry_of_manifest_sha256",
             }
             unknown = set(config) - allowed
             if unknown:
@@ -477,6 +481,10 @@ def main() -> None:
                 "split_signer_id": config.get("split_signer_id", args.split_signer_id),
                 "prior_shift": config.get("prior_shift"),
                 "low_confidence_margin": config.get("low_confidence_margin"),
+                "attempt_index": config.get("attempt_index", args.attempt_index),
+                "retry_of_manifest_sha256": config.get(
+                    "retry_of_manifest_sha256", args.retry_of_manifest_sha256
+                ),
             }
         else:
             inputs = args.input
@@ -502,12 +510,20 @@ def main() -> None:
                 "split_signer_id": args.split_signer_id,
                 "prior_shift": None,
                 "low_confidence_margin": None,
+                "attempt_index": args.attempt_index,
+                "retry_of_manifest_sha256": args.retry_of_manifest_sha256,
             }
         if not inputs or not output:
             parser.error("experiment requires --input and --output, or --config with both")
         if isinstance(inputs, str):
             inputs = [inputs]
-        result = run_experiment(inputs, output, **options)
+        result = run_experiment(
+            inputs,
+            output,
+            command_argv=tuple(sys.argv),
+            command_source="cli_argv",
+            **options,
+        )
         print(json.dumps(result, indent=2))
         return
 

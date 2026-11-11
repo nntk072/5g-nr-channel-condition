@@ -6,7 +6,9 @@ import hashlib
 import inspect
 import json
 import os
+import platform
 import stat
+import sys
 from pathlib import Path
 from time import perf_counter
 from typing import Any, Mapping, Sequence
@@ -14,7 +16,7 @@ from typing import Any, Mapping, Sequence
 import numpy as np
 from artifacts.build_dag import BuildNodeSpec, resolve_build_artifact, run_build_node
 from artifacts.layout import RunLayout
-from artifacts.manifest import mark_complete, run_manifest
+from artifacts.manifest import mark_complete, mark_failed, run_manifest
 from artifacts.provenance import (
     atomic_json,
     canonical_hash,
@@ -22,6 +24,7 @@ from artifacts.provenance import (
     sha256_file,
     versions,
 )
+from artifacts.run_replay import build_run_replay_provenance
 from configuration.loader import resolve_config
 from datasets.channel import ChannelDataset
 from datasets.split_policy import SplitPolicyRegistry, verify_signed_split_policy_registry
@@ -1633,7 +1636,82 @@ def _locked_split_indices(
     return train, validation, test, calibration, report
 
 
-def run_experiment(
+def _run_replay_rng_streams(config: Mapping[str, Any]) -> list[dict[str, Any]]:
+    streams: list[dict[str, Any]] = []
+    for seed in config["seeds"]:
+        value = int(seed)
+        streams.append(
+            {
+                "name": f"run_seed_{value}",
+                "library": "numpy/scikit-learn/torch",
+                "algorithm": "common_runner_seed_v1",
+                "seed_material": [value],
+                "derived_seed": value,
+                "purpose": "split/model fitting and seed-clustered evaluation",
+            }
+        )
+        if config.get("prior_shift") is not None:
+            streams.append(
+                {
+                    "name": f"calibration_partition_seed_{value}",
+                    "library": "numpy",
+                    "algorithm": "common_runner_seed_plus_907_v1",
+                    "seed_material": [value, 907],
+                    "derived_seed": value + 907,
+                    "purpose": "train/calibration group split when no locked calibration partition exists",
+                }
+            )
+    if config["observation"] == "comb_ls":
+        value = int(config["observation_seed"])
+        streams.append(
+            {
+                "name": "observation_noise",
+                "library": "numpy",
+                "algorithm": "comb_ls_estimate_rng_v1",
+                "seed_material": [value],
+                "derived_seed": value,
+                "purpose": "comb-LS observation noise",
+            }
+        )
+    phase_seed = int(config["phase_randomization_seed"])
+    streams.append(
+        {
+            "name": "phase_randomization_control",
+            "library": "numpy",
+            "algorithm": "default_rng_uniform_phase_v1",
+            "seed_material": [phase_seed],
+            "derived_seed": phase_seed,
+            "purpose": "phase-randomized falsification features",
+        }
+    )
+    if "label_permuted" in config["methods"]:
+        label_seed = int(config["label_permutation_seed"])
+        streams.append(
+            {
+                "name": "label_permutation_base",
+                "library": "numpy",
+                "algorithm": "seedsequence_run_plus_base_permutation_v1",
+                "seed_material": [label_seed],
+                "derived_seed": label_seed,
+                "purpose": "training-label permutation control",
+            }
+        )
+    if "row_shuffled" in config["methods"]:
+        row_seed = int(config["row_shuffle_seed"])
+        streams.append(
+            {
+                "name": "row_shuffle_base",
+                "library": "numpy",
+                "algorithm": "seedsequence_run_plus_base_permutation_v1",
+                "seed_material": [row_seed],
+                "derived_seed": row_seed,
+                "purpose": "training-feature row-shuffle control",
+            }
+        )
+    return streams
+
+
+def _run_experiment_impl(
     paths: Sequence[str | Path],
     output: str | Path,
     *,
@@ -1659,6 +1737,10 @@ def run_experiment(
     build_cache_root: str | Path | None = None,
     prior_shift: dict[str, Any] | None = None,
     low_confidence_margin: float | None = None,
+    command_argv: Sequence[str] | None = None,
+    command_source: str | None = None,
+    attempt_index: int = 0,
+    retry_of_manifest_sha256: str | None = None,
 ) -> dict:
     if not paths:
         raise ValueError("No datasets supplied")
@@ -1812,15 +1894,18 @@ def run_experiment(
         ),
     }
     dependency_versions = versions()
+    config_sha256 = canonical_hash(config)
+    input_records = [{"path": str(p), "sha256": sha256_file(p)} for p in paths]
+    package_source_digest = package_source_sha256()
     manifest = run_manifest(
         output.name,
         config,
         legacy_schema="loslab.run.v1",
-        config_sha256=canonical_hash(config),
-        inputs=[{"path": str(p), "sha256": sha256_file(p)} for p in paths],
+        config_sha256=config_sha256,
+        inputs=input_records,
         dependencies=dependency_versions,
         source_revision=dependency_versions.get("git_sha"),
-        package_source_sha256=package_source_sha256(),
+        package_source_sha256=package_source_digest,
         n_samples=len(data.y),
         source_counts={str(s): int(np.sum(data.source == s)) for s in np.unique(data.source)},
         domain_counts={str(s): int(np.sum(data.domain == s)) for s in np.unique(data.domain)},
@@ -1836,6 +1921,27 @@ def run_experiment(
         ),
         split_policy=split_provenance,
         dataset_build_node=dataset_build_node,
+    )
+    replay_argv = list(command_argv) if command_argv is not None else list(sys.argv)
+    replay_command_source = command_source or (
+        "caller_supplied" if command_argv is not None else "process_argv_snapshot"
+    )
+    manifest["run_replay"] = build_run_replay_provenance(
+        created_utc=manifest["created_utc"],
+        command_argv=replay_argv,
+        command_source=replay_command_source,
+        source_revision=str(dependency_versions.get("git_sha", "unavailable")),
+        package_source_sha256=package_source_digest,
+        config_sha256=config_sha256,
+        inputs=input_records,
+        backend_identity={
+            "requested_device": device,
+            "platform": platform.platform(),
+            "dependencies": dependency_versions,
+        },
+        rng_streams=_run_replay_rng_streams(config),
+        attempt_index=attempt_index,
+        retry_of_manifest_sha256=retry_of_manifest_sha256,
     )
     atomic_json(layout.config / "resolved.json", resolve_config(config))
     atomic_json(output / "manifest.json", manifest)
@@ -2425,3 +2531,39 @@ def run_experiment(
         },
     )
     return summary
+
+
+def run_experiment(*args: Any, **kwargs: Any) -> dict:
+    """Run an experiment and persist a failed terminal receipt when one exists.
+
+    Failures before the common runner has written its initial manifest have no
+    complete replay contract to transition. Process interruption likewise
+    leaves the durable manifest in ``running`` state for explicit recovery.
+    """
+    if len(args) >= 2:
+        output = args[1]
+    else:
+        output = kwargs.get("output")
+    try:
+        return _run_experiment_impl(*args, **kwargs)
+    except Exception as error:
+        if output is not None:
+            manifest_path = Path(output).expanduser().resolve() / "manifest.json"
+            if manifest_path.is_file():
+                try:
+                    persisted = json.loads(manifest_path.read_text(encoding="utf-8"))
+                    replay = persisted.get("run_replay")
+                    if isinstance(replay, dict) and replay.get("state") == "running":
+                        failed = mark_failed(
+                            persisted,
+                            error_type=type(error).__name__,
+                            error_message=str(error),
+                            stage="experiment",
+                        )
+                        atomic_json(manifest_path, failed)
+                except Exception as provenance_error:
+                    raise RuntimeError(
+                        "experiment failed and failure replay provenance could not be recorded: "
+                        f"{provenance_error}"
+                    ) from error
+        raise

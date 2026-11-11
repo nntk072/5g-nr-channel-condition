@@ -6,6 +6,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
+import experiments.runner as runner_module
 import numpy as np
 import pytest
 from artifacts.provenance import canonical_hash
@@ -265,6 +266,15 @@ def test_run_experiment_writes_reproducible_complete_artifacts(tmp_path) -> None
             "target_prior_evidence_sha256": "a" * 64,
         },
         low_confidence_margin=0.05,
+        command_argv=(
+            "loslab",
+            "experiment",
+            "--input",
+            str(source),
+            "--output",
+            str(output),
+        ),
+        command_source="test_cli_argv",
     )
 
     manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
@@ -272,9 +282,35 @@ def test_run_experiment_writes_reproducible_complete_artifacts(tmp_path) -> None
     assert manifest["label_semantics"] == "synthetic_debug_direct_component"
     assert manifest["label_semantics_by_source"] == "SYNTHETIC_DEBUG_CONSTRUCTED"
     assert manifest["inputs"][0]["sha256"]
+    replay = manifest["run_replay"]
+    assert replay["schema"] == "loslab.run_replay_provenance.v1"
+    assert replay["qualification_status"] == "NOT_QUALIFIED"
+    assert replay["state"] == "complete"
+    assert replay["config_sha256"] == manifest["config_sha256"]
+    assert replay["inputs"] == manifest["inputs"]
+    assert replay["source"]["package_source_sha256"] == manifest["package_source_sha256"]
+    assert replay["source"]["git_commit"] == manifest["source_revision"]
+    assert replay["command"]["source"] == "test_cli_argv"
+    assert replay["command"]["argv"] == [
+        "loslab",
+        "experiment",
+        "--input",
+        str(source),
+        "--output",
+        str(output),
+    ]
+    assert replay["backend_identity"]["requested_device"] == "cpu"
+    assert {stream["name"] for stream in replay["rng_streams"]} >= {
+        "run_seed_11",
+        "calibration_partition_seed_11",
+        "phase_randomization_control",
+    }
+    assert replay["attempt"] == {"index": 0, "retry_of_manifest_sha256": None}
     assert (output / "COMPLETE").is_file()
     assert (output / "config" / "resolved.json").is_file()
     assert (output / "models" / "logreg_seed11.joblib").is_file()
+
+
     model_info = json.loads(
         (output / "models" / "logreg_seed11_modelinfo.json").read_text(encoding="utf-8")
     )
@@ -441,6 +477,25 @@ def test_run_experiment_writes_reproducible_complete_artifacts(tmp_path) -> None
     model_path.write_bytes(model_path.read_bytes() + b"tampered")
     with pytest.raises(ValueError, match="model bytes do not match"):
         verify_model_input_artifact_contract(model_info_path, model_path)
+
+
+def test_run_experiment_persists_failure_after_manifest_start(tmp_path, monkeypatch) -> None:
+    source = tmp_path / "debug.npz"
+    debug_multipath(n_scenes=4, links_per_scene=12, seed=17).save(source)
+    output = tmp_path / "runs" / "failed"
+
+    def fail_metrics(*args, **kwargs):
+        raise RuntimeError("injected post-start failure")
+
+    monkeypatch.setattr(runner_module, "binary_metrics", fail_metrics)
+    with pytest.raises(RuntimeError, match="injected post-start failure"):
+        run_experiment([source], output, methods=("logreg",), seeds=(11,), bootstrap=20)
+
+    manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["state"] == "failed"
+    assert manifest["failure"]["stage"] == "experiment"
+    assert manifest["run_replay"]["state"] == "failed"
+    assert manifest["run_replay"]["failure"]["message"] == "injected post-start failure"
 
 
 def test_run_experiment_materializes_input_dataset_through_build_dag(tmp_path) -> None:
