@@ -4672,8 +4672,8 @@
       "description": "Implement classic propagation/estimation baselines and falsification/leakage controls (metadata/source-only, power-only, shuffled, phase-randomized, permuted labels, and oracle leakage). **Partial:** `observable_features` now runs the existing engineered observable transform with logistic regression through the common split/training/report/artifact-verification path under model-input contract v10. `power_only`, `phase_randomized`, `label_permuted`, `row_shuffled`, `source_only`, `metadata_only`, and `oracle_label_leak` are also runnable in the canonical runner. Permutation controls preserve the common split and have replayable observation/target contracts. The metadata routes use training-only vocabularies and versioned replayable model-input contracts; `metadata_only` is bounded to 16,000,000 dense feature cells and uses only group/domain/source IDs. The route binding is in `experiments/runner.py`, `datasets/schema/model-input-artifact-contract.v10.schema.json`, and `tests/test_experiments/test_runner.py`; the physical sparse-multipath estimator is still not connected to a common receiver-observation comparison, and additional metadata controls remain open.",
       "evidence_file_sha256": {
         "datasets/schema/model-input-artifact-contract.v10.schema.json": "b69a048033582b64dbd7a4b365108e8fa7982c3b0a3087e63b868f2a5843d3c3",
-        "experiments/runner.py": "48c3f75c3a41de5d714230607518c513f74c021e4417e7f5168e71de151300a0",
-        "tests/test_experiments/test_runner.py": "9f42c03547507f74e195e201560c8832f403d080e9709a70cbfe7fd5022e9502"
+        "experiments/runner.py": "0a8f683dbf0346cf969c7af56fe370ced5fcb0a552831ab218379c6622fcbe67",
+        "tests/test_experiments/test_runner.py": "e89844fe7a3874ab089b11dd2723f4617ad2c920df29b499a77f26d3b111fa56"
       },
       "evidence_links": {
         "cli_entries": [],
@@ -5095,7 +5095,7 @@
   "schema": "loslab.implementation_feature_map.v3",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "9a5b4fe9c6eca05ed47ecc62a3a0dff9cc1ecd707657151cf5eb6240b0da69fd"
+    "sha256": "846eedb9ebbc2b7d43da08d867bb305519b870be2b7d888d5da0fe578a2fb644"
   },
   "summary": {
     "feature_count": 182,

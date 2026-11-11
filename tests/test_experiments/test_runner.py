@@ -1157,6 +1157,28 @@ def test_metadata_only_vocabulary_is_train_fitted_bounded_and_namespaced() -> No
         )
 
 
+@pytest.mark.parametrize(("field", "method"), [("group", "group_only"), ("domain", "domain_only")])
+def test_single_metadata_vocabulary_isolated_train_fitted_and_bounded(field, method) -> None:
+    from experiments.runner import _single_metadata_features
+
+    values = np.asarray(["seen-a", "seen-b", "held-out", "held-out"])
+    features, transform = _single_metadata_features(
+        values, field=field, train_indices=np.asarray([0, 1], dtype=np.int64)
+    )
+    assert features.shape == (4, 2)
+    assert transform["field"] == field
+    assert transform["vocabulary"] == ["seen-a", "seen-b"]
+    assert transform["unknown_category_behavior"] == "all_zero_vector"
+    np.testing.assert_array_equal(features[2:], np.zeros((2, 2), dtype=np.float32))
+    with pytest.raises(ValueError, match="max_feature_cells"):
+        _single_metadata_features(
+            values,
+            field=field,
+            train_indices=np.asarray([0, 1], dtype=np.int64),
+            max_feature_cells=1,
+        )
+
+
 def test_run_experiment_routes_metadata_only_as_replayable_shared_split_control(
     tmp_path, monkeypatch
 ) -> None:
@@ -1347,3 +1369,30 @@ def test_oracle_label_leak_control_is_explicit_and_replayable(tmp_path):
             partition_indices=partitions,
             target_values=changed_targets,
         )
+
+
+@pytest.mark.parametrize(
+    ("method", "field", "version"),
+    [("group_only", "group", "v11"), ("domain_only", "domain", "v12")],
+)
+def test_run_experiment_routes_isolated_metadata_controls_with_replayable_contract(
+    tmp_path, method, field, version
+) -> None:
+    source = tmp_path / "debug.npz"
+    debug_multipath(n_scenes=8, links_per_scene=16, seed=103).save(source)
+    output = tmp_path / "runs" / method
+    run_experiment([source], output, methods=(method, "raw_mlp"), seeds=(53,), bootstrap=10)
+    results = json.loads((output / "results.json").read_text(encoding="utf-8"))
+    control = next(row for row in results if row["method"] == method)
+    raw = next(row for row in results if row["method"] == "raw_mlp")
+    prediction = np.load(output / "predictions" / f"{method}_seed53.npz")
+    sidecar_path = output / "models" / f"{method}_seed53_modelinfo.json"
+    sidecar = json.loads(sidecar_path.read_text(encoding="utf-8"))
+    feature_contract = sidecar["model_input_artifact_contract"]["feature_contract"]
+    assert control["split"]["indices_sha256"] == raw["split"]["indices_sha256"]
+    assert feature_contract["allowed_source_fields"] == [field]
+    assert sidecar["model_input_artifact_contract"]["schema"] == (
+        f"loslab.model_input_artifact_contract.{version}"
+    )
+    assert feature_contract["metadata_vocabulary_transform"]["field"] == field
+    assert prediction["train_idx"].size > 0

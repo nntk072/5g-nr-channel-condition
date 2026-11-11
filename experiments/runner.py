@@ -75,6 +75,8 @@ _MODEL_FEATURE_ROUTES = {
         "group/domain/source",
         "train_vocabulary_group_domain_source_one_hot_v1",
     ),
+    "group_only": ("group", "train_vocabulary_group_one_hot_v1"),
+    "domain_only": ("domain", "train_vocabulary_domain_one_hot_v1"),
     "power_only": ("observed_cfr", "log_power_per_link_subcarrier_v1"),
     "phase_randomized": ("observed_cfr", "iid_phase_randomized_flattened_real_imag_cfr_v1"),
     "observable_features": ("observed_cfr", "logmag_pdp_moments_v1"),
@@ -91,6 +93,8 @@ _MODEL_METHODS = frozenset(
         "row_shuffled",
         "source_only",
         "metadata_only",
+        "group_only",
+        "domain_only",
         "power_only",
         "phase_randomized",
         "oracle_label_leak",
@@ -433,6 +437,72 @@ def _metadata_only_features(
     return features, transform
 
 
+def _single_metadata_features(
+    values: np.ndarray,
+    *,
+    field: str,
+    train_indices: np.ndarray,
+    max_feature_cells: int = 16_000_000,
+) -> tuple[np.ndarray, dict[str, Any]]:
+    """Encode exactly one dataset identity field for leakage attribution."""
+    if field not in {"group", "domain"}:
+        raise ValueError("single metadata control field must be group or domain")
+    values = np.asarray(values)
+    if (
+        values.ndim != 1
+        or len(values) < 1
+        or any(
+            not isinstance(value, (str, np.str_))
+            or not str(value)
+            or str(value) != str(value).strip()
+            or "\x00" in str(value)
+            for value in values
+        )
+    ):
+        raise ValueError(f"{field}-only control requires canonical nonempty string IDs")
+    if (
+        not isinstance(train_indices, np.ndarray)
+        or train_indices.ndim != 1
+        or not np.issubdtype(train_indices.dtype, np.integer)
+        or np.issubdtype(train_indices.dtype, np.bool_)
+        or len(train_indices) < 1
+        or np.any(train_indices < 0)
+        or np.any(train_indices >= len(values))
+        or len(np.unique(train_indices)) != len(train_indices)
+    ):
+        raise ValueError("single metadata training indices are invalid")
+    if (
+        isinstance(max_feature_cells, bool)
+        or not isinstance(max_feature_cells, int)
+        or max_feature_cells < 1
+    ):
+        raise ValueError("max_feature_cells must be a positive integer")
+    vocabulary = tuple(sorted({str(values[index]) for index in train_indices}))
+    if len(values) * len(vocabulary) > max_feature_cells:
+        raise ValueError("single metadata dense feature matrix exceeds max_feature_cells")
+    columns = {value: index for index, value in enumerate(vocabulary)}
+    features = np.zeros((len(values), len(vocabulary)), dtype=np.float32)
+    for row, value in enumerate(values):
+        column = columns.get(str(value))
+        if column is not None:
+            features[row, column] = 1.0
+    transform = {
+        "schema": f"loslab.{field}_only_vocabulary.v1",
+        "algorithm": f"sorted_training_{field}_one_hot_unknown_zero_v1",
+        "implementation_sha256": hashlib.sha256(
+            inspect.getsource(_single_metadata_features).encode("utf-8")
+        ).hexdigest(),
+        "field": field,
+        "vocabulary": list(vocabulary),
+        "vocabulary_sha256": canonical_hash(list(vocabulary)),
+        "values_sha256": _array_sha256(np.asarray(values, dtype=str)),
+        "training_indices_sha256": _array_sha256(train_indices),
+        "max_feature_cells": max_feature_cells,
+        "unknown_category_behavior": "all_zero_vector",
+    }
+    return features, transform
+
+
 def _oracle_label_leak_features(
     target_values: np.ndarray,
 ) -> tuple[np.ndarray, dict[str, Any]]:
@@ -481,6 +551,8 @@ def _feature_transform_implementation_sha256(method: str) -> str:
         transform = _source_only_features
     elif method == "metadata_only":
         transform = _metadata_only_features
+    elif method in {"group_only", "domain_only"}:
+        transform = _single_metadata_features
     elif method in ("raw_mlp", "label_permuted", "row_shuffled"):
         transform = _flatten_real_imag_cfr
     elif method == "power_only":
@@ -587,6 +659,10 @@ def build_model_input_artifact_contract(
     input_contract_version = (
         "v10"
         if method == "observable_features"
+        else "v12"
+        if method == "domain_only"
+        else "v11"
+        if method == "group_only"
         else "v9"
         if method == "oracle_label_leak"
         else "v8"
@@ -608,7 +684,8 @@ def build_model_input_artifact_contract(
         "method": method,
         "source_dataclass": (
             "datasets.channel.ChannelDataset"
-            if method in {"source_only", "metadata_only", "oracle_label_leak"}
+            if method
+            in {"source_only", "metadata_only", "group_only", "domain_only", "oracle_label_leak"}
             else "datasets.channel.ChannelModelInputs"
         ),
         "allowed_source_fields": (
@@ -633,6 +710,16 @@ def build_model_input_artifact_contract(
                 "target_values",
             ]
             if method == "metadata_only"
+            else [
+                "data.y",
+                "data.metadata",
+                "data.domain" if method == "group_only" else "data.group",
+                "data.source",
+                "observed_cfr",
+                "PathOracleTable",
+                "target_values",
+            ]
+            if method in {"group_only", "domain_only"}
             else [
                 "data.metadata",
                 "data.group",
@@ -770,8 +857,18 @@ def build_model_input_artifact_contract(
         if not np.array_equal(expected_features, method_input):
             raise ValueError("metadata-only features differ from the training vocabulary transform")
         feature_contract["metadata_vocabulary_transform"] = metadata_transform
-    elif metadata_values is not None:
-        raise ValueError("metadata identifiers are only valid for the metadata_only method")
+    elif metadata_values is not None and method not in {"group_only", "domain_only"}:
+        raise ValueError("metadata identifiers are only valid for metadata leakage methods")
+    if method in {"group_only", "domain_only"}:
+        field = "group" if method == "group_only" else "domain"
+        if not isinstance(metadata_values, dict) or set(metadata_values) != {field}:
+            raise ValueError(f"{method} contracts require only the {field} identifier roster")
+        expected_features, transform = _single_metadata_features(
+            metadata_values[field], field=field, train_indices=checked_indices["train"]
+        )
+        if not np.array_equal(expected_features, method_input):
+            raise ValueError(f"{method} features differ from the training vocabulary transform")
+        feature_contract["metadata_vocabulary_transform"] = transform
     feature_contract_sha256 = canonical_hash(feature_contract)
     return {
         "schema": f"loslab.model_input_artifact_contract.{input_contract_version}",
@@ -854,6 +951,8 @@ def verify_model_input_artifact_contract(
         "loslab.model_input_artifact_contract.v8": "v8",
         "loslab.model_input_artifact_contract.v9": "v9",
         "loslab.model_input_artifact_contract.v10": "v10",
+        "loslab.model_input_artifact_contract.v11": "v11",
+        "loslab.model_input_artifact_contract.v12": "v12",
     }.get(contract_schema)
     if schema_version is None:
         raise ValueError("model input artifact contract schema is unsupported")
@@ -906,6 +1005,8 @@ def verify_model_input_artifact_contract(
         "loslab.model_input_artifact_contract.v8",
         "loslab.model_input_artifact_contract.v9",
         "loslab.model_input_artifact_contract.v10",
+        "loslab.model_input_artifact_contract.v11",
+        "loslab.model_input_artifact_contract.v12",
     }:
         expected_feature_fields.update(
             {
@@ -920,7 +1021,11 @@ def verify_model_input_artifact_contract(
         expected_feature_fields.add("feature_row_permutation")
     if contract_schema == "loslab.model_input_artifact_contract.v7":
         expected_feature_fields.add("source_vocabulary_transform")
-    if contract_schema == "loslab.model_input_artifact_contract.v8":
+    if contract_schema in {
+        "loslab.model_input_artifact_contract.v8",
+        "loslab.model_input_artifact_contract.v11",
+        "loslab.model_input_artifact_contract.v12",
+    }:
         expected_feature_fields.add("metadata_vocabulary_transform")
     if contract_schema == "loslab.model_input_artifact_contract.v9":
         expected_feature_fields.add("intentional_label_leakage")
@@ -942,6 +1047,8 @@ def verify_model_input_artifact_contract(
             "row_shuffled",
             "source_only",
             "metadata_only",
+            "group_only",
+            "domain_only",
             "oracle_label_leak",
             "logreg",
         }
@@ -969,7 +1076,8 @@ def verify_model_input_artifact_contract(
         or feature.get("source_dataclass")
         != (
             "datasets.channel.ChannelDataset"
-            if method in {"source_only", "metadata_only", "oracle_label_leak"}
+            if method
+            in {"source_only", "metadata_only", "group_only", "domain_only", "oracle_label_leak"}
             else "datasets.channel.ChannelModelInputs"
         )
         or feature.get("allowed_source_fields")
@@ -994,6 +1102,16 @@ def verify_model_input_artifact_contract(
                 "target_values",
             ]
             if method == "metadata_only"
+            else [
+                "data.y",
+                "data.metadata",
+                "data.domain" if method == "group_only" else "data.group",
+                "data.source",
+                "observed_cfr",
+                "PathOracleTable",
+                "target_values",
+            ]
+            if method in {"group_only", "domain_only"}
             else [
                 "data.metadata",
                 "data.group",
@@ -1043,6 +1161,9 @@ def verify_model_input_artifact_contract(
         "loslab.model_input_artifact_contract.v7",
         "loslab.model_input_artifact_contract.v8",
         "loslab.model_input_artifact_contract.v9",
+        "loslab.model_input_artifact_contract.v10",
+        "loslab.model_input_artifact_contract.v11",
+        "loslab.model_input_artifact_contract.v12",
     }:
         if method_input is not None:
             matrix = feature["feature_matrix"]
@@ -1168,6 +1289,29 @@ def verify_model_input_artifact_contract(
             features, method_input
         ):
             raise ValueError("metadata-only feature vocabulary does not replay from training IDs")
+    if contract_schema in {
+        "loslab.model_input_artifact_contract.v11",
+        "loslab.model_input_artifact_contract.v12",
+    }:
+        expected_method = "group_only" if contract_schema.endswith("v11") else "domain_only"
+        field_name = "group" if expected_method == "group_only" else "domain"
+        if (
+            method != expected_method
+            or metadata_values is None
+            or set(metadata_values) != {field_name}
+        ):
+            raise ValueError(f"{expected_method} verification requires only its ID roster")
+        if method_input is None or partition_indices is None:
+            raise ValueError(f"{expected_method} verification inputs are incomplete")
+        features, replayed_transform = _single_metadata_features(
+            metadata_values[field_name], field=field_name, train_indices=partition_indices["train"]
+        )
+        if replayed_transform != feature.get("metadata_vocabulary_transform") or not np.array_equal(
+            features, method_input
+        ):
+            raise ValueError(
+                f"{expected_method} feature vocabulary does not replay from training IDs"
+            )
     if contract_schema == "loslab.model_input_artifact_contract.v9":
         if method != "oracle_label_leak" or target_values is None:
             raise ValueError("oracle-label contract verification requires the exact target roster")
@@ -1996,6 +2140,12 @@ def _run_experiment_impl(
                     train_indices=train,
                 )[0]
                 if method == "metadata_only"
+                else _single_metadata_features(
+                    data.group if method == "group_only" else data.domain,
+                    field="group" if method == "group_only" else "domain",
+                    train_indices=train,
+                )[0]
+                if method in {"group_only", "domain_only"}
                 else _oracle_label_leak_features(data.y)[0]
                 if method == "oracle_label_leak"
                 else x
@@ -2031,6 +2181,8 @@ def _run_experiment_impl(
                 "row_shuffled",
                 "source_only",
                 "metadata_only",
+                "group_only",
+                "domain_only",
                 "power_only",
                 "phase_randomized",
                 "oracle_label_leak",
@@ -2049,7 +2201,14 @@ def _run_experiment_impl(
                     if method == "row_shuffled"
                     else "logreg"
                     if method
-                    in ("power_only", "source_only", "metadata_only", "observable_features")
+                    in (
+                        "power_only",
+                        "source_only",
+                        "metadata_only",
+                        "group_only",
+                        "domain_only",
+                        "observable_features",
+                    )
                     else "logreg"
                     if method == "oracle_label_leak"
                     else "mlp"
@@ -2210,6 +2369,10 @@ def _run_experiment_impl(
                 metadata_values=(
                     {"group": data.group, "domain": data.domain, "source": data.source}
                     if method == "metadata_only"
+                    else {"group": data.group}
+                    if method == "group_only"
+                    else {"domain": data.domain}
+                    if method == "domain_only"
                     else None
                 ),
             )
@@ -2230,6 +2393,8 @@ def _run_experiment_impl(
                             "row_shuffled",
                             "source_only",
                             "metadata_only",
+                            "group_only",
+                            "domain_only",
                             "oracle_label_leak",
                             "power_only",
                             "phase_randomized",
@@ -2258,6 +2423,10 @@ def _run_experiment_impl(
                 metadata_values=(
                     {"group": data.group, "domain": data.domain, "source": data.source}
                     if method == "metadata_only"
+                    else {"group": data.group}
+                    if method == "group_only"
+                    else {"domain": data.domain}
+                    if method == "domain_only"
                     else None
                 ),
             )
@@ -2483,6 +2652,8 @@ def _run_experiment_impl(
         ("raw_mlp", "row_shuffled"),
         ("raw_mlp", "source_only"),
         ("raw_mlp", "metadata_only"),
+        ("raw_mlp", "group_only"),
+        ("raw_mlp", "domain_only"),
         ("oracle_label_leak", "raw_mlp"),
         ("oracle_label_leak", "mlp"),
         ("cnn", "raw_mlp"),

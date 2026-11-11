@@ -4061,7 +4061,7 @@
         "docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md#13-hard-scientific-correctness-gates-stop-generation-on-failure"
       ],
       "backlog_aliases": [],
-      "requirement": "null/falsification controls: time shuffled, phase randomized, source-ID-only, power-only, metadata-only, label-permuted and oracle-leak checks. The common runner now provides observed-CFR-only log power under contract v3, seeded phase randomization under v4, training-row shuffling under v6, source-only under v7, metadata-only under v8, training-label permutation under v5, and an explicitly non-deployable oracle-label leakage control under v9. See `docs/research/BASELINE_CONTROLS_WORKFLOW.md`. These are software controls on a shared split; physical classic-estimator baselines and broader evaluation remain open.",
+      "requirement": "null/falsification controls: time shuffled, phase randomized, source-ID-only, power-only, metadata-only, label-permuted and oracle-leak checks. The common runner now provides observed-CFR-only log power under contract v3, seeded phase randomization under v4, training-row shuffling under v6, source-only under v7, metadata-only under v8, group-only and domain-only under v11/v12, training-label permutation under v5, and an explicitly non-deployable oracle-label leakage control under v9. See `docs/research/BASELINE_CONTROLS_WORKFLOW.md`. These are software controls on a shared split; physical classic-estimator baselines and broader evaluation remain open.",
       "plan_mark": "open",
       "scope": {
         "status": "unreviewed",
@@ -11548,7 +11548,7 @@
       "backlog_aliases": [
         "PKG09-007"
       ],
-      "requirement": "Implement classic propagation/estimation baselines and falsification/leakage controls (metadata/source-only, power-only, shuffled, phase-randomized, permuted labels, and oracle leakage). **Partial:** `power_only`, `phase_randomized`, `label_permuted`, `row_shuffled`, `source_only`, `metadata_only`, and `oracle_label_leak` are runnable in the canonical runner. Permutation controls preserve the common split and have replayable observation/target contracts. The metadata routes use training-only vocabularies and versioned replayable model-input contracts; `metadata_only` is bounded to 16,000,000 dense feature cells and uses only group/domain/source IDs. Additional metadata controls and physical classic-estimator routes remain open.",
+      "requirement": "Implement classic propagation/estimation baselines and falsification/leakage controls (metadata/source-only, power-only, shuffled, phase-randomized, permuted labels, and oracle leakage). **Partial:** `power_only`, `phase_randomized`, `label_permuted`, `row_shuffled`, `source_only`, `metadata_only`, `group_only`, `domain_only`, and `oracle_label_leak` are runnable in the canonical runner. Permutation controls preserve the common split and have replayable observation/target contracts. The metadata routes use training-only vocabularies and versioned replayable model-input contracts; `metadata_only`, `group_only`, and `domain_only` use training-only vocabularies with replayable v8/v11/v12 contracts and a 16,000,000-cell bound. Additional metadata controls and physical classic-estimator routes remain open.",
       "scope": {
         "status": "mandatory",
         "support_envelope": "Partial canonical-runner implementation only; sparse physical multipath comparison and full classic-estimator family remain open.",
@@ -11558,15 +11558,16 @@
         "status": "partial",
         "evidence": [
           "experiments/runner.py",
-          "datasets/schema/model-input-artifact-contract.v10.schema.json",
+          "datasets/schema/model-input-artifact-contract.v11.schema.json",
+          "datasets/schema/model-input-artifact-contract.v12.schema.json",
           "tests/test_experiments/test_runner.py"
         ],
-        "basis": "The predeclared observable_features route is now executable through the common logistic-regression runner, and its v10 artifact schema/replay binds observed_cfr and the exact engineered transform. Other requested physical estimator routes remain open."
+        "basis": "Group-only and domain-only identifier controls now run through the shared split and logistic-regression path with training-only vocabularies, unknown-to-zero handling, bounded matrices, and v11/v12 artifact replay. Physical classic-estimator routes remain open."
       },
       "verification": {
         "status": "pass",
-        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_experiments/test_runner.py::test_run_experiment_routes_audited_observable_feature_baseline (1 passed); Ruff check/format, JSON schema parse, and git diff --check passed.",
-        "commit": "Working tree based on f199736; focused verification run 2026-11-11."
+        "command": ".venv/bin/pytest --no-cov -q tests/test_experiments/test_runner.py -k \"single_metadata_vocabulary or isolated_metadata_controls\" (4 passed); Ruff check/format passed. Repository-wide coverage is not established by this focused selection.",
+        "commit": "Working tree based on 1495d2e; focused verification run 2026-11-11."
       },
       "qualification": {
         "status": "not_qualified",

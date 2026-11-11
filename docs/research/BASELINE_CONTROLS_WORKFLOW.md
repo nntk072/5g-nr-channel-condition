@@ -93,6 +93,16 @@ training vocabulary, full source-roster digests, implementation identity, and
 feature-matrix digests. Verification replays the transform using the retained
 split indices and dataset identifiers.
 
+`group_only` and `domain_only` isolate the two principal metadata sources when
+the combined control signals leakage. Each route consumes only its named
+identifier, fits a sorted vocabulary on training rows, maps unseen held-out
+values to zero, and uses the same split and logistic-regression baseline as
+`raw_mlp`. Their v11/v12 artifact contracts bind the sole allowed source field,
+training vocabulary, identifier roster digest, implementation, and feature
+matrix, then replay from that field and the retained split. Run either
+diagnostic with `--methods group_only raw_mlp` or
+`--methods domain_only raw_mlp`; neither is receiver-observable or deployable.
+
 The `oracle_label_leak` route intentionally exposes the true binary target as a
 two-column one-hot input. It uses the common split and scoring path only to
 check evaluator ceilings and detect leakage-sensitive scoring mistakes. The
@@ -117,13 +127,13 @@ paired score delta as a performance estimate or qualification result.
 
 The versioned schemas are
 `datasets/schema/model-input-artifact-contract.v3.schema.json` through
-`datasets/schema/model-input-artifact-contract.v8.schema.json`; v1-v8 readers
+`datasets/schema/model-input-artifact-contract.v12.schema.json`; v1-v12 readers
 remain available. Results are simulation-only diagnostics and do not show
 that any control predicts measured or deployment channels.
 
-G8.08 remains partial. The metadata-only route covers group/domain/source
-identifiers, and the oracle-label leak is available only as an explicitly
-non-deployable evaluator ceiling. Additional metadata controls and physical
-classical estimators still need isolated routes and audit contracts before
-benchmarking. Row shuffling is restricted to the training partition and is
+G8.08 remains partial. The group-only, domain-only, and combined metadata routes
+attribute leakage among group/domain/source identifiers. Other metadata
+controls and physical classical estimators still need isolated routes and audit
+contracts before benchmarking. The oracle-label leak is only a non-deployable
+evaluator ceiling. Row shuffling is restricted to the training partition and is
 not a time-series or temporal-dependence test.
