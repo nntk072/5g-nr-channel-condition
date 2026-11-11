@@ -11624,30 +11624,38 @@
       ],
       "requirement": "Reject normalized profile-holdout metadata identities at its model-input boundary: profile labels must be canonical uppercase A–E, family labels canonical lowercase `tdl`/`cdl`, and group IDs remain canonical strings through split construction. Four focused regression cases pass. This closes identity normalization in this adapter only; it does not complete the all-route model-input/leakage audit or establish physical group independence.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Profile-holdout model-input identity validation only: profile labels are canonical uppercase A–E, family labels canonical lowercase tdl/cdl, and group identities remain canonical strings through split construction. This does not close the repository-wide model-input route audit or prove physical independence.",
+        "authority_basis": "Implementation backlog PKG09-001 defines the task-specific model-input or evaluation-support software requirement."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "experiments/profile_holdout.py",
+          "tests/test_experiments/test_profile_holdout.py"
+        ],
+        "basis": "Profile-holdout inputs validate canonical profile/family/group identity before feature construction and split assignment; focused regressions cover malformed/padded metadata and split/group isolation. The contract is local to this adapter."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_experiments/test_profile_holdout.py tests/test_evaluation/test_target_coverage.py tests/test_evaluation/test_class_support.py tests/test_experiments/test_runner.py (77 passed).",
+        "commit": "Focused local verification on 2026-11-11; no scientific qualification run."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "This closes adapter identity validation only; the full model-input route/leakage audit and physical group independence remain unqualified."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Whole-pipeline model-input route coverage is still partial under PKG08-017.",
+        "Canonical identity does not establish independent physical acquisition groups."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Profile-holdout model-input identity validation only: profile labels are canonical uppercase A–E, family labels canonical lowercase tdl/cdl, and group identities remain canonical strings through split construction. This does not close the repository-wide model-input route audit or prove physical independence.",
+        "pass_rule": "Focused software contract and exact replay/report tests pass; declared group counts are not presented as proof of physical independence or scientific support adequacy.",
+        "next_task": "Continue PKG09 route coverage and criterion-driven scientific acceptance work; preserve NOT_QUALIFIED status until independent evidence is admitted."
       },
       "plan_mark": "not_checklist"
     },
@@ -11661,30 +11669,39 @@
       ],
       "requirement": "Require explicit independent-group identity for target-coverage counts; the canonical UMCD auditor supplies the frozen leakage-component ID. The generic evaluator does not infer independence from record identity. Regression definitions are authored; validation is deferred.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Generic target-coverage API requires explicit independent-group identity and counts distinct declared groups; only the canonical UMCD auditor may supply its frozen leakage-component ID.",
+        "authority_basis": "Implementation backlog PKG09-002 defines the task-specific model-input or evaluation-support software requirement."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/target_coverage.py",
+          "scripts/audit_umcd_corpus.py",
+          "tests/test_evaluation/test_target_coverage.py",
+          "tests/test_scripts/test_audit_umcd_corpus.py"
+        ],
+        "basis": "The evaluator rejects missing independent-group IDs, counts distinct groups rather than rows, and the UMCD corpus audit reports target support using split leakage-component identities. Focused API regressions and one end-to-end report check pass. The supplied identity is a declared grouping key and does not independently prove physical independence."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_experiments/test_profile_holdout.py tests/test_evaluation/test_target_coverage.py tests/test_evaluation/test_class_support.py tests/test_experiments/test_runner.py (77 passed); .venv/bin/pytest --no-cov -o addopts='' -q tests/test_scripts/test_audit_umcd_corpus.py -k 'audit_report_is_deterministic_hash_bound_and_nonqualifying or minimum_independent' (1 passed, 39 deselected).",
+        "commit": "Focused local verification on 2026-11-11; no scientific qualification run."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Counts declared frozen leakage groups; physical independence and target-population support adequacy remain unqualified."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Independent physical acquisition evidence and representative target roster are not supplied."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Generic target-coverage API requires explicit independent-group identity and counts distinct declared groups; only the canonical UMCD auditor may supply its frozen leakage-component ID.",
+        "pass_rule": "Focused software contract and exact replay/report tests pass; declared group counts are not presented as proof of physical independence or scientific support adequacy.",
+        "next_task": "Continue PKG09 route coverage and criterion-driven scientific acceptance work; preserve NOT_QUALIFIED status until independent evidence is admitted."
       },
       "plan_mark": "not_checklist"
     },
@@ -11698,30 +11715,45 @@
       ],
       "requirement": "Complete class availability and effective independent-group reporting; retain undefined metrics rather than inventing values. The UMCD target-coverage report exposes leakage-component counts per split × family × target. The frozen split × family × class audit reports rows, distinct caller-declared independent groups, and empty/absent statuses; the legacy common experiment runner publishes the report under a versioned JSON Schema and retains `null` plus per-metric reasons when a required class is absent. Every per-seed model result carries strict-schema train/validation/calibration/test support under `evaluation/schema/model-partition-support.v1.schema.json`, with class availability, source/domain row counts, declared-group counts and rosters, Kish effective declared-group counts, and exact row-assignment digests. `verify_declared_partition_support` replays the reports from source data and exact split indices and rejects report/index tampering. Signed-lock runs additionally bind parent/component rosters under `evaluation/schema/locked-benchmark-split-support.v2.schema.json`; its v1 schema remains unchanged, and each model result binds the per-run support digest. All reports explicitly leave physical independence `not_established_by_runner`. Broader evaluator/model-route coverage, verified physical-independence evidence, site/array eligibility, and scientific support adequacy remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Class availability and effective declared-group support reporting for the canonical legacy experiment runner and UMCD target-coverage audit; broader evaluator/model-route integration remains open.",
+        "authority_basis": "Implementation backlog PKG09-003 defines the task-specific model-input or evaluation-support software requirement."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "experiments/runner.py",
+          "evaluation/class_support.py",
+          "evaluation/target_coverage.py",
+          "evaluation/schema/model-partition-support.v1.schema.json",
+          "evaluation/schema/locked-benchmark-split-support.v2.schema.json",
+          "tests/test_experiments/test_runner.py",
+          "tests/test_evaluation/test_class_support.py",
+          "tests/test_evaluation/test_target_coverage.py"
+        ],
+        "basis": "Runner outputs versioned per-seed train/validation/calibration/test support with class availability, source/domain counts, declared-group rosters/counts, Kish effective declared-group counts, and row-assignment digests. Replay recomputes reports from exact source data/split indices; locked runs bind parent/component rosters and support digests. Missing required classes retain null metrics with reasons. Reports explicitly say physical independence is not established by the runner. Broader model/evaluator routes and site/array eligibility remain incomplete."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_experiments/test_profile_holdout.py tests/test_evaluation/test_target_coverage.py tests/test_evaluation/test_class_support.py tests/test_experiments/test_runner.py (77 passed); UMCD report integration: .venv/bin/pytest --no-cov -o addopts='' -q tests/test_scripts/test_audit_umcd_corpus.py -k 'audit_report_is_deterministic_hash_bound_and_nonqualifying or minimum_independent' (1 passed, 39 deselected).",
+        "commit": "Focused local verification on 2026-11-11; no scientific qualification run."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Report and replay integrity are software evidence only; physical independence, cross-route support, site/array eligibility, and scientific adequacy remain unqualified."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Other evaluator/model routes are not reconciled to the partition-support contract.",
+        "Independent physical groups and site/array cohort eligibility lack authoritative evidence.",
+        "Scientific support adequacy and sealed-test admission remain open."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Class availability and effective declared-group support reporting for the canonical legacy experiment runner and UMCD target-coverage audit; broader evaluator/model-route integration remains open.",
+        "pass_rule": "Focused software contract and exact replay/report tests pass; declared group counts are not presented as proof of physical independence or scientific support adequacy.",
+        "next_task": "Continue PKG09 route coverage and criterion-driven scientific acceptance work; preserve NOT_QUALIFIED status until independent evidence is admitted."
       },
       "plan_mark": "not_checklist"
     },

@@ -247,28 +247,22 @@ synthetic RSS diagnostics exercise public NR and UMCD write/read paths. The NR
 16/128/512-record sweep and UMCD 1/8/32-bundle, 1/24/4096-subcarrier sweep are
 retained with live-RSS baselines. NumPy-only NR validation avoids loading Torch,
 reducing measured incremental RSS in the 16-record fixture from hundreds of MiB
-to about 2 MiB. `PKG08-024` remains partial: representative corpus sizing,
-repeatability on the production runtime, and final scope audit are open. Continue with
-`PKG08-024`, then reconcile the remaining package rows. `PKG08-025`–`027` have
-now been source-audited against the signed child-roster validator, split-policy
-and lineage contracts, report schemas, and focused regressions (135 tests pass).
-`PKG08-026` and `PKG08-027` are complete as software contracts only;
-`PKG08-025` remains partial for authoritative inventory and signer custody,
-complete descendant coverage, and remaining near-duplicate evidence. Then audit
-`PKG08-028` is source-audited complete as a bounded scanner (23 focused tests
-pass); its retained 2,262-file report is limited to declared frozen G4 rosters
-and is not global seed clearance. `PKG08-029` source-audit confirms exact-tree
-and registered semantic lineage checks but remains partial for legacy byte-only
-types and the rest of the planned descendant inventory. `PKG08-030` closes the
-truthful semantic-coverage report contract. `PKG08-031`–`035` now close their
-bounded registry admission, parser, and input-resource software contracts;
-signer trust and corpus qualification remain open. The combined focused suite
-passes 140 tests. `PKG08-036`–`038` are reconciled as software-complete for
-their declared typed child-roster formats, with authority, storage-scale, and
-corpus qualification limits preserved. The remaining package row is
-`PKG08-039`, already audited as release-gate software; then close the package
-crosswalk and proceed through packages 09–10,
-then packages 09–10, `E01.DS.GATES`, `E01.RS.PHASES`, `E01.RS.APPENDIX_E`, and
+to about 2 MiB. `PKG08-024` remains partial pending representative corpus sizing,
+production-runtime repeatability, and a final scope audit. `PKG08-025` and
+`PKG08-029` also remain partial for authoritative inventory/signer custody and
+full semantic descendant coverage. The other rows `PKG08-026`–`028` and
+`PKG08-030`–`039` have source-level software dispositions; the declared seed
+scan and package-specific focused checks are recorded in the ledger. None of
+these software statuses qualifies a corpus or clears a public release.
+
+`E01.PKG09` is now active. `PKG09-001` and `PKG09-002` are software-complete
+for profile identity and explicit independent-group counting. `PKG09-003`
+remains partial for broader evaluator/model-route coverage; the canonical
+runner support replay and UMCD report integration checks pass (77 runner,
+adapter, and support tests; one focused UMCD integration test). Physical
+independence, scientific support adequacy, site/array eligibility, and all
+later model/evaluation routes remain open. Continue with `PKG09-004`–`009`,
+then `E01.PKG10`, `E01.DS.GATES`, `E01.RS.PHASES`, `E01.RS.APPENDIX_E`, and
 `E01.CROSSWALK`.
 Each package batch is the fixed set of `PKGnn-*` IDs in the ledger and closes
 only after every row has inspected source/test integration, implementation
