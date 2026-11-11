@@ -58,6 +58,13 @@ from .observations import (
     FrequencyDomainObservation,
     LinkedFrequencyDomainObservation,
 )
+from .path_evolution import (
+    PathAssociation,
+    PathEvolutionAudit,
+    PathEvolutionTransition,
+    audit_path_evolution,
+    path_evolution_audit_to_dict,
+)
 from .path_oracle import PathOracleTable, PathSolveStatus
 from .provenance import UMCDRunProvenance
 from .public_release import (
@@ -170,6 +177,11 @@ __all__ = [
     "NodeRole",
     "PathOracleTable",
     "PathSolveStatus",
+    "PathAssociation",
+    "PathEvolutionAudit",
+    "PathEvolutionTransition",
+    "audit_path_evolution",
+    "path_evolution_audit_to_dict",
     "ScenarioGBSMRecord",
     "ScenarioGBSMRun",
     "StoredScenarioGBSMRun",

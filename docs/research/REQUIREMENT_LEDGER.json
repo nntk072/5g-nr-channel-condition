@@ -1,6 +1,6 @@
 {
   "schema": "loslab.requirement-ledger.v1",
-  "status_note": "Traceability index covering all 182 backlog IDs, 104 numbered unified-plan criteria, and 30 dataset/research gate or phase records. Source audits are complete for PKG00-05. PKG05 rows 001/002/003/004/005/007/008/009/010/011/012/013/014/016/017/018/019/020/021/022/023/024/025 have bounded dispositions; 006/015/026 remain partial aggregate G4 scope. PKG06 rows 001–036 are source-audited with bounded complete/partial dispositions; PKG07-001/005 are source-audited partials with focused regression slices;  remaining package/gate audits stay open. Checked plan boxes are preserved as source marks, never treated as implementation or scientific qualification. Feature-map heuristics do not determine ledger status.",
+  "status_note": "Traceability index covering all 182 backlog IDs, 104 numbered unified-plan criteria, and 30 dataset/research gate or phase records. Source audits are complete for PKG00-05. PKG05 rows 001/002/003/004/005/007/008/009/010/011/012/013/014/016/017/018/019/020/021/022/023/024/025 have bounded dispositions; 006/015/026 remain partial aggregate G4 scope. PKG06 rows 001–036 are source-audited with bounded complete/partial dispositions; PKG07-001/002/005 are source-audited partials with focused regression slices;  remaining package/gate audits stay open. Checked plan boxes are preserved as source marks, never treated as implementation or scientific qualification. Feature-map heuristics do not determine ledger status.",
   "source_checkpoint": "42e9d08 baseline; E00 37cc827; queue fb49282; PKG01 12eebb5; criterion ledger 9681d19; PKG03 f3e5faf; PKG04 G3 audit ba34d1f",
   "requirements": [
     {
@@ -9630,30 +9630,37 @@
       ],
       "requirement": "Complete Doppler checks against coefficient evolution and bounded physical retracing, including path birth/death and association uncertainty; do not assume stable path indices.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Bounded descriptor-based association and Doppler coefficient-phase consistency diagnostics over already-retained PathOracleTable frames. No retracing or truth-completeness claim.",
+        "authority_basis": "The backlog requires coefficient evolution, births/deaths, and association uncertainty without stable row identity; this implementation covers only the retained-table diagnostic subset."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "datasets/path_evolution.py",
+          "datasets/path_oracle.py",
+          "datasets/schema/umcd-path-evolution-audit.v1.schema.json",
+          "tests/test_datasets/test_path_evolution.py"
+        ],
+        "basis": "Added bounded adjacent-frame descriptor association using delay, optional angles/Doppler and exact interaction signatures; reports births, deaths, near-tie ambiguity, missing groups and censored solver outcomes. It never treats path row positions as identity. Doppler phase residuals require caller-declared matching phase-gauge IDs. Reports bind the full path-table digest, thresholds and phase gauges under a versioned schema and report digest. Physical scene retracing, association validation against independent geometry/time evidence, uncertainty calibration and scientific admission remain open."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_path_evolution.py",
+        "commit": "Working tree based on 3a96a21; six path-evolution diagnostic/schema regressions passed; Ruff check and formatting passed."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "This is a diagnostic over retained solver paths, not complete physical path truth, a retracing result, or qualified Doppler evidence."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Add independently bounded scene retracing and source-bound path birth/death/association evidence with calibrated uncertainty and coefficient evolution checks.",
+        "pass_rule": "Association claims must be corroborated by declared scene/time evidence, censor solver failures, and keep ambiguity visible; finite ray/depth budgets are not ground truth.",
+        "next_task": "E01.PKG07"
       },
       "plan_mark": "not_checklist"
     },

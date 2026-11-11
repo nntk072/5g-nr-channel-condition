@@ -94,6 +94,14 @@ path CFR fixtures with explicit Hz/second units, timing offsets, and a separate
 synthetic path oracle. Its direct-component flag is not a geometric LOS label,
 and the fixture is not a 3GPP or measured channel model.
 
+<code>datasets.audit_path_evolution</code> compares adjacent retained
+<code>PathOracleTable</code> frames under caller-declared time and descriptor
+gates. It reports candidate associations, near ties, births/deaths, missing or
+failed solves, and optional Doppler phase residuals only when matching phase
+gauges are declared. Path row positions are provenance, not identities. This
+bounded audit does not retrace scenes, establish complete physical truth, or
+qualify Doppler evolution.
+
 <code>propagation.path_steering_diagnostics</code> measures rank, condition
 number, and mutual coherence of candidate path steering vectors on a specified
 finite set of subcarrier frequencies. It demonstrates exact coincidence and

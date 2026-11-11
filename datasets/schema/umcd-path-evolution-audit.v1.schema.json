@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:loslab:umcd-path-evolution-audit:v1",
+  "title": "UMCD path evolution diagnostic",
+  "description": "Descriptor-based association audit over retained PathOracleTable frames. This is not complete physical path truth or receiver qualification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "source_path_table_sha256",
+    "time_by_frame_s",
+    "phase_gauge_by_frame",
+    "association_limits",
+    "candidate_pair_count",
+    "transitions",
+    "interpretation",
+    "report_sha256"
+  ],
+  "properties": {
+    "schema": {"const": "umcd.path_evolution_audit.v1"},
+    "source_path_table_sha256": {"$ref": "#/$defs/sha256"},
+    "time_by_frame_s": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["frame_index", "time_s"],
+        "properties": {
+          "frame_index": {"type": "integer", "minimum": 0},
+          "time_s": {"type": "number"}
+        }
+      },
+      "minItems": 1
+    },
+    "phase_gauge_by_frame": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["frame_index", "phase_gauge_id"],
+        "properties": {
+          "frame_index": {"type": "integer", "minimum": 0},
+          "phase_gauge_id": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "association_limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_delay_change_s",
+        "max_angle_change_rad",
+        "max_doppler_change_hz",
+        "ambiguity_cost_margin",
+        "maximum_candidate_pair_count"
+      ],
+      "properties": {
+        "max_delay_change_s": {"type": "number", "exclusiveMinimum": 0},
+        "max_angle_change_rad": {"type": "number", "exclusiveMinimum": 0},
+        "max_doppler_change_hz": {"type": "number", "exclusiveMinimum": 0},
+        "ambiguity_cost_margin": {"type": "number", "exclusiveMinimum": 0},
+        "maximum_candidate_pair_count": {"type": "integer", "minimum": 1}
+      }
+    },
+    "candidate_pair_count": {"type": "integer", "minimum": 0},
+    "transitions": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/transition"}
+    },
+    "interpretation": {"type": "string", "minLength": 1},
+    "report_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "rowList": {
+      "type": "array",
+      "items": {"type": "integer", "minimum": 0},
+      "uniqueItems": true
+    },
+    "transition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "link_id",
+        "rx_port_index",
+        "tx_port_index",
+        "previous_frame_index",
+        "current_frame_index",
+        "elapsed_s",
+        "status",
+        "associations",
+        "births",
+        "deaths",
+        "ambiguous_previous_rows",
+        "ambiguous_current_rows"
+      ],
+      "properties": {
+        "link_id": {"type": "string", "minLength": 1},
+        "rx_port_index": {"type": "integer", "minimum": 0},
+        "tx_port_index": {"type": "integer", "minimum": 0},
+        "previous_frame_index": {"type": "integer", "minimum": 0},
+        "current_frame_index": {"type": "integer", "minimum": 0},
+        "elapsed_s": {"type": "number", "exclusiveMinimum": 0},
+        "status": {
+          "enum": [
+            "compared",
+            "association_ambiguous",
+            "no_path_transition",
+            "censored_solver_outcome",
+            "censored_missing_group"
+          ]
+        },
+        "associations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "previous_path_row",
+              "current_path_row",
+              "association_cost",
+              "evidence",
+              "doppler_phase_residual_rad"
+            ],
+            "properties": {
+              "previous_path_row": {"type": "integer", "minimum": 0},
+              "current_path_row": {"type": "integer", "minimum": 0},
+              "association_cost": {"type": "number", "minimum": 0},
+              "evidence": {"type": "string", "minLength": 1},
+              "doppler_phase_residual_rad": {"type": ["number", "null"]}
+            }
+          }
+        },
+        "births": {"$ref": "#/$defs/rowList"},
+        "deaths": {"$ref": "#/$defs/rowList"},
+        "ambiguous_previous_rows": {"$ref": "#/$defs/rowList"},
+        "ambiguous_current_rows": {"$ref": "#/$defs/rowList"}
+      }
+    }
+  }
+}

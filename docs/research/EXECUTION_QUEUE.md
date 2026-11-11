@@ -178,7 +178,13 @@ generated channel/pose coherence binding remain open. `PKG07-005` remains
 partial after mathematical direct-path ablation and immutable bundle replay
 checks; scene-based physical interventions and scientific effect admission
 remain open. Fifteen time-axis/counterfactual checks and nineteen persisted
-ablation/trajectory checks pass. `PKG07-002/003/004` still need source audit
+ablation/trajectory checks pass. `PKG07-002` now has a bounded retained-table
+path evolution diagnostic in `datasets/path_evolution.py`: five tests cover
+descriptor-based association independent of row order, births/deaths,
+near-tie ambiguity, solver/missing-group censoring, caller-declared phase
+gauges, source-table/report digests, schema validation, and candidate-pair
+limits. Six focused regressions and Ruff pass. It does not retrace scenes or
+validate physical path completeness. `PKG07-003/004` still need source audit
 and concrete implementation scope.
 
 The frozen CDL-E four-element covariance miss is now linked to
