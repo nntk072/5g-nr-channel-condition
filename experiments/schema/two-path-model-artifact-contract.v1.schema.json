@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.example/schemas/two-path-model-artifact-contract.v1.schema.json",
+  "title": "Analytical two-path model artifact contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "model_id",
+    "checkpoint_sha256",
+    "dataset_source_sha256",
+    "maximum_relative_delay_s",
+    "inputs",
+    "targets",
+    "splits",
+    "scope"
+  ],
+  "properties": {
+    "schema": {"const": "loslab.two_path_model_artifact_contract.v1"},
+    "model_id": {"type": "string", "minLength": 1},
+    "checkpoint_sha256": {"$ref": "#/$defs/sha256"},
+    "dataset_source_sha256": {"$ref": "#/$defs/sha256"},
+    "maximum_relative_delay_s": {"type": "number", "exclusiveMinimum": 0},
+    "inputs": {"$ref": "#/$defs/digest_group"},
+    "targets": {"$ref": "#/$defs/digest_group"},
+    "splits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["arrays", "sha256", "group_counts", "sample_counts"],
+      "properties": {
+        "arrays": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["group_id", "sample_id", "split", "stratum"],
+          "properties": {
+            "group_id": {"$ref": "#/$defs/array_identity"},
+            "sample_id": {"$ref": "#/$defs/array_identity"},
+            "split": {"$ref": "#/$defs/array_identity"},
+            "stratum": {"$ref": "#/$defs/array_identity"}
+          }
+        },
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "group_counts": {"$ref": "#/$defs/split_counts"},
+        "sample_counts": {"$ref": "#/$defs/split_counts"}
+      }
+    },
+    "scope": {"const": "synthetic_analytical_pilot_only"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "array_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dtype", "shape", "sha256"],
+      "properties": {
+        "dtype": {"type": "string", "minLength": 1},
+        "shape": {"type": "array", "items": {"type": "integer", "minimum": 0}},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "digest_group": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["arrays", "sha256"],
+      "properties": {
+        "arrays": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/array_identity"}},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "split_counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["train", "validation", "calibration", "test"],
+      "properties": {
+        "train": {"type": "integer", "minimum": 0},
+        "validation": {"type": "integer", "minimum": 0},
+        "calibration": {"type": "integer", "minimum": 0},
+        "test": {"type": "integer", "minimum": 0}
+      }
+    }
+  }
+}

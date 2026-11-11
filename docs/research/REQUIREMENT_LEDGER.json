@@ -10523,7 +10523,7 @@
       "backlog_aliases": [
         "PKG08-017"
       ],
-      "requirement": "Complete model-input leakage audit across every dataset adapter, feature transform, experiment runner, training path, and inference artifact. `datasets.model_input_audit._validated_real_scalar` converts registered scalar inputs through bounded float normalization and reports overflow as a domain `ValueError`. The analytical two-path runner exposes a registered observation-only `TwoPathModelInputs` view consumed by fitting, prediction, and profile-likelihood evaluation. The measured-data CAEZ magnitude and cross-environment Ridge routes use registered `CAEZForecastModelInputs` containing only feature matrices and emit a schema-checked score-report contract binding exact training/evaluation feature bytes, separate target bytes, chronological history/anchor/target rows, source archive digests, model identity, and transform-source digest. CAEZ temporal alignment rejects missing history rows instead of allowing `-1` wraparound. Remaining: bind two-path checkpoints to an input/target/split contract, enumerate other active consumers and feature transforms, and explicitly classify archived scripts.",
+      "requirement": "Complete model-input leakage audit across every dataset adapter, feature transform, experiment runner, training path, and inference artifact. `datasets.model_input_audit._validated_real_scalar` converts registered scalar inputs through bounded float normalization and reports overflow as a domain `ValueError`. The analytical two-path runner exposes a registered observation-only `TwoPathModelInputs` view consumed by fitting, prediction, and profile-likelihood evaluation; saved checkpoints now have schema-versioned sidecars binding exact input, target, split arrays, and checkpoint digest. The measured-data CAEZ magnitude and cross-environment Ridge routes use registered `CAEZForecastModelInputs` containing only feature matrices and emit a schema-checked score-report contract binding exact training/evaluation feature bytes, separate target bytes, chronological history/anchor/target rows, source archive digests, model identity, and transform-source digest. CAEZ temporal alignment rejects missing history rows instead of allowing `-1` wraparound. Remaining: enumerate other active consumers and feature transforms, and explicitly classify archived scripts.",
       "scope": {
         "status": "mandatory",
         "support_envelope": "All active dataset adapters, feature transforms, experiment/training producers and inference/model artifacts; the audit is not complete until every current producer is enumerated and evidenced. Archived legacy code must be explicitly classified, not silently treated as a supported route.",
@@ -10535,6 +10535,8 @@
           "datasets/model_input_audit.py",
           "experiments/observable_multipath.py",
           "scripts/run_observable_multipath_experiment.py",
+          "experiments/schema/two-path-model-artifact-contract.v1.schema.json",
+          "tests/test_experiments/test_two_path_experiment_contract.py",
           "experiments/runner.py",
           "experiments/profile_holdout.py",
           "scripts/evaluate_caez_cross_environment.py",
@@ -10546,12 +10548,12 @@
           "tests/test_scripts/test_evaluate_caez_cross_environment.py",
           "tests/test_scripts/test_audit_caez_npz.py"
         ],
-        "basis": "Both current CAEZ Ridge routes now place only feature matrices in the registered model-input dataclass and produce exact input/target/pair-index/archive/transform digests under a versioned JSON schema. Temporal pair alignment excludes nonexistent history rows. Focused synthetic tests cover artifact replay fields and schema validation. The two-path checkpoint contract and full current/archive consumer inventory remain open."
+        "basis": "Both current CAEZ Ridge routes place only feature matrices in the registered model-input dataclass and produce exact input/target/pair-index/archive/transform digests under a versioned JSON schema. Temporal pair alignment excludes nonexistent history rows. The analytical two-path checkpoint sidecar binds array dtype/shape/content identities for inputs, targets, and split metadata plus checkpoint and source identities; focused synthetic tests verify replay and schema validation without training. The full current/archive consumer inventory remains open."
       },
       "verification": {
         "status": "pass",
-        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_datasets/test_model_input_audit.py tests/test_scripts/test_audit_caez_npz.py tests/test_scripts/test_evaluate_caez_cross_environment.py (17 passed); Ruff and formatting checks passed.",
-        "commit": "Focused synthetic-fixture verification on 2026-11-11; no measured CAEZ archive, training beyond the declared bounded Ridge diagnostics, RT generation, or deployment run."
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_experiments/test_observable_multipath_inputs.py tests/test_experiments/test_two_path_experiment_contract.py -k 'not neural_fit' (9 passed, 1 deselected); Ruff, formatting, JSON parsing, and Python compilation passed.",
+        "commit": "Focused synthetic-fixture verification on 2026-11-11; no two-path training run, measured CAEZ archive, production RT generation, or deployment run."
       },
       "qualification": {
         "status": "not_qualified",
@@ -10568,7 +10570,7 @@
       "closure": {
         "deliverable": "A source-audited inventory of every active adapter, transform, experiment/training/inference producer and model artifact contract, with gaps closed or explicitly scoped to an authoritative later gate.",
         "pass_rule": "No active consumer can receive unregistered truth/metadata through its model-input route; each saved model/prediction binds exact inputs and partitions, or its diagnostic-only/nondeployable boundary is explicit. Every noncanonical/archive route is explicitly classified.",
-        "next_task": "Add exact input/target/split sidecar binding to the analytical two-path checkpoints, then enumerate active/archived model consumers and transformations before closing the repository-wide audit."
+        "next_task": "Enumerate active/archived model consumers and transformations, classify every route, and close remaining gaps before closing the repository-wide audit."
       },
       "plan_mark": "not_checklist"
     },

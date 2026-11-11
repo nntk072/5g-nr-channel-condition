@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import json
+from dataclasses import replace
+from pathlib import Path
+
 import numpy as np
 import pytest
 from experiments.observable_multipath import (
@@ -11,6 +15,8 @@ from experiments.observable_multipath import (
     predict_decoder,
     profile_likelihood_delay,
     profile_likelihood_deviance_grid,
+    two_path_model_artifact_contract,
+    validate_two_path_model_artifact_contract,
 )
 
 
@@ -34,6 +40,56 @@ def test_grouped_dataset_is_deterministic_and_disjoint_by_group():
                 assert left_groups.isdisjoint(right_groups)
     assert set(first.stratum).issubset({"close", "marginal", "separated"})
     assert np.all(first.pilot_mask.sum(axis=1) >= 2)
+
+
+def test_two_path_checkpoint_contract_binds_inputs_targets_splits_and_checkpoint():
+    dataset = generate_grouped_two_path_dataset(
+        num_groups=40, samples_per_group=1, n_tones=8, seed=417
+    )
+    checkpoint_hash = "a" * 64
+    contract = two_path_model_artifact_contract(
+        dataset,
+        model_id="two_path_uncertainty_decoder.identifiability_off",
+        checkpoint_sha256=checkpoint_hash,
+    )
+
+    validate_two_path_model_artifact_contract(
+        contract,
+        dataset,
+        model_id="two_path_uncertainty_decoder.identifiability_off",
+        checkpoint_sha256=checkpoint_hash,
+    )
+    assert contract["inputs"]["arrays"]["observed_cfr"]["sha256"]
+    assert contract["targets"]["arrays"]["relative_delay_s"]["sha256"]
+    assert contract["splits"]["arrays"]["group_id"]["sha256"]
+    assert contract["scope"] == "synthetic_analytical_pilot_only"
+
+    import jsonschema
+
+    schema_path = (
+        Path(__file__).resolve().parents[2]
+        / "experiments"
+        / "schema"
+        / "two-path-model-artifact-contract.v1.schema.json"
+    )
+    jsonschema.validate(contract, json.loads(schema_path.read_text(encoding="utf-8")))
+
+    changed = replace(dataset, relative_delay_s=dataset.relative_delay_s.copy())
+    changed.relative_delay_s[0] += 1e-12
+    with pytest.raises(ValueError, match="does not match"):
+        validate_two_path_model_artifact_contract(
+            contract,
+            changed,
+            model_id="two_path_uncertainty_decoder.identifiability_off",
+            checkpoint_sha256=checkpoint_hash,
+        )
+    with pytest.raises(ValueError, match="does not match"):
+        validate_two_path_model_artifact_contract(
+            contract,
+            dataset,
+            model_id="two_path_uncertainty_decoder.identifiability_off",
+            checkpoint_sha256="b" * 64,
+        )
 
 
 def test_profile_likelihood_recovers_noiseless_two_path_delay():

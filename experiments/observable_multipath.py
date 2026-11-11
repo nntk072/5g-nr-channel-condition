@@ -7,6 +7,7 @@ independent synthetic conditions, not RT scenes or measured radio sessions.
 from __future__ import annotations
 
 import hashlib
+import json
 import math
 from dataclasses import dataclass
 from typing import Any
@@ -697,3 +698,84 @@ def dataset_source_sha256(dataset: TwoPathDataset) -> str:
     ):
         digest.update(np.ascontiguousarray(array).tobytes())
     return digest.hexdigest()
+
+
+def two_path_model_artifact_contract(
+    dataset: TwoPathDataset, *, model_id: str, checkpoint_sha256: str
+) -> dict[str, Any]:
+    """Bind a saved decoder to exact receiver inputs, oracle targets, and splits.
+
+    This contract records data lineage for the analytical synthetic pilot. It
+    does not make the checkpoint deployment evidence or scientific validation.
+    """
+    if not model_id or not isinstance(model_id, str):
+        raise ValueError("model_id must be a nonempty string")
+    if (
+        not isinstance(checkpoint_sha256, str)
+        or len(checkpoint_sha256) != 64
+        or any(char not in "0123456789abcdef" for char in checkpoint_sha256)
+    ):
+        raise ValueError("checkpoint_sha256 must be a lowercase SHA-256 digest")
+
+    def identity(value: np.ndarray) -> dict[str, Any]:
+        array = np.ascontiguousarray(value)
+        return {
+            "dtype": array.dtype.str,
+            "shape": list(array.shape),
+            "sha256": hashlib.sha256(array.tobytes()).hexdigest(),
+        }
+
+    model_inputs = dataset.model_inputs()
+    input_arrays = {
+        name: identity(getattr(model_inputs, name))
+        for name in ("observed_cfr", "pilot_mask", "frequencies_hz", "noise_variance")
+    }
+    target_arrays = {
+        name: identity(getattr(dataset, name)) for name in ("relative_delay_s", "gains")
+    }
+    split_arrays = {
+        name: identity(getattr(dataset, name))
+        for name in ("group_id", "sample_id", "split", "stratum")
+    }
+
+    def digest(payload: dict[str, Any]) -> str:
+        encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+        return hashlib.sha256(encoded).hexdigest()
+
+    return {
+        "schema": "loslab.two_path_model_artifact_contract.v1",
+        "model_id": model_id,
+        "checkpoint_sha256": checkpoint_sha256,
+        "dataset_source_sha256": dataset.source_sha256,
+        "maximum_relative_delay_s": dataset.maximum_relative_delay_s,
+        "inputs": {"arrays": input_arrays, "sha256": digest(input_arrays)},
+        "targets": {"arrays": target_arrays, "sha256": digest(target_arrays)},
+        "splits": {
+            "arrays": split_arrays,
+            "sha256": digest(split_arrays),
+            "group_counts": {
+                split: int(np.unique(dataset.group_id[dataset.split == split]).size)
+                for split in ("train", "validation", "calibration", "test")
+            },
+            "sample_counts": {
+                split: int(dataset.indices(split).size)
+                for split in ("train", "validation", "calibration", "test")
+            },
+        },
+        "scope": "synthetic_analytical_pilot_only",
+    }
+
+
+def validate_two_path_model_artifact_contract(
+    contract: dict[str, Any],
+    dataset: TwoPathDataset,
+    *,
+    model_id: str,
+    checkpoint_sha256: str,
+) -> None:
+    """Reject a contract that does not replay against the exact saved run data."""
+    expected = two_path_model_artifact_contract(
+        dataset, model_id=model_id, checkpoint_sha256=checkpoint_sha256
+    )
+    if contract != expected:
+        raise ValueError("two-path model artifact contract does not match dataset or checkpoint")

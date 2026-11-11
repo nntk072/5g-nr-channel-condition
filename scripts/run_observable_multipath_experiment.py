@@ -21,6 +21,7 @@ from experiments.observable_multipath import (
     generate_grouped_two_path_dataset,
     predict_decoder,
     profile_likelihood_delay,
+    two_path_model_artifact_contract,
 )
 
 
@@ -257,12 +258,23 @@ def _run_experiment_in_staging(
         "identifiability_off": staging_dir / "decoder_identifiability_off.npz",
         "identifiability_on": staging_dir / "decoder_identifiability_on.npz",
     }
+    model_contract_paths = {
+        condition: staging_dir / f"decoder_{condition}.contract.json" for condition in model_paths
+    }
     for condition, model in (
         ("identifiability_off", model_off),
         ("identifiability_on", model_on),
     ):
         state = {key: value.detach().cpu().numpy() for key, value in model.state_dict().items()}
         np.savez_compressed(model_paths[condition], **state)
+        _write_json(
+            model_contract_paths[condition],
+            two_path_model_artifact_contract(
+                dataset,
+                model_id=f"two_path_uncertainty_decoder.{condition}",
+                checkpoint_sha256=sha256_file(model_paths[condition]),
+            ),
+        )
     manifest = {
         "schema": "loslab.observable_multipath_experiment.v2",
         "status": "DESCRIPTIVE_ANALYTICAL_PILOT",
@@ -319,6 +331,7 @@ def _run_experiment_in_staging(
                     for method in prediction_payloads
                 ),
                 *model_paths.values(),
+                *model_contract_paths.values(),
             )
         },
         "limitations": [
