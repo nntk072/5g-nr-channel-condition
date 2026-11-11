@@ -295,6 +295,11 @@ def test_censoring_interval_rejects_invalid_numeric_bounds(bounds):
         CensoringInterval(**bounds)
 
 
+def test_censoring_interval_normalization_overflow_is_a_domain_error():
+    with pytest.raises(ValueError, match="finite real number or null"):
+        CensoringInterval(lower=10**10000)
+
+
 @pytest.mark.parametrize("entity_id", [" episode-link", "episode-link "])
 def test_target_value_rejects_padded_entity_identity(entity_id: str) -> None:
     definition = _definition(

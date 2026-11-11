@@ -410,14 +410,18 @@ class CensoringInterval:
     def __post_init__(self) -> None:
         for name in ("lower", "upper"):
             value = getattr(self, name)
-            if value is not None and (
-                isinstance(value, bool)
-                or not isinstance(value, Real)
-                or not math.isfinite(float(value))
-            ):
-                raise ValueError(f"censoring {name} bound must be a finite real number or null")
             if value is not None:
-                object.__setattr__(self, name, float(value))
+                if isinstance(value, bool) or not isinstance(value, Real):
+                    raise ValueError(f"censoring {name} bound must be a finite real number or null")
+                try:
+                    normalized = float(value)
+                except (OverflowError, ValueError) as error:
+                    raise ValueError(
+                        f"censoring {name} bound must be a finite real number or null"
+                    ) from error
+                if not math.isfinite(normalized):
+                    raise ValueError(f"censoring {name} bound must be a finite real number or null")
+                object.__setattr__(self, name, normalized)
         if self.lower is None and self.upper is None:
             raise ValueError("a censoring interval must include at least one finite bound")
         if self.lower is not None and self.upper is not None and self.lower >= self.upper:
