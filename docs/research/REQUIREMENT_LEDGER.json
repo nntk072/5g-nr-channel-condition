@@ -10176,19 +10176,24 @@
       ],
       "requirement": "Allow finite complex arrays in versioned UMCD `TargetValue` contracts when their canonical definition declares complex CFR, while preserving exact-shape masks, zero storage for unavailable elements, and complex dtype through episode-store round trips. Regression definitions cover construction and content-addressed persistence; consolidated validation is deferred. Per-target shape, axis, gauge, range, and migration contracts remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Implementation and focused software verification only; scientific qualification, corpus completeness, and release authority are separately gated.",
+        "authority_basis": "Mandatory implementation-backlog deliverable supporting unified-plan G7 target/release integrity; scope remains constrained by the exact backlog criterion."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "datasets/targets.py",
+          "datasets/episode_store.py",
+          "tests/test_datasets/test_target_contracts.py",
+          "tests/test_datasets/test_umcd_schema.py"
+        ],
+        "basis": "Source audit compared the bounded implementation and regression coverage to the exact backlog criterion. Synthetic/contract tests do not establish physical truth or release qualification. Versioned TargetValue contracts accept complex coefficients when the definition declares a complex domain, and content-addressed episode-store serialization preserves complex64 dtype, values, mask, and reason codes. End-to-end round-trip regression added and passed."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_datasets/test_target_contracts.py tests/test_datasets/test_nr.py tests/test_datasets/test_nr_store_streaming.py tests/test_datasets/test_umcd_schema.py (219 passed); Ruff/format and git diff --check passed.",
+        "commit": "Focused verification run in worktree based on 751aad4; implementation remains partial at package scope."
       },
       "qualification": {
         "status": "not_qualified",
@@ -10197,9 +10202,9 @@
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Versioned complex TargetValue and content-addressed episode-store roundtrip.",
+        "pass_rule": "The declared complex dtype, exact values, mask and reason codes round-trip without dtype loss.",
+        "next_task": "PKG08-010"
       },
       "plan_mark": "not_checklist"
     },
@@ -10213,19 +10218,23 @@
       ],
       "requirement": "Bind all four canonical NR CFR target versions to their observation shapes at versioned storage admission: standardized/TDL targets must match the receiver's complete seven-axis channel estimate, RT absolute CFR must match the effective-subcarrier count, and RT symbol CFR must match OFDM-symbol × effective-subcarrier dimensions. Regression definitions cover each valid shape and a mismatched subcarrier axis; validation remains deferred. This checks dimensional compatibility, not the physical gauge or estimator/RT truth.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Implementation and focused software verification only; scientific qualification, corpus completeness, and release authority are separately gated.",
+        "authority_basis": "Mandatory implementation-backlog deliverable supporting unified-plan G7 target/release integrity; scope remains constrained by the exact backlog criterion."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "datasets/nr.py",
+          "datasets/targets.py",
+          "tests/test_datasets/test_target_contracts.py"
+        ],
+        "basis": "Source audit compared the bounded implementation and regression coverage to the exact backlog criterion. Synthetic/contract tests do not establish physical truth or release qualification. NR admission binds each of the four canonical CFR definition versions to observation-derived shape: seven-axis estimate, effective-subcarrier vector, or symbol-by-subcarrier matrix. Parameterized valid/invalid shape regressions passed."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_datasets/test_target_contracts.py tests/test_datasets/test_nr.py tests/test_datasets/test_nr_store_streaming.py tests/test_datasets/test_umcd_schema.py (219 passed); Ruff/format and git diff --check passed.",
+        "commit": "Focused verification run in worktree based on 751aad4; implementation remains partial at package scope."
       },
       "qualification": {
         "status": "not_qualified",
@@ -10234,9 +10243,9 @@
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Four canonical NR CFR definition versions checked against observation axes.",
+        "pass_rule": "Each admitted target shape exactly matches the version-specific observation/FFT-derived shape; mismatches reject.",
+        "next_task": "PKG08-011"
       },
       "plan_mark": "not_checklist"
     },
@@ -10250,19 +10259,25 @@
       ],
       "requirement": "Enforce value-domain rules for the currently canonical standardized profile-LOS proxy, NR CFR, and geometric-LOS definition versions: target-name/semantic/unit binding, complex dtype for CFR, and scalar binary domain for LOS classes. NR v3 storage admission and `TargetValue` construction invoke the validator; regression definitions cover valid and invalid cases. The broader target catalog, gauge/shape rules for all targets, legacy migration policy, and validation remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Implementation and focused software verification only; scientific qualification, corpus completeness, and release authority are separately gated.",
+        "authority_basis": "Mandatory implementation-backlog deliverable supporting unified-plan G7 target/release integrity; scope remains constrained by the exact backlog criterion."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "datasets/targets.py",
+          "datasets/nr.py",
+          "datasets/nr_store.py",
+          "tests/test_datasets/test_target_contracts.py",
+          "tests/test_datasets/test_nr.py"
+        ],
+        "basis": "Source audit compared the bounded implementation and regression coverage to the exact backlog criterion. Synthetic/contract tests do not establish physical truth or release qualification. Recognized standardized profile-LOS, NR CFR, and geometric-LOS versions validate name, semantic, units, provenance/aggregation, complex CFR domain, and binary LOS domain at TargetValue or versioned NR admission. The focused contract and NR regressions passed; noncanonical target families remain application-defined."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_datasets/test_target_contracts.py tests/test_datasets/test_nr.py tests/test_datasets/test_nr_store_streaming.py tests/test_datasets/test_umcd_schema.py (219 passed); Ruff/format and git diff --check passed.",
+        "commit": "Focused verification run in worktree based on 751aad4; implementation remains partial at package scope."
       },
       "qualification": {
         "status": "not_qualified",
@@ -10271,9 +10286,9 @@
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Canonical current target name/semantic/unit/provenance/domain validation.",
+        "pass_rule": "Only declared canonical domains and bound semantics are admitted for registered target versions.",
+        "next_task": "PKG08-012"
       },
       "plan_mark": "not_checklist"
     },
@@ -10287,19 +10302,24 @@
       ],
       "requirement": "Enforce zero storage for every NR target element excluded by its broadcasted false mask, matching the canonical `TargetValue` invariant so unavailable truth is not retained in training records. Regression definitions cover rejection and accepted zero-filled masked values; consolidated validation is deferred.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Implementation and focused software verification only; scientific qualification, corpus completeness, and release authority are separately gated.",
+        "authority_basis": "Mandatory implementation-backlog deliverable supporting unified-plan G7 target/release integrity; scope remains constrained by the exact backlog criterion."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "datasets/nr.py",
+          "datasets/targets.py",
+          "tests/test_datasets/test_nr.py",
+          "tests/test_datasets/test_target_contracts.py"
+        ],
+        "basis": "Source audit compared the bounded implementation and regression coverage to the exact backlog criterion. Synthetic/contract tests do not establish physical truth or release qualification. NRChannelRecord and TargetValue reject nonzero values under broadcasted false masks; zero-filled masked values are accepted. Regression cases passed."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_datasets/test_target_contracts.py tests/test_datasets/test_nr.py tests/test_datasets/test_nr_store_streaming.py tests/test_datasets/test_umcd_schema.py (219 passed); Ruff/format and git diff --check passed.",
+        "commit": "Focused verification run in worktree based on 751aad4; implementation remains partial at package scope."
       },
       "qualification": {
         "status": "not_qualified",
@@ -10308,9 +10328,9 @@
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Zero-filled masked NR target storage and exact broadcast-mask validation.",
+        "pass_rule": "Any element excluded by a false mask is stored as zero; other values reject.",
+        "next_task": "PKG08-013"
       },
       "plan_mark": "not_checklist"
     },
@@ -10324,19 +10344,26 @@
       ],
       "requirement": "Require one explicit `TargetValidity` reason per NR target element whenever a mask excludes that element, enforce exact reason/mask agreement, and expose reasons through trajectories. NR record format v2 stores reason IDs as a compact uint8 codebook under `datasets/schema/nr-record-metadata.v2.schema.json`; the v1 reader migrates masked values to zero and labels absent legacy reasons `legacy_reason_unrecorded`. RT trajectory output labels no-path CFR targets `not_observable`. Regression definitions cover reason consistency, round-trip persistence, and v1 migration; consolidated validation remains deferred.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Implementation and focused software verification only; scientific qualification, corpus completeness, and release authority are separately gated.",
+        "authority_basis": "Mandatory implementation-backlog deliverable supporting unified-plan G7 target/release integrity; scope remains constrained by the exact backlog criterion."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "datasets/nr.py",
+          "datasets/nr_store.py",
+          "datasets/targets.py",
+          "datasets/schema/nr-record-metadata.v2.schema.json",
+          "tests/test_datasets/test_nr.py",
+          "tests/test_datasets/test_nr_store_streaming.py"
+        ],
+        "basis": "Source audit compared the bounded implementation and regression coverage to the exact backlog criterion. Synthetic/contract tests do not establish physical truth or release qualification. NR records require one explicit validity reason per target element when masks exclude data and enforce exact agreement; trajectories expose reason series. NR record schema v2 persists reason codes, while v1 migration zeroes unavailable storage and marks missing legacy reasons explicitly. Focused round-trip and migration regressions passed."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_datasets/test_target_contracts.py tests/test_datasets/test_nr.py tests/test_datasets/test_nr_store_streaming.py tests/test_datasets/test_umcd_schema.py (219 passed); Ruff/format and git diff --check passed.",
+        "commit": "Focused verification run in worktree based on 751aad4; implementation remains partial at package scope."
       },
       "qualification": {
         "status": "not_qualified",
@@ -10345,9 +10372,9 @@
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Per-element target validity reasons, NR v2 storage, v1 migration and trajectory exposure.",
+        "pass_rule": "Every unavailable element has one reason consistent with the mask; legacy missing reasons remain explicitly unrecorded.",
+        "next_task": "PKG08-014"
       },
       "plan_mark": "not_checklist"
     },
@@ -10359,21 +10386,27 @@
       "backlog_aliases": [
         "PKG08-014"
       ],
-      "requirement": "Implement NR trajectory target-support aggregation by explicit split × family × target inventory, with present/missing records, element/selected/masked counts, implicit masks, and absent cells visible in the canonical corpus audit. Regression definitions and report schema are authored; consolidated validation remains pending.",
+      "requirement": "lement NR trajectory target-support aggregation by explicit split × family × target inventory, with present/missing records, element/selected/masked counts, implicit masks, and absent cells visible in the canonical corpus audit. `NRTrajectory` exposes explicit support counts; `audit_nr_trajectory_target_support` preserves expected empty cells; `scripts/audit_umcd_corpus.py` binds support to locked parent/family assignments and the report schema. Five focused dataset/corpus-audit tests pass. This is support accounting, not proof of inventory completeness or release qualification.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Implementation and focused software verification only; scientific qualification, corpus completeness, and release authority are separately gated.",
+        "authority_basis": "Mandatory implementation-backlog deliverable supporting unified-plan G7 target/release integrity; scope remains constrained by the exact backlog criterion."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "datasets/nr.py",
+          "datasets/schema/nr-target-support-audit.v1.schema.json",
+          "scripts/audit_umcd_corpus.py",
+          "tests/test_datasets/test_nr.py",
+          "tests/test_scripts/test_audit_umcd_corpus.py"
+        ],
+        "basis": "Source audit compared the bounded implementation and regression coverage to the exact backlog criterion. Synthetic/contract tests do not establish physical truth or release qualification. Target support is aggregated over explicit split/family/target cells, preserves missing/implicit-mask counts and empty expected cells, and is included in the canonical corpus audit bound to locked parent assignments."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_datasets/test_nr.py tests/test_scripts/test_audit_umcd_corpus.py -k nr_target_support (5 passed).",
+        "commit": "Focused verification run in worktree based on 751aad4; scientific qualification not implied."
       },
       "qualification": {
         "status": "not_qualified",
@@ -10382,9 +10415,9 @@
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Split/family/target support aggregation in the canonical corpus report.",
+        "pass_rule": "Every expected cell is reported, including absent targets, with present/missing, element/mask and implicit-mask counts.",
+        "next_task": "PKG08-015"
       },
       "plan_mark": "not_checklist"
     },
@@ -10398,30 +10431,41 @@
       ],
       "requirement": "Establish trusted custody for the inventory-signature key and exact scene/band/topology/antenna/task inventories, and provide evidence that lineage is complete. Corpus-inventory v3 and detached exact-byte signature verification integrate strata with the canonical audit and report per-cell independent-group and valid/unavailable support; signature governance and scientific threshold suitability remain external gates.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Implementation and focused software verification only; scientific qualification, corpus completeness, and release authority are separately gated.",
+        "authority_basis": "Mandatory implementation-backlog deliverable supporting unified-plan G7 target/release integrity; scope remains constrained by the exact backlog criterion."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "scripts/audit_umcd_corpus.py",
+          "evaluation/g3_signed_attestation.py",
+          "datasets/schema/umcd-corpus-audit-inventory.v3.schema.json",
+          "datasets/schema/umcd-corpus-audit-inventory.v4.schema.json",
+          "tests/test_scripts/test_audit_umcd_corpus.py"
+        ],
+        "basis": "The auditor verifies exact inventory bytes using the declared purpose namespace and a supplied OpenSSH allowed-signers trust file, and reports support strata. Tests prove signature binding and tamper rejection. This checkout contains no trusted custody proof for the production signer/keyring or authoritative scene/band/topology/antenna/task inventory."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_scripts/test_audit_umcd_corpus.py -k 'stratified_inventory_signature or scene_inventory_v4_signature' (3 passed).",
+        "commit": "Focused verification run in worktree based on 751aad4; production signer trust and inventory authority remain external."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Synthetic fixture signatures verify exact-byte software behavior only; no authoritative inventory or trusted production signer evidence is present."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Independent custody/authorization evidence for the production inventory signing key and trusted allowed-signers file.",
+        "Authoritative complete scene/site, band, topology, antenna, and task inventory with evidence-backed physical independence."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Exact-byte inventory signature verification against supplied trust and corpus support strata.",
+        "pass_rule": "Software audit passes with frozen inventory bytes; authoritative inventory truth and external trust custody must be evidenced before release qualification.",
+        "next_task": "PKG08-016"
       },
       "plan_mark": "not_checklist"
     },

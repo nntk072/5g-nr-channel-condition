@@ -3620,7 +3620,7 @@
         "datasets/episode_store.py": "9e1f2dc7944cc9aa81616b9bd471047f0bc2f8c7be9aa58e841f98b5615864f3",
         "datasets/targets.py": "bbb1b9a12aa6f9a53906c63d82d2d5bd95f182e2ded3d0521a94cf4e26717694",
         "tests/test_datasets/test_target_contracts.py": "afc7475eda161372c884a3a7960648b714f673e330d5094b4888234e7f46d611",
-        "tests/test_datasets/test_umcd_schema.py": "0c23c395e788bf272397e9bb6d016c425f7ab13c7e6471d6b9e9919716273201"
+        "tests/test_datasets/test_umcd_schema.py": "9441705fef32023f8ddaabcabd08400697c437e470fb5da58d5a4b7140d65486"
       },
       "evidence_links": {
         "cli_entries": [],
@@ -3652,20 +3652,24 @@
     {
       "backlog_line": 407,
       "backlog_status": "marked_done",
-      "description": "Allow finite complex arrays in versioned UMCD `TargetValue` contracts when their canonical definition declares complex CFR, while preserving exact-shape masks, zero storage for unavailable elements, and complex dtype through episode-store round trips. Regression definitions cover construction and content-addressed persistence; consolidated validation is deferred. Per-target shape, axis, gauge, range, and migration contracts remain open.",
-      "evidence_file_sha256": {},
+      "description": "Allow finite complex arrays in versioned UMCD `TargetValue` contracts when their canonical definition declares complex CFR, while preserving exact-shape masks, zero storage for unavailable elements, and complex dtype through episode-store round trips. Construction and complex64 dtype/value/mask/reason preservation now pass an end-to-end content-addressed episode-store round trip in `tests/test_datasets/test_umcd_schema.py`. Per-target shape, axis, gauge, range, and migration contracts remain open.",
+      "evidence_file_sha256": {
+        "tests/test_datasets/test_umcd_schema.py": "9441705fef32023f8ddaabcabd08400697c437e470fb5da58d5a4b7140d65486"
+      },
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
         "other_files": [],
-        "regression_files": [],
+        "regression_files": [
+          "tests/test_datasets/test_umcd_schema.py"
+        ],
         "schemas": [],
         "source_modules": []
       },
       "feature_id": "PKG08-009",
       "implementation_status": "code_complete",
       "implementation_status_basis": "checked_backlog_item",
-      "link_status": "unmapped",
+      "link_status": "linked",
       "package": {
         "number": 8,
         "title": "G7 — target contracts, release storage, lineage, and coverage"
@@ -3678,7 +3682,7 @@
     {
       "backlog_line": 408,
       "backlog_status": "marked_done",
-      "description": "Bind all four canonical NR CFR target versions to their observation shapes at versioned storage admission: standardized/TDL targets must match the receiver's complete seven-axis channel estimate, RT absolute CFR must match the effective-subcarrier count, and RT symbol CFR must match OFDM-symbol × effective-subcarrier dimensions. Regression definitions cover each valid shape and a mismatched subcarrier axis; validation remains deferred. This checks dimensional compatibility, not the physical gauge or estimator/RT truth.",
+      "description": "Bind all four canonical NR CFR target versions to their observation shapes at versioned storage admission: standardized/TDL targets must match the receiver's complete seven-axis channel estimate, RT absolute CFR must match the effective-subcarrier count, and RT symbol CFR must match OFDM-symbol × effective-subcarrier dimensions. Parameterized tests cover all four valid shape contracts and mismatches; the target-contract, NR, NR-store, and UMCD-schema modules pass together (219 tests). This checks dimensional compatibility, not the physical gauge or estimator/RT truth.",
       "evidence_file_sha256": {},
       "evidence_links": {
         "cli_entries": [],
@@ -3704,7 +3708,7 @@
     {
       "backlog_line": 409,
       "backlog_status": "marked_done",
-      "description": "Enforce value-domain rules for the currently canonical standardized profile-LOS proxy, NR CFR, and geometric-LOS definition versions: target-name/semantic/unit binding, complex dtype for CFR, and scalar binary domain for LOS classes. NR v3 storage admission and `TargetValue` construction invoke the validator; regression definitions cover valid and invalid cases. The broader target catalog, gauge/shape rules for all targets, legacy migration policy, and validation remain open.",
+      "description": "Enforce value-domain rules for the currently canonical standardized profile-LOS proxy, NR CFR, and geometric-LOS definition versions: target-name/semantic/unit binding, complex dtype for CFR, and scalar binary domain for LOS classes. NR v3 storage admission and `TargetValue` construction invoke the validator; regression definitions cover valid and invalid cases. The target-contract, NR, NR-store, and UMCD-schema modules pass together (219 tests); the broader target catalog, gauge/shape rules for all targets, and legacy migration policy remain open.",
       "evidence_file_sha256": {},
       "evidence_links": {
         "cli_entries": [],
@@ -3730,7 +3734,7 @@
     {
       "backlog_line": 410,
       "backlog_status": "marked_done",
-      "description": "Enforce zero storage for every NR target element excluded by its broadcasted false mask, matching the canonical `TargetValue` invariant so unavailable truth is not retained in training records. Regression definitions cover rejection and accepted zero-filled masked values; consolidated validation is deferred.",
+      "description": "Enforce zero storage for every NR target element excluded by its broadcasted false mask, matching the canonical `TargetValue` invariant so unavailable truth is not retained in training records. NR and UMCD target contract/storage regressions pass in the focused 219-test slice, covering rejection of nonzero masked values and accepted zero-filled unavailable values.",
       "evidence_file_sha256": {},
       "evidence_links": {
         "cli_entries": [],
@@ -3756,7 +3760,7 @@
     {
       "backlog_line": 411,
       "backlog_status": "marked_done",
-      "description": "Require one explicit `TargetValidity` reason per NR target element whenever a mask excludes that element, enforce exact reason/mask agreement, and expose reasons through trajectories. NR record format v2 stores reason IDs as a compact uint8 codebook under `datasets/schema/nr-record-metadata.v2.schema.json`; the v1 reader migrates masked values to zero and labels absent legacy reasons `legacy_reason_unrecorded`. RT trajectory output labels no-path CFR targets `not_observable`. Regression definitions cover reason consistency, round-trip persistence, and v1 migration; consolidated validation remains deferred.",
+      "description": "Require one explicit `TargetValidity` reason per NR target element whenever a mask excludes that element, enforce exact reason/mask agreement, and expose reasons through trajectories. NR record format v2 stores reason IDs as a compact uint8 codebook under `datasets/schema/nr-record-metadata.v2.schema.json`; the v1 reader migrates masked values to zero and labels absent legacy reasons `legacy_reason_unrecorded`. RT trajectory output labels no-path CFR targets `not_observable`. NR and UMCD target contract/storage regressions pass in the focused 219-test slice, covering reason/mask consistency, v2 round trip, and v1 legacy-reason migration.",
       "evidence_file_sha256": {
         "datasets/schema/nr-record-metadata.v2.schema.json": "9df0db2ba30ca3fafefc9e31785ddf8dadc84e80bbe563ce0a405c8fd09e144b"
       },
@@ -3786,10 +3790,14 @@
     {
       "backlog_line": 412,
       "backlog_status": "marked_done",
-      "description": "Implement NR trajectory target-support aggregation by explicit split × family × target inventory, with present/missing records, element/selected/masked counts, implicit masks, and absent cells visible in the canonical corpus audit. Regression definitions and report schema are authored; consolidated validation remains pending.",
-      "evidence_file_sha256": {},
+      "description": "Implement NR trajectory target-support aggregation by explicit split × family × target inventory, with present/missing records, element/selected/masked counts, implicit masks, and absent cells visible in the canonical corpus audit. `NRTrajectory` exposes explicit support counts; `audit_nr_trajectory_target_support` preserves expected empty cells; `scripts/audit_umcd_corpus.py` binds support to locked parent/family assignments and the report schema. Five focused dataset/corpus-audit tests pass. This is support accounting, not proof of inventory completeness or release qualification.",
+      "evidence_file_sha256": {
+        "scripts/audit_umcd_corpus.py": "2249e202360c762289e558c37541bace7b15cf488a9120a41c584aeb0b8c7beb"
+      },
       "evidence_links": {
-        "cli_entries": [],
+        "cli_entries": [
+          "scripts/audit_umcd_corpus.py"
+        ],
         "documentation": [],
         "other_files": [],
         "regression_files": [],
@@ -3799,7 +3807,7 @@
       "feature_id": "PKG08-014",
       "implementation_status": "code_complete",
       "implementation_status_basis": "checked_backlog_item",
-      "link_status": "unmapped",
+      "link_status": "linked",
       "package": {
         "number": 8,
         "title": "G7 — target contracts, release storage, lineage, and coverage"
@@ -5095,7 +5103,7 @@
   "schema": "loslab.implementation_feature_map.v3",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "846eedb9ebbc2b7d43da08d867bb305519b870be2b7d888d5da0fe578a2fb644"
+    "sha256": "7ecb07a4afb27e4424b97302c604751433b761deea575ebffeae8040109de172"
   },
   "summary": {
     "feature_count": 182,
@@ -5105,9 +5113,9 @@
       "externally_blocked": 0,
       "partial": 25
     },
-    "linked_count": 41,
+    "linked_count": 43,
     "marked_done_count": 130,
     "open_count": 52,
-    "unmapped_count": 141
+    "unmapped_count": 139
   }
 }

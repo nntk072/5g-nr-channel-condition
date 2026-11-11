@@ -1,7 +1,7 @@
 # Active implementation queue
 
-Checkpoint: 2026-11-11, based on `42e9d08` plus the preserved working-tree
-changes. This queue is the executor's next-action list; the research and dataset
+Checkpoint: 2026-11-11, based on `751aad4` plus the current PKG08 audit work.
+This queue is the executor's next-action list; the research and dataset
 plans remain authoritative for scope and acceptance. Update this file only when
 a task closes, its dependency changes, or a concrete blocker appears; retain
 chronological detail in evidence artifacts rather than duplicating it across plans. Gate IDs in the ledger use
@@ -227,8 +227,14 @@ does not resolve whether the one native miss reflects finite-sample variation
 or an oracle/implementation discrepancy. Keep the original result failed. The
 separate post-hoc 65,536-draw diagnostic cannot replace it.
 
-The next batch is `E01.PKG07`, then packages 08–10 in numeric order, followed by
-`E01.DS.GATES`, `E01.RS.PHASES`, `E01.RS.APPENDIX_E`, and `E01.CROSSWALK`.
+`E01.PKG07` is source-audited. `E01.PKG08` is active: rows `PKG08-001` through
+`PKG08-014` now have source/test evidence and separate software/qualification
+statuses; `PKG08-015` is audited as partial with production key custody and
+authoritative inventory recorded as external blockers. The 219-test target/NR/
+storage slice and 3 signature/tamper regressions pass. Continue with
+`PKG08-016` through `PKG08-039`,
+then packages 09–10, `E01.DS.GATES`, `E01.RS.PHASES`, `E01.RS.APPENDIX_E`, and
+`E01.CROSSWALK`.
 Each package batch is the fixed set of `PKGnn-*` IDs in the ledger and closes
 only after every row has inspected source/test integration, implementation
 state, exact verification, qualification state, dependencies and closure

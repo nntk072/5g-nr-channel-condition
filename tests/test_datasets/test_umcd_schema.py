@@ -974,6 +974,36 @@ def test_episode_bundle_roundtrip_keeps_layers_content_addressed_and_pickle_free
     }
 
 
+def test_complex_target_values_preserve_dtype_through_episode_store_roundtrip(tmp_path):
+    bundle = _bundle()
+    definition = TargetDefinition.versioned(
+        semantic="complex CFR coefficients",
+        units="complex channel gain (dimensionless)",
+        source="analytic test fixture",
+        reference="declared fixture gauge",
+        aggregation_rule="preserve each declared complex coefficient",
+        definition_version="umcd.test.complex-cfr.v1",
+    )
+    values = np.asarray([1.25 - 0.5j, 0.0 + 0.0j], dtype=np.complex64)
+    complex_target = TargetValue(
+        entity_id="gNB-1-to-UE-1",
+        definition=definition,
+        values=values,
+        valid_mask=np.asarray([True, False]),
+        reason_codes=(TargetValidity.VALID, TargetValidity.NOT_OBSERVABLE),
+        confidence="synthetic_fixture",
+    )
+    bundle = replace(bundle, targets=(complex_target,))
+
+    stored = write_episode_bundle(tmp_path, bundle)
+    restored = read_episode_bundle(tmp_path, stored)
+
+    assert restored.targets[0].values.dtype == np.dtype(np.complex64)
+    np.testing.assert_array_equal(restored.targets[0].values, values)
+    np.testing.assert_array_equal(restored.targets[0].valid_mask, [True, False])
+    assert restored.targets[0].reason_codes == complex_target.reason_codes
+
+
 def test_path_oracle_storage_metadata_schema_and_exact_array_roster():
     payload = _path_payload(_bundle().path_oracle)
     with np.load(io.BytesIO(payload), allow_pickle=False) as archive:
