@@ -5,7 +5,7 @@
       "backlog_status": "open",
       "description": "Turn this backlog into a fully traceable feature map. **Partial:** `scripts.build_implementation_feature_map` indexes every checklist row by package/plan gate, resolves explicitly referenced repository paths, dotted Python modules, and registered `pyproject.toml` CLI entry points, and marks unresolved rows `unmapped`. Map v3 records stable SHA-256 identities for linked evidence, rejects symlinked or mutating evidence snapshots, and now classifies every row as `code_complete`, `partial`, `absent`, or `externally_blocked` with an explicit basis while keeping scientific qualification separate. `loslab-build-implementation-feature-map --check` detects stale output. The current map has 182 rows: 38 linked and 144 unmapped; implementation inventory counts are 130 code-complete, 23 partial, 29 absent, and 0 explicitly externally-blocked. Evidence links for rows without explicit repository references and the remaining canonical-wiring/status-history audits keep this row open. Checkbox and implementation status are not scientific qualification.",
       "evidence_file_sha256": {
-        "pyproject.toml": "67f868f40cdb3ceea45e2174bb31518383e0bf00e79e6e644bbbc67e288dba7c",
+        "pyproject.toml": "85d93975f686b8554f9037390fdb6ed1c6576dea9f2fb26d96cc4e52ffaca105",
         "scripts/build_implementation_feature_map.py": "478e623da5298d5d36c8d2c80fad765872a07e0c21f9541ccf85b4514fda0403"
       },
       "evidence_links": {
@@ -246,9 +246,9 @@
         "integrations/sionna/adapter.py": "0a40f6369daeef0d0ba481888912c58f10386a6d811470741c3ca3f54900e5a7",
         "integrations/sionna/rt_cache.py": "8a48b0847b6631ffad4d932608bb7a3118b0a5183fdf30af21ffb2f650213714",
         "integrations/sionna/rt_identity.py": "537ede784bf9ae83ec2191a7290bb057d1daff4c3313a2f8d338c6ca52949269",
-        "integrations/sionna/rt_trajectory.py": "0b6fc02fa3caa225151be35bd58b9fdac8a1d693161bdee9deac595fa3fb763a",
+        "integrations/sionna/rt_trajectory.py": "986c047d363c46fcbc0eff1a52622f9e1ac2a05ac2dae9418b053091fa61db9d",
         "tests/test_integrations/test_rt_identity.py": "3b2349b5471105d4e0cd09e0861e2fcb2555880086662c79c5b89bc1337d114c",
-        "tests/test_integrations/test_rt_trajectory_contract.py": "c02bbbb29c43b99a87d1b07bf72f0ebb601474a6b102651fe59b6a438328f0fd",
+        "tests/test_integrations/test_rt_trajectory_contract.py": "66187cd05dad55be4ef5fc36547d313963498b83b1f9e62b30fe09fe7912614a",
         "tests/test_integrations/test_sionna_adapter.py": "706047f6d93b7f9aaf8963b9c97cdb33ae8f984f80ec94ac2f25676953f66eae"
       },
       "evidence_links": {
@@ -764,7 +764,7 @@
       "backlog_status": "marked_done",
       "description": "Version the G3 run-manifest contract through v3: v2 binds `pyproject.toml` and `uv.lock`; v3 additionally records the pre-scoring Python/platform/machine, numerical/Sionna package versions, and source revision and adds the runtime provider/schema to its frozen source bundle. Retain v1/v2 schema/source roster readers. Regression definitions cover new capture and v2 replay; validation is deferred. Installed binary, loaded-library, hardware, trust-custody, and runtime-attestation evidence remain open.",
       "evidence_file_sha256": {
-        "pyproject.toml": "67f868f40cdb3ceea45e2174bb31518383e0bf00e79e6e644bbbc67e288dba7c",
+        "pyproject.toml": "85d93975f686b8554f9037390fdb6ed1c6576dea9f2fb26d96cc4e52ffaca105",
         "uv.lock": "1a86b0e67d969dcbada00f3e1cade6af5c29857578a245c56200b1cc317e0550"
       },
       "evidence_links": {
@@ -3857,20 +3857,27 @@
     {
       "backlog_line": 415,
       "backlog_status": "open",
-      "description": "Complete model-input leakage audit across every dataset adapter, feature transform, experiment runner, training path, and inference artifact.",
-      "evidence_file_sha256": {},
+      "description": "Complete model-input leakage audit across every dataset adapter, feature transform, experiment runner, training path, and inference artifact. `datasets.model_input_audit._validated_real_scalar` now converts registered scalar inputs through bounded float normalization and reports overflow as a domain `ValueError`; a `10**10000` noise-variance regression in `tests/test_datasets/test_model_input_audit.py` passes. This closes one scalar boundary only; full feature-transform, runner, training, and inference-artifact coverage remains open.",
+      "evidence_file_sha256": {
+        "datasets/model_input_audit.py": "3110c416a25f200097b0dd7f9aeca8e4e0965974936dfbd630162f0c4d8156cd",
+        "tests/test_datasets/test_model_input_audit.py": "b0227026e7c4667a5aab942c5e47d67af78720e987e40f04176f9077d72be8ac"
+      },
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
         "other_files": [],
-        "regression_files": [],
+        "regression_files": [
+          "tests/test_datasets/test_model_input_audit.py"
+        ],
         "schemas": [],
-        "source_modules": []
+        "source_modules": [
+          "datasets/model_input_audit.py"
+        ]
       },
       "feature_id": "PKG08-017",
-      "implementation_status": "absent",
-      "implementation_status_basis": "open_without_linked_or_partial_evidence",
-      "link_status": "unmapped",
+      "implementation_status": "partial",
+      "implementation_status_basis": "linked_repository_evidence",
+      "link_status": "linked",
       "package": {
         "number": 8,
         "title": "G7 — target contracts, release storage, lineage, and coverage"
@@ -5067,19 +5074,19 @@
   "schema": "loslab.implementation_feature_map.v3",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "955deaf578b42336d23c4fe8a2da0e380fc6f0c5e0c3734c82ae52471c100d4e"
+    "sha256": "004f392f65953ad966b627ab0633052ab221c3d6d70aaf71c953bc3864b361e2"
   },
   "summary": {
     "feature_count": 182,
     "implementation_status_counts": {
-      "absent": 29,
+      "absent": 28,
       "code_complete": 130,
       "externally_blocked": 0,
-      "partial": 23
+      "partial": 24
     },
-    "linked_count": 38,
+    "linked_count": 39,
     "marked_done_count": 130,
     "open_count": 52,
-    "unmapped_count": 144
+    "unmapped_count": 143
   }
 }

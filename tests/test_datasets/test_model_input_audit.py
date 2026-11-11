@@ -117,6 +117,17 @@ def test_rejects_boolean_scalar_and_nonfinite_registered_inputs() -> None:
     with pytest.raises(TypeError, match="noise_variance must be a real numeric scalar"):
         audit_model_input_payload(boolean_noise)
 
+    overflowing_noise = FrequencyDomainModelInputs(
+        observed_cfr=np.ones((1, 1, 8), dtype=np.complex64),
+        noise_variance=0.01,
+        snr_db=20.0,
+        carrier_hz=3.5e9,
+        subcarrier_offsets_hz=np.arange(-4, 4, dtype=np.float64),
+    )
+    object.__setattr__(overflowing_noise, "noise_variance", 10**10000)
+    with pytest.raises(ValueError, match="noise_variance must be finite"):
+        audit_model_input_payload(overflowing_noise)
+
     nonfinite_frequency = AnalyticalModelInputs(
         frequencies_hz=np.arange(8, dtype=np.float64),
         channel_frequency_response=np.ones(8, dtype=np.complex64),

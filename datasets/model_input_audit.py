@@ -144,11 +144,15 @@ def _validated_real_scalar(
 ) -> None:
     if isinstance(value, bool) or not isinstance(value, Real):
         raise TypeError(f"{name} must be a real numeric scalar")
-    if not np.isfinite(value):
+    try:
+        normalized = float(value)
+    except (OverflowError, ValueError) as error:
+        raise ValueError(f"{name} must be finite") from error
+    if not np.isfinite(normalized):
         raise ValueError(f"{name} must be finite")
-    if nonnegative and value < 0:
+    if nonnegative and normalized < 0:
         raise ValueError(f"{name} must be nonnegative")
-    if positive and value <= 0:
+    if positive and normalized <= 0:
         raise ValueError(f"{name} must be positive")
 
 
@@ -175,8 +179,7 @@ def audit_model_input_payload(value: Any) -> Any:
         extra = sorted(observed - expected)
         missing = sorted(expected - observed)
         raise ValueError(
-            f"model-input field roster drift for {identity[1]}: "
-            f"extra={extra}, missing={missing}"
+            f"model-input field roster drift for {identity[1]}: extra={extra}, missing={missing}"
         )
 
     if identity == ("datasets.nr", "NRModelInputs"):
@@ -237,9 +240,7 @@ def audit_model_input_payload(value: Any) -> Any:
         grid_shape = _validated_array(
             value.received_grid, name="received_grid", value_kind="complex", ndim=5
         )
-        channel_shape = _validated_array(
-            value.h_hat, name="h_hat", value_kind="complex", ndim=7
-        )
+        channel_shape = _validated_array(value.h_hat, name="h_hat", value_kind="complex", ndim=7)
         error_shape = _validated_array(
             value.error_variance,
             name="error_variance",

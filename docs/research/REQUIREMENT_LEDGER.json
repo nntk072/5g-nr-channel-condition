@@ -10470,23 +10470,28 @@
       ],
       "requirement": "Complete model-input leakage audit across every dataset adapter, feature transform, experiment runner, training path, and inference artifact.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Partial input-boundary implementation only; the all-route leakage audit remains open.",
+        "authority_basis": "Audited against the G7 model-input leakage audit backlog requirement."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "datasets/model_input_audit.py",
+          "tests/test_datasets/test_model_input_audit.py"
+        ],
+        "basis": "Registered real scalar inputs now normalize through float and fail with ValueError on overflow; this closes one parser boundary only."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_model_input_audit.py (7 passed); Ruff check/format and git diff --check passed.",
+        "commit": "Working tree based on 0682964; focused verification run 2026-11-11."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "This scalar boundary test does not complete feature-transform, experiment, training, or inference-artifact leakage review."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
