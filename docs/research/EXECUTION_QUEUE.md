@@ -264,7 +264,12 @@ independence, scientific support adequacy, site/array eligibility, and all
 later model/evaluation routes remain open. `PKG09-009` now has a grouped
 conformal/bootstrap interface that names physical episode/site/acquisition
 units when declared and always reports physical independence as unverified;
-33 focused tests pass. Continue source audit for `PKG09-004`–`008`,
+33 focused tests pass. `PKG09-004`–`006` have train-only prior, descriptive
+coverage/population, and validation-threshold software contracts, each still
+partial at its external/scientific boundaries. `PKG09-007` remains partial for
+physical classic estimators; `PKG09-008` is software-complete as a
+nondeployment oracle-leak control. Their focused slices pass 20/54 and 9/34
+selected tests respectively. Continue with `E01.PKG10`,
 then `E01.PKG10`, `E01.DS.GATES`, `E01.RS.PHASES`, `E01.RS.APPENDIX_E`, and
 `E01.CROSSWALK`.
 Each package batch is the fixed set of `PKGnn-*` IDs in the ledger and closes

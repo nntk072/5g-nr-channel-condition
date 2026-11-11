@@ -11767,30 +11767,44 @@
       ],
       "requirement": "Separate natural and enriched stress priors; make calibration prior-aware and train-only. **Partial:** the legacy common experiment runner accepts a strict natural-target prior declaration with a caller-supplied evidence digest, fits group-balanced Platt calibration and source-prior estimation only on a separate calibration partition, then applies the frozen transforms to validation/test. Signed split locks' reserved calibration rows are honored; unlocked pilot runs carve a deterministic group-disjoint subset from training. Raw/calibrated/adjusted predictions, thresholds, split indices, and model-sidecar provenance are retained. See `docs/research/PROBABILITY_PRIOR_POLICY.md`. The workflow assumes label shift and does not verify target-prior evidence or physical group independence; other model routes, external prior evidence review, sealed-test controls, and scientific calibration remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Natural deployment prior and enriched stress prior are separated. Prior specification is strict and bound by evidence digest; calibration/source-prior estimation uses a separate calibration partition with group weighting and leaves validation/test untouched.",
+        "authority_basis": "Implementation backlog PKG09-004 defines the model evaluation/prior/control work item."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "experiments/runner.py",
+          "evaluation/prior_shift.py",
+          "evaluation/probability_calibration.py",
+          "evaluation/schema/prior-shift.v1.schema.json",
+          "evaluation/schema/prior-shift-adjustment.v1.schema.json",
+          "docs/research/PROBABILITY_PRIOR_POLICY.md",
+          "tests/test_evaluation/test_prior_shift.py"
+        ],
+        "basis": "The runner validates the natural-target prior declaration, honors signed reserved calibration rows or makes deterministic group-disjoint pilot calibration rows, fits Platt/source priors on calibration only, and applies frozen adjustments to validation/test. Artifacts retain split and prior reports. The workflow assumes label shift; target-prior evidence authenticity, other model routes, and calibrated scientific validity remain open."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_evaluation/test_prior_shift.py tests/test_evaluation/test_low_confidence.py tests/test_evaluation/test_population_audit.py tests/test_scripts/test_audit_channel_population.py tests/test_experiments/test_runner.py -k 'prior_shift or low_confidence or population or threshold_selection' (20 passed, 34 deselected).",
+        "commit": "Focused local verification on 2026-11-11; scientific qualification remains separate."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Caller-supplied target-prior evidence is not independently verified.",
+          "Physical group independence, sealed-test controls, other model routes, and scientific calibration evidence remain open."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Caller-supplied target-prior evidence is not independently verified.",
+        "Physical group independence, sealed-test controls, other model routes, and scientific calibration evidence remain open."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Natural deployment prior and enriched stress prior are separated. Prior specification is strict and bound by evidence digest; calibration/source-prior estimation uses a separate calibration partition with group weighting and leaves validation/test untouched.",
+        "pass_rule": "Declared software behavior and focused regressions pass; caller-provided population/prior/group evidence and scientific acceptance are not upgraded by this status.",
+        "next_task": "Continue PKG09 and E01.PKG10 implementation and reconcile dependency gates; obtain scientific and external evidence before qualification."
       },
       "plan_mark": "not_checklist"
     },
@@ -11804,30 +11818,46 @@
       ],
       "requirement": "Add selection/missingness/low-confidence audits and held-out site/material/antenna/external-domain eligibility. **Partial:** the legacy runner can apply a config-bound low-confidence margin to test probabilities relative to the validation-frozen operating threshold, retaining overall/source-family/domain record and caller-supplied group counts plus the exact row mask. The criterion is explicitly descriptive coverage, does not use test labels for threshold selection, and does not estimate error risk. An expected-population roster/auditor now accounts separately for included, excluded, rejected, no-path, and empty outcomes, catches missing/duplicate/unrostered rows and identity drift, binds input digests, and has a non-overwriting CLI; see `docs/research/EXPECTED_POPULATION_AUDIT.md`. Five direct audit tests and two workflow tests pass. This verifies consistency with a caller-declared roster, not population completeness or disposition truth. Held-out site/material/antenna eligibility still lacks authoritative identities and acceptance rules.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Descriptive low-confidence coverage and expected-population roster consistency only. The test labels do not select the validation-frozen threshold; roster agreement does not prove population completeness or site/material/antenna eligibility.",
+        "authority_basis": "Implementation backlog PKG09-005 defines the model evaluation/prior/control work item."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "evaluation/low_confidence.py",
+          "evaluation/population_audit.py",
+          "scripts/audit_channel_population.py",
+          "evaluation/schema/low-confidence-audit.v1.schema.json",
+          "evaluation/schema/expected-population-audit.v1.schema.json",
+          "datasets/schema/expected-population-roster.v1.schema.json",
+          "tests/test_evaluation/test_low_confidence.py",
+          "tests/test_evaluation/test_population_audit.py",
+          "tests/test_scripts/test_audit_channel_population.py"
+        ],
+        "basis": "Canonical runner applies a config-bound margin relative to validation-frozen threshold and retains masks/strata/group counts. Population audit accounts for included, excluded, rejected, no-path, and empty outcomes, catches missing/duplicate/unrostered rows and identity drift, binds inputs, and publishes non-overwriting CLI reports. Focused tests cover both APIs and workflow. It does not estimate error risk or prove roster truth."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_evaluation/test_prior_shift.py tests/test_evaluation/test_low_confidence.py tests/test_evaluation/test_population_audit.py tests/test_scripts/test_audit_channel_population.py tests/test_experiments/test_runner.py -k 'prior_shift or low_confidence or population or threshold_selection' (20 passed, 34 deselected).",
+        "commit": "Focused local verification on 2026-11-11; scientific qualification remains separate."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Authoritative expected-population completeness and outcome dispositions are not provided.",
+          "Held-out site/material/antenna/external-domain identities and acceptance rules remain undefined."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Authoritative expected-population completeness and outcome dispositions are not provided.",
+        "Held-out site/material/antenna/external-domain identities and acceptance rules remain undefined."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Descriptive low-confidence coverage and expected-population roster consistency only. The test labels do not select the validation-frozen threshold; roster agreement does not prove population completeness or site/material/antenna eligibility.",
+        "pass_rule": "Declared software behavior and focused regressions pass; caller-provided population/prior/group evidence and scientific acceptance are not upgraded by this status.",
+        "next_task": "Continue PKG09 and E01.PKG10 implementation and reconcile dependency gates; obtain scientific and external evidence before qualification."
       },
       "plan_mark": "not_checklist"
     },
@@ -11841,30 +11871,39 @@
       ],
       "requirement": "Implement train-only normalization/calibration enforcement, sealed-test protections, and preregistered threshold-selection records. **Partial:** the legacy experiment runner hashes the Youden-J-on-validation threshold policy into its pre-run config, records the exact validation row/group/label/score digest for each selected threshold, and exposes a verifier that recomputes the record. A dependency-light replay/tamper test and Ruff check pass. This does not authorize sealed-test release, implement trained probability calibration, or bind an independent preregistration signature.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Validation-only threshold policy is hashed before execution and row/group/label/score digest is replayable. This does not authorize sealed-test release or an independently signed preregistration.",
+        "authority_basis": "Implementation backlog PKG09-006 defines the model evaluation/prior/control work item."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "experiments/runner.py",
+          "tests/test_experiments/test_runner.py"
+        ],
+        "basis": "The canonical runner records the frozen Youden-J-on-validation policy in pre-run configuration, stores exact validation support digest with each chosen threshold, and exposes recomputation/tamper verification. The focused selection/replay tests pass. No sealed-test release or independent preregistration signature is implied."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_evaluation/test_prior_shift.py tests/test_evaluation/test_low_confidence.py tests/test_evaluation/test_population_audit.py tests/test_scripts/test_audit_channel_population.py tests/test_experiments/test_runner.py -k 'prior_shift or low_confidence or population or threshold_selection' (20 passed, 34 deselected).",
+        "commit": "Focused local verification on 2026-11-11; scientific qualification remains separate."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Independent preregistration signature and sealed-test release controls remain absent.",
+          "Trained calibration is separate from threshold replay and scientific gate approval."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Independent preregistration signature and sealed-test release controls remain absent.",
+        "Trained calibration is separate from threshold replay and scientific gate approval."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Validation-only threshold policy is hashed before execution and row/group/label/score digest is replayable. This does not authorize sealed-test release or an independently signed preregistration.",
+        "pass_rule": "Declared software behavior and focused regressions pass; caller-provided population/prior/group evidence and scientific acceptance are not upgraded by this status.",
+        "next_task": "Continue PKG09 and E01.PKG10 implementation and reconcile dependency gates; obtain scientific and external evidence before qualification."
       },
       "plan_mark": "not_checklist"
     },
@@ -11879,36 +11918,40 @@
       "requirement": "Implement classic propagation/estimation baselines and falsification/leakage controls (metadata/source-only, power-only, shuffled, phase-randomized, permuted labels, and oracle leakage). **Partial:** `power_only`, `phase_randomized`, `label_permuted`, `row_shuffled`, `source_only`, `metadata_only`, `group_only`, `domain_only`, and `oracle_label_leak` are runnable in the canonical runner. Permutation controls preserve the common split and have replayable observation/target contracts. The metadata routes use training-only vocabularies and versioned replayable model-input contracts; `metadata_only`, `group_only`, and `domain_only` use training-only vocabularies with replayable v8/v11/v12 contracts and a 16,000,000-cell bound. Additional metadata controls and physical classic-estimator routes remain open.",
       "scope": {
         "status": "mandatory",
-        "support_envelope": "Partial canonical-runner implementation only; sparse physical multipath comparison and full classic-estimator family remain open.",
-        "authority_basis": "Audited against the G8.08 implementation-backlog requirement."
+        "support_envelope": "Declared canonical-runner falsification controls use the shared split and replayable inputs. Physical classic propagation/estimation baselines and additional metadata controls remain open.",
+        "authority_basis": "Implementation backlog PKG09-007 defines the model evaluation/prior/control work item."
       },
       "implementation": {
         "status": "partial",
         "evidence": [
           "experiments/runner.py",
-          "datasets/schema/model-input-artifact-contract.v11.schema.json",
-          "datasets/schema/model-input-artifact-contract.v12.schema.json",
-          "tests/test_experiments/test_runner.py"
+          "datasets/model_input_audit.py",
+          "tests/test_experiments/test_runner.py",
+          "tests/test_datasets/test_model_input_audit.py"
         ],
-        "basis": "Group-only and domain-only identifier controls now run through the shared split and logistic-regression path with training-only vocabularies, unknown-to-zero handling, bounded matrices, and v11/v12 artifact replay. Physical classic-estimator routes remain open."
+        "basis": "The canonical runner implements power-only, phase-randomized, permuted-label, shuffled-row, source-only, metadata-only, group-only, domain-only, and oracle-leak controls. Permutation controls bind exact observations/targets/splits; metadata controls use training-only bounded vocabularies and replayable contracts. Focused route tests pass; physical estimator baselines and additional controls are not implemented."
       },
       "verification": {
         "status": "pass",
-        "command": ".venv/bin/pytest --no-cov -q tests/test_experiments/test_runner.py -k \"single_metadata_vocabulary or isolated_metadata_controls\" (4 passed); Ruff check/format passed. Repository-wide coverage is not established by this focused selection.",
-        "commit": "Working tree based on 1495d2e; focused verification run 2026-11-11."
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_experiments/test_runner.py -k 'oracle_label_leak or power_only or phase_randomized or label_permuted or row_shuffled or metadata_only or source_only' (9 passed, 25 deselected).",
+        "commit": "Focused local verification on 2026-11-11; scientific qualification remains separate."
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": [
-          "Synthetic-debug execution verifies runner routing and artifact replay only; it provides no receiver or scientific qualification."
+          "Physical classic propagation/estimation baselines remain unimplemented.",
+          "Control-route breadth and independent physical group evidence remain incomplete."
         ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Physical classic propagation/estimation baselines remain unimplemented.",
+        "Control-route breadth and independent physical group evidence remain incomplete."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Declared canonical-runner falsification controls use the shared split and replayable inputs. Physical classic propagation/estimation baselines and additional metadata controls remain open.",
+        "pass_rule": "Declared software behavior and focused regressions pass; caller-provided population/prior/group evidence and scientific acceptance are not upgraded by this status.",
+        "next_task": "Continue PKG09 and E01.PKG10 implementation and reconcile dependency gates; obtain scientific and external evidence before qualification."
       },
       "plan_mark": "not_checklist"
     },
@@ -11922,30 +11965,42 @@
       ],
       "requirement": "Add a deliberately leaky `oracle_label_leak` falsification route to the canonical runner using the same split and scorer as ordinary methods. Persist its exact target-derived feature matrix under model-input contract/schema v9, declare `data.y` as the intentionally exposed source, mark it `deployment_eligible: false`, and require full target-roster replay during verification. The focused runner test plus existing source/metadata/label-permutation artifact-control tests pass (5 tests total); Ruff, schema parsing, and diff checks pass. This checks evaluator ceiling behavior only; it is never admissible model evidence, and physical classical estimators remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Explicit `oracle_label_leak` falsification route on the shared split/scorer with target-derived feature contract, data.y source declaration, nondeployment marker, and exact target-roster replay. Never admissible model evidence.",
+        "authority_basis": "Implementation backlog PKG09-008 defines the model evaluation/prior/control work item."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "experiments/runner.py",
+          "datasets/model_input_audit.py",
+          "datasets/schema/model-input-artifact-contract.v9.schema.json",
+          "tests/test_experiments/test_runner.py",
+          "tests/test_datasets/test_model_input_audit.py"
+        ],
+        "basis": "The route is intentionally target-derived and is marked deployment-ineligible. Its exact feature matrix and source field are bound in the v9 model-input artifact contract, and replay validates the complete target roster using the ordinary split/scorer. This verifies the evaluator ceiling only; it cannot support scientific model performance claims."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_experiments/test_runner.py -k 'oracle_label_leak or power_only or phase_randomized or label_permuted or row_shuffled or metadata_only or source_only' (9 passed, 25 deselected). Ruff/schema checks for the model-input route were previously run with its focused implementation.",
+        "commit": "Focused local verification on 2026-11-11; scientific qualification remains separate."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Physical classical estimator baselines and scientific model comparison remain open.",
+          "The leakage route is intentionally excluded from deployment and qualified evidence."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Physical classical estimator baselines and scientific model comparison remain open.",
+        "The leakage route is intentionally excluded from deployment and qualified evidence."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Explicit `oracle_label_leak` falsification route on the shared split/scorer with target-derived feature contract, data.y source declaration, nondeployment marker, and exact target-roster replay. Never admissible model evidence.",
+        "pass_rule": "Declared software behavior and focused regressions pass; caller-provided population/prior/group evidence and scientific acceptance are not upgraded by this status.",
+        "next_task": "Continue PKG09 and E01.PKG10 implementation and reconcile dependency gates; obtain scientific and external evidence before qualification."
       },
       "plan_mark": "not_checklist"
     },
