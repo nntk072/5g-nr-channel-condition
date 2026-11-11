@@ -91,6 +91,8 @@ class PairedFrequencyViews:
     parent_episode_id: str
     split_group_id: str
     scene_geometry_sha256: str
+    lower_bundle_episode_id: str
+    upper_bundle_episode_id: str
     lower_bundle_sha256: str
     upper_bundle_sha256: str
     lower_view: PhysicalChannelView
@@ -99,7 +101,14 @@ class PairedFrequencyViews:
     upper_provenance: UMCDRunProvenance
 
     def __post_init__(self) -> None:
-        for name in ("pair_id", "source_scene_id", "parent_episode_id", "split_group_id"):
+        for name in (
+            "pair_id",
+            "source_scene_id",
+            "parent_episode_id",
+            "split_group_id",
+            "lower_bundle_episode_id",
+            "upper_bundle_episode_id",
+        ):
             value = getattr(self, name)
             if not isinstance(value, str) or not value.strip() or value != value.strip():
                 raise ValueError(f"{name} must be a non-empty canonical string")
@@ -162,7 +171,16 @@ class PairedFrequencyViews:
             "parent_episode_id": self.parent_episode_id,
             "split_group_id": self.split_group_id,
             "scene_geometry_sha256": self.scene_geometry_sha256,
-            "bundle_sha256s": [self.lower_bundle_sha256, self.upper_bundle_sha256],
+            "bundle_refs": [
+                {
+                    "episode_id": self.lower_bundle_episode_id,
+                    "bundle_sha256": self.lower_bundle_sha256,
+                },
+                {
+                    "episode_id": self.upper_bundle_episode_id,
+                    "bundle_sha256": self.upper_bundle_sha256,
+                },
+            ],
             "views": [
                 {
                     "view_id": self.lower_view.view_id,
@@ -258,6 +276,8 @@ def pair_stored_frequency_bundles(
         parent_episode_id=parent_episode_id,
         split_group_id=lower.episode.split_group_id,
         scene_geometry_sha256=geometry_digest,
+        lower_bundle_episode_id=lower_bundle.episode_id,
+        upper_bundle_episode_id=upper_bundle.episode_id,
         lower_bundle_sha256=lower_bundle.bundle_sha256,
         upper_bundle_sha256=upper_bundle.bundle_sha256,
         lower_view=lower_view,
@@ -265,6 +285,69 @@ def pair_stored_frequency_bundles(
         upper_view=upper_view,
         upper_provenance=upper_provenance,
     )
+
+
+def audit_paired_frequency_split_binding(
+    pair: PairedFrequencyViews,
+    registry: object,
+) -> dict[str, object]:
+    """Check pair bundle children inherit its frozen network-scene parent.
+
+    The parent must carry the pair's scene-realization leakage relation, and
+    both stored episode children must be bound to that exact parent in the
+    immutable split registry.
+    """
+    from .split_policy import (
+        LeakageNamespace,
+        SplitParentType,
+        SplitPolicyRegistry,
+    )
+
+    if not isinstance(pair, PairedFrequencyViews):
+        raise TypeError("pair must be a PairedFrequencyViews value")
+    if not isinstance(registry, SplitPolicyRegistry):
+        raise TypeError("registry must be a SplitPolicyRegistry")
+    parent = registry.subjects.get(pair.parent_episode_id)
+    if parent is None:
+        raise ValueError("paired frequency parent is absent from the split registry")
+    if parent.parent_type is not SplitParentType.NETWORK_EPISODE:
+        raise ValueError("paired frequency parent must be a network episode")
+    if not any(
+        relation.namespace is LeakageNamespace.SCENE_REALIZATION
+        and relation.identity == pair.source_scene_id
+        for relation in parent.relations
+    ):
+        raise ValueError("split parent does not bind the paired source scene realization")
+    children = (
+        pair.lower_bundle_episode_id,
+        pair.upper_bundle_episode_id,
+    )
+    bindings = []
+    for child_id in children:
+        binding = registry.child_bindings.get(child_id)
+        if binding is None:
+            raise ValueError(
+                f"paired frequency episode is absent from the split registry: {child_id}"
+            )
+        if binding.parent_subject_id != pair.parent_episode_id:
+            raise ValueError(f"paired frequency child has a different frozen parent: {child_id}")
+        bindings.append(binding)
+    split_ids = tuple(registry.split_for_child(child_id) for child_id in children)
+    if split_ids[0] != split_ids[1]:
+        raise ValueError("paired frequency views cross frozen split partitions")
+    core: dict[str, object] = {
+        "schema": "umcd.paired_frequency_split_binding_audit.v1",
+        "status": "PASS_INPUT_SCOPED",
+        "pair_sha256": pair.to_dict()["pair_sha256"],
+        "registry_sha256": registry.to_dict()["registry_sha256"],
+        "parent_subject_id": pair.parent_episode_id,
+        "source_scene_id": pair.source_scene_id,
+        "child_bindings": [
+            {"child_id": binding.child_id, **binding.to_dict(), "split": split_id}
+            for binding, split_id in zip(bindings, split_ids, strict=True)
+        ],
+    }
+    return {**core, "audit_sha256": _canonical_digest(core)}
 
 
 @dataclass(frozen=True, slots=True)
@@ -344,10 +427,17 @@ def read_paired_frequency_manifest(
         != payload
     ):
         raise ValueError("paired frequency manifest is not canonically encoded")
-    if document.get("bundle_sha256s") != [
-        getattr(lower_bundle, "bundle_sha256", None),
-        getattr(upper_bundle, "bundle_sha256", None),
-    ]:
+    expected_bundle_refs = [
+        {
+            "episode_id": getattr(lower_bundle, "episode_id", None),
+            "bundle_sha256": getattr(lower_bundle, "bundle_sha256", None),
+        },
+        {
+            "episode_id": getattr(upper_bundle, "episode_id", None),
+            "bundle_sha256": getattr(upper_bundle, "bundle_sha256", None),
+        },
+    ]
+    if document.get("bundle_refs") != expected_bundle_refs:
         raise ValueError("paired frequency manifest bundle hashes differ from supplied references")
     views = document.get("views")
     if not isinstance(views, list) or len(views) != 2:

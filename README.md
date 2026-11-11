@@ -127,6 +127,10 @@ manifest. Scene and parent IDs remain explicit caller-supplied lineage claims.
 `write_paired_frequency_manifest` publishes the manifest immutably by content
 hash. `read_paired_frequency_manifest` verifies its digest and replays both
 source bundles before returning the pair.
+`audit_paired_frequency_split_binding` checks that both bundle episode IDs are
+registered children of the declared network-scene parent and resolve to the
+same partition; its result is input-scoped and does not verify registry
+signature custody.
 
 `integrations.sionna.build_paired_frequency_rt_requests` prepares two
 band-specific RT trajectory requests with the same route, seed, scene geometry,

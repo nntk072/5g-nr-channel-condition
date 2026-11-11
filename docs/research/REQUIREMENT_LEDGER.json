@@ -9727,7 +9727,7 @@
       "requirement": "Complete paired frequency-view solves with band/material-specific propagation; do not extrapolate measured magnitude-only data into complex CSI/ToA truth.",
       "scope": {
         "status": "mandatory",
-        "support_envelope": "A typed manifest pairing two complex PhysicalChannelViews from distinct band-specific solves, plus a non-executing request planner that prepares independently authorizable same-route/carrier/material RT requests and a resolver that binds exact stored episode-bundle hashes. Each carrier is bound to its run provenance and both runs are bound to the same scene geometry/assets and source/split parent. The contract does not convert magnitude-only measurements to complex views; no cross-band phase coherence is asserted.",
+        "support_envelope": "A typed manifest pairing two complex PhysicalChannelViews from distinct band-specific solves, plus a non-executing request planner that prepares independently authorizable same-route/carrier/material RT requests, a resolver that binds exact stored episode-bundle hashes, and an input-scoped audit against frozen split child bindings. Each carrier is bound to its run provenance and both runs are bound to the same scene geometry/assets and source/split parent. The contract does not convert magnitude-only measurements to complex views; no cross-band phase coherence is asserted.",
         "authority_basis": "The backlog requires paired frequency-view solves with band/material-specific propagation and explicitly prohibits promoting magnitude-only measurements into complex CSI/ToA truth."
       },
       "implementation": {
@@ -9741,15 +9741,16 @@
           "integrations/sionna/rt_trajectory.py",
           "datasets/schema/umcd-paired-frequency-views.v1.schema.json",
           "datasets/schema/paired-frequency-rt-requests.v1.schema.json",
+          "datasets/schema/paired-frequency-split-binding-audit.v1.schema.json",
           "tests/test_integrations/test_rt_trajectory_contract.py",
           "tests/test_datasets/test_frequency_pair.py"
         ],
-        "basis": "PairedFrequencyViews accepts only two typed complex channel views with distinct carriers, matching link/time/ports and delay/power contracts, carrier-bound oracle-channel provenance declaring an RT source family, matching scene geometry and source asset digests, and explicit source-scene/parent/split identifiers. Its manifest retains exact hashes for both episode bundles and views plus per-band material, solver and run-provenance digests and does not assert phase coherence. pair_stored_frequency_bundles resolves and content-hash-checks both references, requires one split group, and selects unique carrier-matched channel provenance. Immutable pair manifest publication/read replays source bundles and rejects content or bundle-reference changes. build_paired_frequency_rt_requests prepares two requests with a common route/seed/scene geometry/assets and independent carrier/material manifests and a content hash but does not execute either request; each retains the D1 authorization gate. Producer family/source IDs remain claims. Split-registry binding, automatic source identity proof, and scientific qualification remain open."
+        "basis": "PairedFrequencyViews accepts only two typed complex channel views with distinct carriers, matching link/time/ports and delay/power contracts, carrier-bound oracle-channel provenance declaring an RT source family, matching scene geometry and source asset digests, and explicit source-scene/parent/split identifiers. Its manifest retains exact episode IDs and hashes for both bundles and content hashes for views plus per-band material, solver and run-provenance digests; it does not assert phase coherence. pair_stored_frequency_bundles resolves and content-hash-checks both references, requires one split group, and selects unique carrier-matched channel provenance. Immutable pair manifest publication/read replays source bundles and rejects content or bundle-reference changes. audit_paired_frequency_split_binding checks both bundle episode children map to the declared network-scene parent with the declared scene-realization relation and a shared assignment in the supplied registry; this is input-scoped and does not establish signature custody or complete release roster coverage. build_paired_frequency_rt_requests prepares two requests with a common route/seed/scene geometry/assets and independent carrier/material manifests and a content hash but does not execute either request; each retains the D1 authorization gate. Producer family/source IDs remain claims. Pair RT generation, signed release-registry integration, automatic source identity proof, and scientific qualification remain open."
       },
       "verification": {
         "status": "pass",
         "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_frequency_pair.py tests/test_integrations/test_rt_trajectory_contract.py",
-        "commit": "Working tree based on 68d60b1; 38 non-generating RT request-plan and paired-view/store contract checks passed."
+        "commit": "Working tree based on f9aad3d; 39 non-generating RT request-plan, pair-store, and split-binding checks passed."
       },
       "qualification": {
         "status": "not_qualified",

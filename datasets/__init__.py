@@ -27,6 +27,7 @@ from .episode_store import (
 from .frequency_pair import (
     PairedFrequencyViews,
     StoredPairedFrequencyManifest,
+    audit_paired_frequency_split_binding,
     pair_stored_frequency_bundles,
     read_paired_frequency_manifest,
     write_paired_frequency_manifest,
@@ -279,6 +280,7 @@ __all__ = [
     "PairedFrequencyViews",
     "pair_stored_frequency_bundles",
     "StoredPairedFrequencyManifest",
+    "audit_paired_frequency_split_binding",
     "read_paired_frequency_manifest",
     "write_paired_frequency_manifest",
     "NRStoredTrajectory",

@@ -207,13 +207,17 @@ per-view content hashes, separate material/solver/run provenance digests and no
 cross-band phase claim. `pair_stored_frequency_bundles` resolves and hash-checks
 both episode stores, requires a common split group, and records both bundle
 hashes. Immutable pair-manifest publication and read-time source replay are
-implemented, including altered-bundle and tampered-manifest rejection. Eight
-pair-contract checks pass. This does not generate paired solves;
+implemented, including altered-bundle and tampered-manifest rejection. Nine
+pair-contract checks pass. `audit_paired_frequency_split_binding` checks the
+two episode-child bindings, common network-scene parent, scene realization, and
+assigned partition against a supplied registry. This input-scoped audit does
+not verify signer custody or release roster completeness. This does not
+generate paired solves;
 `build_paired_frequency_rt_requests` now prepares shared-scene, same-route
-requests with independent band/material configs; a 38-test non-generating RT
+requests with independent band/material configs; a 39-test non-generating RT
 contract plus pair-contract slice passes. It does not execute solves. Pair
-solve execution, split-registry integration, and scientific qualification
-remain open.
+solve execution, signed release-registry/roster integration, and scientific
+qualification remain open.
 
 The frozen CDL-E four-element covariance miss is now linked to
 `M1.G4_CDL_E_FAILURE_DISPOSITION`. Its exact `Re(C[0,1])` discrepancy is

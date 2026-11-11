@@ -5,7 +5,7 @@
   "description": "Two complex channel views from independently provenance-bound band-specific propagation solves, referencing their exact content-addressed episode bundles and shared source scene/geometry. Does not assert cross-band phase coherence or measurement-derived complex truth.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema", "pair_id", "source_scene_id", "parent_episode_id", "split_group_id", "scene_geometry_sha256", "bundle_sha256s", "views", "complex_csi_source", "phase_coherence_claim", "pair_sha256"],
+  "required": ["schema", "pair_id", "source_scene_id", "parent_episode_id", "split_group_id", "scene_geometry_sha256", "bundle_refs", "views", "complex_csi_source", "phase_coherence_claim", "pair_sha256"],
   "properties": {
     "schema": {"const": "umcd.paired_frequency_views.v1"},
     "pair_id": {"type": "string", "minLength": 1},
@@ -13,7 +13,20 @@
     "parent_episode_id": {"type": "string", "minLength": 1},
     "split_group_id": {"type": "string", "minLength": 1},
     "scene_geometry_sha256": {"$ref": "#/$defs/sha256"},
-    "bundle_sha256s": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"$ref": "#/$defs/sha256"}},
+    "bundle_refs": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["episode_id", "bundle_sha256"],
+        "properties": {
+          "episode_id": {"type": "string", "minLength": 1},
+          "bundle_sha256": {"$ref": "#/$defs/sha256"}
+        }
+      }
+    },
     "views": {
       "type": "array",
       "minItems": 2,
