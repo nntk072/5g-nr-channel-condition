@@ -233,8 +233,8 @@ statuses. `PKG08-015` remains partial on trusted signer custody and authoritativ
 inventory; `PKG08-016` is software-complete while reviewer custody/evidence
 truth remain external. `PKG08-017` and the broader producer audit remain
 partial. The NR streaming, synthetic memory-scaling, and UMCD integrity slices
-pass 43 focused tests. A bounded synthetic RSS command now exercises the public
-NR write/read path; actual UMCD RSS, broader failure matrices, and corpus-scale
+pass 43 focused tests. Bounded synthetic RSS diagnostics now exercise public NR
+and UMCD write/read paths; scaling, broader failure matrices, and corpus-scale
 memory claims remain open. Continue with `PKG08-023`/`PKG08-024` source audit
 and remaining storage gaps, then `PKG08-025` through `PKG08-039`,
 then packages 09–10, `E01.DS.GATES`, `E01.RS.PHASES`, `E01.RS.APPENDIX_E`, and
