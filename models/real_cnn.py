@@ -73,6 +73,7 @@ class RealCNNPredictor:
         self.capacity = capacity
         self.threshold = threshold
         self.include_phase = include_phase
+        self.artifact_contract_status = "external_input_contract_required"
 
     def predict_proba(self, values: Any) -> np.ndarray:
         import torch
@@ -103,6 +104,7 @@ class RealCNNPredictor:
                 "state_dict": self.model.state_dict(),
                 "threshold": float(threshold),
                 "include_phase": bool(include_phase),
+                "artifact_contract_status": "external_input_contract_required",
             },
             str(path),
         )
@@ -119,7 +121,7 @@ def load_real_cnn(path: str | Path, *, device: str = "cpu") -> RealCNNPredictor:
     model = build_real_cnn(int(payload["input_channels"]), capacity).to(device)
     model.load_state_dict(payload["state_dict"])
     model.eval()
-    return RealCNNPredictor(
+    predictor = RealCNNPredictor(
         model,
         payload["mean"].detach().cpu().numpy(),
         payload["scale"].detach().cpu().numpy(),
@@ -128,3 +130,7 @@ def load_real_cnn(path: str | Path, *, device: str = "cpu") -> RealCNNPredictor:
         threshold=float(payload["threshold"]),
         include_phase=bool(payload["include_phase"]),
     )
+    predictor.artifact_contract_status = payload.get(
+        "artifact_contract_status", "legacy_external_contract_unrecorded"
+    )
+    return predictor

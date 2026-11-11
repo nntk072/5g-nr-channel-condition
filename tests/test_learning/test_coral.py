@@ -39,6 +39,7 @@ def test_coral_training_checkpoint_round_trip(tmp_path) -> None:
     assert training["train_domains"] == ["source-a", "source-b"]
     assert restored.threshold == pytest.approx(0.63)
     assert restored.include_phase is True
+    assert restored.artifact_contract_status == "external_input_contract_required"
     assert np.allclose(predictor.predict_proba(x_val), restored.predict_proba(x_val))
     assert np.allclose(restored.predict_proba(x_val).sum(axis=1), 1.0)
 

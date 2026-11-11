@@ -43,6 +43,7 @@ def test_real_cnn_training_checkpoint_round_trip(tmp_path) -> None:
     assert restored.threshold == pytest.approx(0.61)
     assert restored.capacity == "small"
     assert restored.include_phase is True
+    assert restored.artifact_contract_status == "external_input_contract_required"
     assert probability.shape == (len(y_validation), 2)
     assert np.isfinite(probability).all()
     assert np.allclose(predictor.predict_proba(x_validation), probability)

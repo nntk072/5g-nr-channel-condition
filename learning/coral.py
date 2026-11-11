@@ -26,6 +26,9 @@ def load_coral_checkpoint(path, device: str = "cpu"):
     class LoadedPredictor:
         threshold = float(payload["threshold"])
         include_phase = bool(payload["include_phase"])
+        artifact_contract_status = payload.get(
+            "artifact_contract_status", "legacy_external_contract_unrecorded"
+        )
 
         def predict_proba(self, x):
             value = torch.tensor(x, dtype=torch.float32, device=device)
@@ -131,6 +134,7 @@ def fit_coral_mlp(
                     "scale": torch.tensor(scaler.scale_, dtype=torch.float32),
                     "threshold": float(threshold),
                     "include_phase": bool(include_phase),
+                    "artifact_contract_status": "external_input_contract_required",
                 },
                 str(path),
             )

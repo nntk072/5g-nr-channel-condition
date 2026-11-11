@@ -93,6 +93,7 @@ class ComplexCNNPredictor:
         self.device = device
         self.capacity = capacity
         self.threshold = threshold
+        self.artifact_contract_status = "external_input_contract_required"
 
     def predict_proba(self, values: Any) -> np.ndarray:
         import torch
@@ -121,6 +122,7 @@ class ComplexCNNPredictor:
                 "scale": torch.as_tensor(self.scale),
                 "state_dict": self.model.state_dict(),
                 "threshold": float(threshold),
+                "artifact_contract_status": "external_input_contract_required",
             },
             str(path),
         )
@@ -137,10 +139,14 @@ def load_complex_cnn(path: str | Path, *, device: str = "cpu") -> ComplexCNNPred
     model = build_complex_cnn(int(payload["input_channels"]), capacity).to(device)
     model.load_state_dict(payload["state_dict"])
     model.eval()
-    return ComplexCNNPredictor(
+    predictor = ComplexCNNPredictor(
         model,
         payload["scale"].detach().cpu().numpy(),
         device,
         capacity=capacity,
         threshold=float(payload["threshold"]),
     )
+    predictor.artifact_contract_status = payload.get(
+        "artifact_contract_status", "legacy_external_contract_unrecorded"
+    )
+    return predictor

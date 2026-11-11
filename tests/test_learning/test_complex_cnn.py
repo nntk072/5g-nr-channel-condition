@@ -61,6 +61,7 @@ def test_complex_cnn_training_and_checkpoint_round_trip(tmp_path) -> None:
     assert diagnostics["trainable_parameters"] > 0
     assert restored.threshold == pytest.approx(0.58)
     assert restored.capacity == "small"
+    assert restored.artifact_contract_status == "external_input_contract_required"
     assert probabilities.shape == (len(validation_labels), 2)
     assert np.isfinite(probabilities).all()
     assert np.allclose(predictor.predict_proba(validation), probabilities)
