@@ -133,8 +133,8 @@ contexts and caps expansion; the multiport estimator records rank and
 availability per subcarrier; and its optional per-RX/per-symbol variance
 profile drives weighted LS and is retained read-only. Seven selected
 regressions pass. These checks do not establish multi-cell RF behavior,
-synchronization, or receiver qualification. Continue with `PKG06-010` and then
-the remaining package rows in dependency order.
+synchronization, or receiver qualification. Continue with `PKG06-021` onward in
+dependency order.
 
 `PKG06-015` through `PKG06-020` are also source-audited within their bounded
 software scope. The retained-result path recomputes one-sided channel failure
@@ -142,8 +142,44 @@ bounds and CRC/block counts from Boolean outcomes, binds ordered receiver and
 transport-block rosters, caps requested work before receiver initialization,
 and validates PUSCH noise before float32 conversion. Forty-five selected
 software/input-contract checks pass. The synthetic report remains
-`not_qualified`; these controls do not satisfy G5 acceptance. `PKG06-010` and
-`PKG06-021` onward remain to be reconciled in the active package audit.
+`not_qualified`; these controls do not satisfy G5 acceptance.
+
+`PKG06-010` is source-audited as partial. Forty selected DCI/SRS measurement
+regressions pass for decoded-state DCI widths and caller-supplied positioning
+measurement/report arithmetic. Raw ASN.1/PER and CRC/polar, complete physical
+configuration/scheduled-cell binding, first-path and clock calibration, and
+synchronized receiver qualification remain open.
+
+`PKG06-021/022/023/024` are complete within decoded-state scheduling scope:
+the Hyper-SFN positioning gate, resource-set composition, UL-BWP feasibility,
+and frozen-roster multi-cell scheduling pass eight selected regressions.
+Raw RRC/PER interoperability and receiver qualification remain open.
+
+`PKG06-025` remains partial after an 18-test PBCH acquisition preflight slice:
+bounded blind acquisition/PBCH configuration exists, while general ASN.1/PER
+extension decoding and broad case/band/beam/RF receiver coverage remain open.
+`PKG06-026` closes its bounded PSS/SSS input/work boundary after nine selected
+checks; this does not qualify detection performance. `PKG06-027` remains a
+partial frequency-domain static-channel PRS receiver baseline. `PKG06-028/029/030`
+close their bounded PRS sequence/mapping, DL-RSTD arithmetic, and decoded
+occasion-resolution software contracts; the 55-test PRS module passes. None
+of these results qualifies a raw-sample positioning receiver.
+
+`PKG06-031/032/033/034/036` source-audit as complete within the declared
+synthetic software/inference contracts; the 65 G5 acceptance, audit, and curve
+checks plus two paired cluster-comparator checks pass. `PKG06-035` remains
+partial: broader receiver configurations, independent signer roles, trusted
+timestamp custody, source-matched replay, and qualification are open. These
+curves remain diagnostic; no G5 acceptance verdict has passed. All
+`PKG06-001` through `PKG06-036` now have source-level bounded dispositions, so
+`E01.PKG07` is active. `PKG07-001` remains partial after time-axis, stored
+alignment, and split-bound trajectory checks; multi-source synchronization and
+generated channel/pose coherence binding remain open. `PKG07-005` remains
+partial after mathematical direct-path ablation and immutable bundle replay
+checks; scene-based physical interventions and scientific effect admission
+remain open. Fifteen time-axis/counterfactual checks and nineteen persisted
+ablation/trajectory checks pass. `PKG07-002/003/004` still need source audit
+and concrete implementation scope.
 
 The frozen CDL-E four-element covariance miss is now linked to
 `M1.G4_CDL_E_FAILURE_DISPOSITION`. Its exact `Re(C[0,1])` discrepancy is
@@ -153,7 +189,7 @@ does not resolve whether the one native miss reflects finite-sample variation
 or an oracle/implementation discrepancy. Keep the original result failed. The
 separate post-hoc 65,536-draw diagnostic cannot replace it.
 
-The next batch is `E01.PKG06`, then packages 07–10 in numeric order, followed by
+The next batch is `E01.PKG07`, then packages 08–10 in numeric order, followed by
 `E01.DS.GATES`, `E01.RS.PHASES`, `E01.RS.APPENDIX_E`, and `E01.CROSSWALK`.
 Each package batch is the fixed set of `PKGnn-*` IDs in the ledger and closes
 only after every row has inspected source/test integration, implementation

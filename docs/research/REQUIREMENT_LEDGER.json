@@ -1,6 +1,6 @@
 {
   "schema": "loslab.requirement-ledger.v1",
-  "status_note": "Traceability index covering all 182 backlog IDs, 104 numbered unified-plan criteria, and 30 dataset/research gate or phase records. Source audits are complete for PKG00-05. PKG05 rows 001/002/003/004/005/007/008/009/010/011/012/013/014/016/017/018/019/020/021/022/023/024/025 have bounded dispositions; 006/015/026 remain partial aggregate G4 scope. PKG06-001/002/005/007/008/009/011/012/013/014/015/016/017/018/019/020 are source-audited; focused slices pass (13/61/3/7/7/45 tests for the respective batches); remaining package/gate audits stay open. Checked plan boxes are preserved as source marks, never treated as implementation or scientific qualification. Feature-map heuristics do not determine ledger status.",
+  "status_note": "Traceability index covering all 182 backlog IDs, 104 numbered unified-plan criteria, and 30 dataset/research gate or phase records. Source audits are complete for PKG00-05. PKG05 rows 001/002/003/004/005/007/008/009/010/011/012/013/014/016/017/018/019/020/021/022/023/024/025 have bounded dispositions; 006/015/026 remain partial aggregate G4 scope. PKG06 rows 001–036 are source-audited with bounded complete/partial dispositions; PKG07-001/005 are source-audited partials with focused regression slices;  remaining package/gate audits stay open. Checked plan boxes are preserved as source marks, never treated as implementation or scientific qualification. Feature-map heuristics do not determine ledger status.",
   "source_checkpoint": "42e9d08 baseline; E00 37cc827; queue fb49282; PKG01 12eebb5; criterion ledger 9681d19; PKG03 f3e5faf; PKG04 G3 audit ba34d1f",
   "requirements": [
     {
@@ -8433,30 +8433,37 @@
       ],
       "requirement": "Finish remaining G5.14 SRS gaps: connect the current DCI 0_3 decoded-state width resolver to real ASN.1/RRC decoding and physical configuration; complete positioning measurement/report semantics; full scheduled-cell combination, timing, and carrier feasibility; and receiver qualification under multiport, interference, synchronization, and noise conditions. The resolver derives all 31 widths in its ordered DCI 0_3 layout from explicit decoded inputs or fixed format rules and does not accept caller-supplied field-width overrides. Its 291-test focused software slice passes; CRC/polar and ASN.1/PER remain open. **Partial positioning reports:** UL SRS-RSRP power averaging, branch reporting, reference-point mapping, zero-power outcome, and versioned schema are implemented against TS 38.215 V19.2.0 clause 5.2.5. `measure_ul_srs_rsrp_from_grid` connects configured multiport SRS RE masks to calibrated complex receive grids; `measure_ul_srs_rsrp_from_noisy_network_grid` additionally binds a composed multi-transmitter grid to its coherent per-TX contributions and independent receiver-noise grid, then reports desired, coherent-interference, noise, and simulated-SINR components by receiver branch. Both report digests and remain `OBSERVED_NOT_QUALIFIED`. UL-RTOA and gNB Rx-Tx timing formulas/report contracts implement clauses 5.2.2–5.2.3 over caller-supplied timing values, without first-path detection or clock calibration. `report_ul_aoa` binds supplied angle estimates, GCS/LCS reference conventions, and channel/estimator/calibration digests under a strict schema; it does not estimate or qualify receiver AoA. `report_ul_srs_rsrpp` binds caller-supplied linear-averaged path responses, per-occasion detected-path masks/delays, first-path ordering, calibration, estimator/detector digests, and branch-resolved watt/dBm output under a strict schema; all 29 focused SRS measurement tests pass, but the report does not estimate/detect paths or qualify a receiver. `report_ul_srs_tdct_tdcp` adds a coupled report for caller-provided linear-averaged time-domain channel estimates and first-path/time-grid inputs; it derives the `2^k Tc` candidate grid, selects the highest-power times, binds SFN/subframe reference arithmetic, and reports TDCP on the branch selected for the strongest time. Its strict schema and focused cases pass within the 33-test SRS module, but it does not perform physical configuration/PER decoding, channel estimation, first-path detection, or receiver qualification. UL SRS-TDCT/TDCP report arithmetic now exists; raw ASN.1/PER, synchronized receiver qualification, and physical configuration remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Decoded-state DCI width derivation and caller-supplied SRS positioning measurement/report arithmetic only; raw ASN.1/PER configuration and receiver qualification are outside the implemented envelope.",
+        "authority_basis": "The backlog requires a complete G5.14 path; implemented report arithmetic and decoded-state width resolution are distinct from raw configuration decoding and receiver evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "integrations/sionna/srs.py",
+          "integrations/sionna/srs_measurements.py",
+          "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "tests/test_integrations/test_g5_srs_measurements.py"
+        ],
+        "basis": "The 31-field decoded-state DCI 0_3 resolver, bounded scheduling/report arithmetic, multiport SRS grid measurement, and UL-RSRP/RTOA/Rx-Tx/AoA/RS-RSRPP/TDCT/TDCP report contracts exist. No raw ASN.1/PER or CRC/polar path connects physical RRC configuration to these APIs; first-path detection, clock calibration, synchronized multiport receiver evidence, and receiver qualification remain incomplete."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_integrations/test_g5_srs_measurements.py tests/test_integrations/test_g5_srs_resource_mapping.py::test_dci_0_3_layout_parser_decodes_complete_field_roster_msb_first tests/test_integrations/test_g5_srs_resource_mapping.py::test_dci_0_3_known_widths_derive_from_decoded_cell_bwp_and_srs_configuration tests/test_integrations/test_g5_srs_resource_mapping.py::test_dci_0_3_field_widths_derive_absent_frequency_hopping_and_single_tdra_entry tests/test_integrations/test_g5_srs_resource_mapping.py::test_dci_0_3_layout_selector_rejects_malformed_widths_and_padding tests/test_integrations/test_g5_srs_resource_mapping.py::test_dci_0_3_srs_selector_offset_comes_from_full_ordered_field_width_roster",
+        "commit": "Working tree based on 45942ba; 40 focused DCI/SRS measurement regressions passed."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Reports bind supplied/configured estimates and arithmetic only; synchronized RF receiver behavior, raw configuration decoding, and G5 acceptance remain open."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Complete supported G5.14 raw ASN.1/PER and physical-configuration admission, scheduled-cell/timing/carrier composition, and receiver-side multiport positioning semantics.",
+        "pass_rule": "Require independently specified config fixtures and end-to-end synchronized receiver evidence; report arithmetic and decoded-state width tests alone do not close this requirement.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -8894,30 +8901,35 @@
       ],
       "requirement": "Apply the TS 38.211 periodic positioning-SRS Hyper-SFN parity rule for configured periods at or above `2^mu * 10240` slots, and connect it to per-symbol frequency-allocation resolution. The caller supplies already-decoded numerology, Hyper-SFN number, and index; raw RRC parsing and full positioning scheduling remain open. Regression definitions are authored; validation is deferred.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Decoded-state SRS scheduling software for the explicitly supplied timing, roster, and UL-BWP inputs; no receiver qualification claim.",
+        "authority_basis": "The backlog defines these standard timing and schedule composition rules as required software behavior."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/srs.py",
+          "tests/test_integrations/test_g5_srs_resource_mapping.py"
+        ],
+        "basis": "Positioning SRS periods at or above the Hyper-SFN threshold apply the decoded Hyper-SFN parity gate before slot activation, including off-occasion input validation. The focused long-period regressions pass."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_integrations/test_g5_srs_resource_mapping.py::test_positioning_srs_long_period_applies_hyper_sfn_gate tests/test_integrations/test_g5_srs_resource_mapping.py::test_positioning_srs_hyper_sfn_configuration_is_validated_off_occasion tests/test_integrations/test_g5_srs_resource_mapping.py::test_periodic_srs_resource_set_composes_resources_with_individual_occasions tests/test_integrations/test_g5_srs_resource_mapping.py::test_periodic_srs_resource_set_is_inactive_when_no_resource_has_an_occasion tests/test_integrations/test_g5_srs_resource_mapping.py::test_periodic_srs_resource_set_rejects_duplicate_ids_and_unknown_fields tests/test_integrations/test_g5_srs_resource_mapping.py::test_periodic_srs_resource_set_checks_selected_bwp_frequency_bounds tests/test_integrations/test_g5_srs_resource_mapping.py::test_multicell_periodic_srs_schedule_preserves_cell_order_and_active_bwp tests/test_integrations/test_g5_srs_resource_mapping.py::test_multicell_periodic_srs_requires_exact_cell_rosters",
+        "commit": "Working tree based on 45942ba; eight selected schedule regressions passed."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Decoded-state scheduling regressions do not establish raw RRC/PER interoperability, RF behavior, or receiver qualification."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Positioning SRS periods at or above the Hyper-SFN threshold apply the decoded Hyper-SFN parity gate before slot activation, including off-occasion input validation.",
+        "pass_rule": "Focused timing/schedule regressions pass within the stated decoded-input envelope; do not infer receiver qualification.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -8931,30 +8943,35 @@
       ],
       "requirement": "Compose decoded periodic/semi-persistent SRS resources into one resource-set schedule, allowing each resource's periodicity/offset and positioning timing to override shared defaults. Return the active resource subset for the requested slot; resource-level occasions can legitimately differ within a set. Regression definitions cover mixed active/inactive resources, wholly inactive sets, duplicate IDs, and unsupported fields. This accepts already-decoded configuration and does not add ASN.1/RRC decoding, BWP feasibility, inter-cell collision conclusions, or receiver qualification; consolidated validation remains deferred.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Decoded-state SRS scheduling software for the explicitly supplied timing, roster, and UL-BWP inputs; no receiver qualification claim.",
+        "authority_basis": "The backlog defines these standard timing and schedule composition rules as required software behavior."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/srs.py",
+          "tests/test_integrations/test_g5_srs_resource_mapping.py"
+        ],
+        "basis": "Periodic/semi-persistent SRS resources compose into an active resource-set schedule with per-resource timing overrides and explicit inactive-set outcomes; duplicate identities and unknown fields fail closed. The selected composition regressions pass."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_integrations/test_g5_srs_resource_mapping.py::test_positioning_srs_long_period_applies_hyper_sfn_gate tests/test_integrations/test_g5_srs_resource_mapping.py::test_positioning_srs_hyper_sfn_configuration_is_validated_off_occasion tests/test_integrations/test_g5_srs_resource_mapping.py::test_periodic_srs_resource_set_composes_resources_with_individual_occasions tests/test_integrations/test_g5_srs_resource_mapping.py::test_periodic_srs_resource_set_is_inactive_when_no_resource_has_an_occasion tests/test_integrations/test_g5_srs_resource_mapping.py::test_periodic_srs_resource_set_rejects_duplicate_ids_and_unknown_fields tests/test_integrations/test_g5_srs_resource_mapping.py::test_periodic_srs_resource_set_checks_selected_bwp_frequency_bounds tests/test_integrations/test_g5_srs_resource_mapping.py::test_multicell_periodic_srs_schedule_preserves_cell_order_and_active_bwp tests/test_integrations/test_g5_srs_resource_mapping.py::test_multicell_periodic_srs_requires_exact_cell_rosters",
+        "commit": "Working tree based on 45942ba; eight selected schedule regressions passed."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Decoded-state scheduling regressions do not establish raw RRC/PER interoperability, RF behavior, or receiver qualification."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Periodic/semi-persistent SRS resources compose into an active resource-set schedule with per-resource timing overrides and explicit inactive-set outcomes; duplicate identities and unknown fields fail closed.",
+        "pass_rule": "Focused timing/schedule regressions pass within the stated decoded-input envelope; do not infer receiver qualification.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -8968,30 +8985,35 @@
       ],
       "requirement": "Extend periodic/semi-persistent SRS composition through selected-UL-BWP frequency feasibility. The exported BWP-aware API checks every active resource-symbol allocation against caller-provided absolute subcarrier bounds and preserves the selected cell/BWP identity. Regression definitions cover valid and out-of-BWP schedules. This relies on caller-resolved active-BWP state and does not decode DCI/RRC, assess inter-cell RF interference, or qualify the receiver; validation remains deferred.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Decoded-state SRS scheduling software for the explicitly supplied timing, roster, and UL-BWP inputs; no receiver qualification claim.",
+        "authority_basis": "The backlog defines these standard timing and schedule composition rules as required software behavior."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/srs.py",
+          "tests/test_integrations/test_g5_srs_resource_mapping.py"
+        ],
+        "basis": "The BWP-aware resource-set schedule validates every active symbol allocation against the selected UL-BWP absolute subcarrier bounds and retains BWP identity/bounds in its typed result. The selected boundary regression passes."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_integrations/test_g5_srs_resource_mapping.py::test_positioning_srs_long_period_applies_hyper_sfn_gate tests/test_integrations/test_g5_srs_resource_mapping.py::test_positioning_srs_hyper_sfn_configuration_is_validated_off_occasion tests/test_integrations/test_g5_srs_resource_mapping.py::test_periodic_srs_resource_set_composes_resources_with_individual_occasions tests/test_integrations/test_g5_srs_resource_mapping.py::test_periodic_srs_resource_set_is_inactive_when_no_resource_has_an_occasion tests/test_integrations/test_g5_srs_resource_mapping.py::test_periodic_srs_resource_set_rejects_duplicate_ids_and_unknown_fields tests/test_integrations/test_g5_srs_resource_mapping.py::test_periodic_srs_resource_set_checks_selected_bwp_frequency_bounds tests/test_integrations/test_g5_srs_resource_mapping.py::test_multicell_periodic_srs_schedule_preserves_cell_order_and_active_bwp tests/test_integrations/test_g5_srs_resource_mapping.py::test_multicell_periodic_srs_requires_exact_cell_rosters",
+        "commit": "Working tree based on 45942ba; eight selected schedule regressions passed."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Decoded-state scheduling regressions do not establish raw RRC/PER interoperability, RF behavior, or receiver qualification."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "The BWP-aware resource-set schedule validates every active symbol allocation against the selected UL-BWP absolute subcarrier bounds and retains BWP identity/bounds in its typed result.",
+        "pass_rule": "Focused timing/schedule regressions pass within the stated decoded-input envelope; do not infer receiver qualification.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -9005,30 +9027,35 @@
       ],
       "requirement": "Compose decoded periodic/semi-persistent SRS resource sets over a frozen multi-cell roster, with a per-cell absolute slot and active UL BWP, exact input-roster matching, per-resource timing overrides, BWP-bound checks, and explicit empty-occasion cell outputs. Regression definitions cover cell order, differing slot/BWP state, and roster mismatch. This is a scheduling/feasibility primitive; it does not prove cross-cell orthogonality or interference and is not receiver qualification. Validation remains deferred.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Decoded-state SRS scheduling software for the explicitly supplied timing, roster, and UL-BWP inputs; no receiver qualification claim.",
+        "authority_basis": "The backlog defines these standard timing and schedule composition rules as required software behavior."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/srs.py",
+          "tests/test_integrations/test_g5_srs_resource_mapping.py"
+        ],
+        "basis": "Multi-cell periodic SRS composition binds a frozen cell roster, each cell absolute slot and selected BWP, validates exact input rosters, and preserves declared cell order in results. This is decoded-state schedule composition, not RRC decoding or receiver qualification."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_integrations/test_g5_srs_resource_mapping.py::test_positioning_srs_long_period_applies_hyper_sfn_gate tests/test_integrations/test_g5_srs_resource_mapping.py::test_positioning_srs_hyper_sfn_configuration_is_validated_off_occasion tests/test_integrations/test_g5_srs_resource_mapping.py::test_periodic_srs_resource_set_composes_resources_with_individual_occasions tests/test_integrations/test_g5_srs_resource_mapping.py::test_periodic_srs_resource_set_is_inactive_when_no_resource_has_an_occasion tests/test_integrations/test_g5_srs_resource_mapping.py::test_periodic_srs_resource_set_rejects_duplicate_ids_and_unknown_fields tests/test_integrations/test_g5_srs_resource_mapping.py::test_periodic_srs_resource_set_checks_selected_bwp_frequency_bounds tests/test_integrations/test_g5_srs_resource_mapping.py::test_multicell_periodic_srs_schedule_preserves_cell_order_and_active_bwp tests/test_integrations/test_g5_srs_resource_mapping.py::test_multicell_periodic_srs_requires_exact_cell_rosters",
+        "commit": "Working tree based on 45942ba; eight selected schedule regressions passed."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Decoded-state scheduling regressions do not establish raw RRC/PER interoperability, RF behavior, or receiver qualification."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Multi-cell periodic SRS composition binds a frozen cell roster, each cell absolute slot and selected BWP, validates exact input rosters, and preserves declared cell order in results.",
+        "pass_rule": "Focused timing/schedule regressions pass within the stated decoded-input envelope; do not infer receiver qualification.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -9042,30 +9069,38 @@
       ],
       "requirement": "Finish SSB/PBCH generalization: general ASN.1/PER extension decoding, case/band/beam/candidate and frame integration, multiple candidates, broader channel/timing/CFO regimes, calibrated antenna/RF scaling, and robust receiver outcomes. Blind PBCH acquisition rejects Boolean/string/complex/non-finite/unrepresentable sample rates and preflights decoder device/list size before search. The Polar SCL list size is constrained to powers of two through 64 (default 8) before search, OFDM demodulation, or decoder construction; the `messageClassExtension` choice is preserved through payload generation/recovery as opaque 24-bit data, and recovery marks full SFN as unknown because those MIB bits are absent. Round-trip coverage spans candidate counts 4/8/10/20/64. Candidate search remains limited to declared DM-RS-visible hypotheses, and broad receiver qualification remains open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Current blind acquisition/SSB/PBCH software and bounded configured profiles only; general ASN.1/PER and broader RF/receiver envelope remain outside implementation.",
+        "authority_basis": "The backlog requires general SSB/PBCH behavior; existing work covers a bounded subset and does not close the wider requirement."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "integrations/sionna/nr_sync.py",
+          "integrations/sionna/pbch_ofdm_receiver.py",
+          "integrations/sionna/pbch_payload.py",
+          "integrations/sionna/pbch_bch.py",
+          "tests/test_integrations/test_pbch_acquisition_contract.py"
+        ],
+        "basis": "Blind PSS/SSS and PBCH support includes bounded search/configuration preflight, messageClassExtension preservation, and candidate/frame paths. General ASN.1/PER extensions, exhaustive band/case/beam/frame handling, calibrated RF scaling, and robust broad channel outcomes remain open."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_integrations/test_pbch_acquisition_contract.py",
+        "commit": "Working tree based on 45942ba; 18 focused PBCH/acquisition contract checks passed."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Acquisition preflight tests and bounded synthetic PBCH cases do not establish broad SSB/PBCH receiver qualification."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "General ASN.1/PER extension decoding and supported case/band/beam/candidate/frame integration with broader channel/timing/CFO and calibrated antenna/RF evidence.",
+        "pass_rule": "Complete the declared supported RRC/PER and blind receiver envelope with source-bound fixtures and independent acceptance; preflight checks alone do not close this item.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -9079,30 +9114,35 @@
       ],
       "requirement": "Reject Boolean and string aliases in PSS/SSS acquisition's physical sample rate, detection thresholds, CFO grid, and fractional-timing grid before hypothesis search; reject real-valued arrays at the complex-IQ capture boundary rather than silently casting them. Cell acquisition now preflights a reported 16,000,000-cell ceiling over the coarse sample × receive-chain × NID2 × CFO × fractional-timing search plus receive-chain × 336 × 127 SSS identity work, before finite scanning or complex128 capture copies; callers can select a stricter limit. The NR-sync and PBCH-preflight modules pass focused tests with coverage disabled; Ruff, formatting, compilation, and whitespace checks pass. This closes workload/input boundaries only; acquisition remains configured-numerology and is not broadly qualified.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "PSS/SSS acquisition numeric and complex-IQ capture validation at the public input boundary.",
+        "authority_basis": "The backlog explicitly requires fail-closed physical sample-rate, threshold, CFO/timing-grid and complex capture validation before hypothesis work."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/nr_sync.py",
+          "tests/test_integrations/test_nr_sync.py"
+        ],
+        "basis": "Acquisition rejects Boolean/string physical numeric aliases, invalid fractional-timing hypotheses and real-valued capture arrays before search/casting; coarse search work is bounded before scanning or complex capture copies."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_integrations/test_nr_sync.py::test_pss_sss_acquisition_rejects_real_valued_capture_arrays tests/test_integrations/test_nr_sync.py::test_pss_acquisition_rejects_boolean_and_string_numeric_aliases tests/test_integrations/test_nr_sync.py::test_pss_search_rejects_invalid_fractional_timing_hypotheses",
+        "commit": "Working tree based on 45942ba; nine selected input-boundary regressions passed."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Input and workload bounds do not qualify acquisition detection or receiver performance."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Fail-closed PSS/SSS capture and hypothesis-grid admission with a bounded pre-search work estimate.",
+        "pass_rule": "Selected malformed alias, real-IQ, and timing-grid regressions pass before search; do not infer acquisition qualification.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -9116,30 +9156,35 @@
       ],
       "requirement": "Implement PRS only as a standards-defined signal and receiver with independently specified mapping and timing observables; no generic pilot substitution. **Partial receiver path:** `integrations.sionna.nr_prs` now resolves strongest-component delay and residual CFO jointly from known mapped PRS symbols and caller-supplied delay/CFO/time grids, with a pre-search work ceiling. Its resource mapper repeats TS 38.211 Table 7.4.1.7.3-1 comb offsets across the full resource length; 55 dependency-light tests cover all supported symbol/comb pairs and one synthetic joint recovery. This frequency-domain static-channel baseline models CFO only as a common inter-symbol phase (not intra-symbol ICI) and does not perform raw-sample synchronization, first-arrival ToA, ambiguity resolution, or receiver qualification. See `integrations/sionna/nr_prs.py` and `tests/test_integrations/test_nr_prs.py`.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Bounded standards-defined PRS mapping, scheduled-resource composition, delay/CFO profile, timing arithmetic, and decoded occasion resolution as described for this row.",
+        "authority_basis": "The backlog defines these bounded TS 38.211/38.214/38.215 behaviors; raw configuration parsing and receiver qualification are separate gates."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "integrations/sionna/nr_prs.py",
+          "tests/test_integrations/test_nr_prs.py"
+        ],
+        "basis": "The PRS receiver baseline jointly searches bounded delay/CFO hypotheses over known mapped PRS symbols and declares strongest-component semantics; the resource mapper uses the supported TS 38.211 comb/symbol mapping. CFO is only a common inter-symbol phase in this static frequency-domain model; raw-sample synchronization, first-arrival ToA, ambiguity resolution, intra-symbol ICI, and receiver qualification remain open."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_integrations/test_nr_prs.py",
+        "commit": "Working tree based on 45942ba; all 55 dependency-light PRS module checks passed."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "These deterministic mapping/profile/timing checks do not establish raw-sample PRS receiver, positioning measurement, or G5 qualification."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "The PRS receiver baseline jointly searches bounded delay/CFO hypotheses over known mapped PRS symbols and declares strongest-component semantics; the resource mapper uses the supported TS 38.",
+        "pass_rule": "The stated bounded software contract and module regressions pass; keep raw RRC/PER, synchronized receiver, and scientific qualification gates open.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -9153,30 +9198,35 @@
       ],
       "requirement": "Implement the TS 38.211 V19.2.0 downlink PRS Gold/QPSK sequence, supported symbol/comb pairs, per-symbol comb-offset mapping relative to caller-declared point A, and a receiver-observable matched-delay profile whose strongest-component semantics, delay-grid limitation, and comb-implied ambiguity period are explicit. Add bounded single-slot multi-resource composition with per-resource masks, physical grid superposition, explicit overlapping-RE diagnostics, and exact reserved-RE collision checks while retaining the coarse reserved-symbol check. Regression definitions are authored but unrun. Full RRC decoding, SSB collision inventory orchestration, standards-complete positioning measurements/reports, wider timing/CFO/multipath qualification, and end-to-end NR receiver qualification remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Bounded standards-defined PRS mapping, scheduled-resource composition, delay/CFO profile, timing arithmetic, and decoded occasion resolution as described for this row.",
+        "authority_basis": "The backlog defines these bounded TS 38.211/38.214/38.215 behaviors; raw configuration parsing and receiver qualification are separate gates."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/nr_prs.py",
+          "tests/test_integrations/test_nr_prs.py"
+        ],
+        "basis": "The implementation generates the V19.2.0 PRS Gold/QPSK sequence, supported symbol/comb mappings relative to caller-declared point A, bounded multi-resource composition, reserved-RE checks, and a matched-delay profile with explicit strongest-component and ambiguity limits."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_integrations/test_nr_prs.py",
+        "commit": "Working tree based on 45942ba; all 55 dependency-light PRS module checks passed."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "These deterministic mapping/profile/timing checks do not establish raw-sample PRS receiver, positioning measurement, or G5 qualification."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "The implementation generates the V19.",
+        "pass_rule": "The stated bounded software contract and module regressions pass; keep raw RRC/PER, synchronized receiver, and scientific qualification gates open.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -9190,30 +9240,35 @@
       ],
       "requirement": "Add the bounded NR DL-RSTD computation from already-estimated received subframe-start timestamps: select the unique nearest reference-TP time value, compute target-minus-reference, and bind the FR1/FR2 UE measurement reference point. Reject empty rosters, equal-distance ambiguity between distinct times, invalid IDs/times, and unsupported frequency ranges; repeated resource estimates of the same time remain equivalent. The API does not infer subframe starts from PRS samples, decode RRC reports, or claim measurement qualification; regression definitions are authored and validation remains deferred. Semantics follow ETSI TS 138 215 V19.4.0 clause 5.1.29.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Bounded standards-defined PRS mapping, scheduled-resource composition, delay/CFO profile, timing arithmetic, and decoded occasion resolution as described for this row.",
+        "authority_basis": "The backlog defines these bounded TS 38.211/38.214/38.215 behaviors; raw configuration parsing and receiver qualification are separate gates."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/nr_prs.py",
+          "tests/test_integrations/test_nr_prs.py"
+        ],
+        "basis": "DL-RSTD selects the unique nearest reference-TP subframe-start time, computes target-minus-reference, and binds the supported FR1/FR2 measurement reference point. It consumes caller-estimated timestamps and is report arithmetic only."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_integrations/test_nr_prs.py",
+        "commit": "Working tree based on 45942ba; all 55 dependency-light PRS module checks passed."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "These deterministic mapping/profile/timing checks do not establish raw-sample PRS receiver, positioning measurement, or G5 qualification."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "DL-RSTD selects the unique nearest reference-TP subframe-start time, computes target-minus-reference, and binds the supported FR1/FR2 measurement reference point.",
+        "pass_rule": "The stated bounded software contract and module regressions pass; keep raw RRC/PER, synchronized receiver, and scientific qualification gates open.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -9227,30 +9282,35 @@
       ],
       "requirement": "Resolve downlink PRS slot occasions from decoded TS 38.214 periodicity, resource slot offset, repetitions/time gap, Option-1 bit repetition, and Option-2 repetition muting; reject invalid combinations and out-of-range frame/slot coordinates. The API documents that muting bitmaps are already in logical index order because ASN.1 BIT STRING decoding is not included. Regression definitions cover positive/negative occasions and both muting options; validation is deferred. Source: ETSI TS 38.211 V19.2.0 clause 7.4.1.7.4 and TS 38.214 V19.2.0 clause 5.1.6.5.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Bounded standards-defined PRS mapping, scheduled-resource composition, delay/CFO profile, timing arithmetic, and decoded occasion resolution as described for this row.",
+        "authority_basis": "The backlog defines these bounded TS 38.211/38.214/38.215 behaviors; raw configuration parsing and receiver qualification are separate gates."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/nr_prs.py",
+          "tests/test_integrations/test_nr_prs.py"
+        ],
+        "basis": "PRS occasions resolve decoded periodicity, slot offset, repetitions/time gap, Option-1 repetition and Option-2 muting; invalid combinations and out-of-range frame/slot coordinates reject. Muting bits are already decoded/logical-order inputs; ASN.1 BIT STRING parsing is excluded."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_integrations/test_nr_prs.py",
+        "commit": "Working tree based on 45942ba; all 55 dependency-light PRS module checks passed."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "These deterministic mapping/profile/timing checks do not establish raw-sample PRS receiver, positioning measurement, or G5 qualification."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "PRS occasions resolve decoded periodicity, slot offset, repetitions/time gap, Option-1 repetition and Option-2 muting; invalid combinations and out-of-range frame/slot coordinates reject.",
+        "pass_rule": "The stated bounded software contract and module regressions pass; keep raw RRC/PER, synchronized receiver, and scientific qualification gates open.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -9264,30 +9324,37 @@
       ],
       "requirement": "Add a bounded paired diagnostic SNR-curve path for the independent ordered-impairment fixture. Every point reuses channel, payload, oscillator, and standardized AWGN random streams, records its complex noise variance and measured transmit power, and is capped across the whole requested grid. The v4 artifact is hash-bound; its channel-cluster bootstrap reports pointwise intervals and one simultaneous max-deviation band across the three receiver conditions and paired uncorrected-minus-corrected BLER effects over all SNR points. The curve auditor recomputes the effect and intervals from retained channel outcomes. The strict curve schema admits current point report versions v19/v20. All curve results remain explicitly diagnostic-only; no acceptance thresholds are introduced, regression definitions are authored, and validation is deferred.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Bounded seeded synthetic receiver, artifact-audit, and cluster-aware curve software; no broad receiver qualification claim.",
+        "authority_basis": "The backlog defines these software and inference contracts; finite synthetic results remain scoped to the declared fixture."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "experiments/g5_ordered_impairments_receiver.py",
+          "experiments/audit_g5_ordered_impairments_result.py",
+          "datasets/schema/g5-ordered-impairments-snr-curve.v4.schema.json",
+          "tests/test_experiments/test_g5_ordered_impairments_receiver.py"
+        ],
+        "basis": "The bounded paired diagnostic SNR curve reuses the frozen channel/payload/oscillator/AWGN roster, records variance and transmit power, caps total work, and reports pointwise plus simultaneous channel-cluster intervals. The auditor recomputes retained contrasts from per-channel outcomes. All claims remain diagnostic-only."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_experiments/test_g5_acceptance.py tests/test_experiments/test_g5_snr_curve_audit_contract.py tests/test_experiments/test_g5_ordered_impairments_receiver.py::test_independent_snr_curve_pairs_seed_roster_and_binds_variance tests/test_experiments/test_g5_ordered_impairments_receiver.py::test_independent_snr_curve_applies_pre_run_family_acceptance_contract tests/test_experiments/test_g5_ordered_impairments_receiver.py::test_independent_snr_curve_auditor_recomputes_retained_crc_counts tests/test_experiments/test_g5_ordered_impairments_receiver.py::test_independent_snr_curve_auditor_recomputes_all_condition_waveforms",
+        "commit": "Working tree based on 45942ba; 65 focused G5 contract/audit checks passed."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Synthetic fixture and software interval tests do not establish standards acceptance or receiver performance outside their exact bounded inputs."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "The bounded paired diagnostic SNR curve reuses the frozen channel/payload/oscillator/AWGN roster, records variance and transmit power, caps total work, and reports pointwise plus simultaneous channel-cluster intervals.",
+        "pass_rule": "Bounded contract/audit regressions pass; preserve exact support limits and require separately frozen scientific evidence before G5 acceptance.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -9301,30 +9368,36 @@
       ],
       "requirement": "Add a pre-run G5.09 SNR-family acceptance contract that binds the exact SNR grid, channel-seed roster, estimator, blocks per channel, minimum independent-channel count, corrected-BLER ceilings, and paired uncorrected-minus-corrected improvement floors. Require at least 20 independent channels as an executable floor, explicitly not a powered-sample guarantee. The runner freezes and hashes the contract before receiver calls, applies the existing simultaneous familywise 95% intervals, and emits PASS/FAIL/NOT_EVALUABLE decisions in curve schema v5 or signed-contract schema v6; the CLI accepts a bounded contract file and the independent auditor recomputes the verdict. Both freezing and the standalone verdict scorer validate the full contract domain/roster. The scorer also requires the inference cluster count to equal the frozen seed roster and validates the full SNR × condition × paired-contrast family, simultaneous method, bootstrap seed/draw count, decision unit, and bounded radius; the result auditor independently recomputes intervals from retained CRC outcomes. Acceptance rejects malformed interval endpoints. The focused acceptance suite passes 26 tests. The result is synthetic-fixture qualification only, never field/deployment qualification; Torch/Sionna execution, broader validation, and scientific admission remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Bounded seeded synthetic receiver, artifact-audit, and cluster-aware curve software; no broad receiver qualification claim.",
+        "authority_basis": "The backlog defines these software and inference contracts; finite synthetic results remain scoped to the declared fixture."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "experiments/g5_acceptance.py",
+          "datasets/schema/g5-ordered-impairments-snr-acceptance.v2.schema.json",
+          "tests/test_experiments/test_g5_acceptance.py"
+        ],
+        "basis": "The pre-run acceptance contract binds the exact SNR and channel-seed rosters, estimator, block count, executable cluster floor, ceilings/floors, and simultaneous family inference. The independent scorer recomputes PASS/FAIL/NOT_EVALUABLE without receiver imports; the cluster floor is not a powered-sample guarantee."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_experiments/test_g5_acceptance.py tests/test_experiments/test_g5_snr_curve_audit_contract.py tests/test_experiments/test_g5_ordered_impairments_receiver.py::test_independent_snr_curve_pairs_seed_roster_and_binds_variance tests/test_experiments/test_g5_ordered_impairments_receiver.py::test_independent_snr_curve_applies_pre_run_family_acceptance_contract tests/test_experiments/test_g5_ordered_impairments_receiver.py::test_independent_snr_curve_auditor_recomputes_retained_crc_counts tests/test_experiments/test_g5_ordered_impairments_receiver.py::test_independent_snr_curve_auditor_recomputes_all_condition_waveforms",
+        "commit": "Working tree based on 45942ba; 65 focused G5 contract/audit checks passed."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Synthetic fixture and software interval tests do not establish standards acceptance or receiver performance outside their exact bounded inputs."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "The pre-run acceptance contract binds the exact SNR and channel-seed rosters, estimator, block count, executable cluster floor, ceilings/floors, and simultaneous family inference.",
+        "pass_rule": "Bounded contract/audit regressions pass; preserve exact support limits and require separately frozen scientific evidence before G5 acceptance.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -9338,30 +9411,36 @@
       ],
       "requirement": "Keep G5 SNR-family contract freezing and interval scoring importable without Torch or the NR receiver engine; verify roster, estimator/block/SNR binding, structural cluster floor, pointwise frozen criteria, unresolved sample support, and malformed interval rejection in the dependency-isolated module. Focused contract tests pass; curve generation and scientific qualification remain blocked on the Halti runtime and independent evidence.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Bounded seeded synthetic receiver, artifact-audit, and cluster-aware curve software; no broad receiver qualification claim.",
+        "authority_basis": "The backlog defines these software and inference contracts; finite synthetic results remain scoped to the declared fixture."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "experiments/g5_acceptance.py",
+          "tests/test_experiments/test_g5_acceptance.py",
+          "tests/test_experiments/test_g5_snr_curve_audit_contract.py"
+        ],
+        "basis": "Contract freezing and interval scoring are isolated from Torch/receiver construction and reject roster, estimator/block/SNR, floor, support, and interval drift. This is software validation, not scientific acceptance."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_experiments/test_g5_acceptance.py tests/test_experiments/test_g5_snr_curve_audit_contract.py tests/test_experiments/test_g5_ordered_impairments_receiver.py::test_independent_snr_curve_pairs_seed_roster_and_binds_variance tests/test_experiments/test_g5_ordered_impairments_receiver.py::test_independent_snr_curve_applies_pre_run_family_acceptance_contract tests/test_experiments/test_g5_ordered_impairments_receiver.py::test_independent_snr_curve_auditor_recomputes_retained_crc_counts tests/test_experiments/test_g5_ordered_impairments_receiver.py::test_independent_snr_curve_auditor_recomputes_all_condition_waveforms",
+        "commit": "Working tree based on 45942ba; 65 focused G5 contract/audit checks passed."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Synthetic fixture and software interval tests do not establish standards acceptance or receiver performance outside their exact bounded inputs."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Contract freezing and interval scoring are isolated from Torch/receiver construction and reject roster, estimator/block/SNR, floor, support, and interval drift.",
+        "pass_rule": "Bounded contract/audit regressions pass; preserve exact support limits and require separately frozen scientific evidence before G5 acceptance.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -9375,30 +9454,35 @@
       ],
       "requirement": "Keep retained G5.09 result auditing importable without Torch by loading the receiver only at the deterministic-replay call boundary. Inject the replay runner in audit regressions; the focused retained-result audit and Torch-free acceptance suites pass 40 tests. Tests construct temporary source-bound receipts and leave archived result bytes/hashes untouched. A separate post-hoc estimator-choice artifact check now refuses to imply reproduction when two of four source hashes differ and native runtime versions are absent; it preserves the retained outcomes without replay. Deterministic replay of source-matched artifacts, receiver execution, broader qualification, timestamped preregistration, independent signer roles, and trust custody remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Bounded seeded synthetic receiver, artifact-audit, and cluster-aware curve software; no broad receiver qualification claim.",
+        "authority_basis": "The backlog defines these software and inference contracts; finite synthetic results remain scoped to the declared fixture."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "experiments/audit_g5_ordered_impairments_result.py",
+          "tests/test_experiments/test_audit_g5_ordered_impairments_result.py"
+        ],
+        "basis": "Retained-result auditing loads the receiver only at deterministic-replay boundaries; replay is injected in audit regressions. Hash-bound retained outcomes are audited without rewriting archived bytes. Source-matched replay and receiver qualification remain separate."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_experiments/test_g5_acceptance.py tests/test_experiments/test_g5_snr_curve_audit_contract.py tests/test_experiments/test_g5_ordered_impairments_receiver.py::test_independent_snr_curve_pairs_seed_roster_and_binds_variance tests/test_experiments/test_g5_ordered_impairments_receiver.py::test_independent_snr_curve_applies_pre_run_family_acceptance_contract tests/test_experiments/test_g5_ordered_impairments_receiver.py::test_independent_snr_curve_auditor_recomputes_retained_crc_counts tests/test_experiments/test_g5_ordered_impairments_receiver.py::test_independent_snr_curve_auditor_recomputes_all_condition_waveforms",
+        "commit": "Working tree based on 45942ba; 65 focused G5 contract/audit checks passed."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Synthetic fixture and software interval tests do not establish standards acceptance or receiver performance outside their exact bounded inputs."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Retained-result auditing loads the receiver only at deterministic-replay boundaries; replay is injected in audit regressions.",
+        "pass_rule": "Bounded contract/audit regressions pass; preserve exact support limits and require separately frozen scientific evidence before G5 acceptance.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -9412,30 +9496,38 @@
       ],
       "requirement": "Finish receiver evaluation APIs and artifact/report binding for exact waveform, decoder/source configuration, multi-point SNR grids, and independent-channel/transport-block inference. Standalone runs retain all three condition inputs in evidence v3; curve evidence v4–v6 retains these inputs for every SNR point and binds them to shared TX/oscillator/capture/AWGN draws. Curve schemas v4–v6 and their auditor include a simultaneous interval for the paired correction effect; v5 binds an unsigned pre-run family contract, v6 adds exact-byte signature verification, and v10 adds a signed declared UTC preregistration time with chronology recomputation. Broader configuration coverage, signer-role independence, trusted timestamp authority, trust-file custody, consolidated validation, and receiver qualification remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Bounded seeded synthetic receiver, artifact-audit, and cluster-aware curve software; no broad receiver qualification claim.",
+        "authority_basis": "The backlog defines these software and inference contracts; finite synthetic results remain scoped to the declared fixture."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "experiments/g5_ordered_impairments_receiver.py",
+          "experiments/audit_g5_ordered_impairments_result.py",
+          "datasets/schema/g5-ordered-impairments-waveform-evidence.v3.schema.json",
+          "tests/test_experiments/test_g5_ordered_impairments_receiver.py",
+          "tests/test_experiments/test_audit_g5_ordered_impairments_result.py"
+        ],
+        "basis": "Waveform evidence and reports bind condition inputs, receiver/source configuration, transport-block roster, per-SNR shared draws, and channel-cluster inference across supported schema versions. Broader receiver configurations, signer-role independence, trusted timestamp custody, end-to-end source-matched replay, and qualification remain open."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_experiments/test_g5_acceptance.py tests/test_experiments/test_g5_snr_curve_audit_contract.py tests/test_experiments/test_g5_ordered_impairments_receiver.py::test_independent_snr_curve_pairs_seed_roster_and_binds_variance tests/test_experiments/test_g5_ordered_impairments_receiver.py::test_independent_snr_curve_applies_pre_run_family_acceptance_contract tests/test_experiments/test_g5_ordered_impairments_receiver.py::test_independent_snr_curve_auditor_recomputes_retained_crc_counts tests/test_experiments/test_g5_ordered_impairments_receiver.py::test_independent_snr_curve_auditor_recomputes_all_condition_waveforms",
+        "commit": "Working tree based on 45942ba; 65 focused G5 contract/audit checks passed."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Synthetic fixture and software interval tests do not establish standards acceptance or receiver performance outside their exact bounded inputs."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Waveform evidence and reports bind condition inputs, receiver/source configuration, transport-block roster, per-SNR shared draws, and channel-cluster inference across supported schema versions.",
+        "pass_rule": "Bounded contract/audit regressions pass; preserve exact support limits and require separately frozen scientific evidence before G5 acceptance.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -9449,30 +9541,36 @@
       ],
       "requirement": "Retain batch-seed cluster identity in sample-domain PUSCH SNR curves and add a paired LS-versus-finite-delay-DFT comparator. Require identical channel/payload/noise lineage and SNR/codeword rosters; compute pointwise intervals and a simultaneous familywise 95% max-deviation band by resampling the same batch clusters across all SNR points. Preserve the codeword Wilson result as a labeled diagnostic and the legacy v1 curve reader. Regression definitions cover shared-roster alignment and the draw-by-grid memory ceiling; validation is deferred. This remains simulation-only and does not close broader multi-family, receiver-qualification, or G5.09 requirements.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Bounded seeded synthetic receiver, artifact-audit, and cluster-aware curve software; no broad receiver qualification claim.",
+        "authority_basis": "The backlog defines these software and inference contracts; finite synthetic results remain scoped to the declared fixture."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "experiments/link_curves.py",
+          "evaluation/metrics.py",
+          "tests/test_evaluation/test_metrics.py"
+        ],
+        "basis": "Sample-domain PUSCH curves retain batch-seed cluster identities; paired LS-versus-finite-delay-DFT comparisons enforce shared transmitted bits/channel truth and use pointwise plus simultaneous familywise cluster intervals with a bounded draw-by-grid design. Codeword Wilson intervals remain labeled diagnostics."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_evaluation/test_metrics.py::test_curve_comparator_pairs_estimators_by_batch_cluster tests/test_evaluation/test_metrics.py::test_paired_cluster_family_bootstrap_uses_shared_roster_and_bounds_memory",
+        "commit": "Working tree based on 45942ba; two focused paired cluster-comparator checks passed."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Synthetic fixture and software interval tests do not establish standards acceptance or receiver performance outside their exact bounded inputs."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Sample-domain PUSCH curves retain batch-seed cluster identities; paired LS-versus-finite-delay-DFT comparisons enforce shared transmitted bits/channel truth and use pointwise plus simultaneous familywise cluster intervals with a bounded draw-by-grid design.",
+        "pass_rule": "Bounded contract/audit regressions pass; preserve exact support limits and require separately frozen scientific evidence before G5 acceptance.",
+        "next_task": "E01.PKG07"
       },
       "plan_mark": "not_checklist"
     },
@@ -9486,30 +9584,39 @@
       ],
       "requirement": "Finish synchronized time axes across TX/RX/objects, timestamp-based future-target alignment, monotonicity/gap handling, and coherence/time-grid declarations. Dataset time axes now share a strict finite, strictly increasing real-number contract across NR trajectories, UMCD episodes, pose timelines, and physical channel views; numeric strings, complex values, and booleans are rejected before conversion. `align_time_axes` provides tolerance-bound one-to-one matches with ambiguity, missingness, residual, and unused-sample reporting; `NodePoseTimeline.align_to` connects it to the network-episode path without interpolation. A complete pose-alignment report can be stored in the content-addressed episode payload under the strict v1 schema and is replay-checked on read; old payloads remain readable. The time-axis and episode-roundtrip slice passes 14 tests. `build_trajectory_horizon_targets` and the RT forecast baseline enforce frozen child split assignments; both honor declared gaps, and the target builder additionally blocks intervals crossing a caller-frozen maximum inter-sample gap without inferring a threshold from the trajectory. It scores only valid target-mask elements, and the pilot can bind exact split-registry bytes/signature/trust and child kinds. Focused target coverage is in `tests/test_experiments/test_trajectory_targets.py`. Multi-source TX/RX/object synchronization, generated channel/time-to-pose bindings, and physically justified coherence/time-grid declarations remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Strict per-object and episode time axes, timestamp alignment, future-target masks, and frozen split binding as currently implemented; multi-source coherence declarations remain incomplete.",
+        "authority_basis": "The backlog requires synchronized time/pose/channel axes and causal future targets; implemented per-object alignment is only a bounded subset."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "datasets/time_axis.py",
+          "datasets/network.py",
+          "datasets/episode_store.py",
+          "experiments/trajectory_targets.py",
+          "tests/test_datasets/test_time_axis.py",
+          "tests/test_experiments/test_trajectory_targets.py"
+        ],
+        "basis": "Finite strictly increasing axes, one-to-one tolerance-bounded matching with missing/ambiguous/unused reports, pose alignment, content-addressed pose-alignment replay, and split-bound future-target masks with explicit gap rules are implemented. Multi-source TX/RX/object synchronization, generated-channel-to-pose binding, and physically justified coherence/time-grid declarations remain open."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_time_axis.py tests/test_datasets/test_counterfactual.py\n./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_umcd_schema.py::test_episode_bundle_roundtrips_split_bound_direct_path_ablation tests/test_experiments/test_trajectory_targets.py",
+        "commit": "Working tree based on 45942ba; 34 selected time-axis, split-target, and persisted-alignment checks passed."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Alignment and target-mask software checks do not establish physical time coherence or multi-source synchronization."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Complete synchronized TX/RX/object and generated channel/pose timeline binding, plus physically justified coherence and time-grid declarations.",
+        "pass_rule": "All participating axes and generated channel bindings must be source-linked, monotonic, gap-audited, and replayable; do not infer synchronization from per-object axis validity.",
+        "next_task": "E01.PKG07"
       },
       "plan_mark": "not_checklist"
     },
@@ -9634,30 +9741,39 @@
       ],
       "requirement": "Implement paired mathematical direct-path ablation from one frozen `PathOracleTable`, preserving absolute delay/coefficient phase, recording keyed path groups, source-table digest, and removed-path count, and requiring both views to inherit one split parent. Persist the pair as an immutable content-addressed `EpisodeBundle` layer; bundle admission replays the exact CFR pair and removed-path counts from the source table and checks the episode frequency grid. The bundle schema admits the new layer. The focused counterfactual/UMCD/store slice passes 45 tests; Ruff/format checks pass. Physical blocker/occluder interventions, scene retracing, intervention-effect logging, and scientific admission remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Mathematical full/direct-removed CFR pair from one frozen PathOracleTable and persistence/replay as an immutable EpisodeBundle layer.",
+        "authority_basis": "The backlog explicitly requires paired mathematical direct-path ablation and immutable source-bound storage."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "datasets/counterfactual.py",
+          "datasets/path_oracle.py",
+          "datasets/episode_store.py",
+          "datasets/schema/umcd-bundle-v1.schema.json",
+          "tests/test_datasets/test_counterfactual.py",
+          "tests/test_datasets/test_umcd_schema.py"
+        ],
+        "basis": "The ablation preserves absolute delay/coefficient phase, keyed path groups, source-table digest and removed-path counts; both child views inherit the same split parent; EpisodeBundle admission replays the pair and storage round-trips the immutable layer. Physical blocker/occluder interventions, intervention-effect logging and scientific admission remain open."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_time_axis.py tests/test_datasets/test_counterfactual.py\n./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_umcd_schema.py::test_episode_bundle_roundtrips_split_bound_direct_path_ablation tests/test_experiments/test_trajectory_targets.py",
+        "commit": "Working tree based on 45942ba; 15 counterfactual/time-axis and 19 persisted-ablation/target checks passed."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The mathematical counterfactual is replay-checked; no physical intervention or scientific effect admission has passed."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Add scene-based blocker/occluder interventions, intervention-effect logging and scientific admission to the source-bound mathematical view.",
+        "pass_rule": "Physical intervention must preserve parent/split/source provenance and be independently compared against the same-scene full view; mathematical removal alone does not satisfy this rule.",
+        "next_task": "E01.PKG07"
       },
       "plan_mark": "not_checklist"
     },
