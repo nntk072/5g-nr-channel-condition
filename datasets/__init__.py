@@ -24,7 +24,13 @@ from .episode_store import (
     read_receiver_model_inputs,
     write_episode_bundle,
 )
-from .frequency_pair import PairedFrequencyViews, pair_stored_frequency_bundles
+from .frequency_pair import (
+    PairedFrequencyViews,
+    StoredPairedFrequencyManifest,
+    pair_stored_frequency_bundles,
+    read_paired_frequency_manifest,
+    write_paired_frequency_manifest,
+)
 from .lineage import (
     LINEAGE_STATUSES,
     LineageStatusClaim,
@@ -272,6 +278,9 @@ __all__ = [
     "write_episode_bundle",
     "PairedFrequencyViews",
     "pair_stored_frequency_bundles",
+    "StoredPairedFrequencyManifest",
+    "read_paired_frequency_manifest",
+    "write_paired_frequency_manifest",
     "NRStoredTrajectory",
     "debug_multipath",
     "generate_analytical_multipath",

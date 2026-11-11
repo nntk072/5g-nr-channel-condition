@@ -9744,12 +9744,12 @@
           "tests/test_integrations/test_rt_trajectory_contract.py",
           "tests/test_datasets/test_frequency_pair.py"
         ],
-        "basis": "PairedFrequencyViews accepts only two typed complex channel views with distinct carriers, matching link/time/ports and delay/power contracts, carrier-bound oracle-channel provenance declaring an RT source family, matching scene geometry and source asset digests, and explicit source-scene/parent/split identifiers. Its manifest retains exact hashes for both episode bundles and views plus per-band material, solver and run-provenance digests and does not assert phase coherence. pair_stored_frequency_bundles resolves and content-hash-checks both references, requires one split group, and selects unique carrier-matched channel provenance. build_paired_frequency_rt_requests prepares two requests with a common route/seed/scene geometry/assets and independent carrier/material manifests and a content hash but does not execute either request; each retains the D1 authorization gate. Producer family/source IDs remain claims. Pair manifest publication, split-registry binding, automatic source identity proof, and scientific qualification remain open."
+        "basis": "PairedFrequencyViews accepts only two typed complex channel views with distinct carriers, matching link/time/ports and delay/power contracts, carrier-bound oracle-channel provenance declaring an RT source family, matching scene geometry and source asset digests, and explicit source-scene/parent/split identifiers. Its manifest retains exact hashes for both episode bundles and views plus per-band material, solver and run-provenance digests and does not assert phase coherence. pair_stored_frequency_bundles resolves and content-hash-checks both references, requires one split group, and selects unique carrier-matched channel provenance. Immutable pair manifest publication/read replays source bundles and rejects content or bundle-reference changes. build_paired_frequency_rt_requests prepares two requests with a common route/seed/scene geometry/assets and independent carrier/material manifests and a content hash but does not execute either request; each retains the D1 authorization gate. Producer family/source IDs remain claims. Split-registry binding, automatic source identity proof, and scientific qualification remain open."
       },
       "verification": {
         "status": "pass",
         "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_frequency_pair.py tests/test_integrations/test_rt_trajectory_contract.py",
-        "commit": "Working tree based on 68d60b1; 36 non-generating RT request-plan and paired-view/store contract checks passed."
+        "commit": "Working tree based on 68d60b1; 38 non-generating RT request-plan and paired-view/store contract checks passed."
       },
       "qualification": {
         "status": "not_qualified",
@@ -9760,7 +9760,7 @@
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": "Generate and persist paired per-band RT bundles from one frozen scene/drop and parent, link both bundle hashes to the split registry, and validate material/solver frequency sensitivity and supported cross-band statistics.",
+        "deliverable": "Generate paired per-band RT bundles from one frozen scene/drop and parent, link both bundle hashes and the pair manifest to the split registry, and validate material/solver frequency sensitivity and supported cross-band statistics.",
         "pass_rule": "Both complex views must trace to independently reproducible carrier/material-specific solves of the same scene/drop and split parent; measured magnitude-only data cannot substitute; each declared scientific metric passes its predeclared tolerance before qualification.",
         "next_task": "E01.PKG07"
       },

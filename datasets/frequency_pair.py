@@ -7,6 +7,7 @@ import json
 import re
 from collections.abc import Mapping
 from dataclasses import dataclass
+from pathlib import Path, PurePosixPath
 
 import numpy as np
 
@@ -14,6 +15,7 @@ from .channel_view import PhysicalChannelView
 from .provenance import UMCDRunProvenance
 
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
+_MAX_PAIR_MANIFEST_BYTES = 1024 * 1024
 
 
 def _canonical_digest(value: object) -> str:
@@ -196,7 +198,7 @@ class PairedFrequencyViews:
 
 
 def pair_stored_frequency_bundles(
-    root: str,
+    root: str | Path,
     *,
     pair_id: str,
     source_scene_id: str,
@@ -263,3 +265,103 @@ def pair_stored_frequency_bundles(
         upper_view=upper_view,
         upper_provenance=upper_provenance,
     )
+
+
+@dataclass(frozen=True, slots=True)
+class StoredPairedFrequencyManifest:
+    """Content-addressed pointer to one immutable paired-frequency manifest."""
+
+    pair_sha256: str
+    relative_path: str
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.pair_sha256, str) or not _SHA256.fullmatch(self.pair_sha256):
+            raise ValueError("pair_sha256 must be a lowercase SHA-256 digest")
+        expected = (
+            f"manifests/paired_frequency_views/{self.pair_sha256[:2]}/{self.pair_sha256}.json"
+        )
+        if self.relative_path != expected:
+            raise ValueError("paired frequency manifest path must be content-addressed")
+
+
+def write_paired_frequency_manifest(
+    root: str | Path,
+    pair: PairedFrequencyViews,
+) -> StoredPairedFrequencyManifest:
+    """Publish an immutable JSON manifest after both episode bundles exist."""
+    from .episode_store import _publish_immutable
+
+    if not isinstance(pair, PairedFrequencyViews):
+        raise TypeError("pair must be a PairedFrequencyViews value")
+    document = pair.to_dict()
+    payload = json.dumps(document, sort_keys=True, separators=(",", ":"), allow_nan=False).encode(
+        "utf-8"
+    )
+    if len(payload) > _MAX_PAIR_MANIFEST_BYTES:
+        raise ValueError("paired frequency manifest exceeds the configured byte ceiling")
+    pair_sha256 = str(document["pair_sha256"])
+    relative = f"manifests/paired_frequency_views/{pair_sha256[:2]}/{pair_sha256}.json"
+    _publish_immutable(Path(root) / relative, payload)
+    return StoredPairedFrequencyManifest(pair_sha256, relative)
+
+
+def read_paired_frequency_manifest(
+    root: str | Path,
+    stored: StoredPairedFrequencyManifest,
+    *,
+    lower_bundle: object,
+    upper_bundle: object,
+) -> PairedFrequencyViews:
+    """Verify a pair manifest and reconstruct it from its exact stored bundles."""
+    from .episode_store import _stable_file_bytes
+
+    if not isinstance(stored, StoredPairedFrequencyManifest):
+        raise TypeError("stored must be a StoredPairedFrequencyManifest")
+    base = Path(root).resolve()
+    relative = PurePosixPath(stored.relative_path)
+    if relative.is_absolute() or ".." in relative.parts:
+        raise ValueError("paired frequency manifest path must remain inside its store")
+    path = base.joinpath(*relative.parts)
+    if not path.resolve(strict=True).is_relative_to(base):
+        raise ValueError("paired frequency manifest path resolves outside its store")
+    payload = _stable_file_bytes(
+        path,
+        label="paired frequency manifest",
+        max_bytes=_MAX_PAIR_MANIFEST_BYTES,
+    )
+    try:
+        document = json.loads(payload)
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError("paired frequency manifest is not valid UTF-8 JSON") from exc
+    if not isinstance(document, dict) or document.get("schema") != "umcd.paired_frequency_views.v1":
+        raise ValueError("unsupported paired frequency manifest schema")
+    pair_hash = document.get("pair_sha256")
+    core = {key: value for key, value in document.items() if key != "pair_sha256"}
+    if pair_hash != stored.pair_sha256 or _canonical_digest(core) != stored.pair_sha256:
+        raise ValueError("paired frequency manifest digest does not match its content address")
+    if (
+        json.dumps(document, sort_keys=True, separators=(",", ":"), allow_nan=False).encode("utf-8")
+        != payload
+    ):
+        raise ValueError("paired frequency manifest is not canonically encoded")
+    if document.get("bundle_sha256s") != [
+        getattr(lower_bundle, "bundle_sha256", None),
+        getattr(upper_bundle, "bundle_sha256", None),
+    ]:
+        raise ValueError("paired frequency manifest bundle hashes differ from supplied references")
+    views = document.get("views")
+    if not isinstance(views, list) or len(views) != 2:
+        raise ValueError("paired frequency manifest must name exactly two channel views")
+    rebuilt = pair_stored_frequency_bundles(
+        root,
+        pair_id=document["pair_id"],
+        source_scene_id=document["source_scene_id"],
+        parent_episode_id=document["parent_episode_id"],
+        lower_bundle=lower_bundle,
+        upper_bundle=upper_bundle,
+        lower_view_id=views[0]["view_id"],
+        upper_view_id=views[1]["view_id"],
+    )
+    if rebuilt.to_dict() != document:
+        raise ValueError("paired frequency manifest differs from replayed source bundles")
+    return rebuilt

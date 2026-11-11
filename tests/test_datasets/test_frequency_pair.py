@@ -10,7 +10,12 @@ import numpy as np
 import pytest
 from datasets.channel_view import ChannelDelayReference, ChannelPowerScale, PhysicalChannelView
 from datasets.episode_store import EpisodeBundle, write_episode_bundle
-from datasets.frequency_pair import PairedFrequencyViews, pair_stored_frequency_bundles
+from datasets.frequency_pair import (
+    PairedFrequencyViews,
+    pair_stored_frequency_bundles,
+    read_paired_frequency_manifest,
+    write_paired_frequency_manifest,
+)
 from datasets.network import (
     AntennaArraySpec,
     DirectedLink,
@@ -222,6 +227,70 @@ def test_pair_helper_reads_and_binds_exact_stored_bundle_hashes(tmp_path):
 
     assert pair.split_group_id == "shared-site-session"
     assert pair.to_dict()["bundle_sha256s"] == [low_ref.bundle_sha256, high_ref.bundle_sha256]
+    stored_pair = write_paired_frequency_manifest(tmp_path, pair)
+    loaded_pair = read_paired_frequency_manifest(
+        tmp_path,
+        stored_pair,
+        lower_bundle=low_ref,
+        upper_bundle=high_ref,
+    )
+    assert loaded_pair.to_dict() == pair.to_dict()
+
+
+def test_pair_manifest_reader_rejects_bundle_reference_substitution(tmp_path):
+    low_ref = write_episode_bundle(tmp_path, _stored_bundle("view-low", 3.5e9, "drop-low"))
+    high_ref = write_episode_bundle(tmp_path, _stored_bundle("view-high", 28e9, "drop-high"))
+    pair = pair_stored_frequency_bundles(
+        str(tmp_path),
+        pair_id="pair-1",
+        source_scene_id="munich-block-3",
+        parent_episode_id="drop-1",
+        lower_bundle=low_ref,
+        upper_bundle=high_ref,
+        lower_view_id="view-low",
+        upper_view_id="view-high",
+    )
+    stored_pair = write_paired_frequency_manifest(tmp_path, pair)
+    other_bundle = _stored_bundle("view-high-other", 28e9, "drop-high-other")
+    other_bundle = replace(
+        other_bundle,
+        episode=replace(other_bundle.episode, split_group_id="shared-site-session"),
+    )
+    other_high = write_episode_bundle(tmp_path, other_bundle)
+
+    with pytest.raises(ValueError, match="bundle hashes differ"):
+        read_paired_frequency_manifest(
+            tmp_path,
+            stored_pair,
+            lower_bundle=low_ref,
+            upper_bundle=other_high,
+        )
+
+
+def test_pair_manifest_reader_rejects_tampered_content(tmp_path):
+    low_ref = write_episode_bundle(tmp_path, _stored_bundle("view-low", 3.5e9, "drop-low"))
+    high_ref = write_episode_bundle(tmp_path, _stored_bundle("view-high", 28e9, "drop-high"))
+    pair = pair_stored_frequency_bundles(
+        str(tmp_path),
+        pair_id="pair-1",
+        source_scene_id="munich-block-3",
+        parent_episode_id="drop-1",
+        lower_bundle=low_ref,
+        upper_bundle=high_ref,
+        lower_view_id="view-low",
+        upper_view_id="view-high",
+    )
+    stored_pair = write_paired_frequency_manifest(tmp_path, pair)
+    artifact = tmp_path / stored_pair.relative_path
+    artifact.write_text(artifact.read_text().replace("pair-1", "pair-2"))
+
+    with pytest.raises(ValueError, match="digest does not match"):
+        read_paired_frequency_manifest(
+            tmp_path,
+            stored_pair,
+            lower_bundle=low_ref,
+            upper_bundle=high_ref,
+        )
 
 
 def test_pair_helper_rejects_split_group_mismatch(tmp_path):
