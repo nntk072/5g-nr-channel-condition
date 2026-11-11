@@ -7,7 +7,7 @@ controls are called out so they are not mistaken for receiver inputs.
 
 | Route | Producer and consumer | Input transform / supervision | Artifact binding and state |
 |---|---|---|---|
-| Canonical classification runner | `ChannelDataset.model_inputs()` → `experiments/runner.py` → `learning.fit_*` / `fit_sklearn` | Method-specific routes in `_MODEL_FEATURE_ROUTES`: CFR grid, flattened real/imaginary CFR, power-only, phase-randomized, engineered observable features, train-only group/domain/source vocabularies, and explicit label-leak control. Labels remain separate except in the named falsification control. | Versioned model-input contract binds exact feature and partition matrices, split indices, configuration, source files, and model bytes; replay validation runs before publication. Tests: `tests/test_experiments/test_runner.py`. Metadata/oracle controls are diagnostics, not deployable inputs. |
+| Canonical classification runner | `ChannelDataset.model_inputs()` → `experiments/runner.py` → `learning.fit_*` / `fit_sklearn`; entry points are `loslab experiment`, `experiments/capacity_sweep.py`, and `loslab.__main__` | Method-specific routes in `_MODEL_FEATURE_ROUTES`: CFR grid, flattened real/imaginary CFR, power-only, phase-randomized, engineered observable features, train-only group/domain/source vocabularies, and explicit label-leak control. Labels remain separate except in the named falsification control. | Versioned model-input contract binds exact feature and partition matrices, split indices, configuration, source files, and model bytes; replay validation runs before publication. Tests: `tests/test_experiments/test_runner.py`. Metadata/oracle controls are diagnostics, not deployable inputs. |
 | Profile holdout | `datasets/channel.py` → `experiments/profile_holdout.py` → sklearn estimators; CLI in `scripts/run_profile_holdout_baselines.py` | `normalized_cfr_features` transforms audited CFR; profile metadata is evaluated in a separate proxy-only control. | Contract binds transform implementation, full feature matrix and fold partitions. Score report is emitted; no fitted checkpoint is retained by this route. Tests: `tests/test_experiments/test_profile_holdout.py`. |
 | Analytical two-path decoder | `generate_grouped_two_path_dataset()` → `TwoPathModelInputs` → fit/predict/profile-likelihood in `experiments/observable_multipath.py`; CLI in `scripts/run_observable_multipath_experiment.py` | Receiver inputs are observed CFR, pilot mask, frequencies and known noise variance; relative delay and complex gains remain targets/oracle. Whole groups define train/validation/calibration/test. | Decoder NPZ checkpoints have schema-versioned sidecars binding exact input, target, split arrays, source dataset and checkpoint bytes. Loader verifies schema and checkpoint digest, and can replay all bound arrays when given the source dataset; unbound legacy/raw checkpoints are marked or rejected when required. Synthetic analytical pilot only. Tests: `tests/test_experiments/test_observable_multipath_inputs.py`, `test_two_path_experiment_contract.py`, and `tests/test_models/test_observable_multipath.py`. |
 | CAEZ magnitude forecast | CAEZ NPZ summary → `scripts/evaluate_caez_magnitude_forecast.py` → Ridge | Current and history-window summary features predict future magnitude; target rows are held separately and chronological pairs exclude unavailable history. | Report contract binds input/target/pair indices, source archive hashes, model identity and script transform digest. No licensed archive was read for software verification. Tests: `tests/test_scripts/test_audit_caez_npz.py`. |
@@ -17,6 +17,30 @@ controls are called out so they are not mistaken for receiver inputs.
 | Local-MLE identifiability diagnostics | `experiments/identifiability_monte_carlo.py` and `experiments/identifiability_matched_estimators.py` | Synthetic observed CFR and frequency arrays enter optimization; the local MLE receives truth-centered initialization by design, as stated in source limitations. | Diagnostic result reports, no retained inference model. Privileged initialization makes this a local optimizer/Fisher-information check, not a deployable path estimator. |
 | CNN/CVNN and CORAL checkpoint APIs | `learning/real_cnn.py`, `learning/complex_cnn.py`, and `learning/coral.py`, called by canonical runner | Real/imaginary or complex CFR, or engineered real features, with train-only normalization; labels are passed separately. | Canonical runner saves these through its exact model-input contract and replay verifier. Raw checkpoint payloads now carry `artifact_contract_status=external_input_contract_required`, preserved by their loaders; a standalone save is explicitly unbound until accompanied by a verified external input/split contract. Direct external callers are not found in the repository. |
 | Historical thesis implementations | `archive/legacy_2025/` and `notebooks/legacy_2025/` | Superseded scripts, notebooks, and prototype models. | Archive READMEs state these are historical and active packages must not import from the archive. This establishes repository classification, not exhaustive proof that no external consumer uses them. |
+
+## Reproducible source enumeration
+
+The source pass used these repository-root searches, excluding tests and the
+historical archive from active-route matches:
+
+```bash
+rg -n '(optimizer\s*=|\.backward\(|partial_fit\(|\.fit\(|fit_[a-zA-Z0-9_]+\()' \
+  --glob '*.py' --glob '!tests/**' --glob '!archive/**' --glob '!notebooks/**'
+rg -n '(torch\.save|joblib\.dump|pickle\.dump|np\.savez.*checkpoint|state_dict\(\)|load_.*checkpoint|load_.*cnn)' \
+  --glob '*.py' --glob '!tests/**' --glob '!archive/**' --glob '!notebooks/**'
+rg -n '(run_experiment\(|run_profile_holdout\(|fit_real_cnn\(|fit_complex_cnn\(|fit_coral_mlp\(|fit_two_path_decoder\(|regressor\.fit|model\.fit|estimator\.fit)' \
+  --glob '*.py' --glob '!tests/**' --glob '!archive/**' --glob '!notebooks/**'
+rg -n '(from archive|import archive|legacy_2025)' \
+  --glob '*.py' --glob '!archive/**' --glob '!notebooks/**'
+```
+
+The active matches resolve to the routes above plus sparse multipath and
+truth-initialized local-MLE diagnostics; no other fit/save call sites were
+found. The archived 2025 tree contains 69 files across `archive/` and
+`notebooks/legacy_2025/`; its READMEs and the research plan classify it as
+read-only historical reproduction. No active Python import from those trees
+was found. This is repository-local evidence and does not establish that no
+external consumer exists.
 
 ## Remaining audit work
 
