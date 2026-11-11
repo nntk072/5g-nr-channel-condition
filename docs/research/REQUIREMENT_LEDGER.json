@@ -1,7 +1,7 @@
 {
   "schema": "loslab.requirement-ledger.v1",
-  "status_note": "Traceability index covering all 182 backlog IDs, 104 numbered unified-plan criteria, and 30 dataset/research gate or phase records. Source audits are complete for PKG00-05. PKG05 rows 001/002/003/004/005/007/008/009/010/011/012/013/014/016/017/018/019/020/021/022/023/024/025 have bounded dispositions; 006/015/026 remain partial aggregate G4 scope. PKG06 rows 001–036 are source-audited with bounded complete/partial dispositions; PKG07-001/002/003/004/005 are source-audited partials with focused regression slices; remaining package/gate audits stay open. Checked plan boxes are preserved as source marks, never treated as implementation or scientific qualification. Feature-map heuristics do not determine ledger status. DS.G3.01–DS.G3.12 were source-audited at 32fa52c; their software states and external scientific blockers are separate, and every G3 qualification remains not_qualified. DS.G0.01–DS.G0.08 source-audited after G3; environment, host solver smoke, dynamic identity edge coverage, legacy report provenance, and per-scene ODbL release evidence remain explicit blockers. DS.G1.01–DS.G1.10 source-audited; independent geometry/LOS contracts are bounded, while native solver behavior, motion interpolation, and scene-family independence remain open. DS.G2.01–DS.G2.15 source-audited; analytical/mask/storage contracts exist, while selected-host native API, path/CFR, power-scale, MIMO and polarization evidence remain open. DS.G4.01–DS.G4.09 source-audited against pinned profile adapters, reference contracts, statistical test families, and standardized admission. Full suites were not run in this implementation pass; G4 remains not_qualified, with G4.07 explicitly partial for bounded support coverage.",
-  "source_checkpoint": "06ad690; DS.G4 source audit recorded 2026-11-11",
+  "status_note": "Traceability index covering all 182 backlog IDs, 104 numbered unified-plan criteria, and 30 dataset/research gate or phase records. Source audits are complete for PKG00-05. PKG05 rows 001/002/003/004/005/007/008/009/010/011/012/013/014/016/017/018/019/020/021/022/023/024/025 have bounded dispositions; 006/015/026 remain partial aggregate G4 scope. PKG06 rows 001–036 are source-audited with bounded complete/partial dispositions; PKG07-001/002/003/004/005 are source-audited partials with focused regression slices; remaining package/gate audits stay open. Checked plan boxes are preserved as source marks, never treated as implementation or scientific qualification. Feature-map heuristics do not determine ledger status. DS.G3.01–DS.G3.12 were source-audited at 32fa52c; their software states and external scientific blockers are separate, and every G3 qualification remains not_qualified. DS.G0.01–DS.G0.08 source-audited after G3; environment, host solver smoke, dynamic identity edge coverage, legacy report provenance, and per-scene ODbL release evidence remain explicit blockers. DS.G1.01–DS.G1.10 source-audited; independent geometry/LOS contracts are bounded, while native solver behavior, motion interpolation, and scene-family independence remain open. DS.G2.01–DS.G2.15 source-audited; analytical/mask/storage contracts exist, while selected-host native API, path/CFR, power-scale, MIMO and polarization evidence remain open. DS.G4.01–DS.G4.09 source-audited against pinned profile adapters, reference contracts, statistical test families, and standardized admission. Full suites were not run in this implementation pass; G4 remains not_qualified, with G4.07 explicitly partial for bounded support coverage. DS.G5.01–DS.G5.15 source-audited; software routes cover bounded NR waveform, estimator, noise, impairment, observation, and input-firewall contracts, while calibrated receiver evidence and criterion-driven G5 qualification remain open.",
+  "source_checkpoint": "ab8e6ca; DS.G5 source audit recorded 2026-11-11",
   "requirements": [
     {
       "requirement_id": "DS.G0",
@@ -2528,14 +2528,20 @@
       "backlog_aliases": [],
       "requirement": "Gate G5 — NR waveform, channel and receiver correctness",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Hard waveform/channel/receiver correctness and receiver-impact gate for MVP NR claims; child criteria are mandatory only for the declared receiver and measurement modes.",
+        "authority_basis": "Governing unified-plan Gate G5 is a hard stop gate; all fifteen numbered criteria were source-audited against current receiver adapters, data contracts, and tests."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "governing-plan requirement needs source-level reconciliation"
+        "status": "partial",
+        "evidence": [
+          "integrations/sionna/nr_pusch.py",
+          "integrations/sionna/network_receiver.py",
+          "integrations/sionna/ofdm_impairments.py",
+          "datasets/nr.py",
+          "evaluation/g3_receiver_impact.py"
+        ],
+        "basis": "Bounded NR resource, waveform, impairment, channel-estimation, data-firewall, and matched-receiver software routes exist. Calibrated receiver/noise-chain evidence, complete mode coverage, and criterion-driven G5 qualification remain incomplete."
       },
       "verification": {
         "status": "not_run",
@@ -2547,11 +2553,15 @@
         "evidence": []
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "No G5-qualified NR receiver result under the frozen joint scientific acceptance and powered independent-channel design.",
+        "Receiver noise figure, RF calibration, and physical impairment parameter provenance remain incomplete.",
+        "Complete native support-mode coverage and current Halti runtime qualification remain pending."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "G5.01–G5.15 supported-mode waveform, receiver, noise, impairment, storage, and receiver-impact evidence plus an independent accepted qualification report.",
+        "pass_rule": "Every mandatory criterion for the claimed receiver mode passes its frozen quantitative acceptance rule with complete source/configuration/runtime provenance and an independent channel-unit design; missing, unsupported, or uncalibrated branches keep G5 closed.",
+        "next_task": "Continue G6–G8 and research implementation audits; finish receiver integration and resource planning before scheduling the bounded G5 qualification."
       },
       "plan_mark": "not_checklist"
     },
@@ -2564,14 +2574,18 @@
       "requirement": "generated pilot/resource grid conforms to specified applicable TS 38.211 version and Sionna native API; no generic comb pattern called NR PRS (native CPU Sionna grid/FFT/DMRS-axis checks cover 15/30/60/120-kHz and 2/6/12/24-RB configurations in `tests/test_integrations/test_nr_pusch_native.py::test_native_pusch_grid_axes_and_fft_mapping_across_numerologies`; `test_pusch_type1_dmrs_positions_match_ts_38211_full_slot_reference` verifies Type-1 full-slot mapping-A/B DMRS positions and RE comb; `test_pusch_double_symbol_dmrs_positions_match_ts_38211_full_slot_reference` checks full-slot double-symbol Type-1 mapping A/B; `test_pusch_mapping_b_partial_allocation_dmrs_positions_match_ts_38211` checks all four additional-position values for one partial mapping-B allocation; `test_pusch_mapping_a_short_allocation_dmrs_positions_match_ts_38211` checks mapping-A `l_d=10` table positions; `test_pusch_type2_double_symbol_dmrs_time_positions_match_ts_38211` checks Type-2 double-symbol mapping A/B positions and frequency comb; Type-2 double-symbol partial timing now covers durations 10-14, mappings A/B, additional-position 0/1, and 15/30/60/120-kHz masks; a 20-case Type-2 double-symbol slot waveform round-trip and noiseless decoder matrix covers those durations/mappings/positions at 30 kHz; `test_pusch_type1_multiport_dmrs_pilots_are_orthogonal` checks Type-1 two/four-port CDM orthogonality, complemented by the Type-2 two/four-layer pilot orthogonality test; `test_pusch_dmrs_values_match_independent_ts_38211_gold_sequence` checks actual Sionna pilot values against an independent Gold-sequence implementation for inherited cell identity and explicit `N_ID`/`n_SCID` cases. Cell/scrambling identities and a scheduled-symbol allocation now travel in `NRPUSCHConfig` and receiver metadata; Type-2 single-symbol partial timing covers durations 10–14, mappings A/B, and additional-position 0–3 against TS 38.211 Table 6.4.1.1.3-3; a 40-case noiseless scheduled slot-waveform round-trip and CRC-decode matrix covers the same durations, mappings, and additional positions; other DM-RS CDM mappings and hopping remain unverified; transform precoding is unsupported by the pinned Sionna 2.2 adapter; noisy receiver behavior and full standard conformance remain open).",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G5.01 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard NR receiver/data-semantic criterion within the explicitly declared waveform, receiver, and observable support envelope; bounded synthetic/native CPU contracts do not qualify a production receiver.",
+        "authority_basis": "Mandatory numbered acceptance criterion G5.01 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/nr_prs.py",
+          "integrations/sionna/nr_pusch.py",
+          "tests/test_integrations/test_nr_waveform_impairments_native.py"
+        ],
+        "basis": "The supported generated NR resource/DMRS grids are tied to explicit standards versions and bounded native Sionna CPU checks; generic comb patterns are not labeled PRS. This is implementation coverage only."
       },
       "verification": {
         "status": "not_run",
@@ -2582,14 +2596,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Broader bands, numerologies, channel configurations, and independent standards audit remain outside the bounded tests."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "generated pilot/resource grid conforms to specified applicable TS 38.211 version and Sionna native API; no generic comb pattern called NR PRS (native CPU Sionna grid/FFT/DMRS-axis checks cover 15/30/60/120-kHz and 2/6/12/24-RB configurations in `tests/test_integrations/test_nr_pusch_native.py::test_native_pusch_grid_axes_and_fft_mapping_across_numerologies`; `test_pusch_type1_dmrs_positions_match_ts_38211_full_slot_reference` verifies Type-1 full-slot mapping-A/B DMRS positions and RE comb; `test_pusch_double_symbol_dmrs_positions_match_ts_38211_full_slot_reference` checks full-slot double-symbol Type-1 mapping A/B; `test_pusch_mapping_b_partial_allocation_dmrs_positions_match_ts_38211` checks all four additional-position values for one partial mapping-B allocation; `test_pusch_mapping_a_short_allocation_dmrs_positions_match_ts_38211` checks mapping-A `l_d=10` table positions; `test_pusch_type2_double_symbol_dmrs_time_positions_match_ts_38211` checks Type-2 double-symbol mapping A/B positions and frequency comb; Type-2 double-symbol partial timing now covers durations 10-14, mappings A/B, additional-position 0/1, and 15/30/60/120-kHz masks; a 20-case Type-2 double-symbol slot waveform round-trip and noiseless decoder matrix covers those durations/mappings/positions at 30 kHz; `test_pusch_type1_multiport_dmrs_pilots_are_orthogonal` checks Type-1 two/four-port CDM orthogonality, complemented by the Type-2 two/four-layer pilot orthogonality test; `test_pusch_dmrs_values_match_independent_ts_38211_gold_sequence` checks actual Sionna pilot values against an independent Gold-sequence implementation for inherited cell identity and explicit `N_ID`/`n_SCID` cases. Cell/scrambling identities and a scheduled-symbol allocation now travel in `NRPUSCHConfig` and receiver metadata; Type-2 single-symbol partial timing covers durations 10–14, mappings A/B, and additional-position 0–3 against TS 38.211 Table 6.4.1.1.3-3; a 40-case noiseless scheduled slot-waveform round-trip and CRC-decode matrix covers the same durations, mappings, and additional positions; other DM-RS CDM mappings and hopping remain unverified; transform precoding is unsupported by the pinned Sionna 2.2 adapter; noisy receiver behavior and full standard conformance remain open).",
+        "pass_rule": "Exact standards mapping, waveform/channel/receiver semantics, calibrated noise and impairment parameters, and receiver outcomes pass the preregistered independent-channel criteria on the supported mode roster; software unit fixtures alone do not qualify G5.",
+        "next_task": "Finish code-level receiver integration and map exact routes; after implementation, run bounded frozen G5 receiver qualification on the pinned Halti environment and independently review the retained report."
       }
     },
     {
@@ -2601,14 +2615,18 @@
       "requirement": "effective subcarrier indices map exactly to transmitted FFT bins and receiver channel estimate without DC/guard shifts (native CPU, noiseless adjacent-bin channel checked at DMRS tones for 2/6/12/24-RB PUSCH grids at 15/30/60/120 kHz; `tests/test_integrations/test_nr_pusch_native.py::test_pusch_dmrs_estimator_recovers_frequency_selective_noiseless_channel_on_cpu`; selected 4/6/12-RB widths and lower/interior/upper offsets in a 24-RB carrier at 15/30/60/120 kHz pass carrier-bin placement, full-carrier OFDM round-trip, and matched PUSCH payload/CRC decoding in `tests/test_integrations/test_nr_pusch_native.py::test_bwp_allocation_mapping_roundtrips_at_carrier_grid_edges`; standardized guard/DC conventions, untested width/offset combinations, and fractional PRB allocations remain open).",
       "plan_mark": "checked",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G5.02 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard NR receiver/data-semantic criterion within the explicitly declared waveform, receiver, and observable support envelope; bounded synthetic/native CPU contracts do not qualify a production receiver.",
+        "authority_basis": "Mandatory numbered acceptance criterion G5.02 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/rt_dmrs.py",
+          "integrations/sionna/standardized_pusch.py",
+          "tests/test_integrations/test_rt_dmrs_observation.py"
+        ],
+        "basis": "Effective subcarrier ordering and DMRS channel-estimate mapping have explicit index/grid contracts and adjacent-bin native fixtures."
       },
       "verification": {
         "status": "not_run",
@@ -2619,14 +2637,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Current Halti native receiver replay and full supported numerology roster remain unverified."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "effective subcarrier indices map exactly to transmitted FFT bins and receiver channel estimate without DC/guard shifts (native CPU, noiseless adjacent-bin channel checked at DMRS tones for 2/6/12/24-RB PUSCH grids at 15/30/60/120 kHz; `tests/test_integrations/test_nr_pusch_native.py::test_pusch_dmrs_estimator_recovers_frequency_selective_noiseless_channel_on_cpu`; selected 4/6/12-RB widths and lower/interior/upper offsets in a 24-RB carrier at 15/30/60/120 kHz pass carrier-bin placement, full-carrier OFDM round-trip, and matched PUSCH payload/CRC decoding in `tests/test_integrations/test_nr_pusch_native.py::test_bwp_allocation_mapping_roundtrips_at_carrier_grid_edges`; standardized guard/DC conventions, untested width/offset combinations, and fractional PRB allocations remain open).",
+        "pass_rule": "Exact standards mapping, waveform/channel/receiver semantics, calibrated noise and impairment parameters, and receiver outcomes pass the preregistered independent-channel criteria on the supported mode roster; software unit fixtures alone do not qualify G5.",
+        "next_task": "Finish code-level receiver integration and map exact routes; after implementation, run bounded frozen G5 receiver qualification on the pinned Halti environment and independently review the retained report."
       }
     },
     {
@@ -2638,14 +2656,17 @@
       "requirement": "PUSCH perfect-channel/noiseless case behaves as expected under valid CP and waveform settings (native CPU 6-RB waveform round trip, perfect unity CSI, exact payload recovery, all TB CRCs pass; `tests/test_integrations/test_nr_waveform_impairments_native.py::test_pusch_cpu_waveform_roundtrip_decodes_noiseless_payload`; not multipath or impairment qualification).",
       "plan_mark": "checked",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G5.03 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard NR receiver/data-semantic criterion within the explicitly declared waveform, receiver, and observable support envelope; bounded synthetic/native CPU contracts do not qualify a production receiver.",
+        "authority_basis": "Mandatory numbered acceptance criterion G5.03 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/nr_pusch.py",
+          "tests/test_integrations/test_nr_waveform_impairments_native.py"
+        ],
+        "basis": "A bounded native CPU waveform/PUSCH perfect-channel round trip checks payload recovery and CRC under declared valid CP/configuration."
       },
       "verification": {
         "status": "not_run",
@@ -2656,14 +2677,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "This bounded static fixture does not establish broad acquisition or receiver qualification."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "PUSCH perfect-channel/noiseless case behaves as expected under valid CP and waveform settings (native CPU 6-RB waveform round trip, perfect unity CSI, exact payload recovery, all TB CRCs pass; `tests/test_integrations/test_nr_waveform_impairments_native.py::test_pusch_cpu_waveform_roundtrip_decodes_noiseless_payload`; not multipath or impairment qualification).",
+        "pass_rule": "Exact standards mapping, waveform/channel/receiver semantics, calibrated noise and impairment parameters, and receiver outcomes pass the preregistered independent-channel criteria on the supported mode roster; software unit fixtures alone do not qualify G5.",
+        "next_task": "Finish code-level receiver integration and map exact routes; after implementation, run bounded frozen G5 receiver qualification on the pinned Halti environment and independently review the retained report."
       }
     },
     {
@@ -2675,14 +2696,18 @@
       "requirement": "CP-exceedance stress reveals physically plausible ISI/ICI where time-domain model predicts it; static frequency multiplication baseline is not used outside its assumptions (the analytic inside/outside-CP fixture in `tests/test_integrations/test_nr_waveform_impairments_native.py::test_pusch_diagonal_ofdm_channel_is_valid_inside_cp_and_fails_beyond_cp_on_cpu` is complemented by standardized TDL path-delay application in `tests/test_integrations/test_standardized_pusch_native.py::test_short_cp_time_channel_changes_pusch_observation_vs_ideal_cfr_control`; a longer-CP 24-RB TDL/CDL fixture checks CFR estimation when the discretized tap span fits the CP. Scope remains static snapshots and tested grids, not mobility or multipath BLER/CRC qualification).",
       "plan_mark": "checked",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G5.04 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard NR receiver/data-semantic criterion within the explicitly declared waveform, receiver, and observable support envelope; bounded synthetic/native CPU contracts do not qualify a production receiver.",
+        "authority_basis": "Mandatory numbered acceptance criterion G5.04 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/ofdm_impairments.py",
+          "tests/test_integrations/test_nr_waveform_impairments_native.py",
+          "tests/test_experiments/test_g5_time_varying_multipath_receiver.py"
+        ],
+        "basis": "The time-domain impairment path and analytic CP-inside/outside cases separate static frequency multiplication assumptions from waveform ISI/ICI behavior."
       },
       "verification": {
         "status": "not_run",
@@ -2693,14 +2718,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "The physical effect is only covered for frozen synthetic waveform configurations."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "CP-exceedance stress reveals physically plausible ISI/ICI where time-domain model predicts it; static frequency multiplication baseline is not used outside its assumptions (the analytic inside/outside-CP fixture in `tests/test_integrations/test_nr_waveform_impairments_native.py::test_pusch_diagonal_ofdm_channel_is_valid_inside_cp_and_fails_beyond_cp_on_cpu` is complemented by standardized TDL path-delay application in `tests/test_integrations/test_standardized_pusch_native.py::test_short_cp_time_channel_changes_pusch_observation_vs_ideal_cfr_control`; a longer-CP 24-RB TDL/CDL fixture checks CFR estimation when the discretized tap span fits the CP. Scope remains static snapshots and tested grids, not mobility or multipath BLER/CRC qualification).",
+        "pass_rule": "Exact standards mapping, waveform/channel/receiver semantics, calibrated noise and impairment parameters, and receiver outcomes pass the preregistered independent-channel criteria on the supported mode roster; software unit fixtures alone do not qualify G5.",
+        "next_task": "Finish code-level receiver integration and map exact routes; after implementation, run bounded frozen G5 receiver qualification on the pinned Halti environment and independently review the retained report."
       }
     },
     {
@@ -2712,14 +2737,19 @@
       "requirement": "OFDM symbol clock and RT Doppler sampling use correct real duration and frequency units (normal-CP timing tests, 30-kHz explicit-time Doppler phase contract, and native CPU RT trajectory symbol-time provenance; `tests/test_integrations/test_nr_timing.py`, `tests/test_integrations/test_rt_to_nr_contract.py::test_rt_doppler_uses_cp_aware_nr_symbol_start_times_in_seconds`, `tests/test_integrations/test_rt_trajectory_native.py::test_cpu_rt_path_retraces_and_stores_receiver_only_trajectory`; does not close RT solver qualification).",
       "plan_mark": "checked",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G5.05 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard NR receiver/data-semantic criterion within the explicitly declared waveform, receiver, and observable support envelope; bounded synthetic/native CPU contracts do not qualify a production receiver.",
+        "authority_basis": "Mandatory numbered acceptance criterion G5.05 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/nr_timing.py",
+          "integrations/sionna/rt_trajectory.py",
+          "tests/test_integrations/test_nr_timing.py",
+          "tests/test_integrations/test_rt_trajectory_contract.py"
+        ],
+        "basis": "NR symbol durations and trajectory Doppler time units are explicit and carried into trajectory provenance; the source/test contracts cover normal-CP timing."
       },
       "verification": {
         "status": "not_run",
@@ -2730,14 +2760,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Independent timing/clock calibration and the selected-host native RT trajectory remain unqualified."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "OFDM symbol clock and RT Doppler sampling use correct real duration and frequency units (normal-CP timing tests, 30-kHz explicit-time Doppler phase contract, and native CPU RT trajectory symbol-time provenance; `tests/test_integrations/test_nr_timing.py`, `tests/test_integrations/test_rt_to_nr_contract.py::test_rt_doppler_uses_cp_aware_nr_symbol_start_times_in_seconds`, `tests/test_integrations/test_rt_trajectory_native.py::test_cpu_rt_path_retraces_and_stores_receiver_only_trajectory`; does not close RT solver qualification).",
+        "pass_rule": "Exact standards mapping, waveform/channel/receiver semantics, calibrated noise and impairment parameters, and receiver outcomes pass the preregistered independent-channel criteria on the supported mode roster; software unit fixtures alone do not qualify G5.",
+        "next_task": "Finish code-level receiver integration and map exact routes; after implementation, run bounded frozen G5 receiver qualification on the pinned Halti environment and independently review the retained report."
       }
     },
     {
@@ -2749,14 +2779,19 @@
       "requirement": "physical thermal-noise PSD to complex sample covariance matches injected and measured covariance statistically (proper-complex helper statistical test plus CPU absolute-power no-path RT observation checks `kTB·F`, component variance, properness, and adjacent frequency/symbol covariance; `tests/test_integrations/test_receiver_noise.py::test_thermal_noise_injection_has_declared_complex_sample_covariance`, `tests/test_integrations/test_rt_trajectory_native.py::test_absolute_power_policy_generates_all_no_path_noise_only_episode`; current scope is ideal independent complex-RE receiver noise, not analog filtering or correlated antenna noise).",
       "plan_mark": "checked",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G5.06 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard NR receiver/data-semantic criterion within the explicitly declared waveform, receiver, and observable support envelope; bounded synthetic/native CPU contracts do not qualify a production receiver.",
+        "authority_basis": "Mandatory numbered acceptance criterion G5.06 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "integrations/sionna/noise.py",
+          "integrations/sionna/rt_trajectory.py",
+          "tests/test_integrations/test_seeded_awgn.py",
+          "tests/test_integrations/test_rt_trajectory_native.py"
+        ],
+        "basis": "Proper-complex noise variance and absolute-power/no-path RT noise handling are implemented with statistical/native fixtures; instrument-calibrated receiver noise figure and RF chain behavior are not admitted."
       },
       "verification": {
         "status": "not_run",
@@ -2767,14 +2802,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "No calibrated receiver noise figure, hardware covariance, or independently sourced absolute noise-chain evidence."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "physical thermal-noise PSD to complex sample covariance matches injected and measured covariance statistically (proper-complex helper statistical test plus CPU absolute-power no-path RT observation checks `kTB·F`, component variance, properness, and adjacent frequency/symbol covariance; `tests/test_integrations/test_receiver_noise.py::test_thermal_noise_injection_has_declared_complex_sample_covariance`, `tests/test_integrations/test_rt_trajectory_native.py::test_absolute_power_policy_generates_all_no_path_noise_only_episode`; current scope is ideal independent complex-RE receiver noise, not analog filtering or correlated antenna noise).",
+        "pass_rule": "Exact standards mapping, waveform/channel/receiver semantics, calibrated noise and impairment parameters, and receiver outcomes pass the preregistered independent-channel criteria on the supported mode roster; software unit fixtures alone do not qualify G5.",
+        "next_task": "Finish code-level receiver integration and map exact routes; after implementation, run bounded frozen G5 receiver qualification on the pinned Halti environment and independently review the retained report."
       }
     },
     {
@@ -2786,14 +2821,18 @@
       "requirement": "precise SNR definition (pre-/post-beam, per RE/antenna, plus NF) travels with each view (ideal standardized PUSCH AWGN mode records aggregate post-channel/pre-beam grid SNR and explicitly records no NF; physical thermal-noise qualification remains G5.06).",
       "plan_mark": "checked",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G5.07 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard NR receiver/data-semantic criterion within the explicitly declared waveform, receiver, and observable support envelope; bounded synthetic/native CPU contracts do not qualify a production receiver.",
+        "authority_basis": "Mandatory numbered acceptance criterion G5.07 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/standardized_pusch.py",
+          "integrations/sionna/nr_pusch.py",
+          "datasets/standardized.py"
+        ],
+        "basis": "The SNR/receiver-view definitions are recorded with aggregation and placement semantics; the ideal AWGN path explicitly records that noise figure is not modeled."
       },
       "verification": {
         "status": "not_run",
@@ -2804,14 +2843,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "The declared idealized SNR mode is not physical thermal-noise or post-beam receiver qualification."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "precise SNR definition (pre-/post-beam, per RE/antenna, plus NF) travels with each view (ideal standardized PUSCH AWGN mode records aggregate post-channel/pre-beam grid SNR and explicitly records no NF; physical thermal-noise qualification remains G5.06).",
+        "pass_rule": "Exact standards mapping, waveform/channel/receiver semantics, calibrated noise and impairment parameters, and receiver outcomes pass the preregistered independent-channel criteria on the supported mode roster; software unit fixtures alone do not qualify G5.",
+        "next_task": "Finish code-level receiver integration and map exact routes; after implementation, run bounded frozen G5 receiver qualification on the pinned Halti environment and independently review the retained report."
       }
     },
     {
@@ -2823,14 +2862,18 @@
       "requirement": "absolute path loss retained in physical receiver view; normalized diagnostic explicitly separate (native CPU analytic unit/half-gain RT-DMRS views with fixed transmit power and thermal noise preserve the physical 0.5 ratio while normalized per-link observations match; `tests/test_integrations/test_rt_dmrs_observation_native.py::test_absolute_power_dmrs_mode_preserves_link_gain_with_fixed_thermal_noise`; scene-level propagation/path-loss accuracy remains a separate RT qualification question).",
       "plan_mark": "checked",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G5.08 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard NR receiver/data-semantic criterion within the explicitly declared waveform, receiver, and observable support envelope; bounded synthetic/native CPU contracts do not qualify a production receiver.",
+        "authority_basis": "Mandatory numbered acceptance criterion G5.08 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/rt_dmrs.py",
+          "integrations/sionna/rt_trajectory.py",
+          "tests/test_integrations/test_rt_dmrs_observation.py"
+        ],
+        "basis": "Physical absolute-power views retain link attenuation; normalized diagnostic views are explicitly separate and preserve receiver-view semantics."
       },
       "verification": {
         "status": "not_run",
@@ -2841,14 +2884,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Absolute calibrated link budget and receiver reference-plane acceptance remain open."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "absolute path loss retained in physical receiver view; normalized diagnostic explicitly separate (native CPU analytic unit/half-gain RT-DMRS views with fixed transmit power and thermal noise preserve the physical 0.5 ratio while normalized per-link observations match; `tests/test_integrations/test_rt_dmrs_observation_native.py::test_absolute_power_dmrs_mode_preserves_link_gain_with_fixed_thermal_noise`; scene-level propagation/path-loss accuracy remains a separate RT qualification question).",
+        "pass_rule": "Exact standards mapping, waveform/channel/receiver semantics, calibrated noise and impairment parameters, and receiver outcomes pass the preregistered independent-channel criteria on the supported mode roster; software unit fixtures alone do not qualify G5.",
+        "next_task": "Finish code-level receiver integration and map exact routes; after implementation, run bounded frozen G5 receiver qualification on the pinned Halti environment and independently review the retained report."
       }
     },
     {
@@ -2860,14 +2903,19 @@
       "requirement": "CFO/phase-noise/timing/IQ impairments injected in physically consistent order with known reference (partial: ordered deterministic composition, seeded Wiener phase-noise statistics, shared continuous-time receiver oscillator across antenna elements, static standardized-CIR waveform application with CP spillover/ISI, CP-supported and repeated CP-exceeding TDL decode/CRC, paired high-SNR impairment-induced TDL PUSCH LS-NMSE impact, zero-impairment equivalence, and impairment-view seed/parameter provenance are verified; `tests/test_integrations/test_nr_waveform_impairments_native.py::test_pusch_cp_acquisition_and_correction_decode_two_tap_payload_on_cpu` now verifies seeded CPU AWGN, CP-based timing/CFO acquisition and correction, and payload/CRC recovery through a matched PUSCH decoder for one static two-tap in-CP channel using its analytical perfect CFR; test_time_varying_two_tap_channel_reaches_pusch_dmrs_decoder_on_cpu additionally applies distinct continuous sample-domain Dopplers to a two-tap waveform and decodes all 16 seeded payloads through the DM-RS LS receiver at 35 dB. This is one fixed channel smoke check; independent mobility channels, Doppler/SNR curves, path birth/death, and broader impairment coverage remain open). The exploratory [`standardized_pusch_cp_exceedance.py`](../../experiments/standardized_pusch_cp_exceedance.py) probe records 16 independent TDL-A channel draws at 3.5 GHz, 30-kHz SCS, 6 RB, 1-µs delay spread and 60-dB declared receive-grid SNR. Maximum excess delay is 9.66 µs versus the recorded 3.24-µs CP. CRC failures were 11/16 (Wilson 95% interval 0.444–0.858) for the sampled time-domain channel with DMRS LS CSI; 7/16 (0.231–0.668) with its diagonal-CFR oracle; 9/16 (0.332–0.769) for the paired ideal-CFR diagnostic with DMRS LS; and 0/16 (0–0.194) for ideal-CFR plus diagonal-CFR oracle. The probe now also reports paired time-domain-minus-ideal-CFR BLER intervals by resampling the independent channel-parent groups while retaining each parent's paired receiver outcomes; repeated child rows do not increase the group count. These small-sample outcomes show receiver sensitivity and separate estimation error from diagonal-model mismatch for this frozen case; the ideal-CFR and oracle conditions are diagnostics, neither is physical truth, and the probe does not establish a general BLER curve or close G5.09. A 128-parent TDL-C matched SNR curve is now recorded in edition 3.316, still as a conditional synthetic stress result. The original machine-readable run is [`g5-standardized-pusch-cp-exceedance-20261023.json`](results/g5-standardized-pusch-cp-exceedance-20261023.json); the cluster-bootstrap analysis replay is [`g5-standardized-pusch-cp-exceedance-cluster-bootstrap-20261023.json`](results/g5-standardized-pusch-cp-exceedance-cluster-bootstrap-20261023.json).",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G5.09 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard NR receiver/data-semantic criterion within the explicitly declared waveform, receiver, and observable support envelope; bounded synthetic/native CPU contracts do not qualify a production receiver.",
+        "authority_basis": "Mandatory numbered acceptance criterion G5.09 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "integrations/sionna/ofdm_impairments.py",
+          "integrations/sionna/network_receiver.py",
+          "tests/test_integrations/test_ofdm_impairments_torch.py",
+          "tests/test_integrations/test_nr_waveform_impairments_native.py"
+        ],
+        "basis": "Ordered impairment composition and seeded phase-noise/oscillator behavior exist, but the full CFO/phase-noise/timing/IQ chain and externally justified parameters are not established for every receiver mode."
       },
       "verification": {
         "status": "not_run",
@@ -2878,14 +2926,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Calibration and full configuration-order/parameter coverage are incomplete."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "CFO/phase-noise/timing/IQ impairments injected in physically consistent order with known reference (partial: ordered deterministic composition, seeded Wiener phase-noise statistics, shared continuous-time receiver oscillator across antenna elements, static standardized-CIR waveform application with CP spillover/ISI, CP-supported and repeated CP-exceeding TDL decode/CRC, paired high-SNR impairment-induced TDL PUSCH LS-NMSE impact, zero-impairment equivalence, and impairment-view seed/parameter provenance are verified; `tests/test_integrations/test_nr_waveform_impairments_native.py::test_pusch_cp_acquisition_and_correction_decode_two_tap_payload_on_cpu` now verifies seeded CPU AWGN, CP-based timing/CFO acquisition and correction, and payload/CRC recovery through a matched PUSCH decoder for one static two-tap in-CP channel using its analytical perfect CFR; test_time_varying_two_tap_channel_reaches_pusch_dmrs_decoder_on_cpu additionally applies distinct continuous sample-domain Dopplers to a two-tap waveform and decodes all 16 seeded payloads through the DM-RS LS receiver at 35 dB. This is one fixed channel smoke check; independent mobility channels, Doppler/SNR curves, path birth/death, and broader impairment coverage remain open). The exploratory [`standardized_pusch_cp_exceedance.py`](../../experiments/standardized_pusch_cp_exceedance.py) probe records 16 independent TDL-A channel draws at 3.5 GHz, 30-kHz SCS, 6 RB, 1-µs delay spread and 60-dB declared receive-grid SNR. Maximum excess delay is 9.66 µs versus the recorded 3.24-µs CP. CRC failures were 11/16 (Wilson 95% interval 0.444–0.858) for the sampled time-domain channel with DMRS LS CSI; 7/16 (0.231–0.668) with its diagonal-CFR oracle; 9/16 (0.332–0.769) for the paired ideal-CFR diagnostic with DMRS LS; and 0/16 (0–0.194) for ideal-CFR plus diagonal-CFR oracle. The probe now also reports paired time-domain-minus-ideal-CFR BLER intervals by resampling the independent channel-parent groups while retaining each parent's paired receiver outcomes; repeated child rows do not increase the group count. These small-sample outcomes show receiver sensitivity and separate estimation error from diagonal-model mismatch for this frozen case; the ideal-CFR and oracle conditions are diagnostics, neither is physical truth, and the probe does not establish a general BLER curve or close G5.09. A 128-parent TDL-C matched SNR curve is now recorded in edition 3.316, still as a conditional synthetic stress result. The original machine-readable run is [`g5-standardized-pusch-cp-exceedance-20261023.json`](results/g5-standardized-pusch-cp-exceedance-20261023.json); the cluster-bootstrap analysis replay is [`g5-standardized-pusch-cp-exceedance-cluster-bootstrap-20261023.json`](results/g5-standardized-pusch-cp-exceedance-cluster-bootstrap-20261023.json).",
+        "pass_rule": "Exact standards mapping, waveform/channel/receiver semantics, calibrated noise and impairment parameters, and receiver outcomes pass the preregistered independent-channel criteria on the supported mode roster; software unit fixtures alone do not qualify G5.",
+        "next_task": "Finish code-level receiver integration and map exact routes; after implementation, run bounded frozen G5 receiver qualification on the pinned Halti environment and independently review the retained report."
       }
     },
     {
@@ -2897,14 +2945,17 @@
       "requirement": "LS estimator bias/variance and LMMSE noise behavior verified against analytical fixtures (native CPU 1,024-draw pilot checks cover Type-1/Type-2, single-/double-symbol DM-RS, one/two CDM groups, and three AWGN variances in `tests/test_integrations/test_nr_pusch_native.py::test_pusch_ls_pilot_bias_and_variance_match_analysis_across_dmrs_and_snr`; paired static two-tap and four-case CP-timed symbol-static Doppler Monte Carlo tests compare both interpolation modes. Nearest-neighbor reported marginal variance matches empirical variance within 12%; linear interpolation remains approximate. Linear has lower noiseless interpolation NMSE in the selected static cases. Metadata labels both semantics. Correlated-noise 3×2 LMMSE is covered. The Doppler fixture has no intra-symbol ICI or time-domain CP/ISI; broader delay/Doppler/receiver behavior and calibrated linear-interpolator uncertainty remain open.)",
       "plan_mark": "checked",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G5.10 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard NR receiver/data-semantic criterion within the explicitly declared waveform, receiver, and observable support envelope; bounded synthetic/native CPU contracts do not qualify a production receiver.",
+        "authority_basis": "Mandatory numbered acceptance criterion G5.10 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/nr_pusch.py",
+          "tests/test_integrations/test_nr_pusch_native.py"
+        ],
+        "basis": "Bounded LS estimator bias/variance and LMMSE noise fixtures cover selected DMRS configurations against analytical/noise expectations."
       },
       "verification": {
         "status": "not_run",
@@ -2915,14 +2966,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Finite selected estimator cases do not qualify all port/layer/channel profiles."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "LS estimator bias/variance and LMMSE noise behavior verified against analytical fixtures (native CPU 1,024-draw pilot checks cover Type-1/Type-2, single-/double-symbol DM-RS, one/two CDM groups, and three AWGN variances in `tests/test_integrations/test_nr_pusch_native.py::test_pusch_ls_pilot_bias_and_variance_match_analysis_across_dmrs_and_snr`; paired static two-tap and four-case CP-timed symbol-static Doppler Monte Carlo tests compare both interpolation modes. Nearest-neighbor reported marginal variance matches empirical variance within 12%; linear interpolation remains approximate. Linear has lower noiseless interpolation NMSE in the selected static cases. Metadata labels both semantics. Correlated-noise 3×2 LMMSE is covered. The Doppler fixture has no intra-symbol ICI or time-domain CP/ISI; broader delay/Doppler/receiver behavior and calibrated linear-interpolator uncertainty remain open.)",
+        "pass_rule": "Exact standards mapping, waveform/channel/receiver semantics, calibrated noise and impairment parameters, and receiver outcomes pass the preregistered independent-channel criteria on the supported mode roster; software unit fixtures alone do not qualify G5.",
+        "next_task": "Finish code-level receiver integration and map exact routes; after implementation, run bounded frozen G5 receiver qualification on the pinned Halti environment and independently review the retained report."
       }
     },
     {
@@ -2934,14 +2985,18 @@
       "requirement": "estimated CSI stored on correct antenna/layer/symbol/frequency axes, with pilot mask and observation missingness (typed mask/schema and NR-store round trip; `tests/test_datasets/test_nr_observation_mask.py`; physical missingness-generation mechanisms remain separate).",
       "plan_mark": "checked",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G5.11 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard NR receiver/data-semantic criterion within the explicitly declared waveform, receiver, and observable support envelope; bounded synthetic/native CPU contracts do not qualify a production receiver.",
+        "authority_basis": "Mandatory numbered acceptance criterion G5.11 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "datasets/nr.py",
+          "datasets/schema/nr-record-metadata.v4.schema.json",
+          "tests/test_datasets/test_nr_observation_mask.py"
+        ],
+        "basis": "Typed observation masks and schema/store round trips preserve antenna/layer/symbol/frequency axes and missingness fields."
       },
       "verification": {
         "status": "not_run",
@@ -2952,14 +3007,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Synthetic missingness contracts do not establish physical observation-failure mechanisms."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "estimated CSI stored on correct antenna/layer/symbol/frequency axes, with pilot mask and observation missingness (typed mask/schema and NR-store round trip; `tests/test_datasets/test_nr_observation_mask.py`; physical missingness-generation mechanisms remain separate).",
+        "pass_rule": "Exact standards mapping, waveform/channel/receiver semantics, calibrated noise and impairment parameters, and receiver outcomes pass the preregistered independent-channel criteria on the supported mode roster; software unit fixtures alone do not qualify G5.",
+        "next_task": "Finish code-level receiver integration and map exact routes; after implementation, run bounded frozen G5 receiver qualification on the pinned Halti environment and independently review the retained report."
       }
     },
     {
@@ -2971,14 +3026,17 @@
       "requirement": "same parent channel with different noise seeds has independent receiver views but identical hidden propagation truth (standardized TDL PUSCH CPU fixture; `tests/test_integrations/test_standardized_pusch_native.py::test_independent_noise_views_keep_waveform_parent_and_channel_truth`; full G5 remains open).",
       "plan_mark": "checked",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G5.12 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard NR receiver/data-semantic criterion within the explicitly declared waveform, receiver, and observable support envelope; bounded synthetic/native CPU contracts do not qualify a production receiver.",
+        "authority_basis": "Mandatory numbered acceptance criterion G5.12 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/standardized_pusch.py",
+          "tests/test_integrations/test_standardized_pusch_native.py"
+        ],
+        "basis": "Same-parent standardized channel and independent noise-seed views retain identical hidden propagation truth while receiver observations change by noise seed."
       },
       "verification": {
         "status": "not_run",
@@ -2989,14 +3047,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "This is a bounded standardized CPU fixture, not an independent physical-channel acquisition claim."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "same parent channel with different noise seeds has independent receiver views but identical hidden propagation truth (standardized TDL PUSCH CPU fixture; `tests/test_integrations/test_standardized_pusch_native.py::test_independent_noise_views_keep_waveform_parent_and_channel_truth`; full G5 remains open).",
+        "pass_rule": "Exact standards mapping, waveform/channel/receiver semantics, calibrated noise and impairment parameters, and receiver outcomes pass the preregistered independent-channel criteria on the supported mode roster; software unit fixtures alone do not qualify G5.",
+        "next_task": "Finish code-level receiver integration and map exact routes; after implementation, run bounded frozen G5 receiver qualification on the pinned Halti environment and independently review the retained report."
       }
     },
     {
@@ -3008,14 +3066,19 @@
       "requirement": "BLER/BER/CRC/beam outcomes derived from real matched receiver pipeline, not posthoc channel score alone (native CPU Sionna PUSCH transmitter/`PUSCHReceiver` AWGN trend in `tests/test_integrations/test_nr_waveform_impairments_native.py::test_pusch_frequency_grid_decoder_has_correct_high_vs_low_snr_trend`, exact payload/CRC recovery for a standardized CP-supported TDL path using its DMRS LS estimate in `tests/test_integrations/test_standardized_pusch_native.py::test_standardized_time_domain_tdl_pusch_decodes_with_dmrs_estimate_on_cpu`, and exact four-layer decode through a known full-rank flat 4x4 channel in `tests/test_integrations/test_nr_pusch_native.py::test_type2_four_layer_estimator_and_decoder_recover_known_flat_mimo_channel`; CP-exceeding BLER/CRC and broader curves remain open).",
       "plan_mark": "checked",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G5.13 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard NR receiver/data-semantic criterion within the explicitly declared waveform, receiver, and observable support envelope; bounded synthetic/native CPU contracts do not qualify a production receiver.",
+        "authority_basis": "Mandatory numbered acceptance criterion G5.13 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "integrations/sionna/nr_pusch.py",
+          "integrations/sionna/network_receiver.py",
+          "tests/test_integrations/test_nr_waveform_impairments_native.py",
+          "tests/test_experiments/test_g5_time_varying_multipath_receiver.py"
+        ],
+        "basis": "Matched transmitter/receiver BLER and CRC pipelines exist for bounded CPU fixtures; complete acquisition, calibrated channel families, and broad G5 acceptance cohorts remain incomplete."
       },
       "verification": {
         "status": "not_run",
@@ -3026,14 +3089,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "No G5-qualified receiver result across the frozen task-specific acceptance contract, independent channels, and powered sample roster."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "BLER/BER/CRC/beam outcomes derived from real matched receiver pipeline, not posthoc channel score alone (native CPU Sionna PUSCH transmitter/`PUSCHReceiver` AWGN trend in `tests/test_integrations/test_nr_waveform_impairments_native.py::test_pusch_frequency_grid_decoder_has_correct_high_vs_low_snr_trend`, exact payload/CRC recovery for a standardized CP-supported TDL path using its DMRS LS estimate in `tests/test_integrations/test_standardized_pusch_native.py::test_standardized_time_domain_tdl_pusch_decodes_with_dmrs_estimate_on_cpu`, and exact four-layer decode through a known full-rank flat 4x4 channel in `tests/test_integrations/test_nr_pusch_native.py::test_type2_four_layer_estimator_and_decoder_recover_known_flat_mimo_channel`; CP-exceeding BLER/CRC and broader curves remain open).",
+        "pass_rule": "Exact standards mapping, waveform/channel/receiver semantics, calibrated noise and impairment parameters, and receiver outcomes pass the preregistered independent-channel criteria on the supported mode roster; software unit fixtures alone do not qualify G5.",
+        "next_task": "Finish code-level receiver integration and map exact routes; after implementation, run bounded frozen G5 receiver qualification on the pinned Halti environment and independently review the retained report."
       }
     },
     {
@@ -3045,14 +3108,21 @@
       "requirement": "PRS/SRS/SSB implementations only admitted after independently validating mapping and observable timing claims (partial SRS implementation: type-1 sequences cover standardized lengths 6, 12, 18, 24, 30, 36, and prime lengths; explicit no/group/sequence hopping uses frame-local slot, resource start-symbol, and resource-local symbol coordinates; periodic and aperiodic target-slot/frequency allocation and one-/multi-port grid mapping are implemented; cyclic-shift hopping now derives f_csh for each resource symbol and feeds it into the sequence rows. Decoded RRC choice adapters, request-mode/carrier routing, decoded DCI 0_3/1_3 request-list selection, and caller-decoded multi-cell request/offset-combo scheduling are implemented. Complete ASN.1/RRC configuration decoding, scheduled-cell-combination resolution, positioning-report integration, and independent mapping/standards validation remain open. Partial SSB implementation: Release 19 Cases A-G candidate timing with explicit band-specific case selection; TS 38.212 24-bit MIB-payload-plus-timing assembly, category interleaving, payload scrambling/descrambling and recovery of serialized payload/timing/index-prefix fields for counts 4/8/10/20/64; fixed-schema parsing of the 24-bit BCCH-BCH MIB alternative; blind PSS/SSS PCI/timing/CFO acquisition on one seeded candidate-timed 5 ms half-frame per Case A-G (candidate 3 for A, 7 for B-C, and 63 for D-G), plus the earlier Lmax=4 capture; seeded timing/index acquisition for high-index candidates at counts 8/10/20/64 under 24-dB five-sample echoes; known-occasion OFDM demodulation, PBCH-DM-RS channel interpolation/equalization, LLR descrambling, BCH decode and typed-MIB recovery under a flat case, 16 seeded two-tap AWGN cases at 24 dB, and noiseless high-index cases at counts 10/20/64; reusable unscaled single-SSB OFDM modulation/demodulation matched against Sionna 2.2.0 for three FFT sizes and variable per-symbol CP; TS 38.211 normal-CP lengths, μ=0…6 numerology, and sample rate are derived from SCS, FFT size, and absolute candidate-symbol index; BCH CRC24C/Polar/sub-block encoding and E=864 repetition; TS 38.211 physical-channel scrambling and QPSK; PBCH-DM-RS sequence/resource map; and 4×240 Table 7.4.3.1-1 placement; plus CRC-aided BCH decoding after physical descrambling. Native tests pin the encoder's 512-bit output to Sionna 2.2.0 and independently check payload interleaving/scrambling, fixed-schema MIB fields, full ideal bit-chain recovery, repetition mapping, Gold recurrence, modulation bit signs, and RE placement. General ASN.1/PER extensions and messageClassExtension decoding, additional acquisition candidates and operating-condition coverage for Cases C/E/F/G, simultaneous SSB candidates, broader timing/CFO/channel distributions, wider carrier placement and complete radio-frame integration, calibrated multi-port RF power scaling, multi-antenna and mobile receiver validation, receiver timing/beam claims, PRS and full SRS chain/conformance, and independent end-to-end conformance remain open.)",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G5.14 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard NR receiver/data-semantic criterion within the explicitly declared waveform, receiver, and observable support envelope; bounded synthetic/native CPU contracts do not qualify a production receiver.",
+        "authority_basis": "Mandatory numbered acceptance criterion G5.14 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "integrations/sionna/nr_prs.py",
+          "integrations/sionna/srs.py",
+          "integrations/sionna/ssb_ofdm.py",
+          "tests/test_integrations/test_nr_prs.py",
+          "tests/test_integrations/test_g5_srs_measurements.py",
+          "tests/test_integrations/test_nr_sync.py"
+        ],
+        "basis": "Bounded PRS/SRS/SSB sequence, mapping, timing, and measurement implementations exist; only named features have source-level independent checks and they are not all admitted for observable timing claims."
       },
       "verification": {
         "status": "not_run",
@@ -3063,14 +3133,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Remaining native mappings, independently validated observables, and end-to-end positioning qualification are open."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "PRS/SRS/SSB implementations only admitted after independently validating mapping and observable timing claims (partial SRS implementation: type-1 sequences cover standardized lengths 6, 12, 18, 24, 30, 36, and prime lengths; explicit no/group/sequence hopping uses frame-local slot, resource start-symbol, and resource-local symbol coordinates; periodic and aperiodic target-slot/frequency allocation and one-/multi-port grid mapping are implemented; cyclic-shift hopping now derives f_csh for each resource symbol and feeds it into the sequence rows. Decoded RRC choice adapters, request-mode/carrier routing, decoded DCI 0_3/1_3 request-list selection, and caller-decoded multi-cell request/offset-combo scheduling are implemented. Complete ASN.1/RRC configuration decoding, scheduled-cell-combination resolution, positioning-report integration, and independent mapping/standards validation remain open. Partial SSB implementation: Release 19 Cases A-G candidate timing with explicit band-specific case selection; TS 38.212 24-bit MIB-payload-plus-timing assembly, category interleaving, payload scrambling/descrambling and recovery of serialized payload/timing/index-prefix fields for counts 4/8/10/20/64; fixed-schema parsing of the 24-bit BCCH-BCH MIB alternative; blind PSS/SSS PCI/timing/CFO acquisition on one seeded candidate-timed 5 ms half-frame per Case A-G (candidate 3 for A, 7 for B-C, and 63 for D-G), plus the earlier Lmax=4 capture; seeded timing/index acquisition for high-index candidates at counts 8/10/20/64 under 24-dB five-sample echoes; known-occasion OFDM demodulation, PBCH-DM-RS channel interpolation/equalization, LLR descrambling, BCH decode and typed-MIB recovery under a flat case, 16 seeded two-tap AWGN cases at 24 dB, and noiseless high-index cases at counts 10/20/64; reusable unscaled single-SSB OFDM modulation/demodulation matched against Sionna 2.2.0 for three FFT sizes and variable per-symbol CP; TS 38.211 normal-CP lengths, μ=0…6 numerology, and sample rate are derived from SCS, FFT size, and absolute candidate-symbol index; BCH CRC24C/Polar/sub-block encoding and E=864 repetition; TS 38.211 physical-channel scrambling and QPSK; PBCH-DM-RS sequence/resource map; and 4×240 Table 7.4.3.1-1 placement; plus CRC-aided BCH decoding after physical descrambling. Native tests pin the encoder's 512-bit output to Sionna 2.2.0 and independently check payload interleaving/scrambling, fixed-schema MIB fields, full ideal bit-chain recovery, repetition mapping, Gold recurrence, modulation bit signs, and RE placement. General ASN.1/PER extensions and messageClassExtension decoding, additional acquisition candidates and operating-condition coverage for Cases C/E/F/G, simultaneous SSB candidates, broader timing/CFO/channel distributions, wider carrier placement and complete radio-frame integration, calibrated multi-port RF power scaling, multi-antenna and mobile receiver validation, receiver timing/beam claims, PRS and full SRS chain/conformance, and independent end-to-end conformance remain open.)",
+        "pass_rule": "Exact standards mapping, waveform/channel/receiver semantics, calibrated noise and impairment parameters, and receiver outcomes pass the preregistered independent-channel criteria on the supported mode roster; software unit fixtures alone do not qualify G5.",
+        "next_task": "Finish code-level receiver integration and map exact routes; after implementation, run bounded frozen G5 receiver qualification on the pinned Halti environment and independently review the retained report."
       }
     },
     {
@@ -3082,14 +3152,18 @@
       "requirement": "no future/fixed oracle CSI is fed into ordinary model input adapter (adversarial NR record with extreme oracle target and metadata exposes only typed received-grid/receiver-estimate fields; `tests/test_datasets/test_nr_model_input_firewall.py::test_oracle_csi_targets_and_metadata_never_enter_nr_model_inputs`; corpus-wide and downstream-loader isolation remains G7 scope).",
       "plan_mark": "checked",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G5.15 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard NR receiver/data-semantic criterion within the explicitly declared waveform, receiver, and observable support envelope; bounded synthetic/native CPU contracts do not qualify a production receiver.",
+        "authority_basis": "Mandatory numbered acceptance criterion G5.15 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "datasets/nr.py",
+          "integrations/sionna/nr_pusch.py",
+          "tests/test_datasets/test_nr_model_input_firewall.py"
+        ],
+        "basis": "Typed receiver-input adapters expose received grids/estimates while keeping oracle CSI and truth metadata out of ordinary model inputs; adversarial records test the firewall."
       },
       "verification": {
         "status": "not_run",
@@ -3100,14 +3174,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Firewall software does not establish receiver estimation accuracy or downstream model validity."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "no future/fixed oracle CSI is fed into ordinary model input adapter (adversarial NR record with extreme oracle target and metadata exposes only typed received-grid/receiver-estimate fields; `tests/test_datasets/test_nr_model_input_firewall.py::test_oracle_csi_targets_and_metadata_never_enter_nr_model_inputs`; corpus-wide and downstream-loader isolation remains G7 scope).",
+        "pass_rule": "Exact standards mapping, waveform/channel/receiver semantics, calibrated noise and impairment parameters, and receiver outcomes pass the preregistered independent-channel criteria on the supported mode roster; software unit fixtures alone do not qualify G5.",
+        "next_task": "Finish code-level receiver integration and map exact routes; after implementation, run bounded frozen G5 receiver qualification on the pinned Halti environment and independently review the retained report."
       }
     },
     {

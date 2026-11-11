@@ -303,9 +303,12 @@ path, analytical-channel, RT-to-NR contract, adapter, and storage suite exits
 MIMO/polarization comparisons remain open. `E01.DS.GATES.G4` now records
 bounded standardized profile/reference and statistical coverage. G4.07 remains
 partial, and its native suites have been deferred until the implementation
-pass is complete. Next audit G5–G8 against the governing plan and their source
-and test paths; then reconcile research phases, Appendix E, and the full
-crosswalk.
+pass is complete. `E01.DS.GATES.G5` now has source dispositions for its
+fifteen receiver criteria: waveform, DMRS, timing, noise, impairment, storage,
+and oracle-firewall software routes are distinguished from calibrated
+receiver and G5 acceptance evidence. Its selected native/receiver suites were
+not run. Next audit G6–G8 against the governing plan and their source and test
+paths; then reconcile research phases, Appendix E, and the full crosswalk.
 Each package batch is the fixed set of `PKGnn-*` IDs in the ledger and closes
 only after every row has inspected source/test integration, implementation
 state, exact verification, qualification state, dependencies and closure
@@ -391,6 +394,23 @@ complete one-to-one requirement coverage and resolves dependencies/blockers.
 - **Next:** audit G5–G8 and finish dependency-ready implementation. After that
   stage, run the exact G4 criterion suites on the pinned Halti environment and
   reconcile any misses without broadening their scope.
+
+#### E01.DS.GATES.G5 — NR waveform, channel, and receiver correctness (source audit complete 2026-11-11)
+
+- **Requirements:** `DS.G5`, `DS.G5.01`–`DS.G5.15`.
+- **Delivered:** criterion rows now link to supported NR waveform/DMRS and
+  timing adapters, noise and impairment models, channel-estimation/storage
+  contracts, and the oracle-input firewall. Bounded implementation status is
+  separated from calibrated RF, broad receiver modes, and G5 scientific
+  acceptance.
+- **Verification:** cited source/test paths and ledger structure validated by
+  `uv run --no-sync --locked python -m scripts.validate_requirement_ledger`.
+  No native receiver suite or qualification cohort was run in this pass.
+- **Disposition:** G5 remains `not_qualified`; physical noise/RF calibration,
+  complete mode coverage, independently justified channel units, and a frozen
+  accepted receiver-impact report remain blockers.
+- **Next:** audit G6–G8 and complete code-level receiver integration/resource
+  planning before running the bounded G5 qualification.
 
 For every batch, retain the exact source files inspected in that ledger row;
 do not copy the whole chronological status history. If a row is already
