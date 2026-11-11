@@ -7903,13 +7903,14 @@
         "evidence": [
           "tests/test_integrations/test_g4_cdl_spatial_covariance_4element_native.py",
           "docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json",
-          "docs/research/results/g4-cdl-four-element-covariance-frozen-execution-20261109.json"
+          "docs/research/results/g4-cdl-four-element-covariance-frozen-execution-20261109.json",
+          "docs/research/G4_CDL_E_FROZEN_MISS_REVIEW_2026-11-11.md"
         ],
-        "basis": "The declared finite independent-reference/native regression implementation and retained result artifact are present. This only closes the named bounded family."
+        "basis": "The declared finite independent-reference/native regression implementation and retained result artifact are present. A separate source derivation review checked ray-angle coupling, phase/sign, power normalization, LOS/diffuse composition and claim extraction against the pinned ETSI-derived fixture. No source defect was found; this only closes the source-review disposition for the named bounded family, not its failed statistical acceptance."
       },
       "verification": {
         "status": "fail",
-        "command": "Retained frozen result documents FAIL; deterministic CPU oracle command: ./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_integrations/test_g4_cdl_spatial_covariance_4element_native.py::test_four_element_cdl_covariance_reference_is_hermitian_normalized_and_psd (5 passed)",
+        "command": "Retained frozen result documents FAIL; deterministic CPU oracle command: ./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_integrations/test_g4_cdl_spatial_covariance_4element_native.py::test_four_element_cdl_covariance_reference_is_hermitian_normalized_and_psd (5 passed); no native rerun. Retained interval calculation: critical_z=3.4205267011, implied_SE=0.0037916417, error_z=3.5800591377.",
         "commit": "working tree based on 65fac21; retained result base c011f5b"
       },
       "qualification": {

@@ -223,9 +223,14 @@ The frozen CDL-E four-element covariance miss is now linked to
 `M1.G4_CDL_E_FAILURE_DISPOSITION`. Its exact `Re(C[0,1])` discrepancy is
 0.0135743014 against a 0.0129694116 half-width. Five CPU checks of the
 ETSI-derived oracle pass its Hermitian, unit-diagonal and PSD invariants; this
-does not resolve whether the one native miss reflects finite-sample variation
-or an oracle/implementation discrepancy. Keep the original result failed. The
-separate post-hoc 65,536-draw diagnostic cannot replace it.
+and the source-level derivation review found no arithmetic defect; the implied
+error is 3.5801 standard errors against a 3.4205 simultaneous critical value.
+The cause (sampling variation versus simulator/reference mismatch) remains
+unresolved. The review is recorded in
+`G4_CDL_E_FROZEN_MISS_REVIEW_2026-11-11.md`. Keep the original result failed;
+the separate post-hoc 65,536-draw diagnostic cannot replace it. A fresh-seed
+preregistration is queued and must not run until its seed roster and environment
+are frozen.
 
 `E01.PKG07` is source-audited. `E01.PKG08` is active. Rows `PKG08-001` through
 `PKG08-022` have source/test evidence and separate software/qualification
@@ -295,6 +300,30 @@ they do not authorize native qualification.
   calculation from the retained claim; no Sionna/native rerun in this card.
 - **Exit:** either a specific source defect and a separately versioned fix, or
   a documented unresolved statistical miss with evidence for the next protocol.
+
+**Disposition recorded 2026-11-11:** source review found no arithmetic defect.
+The implied frozen error is 3.580059 standard errors against a 3.420527
+simultaneous critical value; the miss remains a failure, with stochastic
+variation versus simulator/reference mismatch unresolved. See
+`docs/research/G4_CDL_E_FROZEN_MISS_REVIEW_2026-11-11.md`. The five dependency-
+light oracle checks pass. No native rerun or result/threshold edit was made.
+
+#### M1.G4_CDL_E_FRESH_SEED_REPLICATION_PROTOCOL — preregister without running
+
+- **Requirements:** `PKG05-024` and the applicable G4 covariance criteria.
+- **Dependencies:** complete the G4 gate crosswalk; audit all frozen G4 seed
+  rosters and reserve independent seeds; pin the exact test, ETSI fixture,
+  Sionna version and execution environment.
+- **Deliverable:** a separately versioned, pre-outcome protocol for the named
+  CDL-E setup. Freeze the seed roster, draw count, 16 covariance coordinates,
+  simultaneous 99% interval and 0.05 half-width ceiling; require complete
+  draw/coordinate artifacts and independent recomputation. Preserve the
+  original failure as a separate immutable result.
+- **Verification:** protocol/schema/seed-collision checks only. Native execution
+  is a later, separately authorized qualification action and must not occur
+  until the protocol and environment are frozen.
+- **Closure:** a valid preregistration artifact exists; it does not change G4
+  status and does not imply the replication passed.
 
 #### M1.SCENE_FAMILY_REGISTRY — connect planned scene families to split candidates
 
