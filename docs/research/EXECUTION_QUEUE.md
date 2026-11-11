@@ -300,9 +300,12 @@ motion interpolation, and independent-site registry evidence remain open.
 `E01.DS.GATES.G2` now has fifteen criterion-level dispositions. The selected
 path, analytical-channel, RT-to-NR contract, adapter, and storage suite exits
 0; native path/CFR equality, absolute link-budget scale, and representative
-MIMO/polarization comparisons remain open. Next audit G4–G8 against the
-governing plan and their source/test paths; then reconcile research phases,
-Appendix E, and the full crosswalk.
+MIMO/polarization comparisons remain open. `E01.DS.GATES.G4` now records
+bounded standardized profile/reference and statistical coverage. G4.07 remains
+partial, and its native suites have been deferred until the implementation
+pass is complete. Next audit G5–G8 against the governing plan and their source
+and test paths; then reconcile research phases, Appendix E, and the full
+crosswalk.
 Each package batch is the fixed set of `PKGnn-*` IDs in the ledger and closes
 only after every row has inspected source/test integration, implementation
 state, exact verification, qualification state, dependencies and closure
@@ -370,6 +373,24 @@ complete one-to-one requirement coverage and resolves dependencies/blockers.
   pending G0 runtime admission and separate physical evidence.
 - **Next:** audit G4–G8; perform only the bounded native checks after G0.02
   passes and within the frozen supported envelope.
+
+#### E01.DS.GATES.G4 — standardized model conformance (source audit complete 2026-11-11)
+
+- **Requirements:** `DS.G4`, `DS.G4.01`–`DS.G4.09`.
+- **Delivered:** criterion records now link to TDL/CDL resource adapters,
+  independent reference tests, statistical families, standardized-record
+  admission, and profile-proxy separation. Bounded finite profile coverage is
+  stated separately from broad conformance and geometric-RT truth.
+- **Verification:** source/reference paths validated with
+  `uv run --no-sync --locked python -m scripts.validate_requirement_ledger`.
+  The G4 native suites were intentionally deferred; this is not a qualification
+  result.
+- **Disposition:** G4 remains `not_qualified`; G4.07 is partial because its
+  statistical checks cover named finite profiles/configurations, not the full
+  supported continuous law, arbitrary arrays, or physical RT.
+- **Next:** audit G5–G8 and finish dependency-ready implementation. After that
+  stage, run the exact G4 criterion suites on the pinned Halti environment and
+  reconcile any misses without broadening their scope.
 
 For every batch, retain the exact source files inspected in that ledger row;
 do not copy the whole chronological status history. If a row is already
