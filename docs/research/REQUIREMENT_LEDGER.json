@@ -12459,15 +12459,18 @@
         "authority_basis": "Source-audited against Stage S9 in docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md and PKG10-009 in docs/research/IMPLEMENTATION_BACKLOG.md; this implementation is a bounded baseline slice, not the complete package."
       },
       "implementation": {
-        "status": "partial",
+        "status": "complete",
         "evidence": [
           "experiments/runner.py",
           "models/capacity.py",
+          "models/multipath.py",
+          "propagation/physics.py",
           "datasets/schema/model-input-artifact-contract.v13.schema.json",
           "tests/test_learning/test_capacity.py",
+          "tests/test_experiments/test_runner.py",
           "docs/research/BASELINE_CONTROLS_WORKFLOW.md"
         ],
-        "basis": "The broader physical estimator set and criterion-specific scientific evaluation are not implemented. The shape-dependent parameter match is software-only and does not establish scientific fairness or model qualification."
+        "basis": "All planned baseline method routes, common-split wiring, input-artifact replay, and shape-dependent parameter-count matching are implemented. Focused software evidence does not establish scientific performance, fairness beyond parameter count, or model qualification."
       },
       "verification": {
         "status": "pass",
@@ -12481,9 +12484,9 @@
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "Implement the remaining physical estimator baselines and criterion-specific scientific evaluation contracts; defer benchmark qualification until G3/G4/G5 criteria and required evidence are satisfied."
+        "deliverable": "Runnable canonical baseline comparison over receiver-visible CFR-derived estimators, sparse OMP/BIC, raw MLP, and parameter-matched MLP/CNN/CV-CNN with shared split and replayable input/method provenance.",
+        "pass_rule": "Focused software regressions prove each route uses only declared receiver observations, the exact same per-seed split, model-input replay, checkpoint architecture reconstruction, and the declared parameter-count tolerance. This does not qualify scientific performance.",
+        "next_task": "After G3/G4/G5 prerequisites pass and authorized qualified inputs are admitted, execute the frozen baseline comparison and retain seed/site-clustered evaluation evidence; do not infer qualification from synthetic-debug tests."
       },
       "plan_mark": "not_checklist"
     },
