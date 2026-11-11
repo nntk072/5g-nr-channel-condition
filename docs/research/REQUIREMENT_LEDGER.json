@@ -10575,32 +10575,47 @@
       "backlog_aliases": [
         "PKG08-018"
       ],
-      "requirement": "Add a fail-closed inference-input field-roster audit for legacy CFR, analytical multipath, standardized-channel, and NR receiver adapters; wire it into each data-object boundary and expose it for extension. Analytical samples admit only frequency coordinates and observed CFR; the separate path oracle is rejected by the model-input audit. The standard-profile holdout path derives CFR features through the same audited input view, while keeping the explicitly labeled metadata-only proxy control separate. Regression definitions reject unregistered payloads and exercise the registered contracts; validation is deferred. This closes those data-object routes only; full feature-transform, experiment, training, and inference-artifact leakage review remains open.",
+      "requirement": " a fail-closed inference-input field-roster audit for legacy CFR, analytical multipath, standardized-channel, and NR receiver adapters; wire it into each data-object boundary and expose it for extension. Analytical samples admit only frequency coordinates and observed CFR; the separate path oracle is rejected by the model-input audit. The standard-profile holdout path derives CFR features through the same audited input view, while keeping the explicitly labeled metadata-only proxy control separate. Regression definitions reject unregistered payloads and exercise the registered contracts; validation is deferred. This closes those data-object routes only; focused adapter, audit, and profile-holdout tests pass (10 selected tests), while full feature-transform, experiment, training, and inference-artifact leakage review remains open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Legacy CFR, analytical multipath, standardized-channel and NR model-input data-object boundaries plus the named profile-holdout consumer; full feature/runner/training/inference leakage audit remains in PKG08-017.",
+        "authority_basis": "Mandatory implementation-backlog input-integrity requirement; completion is limited to the explicitly named adapters and consumer."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "datasets/model_input_audit.py",
+          "datasets/channel.py",
+          "datasets/analytical.py",
+          "datasets/observations.py",
+          "datasets/standardized.py",
+          "datasets/nr.py",
+          "experiments/profile_holdout.py",
+          "tests/test_datasets/test_model_input_audit.py",
+          "tests/test_datasets/test_analytical.py",
+          "tests/test_datasets/test_nr.py",
+          "tests/test_datasets/test_standardized.py",
+          "tests/test_experiments/test_profile_holdout.py"
+        ],
+        "basis": "The shared audit requires exact registered class identity and field rosters for all four named adapters, rejects arbitrary/target-bearing payloads and analytical oracle objects, and checks arrays/config scalars. Adapter constructors expose only audited views; profile holdout consumes the audited normalized-CFR view and isolates its metadata proxy. This does not audit all training and inference paths."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_datasets/test_model_input_audit.py tests/test_datasets/test_analytical.py tests/test_datasets/test_nr.py tests/test_datasets/test_standardized.py tests/test_experiments/test_profile_holdout.py -k 'model_input or model_inputs or noisy_cfr_observation_and_profile_proxy_target_are_separate or profile_proxy' (10 passed).",
+        "commit": "Focused verification run on 6cb7d08 worktree; broad leakage qualification remains open."
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [],
+      "dependencies": [
+        "PKG08-017"
+      ],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Registered, fail-closed model-input data-object contracts and named adapter/profile-holdout integration.",
+        "pass_rule": "Each named adapter admits only its exact inference field roster and declared value domains; unregistered/target/oracle payloads reject, and profile holdout uses the audited feature view.",
+        "next_task": "PKG08-019"
       },
       "plan_mark": "not_checklist"
     },

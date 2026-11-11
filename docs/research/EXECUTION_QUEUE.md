@@ -234,8 +234,9 @@ recorded as external blockers; `PKG08-016` has a complete software audit, with
 reviewer custody and evidence truth still external. The 219-test target/NR/
 storage slice, signature/tamper checks, and 40-test corpus-auditor module pass.
 `PKG08-017` remains partial after its scalar-boundary test slice (7 passed);
-its full closure depends on auditing `PKG08-018` through `PKG08-022`. Continue
-with those rows, then return to close or disposition `PKG08-017`, followed by
+its full closure depends on auditing `PKG08-018` through `PKG08-022`. `PKG08-018` is source-audited complete for its named data-object routes; 10
+focused adapter/profile-holdout tests pass. Continue with `PKG08-019` through
+`PKG08-022`, then return to close or disposition `PKG08-017`, followed by
 `PKG08-023` through `PKG08-039`,
 then packages 09–10, `E01.DS.GATES`, `E01.RS.PHASES`, `E01.RS.APPENDIX_E`, and
 `E01.CROSSWALK`.
