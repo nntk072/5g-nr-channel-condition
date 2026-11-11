@@ -105,6 +105,11 @@ def validate_requirement_ledger() -> dict[str, int]:
                 raise ValueError(
                     f"{row['requirement_id']} references missing authority {relative_path}"
                 )
+        for evidence_path in row["implementation"]["evidence"]:
+            if not (ROOT / evidence_path).is_file():
+                raise ValueError(
+                    f"{row['requirement_id']} references missing evidence {evidence_path}"
+                )
     return {
         "requirements": len(rows),
         "backlog_requirements": len(expected_backlog_ids),

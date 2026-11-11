@@ -1,7 +1,7 @@
 {
   "schema": "loslab.requirement-ledger.v1",
   "status_note": "Initial traceability index: all 182 backlog IDs, all 104 numbered unified-plan gate criteria, and 30 dataset/research gate or phase records. Except source-audited PKG00/01/02 rows, entries remain unreviewed. Checked plan boxes are preserved as source marks, never treated as implementation or scientific qualification. Feature-map heuristics do not determine ledger status.",
-  "source_checkpoint": "42e9d08 baseline; E00 37cc827; queue fb49282; PKG01 12eebb5; criterion ledger 9681d19; PKG03 audit 4e3174a",
+  "source_checkpoint": "42e9d08 baseline; E00 37cc827; queue fb49282; PKG01 12eebb5; criterion ledger 9681d19; PKG03 f3e5faf; PKG04 G3 audit ba34d1f",
   "requirements": [
     {
       "requirement_id": "DS.G0",
@@ -4844,8 +4844,7 @@
       "implementation": {
         "status": "absent",
         "evidence": [
-          "docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md#6.1 Master scene families — base and held-out",
-          "docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md#6.3 Independent site vs scene variant"
+          "docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md"
         ],
         "basis": "Source search found no canonical scene-family catalog or family-stratified scene sampler wired to generation. Existing Sionna scene names, episode family IDs and pilot candidate sampling do not provide this joined registry or demonstrate family coverage."
       },
@@ -5221,30 +5220,41 @@
       ],
       "requirement": "Require canonical, already-trimmed family, stratum, and path-episode labels in the shared acceptance-family builders and validator; reject padded identifiers rather than silently trimming or preserving aliases. Regression definitions cover family, stratum, and episode labels. Consolidated validation remains deferred; external provenance, reviewer authority, and scientific admission remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Require canonical, already-trimmed family, stratum, and path-episode labels in the shared acceptance-family builders and validator; reject padded identifiers rather than silently trimming or preserving aliases. Regression definitions cover family, stratum, and episode labels. Consolidated validation remains deferred; external provenance, reviewer authority, and scientific admission remain open.",
+        "authority_basis": "Unified plan §13 G3 acceptance contract plus the listed PKG04 implementation requirement. Preregistered contract/evaluator software is a prerequisite; actual qualification additionally requires task-specific scientific inputs and evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/g3_qualification_contract.py",
+          "evaluation/g3_joint_acceptance.py",
+          "datasets/schema/g3-qualification-run-contract.v4.schema.json",
+          "tests/test_evaluation/test_g3_qualification_contract.py"
+        ],
+        "basis": "Shared family labels are canonicalized/rejected at evaluator input and family builders; trust and scientific admission are separate."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_complex_csi.py tests/test_evaluation/test_g3_propagation_metrics.py tests/test_evaluation/test_g3_propagation_assurance.py tests/test_evaluation/test_g3_receiver_impact.py tests/test_evaluation/test_g3_receiver_assurance.py tests/test_evaluation/test_g3_path_equivalence.py tests/test_evaluation/test_g3_path_equivalence_assurance.py tests/test_evaluation/test_g3_material_calibration.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_joint_evaluation.py tests/test_evaluation/test_g3_joint_evidence_artifact.py tests/test_evaluation/test_g3_acquisition_package_verifier.py tests/test_evaluation/test_g3_signed_attestation.py tests/test_evaluation/test_g3_sample_size_planning.py tests/test_datasets/test_g3_acquisition_package_schema.py tests/test_datasets/test_g3_acquisition_package_v0_2.py tests/test_scripts/test_plan_g3_acquisition_design.py tests/test_scripts/test_verify_g3_acquisition_package.py tests/test_scripts/test_evaluate_g3_path_equivalence_roster.py",
+        "commit": "f3e5faf"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The focused G3 suite verifies software contracts only; no representative scientific qualification cohort was run."
+        ]
       },
-      "dependencies": [],
+      "dependencies": [
+        "DS.G3",
+        "DS.G5",
+        "DS.G8"
+      ],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Shared family labels are canonicalized/rejected at evaluator input and family builders; trust and scientific admission are separate.",
+        "pass_rule": "Software behavior passes the focused G3 contract suite. Do not convert this status to scientific qualification without the task-specific frozen external evidence and all acceptance criteria.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -5258,30 +5268,41 @@
       ],
       "requirement": "Define a frozen G3 qualification-run contract requiring candidate/challenger configurations, task scope, waveform/resources, link budget/noise floor, path-matching resolutions, acceptance-family/path-episode roster, branch-specific sampling units/counts, budget/cap accounting, and deterministic source identity. Contract and schema plus regression definitions are authored; execution and qualification remain deferred.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Define a frozen G3 qualification-run contract requiring candidate/challenger configurations, task scope, waveform/resources, link budget/noise floor, path-matching resolutions, acceptance-family/path-episode roster, branch-specific sampling units/counts, budget/cap accounting, and deterministic source identity. Contract and schema plus regression definitions are authored; execution and qualification remain deferred.",
+        "authority_basis": "Unified plan §13 G3 acceptance contract plus the listed PKG04 implementation requirement. Preregistered contract/evaluator software is a prerequisite; actual qualification additionally requires task-specific scientific inputs and evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/g3_qualification_contract.py",
+          "evaluation/g3_joint_acceptance.py",
+          "datasets/schema/g3-qualification-run-contract.v4.schema.json",
+          "tests/test_evaluation/test_g3_qualification_contract.py"
+        ],
+        "basis": "The frozen G3 run-contract and strict schema bind task, candidate/challenger, waveform/link budget, path matching, branch sampling, solver caps and source identity; the artifact remains NOT_QUALIFIED."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_complex_csi.py tests/test_evaluation/test_g3_propagation_metrics.py tests/test_evaluation/test_g3_propagation_assurance.py tests/test_evaluation/test_g3_receiver_impact.py tests/test_evaluation/test_g3_receiver_assurance.py tests/test_evaluation/test_g3_path_equivalence.py tests/test_evaluation/test_g3_path_equivalence_assurance.py tests/test_evaluation/test_g3_material_calibration.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_joint_evaluation.py tests/test_evaluation/test_g3_joint_evidence_artifact.py tests/test_evaluation/test_g3_acquisition_package_verifier.py tests/test_evaluation/test_g3_signed_attestation.py tests/test_evaluation/test_g3_sample_size_planning.py tests/test_datasets/test_g3_acquisition_package_schema.py tests/test_datasets/test_g3_acquisition_package_v0_2.py tests/test_scripts/test_plan_g3_acquisition_design.py tests/test_scripts/test_verify_g3_acquisition_package.py tests/test_scripts/test_evaluate_g3_path_equivalence_roster.py",
+        "commit": "f3e5faf"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The focused G3 suite verifies software contracts only; no representative scientific qualification cohort was run."
+        ]
       },
-      "dependencies": [],
+      "dependencies": [
+        "DS.G3",
+        "DS.G5",
+        "DS.G8"
+      ],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "The frozen G3 run-contract and strict schema bind task, candidate/challenger, waveform/link budget, path matching, branch sampling, solver caps and source identity; the artifact remains NOT_QUALIFIED.",
+        "pass_rule": "Software behavior passes the focused G3 contract suite. Do not convert this status to scientific qualification without the task-specific frozen external evidence and all acceptance criteria.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -5295,30 +5316,43 @@
       ],
       "requirement": "Bind the frozen contract digest into the joint evaluator run receipt and cross-check its acceptance family, receiver configurations, path roster, and source bundle against the exact evaluator input/source roster. A pre-run source-inventory API/CLI exposes the digest; receipts remain `NOT_QUALIFIED` and contract absence still permits diagnostics.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Bind the frozen contract digest into the joint evaluator run receipt and cross-check its acceptance family, receiver configurations, path roster, and source bundle against the exact evaluator input/source roster. A pre-run source-inventory API/CLI exposes the digest; receipts remain `NOT_QUALIFIED` and contract absence still permits diagnostics.",
+        "authority_basis": "Unified plan §13 G3 acceptance contract plus the listed PKG04 implementation requirement. Preregistered contract/evaluator software is a prerequisite; actual qualification additionally requires task-specific scientific inputs and evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "evaluation/g3_joint_evidence_run_manifest.py",
+          "evaluation/g3_joint_evaluation.py",
+          "evaluation/g3_joint_evidence_artifact.py",
+          "tests/test_evaluation/test_g3_joint_evidence_artifact.py"
+        ],
+        "basis": "The run-manifest path binds the contract digest and input/source roster for strict runs; diagnostics may still run without preregistration and qualification remains NOT_QUALIFIED."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_complex_csi.py tests/test_evaluation/test_g3_propagation_metrics.py tests/test_evaluation/test_g3_propagation_assurance.py tests/test_evaluation/test_g3_receiver_impact.py tests/test_evaluation/test_g3_receiver_assurance.py tests/test_evaluation/test_g3_path_equivalence.py tests/test_evaluation/test_g3_path_equivalence_assurance.py tests/test_evaluation/test_g3_material_calibration.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_joint_evaluation.py tests/test_evaluation/test_g3_joint_evidence_artifact.py tests/test_evaluation/test_g3_acquisition_package_verifier.py tests/test_evaluation/test_g3_signed_attestation.py tests/test_evaluation/test_g3_sample_size_planning.py tests/test_datasets/test_g3_acquisition_package_schema.py tests/test_datasets/test_g3_acquisition_package_v0_2.py tests/test_scripts/test_plan_g3_acquisition_design.py tests/test_scripts/test_verify_g3_acquisition_package.py tests/test_scripts/test_evaluate_g3_path_equivalence_roster.py",
+        "commit": "f3e5faf"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The focused G3 suite verifies software contracts only; no representative scientific qualification cohort was run."
+        ]
       },
-      "dependencies": [],
-      "external_blockers": [],
+      "dependencies": [
+        "DS.G3",
+        "DS.G5",
+        "DS.G8"
+      ],
+      "external_blockers": [
+        "independent signer/keyring custody and trusted timestamp/runtime/source authority"
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "The run-manifest path binds the contract digest and input/source roster for strict runs; diagnostics may still run without preregistration and qualification remains NOT_QUALIFIED.",
+        "pass_rule": "Software behavior passes the focused G3 contract suite. Do not convert this status to scientific qualification without the task-specific frozen external evidence and all acceptance criteria.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -5332,30 +5366,43 @@
       ],
       "requirement": "Version the G3 run-manifest contract through v3: v2 binds `pyproject.toml` and `uv.lock`; v3 additionally records the pre-scoring Python/platform/machine, numerical/Sionna package versions, and source revision and adds the runtime provider/schema to its frozen source bundle. Retain v1/v2 schema/source roster readers. Regression definitions cover new capture and v2 replay; validation is deferred. Installed binary, loaded-library, hardware, trust-custody, and runtime-attestation evidence remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Version the G3 run-manifest contract through v3: v2 binds `pyproject.toml` and `uv.lock`; v3 additionally records the pre-scoring Python/platform/machine, numerical/Sionna package versions, and source revision and adds the runtime provider/schema to its frozen source bundle. Retain v1/v2 schema/source roster readers. Regression definitions cover new capture and v2 replay; validation is deferred. Installed binary, loaded-library, hardware, trust-custody, and runtime-attestation evidence remain open.",
+        "authority_basis": "Unified plan §13 G3 acceptance contract plus the listed PKG04 implementation requirement. Preregistered contract/evaluator software is a prerequisite; actual qualification additionally requires task-specific scientific inputs and evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/g3_joint_evidence_run_manifest.py",
+          "evaluation/g3_joint_evaluation.py",
+          "evaluation/g3_joint_evidence_artifact.py",
+          "tests/test_evaluation/test_g3_joint_evidence_artifact.py"
+        ],
+        "basis": "Manifest v1–v3 source/schema compatibility and v2/v3 identity are implemented; installed runtime, loaded-library, hardware and trust truth remain external."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_complex_csi.py tests/test_evaluation/test_g3_propagation_metrics.py tests/test_evaluation/test_g3_propagation_assurance.py tests/test_evaluation/test_g3_receiver_impact.py tests/test_evaluation/test_g3_receiver_assurance.py tests/test_evaluation/test_g3_path_equivalence.py tests/test_evaluation/test_g3_path_equivalence_assurance.py tests/test_evaluation/test_g3_material_calibration.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_joint_evaluation.py tests/test_evaluation/test_g3_joint_evidence_artifact.py tests/test_evaluation/test_g3_acquisition_package_verifier.py tests/test_evaluation/test_g3_signed_attestation.py tests/test_evaluation/test_g3_sample_size_planning.py tests/test_datasets/test_g3_acquisition_package_schema.py tests/test_datasets/test_g3_acquisition_package_v0_2.py tests/test_scripts/test_plan_g3_acquisition_design.py tests/test_scripts/test_verify_g3_acquisition_package.py tests/test_scripts/test_evaluate_g3_path_equivalence_roster.py",
+        "commit": "f3e5faf"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The focused G3 suite verifies software contracts only; no representative scientific qualification cohort was run."
+        ]
       },
-      "dependencies": [],
-      "external_blockers": [],
+      "dependencies": [
+        "DS.G3",
+        "DS.G5",
+        "DS.G8"
+      ],
+      "external_blockers": [
+        "independent signer/keyring custody and trusted timestamp/runtime/source authority"
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Manifest v1–v3 source/schema compatibility and v2/v3 identity are implemented; installed runtime, loaded-library, hardware and trust truth remain external.",
+        "pass_rule": "Software behavior passes the focused G3 contract suite. Do not convert this status to scientific qualification without the task-specific frozen external evidence and all acceptance criteria.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -5369,30 +5416,41 @@
       ],
       "requirement": "Add a contract-bound evaluation entry point that rejects missing/mismatched preregistration before any evaluator branch executes and writes a replay receipt. Its output is numerical-only and `NOT_QUALIFIED`.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Add a contract-bound evaluation entry point that rejects missing/mismatched preregistration before any evaluator branch executes and writes a replay receipt. Its output is numerical-only and `NOT_QUALIFIED`.",
+        "authority_basis": "Unified plan §13 G3 acceptance contract plus the listed PKG04 implementation requirement. Preregistered contract/evaluator software is a prerequisite; actual qualification additionally requires task-specific scientific inputs and evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/g3_joint_evidence_run_manifest.py",
+          "evaluation/g3_joint_evaluation.py",
+          "evaluation/g3_joint_evidence_artifact.py",
+          "tests/test_evaluation/test_g3_joint_evidence_artifact.py"
+        ],
+        "basis": "Contract-bound evaluation rejects mismatched preregistration before scored branches and emits a numerical-only receipt; no receipt is scientific qualification."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_complex_csi.py tests/test_evaluation/test_g3_propagation_metrics.py tests/test_evaluation/test_g3_propagation_assurance.py tests/test_evaluation/test_g3_receiver_impact.py tests/test_evaluation/test_g3_receiver_assurance.py tests/test_evaluation/test_g3_path_equivalence.py tests/test_evaluation/test_g3_path_equivalence_assurance.py tests/test_evaluation/test_g3_material_calibration.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_joint_evaluation.py tests/test_evaluation/test_g3_joint_evidence_artifact.py tests/test_evaluation/test_g3_acquisition_package_verifier.py tests/test_evaluation/test_g3_signed_attestation.py tests/test_evaluation/test_g3_sample_size_planning.py tests/test_datasets/test_g3_acquisition_package_schema.py tests/test_datasets/test_g3_acquisition_package_v0_2.py tests/test_scripts/test_plan_g3_acquisition_design.py tests/test_scripts/test_verify_g3_acquisition_package.py tests/test_scripts/test_evaluate_g3_path_equivalence_roster.py",
+        "commit": "f3e5faf"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The focused G3 suite verifies software contracts only; no representative scientific qualification cohort was run."
+        ]
       },
-      "dependencies": [],
+      "dependencies": [
+        "DS.G3",
+        "DS.G5",
+        "DS.G8"
+      ],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Contract-bound evaluation rejects mismatched preregistration before scored branches and emits a numerical-only receipt; no receipt is scientific qualification.",
+        "pass_rule": "Software behavior passes the focused G3 contract suite. Do not convert this status to scientific qualification without the task-specific frozen external evidence and all acceptance criteria.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -5406,30 +5464,43 @@
       ],
       "requirement": "Add optional detached OpenSSH signature verification for exact G3 joint run-manifest bytes against a caller-supplied allowed-signers file and dedicated namespace. Record signer, namespace, signature, and trust-file digests while keeping the receipt `NOT_QUALIFIED`; authorized scientific reviewer roles and trust-file custody remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Add optional detached OpenSSH signature verification for exact G3 joint run-manifest bytes against a caller-supplied allowed-signers file and dedicated namespace. Record signer, namespace, signature, and trust-file digests while keeping the receipt `NOT_QUALIFIED`; authorized scientific reviewer roles and trust-file custody remain open.",
+        "authority_basis": "Unified plan §13 G3 acceptance contract plus the listed PKG04 implementation requirement. Preregistered contract/evaluator software is a prerequisite; actual qualification additionally requires task-specific scientific inputs and evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/g3_joint_evidence_run_manifest.py",
+          "evaluation/g3_acquisition_package.py",
+          "tests/test_evaluation/test_g3_signed_attestation.py",
+          "tests/test_evaluation/test_g3_run_report_signature.py"
+        ],
+        "basis": "Exact-byte OpenSSH verification is implemented under a dedicated namespace; reviewer independence and trust-file custody remain external."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_complex_csi.py tests/test_evaluation/test_g3_propagation_metrics.py tests/test_evaluation/test_g3_propagation_assurance.py tests/test_evaluation/test_g3_receiver_impact.py tests/test_evaluation/test_g3_receiver_assurance.py tests/test_evaluation/test_g3_path_equivalence.py tests/test_evaluation/test_g3_path_equivalence_assurance.py tests/test_evaluation/test_g3_material_calibration.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_joint_evaluation.py tests/test_evaluation/test_g3_joint_evidence_artifact.py tests/test_evaluation/test_g3_acquisition_package_verifier.py tests/test_evaluation/test_g3_signed_attestation.py tests/test_evaluation/test_g3_sample_size_planning.py tests/test_datasets/test_g3_acquisition_package_schema.py tests/test_datasets/test_g3_acquisition_package_v0_2.py tests/test_scripts/test_plan_g3_acquisition_design.py tests/test_scripts/test_verify_g3_acquisition_package.py tests/test_scripts/test_evaluate_g3_path_equivalence_roster.py",
+        "commit": "f3e5faf"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The focused G3 suite verifies software contracts only; no representative scientific qualification cohort was run."
+        ]
       },
-      "dependencies": [],
-      "external_blockers": [],
+      "dependencies": [
+        "DS.G3",
+        "DS.G5",
+        "DS.G8"
+      ],
+      "external_blockers": [
+        "independent signer/keyring custody and trusted timestamp/runtime/source authority"
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Exact-byte OpenSSH verification is implemented under a dedicated namespace; reviewer independence and trust-file custody remain external.",
+        "pass_rule": "Software behavior passes the focused G3 contract suite. Do not convert this status to scientific qualification without the task-specific frozen external evidence and all acceptance criteria.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -5443,30 +5514,43 @@
       ],
       "requirement": "Add optional external role/purpose authorization for the verified run-manifest signer; bind the policy ID and digest into the verification report while retaining `NOT_QUALIFIED`. Role-policy regression definitions are authored; external policy custody/governance and scientific qualification remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Add optional external role/purpose authorization for the verified run-manifest signer; bind the policy ID and digest into the verification report while retaining `NOT_QUALIFIED`. Role-policy regression definitions are authored; external policy custody/governance and scientific qualification remain open.",
+        "authority_basis": "Unified plan §13 G3 acceptance contract plus the listed PKG04 implementation requirement. Preregistered contract/evaluator software is a prerequisite; actual qualification additionally requires task-specific scientific inputs and evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/g3_joint_evidence_run_manifest.py",
+          "evaluation/g3_acquisition_package.py",
+          "tests/test_evaluation/test_g3_signed_attestation.py",
+          "tests/test_evaluation/test_g3_run_report_signature.py"
+        ],
+        "basis": "External signer-role/purpose policy is verified and bound; external policy custody/governance remain open."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_complex_csi.py tests/test_evaluation/test_g3_propagation_metrics.py tests/test_evaluation/test_g3_propagation_assurance.py tests/test_evaluation/test_g3_receiver_impact.py tests/test_evaluation/test_g3_receiver_assurance.py tests/test_evaluation/test_g3_path_equivalence.py tests/test_evaluation/test_g3_path_equivalence_assurance.py tests/test_evaluation/test_g3_material_calibration.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_joint_evaluation.py tests/test_evaluation/test_g3_joint_evidence_artifact.py tests/test_evaluation/test_g3_acquisition_package_verifier.py tests/test_evaluation/test_g3_signed_attestation.py tests/test_evaluation/test_g3_sample_size_planning.py tests/test_datasets/test_g3_acquisition_package_schema.py tests/test_datasets/test_g3_acquisition_package_v0_2.py tests/test_scripts/test_plan_g3_acquisition_design.py tests/test_scripts/test_verify_g3_acquisition_package.py tests/test_scripts/test_evaluate_g3_path_equivalence_roster.py",
+        "commit": "f3e5faf"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The focused G3 suite verifies software contracts only; no representative scientific qualification cohort was run."
+        ]
       },
-      "dependencies": [],
-      "external_blockers": [],
+      "dependencies": [
+        "DS.G3",
+        "DS.G5",
+        "DS.G8"
+      ],
+      "external_blockers": [
+        "independent signer/keyring custody and trusted timestamp/runtime/source authority"
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "External signer-role/purpose policy is verified and bound; external policy custody/governance remain open.",
+        "pass_rule": "Software behavior passes the focused G3 contract suite. Do not convert this status to scientific qualification without the task-specific frozen external evidence and all acceptance criteria.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -5480,30 +5564,43 @@
       ],
       "requirement": "Give the G3 run-manifest verification report a strict v1 schema with a digest of the exact schema bytes, validate every verifier result against it, and add `--report-output` for durable no-overwrite JSON publication. Reports remain `NOT_QUALIFIED`; the schema and persisted receipt improve reproducibility but do not add scientific admission or report-signature authority. A focused CLI round trip verifies schema identity and overwrite refusal.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Give the G3 run-manifest verification report a strict v1 schema with a digest of the exact schema bytes, validate every verifier result against it, and add `--report-output` for durable no-overwrite JSON publication. Reports remain `NOT_QUALIFIED`; the schema and persisted receipt improve reproducibility but do not add scientific admission or report-signature authority. A focused CLI round trip verifies schema identity and overwrite refusal.",
+        "authority_basis": "Unified plan §13 G3 acceptance contract plus the listed PKG04 implementation requirement. Preregistered contract/evaluator software is a prerequisite; actual qualification additionally requires task-specific scientific inputs and evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/g3_joint_evidence_run_manifest.py",
+          "evaluation/g3_acquisition_package.py",
+          "tests/test_evaluation/test_g3_signed_attestation.py",
+          "tests/test_evaluation/test_g3_run_report_signature.py"
+        ],
+        "basis": "Strict digest-bound report schema and durable no-overwrite output are implemented."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_complex_csi.py tests/test_evaluation/test_g3_propagation_metrics.py tests/test_evaluation/test_g3_propagation_assurance.py tests/test_evaluation/test_g3_receiver_impact.py tests/test_evaluation/test_g3_receiver_assurance.py tests/test_evaluation/test_g3_path_equivalence.py tests/test_evaluation/test_g3_path_equivalence_assurance.py tests/test_evaluation/test_g3_material_calibration.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_joint_evaluation.py tests/test_evaluation/test_g3_joint_evidence_artifact.py tests/test_evaluation/test_g3_acquisition_package_verifier.py tests/test_evaluation/test_g3_signed_attestation.py tests/test_evaluation/test_g3_sample_size_planning.py tests/test_datasets/test_g3_acquisition_package_schema.py tests/test_datasets/test_g3_acquisition_package_v0_2.py tests/test_scripts/test_plan_g3_acquisition_design.py tests/test_scripts/test_verify_g3_acquisition_package.py tests/test_scripts/test_evaluate_g3_path_equivalence_roster.py",
+        "commit": "f3e5faf"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The focused G3 suite verifies software contracts only; no representative scientific qualification cohort was run."
+        ]
       },
-      "dependencies": [],
-      "external_blockers": [],
+      "dependencies": [
+        "DS.G3",
+        "DS.G5",
+        "DS.G8"
+      ],
+      "external_blockers": [
+        "independent signer/keyring custody and trusted timestamp/runtime/source authority"
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Strict digest-bound report schema and durable no-overwrite output are implemented.",
+        "pass_rule": "Software behavior passes the focused G3 contract suite. Do not convert this status to scientific qualification without the task-specific frozen external evidence and all acceptance criteria.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -5517,30 +5614,43 @@
       ],
       "requirement": "Add opt-in strict signed-reviewer admission to G3 run-manifest verification: require a v3 receipt, detached receipt signature, separately signed signer-role policy, `independent_reviewer` authorization, and attached frozen contract before reporting input-scoped replay. Results remain `NOT_QUALIFIED`; runtime truth, measurement provenance, external trust custody, and scientific admission remain open. Three focused signature/admission regressions, Ruff check, and Python compilation pass. File-wide Ruff format checks still surface pre-existing differences in the active files.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Add opt-in strict signed-reviewer admission to G3 run-manifest verification: require a v3 receipt, detached receipt signature, separately signed signer-role policy, `independent_reviewer` authorization, and attached frozen contract before reporting input-scoped replay. Results remain `NOT_QUALIFIED`; runtime truth, measurement provenance, external trust custody, and scientific admission remain open. Three focused signature/admission regressions, Ruff check, and Python compilation pass. File-wide Ruff format checks still surface pre-existing differences in the active files.",
+        "authority_basis": "Unified plan §13 G3 acceptance contract plus the listed PKG04 implementation requirement. Preregistered contract/evaluator software is a prerequisite; actual qualification additionally requires task-specific scientific inputs and evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/g3_joint_evidence_run_manifest.py",
+          "evaluation/g3_acquisition_package.py",
+          "tests/test_evaluation/test_g3_signed_attestation.py",
+          "tests/test_evaluation/test_g3_run_report_signature.py"
+        ],
+        "basis": "Strict reviewer admission requires a signed v3 receipt, separate role policy and frozen contract, but reports remain NOT_QUALIFIED absent independent trust/evidence."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_complex_csi.py tests/test_evaluation/test_g3_propagation_metrics.py tests/test_evaluation/test_g3_propagation_assurance.py tests/test_evaluation/test_g3_receiver_impact.py tests/test_evaluation/test_g3_receiver_assurance.py tests/test_evaluation/test_g3_path_equivalence.py tests/test_evaluation/test_g3_path_equivalence_assurance.py tests/test_evaluation/test_g3_material_calibration.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_joint_evaluation.py tests/test_evaluation/test_g3_joint_evidence_artifact.py tests/test_evaluation/test_g3_acquisition_package_verifier.py tests/test_evaluation/test_g3_signed_attestation.py tests/test_evaluation/test_g3_sample_size_planning.py tests/test_datasets/test_g3_acquisition_package_schema.py tests/test_datasets/test_g3_acquisition_package_v0_2.py tests/test_scripts/test_plan_g3_acquisition_design.py tests/test_scripts/test_verify_g3_acquisition_package.py tests/test_scripts/test_evaluate_g3_path_equivalence_roster.py",
+        "commit": "f3e5faf"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The focused G3 suite verifies software contracts only; no representative scientific qualification cohort was run."
+        ]
       },
-      "dependencies": [],
-      "external_blockers": [],
+      "dependencies": [
+        "DS.G3",
+        "DS.G5",
+        "DS.G8"
+      ],
+      "external_blockers": [
+        "independent signer/keyring custody and trusted timestamp/runtime/source authority"
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Strict reviewer admission requires a signed v3 receipt, separate role policy and frozen contract, but reports remain NOT_QUALIFIED absent independent trust/evidence.",
+        "pass_rule": "Software behavior passes the focused G3 contract suite. Do not convert this status to scientific qualification without the task-specific frozen external evidence and all acceptance criteria.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -5554,30 +5664,43 @@
       ],
       "requirement": "Require the `split_preregistration` attestation subject roster to include the exact evaluator-bound split-manifest file, whose bytes are independently joined to the scorer input's embedded manifest by the package verifier. Verification also checks that the declared signing timestamp precedes every crosswalk-bound held-out acquisition timestamp, and reports the checked sample count and latest acquisition. The focused signed-attestation module passes 21 tests. Both checks cover declarations only: OpenSSH does not prove signing time, timestamp custody, or scientific split adequacy.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Require the `split_preregistration` attestation subject roster to include the exact evaluator-bound split-manifest file, whose bytes are independently joined to the scorer input's embedded manifest by the package verifier. Verification also checks that the declared signing timestamp precedes every crosswalk-bound held-out acquisition timestamp, and reports the checked sample count and latest acquisition. The focused signed-attestation module passes 21 tests. Both checks cover declarations only: OpenSSH does not prove signing time, timestamp custody, or scientific split adequacy.",
+        "authority_basis": "Unified plan §13 G3 acceptance contract plus the listed PKG04 implementation requirement. Preregistered contract/evaluator software is a prerequisite; actual qualification additionally requires task-specific scientific inputs and evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/g3_joint_evidence_run_manifest.py",
+          "evaluation/g3_acquisition_package.py",
+          "tests/test_evaluation/test_g3_signed_attestation.py",
+          "tests/test_evaluation/test_g3_run_report_signature.py"
+        ],
+        "basis": "Attestation subject/split manifest joins and declared-time chronology are enforced; declaration checks do not prove physical independence or trusted time."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_complex_csi.py tests/test_evaluation/test_g3_propagation_metrics.py tests/test_evaluation/test_g3_propagation_assurance.py tests/test_evaluation/test_g3_receiver_impact.py tests/test_evaluation/test_g3_receiver_assurance.py tests/test_evaluation/test_g3_path_equivalence.py tests/test_evaluation/test_g3_path_equivalence_assurance.py tests/test_evaluation/test_g3_material_calibration.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_joint_evaluation.py tests/test_evaluation/test_g3_joint_evidence_artifact.py tests/test_evaluation/test_g3_acquisition_package_verifier.py tests/test_evaluation/test_g3_signed_attestation.py tests/test_evaluation/test_g3_sample_size_planning.py tests/test_datasets/test_g3_acquisition_package_schema.py tests/test_datasets/test_g3_acquisition_package_v0_2.py tests/test_scripts/test_plan_g3_acquisition_design.py tests/test_scripts/test_verify_g3_acquisition_package.py tests/test_scripts/test_evaluate_g3_path_equivalence_roster.py",
+        "commit": "f3e5faf"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The focused G3 suite verifies software contracts only; no representative scientific qualification cohort was run."
+        ]
       },
-      "dependencies": [],
-      "external_blockers": [],
+      "dependencies": [
+        "DS.G3",
+        "DS.G5",
+        "DS.G8"
+      ],
+      "external_blockers": [
+        "independent signer/keyring custody and trusted timestamp/runtime/source authority"
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Attestation subject/split manifest joins and declared-time chronology are enforced; declaration checks do not prove physical independence or trusted time.",
+        "pass_rule": "Software behavior passes the focused G3 contract suite. Do not convert this status to scientific qualification without the task-specific frozen external evidence and all acceptance criteria.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -5591,30 +5714,41 @@
       ],
       "requirement": "Require the G3 joint evaluator's complex-CSI, propagation, receiver-impact, and path-equivalence branches to declare identical scene-family × LOS/NLOS coverage before any scorer runs; bind the exact path episode roster to family v4. Input v3 requires observed episode IDs in all four scene-based branches to equal that roster; v1/v2 remain legacy diagnostic inputs. Regression definitions cover declared-stratum and observed-episode drift. Material acquisition evidence, external trust/qualification, and validation remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Require the G3 joint evaluator's complex-CSI, propagation, receiver-impact, and path-equivalence branches to declare identical scene-family × LOS/NLOS coverage before any scorer runs; bind the exact path episode roster to family v4. Input v3 requires observed episode IDs in all four scene-based branches to equal that roster; v1/v2 remain legacy diagnostic inputs. Regression definitions cover declared-stratum and observed-episode drift. Material acquisition evidence, external trust/qualification, and validation remain open.",
+        "authority_basis": "Unified plan §13 G3 acceptance contract plus the listed PKG04 implementation requirement. Preregistered contract/evaluator software is a prerequisite; actual qualification additionally requires task-specific scientific inputs and evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/g3_joint_evidence_run_manifest.py",
+          "evaluation/g3_joint_evaluation.py",
+          "evaluation/g3_joint_evidence_artifact.py",
+          "tests/test_evaluation/test_g3_joint_evidence_artifact.py"
+        ],
+        "basis": "The evaluator requires consistent family/LOS roster coverage and exact path episode IDs across the four branches."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_complex_csi.py tests/test_evaluation/test_g3_propagation_metrics.py tests/test_evaluation/test_g3_propagation_assurance.py tests/test_evaluation/test_g3_receiver_impact.py tests/test_evaluation/test_g3_receiver_assurance.py tests/test_evaluation/test_g3_path_equivalence.py tests/test_evaluation/test_g3_path_equivalence_assurance.py tests/test_evaluation/test_g3_material_calibration.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_joint_evaluation.py tests/test_evaluation/test_g3_joint_evidence_artifact.py tests/test_evaluation/test_g3_acquisition_package_verifier.py tests/test_evaluation/test_g3_signed_attestation.py tests/test_evaluation/test_g3_sample_size_planning.py tests/test_datasets/test_g3_acquisition_package_schema.py tests/test_datasets/test_g3_acquisition_package_v0_2.py tests/test_scripts/test_plan_g3_acquisition_design.py tests/test_scripts/test_verify_g3_acquisition_package.py tests/test_scripts/test_evaluate_g3_path_equivalence_roster.py",
+        "commit": "f3e5faf"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The focused G3 suite verifies software contracts only; no representative scientific qualification cohort was run."
+        ]
       },
-      "dependencies": [],
+      "dependencies": [
+        "DS.G3",
+        "DS.G5",
+        "DS.G8"
+      ],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "The evaluator requires consistent family/LOS roster coverage and exact path episode IDs across the four branches.",
+        "pass_rule": "Software behavior passes the focused G3 contract suite. Do not convert this status to scientific qualification without the task-specific frozen external evidence and all acceptance criteria.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -5628,30 +5762,41 @@
       ],
       "requirement": "Add joint-evaluator input v3 with receiver scene/condition/episode IDs and require the observed episode set to equal the frozen path roster. Input v3 remains available for diagnostic replay; new contract-bound runs advance to v4, which additionally requires a row configuration ID and exact configuration digest matching the frozen candidate/challenger. Run-manifest source/schema binding and pre-score regression definitions are authored; validation is deferred. This binds declarations and rows, not receiver execution truth or G3 qualification.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Add joint-evaluator input v3 with receiver scene/condition/episode IDs and require the observed episode set to equal the frozen path roster. Input v3 remains available for diagnostic replay; new contract-bound runs advance to v4, which additionally requires a row configuration ID and exact configuration digest matching the frozen candidate/challenger. Run-manifest source/schema binding and pre-score regression definitions are authored; validation is deferred. This binds declarations and rows, not receiver execution truth or G3 qualification.",
+        "authority_basis": "Unified plan §13 G3 acceptance contract plus the listed PKG04 implementation requirement. Preregistered contract/evaluator software is a prerequisite; actual qualification additionally requires task-specific scientific inputs and evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/g3_joint_evidence_run_manifest.py",
+          "evaluation/g3_joint_evaluation.py",
+          "evaluation/g3_joint_evidence_artifact.py",
+          "tests/test_evaluation/test_g3_joint_evidence_artifact.py"
+        ],
+        "basis": "Input v3/v4 receiver episode/configuration identities and frozen contract joins are implemented; declared receiver execution is not independently proven."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_complex_csi.py tests/test_evaluation/test_g3_propagation_metrics.py tests/test_evaluation/test_g3_propagation_assurance.py tests/test_evaluation/test_g3_receiver_impact.py tests/test_evaluation/test_g3_receiver_assurance.py tests/test_evaluation/test_g3_path_equivalence.py tests/test_evaluation/test_g3_path_equivalence_assurance.py tests/test_evaluation/test_g3_material_calibration.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_joint_evaluation.py tests/test_evaluation/test_g3_joint_evidence_artifact.py tests/test_evaluation/test_g3_acquisition_package_verifier.py tests/test_evaluation/test_g3_signed_attestation.py tests/test_evaluation/test_g3_sample_size_planning.py tests/test_datasets/test_g3_acquisition_package_schema.py tests/test_datasets/test_g3_acquisition_package_v0_2.py tests/test_scripts/test_plan_g3_acquisition_design.py tests/test_scripts/test_verify_g3_acquisition_package.py tests/test_scripts/test_evaluate_g3_path_equivalence_roster.py",
+        "commit": "f3e5faf"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The focused G3 suite verifies software contracts only; no representative scientific qualification cohort was run."
+        ]
       },
-      "dependencies": [],
+      "dependencies": [
+        "DS.G3",
+        "DS.G5",
+        "DS.G8"
+      ],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Input v3/v4 receiver episode/configuration identities and frozen contract joins are implemented; declared receiver execution is not independently proven.",
+        "pass_rule": "Software behavior passes the focused G3 contract suite. Do not convert this status to scientific qualification without the task-specific frozen external evidence and all acceptance criteria.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -5665,30 +5810,41 @@
       ],
       "requirement": "Bind candidate/challenger configurations, waveform, and link-budget/noise declarations in evaluator-input v2/v3 to the frozen contract before scoring; require each receiver-impact record to carry the matching execution-context digest; retain exact-byte replay receipts and reject declaration/hash drift. Input v3 also joins receiver episodes to the frozen path roster. This is input integrity, not independent proof of runtime execution.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Bind candidate/challenger configurations, waveform, and link-budget/noise declarations in evaluator-input v2/v3 to the frozen contract before scoring; require each receiver-impact record to carry the matching execution-context digest; retain exact-byte replay receipts and reject declaration/hash drift. Input v3 also joins receiver episodes to the frozen path roster. This is input integrity, not independent proof of runtime execution.",
+        "authority_basis": "Unified plan §13 G3 acceptance contract plus the listed PKG04 implementation requirement. Preregistered contract/evaluator software is a prerequisite; actual qualification additionally requires task-specific scientific inputs and evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/g3_joint_evidence_run_manifest.py",
+          "evaluation/g3_joint_evaluation.py",
+          "evaluation/g3_joint_evidence_artifact.py",
+          "tests/test_evaluation/test_g3_joint_evidence_artifact.py"
+        ],
+        "basis": "Candidate/challenger, waveform, link budget and execution-context digests are joined before scoring."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_complex_csi.py tests/test_evaluation/test_g3_propagation_metrics.py tests/test_evaluation/test_g3_propagation_assurance.py tests/test_evaluation/test_g3_receiver_impact.py tests/test_evaluation/test_g3_receiver_assurance.py tests/test_evaluation/test_g3_path_equivalence.py tests/test_evaluation/test_g3_path_equivalence_assurance.py tests/test_evaluation/test_g3_material_calibration.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_joint_evaluation.py tests/test_evaluation/test_g3_joint_evidence_artifact.py tests/test_evaluation/test_g3_acquisition_package_verifier.py tests/test_evaluation/test_g3_signed_attestation.py tests/test_evaluation/test_g3_sample_size_planning.py tests/test_datasets/test_g3_acquisition_package_schema.py tests/test_datasets/test_g3_acquisition_package_v0_2.py tests/test_scripts/test_plan_g3_acquisition_design.py tests/test_scripts/test_verify_g3_acquisition_package.py tests/test_scripts/test_evaluate_g3_path_equivalence_roster.py",
+        "commit": "f3e5faf"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The focused G3 suite verifies software contracts only; no representative scientific qualification cohort was run."
+        ]
       },
-      "dependencies": [],
+      "dependencies": [
+        "DS.G3",
+        "DS.G5",
+        "DS.G8"
+      ],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Candidate/challenger, waveform, link budget and execution-context digests are joined before scoring.",
+        "pass_rule": "Software behavior passes the focused G3 contract suite. Do not convert this status to scientific qualification without the task-specific frozen external evidence and all acceptance criteria.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -5702,30 +5858,41 @@
       ],
       "requirement": "Require the frozen contract's path-equivalence coverage threshold to equal the shared acceptance-family criterion, which is checked against computed v5 reports and legacy v4 reports. Contract-bound raw-path comparisons also apply its frozen `coefficient_relative_tolerance` to coherent aggregate coefficients for matched receiver-relevant geometric classes using the symmetric relative denominator `max(|a|, |b|, tiny)`; a miss fails the episode and is replayed from the same run-manifest contract. Regression coverage confirms that geometry coverage cannot mask a coefficient-criterion failure. Results remain diagnostic-only; phase-reference truth and scientific qualification remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Require the frozen contract's path-equivalence coverage threshold to equal the shared acceptance-family criterion, which is checked against computed v5 reports and legacy v4 reports. Contract-bound raw-path comparisons also apply its frozen `coefficient_relative_tolerance` to coherent aggregate coefficients for matched receiver-relevant geometric classes using the symmetric relative denominator `max(|a|, |b|, tiny)`; a miss fails the episode and is replayed from the same run-manifest contract. Regression coverage confirms that geometry coverage cannot mask a coefficient-criterion failure. Results remain diagnostic-only; phase-reference truth and scientific qualification remain open.",
+        "authority_basis": "Unified plan §13 G3 acceptance contract plus the listed PKG04 implementation requirement. Preregistered contract/evaluator software is a prerequisite; actual qualification additionally requires task-specific scientific inputs and evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/g3_path_equivalence.py",
+          "evaluation/g3_path_equivalence_assurance.py",
+          "tests/test_evaluation/test_g3_path_equivalence.py",
+          "tests/test_evaluation/test_g3_path_equivalence_assurance.py"
+        ],
+        "basis": "Contract-frozen path-equivalence threshold and coherent aggregate coefficient tolerance are applied per episode; phase-reference truth remains open."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_complex_csi.py tests/test_evaluation/test_g3_propagation_metrics.py tests/test_evaluation/test_g3_propagation_assurance.py tests/test_evaluation/test_g3_receiver_impact.py tests/test_evaluation/test_g3_receiver_assurance.py tests/test_evaluation/test_g3_path_equivalence.py tests/test_evaluation/test_g3_path_equivalence_assurance.py tests/test_evaluation/test_g3_material_calibration.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_joint_evaluation.py tests/test_evaluation/test_g3_joint_evidence_artifact.py tests/test_evaluation/test_g3_acquisition_package_verifier.py tests/test_evaluation/test_g3_signed_attestation.py tests/test_evaluation/test_g3_sample_size_planning.py tests/test_datasets/test_g3_acquisition_package_schema.py tests/test_datasets/test_g3_acquisition_package_v0_2.py tests/test_scripts/test_plan_g3_acquisition_design.py tests/test_scripts/test_verify_g3_acquisition_package.py tests/test_scripts/test_evaluate_g3_path_equivalence_roster.py",
+        "commit": "f3e5faf"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The focused G3 suite verifies software contracts only; no representative scientific qualification cohort was run."
+        ]
       },
-      "dependencies": [],
+      "dependencies": [
+        "DS.G3",
+        "DS.G5",
+        "DS.G8"
+      ],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Contract-frozen path-equivalence threshold and coherent aggregate coefficient tolerance are applied per episode; phase-reference truth remains open.",
+        "pass_rule": "Software behavior passes the focused G3 contract suite. Do not convert this status to scientific qualification without the task-specific frozen external evidence and all acceptance criteria.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -5739,30 +5906,41 @@
       ],
       "requirement": "Preserve the frozen G3 v2 run contract for historical diagnostic receipts; add v3 with embedded design digest, family/stratum joins, branch count sufficiency, and scorer admission gated on complete powered-design status. Keep all contract outputs `NOT_QUALIFIED`; validation is deferred.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Preserve the frozen G3 v2 run contract for historical diagnostic receipts; add v3 with embedded design digest, family/stratum joins, branch count sufficiency, and scorer admission gated on complete powered-design status. Keep all contract outputs `NOT_QUALIFIED`; validation is deferred.",
+        "authority_basis": "Unified plan §13 G3 acceptance contract plus the listed PKG04 implementation requirement. Preregistered contract/evaluator software is a prerequisite; actual qualification additionally requires task-specific scientific inputs and evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/g3_qualification_contract.py",
+          "evaluation/g3_joint_acceptance.py",
+          "datasets/schema/g3-qualification-run-contract.v4.schema.json",
+          "tests/test_evaluation/test_g3_qualification_contract.py"
+        ],
+        "basis": "Historical v2 and new v3 powered-design contracts are versioned; no run may qualify without complete powered-design status."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_complex_csi.py tests/test_evaluation/test_g3_propagation_metrics.py tests/test_evaluation/test_g3_propagation_assurance.py tests/test_evaluation/test_g3_receiver_impact.py tests/test_evaluation/test_g3_receiver_assurance.py tests/test_evaluation/test_g3_path_equivalence.py tests/test_evaluation/test_g3_path_equivalence_assurance.py tests/test_evaluation/test_g3_material_calibration.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_joint_evaluation.py tests/test_evaluation/test_g3_joint_evidence_artifact.py tests/test_evaluation/test_g3_acquisition_package_verifier.py tests/test_evaluation/test_g3_signed_attestation.py tests/test_evaluation/test_g3_sample_size_planning.py tests/test_datasets/test_g3_acquisition_package_schema.py tests/test_datasets/test_g3_acquisition_package_v0_2.py tests/test_scripts/test_plan_g3_acquisition_design.py tests/test_scripts/test_verify_g3_acquisition_package.py tests/test_scripts/test_evaluate_g3_path_equivalence_roster.py",
+        "commit": "f3e5faf"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The focused G3 suite verifies software contracts only; no representative scientific qualification cohort was run."
+        ]
       },
-      "dependencies": [],
+      "dependencies": [
+        "DS.G3",
+        "DS.G5",
+        "DS.G8"
+      ],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Historical v2 and new v3 powered-design contracts are versioned; no run may qualify without complete powered-design status.",
+        "pass_rule": "Software behavior passes the focused G3 contract suite. Do not convert this status to scientific qualification without the task-specific frozen external evidence and all acceptance criteria.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -5776,30 +5954,44 @@
       ],
       "requirement": "Compose all four evaluator-aligned G3 assurance outputs with family-bound branch planning into a per-stratum design artifact, preserving distinct sampling units and the exact path census. Bind material stratum IDs to the family roster; verify assurance candidates and per-stratum bounds; combine branch assurance with a cross-branch union bound against the joint study target; check angular maximum against the selected material count; emit it from the v5 acquisition-design CLI as report v6. Keep scenario assumptions explicit and status `NOT_QUALIFIED`; validation is deferred.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Compose all four evaluator-aligned G3 assurance outputs with family-bound branch planning into a per-stratum design artifact, preserving distinct sampling units and the exact path census. Bind material stratum IDs to the family roster; verify assurance candidates and per-stratum bounds; combine branch assurance with a cross-branch union bound against the joint study target; check angular maximum against the selected material count; emit it from the v5 acquisition-design CLI as report v6. Keep scenario assumptions explicit and status `NOT_QUALIFIED`; validation is deferred.",
+        "authority_basis": "Unified plan §13 G3 acceptance contract plus the listed PKG04 implementation requirement. Preregistered contract/evaluator software is a prerequisite; actual qualification additionally requires task-specific scientific inputs and evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "evaluation/g3_acquisition_package.py",
+          "scripts/plan_g3_acquisition_design.py",
+          "tests/test_evaluation/test_g3_sample_size_planning.py",
+          "tests/test_scripts/test_plan_g3_acquisition_design.py"
+        ],
+        "basis": "Family-bound assurance outputs and distinct sampling units compose into acquisition design, but complete receiver/propagation assurance and a powered final design remain open."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_complex_csi.py tests/test_evaluation/test_g3_propagation_metrics.py tests/test_evaluation/test_g3_propagation_assurance.py tests/test_evaluation/test_g3_receiver_impact.py tests/test_evaluation/test_g3_receiver_assurance.py tests/test_evaluation/test_g3_path_equivalence.py tests/test_evaluation/test_g3_path_equivalence_assurance.py tests/test_evaluation/test_g3_material_calibration.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_joint_evaluation.py tests/test_evaluation/test_g3_joint_evidence_artifact.py tests/test_evaluation/test_g3_acquisition_package_verifier.py tests/test_evaluation/test_g3_signed_attestation.py tests/test_evaluation/test_g3_sample_size_planning.py tests/test_datasets/test_g3_acquisition_package_schema.py tests/test_datasets/test_g3_acquisition_package_v0_2.py tests/test_scripts/test_plan_g3_acquisition_design.py tests/test_scripts/test_verify_g3_acquisition_package.py tests/test_scripts/test_evaluate_g3_path_equivalence_roster.py",
+        "commit": "f3e5faf"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The focused G3 suite verifies software contracts only; no representative scientific qualification cohort was run."
+        ]
       },
-      "dependencies": [],
-      "external_blockers": [],
+      "dependencies": [
+        "DS.G3",
+        "DS.G5",
+        "DS.G8"
+      ],
+      "external_blockers": [
+        "calibrated representative material/CSI/path measurements with attested independent acquisition units",
+        "precision/power-complete run-specific sample-size and frozen multiplicity design"
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Family-bound assurance outputs and distinct sampling units compose into acquisition design, but complete receiver/propagation assurance and a powered final design remain open.",
+        "pass_rule": "Software behavior passes the focused G3 contract suite. Do not convert this status to scientific qualification without the task-specific frozen external evidence and all acceptance criteria.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -5813,30 +6005,41 @@
       ],
       "requirement": "Bound the G3 paired receiver evaluator's retained bootstrap output arrays by a declared float64-cell ceiling, reject oversized draw/grid combinations before allocation, and record the calculated and permitted cell counts in the diagnostic report. Regression definitions are authored; validation is deferred. This is a resource bound and does not change the frozen statistical criteria.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Bound the G3 paired receiver evaluator's retained bootstrap output arrays by a declared float64-cell ceiling, reject oversized draw/grid combinations before allocation, and record the calculated and permitted cell counts in the diagnostic report. Regression definitions are authored; validation is deferred. This is a resource bound and does not change the frozen statistical criteria.",
+        "authority_basis": "Unified plan §13 G3 acceptance contract plus the listed PKG04 implementation requirement. Preregistered contract/evaluator software is a prerequisite; actual qualification additionally requires task-specific scientific inputs and evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/g3_receiver_impact.py",
+          "evaluation/g3_receiver_assurance.py",
+          "tests/test_evaluation/test_g3_receiver_impact.py",
+          "tests/test_evaluation/test_g3_receiver_assurance.py"
+        ],
+        "basis": "Bootstrap output allocations are checked against declared resource limits before allocation."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_complex_csi.py tests/test_evaluation/test_g3_propagation_metrics.py tests/test_evaluation/test_g3_propagation_assurance.py tests/test_evaluation/test_g3_receiver_impact.py tests/test_evaluation/test_g3_receiver_assurance.py tests/test_evaluation/test_g3_path_equivalence.py tests/test_evaluation/test_g3_path_equivalence_assurance.py tests/test_evaluation/test_g3_material_calibration.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_joint_evaluation.py tests/test_evaluation/test_g3_joint_evidence_artifact.py tests/test_evaluation/test_g3_acquisition_package_verifier.py tests/test_evaluation/test_g3_signed_attestation.py tests/test_evaluation/test_g3_sample_size_planning.py tests/test_datasets/test_g3_acquisition_package_schema.py tests/test_datasets/test_g3_acquisition_package_v0_2.py tests/test_scripts/test_plan_g3_acquisition_design.py tests/test_scripts/test_verify_g3_acquisition_package.py tests/test_scripts/test_evaluate_g3_path_equivalence_roster.py",
+        "commit": "f3e5faf"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The focused G3 suite verifies software contracts only; no representative scientific qualification cohort was run."
+        ]
       },
-      "dependencies": [],
+      "dependencies": [
+        "DS.G3",
+        "DS.G5",
+        "DS.G8"
+      ],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Bootstrap output allocations are checked against declared resource limits before allocation.",
+        "pass_rule": "Software behavior passes the focused G3 contract suite. Do not convert this status to scientific qualification without the task-specific frozen external evidence and all acceptance criteria.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -5850,30 +6053,41 @@
       ],
       "requirement": "Add qualification contract v4 with a hash-bound path-analysis parameter set for vertex/direction tolerances, complex-CSI floor, and per-RE transmit/noise powers; retain v2/v3 readers and deterministic verification. Contract v4 is admitted with raw evaluator input v5; regression definitions are authored and validation is deferred.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Add qualification contract v4 with a hash-bound path-analysis parameter set for vertex/direction tolerances, complex-CSI floor, and per-RE transmit/noise powers; retain v2/v3 readers and deterministic verification. Contract v4 is admitted with raw evaluator input v5; regression definitions are authored and validation is deferred.",
+        "authority_basis": "Unified plan §13 G3 acceptance contract plus the listed PKG04 implementation requirement. Preregistered contract/evaluator software is a prerequisite; actual qualification additionally requires task-specific scientific inputs and evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/g3_qualification_contract.py",
+          "evaluation/g3_joint_acceptance.py",
+          "datasets/schema/g3-qualification-run-contract.v4.schema.json",
+          "tests/test_evaluation/test_g3_qualification_contract.py"
+        ],
+        "basis": "Contract v4 binds path-analysis tolerances, CSI floor and per-RE power while retaining older readers."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_complex_csi.py tests/test_evaluation/test_g3_propagation_metrics.py tests/test_evaluation/test_g3_propagation_assurance.py tests/test_evaluation/test_g3_receiver_impact.py tests/test_evaluation/test_g3_receiver_assurance.py tests/test_evaluation/test_g3_path_equivalence.py tests/test_evaluation/test_g3_path_equivalence_assurance.py tests/test_evaluation/test_g3_material_calibration.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_joint_evaluation.py tests/test_evaluation/test_g3_joint_evidence_artifact.py tests/test_evaluation/test_g3_acquisition_package_verifier.py tests/test_evaluation/test_g3_signed_attestation.py tests/test_evaluation/test_g3_sample_size_planning.py tests/test_datasets/test_g3_acquisition_package_schema.py tests/test_datasets/test_g3_acquisition_package_v0_2.py tests/test_scripts/test_plan_g3_acquisition_design.py tests/test_scripts/test_verify_g3_acquisition_package.py tests/test_scripts/test_evaluate_g3_path_equivalence_roster.py",
+        "commit": "f3e5faf"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The focused G3 suite verifies software contracts only; no representative scientific qualification cohort was run."
+        ]
       },
-      "dependencies": [],
+      "dependencies": [
+        "DS.G3",
+        "DS.G5",
+        "DS.G8"
+      ],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Contract v4 binds path-analysis tolerances, CSI floor and per-RE power while retaining older readers.",
+        "pass_rule": "Software behavior passes the focused G3 contract suite. Do not convert this status to scientific qualification without the task-specific frozen external evidence and all acceptance criteria.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -5887,30 +6101,41 @@
       ],
       "requirement": "Add contract-bound evaluator input v5 for solver-valid deterministic paths and full CFR components; recompute effective classes, one-to-one matching, receiver relevance, and bidirectional episode coverage using contract-frozen settings. Reject caller-supplied comparisons and unbound row fields; bind each raw episode digest and include v5 plus contract-v4 schemas in the source bundle. Keep v3/input-v4 diagnostic replay. Regression definitions are authored; validation remains deferred and all outputs remain `NOT_QUALIFIED`.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Add contract-bound evaluator input v5 for solver-valid deterministic paths and full CFR components; recompute effective classes, one-to-one matching, receiver relevance, and bidirectional episode coverage using contract-frozen settings. Reject caller-supplied comparisons and unbound row fields; bind each raw episode digest and include v5 plus contract-v4 schemas in the source bundle. Keep v3/input-v4 diagnostic replay. Regression definitions are authored; validation remains deferred and all outputs remain `NOT_QUALIFIED`.",
+        "authority_basis": "Unified plan §13 G3 acceptance contract plus the listed PKG04 implementation requirement. Preregistered contract/evaluator software is a prerequisite; actual qualification additionally requires task-specific scientific inputs and evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/g3_path_equivalence.py",
+          "evaluation/g3_path_equivalence_assurance.py",
+          "tests/test_evaluation/test_g3_path_equivalence.py",
+          "tests/test_evaluation/test_g3_path_equivalence_assurance.py"
+        ],
+        "basis": "Evaluator input v5 recomputes deterministic path matching/coverage from bound raw episodes rather than accepting caller summaries."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_complex_csi.py tests/test_evaluation/test_g3_propagation_metrics.py tests/test_evaluation/test_g3_propagation_assurance.py tests/test_evaluation/test_g3_receiver_impact.py tests/test_evaluation/test_g3_receiver_assurance.py tests/test_evaluation/test_g3_path_equivalence.py tests/test_evaluation/test_g3_path_equivalence_assurance.py tests/test_evaluation/test_g3_material_calibration.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_joint_evaluation.py tests/test_evaluation/test_g3_joint_evidence_artifact.py tests/test_evaluation/test_g3_acquisition_package_verifier.py tests/test_evaluation/test_g3_signed_attestation.py tests/test_evaluation/test_g3_sample_size_planning.py tests/test_datasets/test_g3_acquisition_package_schema.py tests/test_datasets/test_g3_acquisition_package_v0_2.py tests/test_scripts/test_plan_g3_acquisition_design.py tests/test_scripts/test_verify_g3_acquisition_package.py tests/test_scripts/test_evaluate_g3_path_equivalence_roster.py",
+        "commit": "f3e5faf"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The focused G3 suite verifies software contracts only; no representative scientific qualification cohort was run."
+        ]
       },
-      "dependencies": [],
+      "dependencies": [
+        "DS.G3",
+        "DS.G5",
+        "DS.G8"
+      ],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Evaluator input v5 recomputes deterministic path matching/coverage from bound raw episodes rather than accepting caller summaries.",
+        "pass_rule": "Software behavior passes the focused G3 contract suite. Do not convert this status to scientific qualification without the task-specific frozen external evidence and all acceptance criteria.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -5924,30 +6149,44 @@
       ],
       "requirement": "Add externally trusted runtime/source/measurement provenance and signature admission checks before any scientific qualification decision.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Add externally trusted runtime/source/measurement provenance and signature admission checks before any scientific qualification decision.",
+        "authority_basis": "Unified plan §13 G3 acceptance contract plus the listed PKG04 implementation requirement. Preregistered contract/evaluator software is a prerequisite; actual qualification additionally requires task-specific scientific inputs and evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "evaluation/g3_joint_evidence_run_manifest.py",
+          "evaluation/g3_acquisition_package.py",
+          "tests/test_evaluation/test_g3_signed_attestation.py",
+          "tests/test_evaluation/test_g3_run_report_signature.py"
+        ],
+        "basis": "Software binds source/runtime/measurement declarations and signatures; independent signer/key custody, trusted runtime/hardware and measurement truth are not supplied by repository code."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_complex_csi.py tests/test_evaluation/test_g3_propagation_metrics.py tests/test_evaluation/test_g3_propagation_assurance.py tests/test_evaluation/test_g3_receiver_impact.py tests/test_evaluation/test_g3_receiver_assurance.py tests/test_evaluation/test_g3_path_equivalence.py tests/test_evaluation/test_g3_path_equivalence_assurance.py tests/test_evaluation/test_g3_material_calibration.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_joint_evaluation.py tests/test_evaluation/test_g3_joint_evidence_artifact.py tests/test_evaluation/test_g3_acquisition_package_verifier.py tests/test_evaluation/test_g3_signed_attestation.py tests/test_evaluation/test_g3_sample_size_planning.py tests/test_datasets/test_g3_acquisition_package_schema.py tests/test_datasets/test_g3_acquisition_package_v0_2.py tests/test_scripts/test_plan_g3_acquisition_design.py tests/test_scripts/test_verify_g3_acquisition_package.py tests/test_scripts/test_evaluate_g3_path_equivalence_roster.py",
+        "commit": "f3e5faf"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The focused G3 suite verifies software contracts only; no representative scientific qualification cohort was run."
+        ]
       },
-      "dependencies": [],
-      "external_blockers": [],
+      "dependencies": [
+        "DS.G3",
+        "DS.G5",
+        "DS.G8"
+      ],
+      "external_blockers": [
+        "independent signer/keyring custody and trusted timestamp/runtime/source authority",
+        "calibrated representative material/CSI/path measurements with attested independent acquisition units"
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Software binds source/runtime/measurement declarations and signatures; independent signer/key custody, trusted runtime/hardware and measurement truth are not supplied by repository code.",
+        "pass_rule": "Software behavior passes the focused G3 contract suite. Do not convert this status to scientific qualification without the task-specific frozen external evidence and all acceptance criteria.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -5961,30 +6200,44 @@
       ],
       "requirement": "Complete scientific admission for the shared family: validate material-scattering acquisition/split coverage against its independent evidence contract and preserve diagnostic-only status when external trust/provenance is absent. Input v3 binds exact scene-episode rosters; material measurement representativeness, external authority, and qualification remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Complete scientific admission for the shared family: validate material-scattering acquisition/split coverage against its independent evidence contract and preserve diagnostic-only status when external trust/provenance is absent. Input v3 binds exact scene-episode rosters; material measurement representativeness, external authority, and qualification remain open.",
+        "authority_basis": "Unified plan §13 G3 acceptance contract plus the listed PKG04 implementation requirement. Preregistered contract/evaluator software is a prerequisite; actual qualification additionally requires task-specific scientific inputs and evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "evaluation/g3_material_calibration.py",
+          "evaluation/g3_acquisition_package.py",
+          "tests/test_evaluation/test_g3_material_calibration.py",
+          "tests/test_evaluation/test_g3_acquisition_package_verifier.py"
+        ],
+        "basis": "Material acquisition and split coverage are checked, but representative calibrated measurements, independent acquisition-unit identity and precision-powered sample size are external."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_complex_csi.py tests/test_evaluation/test_g3_propagation_metrics.py tests/test_evaluation/test_g3_propagation_assurance.py tests/test_evaluation/test_g3_receiver_impact.py tests/test_evaluation/test_g3_receiver_assurance.py tests/test_evaluation/test_g3_path_equivalence.py tests/test_evaluation/test_g3_path_equivalence_assurance.py tests/test_evaluation/test_g3_material_calibration.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_joint_evaluation.py tests/test_evaluation/test_g3_joint_evidence_artifact.py tests/test_evaluation/test_g3_acquisition_package_verifier.py tests/test_evaluation/test_g3_signed_attestation.py tests/test_evaluation/test_g3_sample_size_planning.py tests/test_datasets/test_g3_acquisition_package_schema.py tests/test_datasets/test_g3_acquisition_package_v0_2.py tests/test_scripts/test_plan_g3_acquisition_design.py tests/test_scripts/test_verify_g3_acquisition_package.py tests/test_scripts/test_evaluate_g3_path_equivalence_roster.py",
+        "commit": "f3e5faf"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The focused G3 suite verifies software contracts only; no representative scientific qualification cohort was run."
+        ]
       },
-      "dependencies": [],
-      "external_blockers": [],
+      "dependencies": [
+        "DS.G3",
+        "DS.G5",
+        "DS.G8"
+      ],
+      "external_blockers": [
+        "calibrated representative material/CSI/path measurements with attested independent acquisition units",
+        "precision/power-complete run-specific sample-size and frozen multiplicity design"
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Material acquisition and split coverage are checked, but representative calibrated measurements, independent acquisition-unit identity and precision-powered sample size are external.",
+        "pass_rule": "Software behavior passes the focused G3 contract suite. Do not convert this status to scientific qualification without the task-specific frozen external evidence and all acceptance criteria.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -5998,30 +6251,44 @@
       ],
       "requirement": "Implement and integrate material-scattering scorer/assurance software for held-out angle/material/polarization strata, acquisition-unit cluster uncertainty, family-wise interval accounting, and exact signed split-manifest binding. Input IDs now reject surrounding-whitespace aliases, model/split SHA-256 declarations require canonical lowercase hex, and polarization labels must be exactly `V` or `H` in both the evaluator and schema. The focused 55-test module passes. Actual representative measurements, external split/signature authority, and scientific acceptance remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Implement and integrate material-scattering scorer/assurance software for held-out angle/material/polarization strata, acquisition-unit cluster uncertainty, family-wise interval accounting, and exact signed split-manifest binding. Input IDs now reject surrounding-whitespace aliases, model/split SHA-256 declarations require canonical lowercase hex, and polarization labels must be exactly `V` or `H` in both the evaluator and schema. The focused 55-test module passes. Actual representative measurements, external split/signature authority, and scientific acceptance remain open.",
+        "authority_basis": "Unified plan §13 G3 acceptance contract plus the listed PKG04 implementation requirement. Preregistered contract/evaluator software is a prerequisite; actual qualification additionally requires task-specific scientific inputs and evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/g3_material_calibration.py",
+          "evaluation/g3_acquisition_package.py",
+          "tests/test_evaluation/test_g3_material_calibration.py",
+          "tests/test_evaluation/test_g3_acquisition_package_verifier.py"
+        ],
+        "basis": "Material-scattering scorer/assurance implements held-out strata, unit-cluster uncertainty, family-wise intervals and signed-split binding; evidence admission remains external."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_complex_csi.py tests/test_evaluation/test_g3_propagation_metrics.py tests/test_evaluation/test_g3_propagation_assurance.py tests/test_evaluation/test_g3_receiver_impact.py tests/test_evaluation/test_g3_receiver_assurance.py tests/test_evaluation/test_g3_path_equivalence.py tests/test_evaluation/test_g3_path_equivalence_assurance.py tests/test_evaluation/test_g3_material_calibration.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_joint_evaluation.py tests/test_evaluation/test_g3_joint_evidence_artifact.py tests/test_evaluation/test_g3_acquisition_package_verifier.py tests/test_evaluation/test_g3_signed_attestation.py tests/test_evaluation/test_g3_sample_size_planning.py tests/test_datasets/test_g3_acquisition_package_schema.py tests/test_datasets/test_g3_acquisition_package_v0_2.py tests/test_scripts/test_plan_g3_acquisition_design.py tests/test_scripts/test_verify_g3_acquisition_package.py tests/test_scripts/test_evaluate_g3_path_equivalence_roster.py",
+        "commit": "f3e5faf"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The focused G3 suite verifies software contracts only; no representative scientific qualification cohort was run."
+        ]
       },
-      "dependencies": [],
-      "external_blockers": [],
+      "dependencies": [
+        "DS.G3",
+        "DS.G5",
+        "DS.G8"
+      ],
+      "external_blockers": [
+        "calibrated representative material/CSI/path measurements with attested independent acquisition units",
+        "precision/power-complete run-specific sample-size and frozen multiplicity design"
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Material-scattering scorer/assurance implements held-out strata, unit-cluster uncertainty, family-wise intervals and signed-split binding; evidence admission remains external.",
+        "pass_rule": "Software behavior passes the focused G3 contract suite. Do not convert this status to scientific qualification without the task-specific frozen external evidence and all acceptance criteria.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -6035,30 +6302,42 @@
       ],
       "requirement": "Implement and integrate the complex-CSI evaluator for the frozen unnormalized active-grid/port/symbol/gauge definition, equal-cluster summaries, bootstrap upper bounds, and exact cluster-failure bound. Regression definitions exist but are unvalidated; correct physical gauge/noise floor, representative independent clusters, and scientific acceptance remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Implement and integrate the complex-CSI evaluator for the frozen unnormalized active-grid/port/symbol/gauge definition, equal-cluster summaries, bootstrap upper bounds, and exact cluster-failure bound. Regression definitions exist but are unvalidated; correct physical gauge/noise floor, representative independent clusters, and scientific acceptance remain open.",
+        "authority_basis": "Unified plan §13 G3 acceptance contract plus the listed PKG04 implementation requirement. Preregistered contract/evaluator software is a prerequisite; actual qualification additionally requires task-specific scientific inputs and evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/g3_complex_csi.py",
+          "tests/test_evaluation/test_g3_complex_csi.py"
+        ],
+        "basis": "Complex-CSI metric implements the frozen unnormalized grid/gauge summary, equal-cluster bootstrap and cluster-failure bound; physical gauge/noise floor and representative clusters remain external."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_complex_csi.py tests/test_evaluation/test_g3_propagation_metrics.py tests/test_evaluation/test_g3_propagation_assurance.py tests/test_evaluation/test_g3_receiver_impact.py tests/test_evaluation/test_g3_receiver_assurance.py tests/test_evaluation/test_g3_path_equivalence.py tests/test_evaluation/test_g3_path_equivalence_assurance.py tests/test_evaluation/test_g3_material_calibration.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_joint_evaluation.py tests/test_evaluation/test_g3_joint_evidence_artifact.py tests/test_evaluation/test_g3_acquisition_package_verifier.py tests/test_evaluation/test_g3_signed_attestation.py tests/test_evaluation/test_g3_sample_size_planning.py tests/test_datasets/test_g3_acquisition_package_schema.py tests/test_datasets/test_g3_acquisition_package_v0_2.py tests/test_scripts/test_plan_g3_acquisition_design.py tests/test_scripts/test_verify_g3_acquisition_package.py tests/test_scripts/test_evaluate_g3_path_equivalence_roster.py",
+        "commit": "f3e5faf"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The focused G3 suite verifies software contracts only; no representative scientific qualification cohort was run."
+        ]
       },
-      "dependencies": [],
-      "external_blockers": [],
+      "dependencies": [
+        "DS.G3",
+        "DS.G5",
+        "DS.G8"
+      ],
+      "external_blockers": [
+        "calibrated representative material/CSI/path measurements with attested independent acquisition units",
+        "precision/power-complete run-specific sample-size and frozen multiplicity design"
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Complex-CSI metric implements the frozen unnormalized grid/gauge summary, equal-cluster bootstrap and cluster-failure bound; physical gauge/noise floor and representative clusters remain external.",
+        "pass_rule": "Software behavior passes the focused G3 contract suite. Do not convert this status to scientific qualification without the task-specific frozen external evidence and all acceptance criteria.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -6072,30 +6351,43 @@
       ],
       "requirement": "Add acquisition-package v0.4 with a fixed `noise_only_cfr_estimate_rms_v1` definition, bounded exact-byte capture of referenced complex NPY arrays, exact CSI-shape and same-sample binding, `noise_measurement` role enforcement, numerically stable RMS aggregation, and declared-versus-derived comparison. Keep v0.1–v0.3 readable as historical declared-floor formats. The focused G3.03 acquisition/attestation slice passes 100 tests, including v0.4 schema/verifier and signed-attestation coverage; evidence that captures use the same grid/estimator and are representative/calibrated remains external and G3 stays `NOT_QUALIFIED`.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Add acquisition-package v0.4 with a fixed `noise_only_cfr_estimate_rms_v1` definition, bounded exact-byte capture of referenced complex NPY arrays, exact CSI-shape and same-sample binding, `noise_measurement` role enforcement, numerically stable RMS aggregation, and declared-versus-derived comparison. Keep v0.1–v0.3 readable as historical declared-floor formats. The focused G3.03 acquisition/attestation slice passes 100 tests, including v0.4 schema/verifier and signed-attestation coverage; evidence that captures use the same grid/estimator and are representative/calibrated remains external and G3 stays `NOT_QUALIFIED`.",
+        "authority_basis": "Unified plan §13 G3 acceptance contract plus the listed PKG04 implementation requirement. Preregistered contract/evaluator software is a prerequisite; actual qualification additionally requires task-specific scientific inputs and evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/g3_acquisition_package.py",
+          "datasets/schema/g3.03-acquisition-package.v0.4.schema.json",
+          "tests/test_evaluation/test_g3_acquisition_package_verifier.py"
+        ],
+        "basis": "Acquisition v0.4 derives the fixed RMS noise floor from bounded exact-byte same-sample complex NPY input; capture calibration/representativeness remain external."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_complex_csi.py tests/test_evaluation/test_g3_propagation_metrics.py tests/test_evaluation/test_g3_propagation_assurance.py tests/test_evaluation/test_g3_receiver_impact.py tests/test_evaluation/test_g3_receiver_assurance.py tests/test_evaluation/test_g3_path_equivalence.py tests/test_evaluation/test_g3_path_equivalence_assurance.py tests/test_evaluation/test_g3_material_calibration.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_joint_evaluation.py tests/test_evaluation/test_g3_joint_evidence_artifact.py tests/test_evaluation/test_g3_acquisition_package_verifier.py tests/test_evaluation/test_g3_signed_attestation.py tests/test_evaluation/test_g3_sample_size_planning.py tests/test_datasets/test_g3_acquisition_package_schema.py tests/test_datasets/test_g3_acquisition_package_v0_2.py tests/test_scripts/test_plan_g3_acquisition_design.py tests/test_scripts/test_verify_g3_acquisition_package.py tests/test_scripts/test_evaluate_g3_path_equivalence_roster.py",
+        "commit": "f3e5faf"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The focused G3 suite verifies software contracts only; no representative scientific qualification cohort was run."
+        ]
       },
-      "dependencies": [],
-      "external_blockers": [],
+      "dependencies": [
+        "DS.G3",
+        "DS.G5",
+        "DS.G8"
+      ],
+      "external_blockers": [
+        "calibrated representative material/CSI/path measurements with attested independent acquisition units",
+        "precision/power-complete run-specific sample-size and frozen multiplicity design"
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Acquisition v0.4 derives the fixed RMS noise floor from bounded exact-byte same-sample complex NPY input; capture calibration/representativeness remain external.",
+        "pass_rule": "Software behavior passes the focused G3 contract suite. Do not convert this status to scientific qualification without the task-specific frozen external evidence and all acceptance criteria.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -6109,30 +6401,44 @@
       ],
       "requirement": "Implement and integrate the propagation evaluator for first-arrival delay, RMS delay, 3D spherical angular spreads, specular/diffuse strata, missingness reasons, and cluster-wise acceptance intervals. Regression definitions exist but are unvalidated; complete representative observations and scientific acceptance remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Implement and integrate the propagation evaluator for first-arrival delay, RMS delay, 3D spherical angular spreads, specular/diffuse strata, missingness reasons, and cluster-wise acceptance intervals. Regression definitions exist but are unvalidated; complete representative observations and scientific acceptance remain open.",
+        "authority_basis": "Unified plan §13 G3 acceptance contract plus the listed PKG04 implementation requirement. Preregistered contract/evaluator software is a prerequisite; actual qualification additionally requires task-specific scientific inputs and evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/g3_propagation_metrics.py",
+          "evaluation/g3_propagation_assurance.py",
+          "tests/test_evaluation/test_g3_propagation_metrics.py",
+          "tests/test_evaluation/test_g3_propagation_assurance.py"
+        ],
+        "basis": "Propagation evaluator implements first-arrival/RMS-delay/angular summaries, missingness and clustered intervals; numerical checks do not establish physical validity."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_complex_csi.py tests/test_evaluation/test_g3_propagation_metrics.py tests/test_evaluation/test_g3_propagation_assurance.py tests/test_evaluation/test_g3_receiver_impact.py tests/test_evaluation/test_g3_receiver_assurance.py tests/test_evaluation/test_g3_path_equivalence.py tests/test_evaluation/test_g3_path_equivalence_assurance.py tests/test_evaluation/test_g3_material_calibration.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_joint_evaluation.py tests/test_evaluation/test_g3_joint_evidence_artifact.py tests/test_evaluation/test_g3_acquisition_package_verifier.py tests/test_evaluation/test_g3_signed_attestation.py tests/test_evaluation/test_g3_sample_size_planning.py tests/test_datasets/test_g3_acquisition_package_schema.py tests/test_datasets/test_g3_acquisition_package_v0_2.py tests/test_scripts/test_plan_g3_acquisition_design.py tests/test_scripts/test_verify_g3_acquisition_package.py tests/test_scripts/test_evaluate_g3_path_equivalence_roster.py",
+        "commit": "f3e5faf"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The focused G3 suite verifies software contracts only; no representative scientific qualification cohort was run."
+        ]
       },
-      "dependencies": [],
-      "external_blockers": [],
+      "dependencies": [
+        "DS.G3",
+        "DS.G5",
+        "DS.G8"
+      ],
+      "external_blockers": [
+        "calibrated representative material/CSI/path measurements with attested independent acquisition units",
+        "precision/power-complete run-specific sample-size and frozen multiplicity design"
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Propagation evaluator implements first-arrival/RMS-delay/angular summaries, missingness and clustered intervals; numerical checks do not establish physical validity.",
+        "pass_rule": "Software behavior passes the focused G3 contract suite. Do not convert this status to scientific qualification without the task-specific frozen external evidence and all acceptance criteria.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -6146,30 +6452,43 @@
       ],
       "requirement": "Integrate diffuse stochastic paths into contract-bound evaluator input v6 and roster diagnostic v2. The joint scorer keeps deterministic class matching separate, emits unweighted and coefficient-power-weighted delay/angle/power quantiles plus wrapped azimuth-center shifts, and binds frozen solver caps as provenance without ray identity assignment or acceptance thresholds. Schemas and source roster are pinned; regression definitions cover end-to-end wiring. Consolidated validation and scientific/provenance review remain open. Existing deterministic per-class deltas remain diagnostic; no per-class acceptance margin is invented.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Integrate diffuse stochastic paths into contract-bound evaluator input v6 and roster diagnostic v2. The joint scorer keeps deterministic class matching separate, emits unweighted and coefficient-power-weighted delay/angle/power quantiles plus wrapped azimuth-center shifts, and binds frozen solver caps as provenance without ray identity assignment or acceptance thresholds. Schemas and source roster are pinned; regression definitions cover end-to-end wiring. Consolidated validation and scientific/provenance review remain open. Existing deterministic per-class deltas remain diagnostic; no per-class acceptance margin is invented.",
+        "authority_basis": "Unified plan §13 G3 acceptance contract plus the listed PKG04 implementation requirement. Preregistered contract/evaluator software is a prerequisite; actual qualification additionally requires task-specific scientific inputs and evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/g3_joint_evaluation.py",
+          "evaluation/g3_path_equivalence.py",
+          "tests/test_evaluation/test_g3_joint_evaluation.py"
+        ],
+        "basis": "Diffuse stochastic summaries are integrated with deterministic matching separate and solver caps retained as provenance, not path truth."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_complex_csi.py tests/test_evaluation/test_g3_propagation_metrics.py tests/test_evaluation/test_g3_propagation_assurance.py tests/test_evaluation/test_g3_receiver_impact.py tests/test_evaluation/test_g3_receiver_assurance.py tests/test_evaluation/test_g3_path_equivalence.py tests/test_evaluation/test_g3_path_equivalence_assurance.py tests/test_evaluation/test_g3_material_calibration.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_joint_evaluation.py tests/test_evaluation/test_g3_joint_evidence_artifact.py tests/test_evaluation/test_g3_acquisition_package_verifier.py tests/test_evaluation/test_g3_signed_attestation.py tests/test_evaluation/test_g3_sample_size_planning.py tests/test_datasets/test_g3_acquisition_package_schema.py tests/test_datasets/test_g3_acquisition_package_v0_2.py tests/test_scripts/test_plan_g3_acquisition_design.py tests/test_scripts/test_verify_g3_acquisition_package.py tests/test_scripts/test_evaluate_g3_path_equivalence_roster.py",
+        "commit": "f3e5faf"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The focused G3 suite verifies software contracts only; no representative scientific qualification cohort was run."
+        ]
       },
-      "dependencies": [],
-      "external_blockers": [],
+      "dependencies": [
+        "DS.G3",
+        "DS.G5",
+        "DS.G8"
+      ],
+      "external_blockers": [
+        "calibrated representative material/CSI/path measurements with attested independent acquisition units",
+        "precision/power-complete run-specific sample-size and frozen multiplicity design"
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Diffuse stochastic summaries are integrated with deterministic matching separate and solver caps retained as provenance, not path truth.",
+        "pass_rule": "Software behavior passes the focused G3 contract suite. Do not convert this status to scientific qualification without the task-specific frozen external evidence and all acceptance criteria.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -6183,30 +6502,44 @@
       ],
       "requirement": "Implement and integrate the paired NR receiver evaluator for common-SNR BLER differences, familywise cluster-bootstrap intervals, bracketed SNR@10% shifts without extrapolation, transport-block precision, and exact configuration-row lineage through the frozen joint evaluator. Regression definitions cover pairing, cluster counts, unresolved crossings, allocation bounds, and malformed identities; consolidated validation remains deferred. The result is numerical-only and does not establish receiver execution truth or scientific qualification.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Implement and integrate the paired NR receiver evaluator for common-SNR BLER differences, familywise cluster-bootstrap intervals, bracketed SNR@10% shifts without extrapolation, transport-block precision, and exact configuration-row lineage through the frozen joint evaluator. Regression definitions cover pairing, cluster counts, unresolved crossings, allocation bounds, and malformed identities; consolidated validation remains deferred. The result is numerical-only and does not establish receiver execution truth or scientific qualification.",
+        "authority_basis": "Unified plan §13 G3 acceptance contract plus the listed PKG04 implementation requirement. Preregistered contract/evaluator software is a prerequisite; actual qualification additionally requires task-specific scientific inputs and evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/g3_receiver_impact.py",
+          "evaluation/g3_receiver_assurance.py",
+          "tests/test_evaluation/test_g3_receiver_impact.py",
+          "tests/test_evaluation/test_g3_receiver_assurance.py"
+        ],
+        "basis": "Paired receiver evaluator implements common-SNR BLER, cluster intervals, bracketed SNR@10% shift and configuration lineage; it requires an exact G5-qualified receiver."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_complex_csi.py tests/test_evaluation/test_g3_propagation_metrics.py tests/test_evaluation/test_g3_propagation_assurance.py tests/test_evaluation/test_g3_receiver_impact.py tests/test_evaluation/test_g3_receiver_assurance.py tests/test_evaluation/test_g3_path_equivalence.py tests/test_evaluation/test_g3_path_equivalence_assurance.py tests/test_evaluation/test_g3_material_calibration.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_joint_evaluation.py tests/test_evaluation/test_g3_joint_evidence_artifact.py tests/test_evaluation/test_g3_acquisition_package_verifier.py tests/test_evaluation/test_g3_signed_attestation.py tests/test_evaluation/test_g3_sample_size_planning.py tests/test_datasets/test_g3_acquisition_package_schema.py tests/test_datasets/test_g3_acquisition_package_v0_2.py tests/test_scripts/test_plan_g3_acquisition_design.py tests/test_scripts/test_verify_g3_acquisition_package.py tests/test_scripts/test_evaluate_g3_path_equivalence_roster.py",
+        "commit": "f3e5faf"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The focused G3 suite verifies software contracts only; no representative scientific qualification cohort was run."
+        ]
       },
-      "dependencies": [],
-      "external_blockers": [],
+      "dependencies": [
+        "DS.G3",
+        "DS.G5",
+        "DS.G8"
+      ],
+      "external_blockers": [
+        "applicable G5-qualified receiver and representative paired receiver cohort",
+        "precision/power-complete run-specific sample-size and frozen multiplicity design"
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Paired receiver evaluator implements common-SNR BLER, cluster intervals, bracketed SNR@10% shift and configuration lineage; it requires an exact G5-qualified receiver.",
+        "pass_rule": "Software behavior passes the focused G3 contract suite. Do not convert this status to scientific qualification without the task-specific frozen external evidence and all acceptance criteria.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -6220,30 +6553,41 @@
       ],
       "requirement": "Add a hash-bound joint numerical-criterion roll-up for material pilot margins, complex CSI, propagation metrics, receiver impact, and path equivalence. Missing or empty criterion rows remain unresolved; branch-specific outcome types prevent malformed strings or cross-branch `NOT_APPLICABLE` values from counting as passes. Propagation `NOT_APPLICABLE` metrics are neutral only when the branch explicitly reports at least one assessable metric; all-NA/missing-assessability families remain unresolved. The roll-up preserves `NOT_QUALIFIED` even when every numerical criterion passes. Artifact and bundle schemas advance to v2, with the new schema included in the current run-manifest source roster. The focused `test_g3_joint_evaluation.py` and `test_g3_joint_evidence_artifact.py` modules pass 82 tests in the current worktree. This verifies numerical criterion roll-up, artifact schema, and replay integrity only; full validation and scientific evidence remain deferred.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Add a hash-bound joint numerical-criterion roll-up for material pilot margins, complex CSI, propagation metrics, receiver impact, and path equivalence. Missing or empty criterion rows remain unresolved; branch-specific outcome types prevent malformed strings or cross-branch `NOT_APPLICABLE` values from counting as passes. Propagation `NOT_APPLICABLE` metrics are neutral only when the branch explicitly reports at least one assessable metric; all-NA/missing-assessability families remain unresolved. The roll-up preserves `NOT_QUALIFIED` even when every numerical criterion passes. Artifact and bundle schemas advance to v2, with the new schema included in the current run-manifest source roster. The focused `test_g3_joint_evaluation.py` and `test_g3_joint_evidence_artifact.py` modules pass 82 tests in the current worktree. This verifies numerical criterion roll-up, artifact schema, and replay integrity only; full validation and scientific evidence remain deferred.",
+        "authority_basis": "Unified plan §13 G3 acceptance contract plus the listed PKG04 implementation requirement. Preregistered contract/evaluator software is a prerequisite; actual qualification additionally requires task-specific scientific inputs and evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/g3_joint_acceptance.py",
+          "evaluation/g3_joint_evidence_artifact.py",
+          "tests/test_evaluation/test_g3_joint_acceptance.py",
+          "tests/test_evaluation/test_g3_joint_evidence_artifact.py"
+        ],
+        "basis": "Numerical criterion roll-up preserves unresolved/missing branches and NOT_QUALIFIED status even when numerical criteria pass."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_complex_csi.py tests/test_evaluation/test_g3_propagation_metrics.py tests/test_evaluation/test_g3_propagation_assurance.py tests/test_evaluation/test_g3_receiver_impact.py tests/test_evaluation/test_g3_receiver_assurance.py tests/test_evaluation/test_g3_path_equivalence.py tests/test_evaluation/test_g3_path_equivalence_assurance.py tests/test_evaluation/test_g3_material_calibration.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_joint_evaluation.py tests/test_evaluation/test_g3_joint_evidence_artifact.py tests/test_evaluation/test_g3_acquisition_package_verifier.py tests/test_evaluation/test_g3_signed_attestation.py tests/test_evaluation/test_g3_sample_size_planning.py tests/test_datasets/test_g3_acquisition_package_schema.py tests/test_datasets/test_g3_acquisition_package_v0_2.py tests/test_scripts/test_plan_g3_acquisition_design.py tests/test_scripts/test_verify_g3_acquisition_package.py tests/test_scripts/test_evaluate_g3_path_equivalence_roster.py",
+        "commit": "f3e5faf"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The focused G3 suite verifies software contracts only; no representative scientific qualification cohort was run."
+        ]
       },
-      "dependencies": [],
+      "dependencies": [
+        "DS.G3",
+        "DS.G5",
+        "DS.G8"
+      ],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Numerical criterion roll-up preserves unresolved/missing branches and NOT_QUALIFIED status even when numerical criteria pass.",
+        "pass_rule": "Software behavior passes the focused G3 contract suite. Do not convert this status to scientific qualification without the task-specific frozen external evidence and all acceptance criteria.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -6257,30 +6601,43 @@
       ],
       "requirement": "Complete report/run-manifest signature and trust-policy plumbing. Detached exact-byte verification, run-manifest signer roles, strict reviewer preflight, package-bound G3.03 attestations, and persisted-report signature verification now exist. Run-manifest v4 additionally signs and binds a complete runtime-inventory v3 receipt under a dedicated namespace, requires an independent signer/keyring from both reviewer and signer-policy roles, and joins package versions, platform, source revision, lockfiles, and runtime-inventory source digests. The report verifier in `evaluation/g3_joint_evidence_run_manifest.py` uses a dedicated OpenSSH namespace, strict receipt schema `datasets/schema/g3-run-verification-signature-receipt.v1.schema.json`, and standalone `loslab-verify-g3-run-report-signature` CLI in `scripts/verify_g3_run_report_signature.py`; regressions are in `tests/test_evaluation/test_g3_run_report_signature.py`. Its receipt binds exact report bytes, report schema digest, signer, signature, and caller-supplied allowed-signers digest while remaining `NOT_QUALIFIED`; report tampering is rejected. Reviewer/keyring custody, external trusted timestamps, runtime/hardware truth, measurement-unit truth, and scientific admission remain open. Reports and signature receipts remain `NOT_QUALIFIED` when external authority, independent provenance, or criteria are missing.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Complete report/run-manifest signature and trust-policy plumbing. Detached exact-byte verification, run-manifest signer roles, strict reviewer preflight, package-bound G3.03 attestations, and persisted-report signature verification now exist. Run-manifest v4 additionally signs and binds a complete runtime-inventory v3 receipt under a dedicated namespace, requires an independent signer/keyring from both reviewer and signer-policy roles, and joins package versions, platform, source revision, lockfiles, and runtime-inventory source digests. The report verifier in `evaluation/g3_joint_evidence_run_manifest.py` uses a dedicated OpenSSH namespace, strict receipt schema `datasets/schema/g3-run-verification-signature-receipt.v1.schema.json`, and standalone `loslab-verify-g3-run-report-signature` CLI in `scripts/verify_g3_run_report_signature.py`; regressions are in `tests/test_evaluation/test_g3_run_report_signature.py`. Its receipt binds exact report bytes, report schema digest, signer, signature, and caller-supplied allowed-signers digest while remaining `NOT_QUALIFIED`; report tampering is rejected. Reviewer/keyring custody, external trusted timestamps, runtime/hardware truth, measurement-unit truth, and scientific admission remain open. Reports and signature receipts remain `NOT_QUALIFIED` when external authority, independent provenance, or criteria are missing.",
+        "authority_basis": "Unified plan §13 G3 acceptance contract plus the listed PKG04 implementation requirement. Preregistered contract/evaluator software is a prerequisite; actual qualification additionally requires task-specific scientific inputs and evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/g3_joint_evidence_run_manifest.py",
+          "evaluation/g3_acquisition_package.py",
+          "tests/test_evaluation/test_g3_signed_attestation.py",
+          "tests/test_evaluation/test_g3_run_report_signature.py"
+        ],
+        "basis": "Exact-byte report/run-manifest signatures, role policies, strict reviewer preflight and v4 runtime inventory binding exist; external trust custody remains open."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_complex_csi.py tests/test_evaluation/test_g3_propagation_metrics.py tests/test_evaluation/test_g3_propagation_assurance.py tests/test_evaluation/test_g3_receiver_impact.py tests/test_evaluation/test_g3_receiver_assurance.py tests/test_evaluation/test_g3_path_equivalence.py tests/test_evaluation/test_g3_path_equivalence_assurance.py tests/test_evaluation/test_g3_material_calibration.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_joint_evaluation.py tests/test_evaluation/test_g3_joint_evidence_artifact.py tests/test_evaluation/test_g3_acquisition_package_verifier.py tests/test_evaluation/test_g3_signed_attestation.py tests/test_evaluation/test_g3_sample_size_planning.py tests/test_datasets/test_g3_acquisition_package_schema.py tests/test_datasets/test_g3_acquisition_package_v0_2.py tests/test_scripts/test_plan_g3_acquisition_design.py tests/test_scripts/test_verify_g3_acquisition_package.py tests/test_scripts/test_evaluate_g3_path_equivalence_roster.py",
+        "commit": "f3e5faf"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The focused G3 suite verifies software contracts only; no representative scientific qualification cohort was run."
+        ]
       },
-      "dependencies": [],
-      "external_blockers": [],
+      "dependencies": [
+        "DS.G3",
+        "DS.G5",
+        "DS.G8"
+      ],
+      "external_blockers": [
+        "independent signer/keyring custody and trusted timestamp/runtime/source authority"
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Exact-byte report/run-manifest signatures, role policies, strict reviewer preflight and v4 runtime inventory binding exist; external trust custody remains open.",
+        "pass_rule": "Software behavior passes the focused G3 contract suite. Do not convert this status to scientific qualification without the task-specific frozen external evidence and all acceptance criteria.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -6294,30 +6651,43 @@
       ],
       "requirement": "Add an explicit strict G3.03 attestation-set mode that requires verified signatures for all five declared types, including `scientific_review`, before the package can be presented for independent scientific review. Preserve compatibility mode for diagnostic/proposal packages with incomplete declarations, report missing type coverage, and keep qualification `NOT_QUALIFIED` in both modes. Regression definitions cover complete coverage, missing scientific review, and strict mode typing; consolidated validation and external trust custody remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Add an explicit strict G3.03 attestation-set mode that requires verified signatures for all five declared types, including `scientific_review`, before the package can be presented for independent scientific review. Preserve compatibility mode for diagnostic/proposal packages with incomplete declarations, report missing type coverage, and keep qualification `NOT_QUALIFIED` in both modes. Regression definitions cover complete coverage, missing scientific review, and strict mode typing; consolidated validation and external trust custody remain open.",
+        "authority_basis": "Unified plan §13 G3 acceptance contract plus the listed PKG04 implementation requirement. Preregistered contract/evaluator software is a prerequisite; actual qualification additionally requires task-specific scientific inputs and evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/g3_joint_evidence_run_manifest.py",
+          "evaluation/g3_acquisition_package.py",
+          "tests/test_evaluation/test_g3_signed_attestation.py",
+          "tests/test_evaluation/test_g3_run_report_signature.py"
+        ],
+        "basis": "Strict G3.03 mode requires all five declared attestation types including scientific review; proposal mode remains diagnostic."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_complex_csi.py tests/test_evaluation/test_g3_propagation_metrics.py tests/test_evaluation/test_g3_propagation_assurance.py tests/test_evaluation/test_g3_receiver_impact.py tests/test_evaluation/test_g3_receiver_assurance.py tests/test_evaluation/test_g3_path_equivalence.py tests/test_evaluation/test_g3_path_equivalence_assurance.py tests/test_evaluation/test_g3_material_calibration.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_joint_evaluation.py tests/test_evaluation/test_g3_joint_evidence_artifact.py tests/test_evaluation/test_g3_acquisition_package_verifier.py tests/test_evaluation/test_g3_signed_attestation.py tests/test_evaluation/test_g3_sample_size_planning.py tests/test_datasets/test_g3_acquisition_package_schema.py tests/test_datasets/test_g3_acquisition_package_v0_2.py tests/test_scripts/test_plan_g3_acquisition_design.py tests/test_scripts/test_verify_g3_acquisition_package.py tests/test_scripts/test_evaluate_g3_path_equivalence_roster.py",
+        "commit": "f3e5faf"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The focused G3 suite verifies software contracts only; no representative scientific qualification cohort was run."
+        ]
       },
-      "dependencies": [],
-      "external_blockers": [],
+      "dependencies": [
+        "DS.G3",
+        "DS.G5",
+        "DS.G8"
+      ],
+      "external_blockers": [
+        "independent signer/keyring custody and trusted timestamp/runtime/source authority"
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Strict G3.03 mode requires all five declared attestation types including scientific review; proposal mode remains diagnostic.",
+        "pass_rule": "Software behavior passes the focused G3 contract suite. Do not convert this status to scientific qualification without the task-specific frozen external evidence and all acceptance criteria.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -6331,30 +6701,43 @@
       ],
       "requirement": "Add optional detached OpenSSH verification over the exact external run-manifest signer-policy bytes, under a separate namespace, principal, and allowed-signers keyring from the run-manifest signature. Reject reused policy/run principals or keyring bytes. Record the policy custodian principal, signature and allowed-signers digests while preserving `NOT_QUALIFIED`. Regression definitions cover valid policy signatures, policy-byte tampering, and signer/keyring reuse; consolidated validation is deferred. This binds policy bytes to an independently named custodian but does not establish keyring custody, reviewer independence, measurement truth, or scientific admission.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Add optional detached OpenSSH verification over the exact external run-manifest signer-policy bytes, under a separate namespace, principal, and allowed-signers keyring from the run-manifest signature. Reject reused policy/run principals or keyring bytes. Record the policy custodian principal, signature and allowed-signers digests while preserving `NOT_QUALIFIED`. Regression definitions cover valid policy signatures, policy-byte tampering, and signer/keyring reuse; consolidated validation is deferred. This binds policy bytes to an independently named custodian but does not establish keyring custody, reviewer independence, measurement truth, or scientific admission.",
+        "authority_basis": "Unified plan §13 G3 acceptance contract plus the listed PKG04 implementation requirement. Preregistered contract/evaluator software is a prerequisite; actual qualification additionally requires task-specific scientific inputs and evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/g3_joint_evidence_run_manifest.py",
+          "evaluation/g3_acquisition_package.py",
+          "tests/test_evaluation/test_g3_signed_attestation.py",
+          "tests/test_evaluation/test_g3_run_report_signature.py"
+        ],
+        "basis": "Run-manifest signer-policy bytes are separately signed with distinct namespace/principal/keyring checks; key custody remains external."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_complex_csi.py tests/test_evaluation/test_g3_propagation_metrics.py tests/test_evaluation/test_g3_propagation_assurance.py tests/test_evaluation/test_g3_receiver_impact.py tests/test_evaluation/test_g3_receiver_assurance.py tests/test_evaluation/test_g3_path_equivalence.py tests/test_evaluation/test_g3_path_equivalence_assurance.py tests/test_evaluation/test_g3_material_calibration.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_joint_evaluation.py tests/test_evaluation/test_g3_joint_evidence_artifact.py tests/test_evaluation/test_g3_acquisition_package_verifier.py tests/test_evaluation/test_g3_signed_attestation.py tests/test_evaluation/test_g3_sample_size_planning.py tests/test_datasets/test_g3_acquisition_package_schema.py tests/test_datasets/test_g3_acquisition_package_v0_2.py tests/test_scripts/test_plan_g3_acquisition_design.py tests/test_scripts/test_verify_g3_acquisition_package.py tests/test_scripts/test_evaluate_g3_path_equivalence_roster.py",
+        "commit": "f3e5faf"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The focused G3 suite verifies software contracts only; no representative scientific qualification cohort was run."
+        ]
       },
-      "dependencies": [],
-      "external_blockers": [],
+      "dependencies": [
+        "DS.G3",
+        "DS.G5",
+        "DS.G8"
+      ],
+      "external_blockers": [
+        "independent signer/keyring custody and trusted timestamp/runtime/source authority"
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Run-manifest signer-policy bytes are separately signed with distinct namespace/principal/keyring checks; key custody remains external.",
+        "pass_rule": "Software behavior passes the focused G3 contract suite. Do not convert this status to scientific qualification without the task-specific frozen external evidence and all acceptance criteria.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -6368,30 +6751,40 @@
       ],
       "requirement": "Complete the bounded City43 Phase-0 diagnosis from existing path-level reports in `docs/research/CITY43_ZERO_SCATTERING_PHASE0_DIAGNOSIS_2026-10-27.md`: this one zero-scattering LOS result is dominated by coherent accumulation of a budget-dependent multiplicity of identical zero-interaction records; matched nonzero paths are stable and higher-order contributions are small. No new ray/depth experiment was run and the larger finite budget is not treated as truth. General solver behavior, other seeds/geometries, G3 acceptance, and production generation remain open/gated.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Complete the bounded City43 Phase-0 diagnosis from existing path-level reports in `docs/research/CITY43_ZERO_SCATTERING_PHASE0_DIAGNOSIS_2026-10-27.md`: this one zero-scattering LOS result is dominated by coherent accumulation of a budget-dependent multiplicity of identical zero-interaction records; matched nonzero paths are stable and higher-order contributions are small. No new ray/depth experiment was run and the larger finite budget is not treated as truth. General solver behavior, other seeds/geometries, G3 acceptance, and production generation remain open/gated.",
+        "authority_basis": "Research plan RS.Phase0 and accepted user constraint: complete only bounded diagnosis from existing path-level records; no new convergence experiment."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "docs/research/CITY43_ZERO_SCATTERING_PHASE0_DIAGNOSIS_2026-10-27.md",
+          "docs/research/results/rt-city43-center-los-seed23-depth10-s0-path-lineage-100k-vs-1m-20261023.json.gz",
+          "docs/research/results/rt-city43-center-los-seed23-depth10-s0-path-lineage-writehook3-100k-vs-1m-20261023.json.gz",
+          "docs/research/results/rt-city43-center-los-seed23-depth10-s0-path-match-sensitivity-20261023.json",
+          "docs/research/results/rt-city43-center-los-seed23-depth10-s0-path-attribution-audit-20261022.json"
+        ],
+        "basis": "Bounded diagnosis from existing path-level evidence attributes the zero-scattering LOS instability to budget-dependent coherent multiplicity; no convergence sweep or ground-truth budget was used."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "Read-only inspection of the retained diagnosis and source-bound path-level artifact; no RT command executed.",
+        "commit": "f3e5faf"
       },
       "qualification": {
-        "status": "not_qualified",
-        "evidence": []
+        "status": "not_applicable",
+        "evidence": [
+          "Bounded Phase-0 diagnostic conclusion only; not an RT qualification result."
+        ]
       },
-      "dependencies": [],
+      "dependencies": [
+        "RS.Phase0"
+      ],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Bounded diagnosis from existing path-level evidence attributes the zero-scattering LOS instability to budget-dependent coherent multiplicity; no convergence sweep or ground-truth budget was used.",
+        "pass_rule": "Software behavior passes the focused G3 contract suite. Do not convert this status to scientific qualification without the task-specific frozen external evidence and all acceptance criteria.",
+        "next_task": "E01.RS.PHASES"
       },
       "plan_mark": "not_checklist"
     },
@@ -6405,30 +6798,43 @@
       ],
       "requirement": "Extend the signed G3.03 attestation verifier to support v0.4 acquisition packages and add single-attestation and complete-set signed-package regression definitions. Exact package bytes, envelope, and subject hashes remain bound. This authenticates signer declarations only; trust custody, calibration truth, and G3 qualification remain external. Consolidated validation is deferred.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Extend the signed G3.03 attestation verifier to support v0.4 acquisition packages and add single-attestation and complete-set signed-package regression definitions. Exact package bytes, envelope, and subject hashes remain bound. This authenticates signer declarations only; trust custody, calibration truth, and G3 qualification remain external. Consolidated validation is deferred.",
+        "authority_basis": "Unified plan §13 G3 acceptance contract plus the listed PKG04 implementation requirement. Preregistered contract/evaluator software is a prerequisite; actual qualification additionally requires task-specific scientific inputs and evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/g3_joint_evidence_run_manifest.py",
+          "evaluation/g3_acquisition_package.py",
+          "tests/test_evaluation/test_g3_signed_attestation.py",
+          "tests/test_evaluation/test_g3_run_report_signature.py"
+        ],
+        "basis": "Signed G3.03 attestation-set verification admits package v0.4 while binding exact package, envelope and subject bytes; signatures do not establish measurement truth or custody."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_evaluation/test_g3_qualification_contract.py tests/test_evaluation/test_g3_complex_csi.py tests/test_evaluation/test_g3_propagation_metrics.py tests/test_evaluation/test_g3_propagation_assurance.py tests/test_evaluation/test_g3_receiver_impact.py tests/test_evaluation/test_g3_receiver_assurance.py tests/test_evaluation/test_g3_path_equivalence.py tests/test_evaluation/test_g3_path_equivalence_assurance.py tests/test_evaluation/test_g3_material_calibration.py tests/test_evaluation/test_g3_joint_acceptance.py tests/test_evaluation/test_g3_joint_evaluation.py tests/test_evaluation/test_g3_joint_evidence_artifact.py tests/test_evaluation/test_g3_acquisition_package_verifier.py tests/test_evaluation/test_g3_signed_attestation.py tests/test_evaluation/test_g3_sample_size_planning.py tests/test_datasets/test_g3_acquisition_package_schema.py tests/test_datasets/test_g3_acquisition_package_v0_2.py tests/test_scripts/test_plan_g3_acquisition_design.py tests/test_scripts/test_verify_g3_acquisition_package.py tests/test_scripts/test_evaluate_g3_path_equivalence_roster.py",
+        "commit": "f3e5faf"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The focused G3 suite verifies software contracts only; no representative scientific qualification cohort was run."
+        ]
       },
-      "dependencies": [],
-      "external_blockers": [],
+      "dependencies": [
+        "DS.G3",
+        "DS.G5",
+        "DS.G8"
+      ],
+      "external_blockers": [
+        "independent signer/keyring custody and trusted timestamp/runtime/source authority"
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Signed G3.03 attestation-set verification admits package v0.4 while binding exact package, envelope and subject bytes; signatures do not establish measurement truth or custody.",
+        "pass_rule": "Software behavior passes the focused G3 contract suite. Do not convert this status to scientific qualification without the task-specific frozen external evidence and all acceptance criteria.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },

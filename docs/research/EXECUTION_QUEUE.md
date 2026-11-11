@@ -86,7 +86,9 @@ does not claim source audit completion.
 
 `E01.PKG03` is closed as a source audit. The path/analytic/storage contract suite passed 211 tests with 1 dependency skip; the frequency-order/RT-to-NR contract suite passed 13 tests. These are software checks only; native path/array qualification remains open. The six PKG03 records distinguish partial path/storage work from complete semantic separation of geometric LOS and standardized proxies.
 
-The next batch is `E01.PKG04`, then packages 05–10 in numeric order, followed by
+`E01.PKG04` is closed as a source audit. The G3 contract/evaluator/acquisition/signature suite passed 483 tests in 231.06 seconds. This validates software contracts, not external material/CSI/path evidence or G5 receiver qualification; all G3 receipts remain `NOT_QUALIFIED`. PKG04-032 preserves the bounded City43 Phase-0 diagnosis from existing path-level evidence and does not reopen convergence experiments.
+
+The next batch is `E01.PKG05`, then packages 06–10 in numeric order, followed by
 `E01.DS.GATES`, `E01.RS.PHASES`, `E01.RS.APPENDIX_E`, and `E01.CROSSWALK`.
 Each package batch is the fixed set of `PKGnn-*` IDs in the ledger and closes
 only after every row has inspected source/test integration, implementation
