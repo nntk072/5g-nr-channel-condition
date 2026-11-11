@@ -11116,30 +11116,40 @@
       ],
       "requirement": "Verify signed child-artifact rosters against exact frozen child bindings, hash each artifact beneath the roster directory without following symlink path components, and validate each ChannelDataset row's child ID, child kind, and parent ID. Roster v2 also traverses recognized NR trajectory stores through content/record hashes and checks every record's split subject/child/kind provenance. Legacy v1/v2 unknown supplemental types remain byte-only; v3 rejects types without semantic validators. Regression definitions cover the v3 rejection and legacy-v2 partial-semantic reporting; validation is deferred. Other semantic validators, authoritative inventory completeness, and release qualification remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Signed child-artifact roster v3 requires exact safe regular-file inventory under a declared subtree, typed semantic validators, and exact ChannelDataset lineage; legacy v1/v2 behavior is retained with explicitly limited semantics.",
+        "authority_basis": "Implementation backlog PKG08-029 specifies exact child roster verification, safe tree hashing, and ChannelDataset/NR trajectory semantic lineage checks."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "scripts/audit_channel_split_lineage.py",
+          "datasets/schema/channel-dataset-child-artifact-roster.v3.schema.json",
+          "datasets/schema/channel-dataset-child-artifact-roster.v6.schema.json",
+          "tests/test_scripts/test_audit_channel_split_lineage.py"
+        ],
+        "basis": "The validator verifies signed roster bytes against frozen child bindings, hashes exact subtree files without following unsafe links, checks ChannelDataset rows and NR trajectory records against child/kind/parent lineage, and v3 rejects types lacking semantic validators. Legacy v1/v2 opaque supplemental entries remain byte-only; later roster versions add validators for additional formats. Keep partial status until every planned descendant format is semantically covered and authoritative inventory/custody are established."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_scripts/test_audit_channel_split_lineage.py tests/test_datasets/test_split_policy_v2.py (135 passed).",
+        "commit": "Focused signed child-roster and split-policy regressions on 2026-11-11."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Exact-tree integrity under supplied trust keys does not establish authoritative roster completeness, external key custody, or complete descendant semantics."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Authoritative frozen child inventory and production signer custody remain external.",
+        "Complete semantic validators for every planned child artifact family are still being reconciled across PKG08-029–038."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Signed exact-tree child roster with safe filesystem admission and semantic parent/split binding for every registered artifact type.",
+        "pass_rule": "No unsafe/unlisted tree entries; every claimed semantic row matches its frozen child, kind, and parent; unsupported types reject under strict roster version.",
+        "next_task": "Continue PKG08-031–038 validator and input-bound audits; keep legacy byte-only support clearly marked partial."
       },
       "plan_mark": "not_checklist"
     },
@@ -11153,30 +11163,39 @@
       ],
       "requirement": "Report `child_artifact_semantic_rows_verified` as true only when every rostered artifact has a semantic validator; mixed legacy v2 rosters containing byte-only supplemental artifacts report false and retain their byte-only count. Regression definitions exercise a signed ChannelDataset roster plus opaque target sidecar and separately verify that exact-tree v3 rejects the unvalidated type. This corrects report semantics and tightens v3 admission; complete validators for every planned descendant artifact and trusted inventory authority remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Audit-report semantics truthfully distinguish all-semantically-verified child rosters from mixed rosters containing legacy byte-only artifacts.",
+        "authority_basis": "Implementation backlog PKG08-030 requires semantic verification to be reported true only when every rostered artifact has a semantic validator."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "scripts/audit_channel_split_lineage.py",
+          "tests/test_scripts/test_audit_channel_split_lineage.py",
+          "datasets/schema/channel-split-lineage-audit-bundle.v1.schema.json"
+        ],
+        "basis": "The report field `child_artifact_semantic_rows_verified` is computed from semantic coverage, stays false for mixed legacy v2 rosters with opaque supplemental artifacts, and strict v3 rejects unvalidated types. Schema and regressions preserve this distinction. This closes the report-semantics software contract; full semantic coverage remains separately open under PKG08-025 and PKG08-029–038."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_scripts/test_audit_channel_split_lineage.py tests/test_datasets/test_split_policy_v2.py (135 passed).",
+        "commit": "Focused signed child-roster and split-policy regressions on 2026-11-11."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Report truthfulness does not establish authoritative inventory, signer custody, complete planned descendant coverage, or corpus qualification."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Authoritative corpus inventory and signer custody remain external.",
+        "Semantic validation of all planned descendants remains open outside this bounded report contract."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Truthful semantic-row verification status in signed lineage audit reports.",
+        "pass_rule": "The report cannot claim complete semantic verification when any rostered artifact lacks a semantic validator; strict exact-tree roster versions reject unsupported types.",
+        "next_task": "Carry the boolean as integrity-only evidence into PKG08-025 and continue remaining artifact validators."
       },
       "plan_mark": "not_checklist"
     },
