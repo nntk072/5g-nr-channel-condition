@@ -8,7 +8,10 @@ chronological detail in evidence artifacts rather than duplicating it across pla
 `DS.*` and `RS.*` namespaces so equal historical numbers cannot be confused.
 
 The first ledger snapshot is [REQUIREMENT_LEDGER.json](REQUIREMENT_LEDGER.json).
-It indexes 182 backlog rows and 30 named governing gates. Most entries remain
+It indexes 182 backlog rows, all 104 numbered unified-plan acceptance criteria
+(22 source-checked boxes and 82 open boxes), and 30 dataset/research gate or
+phase records. Checked-box marks are preserved but are not implementation or
+scientific-qualification claims. Most entries remain
 `unknown` / `not_run`: that is deliberate until a source-level audit links an
 implementation, verifier and exact evidence. The feature-map parser does not
 determine ledger status.
@@ -79,7 +82,9 @@ does not claim source audit completion.
 
 `E01.PKG01` is now closed after source review and a focused suite passed 107 tests. The cache fixture was updated to bind the antenna configuration already included in the runtime cache identity. The exact command is listed on PKG01 rows in the ledger. PKG01 remains software-implemented within the declared slice; full runtime matrix/attestation, arbitrary override coverage, and ODbL release records remain explicit limitations.
 
-The next batch is `E01.PKG02`, then packages 03–10 in numeric order, followed by
+`E01.PKG02` is closed as a source audit. The bounded dataset/visibility/trajectory/network/duplicate-audit suite passed 306 tests with 1 dependency skip and 1 non-failing Torch warning. PKG02 rows now distinguish partial contracts from absent family-registry support. No native RT qualification was run.
+
+The next batch is `E01.PKG03`, then packages 04–10 in numeric order, followed by
 `E01.DS.GATES`, `E01.RS.PHASES`, `E01.RS.APPENDIX_E`, and `E01.CROSSWALK`.
 Each package batch is the fixed set of `PKGnn-*` IDs in the ledger and closes
 only after every row has inspected source/test integration, implementation
@@ -92,6 +97,81 @@ For every batch, retain the exact source files inspected in that ledger row;
 do not copy the whole chronological status history. If a row is already
 implemented, reconcile it and identify its exact verifier rather than
 reimplementing it.
+
+### Implementation cards discovered by E01.PKG02
+
+These cards are ready to refine after the E01 requirement and split crosswalk;
+they do not authorize native qualification.
+
+#### M1.SCENE_FAMILY_REGISTRY — connect planned scene families to split candidates
+
+- **Requirements:** `PKG02-004`, `DS.G1`, `DS.G7`, and scene roles in unified
+  plan §§6.1–6.4.
+- **Dependencies:** E01 package 3 (path/target contracts), package 8 (split and
+  release), and the gate crosswalk; inspect `datasets/split_policy.py`, the
+  existing pilot candidate sampler, and `evaluation/near_duplicate_audit.py`.
+- **Deliverable:** versioned S00–S11 family catalog joined to concrete
+  scene/site candidate identities, source-kind, geometry-asset digest,
+  licensing/release state, and independence-group identity. Integrate family
+  stratification with the existing candidate and signed split flow. Keep
+  analytic fixtures, procedural variants, ODbL sites, surveyed sites and
+  measured campaigns distinct. Empty or unqualified families must report
+  unsupported/shortfall; registry membership is not evidence of scene
+  availability or qualification.
+- **Verification:** schema/hash roundtrip; deterministic sampling under a
+  frozen seed; reject the same site or exact geometry asset crossing a frozen
+  holdout boundary; tests for ODbL use eligibility versus public-release
+  eligibility. Do not add a second split allocator.
+- **Exit:** named family candidates flow into existing signed split audit, and
+  unsupported families remain visible in reports.
+
+#### M1.SCENE_VISIBILITY_EDGE_CASES — close the geometry oracle contract
+
+- **Requirements:** `PKG02-001`, unified plan G1.01–G1.06.
+- **Dependencies:** existing `propagation/visibility.py` and
+  `propagation/scene_visibility.py` contracts.
+- **Deliverable:** source-bound analytical cases for grazing, endpoint/mesh
+  contact, zero-length and near-degenerate segments, unit/affine transforms,
+  and a thin wall whose geometric occlusion remains distinct from RF
+  transmission. Borderline geometric cases must be ambiguous; do not silently
+  map them to clear or blocked.
+- **Verification:** dependency-light analytic tests plus a separately named
+  native comparison only when the environment and frozen geometry fixture are
+  ready. Native comparison is not required to close the software contract.
+- **Exit:** deterministic classifications and tolerances are documented and
+  tested; material transmission remains an independent model/evidence branch.
+
+#### M1.SCENE_STATE_TIMELINE — represent supported material and pose changes
+
+- **Requirements:** `PKG02-002`, unified plan G0.04/G1.04/G1.09/G6.01.
+- **Dependencies:** E01 gate crosswalk and the declared time/pose contract in
+  `datasets/network.py`; review `integrations/sionna/rt_trajectory.py`.
+- **Deliverable:** exact supported interpolation modes for node pose and
+  moving-scene objects; per-time geometry/material-state identity; explicit
+  errors for unsupported rotation, deformation, clock alignment or material
+  updates. Freeze interpolation mathematics before implementation rather than
+  inferring it from a sample grid.
+- **Verification:** time-gap, endpoint, continuity and digest-binding tests;
+  analytic motion fixtures before any retraced RT evidence.
+- **Exit:** generated pose/material state reproduces exactly from the stored
+  contract, with unsupported motion rejected or marked missing.
+
+#### M1.MULTINODE_RT_SUPPORT_MATRIX — connect topology data to generation
+
+- **Requirements:** `PKG02-005`, unified plan §18 and G5 topology consumers.
+- **Dependencies:** E01 gate crosswalk; inspect `datasets/network.py`,
+  `integrations/sionna/rt_network.py`, `integrations/sionna/network_phy.py`,
+  and current backend compatibility tests.
+- **Deliverable:** finite matrix for supported TX/RX nodes, ports, links,
+  serving/interfering relationships and unsupported configurations; then wire
+  one dependency-ready supported topology from path generation through channel
+  storage and the network PHY consumer. Preserve one-to-one node/device/port
+  bindings and exact failure states.
+- **Verification:** analytical multi-link composition and shape/identity
+  contract tests; native backend qualification stays a later, separately
+  frozen task.
+- **Exit:** every requested topology is either generated and consumed through
+  the same episode identity or explicitly rejected with a reason.
 
 ### E02 — close the split-to-evaluation integration slice
 
