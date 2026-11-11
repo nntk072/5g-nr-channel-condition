@@ -290,9 +290,12 @@ software-complete rows cover only bounded cap fail-closed handling, diffuse
 accounting, documented model limits, LOS semantic separation, and prior
 logging. The selected non-native contract suite passes 83 tests with 2 native
 tests skipped; the separate G3 evaluator preflight passed 108 tests. Neither
-suite qualifies G3. Next audit the remaining top-level dataset gates G0–G2 and
-G4–G8 against the governing plan and their source/test paths, in dependency
-order; then reconcile research phases, Appendix E, and the full crosswalk.
+suite qualifies G3. `E01.DS.GATES.G0` is also source-audited: selected runtime,
+asset-closure, provenance, promotion, and ODbL release-contract checks pass,
+but Halti-specific native runtime evidence and scene-specific public-release
+receipts remain open. Next audit G1, G2, and G4–G8 against the governing plan
+and their source/test paths, in dependency order; then reconcile research
+phases, Appendix E, and the full crosswalk.
 Each package batch is the fixed set of `PKGnn-*` IDs in the ledger and closes
 only after every row has inspected source/test integration, implementation
 state, exact verification, qualification state, dependencies and closure
@@ -315,6 +318,21 @@ complete one-to-one requirement coverage and resolves dependencies/blockers.
 - **Next:** audit the other dataset gate records in dependency order; do not
   run G3 qualification until those evidence prerequisites and the frozen
   run-specific design are admitted.
+
+#### E01.DS.GATES.G0 — runtime, source, and provenance criteria (source audit complete 2026-11-11)
+
+- **Requirements:** `DS.G0`, `DS.G0.01`–`DS.G0.08`.
+- **Delivered:** source dispositions now distinguish portable inventory and
+  fail-closed asset/table/promotion contracts from Halti-host runtime checks,
+  legacy result gaps, dynamic-input identity coverage, and per-scene ODbL
+  redistribution records. No host qualification or release was performed.
+- **Verification:** `uv run --no-sync --locked pytest -q --no-cov tests/test_integrations/test_runtime_inventory.py tests/test_integrations/test_sionna_runtime.py tests/test_integrations/test_scene_assets.py tests/test_scripts/test_audit_research_result_provenance.py tests/test_scripts/test_build_result_promotion_manifest.py tests/test_datasets/test_public_release.py` (exit 0); `uv run --no-sync --locked python -m scripts.validate_requirement_ledger`.
+- **Disposition:** DS.G0 remains `not_qualified`; every G0 implementation
+  status is limited to its named software contract. The Halti runtime/backend
+  receipt and public-release eligibility for Etoile, Florence, and Munich
+  remain open.
+- **Next:** continue with G1/G2 and G4–G8 source audits; retain accepted ODbL
+  use policy and require scene-specific evidence before redistribution.
 
 For every batch, retain the exact source files inspected in that ledger row;
 do not copy the whole chronological status history. If a row is already

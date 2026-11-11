@@ -1,7 +1,7 @@
 {
   "schema": "loslab.requirement-ledger.v1",
-  "status_note": "Traceability index covering all 182 backlog IDs, 104 numbered unified-plan criteria, and 30 dataset/research gate or phase records. Source audits are complete for PKG00-05. PKG05 rows 001/002/003/004/005/007/008/009/010/011/012/013/014/016/017/018/019/020/021/022/023/024/025 have bounded dispositions; 006/015/026 remain partial aggregate G4 scope. PKG06 rows 001–036 are source-audited with bounded complete/partial dispositions; PKG07-001/002/003/004/005 are source-audited partials with focused regression slices; remaining package/gate audits stay open. Checked plan boxes are preserved as source marks, never treated as implementation or scientific qualification. Feature-map heuristics do not determine ledger status. DS.G3.01–DS.G3.12 were source-audited at 32fa52c; their software states and external scientific blockers are separate, and every G3 qualification remains not_qualified.",
-  "source_checkpoint": "42e9d08 baseline; E00 37cc827; queue fb49282; PKG01 12eebb5; criterion ledger 9681d19; PKG03 f3e5faf; PKG04 G3 audit ba34d1f; G3 criteria audit 32fa52c",
+  "status_note": "Traceability index covering all 182 backlog IDs, 104 numbered unified-plan criteria, and 30 dataset/research gate or phase records. Source audits are complete for PKG00-05. PKG05 rows 001/002/003/004/005/007/008/009/010/011/012/013/014/016/017/018/019/020/021/022/023/024/025 have bounded dispositions; 006/015/026 remain partial aggregate G4 scope. PKG06 rows 001–036 are source-audited with bounded complete/partial dispositions; PKG07-001/002/003/004/005 are source-audited partials with focused regression slices; remaining package/gate audits stay open. Checked plan boxes are preserved as source marks, never treated as implementation or scientific qualification. Feature-map heuristics do not determine ledger status. DS.G3.01–DS.G3.12 were source-audited at 32fa52c; their software states and external scientific blockers are separate, and every G3 qualification remains not_qualified. DS.G0.01–DS.G0.08 source-audited after G3; environment, host solver smoke, dynamic identity edge coverage, legacy report provenance, and per-scene ODbL release evidence remain explicit blockers.",
+  "source_checkpoint": "1e7e333; DS.G0 source audit recorded 2026-11-11",
   "requirements": [
     {
       "requirement_id": "DS.G0",
@@ -11,30 +11,43 @@
       "backlog_aliases": [],
       "requirement": "Gate G0 — environment, source and provenance",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Hard environment, source, runtime-identity, and provenance gate for MVP evidence and production RT runs. Child criteria define bounded software support; host and release qualification remain external.",
+        "authority_basis": "Governing unified-plan Gate G0 is a hard stop gate for environment, source and provenance; all eight numbered child criteria were source-audited."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "governing-plan requirement needs source-level reconciliation"
+        "status": "partial",
+        "evidence": [
+          "integrations/runtime_inventory.py",
+          "integrations/runtime_compatibility.py",
+          "integrations/sionna/scene_assets.py",
+          "integrations/sionna/rt_identity.py",
+          "integrations/sionna/tdl.py",
+          "integrations/sionna/cdl.py",
+          "scripts/audit_research_result_provenance.py",
+          "datasets/public_release.py"
+        ],
+        "basis": "Source audit found bounded software contracts for runtime receipts, asset closure, dynamic material identity, profile-table binding, reproducible run identities, result promotion and ODbL release controls. Current Halti runtime/backend qualification and scene-specific public-release evidence remain external or incomplete; the eight child criteria carry those exact boundaries."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_integrations/test_runtime_inventory.py tests/test_integrations/test_sionna_runtime.py tests/test_integrations/test_scene_assets.py tests/test_scripts/test_audit_research_result_provenance.py tests/test_scripts/test_build_result_promotion_manifest.py tests/test_datasets/test_public_release.py; uv run --no-sync --locked python -m scripts.validate_requirement_ledger",
+        "commit": "1e7e333"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "No trusted Halti host/runtime/backend inventory or native solver receipt.",
+        "Legacy research reports retain unverified provenance gaps.",
+        "Per-scene Etoile, Florence, and Munich public-release source, conversion, attribution, and third-party-rights records are incomplete."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "G0.01–G0.08 host-matched runtime, closed scene/source identity, reproducible evidence, and release-eligible provenance.",
+        "pass_rule": "All applicable child criteria pass on the exact pinned environment and immutable source/configuration bytes; unresolved assets, unsupported backend transitions, provenance gaps, or incomplete legal records keep G0 closed.",
+        "next_task": "Complete dependency-ready software gaps under child rows, then retain a trusted Halti runtime receipt and scene-specific source/release evidence before any production run."
       },
       "plan_mark": "not_checklist"
     },
@@ -47,32 +60,38 @@
       "requirement": "pinned `sionna`, `sionna-rt`, `mitsuba`, `drjit`, PyTorch, Python, NumPy and expected GPU/CPU backend versions print and match lockfile.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G0.01 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard provenance and reproducibility criterion for any admitted MVP source or run; software completion is limited to its stated contract and does not attest the Halti host or release-specific inputs.",
+        "authority_basis": "Mandatory numbered acceptance criterion G0.01 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "integrations/runtime_inventory.py",
+          "scripts/report_runtime_inventory.py",
+          "integrations/runtime_compatibility.py",
+          "datasets/schema/runtime-inventory.v3.schema.json",
+          "tests/test_integrations/test_runtime_inventory.py"
+        ],
+        "basis": "The runtime inventory records Python/platform, pinned distributions, optional API compatibility, accelerator details, source revision, and lockfile digests. It explicitly reports self-asserted integrity and does not prove this Halti host or lock-attested runtime matches."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_integrations/test_runtime_inventory.py tests/test_integrations/test_sionna_runtime.py tests/test_integrations/test_scene_assets.py tests/test_scripts/test_audit_research_result_provenance.py tests/test_scripts/test_build_result_promotion_manifest.py tests/test_datasets/test_public_release.py",
+        "commit": "1e7e333"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "No trusted Halti inventory receipt or on-host API/backend match is admitted; CUDA driver/device runtime evidence is host-specific."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "pinned `sionna`, `sionna-rt`, `mitsuba`, `drjit`, PyTorch, Python, NumPy and expected GPU/CPU backend versions print and match lockfile.",
+        "pass_rule": "Host- and scene-specific provenance must match the pinned environment and exact source/runtime/configuration bytes; unresolved assets, mismatches, unsupported backends, or incomplete custody fail closed. Synthetic fixtures establish contract behavior only.",
+        "next_task": "Complete the Halti-owned pinned environment and retain a strict API/runtime inventory receipt tied to uv.lock and the intended GPU/CPU backend."
       }
     },
     {
@@ -84,32 +103,37 @@
       "requirement": "selected polarized Mitsuba variant and native `PathSolver` can compute a known free-space path on selected host; CUDA OptiX failure triggers explicit documented LLVM fallback **before** importing/activating RT, not silent mid-run migration.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G0.02 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard provenance and reproducibility criterion for any admitted MVP source or run; software completion is limited to its stated contract and does not attest the Halti host or release-specific inputs.",
+        "authority_basis": "Mandatory numbered acceptance criterion G0.02 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "integrations/runtime_compatibility.py",
+          "integrations/sionna_runtime.py",
+          "tests/test_integrations/test_sionna_runtime.py",
+          "tests/test_integrations/test_runtime_inventory.py"
+        ],
+        "basis": "Opt-in API/version probing and compatibility checks exist without constructing a propagation scene; existing native reports establish selected LLVM work but do not demonstrate current-host free-space PathSolver or pre-import OptiX fallback."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_integrations/test_runtime_inventory.py tests/test_integrations/test_sionna_runtime.py tests/test_integrations/test_scene_assets.py tests/test_scripts/test_audit_research_result_provenance.py tests/test_scripts/test_build_result_promotion_manifest.py tests/test_datasets/test_public_release.py",
+        "commit": "1e7e333"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Current Halti backend qualification and explicit pre-RT fallback evidence are absent."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "selected polarized Mitsuba variant and native `PathSolver` can compute a known free-space path on selected host; CUDA OptiX failure triggers explicit documented LLVM fallback **before** importing/activating RT, not silent mid-run migration.",
+        "pass_rule": "Host- and scene-specific provenance must match the pinned environment and exact source/runtime/configuration bytes; unresolved assets, mismatches, unsupported backends, or incomplete custody fail closed. Synthetic fixtures establish contract behavior only.",
+        "next_task": "After environment setup, freeze the selected variant and run the bounded free-space smoke plus fallback preflight; do not treat compatibility tests as native solver qualification."
       }
     },
     {
@@ -121,32 +145,37 @@
       "requirement": "scene asset closure complete: XML/mesh/MTL/texture/associated metadata content hashed; unresolved assets invalidate production cache.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G0.03 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard provenance and reproducibility criterion for any admitted MVP source or run; software completion is limited to its stated contract and does not attest the Halti host or release-specific inputs.",
+        "authority_basis": "Mandatory numbered acceptance criterion G0.03 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/scene_assets.py",
+          "integrations/sionna/rt_identity.py",
+          "integrations/sionna/d1_generation_gate.py",
+          "tests/test_integrations/test_scene_assets.py"
+        ],
+        "basis": "Recursive local asset closure hashes referenced files and canonical asset sets; unresolved references make the manifest incomplete, and D1 identity validation rejects incomplete or mismatched closure. This is guard implementation coverage, not a claim that every candidate scene is closed."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_integrations/test_runtime_inventory.py tests/test_integrations/test_sionna_runtime.py tests/test_integrations/test_scene_assets.py tests/test_scripts/test_audit_research_result_provenance.py tests/test_scripts/test_build_result_promotion_manifest.py tests/test_datasets/test_public_release.py",
+        "commit": "1e7e333"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Each intended scene still needs an admitted complete asset manifest and license/release review."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "scene asset closure complete: XML/mesh/MTL/texture/associated metadata content hashed; unresolved assets invalidate production cache.",
+        "pass_rule": "Host- and scene-specific provenance must match the pinned environment and exact source/runtime/configuration bytes; unresolved assets, mismatches, unsupported backends, or incomplete custody fail closed. Synthetic fixtures establish contract behavior only.",
+        "next_task": "Run closure against each frozen candidate scene and retain its manifest; only then may scene-level source eligibility be assessed."
       }
     },
     {
@@ -158,32 +187,38 @@
       "requirement": "dynamically altered radio material properties, scene-object pose/velocity, antenna pattern and frequency enter runtime scene hash.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G0.04 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard provenance and reproducibility criterion for any admitted MVP source or run; software completion is limited to its stated contract and does not attest the Halti host or release-specific inputs.",
+        "authority_basis": "Mandatory numbered acceptance criterion G0.04 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "integrations/sionna/scene_assets.py",
+          "integrations/sionna/rt_identity.py",
+          "integrations/sionna/adapter.py",
+          "integrations/sionna/rt_trajectory.py",
+          "tests/test_integrations/test_scene_assets.py"
+        ],
+        "basis": "Runtime material parameters and frequency plus callback code/closures are snapshotted; request identities bind runtime configurations. Coverage of every dynamic scene-object pose/velocity and antenna-pattern mutation in one canonical runtime-scene digest was not established in this audit."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_integrations/test_runtime_inventory.py tests/test_integrations/test_sionna_runtime.py tests/test_integrations/test_scene_assets.py tests/test_scripts/test_audit_research_result_provenance.py tests/test_scripts/test_build_result_promotion_manifest.py tests/test_datasets/test_public_release.py",
+        "commit": "1e7e333"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Dynamic pose/velocity, antenna-pattern, and mutable material sensitivity need adversarial end-to-end identity tests across canonical static and trajectory consumers."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "dynamically altered radio material properties, scene-object pose/velocity, antenna pattern and frequency enter runtime scene hash.",
+        "pass_rule": "Host- and scene-specific provenance must match the pinned environment and exact source/runtime/configuration bytes; unresolved assets, mismatches, unsupported backends, or incomplete custody fail closed. Synthetic fixtures establish contract behavior only.",
+        "next_task": "Trace every supported dynamic input into the immutable runtime identity and add mutation-sensitivity regressions for any missing binding."
       }
     },
     {
@@ -195,32 +230,38 @@
       "requirement": "RNG streams independent and deterministic where promised; repeat for same hardware/backend identity.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G0.05 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard provenance and reproducibility criterion for any admitted MVP source or run; software completion is limited to its stated contract and does not attest the Halti host or release-specific inputs.",
+        "authority_basis": "Mandatory numbered acceptance criterion G0.05 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "datasets/provenance.py",
+          "artifacts/run_replay.py",
+          "experiments/pilot_sampling.py",
+          "tests/test_artifacts/test_run_replay.py",
+          "tests/test_experiments/test_pilot_sampling.py"
+        ],
+        "basis": "Seeded run identity, replay metadata, and deterministic pilot ranking/accounting are implemented. Same-hardware/backend RNG replay is supported by selected reports but is not a general qualified hardware/backend matrix."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_integrations/test_runtime_inventory.py tests/test_integrations/test_sionna_runtime.py tests/test_integrations/test_scene_assets.py tests/test_scripts/test_audit_research_result_provenance.py tests/test_scripts/test_build_result_promotion_manifest.py tests/test_datasets/test_public_release.py",
+        "commit": "1e7e333"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "No broad same-host replay matrix or independently attested backend identity is admitted."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "RNG streams independent and deterministic where promised; repeat for same hardware/backend identity.",
+        "pass_rule": "Host- and scene-specific provenance must match the pinned environment and exact source/runtime/configuration bytes; unresolved assets, mismatches, unsupported backends, or incomplete custody fail closed. Synthetic fixtures establish contract behavior only.",
+        "next_task": "Keep deterministic claims scoped to exact seed/backend identity; exercise replay controls within the later frozen run matrix."
       }
     },
     {
@@ -232,32 +273,38 @@
       "requirement": "versioned TDL/CDL profile-table hash and external 3GPP spec revision recorded separately.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G0.06 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard provenance and reproducibility criterion for any admitted MVP source or run; software completion is limited to its stated contract and does not attest the Halti host or release-specific inputs.",
+        "authority_basis": "Mandatory numbered acceptance criterion G0.06 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/tdl.py",
+          "integrations/sionna/cdl.py",
+          "datasets/standardized.py",
+          "datasets/standardized_specs.py",
+          "tests/test_datasets/test_standardized.py"
+        ],
+        "basis": "TDL/CDL outputs bind table source, parameter-table byte hash, and standardized schema/model identity; the external 3GPP/ETSI revision is recorded as a separate field and validated on read. This closes the provenance contract, not conformance."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_integrations/test_runtime_inventory.py tests/test_integrations/test_sionna_runtime.py tests/test_integrations/test_scene_assets.py tests/test_scripts/test_audit_research_result_provenance.py tests/test_scripts/test_build_result_promotion_manifest.py tests/test_datasets/test_public_release.py",
+        "commit": "1e7e333"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Independent table transcription audit and license/source artifact completeness remain separately gated by G4."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "versioned TDL/CDL profile-table hash and external 3GPP spec revision recorded separately.",
+        "pass_rule": "Host- and scene-specific provenance must match the pinned environment and exact source/runtime/configuration bytes; unresolved assets, mismatches, unsupported backends, or incomplete custody fail closed. Synthetic fixtures establish contract behavior only.",
+        "next_task": "No additional implementation task; preserve the exact table hash and external specification revision through every retained standardized output."
       }
     },
     {
@@ -269,32 +316,38 @@
       "requirement": "no future-dated or unverifiable benchmark report promoted on filename alone; every result links to raw manifests, commit, generated-by command, timestamps and QA state.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G0.07 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard provenance and reproducibility criterion for any admitted MVP source or run; software completion is limited to its stated contract and does not attest the Halti host or release-specific inputs.",
+        "authority_basis": "Mandatory numbered acceptance criterion G0.07 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "scripts/audit_research_result_provenance.py",
+          "scripts/build_result_promotion_manifest.py",
+          "datasets/public_release.py",
+          "tests/test_scripts/test_audit_research_result_provenance.py",
+          "tests/test_scripts/test_build_result_promotion_manifest.py"
+        ],
+        "basis": "The read-only provenance audit checks report fields and local references; promotion manifests require explicit, hash-bound evidence. The retained legacy result corpus still contains missing command/timestamp/config/source provenance, so filename alone cannot make it eligible."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_integrations/test_runtime_inventory.py tests/test_integrations/test_sionna_runtime.py tests/test_integrations/test_scene_assets.py tests/test_scripts/test_audit_research_result_provenance.py tests/test_scripts/test_build_result_promotion_manifest.py tests/test_datasets/test_public_release.py",
+        "commit": "1e7e333"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Historical missing fields cannot be recovered from filenames; the legacy corpus and incomplete raw references remain diagnostic-only."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "no future-dated or unverifiable benchmark report promoted on filename alone; every result links to raw manifests, commit, generated-by command, timestamps and QA state.",
+        "pass_rule": "Host- and scene-specific provenance must match the pinned environment and exact source/runtime/configuration bytes; unresolved assets, mismatches, unsupported backends, or incomplete custody fail closed. Synthetic fixtures establish contract behavior only.",
+        "next_task": "Keep legacy files unpromoted; use the strict source-bound manifest for new evidence and complete source/runtime/command/time/QA receipts before promotion."
       }
     },
     {
@@ -306,32 +359,39 @@
       "requirement": "licensing and permitted field redistribution validated; measured datasets may require nonpublic local storage.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G0.08 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard provenance and reproducibility criterion for any admitted MVP source or run; software completion is limited to its stated contract and does not attest the Halti host or release-specific inputs.",
+        "authority_basis": "Mandatory numbered acceptance criterion G0.08 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "datasets/public_release.py",
+          "datasets/schema/public-release-manifest.v3.schema.json",
+          "datasets/schema/odbl-scene-source-snapshot-audit.v1.schema.json",
+          "docs/research/results/g3-odbl-scene-source-audit-20261027.json",
+          "docs/research/G3_SCENE_FAMILY_LICENSE_AUDIT_2026-10-23.md",
+          "tests/test_datasets/test_public_release.py"
+        ],
+        "basis": "The accepted ODbL policy and strict release/source-audit contracts cover source snapshot, attribution/source offer, conversion recipe and third-party rights; actual Etoile, Florence and Munich public-release records are not complete."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_integrations/test_runtime_inventory.py tests/test_integrations/test_sionna_runtime.py tests/test_integrations/test_scene_assets.py tests/test_scripts/test_audit_research_result_provenance.py tests/test_scripts/test_build_result_promotion_manifest.py tests/test_datasets/test_public_release.py",
+        "commit": "1e7e333"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Scene-specific source extracts, conversion inventories, attribution/source-offer files, and third-party-rights review are not complete for public release."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "licensing and permitted field redistribution validated; measured datasets may require nonpublic local storage.",
+        "pass_rule": "Host- and scene-specific provenance must match the pinned environment and exact source/runtime/configuration bytes; unresolved assets, mismatches, unsupported backends, or incomplete custody fail closed. Synthetic fixtures establish contract behavior only.",
+        "next_task": "Continue using the scenes under the accepted ODbL policy; before redistribution, complete and verify the per-scene release manifests and third-party-rights closure."
       }
     },
     {
