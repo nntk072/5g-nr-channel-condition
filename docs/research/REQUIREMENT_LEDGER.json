@@ -10523,7 +10523,7 @@
       "backlog_aliases": [
         "PKG08-017"
       ],
-      "requirement": "Complete model-input leakage audit across every dataset adapter, feature transform, experiment runner, training path, and inference artifact. `datasets.model_input_audit._validated_real_scalar` converts registered scalar inputs through bounded float normalization and reports overflow as a domain `ValueError`. The analytical two-path runner exposes a registered observation-only `TwoPathModelInputs` view consumed by fitting, prediction, and profile-likelihood evaluation; saved checkpoints now have schema-versioned sidecars binding exact input, target, split arrays, and checkpoint digest. The measured-data CAEZ magnitude and cross-environment Ridge routes use registered `CAEZForecastModelInputs` containing only feature matrices and emit a schema-checked score-report contract binding exact training/evaluation feature bytes, separate target bytes, chronological history/anchor/target rows, source archive digests, model identity, and transform-source digest. CAEZ temporal alignment rejects missing history rows instead of allowing `-1` wraparound. Remaining: enumerate other active consumers and feature transforms, and explicitly classify archived scripts.",
+      "requirement": "Complete model-input leakage audit across every dataset adapter, feature transform, experiment runner, training path, and inference artifact. `datasets.model_input_audit._validated_real_scalar` converts registered scalar inputs through bounded float normalization and reports overflow as a domain `ValueError`. The analytical two-path runner exposes a registered observation-only `TwoPathModelInputs` view consumed by fitting, prediction, and profile-likelihood evaluation; saved checkpoints now have schema-versioned sidecars binding exact input, target, split arrays, and checkpoint digest. The measured-data CAEZ magnitude and cross-environment Ridge routes use registered `CAEZForecastModelInputs` containing only feature matrices and emit schema-checked score-report contracts binding exact feature/target/pair/archive/transform identities. CAEZ temporal alignment rejects missing history rows instead of allowing `-1` wraparound. A working source inventory covers canonical, profile-holdout, two-path, CAEZ, calibration, CNN/CVNN and archived routes. Remaining: resolve standalone CNN/CVNN save API scope, inspect non-fit/save wrappers and generated entry points, and reconcile archive disposition through the crosswalk.",
       "scope": {
         "status": "mandatory",
         "support_envelope": "All active dataset adapters, feature transforms, experiment/training producers and inference/model artifacts; the audit is not complete until every current producer is enumerated and evidenced. Archived legacy code must be explicitly classified, not silently treated as a supported route.",
@@ -10537,6 +10537,7 @@
           "scripts/run_observable_multipath_experiment.py",
           "experiments/schema/two-path-model-artifact-contract.v1.schema.json",
           "tests/test_experiments/test_two_path_experiment_contract.py",
+          "docs/research/MODEL_INPUT_ROUTE_INVENTORY.md",
           "experiments/runner.py",
           "experiments/profile_holdout.py",
           "scripts/evaluate_caez_cross_environment.py",
