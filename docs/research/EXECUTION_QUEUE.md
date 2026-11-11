@@ -260,8 +260,10 @@ pass); its retained 2,262-file report is limited to declared frozen G4 rosters
 and is not global seed clearance. `PKG08-029` source-audit confirms exact-tree
 and registered semantic lineage checks but remains partial for legacy byte-only
 types and the rest of the planned descendant inventory. `PKG08-030` closes the
-truthful semantic-coverage report contract. The shared focused suite passes 135
-tests. Continue with `PKG08-031` through `PKG08-039`,
+truthful semantic-coverage report contract. `PKG08-031`–`035` now close their
+bounded registry admission, parser, and input-resource software contracts;
+signer trust and corpus qualification remain open. The combined focused suite
+passes 140 tests. Continue with `PKG08-036` through `PKG08-039`,
 then packages 09–10, `E01.DS.GATES`, `E01.RS.PHASES`, `E01.RS.APPENDIX_E`, and
 `E01.CROSSWALK`.
 Each package batch is the fixed set of `PKGnn-*` IDs in the ledger and closes

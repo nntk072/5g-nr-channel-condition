@@ -11209,30 +11209,38 @@
       ],
       "requirement": "Fail closed when a signed split-lock audit receives provisional RT scene identities; allow the unsigned diagnostic path to expose their count. Regression definitions exercise the signed-lock rejection. Validation remains deferred, and complete inventory authority/signature custody remain external requirements.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Fail-closed signed split-registry admission rejects provisional RT scene identities; unsigned diagnostic mode may report them. Software/input-integrity scope only; no qualification or external trust claim.",
+        "authority_basis": "Implementation backlog PKG08-031 requires this fail-closed split-lineage or split-policy admission contract."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "scripts/audit_channel_split_lineage.py",
+          "datasets/split_lineage.py",
+          "tests/test_scripts/test_audit_channel_split_lineage.py"
+        ],
+        "basis": "Signed audits reject provisional scene identity and unsigned diagnostic reports preserve the count. This is admission behavior only; authoritative scene identity and signer/inventory custody remain external."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_scripts/test_audit_channel_split_lineage.py tests/test_datasets/test_split_policy_v2.py tests/test_datasets/test_split_policy_signing.py (140 passed).",
+        "commit": "Focused split-lineage, policy parsing, and signing verification on 2026-11-11."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Signed split audit raises for provisional RT identities; unsigned diagnostic path remains informational."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Trusted signer custody and complete authoritative scene identity evidence are not supplied."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Fail-closed signed split-registry admission rejects provisional RT scene identities; unsigned diagnostic mode may report them.",
+        "pass_rule": "The bounded software contract fails closed at its declared input/admission boundary and focused regressions pass; this status does not establish corpus qualification, physical independence, or external signer authority.",
+        "next_task": "Continue package 08 source audit; keep corpus qualification and trusted authority explicitly open."
       },
       "plan_mark": "not_checklist"
     },
@@ -11246,30 +11254,37 @@
       ],
       "requirement": "Bound manifest memory in split-lineage audit reads for the child-binding roster, frozen inventory, and legacy reconstruction manifest; regression definitions cover limit boundaries and invalid limits. This does not bound intentionally loaded ChannelDataset payloads or establish corpus completeness; validation remains deferred.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Bound manifest memory in split-lineage reads for child bindings, frozen inventory, and legacy reconstruction manifests. Software/input-integrity scope only; no qualification or external trust claim.",
+        "authority_basis": "Implementation backlog PKG08-032 requires this fail-closed split-lineage or split-policy admission contract."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "scripts/audit_channel_split_lineage.py",
+          "tests/test_scripts/test_audit_channel_split_lineage.py"
+        ],
+        "basis": "Stable bounded reads enforce configured manifest byte ceilings and reject overflow/invalid limits. The limit does not bound intentionally loaded ChannelDataset payloads or prove corpus completeness."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_scripts/test_audit_channel_split_lineage.py tests/test_datasets/test_split_policy_v2.py tests/test_datasets/test_split_policy_signing.py (140 passed).",
+        "commit": "Focused split-lineage, policy parsing, and signing verification on 2026-11-11."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Split-lineage manifest reads are bounded; NPZ payload memory and corpus completeness are outside the contract."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Representative corpus size and full-payload memory envelope remain unqualified."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Bound manifest memory in split-lineage reads for child bindings, frozen inventory, and legacy reconstruction manifests.",
+        "pass_rule": "The bounded software contract fails closed at its declared input/admission boundary and focused regressions pass; this status does not establish corpus qualification, physical independence, or external signer authority.",
+        "next_task": "Continue package 08 source audit; keep corpus qualification and trusted authority explicitly open."
       },
       "plan_mark": "not_checklist"
     },
@@ -11283,30 +11298,38 @@
       ],
       "requirement": "Bound split-policy registry/payload, detached-signature, and allowed-signers reads to 256 MiB, 1 MiB, and 4 MiB respectively using bounded streaming reads and stable-file checks. Regression definitions cover exact-limit acceptance, overflow rejection, and invalid limits; validation is deferred. This is an input/resource bound, not evidence of signer trust or release qualification.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Bound split-policy registry/payload, detached signature, and allowed-signers reads with stable streaming limits. Software/input-integrity scope only; no qualification or external trust claim.",
+        "authority_basis": "Implementation backlog PKG08-033 requires this fail-closed split-lineage or split-policy admission contract."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "datasets/split_policy.py",
+          "tests/test_datasets/test_split_policy_v2.py",
+          "tests/test_datasets/test_split_policy_signing.py"
+        ],
+        "basis": "Canonical readers bound registry/payload, detached signature, and allowed-signers inputs; streaming/stable-file checks reject overflow and unsafe changes. These limits do not establish the trustworthiness or custody of keys."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_scripts/test_audit_channel_split_lineage.py tests/test_datasets/test_split_policy_v2.py tests/test_datasets/test_split_policy_signing.py (140 passed).",
+        "commit": "Focused split-lineage, policy parsing, and signing verification on 2026-11-11."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The three declared split-policy input classes are size-bounded and covered by boundary/tamper regressions."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Production trust authority and key custody remain external."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Bound split-policy registry/payload, detached signature, and allowed-signers reads with stable streaming limits.",
+        "pass_rule": "The bounded software contract fails closed at its declared input/admission boundary and focused regressions pass; this status does not establish corpus qualification, physical independence, or external signer authority.",
+        "next_task": "Continue package 08 source audit; keep corpus qualification and trusted authority explicitly open."
       },
       "plan_mark": "not_checklist"
     },
@@ -11320,30 +11343,37 @@
       ],
       "requirement": "Make split-policy lock publication enforce the same 256 MiB ceiling as the canonical reader, preventing creation of immutable registries that cannot be read back; reject before creating the destination directory. Regression definition verifies no artifact is published on overflow; consolidated validation remains deferred.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Apply the canonical split-registry reader ceiling at publication and reject oversize locks before creating destination directories. Software/input-integrity scope only; no qualification or external trust claim.",
+        "authority_basis": "Implementation backlog PKG08-034 requires this fail-closed split-lineage or split-policy admission contract."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "datasets/split_policy.py",
+          "tests/test_datasets/test_split_policy_v2.py"
+        ],
+        "basis": "Registry freeze enforces the same reader byte ceiling before publication; overflow regression verifies no destination artifact/directory is created. This is software admission, not corpus qualification."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_scripts/test_audit_channel_split_lineage.py tests/test_datasets/test_split_policy_v2.py tests/test_datasets/test_split_policy_signing.py (140 passed).",
+        "commit": "Focused split-lineage, policy parsing, and signing verification on 2026-11-11."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Writer rejects an oversized registry before publication and remains readable under the canonical reader limit."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "No external blocker for the bounded software contract; corpus authority/qualification remain separate."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Apply the canonical split-registry reader ceiling at publication and reject oversize locks before creating destination directories.",
+        "pass_rule": "The bounded software contract fails closed at its declared input/admission boundary and focused regressions pass; this status does not establish corpus qualification, physical independence, or external signer authority.",
+        "next_task": "Continue package 08 source audit; keep corpus qualification and trusted authority explicitly open."
       },
       "plan_mark": "not_checklist"
     },
@@ -11357,30 +11387,37 @@
       ],
       "requirement": "Fail closed at the split-registry JSON boundary on invalid UTF-8/JSON, non-object roots/containers, non-integer schema versions, and v2/v3 field-roster drift before registry reconstruction. Regression definitions cover malformed roots, parser errors, extra fields, wrong container types, and numeric schema-version aliases; validation is deferred. Canonical hash and reconstructed representation checks remain required.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Reject malformed split-registry JSON, invalid containers/version aliases, and v2/v3 field-roster drift before reconstruction. Software/input-integrity scope only; no qualification or external trust claim.",
+        "authority_basis": "Implementation backlog PKG08-035 requires this fail-closed split-lineage or split-policy admission contract."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "datasets/split_policy.py",
+          "tests/test_datasets/test_split_policy_v2.py"
+        ],
+        "basis": "The registry reader fails closed on invalid UTF-8/JSON, duplicate keys, non-object roots/containers, non-integer versions, and version-specific roster drift before canonical reconstruction. Focused adversarial shape and rehash regressions pass."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_scripts/test_audit_channel_split_lineage.py tests/test_datasets/test_split_policy_v2.py tests/test_datasets/test_split_policy_signing.py (140 passed).",
+        "commit": "Focused split-lineage, policy parsing, and signing verification on 2026-11-11."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Malformed and noncanonical registries reject before reconstruction; canonical hash and reconstructed representation checks remain required."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "No external blocker for this bounded parser contract; authoritative inventory and signing custody remain unqualified."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Reject malformed split-registry JSON, invalid containers/version aliases, and v2/v3 field-roster drift before reconstruction.",
+        "pass_rule": "The bounded software contract fails closed at its declared input/admission boundary and focused regressions pass; this status does not establish corpus qualification, physical independence, or external signer authority.",
+        "next_task": "Continue package 08 source audit; keep corpus qualification and trusted authority explicitly open."
       },
       "plan_mark": "not_checklist"
     },
