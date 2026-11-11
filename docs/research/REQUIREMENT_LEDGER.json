@@ -10808,19 +10808,26 @@
       ],
       "requirement": "Implement immutable content-addressed NR and UMCD episode stores with manifest-last publication, deterministic reader batches, per-object content hashes, compressed-archive integrity checks, and a disk-backed SQLite manifest inventory. Bound NR record and trajectory pointer manifests to 1 MiB and trajectory content JSON to 64 MiB using stable single-link file snapshots; writer-side limits prevent creating objects the reader cannot accept. Regression definitions cover memory scaling, ordering, oversize inputs, and unsafe file types. Consolidated validation remains deferred; end-to-end RSS and cross-format retry/failure accounting remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Immutable NR record/trajectory and UMCD episode NPZ/JSON stores, their declared bounded-reader APIs, and the current disk-backed SQLite inventories; production Parquet/Zarr selection and corpus-scale capacity guarantees are outside this requirement.",
+        "authority_basis": "Mandatory unified-dataset storage implementation requirement in the implementation backlog."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "datasets/nr_store.py",
+          "datasets/episode_store.py",
+          "tests/test_datasets/test_nr_store_memory_scaling.py",
+          "tests/test_datasets/test_nr_store_streaming.py",
+          "tests/test_datasets/test_nr.py",
+          "tests/test_datasets/test_umcd_store_integrity.py"
+        ],
+        "basis": "Both stores publish immutable content-addressed objects before manifests, verify object/archive integrity on read, and inventory manifests through temporary disk-backed SQLite with deterministic bounded iteration. NR manifests and trajectory JSON have stable single-link size-bounded readers and writer-side limits. Focused tests cover ordered batching, oversize rejection, unsafe paths, corruption, and representative retry paths. This is software implementation status; broad cross-format failure accounting and qualification remain separate."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_datasets/test_nr_store_memory_scaling.py tests/test_datasets/test_nr_store_streaming.py tests/test_datasets/test_umcd_store_integrity.py (43 passed); .venv/bin/pytest --no-cov -o addopts='' -q tests/test_datasets/test_nr.py -k 'trajectory_round_trip or trajectory_manifest_publication_failure or trajectory_partial_record_publication or trajectory_store_rejects_oversized or trajectory_store_rejects_symlinked' (6 passed, 64 deselected); NR and UMCD RSS diagnostics passed separately.",
+        "commit": "Focused verification on 2026-11-11, after 2897d8b and d1ad629; native qualification and broad CI remain deferred."
       },
       "qualification": {
         "status": "not_qualified",
@@ -10829,9 +10836,9 @@
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Immutable NR and UMCD pilot stores with manifest-last content-address publication, bounded deterministic readers, integrity validation, and focused regression evidence.",
+        "pass_rule": "Declared NR/UMCD APIs satisfy immutability, deterministic bounded iteration, content/archive integrity, and their stated input ceilings; this does not assert corpus-scale RSS, complete cross-format retry coverage, scientific qualification, or production release readiness.",
+        "next_task": "PKG08-024"
       },
       "plan_mark": "not_checklist"
     },
