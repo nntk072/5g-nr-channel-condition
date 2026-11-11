@@ -66,6 +66,7 @@ def test_runner_evaluates_frozen_group_disjoint_prediction_file(tmp_path):
                 "schema": "loslab.scalar_regression_predictions.v1",
                 "target_name": "relative delay",
                 "target_unit": "ns",
+                "group_unit": "physical_episode",
                 "predictions": rows,
             }
         ),
@@ -76,6 +77,9 @@ def test_runner_evaluates_frozen_group_disjoint_prediction_file(tmp_path):
 
     assert report["status"] == "DESCRIPTIVE_EVALUATION_NOT_A_RESEARCH_CLAIM"
     assert report["metrics"]["test_group_count"] == 2
+    assert report["input_provenance"]["group_unit"] == "physical_episode"
+    assert report["metrics"]["resampling_unit"] == "physical_episode"
+    assert report["metrics"]["physical_independence_established"] is False
     assert report["metrics"]["test_interval_metrics_by_stratum"]["0.9"].keys() == {
         "ambiguous",
         "resolved",
@@ -91,6 +95,40 @@ def test_runner_evaluates_frozen_group_disjoint_prediction_file(tmp_path):
     report_with_metric_drift["metrics"]["error_metrics"]["unbound_metric"] = 1
     with pytest.raises(jsonschema.ValidationError):
         validator.validate(report_with_metric_drift)
+
+
+@pytest.mark.parametrize("group_unit", ["row", [], True])
+def test_runner_rejects_unknown_group_unit(tmp_path, group_unit):
+    source = tmp_path / "predictions.json"
+    source.write_text(
+        json.dumps(
+            {
+                "schema": "loslab.scalar_regression_predictions.v1",
+                "group_unit": group_unit,
+                "predictions": [
+                    {
+                        "sample_id": "cal-1",
+                        "group_id": "cal-scene",
+                        "split": "calibration",
+                        "target": 0.0,
+                        "prediction": 0.0,
+                        "uncertainty_scale": 1.0,
+                    },
+                    {
+                        "sample_id": "test-1",
+                        "group_id": "test-scene",
+                        "split": "test",
+                        "target": 1.0,
+                        "prediction": 0.5,
+                        "uncertainty_scale": 1.0,
+                    },
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="group_unit"):
+        evaluate_prediction_file(source, bootstrap_draws=100)
 
 
 def test_runner_rejects_unknown_schema_duplicate_samples_and_missing_fields(tmp_path):

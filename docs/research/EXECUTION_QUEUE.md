@@ -261,7 +261,10 @@ remains partial for broader evaluator/model-route coverage; the canonical
 runner support replay and UMCD report integration checks pass (77 runner,
 adapter, and support tests; one focused UMCD integration test). Physical
 independence, scientific support adequacy, site/array eligibility, and all
-later model/evaluation routes remain open. Continue with `PKG09-004`–`009`,
+later model/evaluation routes remain open. `PKG09-009` now has a grouped
+conformal/bootstrap interface that names physical episode/site/acquisition
+units when declared and always reports physical independence as unverified;
+33 focused tests pass. Continue source audit for `PKG09-004`–`008`,
 then `E01.PKG10`, `E01.DS.GATES`, `E01.RS.PHASES`, `E01.RS.APPENDIX_E`, and
 `E01.CROSSWALK`.
 Each package batch is the fixed set of `PKGnn-*` IDs in the ledger and closes

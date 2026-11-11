@@ -17,6 +17,9 @@
     "calibration_and_test_are_disjoint_groups": {"const": true},
     "research_status": {"$ref": "#/$defs/canonicalText"},
     "identifiability_weight": {"type": "number", "exclusiveMinimum": 0},
+    "group_unit": {
+      "enum": ["caller_declared_group", "physical_episode", "site", "acquisition_unit"]
+    },
     "predictions": {
       "type": "array",
       "minItems": 1,

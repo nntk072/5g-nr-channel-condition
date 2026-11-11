@@ -28,6 +28,7 @@ _PREDICTION_FIELDS = {
     "calibration_and_test_are_disjoint_groups",
     "research_status",
     "identifiability_weight",
+    "group_unit",
 }
 _PREDICTION_ROW_FIELDS = {
     "sample_id",
@@ -161,6 +162,17 @@ def evaluate_prediction_file(
         if not math.isfinite(float(weight)) or float(weight) <= 0:
             raise ValueError("identifiability_weight must be finite and positive")
         provenance["identifiability_weight"] = float(weight)
+    group_unit = payload.get("group_unit", "caller_declared_group")
+    if not isinstance(group_unit, str) or group_unit not in {
+        "caller_declared_group",
+        "physical_episode",
+        "site",
+        "acquisition_unit",
+    }:
+        raise ValueError(
+            "group_unit must be caller_declared_group, physical_episode, site, or acquisition_unit"
+        )
+    provenance["group_unit"] = group_unit
     rows = payload.get("predictions")
     if not isinstance(rows, list) or not rows:
         raise ValueError("predictions must be a nonempty list")
@@ -220,6 +232,7 @@ def evaluate_prediction_file(
         [row["uncertainty_scale"] for row in test],
         [row["group_id"] for row in test],
         test_stratum=[row.get("identifiability_stratum", "all") for row in test],
+        group_unit=group_unit,
         seed=seed,
         bootstrap_draws=bootstrap_draws,
     )

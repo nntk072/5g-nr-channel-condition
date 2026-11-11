@@ -163,6 +163,7 @@ def evaluate_grouped_regression_uncertainty(
     coverage_levels: Sequence[float] = (0.5, 0.8, 0.9, 0.95),
     risk_coverages: Sequence[float] = (0.25, 0.5, 0.75, 1.0),
     test_stratum: Sequence[str] | np.ndarray | None = None,
+    group_unit: str = "caller_declared_group",
     seed: int = 42,
     bootstrap_draws: int = 2000,
 ) -> dict[str, object]:
@@ -191,6 +192,15 @@ def evaluate_grouped_regression_uncertainty(
     risks = _probability_vector(risk_coverages, name="risk_coverages", upper_inclusive=True)
     if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
         raise ValueError("seed must be a nonnegative integer")
+    if not isinstance(group_unit, str) or group_unit not in {
+        "caller_declared_group",
+        "physical_episode",
+        "site",
+        "acquisition_unit",
+    }:
+        raise ValueError(
+            "group_unit must be caller_declared_group, physical_episode, site, or acquisition_unit"
+        )
     if isinstance(bootstrap_draws, bool) or not isinstance(bootstrap_draws, int):
         raise TypeError("bootstrap_draws must be an integer")
     if bootstrap_draws < 100:
@@ -333,12 +343,14 @@ def evaluate_grouped_regression_uncertainty(
         "test_interval_metrics_by_stratum": stratum_intervals,
         "risk_coverage": risk_curve,
         "group_risk_coverage": group_risk_curve,
-        "resampling_unit": "independent test group",
+        "resampling_unit": group_unit,
+        "physical_independence_established": False,
         "interpretation": (
-            "Conformal guarantees require exchangeable independent groups. With too few calibration "
-            "groups, requested finite-sample intervals are unbounded; sample-level rows are not "
-            "treated as independent calibration units. Row- and group-level risk-coverage are "
-            "descriptive; group-level selection ranks groups by mean declared uncertainty and "
-            "reports macro group errors."
+            "The resampling unit is the caller-declared grouping label; the label does not establish "
+            "physical independence. Conformal guarantees require exchangeable independent groups. "
+            "With too few calibration groups, requested finite-sample intervals are unbounded; "
+            "sample-level rows are not treated as independent calibration units. Row- and group-level "
+            "risk-coverage are descriptive; group-level selection ranks groups by mean declared "
+            "uncertainty and reports macro group errors."
         ),
     }

@@ -11959,30 +11959,42 @@
       ],
       "requirement": "Complete uncertainty calibration and clustered inference at the independent physical episode/site/acquisition-unit level.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Grouped conformal calibration and clustered regression inference over a caller-declared generic group or explicit physical_episode/site/acquisition_unit label. The report always states physical independence is not established by this software.",
+        "authority_basis": "Implementation backlog PKG09-009 requires uncertainty calibration and clustered inference using physical episode/site/acquisition units rather than treating rows as independent."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/uncertainty.py",
+          "evaluation/uncertainty_io.py",
+          "evaluation/schema/scalar-regression-predictions.v1.schema.json",
+          "evaluation/schema/grouped-regression-uncertainty-report.v1.schema.json",
+          "tests/test_evaluation/test_uncertainty.py",
+          "tests/test_evaluation/test_uncertainty_runner.py"
+        ],
+        "basis": "The grouped conformal and bootstrap implementation calibrates on maximum within-group residuals, requires disjoint calibration/test group IDs, and resamples group-level errors. The prediction contract accepts explicit physical_episode/site/acquisition_unit labels and the report preserves the chosen unit while hard-coding physical_independence_established=false. Legacy callers without a declared unit are labeled caller_declared_group. This provides the software mechanism and honest status boundary; it does not authenticate that group IDs correspond to independent physical units."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_evaluation/test_uncertainty.py tests/test_evaluation/test_uncertainty_runner.py (33 passed); .venv/bin/ruff check evaluation/uncertainty.py evaluation/uncertainty_io.py tests/test_evaluation/test_uncertainty_runner.py; JSON parse of both prediction and report schemas.",
+        "commit": "Focused group-unit reporting and clustered-uncertainty verification on 2026-11-11."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Software uses caller-provided group labels and cannot establish physical independence, representative group sampling, or scientific coverage/calibration validity."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Authoritative episode/site/acquisition-unit roster and independence evidence are not bound to prediction artifacts.",
+        "Representative calibration/test evidence and scientific acceptance thresholds remain unprovided."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Grouped uncertainty calibration and cluster-aware regression evaluation with explicit resampling-unit labels and non-qualification reporting.",
+        "pass_rule": "Calibration/test groups are disjoint, conformal and bootstrap calculations operate at the declared group level, schemas retain the unit, and the output never claims physical independence. Scientific qualification requires externally validated group identities and acceptance criteria.",
+        "next_task": "Integrate prediction artifacts with an authoritative frozen physical-group roster and the G3/G5 acceptance contracts before treating calibration or intervals as qualified."
       },
       "plan_mark": "not_checklist"
     },
