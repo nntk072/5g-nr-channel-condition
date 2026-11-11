@@ -99,10 +99,19 @@ def standardized_profile_applicability(
 
 def standardized_profile_applicability_report() -> dict[str, object]:
     """Return a deterministic, hash-bound view of the supported profile scope."""
-    rows = [
-        asdict(STANDARDIZED_PROFILE_APPLICABILITY[key])
-        for key in sorted(STANDARDIZED_PROFILE_APPLICABILITY)
-    ]
+    # Convert tuple-valued dataclass fields to JSON arrays here, so the public
+    # report itself conforms to its JSON Schema without a downstream encoder
+    # silently changing its shape.
+    rows = json.loads(
+        json.dumps(
+            [
+                asdict(STANDARDIZED_PROFILE_APPLICABILITY[key])
+                for key in sorted(STANDARDIZED_PROFILE_APPLICABILITY)
+            ],
+            sort_keys=True,
+            allow_nan=False,
+        )
+    )
     encoded = json.dumps(rows, sort_keys=True, separators=(",", ":"), allow_nan=False).encode(
         "utf-8"
     )

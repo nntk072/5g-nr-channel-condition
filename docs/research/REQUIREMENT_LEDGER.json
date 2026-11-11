@@ -1,6 +1,6 @@
 {
   "schema": "loslab.requirement-ledger.v1",
-  "status_note": "Initial traceability index: all 182 backlog IDs, all 104 numbered unified-plan gate criteria, and 30 dataset/research gate or phase records. Except source-audited PKG00/01/02 rows, entries remain unreviewed. Checked plan boxes are preserved as source marks, never treated as implementation or scientific qualification. Feature-map heuristics do not determine ledger status.",
+  "status_note": "Traceability index covering all 182 backlog IDs, 104 numbered unified-plan criteria, and 30 dataset/research gate or phase records. Source audits are complete for PKG00-04 and selected PKG05 code-scope rows (PKG05-002/003/004/005/007/008/009/010/016). Other PKG05 scientific/source audits and later batches remain open. Checked plan boxes are preserved as source marks, never treated as implementation or scientific qualification. Feature-map heuristics do not determine ledger status.",
   "source_checkpoint": "42e9d08 baseline; E00 37cc827; queue fb49282; PKG01 12eebb5; criterion ledger 9681d19; PKG03 f3e5faf; PKG04 G3 audit ba34d1f",
   "requirements": [
     {
@@ -6885,30 +6885,37 @@
       ],
       "requirement": "Inventory profile applicability in one canonical, versioned TDL/CDL ledger and use it in record admission; expose a deterministic digest and a schema. This is code-scope metadata, not statistical conformance evidence. Regression definitions are authored; validation is deferred.",
       "scope": {
-        "status": "unreviewed",
+        "status": "mandatory",
         "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "authority_basis": "The corresponding PKG05 backlog requirement is explicit; this audit closes only the listed software/code-scope portion and preserves its stated statistical, topology, release, or external evidence limitations."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "datasets/standardized_specs.py",
+          "datasets/standardized.py",
+          "datasets/schema/standardized-profile-applicability.v1.schema.json",
+          "tests/test_datasets/test_standardized.py"
+        ],
+        "basis": "Source-audited code and canonical consumer/test integration satisfy the bounded software contract. This status does not imply standardized statistical conformance or scientific qualification."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_standardized.py tests/test_integrations/test_tdl_adapter_contract.py tests/test_integrations/test_tdl_contract.py tests/test_integrations/test_cdl_contract.py tests/test_integrations/test_cdl_profile_resource_binding.py tests/test_integrations/test_sionna_scenario_gbsm_contract.py tests/test_datasets/test_scenario_gbsm_store.py tests/test_scripts/test_generate_scenario_gbsm_run.py tests/test_scripts/test_report_standardized_capabilities.py",
+        "commit": "working tree based on 20e992c"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Adapter/report/schema software checks only; no statistical qualification is asserted by this implementation status."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Source-audited implementation and focused software verification for the bounded contract; scientific qualification remains separately gated.",
+        "pass_rule": "Focused software contract tests pass and implementation/evidence paths are present. Do not infer G4 or G3 qualification from these checks.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -6922,30 +6929,36 @@
       ],
       "requirement": "Publish a separate hash-bound generator capability matrix derived from the canonical profile ledger. It records every supported scalable/fixed TDL/CDL model and table version, one-TX-node/one-RX-node MIMO topology, family-specific antenna features, unsupported topologies, and the explicit one-link UMi/UMa/RMa/InH/InF scenario-GBSM adapter. The capability report advances to v2 and keeps these models code-only, not conformance-qualified. Broader topology/interference and G4 scientific conformance remain open; regression definitions are unvalidated.",
       "scope": {
-        "status": "unreviewed",
+        "status": "mandatory",
         "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "authority_basis": "The corresponding PKG05 backlog requirement is explicit; this audit closes only the listed software/code-scope portion and preserves its stated statistical, topology, release, or external evidence limitations."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "datasets/standardized_specs.py",
+          "datasets/schema/standardized-generator-capabilities.v2.schema.json",
+          "tests/test_datasets/test_standardized.py"
+        ],
+        "basis": "Source-audited code and canonical consumer/test integration satisfy the bounded software contract. This status does not imply standardized statistical conformance or scientific qualification."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_standardized.py tests/test_integrations/test_tdl_adapter_contract.py tests/test_integrations/test_tdl_contract.py tests/test_integrations/test_cdl_contract.py tests/test_integrations/test_cdl_profile_resource_binding.py tests/test_integrations/test_sionna_scenario_gbsm_contract.py tests/test_datasets/test_scenario_gbsm_store.py tests/test_scripts/test_generate_scenario_gbsm_run.py tests/test_scripts/test_report_standardized_capabilities.py",
+        "commit": "working tree based on 20e992c"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Adapter/report/schema software checks only; no statistical qualification is asserted by this implementation status."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Source-audited implementation and focused software verification for the bounded contract; scientific qualification remains separately gated.",
+        "pass_rule": "Focused software contract tests pass and implementation/evidence paths are present. Do not infer G4 or G3 qualification from these checks.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -6959,30 +6972,37 @@
       ],
       "requirement": "Convert explicit scenario-GBSM outputs to per-drop records and publish them through a bounded, content-addressed scenario run store with manifest-last commits, exact topology/configuration digests, and scenario-LOS/CFR consistency checks. Add records as a distinct canonical `EpisodeBundle` layer and allow standardized-only episodes to omit the physical RT path-oracle layer. Regression definitions cover run/episode round trips, LOS mismatch, episode/topology binding, and roster tampering; validation is deferred.",
       "scope": {
-        "status": "unreviewed",
+        "status": "mandatory",
         "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "authority_basis": "The corresponding PKG05 backlog requirement is explicit; this audit closes only the listed software/code-scope portion and preserves its stated statistical, topology, release, or external evidence limitations."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "datasets/scenario_gbsm.py",
+          "datasets/episode_store.py",
+          "datasets/channel.py",
+          "tests/test_datasets/test_scenario_gbsm_store.py"
+        ],
+        "basis": "Source-audited code and canonical consumer/test integration satisfy the bounded software contract. This status does not imply standardized statistical conformance or scientific qualification."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_standardized.py tests/test_integrations/test_tdl_adapter_contract.py tests/test_integrations/test_tdl_contract.py tests/test_integrations/test_cdl_contract.py tests/test_integrations/test_cdl_profile_resource_binding.py tests/test_integrations/test_sionna_scenario_gbsm_contract.py tests/test_datasets/test_scenario_gbsm_store.py tests/test_scripts/test_generate_scenario_gbsm_run.py tests/test_scripts/test_report_standardized_capabilities.py",
+        "commit": "working tree based on 20e992c"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Adapter/report/schema software checks only; no statistical qualification is asserted by this implementation status."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Source-audited implementation and focused software verification for the bounded contract; scientific qualification remains separately gated.",
+        "pass_rule": "Focused software contract tests pass and implementation/evidence paths are present. Do not infer G4 or G3 qualification from these checks.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -6996,30 +7016,39 @@
       ],
       "requirement": "Connect the UMi/UMa/RMa/InH/InF Sionna scenario adapter to a bounded CLI generation path. The v1 config names every split-parent sample and explicit per-drop topology, caps batch/grid/time/array dimensions, writes the content-addressed scenario run store and a canonical `EpisodeBundle` per drop, and emits a v2 report listing both stores while keeping scenario LOS separate from geometric LOS. Captured native array layout, endpoint orientation, frequency grid, and moving-UT pose timeline are attached to each bundle; native multi-pattern ports map onto shared physical elements in pattern-major order. Drops from the same generated run share a split group. Regression definitions cover topology shaping, malformed/resource-heavy config rejection, store publication wiring, and single/multi-port plus moving-UT run-to-bundle round trips; validation is deferred. Scenario statistical conformance and site/drop independence remain open.",
       "scope": {
-        "status": "unreviewed",
+        "status": "mandatory",
         "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "authority_basis": "The corresponding PKG05 backlog requirement is explicit; this audit closes only the listed software/code-scope portion and preserves its stated statistical, topology, release, or external evidence limitations."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "loslab/scenario_gbsm.py",
+          "integrations/sionna/scenario_gbsm.py",
+          "datasets/scenario_gbsm.py",
+          "datasets/schema/scenario-gbsm-generation-config.v1.schema.json",
+          "datasets/schema/scenario-gbsm-generation-report.v2.schema.json",
+          "tests/test_scripts/test_generate_scenario_gbsm_run.py"
+        ],
+        "basis": "Source-audited code and canonical consumer/test integration satisfy the bounded software contract. This status does not imply standardized statistical conformance or scientific qualification."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_standardized.py tests/test_integrations/test_tdl_adapter_contract.py tests/test_integrations/test_tdl_contract.py tests/test_integrations/test_cdl_contract.py tests/test_integrations/test_cdl_profile_resource_binding.py tests/test_integrations/test_sionna_scenario_gbsm_contract.py tests/test_datasets/test_scenario_gbsm_store.py tests/test_scripts/test_generate_scenario_gbsm_run.py tests/test_scripts/test_report_standardized_capabilities.py",
+        "commit": "working tree based on 20e992c"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Adapter/report/schema software checks only; no statistical qualification is asserted by this implementation status."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Source-audited implementation and focused software verification for the bounded contract; scientific qualification remains separately gated.",
+        "pass_rule": "Focused software contract tests pass and implementation/evidence paths are present. Do not infer G4 or G3 qualification from these checks.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -7070,30 +7099,36 @@
       ],
       "requirement": "Bind TDL resolved-profile metadata to a canonical SHA-256 digest and verify it at standardized-record admission when present. Regression definitions cover changed tap-power metadata; validation is deferred. This is an integrity digest, not an independent table/source reference.",
       "scope": {
-        "status": "unreviewed",
+        "status": "mandatory",
         "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "authority_basis": "The corresponding PKG05 backlog requirement is explicit; this audit closes only the listed software/code-scope portion and preserves its stated statistical, topology, release, or external evidence limitations."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "datasets/standardized_specs.py",
+          "datasets/standardized.py",
+          "tests/test_datasets/test_standardized.py"
+        ],
+        "basis": "Source-audited code and canonical consumer/test integration satisfy the bounded software contract. This status does not imply standardized statistical conformance or scientific qualification."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_standardized.py tests/test_integrations/test_tdl_adapter_contract.py tests/test_integrations/test_tdl_contract.py tests/test_integrations/test_cdl_contract.py tests/test_integrations/test_cdl_profile_resource_binding.py tests/test_integrations/test_sionna_scenario_gbsm_contract.py tests/test_datasets/test_scenario_gbsm_store.py tests/test_scripts/test_generate_scenario_gbsm_run.py tests/test_scripts/test_report_standardized_capabilities.py",
+        "commit": "working tree based on 20e992c"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Adapter/report/schema software checks only; no statistical qualification is asserted by this implementation status."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Source-audited implementation and focused software verification for the bounded contract; scientific qualification remains separately gated.",
+        "pass_rule": "Focused software contract tests pass and implementation/evidence paths are present. Do not infer G4 or G3 qualification from these checks.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -7107,30 +7142,35 @@
       ],
       "requirement": "Forward the requested `num_sinusoids` value to the Sionna 2.2 TDL constructor. A dependency-isolated regression definition checks constructor forwarding and matching metadata for a non-default value; validation is deferred. This does not establish statistical conformance.",
       "scope": {
-        "status": "unreviewed",
+        "status": "mandatory",
         "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "authority_basis": "The corresponding PKG05 backlog requirement is explicit; this audit closes only the listed software/code-scope portion and preserves its stated statistical, topology, release, or external evidence limitations."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/tdl.py",
+          "tests/test_integrations/test_tdl_adapter_contract.py"
+        ],
+        "basis": "Source-audited code and canonical consumer/test integration satisfy the bounded software contract. This status does not imply standardized statistical conformance or scientific qualification."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_standardized.py tests/test_integrations/test_tdl_adapter_contract.py tests/test_integrations/test_tdl_contract.py tests/test_integrations/test_cdl_contract.py tests/test_integrations/test_cdl_profile_resource_binding.py tests/test_integrations/test_sionna_scenario_gbsm_contract.py tests/test_datasets/test_scenario_gbsm_store.py tests/test_scripts/test_generate_scenario_gbsm_run.py tests/test_scripts/test_report_standardized_capabilities.py",
+        "commit": "working tree based on 20e992c"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Adapter/report/schema software checks only; no statistical qualification is asserted by this implementation status."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Source-audited implementation and focused software verification for the bounded contract; scientific qualification remains separately gated.",
+        "pass_rule": "Focused software contract tests pass and implementation/evidence paths are present. Do not infer G4 or G3 qualification from these checks.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -7144,30 +7184,37 @@
       ],
       "requirement": "Record the SHA-256 of the exact packaged Sionna TDL JSON resource selected for scalable or fixed-delay profiles, bind its canonical standard/version/profile identity into the resolved-profile digest, and reject mismatched identities or unbound source hashes at record admission. Regression definitions check raw resource hashing, valid admission, and tamper detection; validation is deferred. This supplies installed-table identity, not an independent standards reference.",
       "scope": {
-        "status": "unreviewed",
+        "status": "mandatory",
         "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "authority_basis": "The corresponding PKG05 backlog requirement is explicit; this audit closes only the listed software/code-scope portion and preserves its stated statistical, topology, release, or external evidence limitations."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/tdl.py",
+          "datasets/standardized_specs.py",
+          "datasets/standardized.py",
+          "tests/test_integrations/test_tdl_adapter_contract.py"
+        ],
+        "basis": "Source-audited code and canonical consumer/test integration satisfy the bounded software contract. This status does not imply standardized statistical conformance or scientific qualification."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_standardized.py tests/test_integrations/test_tdl_adapter_contract.py tests/test_integrations/test_tdl_contract.py tests/test_integrations/test_cdl_contract.py tests/test_integrations/test_cdl_profile_resource_binding.py tests/test_integrations/test_sionna_scenario_gbsm_contract.py tests/test_datasets/test_scenario_gbsm_store.py tests/test_scripts/test_generate_scenario_gbsm_run.py tests/test_scripts/test_report_standardized_capabilities.py",
+        "commit": "working tree based on 20e992c"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Adapter/report/schema software checks only; no statistical qualification is asserted by this implementation status."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Source-audited implementation and focused software verification for the bounded contract; scientific qualification remains separately gated.",
+        "pass_rule": "Focused software contract tests pass and implementation/evidence paths are present. Do not infer G4 or G3 qualification from these checks.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -7181,30 +7228,37 @@
       ],
       "requirement": "Read CDL parameter tables as package `Traversable` resources, parse and hash one exact byte snapshot, record canonical TR 38.901 version/profile identity, bind that identity/hash into a canonical digest, and validate the binding at standardized-record admission. Regression definitions cover single-snapshot parsing, resource-byte hashing, and admission mismatch/tamper cases; validation is deferred. This does not independently validate table values against a normative source or prove the generator's internal table read used the same file handle.",
       "scope": {
-        "status": "unreviewed",
+        "status": "mandatory",
         "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "authority_basis": "The corresponding PKG05 backlog requirement is explicit; this audit closes only the listed software/code-scope portion and preserves its stated statistical, topology, release, or external evidence limitations."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/cdl.py",
+          "datasets/standardized_specs.py",
+          "datasets/standardized.py",
+          "tests/test_integrations/test_cdl_profile_resource_binding.py"
+        ],
+        "basis": "Source-audited code and canonical consumer/test integration satisfy the bounded software contract. This status does not imply standardized statistical conformance or scientific qualification."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_standardized.py tests/test_integrations/test_tdl_adapter_contract.py tests/test_integrations/test_tdl_contract.py tests/test_integrations/test_cdl_contract.py tests/test_integrations/test_cdl_profile_resource_binding.py tests/test_integrations/test_sionna_scenario_gbsm_contract.py tests/test_datasets/test_scenario_gbsm_store.py tests/test_scripts/test_generate_scenario_gbsm_run.py tests/test_scripts/test_report_standardized_capabilities.py",
+        "commit": "working tree based on 20e992c"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Adapter/report/schema software checks only; no statistical qualification is asserted by this implementation status."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Source-audited implementation and focused software verification for the bounded contract; scientific qualification remains separately gated.",
+        "pass_rule": "Focused software contract tests pass and implementation/evidence paths are present. Do not infer G4 or G3 qualification from these checks.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },
@@ -7403,30 +7457,37 @@
       ],
       "requirement": "Publish a strict source/version/capability matrix for every TDL/CDL scalable and fixed profile, declare supported single-link MIMO and antenna features, and list unsupported multi-node/interference topologies. Capability report v2 additionally records the supported one-link 3GPP scenario GBSM adapters, their release versions, and their explicit limitations. This is code-scope inventory only; statistical conformance and validation remain open.",
       "scope": {
-        "status": "unreviewed",
+        "status": "mandatory",
         "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "authority_basis": "The corresponding PKG05 backlog requirement is explicit; this audit closes only the listed software/code-scope portion and preserves its stated statistical, topology, release, or external evidence limitations."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "datasets/standardized_specs.py",
+          "datasets/schema/standardized-generator-capabilities.v2.schema.json",
+          "tests/test_datasets/test_standardized.py",
+          "scripts/report_standardized_capabilities.py"
+        ],
+        "basis": "Source-audited code and canonical consumer/test integration satisfy the bounded software contract. This status does not imply standardized statistical conformance or scientific qualification."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_standardized.py tests/test_integrations/test_tdl_adapter_contract.py tests/test_integrations/test_tdl_contract.py tests/test_integrations/test_cdl_contract.py tests/test_integrations/test_cdl_profile_resource_binding.py tests/test_integrations/test_sionna_scenario_gbsm_contract.py tests/test_datasets/test_scenario_gbsm_store.py tests/test_scripts/test_generate_scenario_gbsm_run.py tests/test_scripts/test_report_standardized_capabilities.py",
+        "commit": "working tree based on 20e992c"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Adapter/report/schema software checks only; no statistical qualification is asserted by this implementation status."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Source-audited implementation and focused software verification for the bounded contract; scientific qualification remains separately gated.",
+        "pass_rule": "Focused software contract tests pass and implementation/evidence paths are present. Do not infer G4 or G3 qualification from these checks.",
+        "next_task": "E01.PKG05"
       },
       "plan_mark": "not_checklist"
     },

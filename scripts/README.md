@@ -48,6 +48,20 @@ The v2 report lists the run-store and episode-store manifests and remains
 `docs/research/G4_SCENARIO_GBSM_GENERATION_CLI_V1.md` for the bounded config
 contract and limitations.
 
+## Standardized generator scope reports
+
+Publish the canonical TDL/CDL profile applicability ledger and the separate
+hash-bound generator capability matrix with schema validation:
+
+```bash
+python -m scripts.report_standardized_capabilities --output-dir outputs/standardized-capabilities
+```
+
+The command writes `standardized-profile-applicability.v1.json` and
+`standardized-generator-capabilities.v2.json` deterministically. These reports
+describe code-supported scope only; they do not establish G4 conformance or
+scientific qualification.
+
 ## RT trajectory forecast pilot split provenance
 
 `evaluate_rt_nr_trajectory_forecasts.py` can evaluate a fixed baseline against
