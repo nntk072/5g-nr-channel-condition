@@ -10865,14 +10865,15 @@
           "tests/test_datasets/test_nr_store_streaming.py",
           "tests/test_datasets/test_umcd_store_integrity.py",
           "scripts/measure_nr_store_memory.py",
-          "tests/test_datasets/test_umcd_store_integrity.py"
+          "tests/test_datasets/test_umcd_store_integrity.py",
+          "tests/test_datasets/test_standardized.py"
         ],
-        "basis": "Focused existing coverage exercises immutable NR and UMCD stores. Bounded diagnostics measure process peak RSS across public NR write plus complete deterministic shard read and across a complete UMCD episode-bundle write/read. Both measurements use small synthetic fixtures; remaining format failure matrices, scaling runs, and a corpus memory envelope are not delivered."
+        "basis": "Focused coverage now includes immutable NR record/trajectory stores, all eight UMCD episode layer corruption/retry paths, scenario GBSM run storage, and standardized channel plus learning store object/manifest retries. Public NR and UMCD end-to-end write/read RSS diagnostics use small synthetic fixtures. The row remains partial because actual-path size scaling, audit of any additional promised format, and a justified corpus memory envelope are not established."
       },
       "verification": {
         "status": "pass",
-        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_datasets/test_nr_store_memory_scaling.py tests/test_datasets/test_nr_store_streaming.py tests/test_datasets/test_umcd_store_integrity.py (43 passed); .venv/bin/python scripts/measure_nr_store_memory.py --records 16 --shard-bytes 1048576 (16 written/read, peak RSS 609644544 bytes, 43763 store bytes).; .venv/bin/pytest --no-cov -o addopts='' -s -q tests/test_datasets/test_umcd_store_integrity.py::test_umcd_episode_store_process_peak_rss_diagnostic (1 passed; peak RSS 144494592 bytes, 9384 store bytes).",
-        "commit": "Focused worktree verification on 2026-11-11; measurement is a one-process synthetic NR diagnostic, not qualification."
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_datasets/test_nr_store_memory_scaling.py tests/test_datasets/test_nr_store_streaming.py tests/test_datasets/test_umcd_store_integrity.py (43 passed); .venv/bin/python scripts/measure_nr_store_memory.py --records 16 --shard-bytes 1048576 (16 written/read, peak RSS 609644544 bytes, 43763 store bytes).; .venv/bin/pytest --no-cov -o addopts='' -s -q tests/test_datasets/test_umcd_store_integrity.py::test_umcd_episode_store_process_peak_rss_diagnostic (1 passed; peak RSS 144494592 bytes, 9384 store bytes).; .venv/bin/pytest --no-cov -o addopts='' -q tests/test_datasets/test_umcd_store_integrity.py (24 passed); .venv/bin/pytest --no-cov -o addopts='' -q tests/test_datasets/test_standardized.py -k standardized_store_publication_failure_is_retryable (5 passed, 54 deselected).",
+        "commit": "Focused worktree verification on 2026-11-11; small synthetic RSS observations are not qualification or corpus bounds."
       },
       "qualification": {
         "status": "not_qualified",
@@ -10883,7 +10884,7 @@
       "closure": {
         "deliverable": "Per-format immutable-store integrity/failure evidence and measured bounded full-path memory behavior for NR and UMCD storage.",
         "pass_rule": "Every promised format has content-corruption and interruption/retry coverage, and retained representative full-path RSS/scaling evidence supports an explicit memory envelope; no scientific qualification is inferred.",
-        "next_task": "Add UMCD end-to-end RSS measurement and complete remaining format failure matrices; retain corpus-scale memory claims as blocked until representative storage/input sizes are available."
+        "next_task": "Run repeated actual-path NR and UMCD store size-scaling diagnostics with isolated process RSS, then source-audit remaining serialized formats before setting a corpus memory envelope."
       },
       "plan_mark": "not_checklist"
     },

@@ -554,6 +554,61 @@ def test_record_hash_uses_content_addressed_filename(tmp_path) -> None:
     )
 
 
+@pytest.mark.parametrize(
+    ("store_kind", "failure_path"),
+    (
+        ("channel", "records"),
+        ("channel", "manifests"),
+        ("learning", "observations"),
+        ("learning", "targets"),
+        ("learning", "manifests"),
+    ),
+)
+def test_standardized_store_publication_failure_is_retryable(
+    tmp_path, monkeypatch, store_kind, failure_path
+) -> None:
+    import datasets.standardized as standardized
+
+    channels = standardized_run_from_channel(
+        _channel(), family=StandardizedFamily.TDL, run_id=f"retry-{store_kind}-{failure_path}"
+    )
+    if store_kind == "channel":
+        run = channels
+        writer = standardized.write_standardized_run
+        reader = read_standardized_run
+    else:
+        run = standardized_learning_run_from_channel_run(channels, snr_db=15.0, seed=901)
+        writer = write_standardized_learning_run
+        reader = read_standardized_learning_run
+
+    publish = standardized._publish_immutable
+    injected = False
+
+    def fail_once(path, payload):
+        nonlocal injected
+        if failure_path in path.parts and not injected:
+            injected = True
+            raise OSError(f"injected {failure_path} publication failure")
+        publish(path, payload)
+
+    monkeypatch.setattr(standardized, "_publish_immutable", fail_once)
+    with pytest.raises(OSError, match=f"injected {failure_path} publication failure"):
+        writer(tmp_path, run)
+
+    assert injected
+    assert not (tmp_path / "manifests").exists()
+    monkeypatch.setattr(standardized, "_publish_immutable", publish)
+    stored = writer(tmp_path, run)
+    restored = reader(tmp_path, stored)
+    assert restored.run_id == run.run_id
+    assert tuple(
+        item.sample_id
+        for item in (restored.records if store_kind == "channel" else restored.examples)
+    ) == tuple(
+        item.sample_id for item in (run.records if store_kind == "channel" else run.examples)
+    )
+
+
 def test_noisy_cfr_observation_and_profile_proxy_target_are_separate() -> None:
     run = standardized_run_from_channel(_channel(), family=StandardizedFamily.TDL)
     record = run.records[0]

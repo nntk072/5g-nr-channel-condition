@@ -412,6 +412,39 @@ def test_episode_bundle_mid_object_publication_failure_is_retryable(tmp_path, mo
     assert not [path for path in store.rglob(".*") if path.is_file()]
 
 
+@pytest.mark.parametrize("layer", ("oracle_paths", "oracle_channels", "targets"))
+def test_episode_bundle_layer_publication_failure_is_retryable(tmp_path, monkeypatch, layer):
+    import datasets.episode_store as episode_store
+
+    store = tmp_path / f"umcd-{layer}-retry-store"
+    bundle = _episode_bundle()
+    publish = episode_store._publish_immutable
+    injected = False
+
+    def fail_layer_once(path, payload):
+        nonlocal injected
+        if layer in path.parts and not injected:
+            injected = True
+            raise OSError(f"injected {layer} publication failure")
+        publish(path, payload)
+
+    monkeypatch.setattr(episode_store, "_publish_immutable", fail_layer_once)
+    with pytest.raises(OSError, match=f"injected {layer} publication failure"):
+        write_episode_bundle(store, bundle)
+
+    assert injected
+    assert not (store / "manifests" / "episodes").exists()
+    assert not [path for path in store.rglob(".*") if path.is_file()]
+
+    monkeypatch.setattr(episode_store, "_publish_immutable", publish)
+    stored = write_episode_bundle(store, bundle)
+    loaded = read_episode_bundle(store, stored)
+    assert loaded.episode.episode_id == bundle.episode.episode_id
+    assert len(loaded.channel_views) == len(bundle.channel_views)
+    assert len(loaded.targets) == len(bundle.targets)
+    assert not [path for path in store.rglob(".*") if path.is_file()]
+
+
 def test_episode_bundle_counterfactual_object_publication_failure_is_retryable(
     tmp_path, monkeypatch
 ):
