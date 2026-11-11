@@ -11550,23 +11550,29 @@
       ],
       "requirement": "Implement classic propagation/estimation baselines and falsification/leakage controls (metadata/source-only, power-only, shuffled, phase-randomized, permuted labels, and oracle leakage). **Partial:** `power_only`, `phase_randomized`, `label_permuted`, `row_shuffled`, `source_only`, `metadata_only`, and `oracle_label_leak` are runnable in the canonical runner. Permutation controls preserve the common split and have replayable observation/target contracts. The metadata routes use training-only vocabularies and versioned replayable model-input contracts; `metadata_only` is bounded to 16,000,000 dense feature cells and uses only group/domain/source IDs. Additional metadata controls and physical classic-estimator routes remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Partial canonical-runner implementation only; sparse physical multipath comparison and full classic-estimator family remain open.",
+        "authority_basis": "Audited against the G8.08 implementation-backlog requirement."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "experiments/runner.py",
+          "datasets/schema/model-input-artifact-contract.v10.schema.json",
+          "tests/test_experiments/test_runner.py"
+        ],
+        "basis": "The predeclared observable_features route is now executable through the common logistic-regression runner, and its v10 artifact schema/replay binds observed_cfr and the exact engineered transform. Other requested physical estimator routes remain open."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_experiments/test_runner.py::test_run_experiment_routes_audited_observable_feature_baseline (1 passed); Ruff check/format, JSON schema parse, and git diff --check passed.",
+        "commit": "Working tree based on f199736; focused verification run 2026-11-11."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Synthetic-debug execution verifies runner routing and artifact replay only; it provides no receiver or scientific qualification."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],

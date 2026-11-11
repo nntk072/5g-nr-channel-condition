@@ -94,6 +94,7 @@ _MODEL_METHODS = frozenset(
         "power_only",
         "phase_randomized",
         "oracle_label_leak",
+        "observable_features",
         "logreg",
         "cnn",
         "cvnn",
@@ -584,10 +585,11 @@ def build_model_input_artifact_contract(
         method, ("observed_cfr", "logmag_pdp_moments_v1")
     )
     input_contract_version = (
-        "v9"
+        "v10"
+        if method == "observable_features"
+        else "v9"
         if method == "oracle_label_leak"
-        else
-        "v8"
+        else "v8"
         if method == "metadata_only"
         else "v7"
         if method == "source_only"
@@ -610,9 +612,7 @@ def build_model_input_artifact_contract(
             else "datasets.channel.ChannelModelInputs"
         ),
         "allowed_source_fields": (
-            ["group", "domain", "source"]
-            if method == "metadata_only"
-            else [source_feature]
+            ["group", "domain", "source"] if method == "metadata_only" else [source_feature]
         ),
         "excluded_truth_and_metadata_fields": (
             [
@@ -708,14 +708,18 @@ def build_model_input_artifact_contract(
             raise ValueError("oracle-label leakage contract requires the exact full target roster")
         expected_features, leakage_contract = _oracle_label_leak_features(target_values)
         if not np.array_equal(expected_features, method_input):
-            raise ValueError("oracle-label input differs from the declared target leakage transform")
+            raise ValueError(
+                "oracle-label input differs from the declared target leakage transform"
+            )
         feature_contract["intentional_label_leakage"] = leakage_contract
     elif (
         target_values is not None
         or label_permutation_seed is not None
         or label_permutation_run_seed is not None
     ):
-        raise ValueError("target values or permutation seeds are invalid for this model-input method")
+        raise ValueError(
+            "target values or permutation seeds are invalid for this model-input method"
+        )
     if method == "row_shuffled":
         if (
             not isinstance(source_method_input, np.ndarray)
@@ -849,6 +853,7 @@ def verify_model_input_artifact_contract(
         "loslab.model_input_artifact_contract.v7": "v7",
         "loslab.model_input_artifact_contract.v8": "v8",
         "loslab.model_input_artifact_contract.v9": "v9",
+        "loslab.model_input_artifact_contract.v10": "v10",
     }.get(contract_schema)
     if schema_version is None:
         raise ValueError("model input artifact contract schema is unsupported")
@@ -900,6 +905,7 @@ def verify_model_input_artifact_contract(
         "loslab.model_input_artifact_contract.v7",
         "loslab.model_input_artifact_contract.v8",
         "loslab.model_input_artifact_contract.v9",
+        "loslab.model_input_artifact_contract.v10",
     }:
         expected_feature_fields.update(
             {
@@ -1174,9 +1180,8 @@ def verify_model_input_artifact_contract(
         ):
             raise ValueError("oracle-label verification inputs are incomplete")
         replayed_features, replayed_leakage = _oracle_label_leak_features(target_values)
-        if (
-            replayed_leakage != feature.get("intentional_label_leakage")
-            or not np.array_equal(replayed_features, method_input)
+        if replayed_leakage != feature.get("intentional_label_leakage") or not np.array_equal(
+            replayed_features, method_input
         ):
             raise ValueError("intentional label leakage does not replay from source targets")
     files = contract.get("training_input_files")
@@ -1392,19 +1397,14 @@ def _learned_parameter_count(model: Any, training: dict[str, Any]) -> int | None
 def _kish_effective_group_count(group_row_counts: Sequence[int]) -> float:
     """Return Kish effective group count from positive group row frequencies."""
     counts = list(group_row_counts)
-    if any(
-        not isinstance(count, int) or isinstance(count, bool) or count <= 0
-        for count in counts
-    ):
+    if any(not isinstance(count, int) or isinstance(count, bool) or count <= 0 for count in counts):
         raise ValueError("group row counts must be positive integers")
     total = sum(counts)
     squared = sum(count * count for count in counts)
     return total * total / squared if squared else 0.0
 
 
-def _declared_partition_support(
-    data: ChannelDataset, indices: np.ndarray
-) -> dict[str, Any]:
+def _declared_partition_support(data: ChannelDataset, indices: np.ndarray) -> dict[str, Any]:
     """Summarize observed row/class/group support without asserting independence."""
     selected = [int(index) for index in indices]
     group_counts: dict[str, int] = {}
@@ -1420,12 +1420,9 @@ def _declared_partition_support(
         source_counts[source_id] = source_counts.get(source_id, 0) + 1
         domain_counts[domain_id] = domain_counts.get(domain_id, 0) + 1
     groups = sorted(group_counts)
-    class_counts = {
-        str(label): int(np.count_nonzero(data.y[indices] == label)) for label in (0, 1)
-    }
+    class_counts = {str(label): int(np.count_nonzero(data.y[indices] == label)) for label in (0, 1)}
     assignments = [
-        {"row_index": index, "declared_group_id": str(data.group[index])}
-        for index in selected
+        {"row_index": index, "declared_group_id": str(data.group[index])} for index in selected
     ]
     report = {
         "row_count": len(selected),
@@ -1618,9 +1615,7 @@ def _locked_split_indices(
         "registry_sha256": registry.to_dict()["registry_sha256"],
         "partition_support": partition_support,
     }
-    _validate_evaluation_payload(
-        support_report, "locked-benchmark-split-support.v2.schema.json"
-    )
+    _validate_evaluation_payload(support_report, "locked-benchmark-split-support.v2.schema.json")
     report = {
         "mode": "signed_locked",
         "policy_sha256": registry.policy.to_dict()["policy_sha256"],
@@ -2039,6 +2034,7 @@ def _run_experiment_impl(
                 "power_only",
                 "phase_randomized",
                 "oracle_label_leak",
+                "observable_features",
                 "logreg",
             ):
                 clf = fit_sklearn(
@@ -2052,7 +2048,8 @@ def _run_experiment_impl(
                     else "mlp"
                     if method == "row_shuffled"
                     else "logreg"
-                    if method in ("power_only", "source_only", "metadata_only")
+                    if method
+                    in ("power_only", "source_only", "metadata_only", "observable_features")
                     else "logreg"
                     if method == "oracle_label_leak"
                     else "mlp"
@@ -2382,9 +2379,7 @@ def _run_experiment_impl(
                     "registry_sha256": split_provenance.get("registry_sha256"),
                     "declared_partition_support": partition_support,
                     "declared_partition_support_sha256": partition_support_sha256,
-                    "partition_support_sha256": split_provenance.get(
-                        "partition_support_sha256"
-                    ),
+                    "partition_support_sha256": split_provenance.get("partition_support_sha256"),
                     "physical_independence_status": (
                         split_provenance.get("partition_support", {}).get(
                             "physical_independence_status"

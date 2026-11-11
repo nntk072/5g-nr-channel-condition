@@ -4669,20 +4669,30 @@
     {
       "backlog_line": 447,
       "backlog_status": "open",
-      "description": "Implement classic propagation/estimation baselines and falsification/leakage controls (metadata/source-only, power-only, shuffled, phase-randomized, permuted labels, and oracle leakage). **Partial:** `power_only`, `phase_randomized`, `label_permuted`, `row_shuffled`, `source_only`, `metadata_only`, and `oracle_label_leak` are runnable in the canonical runner. Permutation controls preserve the common split and have replayable observation/target contracts. The metadata routes use training-only vocabularies and versioned replayable model-input contracts; `metadata_only` is bounded to 16,000,000 dense feature cells and uses only group/domain/source IDs. Additional metadata controls and physical classic-estimator routes remain open.",
-      "evidence_file_sha256": {},
+      "description": "Implement classic propagation/estimation baselines and falsification/leakage controls (metadata/source-only, power-only, shuffled, phase-randomized, permuted labels, and oracle leakage). **Partial:** `observable_features` now runs the existing engineered observable transform with logistic regression through the common split/training/report/artifact-verification path under model-input contract v10. `power_only`, `phase_randomized`, `label_permuted`, `row_shuffled`, `source_only`, `metadata_only`, and `oracle_label_leak` are also runnable in the canonical runner. Permutation controls preserve the common split and have replayable observation/target contracts. The metadata routes use training-only vocabularies and versioned replayable model-input contracts; `metadata_only` is bounded to 16,000,000 dense feature cells and uses only group/domain/source IDs. The route binding is in `experiments/runner.py`, `datasets/schema/model-input-artifact-contract.v10.schema.json`, and `tests/test_experiments/test_runner.py`; the physical sparse-multipath estimator is still not connected to a common receiver-observation comparison, and additional metadata controls remain open.",
+      "evidence_file_sha256": {
+        "datasets/schema/model-input-artifact-contract.v10.schema.json": "b69a048033582b64dbd7a4b365108e8fa7982c3b0a3087e63b868f2a5843d3c3",
+        "experiments/runner.py": "48c3f75c3a41de5d714230607518c513f74c021e4417e7f5168e71de151300a0",
+        "tests/test_experiments/test_runner.py": "9f42c03547507f74e195e201560c8832f403d080e9709a70cbfe7fd5022e9502"
+      },
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
         "other_files": [],
-        "regression_files": [],
-        "schemas": [],
-        "source_modules": []
+        "regression_files": [
+          "tests/test_experiments/test_runner.py"
+        ],
+        "schemas": [
+          "datasets/schema/model-input-artifact-contract.v10.schema.json"
+        ],
+        "source_modules": [
+          "experiments/runner.py"
+        ]
       },
       "feature_id": "PKG09-007",
       "implementation_status": "partial",
-      "implementation_status_basis": "explicit_partial_marker",
-      "link_status": "unmapped",
+      "implementation_status_basis": "linked_repository_evidence",
+      "link_status": "linked",
       "package": {
         "number": 9,
         "title": "G8 — evaluation integrity, fairness, observability, and baselines"
@@ -5085,7 +5095,7 @@
   "schema": "loslab.implementation_feature_map.v3",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "ddebbf087b8a3d3b085d50df437e05b5def06cd13aadd83989a059dc26221e4a"
+    "sha256": "9a5b4fe9c6eca05ed47ecc62a3a0dff9cc1ecd707657151cf5eb6240b0da69fd"
   },
   "summary": {
     "feature_count": 182,
@@ -5095,9 +5105,9 @@
       "externally_blocked": 0,
       "partial": 25
     },
-    "linked_count": 40,
+    "linked_count": 41,
     "marked_done_count": 130,
     "open_count": 52,
-    "unmapped_count": 142
+    "unmapped_count": 141
   }
 }

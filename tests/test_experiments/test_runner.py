@@ -310,7 +310,6 @@ def test_run_experiment_writes_reproducible_complete_artifacts(tmp_path) -> None
     assert (output / "config" / "resolved.json").is_file()
     assert (output / "models" / "logreg_seed11.joblib").is_file()
 
-
     model_info = json.loads(
         (output / "models" / "logreg_seed11_modelinfo.json").read_text(encoding="utf-8")
     )
@@ -723,6 +722,33 @@ def test_run_experiment_supports_histogram_gradient_boosting(tmp_path) -> None:
 
     assert summary["aggregate_across_fixed_splits"]["histgb"]["seeds"] == 1
     assert (tmp_path / "runs" / "histgb" / "models" / "histgb_seed13.joblib").is_file()
+
+
+def test_run_experiment_routes_audited_observable_feature_baseline(tmp_path) -> None:
+    source = tmp_path / "debug.npz"
+    debug_multipath(n_scenes=4, links_per_scene=12, seed=71).save(source)
+    output = tmp_path / "runs" / "observable-features"
+
+    summary = run_experiment(
+        [source],
+        output,
+        methods=("observable_features",),
+        seeds=(17,),
+        bootstrap=30,
+    )
+
+    assert summary["aggregate_across_fixed_splits"]["observable_features"]["seeds"] == 1
+    model_info = json.loads(
+        (output / "models" / "observable_features_seed17_modelinfo.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    contract = model_info["model_input_artifact_contract"]["feature_contract"]
+    assert contract["method"] == "observable_features"
+    assert contract["allowed_source_fields"] == ["observed_cfr"]
+    assert contract["feature_transform"] == "logmag_pdp_moments_v1"
+    result = json.loads((output / "results.json").read_text(encoding="utf-8"))[0]
+    assert result["model_input_artifact_contract_status"] == "PASS_MODEL_INPUT_ARTIFACT_BINDING"
 
 
 def test_run_experiment_routes_raw_observations_to_real_cnn(tmp_path, monkeypatch) -> None:
