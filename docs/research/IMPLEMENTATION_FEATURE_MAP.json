@@ -4013,7 +4013,7 @@
     {
       "backlog_line": 420,
       "backlog_status": "marked_done",
-      "description": "Bind the canonical experiment runner's saved models to the exact full feature matrix, transform implementation digest, and train/validation/test feature bytes under model-input artifact contract v2. The run verifies the matrix hashes in memory before publishing run results and preserves v1 artifact verification. The focused runner suite passes 15 tests with Ruff, formatting, compilation, and schema checks; third-party inference wrappers and repository-wide audit remain open.",
+      "description": "Bind the canonical experiment runner's saved models to the exact full feature matrix, transform implementation digest, and train/validation/test feature bytes under model-input artifact contract v2. The run verifies the matrix hashes in memory before publishing run results and preserves v1 artifact verification. The end-to-end model-artifact regression passes: the runner binds the exact full matrix and per-partition bytes, replays them before result publication, rejects matrix/partition drift and model/sidecar aliases or tampering, and preserves v1 verification. Contract v2 applies to the canonical runner only; third-party wrappers and the repository-wide leakage audit remain open.",
       "evidence_file_sha256": {},
       "evidence_links": {
         "cli_entries": [],
@@ -5103,7 +5103,7 @@
   "schema": "loslab.implementation_feature_map.v3",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "8d75bca7404e60bccb2df8d6352b90f1a85c2c53841ec0bae61a799a3411ad73"
+    "sha256": "6e8f3a59c7ece171bf7308f8a214d0b7b0f007a9bd6ff8ded2cc6dbc2131f0bd"
   },
   "summary": {
     "feature_count": 182,

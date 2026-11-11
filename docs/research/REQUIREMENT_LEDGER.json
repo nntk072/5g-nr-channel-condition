@@ -10759,32 +10759,39 @@
       "backlog_aliases": [
         "PKG08-022"
       ],
-      "requirement": "Bind the canonical experiment runner's saved models to the exact full feature matrix, transform implementation digest, and train/validation/test feature bytes under model-input artifact contract v2. The run verifies the matrix hashes in memory before publishing run results and preserves v1 artifact verification. The focused runner suite passes 15 tests with Ruff, formatting, compilation, and schema checks; third-party inference wrappers and repository-wide audit remain open.",
+      "requirement": "d the canonical experiment runner's saved models to the exact full feature matrix, transform implementation digest, and train/validation/test feature bytes under model-input artifact contract v2. The run verifies the matrix hashes in memory before publishing run results and preserves v1 artifact verification. The end-to-end model-artifact regression passes: the runner binds the exact full matrix and per-partition bytes, replays them before result publication, rejects matrix/partition drift and model/sidecar aliases or tampering, and preserves v1 verification. Contract v2 applies to the canonical runner only; third-party wrappers and the repository-wide leakage audit remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Canonical experiment runner saved models and result publication under model-input contract v2; third-party wrappers and whole-repository leakage audit remain outside this row.",
+        "authority_basis": "Mandatory canonical-runner model-input provenance requirement in the implementation backlog."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "experiments/runner.py",
+          "datasets/schema/model-input-artifact-contract.v2.schema.json",
+          "tests/test_experiments/test_runner.py"
+        ],
+        "basis": "Canonical experiment runner binds full matrix bytes, transform implementation, and train/validation/test/calibration feature partitions to the saved model and validates these before recording results. Legacy v1 remains verifiable; this does not establish repository-wide inference coverage."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_experiments/test_runner.py::test_run_experiment_writes_reproducible_complete_artifacts (1 passed).",
+        "commit": "Focused verification run on baa8e2e worktree; third-party wrappers and full leakage audit remain open."
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [],
+      "dependencies": [
+        "PKG08-018",
+        "PKG08-019"
+      ],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Canonical runner model sidecar with exact v2 feature/source/split binding and pre-publication replay verification.",
+        "pass_rule": "Saved model, transform, full matrix and declared partition matrices match exact bytes; changed matrix/split/model/sidecar aliases or tampering reject; v1 readers remain valid.",
+        "next_task": "PKG08-017"
       },
       "plan_mark": "not_checklist"
     },
