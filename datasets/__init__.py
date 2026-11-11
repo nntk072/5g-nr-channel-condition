@@ -155,6 +155,12 @@ from .standardized_specs import (
 )
 from .synthetic import debug_multipath
 from .targets import CensoringInterval, TargetValidity, TargetValue, definition_digest
+from .time_axis import (
+    MultiSourceTimeAlignment,
+    TimeAxisAlignment,
+    align_named_time_axes,
+    align_time_axes,
+)
 
 __all__ = [
     "ChannelDataset",
@@ -227,6 +233,10 @@ __all__ = [
     "NRTrajectory",
     "TargetDefinition",
     "CensoringInterval",
+    "MultiSourceTimeAlignment",
+    "TimeAxisAlignment",
+    "align_named_time_axes",
+    "align_time_axes",
     "audit_nr_trajectory_target_support",
     "TargetValidity",
     "TargetValue",

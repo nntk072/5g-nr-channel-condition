@@ -9,7 +9,12 @@ from numbers import Real
 
 import numpy as np
 
-from .time_axis import TimeAxisAlignment, align_time_axes, canonical_time_axis
+from .time_axis import (
+    MultiSourceTimeAlignment,
+    TimeAxisAlignment,
+    align_time_axes,
+    canonical_time_axis,
+)
 
 
 def _readonly_array(value: np.ndarray, *, name: str, shape_tail: tuple[int, ...]) -> np.ndarray:
@@ -83,8 +88,7 @@ class AntennaArraySpec:
             raise ValueError("each array element needs a non-empty polarization label")
         ports = tuple(self.port_ids)
         if not ports or any(
-            not isinstance(port, str) or not port.strip() or port != port.strip()
-            for port in ports
+            not isinstance(port, str) or not port.strip() or port != port.strip() for port in ports
         ):
             raise ValueError("port_ids must contain non-empty antenna-port identifiers")
         if len(set(ports)) != len(ports):
@@ -281,7 +285,9 @@ class NodePoseTimeline:
             tolerance_s=tolerance_s,
             require_complete=True,
         )
-        frame_indices = tuple(int(index) for index in alignment.observed_indices if index is not None)
+        frame_indices = tuple(
+            int(index) for index in alignment.observed_indices if index is not None
+        )
         aligned = NodePoseTimeline(
             node_ids=self.node_ids,
             frame_times_s=alignment.reference_times_s,
@@ -306,6 +312,7 @@ class NetworkEpisode:
     subcarrier_offsets_hz: np.ndarray
     pose_timeline: NodePoseTimeline | None = None
     pose_time_alignment: TimeAxisAlignment | None = None
+    source_time_alignment: MultiSourceTimeAlignment | None = None
 
     def __post_init__(self) -> None:
         for name in ("episode_id", "split_group_id", "family_id"):
@@ -385,6 +392,13 @@ class NetworkEpisode:
                 raise ValueError("pose_time_alignment requires a pose_timeline")
             if not alignment.complete or alignment.reference_times_s != times:
                 raise ValueError("pose_time_alignment must completely match episode frame times")
+        source_alignment = self.source_time_alignment
+        if source_alignment is not None:
+            if not isinstance(source_alignment, MultiSourceTimeAlignment):
+                raise TypeError("source_time_alignment must be a MultiSourceTimeAlignment")
+            source_alignment = MultiSourceTimeAlignment.from_dict(source_alignment.to_dict())
+            if source_alignment.reference_times_s != times:
+                raise ValueError("source_time_alignment must use episode frame times as reference")
         object.__setattr__(self, "arrays", arrays)
         object.__setattr__(self, "nodes", nodes)
         object.__setattr__(self, "links", links)
@@ -393,6 +407,7 @@ class NetworkEpisode:
         object.__setattr__(self, "subcarrier_offsets_hz", offsets)
         object.__setattr__(self, "pose_timeline", timeline)
         object.__setattr__(self, "pose_time_alignment", alignment)
+        object.__setattr__(self, "source_time_alignment", source_alignment)
 
     def link(self, link_id: str) -> DirectedLink:
         """Return a link by stable ID or raise ``KeyError``."""

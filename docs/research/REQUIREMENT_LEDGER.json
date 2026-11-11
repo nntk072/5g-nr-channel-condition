@@ -9585,7 +9585,7 @@
       "requirement": "Finish synchronized time axes across TX/RX/objects, timestamp-based future-target alignment, monotonicity/gap handling, and coherence/time-grid declarations. Dataset time axes now share a strict finite, strictly increasing real-number contract across NR trajectories, UMCD episodes, pose timelines, and physical channel views; numeric strings, complex values, and booleans are rejected before conversion. `align_time_axes` provides tolerance-bound one-to-one matches with ambiguity, missingness, residual, and unused-sample reporting; `NodePoseTimeline.align_to` connects it to the network-episode path without interpolation. A complete pose-alignment report can be stored in the content-addressed episode payload under the strict v1 schema and is replay-checked on read; old payloads remain readable. The time-axis and episode-roundtrip slice passes 14 tests. `build_trajectory_horizon_targets` and the RT forecast baseline enforce frozen child split assignments; both honor declared gaps, and the target builder additionally blocks intervals crossing a caller-frozen maximum inter-sample gap without inferring a threshold from the trajectory. It scores only valid target-mask elements, and the pilot can bind exact split-registry bytes/signature/trust and child kinds. Focused target coverage is in `tests/test_experiments/test_trajectory_targets.py`. Multi-source TX/RX/object synchronization, generated channel/time-to-pose bindings, and physically justified coherence/time-grid declarations remain open.",
       "scope": {
         "status": "mandatory",
-        "support_envelope": "Strict per-object and episode time axes, timestamp alignment, future-target masks, and frozen split binding as currently implemented; multi-source coherence declarations remain incomplete.",
+        "support_envelope": "Strict per-object and episode time axes, named per-source timestamp alignment records attached to and replayed with episodes, future-target masks, and frozen split binding. Source-clock authority, channel/pose coherence, and physically justified timing tolerances remain incomplete.",
         "authority_basis": "The backlog requires synchronized time/pose/channel axes and causal future targets; implemented per-object alignment is only a bounded subset."
       },
       "implementation": {
@@ -9594,16 +9594,18 @@
           "datasets/time_axis.py",
           "datasets/network.py",
           "datasets/episode_store.py",
+          "datasets/schema/umcd-multi-source-time-alignment.v1.schema.json",
           "experiments/trajectory_targets.py",
           "tests/test_datasets/test_time_axis.py",
+          "tests/test_datasets/test_umcd_schema.py",
           "tests/test_experiments/test_trajectory_targets.py"
         ],
-        "basis": "Finite strictly increasing axes, one-to-one tolerance-bounded matching with missing/ambiguous/unused reports, pose alignment, content-addressed pose-alignment replay, and split-bound future-target masks with explicit gap rules are implemented. Multi-source TX/RX/object synchronization, generated-channel-to-pose binding, and physically justified coherence/time-grid declarations remain open."
+        "basis": "Finite strictly increasing axes, one-to-one tolerance-bounded matching with missing/ambiguous/unused reports, pose alignment, content-addressed pose-alignment replay, named source-clock alignment records attached to NetworkEpisode and replayed on storage read, and split-bound future-target masks with explicit gap rules are implemented. Named source IDs and tolerances remain producer declarations; TX/RX/object source authority, generated-channel-to-pose coherence binding, and physically justified coherence/time-grid declarations remain open."
       },
       "verification": {
         "status": "pass",
-        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_time_axis.py tests/test_datasets/test_counterfactual.py\n./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_umcd_schema.py::test_episode_bundle_roundtrips_split_bound_direct_path_ablation tests/test_experiments/test_trajectory_targets.py",
-        "commit": "Working tree based on 45942ba; 34 selected time-axis, split-target, and persisted-alignment checks passed."
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_time_axis.py tests/test_datasets/test_umcd_schema.py::test_episode_store_roundtrip_preserves_dynamic_poses",
+        "commit": "Working tree based on 38c2159; 15 focused multi-source time-axis and episode-storage checks passed."
       },
       "qualification": {
         "status": "not_qualified",

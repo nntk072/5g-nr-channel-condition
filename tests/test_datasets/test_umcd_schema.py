@@ -71,6 +71,7 @@ from datasets.targets import (
     migrate_legacy_target_definition_v1,
     target_definition_digest,
 )
+from datasets.time_axis import align_named_time_axes
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
 
@@ -1159,10 +1160,21 @@ def test_episode_store_roundtrip_preserves_dynamic_poses(tmp_path):
     aligned_timeline, time_alignment = dynamic_episode.pose_timeline.align_to(
         dynamic_episode.frame_times_s, tolerance_s=0.0
     )
+    source_alignment = align_named_time_axes(
+        dynamic_episode.frame_times_s,
+        {
+            "tx_clock": dynamic_episode.frame_times_s,
+            "rx_clock": (0.0001, 0.1001),
+            "object_pose_clock": dynamic_episode.frame_times_s,
+        },
+        tolerance_s=0.001,
+        require_complete=True,
+    )
     dynamic_episode = replace(
         dynamic_episode,
         pose_timeline=aligned_timeline,
         pose_time_alignment=time_alignment,
+        source_time_alignment=source_alignment,
     )
     channel = replace(
         bundle.channel_views[0],
@@ -1177,6 +1189,7 @@ def test_episode_store_roundtrip_preserves_dynamic_poses(tmp_path):
 
     assert loaded.episode.pose_timeline is not None
     assert loaded.episode.pose_time_alignment == time_alignment
+    assert loaded.episode.source_time_alignment == source_alignment
     jsonschema = pytest.importorskip("jsonschema")
     alignment_schema = json.loads(
         (
@@ -1185,6 +1198,15 @@ def test_episode_store_roundtrip_preserves_dynamic_poses(tmp_path):
     )
     jsonschema.Draft202012Validator(alignment_schema).validate(
         loaded.episode.pose_time_alignment.to_dict()
+    )
+    multi_alignment_schema = json.loads(
+        (
+            Path(__file__).parents[2]
+            / "datasets/schema/umcd-multi-source-time-alignment.v1.schema.json"
+        ).read_text()
+    )
+    jsonschema.Draft202012Validator(multi_alignment_schema).validate(
+        loaded.episode.source_time_alignment.to_dict()
     )
     np.testing.assert_array_equal(
         loaded.episode.pose_timeline.position("UE-1", 1), [22.0, 3.0, 1.5]

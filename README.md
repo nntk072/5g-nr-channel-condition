@@ -125,6 +125,12 @@ reads earlier target layers without interval metadata; legacy censored values
 retain their unavailable mask and are marked `legacy_reason_unrecorded`. Other
 unavailable reasons cannot carry censor bounds.
 
+`align_named_time_axes` records independent timestamp matches from named TX,
+RX, object, or pose clocks to a shared episode grid. Each source report retains
+missing and extra samples plus residuals; it can be replayed when the episode
+bundle is read. The report does not interpolate or prove that the caller's
+source clock IDs or tolerance are physically justified.
+
 <code>propagation.path_steering_diagnostics</code> measures rank, condition
 number, and mutual coherence of candidate path steering vectors on a specified
 finite set of subcarrier frequencies. It demonstrates exact coincidence and

@@ -172,9 +172,12 @@ partial: broader receiver configurations, independent signer roles, trusted
 timestamp custody, source-matched replay, and qualification are open. These
 curves remain diagnostic; no G5 acceptance verdict has passed. All
 `PKG06-001` through `PKG06-036` now have source-level bounded dispositions, so
-`E01.PKG07` is active. `PKG07-001` remains partial after time-axis, stored
-alignment, and split-bound trajectory checks; multi-source synchronization and
-generated channel/pose coherence binding remain open. `PKG07-005` remains
+`E01.PKG07` is active. `PKG07-001` remains partial after strict time-axis,
+stored alignment, and split-bound trajectory checks. Named multi-source clock
+alignment is now recorded and replayed with each episode grid, with no
+interpolation; TX/RX/object source declarations, generated channel/pose
+coherence binding, and physically justified tolerances remain open. Fifteen
+focused time-axis and episode-store checks pass. `PKG07-005` remains
 partial after mathematical direct-path ablation and immutable bundle replay
 checks; scene-based physical interventions and scientific effect admission
 remain open. Fifteen time-axis/counterfactual checks and nineteen persisted

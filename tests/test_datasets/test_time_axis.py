@@ -1,7 +1,13 @@
 import numpy as np
 import pytest
 from datasets.network import NodePoseTimeline
-from datasets.time_axis import TimeAxisAlignment, align_time_axes, canonical_time_axis
+from datasets.time_axis import (
+    MultiSourceTimeAlignment,
+    TimeAxisAlignment,
+    align_named_time_axes,
+    align_time_axes,
+    canonical_time_axis,
+)
 
 
 def test_time_axis_accepts_numpy_real_scalars_and_normalizes_to_float():
@@ -31,13 +37,14 @@ def test_time_axis_alignment_reports_matches_residuals_and_unmatched_rows():
     assert alignment.residuals_s == pytest.approx((0.0001, 0.0002, None))
     assert alignment.unmatched_observed_indices == (2,)
     assert alignment.complete is False
-    assert alignment.to_dict()["method"] == "unique_match_within_absolute_tolerance_no_interpolation"
+    assert (
+        alignment.to_dict()["method"] == "unique_match_within_absolute_tolerance_no_interpolation"
+    )
 
 
 def test_time_axis_alignment_report_replays_and_rejects_claim_drift():
     report = align_time_axes((0.0, 1.0), (0.0, 1.0001), tolerance_s=0.001).to_dict()
     assert TimeAxisAlignment.from_dict(report).complete
-
     changed_residual = {**report, "residuals_s": [0.0, 0.0]}
     with pytest.raises(ValueError, match="differs from deterministic replay"):
         TimeAxisAlignment.from_dict(changed_residual)
@@ -45,6 +52,39 @@ def test_time_axis_alignment_report_replays_and_rejects_claim_drift():
     boolean_alias = {**report, "complete": 1}
     with pytest.raises(ValueError, match="differs from deterministic replay"):
         TimeAxisAlignment.from_dict(boolean_alias)
+
+
+def test_named_source_alignment_reports_each_clock_without_interpolation():
+    report = align_named_time_axes(
+        (0.0, 1.0, 2.0),
+        {
+            "tx": (0.0, 1.0, 2.0),
+            "rx": (0.001, 1.001, 3.0),
+            "object-7": (0.0, 2.0),
+        },
+        tolerance_s=0.002,
+    )
+
+    assert tuple(source_id for source_id, _ in report.source_alignments) == (
+        "object-7",
+        "rx",
+        "tx",
+    )
+    assert report.complete is False
+    assert dict(report.source_alignments)["rx"].observed_indices == (0, 1, None)
+    assert dict(report.source_alignments)["rx"].unmatched_observed_indices == (2,)
+    assert dict(report.source_alignments)["object-7"].observed_indices == (0, None, 1)
+
+
+def test_named_source_alignment_replays_and_rejects_source_or_match_drift():
+    report = align_named_time_axes(
+        (0.0, 1.0), {"rx": (0.0, 1.0), "tx": (0.0, 1.0)}, tolerance_s=0.0
+    )
+    assert MultiSourceTimeAlignment.from_dict(report.to_dict()) == report
+    changed = report.to_dict()
+    changed["sources"][0]["alignment"]["observed_indices"] = [1, 0]
+    with pytest.raises(ValueError, match="deterministic replay"):
+        MultiSourceTimeAlignment.from_dict(changed)
 
 
 def test_time_axis_alignment_requires_unique_one_to_one_matches():
