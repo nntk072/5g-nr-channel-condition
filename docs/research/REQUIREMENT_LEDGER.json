@@ -10526,21 +10526,25 @@
       "requirement": "Complete model-input leakage audit across every dataset adapter, feature transform, experiment runner, training path, and inference artifact.",
       "scope": {
         "status": "mandatory",
-        "support_envelope": "Partial input-boundary implementation only; the all-route leakage audit remains open.",
-        "authority_basis": "Audited against the G7 model-input leakage audit backlog requirement."
+        "support_envelope": "One verified scalar validation boundary only at this checkpoint; full adapter, transform, training, experiment and inference-artifact audit is required by the criterion.",
+        "authority_basis": "Mandatory implementation-backlog audit of inference/training leakage controls; no scientific qualification implied."
       },
       "implementation": {
         "status": "partial",
         "evidence": [
           "datasets/model_input_audit.py",
-          "tests/test_datasets/test_model_input_audit.py"
+          "tests/test_datasets/test_model_input_audit.py",
+          "datasets/channel.py",
+          "datasets/nr.py",
+          "experiments/runner.py",
+          "experiments/profile_holdout.py"
         ],
-        "basis": "Registered real scalar inputs now normalize through float and fail with ValueError on overflow; this closes one parser boundary only."
+        "basis": "Source review confirms registered input validation and an overflow-safe real-scalar boundary, but does not establish complete coverage across every adapter, transform, experiment runner, training path, and inference artifact. Child requirements PKG08-018 through PKG08-022 audit specific portions of that route."
       },
       "verification": {
         "status": "pass",
-        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_model_input_audit.py (7 passed); Ruff check/format and git diff --check passed.",
-        "commit": "Working tree based on 0682964; focused verification run 2026-11-11."
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_datasets/test_model_input_audit.py (7 passed).",
+        "commit": "Focused verification run on 80dfd9d worktree; repository-wide leakage audit remains partial."
       },
       "qualification": {
         "status": "not_qualified",
@@ -10548,12 +10552,18 @@
           "This scalar boundary test does not complete feature-transform, experiment, training, or inference-artifact leakage review."
         ]
       },
-      "dependencies": [],
+      "dependencies": [
+        "PKG08-018",
+        "PKG08-019",
+        "PKG08-020",
+        "PKG08-021",
+        "PKG08-022"
+      ],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "A source-audited model-input route matrix linking every adapter, transform, runner, training path and inference artifact to tests and field/provenance contracts.",
+        "pass_rule": "Every production-relevant route is inventoried; unauthorized truth/metadata inputs fail closed or are explicitly isolated as diagnostics, with exact focused verification.",
+        "next_task": "PKG08-018"
       },
       "plan_mark": "not_checklist"
     },
