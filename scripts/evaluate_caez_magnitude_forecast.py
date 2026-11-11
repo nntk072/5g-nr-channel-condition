@@ -3,14 +3,18 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 from typing import Any
 
 import numpy as np
 from datasets.caez import _numeric_member, audit
+from datasets.model_input_audit import audit_model_input_payload
 from evaluation.caez_forecast import (
+    CAEZForecastModelInputs,
     align_forecast_pairs,
+    make_caez_forecast_artifact_contract,
     score_summary_predictions,
 )
 from sklearn.linear_model import Ridge
@@ -173,9 +177,28 @@ def evaluate(
     train_targets_db = summary_db[train_targets]
     test_features = np.concatenate((summary_db[test_anchors], summary_db[test_history]), axis=1)
     test_targets_db = summary_db[test_targets]
+    train_model_inputs = audit_model_input_payload(
+        CAEZForecastModelInputs(feature_matrix=train_features)
+    )
+    test_model_inputs = audit_model_input_payload(
+        CAEZForecastModelInputs(feature_matrix=test_features)
+    )
+    model_input_contract = make_caez_forecast_artifact_contract(
+        train_features=train_model_inputs.feature_matrix,
+        train_targets=train_targets_db,
+        train_pair_indices=np.column_stack((train_history, train_anchors, train_targets)),
+        evaluation_features=test_model_inputs.feature_matrix,
+        evaluation_targets=test_targets_db,
+        evaluation_pair_indices=np.column_stack((test_history, test_anchors, test_targets)),
+        train_archive_sha256=integrity["archive_sha256"],
+        evaluation_archive_sha256=integrity["archive_sha256"],
+        feature_transform_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+    )
     regressor = make_pipeline(StandardScaler(), Ridge(alpha=1.0))
-    regressor.fit(train_features, train_targets_db)
-    ridge_prediction = np.asarray(regressor.predict(test_features), dtype=np.float64)
+    regressor.fit(train_model_inputs.feature_matrix, train_targets_db)
+    ridge_prediction = np.asarray(
+        regressor.predict(test_model_inputs.feature_matrix), dtype=np.float64
+    )
     persistence_summary = summary_db[test_anchors]
     trend_summary = persistence_summary + (persistence_summary - summary_db[test_history]) * (
         horizon_s / lookback_s
@@ -220,6 +243,7 @@ def evaluate(
                 "test_pairs": int(test_anchors.size),
             },
             "scores": compact_scores,
+            "model_input_contract": model_input_contract,
             "limitations": [
                 "Only summary magnitude is predicted; subcarrier-selective detail and phase are omitted.",
                 "The Ridge alpha is fixed in advance and is not evidence of hyperparameter tuning.",

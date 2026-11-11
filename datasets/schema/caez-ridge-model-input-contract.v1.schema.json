@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/nntk072/5g-nr-channel-condition/datasets/schema/caez-ridge-model-input-contract.v1.schema.json",
+  "title": "CAEZ Ridge model input contract v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "scope",
+    "model",
+    "feature_transform_sha256",
+    "train_archive_sha256",
+    "evaluation_archive_sha256",
+    "training",
+    "evaluation"
+  ],
+  "properties": {
+    "schema": {"const": "caez.ridge_model_input_contract.v1"},
+    "scope": {"const": "offline CAEZ research score report; not an NR receiver deployment artifact"},
+    "model": {"const": "StandardScaler + Ridge(alpha=1.0)"},
+    "feature_transform_sha256": {"$ref": "#/$defs/sha256"},
+    "train_archive_sha256": {"$ref": "#/$defs/sha256"},
+    "evaluation_archive_sha256": {"$ref": "#/$defs/sha256"},
+    "training": {"$ref": "#/$defs/partition"},
+    "evaluation": {"$ref": "#/$defs/partition"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "arrayIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "dtype", "shape", "sha256"],
+      "properties": {
+        "label": {"type": "string", "minLength": 1},
+        "dtype": {"type": "string", "minLength": 2},
+        "shape": {"type": "array", "items": {"type": "integer", "minimum": 1}},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "partition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["inputs", "targets", "pair_indices"],
+      "properties": {
+        "inputs": {"$ref": "#/$defs/arrayIdentity"},
+        "targets": {"$ref": "#/$defs/arrayIdentity"},
+        "pair_indices": {"$ref": "#/$defs/arrayIdentity"}
+      }
+    }
+  }
+}

@@ -136,3 +136,9 @@ def test_forecast_evaluation_compares_persistence_and_linear_trend(tmp_path: Pat
     assert compact["split"]["train_pairs"] > compact["split"]["test_pairs"] > 0
     assert compact["scores"]["ridge"]["macro_nrmse_by_target_std"] >= 0
     assert compact["scores"]["ridge"]["per_oru"][0]["features"] > 0
+    contract = compact["model_input_contract"]
+    assert contract["schema"] == "caez.ridge_model_input_contract.v1"
+    assert contract["train_archive_sha256"] == result["archive_sha256"]
+    assert contract["evaluation_archive_sha256"] == result["archive_sha256"]
+    assert contract["training"]["inputs"]["shape"][0] == compact["split"]["train_pairs"]
+    assert contract["evaluation"]["inputs"]["shape"][0] == compact["split"]["test_pairs"]

@@ -3876,9 +3876,9 @@
     {
       "backlog_line": 415,
       "backlog_status": "open",
-      "description": "Complete model-input leakage audit across every dataset adapter, feature transform, experiment runner, training path, and inference artifact. `datasets.model_input_audit._validated_real_scalar` now converts registered scalar inputs through bounded float normalization and reports overflow as a domain `ValueError`. The analytical two-path runner now exposes a registered `TwoPathModelInputs` view containing only observed CFR, pilot mask, frequencies, and noise variance; training, prediction, and its profile-likelihood baseline consume this audited view, excluding delay/gain truth and split IDs from the input object. The 10-case audit/input-view suite passes. The two-path checkpoints still lack a dedicated model-input artifact contract, and the separate CAEZ Ridge forecast route remains outside this audit; full feature-transform, runner, training, and inference-artifact coverage remains open.",
+      "description": "Complete model-input leakage audit across every dataset adapter, feature transform, experiment runner, training path, and inference artifact. `datasets.model_input_audit._validated_real_scalar` converts registered scalar inputs through bounded float normalization and reports overflow as a domain `ValueError`. The analytical two-path runner exposes a registered observation-only `TwoPathModelInputs` view consumed by fitting, prediction, and profile-likelihood evaluation. The measured-data CAEZ magnitude and cross-environment Ridge routes now use registered `CAEZForecastModelInputs` containing only feature matrices and emit a schema-checked score-report contract binding exact training/evaluation feature bytes, separate target bytes, chronological history/anchor/target rows, source archive digests, model identity, and transform-source digest. CAEZ temporal alignment now rejects missing history rows instead of allowing `-1` wraparound. The focused audit/CAEZ suite passes 17 tests. Remaining: bind two-path checkpoints to an input/target/split contract, enumerate other active consumers and feature transforms, and explicitly classify archived scripts; no licensed CAEZ archive was read in this implementation check.",
       "evidence_file_sha256": {
-        "datasets/model_input_audit.py": "a0581344d11a0aab861a247aa1117a3121b6d9b2734e83fdc0e2d64435832c8a"
+        "datasets/model_input_audit.py": "b59b9f906679025dce5acaaab97fbb41f75d72b040de8156423410d9813ddd96"
       },
       "evidence_links": {
         "cli_entries": [],
@@ -5100,7 +5100,7 @@
   "schema": "loslab.implementation_feature_map.v3",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "483a5fdce83315bd0bb405b17fb749534825a381f9e4319df074b572a519d9b8"
+    "sha256": "dbbf28489779e8c2e401d3d10f34e16c1dfa69deeb13ad8ce423f9d946a794cf"
   },
   "summary": {
     "feature_count": 182,

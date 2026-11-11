@@ -31,6 +31,7 @@ _INPUT_FIELDS: dict[tuple[str, str], frozenset[str]] = {
             "received_grid_mask",
         }
     ),
+    ("evaluation.caez_forecast", "CAEZForecastModelInputs"): frozenset({"feature_matrix"}),
 }
 
 _NR_RECEIVER_CONFIG_FIELDS = frozenset(
@@ -198,7 +199,16 @@ def audit_model_input_payload(value: Any) -> Any:
         if config_fields != _NR_RECEIVER_CONFIG_FIELDS:
             raise ValueError("NRPUSCHConfig field roster drifted across the model-input boundary")
 
-    if identity == ("experiments.observable_multipath", "TwoPathModelInputs"):
+    if identity == ("evaluation.caez_forecast", "CAEZForecastModelInputs"):
+        shape = _validated_array(
+            value.feature_matrix,
+            name="feature_matrix",
+            value_kind="real",
+            ndim=2,
+        )
+        if not shape[0] or not shape[1]:
+            raise ValueError("CAEZ feature_matrix axes must be nonempty")
+    elif identity == ("experiments.observable_multipath", "TwoPathModelInputs"):
         observed_shape = _validated_array(
             value.observed_cfr, name="observed_cfr", value_kind="complex", ndim=2
         )

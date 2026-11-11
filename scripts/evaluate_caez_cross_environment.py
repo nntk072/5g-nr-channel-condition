@@ -14,8 +14,11 @@ from typing import Any
 import numpy as np
 import sklearn
 from datasets.caez import _numeric_member, audit
+from datasets.model_input_audit import audit_model_input_payload
 from evaluation.caez_forecast import (
+    CAEZForecastModelInputs,
     align_forecast_pairs,
+    make_caez_forecast_artifact_contract,
     paired_time_block_bootstrap,
     score_summary_predictions,
 )
@@ -110,8 +113,12 @@ def evaluate_transfer(
         (train_summary[train_anchors], train_summary[train_history]), axis=1
     )
     target_train = train_summary[train_targets]
+    train_model_inputs = audit_model_input_payload(
+        CAEZForecastModelInputs(feature_matrix=features_train)
+    )
+    train_pair_indices = np.column_stack((train_history, train_anchors, train_targets))
     model = make_pipeline(StandardScaler(), Ridge(alpha=1.0))
-    model.fit(features_train, target_train)
+    model.fit(train_model_inputs.feature_matrix, target_train)
 
     n_orus = 4
     n_rx = int(train_summary.shape[1] // n_orus)
@@ -143,7 +150,23 @@ def evaluate_transfer(
 
         features = np.concatenate((target_summary[anchors], target_summary[history]), axis=1)
         actual = target_summary[targets]
-        prediction = np.asarray(model.predict(features), dtype=np.float64)
+        evaluation_model_inputs = audit_model_input_payload(
+            CAEZForecastModelInputs(feature_matrix=features)
+        )
+        model_input_contract = make_caez_forecast_artifact_contract(
+            train_features=train_model_inputs.feature_matrix,
+            train_targets=target_train,
+            train_pair_indices=train_pair_indices,
+            evaluation_features=evaluation_model_inputs.feature_matrix,
+            evaluation_targets=actual,
+            evaluation_pair_indices=np.column_stack((history, anchors, targets)),
+            train_archive_sha256=train_report["archive_sha256"],
+            evaluation_archive_sha256=target_report["archive_sha256"],
+            feature_transform_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+        )
+        prediction = np.asarray(
+            model.predict(evaluation_model_inputs.feature_matrix), dtype=np.float64
+        )
         persistence = target_summary[anchors]
         trend = persistence + (persistence - target_summary[history]) * (horizon_s / lookback_s)
         predictions = {
@@ -181,6 +204,7 @@ def evaluate_transfer(
                 "first_test_anchor": float(target_times[anchors[0]]),
                 "last_test_target": float(target_times[targets[-1]]),
                 "scores": scores,
+                "model_input_contract": model_input_contract,
                 "uncertainty": uncertainty,
             }
         )

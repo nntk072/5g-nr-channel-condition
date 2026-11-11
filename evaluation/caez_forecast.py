@@ -2,9 +2,111 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
+import re
+from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
+from datasets.model_input_audit import audit_model_input_payload
+
+
+@dataclass(frozen=True, slots=True)
+class CAEZForecastModelInputs:
+    """Feature matrix admitted to the offline CAEZ Ridge forecast only."""
+
+    feature_matrix: np.ndarray
+
+
+def _array_identity(value: np.ndarray, *, label: str) -> dict[str, Any]:
+    array = np.ascontiguousarray(value)
+    metadata = json.dumps(
+        {"dtype": array.dtype.str, "shape": list(array.shape)},
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("ascii")
+    digest = hashlib.sha256(metadata + b"\0" + array.tobytes(order="C")).hexdigest()
+    return {"label": label, "dtype": array.dtype.str, "shape": list(array.shape), "sha256": digest}
+
+
+def make_caez_forecast_artifact_contract(
+    *,
+    train_features: np.ndarray,
+    train_targets: np.ndarray,
+    train_pair_indices: np.ndarray,
+    evaluation_features: np.ndarray,
+    evaluation_targets: np.ndarray,
+    evaluation_pair_indices: np.ndarray,
+    train_archive_sha256: str,
+    evaluation_archive_sha256: str,
+    feature_transform_sha256: str,
+) -> dict[str, Any]:
+    """Bind CAEZ Ridge features, truth, chronological pairs, and archive sources."""
+    train_inputs = audit_model_input_payload(CAEZForecastModelInputs(train_features))
+    evaluation_inputs = audit_model_input_payload(CAEZForecastModelInputs(evaluation_features))
+    if train_inputs.feature_matrix.shape[1] != evaluation_inputs.feature_matrix.shape[1]:
+        raise ValueError("CAEZ train and evaluation feature widths differ")
+
+    def validate_partition(
+        features: np.ndarray, targets: np.ndarray, pairs: np.ndarray, *, label: str
+    ) -> None:
+        target_array = np.asarray(targets)
+        if (
+            target_array.ndim != 2
+            or target_array.shape[0] != features.shape[0]
+            or target_array.dtype.kind not in "fiu"
+            or not np.isfinite(target_array).all()
+        ):
+            raise ValueError(
+                f"CAEZ {label} targets must be finite dense real rows aligned to features"
+            )
+        pair_array = np.asarray(pairs)
+        if (
+            pair_array.dtype.kind not in "iu"
+            or pair_array.ndim != 2
+            or pair_array.shape != (features.shape[0], 3)
+            or np.any(pair_array < 0)
+        ):
+            raise ValueError(f"CAEZ {label} pair indices must be nonnegative integer [row, 3]")
+        history, anchor, target = pair_array.T
+        if np.any(history >= anchor) or np.any(anchor >= target):
+            raise ValueError(f"CAEZ {label} pairs must be strictly history/anchor/target ordered")
+
+    validate_partition(train_features, train_targets, train_pair_indices, label="training")
+    validate_partition(
+        evaluation_features,
+        evaluation_targets,
+        evaluation_pair_indices,
+        label="evaluation",
+    )
+    for name, value in (
+        ("train_archive_sha256", train_archive_sha256),
+        ("evaluation_archive_sha256", evaluation_archive_sha256),
+        ("feature_transform_sha256", feature_transform_sha256),
+    ):
+        if not isinstance(value, str) or re.fullmatch(r"[0-9a-f]{64}", value) is None:
+            raise ValueError(f"{name} must be a lowercase SHA-256 digest")
+    return {
+        "schema": "caez.ridge_model_input_contract.v1",
+        "scope": "offline CAEZ research score report; not an NR receiver deployment artifact",
+        "model": "StandardScaler + Ridge(alpha=1.0)",
+        "feature_transform_sha256": feature_transform_sha256,
+        "train_archive_sha256": train_archive_sha256,
+        "evaluation_archive_sha256": evaluation_archive_sha256,
+        "training": {
+            "inputs": _array_identity(train_features, label="feature_matrix"),
+            "targets": _array_identity(train_targets, label="supervision_targets"),
+            "pair_indices": _array_identity(train_pair_indices, label="history_anchor_target_rows"),
+        },
+        "evaluation": {
+            "inputs": _array_identity(evaluation_features, label="feature_matrix"),
+            "targets": _array_identity(evaluation_targets, label="held_out_truth"),
+            "pair_indices": _array_identity(
+                evaluation_pair_indices, label="history_anchor_target_rows"
+            ),
+        },
+    }
 
 
 def align_forecast_pairs(
@@ -33,7 +135,13 @@ def align_forecast_pairs(
     targets = np.where(choose_right, right, left)
     errors = np.abs(times[targets] - target_time)
     history = np.searchsorted(times, times[anchors] - lookback_s, side="right") - 1
-    valid = right_valid & (targets > anchors) & (errors <= tolerance_s) & (history < anchors)
+    valid = (
+        right_valid
+        & (targets > anchors)
+        & (errors <= tolerance_s)
+        & (history >= 0)
+        & (history < anchors)
+    )
     return anchors[valid], targets[valid], history[valid]
 
 
