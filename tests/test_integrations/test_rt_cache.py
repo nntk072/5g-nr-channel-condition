@@ -280,6 +280,9 @@ def test_cache_aware_rt_generator_reuses_dataset_without_retracing(tmp_path, mon
             physical_config={
                 "scene": adapter.asdict(config),
                 "grid": adapter.asdict(grid),
+                "antenna_config": adapter.sionna_rt_siso_antenna_config(
+                    orientation_policy="fixed_default"
+                ),
                 "scene_geometry": {
                     "scene_geometry_sha256": fake_inventory.scene_geometry_sha256,
                     "scene_object_count": len(fake_inventory.object_names),

@@ -23,10 +23,11 @@
           "requirement": {"oneOf": [{"type": "string", "minLength": 1}, {"type": "object", "additionalProperties": {"type": "string"}}]},
           "scope": {
             "type": "object", "additionalProperties": false,
-            "required": ["status", "support_envelope"],
+            "required": ["status", "support_envelope", "authority_basis"],
             "properties": {
               "status": {"enum": ["unreviewed", "mandatory", "conditional", "later", "out_of_scope_with_authority"]},
-              "support_envelope": {"oneOf": [{"type": "string"}, {"type": "object"}, {"type": "null"}]}
+              "support_envelope": {"oneOf": [{"type": "string"}, {"type": "object"}, {"type": "null"}]},
+              "authority_basis": {"type": "string", "minLength": 1}
             }
           },
           "implementation": {

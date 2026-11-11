@@ -77,7 +77,9 @@ classifications remain heuristics and the duplicate-history/helper-wiring
 requirements remain open. The validator reports exact row/gate coverage; it
 does not claim source audit completion.
 
-The next batch is `E01.PKG01`, then packages 02–10 in numeric order, followed by
+`E01.PKG01` is now closed after source review and a focused suite passed 107 tests. The cache fixture was updated to bind the antenna configuration already included in the runtime cache identity. The exact command is listed on PKG01 rows in the ledger. PKG01 remains software-implemented within the declared slice; full runtime matrix/attestation, arbitrary override coverage, and ODbL release records remain explicit limitations.
+
+The next batch is `E01.PKG02`, then packages 03–10 in numeric order, followed by
 `E01.DS.GATES`, `E01.RS.PHASES`, `E01.RS.APPENDIX_E`, and `E01.CROSSWALK`.
 Each package batch is the fixed set of `PKGnn-*` IDs in the ledger and closes
 only after every row has inspected source/test integration, implementation
