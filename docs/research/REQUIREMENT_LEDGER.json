@@ -11431,30 +11431,40 @@
       ],
       "requirement": "Add signed child-artifact roster v2 for multiple uniquely identified typed artifacts per frozen child. Require at least one ChannelDataset NPZ per child and semantically bind its rows to the frozen child/kind/parent. Traverse recognized NR trajectory stores and bind every record to the same split lineage; semantically read standalone NR record manifests and verify their split binding. Unknown supplemental types receive byte-only checks. Version the child audit to v3 and outer audit bundle to v6; regression definitions cover multi-artifact children, trajectory/record integrity, cross-parent rejection, and missing semantic primary artifacts. Consolidated validation and authoritative-inventory review remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Signed multi-artifact child roster and semantic lineage checks for declared ChannelDataset, NR trajectory, and standalone NR record formats. Unknown supplemental types in supported legacy formats are explicitly byte-only; no authoritative inventory claim.",
+        "authority_basis": "Implementation backlog PKG08-036 requires typed signed child-artifact lineage and integrity behavior."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "scripts/audit_channel_split_lineage.py",
+          "datasets/schema/channel-dataset-child-artifact-roster.v2.schema.json",
+          "tests/test_scripts/test_audit_channel_split_lineage.py",
+          "datasets/schema/channel-split-lineage-audit-bundle.v1.schema.json"
+        ],
+        "basis": "Roster v2 supports multiple uniquely identified typed artifacts per child, requires a ChannelDataset NPZ for every child, and checks registered ChannelDataset/NR trajectory/NR record lineage against the frozen child/kind/parent. Tests cover multiple artifacts, missing primary datasets, and NR store binding. Unknown supplemental types remain byte-only by the declared compatibility contract."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_scripts/test_audit_channel_split_lineage.py tests/test_datasets/test_split_policy_v2.py tests/test_datasets/test_split_policy_signing.py (140 passed).",
+        "commit": "Focused split-lineage, split-policy, and signing verification on 2026-11-11."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Software tests do not establish authoritative frozen-inventory completeness, signer custody, or semantic validation of artifact families outside the registered validators."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Authoritative child inventory completeness and external signer custody remain open.",
+        "Artifact families not yet registered with semantic validators remain outside the declared semantic guarantee."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Signed multi-artifact child roster and semantic lineage checks for declared ChannelDataset, NR trajectory, and standalone NR record formats. Unknown supplemental types in supported legacy formats are explicitly byte-only; no authoritative inventory claim.",
+        "pass_rule": "The declared roster version validates exact typed artifact ownership and registered semantic lineage, rejecting unsafe/unlisted inputs under its stated limits; corpus authority, storage-scale, and release claims are separate.",
+        "next_task": "Finish PKG08-039 audit, then complete E01.PKG08 and crosswalk; resolve PKG08-024 production-runtime/corpus memory evidence before closing storage qualification."
       },
       "plan_mark": "not_checklist"
     },
@@ -11468,30 +11478,40 @@
       ],
       "requirement": "Add signed child-artifact roster v3 with an exact regular-file inventory under one declared artifact subtree. Reject symlinks, hard links, special files, concurrent directory changes, excessive tree depth, and excessive file counts. Semantically validate ChannelDataset NPZ, NR trajectory manifests, and paired standalone NR record manifests/content payloads. Version child audit v4 and outer audit bundle v7. Regression definitions cover exact inventory and unlisted/unsafe entries. This proves subtree completeness only; authoritative corpus inventory, external signer custody, and release qualification remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Signed roster v3 exact regular-file coverage under one declared subtree with safe filesystem traversal and semantic validation for registered dataset/NR artifact types.",
+        "authority_basis": "Implementation backlog PKG08-037 requires typed signed child-artifact lineage and integrity behavior."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "scripts/audit_channel_split_lineage.py",
+          "datasets/schema/channel-dataset-child-artifact-roster.v3.schema.json",
+          "tests/test_scripts/test_audit_channel_split_lineage.py",
+          "datasets/schema/channel-split-lineage-audit-bundle.v1.schema.json"
+        ],
+        "basis": "The v3 tree walker rejects unlisted and unsafe entries, symlinks/hardlinks/special files, concurrent changes, excessive depth, and file-count overflow while applying registered semantic validators. Regression coverage exercises exact inventory, unlisted/unsafe entries, and unsupported semantic types. This proves declared subtree integrity only."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_scripts/test_audit_channel_split_lineage.py tests/test_datasets/test_split_policy_v2.py tests/test_datasets/test_split_policy_signing.py (140 passed).",
+        "commit": "Focused split-lineage, split-policy, and signing verification on 2026-11-11."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Exact subtree coverage under supplied keys does not establish the authoritative corpus inventory, trusted external signer custody, corpus independence, or public release readiness."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Authoritative corpus inventory and signer custody remain external.",
+        "Release qualification and physical independence remain unqualified."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Signed roster v3 exact regular-file coverage under one declared subtree with safe filesystem traversal and semantic validation for registered dataset/NR artifact types.",
+        "pass_rule": "The declared roster version validates exact typed artifact ownership and registered semantic lineage, rejecting unsafe/unlisted inputs under its stated limits; corpus authority, storage-scale, and release claims are separate.",
+        "next_task": "Finish PKG08-039 audit, then complete E01.PKG08 and crosswalk; resolve PKG08-024 production-runtime/corpus memory evidence before closing storage qualification."
       },
       "plan_mark": "not_checklist"
     },
@@ -11505,30 +11525,42 @@
       ],
       "requirement": "Add roster v4 for exact-tree UMCD episode stores: semantically read each episode bundle under a conservative 512 MiB shard-accounting ceiling, bind the episode ID to its frozen parent subject, and require every referenced content-addressed layer to have a typed roster entry. Roster v5 adds a canonical `child_ids` list for content objects referenced by multiple frozen child manifests; audit requires exact owner/reference-set agreement. The canonical reader validates scenario GBSM episode-layer content, including episode/split-subject identity and generation-run split-group binding. Child artifact audit v5/v6 and lineage bundle v8/v9 version the respective roster families; v1-v4 behavior is retained. Focused regression covers single-owner and shared-object round trips plus owner mismatches; consolidated validation is deferred. The accounting model is not measured RSS and does not establish authoritative inventory completeness or release qualification. Scenario batch storage remains generation-level; child releases use per-drop EpisodeBundles.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Typed child roster validation for UMCD EpisodeBundles and content-addressed layers, including shared ownership and scenario GBSM lineage under the declared accounting ceiling.",
+        "authority_basis": "Implementation backlog PKG08-038 requires typed signed child-artifact lineage and integrity behavior."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "scripts/audit_channel_split_lineage.py",
+          "datasets/episode_store.py",
+          "datasets/scenario_gbsm.py",
+          "datasets/schema/channel-dataset-child-artifact-roster.v6.schema.json",
+          "datasets/schema/channel-split-lineage-audit-bundle.v1.schema.json",
+          "tests/test_scripts/test_audit_channel_split_lineage.py"
+        ],
+        "basis": "Registered roster v4+ readers validate EpisodeBundles and every referenced typed content layer, bind episode IDs to frozen parents, and compare multi-child ownership against exact reference sets. The canonical reader checks scenario GBSM episode, split-subject, and generation-run bindings. Regression coverage includes single/shared-owner round trips, owner mismatch, and scenario content. The conservative accounting ceiling is not measured RSS; scenario batch generation remains generation-level while child releases use per-drop bundles."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_scripts/test_audit_channel_split_lineage.py tests/test_datasets/test_split_policy_v2.py tests/test_datasets/test_split_policy_signing.py (140 passed).",
+        "commit": "Focused split-lineage, split-policy, and signing verification on 2026-11-11."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Software integrity and conservative shard accounting do not establish production memory envelope, inventory completeness, signer custody, or scientific qualification."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Representative production corpus sizing and measured full-path RSS remain open under PKG08-024.",
+        "Authoritative inventory completeness and signer custody remain external."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Typed child roster validation for UMCD EpisodeBundles and content-addressed layers, including shared ownership and scenario GBSM lineage under the declared accounting ceiling.",
+        "pass_rule": "The declared roster version validates exact typed artifact ownership and registered semantic lineage, rejecting unsafe/unlisted inputs under its stated limits; corpus authority, storage-scale, and release claims are separate.",
+        "next_task": "Finish PKG08-039 audit, then complete E01.PKG08 and crosswalk; resolve PKG08-024 production-runtime/corpus memory evidence before closing storage qualification."
       },
       "plan_mark": "not_checklist"
     },

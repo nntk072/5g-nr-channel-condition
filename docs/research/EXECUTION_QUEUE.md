@@ -263,7 +263,11 @@ types and the rest of the planned descendant inventory. `PKG08-030` closes the
 truthful semantic-coverage report contract. `PKG08-031`–`035` now close their
 bounded registry admission, parser, and input-resource software contracts;
 signer trust and corpus qualification remain open. The combined focused suite
-passes 140 tests. Continue with `PKG08-036` through `PKG08-039`,
+passes 140 tests. `PKG08-036`–`038` are reconciled as software-complete for
+their declared typed child-roster formats, with authority, storage-scale, and
+corpus qualification limits preserved. The remaining package row is
+`PKG08-039`, already audited as release-gate software; then close the package
+crosswalk and proceed through packages 09–10,
 then packages 09–10, `E01.DS.GATES`, `E01.RS.PHASES`, `E01.RS.APPENDIX_E`, and
 `E01.CROSSWALK`.
 Each package batch is the fixed set of `PKGnn-*` IDs in the ledger and closes
