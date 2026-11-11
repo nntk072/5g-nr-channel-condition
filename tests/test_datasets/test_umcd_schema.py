@@ -14,11 +14,14 @@ import pytest
 from datasets.channel_view import (
     ChannelDelayReference,
     ChannelPowerScale,
+    PhaseComparisonDisposition,
     PhysicalChannelView,
+    phase_comparison_disposition,
 )
 from datasets.counterfactual import remove_direct_path_component
 from datasets.episode_store import (
     EpisodeBundle,
+    _channel_payload,
     _episode_payload,
     _path_payload,
     _read_episode,
@@ -133,7 +136,11 @@ def test_network_episode_preserves_ordered_arrays_links_and_grid():
     ("field", "value", "message"),
     [
         ("element_positions_local_m", np.ones((4, 3), dtype=bool), "real numeric dtype"),
-        ("element_positions_local_m", np.ones((4, 3), dtype=complex) * (1 + 1j), "real numeric dtype"),
+        (
+            "element_positions_local_m",
+            np.ones((4, 3), dtype=complex) * (1 + 1j),
+            "real numeric dtype",
+        ),
         ("orientation_local_to_world", np.eye(3, dtype=complex) * (1 + 1j), "real numeric dtype"),
         ("port_element_weights", np.ones((2, 4), dtype=object), "numeric dtype"),
     ],
@@ -154,7 +161,10 @@ def test_network_node_rejects_coercible_non_real_positions(position):
     ("field", "value"),
     (
         ("positions_world_m", np.zeros((2, 2, 3), dtype=bool)),
-        ("orientations_local_to_world", np.broadcast_to(np.eye(3), (2, 2, 3, 3)).astype(complex) * (1 + 1j)),
+        (
+            "orientations_local_to_world",
+            np.broadcast_to(np.eye(3), (2, 2, 3, 3)).astype(complex) * (1 + 1j),
+        ),
     ),
 )
 def test_pose_timeline_rejects_coercible_geometry_dtypes(field, value):
@@ -459,7 +469,11 @@ def test_path_oracle_rejects_integer_values_that_overflow_int64(field):
                 "interaction_vertex_frame": "scene_xyz_m",
             }
         )
-    arguments[field] = np.asarray([0, 2**63], dtype=np.uint64) if field == "path_offsets" else np.asarray([2**63], dtype=np.uint64)
+    arguments[field] = (
+        np.asarray([0, 2**63], dtype=np.uint64)
+        if field == "path_offsets"
+        else np.asarray([2**63], dtype=np.uint64)
+    )
 
     with pytest.raises(ValueError, match="fit int64"):
         PathOracleTable(**arguments)
@@ -530,6 +544,8 @@ def test_physical_channel_view_requires_named_axes_and_explicit_normalization():
     assert not channel.channel.flags.writeable
     assert channel.valid_mask is not None and channel.valid_mask.all()
     assert not channel.valid_mask.flags.writeable
+    with pytest.raises(ValueError, match="phase_gauge_id"):
+        PhysicalChannelView(**{**arguments, "phase_gauge_id": " cal-chain "})
     with pytest.raises(ValueError, match="masked channel elements"):
         PhysicalChannelView(
             **{
@@ -553,6 +569,70 @@ def test_physical_channel_view_requires_named_axes_and_explicit_normalization():
                 "power_scale": ChannelPowerScale.NORMALIZED,
             }
         )
+
+
+def test_phase_gauge_comparison_requires_matching_reference_and_physical_grid():
+    episode = _episode()
+    arguments = {
+        "view_id": "phase-view-a",
+        "link_id": "gNB-1-to-UE-1",
+        "channel": np.ones((1, 1, 2, 3), dtype=np.complex64),
+        "frame_times_s": episode.frame_times_s,
+        "rx_port_ids": ("UE-V",),
+        "tx_port_ids": ("gNB-V", "gNB-H"),
+        "carrier_hz": episode.carrier_hz,
+        "subcarrier_offsets_hz": episode.subcarrier_offsets_hz,
+        "delay_reference": ChannelDelayReference.ABSOLUTE_PROPAGATION,
+        "power_scale": ChannelPowerScale.ABSOLUTE,
+    }
+    no_gauge = PhysicalChannelView(**arguments)
+    same_gauge = PhysicalChannelView(**{**arguments, "phase_gauge_id": "cal-chain-7"})
+    matching_gauge = PhysicalChannelView(
+        **{**arguments, "view_id": "phase-view-b", "phase_gauge_id": "cal-chain-7"}
+    )
+    different_gauge = PhysicalChannelView(**{**arguments, "phase_gauge_id": "cal-chain-8"})
+    other_carrier = PhysicalChannelView(
+        **{**arguments, "phase_gauge_id": "cal-chain-7", "carrier_hz": 3.6e9}
+    )
+
+    assert (
+        phase_comparison_disposition(no_gauge, same_gauge)
+        is PhaseComparisonDisposition.REFERENCE_MISSING
+    )
+    assert (
+        phase_comparison_disposition(same_gauge, different_gauge)
+        is PhaseComparisonDisposition.GAUGE_MISMATCH
+    )
+    assert (
+        phase_comparison_disposition(same_gauge, other_carrier)
+        is PhaseComparisonDisposition.FREQUENCY_MISMATCH
+    )
+    assert (
+        phase_comparison_disposition(same_gauge, matching_gauge)
+        is PhaseComparisonDisposition.ELIGIBLE
+    )
+
+
+def test_phase_gauge_is_preserved_in_content_addressed_channel_layer(tmp_path):
+    jsonschema = pytest.importorskip("jsonschema")
+    bundle = _bundle()
+    channel = replace(bundle.channel_views[0], phase_gauge_id="cal-chain-7")
+    bundle = replace(bundle, channel_views=(channel,))
+
+    with np.load(io.BytesIO(_channel_payload(channel)), allow_pickle=False) as archive:
+        layer_metadata = json.loads(archive["metadata_json"].tobytes())
+    schema_path = (
+        Path(__file__).resolve().parents[2]
+        / "datasets"
+        / "schema"
+        / "umcd-physical-channel-layer.v1.schema.json"
+    )
+    jsonschema.Draft202012Validator(json.loads(schema_path.read_text())).validate(layer_metadata)
+
+    stored = write_episode_bundle(tmp_path, bundle)
+    loaded = read_episode_bundle(tmp_path, stored)
+
+    assert loaded.channel_views[0].phase_gauge_id == "cal-chain-7"
 
 
 def test_physical_channel_view_rejects_coercible_timestamp_strings():
@@ -1010,7 +1090,11 @@ def test_frequency_receiver_observation_rejects_wrong_port_or_frequency_axes():
         ("subcarrier_offsets_hz", np.asarray([-1.0, 0.0, 1.0], dtype=bool), "real numeric dtype"),
         ("subcarrier_offsets_hz", np.asarray(["-1", "0", "1"]), "real numeric dtype"),
         ("subcarrier_offsets_hz", np.asarray([-1.0, 0.0, 1.0], dtype=object), "real numeric dtype"),
-        ("subcarrier_offsets_hz", np.asarray([-1.0 + 0j, 0.0 + 0j, 1.0 + 0j]), "real numeric dtype"),
+        (
+            "subcarrier_offsets_hz",
+            np.asarray([-1.0 + 0j, 0.0 + 0j, 1.0 + 0j]),
+            "real numeric dtype",
+        ),
         ("noise_variance", True, "real numeric scalar"),
         ("snr_db", "10", "real numeric scalar"),
         ("carrier_hz", 3.5e9 + 0j, "real numeric scalar"),
@@ -1070,7 +1154,9 @@ def test_episode_store_roundtrip_preserves_dynamic_poses(tmp_path):
     assert loaded.episode.pose_time_alignment == time_alignment
     jsonschema = pytest.importorskip("jsonschema")
     alignment_schema = json.loads(
-        (Path(__file__).parents[2] / "datasets/schema/time-axis-alignment.v1.schema.json").read_text()
+        (
+            Path(__file__).parents[2] / "datasets/schema/time-axis-alignment.v1.schema.json"
+        ).read_text()
     )
     jsonschema.Draft202012Validator(alignment_schema).validate(
         loaded.episode.pose_time_alignment.to_dict()

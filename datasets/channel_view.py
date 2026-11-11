@@ -27,6 +27,18 @@ class ChannelPowerScale(StrEnum):
     NORMALIZED = "normalized_power"
 
 
+class PhaseComparisonDisposition(StrEnum):
+    """Why two complex views can or cannot share a coherent phase comparison."""
+
+    ELIGIBLE = "eligible_same_declared_gauge"
+    REFERENCE_MISSING = "reference_missing"
+    GAUGE_MISMATCH = "phase_gauge_mismatch"
+    AXIS_MISMATCH = "channel_axes_mismatch"
+    FREQUENCY_MISMATCH = "frequency_grid_mismatch"
+    DELAY_REFERENCE_MISMATCH = "delay_reference_mismatch"
+    POWER_REFERENCE_MISMATCH = "power_reference_mismatch"
+
+
 @dataclass(frozen=True, slots=True, eq=False)
 class PhysicalChannelView:
     """Complex CFR for one link, without padding heterogeneous network axes.
@@ -34,6 +46,8 @@ class PhysicalChannelView:
     Axes are fixed by contract to ``[frame, rx_port, tx_port, subcarrier]``.
     Subcarrier coordinates are baseband offsets in Hz; ``carrier_hz`` is
     separately retained. A normalized channel must name its exact transform.
+    ``phase_gauge_id`` is an optional producer declaration; it does not prove
+    calibration, reference-plane validity, or coherent phase accuracy.
     """
 
     view_id: str
@@ -49,6 +63,7 @@ class PhysicalChannelView:
     normalization_recipe: str | None = None
     valid_mask: np.ndarray | None = None
     axes: tuple[str, ...] = ("frame", "rx_port", "tx_port", "subcarrier")
+    phase_gauge_id: str | None = None
 
     def __post_init__(self) -> None:
         for name in ("view_id", "link_id"):
@@ -60,9 +75,13 @@ class PhysicalChannelView:
             raise ValueError("channel must be finite complex [frame, rx_port, tx_port, subcarrier]")
         times = canonical_time_axis(self.frame_times_s, name="frame_times_s")
         rx_ids, tx_ids = tuple(self.rx_port_ids), tuple(self.tx_port_ids)
-        if not rx_ids or not tx_ids or any(
-            not isinstance(item, str) or not item.strip() or item != item.strip()
-            for item in (*rx_ids, *tx_ids)
+        if (
+            not rx_ids
+            or not tx_ids
+            or any(
+                not isinstance(item, str) or not item.strip() or item != item.strip()
+                for item in (*rx_ids, *tx_ids)
+            )
         ):
             raise ValueError("rx_port_ids and tx_port_ids must be non-empty strings")
         if len(set(rx_ids)) != len(rx_ids) or len(set(tx_ids)) != len(tx_ids):
@@ -100,6 +119,11 @@ class PhysicalChannelView:
             raise TypeError("delay_reference must use ChannelDelayReference")
         if not isinstance(self.power_scale, ChannelPowerScale):
             raise TypeError("power_scale must use ChannelPowerScale")
+        gauge_id = self.phase_gauge_id
+        if gauge_id is not None and (
+            not isinstance(gauge_id, str) or not gauge_id.strip() or gauge_id != gauge_id.strip()
+        ):
+            raise ValueError("phase_gauge_id must be null or a non-empty canonical string")
         recipe = self.normalization_recipe
         if self.power_scale is ChannelPowerScale.NORMALIZED or (
             self.delay_reference is ChannelDelayReference.RELATIVE
@@ -117,6 +141,7 @@ class PhysicalChannelView:
         object.__setattr__(self, "rx_port_ids", rx_ids)
         object.__setattr__(self, "tx_port_ids", tx_ids)
         object.__setattr__(self, "carrier_hz", carrier_hz)
+        object.__setattr__(self, "phase_gauge_id", gauge_id)
         object.__setattr__(self, "subcarrier_offsets_hz", frequencies)
         object.__setattr__(self, "axes", tuple(self.axes))
 
@@ -139,3 +164,41 @@ class PhysicalChannelView:
             raise ValueError("channel RX port IDs do not match the directed-link port map")
         if self.tx_port_ids != expected_tx_ports:
             raise ValueError("channel TX port IDs do not match the directed-link port map")
+
+
+def phase_comparison_disposition(
+    left: PhysicalChannelView,
+    right: PhysicalChannelView,
+) -> PhaseComparisonDisposition:
+    """Return whether two views may be compared coherently without gauge fitting.
+
+    A shared declared gauge is necessary, not proof of calibration or physical
+    correctness. This check deliberately refuses automatic phase alignment,
+    delay shifting, gain normalization, and cross-frequency comparison.
+    """
+    if not isinstance(left, PhysicalChannelView) or not isinstance(right, PhysicalChannelView):
+        raise TypeError("phase comparison requires two PhysicalChannelView values")
+    if left.phase_gauge_id is None or right.phase_gauge_id is None:
+        return PhaseComparisonDisposition.REFERENCE_MISSING
+    if left.phase_gauge_id != right.phase_gauge_id:
+        return PhaseComparisonDisposition.GAUGE_MISMATCH
+    if (
+        left.link_id != right.link_id
+        or left.frame_times_s != right.frame_times_s
+        or left.rx_port_ids != right.rx_port_ids
+        or left.tx_port_ids != right.tx_port_ids
+        or left.axes != right.axes
+    ):
+        return PhaseComparisonDisposition.AXIS_MISMATCH
+    if left.carrier_hz != right.carrier_hz or not np.array_equal(
+        left.subcarrier_offsets_hz, right.subcarrier_offsets_hz
+    ):
+        return PhaseComparisonDisposition.FREQUENCY_MISMATCH
+    if left.delay_reference is not right.delay_reference:
+        return PhaseComparisonDisposition.DELAY_REFERENCE_MISMATCH
+    if (
+        left.power_scale is not right.power_scale
+        or left.normalization_recipe != right.normalization_recipe
+    ):
+        return PhaseComparisonDisposition.POWER_REFERENCE_MISMATCH
+    return PhaseComparisonDisposition.ELIGIBLE

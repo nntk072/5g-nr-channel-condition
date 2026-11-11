@@ -102,6 +102,23 @@ gauges are declared. Path row positions are provenance, not identities. This
 bounded audit does not retrace scenes, establish complete physical truth, or
 qualify Doppler evolution.
 
+Stored <code>PhysicalChannelView</code> records may declare a
+<code>phase_gauge_id</code>. <code>datasets.phase_comparison_disposition</code>
+allows coherent comparison only when both views declare the same gauge and
+their link, time, port, frequency, delay-reference, and power-reference
+contracts agree. A missing or mismatched reference remains unavailable; the
+ID itself is a producer claim, not calibration evidence. No phase fitting,
+delay shifting, or gain normalization is applied automatically.
+
+`datasets.PairedFrequencyViews` binds two independently solved complex channel
+views to the same scene geometry and source asset hashes while retaining their
+separate carrier, material, solver, and run-provenance digests. It requires a
+shared link/time/port and delay/power contract, but deliberately makes no
+cross-band phase-coherence claim. Each provenance record must declare an RT
+source family; this remains a producer claim and does not authenticate the
+source or qualify either solve. Magnitude-only measurement archives remain
+ineligible as complex CSI/ToA truth.
+
 <code>propagation.path_steering_diagnostics</code> measures rank, condition
 number, and mutual coherence of candidate path steering vectors on a specified
 finite set of subcarrier frequencies. It demonstrates exact coincidence and

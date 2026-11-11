@@ -1,6 +1,6 @@
 {
   "schema": "loslab.requirement-ledger.v1",
-  "status_note": "Traceability index covering all 182 backlog IDs, 104 numbered unified-plan criteria, and 30 dataset/research gate or phase records. Source audits are complete for PKG00-05. PKG05 rows 001/002/003/004/005/007/008/009/010/011/012/013/014/016/017/018/019/020/021/022/023/024/025 have bounded dispositions; 006/015/026 remain partial aggregate G4 scope. PKG06 rows 001–036 are source-audited with bounded complete/partial dispositions; PKG07-001/002/005 are source-audited partials with focused regression slices;  remaining package/gate audits stay open. Checked plan boxes are preserved as source marks, never treated as implementation or scientific qualification. Feature-map heuristics do not determine ledger status.",
+  "status_note": "Traceability index covering all 182 backlog IDs, 104 numbered unified-plan criteria, and 30 dataset/research gate or phase records. Source audits are complete for PKG00-05. PKG05 rows 001/002/003/004/005/007/008/009/010/011/012/013/014/016/017/018/019/020/021/022/023/024/025 have bounded dispositions; 006/015/026 remain partial aggregate G4 scope. PKG06 rows 001–036 are source-audited with bounded complete/partial dispositions; PKG07-001/002/003/004/005 are source-audited partials with focused regression slices;  remaining package/gate audits stay open. Checked plan boxes are preserved as source marks, never treated as implementation or scientific qualification. Feature-map heuristics do not determine ledger status.",
   "source_checkpoint": "42e9d08 baseline; E00 37cc827; queue fb49282; PKG01 12eebb5; criterion ledger 9681d19; PKG03 f3e5faf; PKG04 G3 audit ba34d1f",
   "requirements": [
     {
@@ -9674,30 +9674,42 @@
       ],
       "requirement": "Complete future phase/gauge and censoring semantics, observability/missing-reason rules, and causal feature eligibility.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Declared phase gauge and reference compatibility for stored complex channel comparisons; per-element target observability/reasons and strict numeric model-input field rosters. Full causal/time-dependent feature eligibility remains outside scope.",
+        "authority_basis": "The backlog requires future phase/gauge, censoring, observability and causal feature semantics; the implemented typed contracts cover only these bounded parts."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "datasets/channel_view.py",
+          "datasets/episode_store.py",
+          "datasets/targets.py",
+          "datasets/model_input_audit.py",
+          "datasets/schema/umcd-physical-channel-layer.v1.schema.json",
+          "tests/test_datasets/test_umcd_schema.py",
+          "tests/test_datasets/test_target_contracts.py",
+          "tests/test_datasets/test_model_input_audit.py",
+          "tests/test_evaluation/test_target_coverage.py"
+        ],
+        "basis": "Physical channel layers now preserve an optional phase_gauge_id with backward-compatible reads; coherent phase comparison fails closed unless gauge, link/time/port axes, frequency grid, delay reference, and power reference agree. TargetValue already requires element masks with explicit TargetValidity reason codes and hash-bound target references; model-input payloads reject target-bearing/unregistered fields. A phase gauge is only a producer declaration. Censor intervals, observability-to-acquisition bindings, phase-reference calibration evidence, and causal timestamp/lineage eligibility across all transforms/runners remain open."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_model_input_audit.py tests/test_datasets/test_target_contracts.py tests/test_evaluation/test_target_coverage.py\n./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_umcd_schema.py::test_physical_channel_view_requires_named_axes_and_explicit_normalization tests/test_datasets/test_umcd_schema.py::test_phase_gauge_comparison_requires_matching_reference_and_physical_grid tests/test_datasets/test_umcd_schema.py::test_phase_gauge_is_preserved_in_content_addressed_channel_layer tests/test_datasets/test_umcd_schema.py::test_legacy_episode_payload_without_pose_alignment_remains_readable",
+        "commit": "Working tree based on c6d7dd7; 54 target/model-input checks and four phase-gauge/storage compatibility checks passed."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "A matching declared gauge permits comparison but does not establish calibration; target masks and input rosters do not establish causal eligibility across the complete training/inference pipeline."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Bind phase gauge to calibration/reference evidence, formalize censoring intervals and observability provenance, and enforce causal feature availability at every adapter/transform/runner boundary.",
+        "pass_rule": "No phase metric is eligible without independently adequate reference evidence; unavailable targets retain explicit reasons; every feature must be shown available by the prediction cutoff and independent of future/oracle targets.",
+        "next_task": "E01.PKG07"
       },
       "plan_mark": "not_checklist"
     },
@@ -9711,30 +9723,39 @@
       ],
       "requirement": "Complete paired frequency-view solves with band/material-specific propagation; do not extrapolate measured magnitude-only data into complex CSI/ToA truth.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "A typed manifest pairing two complex PhysicalChannelViews from distinct band-specific solves, with each carrier bound to its run provenance and both runs bound to the same scene geometry/assets and source/split parent. No measured magnitude-only data can supply either complex view; no cross-band phase coherence is asserted.",
+        "authority_basis": "The backlog requires paired frequency-view solves with band/material-specific propagation and explicitly prohibits promoting magnitude-only measurements into complex CSI/ToA truth."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "docs/research/IMPLEMENTATION_BACKLOG.md",
+          "datasets/frequency_pair.py",
+          "datasets/channel_view.py",
+          "datasets/provenance.py",
+          "datasets/schema/umcd-paired-frequency-views.v1.schema.json",
+          "tests/test_datasets/test_frequency_pair.py"
+        ],
+        "basis": "PairedFrequencyViews accepts only two typed complex channel views with distinct carriers, matching link/time/ports and delay/power contracts, carrier-bound oracle-channel provenance declaring an RT source family, matching scene geometry and source asset digests, and explicit source-scene/parent/split identifiers. Its manifest retains per-band complex-view, material, solver and run-provenance digests and does not assert phase coherence. The producer family declaration is not source authentication. The contract does not generate or store paired RT bundles, automatically prove that the caller's source/split IDs match external registries, or qualify cross-band truth."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_frequency_pair.py",
+        "commit": "Working tree based on c6d7dd7; focused pair-manifest schema, distinct-band, carrier-provenance, and scene-geometry checks passed."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "No paired RT generation workflow, cross-bundle split-registry binding, or scientific cross-band qualification has run."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Generate and persist paired per-band RT bundles from one frozen scene/drop and parent, link both bundle hashes to the split registry, and validate material/solver frequency sensitivity and supported cross-band statistics.",
+        "pass_rule": "Both complex views must trace to independently reproducible carrier/material-specific solves of the same scene/drop and split parent; measured magnitude-only data cannot substitute; each declared scientific metric passes its predeclared tolerance before qualification.",
+        "next_task": "E01.PKG07"
       },
       "plan_mark": "not_checklist"
     },

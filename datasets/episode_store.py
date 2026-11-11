@@ -412,9 +412,7 @@ def _episode_payload(episode: NetworkEpisode) -> bytes:
         "frame_times_s": list(episode.frame_times_s),
         "has_pose_timeline": episode.pose_timeline is not None,
         "pose_time_alignment": (
-            None
-            if episode.pose_time_alignment is None
-            else episode.pose_time_alignment.to_dict()
+            None if episode.pose_time_alignment is None else episode.pose_time_alignment.to_dict()
         ),
         "arrays": [
             {
@@ -647,6 +645,7 @@ def _channel_payload(view: PhysicalChannelView) -> bytes:
         "delay_reference": view.delay_reference.value,
         "power_scale": view.power_scale.value,
         "normalization_recipe": view.normalization_recipe,
+        "phase_gauge_id": view.phase_gauge_id,
         "axes": list(view.axes),
     }
     return _pack_npz(
@@ -1184,9 +1183,7 @@ def _read_episode(metadata: dict[str, Any], arrays: dict[str, np.ndarray]) -> Ne
             orientations_local_to_world=arrays["pose_orientations_local_to_world"],
         )
     alignment_value = metadata.get("pose_time_alignment")
-    alignment = (
-        None if alignment_value is None else TimeAxisAlignment.from_dict(alignment_value)
-    )
+    alignment = None if alignment_value is None else TimeAxisAlignment.from_dict(alignment_value)
     return NetworkEpisode(
         metadata["episode_id"],
         metadata["split_group_id"],
@@ -1325,6 +1322,7 @@ def read_episode_bundle(
                 delay_reference=ChannelDelayReference(channel_metadata["delay_reference"]),
                 power_scale=ChannelPowerScale(channel_metadata["power_scale"]),
                 normalization_recipe=channel_metadata["normalization_recipe"],
+                phase_gauge_id=channel_metadata.get("phase_gauge_id"),
                 valid_mask=arrays.get("valid_mask"),
                 axes=tuple(channel_metadata["axes"]),
             )

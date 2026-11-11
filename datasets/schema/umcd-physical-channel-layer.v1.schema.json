@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:loslab:umcd-physical-channel-layer:v1",
+  "title": "UMCD named-axis physical-channel layer metadata",
+  "description": "Complex physical channel view metadata. A phase gauge is an explicit producer declaration, not independent evidence of calibration.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "view_id",
+    "link_id",
+    "frame_times_s",
+    "rx_port_ids",
+    "tx_port_ids",
+    "carrier_hz",
+    "delay_reference",
+    "power_scale",
+    "normalization_recipe",
+    "axes"
+  ],
+  "properties": {
+    "schema": {"const": "umcd.physical_channel.v1"},
+    "view_id": {"type": "string", "minLength": 1},
+    "link_id": {"type": "string", "minLength": 1},
+    "frame_times_s": {"type": "array", "items": {"type": "number"}, "minItems": 1},
+    "rx_port_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1},
+    "tx_port_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1},
+    "carrier_hz": {"type": "number", "exclusiveMinimum": 0},
+    "delay_reference": {"enum": ["absolute_propagation_delay", "relative_delay"]},
+    "power_scale": {"enum": ["absolute_power_gain", "normalized_power"]},
+    "normalization_recipe": {"type": ["string", "null"]},
+    "phase_gauge_id": {"type": ["string", "null"], "minLength": 1},
+    "axes": {"const": ["frame", "rx_port", "tx_port", "subcarrier"]}
+  }
+}

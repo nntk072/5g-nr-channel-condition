@@ -184,8 +184,19 @@ descriptor-based association independent of row order, births/deaths,
 near-tie ambiguity, solver/missing-group censoring, caller-declared phase
 gauges, source-table/report digests, schema validation, and candidate-pair
 limits. Six focused regressions and Ruff pass. It does not retrace scenes or
-validate physical path completeness. `PKG07-003/004` still need source audit
-and concrete implementation scope.
+validate physical path completeness. `PKG07-003` now also preserves the
+optional `phase_gauge_id` in backward-readable channel layers and provides a
+fail-closed coherent-comparison disposition over gauge, link/time/port axes,
+frequency grid, delay reference, and power reference. Four focused
+phase-gauge/storage checks and the existing 54 target/model-input checks pass;
+calibration evidence, formal censor intervals, and pipeline-wide causal
+eligibility remain open. `PKG07-004` now has a `PairedFrequencyViews` contract
+and schema binding two distinct-carrier complex views to the same scene
+geometry/assets and source/split parent, with per-view content hashes,
+separate material/solver/run provenance digests and no cross-band phase claim.
+The focused contract tests pass. This does not generate paired solves; the RT
+workflow, bundle linkage, split-registry integration, and scientific
+qualification remain open.
 
 The frozen CDL-E four-element covariance miss is now linked to
 `M1.G4_CDL_E_FAILURE_DISPOSITION`. Its exact `Re(C[0,1])` discrepancy is

@@ -7,7 +7,13 @@ from .analytical import (
     generate_analytical_multipath,
 )
 from .channel import ChannelDataset, ChannelModelInputs
-from .channel_view import ChannelDelayReference, ChannelPowerScale, PhysicalChannelView
+from .channel_view import (
+    ChannelDelayReference,
+    ChannelPowerScale,
+    PhaseComparisonDisposition,
+    PhysicalChannelView,
+    phase_comparison_disposition,
+)
 from .counterfactual import DirectPathAblation, remove_direct_path_component
 from .episode_store import (
     EpisodeBundle,
@@ -18,6 +24,7 @@ from .episode_store import (
     read_receiver_model_inputs,
     write_episode_bundle,
 )
+from .frequency_pair import PairedFrequencyViews
 from .lineage import (
     LINEAGE_STATUSES,
     LineageStatusClaim,
@@ -157,7 +164,9 @@ __all__ = [
     "audit_model_input_payload",
     "ChannelDelayReference",
     "ChannelPowerScale",
+    "PhaseComparisonDisposition",
     "PhysicalChannelView",
+    "phase_comparison_disposition",
     "EpisodeBundle",
     "LinkedNRObservation",
     "StoredEpisodeBundle",
@@ -250,6 +259,7 @@ __all__ = [
     "verify_openssh_signed_artifact",
     "verify_registry_spatiotemporal_audit",
     "write_episode_bundle",
+    "PairedFrequencyViews",
     "NRStoredTrajectory",
     "debug_multipath",
     "generate_analytical_multipath",

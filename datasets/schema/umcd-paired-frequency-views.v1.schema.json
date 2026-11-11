@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.dev/schema/umcd-paired-frequency-views.v1.schema.json",
+  "title": "UMCD paired frequency views",
+  "description": "Two complex channel views from independently provenance-bound band-specific propagation solves of the same source scene and geometry. Does not assert cross-band phase coherence or measurement-derived complex truth.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "pair_id", "source_scene_id", "parent_episode_id", "split_group_id", "scene_geometry_sha256", "views", "complex_csi_source", "phase_coherence_claim", "pair_sha256"],
+  "properties": {
+    "schema": {"const": "umcd.paired_frequency_views.v1"},
+    "pair_id": {"type": "string", "minLength": 1},
+    "source_scene_id": {"type": "string", "minLength": 1},
+    "parent_episode_id": {"type": "string", "minLength": 1},
+    "split_group_id": {"type": "string", "minLength": 1},
+    "scene_geometry_sha256": {"$ref": "#/$defs/sha256"},
+    "views": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["view_id", "view_content_sha256", "carrier_hz", "provenance_record_id", "provenance_record_sha256", "material_config_sha256", "solver_config_sha256"],
+        "properties": {
+          "view_id": {"type": "string", "minLength": 1},
+          "view_content_sha256": {"$ref": "#/$defs/sha256"},
+          "carrier_hz": {"type": "number", "exclusiveMinimum": 0},
+          "provenance_record_id": {"type": "string", "minLength": 1},
+          "provenance_record_sha256": {"$ref": "#/$defs/sha256"},
+          "material_config_sha256": {"$ref": "#/$defs/sha256"},
+          "solver_config_sha256": {"$ref": "#/$defs/sha256"}
+        }
+      }
+    },
+    "complex_csi_source": {"const": "independent_band_specific_propagation_solves"},
+    "phase_coherence_claim": {"const": "not_asserted"},
+    "pair_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}
