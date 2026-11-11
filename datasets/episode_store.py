@@ -664,6 +664,11 @@ def _channel_payload(view: PhysicalChannelView) -> bytes:
 
 
 def _target_payload(target: TargetValue) -> bytes:
+    if target.definition.definition_version == "migrated_from_legacy_target_v1":
+        raise ValueError(
+            "legacy v1 target definitions with unrecorded reference/aggregation cannot be "
+            "republished as canonical target-v2 layers; provide a reviewed versioned definition"
+        )
     metadata = {
         "schema": "umcd.target.v2",
         "entity_id": target.entity_id,

@@ -3615,20 +3615,31 @@
     {
       "backlog_line": 406,
       "backlog_status": "open",
-      "description": "Complete domain-specific target units/reference/gauge/aggregation semantics, shapes, allowed ranges, and canonical migration policy across UMCD and NR target families. `TargetValue` rejects empty arrays and padded entity/confidence identities; versioned target definition fields reject surrounding whitespace before digest admission. NR v3 requires digest-bound semantic definitions, and existing mask/reason contracts remain in force. The canonical F04 dynamic geometric-visibility target now preserves its per-frame binary axis, and `EpisodeBundle` requires that axis to match the parent frame-time roster; the NR inference audit allowlist now includes the declared hopping/transform-precoding configuration fields. The focused target/storage/model-input slice passes 76 tests with Ruff and diff checks. Other target families, physical gauge/range rules, migration policy, and consolidated validation remain open.",
-      "evidence_file_sha256": {},
+      "description": "Complete domain-specific target units/reference/gauge/aggregation semantics, shapes, allowed ranges, and canonical migration policy across UMCD and NR target families. `TargetValue` rejects empty arrays and padded entity/confidence identities; versioned target definition fields reject surrounding whitespace before digest admission. NR v3 requires digest-bound semantic definitions, and existing mask/reason contracts remain in force. The canonical F04 dynamic geometric-visibility target now preserves its per-frame binary axis, and `EpisodeBundle` requires that axis to match the parent frame-time roster; the NR inference audit allowlist now includes the declared hopping/transform-precoding configuration fields. `CensoringInterval` rejects float-normalization overflow as a domain error. Legacy UMCD target-v1 definitions remain readable with explicitly unknown reference/aggregation semantics but cannot be republished into target-v2 without a reviewed versioned definition; `datasets/targets.py`, `datasets/episode_store.py`, `tests/test_datasets/test_target_contracts.py`, and `tests/test_datasets/test_umcd_schema.py` cover these boundaries; focused target/storage/model-input and migration checks pass with Ruff and diff checks. Other target families, physical gauge/range rules, and consolidated validation remain open.",
+      "evidence_file_sha256": {
+        "datasets/episode_store.py": "9e1f2dc7944cc9aa81616b9bd471047f0bc2f8c7be9aa58e841f98b5615864f3",
+        "datasets/targets.py": "bbb1b9a12aa6f9a53906c63d82d2d5bd95f182e2ded3d0521a94cf4e26717694",
+        "tests/test_datasets/test_target_contracts.py": "afc7475eda161372c884a3a7960648b714f673e330d5094b4888234e7f46d611",
+        "tests/test_datasets/test_umcd_schema.py": "0c23c395e788bf272397e9bb6d016c425f7ab13c7e6471d6b9e9919716273201"
+      },
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
         "other_files": [],
-        "regression_files": [],
+        "regression_files": [
+          "tests/test_datasets/test_target_contracts.py",
+          "tests/test_datasets/test_umcd_schema.py"
+        ],
         "schemas": [],
-        "source_modules": []
+        "source_modules": [
+          "datasets/episode_store.py",
+          "datasets/targets.py"
+        ]
       },
       "feature_id": "PKG08-008",
-      "implementation_status": "absent",
-      "implementation_status_basis": "open_without_linked_or_partial_evidence",
-      "link_status": "unmapped",
+      "implementation_status": "partial",
+      "implementation_status_basis": "linked_repository_evidence",
+      "link_status": "linked",
       "package": {
         "number": 8,
         "title": "G7 — target contracts, release storage, lineage, and coverage"
@@ -5074,19 +5085,19 @@
   "schema": "loslab.implementation_feature_map.v3",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "004f392f65953ad966b627ab0633052ab221c3d6d70aaf71c953bc3864b361e2"
+    "sha256": "ddebbf087b8a3d3b085d50df437e05b5def06cd13aadd83989a059dc26221e4a"
   },
   "summary": {
     "feature_count": 182,
     "implementation_status_counts": {
-      "absent": 28,
+      "absent": 27,
       "code_complete": 130,
       "externally_blocked": 0,
-      "partial": 24
+      "partial": 25
     },
-    "linked_count": 39,
+    "linked_count": 40,
     "marked_done_count": 130,
     "open_count": 52,
-    "unmapped_count": 143
+    "unmapped_count": 142
   }
 }

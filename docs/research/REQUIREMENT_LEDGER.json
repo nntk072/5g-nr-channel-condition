@@ -10133,21 +10133,23 @@
       "requirement": "Complete domain-specific target units/reference/gauge/aggregation semantics, shapes, allowed ranges, and canonical migration policy across UMCD and NR target families. `TargetValue` rejects empty arrays and padded entity/confidence identities; versioned target definition fields reject surrounding whitespace before digest admission. NR v3 requires digest-bound semantic definitions, and existing mask/reason contracts remain in force. The canonical F04 dynamic geometric-visibility target now preserves its per-frame binary axis, and `EpisodeBundle` requires that axis to match the parent frame-time roster; the NR inference audit allowlist now includes the declared hopping/transform-precoding configuration fields. The focused target/storage/model-input slice passes 76 tests with Ruff and diff checks. Other target families, physical gauge/range rules, migration policy, and consolidated validation remain open.",
       "scope": {
         "status": "mandatory",
-        "support_envelope": "Partial target-contract implementation only; scientific phase-gauge semantics, complete target-family policy, and release qualification remain open.",
+        "support_envelope": "Partial target-contract implementation only; complex-target gauge/range semantics and unimplemented target families remain open.",
         "authority_basis": "Audited against the open G7 target-contract backlog item."
       },
       "implementation": {
         "status": "partial",
         "evidence": [
           "datasets/targets.py",
-          "tests/test_datasets/test_target_contracts.py"
+          "datasets/episode_store.py",
+          "tests/test_datasets/test_target_contracts.py",
+          "tests/test_datasets/test_umcd_schema.py"
         ],
-        "basis": "Censoring bound float-normalization overflow now fails with the target domain ValueError, with a focused regression. This is one input-boundary slice only; gauge, shape/range, catalog, and migration coverage remain incomplete."
+        "basis": "Censoring numeric overflow is normalized to the target domain error; migrated v1 target definitions with unrecorded reference/aggregation remain readable but are barred from new canonical v2 publication until reviewed semantics are supplied. Other target contracts remain incomplete."
       },
       "verification": {
         "status": "pass",
-        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_target_contracts.py (29 passed); Ruff check/format and git diff --check passed.",
-        "commit": "Working tree based on ea3ec77; focused verification run 2026-11-11."
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_datasets/test_target_contracts.py tests/test_datasets/test_umcd_schema.py (127 passed); Ruff check/format and git diff --check passed.",
+        "commit": "Working tree based on 68087ac; focused verification run 2026-11-11."
       },
       "qualification": {
         "status": "not_qualified",

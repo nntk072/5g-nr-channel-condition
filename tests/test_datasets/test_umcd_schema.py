@@ -854,6 +854,30 @@ def _bundle() -> EpisodeBundle:
     return EpisodeBundle(episode, paths, (channel,), (target,))
 
 
+def test_legacy_v1_target_definition_cannot_be_republished_as_target_v2(tmp_path):
+    bundle = _bundle()
+    legacy_definition = migrate_legacy_target_definition_v1(
+        {
+            "semantic": "geometric_direct_path",
+            "units": "boolean",
+            "source": "path_geometry_oracle",
+        }
+    )
+    legacy_target = TargetValue(
+        entity_id=bundle.targets[0].entity_id,
+        definition=legacy_definition,
+        values=np.asarray([1.0]),
+        valid_mask=np.asarray([True]),
+        reason_codes=(TargetValidity.VALID,),
+        confidence="legacy_geometry_record",
+    )
+    legacy_bundle = replace(bundle, targets=(legacy_target,))
+
+    with pytest.raises(ValueError, match="cannot be republished as canonical target-v2"):
+        write_episode_bundle(tmp_path, legacy_bundle)
+    assert list(tmp_path.iterdir()) == []
+
+
 def test_frame_visibility_target_matches_episode_timestamp_roster():
     episode = replace(_episode(), frame_times_s=(0.0, 0.01, 0.02))
     definition = TargetDefinition.versioned(
