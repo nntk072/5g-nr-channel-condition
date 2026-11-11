@@ -12251,30 +12251,43 @@
       ],
       "requirement": "Implement the planned generation tiers and explicit data lineage/status labels (`proposed`, `synthetic_debug`, `native_verified`, `scenario_qualified`, `geometry_qualified`, `receiver_qualified`, `externally_calibrated`, `external_tested`). **Partial:** UMCD provenance v2 persists artifact-scoped claims for every tier; higher tiers require named content hashes for their expected run/audit/measurement evidence, and the record is integrity-hashed in the episode store. Legacy v1 records remain readable. The bounded file audit opens each relative evidence path beneath a declared root without following symlinks, rejects hard links/unstable files, streams SHA-256 under a total-byte ceiling, and reports `NOT_QUALIFIED`. `loslab lineage-evidence-audit` binds that report to a v2 provenance digest and publishes without overwriting. It does not parse evidence, authenticate reviewers, or promote artifacts. Gate-specific semantic/signature auditors and generation-report propagation remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Artifact-scoped generation-tier and lineage labels with required hashes for expected higher-tier evidence, integrity-checked storage, and bounded byte audit only. The workflow does not parse evidence semantics, authenticate reviewers, promote tiers, or propagate all generation reports.",
+        "authority_basis": "Implementation backlog PKG10-005 specifies reproducible pilot, provenance, budgeting, or benchmark-materialization work."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "datasets/provenance.py",
+          "datasets/episode_store.py",
+          "datasets/schema/umcd-run-provenance.v2.schema.json",
+          "loslab/lineage_audit.py",
+          "scripts/audit_research_result_provenance.py",
+          "tests/test_scripts/test_lineage_evidence_audit.py"
+        ],
+        "basis": "UMCD provenance v2 stores artifact-scoped claims for declared tiers and requires content hashes for higher-tier evidence. Legacy v1 remains readable. The stable bounded no-follow evidence audit binds the report to the provenance digest and publishes exclusively with NOT_QUALIFIED status. No semantic evidence validation, reviewer authentication, promotion, gate-specific audit, or comprehensive generation-report propagation is implemented."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_scripts/test_lineage_evidence_audit.py tests/test_experiments/test_pilot_sampling.py tests/test_compute/test_resource_budget.py tests/test_evaluation/test_benchmark_partitions.py (31 passed).",
+        "commit": "Focused local verification on 2026-11-11; no native pilot, capacity, or scientific qualification run."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Gate-specific semantic/signature auditors and generation-report propagation remain open.",
+          "Evidence digest integrity does not establish evidence truth or reviewer authority."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Gate-specific semantic/signature auditors and generation-report propagation remain open.",
+        "Evidence digest integrity does not establish evidence truth or reviewer authority."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Artifact-scoped generation-tier and lineage labels with required hashes for expected higher-tier evidence, integrity-checked storage, and bounded byte audit only. The workflow does not parse evidence semantics, authenticate reviewers, promote tiers, or propagate all generation reports.",
+        "pass_rule": "Bounded contracts and focused tests pass, with exact identity/provenance retained; NOT_QUALIFIED or CANDIDATE status stays explicit until scientific/external evidence is admitted.",
+        "next_task": "Complete code-level workflow integration while preserving G3/G4/G5 gates; gather representative evidence only in the planned deferred-validation stage."
       },
       "plan_mark": "not_checklist"
     },
@@ -12288,30 +12301,46 @@
       ],
       "requirement": "Implement a deterministic pilot sampler/report over the declared mandatory channel-family, antenna-topology, difficulty, and natural/enriched-prior rosters; record no-path/empty/rejected/failed outcomes, runtime/storage costs, and missing coverage. Natural cell target probabilities must sum to one; the report records sample share and corresponding cell design weight, while enriched stress carries no prevalence weight. `experiments/pilot_sampling.py`, `experiments/pilot_cli.py`, the `loslab-pilot` entry point, schemas `datasets/schema/pilot-design.v1.schema.json`, `datasets/schema/pilot-candidate-roster.v1.schema.json`, `datasets/schema/pilot-sample.v1.schema.json`, `datasets/schema/pilot-outcomes.v1.schema.json`, `datasets/schema/pilot-audit.v1.schema.json`, and `tests/test_experiments/test_pilot_sampling.py` cover the SHA-256-ranked sampler and exact-roster outcome auditor. Reports bind sampler/CLI source hashes. This is input-scoped `NOT_QUALIFIED` planning/reporting only; candidate-prior representativeness, authoritative mandatory inventories, native pilot runs, and scale decisions remain open. Workflow: `docs/research/PILOT_SAMPLING_WORKFLOW.md`.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Deterministic pilot design/sampler and exact candidate-roster outcome auditor over declared channel-family, topology, difficulty, natural/enriched-prior cells; records all outcomes, costs, weights, and missing coverage. Output remains NOT_QUALIFIED.",
+        "authority_basis": "Implementation backlog PKG10-006 specifies reproducible pilot, provenance, budgeting, or benchmark-materialization work."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "experiments/pilot_sampling.py",
+          "experiments/pilot_cli.py",
+          "datasets/schema/pilot-design.v1.schema.json",
+          "datasets/schema/pilot-candidate-roster.v1.schema.json",
+          "datasets/schema/pilot-sample.v1.schema.json",
+          "datasets/schema/pilot-outcomes.v1.schema.json",
+          "datasets/schema/pilot-audit.v1.schema.json",
+          "tests/test_experiments/test_pilot_sampling.py",
+          "docs/research/PILOT_SAMPLING_WORKFLOW.md"
+        ],
+        "basis": "Sampler ranks candidates deterministically from SHA-256 over frozen inputs; natural target cell probabilities sum to one and output design weights account for cell sample share, while enriched stress has no prevalence weight. Auditor binds exact rosters and outcomes, reports no-path/empty/rejected/failed states, missing coverage and costs, and hashes sampler/CLI sources. This is planning/reporting software only; no candidate-prior representativeness or native pilot is claimed."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_scripts/test_lineage_evidence_audit.py tests/test_experiments/test_pilot_sampling.py tests/test_compute/test_resource_budget.py tests/test_evaluation/test_benchmark_partitions.py (31 passed).",
+        "commit": "Focused local verification on 2026-11-11; no native pilot, capacity, or scientific qualification run."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Authoritative mandatory inventory and candidate-prior representativeness are not established.",
+          "No native pilot runs, capacity/scale evidence, or scientific gate approval are included."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Authoritative mandatory inventory and candidate-prior representativeness are not established.",
+        "No native pilot runs, capacity/scale evidence, or scientific gate approval are included."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Deterministic pilot design/sampler and exact candidate-roster outcome auditor over declared channel-family, topology, difficulty, natural/enriched-prior cells; records all outcomes, costs, weights, and missing coverage. Output remains NOT_QUALIFIED.",
+        "pass_rule": "Bounded contracts and focused tests pass, with exact identity/provenance retained; NOT_QUALIFIED or CANDIDATE status stays explicit until scientific/external evidence is admitted.",
+        "next_task": "Complete code-level workflow integration while preserving G3/G4/G5 gates; gather representative evidence only in the planned deferred-validation stage."
       },
       "plan_mark": "not_checklist"
     },
@@ -12325,30 +12354,43 @@
       ],
       "requirement": "Implement resource budgeting/reporting for solver, receiver, raw path, CFR, manifests, storage, and downstream analysis before scaling. **Partial:** `loslab resource-budget` consumes 10–100 measured distinct scene/link conditions per planned stratum, binds exact configuration and measurement-record digests, hashes the exact request and schemas, verifies the runtime/hardware environment digest from its declared identity fields, computes empirical higher p50/p90/p99 per-unit summaries, applies the declared 2×–3× headroom to runtime and retained bytes, and reports device peak memory separately. Its request/report schemas and non-overwriting CLI are documented in `docs/research/RESOURCE_BUDGET_WORKFLOW.md`; nine focused tests pass. This emits a conditional plan only: no representative SISO/MIMO native pilot, calibrated-scattering measurement, receiver/model benchmark, capacity result, or cost approval is supplied, so the task remains open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Conditional resource-budget preflight from measured 10–100 distinct scene/link conditions per planned stratum; exact request, configuration, measurement and runtime/hardware identities are bound. Not a measured pilot or capacity approval.",
+        "authority_basis": "Implementation backlog PKG10-007 specifies reproducible pilot, provenance, budgeting, or benchmark-materialization work."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "compute/resource_budget.py",
+          "compute/schema/resource-budget-request.v1.schema.json",
+          "compute/schema/resource-budget-report.v1.schema.json",
+          "loslab/__main__.py",
+          "tests/test_compute/test_resource_budget.py",
+          "docs/research/RESOURCE_BUDGET_WORKFLOW.md"
+        ],
+        "basis": "CLI validates bounded stable request inputs and exact environment digest, computes empirical higher p50/p90/p99 per-unit projections with declared 2x–3x runtime/storage headroom, reports GPU memory separately, and writes immutable schema-valid reports. Focused tests include quantile/bounds, environment drift, large-byte arithmetic and CLI publication. Representative SISO/MIMO native pilot, calibrated scattering, receiver/model benchmark, capacity result and cost approval remain absent."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_scripts/test_lineage_evidence_audit.py tests/test_experiments/test_pilot_sampling.py tests/test_compute/test_resource_budget.py tests/test_evaluation/test_benchmark_partitions.py (31 passed).",
+        "commit": "Focused local verification on 2026-11-11; no native pilot, capacity, or scientific qualification run."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "No representative SISO/MIMO native pilot or calibrated-scattering measurements are supplied.",
+          "No receiver/model benchmark, capacity result, or cost approval exists; production generation remains gated."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "No representative SISO/MIMO native pilot or calibrated-scattering measurements are supplied.",
+        "No receiver/model benchmark, capacity result, or cost approval exists; production generation remains gated."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Conditional resource-budget preflight from measured 10–100 distinct scene/link conditions per planned stratum; exact request, configuration, measurement and runtime/hardware identities are bound. Not a measured pilot or capacity approval.",
+        "pass_rule": "Bounded contracts and focused tests pass, with exact identity/provenance retained; NOT_QUALIFIED or CANDIDATE status stays explicit until scientific/external evidence is admitted.",
+        "next_task": "Complete code-level workflow integration while preserving G3/G4/G5 gates; gather representative evidence only in the planned deferred-validation stage."
       },
       "plan_mark": "not_checklist"
     },
@@ -12362,30 +12404,43 @@
       ],
       "requirement": "Implement benchmark materialization for train/validation/calibration/site-held-out/site+array-held-out/real-external partitions without copying independent physical parents across splits. The signed, non-copying materializer in evaluation/benchmark_partitions.py and scripts/materialize_benchmark_partitions.py binds exact source dataset hashes and row indices to the canonical signed split lock plus a separately signed cohort declaration, rejects independent-component crossing, enforces site and site+array holdout identity separation, and requires evidence digests for real-external parents. Contracts are datasets/schema/benchmark-cohort-declaration.v1.schema.json and datasets/schema/benchmark-partition-manifest.v1.schema.json; focused split-boundary/schema/non-overwrite coverage: tests/test_evaluation/test_benchmark_partitions.py; workflow: docs/research/BENCHMARK_PARTITION_MATERIALIZATION.md. Output remains CANDIDATE_NOT_SCIENTIFICALLY_QUALIFIED; external inventory authority, signer custody, rights review, and measurement validity remain scientific/release gates.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Signed, non-copying materialization for train/validation/calibration/site-held-out/site+array-held-out/real-external cohort manifests, binding source bytes/rows to canonical split locks and separately signed cohort declarations. Output is candidate only.",
+        "authority_basis": "Implementation backlog PKG10-008 specifies reproducible pilot, provenance, budgeting, or benchmark-materialization work."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/benchmark_partitions.py",
+          "scripts/materialize_benchmark_partitions.py",
+          "datasets/schema/benchmark-cohort-declaration.v1.schema.json",
+          "datasets/schema/benchmark-partition-manifest.v1.schema.json",
+          "tests/test_evaluation/test_benchmark_partitions.py",
+          "docs/research/BENCHMARK_PARTITION_MATERIALIZATION.md"
+        ],
+        "basis": "Materializer binds exact source dataset hashes and row indices to the canonical signed split lock and separately signed cohort declaration, rejects independent-component crossings, enforces site/site+array identity separation, requires real-external evidence digests, and does not copy underlying records. Focused tests cover split boundaries, schemas, signatures and no-overwrite. Output is CANDIDATE_NOT_SCIENTIFICALLY_QUALIFIED; external inventory authority, signer custody, rights review and measurement validity remain gates."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_scripts/test_lineage_evidence_audit.py tests/test_experiments/test_pilot_sampling.py tests/test_compute/test_resource_budget.py tests/test_evaluation/test_benchmark_partitions.py (31 passed).",
+        "commit": "Focused local verification on 2026-11-11; no native pilot, capacity, or scientific qualification run."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "External inventory authority, signer custody, rights review and real measurement validity are not established.",
+          "No scientific qualification is claimed for materialized cohorts."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "External inventory authority, signer custody, rights review and real measurement validity are not established.",
+        "No scientific qualification is claimed for materialized cohorts."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Signed, non-copying materialization for train/validation/calibration/site-held-out/site+array-held-out/real-external cohort manifests, binding source bytes/rows to canonical split locks and separately signed cohort declarations. Output is candidate only.",
+        "pass_rule": "Bounded contracts and focused tests pass, with exact identity/provenance retained; NOT_QUALIFIED or CANDIDATE status stays explicit until scientific/external evidence is admitted.",
+        "next_task": "Complete code-level workflow integration while preserving G3/G4/G5 gates; gather representative evidence only in the planned deferred-validation stage."
       },
       "plan_mark": "not_checklist"
     },
