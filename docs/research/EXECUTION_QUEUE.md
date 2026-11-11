@@ -233,8 +233,10 @@ preregistration is queued and must not run until its seed roster and environment
 are frozen.
 
 `E01.PKG07` is source-audited. `E01.PKG08` is active. Rows `PKG08-001` through
-`PKG08-022` have source/test evidence and separate software/qualification
-statuses. `PKG08-015` remains partial on trusted signer custody and authoritative
+`PKG08-024` have source/test evidence and separate software/qualification
+statuses; `PKG08-039` is independently source-audited as complete release-gate
+software, with current-scene legal/provenance eligibility still blocked.
+`PKG08-015` remains partial on trusted signer custody and authoritative
 inventory; `PKG08-016` is software-complete while reviewer custody/evidence
 truth remain external. `PKG08-017` and the broader producer audit remain
 partial. `PKG08-023` is source-audited complete for the declared NR/UMCD NPZ
@@ -247,8 +249,13 @@ retained with live-RSS baselines. NumPy-only NR validation avoids loading Torch,
 reducing measured incremental RSS in the 16-record fixture from hundreds of MiB
 to about 2 MiB. `PKG08-024` remains partial: representative corpus sizing,
 repeatability on the production runtime, and final scope audit are open. Continue with
-`PKG08-024`, then
-`PKG08-025` through `PKG08-039`,
+`PKG08-024`, then reconcile the remaining package rows. `PKG08-025`–`027` have
+now been source-audited against the signed child-roster validator, split-policy
+and lineage contracts, report schemas, and focused regressions (135 tests pass).
+`PKG08-026` and `PKG08-027` are complete as software contracts only;
+`PKG08-025` remains partial for authoritative inventory and signer custody,
+complete descendant coverage, and remaining near-duplicate evidence. Then audit
+`PKG08-028` through `PKG08-039`,
 then packages 09–10, `E01.DS.GATES`, `E01.RS.PHASES`, `E01.RS.APPENDIX_E`, and
 `E01.CROSSWALK`.
 Each package batch is the fixed set of `PKGnn-*` IDs in the ledger and closes

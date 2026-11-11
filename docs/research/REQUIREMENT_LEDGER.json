@@ -10926,30 +10926,45 @@
       ],
       "requirement": "Finish signed split-lock/release audit integration: exact parent/child roster, all child artifacts and row bindings, complete footprint inventory digest, spatial/time leakage, counterfactual/trajectory/array/frequency descendants, near-duplicate checks, and externally trusted signer custody. The canonical corpus auditor derives split labels from the loaded registry and records CFR/geometry candidate matches; report v7 preserves skipped zero-norm pairs as incomplete and binds signed exact-coverage candidate dispositions. Current report v9 fingerprints exact CFR coordinate/normalization context and records incompatible cross-split comparisons as incomplete; focused scorer (21) and corpus (40) tests pass. Roster-v4 episode-object validation scans references across child manifests and rejects cross-child content-addressed sharing; v5 represents shared object ownership, and v6 semantically validates scenario GBSM runs/records against frozen parent bindings and split components. Dataset names and child-kind IDs are now required to be canonical at CLI and direct API boundaries; padded aliases are rejected instead of trimmed before frozen-inventory and signed child-roster matching. The split audit report is v10 when v6 child rosters are present. Complete audits now reject a signed registry with no child bindings. Audit bundles are validated against `datasets/schema/channel-split-lineage-audit-bundle.v1.schema.json` before return; signed-registry digest, verification-flag, summary-count, and roster-array fields are structurally enforced. Runtime schema-validation dependency and malformed/false-qualification regressions are covered by the focused split-audit suite (90 passed). Geometric near-duplicate coverage, trusted signer/inventory authority, broader descendant coverage, and complete lineage remain open. The signed child-artifact validator and regressions are `scripts/audit_channel_split_lineage.py` and `tests/test_scripts/test_audit_channel_split_lineage.py`.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Signed split-lock/child-artifact software integrity, spatial/time leakage and declared descendant validation only. Authoritative inventory completeness, trusted signer custody, geometric near-duplicate coverage, and full corpus independence remain unqualified.",
+        "authority_basis": "Implementation backlog PKG08-025 requires signed split lineage, exact child/artifact coverage, leakage checks, and descendant validation; scientific qualification and signer/inventory truth are separate."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "scripts/audit_channel_split_lineage.py",
+          "datasets/split_policy.py",
+          "datasets/split_lineage.py",
+          "datasets/schema/channel-dataset-child-artifact-roster.v6.schema.json",
+          "datasets/schema/channel-split-lineage-audit-bundle.v1.schema.json",
+          "tests/test_scripts/test_audit_channel_split_lineage.py",
+          "tests/test_datasets/test_split_policy_v2.py",
+          "tests/test_datasets/test_split_lineage_audit.py"
+        ],
+        "basis": "Source review and focused regressions confirm signed child roster v6, exact-tree and semantic artifact validation for registered types, multi-owner UMCD/scenario objects, canonical child IDs, signed registry/inventory binding, coordinate-frame-aware spatial relations, strict complete-integrity admission, and schema-validated audit reports. Retain partial status: complete model/descendant coverage, geometric near-duplicate coverage, authoritative inventory completeness, and trusted signer custody are not established."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_scripts/test_audit_channel_split_lineage.py tests/test_datasets/test_split_policy_v2.py (135 passed); source/test review also inspected tests/test_datasets/test_split_lineage_audit.py.",
+        "commit": "Focused split-lineage and split-policy verification on 2026-11-11; no production corpus qualification or signer-custody claim."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Software integrity checks do not establish authoritative corpus completeness, trusted signer custody, complete descendant coverage, or physical independence."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Authoritative complete frozen corpus inventory and independent custody of inventory/signing keys are not established.",
+        "Geometric near-duplicate coverage and complete semantic validators for all planned descendants remain open.",
+        "No complete production lineage audit or qualification evidence has been admitted."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Signed complete split-lineage integrity audit over an authoritative corpus inventory, frozen split registry, exact child rosters, and all declared descendants.",
+        "pass_rule": "All rostered artifacts have semantic validators, exact child and parent bindings hold, leakage and near-duplicate audits are complete, and external inventory/signer authority is verified; software test success alone does not qualify the corpus.",
+        "next_task": "Continue PKG08-024 runtime/corpus memory evidence; finish model-route and descendant crosswalk; obtain authoritative inventory and signer custody evidence before complete split qualification."
       },
       "plan_mark": "not_checklist"
     },
@@ -10963,30 +10978,39 @@
       ],
       "requirement": "Require frozen-split proximity audits to bind an explicit canonical coordinate-frame ID, reject cross-frame comparisons and padded sample-ID aliases, and retain the verified frame ID in the returned audit result. Focused spatial/split tests pass with coverage disabled and Ruff passes. This prevents meaningless Euclidean comparisons across projected frames and preserves frame provenance; it does not establish coordinate-frame authority, footprint completeness, suitable buffer size, or physical independence.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Frozen split proximity software with canonical coordinate-frame binding and sample-ID validation. Coordinate-frame authority, footprint completeness, buffer suitability, and physical independence remain outside the claim.",
+        "authority_basis": "Implementation backlog PKG08-026 requires coordinate-frame-scoped proximity and canonical identity handling to prevent invalid cross-frame spatial comparisons."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "datasets/split_policy.py",
+          "datasets/split_lineage.py",
+          "tests/test_datasets/test_split_policy_v2.py",
+          "tests/test_datasets/test_split_lineage_audit.py"
+        ],
+        "basis": "Spatial relations are bucketed and scoped by canonical coordinate_frame_id; footprints with positions require a canonical frame ID, incompatible frames remain separate, serialized RT identities bind the frame, and padded identity aliases reject. This is software behavior only; no claim is made that frame identifiers are authoritative or that the footprint inventory is complete."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_scripts/test_audit_channel_split_lineage.py tests/test_datasets/test_split_policy_v2.py (135 passed); coordinate-frame RT identity regressions are in tests/test_datasets/test_split_lineage_audit.py.",
+        "commit": "Focused split-lineage and split-policy verification on 2026-11-11."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Canonical frame binding prevents cross-frame comparisons but does not establish frame authority, complete footprints, suitable buffers, or physical independence."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Authoritative coordinate-frame definitions, complete footprint evidence, and scientifically justified buffer size are not supplied."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Coordinate-frame-bound frozen-split proximity audit with canonical identities and retained frame provenance.",
+        "pass_rule": "Software rejects missing/padded frame identity and avoids cross-frame distance comparisons; corpus qualification separately requires authoritative frames, complete footprints, and justified buffers.",
+        "next_task": "Keep this software slice closed; carry its explicit evidence limits into the complete PKG08-025 corpus audit."
       },
       "plan_mark": "not_checklist"
     },
@@ -11000,30 +11024,39 @@
       ],
       "requirement": "Add an explicit complete-split-integrity mode to the signed lineage audit. It requires a signed frozen corpus inventory and split registry, exact child-binding and child-artifact roster coverage for every frozen child kind, and semantic validation for every artifact; it rejects byte-only descendants. The report labels this as integrity verification and remains `NOT_QUALIFIED`. Regression definitions cover mandatory signed inputs and strict mode typing; consolidated validation is deferred. Broader descendant validators, authoritative inventory completeness, trusted signer governance, and near-duplicate checks remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Opt-in complete-split-integrity mode verifies signed inventory/registry admission and exact semantically validated child artifact coverage, while always reporting integrity only and NOT_QUALIFIED. It does not establish external signer authority or corpus truth.",
+        "authority_basis": "Implementation backlog PKG08-027 requires strict complete-integrity mode with signed inputs, exact child coverage, semantic validation, and byte-only descendant rejection."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "scripts/audit_channel_split_lineage.py",
+          "datasets/schema/channel-split-lineage-audit-bundle.v1.schema.json",
+          "tests/test_scripts/test_audit_channel_split_lineage.py"
+        ],
+        "basis": "The explicit strict-boolean mode requires signed frozen inventory and registry, rejects missing child bindings and partial signature configuration, requires exact child/artifact semantic coverage, and reports the operation as integrity verification without upgrading qualification. The declared software contract is implemented; broader planned artifact validators and external authority remain tracked under PKG08-025."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_scripts/test_audit_channel_split_lineage.py tests/test_datasets/test_split_policy_v2.py (135 passed).",
+        "commit": "Focused split-lineage and split-policy verification on 2026-11-11."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The mode verifies software integrity under supplied keys; key custody, inventory authority, complete corpus semantics, and scientific independence remain unqualified."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Trusted signer/key custody and authoritative frozen inventory completeness remain external.",
+        "Broader descendant semantic coverage remains open under PKG08-025."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Strict complete-split-integrity audit mode with mandatory signed input admission, exact semantic child coverage, and non-qualification reporting.",
+        "pass_rule": "Mode rejects invalid/missing signed inputs, empty child rosters, non-strict flag values and byte-only descendants; reports integrity only.",
+        "next_task": "Keep output explicitly NOT_QUALIFIED and continue broader child/descendant audit under PKG08-025."
       },
       "plan_mark": "not_checklist"
     },
@@ -11444,30 +11477,43 @@
       ],
       "requirement": "Implement the fail-closed ODbL release exporter and strict v3 per-artifact rights/provenance manifest, including exact field rosters, canonical artifact hashes, scene/artifact cross-bindings, generated notices, and mandatory external OpenSSH review of exact manifest bytes. V3 requires exact timezone-bearing OSM extract time, explicit canonical source object IDs, a conversion recipe artifact bound by SHA-256, and a structured per-asset third-party license inventory bound to review-evidence SHA-256; each asset must declare redistribution permission and generated attribution text. Documented provenance gaps and assets without redistribution rights cannot pass release validation. The archive retains the signature and a trust-digest receipt under `datasets/schema/public-release-approval.v2.schema.json`. These contracts make review evidence auditable but do not establish its truth; the actual Etoile/Florence/Munich source records, live data offers, third-party inventory, and independent legal disposition remain external blockers, so no public release is eligible. Implementation evidence is `datasets/public_release.py`, `datasets/schema/public-release-manifest.v3.schema.json`, `datasets/schema/public-release-approval.v2.schema.json`, and `tests/test_datasets/test_public_release.py`.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Fail-closed v3 public-release packaging for declared ODbL-derived assets; software admission only. Current Etoile/Florence/Munich OSM source provenance, live data offers, third-party rights truth, and release-specific legal review remain external and no release is eligible.",
+        "authority_basis": "The accepted ODbL scene-release policy and PKG08-039 require a versioned release gate; implementation must preserve the explicit internal-research-only decision until release evidence is complete."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "datasets/public_release.py",
+          "datasets/schema/public-release-manifest.v3.schema.json",
+          "datasets/schema/public-release-approval.v2.schema.json",
+          "tests/test_datasets/test_public_release.py",
+          "docs/research/licenses/odbl-osm-scene-release-policy-20261023.json",
+          "tests/test_scripts/test_odbl_scene_release_policy.py"
+        ],
+        "basis": "Source review confirms exact v3 field rosters, ODbL scene/hash binding, per-artifact classifications, extract timestamps and canonical OSM object IDs, recipe artifact digest binding, structured third-party rights closure, strict manifest bytes, detached OpenSSH signature verification under a release-specific namespace, and safe hash-checked archive streaming. Missing or unreviewed provenance cannot pass admission. This is complete release-gate software, not evidence that current scene provenance or legal review is complete."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_datasets/test_public_release.py tests/test_scripts/test_odbl_scene_release_policy.py (49 passed).",
+        "commit": "Focused v3 manifest, export, policy binding, and signature-fixture verification on 2026-11-11; generated-key tests use temporary test keys only."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "No current-scene release qualification: source records, per-asset rights evidence, live offers, and independent legal disposition remain unavailable."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Exact upstream OSM extract/update time, source object roster, and conversion recipe for Etoile, Florence, and Munich are absent from the current audit records.",
+        "Third-party asset rights and redistribution permissions require evidence from the actual scene assets.",
+        "Release-specific ODbL classification, live source offers, and independent trusted legal review are external; current distribution status remains not cleared."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Fail-closed v3 public-release exporter with exact artifact rights/provenance bindings, generated notices, and external signed approval receipt.",
+        "pass_rule": "Software contract and focused tests pass; no public release is eligible until each cited provenance and review blocker is supplied and independently audited.",
+        "next_task": "Keep ODbL-derived scenes internal research only. Reopen release qualification only after authoritative source records, complete third-party rights evidence, live offers, and independent legal disposition are available."
       },
       "plan_mark": "not_checklist"
     },
