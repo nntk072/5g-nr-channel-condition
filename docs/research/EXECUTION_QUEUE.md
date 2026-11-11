@@ -255,7 +255,9 @@ and lineage contracts, report schemas, and focused regressions (135 tests pass).
 `PKG08-026` and `PKG08-027` are complete as software contracts only;
 `PKG08-025` remains partial for authoritative inventory and signer custody,
 complete descendant coverage, and remaining near-duplicate evidence. Then audit
-`PKG08-028` through `PKG08-039`,
+`PKG08-028` is source-audited complete as a bounded scanner (23 focused tests
+pass); its retained 2,262-file report is limited to declared frozen G4 rosters
+and is not global seed clearance. Continue with `PKG08-029` through `PKG08-039`,
 then packages 09–10, `E01.DS.GATES`, `E01.RS.PHASES`, `E01.RS.APPENDIX_E`, and
 `E01.CROSSWALK`.
 Each package batch is the fixed set of `PKGnn-*` IDs in the ledger and closes

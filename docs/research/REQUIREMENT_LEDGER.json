@@ -11070,30 +11070,39 @@
       ],
       "requirement": "Version the seed-roster collision report to v2 and continue after result files exceed the declared input/decompression ceiling; preserve skipped file path/reason, report `INCOMPLETE_SCAN`, and exit nonzero so a partial inventory cannot be presented as clear. Keep symlink, hardlink, and mutation checks fail closed. The scanner recurses through `per_seed` records and numeric seed-keyed maps, while ignoring empty non-seed arrays and seed-related metric labels. The expanded-JSON ceiling is now 384 MiB, still bounded. The focused suite passes 22 tests. The full frozen-protocol scan covers 2,262 files across results/outputs/artifacts for all currently protocolized G4 reserved seed rosters, with no collisions, malformed fields, or incomplete files; its hash-bearing report is `docs/research/G4_SEED_ROSTER_AUDIT_2026-10-26_ALL_FROZEN.json`. This is not global seed clearance or G4 qualification.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Bounded v2 seed-roster collision scanner for declared frozen seed families; the retained full scan covers currently protocolized G4 reserved rosters only, not all repository or global seed use.",
+        "authority_basis": "Implementation backlog PKG08-028 requires incomplete scans to remain visibly incomplete and nonzero, with safe bounded file handling."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "scripts/audit_seed_roster_collisions.py",
+          "datasets/schema/seed-roster-collision-audit.v2.schema.json",
+          "tests/test_scripts/test_audit_seed_roster_collisions.py",
+          "docs/research/G4_SEED_ROSTER_AUDIT_2026-10-26_ALL_FROZEN.json"
+        ],
+        "basis": "The v2 scanner continues after input/decompression ceiling failures, records skipped path/reason, emits INCOMPLETE_SCAN and exits nonzero for partial scans. It fails closed on symlinks, hardlinks and mutation; extracts nested per_seed and numeric seed-keyed records while excluding unrelated metrics. The retained hash-bearing frozen-protocol audit scanned 2,262 files for declared G4 reserved rosters with no collision or incomplete-file finding. This is scoped scanner evidence, not global seed clearance or G4 qualification."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_scripts/test_audit_seed_roster_collisions.py (23 passed).",
+        "commit": "Focused bounded-scanner verification on 2026-11-11; retained frozen-protocol scan artifact dated 2026-10-26."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "The scan covers the declared currently protocolized G4 reserved rosters only; it does not establish global seed uniqueness or scientific qualification."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "No repository-wide/global seed roster has been declared; clearance cannot extend beyond the exact retained roster family and scanned roots."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Bounded seed-roster collision scanner with incomplete-scan reporting, safe traversal, and a hash-bearing audit for declared frozen protocol roots.",
+        "pass_rule": "Every scanned file is valid and within limits, unsafe or changing files reject, skipped files force INCOMPLETE_SCAN and nonzero exit, and exact seed-roster audit scope is recorded.",
+        "next_task": "Keep the retained G4 roster report scoped; audit PKG08-029–039 and do not describe it as global seed clearance."
       },
       "plan_mark": "not_checklist"
     },
