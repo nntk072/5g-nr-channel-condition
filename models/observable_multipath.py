@@ -7,6 +7,8 @@ only relative delay and complex path gains from the supplied pilot tones.
 
 from __future__ import annotations
 
+import hashlib
+import json
 import math
 from collections.abc import Sequence
 from pathlib import Path
@@ -360,22 +362,75 @@ def load_two_path_uncertainty_decoder(
     *,
     hidden_dims: Sequence[int] = (256, 128),
     device: str = "cpu",
+    dataset: Any | None = None,
+    require_contract: bool = False,
 ):
-    """Load a non-pickle NPZ state dictionary into the declared decoder shape."""
+    """Load a non-pickle state dictionary and verify its input-contract sidecar.
+
+    Without ``dataset``, a sidecar binds the checkpoint bytes but its source
+    arrays have not been replayed. Pass the dataset to verify those arrays too.
+    """
     import numpy as np
     import torch
 
+    checkpoint = Path(checkpoint_path)
+    if checkpoint.is_symlink() or not checkpoint.is_file():
+        raise ValueError("decoder checkpoint must be a regular file")
+    if checkpoint.stat().st_size > 268_435_456:
+        raise ValueError("decoder checkpoint exceeds the size limit")
     model = build_two_path_uncertainty_decoder(
         n_tones, maximum_relative_delay_s, hidden_dims=hidden_dims
     ).to(device)
     try:
-        with np.load(checkpoint_path, allow_pickle=False) as archive:
+        with np.load(checkpoint, allow_pickle=False) as archive:
             state = {
                 name: torch.as_tensor(np.array(archive[name], copy=True), device=device)
                 for name in archive.files
             }
     except (OSError, ValueError) as exc:
         raise ValueError(f"invalid decoder checkpoint: {checkpoint_path}") from exc
+    contract_path = checkpoint.with_suffix(".contract.json")
+    if contract_path.is_symlink():
+        raise ValueError("two-path model contract must not be a symlink")
+    if not contract_path.exists():
+        if require_contract or dataset is not None:
+            raise ValueError("two-path checkpoint input contract is required")
+        model.artifact_contract_status = "external_input_contract_required"
+    else:
+        if not contract_path.is_file():
+            raise ValueError("two-path model contract must be a regular file")
+        contract_bytes = contract_path.read_bytes()
+        if len(contract_bytes) > 1_048_576:
+            raise ValueError("two-path model contract exceeds the size limit")
+        try:
+            import jsonschema
+
+            contract = json.loads(contract_bytes)
+            schema_path = (
+                Path(__file__).resolve().parents[1]
+                / "experiments"
+                / "schema"
+                / "two-path-model-artifact-contract.v1.schema.json"
+            )
+            schema = json.loads(schema_path.read_text(encoding="utf-8"))
+            jsonschema.validate(contract, schema)
+        except (OSError, ValueError, jsonschema.ValidationError) as exc:
+            raise ValueError("invalid two-path model input contract") from exc
+        checkpoint_digest = hashlib.sha256(checkpoint.read_bytes()).hexdigest()
+        if contract["checkpoint_sha256"] != checkpoint_digest:
+            raise ValueError("two-path model contract checkpoint digest does not match")
+        if dataset is not None:
+            from experiments.observable_multipath import validate_two_path_model_artifact_contract
+
+            validate_two_path_model_artifact_contract(
+                contract,
+                dataset,
+                model_id=contract["model_id"],
+                checkpoint_sha256=checkpoint_digest,
+            )
+            model.artifact_contract_status = "input_contract_replayed"
+        else:
+            model.artifact_contract_status = "checkpoint_bound_input_contract_not_replayed"
     expected = model.state_dict()
     if set(state) != set(expected):
         raise ValueError("checkpoint parameter names do not match the decoder architecture")

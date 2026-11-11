@@ -2,7 +2,15 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
+
+import numpy as np
 import pytest
+from experiments.observable_multipath import (
+    generate_grouped_two_path_dataset,
+    two_path_model_artifact_contract,
+)
 from models.observable_multipath import (
     build_two_path_uncertainty_decoder,
     complex_pilot_gaussian_nll,
@@ -123,17 +131,47 @@ def test_npz_checkpoint_round_trip_is_pickle_free_and_architecture_checked(tmp_p
         **{key: value.detach().cpu().numpy() for key, value in model.state_dict().items()},
     )
     loaded = load_two_path_uncertainty_decoder(path, 4, 1e-6, hidden_dims=(8,))
+    assert loaded.artifact_contract_status == "external_input_contract_required"
     for name, value in model.state_dict().items():
         torch.testing.assert_close(loaded.state_dict()[name], value)
 
     with pytest.raises(ValueError, match="architecture"):
         load_two_path_uncertainty_decoder(path, 4, 1e-6, hidden_dims=(9,))
+    with pytest.raises(ValueError, match="contract is required"):
+        load_two_path_uncertainty_decoder(path, 4, 1e-6, hidden_dims=(8,), require_contract=True)
     with pytest.raises(ValueError, match="finite"):
         render_two_path_cfr(
             torch.tensor([0.0, 1.0]),
             torch.tensor([[1 + 0j, 1 + 0j]]),
             torch.tensor([float("nan")]),
         )
+
+
+def test_decoder_loader_replays_contract_and_rejects_checkpoint_tampering(tmp_path):
+    model = build_two_path_uncertainty_decoder(8, 1e-6, hidden_dims=(8,))
+    checkpoint = tmp_path / "decoder.npz"
+    np.savez_compressed(
+        checkpoint,
+        **{key: value.detach().cpu().numpy() for key, value in model.state_dict().items()},
+    )
+    dataset = generate_grouped_two_path_dataset(
+        num_groups=40, samples_per_group=1, n_tones=8, seed=615
+    )
+    contract = two_path_model_artifact_contract(
+        dataset,
+        model_id="two_path_uncertainty_decoder.fixture",
+        checkpoint_sha256=hashlib.sha256(checkpoint.read_bytes()).hexdigest(),
+    )
+    checkpoint.with_suffix(".contract.json").write_text(json.dumps(contract), encoding="utf-8")
+
+    loaded = load_two_path_uncertainty_decoder(
+        checkpoint, 8, 1e-6, hidden_dims=(8,), dataset=dataset, require_contract=True
+    )
+    assert loaded.artifact_contract_status == "input_contract_replayed"
+
+    checkpoint.write_bytes(checkpoint.read_bytes() + b"tamper")
+    with pytest.raises(ValueError, match="checkpoint digest does not match"):
+        load_two_path_uncertainty_decoder(checkpoint, 8, 1e-6, hidden_dims=(8,))
 
 
 def test_decoder_forward_and_backward_on_cuda_when_available():

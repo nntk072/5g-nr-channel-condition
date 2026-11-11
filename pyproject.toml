@@ -47,6 +47,7 @@ exclude = ["tests*", "archive*", "notebooks*"]
 
 [tool.setuptools.package-data]
 datasets = ["schema/*.json", "schema/**/*.json"]
+experiments = ["schema/*.json"]
 evaluation = ["schema/*.json"]
 compute = ["schema/*.json"]
 
