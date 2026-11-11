@@ -139,3 +139,36 @@ def test_rejects_boolean_scalar_and_nonfinite_registered_inputs() -> None:
     )
     with pytest.raises(ValueError, match="frequencies_hz must contain only finite"):
         audit_model_input_payload(nonfinite_frequency)
+
+
+def test_rejects_registered_input_axis_mismatches() -> None:
+    analytical = AnalyticalModelInputs(
+        frequencies_hz=np.arange(8, dtype=np.float64),
+        channel_frequency_response=np.ones(8, dtype=np.complex64),
+    )
+    object.__setattr__(analytical, "channel_frequency_response", np.ones(7, dtype=np.complex64))
+    with pytest.raises(ValueError, match="frequency and CFR arrays must have the same shape"):
+        audit_model_input_payload(analytical)
+
+    standardized = FrequencyDomainModelInputs(
+        observed_cfr=np.ones((1, 1, 8), dtype=np.complex64),
+        noise_variance=0.01,
+        snr_db=20.0,
+        carrier_hz=3.5e9,
+        subcarrier_offsets_hz=np.arange(-4, 4, dtype=np.float64),
+    )
+    object.__setattr__(standardized, "subcarrier_offsets_hz", np.arange(-3, 3, dtype=np.float64))
+    with pytest.raises(ValueError, match="must match the observed CFR grid"):
+        audit_model_input_payload(standardized)
+
+    nr = NRModelInputs(
+        received_grid=np.ones((1, 1, 1, 1, 8), dtype=np.complex64),
+        h_hat=np.ones((1, 1, 1, 1, 1, 1, 8), dtype=np.complex64),
+        error_variance=np.ones((1, 1, 1, 1, 1, 1, 8), dtype=np.float32),
+        pilot_mask=np.ones((1, 1, 1, 8), dtype=bool),
+        fft_bin_indices=tuple(range(8)),
+        receiver_config=NRPUSCHConfig(),
+    )
+    object.__setattr__(nr, "error_variance", np.ones((1, 1, 1, 1, 1, 1, 7), dtype=np.float32))
+    with pytest.raises(ValueError, match="error_variance must be broadcastable to h_hat"):
+        audit_model_input_payload(nr)

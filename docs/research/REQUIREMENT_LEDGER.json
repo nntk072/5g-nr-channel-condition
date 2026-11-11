@@ -10627,32 +10627,41 @@
       "backlog_aliases": [
         "PKG08-019"
       ],
-      "requirement": "Validate values as well as field names at registered model-input boundaries: allow only finite dense numeric arrays in the declared real/complex/Boolean domains, require analytical frequency/CFR shape agreement, bind standardized subcarrier offsets to CFR width, and reject Boolean scalar noise metadata. Regression definitions cover object arrays, nested metadata objects, nonfinite coordinates, and Boolean noise input. This strengthens the typed adapter boundary but does not replace the broader feature-transform, experiment, training, and inference-artifact leakage audit; consolidated validation is deferred.",
+      "requirement": "idate values as well as field names at registered model-input boundaries: allow only finite dense numeric arrays in the declared real/complex/Boolean domains, require analytical frequency/CFR shape agreement, bind standardized subcarrier offsets to CFR width, and reject Boolean scalar noise metadata. Regression definitions cover object arrays, nested metadata objects, nonfinite coordinates, and Boolean noise input. This strengthens the typed adapter boundary but does not replace the broader feature-transform, experiment, training, and inference-artifact leakage audit. The focused model-input audit module passes 8 tests, including object/nested payloads, nonfinite and Boolean scalars, and analytical, standardized, and NR axis mismatches.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Finite dense numeric/Boolean domains and shape/value checks at the four registered inference-input boundaries; broad leakage review remains separate in PKG08-017.",
+        "authority_basis": "Mandatory model-input contract requirement in the implementation backlog; limited to currently registered adapters and enumerated checks."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "datasets/model_input_audit.py",
+          "datasets/channel.py",
+          "datasets/analytical.py",
+          "datasets/observations.py",
+          "datasets/nr.py",
+          "tests/test_datasets/test_model_input_audit.py"
+        ],
+        "basis": "The shared validator enforces dense finite declared dtypes, nonempty dimensions, analytical frequency/CFR shape equality, standardized offset/CFR width and DC/order rules, NR grid/estimate/pilot/error-variance/FFT mapping compatibility, and real scalar noise/SNR/carrier constraints."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_datasets/test_model_input_audit.py (8 passed); Ruff check/format passed.",
+        "commit": "Focused verification run on 4536177 worktree; broader leakage audit remains open."
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [],
+      "dependencies": [
+        "PKG08-018"
+      ],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Typed value-domain and axis checks for every registered model-input adapter.",
+        "pass_rule": "Each registered input satisfies its finite/dense dtype contract and required axis mappings; malformed/nested/nonfinite/scalar-coercion and axis-mismatch cases fail closed.",
+        "next_task": "PKG08-020"
       },
       "plan_mark": "not_checklist"
     },
