@@ -307,8 +307,10 @@ pass is complete. `E01.DS.GATES.G5` now has source dispositions for its
 fifteen receiver criteria: waveform, DMRS, timing, noise, impairment, storage,
 and oracle-firewall software routes are distinguished from calibrated
 receiver and G5 acceptance evidence. Its selected native/receiver suites were
-not run. Next audit G6–G8 against the governing plan and their source and test
-paths; then reconcile research phases, Appendix E, and the full crosswalk.
+not run. `E01.DS.GATES.G6` now has criterion dispositions for timestamp-based
+targets, path evolution, gauge/censoring, intervention, and split leakage.
+Physical motion/intervention evidence and deployment-causal input admission
+remain partial. Next audit G7–G8 and the research phase records.
 Each package batch is the fixed set of `PKGnn-*` IDs in the ledger and closes
 only after every row has inspected source/test integration, implementation
 state, exact verification, qualification state, dependencies and closure
@@ -411,6 +413,22 @@ complete one-to-one requirement coverage and resolves dependencies/blockers.
   accepted receiver-impact report remain blockers.
 - **Next:** audit G6–G8 and complete code-level receiver integration/resource
   planning before running the bounded G5 qualification.
+
+#### E01.DS.GATES.G6 — trajectories, forecasting, and interventions (source audit complete 2026-11-11)
+
+- **Requirements:** `DS.G6`, `DS.G6.01`–`DS.G6.10`.
+- **Delivered:** criterion records map to named-clock alignment, timestamp and
+  gap-aware targets, path evolution, phase-gauge comparison, censoring
+  intervals, counterfactuals, and split-lineage audits. Mathematical direct
+  ablation is kept distinct from physical scene interventions.
+- **Verification:** source/test paths and ledger structure validated with
+  `uv run --no-sync --locked python -m scripts.validate_requirement_ledger`.
+  No trajectory qualification or scene retrace was run.
+- **Disposition:** G6 remains `not_qualified`; calibrated synchronized motion,
+  native scene interventions, physical route independence, and a complete
+  deployment-causal input firewall remain open.
+- **Next:** audit G7–G8 and research phase gates; implement any demonstrated
+  input-eligibility gaps before a frozen temporal qualification design.
 
 For every batch, retain the exact source files inspected in that ledger row;
 do not copy the whole chronological status history. If a row is already

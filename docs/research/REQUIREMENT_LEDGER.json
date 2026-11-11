@@ -1,7 +1,7 @@
 {
   "schema": "loslab.requirement-ledger.v1",
-  "status_note": "Traceability index covering all 182 backlog IDs, 104 numbered unified-plan criteria, and 30 dataset/research gate or phase records. Source audits are complete for PKG00-05. PKG05 rows 001/002/003/004/005/007/008/009/010/011/012/013/014/016/017/018/019/020/021/022/023/024/025 have bounded dispositions; 006/015/026 remain partial aggregate G4 scope. PKG06 rows 001–036 are source-audited with bounded complete/partial dispositions; PKG07-001/002/003/004/005 are source-audited partials with focused regression slices; remaining package/gate audits stay open. Checked plan boxes are preserved as source marks, never treated as implementation or scientific qualification. Feature-map heuristics do not determine ledger status. DS.G3.01–DS.G3.12 were source-audited at 32fa52c; their software states and external scientific blockers are separate, and every G3 qualification remains not_qualified. DS.G0.01–DS.G0.08 source-audited after G3; environment, host solver smoke, dynamic identity edge coverage, legacy report provenance, and per-scene ODbL release evidence remain explicit blockers. DS.G1.01–DS.G1.10 source-audited; independent geometry/LOS contracts are bounded, while native solver behavior, motion interpolation, and scene-family independence remain open. DS.G2.01–DS.G2.15 source-audited; analytical/mask/storage contracts exist, while selected-host native API, path/CFR, power-scale, MIMO and polarization evidence remain open. DS.G4.01–DS.G4.09 source-audited against pinned profile adapters, reference contracts, statistical test families, and standardized admission. Full suites were not run in this implementation pass; G4 remains not_qualified, with G4.07 explicitly partial for bounded support coverage. DS.G5.01–DS.G5.15 source-audited; software routes cover bounded NR waveform, estimator, noise, impairment, observation, and input-firewall contracts, while calibrated receiver evidence and criterion-driven G5 qualification remain open.",
-  "source_checkpoint": "ab8e6ca; DS.G5 source audit recorded 2026-11-11",
+  "status_note": "Traceability index covering all 182 backlog IDs, 104 numbered unified-plan criteria, and 30 dataset/research gate or phase records. Source audits are complete for PKG00-05. PKG05 rows 001/002/003/004/005/007/008/009/010/011/012/013/014/016/017/018/019/020/021/022/023/024/025 have bounded dispositions; 006/015/026 remain partial aggregate G4 scope. PKG06 rows 001–036 are source-audited with bounded complete/partial dispositions; PKG07-001/002/003/004/005 are source-audited partials with focused regression slices; remaining package/gate audits stay open. Checked plan boxes are preserved as source marks, never treated as implementation or scientific qualification. Feature-map heuristics do not determine ledger status. DS.G3.01–DS.G3.12 were source-audited at 32fa52c; their software states and external scientific blockers are separate, and every G3 qualification remains not_qualified. DS.G0.01–DS.G0.08 source-audited after G3; environment, host solver smoke, dynamic identity edge coverage, legacy report provenance, and per-scene ODbL release evidence remain explicit blockers. DS.G1.01–DS.G1.10 source-audited; independent geometry/LOS contracts are bounded, while native solver behavior, motion interpolation, and scene-family independence remain open. DS.G2.01–DS.G2.15 source-audited; analytical/mask/storage contracts exist, while selected-host native API, path/CFR, power-scale, MIMO and polarization evidence remain open. DS.G4.01–DS.G4.09 source-audited against pinned profile adapters, reference contracts, statistical test families, and standardized admission. Full suites were not run in this implementation pass; G4 remains not_qualified, with G4.07 explicitly partial for bounded support coverage. DS.G5.01–DS.G5.15 source-audited; software routes cover bounded NR waveform, estimator, noise, impairment, observation, and input-firewall contracts, while calibrated receiver evidence and criterion-driven G5 qualification remain open. DS.G6.01–DS.G6.10 source-audited; time, target, path-evolution, gauge, censoring and split contracts are bounded, while calibrated motion, physical interventions and deployment-causal input admission remain open.",
+  "source_checkpoint": "82c5009; DS.G6 source audit recorded 2026-11-11",
   "requirements": [
     {
       "requirement_id": "DS.G0",
@@ -3192,14 +3192,21 @@
       "backlog_aliases": [],
       "requirement": "Gate G6 — trajectories, forecasting and interventions",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Hard trajectory, forecasting, intervention, and temporal-leakage gate for MVP trajectory-derived targets and claims.",
+        "authority_basis": "Governing unified-plan Gate G6 is a hard stop gate; all ten numbered criteria were source-audited against temporal, path-evolution, counterfactual, and split-lineage contracts."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "governing-plan requirement needs source-level reconciliation"
+        "status": "partial",
+        "evidence": [
+          "datasets/time_axis.py",
+          "datasets/targets.py",
+          "datasets/path_evolution.py",
+          "datasets/counterfactual.py",
+          "datasets/split_lineage.py",
+          "integrations/sionna/rt_trajectory.py"
+        ],
+        "basis": "Strict time alignment, timestamp-based forecast targets, censoring intervals, phase-gauge guards, path association, mathematical ablation, and split-lineage contracts exist. Physical scene interventions, calibrated motion/clock evidence, and exhaustive deployment-causal input eligibility remain incomplete."
       },
       "verification": {
         "status": "not_run",
@@ -3211,11 +3218,15 @@
         "evidence": []
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "No independently calibrated synchronized clocks or representative coherence/Doppler evidence.",
+        "No native geometry intervention/retrace evidence on G1/G3-qualified scenes.",
+        "No authoritative physical parent/site grouping or full causal predictor firewall."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "G6.01–G6.10 temporal alignment, Doppler, counterfactual/intervention, path-evolution, phase-gauge, censoring, split, and causal-input evidence.",
+        "pass_rule": "All claimed temporal/predictive/intervention modes pass exact source-bound contracts and frozen independent physical evidence; unknown event windows, solver-censored paths, post-event inputs, or cross-split physical descendants prevent admission.",
+        "next_task": "Audit G7–G8 and the research phase plan; then implement any demonstrated causal-input or physical-intervention gaps before scheduling native temporal qualification."
       },
       "plan_mark": "not_checklist"
     },
@@ -3228,14 +3239,19 @@
       "requirement": "time series increasing and synchronized; expected channel coherence fits chosen time grid.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G6.01 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard trajectory, future-target, path-evolution, intervention, and leakage criterion for any claimed predictive/intervention dataset; bounded timeline contracts do not qualify physical motion or causal validity.",
+        "authority_basis": "Mandatory numbered acceptance criterion G6.01 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "datasets/time_axis.py",
+          "integrations/sionna/rt_trajectory.py",
+          "tests/test_datasets/test_time_axis.py",
+          "tests/test_integrations/test_rt_trajectory_contract.py"
+        ],
+        "basis": "Named source clocks align independently to an episode time grid and trajectory provenance binds the solver/pose grid; coherence-time suitability and physical clock synchronization are not established."
       },
       "verification": {
         "status": "not_run",
@@ -3246,14 +3262,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "No cross-device synchronized clock calibration or admitted coherence-interval evidence for candidate scenes."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "time series increasing and synchronized; expected channel coherence fits chosen time grid.",
+        "pass_rule": "Exact timestamp, split, lineage, phase-gauge, censoring, and intervention behavior passes on a frozen route/scene roster with supported physical references; synthetic counterfactuals and row-level split checks do not establish causal or physical independence.",
+        "next_task": "Complete remaining trajectory causal/input and scene-intervention software contracts; after code-level completion, validate the frozen motion/intervention roster with appropriately qualified G0/G1/G3 inputs."
       }
     },
     {
@@ -3265,14 +3281,19 @@
       "requirement": "`t+h` targets align by timestamps (not arbitrary frame offset when gaps exist).",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G6.02 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard trajectory, future-target, path-evolution, intervention, and leakage criterion for any claimed predictive/intervention dataset; bounded timeline contracts do not qualify physical motion or causal validity.",
+        "authority_basis": "Mandatory numbered acceptance criterion G6.02 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "datasets/time_axis.py",
+          "datasets/targets.py",
+          "tests/test_experiments/test_trajectory_targets.py",
+          "tests/test_datasets/test_time_axis.py"
+        ],
+        "basis": "Forecast horizons align by physical timestamps and explicit maximum-gap policy; missing/gapped intervals are masked rather than treated as the next frame offset."
       },
       "verification": {
         "status": "not_run",
@@ -3283,14 +3304,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "The caller-frozen gap tolerance needs scientific justification for each use case."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "`t+h` targets align by timestamps (not arbitrary frame offset when gaps exist).",
+        "pass_rule": "Exact timestamp, split, lineage, phase-gauge, censoring, and intervention behavior passes on a frozen route/scene roster with supported physical references; synthetic counterfactuals and row-level split checks do not establish causal or physical independence.",
+        "next_task": "Complete remaining trajectory causal/input and scene-intervention software contracts; after code-level completion, validate the frozen motion/intervention roster with appropriately qualified G0/G1/G3 inputs."
       }
     },
     {
@@ -3302,14 +3323,18 @@
       "requirement": "estimated Doppler agrees with time evolution under short stationary-path conditions.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G6.03 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard trajectory, future-target, path-evolution, intervention, and leakage criterion for any claimed predictive/intervention dataset; bounded timeline contracts do not qualify physical motion or causal validity.",
+        "authority_basis": "Mandatory numbered acceptance criterion G6.03 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "integrations/sionna/rt_trajectory.py",
+          "experiments/trajectory_targets.py",
+          "tests/test_integrations/test_rt_trajectory_contract.py"
+        ],
+        "basis": "Trajectory code records Doppler/time semantics and retained diagnostics compare temporal channel changes; broad short-stationary-path Doppler agreement is not established across candidate scenes."
       },
       "verification": {
         "status": "not_run",
@@ -3320,14 +3345,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "No representative native stationary-path Doppler validation with calibrated time/frequency references."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "estimated Doppler agrees with time evolution under short stationary-path conditions.",
+        "pass_rule": "Exact timestamp, split, lineage, phase-gauge, censoring, and intervention behavior passes on a frozen route/scene roster with supported physical references; synthetic counterfactuals and row-level split checks do not establish causal or physical independence.",
+        "next_task": "Complete remaining trajectory causal/input and scene-intervention software contracts; after code-level completion, validate the frozen motion/intervention roster with appropriately qualified G0/G1/G3 inputs."
       }
     },
     {
@@ -3339,14 +3364,19 @@
       "requirement": "short-horizon Doppler-only evolution compared with physical re-tracing across displacement in wavelengths.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G6.04 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard trajectory, future-target, path-evolution, intervention, and leakage criterion for any claimed predictive/intervention dataset; bounded timeline contracts do not qualify physical motion or causal validity.",
+        "authority_basis": "Mandatory numbered acceptance criterion G6.04 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "integrations/sionna/rt_trajectory.py",
+          "experiments/trajectory_targets.py",
+          "tests/test_experiments/test_rt_trajectory_forecast.py",
+          "docs/research/PHYSICS_VERIFICATION_STATUS.md"
+        ],
+        "basis": "A bounded Doppler-only forecast versus retraced-channel comparison path exists, but it is diagnostic and does not establish a general displacement-in-wavelength range of validity."
       },
       "verification": {
         "status": "not_run",
@@ -3357,14 +3387,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "No preregistered representative displacement/frequency/scene matrix or physical motion reference."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "short-horizon Doppler-only evolution compared with physical re-tracing across displacement in wavelengths.",
+        "pass_rule": "Exact timestamp, split, lineage, phase-gauge, censoring, and intervention behavior passes on a frozen route/scene roster with supported physical references; synthetic counterfactuals and row-level split checks do not establish causal or physical independence.",
+        "next_task": "Complete remaining trajectory causal/input and scene-intervention software contracts; after code-level completion, validate the frozen motion/intervention roster with appropriately qualified G0/G1/G3 inputs."
       }
     },
     {
@@ -3376,14 +3406,19 @@
       "requirement": "physical blockage intervention changes full path set and creates/destroys indirect components where geometry predicts.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G6.05 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard trajectory, future-target, path-evolution, intervention, and leakage criterion for any claimed predictive/intervention dataset; bounded timeline contracts do not qualify physical motion or causal validity.",
+        "authority_basis": "Mandatory numbered acceptance criterion G6.05 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "datasets/counterfactual.py",
+          "datasets/path_evolution.py",
+          "tests/test_datasets/test_counterfactual.py",
+          "tests/test_datasets/test_path_evolution.py"
+        ],
+        "basis": "Mathematical direct-path ablation and retained path birth/death summaries exist, but they do not physically alter geometry and retrace a scene to establish blockage-induced path creation/destruction."
       },
       "verification": {
         "status": "not_run",
@@ -3394,14 +3429,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "No matched native scene intervention pair with independently checked physical geometry and adequate solver convergence."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "physical blockage intervention changes full path set and creates/destroys indirect components where geometry predicts.",
+        "pass_rule": "Exact timestamp, split, lineage, phase-gauge, censoring, and intervention behavior passes on a frozen route/scene roster with supported physical references; synthetic counterfactuals and row-level split checks do not establish causal or physical independence.",
+        "next_task": "Complete remaining trajectory causal/input and scene-intervention software contracts; after code-level completion, validate the frozen motion/intervention roster with appropriately qualified G0/G1/G3 inputs."
       }
     },
     {
@@ -3413,14 +3448,18 @@
       "requirement": "no path index tracking assumption across retraces; use association uncertainty and birth/death logic.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G6.06 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard trajectory, future-target, path-evolution, intervention, and leakage criterion for any claimed predictive/intervention dataset; bounded timeline contracts do not qualify physical motion or causal validity.",
+        "authority_basis": "Mandatory numbered acceptance criterion G6.06 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "datasets/path_evolution.py",
+          "integrations/sionna/path_lineage.py",
+          "tests/test_datasets/test_path_evolution.py"
+        ],
+        "basis": "Association is descriptor-based and order-independent, reports near-tie ambiguity and births/deaths, and censors missing groups or solver failures; it makes no stable path-index assumption."
       },
       "verification": {
         "status": "not_run",
@@ -3431,14 +3470,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Physical path identity and completeness remain solver/model-limited."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "no path index tracking assumption across retraces; use association uncertainty and birth/death logic.",
+        "pass_rule": "Exact timestamp, split, lineage, phase-gauge, censoring, and intervention behavior passes on a frozen route/scene roster with supported physical references; synthetic counterfactuals and row-level split checks do not establish causal or physical independence.",
+        "next_task": "Complete remaining trajectory causal/input and scene-intervention software contracts; after code-level completion, validate the frozen motion/intervention roster with appropriately qualified G0/G1/G3 inputs."
       }
     },
     {
@@ -3450,14 +3489,19 @@
       "requirement": "future phase comparison uses a consistent clock reference or phase-invariant metric.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G6.07 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard trajectory, future-target, path-evolution, intervention, and leakage criterion for any claimed predictive/intervention dataset; bounded timeline contracts do not qualify physical motion or causal validity.",
+        "authority_basis": "Mandatory numbered acceptance criterion G6.07 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "datasets/channel_view.py",
+          "datasets/frequency_pair.py",
+          "datasets/path_evolution.py",
+          "tests/test_datasets/test_path_evolution.py"
+        ],
+        "basis": "Channel comparisons fail closed without a shared declared phase gauge and record delay/power references; source-specific calibrated clock/phase gauges are not independently established."
       },
       "verification": {
         "status": "not_run",
@@ -3468,14 +3512,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "No external clock/LO calibration or continuous cross-run phase reference for physical future-channel comparisons."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "future phase comparison uses a consistent clock reference or phase-invariant metric.",
+        "pass_rule": "Exact timestamp, split, lineage, phase-gauge, censoring, and intervention behavior passes on a frozen route/scene roster with supported physical references; synthetic counterfactuals and row-level split checks do not establish causal or physical independence.",
+        "next_task": "Complete remaining trajectory causal/input and scene-intervention software contracts; after code-level completion, validate the frozen motion/intervention roster with appropriately qualified G0/G1/G3 inputs."
       }
     },
     {
@@ -3487,14 +3531,18 @@
       "requirement": "future event right-censoring handled (no label leakage from 'not observed' to 'did not occur').",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G6.08 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard trajectory, future-target, path-evolution, intervention, and leakage criterion for any claimed predictive/intervention dataset; bounded timeline contracts do not qualify physical motion or causal validity.",
+        "authority_basis": "Mandatory numbered acceptance criterion G6.08 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "datasets/targets.py",
+          "datasets/schema/umcd-target-layer.v1.schema.json",
+          "tests/test_datasets/test_target_contracts.py"
+        ],
+        "basis": "Censored values require explicit element-level intervals and reasons; unavailable future events remain masked and are not recoded as a negative event."
       },
       "verification": {
         "status": "not_run",
@@ -3505,14 +3553,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Source-specific censor-generation logic and observation-window authority remain incomplete."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "future event right-censoring handled (no label leakage from 'not observed' to 'did not occur').",
+        "pass_rule": "Exact timestamp, split, lineage, phase-gauge, censoring, and intervention behavior passes on a frozen route/scene roster with supported physical references; synthetic counterfactuals and row-level split checks do not establish causal or physical independence.",
+        "next_task": "Complete remaining trajectory causal/input and scene-intervention software contracts; after code-level completion, validate the frozen motion/intervention roster with appropriately qualified G0/G1/G3 inputs."
       }
     },
     {
@@ -3524,14 +3572,19 @@
       "requirement": "no frames from same route, parent physical realization, or intervention pair straddle split.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G6.09 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard trajectory, future-target, path-evolution, intervention, and leakage criterion for any claimed predictive/intervention dataset; bounded timeline contracts do not qualify physical motion or causal validity.",
+        "authority_basis": "Mandatory numbered acceptance criterion G6.09 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "datasets/split_lineage.py",
+          "datasets/splits.py",
+          "tests/test_datasets/test_split_lineage_audit.py",
+          "tests/test_evaluation/test_independent_splits.py"
+        ],
+        "basis": "Split audits can bind parent/component descendants and prevent trajectory rows from crossing a supplied frozen split; physical parent/site independence authority is not supplied by the runner."
       },
       "verification": {
         "status": "not_run",
@@ -3542,14 +3595,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Authoritative physical-realization/route/intervention-pair grouping and complete candidate inventory remain incomplete."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "no frames from same route, parent physical realization, or intervention pair straddle split.",
+        "pass_rule": "Exact timestamp, split, lineage, phase-gauge, censoring, and intervention behavior passes on a frozen route/scene roster with supported physical references; synthetic counterfactuals and row-level split checks do not establish causal or physical independence.",
+        "next_task": "Complete remaining trajectory causal/input and scene-intervention software contracts; after code-level completion, validate the frozen motion/intervention roster with appropriately qualified G0/G1/G3 inputs."
       }
     },
     {
@@ -3561,14 +3614,20 @@
       "requirement": "causal prediction only uses interventions known at forecast time, not post-event geometry if claiming deployment realism.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G6.10 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard trajectory, future-target, path-evolution, intervention, and leakage criterion for any claimed predictive/intervention dataset; bounded timeline contracts do not qualify physical motion or causal validity.",
+        "authority_basis": "Mandatory numbered acceptance criterion G6.10 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "datasets/counterfactual.py",
+          "datasets/targets.py",
+          "experiments/trajectory_targets.py",
+          "tests/test_datasets/test_counterfactual.py",
+          "tests/test_experiments/test_trajectory_targets.py"
+        ],
+        "basis": "Intervention and future-target contracts preserve time and lineage, but a complete deployment-realistic causal feature audit that excludes post-event geometry from every predictor is not established."
       },
       "verification": {
         "status": "not_run",
@@ -3579,14 +3638,14 @@
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "No exhaustive model-input causal firewall tied to intervention-known-at-forecast-time authority."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "causal prediction only uses interventions known at forecast time, not post-event geometry if claiming deployment realism.",
+        "pass_rule": "Exact timestamp, split, lineage, phase-gauge, censoring, and intervention behavior passes on a frozen route/scene roster with supported physical references; synthetic counterfactuals and row-level split checks do not establish causal or physical independence.",
+        "next_task": "Complete remaining trajectory causal/input and scene-intervention software contracts; after code-level completion, validate the frozen motion/intervention roster with appropriately qualified G0/G1/G3 inputs."
       }
     },
     {
