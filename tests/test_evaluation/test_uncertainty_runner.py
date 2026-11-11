@@ -9,6 +9,7 @@ from pathlib import Path
 import evaluation.uncertainty_io as uncertainty_io
 import jsonschema
 import pytest
+from evaluation.uncertainty_io import evaluate_prediction_file_build_node
 from scripts.evaluate_regression_uncertainty import evaluate_prediction_file
 
 
@@ -129,6 +130,72 @@ def test_runner_rejects_unknown_group_unit(tmp_path, group_unit):
     )
     with pytest.raises(ValueError, match="group_unit"):
         evaluate_prediction_file(source, bootstrap_draws=100)
+
+
+def test_uncertainty_evaluation_build_node_reuses_verified_report_and_binds_input(
+    tmp_path: Path,
+):
+    source = tmp_path / "predictions.json"
+    payload = {
+        "schema": "loslab.scalar_regression_predictions.v1",
+        "group_unit": "physical_episode",
+        "predictions": [
+            {
+                "sample_id": "cal-1",
+                "group_id": "cal-episode-1",
+                "split": "calibration",
+                "target": 1.0,
+                "prediction": 1.1,
+                "uncertainty_scale": 1.0,
+            },
+            {
+                "sample_id": "cal-2",
+                "group_id": "cal-episode-2",
+                "split": "calibration",
+                "target": 2.0,
+                "prediction": 1.9,
+                "uncertainty_scale": 1.0,
+            },
+            {
+                "sample_id": "test-1",
+                "group_id": "test-episode-1",
+                "split": "test",
+                "target": 3.0,
+                "prediction": 2.8,
+                "uncertainty_scale": 1.0,
+            },
+            {
+                "sample_id": "test-2",
+                "group_id": "test-episode-2",
+                "split": "test",
+                "target": 4.0,
+                "prediction": 4.2,
+                "uncertainty_scale": 1.0,
+            },
+        ],
+    }
+    source.write_text(json.dumps(payload), encoding="utf-8")
+    cache = tmp_path / "build-cache"
+
+    first_report, first_node = evaluate_prediction_file_build_node(
+        source, cache, seed=13, bootstrap_draws=100
+    )
+    second_report, second_node = evaluate_prediction_file_build_node(
+        source, cache, seed=13, bootstrap_draws=100
+    )
+
+    assert first_report == second_report
+    assert first_node["node_key"] == second_node["node_key"]
+    assert first_node["cache_reused"] is False
+    assert second_node["cache_reused"] is True
+    assert first_node["artifact_sha256"] == second_node["artifact_sha256"]
+
+    payload["predictions"][0]["target"] = 1.25
+    source.write_text(json.dumps(payload), encoding="utf-8")
+    _, changed_node = evaluate_prediction_file_build_node(
+        source, cache, seed=13, bootstrap_draws=100
+    )
+    assert changed_node["node_key"] != first_node["node_key"]
 
 
 def test_runner_rejects_unknown_schema_duplicate_samples_and_missing_fields(tmp_path):

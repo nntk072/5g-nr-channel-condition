@@ -10,7 +10,8 @@ import stat
 from pathlib import Path
 from typing import Any
 
-from artifacts.provenance import package_source_sha256, versions
+from artifacts.build_dag import BuildNodeSpec, resolve_build_artifact, run_build_node
+from artifacts.provenance import package_source_sha256, sha256_file, versions
 
 from evaluation.uncertainty import evaluate_grouped_regression_uncertainty
 
@@ -39,6 +40,16 @@ _PREDICTION_ROW_FIELDS = {
     "uncertainty_scale",
     "identifiability_stratum",
     "condition",
+}
+_UNCERTAINTY_BUILD_SCHEMA = {
+    "type": "object",
+    "required": ["operation", "seed", "bootstrap_draws"],
+    "properties": {
+        "operation": {"const": "grouped_regression_uncertainty_evaluation_v1"},
+        "seed": {"type": "integer", "minimum": 0},
+        "bootstrap_draws": {"type": "integer", "minimum": 100},
+    },
+    "additionalProperties": False,
 }
 
 
@@ -258,4 +269,62 @@ def evaluate_prediction_file(
         "metrics": report,
         "runtime_versions": versions(),
         "package_source_sha256": package_source_sha256(),
+    }
+
+
+def evaluate_prediction_file_build_node(
+    source: Path,
+    cache_root: str | Path,
+    *,
+    seed: int = 42,
+    bootstrap_draws: int = 2000,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Evaluate a frozen prediction file through an immutable build-DAG node."""
+    input_path = Path(source).expanduser().resolve()
+    input_digest = sha256_file(input_path)
+    runtime = versions()
+    spec = BuildNodeSpec(
+        node_id="evaluation.grouped_regression_uncertainty",
+        node_version="1.0.0",
+        configuration={
+            "operation": "grouped_regression_uncertainty_evaluation_v1",
+            "seed": seed,
+            "bootstrap_draws": bootstrap_draws,
+        },
+        configuration_schema=_UNCERTAINTY_BUILD_SCHEMA,
+        source_revision=runtime.get("git_sha") or "unknown",
+        source_bundle_sha256=package_source_sha256(),
+        input_files={str(input_path): input_digest},
+        dependencies={},
+        outputs=("uncertainty-report.json",),
+    )
+
+    def build(staging: Path) -> None:
+        report = evaluate_prediction_file(
+            input_path, seed=seed, bootstrap_draws=bootstrap_draws
+        )
+        (staging / "uncertainty-report.json").write_text(
+            json.dumps(report, sort_keys=True, indent=2, allow_nan=False) + "\n",
+            encoding="utf-8",
+        )
+
+    result = run_build_node(cache_root, spec, build)
+    output_path = resolve_build_artifact(cache_root, result, "uncertainty-report.json")
+    report_bytes = _read_prediction_snapshot(output_path)
+    try:
+        report = json.loads(report_bytes.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise ValueError("cached uncertainty report must be valid UTF-8 JSON") from error
+    import jsonschema
+
+    report_schema_path = (
+        Path(__file__).resolve().parent / "schema/grouped-regression-uncertainty-report.v1.schema.json"
+    )
+    jsonschema.validate(report, json.loads(report_schema_path.read_text(encoding="utf-8")))
+    manifest_bytes = _read_prediction_snapshot(result.manifest_path)
+    return report, {
+        "node_key": result.node_key,
+        "manifest_sha256": hashlib.sha256(manifest_bytes).hexdigest(),
+        "artifact_sha256": result.artifacts[0]["sha256"],
+        "cache_reused": result.reused,
     }

@@ -12063,30 +12063,44 @@
       ],
       "requirement": "Connect versioned configuration/schema registries to an immutable build DAG with content-addressed cache keys and idempotent retry semantics. **Partial:** canonical experiment materialization and candidate split-registry construction now have explicit DAG nodes; generation, storage, receiver, evaluation, and paper-output nodes remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Connect configuration/schema registries through immutable content-addressed DAG nodes. Existing nodes cover ordered channel-dataset materialization, candidate split-registry construction, and grouped uncertainty evaluation; generation, storage, receiver and paper-output node integration remain open.",
+        "authority_basis": "Implementation backlog PKG10-001 specifies reproducible immutable workflow node behavior."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "artifacts/build_dag.py",
+          "artifacts/schema/build-node-manifest.v1.schema.json",
+          "experiments/runner.py",
+          "scripts/build_channel_split_registry.py",
+          "evaluation/uncertainty_io.py",
+          "scripts/evaluate_regression_uncertainty.py",
+          "tests/test_artifacts/test_build_dag.py",
+          "tests/test_evaluation/test_uncertainty_runner.py"
+        ],
+        "basis": "The shared DAG foundation now backs ordered dataset concatenation and candidate split-registry construction. The grouped uncertainty evaluator is newly wired as an optional node: its key binds the exact prediction-file digest, parameters/schema, source revision and source bundle; verified output is content-addressed and reused. CLI `--build-cache` round-trips through this node. Generation, stores, receiver, and paper nodes remain absent, so the overall work item is partial."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_artifacts/test_build_dag.py (7 passed); tests/test_evaluation/test_uncertainty.py tests/test_evaluation/test_uncertainty_runner.py (34 passed); tests/test_experiments/test_runner.py -k materializes_input_dataset_through_build_dag (1 passed); tests/test_experiments/test_profile_holdout.py (12 passed); tests/test_scripts/test_build_channel_split_registry.py (10 passed). Ruff passed for the new evaluation DAG integration; CLI cache smoke round-trip succeeded.",
+        "commit": "Focused local build-DAG implementation verification on 2026-11-11; no scientific workflow generation or publication run."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Build-DAG integrity and cache reuse are reproducibility software evidence only, not scientific qualification or release approval."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Production generation/storage/receiver workflow nodes and paper-output generation remain unimplemented or gated.",
+        "Scientific acceptance gates must pass before generation, advanced training, or publication nodes may be authorized."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Connect configuration/schema registries through immutable content-addressed DAG nodes. Existing nodes cover ordered channel-dataset materialization, candidate split-registry construction, and grouped uncertainty evaluation; generation, storage, receiver and paper-output node integration remain open.",
+        "pass_rule": "Node identity binds all declared inputs/config/schema/source/dependencies/outputs; immutable outputs and manifest verify on reuse; DAG integration outside this row remains tracked separately.",
+        "next_task": "Continue PKG10-005–008 workflow nodes/evidence and keep all scientific-gated generation/training/publication closed."
       },
       "plan_mark": "not_checklist"
     },
@@ -12100,30 +12114,38 @@
       ],
       "requirement": "Add the shared build-node manifest/API foundation: JSON-Schema-validate each node configuration; bind configuration-schema digest, source bundle/revision, inputs, dependency keys, and output names; verify dependency/output objects on reuse; and publish immutable outputs before the manifest. Seven focused tests cover reuse, retry after interruption, dependency presence, input drift, output-roster drift, configuration rejection, and corrupted cache objects. Integration with the planned generation, storage, and evaluation DAG remains open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Shared build-node manifest/API validates configuration against JSON Schema, binds config/schema/source/input/dependency/output identities, verifies cached outputs and dependencies, and publishes immutable output objects before manifests with retry-safe behavior.",
+        "authority_basis": "Implementation backlog PKG10-002 specifies reproducible immutable workflow node behavior."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "artifacts/build_dag.py",
+          "artifacts/schema/build-node-manifest.v1.schema.json",
+          "tests/test_artifacts/test_build_dag.py"
+        ],
+        "basis": "BuildNodeSpec hashes the canonical configuration, its schema, source revision/bundle, input digests, dependency keys and output roster. `run_build_node` verifies input/dependency/cache objects, publishes immutable content objects before the node manifest, rejects roster drift/corruption, and retries interrupted builds idempotently."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_artifacts/test_build_dag.py (7 passed).",
+        "commit": "Focused local build-DAG implementation verification on 2026-11-11; no scientific workflow generation or publication run."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Build-DAG integrity and cache reuse are reproducibility software evidence only, not scientific qualification or release approval."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "No blocker remains for this generic software API; downstream DAG integration is tracked under PKG10-001 and later PKG10 rows."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Shared build-node manifest/API validates configuration against JSON Schema, binds config/schema/source/input/dependency/output identities, verifies cached outputs and dependencies, and publishes immutable output objects before manifests with retry-safe behavior.",
+        "pass_rule": "Node identity binds all declared inputs/config/schema/source/dependencies/outputs; immutable outputs and manifest verify on reuse; DAG integration outside this row remains tracked separately.",
+        "next_task": "Continue PKG10-005–008 workflow nodes/evidence and keep all scientific-gated generation/training/publication closed."
       },
       "plan_mark": "not_checklist"
     },
@@ -12137,30 +12159,39 @@
       ],
       "requirement": "Wire ordered channel-dataset concatenation in the canonical experiment runner through the shared build-node API. The run manifest records cache-node identity and materialized-object digest; repeated runs reuse the same verified object. The focused runner and profile-holdout slice passes 24 tests and the build-DAG suite passes seven. This does not yet form the complete generation-to-paper DAG.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Canonical runner ordered ChannelDataset concatenation is materialized through the shared DAG; run manifest records node and artifact identity and repeat runs reuse verified objects.",
+        "authority_basis": "Implementation backlog PKG10-003 specifies reproducible immutable workflow node behavior."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "experiments/runner.py",
+          "artifacts/build_dag.py",
+          "tests/test_experiments/test_runner.py",
+          "tests/test_experiments/test_profile_holdout.py"
+        ],
+        "basis": "Runner constructs an ordered input digest roster, materializes concatenated data via the immutable node, loads the verified content object, and retains node key, manifest digest, artifact digest/size and cache reuse state in run provenance."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_experiments/test_runner.py -k materializes_input_dataset_through_build_dag (1 passed, 33 deselected); tests/test_experiments/test_profile_holdout.py (12 passed).",
+        "commit": "Focused local build-DAG implementation verification on 2026-11-11; no scientific workflow generation or publication run."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Build-DAG integrity and cache reuse are reproducibility software evidence only, not scientific qualification or release approval."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "This node covers input materialization only; generation/storage/receiver/evaluation/paper DAG integration remains open under PKG10-001."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Canonical runner ordered ChannelDataset concatenation is materialized through the shared DAG; run manifest records node and artifact identity and repeat runs reuse verified objects.",
+        "pass_rule": "Node identity binds all declared inputs/config/schema/source/dependencies/outputs; immutable outputs and manifest verify on reuse; DAG integration outside this row remains tracked separately.",
+        "next_task": "Continue PKG10-005–008 workflow nodes/evidence and keep all scientific-gated generation/training/publication closed."
       },
       "plan_mark": "not_checklist"
     },
@@ -12174,30 +12205,39 @@
       ],
       "requirement": "Wire candidate split-registry construction through an optional immutable build-DAG node. The key binds named dataset bytes, policy bytes, spatial buffer, size ceiling, runtime versions, source revision/bundle, and configuration schema; it reuses verified registry/report objects while preserving exclusive output publication and `NOT_QUALIFIED` status. The direct non-DAG CLI path remains available. Focused script tests pass; external inventory authority and signed release qualification remain open.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Candidate split-registry construction optionally uses a cache node binding named dataset/policy bytes, spatial buffer, size ceiling, runtime, source revision/bundle and configuration schema; verified artifacts are reused and direct CLI remains available.",
+        "authority_basis": "Implementation backlog PKG10-004 specifies reproducible immutable workflow node behavior."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "scripts/build_channel_split_registry.py",
+          "artifacts/build_dag.py",
+          "datasets/schema/channel-split-registry-build-report.v2.schema.json",
+          "tests/test_scripts/test_build_channel_split_registry.py"
+        ],
+        "basis": "The builder constructs node identity from ordered dataset and policy digests plus bounds/runtime/source identity; cache outputs are revalidated before registry/report use, exclusive publication is retained, and resulting registries remain NOT_QUALIFIED absent authoritative external inventory and signer evidence."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_scripts/test_build_channel_split_registry.py (10 passed).",
+        "commit": "Focused local build-DAG implementation verification on 2026-11-11; no scientific workflow generation or publication run."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Build-DAG integrity and cache reuse are reproducibility software evidence only, not scientific qualification or release approval."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "External inventory authority and signed release qualification remain open; the candidate registry is explicitly not qualified."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Candidate split-registry construction optionally uses a cache node binding named dataset/policy bytes, spatial buffer, size ceiling, runtime, source revision/bundle and configuration schema; verified artifacts are reused and direct CLI remains available.",
+        "pass_rule": "Node identity binds all declared inputs/config/schema/source/dependencies/outputs; immutable outputs and manifest verify on reuse; DAG integration outside this row remains tracked separately.",
+        "next_task": "Continue PKG10-005–008 workflow nodes/evidence and keep all scientific-gated generation/training/publication closed."
       },
       "plan_mark": "not_checklist"
     },

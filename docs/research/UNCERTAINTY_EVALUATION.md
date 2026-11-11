@@ -1,9 +1,11 @@
 # Grouped scalar-regression uncertainty evaluation
 
 `scripts/evaluate_regression_uncertainty.py` evaluates frozen scalar predictions
-with calibration and test data separated by independent group. A group should be
-the unit that is plausibly independent for the claim (usually a scene, trajectory
-family, or measurement session), not an individual correlated radio frame.
+with calibration and test data separated by group. The optional top-level
+`group_unit` names the declared resampling unit: `physical_episode`, `site`, or
+`acquisition_unit`. Omit it only for a generic `caller_declared_group`. This is
+an input declaration, not proof of physical independence; every report records
+`physical_independence_established: false`.
 
 The input is UTF-8 JSON with this schema:
 [`evaluation/schema/scalar-regression-predictions.v1.schema.json`](../../evaluation/schema/scalar-regression-predictions.v1.schema.json).
@@ -20,6 +22,7 @@ keys and nonstandard `NaN`/infinity tokens are rejected.
   "schema": "loslab.scalar_regression_predictions.v1",
   "target_name": "relative_path_delay",
   "target_unit": "ns",
+  "group_unit": "physical_episode",
   "predictions": [
     {
       "sample_id": "route-a:0001",
@@ -70,10 +73,24 @@ uv run --no-sync --locked python scripts/evaluate_regression_uncertainty.py \
 The predictor and `uncertainty_scale` function must be frozen using training
 groups before this file is created; no calibration or test row may be used to
 fit or tune them. The calibration guarantee requires calibration and test
-groups to be disjoint and exchangeable. Scene-family shifts, systematic simulator mismatch, and
-non-exchangeable sessions invalidate that guarantee. The evaluator explicitly
-rejects overlapping groups; it cannot establish exchangeability for the user.
+groups to be disjoint and exchangeable. Scene-family shifts, systematic
+simulator mismatch, and non-exchangeable sessions invalidate that guarantee.
+The evaluator explicitly rejects overlapping group IDs; it cannot establish
+exchangeability or physical independence for the user.
 Risk-coverage curves and intervals from a single held-out scene remain
 descriptive and are not evidence of scene-level generalization. Calibration and
 test rows must be fixed before inspecting test metrics. Never use path-oracle
 quantities or simulator-only metadata as model inputs at inference.
+
+For immutable build-DAG caching, pass `--build-cache` with a dedicated store:
+
+```bash
+uv run --no-sync --locked python scripts/evaluate_regression_uncertainty.py \
+  predictions.json outputs/uncertainty-report.json \
+  --seed 42 --bootstrap-draws 2000 --build-cache outputs/build-cache
+```
+
+The node key binds the exact input file digest, evaluation configuration and
+schema, source revision, and source bundle. Existing nodes are reused only after
+their manifest and output object hashes verify. The report remains descriptive;
+the DAG does not add physical-independence evidence or scientific qualification.

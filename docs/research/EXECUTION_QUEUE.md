@@ -269,8 +269,14 @@ coverage/population, and validation-threshold software contracts, each still
 partial at its external/scientific boundaries. `PKG09-007` remains partial for
 physical classic estimators; `PKG09-008` is software-complete as a
 nondeployment oracle-leak control. Their focused slices pass 20/54 and 9/34
-selected tests respectively. Continue with `E01.PKG10`,
-then `E01.PKG10`, `E01.DS.GATES`, `E01.RS.PHASES`, `E01.RS.APPENDIX_E`, and
+selected tests respectively.
+
+`E01.PKG10` is now active. `PKG10-001` remains partial after adding immutable
+evaluation-report DAG materialization; generation, storage, receiver, and
+paper-output nodes remain open/gated. The shared node API and existing
+dataset-concatenation and candidate-registry integrations (`PKG10-002`–`004`)
+are software-complete. Continue with `PKG10-005`–`011`,
+then `E01.DS.GATES`, `E01.RS.PHASES`, `E01.RS.APPENDIX_E`, and
 `E01.CROSSWALK`.
 Each package batch is the fixed set of `PKGnn-*` IDs in the ledger and closes
 only after every row has inspected source/test integration, implementation
