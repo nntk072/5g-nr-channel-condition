@@ -110,6 +110,7 @@ def _run_experiment_in_staging(
         n_tones=n_tones,
         seed=seed,
     )
+    model_inputs = dataset.model_inputs()
     model_off, training_off = fit_two_path_decoder(
         dataset,
         seed=seed,
@@ -158,11 +159,11 @@ def _run_experiment_in_staging(
                 }
             )
         estimate, profile_scale = profile_likelihood_delay(
-            dataset.observed_cfr[sample_index],
-            dataset.pilot_mask[sample_index],
-            dataset.frequencies_hz[sample_index],
+            model_inputs.observed_cfr[sample_index],
+            model_inputs.pilot_mask[sample_index],
+            model_inputs.frequencies_hz[sample_index],
             dataset.maximum_relative_delay_s,
-            float(dataset.noise_variance[sample_index]),
+            float(model_inputs.noise_variance[sample_index]),
         )
         classical_rows.append({**row, "prediction": estimate, "uncertainty_scale": profile_scale})
 

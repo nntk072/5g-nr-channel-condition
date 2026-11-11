@@ -16,6 +16,16 @@ from scipy.optimize import minimize_scalar
 
 
 @dataclass(frozen=True, slots=True)
+class TwoPathModelInputs:
+    """Receiver-visible analytical inputs, isolated from delay/gain truth."""
+
+    observed_cfr: np.ndarray
+    pilot_mask: np.ndarray
+    frequencies_hz: np.ndarray
+    noise_variance: np.ndarray
+
+
+@dataclass(frozen=True, slots=True)
 class TwoPathDataset:
     """Receiver-only arrays plus separately held oracle targets and split IDs."""
 
@@ -32,6 +42,19 @@ class TwoPathDataset:
     stratum: np.ndarray
     condition: tuple[dict[str, float], ...]
     source_sha256: str
+
+    def model_inputs(self) -> TwoPathModelInputs:
+        """Return the registered receiver-only view and reject value/axis drift."""
+        from datasets.model_input_audit import audit_model_input_payload
+
+        return audit_model_input_payload(
+            TwoPathModelInputs(
+                observed_cfr=self.observed_cfr,
+                pilot_mask=self.pilot_mask,
+                frequencies_hz=self.frequencies_hz,
+                noise_variance=self.noise_variance,
+            )
+        )
 
     def indices(self, split: str) -> np.ndarray:
         """Return stable row indices for a named split."""
@@ -361,6 +384,7 @@ def evaluate_profile_likelihood_sets(
     test = dataset.indices("test")
     if not calibration.size or not test.size:
         raise ValueError("calibration and test splits must both be nonempty")
+    model_inputs = dataset.model_inputs()
     calibration_groups = dataset.group_id[calibration].astype(str)
     test_groups = dataset.group_id[test].astype(str)
     overlap = set(calibration_groups).intersection(test_groups)
@@ -370,11 +394,11 @@ def evaluate_profile_likelihood_sets(
     group_scores: dict[str, float] = {}
     for sample_index, group in zip(calibration, calibration_groups, strict=True):
         grid, deviance = profile_likelihood_deviance_grid(
-            dataset.observed_cfr[sample_index],
-            dataset.pilot_mask[sample_index],
-            dataset.frequencies_hz[sample_index],
+            model_inputs.observed_cfr[sample_index],
+            model_inputs.pilot_mask[sample_index],
+            model_inputs.frequencies_hz[sample_index],
             dataset.maximum_relative_delay_s,
-            float(dataset.noise_variance[sample_index]),
+            float(model_inputs.noise_variance[sample_index]),
             grid_points=grid_points,
         )
         target = float(dataset.relative_delay_s[sample_index])
@@ -394,11 +418,11 @@ def evaluate_profile_likelihood_sets(
     row_strata: list[str] = []
     for sample_index, group in zip(test, test_groups, strict=True):
         grid, deviance = profile_likelihood_deviance_grid(
-            dataset.observed_cfr[sample_index],
-            dataset.pilot_mask[sample_index],
-            dataset.frequencies_hz[sample_index],
+            model_inputs.observed_cfr[sample_index],
+            model_inputs.pilot_mask[sample_index],
+            model_inputs.frequencies_hz[sample_index],
             dataset.maximum_relative_delay_s,
-            float(dataset.noise_variance[sample_index]),
+            float(model_inputs.noise_variance[sample_index]),
             grid_points=grid_points,
         )
         components = _profile_set_components(grid, deviance, threshold)
@@ -527,17 +551,18 @@ def fit_two_path_decoder(
     val_idx = dataset.indices("validation")
     if not train_idx.size or not val_idx.size:
         raise ValueError("training and validation splits must be nonempty")
+    model_inputs = dataset.model_inputs()
     model = build_two_path_uncertainty_decoder(
-        dataset.observed_cfr.shape[1], dataset.maximum_relative_delay_s
+        model_inputs.observed_cfr.shape[1], dataset.maximum_relative_delay_s
     ).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
 
     def tensors(indices: np.ndarray) -> tuple[Any, ...]:
         return (
-            torch.as_tensor(dataset.observed_cfr[indices], device=device),
-            torch.as_tensor(dataset.pilot_mask[indices], device=device),
-            torch.as_tensor(dataset.frequencies_hz[indices], device=device),
-            torch.as_tensor(dataset.noise_variance[indices], device=device),
+            torch.as_tensor(model_inputs.observed_cfr[indices], device=device),
+            torch.as_tensor(model_inputs.pilot_mask[indices], device=device),
+            torch.as_tensor(model_inputs.frequencies_hz[indices], device=device),
+            torch.as_tensor(model_inputs.noise_variance[indices], device=device),
             torch.as_tensor(dataset.relative_delay_s[indices], device=device),
         )
 
@@ -634,13 +659,18 @@ def predict_decoder(
     import torch
     from models.observable_multipath import render_two_path_cfr
 
-    if indices.ndim != 1 or np.any(indices < 0) or np.any(indices >= dataset.observed_cfr.shape[0]):
+    model_inputs = dataset.model_inputs()
+    if (
+        indices.ndim != 1
+        or np.any(indices < 0)
+        or np.any(indices >= model_inputs.observed_cfr.shape[0])
+    ):
         raise ValueError("indices must be a valid one-dimensional index array")
     with torch.no_grad():
-        observed = torch.as_tensor(dataset.observed_cfr[indices], device=device)
-        masks = torch.as_tensor(dataset.pilot_mask[indices], device=device)
-        frequencies = torch.as_tensor(dataset.frequencies_hz[indices], device=device)
-        variance = torch.as_tensor(dataset.noise_variance[indices], device=device)
+        observed = torch.as_tensor(model_inputs.observed_cfr[indices], device=device)
+        masks = torch.as_tensor(model_inputs.pilot_mask[indices], device=device)
+        frequencies = torch.as_tensor(model_inputs.frequencies_hz[indices], device=device)
+        variance = torch.as_tensor(model_inputs.noise_variance[indices], device=device)
         output = model(observed, masks, frequencies, variance)
         reconstruction = render_two_path_cfr(
             frequencies, output["gains"], output["relative_delay_s"]

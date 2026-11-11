@@ -3876,18 +3876,15 @@
     {
       "backlog_line": 415,
       "backlog_status": "open",
-      "description": "Complete model-input leakage audit across every dataset adapter, feature transform, experiment runner, training path, and inference artifact. `datasets.model_input_audit._validated_real_scalar` now converts registered scalar inputs through bounded float normalization and reports overflow as a domain `ValueError`; a `10**10000` noise-variance regression in `tests/test_datasets/test_model_input_audit.py` passes. This closes one scalar boundary only; full feature-transform, runner, training, and inference-artifact coverage remains open.",
+      "description": "Complete model-input leakage audit across every dataset adapter, feature transform, experiment runner, training path, and inference artifact. `datasets.model_input_audit._validated_real_scalar` now converts registered scalar inputs through bounded float normalization and reports overflow as a domain `ValueError`. The analytical two-path runner now exposes a registered `TwoPathModelInputs` view containing only observed CFR, pilot mask, frequencies, and noise variance; training, prediction, and its profile-likelihood baseline consume this audited view, excluding delay/gain truth and split IDs from the input object. The 10-case audit/input-view suite passes. The two-path checkpoints still lack a dedicated model-input artifact contract, and the separate CAEZ Ridge forecast route remains outside this audit; full feature-transform, runner, training, and inference-artifact coverage remains open.",
       "evidence_file_sha256": {
-        "datasets/model_input_audit.py": "3110c416a25f200097b0dd7f9aeca8e4e0965974936dfbd630162f0c4d8156cd",
-        "tests/test_datasets/test_model_input_audit.py": "acf7f0b706f10bbb39209031ca5f9cc0db7a3acc0c2e75fe5db7b6445128eb09"
+        "datasets/model_input_audit.py": "831ed7da4328ab8aa0f55dea061d2335faf4b9fa9d2f559a982fde8fc832c7ec"
       },
       "evidence_links": {
         "cli_entries": [],
         "documentation": [],
         "other_files": [],
-        "regression_files": [
-          "tests/test_datasets/test_model_input_audit.py"
-        ],
+        "regression_files": [],
         "schemas": [],
         "source_modules": [
           "datasets/model_input_audit.py"
@@ -5103,7 +5100,7 @@
   "schema": "loslab.implementation_feature_map.v3",
   "source": {
     "path": "docs/research/IMPLEMENTATION_BACKLOG.md",
-    "sha256": "6e8f3a59c7ece171bf7308f8a214d0b7b0f007a9bd6ff8ded2cc6dbc2131f0bd"
+    "sha256": "dde427e8173497747f4149bac27c35467a132ebbaf6cd6046bd25245ad50d379"
   },
   "summary": {
     "feature_count": 182,

@@ -1,6 +1,6 @@
 # Active implementation queue
 
-Checkpoint: 2026-11-11, based on `751aad4` plus the current PKG08 audit work.
+Checkpoint: 2026-11-11, based on `ef6cb5c` plus the current PKG08 audit work.
 This queue is the executor's next-action list; the research and dataset
 plans remain authoritative for scope and acceptance. Update this file only when
 a task closes, its dependency changes, or a concrete blocker appears; retain
@@ -252,6 +252,17 @@ For every batch, retain the exact source files inspected in that ledger row;
 do not copy the whole chronological status history. If a row is already
 implemented, reconcile it and identify its exact verifier rather than
 reimplementing it.
+
+### Implementation card discovered by E01.PKG08
+
+#### M1.PKG08_MODEL_INPUT_PRODUCER_RECONCILIATION — close the uncovered model routes
+
+- **Requirements:** `PKG08-017`; interfaces covered by `PKG08-018`–`PKG08-022`.
+- **Dependencies:** finish `E01.PKG08`–`E01.CROSSWALK`; use the current model-input route inventory and preserve the CAEZ data-use license.
+- **Current evidence:** canonical runner v2+ contracts, profile-holdout v1 contract, registered adapter audit, and the new `TwoPathModelInputs` receiver-only boundary. Remaining identified paths include `scripts/run_observable_multipath_experiment.py` checkpoint binding and the direct Ridge fit in `scripts/evaluate_caez_cross_environment.py`; audit `scripts/evaluate_caez_magnitude_forecast.py`, other current model consumers, and archive scope.
+- **Deliverable:** exact producer/consumer matrix; replayable input/target/split contract for every retained model artifact; explicit nondeployment scope for synthetic diagnostics; explicit historical disposition for archived scripts.
+- **Verification:** focused tests prove truth/metadata exclusion and exact matrix/partition binding. Use only bounded synthetic fixtures; no measured CAEZ archive, production RT, or advanced training run is needed for the software contract.
+- **Closure:** every active producer is covered or has a cited authoritative later-stage scope; saved artifacts bind exact input and split bytes. Otherwise retain a precise partial status and next task.
 
 ### Implementation cards discovered by E01.PKG02
 

@@ -10523,28 +10523,31 @@
       "backlog_aliases": [
         "PKG08-017"
       ],
-      "requirement": "Complete model-input leakage audit across every dataset adapter, feature transform, experiment runner, training path, and inference artifact.",
+      "requirement": "plete model-input leakage audit across every dataset adapter, feature transform, experiment runner, training path, and inference artifact. `datasets.model_input_audit._validated_real_scalar` now converts registered scalar inputs through bounded float normalization and reports overflow as a domain `ValueError`. The analytical two-path runner now exposes a registered `TwoPathModelInputs` view containing only observed CFR, pilot mask, frequencies, and noise variance; training, prediction, and its profile-likelihood baseline consume this audited view, excluding delay/gain truth and split IDs from the input object. The 10-case audit/input-view suite passes. The two-path checkpoints still lack a dedicated model-input artifact contract, and the separate CAEZ Ridge forecast route remains outside this audit; full feature-transform, runner, training, and inference-artifact coverage remains open.",
       "scope": {
         "status": "mandatory",
-        "support_envelope": "One verified scalar validation boundary only at this checkpoint; full adapter, transform, training, experiment and inference-artifact audit is required by the criterion.",
-        "authority_basis": "Mandatory implementation-backlog audit of inference/training leakage controls; no scientific qualification implied."
+        "support_envelope": "All active dataset adapters, feature transforms, experiment/training producers and inference/model artifacts; the audit is not complete until every current producer is enumerated and evidenced. Archived legacy code must be explicitly classified, not silently treated as a supported route.",
+        "authority_basis": "Mandatory repository-wide model-input leakage requirement in the implementation backlog; no qualification is inferred from source/test coverage."
       },
       "implementation": {
         "status": "partial",
         "evidence": [
           "datasets/model_input_audit.py",
-          "tests/test_datasets/test_model_input_audit.py",
-          "datasets/channel.py",
-          "datasets/nr.py",
+          "experiments/observable_multipath.py",
+          "scripts/run_observable_multipath_experiment.py",
           "experiments/runner.py",
-          "experiments/profile_holdout.py"
+          "experiments/profile_holdout.py",
+          "scripts/evaluate_caez_cross_environment.py",
+          "scripts/evaluate_caez_magnitude_forecast.py",
+          "tests/test_datasets/test_model_input_audit.py",
+          "tests/test_experiments/test_observable_multipath_inputs.py"
         ],
-        "basis": "Source review confirms registered input validation and an overflow-safe real-scalar boundary, but does not establish complete coverage across every adapter, transform, experiment runner, training path, and inference artifact. Child requirements PKG08-018 through PKG08-022 audit specific portions of that route."
+        "basis": "Registered adapters and canonical/profile-holdout runner contracts cover named paths. The analytical two-path route now has a registered observation-only input view consumed by fitting, prediction, and profile-likelihood evaluation; strict checks bind its CFR, pilot mask, frequency grid, and positive noise variance. The producer inventory still finds no dedicated checkpoint input contract for that route and a separate CAEZ magnitude Ridge forecast route; other consumers and archived-vs-supported scope need completion."
       },
       "verification": {
         "status": "pass",
-        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_datasets/test_model_input_audit.py (7 passed).",
-        "commit": "Focused verification run on 80dfd9d worktree; repository-wide leakage audit remains partial."
+        "command": ".venv/bin/pytest --no-cov -o addopts='' -q tests/test_experiments/test_observable_multipath_inputs.py tests/test_experiments/test_two_path_experiment_contract.py -k 'not neural_fit' (8 passed, 1 deselected); Ruff check/format and py_compile on changed modules passed.",
+        "commit": "Focused non-training verification run on ef6cb5c worktree; no neural fit, advanced training, or RT generation run."
       },
       "qualification": {
         "status": "not_qualified",
@@ -10561,9 +10564,9 @@
       ],
       "external_blockers": [],
       "closure": {
-        "deliverable": "A source-audited model-input route matrix linking every adapter, transform, runner, training path and inference artifact to tests and field/provenance contracts.",
-        "pass_rule": "Every production-relevant route is inventoried; unauthorized truth/metadata inputs fail closed or are explicitly isolated as diagnostics, with exact focused verification.",
-        "next_task": "PKG08-018"
+        "deliverable": "A source-audited inventory of every active adapter, transform, experiment/training/inference producer and model artifact contract, with gaps closed or explicitly scoped to an authoritative later gate.",
+        "pass_rule": "No active consumer can receive unregistered truth/metadata through its model-input route; each saved model/prediction binds exact inputs and partitions, or its diagnostic-only/nondeployable boundary is explicit. Every noncanonical/archive route is explicitly classified.",
+        "next_task": "M1.PKG08_MODEL_INPUT_PRODUCER_RECONCILIATION"
       },
       "plan_mark": "not_checklist"
     },

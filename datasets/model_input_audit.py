@@ -10,6 +10,9 @@ from typing import Any
 import numpy as np
 
 _INPUT_FIELDS: dict[tuple[str, str], frozenset[str]] = {
+    ("experiments.observable_multipath", "TwoPathModelInputs"): frozenset(
+        {"observed_cfr", "pilot_mask", "frequencies_hz", "noise_variance"}
+    ),
     ("datasets.channel", "ChannelModelInputs"): frozenset({"observed_cfr"}),
     ("datasets.analytical", "AnalyticalModelInputs"): frozenset(
         {"frequencies_hz", "channel_frequency_response"}
@@ -193,7 +196,30 @@ def audit_model_input_payload(value: Any) -> Any:
         if config_fields != _NR_RECEIVER_CONFIG_FIELDS:
             raise ValueError("NRPUSCHConfig field roster drifted across the model-input boundary")
 
-    if identity == ("datasets.channel", "ChannelModelInputs"):
+    if identity == ("experiments.observable_multipath", "TwoPathModelInputs"):
+        observed_shape = _validated_array(
+            value.observed_cfr, name="observed_cfr", value_kind="complex", ndim=2
+        )
+        mask_shape = _validated_array(
+            value.pilot_mask, name="pilot_mask", value_kind="boolean", ndim=2
+        )
+        frequency_shape = _validated_array(
+            value.frequencies_hz, name="frequencies_hz", value_kind="real", ndim=2
+        )
+        variance_shape = _validated_array(
+            value.noise_variance,
+            name="noise_variance",
+            value_kind="real",
+            ndim=1,
+            nonnegative=True,
+        )
+        if mask_shape != observed_shape or frequency_shape != observed_shape:
+            raise ValueError("two-path masks and frequencies must match the observed CFR grid")
+        if variance_shape != (observed_shape[0],):
+            raise ValueError("two-path noise_variance must have one value per observation")
+        if np.any(np.asarray(value.noise_variance) <= 0):
+            raise ValueError("two-path noise_variance must be positive")
+    elif identity == ("datasets.channel", "ChannelModelInputs"):
         _validated_array(
             value.observed_cfr,
             name="observed_cfr",
