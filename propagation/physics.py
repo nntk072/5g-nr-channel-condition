@@ -79,3 +79,54 @@ def observable_features(h: np.ndarray, *, include_phase: bool = False) -> np.nda
     if not np.all(np.isfinite(output)):
         raise ValueError("nonfinite observables")
     return output
+
+
+def delay_k_proxy_features(h: np.ndarray) -> np.ndarray:
+    """Return receiver-visible normalized delay/PDP proxies per antenna link.
+
+    Delay moments are expressed in fractions of the CFR record length. The
+    dominant-to-remainder power ratio is only a coarse K-like proxy: the
+    strongest circular-IFFT bin is not guaranteed to be a physical LOS path,
+    and no carrier, pilot-estimator, or path-oracle information is used.
+    """
+    observed = np.asarray(h)
+    if observed.ndim != 3 or not np.iscomplexobj(observed):
+        raise ValueError("expected [samples, antenna links, subcarriers] complex CFR")
+    if observed.shape[0] < 1 or observed.shape[1] < 1 or observed.shape[2] < 8:
+        raise ValueError("delay/K proxy requires nonempty CFR rows with at least eight tones")
+    if not np.isfinite(observed).all():
+        raise ValueError("delay/K proxy requires finite CFR values")
+    observed = np.asarray(observed, dtype=np.complex128)
+    with np.errstate(over="ignore", invalid="ignore"):
+        power = np.mean(np.abs(observed) ** 2, axis=(1, 2), keepdims=True)
+    if not np.isfinite(power).all():
+        raise ValueError("delay/K proxy CFR power is not representable in float64")
+    normalized = observed / np.sqrt(np.maximum(power, 1e-24))
+    # Inputs follow the centered subcarrier grid from subcarrier_frequencies.
+    # Undo that centering before IFFT and center the resulting delay bins.
+    pdp = (
+        np.abs(
+            np.fft.fftshift(np.fft.ifft(np.fft.ifftshift(normalized, axes=-1), axis=-1), axes=-1)
+        )
+        ** 2
+    )
+    pdp /= np.maximum(pdp.sum(axis=-1, keepdims=True), 1e-24)
+    delay = (
+        np.arange(observed.shape[-1], dtype=np.float64) - observed.shape[-1] // 2
+    ) / observed.shape[-1]
+    mean_delay = np.sum(pdp * delay[None, None, :], axis=-1)
+    rms_delay = np.sqrt(np.sum((delay[None, None, :] - mean_delay[..., None]) ** 2 * pdp, axis=-1))
+    peak_fraction = np.max(pdp, axis=-1)
+    remainder_fraction = np.maximum(1.0 - peak_fraction, 1e-12)
+    dominant_to_remainder_db = 10.0 * np.log10(
+        np.maximum(peak_fraction, 1e-12) / remainder_fraction
+    )
+    entropy = -np.sum(pdp * np.log(np.maximum(pdp, 1e-12)), axis=-1)
+    entropy /= np.log(observed.shape[-1])
+    features = np.stack(
+        [mean_delay, rms_delay, peak_fraction, dominant_to_remainder_db, entropy], axis=-1
+    ).reshape(observed.shape[0], -1)
+    result = features.astype(np.float32)
+    if not np.isfinite(result).all():
+        raise ValueError("delay/K proxy produced nonfinite features")
+    return result

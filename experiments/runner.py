@@ -51,7 +51,8 @@ from evaluation.probability_calibration import (
 from evaluation.statistics import paired_seed_delta
 from learning import fit_complex_cnn, fit_coral_mlp, fit_real_cnn, fit_sklearn
 from models.capacity import capacity_spec
-from propagation.physics import observable_features
+from models.multipath import fit_sparse_multipath
+from propagation.physics import delay_k_proxy_features, observable_features
 from receivers.pilots import comb_ls_estimate
 
 _VALIDATION_THRESHOLD_POLICY = {
@@ -80,6 +81,8 @@ _MODEL_FEATURE_ROUTES = {
     "power_only": ("observed_cfr", "log_power_per_link_subcarrier_v1"),
     "phase_randomized": ("observed_cfr", "iid_phase_randomized_flattened_real_imag_cfr_v1"),
     "observable_features": ("observed_cfr", "logmag_pdp_moments_v1"),
+    "delay_k_proxy": ("observed_cfr", "normalized_delay_k_proxy_v1"),
+    "sparse_multipath": ("observed_cfr", "omp_bic_sparse_cfr_features_v1"),
     "oracle_label_leak": ("data.y", "direct_binary_target_as_feature_leak_v1"),
 }
 _MODEL_METHODS = frozenset(
@@ -99,6 +102,8 @@ _MODEL_METHODS = frozenset(
         "phase_randomized",
         "oracle_label_leak",
         "observable_features",
+        "delay_k_proxy",
+        "sparse_multipath",
         "logreg",
         "cnn",
         "cvnn",
@@ -234,6 +239,57 @@ def _phase_randomized_real_imag_cfr(observed_cfr: np.ndarray, *, seed: int) -> n
     phase = rng.uniform(-np.pi, np.pi, size=observed.shape)
     randomized = np.asarray(observed, dtype=np.complex128) * np.exp(1j * phase)
     return _flatten_real_imag_cfr(randomized)
+
+
+def _sparse_multipath_features(observed_cfr: np.ndarray) -> np.ndarray:
+    """Use bounded receiver-input OMP/BIC fits as trainable sparse features.
+
+    Frequency is expressed in normalized subcarrier-spacing units and the
+    delay search is capped at half a normalized period. These are estimator
+    coordinates, not physical seconds or oracle path delays.
+    """
+    observed = np.asarray(observed_cfr)
+    if observed.ndim != 3 or not np.iscomplexobj(observed):
+        raise ValueError("sparse multipath features require complex [samples, links, tones] CFR")
+    if observed.shape[0] < 1 or observed.shape[1] < 1 or observed.shape[2] < 8:
+        raise ValueError("sparse multipath features require nonempty CFR with at least eight tones")
+    if not np.isfinite(observed).all():
+        raise ValueError("sparse multipath CFR must be finite")
+    tone_count = observed.shape[-1]
+    frequencies = np.arange(tone_count, dtype=np.float64) - tone_count // 2
+    pilot_mask = np.ones(tone_count, dtype=np.bool_)
+    rows: list[list[float]] = []
+    for sample in observed:
+        sample_features: list[float] = []
+        for link in sample:
+            fit = fit_sparse_multipath(
+                link,
+                frequencies,
+                pilot_mask,
+                maximum_paths=3,
+                maximum_delay_s=0.5,
+                delay_grid_size=129,
+            )
+            signal_energy = float(np.vdot(link, link).real)
+            residual_fraction = fit.residual_sum_squares / max(signal_energy, 1e-24)
+            gain_power = np.abs(fit.gains) ** 2
+            dominant_fraction = (
+                float(np.max(gain_power) / np.sum(gain_power)) if gain_power.size else 0.0
+            )
+            sample_features.extend(
+                [
+                    fit.model_order / 3.0,
+                    float(np.mean(fit.delays_s)) / 0.5 if fit.delays_s.size else 0.0,
+                    float(np.std(fit.delays_s)) / 0.5 if fit.delays_s.size else 0.0,
+                    residual_fraction,
+                    dominant_fraction,
+                ]
+            )
+        rows.append(sample_features)
+    result = np.asarray(rows, dtype=np.float32)
+    if not np.isfinite(result).all():
+        raise ValueError("sparse multipath estimator produced nonfinite features")
+    return result
 
 
 def _permute_training_labels(
@@ -559,6 +615,18 @@ def _feature_transform_implementation_sha256(method: str) -> str:
         transform = _log_power_per_link_subcarrier
     elif method == "phase_randomized":
         transform = _phase_randomized_real_imag_cfr
+    elif method == "delay_k_proxy":
+        transform = delay_k_proxy_features
+    elif method == "sparse_multipath":
+        estimator_source = Path(inspect.getfile(fit_sparse_multipath)).read_bytes()
+        payload = b"\0".join(
+            (
+                inspect.getsource(_sparse_multipath_features).encode("utf-8"),
+                estimator_source,
+                b"maximum_paths=3;maximum_delay_normalized=0.5;delay_grid_size=129",
+            )
+        )
+        return hashlib.sha256(payload).hexdigest()
     elif method == "oracle_label_leak":
         transform = _oracle_label_leak_features
     else:
@@ -657,7 +725,9 @@ def build_model_input_artifact_contract(
         method, ("observed_cfr", "logmag_pdp_moments_v1")
     )
     input_contract_version = (
-        "v10"
+        "v13"
+        if method in {"delay_k_proxy", "sparse_multipath"}
+        else "v10"
         if method == "observable_features"
         else "v12"
         if method == "domain_only"
@@ -953,6 +1023,7 @@ def verify_model_input_artifact_contract(
         "loslab.model_input_artifact_contract.v10": "v10",
         "loslab.model_input_artifact_contract.v11": "v11",
         "loslab.model_input_artifact_contract.v12": "v12",
+        "loslab.model_input_artifact_contract.v13": "v13",
     }.get(contract_schema)
     if schema_version is None:
         raise ValueError("model input artifact contract schema is unsupported")
@@ -1007,6 +1078,7 @@ def verify_model_input_artifact_contract(
         "loslab.model_input_artifact_contract.v10",
         "loslab.model_input_artifact_contract.v11",
         "loslab.model_input_artifact_contract.v12",
+        "loslab.model_input_artifact_contract.v13",
     }:
         expected_feature_fields.update(
             {
@@ -1051,6 +1123,8 @@ def verify_model_input_artifact_contract(
             "domain_only",
             "oracle_label_leak",
             "logreg",
+            "delay_k_proxy",
+            "sparse_multipath",
         }
         else "loslab.model_input_artifact.v1"
     )
@@ -1164,6 +1238,7 @@ def verify_model_input_artifact_contract(
         "loslab.model_input_artifact_contract.v10",
         "loslab.model_input_artifact_contract.v11",
         "loslab.model_input_artifact_contract.v12",
+        "loslab.model_input_artifact_contract.v13",
     }:
         if method_input is not None:
             matrix = feature["feature_matrix"]
@@ -1969,6 +2044,10 @@ def _run_experiment_impl(
     x = observable_features(observable, include_phase=include_phase)
     raw_real_imag = _flatten_real_imag_cfr(observable)
     power_only = _log_power_per_link_subcarrier(observable)
+    delay_k_proxy = delay_k_proxy_features(observable) if "delay_k_proxy" in methods else None
+    sparse_multipath = (
+        _sparse_multipath_features(observable) if "sparse_multipath" in methods else None
+    )
     phase_randomized = _phase_randomized_real_imag_cfr(
         observable, seed=int(phase_randomization_seed)
     )
@@ -2133,6 +2212,10 @@ def _run_experiment_impl(
                 if method == "power_only"
                 else phase_randomized
                 if method == "phase_randomized"
+                else delay_k_proxy
+                if method == "delay_k_proxy"
+                else sparse_multipath
+                if method == "sparse_multipath"
                 else _metadata_only_features(
                     group_values=data.group,
                     domain_values=data.domain,
@@ -2185,6 +2268,8 @@ def _run_experiment_impl(
                 "domain_only",
                 "power_only",
                 "phase_randomized",
+                "delay_k_proxy",
+                "sparse_multipath",
                 "oracle_label_leak",
                 "observable_features",
                 "logreg",
@@ -2207,6 +2292,8 @@ def _run_experiment_impl(
                         "metadata_only",
                         "group_only",
                         "domain_only",
+                        "delay_k_proxy",
+                        "sparse_multipath",
                         "observable_features",
                     )
                     else "logreg"
@@ -2398,6 +2485,8 @@ def _run_experiment_impl(
                             "oracle_label_leak",
                             "power_only",
                             "phase_randomized",
+                            "delay_k_proxy",
+                            "sparse_multipath",
                             "logreg",
                         }
                         else "loslab.model_input_artifact.v1"
@@ -2525,6 +2614,10 @@ def _run_experiment_impl(
                     if method == "power_only"
                     else "phase-randomized flattened real/imaginary CFR"
                     if method == "phase_randomized"
+                    else "normalized delay spread and dominant-to-remainder PDP proxy"
+                    if method == "delay_k_proxy"
+                    else "bounded normalized-delay OMP/BIC fit features from receiver-visible CFR"
+                    if method == "sparse_multipath"
                     else "raw flattened real/imaginary CFR trained on deterministically permuted training labels"
                     if method == "label_permuted"
                     else "row-shuffled flattened real/imaginary CFR"
@@ -2645,6 +2738,12 @@ def _run_experiment_impl(
         ("raw_mlp", "rf"),
         ("raw_mlp", "histgb"),
         ("power_only", "mlp"),
+        ("delay_k_proxy", "mlp"),
+        ("delay_k_proxy", "rf"),
+        ("delay_k_proxy", "raw_mlp"),
+        ("sparse_multipath", "mlp"),
+        ("sparse_multipath", "rf"),
+        ("sparse_multipath", "raw_mlp"),
         ("power_only", "rf"),
         ("power_only", "raw_mlp"),
         ("raw_mlp", "phase_randomized"),

@@ -125,15 +125,50 @@ The v9 contract is specific to this intentionally leaking route; earlier
 method-specific contract versions remain readable. Do not interpret its
 paired score delta as a performance estimate or qualification result.
 
+## Receiver-visible delay and sparse multipath baselines
+
+The opt-in `delay_k_proxy` route derives normalized circular-IFFT delay
+moments, PDP concentration, and normalized entropy from observed complex CFR.
+Its strongest-bin to remainder ratio is a coarse K-like proxy only: the peak
+is not identified as a physical LOS path, and the route has no carrier/DMRS
+calibration or path oracle. Delay coordinates are fractions of the CFR record
+length, not seconds. The `sparse_multipath` route applies bounded OMP/BIC to
+each observed CFR link and feeds normalized fit order, delay spread, residual,
+and dominant-fit-power summaries to logistic regression. Its normalized
+frequency/delay grid is a mathematical baseline; it does not establish
+physical path resolvability or substitute for a calibrated NR receiver.
+
+Both routes consume only `observed_cfr`, share the same per-seed group split
+with other methods in one runner invocation, and bind transform and feature
+matrix identities in model-input contract v13. Example software workflow:
+
+```sh
+python -m loslab experiment \
+  --input <receiver-observations.npz> \
+  --output <new-run-directory> \
+  --observation precomputed \
+  --methods delay_k_proxy sparse_multipath observable_features raw_mlp \
+  --seeds 11 23 47 59 71 \
+  --bootstrap 200
+```
+
+The runner's shared split makes these routes comparable on the same sample
+partition, but their representations differ. This software wiring does not
+provide parameter-matched neural architectures, independent-site evidence,
+receiver qualification, or a scientific performance claim. Use only after
+the applicable input/split gates pass; production generation and advanced
+training remain gated.
+
 The versioned schemas are
 `datasets/schema/model-input-artifact-contract.v3.schema.json` through
-`datasets/schema/model-input-artifact-contract.v12.schema.json`; v1-v12 readers
+`datasets/schema/model-input-artifact-contract.v13.schema.json`; v1-v13 readers
 remain available. Results are simulation-only diagnostics and do not show
 that any control predicts measured or deployment channels.
 
 G8.08 remains partial. The group-only, domain-only, and combined metadata routes
-attribute leakage among group/domain/source identifiers. Other metadata
-controls and physical classical estimators still need isolated routes and audit
-contracts before benchmarking. The oracle-label leak is only a non-deployable
+attribute leakage among group/domain/source identifiers. The two receiver-CFR
+physical-feature routes above are software baselines only; other metadata
+controls and physical estimators still need isolated routes and audit contracts
+before benchmarking. The oracle-label leak is only a non-deployable
 evaluator ceiling. Row shuffling is restricted to the training partition and is
 not a time-series or temporal-dependence test.

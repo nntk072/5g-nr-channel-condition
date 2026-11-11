@@ -22,7 +22,7 @@ from experiments.runner import (
     verify_model_input_artifact_contract,
     verify_validation_threshold_selection_record,
 )
-from propagation.physics import observable_features
+from propagation.physics import delay_k_proxy_features, observable_features
 
 
 def test_validation_threshold_record_binds_only_selection_partition_data() -> None:
@@ -747,6 +747,55 @@ def test_run_experiment_routes_audited_observable_feature_baseline(tmp_path) -> 
     assert contract["method"] == "observable_features"
     assert contract["allowed_source_fields"] == ["observed_cfr"]
     assert contract["feature_transform"] == "logmag_pdp_moments_v1"
+    result = json.loads((output / "results.json").read_text(encoding="utf-8"))[0]
+    assert result["model_input_artifact_contract_status"] == "PASS_MODEL_INPUT_ARTIFACT_BINDING"
+
+
+def test_delay_k_proxy_is_scale_invariant_and_uses_centered_delay_bins() -> None:
+    tones = 32
+    frequency_index = np.arange(tones, dtype=np.float64) - tones // 2
+    delay = 5 / tones
+    channel = np.exp(-2j * np.pi * frequency_index * delay).reshape(1, 1, -1)
+
+    features = delay_k_proxy_features(channel)
+    scaled_features = delay_k_proxy_features(7.0 * channel)
+
+    assert features.shape == (1, 5)
+    np.testing.assert_allclose(features, scaled_features, rtol=1e-6, atol=1e-6)
+    assert features[0, 0] == pytest.approx(delay, abs=1e-6)
+    assert features[0, 1] == pytest.approx(0.0, abs=1e-6)
+    assert features[0, 2] == pytest.approx(1.0, abs=1e-6)
+
+
+@pytest.mark.parametrize("method", ["delay_k_proxy", "sparse_multipath"])
+def test_run_experiment_routes_receiver_visible_physical_baseline(tmp_path, method) -> None:
+    source = tmp_path / "debug.npz"
+    debug_multipath(n_scenes=4, links_per_scene=8, n_subcarriers=16, seed=73).save(source)
+    output = tmp_path / "runs" / method
+
+    summary = run_experiment(
+        [source],
+        output,
+        methods=(method,),
+        seeds=(19,),
+        bootstrap=100,
+    )
+
+    assert summary["aggregate_across_fixed_splits"][method]["seeds"] == 1
+    model_info = json.loads(
+        (output / "models" / f"{method}_seed19_modelinfo.json").read_text(encoding="utf-8")
+    )
+    feature = model_info["model_input_artifact_contract"]["feature_contract"]
+    assert feature["method"] == method
+    assert feature["allowed_source_fields"] == ["observed_cfr"]
+    assert feature["schema"] == "loslab.model_input_feature_contract.v13"
+    assert (
+        feature["feature_transform"]
+        == {
+            "delay_k_proxy": "normalized_delay_k_proxy_v1",
+            "sparse_multipath": "omp_bic_sparse_cfr_features_v1",
+        }[method]
+    )
     result = json.loads((output / "results.json").read_text(encoding="utf-8"))[0]
     assert result["model_input_artifact_contract_status"] == "PASS_MODEL_INPUT_ARTIFACT_BINDING"
 

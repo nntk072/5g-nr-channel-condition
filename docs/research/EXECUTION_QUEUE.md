@@ -278,8 +278,11 @@ dataset-concatenation and candidate-registry integrations (`PKG10-002`–`004`)
 are software-complete. `PKG10-005` lineage promotion and `PKG10-007` measured
 resource budgeting remain partial. `PKG10-006` pilot design and `PKG10-008`
 signed cohort materialization are software-complete but explicitly not
-qualified. Continue with `PKG10-009`–`011`; keep baseline training, advanced
-modeling, and paper outputs behind their scientific acceptance gates.
+qualified. `PKG10-009` now has two additional CFR-only feature baselines wired
+through the common split and replayable v13 input contract, but remains partial
+pending parameter-matched neural comparisons and scientific evaluation.
+Continue with its remaining work and `PKG10-010`–`011`; keep baseline training,
+advanced modeling, and paper outputs behind their scientific acceptance gates.
 then `E01.DS.GATES`, `E01.RS.PHASES`, `E01.RS.APPENDIX_E`, and
 `E01.CROSSWALK`.
 Each package batch is the fixed set of `PKGnn-*` IDs in the ledger and closes

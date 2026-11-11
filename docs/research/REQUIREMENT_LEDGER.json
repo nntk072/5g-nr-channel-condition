@@ -4061,7 +4061,7 @@
         "docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md#13-hard-scientific-correctness-gates-stop-generation-on-failure"
       ],
       "backlog_aliases": [],
-      "requirement": "null/falsification controls: time shuffled, phase randomized, source-ID-only, power-only, metadata-only, label-permuted and oracle-leak checks. The common runner now provides observed-CFR-only log power under contract v3, seeded phase randomization under v4, training-row shuffling under v6, source-only under v7, metadata-only under v8, group-only and domain-only under v11/v12, training-label permutation under v5, and an explicitly non-deployable oracle-label leakage control under v9. See `docs/research/BASELINE_CONTROLS_WORKFLOW.md`. These are software controls on a shared split; physical classic-estimator baselines and broader evaluation remain open.",
+      "requirement": "null/falsification controls: time shuffled, phase randomized, source-ID-only, power-only, metadata-only, label-permuted and oracle-leak checks. The common runner provides observed-CFR-only log power under contract v3, seeded phase randomization under v4, training-row shuffling under v6, source-only under v7, metadata-only under v8, group-only and domain-only under v11/v12, training-label permutation under v5, and an explicitly non-deployable oracle-label leakage control under v9. Two additional CFR-only routes now provide a normalized delay/K-like PDP proxy and a bounded sparse OMP/BIC feature baseline under v13; these are mathematical software baselines, not calibrated physical estimators. See `docs/research/BASELINE_CONTROLS_WORKFLOW.md`. The criterion-driven control suite, parameter-matched neural comparisons, and scientific evaluation remain open.",
       "plan_mark": "open",
       "scope": {
         "status": "unreviewed",
@@ -12454,18 +12454,22 @@
       ],
       "requirement": "Implement baseline training/evaluation for physical estimators, existing MLP, parameter-matched MLP/CNN/CV-CNN, and sparse multipath methods on identical observations and splits.",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "The canonical experiment runner now exposes receiver-CFR-only normalized delay/PDP proxy and bounded sparse OMP/BIC feature routes through shared per-seed splits and model-input contract v13.",
+        "authority_basis": "Source-audited against Stage S9 in docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md and PKG10-009 in docs/research/IMPLEMENTATION_BACKLOG.md; this implementation is a bounded baseline slice, not the complete package."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "experiments/runner.py",
+          "datasets/schema/model-input-artifact-contract.v13.schema.json",
+          "docs/research/BASELINE_CONTROLS_WORKFLOW.md"
+        ],
+        "basis": "The remaining parameter-matched MLP/CNN/CV-CNN architecture and budget audit, broader physical estimator set, and scientific evaluation are not implemented."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_experiments/test_runner.py -k 'delay_k_proxy or receiver_visible_physical_baseline or audited_observable_feature_baseline'",
         "commit": null
       },
       "qualification": {
@@ -12477,7 +12481,7 @@
       "closure": {
         "deliverable": null,
         "pass_rule": null,
-        "next_task": null
+        "next_task": "Implement and audit parameter-matched MLP/CNN/CV-CNN configurations over identical receiver observations and split locks; add the planned physical estimators and task-specific evaluation reports without launching qualification until G3/G4/G5 criteria and evidence are ready."
       },
       "plan_mark": "not_checklist"
     },
