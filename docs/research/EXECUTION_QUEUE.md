@@ -88,22 +88,45 @@ does not claim source audit completion.
 
 `E01.PKG04` is closed as a source audit. The G3 contract/evaluator/acquisition/signature suite passed 483 tests in 231.06 seconds. This validates software contracts, not external material/CSI/path evidence or G5 receiver qualification; all G3 receipts remain `NOT_QUALIFIED`. PKG04-032 preserves the bounded City43 Phase-0 diagnosis from existing path-level evidence and does not reopen convergence experiments.
 
-`E01.PKG05` is in progress. Source inspection and focused tests confirmed the
-bounded result for `PKG05-001` (G4.10 retained as 10/10 cases and 3,200/3,200
-claims passing within its preregistered scope), plus the code-scope
-implementation for `PKG05-002/003` (canonical profile applicability
-and capability matrix), `PKG05-004/005` (scenario GBSM record/store/EpisodeBundle
-and bounded CLI), `PKG05-007/010` (TDL/CDL profile/table identity binding), and
-`PKG05-016` (capability matrix). The focused software slice passed 136 tests;
-it ran no G4 native qualification. A runnable publisher was added because the
-hash-bound reports had no checked-in publication workflow. The initial schema
-check exposed tuple-valued applicability rows that did not conform to the
-report schema; the report builder now emits JSON arrays directly. Publisher
-schema and determinism checks pass; the remaining PKG05 rows are still being
-audited. The retained CDL-E four-element covariance failure remains unchanged.
-G4.10 qualifies only within its frozen case family; overall G4 remains open.
+`E01.PKG05` is closed as a source audit with the remaining aggregate gaps
+explicitly partial. `PKG05-001` retains its bounded G4.10 result (10/10 cases,
+3,200/3,200 claims); `PKG05-002/003` cover canonical profile/capability
+contracts; `PKG05-004/005` cover scenario GBSM storage, EpisodeBundles and its
+bounded CLI; `PKG05-007/010` cover TDL/CDL profile and table identity;
+`PKG05-011/014` cover reference-audit contracts, fixed-TDL scalar/K-factor
+references and adapter input validation; `PKG05-016/017` cover capabilities
+and CDL scalar reference contracts; `PKG05-018/023` index finite retained
+PDP/RMS, polarization, angular, pattern and circularity evidence;
+`PKG05-025` indexes the bounded D/E zero-orientation covariance pass.
+`PKG05-006/015/026` remain partial aggregate G4 inventory/coverage. The
+`PKG05-024` frozen CDL-E miss remains failed and unresolved in cause. The
+focused software slice passed 136 tests; the additional source-reference and
+CPU-oracle checks passed 39, 22 and 5 tests respectively. These checks did not
+rerun native G4 families. Exact local ETSI PDF-byte audits remain unavailable
+without user-sourced PDFs. The new report publisher is schema-validated and
+deterministic; the original tuple/array mismatch is fixed. G4.10 qualifies
+only within scope and overall G4 remains open.
 
-The next batch is `E01.PKG05`, then packages 06–10 in numeric order, followed by
+`E01.PKG06` is now active. `PKG06-001` is source-audited: the type-1 SRS
+frequency-tree recurrence requires explicit `n_srs` when hopping applies and
+is connected to per-symbol scheduled counters and single-/multiport mapping.
+Its selected 13-test software slice passes. ASN.1/PER configuration, CRC/polar
+decoding, full scheduling completeness, independent conformance and receiver
+qualification remain open. `PKG06-002` also source-audits cleanly: shared
+proper-complex AWGN, the PUSCH estimator and seeded TDL noise reject invalid
+variance types/ranges and float32 overflow/underflow before use. Its focused
+slice passes 61 tests with one expected Torch sparse-invariant warning. These
+input-contract tests do not qualify a receiver.
+
+The frozen CDL-E four-element covariance miss is now linked to
+`M1.G4_CDL_E_FAILURE_DISPOSITION`. Its exact `Re(C[0,1])` discrepancy is
+0.0135743014 against a 0.0129694116 half-width. Five CPU checks of the
+ETSI-derived oracle pass its Hermitian, unit-diagonal and PSD invariants; this
+does not resolve whether the one native miss reflects finite-sample variation
+or an oracle/implementation discrepancy. Keep the original result failed. The
+separate post-hoc 65,536-draw diagnostic cannot replace it.
+
+The next batch is `E01.PKG06`, then packages 07–10 in numeric order, followed by
 `E01.DS.GATES`, `E01.RS.PHASES`, `E01.RS.APPENDIX_E`, and `E01.CROSSWALK`.
 Each package batch is the fixed set of `PKGnn-*` IDs in the ledger and closes
 only after every row has inspected source/test integration, implementation
@@ -121,6 +144,28 @@ reimplementing it.
 
 These cards are ready to refine after the E01 requirement and split crosswalk;
 they do not authorize native qualification.
+
+#### M1.G4_CDL_E_FAILURE_DISPOSITION — inspect the frozen four-element miss
+
+- **Requirements:** `PKG05-024`, G4 profile/covariance criteria.
+- **Dependencies:** finish `E01.PKG05` and the G4 gate crosswalk; retain the
+  frozen protocol/result and independent ETSI fixture identities.
+- **Current evidence:** result artifact
+  `docs/research/results/g4-cdl-four-element-covariance-frozen-execution-20261109.json`;
+  frozen seed 6714, 8,192 draws/profile, CDL-E `Re(C[0,1])` absolute error
+  0.0135743014 and half-width 0.0129694116. The deterministic ray oracle passes
+  Hermitian/unit-diagonal/PSD checks. A larger post-hoc diagnostic is
+  inadmissible to replace this failure.
+- **Deliverable:** a source-level independent derivation review of the ray
+  angle coupling, phase/sign convention, power normalization, LOS/diffuse
+  composition and claim extraction, with a documented defect/no-defect/unclear
+  disposition. Do not change the frozen result or thresholds. If the cause is
+  not identifiable from retained evidence, leave the failure unresolved and
+  define a separately preregistered fresh-seed protocol as a later task.
+- **Verification:** dependency-light oracle checks plus a reproducible
+  calculation from the retained claim; no Sionna/native rerun in this card.
+- **Exit:** either a specific source defect and a separately versioned fix, or
+  a documented unresolved statistical miss with evidence for the next protocol.
 
 #### M1.SCENE_FAMILY_REGISTRY — connect planned scene families to split candidates
 

@@ -1,6 +1,6 @@
 {
   "schema": "loslab.requirement-ledger.v1",
-  "status_note": "Traceability index covering all 182 backlog IDs, 104 numbered unified-plan criteria, and 30 dataset/research gate or phase records. Source audits are complete for PKG00-04 and selected PKG05 rows (PKG05-001/002/003/004/005/007/008/009/010/016). Other PKG05 scientific/source audits and later batches remain open. Checked plan boxes are preserved as source marks, never treated as implementation or scientific qualification. Feature-map heuristics do not determine ledger status.",
+  "status_note": "Traceability index covering all 182 backlog IDs, 104 numbered unified-plan criteria, and 30 dataset/research gate or phase records. Source audits are complete for PKG00-05. PKG05 rows 001/002/003/004/005/007/008/009/010/011/012/013/014/016/017/018/019/020/021/022/023/024/025 have bounded dispositions; 006/015/026 remain partial aggregate G4 scope. PKG06-001/002 are source-audited; focused slices pass (13 and 61 tests respectively); remaining package/gate audits stay open. Checked plan boxes are preserved as source marks, never treated as implementation or scientific qualification. Feature-map heuristics do not determine ledger status.",
   "source_checkpoint": "42e9d08 baseline; E00 37cc827; queue fb49282; PKG01 12eebb5; criterion ledger 9681d19; PKG03 f3e5faf; PKG04 G3 audit ba34d1f",
   "requirements": [
     {
@@ -6879,7 +6879,7 @@
       "closure": {
         "deliverable": "Retain the preregistered G4.10 finite physical dual-cross handheld covariance result and its exact seed/source identities.",
         "pass_rule": "The retained result reports all 10 cases and all 3,200 simultaneous claims passing under the frozen protocol. Broader G4 remains unqualified.",
-        "next_task": "E01.PKG05"
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -6923,7 +6923,7 @@
       "closure": {
         "deliverable": "Source-audited implementation and focused software verification for the bounded contract; scientific qualification remains separately gated.",
         "pass_rule": "Focused software contract tests pass and implementation/evidence paths are present. Do not infer G4 or G3 qualification from these checks.",
-        "next_task": "E01.PKG05"
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -6966,7 +6966,7 @@
       "closure": {
         "deliverable": "Source-audited implementation and focused software verification for the bounded contract; scientific qualification remains separately gated.",
         "pass_rule": "Focused software contract tests pass and implementation/evidence paths are present. Do not infer G4 or G3 qualification from these checks.",
-        "next_task": "E01.PKG05"
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -7010,7 +7010,7 @@
       "closure": {
         "deliverable": "Source-audited implementation and focused software verification for the bounded contract; scientific qualification remains separately gated.",
         "pass_rule": "Focused software contract tests pass and implementation/evidence paths are present. Do not infer G4 or G3 qualification from these checks.",
-        "next_task": "E01.PKG05"
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -7056,7 +7056,7 @@
       "closure": {
         "deliverable": "Source-audited implementation and focused software verification for the bounded contract; scientific qualification remains separately gated.",
         "pass_rule": "Focused software contract tests pass and implementation/evidence paths are present. Do not infer G4 or G3 qualification from these checks.",
-        "next_task": "E01.PKG05"
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -7070,30 +7070,49 @@
       ],
       "requirement": "Inventory each remaining G4 gate against existing native checks and implement only genuine gaps: hash-pinned tables, tap/delay/power and LOS partition, angular geometry, array/orientation, polarization, covariance, circularity, and temporal evolution. The frozen CDL joint delay/four-angle characteristic and fixed-TDL Rayleigh properness have pinned-reference native regression definitions; scalable TDL-A–E first-tap covariance and scalable/fixed TDL Doppler expectation inputs now come from independent ETSI component fixtures rather than adapter metadata. Scalable TDL-A–E now retain a source-bound three-lag Jakes temporal covariance native pass across all 95 ETSI-labeled Rayleigh taps (570 simultaneous coordinates), with a worst simultaneous bound of 0.02587134 versus 0.05 (`docs/research/results/g4-scalable-tdl-temporal-covariance-native-validation-20261109.json`). Fixed TDL A10/A30/B100/C60/C300/D10/D30 retain the matching 82-Rayleigh-tap/492-coordinate pass with a worst bound of 0.02634302 (`docs/research/results/g4-fixed-tdl-temporal-covariance-native-validation-20261109.json`). Their fresh seed audits cover 2,282 and 2,280 saved JSON/JSON.GZ files respectively. A scalable-TDL proper-complex protocol covers every ETSI-labeled Rayleigh tap outside the merged TDL-D/E LOS tap. A fixed-TDL-D10/D30 first-tap Rician marginal scorer and native regression derive the noncentral-chi-square reference from the byte-pinned ETSI component fixture. The 2026-11-09 fresh seed audit (`docs/research/G4_FIXED_TDL_RICIAN_MARGINAL_SEED_AUDIT_2026-11-09.json`) is clear within 2,279 scanned JSON/JSON.GZ files for seeds 1,880,010–1,880,011, without claiming global exclusivity. The focused portable plus native slice passes 12/12 tests, and the frozen 32,768-draw/profile rerun passes both profiles: D10 simultaneous CDF upper bound 0.01342599 and D30 0.01558082 versus the unchanged 0.05 ceiling. The retained result is `docs/research/results/g4-fixed-tdl-rician-marginal-native-validation-20261109.json`. This closes only the declared first-tap marginal family; fixed and scalable TDL temporal-covariance and Doppler-spectrum families now also have retained bounded native passes, while broader spatial/delay-angle/configuration coverage, measured/RT, receiver, and overall G4 qualification questions remain open.",
       "scope": {
-        "status": "unreviewed",
+        "status": "mandatory",
         "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "authority_basis": "This is an explicit G4 implementation/inventory requirement; status below separates finite retained subfamilies from remaining scope."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "evaluation/g4_tdl_profile_reference.py",
+          "evaluation/g4_tdl_rician_marginal.py",
+          "tests/test_integrations/test_g4_cdl_joint_angular_characteristic_native.py",
+          "tests/test_integrations/test_g4_fixed_tdl_complex_circularity_native.py",
+          "tests/test_integrations/test_g4_scalable_tdl_temporal_reference_native.py",
+          "tests/test_integrations/test_g4_fixed_tdl_temporal_reference_native.py",
+          "tests/test_integrations/test_g4_fixed_tdl_doppler_spectrum_native.py",
+          "tests/test_integrations/test_g4_scalable_tdl_doppler_spectrum_native.py",
+          "tests/test_integrations/test_g4_fixed_tdl_rician_marginal_native.py",
+          "docs/research/results/g4-scalable-tdl-temporal-covariance-native-validation-20261109.json",
+          "docs/research/results/g4-fixed-tdl-temporal-covariance-native-validation-20261109.json",
+          "docs/research/results/g4-scalable-tdl-doppler-spectrum-native-validation-20261109.json",
+          "docs/research/results/g4-fixed-tdl-doppler-spectrum-native-validation-20261109.json",
+          "docs/research/results/g4-fixed-tdl-rician-marginal-native-validation-20261109.json"
+        ],
+        "basis": "Several source-bound finite subfamilies (TDL temporal covariance, Doppler, properness and fixed-D first-tap Rician marginal) have retained bounded passes. The named inventory is incomplete: CDL angular/array/covariance failures and broader native/measured/RT/receiver gaps remain; implementation state is partial."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "incomplete",
+        "command": "Source/result inventory audit against the listed retained artifacts; no additional native family was executed during this implementation turn.",
+        "commit": "Historical result artifacts retain their own source, protocol, seed-audit and commit identities."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Some finite subfamilies pass within scope. This aggregate requirement is not qualified; see the listed frozen results and preserved CDL-E failure."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Additional independently justified mandatory G4 cases and any measured/RT/receiver evidence must be defined from the governing scope; do not extend arbitrary configurations without a finite rationale."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Finite source-audited inventory of retained G4 checks, failures and unsupported/untested scope.",
+        "pass_rule": "Retain frozen failures; do not infer overall G4 from accumulated finite passes. Any proposed additional family must name an original requirement and a justified finite applicability envelope.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -7136,7 +7155,7 @@
       "closure": {
         "deliverable": "Source-audited implementation and focused software verification for the bounded contract; scientific qualification remains separately gated.",
         "pass_rule": "Focused software contract tests pass and implementation/evidence paths are present. Do not infer G4 or G3 qualification from these checks.",
-        "next_task": "E01.PKG05"
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -7178,7 +7197,7 @@
       "closure": {
         "deliverable": "Source-audited implementation and focused software verification for the bounded contract; scientific qualification remains separately gated.",
         "pass_rule": "Focused software contract tests pass and implementation/evidence paths are present. Do not infer G4 or G3 qualification from these checks.",
-        "next_task": "E01.PKG05"
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -7222,7 +7241,7 @@
       "closure": {
         "deliverable": "Source-audited implementation and focused software verification for the bounded contract; scientific qualification remains separately gated.",
         "pass_rule": "Focused software contract tests pass and implementation/evidence paths are present. Do not infer G4 or G3 qualification from these checks.",
-        "next_task": "E01.PKG05"
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -7266,7 +7285,7 @@
       "closure": {
         "deliverable": "Source-audited implementation and focused software verification for the bounded contract; scientific qualification remains separately gated.",
         "pass_rule": "Focused software contract tests pass and implementation/evidence paths are present. Do not infer G4 or G3 qualification from these checks.",
-        "next_task": "E01.PKG05"
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -7280,30 +7299,40 @@
       ],
       "requirement": "Pin exact ETSI source identities for TR 38.901 v16.1.0/v19.2.0 and TS 38.101-4 v19.2.2 without checking the PDFs into the repository; provide a bounded exact-byte audit CLI and strict schemas for the manifest and audit report. Regression definitions cover every declared profile version, valid bytes, tampering, missing/unsafe files, duplicate JSON keys, unknown fields, schema conformance, and the nonqualifying report status. The hash pin proves source-file identity only; independent table extraction/comparison and statistical conformance remain open.",
       "scope": {
-        "status": "unreviewed",
+        "status": "mandatory",
         "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "authority_basis": "The backlog requirement is explicit. The recorded scope closes the software/reference contract and leaves normative byte custody and native qualification as separate evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "scripts/audit_g4_standard_references.py",
+          "datasets/schema/g4-standard-reference-manifest.v1.schema.json",
+          "datasets/schema/g4-standard-reference-audit.v1.schema.json",
+          "docs/research/G4_STANDARD_REFERENCE_MANIFEST_2026-10-26.json",
+          "tests/test_scripts/test_audit_g4_standard_references.py"
+        ],
+        "basis": "Exact-byte audit CLI and strict manifest/audit schemas are implemented and covered by valid, tamper, missing, unsafe-file, duplicate-key, unknown-field and nonqualifying-report regressions. No ETSI PDF is stored in this repo; real source-byte auditing still requires the user-sourced reference files."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_scripts/test_audit_g4_standard_references.py tests/test_evaluation/test_g4_tdl_profile_reference.py tests/test_integrations/test_g4_tdl_fixed_profile_scalar_reference_native.py::test_fixed_tdl_scalar_reference_is_bound_to_the_pinned_etsi_source tests/test_integrations/test_g4_tdl_fixed_profile_scalar_reference_native.py::test_fixed_tdl_tap_summary_reference_is_bound_to_the_pinned_etsi_source tests/test_integrations/test_g4_tdl_fixed_profile_scalar_reference_native.py::test_fixed_tdl_per_tap_reference_is_bound_to_the_pinned_etsi_source tests/test_integrations/test_g4_tdl_los_k_factor_reference_native.py::test_fixed_tdl_los_k_factor_reference_is_source_bound_and_recomputable tests/test_integrations/test_tdl_adapter_contract.py::test_standardized_adapters_reject_boolean_and_nonreal_physical_inputs tests/test_integrations/test_tdl_adapter_contract.py::test_cdl_array_spacing_rejects_boolean_values",
+        "commit": "working tree based on 65fac21"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "External ETSI PDFs are not present; this source audit verified identity-manifest and fixture behavior, not external PDF bytes."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "External ETSI PDFs are not present; this source audit verified identity-manifest and fixture behavior, not external PDF bytes."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "The specified bounded software/source-reference contract is implemented and its selected deterministic checks pass.",
+        "pass_rule": "Do not convert source fixture consistency to actual normative PDF byte verification, native G4 qualification, or overall G4 qualification.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -7317,30 +7346,41 @@
       ],
       "requirement": "Add independent TS 38.101-4 Annex B RMS-delay-spread scalar, tap-summary, and per-component delay/power/fading references for fixed TDL A10/A30/B100/C60/C300/D10/D30, bind them to the exact pinned PDF digest, and define native Sionna checks for RMS spread, LOS-component status, tap count, maximum excess delay, delay lattice, and per-cluster delay/power. Regression definitions are pending consolidated validation; they do not qualify fading statistics, LOS K-factor, or temporal behavior.",
       "scope": {
-        "status": "unreviewed",
+        "status": "mandatory",
         "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "authority_basis": "The backlog requirement is explicit. The recorded scope closes the software/reference contract and leaves normative byte custody and native qualification as separate evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/g4_tdl_profile_reference.py",
+          "docs/research/G4_FIXED_TDL_RMS_REFERENCE_2026-10-26.json",
+          "docs/research/G4_FIXED_TDL_TAP_SUMMARY_REFERENCE_2026-10-26.json",
+          "docs/research/G4_FIXED_TDL_TAP_PROFILE_REFERENCE_2026-10-26.json",
+          "tests/test_evaluation/test_g4_tdl_profile_reference.py",
+          "tests/test_integrations/test_g4_tdl_fixed_profile_scalar_reference_native.py"
+        ],
+        "basis": "Fixed-TDL RMS scalar, tap-summary and per-component references are digest-bound to the pinned TS 38.101-4 identity; pure-reference checks pass. Native Sionna checks are authored but were intentionally not run in this bounded software audit."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_scripts/test_audit_g4_standard_references.py tests/test_evaluation/test_g4_tdl_profile_reference.py tests/test_integrations/test_g4_tdl_fixed_profile_scalar_reference_native.py::test_fixed_tdl_scalar_reference_is_bound_to_the_pinned_etsi_source tests/test_integrations/test_g4_tdl_fixed_profile_scalar_reference_native.py::test_fixed_tdl_tap_summary_reference_is_bound_to_the_pinned_etsi_source tests/test_integrations/test_g4_tdl_fixed_profile_scalar_reference_native.py::test_fixed_tdl_per_tap_reference_is_bound_to_the_pinned_etsi_source tests/test_integrations/test_g4_tdl_los_k_factor_reference_native.py::test_fixed_tdl_los_k_factor_reference_is_source_bound_and_recomputable tests/test_integrations/test_tdl_adapter_contract.py::test_standardized_adapters_reject_boolean_and_nonreal_physical_inputs tests/test_integrations/test_tdl_adapter_contract.py::test_cdl_array_spacing_rejects_boolean_values",
+        "commit": "working tree based on 65fac21"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Exact local ETSI PDF byte audit remains external; native Sionna parameter checks were not run in this task."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Exact local ETSI PDF byte audit remains external; native Sionna parameter checks were not run in this task."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "The specified bounded software/source-reference contract is implemented and its selected deterministic checks pass.",
+        "pass_rule": "Do not convert source fixture consistency to actual normative PDF byte verification, native G4 qualification, or overall G4 qualification.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -7354,30 +7394,39 @@
       ],
       "requirement": "Derive fixed TDL-D10/D30 LOS K-factor expectations from the separately listed Annex B LOS and Rayleigh component powers, with exact ETSI-source and component-fixture digest binding and a tolerance derived from the table's 0.1 dB rounding. A CPU source/formula/schema test passes; two native Sionna parameter checks are authored but skip in this Torch/Sionna-free environment. This does not qualify the Rician fading law or broader G4 behavior.",
       "scope": {
-        "status": "unreviewed",
+        "status": "mandatory",
         "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "authority_basis": "The backlog requirement is explicit. The recorded scope closes the software/reference contract and leaves normative byte custody and native qualification as separate evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/g4_tdl_rician_marginal.py",
+          "docs/research/G4_FIXED_TDL_LOS_K_FACTOR_REFERENCE_2026-10-26.json",
+          "docs/research/G4_FIXED_TDL_TAP_PROFILE_REFERENCE_2026-10-26.json",
+          "tests/test_integrations/test_g4_tdl_los_k_factor_reference_native.py"
+        ],
+        "basis": "Fixed D10/D30 LOS K-factor references are recomputed from separate LOS and Rayleigh component rows and bound to the ETSI identity and component fixture; the CPU formula/schema test passes. Native Sionna parameter checks were not run in this task."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_scripts/test_audit_g4_standard_references.py tests/test_evaluation/test_g4_tdl_profile_reference.py tests/test_integrations/test_g4_tdl_fixed_profile_scalar_reference_native.py::test_fixed_tdl_scalar_reference_is_bound_to_the_pinned_etsi_source tests/test_integrations/test_g4_tdl_fixed_profile_scalar_reference_native.py::test_fixed_tdl_tap_summary_reference_is_bound_to_the_pinned_etsi_source tests/test_integrations/test_g4_tdl_fixed_profile_scalar_reference_native.py::test_fixed_tdl_per_tap_reference_is_bound_to_the_pinned_etsi_source tests/test_integrations/test_g4_tdl_los_k_factor_reference_native.py::test_fixed_tdl_los_k_factor_reference_is_source_bound_and_recomputable tests/test_integrations/test_tdl_adapter_contract.py::test_standardized_adapters_reject_boolean_and_nonreal_physical_inputs tests/test_integrations/test_tdl_adapter_contract.py::test_cdl_array_spacing_rejects_boolean_values",
+        "commit": "working tree based on 65fac21"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Exact local ETSI PDF byte audit remains external; native Sionna parameter checks were not run in this task."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Exact local ETSI PDF byte audit remains external; native Sionna parameter checks were not run in this task."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "The specified bounded software/source-reference contract is implemented and its selected deterministic checks pass.",
+        "pass_rule": "Do not convert source fixture consistency to actual normative PDF byte verification, native G4 qualification, or overall G4 qualification.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -7391,30 +7440,38 @@
       ],
       "requirement": "Reject Boolean and non-real physical scalar inputs at the TDL/CDL adapter boundary, including frequency, delay, speed, orientation, and array-spacing values; add dependency-isolated regression definitions. This is API validation only; checks remain deferred.",
       "scope": {
-        "status": "unreviewed",
+        "status": "mandatory",
         "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "authority_basis": "The backlog requirement is explicit. The recorded scope closes the software/reference contract and leaves normative byte custody and native qualification as separate evidence."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/tdl.py",
+          "integrations/sionna/cdl.py",
+          "tests/test_integrations/test_tdl_adapter_contract.py",
+          "tests/test_integrations/test_tdl_contract.py",
+          "tests/test_integrations/test_cdl_contract.py"
+        ],
+        "basis": "Both adapters reject Boolean/non-real/non-finite physical scalars and vector components; CDL panel spacing and handheld geometry fields apply matching validation. Focused regressions pass."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_scripts/test_audit_g4_standard_references.py tests/test_evaluation/test_g4_tdl_profile_reference.py tests/test_integrations/test_g4_tdl_fixed_profile_scalar_reference_native.py::test_fixed_tdl_scalar_reference_is_bound_to_the_pinned_etsi_source tests/test_integrations/test_g4_tdl_fixed_profile_scalar_reference_native.py::test_fixed_tdl_tap_summary_reference_is_bound_to_the_pinned_etsi_source tests/test_integrations/test_g4_tdl_fixed_profile_scalar_reference_native.py::test_fixed_tdl_per_tap_reference_is_bound_to_the_pinned_etsi_source tests/test_integrations/test_g4_tdl_los_k_factor_reference_native.py::test_fixed_tdl_los_k_factor_reference_is_source_bound_and_recomputable tests/test_integrations/test_tdl_adapter_contract.py::test_standardized_adapters_reject_boolean_and_nonreal_physical_inputs tests/test_integrations/test_tdl_adapter_contract.py::test_cdl_array_spacing_rejects_boolean_values",
+        "commit": "working tree based on 65fac21"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Input validation is API contract behavior; no G4 statistical qualification is implied."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "The specified bounded software/source-reference contract is implemented and its selected deterministic checks pass.",
+        "pass_rule": "Do not convert source fixture consistency to actual normative PDF byte verification, native G4 qualification, or overall G4 qualification.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -7428,30 +7485,45 @@
       ],
       "requirement": "Complete confidence-controlled tests for remaining profile/configuration/topology combinations and criteria at the gate's required statistical unit; do not mistake deterministic table checks or helper self-consistency for a population qualification. Frozen software protocols include fixed-TDL proper-complex, temporal covariance, and Doppler-spectrum CDF checks; scalable TDL temporal covariance and a scalable TDL Doppler-spectrum CDF family are also defined. The fixed-TDL proper-complex native cohort passes all seven profiles, fixed-TDL temporal covariance passes all seven profiles across 492 simultaneous coordinates, scalable TDL proper-complex passes A–E, and scalable TDL temporal covariance now passes A–E across 570 simultaneous coordinates, all with audited seed rosters. The shared Doppler estimator's four portable cases pass. The fixed-TDL Doppler family retains all seven profile cases and all 49 simultaneous CDF claims as passes, with a worst `absolute_error + half_width` of 0.00483443 (`docs/research/results/g4-fixed-tdl-doppler-spectrum-native-validation-20261109.json`); the scalable TDL Doppler family now retains all five profile cases and all 35 claims as passes, with a worst bound of 0.00317472 (`docs/research/results/g4-scalable-tdl-doppler-spectrum-native-validation-20261109.json`). Both use the unchanged frozen 0.05 ceiling and independent ETSI-derived tap rosters. A bounded fixed-TDL-D Rician first-tap marginal family is also defined against separate ETSI LOS/diffuse component powers; its portable/native focused slice passes 12/12 tests and the retained frozen D10/D30 run passes both simultaneous DKW criteria. Broader native statistical families remain deferred and G4 qualification remains open.",
       "scope": {
-        "status": "unreviewed",
+        "status": "mandatory",
         "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "authority_basis": "This is an explicit G4 implementation/inventory requirement; status below separates finite retained subfamilies from remaining scope."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "tests/test_integrations/test_g4_fixed_tdl_complex_circularity_native.py",
+          "tests/test_integrations/test_g4_scalable_tdl_complex_circularity_native.py",
+          "tests/test_integrations/test_g4_scalable_tdl_temporal_reference_native.py",
+          "tests/test_integrations/test_g4_fixed_tdl_temporal_reference_native.py",
+          "tests/test_integrations/test_g4_fixed_tdl_doppler_spectrum_native.py",
+          "tests/test_integrations/test_g4_scalable_tdl_doppler_spectrum_native.py",
+          "docs/research/results/g4-fixed-tdl-doppler-spectrum-native-validation-20261109.json",
+          "docs/research/results/g4-scalable-tdl-doppler-spectrum-native-validation-20261109.json",
+          "docs/research/results/g4-scalable-tdl-temporal-covariance-native-validation-20261109.json",
+          "docs/research/results/g4-fixed-tdl-temporal-covariance-native-validation-20261109.json"
+        ],
+        "basis": "Confidence-controlled finite TDL statistical families have retained passes, but not every required profile/configuration/topology/observable combination is covered. This broad cross-family completion criterion remains partial and does not qualify overall G4."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "incomplete",
+        "command": "Source/result inventory audit against the listed retained artifacts; no additional native family was executed during this implementation turn.",
+        "commit": "Historical result artifacts retain their own source, protocol, seed-audit and commit identities."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Some finite subfamilies pass within scope. This aggregate requirement is not qualified; see the listed frozen results and preserved CDL-E failure."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Additional independently justified mandatory G4 cases and any measured/RT/receiver evidence must be defined from the governing scope; do not extend arbitrary configurations without a finite rationale."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Finite source-audited inventory of retained G4 checks, failures and unsupported/untested scope.",
+        "pass_rule": "Retain frozen failures; do not infer overall G4 from accumulated finite passes. Any proposed additional family must name an original requirement and a justified finite applicability envelope.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -7495,7 +7567,7 @@
       "closure": {
         "deliverable": "Source-audited implementation and focused software verification for the bounded contract; scientific qualification remains separately gated.",
         "pass_rule": "Focused software contract tests pass and implementation/evidence paths are present. Do not infer G4 or G3 qualification from these checks.",
-        "next_task": "E01.PKG05"
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -7509,30 +7581,37 @@
       ],
       "requirement": "Add an independent, source-hash-bound compact scalar reference for CDL-A–E LOS status, component/output-cluster counts, normalized delay summary, angle spreads, XPR, and LOS K factor; CPU regression definitions compare adapter metadata against it. This closes only selected CDL table-metadata scalars. Independent per-tap CDL references and normative covariance/temporal references, plus statistical qualification, remain open.",
       "scope": {
-        "status": "unreviewed",
+        "status": "mandatory",
         "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "authority_basis": "The backlog requirement names a finite, preregistered implementation-consistency family; closure is restricted to its pinned profiles, seed, draw count and stated observable."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/cdl.py",
+          "docs/research/G4_CDL_PROFILE_SCALAR_REFERENCE_2026-10-26.json",
+          "tests/test_integrations/test_g4_cdl_profile_scalar_reference_contract.py",
+          "tests/test_integrations/test_g4_cdl_profile_scalar_reference_native.py"
+        ],
+        "basis": "Independent CDL-A–E scalar profile reference is bound to the ETSI source identity and checked against adapter metadata; portable schema/identity contracts pass. This is selected deterministic metadata evidence only."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_integrations/test_g4_cdl_profile_scalar_reference_contract.py tests/test_evaluation/test_g4_tdl_profile_reference.py",
+        "commit": "working tree based on 65fac21; 22 passed"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Portable scalar/schema checks validate source binding and adapter metadata only; they do not establish statistical profile conformance."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Retain source-independent expected values and bounded profile verification for the named finite cases.",
+        "pass_rule": "Evidence applies only to the declared metadata or finite PDP/RMS family; it does not qualify overall G4, measured/RT truth, receiver impact or production D1.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -7546,30 +7625,37 @@
       ],
       "requirement": "Make the CDL-A–E draw-level ensemble PDP/RMS confidence regression compare empirical channel draws against powers and delays independently recomputed from the exact-digest-pinned ETSI per-cluster reference. Merge specular and diffuse source power by cluster index so CDL-D/E first-cluster expectations match the standardized LOS/diffuse composition. On 2026-11-09 the unchanged seed-7311, 4,096-draw/case, `z=3.5` selection was re-executed after a fresh 2,286-file seed audit; all five CDL cases pass and their claim-level evidence is retained within `docs/research/results/g4-pdp-rms-native-validation-20261109.json`. This remains bounded standardized-model consistency evidence; no new cross-profile family-wise criterion or precision cap is claimed and G4 remains open.",
       "scope": {
-        "status": "unreviewed",
+        "status": "mandatory",
         "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "authority_basis": "The backlog requirement names a finite, preregistered implementation-consistency family; closure is restricted to its pinned profiles, seed, draw count and stated observable."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "tests/test_integrations/test_g4_statistical_confidence_native.py",
+          "docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json",
+          "docs/research/results/g4-pdp-rms-native-validation-20261109.json"
+        ],
+        "basis": "The retained draw-level confidence run compares CDL-A–E outputs to independent ETSI cluster powers/delays, merging D/E LOS and diffuse first-cluster power; all five CDL cases pass within the fixed seed/draw protocol."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "Retained frozen native result: docs/research/results/g4-pdp-rms-native-validation-20261109.json; seed 7311, 4096 independent draws/case, z=3.5; no native rerun in this audit.",
+        "commit": "Retained result SHA-256 9c364450c52d6117d3224d1cd7ca921cedddf27ca173e5196d0637f5a09c243e"
       },
       "qualification": {
-        "status": "not_qualified",
-        "evidence": []
+        "status": "qualified_within_scope",
+        "evidence": [
+          "docs/research/results/g4-pdp-rms-native-validation-20261109.json",
+          "PASS_WITHIN_BOUNDED_PROTOCOL_SCOPE; limited to the named profile cases and draw-level PDP/RMS observables. No new family-wise guarantee or precision cap; overall G4 remains open."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Retain source-independent expected values and bounded profile verification for the named finite cases.",
+        "pass_rule": "Evidence applies only to the declared metadata or finite PDP/RMS family; it does not qualify overall G4, measured/RT truth, receiver impact or production D1.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -7583,30 +7669,39 @@
       ],
       "requirement": "Remove fixed-TDL self-reference from the draw-level PDP/RMS confidence regression. Its fixed A10/A30/B100/C60/C300/D10/D30 expected tap powers and absolute delays come from the exact-digest-pinned TS 38.101-4 per-tap fixture; fixed D LOS and diffuse rows are merged by normative tap index before normalization. The dependency-light reference module passes 17 tests. On 2026-11-09 the unchanged native seed-7311, 4,096-draw/case, `z=3.5` confidence selection was re-executed after a fresh 2,286-file seed audit; all seven fixed-TDL cases pass and claim-level evidence is retained in `docs/research/results/g4-pdp-rms-native-validation-20261109.json`. Broader G4 qualification remains open.",
       "scope": {
-        "status": "unreviewed",
+        "status": "mandatory",
         "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "authority_basis": "The backlog requirement names a finite, preregistered implementation-consistency family; closure is restricted to its pinned profiles, seed, draw count and stated observable."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "evaluation/g4_tdl_profile_reference.py",
+          "tests/test_evaluation/test_g4_tdl_profile_reference.py",
+          "tests/test_integrations/test_g4_statistical_confidence_native.py",
+          "docs/research/G4_FIXED_TDL_TAP_PROFILE_REFERENCE_2026-10-26.json",
+          "docs/research/results/g4-pdp-rms-native-validation-20261109.json"
+        ],
+        "basis": "Fixed TDL expectations come from the ETSI component fixture, with D LOS/diffuse rows merged at tap index. The retained result reports all seven fixed-profile cases passing; reference helper tests pass."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "Retained frozen native result: docs/research/results/g4-pdp-rms-native-validation-20261109.json; seed 7311, 4096 independent draws/case, z=3.5; no native rerun in this audit.",
+        "commit": "Retained result SHA-256 9c364450c52d6117d3224d1cd7ca921cedddf27ca173e5196d0637f5a09c243e"
       },
       "qualification": {
-        "status": "not_qualified",
-        "evidence": []
+        "status": "qualified_within_scope",
+        "evidence": [
+          "docs/research/results/g4-pdp-rms-native-validation-20261109.json",
+          "PASS_WITHIN_BOUNDED_PROTOCOL_SCOPE; limited to the named profile cases and draw-level PDP/RMS observables. No new family-wise guarantee or precision cap; overall G4 remains open."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Retain source-independent expected values and bounded profile verification for the named finite cases.",
+        "pass_rule": "Evidence applies only to the declared metadata or finite PDP/RMS family; it does not qualify overall G4, measured/RT truth, receiver impact or production D1.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -7620,30 +7715,39 @@
       ],
       "requirement": "Rebase the all-profile dual-VH CDL polarization power regressions on the byte-pinned ETSI per-cluster and scalar reference fixtures for nominal XPR, LOS K factor, cluster powers/angles, and angular spreads. Sionna's packaged table digest remains checked only as implementation provenance. On 2026-11-09 a fresh pre-run audit cleared every seed value used by the file within 2,287 saved artifacts, and the unchanged native suite passed 15/15 cases. Claim-level retention covers the pre-existing 12-claim NLOS XPR family, 2-claim LOS aggregate family, and 40-claim rotated-plus-aligned LOS family: all 54 intervals and all 54 precision checks pass, with a maximum precision-cap utilization of 0.886388. Evidence: `docs/research/results/g4-cdl-dual-vh-polarization-power-native-validation-20261109.json`. This does not qualify arbitrary antenna patterns/arrays, continuous orientations, coupling, measured/RT truth, or overall G4.",
       "scope": {
-        "status": "unreviewed",
+        "status": "mandatory",
         "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "authority_basis": "The backlog defines a finite source-bound regression family. Closure is restricted to the retained protocol's profile, array/pattern, orientation, draw and observable envelope."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/cdl.py",
+          "tests/test_integrations/test_g4_cdl_dual_polarization_power_matrix_native.py",
+          "docs/research/G4_CDL_PROFILE_SCALAR_REFERENCE_2026-10-26.json",
+          "docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json",
+          "docs/research/results/g4-cdl-dual-vh-polarization-power-native-validation-20261109.json"
+        ],
+        "basis": "The declared finite independent-reference/native regression implementation and retained result artifact are present. This only closes the named bounded family."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "Retained frozen native evidence: docs/research/results/g4-cdl-dual-vh-polarization-power-native-validation-20261109.json; no native rerun during the current source audit.",
+        "commit": "The result artifact retains its historical base commit, source identities, seed audit and frozen criteria."
       },
       "qualification": {
-        "status": "not_qualified",
-        "evidence": []
+        "status": "qualified_within_scope",
+        "evidence": [
+          "docs/research/results/g4-cdl-dual-vh-polarization-power-native-validation-20261109.json",
+          "PASS_WITHIN_BOUNDED_PROTOCOL_SCOPE; 15 retained native cases and the documented 54 claim/precision checks pass. The result is finite dual-VH power evidence, not arbitrary-pattern or overall G4 qualification."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Source-audited, claim-level disposition of the named finite regression family.",
+        "pass_rule": "Retain any frozen failure unchanged. Bounded passes do not close overall G4 or measured/RT/receiver validation.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -7657,30 +7761,37 @@
       ],
       "requirement": "Rebase the all-profile four-angle sector-power confidence regression on the byte-pinned ETSI per-cluster delays/powers/angles/spreads and independent LOS K-factor reference. Sionna's packaged-table digest remains implementation provenance only. On 2026-11-09 a fresh audit cleared seeds 239165–239169 within 2,288 saved artifacts; the unchanged 8,192-draw/profile native family passed 5/5 profile cases. Claim-level evidence retains the three original families separately: 80 sector-marginal, 12,000 pairwise diffuse rank, and 1,280 four-angle rank-bin claims, with every interval and precision check passing. The four-angle worst half-width is 0.00030415 versus the unchanged 0.001 ceiling. Evidence: `docs/research/results/g4-cdl-angular-power-native-validation-20261109.json`. This finite family does not qualify the complete continuous angular law, arbitrary antenna configurations, measured/RT truth, or overall G4.",
       "scope": {
-        "status": "unreviewed",
+        "status": "mandatory",
         "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "authority_basis": "The backlog defines a finite source-bound regression family. Closure is restricted to the retained protocol's profile, array/pattern, orientation, draw and observable envelope."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "tests/test_integrations/test_g4_cdl_angular_power_confidence_native.py",
+          "docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json",
+          "docs/research/results/g4-cdl-angular-power-native-validation-20261109.json"
+        ],
+        "basis": "The declared finite independent-reference/native regression implementation and retained result artifact are present. This only closes the named bounded family."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "Retained frozen native evidence: docs/research/results/g4-cdl-angular-power-native-validation-20261109.json; no native rerun during the current source audit.",
+        "commit": "The result artifact retains its historical base commit, source identities, seed audit and frozen criteria."
       },
       "qualification": {
-        "status": "not_qualified",
-        "evidence": []
+        "status": "qualified_within_scope",
+        "evidence": [
+          "docs/research/results/g4-cdl-angular-power-native-validation-20261109.json",
+          "PASS_WITHIN_BOUNDED_PROTOCOL_SCOPE for the frozen 8,192-draw/profile, finite four-angle sector-power and rank claims. Full continuous angular-law and overall G4 qualification remain unproven."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Source-audited, claim-level disposition of the named finite regression family.",
+        "pass_rule": "Retain any frozen failure unchanged. Bounded passes do not close overall G4 or measured/RT/receiver validation.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -7694,30 +7805,38 @@
       ],
       "requirement": "Rebase the CDL directional-element and dual-end antenna-pattern power regressions on byte-pinned ETSI cluster delay/power/angle/spread rows and the independent LOS K-factor reference. Preserve the existing Table 7.3 antenna gain law, orientation grid, familywise uncertainty, precision limits, and packaged Sionna table digest as system-under-test provenance only. The clean-commit 2026-11-01 retained run passes all 70 cases and all 1,358 cluster claims under the frozen criteria (`docs/research/results/g4-cdl-directional-pattern-power-result-20261101.json`); this remains finite pattern/orientation evidence rather than broad G4 qualification.",
       "scope": {
-        "status": "unreviewed",
+        "status": "mandatory",
         "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "authority_basis": "The backlog defines a finite source-bound regression family. Closure is restricted to the retained protocol's profile, array/pattern, orientation, draw and observable envelope."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "tests/test_integrations/test_g4_cdl_antenna_pattern_power_native.py",
+          "scripts/run_g4_cdl_directional_pattern_power.py",
+          "docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json",
+          "docs/research/results/g4-cdl-directional-pattern-power-result-20261101.json"
+        ],
+        "basis": "The declared finite independent-reference/native regression implementation and retained result artifact are present. This only closes the named bounded family."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "Retained frozen native evidence: docs/research/results/g4-cdl-directional-pattern-power-result-20261101.json; no native rerun during the current source audit.",
+        "commit": "The result artifact retains its historical base commit, source identities, seed audit and frozen criteria."
       },
       "qualification": {
-        "status": "not_qualified",
-        "evidence": []
+        "status": "qualified_within_scope",
+        "evidence": [
+          "docs/research/results/g4-cdl-directional-pattern-power-result-20261101.json",
+          "PASS_WITHIN_BOUNDED_PROTOCOL_SCOPE for the retained finite directional-element pattern/orientation roster (70 cases, 1,358 cluster claims); arbitrary patterns/orientations and overall G4 remain open."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Source-audited, claim-level disposition of the named finite regression family.",
+        "pass_rule": "Retain any frozen failure unchanged. Bounded passes do not close overall G4 or measured/RT/receiver validation.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -7731,30 +7850,37 @@
       ],
       "requirement": "Rebase CDL complex-pseudocovariance family accounting on the byte-pinned ETSI profile roster for output cluster counts and LOS status; the packaged profile table remains implementation provenance only. The unchanged 32,768-draw/profile, 194-coordinate family was executed on 2026-11-09 after a fresh five-seed audit cleared 2,285 saved JSON/JSON.GZ files. All 8 native tests and all 194 retained claims pass with maximum half-width 0.02237055 versus 0.05. The LOS diffuse-only decomposition remains bound to exact Sionna 2.2.0 source hashes. Claim-level evidence is in docs/research/results/g4-cdl-complex-circularity-native-validation-20261109.json; overall G4 remains open.",
       "scope": {
-        "status": "unreviewed",
+        "status": "mandatory",
         "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "authority_basis": "The backlog defines a finite source-bound regression family. Closure is restricted to the retained protocol's profile, array/pattern, orientation, draw and observable envelope."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "tests/test_integrations/test_g4_cdl_complex_circularity_native.py",
+          "docs/research/G4_CDL_PROFILE_SCALAR_REFERENCE_2026-10-26.json",
+          "docs/research/results/g4-cdl-complex-circularity-native-validation-20261109.json"
+        ],
+        "basis": "The declared finite independent-reference/native regression implementation and retained result artifact are present. This only closes the named bounded family."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "Retained frozen native evidence: docs/research/results/g4-cdl-complex-circularity-native-validation-20261109.json; no native rerun during the current source audit.",
+        "commit": "The result artifact retains its historical base commit, source identities, seed audit and frozen criteria."
       },
       "qualification": {
-        "status": "not_qualified",
-        "evidence": []
+        "status": "qualified_within_scope",
+        "evidence": [
+          "docs/research/results/g4-cdl-complex-circularity-native-validation-20261109.json",
+          "PASS_WITHIN_BOUNDED_PROTOCOL_SCOPE for the retained finite CDL output-cluster pseudocovariance roster (194 claims); it does not cover all complex channel distributions or qualify G4."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Source-audited, claim-level disposition of the named finite regression family.",
+        "pass_rule": "Retain any frozen failure unchanged. Bounded passes do not close overall G4 or measured/RT/receiver validation.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -7768,30 +7894,38 @@
       ],
       "requirement": "Extend the four-element half-wavelength receive-array covariance reference across CDL-A–E, deriving each expectation from the pinned ETSI component fixture. Diffuse ray covariance is computed profile-wise; CDL-D/E specular LOS steering is added separately using its independently transcribed angle and normalized component power. The 16-component, simultaneous 99% confidence and 0.05 normalized-power interval-width criteria remain unchanged. On 2026-11-09 the frozen native run used the pre-existing seed 6714 and 8,192 draws/profile: A–D passed their covariance families, while CDL-E failed only `Re(C[0,1])` by 0.00060489 beyond its simultaneous half-width. The unrelated metadata assertion was corrected to recognize D/E as LOS profiles. A separate post-hoc 65,536-draw E diagnostic was centered on the oracle (z≈0.52) but is not admissible to replace the frozen failure. Retained evidence is in `docs/research/results/g4-cdl-four-element-covariance-frozen-execution-20261109.json`; this branch remains statistically unresolved and G4 remains open.",
       "scope": {
-        "status": "unreviewed",
+        "status": "mandatory",
         "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "authority_basis": "The backlog defines a finite source-bound regression family. Closure is restricted to the retained protocol's profile, array/pattern, orientation, draw and observable envelope."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "tests/test_integrations/test_g4_cdl_spatial_covariance_4element_native.py",
+          "docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json",
+          "docs/research/results/g4-cdl-four-element-covariance-frozen-execution-20261109.json"
+        ],
+        "basis": "The declared finite independent-reference/native regression implementation and retained result artifact are present. This only closes the named bounded family."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "fail",
+        "command": "Retained frozen result documents FAIL; deterministic CPU oracle command: ./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_integrations/test_g4_cdl_spatial_covariance_4element_native.py::test_four_element_cdl_covariance_reference_is_hermitian_normalized_and_psd (5 passed)",
+        "commit": "working tree based on 65fac21; retained result base c011f5b"
       },
       "qualification": {
-        "status": "not_qualified",
-        "evidence": []
+        "status": "failed",
+        "evidence": [
+          "docs/research/results/g4-cdl-four-element-covariance-frozen-execution-20261109.json",
+          "FROZEN_FAILURE: the exact 8,192-draw/profile execution fails CDL-E Re(C[0,1]) by 0.00060489 beyond the simultaneous interval. A later post-hoc diagnostic is not admissible to replace this outcome; whether the failure is oracle/implementation error or stochastic miss remains unresolved.",
+          "Five deterministic CPU checks of the ETSI-derived covariance oracle pass (Hermitian, unit diagonal and PSD); they do not settle the frozen native interval miss."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Source-audited, claim-level disposition of the named finite regression family.",
+        "pass_rule": "Preserve the frozen CDL-E Re(C[0,1]) failure regardless of post-hoc diagnostics. Audit oracle/source arithmetic before proposing any fresh preregistered experiment; do not widen thresholds or overwrite the result.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -7805,30 +7939,37 @@
       ],
       "requirement": "Add an independent normative reference and confidence-controlled regression for CDL-D/E LOS dual-polarized two-element receive covariance at zero endpoint orientation. The 4-by-4 expectation combines deterministic LOS steering at K/(K+1) with ETSI-derived diffuse ray covariance at 1/(K+1). On 2026-11-09 the original seeds 1,710,000–1,710,001 and unchanged 16,384-draw/profile, 32-claim Bonferroni 99% family were retained: the fresh 2,284-file seed audit is clear, both native cases pass, and all 32 claim intervals contain their references with maximum half-width 0.01294770 versus 0.05. Claim-level evidence is in docs/research/results/g4-cdl-de-zero-orientation-covariance-native-validation-20261109.json. This does not cover rotated LOS polarization or qualify G4.",
       "scope": {
-        "status": "unreviewed",
+        "status": "mandatory",
         "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "authority_basis": "The backlog defines a finite source-bound regression family. Closure is restricted to the retained protocol's profile, array/pattern, orientation, draw and observable envelope."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "tests/test_integrations/test_g4_cdl_de_los_dual_pol_array_covariance_native.py",
+          "docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json",
+          "docs/research/results/g4-cdl-de-zero-orientation-covariance-native-validation-20261109.json"
+        ],
+        "basis": "The declared finite independent-reference/native regression implementation and retained result artifact are present. This only closes the named bounded family."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "Retained frozen native evidence: docs/research/results/g4-cdl-de-zero-orientation-covariance-native-validation-20261109.json; no native rerun during the current source audit.",
+        "commit": "The result artifact retains its historical base commit, source identities, seed audit and frozen criteria."
       },
       "qualification": {
-        "status": "not_qualified",
-        "evidence": []
+        "status": "qualified_within_scope",
+        "evidence": [
+          "docs/research/results/g4-cdl-de-zero-orientation-covariance-native-validation-20261109.json",
+          "PASS_WITHIN_BOUNDED_PROTOCOL_SCOPE for the retained CDL-D/E, zero-orientation dual-pol receive covariance family (32 claims). Rotated LOS polarization and overall G4 remain open."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Source-audited, claim-level disposition of the named finite regression family.",
+        "pass_rule": "Retain any frozen failure unchanged. Bounded passes do not close overall G4 or measured/RT/receiver validation.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -7842,30 +7983,48 @@
       ],
       "requirement": "Extend independent normative references to remaining multi-element array coupling, covariance, and temporal branches. The corrected three-orientation CDL-A/B/C dual-polarized two-element receive-covariance family passes 9/9 native cases under its frozen 144-claim, 8,192-draw design in `tests/test_integrations/test_g4_cdl_abc_rotated_dual_pol_array_covariance_native.py`; the CDL-D/E companion passes 12/12 tests (six deterministic Step-11 LOS-vector checks plus six frozen 16,384-draw statistical cases spanning 96 claims) in `tests/test_integrations/test_g4_cdl_de_rotated_los_dual_pol_array_covariance_native.py`, with the zero-orientation D/E control passing 2/2. Fresh corpus-scoped audits `docs/research/G4_SEED_ROSTER_AUDIT_2026-11-09_ROTATED_ABC.json` and `docs/research/G4_SEED_ROSTER_AUDIT_2026-11-09_ROTATED_DE.json` each scanned 2,277 files with no collision, malformed seed field, or incomplete file. The protocols `docs/research/G4_07_CDL_ABC_ROTATED_DUAL_POL_ARRAY_COVARIANCE_PROTOCOL_2026-10-26.md` and `docs/research/G4_07_CDL_DE_ROTATED_LOS_DUAL_POL_ARRAY_COVARIANCE_PROTOCOL_2026-10-26.md` record the corrected rotated-basis reference. Retained validation metadata is in docs/research/results/g4-cdl-rotated-dual-pol-covariance-validation-20261109.json. The joint two-element receive space-time covariance family additionally passes all 10 profile/velocity cases and all 80 simultaneous claims in `docs/research/results/g4-cdl-spatiotemporal-covariance-native-validation-20261109.json`. The frozen larger-topology joint TX/RX space-time family extends the same independent oracle to `(4,4)`, `(1,4)`, and `(4,1)` single-V links; all 15 profile/topology cases and all 2,880 simultaneous real/imaginary claims pass at 16,384 draws/case under the 0.05 half-width ceiling in `docs/research/results/g4-cdl-larger-topology-joint-tx-rx-spatiotemporal-covariance-native-validation-20261109.json`. The dual-TX/dual-RX companion fixes two physical dual-VH elements at each endpoint and passes all 5 profile cases and all 2,560 simultaneous claims at 16,384 draws/profile in `docs/research/results/g4-cdl-joint-tx-rx-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json`. The larger dual-TX/dual-RX companion extends the unchanged oracle to zero-oriented dual-VH physical-element topologies (4,2), (2,4), and (3,3); all 15 profile/topology cases and all 33,440 simultaneous claims pass at 16,384 draws/case in docs/research/results/g4-cdl-larger-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json. The rotated dual-TX/dual-RX companion additionally covers the three frozen simultaneous endpoint-orientation pairs at two physical dual-VH elements per endpoint; all 15 profile/orientation cases and all 7,680 simultaneous claims pass at 16,384 draws/case in `docs/research/results/g4-cdl-rotated-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json` (SHA-256 `237e50fb6f5fc75e7ae1e2599727641a22a75c4e123e9319b93bc98ff00b84e2`), generated from clean protocol commit `4fac135`. The separate physical-HandheldUTArray operating-point family now adds CDL-A-E coverage for `tr38901-4` and `tr38901` rosters across three preregistered orientation/velocity/carrier/lag points; all 30 cases and 2,400 simultaneous claims pass at 16,384 draws/case with maximum absolute error 0.01572676297150255 and maximum half-width 0.04232497534616065 in `docs/research/results/g4-cdl-physical-handheld-ut-operating-point-spatiotemporal-covariance-native-validation-20261110.json` (SHA-256 `376c76e23a2f7ecdd49b3d5104c85e1077e9cbe0b8a848859611a50a1292d1da`). This adds finite physical-handheld operating-point evidence only. Remaining arbitrary arrays beyond these frozen rosters, endpoint orientations/velocities beyond the retained finite families, patterned arrays, mutual coupling, RT/measured validation, receiver-impact validation, and scientific qualification keep this package open; G4 is not qualified.",
       "scope": {
-        "status": "unreviewed",
+        "status": "mandatory",
         "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "authority_basis": "This is an explicit G4 implementation/inventory requirement; status below separates finite retained subfamilies from remaining scope."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "partial",
+        "evidence": [
+          "tests/test_integrations/test_g4_cdl_abc_rotated_dual_pol_array_covariance_native.py",
+          "tests/test_integrations/test_g4_cdl_de_rotated_los_dual_pol_array_covariance_native.py",
+          "docs/research/G4_SEED_ROSTER_AUDIT_2026-11-09_ROTATED_ABC.json",
+          "docs/research/G4_SEED_ROSTER_AUDIT_2026-11-09_ROTATED_DE.json",
+          "docs/research/G4_07_CDL_ABC_ROTATED_DUAL_POL_ARRAY_COVARIANCE_PROTOCOL_2026-10-26.md",
+          "docs/research/G4_07_CDL_DE_ROTATED_LOS_DUAL_POL_ARRAY_COVARIANCE_PROTOCOL_2026-10-26.md",
+          "docs/research/results/g4-cdl-rotated-dual-pol-covariance-validation-20261109.json",
+          "docs/research/results/g4-cdl-spatiotemporal-covariance-native-validation-20261109.json",
+          "docs/research/results/g4-cdl-larger-topology-joint-tx-rx-spatiotemporal-covariance-native-validation-20261109.json",
+          "docs/research/results/g4-cdl-joint-tx-rx-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json",
+          "docs/research/results/g4-cdl-larger-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json",
+          "docs/research/results/g4-cdl-rotated-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json",
+          "docs/research/results/g4-cdl-physical-handheld-ut-operating-point-spatiotemporal-covariance-native-validation-20261110.json"
+        ],
+        "basis": "Retained finite rotated-array, dual-polarized space-time, larger-topology, and physical-handheld families pass their frozen criteria. Implementation is partial because the backlog explicitly retains arbitrary unseen arrays/orientations, mutual coupling, measured/RT truth, receiver impact and overall qualification as open."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "incomplete",
+        "command": "Source/result inventory audit against the listed retained artifacts; no additional native family was executed during this implementation turn.",
+        "commit": "Historical result artifacts retain their own source, protocol, seed-audit and commit identities."
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Some finite subfamilies pass within scope. This aggregate requirement is not qualified; see the listed frozen results and preserved CDL-E failure."
+        ]
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "Additional independently justified mandatory G4 cases and any measured/RT/receiver evidence must be defined from the governing scope; do not extend arbitrary configurations without a finite rationale."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Finite source-audited inventory of retained G4 checks, failures and unsupported/untested scope.",
+        "pass_rule": "Retain frozen failures; do not infer overall G4 from accumulated finite passes. Any proposed additional family must name an original requirement and a justified finite applicability envelope.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -7879,30 +8038,35 @@
       ],
       "requirement": "Implement and focused-validate the TS 38.211 type-1 SRS frequency-tree hopping recurrence and its per-symbol scheduled-counter mapping. The selected 13-test software slice passes; raw ASN.1/PER, CRC/polar, higher-layer schedule completeness, independent full conformance, and receiver qualification remain open.",
       "scope": {
-        "status": "unreviewed",
+        "status": "mandatory",
         "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "authority_basis": "This is an explicit TS 38.211 V19.2.0 type-1 SRS hopping software requirement; the verified envelope is recurrence/counter/mapping behavior for the frozen supported configuration cases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/srs.py",
+          "tests/test_integrations/test_g5_srs_resource_mapping.py"
+        ],
+        "basis": "Frequency-tree recurrence uses explicit n_srs, handles odd/even radices, and is composed through per-symbol periodic/aperiodic counters and one-/multiport resource mapping."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_integrations/test_g5_srs_resource_mapping.py::test_srs_frequency_hopping_tree_indices_match_counter_sequence tests/test_integrations/test_g5_srs_resource_mapping.py::test_srs_frequency_hopping_handles_odd_and_even_tree_radices tests/test_integrations/test_g5_srs_resource_mapping.py::test_srs_frequency_hopping_requires_explicit_transmission_counter tests/test_integrations/test_g5_srs_resource_mapping.py::test_srs_resource_frequency_allocations_join_periodic_counter_and_hops tests/test_integrations/test_g5_srs_resource_mapping.py::test_srs_aperiodic_transmission_counter_uses_repetition_factor tests/test_integrations/test_g5_srs_resource_mapping.py::test_srs_aperiodic_counter_accounts_for_eight_port_tdm tests/test_integrations/test_g5_srs_resource_mapping.py::test_srs_periodic_counter_advances_by_occasion_and_returns_none_off_schedule tests/test_integrations/test_g5_srs_resource_mapping.py::test_srs_hopped_mapper_uses_each_symbols_frequency_allocation tests/test_integrations/test_g5_srs_resource_mapping.py::test_srs_hopped_mapper_combines_hopping_and_positioning_offsets tests/test_integrations/test_g5_srs_resource_mapping.py::test_srs_hopped_multiport_mapper_preserves_per_port_symbols_and_offsets",
+        "commit": "working tree based on 65fac21; 13 passed"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Software recurrence/mapping checks only; raw ASN.1/PER, CRC/polar, full higher-layer scheduling, independent full conformance and receiver qualification remain open."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "TS 38.211 type-1 frequency-tree recurrence and explicit per-symbol n_srs mapping for the verified supported cases.",
+        "pass_rule": "All 13 selected software cases pass. Do not infer raw configuration decoding, full standard conformance or receiver qualification.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
@@ -7916,30 +8080,39 @@
       ],
       "requirement": "Validate shared AWGN inputs before dtype conversion, reject Boolean/complex/sparse/nonnumeric and nonphysical variances, and check target-dtype overflow/underflow in tensor-based proper-complex AWGN, the PUSCH estimator, and the seeded TDL scalar generator. Regression definitions are authored; consolidated validation is deferred.",
       "scope": {
-        "status": "unreviewed",
+        "status": "mandatory",
         "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "authority_basis": "The backlog names shared AWGN, PUSCH estimator and seeded-TDL scalar-noise input validation as mandatory; the verified contract is the current complex64 path and float32 noise variance."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "source-level audit required; feature-map heuristics are not accepted as evidence"
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/noise.py",
+          "integrations/sionna/nr_pusch.py",
+          "integrations/sionna/tdl_pusch.py",
+          "tests/test_integrations/test_receiver_noise.py",
+          "tests/test_integrations/test_nr_pusch_input_contract.py",
+          "tests/test_integrations/test_seeded_awgn.py"
+        ],
+        "basis": "All three entry points validate type, density, physical range and target-dtype representability before generation/decoding; positive underflow and overflow are rejected."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "./.venv/bin/python -m pytest --no-cov -o addopts='' -q tests/test_integrations/test_receiver_noise.py tests/test_integrations/test_seeded_awgn.py tests/test_integrations/test_nr_pusch_input_contract.py",
+        "commit": "working tree based on 65fac21; 61 passed, 1 expected Torch sparse-invariant warning"
       },
       "qualification": {
         "status": "not_qualified",
-        "evidence": []
+        "evidence": [
+          "Focused numerical and input-contract software tests only; no G5 receiver qualification follows."
+        ]
       },
       "dependencies": [],
       "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "Shared AWGN and receiver-noise variance inputs reject malformed, sparse, nonphysical and target-dtype-incompatible values before use.",
+        "pass_rule": "All focused software tests pass; does not qualify any G5 receiver configuration.",
+        "next_task": "E01.PKG06"
       },
       "plan_mark": "not_checklist"
     },
