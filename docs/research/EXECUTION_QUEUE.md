@@ -297,9 +297,12 @@ receipts remain open. `E01.DS.GATES.G1` now has source dispositions for its
 ten geometry/LOS criteria; the analytical ambiguity and split-identity
 contracts pass their selected suite, while native solver agreement, scene
 motion interpolation, and independent-site registry evidence remain open.
-Next audit G2 and G4–G8 against the governing plan and their source/test paths,
-in dependency order; then reconcile research phases, Appendix E, and the full
-crosswalk.
+`E01.DS.GATES.G2` now has fifteen criterion-level dispositions. The selected
+path, analytical-channel, RT-to-NR contract, adapter, and storage suite exits
+0; native path/CFR equality, absolute link-budget scale, and representative
+MIMO/polarization comparisons remain open. Next audit G4–G8 against the
+governing plan and their source/test paths; then reconcile research phases,
+Appendix E, and the full crosswalk.
 Each package batch is the fixed set of `PKGnn-*` IDs in the ledger and closes
 only after every row has inspected source/test integration, implementation
 state, exact verification, qualification state, dependencies and closure
@@ -352,6 +355,21 @@ complete one-to-one requirement coverage and resolves dependencies/blockers.
   G3 convergence/material acceptance and the scene-family registry.
 - **Next:** audit G2 and the remaining dataset gate records; schedule bounded
   native oracle checks only after G0.02 and scene prerequisites pass.
+
+#### E01.DS.GATES.G2 — native path extraction and channel semantics (source audit complete 2026-11-11)
+
+- **Requirements:** `DS.G2`, `DS.G2.01`–`DS.G2.15`.
+- **Delivered:** each criterion now traces to the path adapter, analytical
+  reconstruction, RT-to-NR view, complex storage contract, or an explicit
+  native evidence gap. Valid-mask use, phase/delay/power semantics, same-path
+  decomposition, and storage are distinguished from solver truth and physical
+  scale. No native RT qualification was run.
+- **Verification:** `uv run --no-sync --locked pytest -q --no-cov tests/test_datasets/test_sionna_paths_adapter.py tests/test_datasets/test_analytical.py tests/test_integrations/test_rt_to_nr_contract.py tests/test_integrations/test_sionna_adapter.py tests/test_datasets/test_umcd_store_integrity.py` (exit 0); `uv run --no-sync --locked python -m scripts.validate_requirement_ledger`.
+- **Disposition:** G2 remains `not_qualified`. Halti native API/CFR and link
+  budget checks plus representative MIMO/polarization comparisons remain
+  pending G0 runtime admission and separate physical evidence.
+- **Next:** audit G4–G8; perform only the bounded native checks after G0.02
+  passes and within the frozen supported envelope.
 
 For every batch, retain the exact source files inspected in that ledger row;
 do not copy the whole chronological status history. If a row is already

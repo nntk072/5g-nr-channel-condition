@@ -1,7 +1,7 @@
 {
   "schema": "loslab.requirement-ledger.v1",
-  "status_note": "Traceability index covering all 182 backlog IDs, 104 numbered unified-plan criteria, and 30 dataset/research gate or phase records. Source audits are complete for PKG00-05. PKG05 rows 001/002/003/004/005/007/008/009/010/011/012/013/014/016/017/018/019/020/021/022/023/024/025 have bounded dispositions; 006/015/026 remain partial aggregate G4 scope. PKG06 rows 001–036 are source-audited with bounded complete/partial dispositions; PKG07-001/002/003/004/005 are source-audited partials with focused regression slices; remaining package/gate audits stay open. Checked plan boxes are preserved as source marks, never treated as implementation or scientific qualification. Feature-map heuristics do not determine ledger status. DS.G3.01–DS.G3.12 were source-audited at 32fa52c; their software states and external scientific blockers are separate, and every G3 qualification remains not_qualified. DS.G0.01–DS.G0.08 source-audited after G3; environment, host solver smoke, dynamic identity edge coverage, legacy report provenance, and per-scene ODbL release evidence remain explicit blockers. DS.G1.01–DS.G1.10 source-audited; independent geometry/LOS contracts are bounded, while native solver behavior, motion interpolation, and scene-family independence remain open.",
-  "source_checkpoint": "df008fc; DS.G1 source audit recorded 2026-11-11",
+  "status_note": "Traceability index covering all 182 backlog IDs, 104 numbered unified-plan criteria, and 30 dataset/research gate or phase records. Source audits are complete for PKG00-05. PKG05 rows 001/002/003/004/005/007/008/009/010/011/012/013/014/016/017/018/019/020/021/022/023/024/025 have bounded dispositions; 006/015/026 remain partial aggregate G4 scope. PKG06 rows 001–036 are source-audited with bounded complete/partial dispositions; PKG07-001/002/003/004/005 are source-audited partials with focused regression slices; remaining package/gate audits stay open. Checked plan boxes are preserved as source marks, never treated as implementation or scientific qualification. Feature-map heuristics do not determine ledger status. DS.G3.01–DS.G3.12 were source-audited at 32fa52c; their software states and external scientific blockers are separate, and every G3 qualification remains not_qualified. DS.G0.01–DS.G0.08 source-audited after G3; environment, host solver smoke, dynamic identity edge coverage, legacy report provenance, and per-scene ODbL release evidence remain explicit blockers. DS.G1.01–DS.G1.10 source-audited; independent geometry/LOS contracts are bounded, while native solver behavior, motion interpolation, and scene-family independence remain open. DS.G2.01–DS.G2.15 source-audited; analytical/mask/storage contracts exist, while selected-host native API, path/CFR, power-scale, MIMO and polarization evidence remain open.",
+  "source_checkpoint": "526ca37; DS.G2 source audit recorded 2026-11-11",
   "requirements": [
     {
       "requirement_id": "DS.G0",
@@ -872,30 +872,40 @@
       "backlog_aliases": [],
       "requirement": "Gate G2 — native path extraction, phase, timing, power",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Pending source audit against the cited governing section."
+        "status": "mandatory",
+        "support_envelope": "Hard native path extraction, complex-channel semantics, and storage gate for MVP geometric-RT datasets; every numbered child criterion is mandatory within its declared channel/array support envelope.",
+        "authority_basis": "Governing unified-plan Gate G2 is a hard stop gate; all fifteen numbered child criteria were source-audited."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "governing-plan requirement needs source-level reconciliation"
+        "status": "partial",
+        "evidence": [
+          "integrations/sionna/path_oracle.py",
+          "integrations/sionna/adapter.py",
+          "integrations/sionna/rt_to_nr.py",
+          "datasets/analytical.py",
+          "datasets/episode_store.py"
+        ],
+        "basis": "Masking, explicit phase/delay/power semantics, same-path direct/indirect decomposition, analytical channel references, and lossless storage contracts are implemented. Current-host native API/link-budget verification, first-arrival invariance across all views, and array/polarization behavior remain incomplete."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_datasets/test_sionna_paths_adapter.py tests/test_datasets/test_analytical.py tests/test_integrations/test_rt_to_nr_contract.py tests/test_integrations/test_sionna_adapter.py tests/test_datasets/test_umcd_store_integrity.py; uv run --no-sync --locked python -m scripts.validate_requirement_ledger",
+        "commit": "526ca37"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
       "dependencies": [],
-      "external_blockers": [],
+      "external_blockers": [
+        "No current Halti native RT API, path-to-CFR, or absolute link-budget receipt.",
+        "No representative near/far-field MIMO or dual-polarization native qualification.",
+        "G3 material, convergence, and path-truth evidence remain open."
+      ],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": null
+        "deliverable": "G2.01–G2.15 pinned native path extraction and channel/storage semantics with independent analytic checks.",
+        "pass_rule": "Every applicable API, masking, delay, phase, power, axis, decomposition and serialization criterion passes on the pinned runtime; analytical contracts alone do not validate native path discovery or physical channel scale.",
+        "next_task": "After G0.02 passes, perform bounded native path/CFR and link-budget checks for the required envelope; keep array and polarization modes scoped to the evidence available."
       },
       "plan_mark": "not_checklist"
     },
@@ -908,32 +918,37 @@
       "requirement": "`Paths` native API version compatibility: required properties exist with asserted shapes and dtypes.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G2.01 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard path extraction, channel construction, and serialization criterion for geometric-RT data admitted to MVP; bounded software contracts do not qualify native solver or physical channel truth.",
+        "authority_basis": "Mandatory numbered acceptance criterion G2.01 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "integrations/sionna/path_oracle.py",
+          "integrations/sionna/adapter.py",
+          "integrations/runtime_compatibility.py",
+          "tests/test_datasets/test_sionna_paths_adapter.py"
+        ],
+        "basis": "Adapters assert required path properties, shapes, and dtypes and the pinned-runtime checker identifies required APIs; complete native-version shape coverage is still bounded to the current pinned distribution."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "incomplete",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_datasets/test_sionna_paths_adapter.py tests/test_datasets/test_analytical.py tests/test_integrations/test_rt_to_nr_contract.py tests/test_integrations/test_sionna_adapter.py tests/test_datasets/test_umcd_store_integrity.py",
+        "commit": "526ca37"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Halti pinned native API receipt is pending G0.01/G0.02."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "`Paths` native API version compatibility: required properties exist with asserted shapes and dtypes.",
+        "pass_rule": "Required array shapes, masks, phase/delay/power conventions, analytical comparisons, and serialized bytes pass on the exact pinned runtime and declared frequency/reference axes; unresolved native or physical-scale claims remain blocked under their own criteria.",
+        "next_task": "After G0 runtime admission, run the bounded pinned PathSolver shape/dtype preflight and bind its inventory."
       }
     },
     {
@@ -945,32 +960,37 @@
       "requirement": "`valid` masks actually gate padded paths; zero/uninitialized entries excluded from computations.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G2.02 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard path extraction, channel construction, and serialization criterion for geometric-RT data admitted to MVP; bounded software contracts do not qualify native solver or physical channel truth.",
+        "authority_basis": "Mandatory numbered acceptance criterion G2.02 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/adapter.py",
+          "integrations/sionna/path_oracle.py",
+          "tests/test_datasets/test_sionna_paths_adapter.py",
+          "tests/test_integrations/test_sionna_adapter.py"
+        ],
+        "basis": "Valid masks are checked and applied before path table construction or CFR reconstruction; invalid/padded paths are excluded and shape/dtype mismatches fail closed."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_datasets/test_sionna_paths_adapter.py tests/test_datasets/test_analytical.py tests/test_integrations/test_rt_to_nr_contract.py tests/test_integrations/test_sionna_adapter.py tests/test_datasets/test_umcd_store_integrity.py",
+        "commit": "526ca37"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Native adapter regression on the selected Halti runtime remains a later environment check."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "`valid` masks actually gate padded paths; zero/uninitialized entries excluded from computations.",
+        "pass_rule": "Required array shapes, masks, phase/delay/power conventions, analytical comparisons, and serialized bytes pass on the exact pinned runtime and declared frequency/reference axes; unresolved native or physical-scale claims remain blocked under their own criteria.",
+        "next_task": "Retain mask-before-computation invariants and run the host-native adapter smoke after G0 admission."
       }
     },
     {
@@ -982,32 +1002,37 @@
       "requirement": "explicit `normalize_delays=False` on canonical `cir`, `cfr`, and `taps` where applicable.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G2.03 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard path extraction, channel construction, and serialization criterion for geometric-RT data admitted to MVP; bounded software contracts do not qualify native solver or physical channel truth.",
+        "authority_basis": "Mandatory numbered acceptance criterion G2.03 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/adapter.py",
+          "integrations/sionna/rt_to_nr.py",
+          "integrations/sionna/rt_trajectory.py",
+          "tests/test_integrations/test_rt_to_nr_contract.py"
+        ],
+        "basis": "Canonical geometric RT paths preserve absolute delay references; the channel conversion paths that call Sionna CIR/CFR/tap APIs set delay normalization explicitly false where supported."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_datasets/test_sionna_paths_adapter.py tests/test_datasets/test_analytical.py tests/test_integrations/test_rt_to_nr_contract.py tests/test_integrations/test_sionna_adapter.py tests/test_datasets/test_umcd_store_integrity.py",
+        "commit": "526ca37"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Sionna API behavior still depends on the pinned native runtime."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "explicit `normalize_delays=False` on canonical `cir`, `cfr`, and `taps` where applicable.",
+        "pass_rule": "Required array shapes, masks, phase/delay/power conventions, analytical comparisons, and serialized bytes pass on the exact pinned runtime and declared frequency/reference axes; unresolved native or physical-scale claims remain blocked under their own criteria.",
+        "next_task": "No new software work; verify retained native output after G0 runtime admission."
       }
     },
     {
@@ -1019,32 +1044,36 @@
       "requirement": "explicit `normalize=False` for canonical absolute-power CFR.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G2.04 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard path extraction, channel construction, and serialization criterion for geometric-RT data admitted to MVP; bounded software contracts do not qualify native solver or physical channel truth.",
+        "authority_basis": "Mandatory numbered acceptance criterion G2.04 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/adapter.py",
+          "integrations/sionna/rt_to_nr.py",
+          "tests/test_integrations/test_rt_to_nr_contract.py"
+        ],
+        "basis": "Canonical absolute-power geometric CFR paths pass normalize=False and retain explicit power/delay semantics; receiver-relative normalization is a separate view."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_datasets/test_sionna_paths_adapter.py tests/test_datasets/test_analytical.py tests/test_integrations/test_rt_to_nr_contract.py tests/test_integrations/test_sionna_adapter.py tests/test_datasets/test_umcd_store_integrity.py",
+        "commit": "526ca37"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Absolute physical power scale still needs link-budget and calibration evidence."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "explicit `normalize=False` for canonical absolute-power CFR.",
+        "pass_rule": "Required array shapes, masks, phase/delay/power conventions, analytical comparisons, and serialized bytes pass on the exact pinned runtime and declared frequency/reference axes; unresolved native or physical-scale claims remain blocked under their own criteria.",
+        "next_task": "No new flag plumbing; leave physical-scale acceptance to G2.10/G3 material and calibration evidence."
       }
     },
     {
@@ -1056,32 +1085,36 @@
       "requirement": "`cfr()` manual reconstruction from the same path set equals API output after correctly applying carrier-to-baseband phase convention.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G2.05 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard path extraction, channel construction, and serialization criterion for geometric-RT data admitted to MVP; bounded software contracts do not qualify native solver or physical channel truth.",
+        "authority_basis": "Mandatory numbered acceptance criterion G2.05 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "integrations/sionna/adapter.py",
+          "tests/test_integrations/test_rt_to_nr_native.py",
+          "tests/test_integrations/test_sionna_adapter.py"
+        ],
+        "basis": "Manual coherent path summation with carrier/baseband phase convention is implemented and mock contracts exist; native API equality on the selected host was not run in this audit."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "incomplete",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_datasets/test_sionna_paths_adapter.py tests/test_datasets/test_analytical.py tests/test_integrations/test_rt_to_nr_contract.py tests/test_integrations/test_sionna_adapter.py tests/test_datasets/test_umcd_store_integrity.py",
+        "commit": "526ca37"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Native matched path-set API comparison and selected-backend provenance are missing."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "`cfr()` manual reconstruction from the same path set equals API output after correctly applying carrier-to-baseband phase convention.",
+        "pass_rule": "Required array shapes, masks, phase/delay/power conventions, analytical comparisons, and serialized bytes pass on the exact pinned runtime and declared frequency/reference axes; unresolved native or physical-scale claims remain blocked under their own criteria.",
+        "next_task": "Run a bounded native one-path/multipath equality check after G0.02, preserving exact carrier phase and path set."
       }
     },
     {
@@ -1093,32 +1126,35 @@
       "requirement": "`H_full = H_direct+H_indirect` for a **same-path-set** partition at identical reference, array and frequency axes.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G2.06 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard path extraction, channel construction, and serialization criterion for geometric-RT data admitted to MVP; bounded software contracts do not qualify native solver or physical channel truth.",
+        "authority_basis": "Mandatory numbered acceptance criterion G2.06 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/adapter.py",
+          "tests/test_integrations/test_sionna_adapter.py"
+        ],
+        "basis": "Direct and indirect channel views are computed from the same valid path set and the full channel retains their coherent sum under the same grid/reference contract."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_datasets/test_sionna_paths_adapter.py tests/test_datasets/test_analytical.py tests/test_integrations/test_rt_to_nr_contract.py tests/test_integrations/test_sionna_adapter.py tests/test_datasets/test_umcd_store_integrity.py",
+        "commit": "526ca37"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Physical path completeness and solver convergence remain open under G3."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "`H_full = H_direct+H_indirect` for a **same-path-set** partition at identical reference, array and frequency axes.",
+        "pass_rule": "Required array shapes, masks, phase/delay/power conventions, analytical comparisons, and serialized bytes pass on the exact pinned runtime and declared frequency/reference axes; unresolved native or physical-scale claims remain blocked under their own criteria.",
+        "next_task": "Preserve the same-path-set invariant and do not qualify propagation truth from this arithmetic contract."
       }
     },
     {
@@ -1130,32 +1166,36 @@
       "requirement": "frequency bin ordering (center/DC/guard/negative offsets) matches declared NR resource grid, including odd/even FFT-size fixtures.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G2.07 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard path extraction, channel construction, and serialization criterion for geometric-RT data admitted to MVP; bounded software contracts do not qualify native solver or physical channel truth.",
+        "authority_basis": "Mandatory numbered acceptance criterion G2.07 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/adapter.py",
+          "integrations/sionna/rt_to_nr.py",
+          "tests/test_integrations/test_rt_to_nr_contract.py"
+        ],
+        "basis": "The CFR adapters bind ordered frequency offsets to the declared NR resource grid; grid contracts cover centered/DC/guard ordering and parity behavior."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_datasets/test_sionna_paths_adapter.py tests/test_datasets/test_analytical.py tests/test_integrations/test_rt_to_nr_contract.py tests/test_integrations/test_sionna_adapter.py tests/test_datasets/test_umcd_store_integrity.py",
+        "commit": "526ca37"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Native Sionna mapping comparison remains host-specific."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "frequency bin ordering (center/DC/guard/negative offsets) matches declared NR resource grid, including odd/even FFT-size fixtures.",
+        "pass_rule": "Required array shapes, masks, phase/delay/power conventions, analytical comparisons, and serialized bytes pass on the exact pinned runtime and declared frequency/reference axes; unresolved native or physical-scale claims remain blocked under their own criteria.",
+        "next_task": "No new software work; retain odd/even grid contract checks in the post-environment smoke."
       }
     },
     {
@@ -1167,32 +1207,37 @@
       "requirement": "first physical arrival delay invariant to optional regridding/receiver-view generation; normalized view cannot overwrite original.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G2.08 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard path extraction, channel construction, and serialization criterion for geometric-RT data admitted to MVP; bounded software contracts do not qualify native solver or physical channel truth.",
+        "authority_basis": "Mandatory numbered acceptance criterion G2.08 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "integrations/sionna/adapter.py",
+          "integrations/sionna/rt_trajectory.py",
+          "datasets/channel_view.py",
+          "tests/test_integrations/test_rt_to_nr_contract.py"
+        ],
+        "basis": "Absolute path tables and delay references are stored separately from normalized/channel views; a complete first-physical-arrival invariance comparison across every optional regridding route was not established."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "incomplete",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_datasets/test_sionna_paths_adapter.py tests/test_datasets/test_analytical.py tests/test_integrations/test_rt_to_nr_contract.py tests/test_integrations/test_sionna_adapter.py tests/test_datasets/test_umcd_store_integrity.py",
+        "commit": "526ca37"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Native and full regridding route comparison is not admitted."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "first physical arrival delay invariant to optional regridding/receiver-view generation; normalized view cannot overwrite original.",
+        "pass_rule": "Required array shapes, masks, phase/delay/power conventions, analytical comparisons, and serialized bytes pass on the exact pinned runtime and declared frequency/reference axes; unresolved native or physical-scale claims remain blocked under their own criteria.",
+        "next_task": "Trace the earliest valid arrival through each production view and add an invariant check if any route can overwrite source delays."
       }
     },
     {
@@ -1204,32 +1249,37 @@
       "requirement": "lossless canonical complex serialization roundtrips within dtype error without sign conjugation or axis permutation.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G2.09 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard path extraction, channel construction, and serialization criterion for geometric-RT data admitted to MVP; bounded software contracts do not qualify native solver or physical channel truth.",
+        "authority_basis": "Mandatory numbered acceptance criterion G2.09 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "datasets/channel.py",
+          "datasets/episode_store.py",
+          "datasets/schema/umcd-physical-channel-layer.v1.schema.json",
+          "tests/test_datasets/test_umcd_store_integrity.py"
+        ],
+        "basis": "Canonical complex storage fixes axis/dtype semantics and round-trip integrity with hashes; selected serialization checks reject content tampering and preserve complex values."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_datasets/test_sionna_paths_adapter.py tests/test_datasets/test_analytical.py tests/test_integrations/test_rt_to_nr_contract.py tests/test_integrations/test_sionna_adapter.py tests/test_datasets/test_umcd_store_integrity.py",
+        "commit": "526ca37"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Round-trip precision is bounded by declared storage dtype and does not validate native channel truth."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "lossless canonical complex serialization roundtrips within dtype error without sign conjugation or axis permutation.",
+        "pass_rule": "Required array shapes, masks, phase/delay/power conventions, analytical comparisons, and serialized bytes pass on the exact pinned runtime and declared frequency/reference axes; unresolved native or physical-scale claims remain blocked under their own criteria.",
+        "next_task": "No additional storage work; keep per-layer dtype, axes, and delay/phase references explicit."
       }
     },
     {
@@ -1241,32 +1291,37 @@
       "requirement": "path loss/free-space coefficient follows a validated link-budget convention for test geometry and antenna gains.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G2.10 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard path extraction, channel construction, and serialization criterion for geometric-RT data admitted to MVP; bounded software contracts do not qualify native solver or physical channel truth.",
+        "authority_basis": "Mandatory numbered acceptance criterion G2.10 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "integrations/sionna/rt_to_nr.py",
+          "integrations/sionna/adapter.py",
+          "tests/test_integrations/test_rt_to_nr_native.py",
+          "tests/test_integrations/test_network_phy_native.py"
+        ],
+        "basis": "Power-preserving conversion and free-space reference tests exist in native PHY/RT suites; the selected contract suite does not execute those native cases or establish calibrated antenna/reference-plane truth."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "incomplete",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_datasets/test_sionna_paths_adapter.py tests/test_datasets/test_analytical.py tests/test_integrations/test_rt_to_nr_contract.py tests/test_integrations/test_sionna_adapter.py tests/test_datasets/test_umcd_store_integrity.py",
+        "commit": "526ca37"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Current Halti native link-budget receipt and calibrated gain/power chain are missing."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "path loss/free-space coefficient follows a validated link-budget convention for test geometry and antenna gains.",
+        "pass_rule": "Required array shapes, masks, phase/delay/power conventions, analytical comparisons, and serialized bytes pass on the exact pinned runtime and declared frequency/reference axes; unresolved native or physical-scale claims remain blocked under their own criteria.",
+        "next_task": "After G0 admission, run only the frozen free-space link-budget fixture; document receiver reference planes and gains."
       }
     },
     {
@@ -1278,32 +1333,36 @@
       "requirement": "received coherent power not erroneously computed as sum of powers of individual paths where interference cross terms matter.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G2.11 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard path extraction, channel construction, and serialization criterion for geometric-RT data admitted to MVP; bounded software contracts do not qualify native solver or physical channel truth.",
+        "authority_basis": "Mandatory numbered acceptance criterion G2.11 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/adapter.py",
+          "datasets/analytical.py",
+          "tests/test_datasets/test_analytical.py"
+        ],
+        "basis": "CFR is formed by coherent complex path summation before magnitude-squared power; analytical fixtures cover interference/cancellation behavior rather than summing individual path powers."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_datasets/test_sionna_paths_adapter.py tests/test_datasets/test_analytical.py tests/test_integrations/test_rt_to_nr_contract.py tests/test_integrations/test_sionna_adapter.py tests/test_datasets/test_umcd_store_integrity.py",
+        "commit": "526ca37"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Physical gain accuracy remains under G2.10 and G3."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "received coherent power not erroneously computed as sum of powers of individual paths where interference cross terms matter.",
+        "pass_rule": "Required array shapes, masks, phase/delay/power conventions, analytical comparisons, and serialized bytes pass on the exact pinned runtime and declared frequency/reference axes; unresolved native or physical-scale claims remain blocked under their own criteria.",
+        "next_task": "No new implementation task; preserve coherent aggregation in any downstream power summary."
       }
     },
     {
@@ -1315,32 +1374,36 @@
       "requirement": "manually reconstructed single-, two- and multiple-path CFRs match analytical test cases including close delays, nulls and nonzero reference offsets.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G2.12 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard path extraction, channel construction, and serialization criterion for geometric-RT data admitted to MVP; bounded software contracts do not qualify native solver or physical channel truth.",
+        "authority_basis": "Mandatory numbered acceptance criterion G2.12 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "datasets/analytical.py",
+          "tests/test_datasets/test_analytical.py",
+          "integrations/sionna/adapter.py"
+        ],
+        "basis": "Analytical channel construction supports single/multiple paths and complex frequency response; selected analytical fixtures cover close delays, phase offsets, and cancellation behavior."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_datasets/test_sionna_paths_adapter.py tests/test_datasets/test_analytical.py tests/test_integrations/test_rt_to_nr_contract.py tests/test_integrations/test_sionna_adapter.py tests/test_datasets/test_umcd_store_integrity.py",
+        "commit": "526ca37"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Native Sionna API parity and path discovery completeness remain separate open criteria."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "manually reconstructed single-, two- and multiple-path CFRs match analytical test cases including close delays, nulls and nonzero reference offsets.",
+        "pass_rule": "Required array shapes, masks, phase/delay/power conventions, analytical comparisons, and serialized bytes pass on the exact pinned runtime and declared frequency/reference axes; unresolved native or physical-scale claims remain blocked under their own criteria.",
+        "next_task": "No new software work; keep analytical references independent from native solver qualification."
       }
     },
     {
@@ -1352,32 +1415,36 @@
       "requirement": "MIMO explicit vs synthetic array differences quantified on representative near-/far-field cases.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G2.13 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard path extraction, channel construction, and serialization criterion for geometric-RT data admitted to MVP; bounded software contracts do not qualify native solver or physical channel truth.",
+        "authority_basis": "Mandatory numbered acceptance criterion G2.13 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "integrations/sionna/array_layouts.py",
+          "integrations/sionna/adapter.py",
+          "tests/test_integrations/test_array_layouts.py"
+        ],
+        "basis": "Explicit/synthetic array layout representation is validated and shape-bound; representative near-/far-field solver differences are not quantified in retained G2 evidence."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "incomplete",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_datasets/test_sionna_paths_adapter.py tests/test_datasets/test_analytical.py tests/test_integrations/test_rt_to_nr_contract.py tests/test_integrations/test_sionna_adapter.py tests/test_datasets/test_umcd_store_integrity.py",
+        "commit": "526ca37"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "No accepted representative array-distance/frequency/topology comparison."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "MIMO explicit vs synthetic array differences quantified on representative near-/far-field cases.",
+        "pass_rule": "Required array shapes, masks, phase/delay/power conventions, analytical comparisons, and serialized bytes pass on the exact pinned runtime and declared frequency/reference axes; unresolved native or physical-scale claims remain blocked under their own criteria.",
+        "next_task": "Define a bounded array near/far comparison only if these modes remain in the MVP claim envelope; otherwise record the supported scope explicitly."
       }
     },
     {
@@ -1389,32 +1456,36 @@
       "requirement": "dual polarization/basis rotation controls yield expected channel transformation.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G2.14 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard path extraction, channel construction, and serialization criterion for geometric-RT data admitted to MVP; bounded software contracts do not qualify native solver or physical channel truth.",
+        "authority_basis": "Mandatory numbered acceptance criterion G2.14 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "partial",
+        "evidence": [
+          "integrations/sionna/array_layouts.py",
+          "integrations/sionna/cdl.py",
+          "tests/test_integrations/test_array_layouts.py"
+        ],
+        "basis": "Polarization ports and basis/layout mappings are represented explicitly; transformation behavior is not comprehensively qualified across native RT array orientations."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "incomplete",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_datasets/test_sionna_paths_adapter.py tests/test_datasets/test_analytical.py tests/test_integrations/test_rt_to_nr_contract.py tests/test_integrations/test_sionna_adapter.py tests/test_datasets/test_umcd_store_integrity.py",
+        "commit": "526ca37"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Native dual-polarized orientation/basis comparison and reference evidence remain open."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "dual polarization/basis rotation controls yield expected channel transformation.",
+        "pass_rule": "Required array shapes, masks, phase/delay/power conventions, analytical comparisons, and serialized bytes pass on the exact pinned runtime and declared frequency/reference axes; unresolved native or physical-scale claims remain blocked under their own criteria.",
+        "next_task": "Freeze a small analytic dual-polarized orientation fixture and compare after G0 runtime admission."
       }
     },
     {
@@ -1426,32 +1497,36 @@
       "requirement": "unused solver path metadata/padded values never enter target computations; last array dimension not assumed to mean path without assertion.",
       "plan_mark": "open",
       "scope": {
-        "status": "unreviewed",
-        "support_envelope": null,
-        "authority_basis": "Numbered acceptance criterion G2.15 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
+        "status": "mandatory",
+        "support_envelope": "Hard path extraction, channel construction, and serialization criterion for geometric-RT data admitted to MVP; bounded software contracts do not qualify native solver or physical channel truth.",
+        "authority_basis": "Mandatory numbered acceptance criterion G2.15 in the unified plan; E01.DS.GATES must map its task applicability, exact support envelope and upstream backlog aliases."
       },
       "implementation": {
-        "status": "unknown",
-        "evidence": [],
-        "basis": "Source-level implementation and canonical consumer audit not yet performed for this criterion."
+        "status": "complete",
+        "evidence": [
+          "integrations/sionna/path_oracle.py",
+          "integrations/sionna/adapter.py",
+          "tests/test_datasets/test_sionna_paths_adapter.py"
+        ],
+        "basis": "Path extraction asserts axis/shape semantics, gates every table row on the native valid mask, and checks interaction/metadata axes before using values; padded metadata is excluded."
       },
       "verification": {
-        "status": "not_run",
-        "command": null,
-        "commit": null
+        "status": "pass",
+        "command": "uv run --no-sync --locked pytest -q --no-cov tests/test_datasets/test_sionna_paths_adapter.py tests/test_datasets/test_analytical.py tests/test_integrations/test_rt_to_nr_contract.py tests/test_integrations/test_sionna_adapter.py tests/test_datasets/test_umcd_store_integrity.py",
+        "commit": "526ca37"
       },
       "qualification": {
         "status": "not_qualified",
         "evidence": []
       },
-      "dependencies": [
-        "E01.DS.GATES"
+      "dependencies": [],
+      "external_blockers": [
+        "Native behavior of all optional metadata combinations remains bounded to pinned Sionna APIs."
       ],
-      "external_blockers": [],
       "closure": {
-        "deliverable": null,
-        "pass_rule": null,
-        "next_task": "E01.DS.GATES"
+        "deliverable": "unused solver path metadata/padded values never enter target computations; last array dimension not assumed to mean path without assertion.",
+        "pass_rule": "Required array shapes, masks, phase/delay/power conventions, analytical comparisons, and serialized bytes pass on the exact pinned runtime and declared frequency/reference axes; unresolved native or physical-scale claims remain blocked under their own criteria.",
+        "next_task": "Retain fail-closed shape assertions and extend only if a newly supported Sionna API adds metadata consumers."
       }
     },
     {
