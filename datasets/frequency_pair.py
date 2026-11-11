@@ -89,6 +89,8 @@ class PairedFrequencyViews:
     parent_episode_id: str
     split_group_id: str
     scene_geometry_sha256: str
+    lower_bundle_sha256: str
+    upper_bundle_sha256: str
     lower_view: PhysicalChannelView
     lower_provenance: UMCDRunProvenance
     upper_view: PhysicalChannelView
@@ -103,6 +105,11 @@ class PairedFrequencyViews:
             self.scene_geometry_sha256
         ):
             raise ValueError("scene_geometry_sha256 must be a lowercase SHA-256 digest")
+        for name in ("lower_bundle_sha256", "upper_bundle_sha256"):
+            if not isinstance(getattr(self, name), str) or not _SHA256.fullmatch(
+                getattr(self, name)
+            ):
+                raise ValueError(f"{name} must be a lowercase SHA-256 digest")
         if not isinstance(self.lower_view, PhysicalChannelView) or not isinstance(
             self.upper_view, PhysicalChannelView
         ):
@@ -153,6 +160,7 @@ class PairedFrequencyViews:
             "parent_episode_id": self.parent_episode_id,
             "split_group_id": self.split_group_id,
             "scene_geometry_sha256": self.scene_geometry_sha256,
+            "bundle_sha256s": [self.lower_bundle_sha256, self.upper_bundle_sha256],
             "views": [
                 {
                     "view_id": self.lower_view.view_id,
@@ -185,3 +193,73 @@ class PairedFrequencyViews:
             "phase_coherence_claim": "not_asserted",
         }
         return {**core, "pair_sha256": _canonical_digest(core)}
+
+
+def pair_stored_frequency_bundles(
+    root: str,
+    *,
+    pair_id: str,
+    source_scene_id: str,
+    parent_episode_id: str,
+    lower_bundle: object,
+    upper_bundle: object,
+    lower_view_id: str,
+    upper_view_id: str,
+) -> PairedFrequencyViews:
+    """Read two stored bundles and bind their exact artifact hashes into a pair.
+
+    Source-scene and parent IDs are caller-supplied lineage claims; the helper
+    independently checks the stored bundle hashes, split group, selected view,
+    and unique carrier-matched oracle-channel provenance.
+    """
+    from .episode_store import StoredEpisodeBundle, read_episode_bundle
+
+    if not isinstance(lower_bundle, StoredEpisodeBundle) or not isinstance(
+        upper_bundle, StoredEpisodeBundle
+    ):
+        raise TypeError("lower_bundle and upper_bundle must be StoredEpisodeBundle references")
+    if not isinstance(lower_view_id, str) or not lower_view_id.strip():
+        raise ValueError("lower_view_id must be a non-empty string")
+    if not isinstance(upper_view_id, str) or not upper_view_id.strip():
+        raise ValueError("upper_view_id must be a non-empty string")
+    if lower_bundle.bundle_sha256 == upper_bundle.bundle_sha256:
+        raise ValueError("paired frequency bundles must have distinct content hashes")
+    lower = read_episode_bundle(root, lower_bundle)
+    upper = read_episode_bundle(root, upper_bundle)
+    if lower.episode.split_group_id != upper.episode.split_group_id:
+        raise ValueError("paired frequency bundles must share one frozen split group")
+
+    def selected(bundle: object, view_id: str) -> tuple[PhysicalChannelView, UMCDRunProvenance]:
+        channel_matches = [view for view in bundle.channel_views if view.view_id == view_id]
+        if len(channel_matches) != 1:
+            raise ValueError(f"stored bundle must contain exactly one channel view {view_id!r}")
+        view = channel_matches[0]
+        provenance_matches = [
+            record
+            for record in bundle.provenance_records
+            if record.subject_layer == "oracle_channels"
+            and _bound_carrier_hz(record) == view.carrier_hz
+            and _scene_geometry_digest(record) is not None
+        ]
+        if len(provenance_matches) != 1:
+            raise ValueError("stored bundle needs one carrier-matched oracle-channel provenance")
+        return view, provenance_matches[0]
+
+    lower_view, lower_provenance = selected(lower, lower_view_id)
+    upper_view, upper_provenance = selected(upper, upper_view_id)
+    geometry_digest = _scene_geometry_digest(lower_provenance)
+    if geometry_digest is None:
+        raise ValueError("lower bundle provenance has no scene geometry digest")
+    return PairedFrequencyViews(
+        pair_id=pair_id,
+        source_scene_id=source_scene_id,
+        parent_episode_id=parent_episode_id,
+        split_group_id=lower.episode.split_group_id,
+        scene_geometry_sha256=geometry_digest,
+        lower_bundle_sha256=lower_bundle.bundle_sha256,
+        upper_bundle_sha256=upper_bundle.bundle_sha256,
+        lower_view=lower_view,
+        lower_provenance=lower_provenance,
+        upper_view=upper_view,
+        upper_provenance=upper_provenance,
+    )

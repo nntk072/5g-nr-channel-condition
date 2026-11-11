@@ -204,10 +204,11 @@ unavailable mask and migrate to `LEGACY_REASON_UNRECORDED`. `PKG07-004` now has
 a `PairedFrequencyViews` contract and schema binding two distinct-carrier
 complex views to the same scene geometry/assets and source/split parent, with
 per-view content hashes, separate material/solver/run provenance digests and no
-cross-band phase claim.
-Four focused pair-contract checks pass. This does not generate paired solves;
+cross-band phase claim. `pair_stored_frequency_bundles` resolves and hash-checks
+both episode stores, requires a common split group, and records both bundle
+hashes. Six pair-contract checks pass. This does not generate paired solves;
 `build_paired_frequency_rt_requests` now prepares shared-scene, same-route
-requests with independent band/material configs; a 34-test non-generating RT
+requests with independent band/material configs; a 36-test non-generating RT
 contract plus pair-contract slice passes. It does not execute solves. Pair
 publication, bundle linkage, split-registry integration, and scientific
 qualification remain open.

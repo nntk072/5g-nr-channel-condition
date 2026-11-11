@@ -119,6 +119,11 @@ source family; this remains a producer claim and does not authenticate the
 source or qualify either solve. Magnitude-only measurement archives remain
 ineligible as complex CSI/ToA truth.
 
+`datasets.pair_stored_frequency_bundles` resolves two stored episode bundles,
+checks their content hashes, common split group, selected channel views, and
+carrier-matched RT provenance, then includes both bundle hashes in the pair
+manifest. Scene and parent IDs remain explicit caller-supplied lineage claims.
+
 `integrations.sionna.build_paired_frequency_rt_requests` prepares two
 band-specific RT trajectory requests with the same route, seed, scene geometry,
 and asset set but separate carrier and material manifests. Each request still
