@@ -1,4 +1,6 @@
+import json
 import math
+from pathlib import Path
 from typing import Any, TypedDict
 
 import pytest
@@ -9,6 +11,7 @@ pytest.importorskip("sionna")
 from integrations.sionna.noise import proper_complex_awgn  # noqa: E402
 from integrations.sionna.nr_pusch import SionnaPUSCHLSReceiver  # noqa: E402
 from receivers.nr import NRPUSCHConfig  # noqa: E402
+from receivers.nr.pusch import compose_pusch_intra_slot_hops  # noqa: E402
 
 
 class _InterpolationConfig(TypedDict, total=False):
@@ -179,6 +182,57 @@ def test_offset_bwp_maps_into_carrier_fft_bins_and_decodes() -> None:
     assert bool(crc_ok.all())
     with pytest.raises(ValueError, match="exactly one configured full-carrier slot"):
         receiver.demodulate_carrier_slot_waveform(waveform[..., :-1])
+
+
+@pytest.mark.native_sionna
+def test_caller_resolved_intra_slot_hops_dehop_into_bounded_pusch_receiver() -> None:
+    """Rehome the two received segments and decode with the regular DM-RS path."""
+    receiver = SionnaPUSCHLSReceiver(
+        NRPUSCHConfig(
+            n_size_bwp=2,
+            n_size_grid=24,
+            n_start_grid=10,
+            n_start_bwp=12,
+            subcarrier_spacing_khz=30,
+            mapping_type="B",
+            symbol_allocation=(3, 10),
+        ),
+        device="cpu",
+    )
+    allocation_grid, transmitted_bits = receiver.transmit(batch_size=1, seed=60422)
+    hopped_grid = compose_pusch_intra_slot_hops(
+        allocation_grid.detach().cpu().numpy(),
+        carrier_grid_size_rb=24,
+        carrier_grid_start_rb=10,
+        bwp_start_rb=12,
+        bwp_size_rb=12,
+        allocation_start_symbol=3,
+        first_hop_rb_start=0,
+        second_hop_rb_start=7,
+        first_hop_symbol_count=4,
+    )
+
+    decoded_bits, crc_ok, report = receiver.decode_intra_slot_hopped_carrier_grid(
+        hopped_grid.frequency_grid,
+        hopped_grid.metadata,
+        torch.tensor(1e-7),
+    )
+
+    torch.testing.assert_close(decoded_bits, transmitted_bits)
+    assert bool(crc_ok.all())
+    assert report["schema"] == "loslab.nr_pusch_intra_slot_hopped_decode.v1"
+    assert report["status"] == "DECODED_NOT_QUALIFIED"
+    assert report["dehop_replay"]["status"] == "PASS_INPUT_SCOPED_REPLAY"
+    assert report["receiver_hopping_qualification"] == "NOT_QUALIFIED"
+    assert report["dmrs_source"] == "caller_supplied_hop_mapped_received_grid"
+    assert report["noise_variance_shape"] == []
+    assert len(report["noise_variance_sha256"]) == 64
+    import jsonschema
+
+    schema = json.loads(
+        Path("datasets/schema/nr-pusch-intra-slot-hopped-decode.v1.schema.json").read_text()
+    )
+    jsonschema.Draft202012Validator(schema).validate(report)
 
 
 @pytest.mark.native_sionna

@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:umcd:scene-family-registry:v1",
+  "title": "UMCD scene-family catalog and candidate inventory v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "qualification_status", "taxonomy", "evidence", "candidates"],
+  "properties": {
+    "schema": {"const": "umcd.scene_family_registry.v1"},
+    "qualification_status": {"const": "NOT_QUALIFIED"},
+    "taxonomy": {"type": "array", "minItems": 12, "maxItems": 12, "items": {"$ref": "#/$defs/family"}},
+    "evidence": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/evidence"}},
+    "candidates": {"type": "array", "items": {"$ref": "#/$defs/candidate"}}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "family": {
+      "type": "object", "additionalProperties": false,
+      "required": ["family_id", "role", "description"],
+      "properties": {
+        "family_id": {"enum": ["S00-analytic", "S01-urban-canyon", "S02-dense-urban", "S03-suburban-rural", "S04-indoor-office", "S05-indoor-factory-warehouse", "S06-station-airport-mall", "S07-outdoor-to-indoor", "S08-tunnel-garage", "S09-mmwave-street", "S10-public-unseen-site", "S11-measured-campaign"]},
+        "role": {"type": "string", "minLength": 1},
+        "description": {"type": "string", "minLength": 1}
+      }
+    },
+    "evidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["path", "sha256", "purpose"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "purpose": {"type": "string", "minLength": 1}
+      }
+    },
+    "candidate": {
+      "type": "object", "additionalProperties": false,
+      "required": ["candidate_id", "family_id", "scene_id", "independence_group_id", "source_kind", "geometry_asset_sha256", "source_record_path", "source_record_sha256", "license", "internal_research_status", "public_release_status", "qualification_status"],
+      "properties": {
+        "candidate_id": {"type": "string", "minLength": 1},
+        "family_id": {"enum": ["S00-analytic", "S01-urban-canyon", "S02-dense-urban", "S03-suburban-rural", "S04-indoor-office", "S05-indoor-factory-warehouse", "S06-station-airport-mall", "S07-outdoor-to-indoor", "S08-tunnel-garage", "S09-mmwave-street", "S10-public-unseen-site", "S11-measured-campaign"]},
+        "scene_id": {"type": "string", "minLength": 1},
+        "independence_group_id": {"type": "string", "minLength": 1},
+        "source_kind": {"enum": ["analytic_fixture", "procedural_fixture", "odbl_osm_scene", "surveyed_site", "measured_campaign"]},
+        "geometry_asset_sha256": {"$ref": "#/$defs/sha256"},
+        "source_record_path": {"type": "string", "minLength": 1},
+        "source_record_sha256": {"$ref": "#/$defs/sha256"},
+        "license": {"type": "string", "minLength": 1},
+        "internal_research_status": {"enum": ["allowed", "not_recorded", "restricted"]},
+        "public_release_status": {"enum": ["not_cleared", "review_required", "not_applicable"]},
+        "qualification_status": {"const": "NOT_QUALIFIED"}
+      }
+    }
+  }
+}

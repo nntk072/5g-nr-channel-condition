@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.example/schemas/nr-pusch-hopped-allocation-grid.v2.schema.json",
+  "title": "NR PUSCH two-hop local allocation resource map with data mask",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "status", "standard", "data_mapping_clause", "dmrs_plan_sha256",
+    "dmrs_grid_sha256", "allocation_start_symbol", "first_hop_symbol_count",
+    "second_hop_symbol_count", "allocation_rb_count", "allocation_grid_shape",
+    "complex_dtype", "data_mapping_order", "first_hop_data_symbol_count",
+    "second_hop_data_symbol_count", "one_port_zero_cdm_group_without_data",
+    "pt_rs_and_other_puncturing", "data_symbols_sha256", "allocation_grid_sha256",
+    "data_mask_sha256",
+    "qualification"
+  ],
+  "properties": {
+    "schema": {"const": "loslab.nr_pusch_hopped_allocation_grid.v2"},
+    "status": {"const": "MAPPED_NOT_QUALIFIED"},
+    "standard": {"const": "3GPP TS 38.211 V19.2.0"},
+    "data_mapping_clause": {"const": "6.3.1.6"},
+    "dmrs_plan_sha256": {"$ref": "#/$defs/sha256"},
+    "dmrs_grid_sha256": {"$ref": "#/$defs/sha256"},
+    "allocation_start_symbol": {"type": "integer", "minimum": 0, "maximum": 13},
+    "first_hop_symbol_count": {"type": "integer", "minimum": 1, "maximum": 7},
+    "second_hop_symbol_count": {"type": "integer", "minimum": 1, "maximum": 7},
+    "allocation_rb_count": {"type": "integer", "minimum": 1, "maximum": 275},
+    "allocation_grid_shape": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "integer", "minimum": 2, "maximum": 14},
+        {"type": "integer", "minimum": 12, "maximum": 3300}
+      ],
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "complex_dtype": {"enum": ["complex64", "complex128"]},
+    "data_mapping_order": {"const": "increasing_frequency_subcarrier_then_ofdm_symbol_per_hop"},
+    "first_hop_data_symbol_count": {"type": "integer", "minimum": 1},
+    "second_hop_data_symbol_count": {"type": "integer", "minimum": 1},
+    "one_port_zero_cdm_group_without_data": {"const": true},
+    "pt_rs_and_other_puncturing": {"const": "not_supported"},
+    "data_symbols_sha256": {"$ref": "#/$defs/sha256"},
+    "allocation_grid_sha256": {"$ref": "#/$defs/sha256"},
+    "data_mask_sha256": {"$ref": "#/$defs/sha256"},
+    "qualification": {"const": "NOT_QUALIFIED"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

@@ -97,9 +97,7 @@ class ScenarioGBSMRecord:
         if len(base_stations) != 1 or len(terminals) != 1 or len(episode.links) != 1:
             raise ValueError("scenario GBSM layer requires one gNB–UE link per episode")
         link = episode.links[0]
-        if {link.tx_node_id, link.rx_node_id} != {
-            base_stations[0].node_id, terminals[0].node_id
-        }:
+        if {link.tx_node_id, link.rx_node_id} != {base_stations[0].node_id, terminals[0].node_id}:
             raise ValueError("scenario GBSM link endpoints differ from its gNB–UE episode")
         if link.tx_node_id == base_stations[0].node_id:
             tx_node, rx_node = base_stations[0], terminals[0]
@@ -110,9 +108,7 @@ class ScenarioGBSMRecord:
         if configuration.get("direction") != expected_direction:
             raise ValueError("scenario GBSM link direction differs from its parent episode")
         tx_array, rx_array = episode.array(tx_node.array_id), episode.array(rx_node.array_id)
-        if (self.h_path.shape[1], self.h_path.shape[3]) != (
-            rx_array.num_ports, tx_array.num_ports
-        ):
+        if (self.h_path.shape[1], self.h_path.shape[3]) != (rx_array.num_ports, tx_array.num_ports):
             raise ValueError("scenario GBSM antenna-port axes differ from episode arrays")
         topology = self.metadata["topology"]
         if not np.allclose(topology["bs_loc"][0], base_stations[0].position_world_m):
@@ -120,23 +116,32 @@ class ScenarioGBSMRecord:
         if not np.allclose(topology["ut_loc"][0], terminals[0].position_world_m):
             raise ValueError("scenario GBSM UT location differs from its episode node")
         ut_positions = np.asarray(
-            [episode.position_at(terminals[0].node_id, index) for index in range(len(episode.frame_times_s))]
+            [
+                episode.position_at(terminals[0].node_id, index)
+                for index in range(len(episode.frame_times_s))
+            ]
         )
         bs_positions = np.asarray(
-            [episode.position_at(base_stations[0].node_id, index) for index in range(len(episode.frame_times_s))]
+            [
+                episode.position_at(base_stations[0].node_id, index)
+                for index in range(len(episode.frame_times_s))
+            ]
         )
         ut_velocity = np.asarray(topology["ut_velocities"][0], dtype=np.float64)
         if len(ut_positions) > 1:
-            measured_velocity = np.diff(ut_positions, axis=0) / np.diff(
-                episode.frame_times_s
-            )[:, None]
+            measured_velocity = (
+                np.diff(ut_positions, axis=0) / np.diff(episode.frame_times_s)[:, None]
+            )
             if not np.allclose(measured_velocity, ut_velocity[None, :], rtol=1e-5, atol=1e-5):
                 raise ValueError("scenario GBSM UT velocity differs from its episode trajectory")
             if not np.allclose(bs_positions, bs_positions[0], rtol=0.0, atol=1e-7):
                 raise ValueError("scenario GBSM adapter cannot encode a moving BS trajectory")
         for node in (base_stations[0], terminals[0]):
             orientations = np.asarray(
-                [episode.orientation_at(node.node_id, index) for index in range(len(episode.frame_times_s))]
+                [
+                    episode.orientation_at(node.node_id, index)
+                    for index in range(len(episode.frame_times_s))
+                ]
             )
             if not np.allclose(orientations, orientations[0], rtol=0.0, atol=1e-7):
                 raise ValueError("scenario GBSM adapter cannot encode rotating array trajectories")
@@ -189,15 +194,17 @@ class ScenarioGBSMRecord:
         if not isinstance(configuration, dict):
             raise ValueError("generator_configuration metadata is required")
         config_digest = metadata.get("configuration_sha256")
-        if not isinstance(config_digest, str) or _digest_json(
-            configuration, label="generator configuration"
-        ) != config_digest:
+        if (
+            not isinstance(config_digest, str)
+            or _digest_json(configuration, label="generator configuration") != config_digest
+        ):
             raise ValueError("generator configuration digest is invalid")
         topology = metadata.get("topology")
         topology_digest = metadata.get("topology_row_sha256")
-        if not isinstance(topology, dict) or _digest_json(
-            topology, label="topology row"
-        ) != topology_digest:
+        if (
+            not isinstance(topology, dict)
+            or _digest_json(topology, label="topology row") != topology_digest
+        ):
             raise ValueError("topology row digest is invalid")
         if metadata.get("scenario") != self.scenario:
             raise ValueError("scenario metadata disagrees with the record")
@@ -231,6 +238,17 @@ class ScenarioGBSMRecord:
             np.diff(offsets), spacing, rtol=1e-10, atol=1e-6
         ):
             raise ValueError("subcarrier offsets disagree with generator configuration")
+        carrier_hz = configuration.get("carrier_frequency_hz")
+        if (
+            isinstance(carrier_hz, bool)
+            or not isinstance(carrier_hz, (int, float))
+            or not math.isfinite(float(carrier_hz))
+            or carrier_hz <= 0
+        ):
+            raise ValueError("generator configuration must declare a positive carrier frequency")
+        absolute_frequencies_hz = float(carrier_hz) + offsets
+        if not np.isfinite(absolute_frequencies_hz).all() or np.any(absolute_frequencies_hz <= 0.0):
+            raise ValueError("carrier plus subcarrier offsets must be positive RF frequencies")
         snapshot = json.loads(_canonical_json(metadata, label="record metadata"))
         for array in (h_path, tau_s, cfr, offsets):
             array.setflags(write=False)
@@ -261,12 +279,13 @@ class ScenarioGBSMRun:
         first = records[0]
         if any(
             record.scenario != first.scenario
-            or record.metadata["configuration_sha256"]
-            != first.metadata["configuration_sha256"]
+            or record.metadata["configuration_sha256"] != first.metadata["configuration_sha256"]
             for record in records[1:]
         ):
             raise ValueError("a run cannot mix scenario models or generator configurations")
-        object.__setattr__(self, "records", tuple(sorted(records, key=lambda item: item.sample_index)))
+        object.__setattr__(
+            self, "records", tuple(sorted(records, key=lambda item: item.sample_index))
+        )
 
     def audit_split_assignment(self, registry: Any) -> dict[str, Any]:
         """Verify that this shared generation run stays in one frozen split component.
@@ -385,9 +404,7 @@ def _scenario_array_spec(
     element_count = len(normalized_positions)
     port_count_from_layout = len(labels) * element_count
     port_ids = tuple(
-        f"{label}:element-{index}"
-        for label in labels
-        for index in range(element_count)
+        f"{label}:element-{index}" for label in labels for index in range(element_count)
     )
     if port_count_from_layout != port_count:
         raise ValueError(f"scenario {endpoint} array layout does not match its channel axis")
@@ -567,9 +584,10 @@ def scenario_gbsm_run_from_channel(
         raise ValueError("sample IDs must match the generator result batch axis")
     configuration = metadata.get("generator_configuration")
     config_digest = metadata.get("configuration_sha256")
-    if not isinstance(configuration, Mapping) or _digest_json(
-        configuration, label="generator configuration"
-    ) != config_digest:
+    if (
+        not isinstance(configuration, Mapping)
+        or _digest_json(configuration, label="generator configuration") != config_digest
+    ):
         raise ValueError("channel generator configuration identity is invalid")
     if configuration.get("scenario") != scenario or configuration.get("batch_size") != len(ids):
         raise ValueError("generator configuration disagrees with scenario batch metadata")
@@ -676,9 +694,7 @@ def _record_bytes(record: ScenarioGBSMRecord) -> bytes:
     return stream.getvalue()
 
 
-def write_scenario_gbsm_run(
-    root: str | Path, run: ScenarioGBSMRun
-) -> StoredScenarioGBSMRun:
+def write_scenario_gbsm_run(root: str | Path, run: ScenarioGBSMRun) -> StoredScenarioGBSMRun:
     """Store path/CFR records by content digest and atomically publish the run index."""
     if not isinstance(run, ScenarioGBSMRun):
         raise TypeError("run must be a ScenarioGBSMRun")
@@ -703,8 +719,7 @@ def write_scenario_gbsm_run(
     digest = _sha256(_canonical_json(core, label="scenario run manifest"))
     manifest = {**core, "content_sha256": digest}
     relative_manifest = (
-        "scenario_gbsm/manifests/"
-        f"{hashlib.sha256(run.run_id.encode()).hexdigest()}.json"
+        f"scenario_gbsm/manifests/{hashlib.sha256(run.run_id.encode()).hexdigest()}.json"
     )
     manifest_bytes = _canonical_json(manifest, label="scenario manifest") + b"\n"
     if len(manifest_bytes) > MAX_SCENARIO_GBSM_MANIFEST_BYTES:
@@ -776,7 +791,11 @@ def read_scenario_gbsm_run(
     )
     raw_manifest = _parse_json_bytes(raw_bytes, label="scenario GBSM manifest")
     if not isinstance(raw_manifest, dict) or set(raw_manifest) != {
-        "schema", "schema_version", "run_id", "records", "content_sha256"
+        "schema",
+        "schema_version",
+        "run_id",
+        "records",
+        "content_sha256",
     }:
         raise ValueError("scenario GBSM manifest fields are invalid")
     if (
@@ -797,10 +816,7 @@ def read_scenario_gbsm_run(
         expected_manifest_path
     ):
         raise ValueError("scenario GBSM manifest is not at its canonical run path")
-    core = {
-        key: raw_manifest[key]
-        for key in ("schema", "schema_version", "run_id", "records")
-    }
+    core = {key: raw_manifest[key] for key in ("schema", "schema_version", "run_id", "records")}
     digest = _sha256(_canonical_json(core, label="scenario run manifest"))
     if digest != raw_manifest.get("content_sha256") or digest != stored.content_sha256:
         raise ValueError("scenario GBSM manifest hash is invalid")
@@ -850,16 +866,30 @@ def read_scenario_gbsm_run(
                 raise ValueError("scenario GBSM record archive exceeds its member contract")
         with np.load(io.BytesIO(payload), allow_pickle=False) as archive:
             if set(archive.files) != {
-                "h_path", "tau_s", "cfr", "subcarrier_offsets_hz", "metadata_json"
+                "h_path",
+                "tau_s",
+                "cfr",
+                "subcarrier_offsets_hz",
+                "metadata_json",
             }:
                 raise ValueError("scenario GBSM record archive fields are invalid")
             metadata = _parse_json_bytes(
                 archive["metadata_json"].tobytes(), label="scenario GBSM record metadata"
             )
-            if not isinstance(metadata, dict) or set(metadata) != {
-                "schema", "sample_id", "run_id", "sample_index", "scenario",
-                "scenario_los", "metadata"
-            } or metadata.get("schema") != "umcd.scenario_gbsm_record.v1":
+            if (
+                not isinstance(metadata, dict)
+                or set(metadata)
+                != {
+                    "schema",
+                    "sample_id",
+                    "run_id",
+                    "sample_index",
+                    "scenario",
+                    "scenario_los",
+                    "metadata",
+                }
+                or metadata.get("schema") != "umcd.scenario_gbsm_record.v1"
+            ):
                 raise ValueError("unsupported scenario GBSM record")
             if metadata.get("sample_id") != reference["sample_id"]:
                 raise ValueError("scenario record identity disagrees with manifest")

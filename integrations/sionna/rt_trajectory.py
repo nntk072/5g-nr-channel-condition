@@ -33,7 +33,7 @@ from datasets.nr_store import (
     read_nr_trajectory,
     write_nr_trajectory,
 )
-from datasets.targets import TargetValidity, TargetValue, target_definition_digest
+from datasets.targets import TargetValidity, TargetValue
 from datasets.time_axis import align_named_time_axes
 from propagation.scene_visibility import SceneTriangleInventory, extract_scene_triangle_inventory
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
@@ -137,12 +137,15 @@ class RTSceneObjectMotion:
     velocity_mps: tuple[float, float, float]
 
     def __post_init__(self) -> None:
-        if not self.object_name.strip():
+        if not isinstance(self.object_name, str) or not self.object_name.strip():
             raise ValueError("moving scene object name must be non-empty")
-        if len(self.velocity_mps) != 3 or any(
-            not math.isfinite(float(value)) for value in self.velocity_mps
+        values = tuple(self.velocity_mps)
+        if len(values) != 3 or any(
+            isinstance(value, bool) or not isinstance(value, Real) or not math.isfinite(value)
+            for value in values
         ):
             raise ValueError("moving scene-object velocity must have three finite coordinates")
+        object.__setattr__(self, "velocity_mps", tuple(float(value) for value in values))
 
 
 @dataclass(frozen=True, slots=True)
@@ -273,6 +276,60 @@ class RTTrajectoryConfig:
         return positions, times
 
 
+def rt_trajectory_motion_contract() -> dict[str, object]:
+    """Return the versioned kinematic and clock assumptions for RT snapshots."""
+    return {
+        "schema": "loslab.rt_trajectory_motion_contract.v1",
+        "coordinate_frame": "loaded_scene_world_meters",
+        "time_origin": "trajectory_relative_zero_seconds",
+        "timestamp_rule": "t_i=i*sample_interval_s",
+        "receiver_route": "p_i=p_0+v_receiver*t_i",
+        "moving_scene_objects": "p_i=p_0+v_object*t_i",
+        "orientation": "look_at_peer_at_each_snapshot",
+        "solver_time_model": "quasi_static_retrace_at_each_timestamp",
+        "between_snapshot_interpolation": "none",
+        "external_clock_alignment": "unsupported",
+        "scene_object_rotation": "unsupported",
+        "scene_object_deformation": "unsupported",
+        "per_frame_material_updates": "unsupported",
+        "material_state": "constant_loaded_manifest_for_entire_run",
+    }
+
+
+def _translated_scene_object_position(
+    initial_position_m: object, velocity_mps: object, timestamp_s: float
+) -> np.ndarray:
+    """Evaluate the supported constant-velocity translation equation."""
+
+    def vector3(value: object, name: str) -> np.ndarray:
+        try:
+            components = tuple(value)  # type: ignore[arg-type]
+        except TypeError as error:
+            raise ValueError(f"scene-object {name} must have three numeric coordinates") from error
+        if len(components) != 3 or any(
+            isinstance(component, bool)
+            or not isinstance(component, Real)
+            or not math.isfinite(component)
+            for component in components
+        ):
+            raise ValueError(f"scene-object {name} must have three finite real coordinates")
+        return np.asarray(components, dtype=np.float64)
+
+    position = vector3(initial_position_m, "position")
+    velocity = vector3(velocity_mps, "velocity")
+    if (
+        isinstance(timestamp_s, bool)
+        or not isinstance(timestamp_s, (int, float, np.integer, np.floating))
+        or not math.isfinite(float(timestamp_s))
+        or timestamp_s < 0
+    ):
+        raise ValueError("scene-object timestamp must be finite and nonnegative")
+    result = position + velocity * float(timestamp_s)
+    if not np.isfinite(result).all():
+        raise ValueError("scene-object translation overflows world coordinates")
+    return result
+
+
 def rt_trajectory_solver_config(config: RTTrajectoryConfig) -> dict[str, object]:
     """Return the exact PathSolver switches used for each trajectory frame."""
     return {
@@ -296,6 +353,7 @@ def rt_trajectory_physical_config(
     """Return the trajectory and loaded geometry values that determine RT output."""
     return {
         "trajectory": asdict(config),
+        "motion_contract": rt_trajectory_motion_contract(),
         "antenna_config": sionna_rt_siso_antenna_config(
             orientation_policy="look_at_peer_each_step"
         ),
@@ -329,6 +387,7 @@ def build_rt_trajectory_generation_request(
         "spec_sha256": spec_sha256,
         "config": {
             **asdict(config),
+            "motion_contract": rt_trajectory_motion_contract(),
             "total_work_units": config.num_steps * config.samples_per_src,
             "antenna_config": sionna_rt_siso_antenna_config(
                 orientation_policy="look_at_peer_each_step"
@@ -462,6 +521,7 @@ def generate_rt_nr_trajectory(
     approval_manifest: str | Path | None = None,
     expected_approval_sha256: str | None = None,
     spec_sha256: str | None = None,
+    scene_family_candidate_id: str | None = None,
 ) -> NRStoredTrajectory:
     """Retrace each route snapshot and store the resulting DMRS trajectory.
 
@@ -513,6 +573,18 @@ def generate_rt_nr_trajectory(
             "unresolved_references": [scene_xml],
             "complete": False,
         }
+    scene_family_identity: Mapping[str, Any] | None = None
+    if scene_family_candidate_id is not None:
+        from datasets.scene_families import (
+            load_scene_family_registry,
+            scene_candidate_split_metadata,
+        )
+
+        scene_family_identity = scene_candidate_split_metadata(
+            load_scene_family_registry(),
+            candidate_id=scene_family_candidate_id,
+            actual_geometry_asset_sha256=scene_asset_hashes["asset_set_sha256"],
+        )
     runtime_versions = versions()
     from integrations.sionna.d1_generation_gate import (
         authorize_d1_generation,
@@ -582,9 +654,24 @@ def generate_rt_nr_trajectory(
 
     run_identity = rt_run_identity(
         scene_asset_manifest=scene_asset_hashes,
-        physical_config=rt_trajectory_physical_config(
-            config, positions, static_scene_geometry_inventory
-        ),
+        physical_config={
+            **rt_trajectory_physical_config(config, positions, static_scene_geometry_inventory),
+            **(
+                {}
+                if scene_family_identity is None
+                else {
+                    "scene_family_candidate": {
+                        key: scene_family_identity[key]
+                        for key in (
+                            "candidate_id",
+                            "family_id",
+                            "registry_sha256",
+                            "geometry_asset_sha256",
+                        )
+                    }
+                }
+            ),
+        },
         material_config=material_manifest,
         solver_config=solver_config,
         seed=config.seed,
@@ -653,6 +740,14 @@ def generate_rt_nr_trajectory(
         subcarrier_offsets_hz=tuple(float(value) for value in subcarrier_offsets_hz),
         node_roles={"tx:trajectory_tx": NodeRole.GNB, "rx:trajectory_rx": NodeRole.UE},
         associations=(("tx:trajectory_tx", "rx:trajectory_rx"),),
+        split_leakage_relations=(
+            ()
+            if scene_family_identity is None
+            else tuple(
+                (str(item["namespace"]), str(item["identity"]))
+                for item in scene_family_identity["split_leakage_relations"]
+            )
+        ),
         direction=LinkDirection.DOWNLINK,
         link_role=LinkRole.SERVING,
     )
@@ -680,8 +775,10 @@ def generate_rt_nr_trajectory(
     for index, position in enumerate(positions):
         object_poses: dict[str, dict[str, list[float]]] = {}
         for motion in config.moving_scene_objects:
-            object_position = initial_object_positions[motion.object_name] + (
-                np.asarray(motion.velocity_mps, dtype=np.float64) * times[index]
+            object_position = _translated_scene_object_position(
+                initial_object_positions[motion.object_name],
+                motion.velocity_mps,
+                times[index],
             )
             scene_objects[motion.object_name].position = mi.Point3f(*object_position.tolist())
             scene_objects[motion.object_name].velocity = mi.Vector3f(*motion.velocity_mps)
@@ -827,6 +924,9 @@ def generate_rt_nr_trajectory(
             }
         )
 
+    if sionna_scene_material_manifest(scene) != material_manifest:
+        raise PermissionError("RT trajectory material state changed during the retraced snapshots")
+
     if config.no_path_policy == "noise_only_mixed_episode" and not any(total_path_counts):
         raise RuntimeError("noise_only_mixed_episode requires at least one path-bearing snapshot")
 
@@ -919,6 +1019,12 @@ def generate_rt_nr_trajectory(
             "scene": config.scene,
             "trajectory_id": config.trajectory_id,
             "rt_run_identity": run_identity,
+            "motion_contract": rt_trajectory_motion_contract(),
+            **(
+                {}
+                if scene_family_identity is None
+                else {"scene_family_candidate": dict(scene_family_identity)}
+            ),
             "timestamp_s": timestamp,
             "receiver_position_m": list(position),
             "transmitter_position_m": list(config.transmitter_position_m),
@@ -936,11 +1042,16 @@ def generate_rt_nr_trajectory(
                     "digest-bound NumPy loaded-scene triangle inventory, cross-checked by "
                     "Mitsuba segment intersection and depth-zero Sionna PathSolver"
                 ),
+                "rms_delay_spread": (
+                    "per-frame power-weighted RMS of solver-valid path delays from the "
+                    "absolute-delay path oracle; emitted only for a single RX/TX port pair"
+                ),
             },
             "target_units": {
                 "channel_cfr": "complex channel gain (dimensionless)",
                 "channel_cfr_ofdm_symbols": "complex channel gain (dimensionless)",
                 "geometric_los": "boolean",
+                "rms_delay_spread": "s",
             },
             "channel_time_evolution": {
                 "model": "Sionna RT per-path CIR and Doppler at 3GPP NR OFDM symbol starts",
@@ -1041,7 +1152,8 @@ def generate_rt_nr_trajectory(
                             "coherent sum of all retained solver-valid paths per effective "
                             "subcarrier and frame; no path-count or power normalization"
                         ),
-                        definition_version="umcd.rt-trajectory.absolute-cfr.v1",
+                        definition_version="umcd.rt-trajectory.absolute-cfr.v2",
+                        value_axes=("effective_subcarrier",),
                     ),
                     "channel_cfr_ofdm_symbols": TargetDefinition.versioned(
                         semantic=(
@@ -1058,7 +1170,8 @@ def generate_rt_nr_trajectory(
                             "coherent sum of retained solver-valid paths per effective "
                             "subcarrier and OFDM symbol; no path or symbol averaging"
                         ),
-                        definition_version="umcd.rt-trajectory.symbol-cfr.v1",
+                        definition_version="umcd.rt-trajectory.symbol-cfr.v2",
+                        value_axes=("ofdm_symbol", "effective_subcarrier"),
                     ),
                     "geometric_los": TargetDefinition.versioned(
                         semantic="digest-bound NumPy loaded-scene direct-visibility oracle",
@@ -1125,7 +1238,7 @@ def generate_rt_nr_trajectory(
                 (config.num_steps, 1, 1, fft_size),
             ),
         )
-        target_definition = TargetDefinition(
+        target_definition = TargetDefinition.versioned(
             semantic="geometric direct-path visibility",
             units="boolean",
             source="numpy_loaded_scene_triangle_inventory",
@@ -1134,18 +1247,8 @@ def generate_rt_nr_trajectory(
                 "intersection and depth-zero Sionna PathSolver at each recorded pose"
             ),
             aggregation_rule="one visibility value per trajectory frame; no spatial or temporal pooling",
-            definition_version="umcd.f04_rt_dynamic.direct_visibility.v3",
-            definition_sha256=target_definition_digest(
-                semantic="geometric direct-path visibility",
-                units="boolean",
-                source="numpy_loaded_scene_triangle_inventory",
-                reference=(
-                    "digest-bound loaded-scene triangle query cross-checked with Mitsuba "
-                    "segment intersection and depth-zero Sionna PathSolver at each recorded pose"
-                ),
-                aggregation_rule="one visibility value per trajectory frame; no spatial or temporal pooling",
-                definition_version="umcd.f04_rt_dynamic.direct_visibility.v3",
-            ),
+            definition_version="umcd.f04_rt_dynamic.direct_visibility.v4",
+            value_axes=("frame",),
         )
         los_target = TargetValue(
             entity_id=link.link_id,
@@ -1167,6 +1270,7 @@ def generate_rt_nr_trajectory(
             material_config=material_manifest,
             source_family="F04-RT-DYNAMIC",
             producer="Sionna 2.2 PathSolver and PUSCH receiver",
+            derive_rms_delay_spread_targets=True,
             channel_views=(channel_view,),
             targets=(los_target,),
             receiver_observations=linked_observations,
@@ -1193,6 +1297,12 @@ def generate_rt_nr_trajectory(
         "runtime_versions": runtime_versions,
         "package_source_sha256": source_sha256,
         "rt_run_identity": run_identity,
+        "motion_contract": rt_trajectory_motion_contract(),
+        **(
+            {}
+            if scene_family_identity is None
+            else {"scene_family_candidate": dict(scene_family_identity)}
+        ),
         "umcd_bundle": stored_umcd,
         "limitations": [
             "Each timestamp is a separately retraced quasi-static RT snapshot.",

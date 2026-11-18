@@ -50,6 +50,9 @@ class FrequencyDomainModelInputs:
             raise ValueError("snr_db must be finite")
         if not math.isfinite(carrier_hz) or carrier_hz <= 0:
             raise ValueError("carrier_hz must be finite and positive")
+        absolute_frequencies_hz = carrier_hz + offsets
+        if not np.isfinite(absolute_frequencies_hz).all() or np.any(absolute_frequencies_hz <= 0.0):
+            raise ValueError("carrier plus subcarrier offsets must be positive RF frequencies")
         channel.setflags(write=False)
         offsets.setflags(write=False)
         object.__setattr__(self, "observed_cfr", channel)

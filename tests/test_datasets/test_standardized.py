@@ -340,9 +340,16 @@ def test_standardized_admission_accepts_tr38901_carrier_boundaries(
     family: StandardizedFamily, carrier_hz: float
 ) -> None:
     run = standardized_run_from_channel(
-        _channel(carrier_hz=carrier_hz, spacing_hz=250e6), family=family
+        _channel(carrier_hz=carrier_hz, spacing_hz=15_000.0), family=family
     )
-    assert run.records[0].metadata["sampled_bandwidth_hz"] == 2e9
+    assert run.records[0].metadata["carrier_frequency_hz"] == carrier_hz
+
+
+def test_standardized_admission_rejects_grid_that_reaches_zero_rf_frequency() -> None:
+    with pytest.raises(ValueError, match="positive RF frequencies"):
+        standardized_run_from_channel(
+            _channel(carrier_hz=0.5e9, spacing_hz=250e6), family=StandardizedFamily.TDL
+        )
 
 
 @pytest.mark.parametrize(

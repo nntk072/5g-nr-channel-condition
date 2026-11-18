@@ -14,9 +14,12 @@ from integrations.sionna.d1_generation_gate import (
 )
 from integrations.sionna.rt_identity import rt_run_identity
 from integrations.sionna.rt_trajectory import (
+    RTSceneObjectMotion,
     RTTrajectoryConfig,
+    _translated_scene_object_position,
     build_paired_frequency_rt_requests,
     build_rt_trajectory_generation_request,
+    rt_trajectory_motion_contract,
     rt_trajectory_physical_config,
 )
 from propagation.scene_visibility import SceneTriangleInventory
@@ -63,6 +66,7 @@ def test_rt_trajectory_authorization_request_binds_active_scene_state() -> None:
     assert request["material_state_sha256"]
     assert request["scene_geometry"]["scene_geometry_sha256"] == "a" * 64
     assert request["config"]["solver_config"]["max_depth"] == 2
+    assert request["config"]["motion_contract"] == rt_trajectory_motion_contract()
     assert request["config"]["antenna_config"]["node_orientation"]["policy"] == (
         "look_at_peer_each_step"
     )
@@ -219,6 +223,49 @@ def test_rt_trajectory_config_generates_ordered_constant_velocity_route() -> Non
     assert positions == ((4.0, 5.0, 6.0), (4.5, 4.75, 6.125), (5.0, 4.5, 6.25))
     assert times == (0.0, 0.25, 0.5)
     assert config.no_path_policy == "reject"
+
+
+def test_scene_object_motion_contract_uses_constant_velocity_translation():
+    moved = _translated_scene_object_position((1.0, 2.0, 3.0), (0.5, -1.0, 2.0), 0.25)
+
+    np.testing.assert_array_equal(moved, [1.125, 1.75, 3.5])
+    contract = rt_trajectory_motion_contract()
+    assert contract["scene_object_rotation"] == "unsupported"
+    assert contract["scene_object_deformation"] == "unsupported"
+    assert contract["external_clock_alignment"] == "unsupported"
+    assert contract["between_snapshot_interpolation"] == "none"
+    jsonschema = pytest.importorskip("jsonschema")
+    schema_path = (
+        Path(__file__).resolve().parents[2]
+        / "datasets/schema/rt-trajectory-motion-contract.v1.schema.json"
+    )
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    jsonschema.Draft202012Validator.check_schema(schema)
+    jsonschema.Draft202012Validator(schema).validate(contract)
+
+
+@pytest.mark.parametrize(
+    "position,velocity,timestamp",
+    [
+        ((0.0, 0.0), (0.0, 0.0, 0.0), 0.0),
+        ((0.0, 0.0, 0.0), (0.0, float("nan"), 0.0), 0.0),
+        ((0.0, 0.0, 0.0), (0.0, 0.0, 0.0), -0.1),
+        ((0.0, 0.0, 0.0), (0.0, 0.0, 0.0), True),
+        ((True, 0.0, 0.0), (0.0, 0.0, 0.0), 0.0),
+        ((0.0, 0.0, 0.0), (False, 0.0, 0.0), 0.0),
+        (("1", 0.0, 0.0), (0.0, 0.0, 0.0), 0.0),
+    ],
+)
+def test_scene_object_motion_rejects_unsupported_numeric_inputs(position, velocity, timestamp):
+    with pytest.raises(ValueError):
+        _translated_scene_object_position(position, velocity, timestamp)
+
+
+def test_scene_object_motion_rejects_boolean_and_noncanonical_velocity():
+    with pytest.raises(ValueError, match="finite coordinates"):
+        RTSceneObjectMotion("screen", (True, 0.0, 0.0))
+    with pytest.raises(ValueError, match="name must be non-empty"):
+        RTSceneObjectMotion(None, (0.0, 0.0, 0.0))  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize(

@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import hashlib
 import inspect
+import io
 import json
 import os
 import platform
 import stat
 import sys
+import zipfile
 from pathlib import Path
 from time import perf_counter
 from typing import Any, Mapping, Sequence
@@ -27,7 +29,17 @@ from artifacts.provenance import (
 from artifacts.run_replay import build_run_replay_provenance
 from configuration.loader import resolve_config
 from datasets.channel import ChannelDataset
-from datasets.split_policy import SplitPolicyRegistry, verify_signed_split_policy_registry
+from datasets.split_policy import (
+    SplitPolicyRegistry,
+    _reject_duplicate_json_keys,
+    verify_openssh_signed_artifact,
+    verify_signed_split_policy_registry_attestation,
+)
+from evaluation.benchmark_partitions import (
+    BENCHMARK_COHORTS,
+    TEST_COHORTS,
+    verify_benchmark_manifest_replay,
+)
 from evaluation.class_support import audit_class_support
 from evaluation.low_confidence import build_low_confidence_audit
 from evaluation.metrics import (
@@ -126,6 +138,17 @@ def _validate_evaluation_payload(payload: dict[str, Any], schema_filename: str) 
             f"evaluation payload violates {schema_filename}: "
             + "; ".join(error.message for error in errors[:10])
         )
+
+
+def _validate_json_schema(payload: Any, schema: dict[str, Any], label: str) -> None:
+    import jsonschema
+
+    try:
+        jsonschema.Draft202012Validator(schema, format_checker=jsonschema.FormatChecker()).validate(
+            payload
+        )
+    except jsonschema.ValidationError as error:
+        raise ValueError(f"{label} violates its schema: {error.message}") from error
 
 
 _CHANNEL_DATASET_BUILD_SCHEMA = {
@@ -960,6 +983,7 @@ def verify_model_input_artifact_contract(
     source_method_input: np.ndarray | None = None,
     source_values: np.ndarray | None = None,
     metadata_values: dict[str, np.ndarray] | None = None,
+    benchmark_cohort: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Verify that a saved model is bound to a canonical observation-only input contract."""
     sidecar_path = Path(model_info_path)
@@ -1458,12 +1482,41 @@ def verify_model_input_artifact_contract(
         or any(char not in "0123456789abcdef" for char in registry_digest)
     ):
         raise ValueError("model input contract registry digest is invalid")
-    return {
+    sidecar_benchmark_cohort = sidecar.get("benchmark_cohort")
+    benchmark_verification = None
+    if benchmark_cohort is None:
+        if sidecar_benchmark_cohort is not None:
+            raise ValueError("unexpected benchmark cohort provenance in model info sidecar")
+    else:
+        if (
+            not isinstance(benchmark_cohort, dict)
+            or sidecar_benchmark_cohort != benchmark_cohort
+            or partition_indices is None
+            or "test" not in partition_indices
+        ):
+            raise ValueError("model info benchmark cohort provenance does not match replay")
+        test_indices = np.asarray(partition_indices["test"])
+        if test_indices.ndim != 1 or test_indices.dtype.kind not in "iu":
+            raise ValueError("benchmark test indices must be a one-dimensional integer array")
+        selected_digest = canonical_hash(test_indices.astype(np.int64, copy=False).tolist())
+        if selected_digest != benchmark_cohort.get("selected_test_indices_sha256"):
+            raise ValueError("benchmark cohort digest does not bind the model test indices")
+        if benchmark_cohort.get("registry_sha256") != registry_digest:
+            raise ValueError("benchmark cohort registry does not match model split contract")
+        benchmark_verification = {
+            "selected_test_cohort": benchmark_cohort.get("selected_test_cohort"),
+            "benchmark_manifest_sha256": benchmark_cohort.get("manifest_sha256"),
+            "selected_test_indices_sha256": selected_digest,
+        }
+    verification = {
         "status": "PASS_MODEL_INPUT_ARTIFACT_BINDING",
         "model_sha256": contract["model_sha256"],
         "feature_contract_sha256": contract["feature_contract_sha256"],
         "feature_matrix_verified": feature_matrix_verified,
     }
+    if benchmark_verification is not None:
+        verification["benchmark_cohort"] = benchmark_verification
+    return verification
 
 
 def _validation_threshold_selection_record(
@@ -1711,6 +1764,229 @@ def verify_declared_partition_support(
     }
 
 
+def _stable_input_bytes(path: str | Path, *, max_bytes: int = 8 * 1024**3) -> bytes:
+    """Read one bounded, single-link input snapshot without following symlinks."""
+    source = Path(path)
+    if not hasattr(os, "O_NOFOLLOW") or not hasattr(os, "O_NONBLOCK"):
+        raise RuntimeError("benchmark replay requires no-follow file opening support")
+    before_path = os.lstat(source)
+    if not stat.S_ISREG(before_path.st_mode) or before_path.st_nlink != 1:
+        raise ValueError(f"benchmark input must be a single-link regular file: {source}")
+    if before_path.st_size > max_bytes:
+        raise ValueError(f"benchmark input exceeds the {max_bytes}-byte limit: {source}")
+    descriptor = os.open(
+        source,
+        os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK | getattr(os, "O_CLOEXEC", 0),
+    )
+    try:
+        before_fd = os.fstat(descriptor)
+        if (before_fd.st_dev, before_fd.st_ino) != (before_path.st_dev, before_path.st_ino):
+            raise ValueError(f"benchmark input changed before it was opened: {source}")
+        chunks: list[bytes] = []
+        total = 0
+        while total <= max_bytes:
+            chunk = os.read(descriptor, min(1024 * 1024, max_bytes + 1 - total))
+            if not chunk:
+                break
+            chunks.append(chunk)
+            total += len(chunk)
+        after_fd = os.fstat(descriptor)
+        after_path = os.lstat(source)
+
+        def signature(item: os.stat_result) -> tuple[int, ...]:
+            return (
+                item.st_dev,
+                item.st_ino,
+                item.st_mode,
+                item.st_nlink,
+                item.st_size,
+                item.st_mtime_ns,
+                item.st_ctime_ns,
+            )
+
+        if (
+            total > max_bytes
+            or not stat.S_ISREG(after_fd.st_mode)
+            or after_fd.st_nlink != 1
+            or not stat.S_ISREG(after_path.st_mode)
+            or after_path.st_nlink != 1
+            or signature(before_fd) != signature(after_fd)
+            or signature(after_fd) != signature(after_path)
+            or total != after_fd.st_size
+        ):
+            raise ValueError(f"benchmark input changed or exceeded its byte limit: {source}")
+        return b"".join(chunks)
+    finally:
+        os.close(descriptor)
+
+
+def _validate_npz_snapshot(payload: bytes, *, label: str, max_uncompressed_bytes: int) -> None:
+    try:
+        with zipfile.ZipFile(io.BytesIO(payload)) as archive:
+            entries = archive.infolist()
+            names = [entry.filename for entry in entries]
+            if len(entries) > 32 or len(names) != len(set(names)):
+                raise ValueError(f"{label} contains an invalid NPZ entry roster")
+            if sum(entry.file_size for entry in entries) > max_uncompressed_bytes:
+                raise ValueError(f"{label} exceeds the uncompressed dataset size limit")
+    except zipfile.BadZipFile as error:
+        raise ValueError(f"{label} is not a valid NPZ archive") from error
+
+
+def _unsupported_benchmark_test_cohorts(cohort_summary: Mapping[str, Any]) -> list[dict[str, Any]]:
+    unsupported: list[dict[str, Any]] = []
+    for cohort in TEST_COHORTS:
+        summary = cohort_summary[cohort]
+        reasons = []
+        if summary["rows"] == 0:
+            reasons.append("NO_ROWS")
+        if summary["independent_components"] == 0:
+            reasons.append("NO_INDEPENDENT_COMPONENTS")
+        if reasons:
+            dependencies = [
+                "complete authoritative cohort and parent inventory",
+                "independent physical-unit validation and trusted signer custody",
+            ]
+            if cohort == "real_external":
+                dependencies.extend(
+                    [
+                        "authoritative measurement inventory and protocol validation",
+                        "rights review and measurement validity evidence",
+                    ]
+                )
+            unsupported.append(
+                {
+                    "cohort": cohort,
+                    "status": "UNSUPPORTED",
+                    "reason_codes": reasons,
+                    "external_dependencies": dependencies,
+                }
+            )
+    return unsupported
+
+
+def _resolve_benchmark_test_cohort(
+    *,
+    paths: Sequence[str | Path],
+    dataset_names: Sequence[str],
+    datasets: Sequence[tuple[str, str, ChannelDataset]],
+    registry: SplitPolicyRegistry,
+    registry_attestation: Any,
+    manifest_path: str | Path,
+    declaration_path: str | Path,
+    declaration_signature_path: str | Path,
+    declaration_allowed_signers_path: str | Path,
+    declaration_signer_id: str,
+    test_cohort: str,
+    locked_indices: tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, dict[str, Any]],
+) -> tuple[np.ndarray, dict[str, Any]]:
+    if test_cohort not in TEST_COHORTS:
+        raise ValueError(f"unsupported benchmark test cohort: {test_cohort}")
+    if len(paths) != len(dataset_names) or len(set(dataset_names)) != len(dataset_names):
+        raise ValueError("benchmark dataset names must uniquely match the ordered dataset paths")
+    if set(dataset_names) != {name for name, _digest, _dataset in datasets}:
+        raise ValueError("benchmark dataset names do not match the loaded dataset roster")
+
+    declaration_artifact = verify_openssh_signed_artifact(
+        declaration_path,
+        declaration_signature_path,
+        trusted_allowed_signers_path=declaration_allowed_signers_path,
+        signer_id=declaration_signer_id,
+        namespace="umcd-benchmark-cohort-v1@github.com",
+    )
+    declaration = json.loads(
+        declaration_artifact.payload.decode("utf-8"),
+        object_pairs_hook=_reject_duplicate_json_keys,
+    )
+    schema_root = Path(__file__).resolve().parents[1] / "datasets" / "schema"
+    declaration_schema = json.loads(
+        (schema_root / "benchmark-cohort-declaration.v1.schema.json").read_text(encoding="utf-8")
+    )
+    _validate_json_schema(declaration, declaration_schema, "signed benchmark cohort declaration")
+
+    manifest_bytes = _stable_input_bytes(manifest_path, max_bytes=64 * 1024**2)
+    try:
+        benchmark_manifest = json.loads(
+            manifest_bytes.decode("utf-8"), object_pairs_hook=_reject_duplicate_json_keys
+        )
+    except (UnicodeDecodeError, json.JSONDecodeError, RecursionError) as error:
+        raise ValueError("benchmark partition manifest is not valid UTF-8 JSON") from error
+    manifest_schema = json.loads(
+        (schema_root / "benchmark-partition-manifest.v1.schema.json").read_text(encoding="utf-8")
+    )
+    _validate_json_schema(benchmark_manifest, manifest_schema, "benchmark partition manifest")
+    registry_attestation_dict = {
+        "artifact_sha256": registry_attestation.artifact_sha256,
+        "signature_sha256": registry_attestation.signature_sha256,
+        "allowed_signers_sha256": registry_attestation.allowed_signers_sha256,
+        "signer_id": registry_attestation.signer_id,
+        "namespace": registry_attestation.namespace,
+    }
+    declaration_attestation_dict = {
+        "artifact_sha256": declaration_artifact.artifact_sha256,
+        "signature_sha256": declaration_artifact.signature_sha256,
+        "allowed_signers_sha256": declaration_artifact.allowed_signers_sha256,
+        "signer_id": declaration_artifact.signer_id,
+        "namespace": declaration_artifact.namespace,
+    }
+    replay = verify_benchmark_manifest_replay(
+        benchmark_manifest,
+        registry,
+        declaration,
+        datasets,
+        registry_attestation=registry_attestation_dict,
+        declaration_attestation=declaration_attestation_dict,
+    )
+
+    offsets: dict[str, int] = {}
+    cursor = 0
+    dataset_by_name = {name: dataset for name, _digest, dataset in datasets}
+    for name in dataset_names:
+        offsets[name] = cursor
+        cursor += len(dataset_by_name[name].y)
+    cohort_rows = replay["rows_by_dataset"]
+    indices_by_cohort: dict[str, np.ndarray] = {}
+    for cohort in BENCHMARK_COHORTS:
+        indices_by_cohort[cohort] = np.asarray(
+            sorted(
+                offsets[name] + local_index
+                for name in dataset_names
+                for local_index in cohort_rows[name][cohort]
+            ),
+            dtype=np.int64,
+        )
+    locked_train, locked_validation, locked_test, locked_calibration = locked_indices[:4]
+    for cohort_rows_indices, locked_rows, label in (
+        (indices_by_cohort["train"], locked_train, "train"),
+        (indices_by_cohort["validation"], locked_validation, "validation"),
+        (indices_by_cohort["calibration"], locked_calibration, "calibration"),
+    ):
+        if not np.array_equal(cohort_rows_indices, np.sort(locked_rows)):
+            raise ValueError(f"benchmark {label} rows disagree with the signed split lock")
+    if not set(indices_by_cohort[test_cohort]).issubset(set(locked_test.tolist())):
+        raise ValueError(f"benchmark {test_cohort} rows escape the signed test partition")
+    if len(indices_by_cohort[test_cohort]) == 0:
+        raise ValueError(f"benchmark {test_cohort} cohort is unsupported: it contains no rows")
+
+    unsupported = _unsupported_benchmark_test_cohorts(benchmark_manifest["cohorts"])
+    return indices_by_cohort[test_cohort], {
+        "status": "PASS_INPUT_SCOPED_REPLAY",
+        "qualification_status": "NOT_QUALIFIED",
+        "selected_test_cohort": test_cohort,
+        "manifest_sha256": replay["manifest_sha256"],
+        "manifest_file_sha256": hashlib.sha256(manifest_bytes).hexdigest(),
+        "declaration_artifact_sha256": declaration_artifact.artifact_sha256,
+        "declaration_signature_sha256": declaration_artifact.signature_sha256,
+        "declaration_allowed_signers_sha256": declaration_artifact.allowed_signers_sha256,
+        "declaration_signer_id": declaration_artifact.signer_id,
+        "declaration_namespace": declaration_artifact.namespace,
+        "cohort_summary": benchmark_manifest["cohorts"],
+        "unsupported_test_cohorts": unsupported,
+        "selected_test_indices_sha256": canonical_hash(indices_by_cohort[test_cohort].tolist()),
+        "registry_sha256": replay["registry_sha256"],
+    }
+
+
 def _locked_split_indices(
     data: ChannelDataset, registry: SplitPolicyRegistry
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, dict[str, Any]]:
@@ -1948,6 +2224,13 @@ def _run_experiment_impl(
     split_signature_path: str | Path | None = None,
     trusted_split_signers_path: str | Path | None = None,
     split_signer_id: str | None = None,
+    benchmark_manifest_path: str | Path | None = None,
+    benchmark_declaration_path: str | Path | None = None,
+    benchmark_declaration_signature_path: str | Path | None = None,
+    benchmark_declaration_allowed_signers_path: str | Path | None = None,
+    benchmark_declaration_signer_id: str | None = None,
+    benchmark_dataset_names: Sequence[str] | None = None,
+    benchmark_test_cohort: str | None = None,
     build_cache_root: str | Path | None = None,
     prior_shift: dict[str, Any] | None = None,
     low_confidence_margin: float | None = None,
@@ -1958,6 +2241,9 @@ def _run_experiment_impl(
 ) -> dict:
     if not paths:
         raise ValueError("No datasets supplied")
+    output_path = Path(output).expanduser()
+    if output_path.is_symlink():
+        raise ValueError(f"experiment output root must not be a symlink: {output_path}")
     if (
         isinstance(phase_randomization_seed, bool)
         or not isinstance(phase_randomization_seed, (int, np.integer))
@@ -1987,8 +2273,63 @@ def _run_experiment_impl(
     ):
         raise ValueError("low_confidence_margin must be finite and in [0, 0.5)")
     capacity_spec(capacity)
+    benchmark_args = (
+        benchmark_manifest_path,
+        benchmark_declaration_path,
+        benchmark_declaration_signature_path,
+        benchmark_declaration_allowed_signers_path,
+        benchmark_declaration_signer_id,
+        benchmark_dataset_names,
+        benchmark_test_cohort,
+    )
+    benchmark_enabled = any(value is not None for value in benchmark_args)
+    if benchmark_enabled and not all(value is not None for value in benchmark_args):
+        raise ValueError(
+            "benchmark cohort mode requires manifest, signed declaration inputs, dataset names, "
+            "and a selected test cohort"
+        )
+    if benchmark_enabled and build_cache_root is not None:
+        raise ValueError("benchmark cohort mode requires direct dataset snapshots, not build cache")
+    if benchmark_enabled and not all(
+        value is not None
+        for value in (
+            split_lock_path,
+            split_signature_path,
+            trusted_split_signers_path,
+            split_signer_id,
+        )
+    ):
+        raise ValueError("benchmark cohort mode requires a verified signed split lock")
     dataset_build_node = None
-    if build_cache_root is None:
+    benchmark_datasets: list[tuple[str, str, ChannelDataset]] | None = None
+    input_snapshot_digests: dict[str, str] = {}
+    if benchmark_enabled:
+        names = list(benchmark_dataset_names or ())
+        if (
+            len(names) != len(paths)
+            or len(set(names)) != len(names)
+            or any(
+                not isinstance(name, str) or not name.strip() or name != name.strip()
+                for name in names
+            )
+        ):
+            raise ValueError("benchmark dataset names must uniquely match ordered dataset paths")
+        benchmark_datasets = []
+        for name, path in zip(names, paths, strict=True):
+            payload = _stable_input_bytes(path)
+            _validate_npz_snapshot(
+                payload,
+                label=f"benchmark ChannelDataset {name!r}",
+                max_uncompressed_bytes=8 * 1024**3,
+            )
+            digest = hashlib.sha256(payload).hexdigest()
+            dataset = ChannelDataset.load_bytes(payload)
+            benchmark_datasets.append((name, digest, dataset))
+            input_snapshot_digests[str(Path(path).expanduser().resolve())] = digest
+        data = ChannelDataset.concatenate(
+            [dataset for _name, _digest, dataset in benchmark_datasets]
+        )
+    elif build_cache_root is None:
         data = ChannelDataset.concatenate([ChannelDataset.load(p) for p in paths])
     else:
         data, dataset_build_node = _materialize_channel_dataset_build_node(paths, build_cache_root)
@@ -2005,6 +2346,8 @@ def _run_experiment_impl(
             "signed split mode requires lock, signature, trusted keyring, and signer ID"
         )
     locked_indices = None
+    benchmark_test_indices: np.ndarray | None = None
+    benchmark_provenance: dict[str, Any] | None = None
     split_provenance: dict[str, Any] = {"mode": "unlocked_pilot"}
     if all(value is not None for value in signed_split_args):
         if holdout is not None:
@@ -2012,7 +2355,7 @@ def _run_experiment_impl(
         lock_path = Path(split_lock_path)  # type: ignore[arg-type]
         signature_path = Path(split_signature_path)  # type: ignore[arg-type]
         signers_path = Path(trusted_split_signers_path)  # type: ignore[arg-type]
-        registry = verify_signed_split_policy_registry(
+        registry, registry_attestation = verify_signed_split_policy_registry_attestation(
             lock_path,
             signature_path,
             trusted_allowed_signers_path=signers_path,
@@ -2022,10 +2365,27 @@ def _run_experiment_impl(
         split_provenance = {
             **locked_indices[4],
             "signer_id": split_signer_id,
-            "lock_file_sha256": sha256_file(lock_path),
-            "signature_file_sha256": sha256_file(signature_path),
-            "trusted_keyring_sha256": sha256_file(signers_path),
+            "lock_file_sha256": registry_attestation.artifact_sha256,
+            "signature_file_sha256": registry_attestation.signature_sha256,
+            "trusted_keyring_sha256": registry_attestation.allowed_signers_sha256,
         }
+        if benchmark_enabled:
+            assert benchmark_datasets is not None
+            benchmark_test_indices, benchmark_provenance = _resolve_benchmark_test_cohort(
+                paths=paths,
+                dataset_names=benchmark_dataset_names or (),
+                datasets=benchmark_datasets,
+                registry=registry,
+                registry_attestation=registry_attestation,
+                manifest_path=benchmark_manifest_path,  # type: ignore[arg-type]
+                declaration_path=benchmark_declaration_path,  # type: ignore[arg-type]
+                declaration_signature_path=benchmark_declaration_signature_path,  # type: ignore[arg-type]
+                declaration_allowed_signers_path=benchmark_declaration_allowed_signers_path,  # type: ignore[arg-type]
+                declaration_signer_id=str(benchmark_declaration_signer_id),
+                test_cohort=str(benchmark_test_cohort),
+                locked_indices=locked_indices,
+            )
+            split_provenance["benchmark_cohort"] = benchmark_provenance
     resolved_label_semantics = _resolved_label_semantics(data)
     model_inputs = data.model_inputs()
     if observation == "ideal_cfr":
@@ -2127,6 +2487,9 @@ def _run_experiment_impl(
             "complex convolution, phase-equivariant encoding, magnitude-invariant classifier"
         ),
         "split_mode": split_provenance["mode"],
+        "benchmark_test_cohort": (
+            None if benchmark_provenance is None else benchmark_provenance["selected_test_cohort"]
+        ),
         "threshold_selection_policy": _VALIDATION_THRESHOLD_POLICY,
         "prior_shift": resolved_prior_shift,
         "low_confidence_margin": low_confidence_margin,
@@ -2138,7 +2501,14 @@ def _run_experiment_impl(
     }
     dependency_versions = versions()
     config_sha256 = canonical_hash(config)
-    input_records = [{"path": str(p), "sha256": sha256_file(p)} for p in paths]
+    input_records = []
+    for path in paths:
+        resolved_path = str(Path(path).expanduser().resolve())
+        digest = sha256_file(path)
+        expected_digest = input_snapshot_digests.get(resolved_path)
+        if expected_digest is not None and digest != expected_digest:
+            raise ValueError(f"benchmark dataset changed after its verified snapshot: {path}")
+        input_records.append({"path": str(path), "sha256": digest})
     package_source_digest = package_source_sha256()
     manifest = run_manifest(
         output.name,
@@ -2192,6 +2562,8 @@ def _run_experiment_impl(
     for seed in seeds:
         if locked_indices is not None:
             train, val, test = locked_indices[:3]
+            if benchmark_test_indices is not None:
+                test = benchmark_test_indices
             calibration = locked_indices[3]
         else:
             train, val, test = (
@@ -2524,6 +2896,7 @@ def _run_experiment_impl(
                     "include_phase": include_phase,
                     "method": method,
                     "model_input_artifact_contract": model_input_contract,
+                    "benchmark_cohort": benchmark_provenance,
                 },
             )
             model_input_contract_verification = verify_model_input_artifact_contract(
@@ -2543,6 +2916,7 @@ def _run_experiment_impl(
                     if method == "domain_only"
                     else None
                 ),
+                benchmark_cohort=benchmark_provenance,
             )
             test_prediction_started = perf_counter()
             test_scores_raw = clf.predict_proba(method_input[test])[:, 1]
@@ -2665,6 +3039,7 @@ def _run_experiment_impl(
                 "split": {
                     "mode": split_provenance["mode"],
                     "registry_sha256": split_provenance.get("registry_sha256"),
+                    "benchmark_cohort": benchmark_provenance,
                     "declared_partition_support": partition_support,
                     "declared_partition_support_sha256": partition_support_sha256,
                     "partition_support_sha256": split_provenance.get("partition_support_sha256"),
@@ -2737,6 +3112,7 @@ def _run_experiment_impl(
                 "model_input_feature_matrix_verified": model_input_contract_verification[
                     "feature_matrix_verified"
                 ],
+                "model_input_artifact_contract_verification": model_input_contract_verification,
             }
             results.append(result)
             # Keep split indices and probabilities for independently reproducing every metric.
@@ -2853,12 +3229,21 @@ def run_experiment(*args: Any, **kwargs: Any) -> dict:
         output = args[1]
     else:
         output = kwargs.get("output")
+    existing_manifest_before = False
+    if output is not None:
+        output_before = Path(output).expanduser()
+        if not output_before.is_symlink():
+            existing_manifest_before = (output_before / "manifest.json").exists()
     try:
         return _run_experiment_impl(*args, **kwargs)
     except Exception as error:
         if output is not None:
-            manifest_path = Path(output).expanduser().resolve() / "manifest.json"
-            if manifest_path.is_file():
+            output_candidate = Path(output).expanduser()
+            if output_candidate.is_symlink() or existing_manifest_before:
+                raise
+            manifest_path = output_candidate.absolute() / "manifest.json"
+            manifest_written = False
+            if manifest_path.is_file() and not manifest_path.is_symlink():
                 try:
                     persisted = json.loads(manifest_path.read_text(encoding="utf-8"))
                     replay = persisted.get("run_replay")
@@ -2870,9 +3255,79 @@ def run_experiment(*args: Any, **kwargs: Any) -> dict:
                             stage="experiment",
                         )
                         atomic_json(manifest_path, failed)
+                        manifest_written = True
                 except Exception as provenance_error:
                     raise RuntimeError(
                         "experiment failed and failure replay provenance could not be recorded: "
                         f"{provenance_error}"
                     ) from error
+            benchmark_requested = any(
+                kwargs.get(name) is not None
+                for name in (
+                    "benchmark_manifest_path",
+                    "benchmark_declaration_path",
+                    "benchmark_test_cohort",
+                )
+            )
+            if benchmark_requested and not manifest_written and not manifest_path.exists():
+                _write_benchmark_preflight_failure_receipt(
+                    output,
+                    error,
+                    selected_test_cohort=kwargs.get("benchmark_test_cohort"),
+                )
         raise
+
+
+def _write_benchmark_preflight_failure_receipt(
+    output: str | Path,
+    error: Exception,
+    *,
+    selected_test_cohort: Any,
+) -> None:
+    """Create an exclusive failure receipt when benchmark preflight has no run manifest."""
+    output_root = Path(output).expanduser().absolute()
+    if output_root.is_symlink():
+        return
+    try:
+        output_root.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        return
+    receipt_path = output_root / "benchmark-cohort-preflight.json"
+    status = (
+        "UNSUPPORTED_COHORT" if " is unsupported:" in str(error) else "FAILED_BEFORE_RUN_MANIFEST"
+    )
+    receipt = {
+        "schema": "loslab.benchmark_cohort_preflight.v1",
+        "status": status,
+        "qualification_status": "NOT_QUALIFIED",
+        "selected_test_cohort": selected_test_cohort
+        if isinstance(selected_test_cohort, str)
+        else None,
+        "error_type": type(error).__name__,
+        "error_message": str(error),
+    }
+    schema_path = Path(__file__).resolve().parents[1] / (
+        "evaluation/schema/benchmark-cohort-preflight.v1.schema.json"
+    )
+    if schema_path.is_file():
+        _validate_json_schema(
+            receipt,
+            json.loads(schema_path.read_text(encoding="utf-8")),
+            "benchmark preflight receipt",
+        )
+    payload = (json.dumps(receipt, indent=2, sort_keys=True, allow_nan=False) + "\n").encode()
+    try:
+        descriptor = os.open(
+            receipt_path,
+            os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0),
+            0o600,
+        )
+    except FileExistsError:
+        return
+    try:
+        with os.fdopen(descriptor, "wb", closefd=False) as stream:
+            stream.write(payload)
+            stream.flush()
+            os.fsync(stream.fileno())
+    finally:
+        os.close(descriptor)

@@ -76,12 +76,19 @@ def _patch_forecast_inputs(
     monkeypatch.setattr(
         forecast_script,
         "evaluate_trajectory_forecasts",
-        lambda _trajectory, *, split, split_registry: [
+        lambda _trajectory, *, split, split_registry, **_kwargs: [
             {
-                "split": split,
                 "trajectory_id": "trajectory-a",
+                "sample_id": "sample-b",
+                "split": split,
+                "forecast_origin_sample_id": "sample-a",
+                "forecast_origin_s": 0.0,
                 "forecast_target_s": 1.0,
+                "horizon_s": 1.0,
+                "valid_target_element_count": 1,
                 "method": "persistence",
+                "nmse_linear": 0.0,
+                "nmse_db": -300.0,
             }
         ],
     )
@@ -135,6 +142,133 @@ def test_signed_forecast_uses_registry_child_roster_and_exact_attestation(
         "trajectory_child_kind": "nr_trajectory_sample",
     }
     assert set(report["metrics_by_split"]) == set(registry.policy.split_fractions)
+
+
+def test_forecast_spec_binds_explicit_horizons_and_gap_design(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    registry = _signed_registry()
+    verified = VerifiedOpenSSHArtifact(
+        payload=b"verified",
+        artifact_sha256="c" * 64,
+        signature_sha256="d" * 64,
+        allowed_signers_sha256="e" * 64,
+        signer_id="research@example.org",
+        namespace="umcd-split-policy-v2",
+    )
+    monkeypatch.setattr(
+        forecast_script,
+        "verify_signed_split_policy_registry_attestation",
+        lambda *_args, **_kwargs: (registry, verified),
+    )
+    _patch_forecast_inputs(monkeypatch, ("sample-a", "sample-b"))
+    observed: dict[str, object] = {}
+
+    def capture_forecast(_trajectory, *, split, split_registry, **kwargs):
+        observed.update(kwargs)
+        return [
+            {
+                "trajectory_id": "trajectory-a",
+                "sample_id": "sample-b",
+                "split": split,
+                "forecast_origin_sample_id": "sample-a",
+                "forecast_origin_s": 0.0,
+                "forecast_target_s": 1.0,
+                "horizon_s": 1.0,
+                "valid_target_element_count": 1,
+                "method": "persistence",
+                "nmse_linear": 0.0,
+                "nmse_db": -300.0,
+            }
+        ]
+
+    monkeypatch.setattr(forecast_script, "evaluate_trajectory_forecasts", capture_forecast)
+    spec_path = tmp_path / "trajectory.json"
+    spec_path.write_text(
+        json.dumps(
+            {
+                "trajectory_id": "trajectory-a",
+                "scene": "scene-a",
+                "horizons_s": [0.5, 1.0],
+                "maximum_inter_sample_gap_s": 0.75,
+                "timestamp_tolerance_s": 1e-6,
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    report = forecast_script.evaluate_frozen_trajectories(
+        tmp_path / "store",
+        tmp_path / "registry.json",
+        [spec_path],
+        split_signature_path=tmp_path / "registry.sig",
+        trusted_split_allowed_signers_path=tmp_path / "allowed_signers",
+        split_signer_id="research@example.org",
+        command=["python", "-m", "scripts.evaluate_rt_nr_trajectory_forecasts"],
+    )
+
+    assert observed == {
+        "horizons_s": (0.5, 1.0),
+        "maximum_inter_sample_gap_s": 0.75,
+        "timestamp_tolerance_s": 1e-6,
+    }
+    assert report["forecast_designs"] == [
+        {
+            "trajectory_id": "trajectory-a",
+            "horizons_s": [0.5, 1.0],
+            "maximum_inter_sample_gap_s": 0.75,
+            "timestamp_tolerance_s": 1e-6,
+            "mode": "explicit_elapsed_time_horizons",
+        }
+    ]
+    assert report["command"] == [
+        "python",
+        "-m",
+        "scripts.evaluate_rt_nr_trajectory_forecasts",
+    ]
+    assert len(report["runner_source_sha256"]) == 64
+    assert report["generated_at_utc"].endswith("Z")
+
+
+def test_timestamp_tolerance_requires_explicit_horizon_mode(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    registry = _signed_registry()
+    verified = VerifiedOpenSSHArtifact(
+        payload=b"verified",
+        artifact_sha256="c" * 64,
+        signature_sha256="d" * 64,
+        allowed_signers_sha256="e" * 64,
+        signer_id="research@example.org",
+        namespace="umcd-split-policy-v2",
+    )
+    monkeypatch.setattr(
+        forecast_script,
+        "verify_signed_split_policy_registry_attestation",
+        lambda *_args, **_kwargs: (registry, verified),
+    )
+    _patch_forecast_inputs(monkeypatch, ("sample-a", "sample-b"))
+    spec_path = tmp_path / "trajectory.json"
+    spec_path.write_text(
+        json.dumps(
+            {
+                "trajectory_id": "trajectory-a",
+                "scene": "scene-a",
+                "timestamp_tolerance_s": 1e-6,
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="requires explicit horizons_s"):
+        forecast_script.evaluate_frozen_trajectories(
+            tmp_path / "store",
+            tmp_path / "registry.json",
+            [spec_path],
+            split_signature_path=tmp_path / "registry.sig",
+            trusted_split_allowed_signers_path=tmp_path / "allowed_signers",
+            split_signer_id="research@example.org",
+        )
 
 
 def test_signed_forecast_requires_complete_signature_configuration(

@@ -111,6 +111,62 @@ def test_scene_extraction_preserves_geometry_feeds_roles_and_solver_axis_mapping
     assert all(link.direction is LinkDirection.DOWNLINK for link in episode.links)
 
 
+def test_scene_extraction_supports_per_link_serving_and_interference_roles():
+    associations = (
+        ("tx:tx-a", "rx:rx-a"),
+        ("tx:tx-z", "rx:rx-a"),
+        ("tx:tx-a", "rx:rx-z"),
+        ("tx:tx-z", "rx:rx-z"),
+    )
+    role_by_pair = {
+        ("tx:tx-a", "rx:rx-a"): LinkRole.SERVING,
+        ("tx:tx-z", "rx:rx-a"): LinkRole.INTERFERING,
+        ("tx:tx-a", "rx:rx-z"): LinkRole.INTERFERING,
+        ("tx:tx-z", "rx:rx-z"): LinkRole.SERVING,
+    }
+    network = sionna_scene_to_network_episode(
+        _scene(),
+        episode_id="network-episode",
+        split_group_id="network-scene",
+        family_id="F03-RT-STATIC",
+        subcarrier_offsets_hz=(-15e3, 0.0, 15e3),
+        node_roles={
+            "tx:tx-a": NodeRole.GNB,
+            "tx:tx-z": NodeRole.INTERFERER,
+            "rx:rx-a": NodeRole.UE,
+            "rx:rx-z": NodeRole.UE,
+        },
+        rf_chain_count_by_node={
+            node_id: 2 for node_id in ("tx:tx-a", "tx:tx-z", "rx:rx-a", "rx:rx-z")
+        },
+        associations=associations,
+        link_roles_by_association=role_by_pair,
+        direction=LinkDirection.DOWNLINK,
+    )
+
+    assert {(link.tx_node_id, link.rx_node_id): link.role for link in network.episode.links} == (
+        role_by_pair
+    )
+    assert tuple(mapping.link_id for mapping in network.device_link_mappings) == tuple(
+        link.link_id for link in network.episode.links
+    )
+
+
+def test_scene_extraction_rejects_missing_per_link_role():
+    with pytest.raises(ValueError, match="cover every selected"):
+        sionna_scene_to_network_episode(
+            _scene(),
+            episode_id="network-episode",
+            split_group_id="network-scene",
+            family_id="F03-RT-STATIC",
+            rf_chain_count_by_node={
+                node_id: 2 for node_id in ("tx:tx-a", "tx:tx-z", "rx:rx-a", "rx:rx-z")
+            },
+            associations=(("tx:tx-a", "rx:rx-a"),),
+            link_roles_by_association={},
+        )
+
+
 def test_scene_extraction_requires_explicit_rf_chain_counts_for_multiport_arrays():
     with pytest.raises(ValueError, match="explicit RF-chain count"):
         sionna_scene_to_network_episode(_scene(), episode_id="e", split_group_id="s", family_id="f")

@@ -313,6 +313,7 @@ class NetworkEpisode:
     pose_timeline: NodePoseTimeline | None = None
     pose_time_alignment: TimeAxisAlignment | None = None
     source_time_alignment: MultiSourceTimeAlignment | None = None
+    split_leakage_relations: tuple[tuple[str, str], ...] = ()
 
     def __post_init__(self) -> None:
         for name in ("episode_id", "split_group_id", "family_id"):
@@ -358,6 +359,9 @@ class NetworkEpisode:
             raise ValueError("subcarrier_offsets_hz must be strictly increasing and unique")
         if not np.any(offsets == 0.0):
             raise ValueError("baseband subcarrier offsets must include DC at 0 Hz")
+        absolute_frequencies_hz = carrier_hz + offsets
+        if not np.isfinite(absolute_frequencies_hz).all() or np.any(absolute_frequencies_hz <= 0.0):
+            raise ValueError("carrier plus baseband offsets must be positive RF frequencies")
         offsets.setflags(write=False)
         timeline = self.pose_timeline
         if timeline is not None:
@@ -405,6 +409,32 @@ class NetworkEpisode:
         object.__setattr__(self, "carrier_hz", carrier_hz)
         object.__setattr__(self, "frame_times_s", times)
         object.__setattr__(self, "subcarrier_offsets_hz", offsets)
+        relations = tuple(tuple(item) for item in self.split_leakage_relations)
+        valid_namespaces = {
+            "asset_family",
+            "site",
+            "scene_realization",
+            "trajectory_session",
+            "capture_session",
+            "counterfactual_family",
+            "material_realization",
+            "equipment_family",
+            "spatial_buffer",
+            "overlapping_time_window",
+        }
+        if any(
+            len(item) != 2
+            or not isinstance(item[0], str)
+            or item[0] not in valid_namespaces
+            or not isinstance(item[1], str)
+            or not item[1]
+            or item[1] != item[1].strip()
+            for item in relations
+        ):
+            raise ValueError("split_leakage_relations must contain canonical namespace/id pairs")
+        if len(set(relations)) != len(relations):
+            raise ValueError("split_leakage_relations must be unique")
+        object.__setattr__(self, "split_leakage_relations", relations)
         object.__setattr__(self, "pose_timeline", timeline)
         object.__setattr__(self, "pose_time_alignment", alignment)
         object.__setattr__(self, "source_time_alignment", source_alignment)

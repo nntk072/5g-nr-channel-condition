@@ -56,6 +56,12 @@ _CANONICAL_TARGET_CONTRACTS: dict[str, tuple[str, str, str, str]] = {
         "boolean",
         "binary_array",
     ),
+    "umcd.f04_rt_dynamic.direct_visibility.v4": (
+        "geometric_los",
+        "geometric direct-path visibility",
+        "boolean",
+        "binary_array",
+    ),
     "profile_los_proxy.v2": (
         "profile_los_proxy",
         "standardized_profile_los_category_proxy",
@@ -69,6 +75,18 @@ _CANONICAL_TARGET_CONTRACTS: dict[str, tuple[str, str, str, str]] = {
         "complex",
     ),
     "umcd.tdl-pusch.effective-cfr.v1": (
+        "channel_cfr",
+        "perfect synchronized effective-subcarrier CFR",
+        "complex channel gain (dimensionless)",
+        "complex",
+    ),
+    "umcd.standardized.effective-cfr.v2": (
+        "channel_cfr",
+        "perfect_synchronized_effective_subcarrier_cfr",
+        "complex channel gain (dimensionless)",
+        "complex",
+    ),
+    "umcd.tdl-pusch.effective-cfr.v2": (
         "channel_cfr",
         "perfect synchronized effective-subcarrier CFR",
         "complex channel gain (dimensionless)",
@@ -89,11 +107,38 @@ _CANONICAL_TARGET_CONTRACTS: dict[str, tuple[str, str, str, str]] = {
         "complex channel gain (dimensionless)",
         "complex",
     ),
+    "umcd.rt-trajectory.absolute-cfr.v2": (
+        "channel_cfr",
+        "absolute-delay full-path complex CFR on effective PUSCH subcarriers",
+        "complex channel gain (dimensionless)",
+        "complex",
+    ),
+    "umcd.rt-trajectory.symbol-cfr.v2": (
+        "channel_cfr_ofdm_symbols",
+        (
+            "absolute-delay full-path CFR with path-Doppler phase evolution "
+            "sampled at PUSCH OFDM symbols"
+        ),
+        "complex channel gain (dimensionless)",
+        "complex",
+    ),
+    "umcd.rms_delay_spread.v1": (
+        "rms_delay_spread",
+        "rms_delay_spread",
+        "s",
+        "nonnegative_real",
+    ),
+    "umcd.rms_delay_spread.v2": (
+        "rms_delay_spread",
+        "rms_delay_spread",
+        "s",
+        "nonnegative_real",
+    ),
     "umcd.rt-trajectory.geometric-los.v1": (
         "geometric_los",
         "independent Mitsuba segment-intersection geometry oracle",
         "boolean",
-        "binary_scalar",
+        "binary_array",
     ),
     "umcd.f03_rt_static.direct_visibility.v1": (
         "geometric_los",
@@ -113,7 +158,7 @@ _CANONICAL_TARGET_CONTRACTS: dict[str, tuple[str, str, str, str]] = {
 # definition digest makes declarations immutable, but does not make an
 # arbitrary declaration true; pin the producer and aggregation semantics at
 # the storage boundary as well.
-_CANONICAL_TARGET_PROVENANCE: dict[str, tuple[str, frozenset[str], str]] = {
+_CANONICAL_TARGET_PROVENANCE: dict[str, tuple[str, frozenset[str], str | frozenset[str]]] = {
     "umcd.standardized.profile-los-proxy.v1": (
         "Sionna standardized TDL/CDL profile model",
         frozenset(
@@ -150,6 +195,28 @@ _CANONICAL_TARGET_PROVENANCE: dict[str, tuple[str, frozenset[str], str]] = {
         ),
         "retain each effective subcarrier coefficient; no antenna, symbol, or power averaging",
     ),
+    "umcd.standardized.effective-cfr.v2": (
+        "standardized Sionna TDL/CDL CFR adapter",
+        frozenset(
+            {
+                "profile-relative excess-delay path truth sinc-discretized for this NR sample rate; "
+                "the static per-subcarrier target does not encode time-domain ISI/ICI",
+                "profile-relative excess-delay CFR resampled to this resource grid",
+            }
+        ),
+        "retain each effective subcarrier coefficient in receiver FFT-bin order; "
+        "no antenna, symbol, or power averaging",
+    ),
+    "umcd.tdl-pusch.effective-cfr.v2": (
+        "sionna_phy_ofdmchannel_return_channel",
+        frozenset(
+            {
+                "OFDMChannel return_channel with the configured TDL profile, carrier, "
+                "sample rate, and effective FFT-bin mapping"
+            }
+        ),
+        "retain each effective subcarrier coefficient; no antenna, symbol, or power averaging",
+    ),
     "umcd.rt-trajectory.absolute-cfr.v1": (
         "sionna_rt_pathsolver",
         frozenset(
@@ -171,6 +238,49 @@ _CANONICAL_TARGET_PROVENANCE: dict[str, tuple[str, frozenset[str], str]] = {
         ),
         "coherent sum of retained solver-valid paths per effective subcarrier and OFDM symbol; "
         "no path or symbol averaging",
+    ),
+    "umcd.rt-trajectory.absolute-cfr.v2": (
+        "sionna_rt_pathsolver",
+        frozenset(
+            {
+                "Sionna RT full solver-valid path set evaluated with absolute propagation "
+                "delays and configured carrier/subcarrier offsets"
+            }
+        ),
+        "coherent sum of all retained solver-valid paths per effective subcarrier and frame; "
+        "no path-count or power normalization",
+    ),
+    "umcd.rt-trajectory.symbol-cfr.v2": (
+        "sionna_rt_paths_cfr_doppler",
+        frozenset(
+            {
+                "absolute-delay RT path channel evaluated at the declared NR OFDM symbol "
+                "start timestamps"
+            }
+        ),
+        "coherent sum of retained solver-valid paths per effective subcarrier and OFDM symbol; "
+        "no path or symbol averaging",
+    ),
+    "umcd.rms_delay_spread.v1": (
+        "path_oracle",
+        frozenset(
+            {
+                "absolute_physical_channel_path_oracle",
+                "absolute_propagation_delay_v1",
+                "complex_baseband_voltage_phase_gauge_v1",
+            }
+        ),
+        frozenset(
+            {
+                "RMS over valid paths after power normalization",
+                "power_weighted_rms_over_valid_paths",
+            }
+        ),
+    ),
+    "umcd.rms_delay_spread.v2": (
+        "path_oracle",
+        frozenset({"absolute_physical_channel_path_oracle"}),
+        "RMS over valid per-path powers in the declared frame and delay reference",
     ),
     "umcd.rt-trajectory.geometric-los.v1": (
         "mitsuba_segment_intersection_oracle",
@@ -222,7 +332,26 @@ _CANONICAL_TARGET_PROVENANCE: dict[str, tuple[str, frozenset[str], str]] = {
         ),
         "one visibility value per trajectory frame; no spatial or temporal pooling",
     ),
+    "umcd.f04_rt_dynamic.direct_visibility.v4": (
+        "numpy_loaded_scene_triangle_inventory",
+        frozenset(
+            {
+                "digest-bound loaded-scene triangle query cross-checked with Mitsuba "
+                "segment intersection and depth-zero Sionna PathSolver at each recorded pose"
+            }
+        ),
+        "one visibility value per trajectory frame; no spatial or temporal pooling",
+    ),
 }
+
+_CANONICAL_FIXED_SINGLETON_SCALAR_TARGET_VERSIONS = frozenset(
+    {
+        "umcd.standardized.profile-los-proxy.v1",
+        "profile_los_proxy.v2",
+        "umcd.f03_rt_static.direct_visibility.v2",
+        "umcd.rt-trajectory.geometric-los.v2",
+    }
+)
 
 
 def validate_canonical_target_contract(
@@ -238,7 +367,9 @@ def validate_canonical_target_contract(
     are pinned to their target name, semantic, units, declared provenance and
     aggregation, and real/complex value domain. Scalar categorical targets are
     constrained to one binary value, while frame-indexed visibility targets
-    retain their declared vector axis and require binary values elementwise.
+    retain their elementwise binary domain. Current publication versions also
+    require the reviewed axis declaration; historical read-only versions keep
+    their original rank semantics.
     """
     contract = _CANONICAL_TARGET_CONTRACTS.get(definition.definition_version)
     if contract is None:
@@ -255,24 +386,77 @@ def validate_canonical_target_contract(
             f"target {target_name!r} semantic or units differ from definition "
             f"{definition.definition_version!r}"
         )
+    if (
+        definition.definition_version in _CANONICAL_FIXED_SINGLETON_SCALAR_TARGET_VERSIONS
+        and definition.value_axes
+    ):
+        raise ValueError(f"canonical scalar target {target_name!r} must not declare value axes")
     provenance_contract = _CANONICAL_TARGET_PROVENANCE.get(definition.definition_version)
-    if provenance_contract is not None:
-        expected_source, allowed_references, expected_aggregation = provenance_contract
-        if definition.source != expected_source:
-            raise ValueError(
-                f"canonical target {target_name!r} source differs from definition "
-                f"{definition.definition_version!r}"
-            )
-        if definition.reference not in allowed_references:
-            raise ValueError(
-                f"canonical target {target_name!r} reference differs from definition "
-                f"{definition.definition_version!r}"
-            )
-        if definition.aggregation_rule != expected_aggregation:
-            raise ValueError(
-                f"canonical target {target_name!r} aggregation differs from definition "
-                f"{definition.definition_version!r}"
-            )
+    if provenance_contract is None:
+        raise RuntimeError(
+            f"canonical target registry has no provenance pin for {definition.definition_version!r}"
+        )
+    expected_source, allowed_references, allowed_aggregations = provenance_contract
+    if definition.source != expected_source:
+        raise ValueError(
+            f"canonical target {target_name!r} source differs from definition "
+            f"{definition.definition_version!r}"
+        )
+    if definition.reference not in allowed_references:
+        raise ValueError(
+            f"canonical target {target_name!r} reference differs from definition "
+            f"{definition.definition_version!r}"
+        )
+    if definition.aggregation_rule not in (
+        allowed_aggregations
+        if isinstance(allowed_aggregations, frozenset)
+        else {allowed_aggregations}
+    ):
+        raise ValueError(
+            f"canonical target {target_name!r} aggregation differs from definition "
+            f"{definition.definition_version!r}"
+        )
+    if definition.definition_version == "umcd.rms_delay_spread.v2" and definition.value_axes != (
+        "frame",
+    ):
+        raise ValueError(
+            "canonical target definition v2 needs explicit ('frame',) value axes for RMS delay spread"
+        )
+    expected_axes = {
+        "umcd.standardized.effective-cfr.v2": (
+            "batch",
+            "rx_antenna",
+            "rx_stream",
+            "ofdm_symbol",
+            "tx_stream",
+            "tx_antenna",
+            "effective_subcarrier",
+        ),
+        "umcd.tdl-pusch.effective-cfr.v2": (
+            "batch",
+            "rx_antenna",
+            "rx_stream",
+            "ofdm_symbol",
+            "tx_stream",
+            "tx_antenna",
+            "effective_subcarrier",
+        ),
+        "umcd.rt-trajectory.absolute-cfr.v2": ("effective_subcarrier",),
+        "umcd.rt-trajectory.symbol-cfr.v2": ("ofdm_symbol", "effective_subcarrier"),
+    }.get(definition.definition_version)
+    if expected_axes is not None and definition.value_axes != expected_axes:
+        raise ValueError(
+            f"canonical target definition {definition.definition_version!r} needs "
+            f"explicit {expected_axes!r} value axes"
+        )
+    if (
+        definition.definition_version == "umcd.f04_rt_dynamic.direct_visibility.v4"
+        and definition.value_axes != ("frame",)
+    ):
+        raise ValueError(
+            "canonical target definition v4 needs explicit ('frame',) value axes "
+            "for dynamic geometric LOS"
+        )
     array_input: Any = values
     detach = getattr(array_input, "detach", None)
     if callable(detach):
@@ -304,8 +488,18 @@ def validate_canonical_target_contract(
         selected = array[valid]
         if np.any((selected != 0) & (selected != 1)):
             raise ValueError(f"canonical target {target_name!r} values must be binary (0 or 1)")
-    elif value_domain == "complex" and array.dtype.kind != "c":
-        raise TypeError(f"canonical complex target {target_name!r} must use a complex dtype")
+    elif value_domain == "complex":
+        if array.dtype.kind != "c":
+            raise TypeError(f"canonical complex target {target_name!r} must use a complex dtype")
+        if not np.isfinite(array).all():
+            raise ValueError(f"canonical complex target {target_name!r} must contain finite values")
+    elif value_domain == "nonnegative_real":
+        if array.dtype.kind not in "iuf":
+            raise TypeError(f"canonical target {target_name!r} must use a real numeric dtype")
+        if not np.isfinite(array).all():
+            raise ValueError(f"canonical target {target_name!r} values must be finite")
+        if np.any(array < 0):
+            raise ValueError(f"canonical target {target_name!r} values must be nonnegative")
 
 
 @dataclass(frozen=True, slots=True)
@@ -319,6 +513,7 @@ class TargetDefinition:
     definition_sha256: str = "unversioned_legacy"
     aggregation_rule: str = "unspecified_legacy"
     definition_version: str = "unversioned_legacy"
+    value_axes: tuple[str, ...] = ()
 
     @classmethod
     def versioned(
@@ -330,8 +525,10 @@ class TargetDefinition:
         reference: str,
         aggregation_rule: str,
         definition_version: str,
+        value_axes: tuple[str, ...] | None = None,
     ) -> TargetDefinition:
         """Create a canonical target definition with every field digest-bound."""
+        axes = None if value_axes is None or len(value_axes) == 0 else value_axes
         digest = target_definition_digest(
             semantic=semantic,
             units=units,
@@ -339,6 +536,7 @@ class TargetDefinition:
             aggregation_rule=aggregation_rule,
             source=source,
             definition_version=definition_version,
+            value_axes=axes,
         )
         return cls(
             semantic=semantic,
@@ -347,6 +545,7 @@ class TargetDefinition:
             reference=reference,
             aggregation_rule=aggregation_rule,
             definition_version=definition_version,
+            value_axes=() if axes is None else axes,
             definition_sha256=digest,
         )
 
@@ -363,6 +562,14 @@ class TargetDefinition:
             value = getattr(self, name)
             if not isinstance(value, str) or not value.strip():
                 raise ValueError(f"target definition {name} must be a non-empty string")
+        if not isinstance(self.value_axes, (tuple, list)):
+            raise TypeError("target definition value axes must be a tuple or list")
+        axes = tuple(self.value_axes)
+        if any(not isinstance(axis, str) or not axis or axis != axis.strip() for axis in axes):
+            raise ValueError("target definition value axes must be non-empty canonical strings")
+        if len(axes) != len(set(axes)):
+            raise ValueError("target definition value axes must be unique")
+        object.__setattr__(self, "value_axes", axes)
 
     def require_versioned(self) -> None:
         """Reject legacy definitions when used in a canonical UMCD target."""
@@ -395,6 +602,7 @@ class TargetDefinition:
             aggregation_rule=self.aggregation_rule,
             source=self.source,
             definition_version=self.definition_version,
+            value_axes=self.value_axes or None,
         )
         if digest != expected_digest:
             raise ValueError("target definition SHA-256 does not match its canonical fields")
@@ -516,6 +724,18 @@ class TargetValue:
             self.definition,
             valid_mask=valid,
         )
+        scalar_contract = _CANONICAL_TARGET_CONTRACTS.get(self.definition.definition_version)
+        if (
+            self.definition.definition_version in _CANONICAL_FIXED_SINGLETON_SCALAR_TARGET_VERSIONS
+            and scalar_contract is not None
+            and scalar_contract[3] == "binary_scalar"
+        ):
+            if values.shape != (1,):
+                raise ValueError(
+                    "canonical scalar categorical targets must use the fixed (1,) storage shape"
+                )
+        if self.definition.value_axes and len(self.definition.value_axes) != values.ndim:
+            raise ValueError("target value rank must match its declared value axes")
         object.__setattr__(self, "values", values)
         object.__setattr__(self, "valid_mask", valid)
         object.__setattr__(self, "reason_codes", reasons)
@@ -551,6 +771,7 @@ def target_definition_digest(
     aggregation_rule: str,
     source: str,
     definition_version: str,
+    value_axes: tuple[str, ...] | None = None,
 ) -> str:
     """Hash every field in a versioned target-definition contract."""
     fields = {
@@ -563,6 +784,17 @@ def target_definition_digest(
     }
     if any(not isinstance(value, str) or not value.strip() for value in fields.values()):
         raise ValueError("canonical target-definition fields must be non-empty strings")
+    if value_axes is not None:
+        if not isinstance(value_axes, (tuple, list)):
+            raise TypeError("target definition value axes must be a tuple or list")
+        axes = tuple(value_axes)
+        if not axes:
+            raise ValueError("declared target definition value axes cannot be empty")
+        if any(not isinstance(axis, str) or not axis or axis != axis.strip() for axis in axes):
+            raise ValueError("target definition value axes must be non-empty canonical strings")
+        if len(axes) != len(set(axes)):
+            raise ValueError("target definition value axes must be unique")
+        fields["value_axes"] = list(axes)
     canonical = json.dumps(fields, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 

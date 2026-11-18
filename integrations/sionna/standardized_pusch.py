@@ -462,7 +462,16 @@ def build_standardized_pusch_dmrs_records(
                 "retain each effective subcarrier coefficient in receiver FFT-bin order; "
                 "no antenna, symbol, or power averaging"
             ),
-            definition_version="umcd.standardized.effective-cfr.v1",
+            definition_version="umcd.standardized.effective-cfr.v2",
+            value_axes=(
+                "batch",
+                "rx_antenna",
+                "rx_stream",
+                "ofdm_symbol",
+                "tx_stream",
+                "tx_antenna",
+                "effective_subcarrier",
+            ),
         )
         records.append(
             NRChannelRecord(

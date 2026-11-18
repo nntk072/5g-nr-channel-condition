@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -15,7 +16,11 @@ from datasets.split_policy import (
     SplitSubject,
     make_split_policy_registry,
 )
-from evaluation.benchmark_partitions import BENCHMARK_COHORTS, materialize_benchmark_manifest
+from evaluation.benchmark_partitions import (
+    BENCHMARK_COHORTS,
+    materialize_benchmark_manifest,
+    verify_benchmark_manifest_replay,
+)
 from scripts.materialize_benchmark_partitions import build_benchmark_partition_manifest
 
 _SHA = "a" * 64
@@ -141,6 +146,76 @@ def test_valid_six_cohort_manifest_and_schema() -> None:
         Path("datasets/schema/benchmark-partition-manifest.v1.schema.json").read_text()
     )
     jsonschema.validate(manifest, schema)
+
+
+def test_manifest_replay_returns_exact_dataset_row_indices() -> None:
+    registry, _ = _registry_fixture()
+    declaration = _declaration(registry)
+    datasets = _dataset(registry)
+    registry_attestation = _attestation("umcd-split-policy-v2@github.com")
+    declaration_attestation = _attestation("umcd-benchmark-cohort-v1@github.com")
+    manifest = materialize_benchmark_manifest(
+        registry,
+        declaration,
+        datasets,
+        registry_attestation=registry_attestation,
+        declaration_attestation=declaration_attestation,
+    )
+
+    replay = verify_benchmark_manifest_replay(
+        manifest,
+        registry,
+        declaration,
+        datasets,
+        registry_attestation=registry_attestation,
+        declaration_attestation=declaration_attestation,
+    )
+
+    expected = {
+        cohort: [
+            index
+            for index, parent in enumerate(sorted(registry.subjects))
+            if (
+                registry.split_for_parent(parent) == cohort
+                if cohort in {"train", "validation", "calibration"}
+                else parent in declaration["test_cohorts"][cohort]
+            )
+        ]
+        for cohort in BENCHMARK_COHORTS
+    }
+    assert replay["status"] == "PASS_INPUT_SCOPED_REPLAY"
+    assert replay["qualification_status"] == "NOT_QUALIFIED"
+    assert replay["rows_by_dataset"]["fixture"] == expected
+
+
+def test_manifest_replay_rejects_rehashed_row_assignment_tampering() -> None:
+    registry, _ = _registry_fixture()
+    declaration = _declaration(registry)
+    datasets = _dataset(registry)
+    registry_attestation = _attestation("umcd-split-policy-v2@github.com")
+    declaration_attestation = _attestation("umcd-benchmark-cohort-v1@github.com")
+    manifest = materialize_benchmark_manifest(
+        registry,
+        declaration,
+        datasets,
+        registry_attestation=registry_attestation,
+        declaration_attestation=declaration_attestation,
+    )
+    manifest["datasets"][0]["rows"][0]["cohort"] = "real_external"
+    core = {key: value for key, value in manifest.items() if key != "manifest_sha256"}
+    manifest["manifest_sha256"] = hashlib.sha256(
+        json.dumps(core, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
+    ).hexdigest()
+
+    with pytest.raises(ValueError, match="does not replay"):
+        verify_benchmark_manifest_replay(
+            manifest,
+            registry,
+            declaration,
+            datasets,
+            registry_attestation=registry_attestation,
+            declaration_attestation=declaration_attestation,
+        )
 
 
 def test_component_cannot_cross_benchmark_cohorts() -> None:

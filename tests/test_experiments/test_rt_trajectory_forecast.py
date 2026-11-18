@@ -71,6 +71,76 @@ def test_persistence_and_timestamp_scaled_linear_forecasts_use_only_past_estimat
     assert all(row["split"] == "test" for row in rows)
 
 
+def test_explicit_horizon_forecast_uses_exact_elapsed_time_target() -> None:
+    trajectory = NRTrajectory(
+        trajectory_id="multi-horizon-fixture",
+        sample_times_s=(0.0, 1.0, 3.0),
+        records=(
+            _record("t0", 1.0, 1.0),
+            _record("t1", 3.0, 3.0),
+            _record("t3", 7.0, 7.0),
+        ),
+    )
+
+    rows = evaluate_trajectory_forecasts(trajectory, split="test", horizons_s=(3.0, 2.0))
+
+    persistence = [row for row in rows if row["method"] == "persistence"]
+    assert [
+        (row["forecast_origin_sample_id"], row["sample_id"], row["horizon_s"])
+        for row in persistence
+    ] == [("t0", "t3", 3.0), ("t1", "t3", 2.0)]
+    assert all(row["split"] == "test" for row in rows)
+
+
+def test_explicit_horizon_forecast_rejects_gaps_and_does_not_interpolate() -> None:
+    trajectory = NRTrajectory(
+        "multi-horizon-gap",
+        (0.0, 1.0, 3.0),
+        (_record("t0", 1.0, 1.0), _record("t1", 3.0, 3.0), _record("t3", 7.0, 7.0)),
+    )
+
+    assert evaluate_trajectory_forecasts(trajectory, split="test", horizons_s=(2.5,)) == []
+    assert (
+        evaluate_trajectory_forecasts(
+            trajectory, split="test", horizons_s=(3.0,), gap_after_sample_ids={"t1"}
+        )
+        == []
+    )
+
+
+def test_frozen_gap_threshold_blocks_linear_history_across_large_interval() -> None:
+    trajectory = NRTrajectory(
+        "multi-horizon-threshold",
+        (0.0, 2.0, 3.0),
+        (_record("t0", 1.0, 1.0), _record("t2", 5.0, 5.0), _record("t3", 7.0, 7.0)),
+    )
+
+    rows = evaluate_trajectory_forecasts(
+        trajectory,
+        split="test",
+        horizons_s=(1.0,),
+        maximum_inter_sample_gap_s=1.5,
+    )
+
+    assert [row["method"] for row in rows] == ["persistence"]
+    assert rows[0]["forecast_origin_sample_id"] == "t2"
+
+
+def test_timestamp_tolerance_requires_explicit_elapsed_time_horizons() -> None:
+    trajectory = NRTrajectory(
+        "tolerance-mode",
+        (0.0, 1.0),
+        (_record("t0", 1.0, 1.0), _record("t1", 1.0, 1.0)),
+    )
+
+    with pytest.raises(ValueError, match="requires explicit elapsed-time horizons"):
+        evaluate_trajectory_forecasts(
+            trajectory,
+            split="test",
+            timestamp_tolerance_s=1e-6,
+        )
+
+
 def test_forecast_baselines_reject_unrecognized_split_or_single_snapshot() -> None:
     with pytest.raises(ValueError, match="split"):
         evaluate_trajectory_forecasts(

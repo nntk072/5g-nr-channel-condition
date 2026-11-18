@@ -1,13 +1,17 @@
-"""Prespecified receiver-only one-step forecasts for stored NR RT trajectories."""
+"""Prespecified receiver-only forecasts for stored NR RT trajectories."""
 
 from __future__ import annotations
 
-from collections.abc import Collection
+import math
+from collections.abc import Collection, Sequence
+from numbers import Real
 from typing import Any
 
 import numpy as np
 from datasets.nr import NRTrajectory
 from datasets.split_policy import SplitPolicyRegistry
+
+from experiments.trajectory_targets import build_trajectory_horizon_targets
 
 
 def evaluate_trajectory_forecasts(
@@ -16,6 +20,9 @@ def evaluate_trajectory_forecasts(
     split: str,
     gap_after_sample_ids: Collection[str] = (),
     split_registry: SplitPolicyRegistry | None = None,
+    horizons_s: Sequence[float] | None = None,
+    maximum_inter_sample_gap_s: float | None = None,
+    timestamp_tolerance_s: float = 0.0,
 ) -> list[dict[str, Any]]:
     """Compare persistence and complex linear extrapolation to future RT CFR.
 
@@ -51,9 +58,22 @@ def evaluate_trajectory_forecasts(
         raise ValueError(f"gap markers reference unknown samples: {sorted(unknown_gaps)}")
     if len(trajectory.records) < 2:
         raise ValueError("at least two trajectory samples are required")
+    if maximum_inter_sample_gap_s is not None:
+        if isinstance(maximum_inter_sample_gap_s, bool) or not isinstance(
+            maximum_inter_sample_gap_s, Real
+        ):
+            raise TypeError("maximum_inter_sample_gap_s must be a real number or None")
+        if not math.isfinite(float(maximum_inter_sample_gap_s)) or maximum_inter_sample_gap_s <= 0:
+            raise ValueError("maximum_inter_sample_gap_s must be finite and positive")
+    if isinstance(timestamp_tolerance_s, bool) or not isinstance(timestamp_tolerance_s, Real):
+        raise TypeError("timestamp_tolerance_s must be a real number")
+    if not math.isfinite(float(timestamp_tolerance_s)) or timestamp_tolerance_s < 0:
+        raise ValueError("timestamp_tolerance_s must be finite and non-negative")
+    if horizons_s is None and timestamp_tolerance_s != 0:
+        raise ValueError("timestamp_tolerance_s requires explicit elapsed-time horizons")
 
     observations: list[np.ndarray] = []
-    targets: list[np.ndarray] = []
+    target_cfrs: list[np.ndarray] = []
     for record in trajectory.records:
         estimate = record.observation.channel_estimate.h_hat
         if hasattr(estimate, "detach"):
@@ -75,17 +95,43 @@ def evaluate_trajectory_forecasts(
                 "receiver estimates and full-channel targets must be aligned finite CFRs"
             )
         observations.append(observed_cfr.astype(np.complex128, copy=False))
-        targets.append(target_cfr.astype(np.complex128, copy=False))
+        target_cfrs.append(target_cfr.astype(np.complex128, copy=False))
+
+    if horizons_s is None:
+        pairs = tuple(
+            (
+                index - 1,
+                index,
+                float(trajectory.sample_times_s[index] - trajectory.sample_times_s[index - 1]),
+            )
+            for index in range(1, len(trajectory.records))
+            if trajectory.sample_ids[index - 1] not in gaps
+            and (
+                maximum_inter_sample_gap_s is None
+                or trajectory.sample_times_s[index] - trajectory.sample_times_s[index - 1]
+                <= maximum_inter_sample_gap_s
+            )
+        )
+    else:
+        horizon_targets = build_trajectory_horizon_targets(
+            trajectory,
+            horizons_s,
+            gap_after_sample_ids=gaps,
+            split_registry=split_registry,
+            timestamp_tolerance_s=timestamp_tolerance_s,
+            maximum_inter_sample_gap_s=maximum_inter_sample_gap_s,
+        )
+        pairs = tuple(
+            (target.origin_index, target.target_index, target.actual_horizon_s)
+            for target in horizon_targets
+            if target.split in (None, split)
+        )
 
     rows: list[dict[str, Any]] = []
-    for index in range(1, len(trajectory.records)):
-        # A gap marker on the origin means the next stored sample is beyond a
-        # discontinuity and must not be used as a forecast transition.
-        if trajectory.sample_ids[index - 1] in gaps:
-            continue
-        observation = observations[index - 1]
-        target = targets[index]
-        target_mask = trajectory.records[index].target_masks.get("channel_cfr")
+    for origin_index, target_index, horizon in pairs:
+        observation = observations[origin_index]
+        target = target_cfrs[target_index]
+        target_mask = trajectory.records[target_index].target_masks.get("channel_cfr")
         if target_mask is None:
             selected = np.ones(target.shape, dtype=bool)
         else:
@@ -111,26 +157,30 @@ def evaluate_trajectory_forecasts(
         rows.append(
             {
                 "trajectory_id": trajectory.trajectory_id,
-                "sample_id": trajectory.records[index].observation.sample_id,
+                "sample_id": trajectory.records[target_index].observation.sample_id,
                 "split": split,
-                "forecast_origin_s": trajectory.sample_times_s[index - 1],
-                "forecast_target_s": trajectory.sample_times_s[index],
-                "horizon_s": trajectory.sample_times_s[index]
-                - trajectory.sample_times_s[index - 1],
+                "forecast_origin_sample_id": trajectory.sample_ids[origin_index],
+                "forecast_origin_s": trajectory.sample_times_s[origin_index],
+                "forecast_target_s": trajectory.sample_times_s[target_index],
+                "horizon_s": horizon,
                 "valid_target_element_count": valid_count,
                 "method": "persistence",
                 "nmse_linear": persistence_nmse,
                 "nmse_db": float(10.0 * np.log10(max(persistence_nmse, np.finfo(float).tiny))),
             }
         )
-        if index >= 2 and trajectory.sample_ids[index - 2] not in gaps:
+        if origin_index >= 1 and trajectory.sample_ids[origin_index - 1] not in gaps:
             prior_interval = (
-                trajectory.sample_times_s[index - 1] - trajectory.sample_times_s[index - 2]
+                trajectory.sample_times_s[origin_index]
+                - trajectory.sample_times_s[origin_index - 1]
             )
+            if maximum_inter_sample_gap_s is not None and (
+                prior_interval > maximum_inter_sample_gap_s
+            ):
+                continue
             if prior_interval <= 0:
                 raise ValueError("trajectory timestamps must be strictly increasing")
-            horizon = trajectory.sample_times_s[index] - trajectory.sample_times_s[index - 1]
-            prediction = observation + (observation - observations[index - 2]) * (
+            prediction = observation + (observation - observations[origin_index - 1]) * (
                 horizon / prior_interval
             )
             linear_nmse = float(
@@ -139,10 +189,11 @@ def evaluate_trajectory_forecasts(
             rows.append(
                 {
                     "trajectory_id": trajectory.trajectory_id,
-                    "sample_id": trajectory.records[index].observation.sample_id,
+                    "sample_id": trajectory.records[target_index].observation.sample_id,
                     "split": split,
-                    "forecast_origin_s": trajectory.sample_times_s[index - 1],
-                    "forecast_target_s": trajectory.sample_times_s[index],
+                    "forecast_origin_sample_id": trajectory.sample_ids[origin_index],
+                    "forecast_origin_s": trajectory.sample_times_s[origin_index],
+                    "forecast_target_s": trajectory.sample_times_s[target_index],
                     "horizon_s": horizon,
                     "valid_target_element_count": valid_count,
                     "method": "linear_complex_extrapolation",

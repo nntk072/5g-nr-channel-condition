@@ -21,6 +21,7 @@ from .episode_store import (
     iter_episode_bundle_shards,
     read_episode_bundle,
     read_frequency_model_inputs,
+    read_receiver_inference_records,
     read_receiver_model_inputs,
     write_episode_bundle,
 )
@@ -54,6 +55,7 @@ from .nr import (
     NRChannelRecord,
     NRModelInputs,
     NRObservation,
+    NRReceiverInferenceRecord,
     NRTrajectory,
     TargetDefinition,
     audit_nr_trajectory_target_support,
@@ -99,7 +101,9 @@ from .scenario_gbsm import (
 from .split_lineage import (
     derive_channel_dataset_split_evidence,
     derive_channel_dataset_split_subjects,
+    derive_standardized_run_split_subjects,
     make_channel_dataset_split_registry,
+    make_standardized_run_split_registry,
 )
 from .split_policy import (
     SPLIT_POLICY_SIGNATURE_NAMESPACE,
@@ -236,6 +240,7 @@ __all__ = [
     "NRChannelRecord",
     "NRModelInputs",
     "NRObservation",
+    "NRReceiverInferenceRecord",
     "NRStoredRecord",
     "NRTrajectory",
     "TargetDefinition",
@@ -251,6 +256,7 @@ __all__ = [
     "read_episode_bundle",
     "iter_episode_bundle_shards",
     "read_frequency_model_inputs",
+    "read_receiver_inference_records",
     "read_receiver_model_inputs",
     "audit_episode_split_registry",
     "audit_split_policy_registry",
@@ -262,6 +268,8 @@ __all__ = [
     "derive_channel_dataset_split_subjects",
     "derive_channel_dataset_split_evidence",
     "make_channel_dataset_split_registry",
+    "derive_standardized_run_split_subjects",
+    "make_standardized_run_split_registry",
     "bind_split_children",
     "derive_split_components",
     "freeze_episode_split_registry",

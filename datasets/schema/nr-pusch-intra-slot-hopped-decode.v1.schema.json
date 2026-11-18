@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.dev/schema/nr-pusch-intra-slot-hopped-decode.v1.schema.json",
+  "title": "Caller-resolved PUSCH intra-slot dehop decode report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "status",
+    "scope",
+    "receiver_hopping_qualification",
+    "receiver_config",
+    "dehopped_grid_metadata",
+    "dehop_replay",
+    "noise_variance_shape",
+    "noise_variance_sha256",
+    "decoded_bits_sha256",
+    "transport_block_crc_sha256",
+    "dmrs_source"
+  ],
+  "properties": {
+    "schema": {"const": "loslab.nr_pusch_intra_slot_hopped_decode.v1"},
+    "status": {"const": "DECODED_NOT_QUALIFIED"},
+    "scope": {"const": "caller_resolved_intra_slot_dehop_with_nonhopping_receiver"},
+    "receiver_hopping_qualification": {"const": "NOT_QUALIFIED"},
+    "receiver_config": {"type": "object"},
+    "dehopped_grid_metadata": {
+      "type": "object",
+      "required": [
+        "schema", "scope", "receiver_hopping_qualification",
+        "input_carrier_grid_sha256", "output_carrier_grid_sha256",
+        "hop_composition_sha256", "input_shape", "output_shape",
+        "carrier_grid_start_rb", "carrier_grid_size_rb",
+        "receiver_bwp_start_rb", "receiver_bwp_size_rb",
+        "allocation_start_symbol", "allocation_symbol_count",
+        "first_hop_symbol_count", "hop_boundary_symbol",
+        "first_hop_start_crb", "second_hop_start_crb",
+        "allocation_rb_count", "target_start_subcarrier",
+        "allocation_subcarrier_count", "complex_dtype"
+      ],
+      "properties": {
+        "schema": {"const": "loslab.nr_pusch_intra_slot_dehopped_grid.v1"},
+        "scope": {"const": "received_grid_relocation_only"},
+        "receiver_hopping_qualification": {"const": "NOT_QUALIFIED"},
+        "input_carrier_grid_sha256": {"$ref": "#/$defs/sha256"},
+        "output_carrier_grid_sha256": {"$ref": "#/$defs/sha256"},
+        "hop_composition_sha256": {"$ref": "#/$defs/sha256"},
+        "input_shape": {"$ref": "#/$defs/shape"},
+        "output_shape": {"$ref": "#/$defs/shape"},
+        "carrier_grid_start_rb": {"type": "integer", "minimum": 0},
+        "carrier_grid_size_rb": {"type": "integer", "minimum": 1, "maximum": 275},
+        "receiver_bwp_start_rb": {"type": "integer", "minimum": 0},
+        "receiver_bwp_size_rb": {"type": "integer", "minimum": 1, "maximum": 275},
+        "allocation_start_symbol": {"type": "integer", "minimum": 0, "maximum": 13},
+        "allocation_symbol_count": {"type": "integer", "minimum": 2, "maximum": 14},
+        "first_hop_symbol_count": {"type": "integer", "minimum": 1, "maximum": 13},
+        "hop_boundary_symbol": {"type": "integer", "minimum": 1, "maximum": 14},
+        "first_hop_start_crb": {"type": "integer", "minimum": 0},
+        "second_hop_start_crb": {"type": "integer", "minimum": 0},
+        "allocation_rb_count": {"type": "integer", "minimum": 1, "maximum": 275},
+        "target_start_subcarrier": {"type": "integer", "minimum": 0},
+        "allocation_subcarrier_count": {"type": "integer", "minimum": 12},
+        "complex_dtype": {"enum": ["complex64", "complex128"]}
+      },
+      "additionalProperties": false
+    },
+    "dehop_replay": {
+      "type": "object",
+      "required": [
+        "schema", "status", "qualification_status", "input_carrier_grid_sha256",
+        "output_carrier_grid_sha256", "hop_composition_sha256"
+      ],
+      "properties": {
+        "schema": {"const": "loslab.nr_pusch_dehopped_grid_replay.v1"},
+        "status": {"const": "PASS_INPUT_SCOPED_REPLAY"},
+        "qualification_status": {"const": "NOT_QUALIFIED"},
+        "input_carrier_grid_sha256": {"$ref": "#/$defs/sha256"},
+        "output_carrier_grid_sha256": {"$ref": "#/$defs/sha256"},
+        "hop_composition_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    },
+    "noise_variance_shape": {
+      "type": "array",
+      "maxItems": 3,
+      "items": {"type": "integer", "minimum": 1}
+    },
+    "noise_variance_sha256": {"$ref": "#/$defs/sha256"},
+    "decoded_bits_sha256": {"$ref": "#/$defs/sha256"},
+    "transport_block_crc_sha256": {"$ref": "#/$defs/sha256"},
+    "dmrs_source": {"const": "caller_supplied_hop_mapped_received_grid"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "shape": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {"type": "integer", "minimum": 1}
+    }
+  }
+}

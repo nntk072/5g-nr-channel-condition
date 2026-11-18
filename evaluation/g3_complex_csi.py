@@ -8,12 +8,23 @@ independence, preregistration, and external review remain separate gates.
 
 from __future__ import annotations
 
+import json
 import math
 from collections import defaultdict
 from collections.abc import Sequence
+from functools import lru_cache
+from pathlib import Path
 from typing import Any, cast
 
+import jsonschema
 import numpy as np
+from datasets.channel_view import (
+    ChannelDelayReference,
+    ChannelPowerScale,
+    PhaseComparisonDisposition,
+    PhysicalChannelView,
+    phase_comparison_disposition,
+)
 from numpy.typing import NDArray
 from scipy.stats import beta
 
@@ -27,6 +38,90 @@ COMPLEX_CSI_P95_LIMIT = 0.05
 COMPLEX_CSI_CLUSTER_FAILURE_LIMIT = 0.05
 MIN_INDEPENDENT_CLUSTERS_PER_STRATUM = 2
 _MAX_BOOTSTRAP_INDEX_CELLS = 2_000_000
+_CHANNEL_VIEW_CONTRACT_FIELDS = frozenset(
+    {
+        "view_id",
+        "link_id",
+        "frame_times_s",
+        "rx_port_ids",
+        "tx_port_ids",
+        "carrier_hz",
+        "subcarrier_offsets_hz",
+        "delay_reference",
+        "power_scale",
+        "phase_gauge_id",
+    }
+)
+_CHANNEL_VIEW_CONTRACT_SCHEMA_PATH = (
+    Path(__file__).resolve().parent / "schema/g3-complex-csi-channel-view-contract.v1.schema.json"
+)
+
+
+@lru_cache(maxsize=1)
+def _channel_view_contract_validator() -> jsonschema.Draft202012Validator:
+    schema = json.loads(_CHANNEL_VIEW_CONTRACT_SCHEMA_PATH.read_text(encoding="utf-8"))
+    jsonschema.Draft202012Validator.check_schema(schema)
+    return jsonschema.Draft202012Validator(schema)
+
+
+def _phase_view_disposition(
+    row: dict[str, Any],
+    candidate_cfr: NDArray[np.complexfloating[Any, Any]],
+    challenger_cfr: NDArray[np.complexfloating[Any, Any]],
+) -> PhaseComparisonDisposition | None:
+    """Check optional physical-view metadata before coherent CSI scoring."""
+    candidate_contract = row.get("candidate_view_contract")
+    challenger_contract = row.get("challenger_view_contract")
+    if candidate_contract is None and challenger_contract is None:
+        return None
+    if not isinstance(candidate_contract, dict) or not isinstance(challenger_contract, dict):
+        raise ValueError(
+            "candidate and challenger channel-view contracts must be supplied together"
+        )
+
+    def make_view(contract: dict[str, Any], channel: np.ndarray, role: str) -> PhysicalChannelView:
+        try:
+            _channel_view_contract_validator().validate(contract)
+        except jsonschema.ValidationError as error:
+            raise ValueError(f"{role} channel-view contract is invalid: {error.message}") from error
+        if set(contract) - (
+            _CHANNEL_VIEW_CONTRACT_FIELDS | {"normalization_recipe", "axes", "valid_mask"}
+        ):
+            raise ValueError(f"{role} channel-view contract has unsupported fields")
+        if not _CHANNEL_VIEW_CONTRACT_FIELDS.issubset(contract):
+            raise ValueError(f"{role} channel-view contract is missing required fields")
+        try:
+            return PhysicalChannelView(
+                view_id=contract["view_id"],
+                link_id=contract["link_id"],
+                channel=channel,
+                frame_times_s=tuple(contract["frame_times_s"]),
+                rx_port_ids=tuple(contract["rx_port_ids"]),
+                tx_port_ids=tuple(contract["tx_port_ids"]),
+                carrier_hz=contract["carrier_hz"],
+                subcarrier_offsets_hz=np.asarray(contract["subcarrier_offsets_hz"]),
+                delay_reference=ChannelDelayReference(contract["delay_reference"]),
+                power_scale=ChannelPowerScale(contract["power_scale"]),
+                normalization_recipe=contract.get("normalization_recipe"),
+                valid_mask=(
+                    None if "valid_mask" not in contract else np.asarray(contract["valid_mask"])
+                ),
+                axes=tuple(contract.get("axes", ("frame", "rx_port", "tx_port", "subcarrier"))),
+                phase_gauge_id=contract["phase_gauge_id"],
+            )
+        except (TypeError, ValueError, KeyError) as error:
+            raise ValueError(f"{role} channel-view contract is invalid: {error}") from error
+
+    candidate_view = make_view(candidate_contract, candidate_cfr, "candidate")
+    challenger_view = make_view(challenger_contract, challenger_cfr, "challenger")
+    if not np.all(candidate_view.valid_mask) or not np.all(challenger_view.valid_mask):
+        raise ValueError("complex-CSI phase-view scoring requires fully valid channel views")
+    disposition = phase_comparison_disposition(candidate_view, challenger_view)
+    if disposition is not PhaseComparisonDisposition.ELIGIBLE:
+        raise ValueError(
+            f"complex-CSI channel views are not coherently comparable: {disposition.value}"
+        )
+    return disposition
 
 
 def symmetric_complex_csi_error(
@@ -163,6 +258,7 @@ def evaluate_complex_csi(
     grouped: dict[tuple[str, str], dict[str, list[float]]] = defaultdict(lambda: defaultdict(list))
     stratum_design: dict[tuple[str, str], tuple[tuple[int, ...], str, str, str, float]] = {}
     seen_episode_ids: set[tuple[str, str, str, str]] = set()
+    phase_view_count = 0
     for row in records:
         family = row.get("family_id")
         condition = row.get("condition")
@@ -198,6 +294,9 @@ def evaluate_complex_csi(
         challenger_cfr = cast(
             NDArray[np.complexfloating[Any, Any]], np.asarray(row.get("challenger_cfr"))
         )
+        phase_disposition = _phase_view_disposition(row, candidate_cfr, challenger_cfr)
+        if phase_disposition is not None:
+            phase_view_count += 1
         h_floor = row.get("h_floor")
         if isinstance(h_floor, bool) or not isinstance(h_floor, (int, float)):
             raise ValueError("h_floor must be a finite positive real number")
@@ -229,6 +328,8 @@ def evaluate_complex_csi(
             f"observed strata must exactly match expected_strata; missing={missing}, "
             f"unexpected={unexpected}"
         )
+    if phase_view_count not in {0, len(records)}:
+        raise ValueError("channel-view phase contracts must cover every complex-CSI record or none")
     if len(set(stratum_design.values())) != 1:
         raise ValueError(
             "grid, candidate/challenger configurations, CFR shape, and h_floor must match across strata"
@@ -328,6 +429,15 @@ def evaluate_complex_csi(
             "point_estimator": "equal-weight median and p95 of per-cluster episode summaries",
             "phase_alignment": False,
             "channel_normalization": False,
+        },
+        "phase_reference_audit": {
+            "status": "ALL_DECLARED_CONTRACTS_MATCH"
+            if phase_view_count == len(records)
+            else "NOT_PROVIDED",
+            "checked_record_count": phase_view_count,
+            "total_record_count": len(records),
+            "disposition": PhaseComparisonDisposition.ELIGIBLE.value if phase_view_count else None,
+            "meaning": "declared view contracts match; calibration and physical phase truth remain unverified",
         },
         "strata": strata,
         "all_numeric_criteria_pass": all(item["numeric_criteria_pass"] for item in strata),

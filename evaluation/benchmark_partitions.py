@@ -254,3 +254,57 @@ def materialize_benchmark_manifest(
     }
     canonical = json.dumps(core, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
     return {**core, "manifest_sha256": hashlib.sha256(canonical).hexdigest()}
+
+
+def verify_benchmark_manifest_replay(
+    manifest: Mapping[str, Any],
+    registry: SplitPolicyRegistry,
+    declaration: Mapping[str, Any],
+    datasets: Sequence[tuple[str, str, ChannelDataset]],
+    *,
+    registry_attestation: Mapping[str, str],
+    declaration_attestation: Mapping[str, str],
+) -> dict[str, Any]:
+    """Replay a cohort manifest from its verified inputs and return row indexes.
+
+    The caller must obtain both attestations by verifying the corresponding
+    signed artifacts. The manifest itself is a digest-bound index, not a
+    signature. Rebuilding it here binds each returned row to the exact dataset
+    digest, row identity, frozen parent, and signed cohort declaration.
+    """
+    if not isinstance(manifest, Mapping):
+        raise ValueError("benchmark manifest must be an object")
+    supplied = dict(manifest)
+    manifest_digest = supplied.pop("manifest_sha256", None)
+    if (
+        _sha256(manifest_digest, "benchmark manifest digest")
+        != hashlib.sha256(
+            json.dumps(supplied, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
+        ).hexdigest()
+    ):
+        raise ValueError("benchmark manifest digest does not match its contents")
+
+    replayed = materialize_benchmark_manifest(
+        registry,
+        declaration,
+        datasets,
+        registry_attestation=registry_attestation,
+        declaration_attestation=declaration_attestation,
+    )
+    if dict(manifest) != replayed:
+        raise ValueError("benchmark manifest does not replay from signed inputs and datasets")
+
+    rows_by_dataset: dict[str, dict[str, list[int]]] = {}
+    for dataset_record in replayed["datasets"]:
+        cohort_rows = {cohort: [] for cohort in BENCHMARK_COHORTS}
+        for row in dataset_record["rows"]:
+            cohort_rows[row["cohort"]].append(row["row_index"])
+        rows_by_dataset[dataset_record["name"]] = cohort_rows
+    return {
+        "schema": "umcd.benchmark_partition_replay.v1",
+        "status": "PASS_INPUT_SCOPED_REPLAY",
+        "qualification_status": "NOT_QUALIFIED",
+        "registry_sha256": replayed["registry_sha256"],
+        "manifest_sha256": replayed["manifest_sha256"],
+        "rows_by_dataset": rows_by_dataset,
+    }

@@ -288,6 +288,54 @@ def test_channel_sum_known():
     assert np.allclose(result[8], sum(a))
 
 
+@pytest.mark.parametrize("count", [15, 16])
+def test_analytical_frequency_response_preserves_complex_path_gains_and_centered_grid(count):
+    spacing_hz = 30e3
+    frequencies = subcarrier_frequencies(count, spacing_hz)
+    gains = np.asarray([0.75 + 0.25j, -0.2 + 0.4j, 0.1 - 0.3j])
+    delays_s = np.asarray([0.0, 0.37e-6, 1.13e-6])
+
+    response = frequency_response(gains, delays_s, frequencies)
+    expected = np.sum(
+        gains[:, None] * np.exp(-2j * np.pi * delays_s[:, None] * frequencies[None, :]),
+        axis=0,
+    )
+
+    np.testing.assert_array_equal(
+        frequencies,
+        (np.arange(count, dtype=np.float64) - count // 2) * spacing_hz,
+    )
+    np.testing.assert_allclose(response, expected, rtol=0.0, atol=1e-14)
+    # No unit-power normalization: at the zero-frequency bin, paths add as given.
+    assert response[count // 2] == pytest.approx(gains.sum())
+
+
+@pytest.mark.parametrize(
+    ("gains", "delays", "frequencies", "message"),
+    [
+        (np.asarray([complex(np.nan, 0.0)]), np.asarray([0.0]), np.asarray([0.0]), "gains"),
+        (np.asarray([1.0 + 0j]), np.asarray([np.inf]), np.asarray([0.0]), "delays"),
+        (np.asarray([1.0 + 0j]), np.asarray([0.0]), np.asarray([np.nan]), "frequencies"),
+    ],
+)
+def test_frequency_response_rejects_nonfinite_path_inputs(gains, delays, frequencies, message):
+    with pytest.raises(ValueError, match=message):
+        frequency_response(gains, delays, frequencies)
+
+
+@pytest.mark.parametrize(
+    ("count", "spacing", "error", "message"),
+    [
+        (True, 30e3, TypeError, "n_subcarriers"),
+        (16, np.nan, ValueError, "spacing_hz"),
+        (16, 0.0, ValueError, "spacing_hz"),
+    ],
+)
+def test_subcarrier_grid_rejects_invalid_dimensions_and_spacing(count, spacing, error, message):
+    with pytest.raises(error, match=message):
+        subcarrier_frequencies(count, spacing)
+
+
 def test_awgn_finite():
     h = np.ones((8, 1, 32), dtype=np.complex64)
     out = add_estimation_noise(h, 10, np.random.default_rng(1))

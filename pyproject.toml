@@ -23,6 +23,17 @@ sionna-rt = ["sionna-no-rt==2.2.0", "sionna-rt==2.2.0", "torch>=2.9"]
 boosting = ["xgboost-cpu>=2.1,<4"]
 plots = ["matplotlib>=3.8,<4", "Pillow>=10"]
 
+[tool.uv.sources]
+torch = [
+  { index = "pytorch-cu126", marker = "sys_platform == 'linux'", extra = "sionna" },
+  { index = "pytorch-cu126", marker = "sys_platform == 'linux'", extra = "sionna-rt" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
+
 [project.scripts]
 loslab = "loslab.__main__:main"
 loslab-audit-channel-population = "scripts.audit_channel_population:main"
@@ -31,10 +42,16 @@ loslab-pilot = "experiments.pilot_cli:main"
 loslab-runtime-inventory = "integrations.runtime_inventory:main"
 loslab-build-implementation-feature-map = "scripts.build_implementation_feature_map:main"
 loslab-report-standardized-capabilities = "scripts.report_standardized_capabilities:main"
+loslab-build-standardized-split-registry = "scripts.build_standardized_split_registry:main"
+loslab-audit-helper-wiring = "scripts.audit_helper_wiring:main"
+loslab-bind-split-registry-children = "scripts.bind_split_registry_children:main"
+loslab-pair-stored-frequency-views = "scripts.pair_stored_frequency_views:main"
+loslab-materialize-direct-path-ablation = "scripts.materialize_direct_path_ablation:main"
 loslab-materialize-benchmark-partitions = "scripts.materialize_benchmark_partitions:main"
 loslab-build-result-promotion-manifest = "scripts.build_result_promotion_manifest:main"
 loslab-g3-joint-evidence = "evaluation.g3_joint_evidence_artifact:main"
 loslab-verify-g3-run-report-signature = "scripts.verify_g3_run_report_signature:main"
+loslab-export-public-release = "scripts.export_public_release:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

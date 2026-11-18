@@ -11,9 +11,11 @@ import stat
 import tempfile
 import zipfile
 from dataclasses import asdict, dataclass
+from functools import lru_cache
 from pathlib import Path, PurePosixPath
 from typing import TYPE_CHECKING, Any, Iterator, cast
 
+import jsonschema
 import numpy as np
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
@@ -29,13 +31,23 @@ from .network import (
     NodePoseTimeline,
     NodeRole,
 )
-from .nr import LinkedNRObservation, NRModelInputs, NRObservation
+from .nr import (
+    LinkedNRObservation,
+    NRModelInputs,
+    NRObservation,
+    NRReceiverInferenceRecord,
+)
 from .observations import (
     FrequencyDomainModelInputs,
     FrequencyDomainObservation,
     LinkedFrequencyDomainObservation,
 )
-from .path_oracle import PathOracleTable, PathSolveStatus
+from .path_oracle import (
+    PATH_COEFFICIENT_CONVENTION,
+    PathOracleTable,
+    PathSolveStatus,
+    rms_delay_spread_target,
+)
 from .provenance import UMCDRunProvenance
 from .targets import (
     CensoringInterval,
@@ -48,6 +60,42 @@ from .time_axis import MultiSourceTimeAlignment, TimeAxisAlignment
 
 if TYPE_CHECKING:
     from .scenario_gbsm import ScenarioGBSMRecord
+
+
+_EPISODE_METADATA_SCHEMA_PATH = (
+    Path(__file__).resolve().parent / "schema/umcd-episode-metadata.v1.schema.json"
+)
+_DIRECT_PATH_ABLATION_SCHEMA_V2_PATH = (
+    Path(__file__).resolve().parent / "schema/umcd-direct-path-ablation-layer.v2.schema.json"
+)
+
+_READ_ONLY_UMCD_TARGET_VERSIONS = frozenset(
+    {
+        "umcd.standardized.effective-cfr.v1",
+        "umcd.tdl-pusch.effective-cfr.v1",
+        "umcd.rt-trajectory.absolute-cfr.v1",
+        "umcd.rt-trajectory.symbol-cfr.v1",
+        "umcd.rt-trajectory.geometric-los.v1",
+        "umcd.rt-trajectory.geometric-los.v2",
+        "umcd.f03_rt_static.direct_visibility.v1",
+        "umcd.f04_rt_dynamic.direct_visibility.v2",
+        "umcd.f04_rt_dynamic.direct_visibility.v3",
+    }
+)
+
+
+@lru_cache(maxsize=1)
+def _episode_metadata_validator() -> jsonschema.Draft202012Validator:
+    schema = json.loads(_EPISODE_METADATA_SCHEMA_PATH.read_text(encoding="utf-8"))
+    jsonschema.Draft202012Validator.check_schema(schema)
+    return jsonschema.Draft202012Validator(schema)
+
+
+@lru_cache(maxsize=1)
+def _direct_path_ablation_v2_validator() -> jsonschema.Draft202012Validator:
+    schema = json.loads(_DIRECT_PATH_ABLATION_SCHEMA_V2_PATH.read_text(encoding="utf-8"))
+    jsonschema.Draft202012Validator.check_schema(schema)
+    return jsonschema.Draft202012Validator(schema)
 
 
 @dataclass(frozen=True, slots=True)
@@ -89,13 +137,21 @@ class EpisodeBundle:
             "umcd.rt-trajectory.geometric-los.v2",
             "umcd.f04_rt_dynamic.direct_visibility.v2",
             "umcd.f04_rt_dynamic.direct_visibility.v3",
+            "umcd.f04_rt_dynamic.direct_visibility.v4",
         }
         static_visibility_versions = {
             "umcd.f03_rt_static.direct_visibility.v1",
             "umcd.f03_rt_static.direct_visibility.v2",
         }
+        per_frame_numeric_target_versions = {"umcd.rms_delay_spread.v2"}
         for target in targets:
             version = target.definition.definition_version
+            if "effective_subcarrier" in target.definition.value_axes:
+                subcarrier_axis = target.definition.value_axes.index("effective_subcarrier")
+                if target.values.shape[subcarrier_axis] != len(self.episode.subcarrier_offsets_hz):
+                    raise ValueError(
+                        "target effective-subcarrier axis must match the episode frequency grid"
+                    )
             if version in frame_visibility_versions:
                 if target.entity_id not in link_ids:
                     raise ValueError("frame visibility target must identify an episode link")
@@ -105,6 +161,32 @@ class EpisodeBundle:
                     )
             elif version in static_visibility_versions and target.entity_id not in link_ids:
                 raise ValueError("static visibility target must identify an episode link")
+            elif version in per_frame_numeric_target_versions:
+                if target.entity_id not in link_ids:
+                    raise ValueError("per-frame numeric target must identify an episode link")
+                if target.values.shape != (frame_count,):
+                    raise ValueError(
+                        "per-frame numeric target shape must match the episode frame-time roster"
+                    )
+                if self.path_oracle is None:
+                    raise ValueError(
+                        "RMS delay-spread v2 requires its declared path-oracle source layer"
+                    )
+                expected = rms_delay_spread_target(
+                    self.path_oracle,
+                    link_id=target.entity_id,
+                    frame_count=frame_count,
+                )
+                if (
+                    target.definition != expected.definition
+                    or not np.array_equal(target.values, expected.values)
+                    or not np.array_equal(target.valid_mask, expected.valid_mask)
+                    or target.reason_codes != expected.reason_codes
+                    or target.censoring_intervals != expected.censoring_intervals
+                ):
+                    raise ValueError(
+                        "RMS delay-spread v2 target must exactly replay from its path-oracle source"
+                    )
         for binding in observations:
             if binding.link_id not in link_ids:
                 raise ValueError("receiver observation link_id must reference an episode link")
@@ -155,6 +237,8 @@ class EpisodeBundle:
                 raise ValueError("direct-path ablation source path-oracle layer is missing")
             if item.parent_subject_id != self.episode.episode_id:
                 raise ValueError("direct-path ablation parent must match the episode ID")
+            if item.carrier_hz is not None and item.carrier_hz != self.episode.carrier_hz:
+                raise ValueError("direct-path ablation carrier differs from its parent episode")
             validate_direct_path_ablation_source(source_paths, item)
             if not np.array_equal(item.frequency_offset_hz, self.episode.subcarrier_offsets_hz):
                 raise ValueError("direct-path ablation frequency grid differs from episode grid")
@@ -409,6 +493,10 @@ def _episode_payload(episode: NetworkEpisode) -> bytes:
         "episode_id": episode.episode_id,
         "split_group_id": episode.split_group_id,
         "family_id": episode.family_id,
+        "split_leakage_relations": [
+            {"namespace": namespace, "identity": identity}
+            for namespace, identity in episode.split_leakage_relations
+        ],
         "carrier_hz": episode.carrier_hz,
         "frame_times_s": list(episode.frame_times_s),
         "has_pose_timeline": episode.pose_timeline is not None,
@@ -451,6 +539,7 @@ def _episode_payload(episode: NetworkEpisode) -> bytes:
             for link in episode.links
         ],
     }
+    _episode_metadata_validator().validate(metadata)
     arrays = {
         f"array_positions_{index:04d}": array.element_positions_local_m
         for index, array in enumerate(episode.arrays)
@@ -588,8 +677,11 @@ def _validate_path_oracle_layer(
     ):
         raise ValueError("path-oracle path_kind must be null or an array of non-empty strings")
     convention = metadata["coefficient_convention"]
-    if not isinstance(convention, str) or not convention.strip():
-        raise ValueError("path-oracle coefficient_convention must be non-empty")
+    if convention != PATH_COEFFICIENT_CONVENTION:
+        raise ValueError(
+            "path-oracle coefficient_convention is unsupported; "
+            f"expected {PATH_COEFFICIENT_CONVENTION!r}"
+        )
     optional = metadata["optional_fields"]
     if not isinstance(optional, dict) or set(optional) != _PATH_ORACLE_OPTIONAL_METADATA_FIELDS:
         raise ValueError("path-oracle optional_fields do not match the v1 contract")
@@ -616,15 +708,19 @@ def _validate_path_oracle_layer(
 
 
 def _direct_path_ablation_payload(ablation: DirectPathAblation) -> bytes:
+    if ablation.carrier_hz is None:
+        raise ValueError("legacy direct-path ablations without carrier phase are read-only")
     metadata = {
-        "schema": "umcd.direct_path_ablation.v1",
+        "schema": "umcd.direct_path_ablation.v2",
         "parent_subject_id": ablation.parent_subject_id,
         "base_child_id": ablation.base_child_id,
         "ablated_child_id": ablation.ablated_child_id,
         "split": ablation.split,
         "path_table_sha256": ablation.path_table_sha256,
         "link_ids": list(ablation.link_ids),
+        "carrier_hz": ablation.carrier_hz,
     }
+    _direct_path_ablation_v2_validator().validate(metadata)
     return _pack_npz(
         metadata,
         frame_indices=ablation.frame_indices,
@@ -664,10 +760,17 @@ def _channel_payload(view: PhysicalChannelView) -> bytes:
 
 
 def _target_payload(target: TargetValue) -> bytes:
-    if target.definition.definition_version == "migrated_from_legacy_target_v1":
+    if (
+        target.definition.definition_version
+        in {
+            "migrated_from_legacy_target_v1",
+            "umcd.rms_delay_spread.v1",
+        }
+        | _READ_ONLY_UMCD_TARGET_VERSIONS
+    ):
         raise ValueError(
-            "legacy v1 target definitions with unrecorded reference/aggregation cannot be "
-            "republished as canonical target-v2 layers; provide a reviewed versioned definition"
+            "legacy or superseded target definitions are read-only for canonical UMCD "
+            "publication; use a current producer-backed target definition"
         )
     metadata = {
         "schema": "umcd.target.v2",
@@ -1048,14 +1151,15 @@ def _validated_manifest(
     return metadata, layers
 
 
-def read_receiver_model_inputs(
+def read_receiver_inference_records(
     root: str | Path, manifest: StoredEpisodeBundle | str | Path
-) -> tuple[NRModelInputs, ...]:
-    """Load receiver-only inference inputs without opening oracle or target objects.
+) -> tuple[NRReceiverInferenceRecord, ...]:
+    """Load receiver-only inputs and separate row identities, without truth layers.
 
     The episode layer is read to validate link/frame bindings. Other manifest
     objects are deliberately not opened, so damaged or unavailable oracle and
-    target files cannot leak into or block receiver inference.
+    target files cannot leak into or block receiver inference. Each composite
+    identity remains outside ``model_inputs`` for prediction/evaluation joins.
     """
     base = Path(root)
     metadata, references = _validated_manifest(base, manifest)
@@ -1105,7 +1209,29 @@ def read_receiver_model_inputs(
         raise ValueError("receiver observation sample IDs are duplicated")
     if not observations:
         raise ValueError("bundle contains no NR receiver observations")
-    return tuple(item.observation.model_inputs() for item in observations)
+    return tuple(
+        NRReceiverInferenceRecord(
+            episode_id=episode.episode_id,
+            link_id=item.link_id,
+            frame_index=item.frame_index,
+            sample_id=item.observation.sample_id,
+            model_inputs=item.observation.model_inputs(),
+        )
+        for item in observations
+    )
+
+
+def read_receiver_model_inputs(
+    root: str | Path, manifest: StoredEpisodeBundle | str | Path
+) -> tuple[NRModelInputs, ...]:
+    """Load only model payloads, without identifiers, oracle or target objects.
+
+    Use :func:`read_receiver_inference_records` when a prediction artifact must
+    retain a stable evaluation join key separately from its model input.
+    """
+    return tuple(
+        record.model_inputs for record in read_receiver_inference_records(root, manifest)
+    )
 
 
 def read_frequency_model_inputs(
@@ -1206,6 +1332,12 @@ def _read_episode(metadata: dict[str, Any], arrays: dict[str, np.ndarray]) -> Ne
         if source_alignment_value is None
         else MultiSourceTimeAlignment.from_dict(source_alignment_value)
     )
+    relations_value = metadata.get("split_leakage_relations", [])
+    if not isinstance(relations_value, list) or any(
+        not isinstance(item, dict) or set(item) != {"namespace", "identity"}
+        for item in relations_value
+    ):
+        raise ValueError("episode split_leakage_relations must be a list of namespace identities")
     return NetworkEpisode(
         metadata["episode_id"],
         metadata["split_group_id"],
@@ -1219,6 +1351,7 @@ def _read_episode(metadata: dict[str, Any], arrays: dict[str, np.ndarray]) -> Ne
         pose_timeline,
         alignment,
         source_alignment,
+        tuple((item["namespace"], item["identity"]) for item in relations_value),
     )
 
 
@@ -1438,19 +1571,22 @@ def read_episode_bundle(
         )
     direct_path_ablations = []
     for ablation_metadata, ablation_arrays in grouped.get("counterfactual_ablations", []):
-        if (
-            set(ablation_metadata)
-            != {
-                "schema",
-                "parent_subject_id",
-                "base_child_id",
-                "ablated_child_id",
-                "split",
-                "path_table_sha256",
-                "link_ids",
-            }
-            or ablation_metadata.get("schema") != "umcd.direct_path_ablation.v1"
-        ):
+        schema_version = ablation_metadata.get("schema")
+        required_metadata = {
+            "schema",
+            "parent_subject_id",
+            "base_child_id",
+            "ablated_child_id",
+            "split",
+            "path_table_sha256",
+            "link_ids",
+        }
+        if schema_version == "umcd.direct_path_ablation.v2":
+            _direct_path_ablation_v2_validator().validate(ablation_metadata)
+            required_metadata.add("carrier_hz")
+        elif schema_version != "umcd.direct_path_ablation.v1":
+            raise ValueError("unsupported direct-path ablation layer schema")
+        if set(ablation_metadata) != required_metadata:
             raise ValueError("unsupported direct-path ablation layer schema")
         if set(ablation_arrays) != {
             "frame_indices",
@@ -1474,6 +1610,11 @@ def read_episode_bundle(
                 rx_port_indices=ablation_arrays["rx_port_indices"],
                 tx_port_indices=ablation_arrays["tx_port_indices"],
                 frequency_offset_hz=ablation_arrays["frequency_offset_hz"],
+                carrier_hz=(
+                    ablation_metadata["carrier_hz"]
+                    if schema_version == "umcd.direct_path_ablation.v2"
+                    else None
+                ),
                 full_cfr=ablation_arrays["full_cfr"],
                 without_direct_cfr=ablation_arrays["without_direct_cfr"],
                 removed_direct_path_count=ablation_arrays["removed_direct_path_count"],

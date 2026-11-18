@@ -10,7 +10,16 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .network_phy import NetworkWaveformComposition, NoisyNetworkWaveform
+from .network_phy import (
+    NetworkMIMOChannelPropagation,
+    NetworkTransmitterWaveform,
+    NetworkWaveformComposition,
+    NoisyNetworkWaveform,
+    add_independent_receiver_waveform_awgn,
+    apply_network_transmitter_iq_imbalance,
+    compose_received_waveforms,
+    propagate_network_transmit_waveforms,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -21,6 +30,26 @@ class NetworkPUSCHDecode:
     decoded_bits: Any
     crc_ok: Any
     noise_variance_w_per_re: Any
+    report: dict[str, Any]
+
+
+@dataclass(frozen=True, slots=True)
+class NetworkPUSCHWorkflowResult:
+    """Reproducible in-memory composition, noise and PUSCH decode result."""
+
+    composition: NetworkWaveformComposition
+    noisy_waveform: NoisyNetworkWaveform
+    decode: NetworkPUSCHDecode
+    report: dict[str, Any]
+
+
+@dataclass(frozen=True, slots=True)
+class NetworkTransmitterPUSCHWorkflowResult:
+    """Transmitter IQ, caller-declared MIMO FIR, and bounded PUSCH workflow."""
+
+    transmitter_stage: NetworkTransmitterWaveform
+    propagation: NetworkMIMOChannelPropagation
+    receiver_workflow: NetworkPUSCHWorkflowResult
     report: dict[str, Any]
 
 
@@ -294,16 +323,10 @@ def decode_noisy_network_pusch(
                     composition.link_fractional_delay_samples[rx_index, tx_index].item()
                 )
                 interpolation_radius = (
-                    composition.fractional_delay_kernel_radius
-                    if fractional_delay != 0.0
-                    else 0
+                    composition.fractional_delay_kernel_radius if fractional_delay != 0.0 else 0
                 )
-                effective_first = (
-                    start_sample + fractional_delay + first_tap - interpolation_radius
-                )
-                effective_last = (
-                    start_sample + fractional_delay + last_tap + interpolation_radius
-                )
+                effective_first = start_sample + fractional_delay + first_tap - interpolation_radius
+                effective_last = start_sample + fractional_delay + last_tap + interpolation_radius
                 effective_support_bounds.append((effective_first, effective_last))
             maximum_fir_memory_samples = max(maximum_fir_memory_samples, memory_samples)
             receiver_support.append(
@@ -493,4 +516,408 @@ def decode_noisy_network_pusch(
         crc_ok=crc_ok,
         noise_variance_w_per_re=n0,
         report=report,
+    )
+
+
+def run_network_pusch_receiver(
+    link_waveforms: Any,
+    receiver: Any,
+    *,
+    link_start_samples: Any,
+    capture_num_samples: int,
+    sample_rate_hz: float,
+    noise_variance_w_per_sample: Any,
+    noise_seed: int,
+    noise_variance_w_per_re: Any | None = None,
+    composition_options: dict[str, Any] | None = None,
+    max_tensor_elements: int = 16_000_000,
+    max_output_elements: int = 64_000_000,
+) -> NetworkPUSCHWorkflowResult:
+    """Run the canonical channelized-link → composition → AWGN → PUSCH path.
+
+    Link waveforms are caller-propagated complex contributions with axes
+    ``[batch, rx, tx, rx_port, sample]``. Optional composition settings are
+    passed to :func:`compose_received_waveforms`; calibrated complex FIRs and
+    per-link gains must be supplied explicitly. This workflow binds input,
+    composition, noise seed and decoder outputs into a strict report, but its
+    outcome remains ``OBSERVED_NOT_QUALIFIED``.
+    """
+    try:
+        import torch
+    except ImportError as error:
+        raise RuntimeError("Install PyTorch to run the network PUSCH workflow") from error
+
+    if not torch.is_tensor(link_waveforms) or not torch.is_complex(link_waveforms):
+        raise TypeError("link_waveforms must be a complex PyTorch tensor")
+    if link_waveforms.ndim != 5 or any(size <= 0 for size in link_waveforms.shape):
+        raise ValueError("link_waveforms must have nonempty [batch, rx, tx, rx_port, sample] axes")
+    if (
+        isinstance(max_tensor_elements, bool)
+        or not isinstance(max_tensor_elements, int)
+        or max_tensor_elements < 1
+        or isinstance(max_output_elements, bool)
+        or not isinstance(max_output_elements, int)
+        or max_output_elements < 1
+    ):
+        raise ValueError("workflow tensor ceilings must be positive integers")
+    if (
+        isinstance(capture_num_samples, bool)
+        or not isinstance(capture_num_samples, int)
+        or capture_num_samples < 1
+    ):
+        raise ValueError("capture_num_samples must be a positive integer")
+    if (
+        isinstance(noise_seed, bool)
+        or not isinstance(noise_seed, int)
+        or not 0 <= noise_seed <= 2**63 - 1
+    ):
+        raise ValueError("noise_seed must be an integer in [0, 2**63 - 1]")
+    if not isinstance(composition_options, (dict, type(None))):
+        raise TypeError("composition_options must be a dictionary when provided")
+
+    batch, rx_count, tx_count, rx_ports, _ = (int(value) for value in link_waveforms.shape)
+    capture_cells = batch * rx_count * rx_ports * capture_num_samples
+    contribution_cells = capture_cells * tx_count
+    metadata = getattr(receiver, "metadata", None)
+    grid_metadata = metadata.get("resource_grid") if isinstance(metadata, dict) else None
+    if not isinstance(grid_metadata, dict):
+        raise ValueError("receiver must declare resource_grid metadata before workflow allocation")
+    fft_size = grid_metadata.get("fft_size")
+    symbol_count = grid_metadata.get("num_ofdm_symbols")
+    if (
+        isinstance(fft_size, bool)
+        or not isinstance(fft_size, int)
+        or fft_size < 1
+        or isinstance(symbol_count, bool)
+        or not isinstance(symbol_count, int)
+        or symbol_count < 1
+    ):
+        raise ValueError(
+            "receiver must declare positive OFDM dimensions before workflow allocation"
+        )
+    grid_cells = batch * rx_count * rx_ports * symbol_count * fft_size
+    minimum_live_elements = (
+        link_waveforms.numel() + contribution_cells + 4 * capture_cells + grid_cells
+    )
+    if minimum_live_elements > max_tensor_elements:
+        raise ValueError("network waveform workflow exceeds max_tensor_elements before composition")
+
+    options = dict(composition_options or {})
+    if "max_output_elements" in options:
+        raise ValueError("set max_output_elements on the workflow, not composition_options")
+    composition = compose_received_waveforms(
+        link_waveforms,
+        link_start_samples=link_start_samples,
+        capture_num_samples=capture_num_samples,
+        sample_rate_hz=sample_rate_hz,
+        max_output_elements=min(max_output_elements, max_tensor_elements),
+        **options,
+    )
+    noisy = add_independent_receiver_waveform_awgn(
+        composition,
+        noise_variance_w_per_sample,
+        seed=noise_seed,
+    )
+    decoded = decode_noisy_network_pusch(
+        composition,
+        noisy,
+        receiver,
+        noise_variance_w_per_re=noise_variance_w_per_re,
+        max_tensor_elements=max_tensor_elements,
+    )
+
+    def tensor_hash(value: Any) -> str:
+        return _tensor_sha256(torch, value)
+
+    composition_parameters = {
+        "link_start_samples_sha256": tensor_hash(composition.link_start_samples),
+        "link_power_gain_linear_sha256": tensor_hash(composition.link_power_gain_linear),
+        "link_cfo_hz_sha256": tensor_hash(composition.link_cfo_hz),
+        "link_initial_phase_rad_sha256": tensor_hash(composition.link_initial_phase_rad),
+        "link_fractional_delay_samples_sha256": tensor_hash(
+            composition.link_fractional_delay_samples
+        ),
+        "tx_phase_noise_linewidth_hz_sha256": tensor_hash(composition.tx_phase_noise_linewidth_hz),
+        "rx_phase_noise_linewidth_hz_sha256": tensor_hash(composition.rx_phase_noise_linewidth_hz),
+        "rx_iq_gain_imbalance_db_sha256": tensor_hash(composition.rx_iq_gain_imbalance_db),
+        "rx_iq_phase_imbalance_rad_sha256": tensor_hash(composition.rx_iq_phase_imbalance_rad),
+        "link_filter_taps_sha256": tensor_hash(composition.link_filter_taps),
+        "phase_noise_seed": composition.phase_noise_seed,
+        "sample_rate_hz": composition.sample_rate_hz,
+    }
+    report: dict[str, Any] = {
+        "schema": "umcd.network_pusch_receiver_workflow.v1",
+        "status": "OBSERVED_NOT_QUALIFIED",
+        "implementation_sha256": {
+            "workflow": hashlib.sha256(
+                inspect.getsource(run_network_pusch_receiver).encode("utf-8")
+            ).hexdigest(),
+            "waveform_composition": hashlib.sha256(
+                inspect.getsource(compose_received_waveforms).encode("utf-8")
+            ).hexdigest(),
+            "receiver_awgn": hashlib.sha256(
+                inspect.getsource(add_independent_receiver_waveform_awgn).encode("utf-8")
+            ).hexdigest(),
+            "pusch_decode": decoded.report["implementation_sha256"],
+        },
+        "noise_seed": noise_seed,
+        "composition_options_sha256": _canonical_sha256(composition_parameters),
+        "composition_options": composition_parameters,
+        "input_sha256": {
+            "channelized_link_waveforms": tensor_hash(link_waveforms),
+            "composed_source_contributions": tensor_hash(composition.source_contributions),
+            "clean_receive_waveform": tensor_hash(composition.received_waveform),
+            "noise_waveform": tensor_hash(noisy.noise_waveform),
+            "noisy_receive_waveform": tensor_hash(noisy.received_waveform),
+            "noise_variance_w_per_sample": tensor_hash(noisy.noise_variance_w_per_sample),
+            "noise_variance_w_per_re": tensor_hash(decoded.noise_variance_w_per_re),
+        },
+        "decode_report_sha256": decoded.report["report_sha256"],
+        "output_sha256": decoded.report["output_sha256"],
+        "boundary": "SOFTWARE_REPLAY_ONLY_NOT_RECEIVER_OR_CHANNEL_QUALIFICATION",
+    }
+    schema_path = Path(__file__).resolve().parents[2] / (
+        "datasets/schema/network-pusch-workflow-report.v1.schema.json"
+    )
+    schema_bytes = schema_path.read_bytes()
+    report["schema_sha256"] = hashlib.sha256(schema_bytes).hexdigest()
+    import jsonschema
+
+    schema = json.loads(schema_bytes.decode("utf-8"))
+    jsonschema.Draft202012Validator.check_schema(schema)
+    report["report_sha256"] = _canonical_sha256(report)
+    jsonschema.Draft202012Validator(schema).validate(report)
+    return NetworkPUSCHWorkflowResult(
+        composition=composition,
+        noisy_waveform=noisy,
+        decode=decoded,
+        report=report,
+    )
+
+
+def run_network_pusch_from_transmitters(
+    transmit_waveforms: Any,
+    channel_fir_taps: Any,
+    receiver: Any,
+    *,
+    tx_iq_gain_imbalance_db: Any,
+    tx_iq_phase_imbalance_rad: Any,
+    link_start_samples: Any,
+    capture_num_samples: int,
+    sample_rate_hz: float,
+    noise_variance_w_per_sample: Any,
+    noise_seed: int,
+    noise_variance_w_per_re: Any | None = None,
+    composition_options: dict[str, Any] | None = None,
+    max_tensor_elements: int = 16_000_000,
+    max_output_elements: int = 64_000_000,
+) -> NetworkTransmitterPUSCHWorkflowResult:
+    """Run TX IQ → declared MIMO FIR → capture composition → AWGN → PUSCH.
+
+    Transmitter waveforms have ``[batch, tx, tx_port, sample]`` axes and the
+    caller-supplied causal channel FIR has ``[rx, rx_port, tx, tx_port, tap]``
+    axes. TX I/Q imbalance is applied before the FIR. This workflow does not
+    derive the channel taps from RT or certify their calibration; its strict
+    replay report remains ``OBSERVED_NOT_QUALIFIED``.
+    """
+    try:
+        import torch
+    except ImportError as error:
+        raise RuntimeError("Install PyTorch to run the transmitter-to-PUSCH workflow") from error
+
+    if (
+        not torch.is_tensor(transmit_waveforms)
+        or not torch.is_complex(transmit_waveforms)
+        or transmit_waveforms.ndim != 4
+        or any(size <= 0 for size in transmit_waveforms.shape)
+    ):
+        raise TypeError("transmit_waveforms must be nonempty complex [batch, tx, tx_port, sample]")
+    try:
+        taps = torch.as_tensor(channel_fir_taps, device=transmit_waveforms.device)
+    except (TypeError, ValueError, RuntimeError, OverflowError) as error:
+        raise ValueError("channel_fir_taps must be a complex MIMO FIR tensor") from error
+    if (
+        not torch.is_complex(taps)
+        or taps.ndim != 5
+        or tuple(taps.shape[2:4]) != tuple(transmit_waveforms.shape[1:3])
+        or any(size <= 0 for size in taps.shape)
+        or taps.shape[-1] > 128
+        or taps.dtype != transmit_waveforms.dtype
+    ):
+        raise ValueError(
+            "channel_fir_taps axes, tap count, or dtype do not match transmitter waveforms"
+        )
+    if (
+        isinstance(max_tensor_elements, bool)
+        or not isinstance(max_tensor_elements, int)
+        or max_tensor_elements < 1
+        or isinstance(max_output_elements, bool)
+        or not isinstance(max_output_elements, int)
+        or max_output_elements < 1
+    ):
+        raise ValueError("workflow tensor ceilings must be positive integers")
+    if (
+        isinstance(capture_num_samples, bool)
+        or not isinstance(capture_num_samples, int)
+        or capture_num_samples < 1
+    ):
+        raise ValueError("capture_num_samples must be a positive integer")
+    if not isinstance(composition_options, (dict, type(None))):
+        raise TypeError("composition_options must be a dictionary when provided")
+    options = dict(composition_options or {})
+    if "max_output_elements" in options:
+        raise ValueError("set max_output_elements on the workflow, not composition_options")
+    forbidden_options = {"link_filter_taps", "link_power_gain_linear"} & set(options)
+    if forbidden_options:
+        raise ValueError(
+            "MIMO channel FIRs are already applied before composition; remove "
+            + ", ".join(sorted(forbidden_options))
+        )
+    if (
+        isinstance(sample_rate_hz, bool)
+        or not isinstance(sample_rate_hz, (int, float))
+        or not math.isfinite(sample_rate_hz)
+        or sample_rate_hz <= 0
+    ):
+        raise ValueError("sample_rate_hz must be finite and positive")
+    if (
+        isinstance(noise_seed, bool)
+        or not isinstance(noise_seed, int)
+        or not 0 <= noise_seed <= 2**63 - 1
+    ):
+        raise ValueError("noise_seed must be an integer in [0, 2**63 - 1]")
+    if not bool(torch.isfinite(transmit_waveforms).all()) or not bool(torch.isfinite(taps).all()):
+        raise ValueError("transmitter waveforms and channel FIR taps must be finite")
+    try:
+        offsets = torch.as_tensor(link_start_samples, device=transmit_waveforms.device)
+    except (TypeError, ValueError, RuntimeError, OverflowError) as error:
+        raise ValueError("link_start_samples must contain integer sample offsets") from error
+    integer_dtypes = {torch.uint8, torch.int8, torch.int16, torch.int32, torch.int64}
+    if (
+        offsets.layout != torch.strided
+        or offsets.dtype == torch.bool
+        or offsets.is_floating_point()
+        or offsets.is_complex()
+        or offsets.dtype not in integer_dtypes
+        or tuple(offsets.shape) != (int(taps.shape[0]), int(transmit_waveforms.shape[1]))
+    ):
+        raise ValueError("link_start_samples must be an integer [rx, tx] matrix")
+
+    batch, tx_count, _tx_ports, sample_count = (int(size) for size in transmit_waveforms.shape)
+    rx_count, rx_ports, _tx_count, _tx_ports, tap_count = (int(size) for size in taps.shape)
+    propagated_samples = sample_count + tap_count - 1
+    output_link_cells = batch * rx_count * tx_count * rx_ports * propagated_samples
+    propagation_temp_cells = batch * rx_count * tx_count * rx_ports * sample_count
+    capture_cells = batch * rx_count * rx_ports * capture_num_samples
+    contribution_cells = capture_cells * tx_count
+    metadata = getattr(receiver, "metadata", None)
+    grid_metadata = metadata.get("resource_grid") if isinstance(metadata, dict) else None
+    if not isinstance(grid_metadata, dict):
+        raise ValueError("receiver must declare resource_grid metadata before workflow allocation")
+    fft_size = grid_metadata.get("fft_size")
+    symbols = grid_metadata.get("num_ofdm_symbols")
+    if (
+        isinstance(fft_size, bool)
+        or not isinstance(fft_size, int)
+        or fft_size < 1
+        or isinstance(symbols, bool)
+        or not isinstance(symbols, int)
+        or symbols < 1
+    ):
+        raise ValueError(
+            "receiver must declare positive OFDM dimensions before workflow allocation"
+        )
+    grid_cells = batch * rx_count * rx_ports * symbols * fft_size
+    receiver_minimum = output_link_cells + contribution_cells + 4 * capture_cells + grid_cells
+    estimated_live = (
+        2 * transmit_waveforms.numel()
+        + taps.numel()
+        + output_link_cells
+        + propagation_temp_cells
+        + receiver_minimum
+    )
+    if estimated_live > max_tensor_elements:
+        raise ValueError(
+            "transmitter-to-receiver workflow exceeds max_tensor_elements before TX IQ"
+        )
+
+    transmitter_stage = apply_network_transmitter_iq_imbalance(
+        transmit_waveforms,
+        tx_iq_gain_imbalance_db=tx_iq_gain_imbalance_db,
+        tx_iq_phase_imbalance_rad=tx_iq_phase_imbalance_rad,
+        max_output_elements=min(max_output_elements, max_tensor_elements),
+    )
+    propagation = propagate_network_transmit_waveforms(
+        transmitter_stage,
+        taps,
+        max_output_elements=min(max_output_elements, max_tensor_elements),
+    )
+    receiver_result = run_network_pusch_receiver(
+        propagation.link_waveforms,
+        receiver,
+        link_start_samples=link_start_samples,
+        capture_num_samples=capture_num_samples,
+        sample_rate_hz=sample_rate_hz,
+        noise_variance_w_per_sample=noise_variance_w_per_sample,
+        noise_seed=noise_seed,
+        noise_variance_w_per_re=noise_variance_w_per_re,
+        composition_options=options,
+        max_tensor_elements=max_tensor_elements,
+        max_output_elements=max_output_elements,
+    )
+    report: dict[str, Any] = {
+        "schema": "umcd.network_transmitter_pusch_workflow.v1",
+        "status": "OBSERVED_NOT_QUALIFIED",
+        "boundary": "CALLER_DECLARED_MIMO_FIR_SOFTWARE_REPLAY_ONLY_NOT_CHANNEL_OR_RECEIVER_QUALIFICATION",
+        "dimensions": {
+            "batch": batch,
+            "rx": rx_count,
+            "rx_port": rx_ports,
+            "tx": tx_count,
+            "tx_port": int(transmit_waveforms.shape[2]),
+            "input_samples": sample_count,
+            "propagated_samples": propagated_samples,
+            "fir_taps": tap_count,
+        },
+        "estimated_live_tensor_elements": estimated_live,
+        "max_tensor_elements": max_tensor_elements,
+        "implementation_sha256": {
+            name: hashlib.sha256(inspect.getsource(function).encode()).hexdigest()
+            for name, function in (
+                ("workflow", run_network_pusch_from_transmitters),
+                ("transmitter_iq", apply_network_transmitter_iq_imbalance),
+                ("mimo_fir_propagation", propagate_network_transmit_waveforms),
+            )
+        },
+        "input_sha256": {
+            "transmit_waveforms": _tensor_sha256(torch, transmit_waveforms),
+            "tx_iq_gain_imbalance_db": _tensor_sha256(
+                torch, transmitter_stage.tx_iq_gain_imbalance_db
+            ),
+            "tx_iq_phase_imbalance_rad": _tensor_sha256(
+                torch, transmitter_stage.tx_iq_phase_imbalance_rad
+            ),
+            "transmitter_waveforms_after_iq": _tensor_sha256(torch, transmitter_stage.waveform),
+            "channel_fir_taps": _tensor_sha256(torch, propagation.channel_fir_taps),
+            "channelized_link_waveforms": _tensor_sha256(torch, propagation.link_waveforms),
+        },
+        "receiver_workflow_report_sha256": receiver_result.report["report_sha256"],
+        "receiver_output_sha256": receiver_result.decode.report["output_sha256"],
+    }
+    schema_path = Path(__file__).resolve().parents[2] / (
+        "datasets/schema/network-transmitter-pusch-workflow-report.v1.schema.json"
+    )
+    schema_bytes = schema_path.read_bytes()
+    report["schema_sha256"] = hashlib.sha256(schema_bytes).hexdigest()
+    import jsonschema
+
+    schema = json.loads(schema_bytes)
+    jsonschema.Draft202012Validator.check_schema(schema)
+    report["report_sha256"] = _canonical_sha256(report)
+    jsonschema.Draft202012Validator(schema).validate(report)
+    return NetworkTransmitterPUSCHWorkflowResult(
+        transmitter_stage,
+        propagation,
+        receiver_result,
+        report,
     )

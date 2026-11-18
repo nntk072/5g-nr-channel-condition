@@ -8,7 +8,11 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from .path_oracle import PathOracleTable
+from .path_oracle import (
+    PathOracleTable,
+    PathSolveStatus,
+    reconstruct_path_oracle_cfr,
+)
 from .split_policy import SplitPolicyRegistry
 
 
@@ -34,21 +38,18 @@ def path_oracle_content_digest(table: PathOracleTable) -> str:
 
 
 def _calculate_cfr_pair(
-    table: PathOracleTable, frequency_offset_hz: np.ndarray
+    table: PathOracleTable, frequency_offset_hz: np.ndarray, carrier_hz: float
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    group_count = len(table.link_ids)
-    full = np.zeros((group_count, len(frequency_offset_hz)), dtype=np.complex128)
-    ablated = np.zeros_like(full)
-    removed = np.zeros(group_count, dtype=np.int64)
-    for group in range(group_count):
-        start, stop = table.path_offsets[group : group + 2]
-        orders = table.interaction_order[start:stop]
-        direct = orders == 0
-        removed[group] = int(np.count_nonzero(direct))
-        phase = np.exp(-2j * np.pi * table.delay_s[start:stop, None] * frequency_offset_hz[None, :])
-        contributions = table.complex_gain[start:stop, None] * phase
-        full[group] = contributions.sum(axis=0)
-        ablated[group] = contributions[~direct].sum(axis=0)
+    full = reconstruct_path_oracle_cfr(table, frequency_offset_hz, carrier_hz=carrier_hz)
+    ablated = reconstruct_path_oracle_cfr(
+        table,
+        frequency_offset_hz,
+        carrier_hz=carrier_hz,
+        include_path_mask=table.interaction_order != 0,
+    )
+    removed = np.zeros(table.group_count, dtype=np.int64)
+    for group in range(table.group_count):
+        removed[group] = np.count_nonzero(table.interaction_order[table.group_slice(group)] == 0)
     return full, ablated, removed
 
 
@@ -67,7 +68,14 @@ def validate_direct_path_ablation_source(
         or not np.array_equal(ablation.tx_port_indices, table.tx_port_indices)
     ):
         raise ValueError("direct-path ablation group roster differs from path table")
-    full, without_direct, removed = _calculate_cfr_pair(table, ablation.frequency_offset_hz)
+    if ablation.carrier_hz is None:
+        # Historical v1 payloads did not carry carrier frequency and were
+        # reconstructed from offset phase only. Preserve read compatibility,
+        # but do not silently treat those arrays as the corrected v2 contract.
+        return
+    full, without_direct, removed = _calculate_cfr_pair(
+        table, ablation.frequency_offset_hz, ablation.carrier_hz
+    )
     if (
         not np.array_equal(ablation.full_cfr, full)
         or not np.array_equal(ablation.without_direct_cfr, without_direct)
@@ -90,6 +98,7 @@ class DirectPathAblation:
     rx_port_indices: np.ndarray
     tx_port_indices: np.ndarray
     frequency_offset_hz: np.ndarray
+    carrier_hz: float | None
     full_cfr: np.ndarray
     without_direct_cfr: np.ndarray
     removed_direct_path_count: np.ndarray
@@ -105,6 +114,13 @@ class DirectPathAblation:
             char not in "0123456789abcdef" for char in self.path_table_sha256
         ):
             raise ValueError("path_table_sha256 must be lowercase SHA-256 hex")
+        carrier = self.carrier_hz
+        if carrier is not None:
+            if isinstance(carrier, bool) or not isinstance(carrier, (int, float)):
+                raise TypeError("carrier_hz must be a real numeric scalar or null for legacy data")
+            carrier = float(carrier)
+            if not np.isfinite(carrier) or carrier <= 0.0:
+                raise ValueError("carrier_hz must be finite and positive")
         raw_frequencies = np.asarray(self.frequency_offset_hz)
         if raw_frequencies.dtype.kind not in "iuf":
             raise TypeError("frequency_offset_hz must be real numeric data")
@@ -159,6 +175,7 @@ class DirectPathAblation:
         object.__setattr__(self, "rx_port_indices", rx_ports)
         object.__setattr__(self, "tx_port_indices", tx_ports)
         object.__setattr__(self, "frequency_offset_hz", frequencies)
+        object.__setattr__(self, "carrier_hz", carrier)
         object.__setattr__(self, "full_cfr", full)
         object.__setattr__(self, "without_direct_cfr", ablated)
         object.__setattr__(self, "removed_direct_path_count", removed)
@@ -168,6 +185,7 @@ def remove_direct_path_component(
     table: PathOracleTable,
     *,
     frequency_offset_hz: np.ndarray,
+    carrier_hz: float,
     registry: SplitPolicyRegistry,
     parent_subject_id: str,
     base_child_id: str,
@@ -178,10 +196,24 @@ def remove_direct_path_component(
     A direct component is a zero-interaction path in the supplied path table.
     This is a mathematical channel ablation; it does not model a physical
     blocker or retrace the scene. Both children must already be bound to the
-    same frozen split parent.
+    same frozen split parent. A failed or unconverged source solve cannot be
+    converted into a zero-valued CFR row; callers must resolve or exclude that
+    group before constructing the paired view. An explicit ``NO_PATH`` group
+    remains an empty finite-budget solve outcome and is retained as zero here,
+    without asserting physical path absence.
     """
     if not isinstance(table, PathOracleTable):
         raise TypeError("table must be a PathOracleTable")
+    unsuccessful = [
+        index
+        for index, status in enumerate(table.solve_status)
+        if status in (PathSolveStatus.SOLVER_FAILURE, PathSolveStatus.UNCONVERGED)
+    ]
+    if unsuccessful:
+        raise ValueError(
+            "direct-path ablation requires solved or explicit no-path groups; "
+            f"failed/unconverged path groups={unsuccessful}"
+        )
     if not isinstance(registry, SplitPolicyRegistry):
         raise TypeError("registry must be a SplitPolicyRegistry")
     if (
@@ -206,7 +238,7 @@ def remove_direct_path_component(
     ):
         raise ValueError("frequency offsets must be finite and strictly increasing")
 
-    full, ablated, removed = _calculate_cfr_pair(table, frequencies)
+    full, ablated, removed = _calculate_cfr_pair(table, frequencies, carrier_hz)
 
     return DirectPathAblation(
         parent_subject_id=parent_subject_id,
@@ -219,6 +251,7 @@ def remove_direct_path_component(
         rx_port_indices=table.rx_port_indices,
         tx_port_indices=table.tx_port_indices,
         frequency_offset_hz=frequencies,
+        carrier_hz=carrier_hz,
         full_cfr=full,
         without_direct_cfr=ablated,
         removed_direct_path_count=removed,

@@ -21,11 +21,6 @@ from typing import TYPE_CHECKING, Any, Mapping, Protocol, Sequence, cast
 import numpy as np
 from artifacts.provenance import canonical_hash, package_source_sha256, versions
 from datasets.channel import ChannelDataset
-from datasets.channel_view import (
-    ChannelDelayReference,
-    ChannelPowerScale,
-    PhysicalChannelView,
-)
 from datasets.network import LinkDirection, LinkRole, NodeRole
 from datasets.observations import (
     FrequencyDomainModelInputs,
@@ -375,6 +370,13 @@ def direct_indirect_diagnostics(full_cfr: np.ndarray, direct_cfr: np.ndarray) ->
     direct = np.asarray(direct_cfr)
     if full.shape != direct.shape or not np.iscomplexobj(full) or not np.iscomplexobj(direct):
         raise ValueError("Expected aligned complex CFR tensors")
+    if not (
+        np.isfinite(full.real).all()
+        and np.isfinite(full.imag).all()
+        and np.isfinite(direct.real).all()
+        and np.isfinite(direct.imag).all()
+    ):
+        raise ValueError("Aligned complex CFR tensors must contain only finite values")
     p_direct = float(np.mean(np.abs(direct) ** 2))
     p_indirect = float(np.mean(np.abs(full - direct) ** 2))
     ratio = float(10 * np.log10(max(p_direct, 1e-24) / max(p_indirect, 1e-24)))
@@ -572,6 +574,22 @@ def _attach_rt_execution_provenance(
     report["execution_provenance_sha256"] = canonical_hash(execution)
 
 
+def _scene_family_run_binding(
+    identity: Mapping[str, Any] | None,
+) -> dict[str, object]:
+    """Return cache-key fields for a verified scene-family candidate, if any."""
+    if identity is None:
+        return {}
+    return {
+        "scene_family_candidate": {
+            "candidate_id": identity["candidate_id"],
+            "family_id": identity["family_id"],
+            "registry_sha256": identity["registry_sha256"],
+            "geometry_asset_sha256": identity["geometry_asset_sha256"],
+        }
+    }
+
+
 def _publish_static_rt_sample_umcd(
     *,
     store_root: str | Path,
@@ -591,6 +609,7 @@ def _publish_static_rt_sample_umcd(
     scene_assets: Mapping[str, Any],
     material_manifest: Mapping[str, Any],
     scene_geometry_inventory: SceneTriangleInventory,
+    scene_family_identity: Mapping[str, Any] | None,
     authorization: D1GenerationAuthorization | None,
 ) -> Mapping[str, object]:
     """Publish one static RT path solve and its direct noisy-CFR observation."""
@@ -602,7 +621,11 @@ def _publish_static_rt_sample_umcd(
     )
 
     from integrations.sionna.array_layouts import sionna_scene_to_network_episode
-    from integrations.sionna.rt_network import SionnaPathBinding, write_sionna_rt_episode_bundle
+    from integrations.sionna.rt_network import (
+        SionnaPathBinding,
+        sionna_bindings_to_channel_views,
+        write_sionna_rt_episode_bundle,
+    )
 
     offsets = tuple(
         float(value)
@@ -621,6 +644,7 @@ def _publish_static_rt_sample_umcd(
                 "scene_object_count": len(scene_geometry_inventory.object_names),
                 "scene_triangle_count": len(scene_geometry_inventory.triangles_m),
             },
+            **_scene_family_run_binding(scene_family_identity),
         },
         material_config=material_manifest,
         solver_config=static_rt_solver_config(
@@ -642,6 +666,14 @@ def _publish_static_rt_sample_umcd(
         subcarrier_offsets_hz=offsets,
         node_roles={"tx:research_tx": NodeRole.GNB, "rx:research_rx": NodeRole.UE},
         associations=(("tx:research_tx", "rx:research_rx"),),
+        split_leakage_relations=(
+            ()
+            if scene_family_identity is None
+            else tuple(
+                (str(item["namespace"]), str(item["identity"]))
+                for item in scene_family_identity["split_leakage_relations"]
+            )
+        ),
         direction=LinkDirection.DOWNLINK,
         link_role=LinkRole.SERVING,
     )
@@ -654,29 +686,11 @@ def _publish_static_rt_sample_umcd(
         tx_device_index=0,
         paths=full_paths,
     )
-    clean = np.asarray(clean_cfr).reshape(1, 1, 1, grid.n_subcarriers)
     noisy = np.asarray(noisy_cfr).reshape(1, 1, grid.n_subcarriers)
     noise_variance = float(
         max(float(np.mean(np.abs(clean_cfr) ** 2)), 1e-24) * 10.0 ** (-grid.snr_db / 10.0)
     )
-    channel_view = PhysicalChannelView(
-        view_id=f"{sample_id}:absolute-cfr",
-        link_id=link.link_id,
-        channel=clean,
-        frame_times_s=(0.0,),
-        rx_port_ids=tuple(
-            episode.array(episode.node(link.rx_node_id).array_id).port_ids[index]
-            for index in link.rx_port_indices
-        ),
-        tx_port_ids=tuple(
-            episode.array(episode.node(link.tx_node_id).array_id).port_ids[index]
-            for index in link.tx_port_indices
-        ),
-        carrier_hz=grid.carrier_hz,
-        subcarrier_offsets_hz=np.asarray(offsets),
-        delay_reference=ChannelDelayReference.ABSOLUTE_PROPAGATION,
-        power_scale=ChannelPowerScale.ABSOLUTE,
-    )
+    channel_views = sionna_bindings_to_channel_views(episode, (path_binding,))
     receiver_observation = LinkedFrequencyDomainObservation(
         link.link_id,
         0,
@@ -729,7 +743,7 @@ def _publish_static_rt_sample_umcd(
         material_config=material_manifest,
         source_family="F03-RT-STATIC",
         producer="Sionna 2.2 deterministic PathSolver",
-        channel_views=(channel_view,),
+        channel_views=channel_views,
         targets=(target,),
         receiver_observations=(receiver_observation,),
         authorization=authorization,
@@ -755,6 +769,7 @@ def generate_raytraced(
     _material_manifest_override: Mapping[str, Any] | None = None,
     output_destination: str | Path | None = None,
     failure_report_destination: str | Path | None = None,
+    scene_family_candidate_id: str | None = None,
     _authorization_destinations: Sequence[str | Path] = (),
 ) -> ChannelDataset:
     """Balanced physical LOS/NLOS ray tracing. Fail closed when insufficient examples.
@@ -819,6 +834,18 @@ def generate_raytraced(
             "unresolved_references": [scene_reference],
             "complete": False,
         }
+    scene_family_identity: Mapping[str, Any] | None = None
+    if scene_family_candidate_id is not None:
+        from datasets.scene_families import (
+            load_scene_family_registry,
+            scene_candidate_split_metadata,
+        )
+
+        scene_family_identity = scene_candidate_split_metadata(
+            load_scene_family_registry(),
+            candidate_id=scene_family_candidate_id,
+            actual_geometry_asset_sha256=scene_assets["asset_set_sha256"],
+        )
     scene = _scene_override if _scene_override is not None else load_scene(scene_ref)
     scene.frequency = grid.carrier_hz
     scene.bandwidth = grid.n_subcarriers * grid.spacing_hz
@@ -1121,13 +1148,35 @@ def generate_raytraced(
         groups.append(group_id)
         domains.append(domain_id)
         sources.append("sionna_rt")
+        split_source_family = (
+            "sionna_rt"
+            if scene_family_identity is None
+            else str(scene_family_identity["family_id"])
+        )
         meta.append(
             {
                 "scene": cfg.name,
                 "split_subject_id": group_id,
                 "split_parent_type": "network_episode",
-                "split_source_family": "sionna_rt",
-                "split_leakage_relations": [],
+                "split_source_family": split_source_family,
+                "split_leakage_relations": (
+                    []
+                    if scene_family_identity is None
+                    else scene_family_identity["split_leakage_relations"]
+                ),
+                "scene_family_candidate_id": (
+                    None if scene_family_identity is None else scene_family_identity["candidate_id"]
+                ),
+                "scene_family_registry_sha256": (
+                    None
+                    if scene_family_identity is None
+                    else scene_family_identity["registry_sha256"]
+                ),
+                "scene_family_qualification_status": (
+                    "NOT_QUALIFIED"
+                    if scene_family_identity is None
+                    else scene_family_identity["qualification_status"]
+                ),
                 "split_identity_basis": (
                     "scene_asset_set_sha256+receiver_xy_grid"
                     if split_identity_complete
@@ -1227,6 +1276,7 @@ def generate_raytraced(
                     scene_assets=scene_assets,
                     material_manifest=material_manifest,
                     scene_geometry_inventory=scene_geometry_inventory,
+                    scene_family_identity=scene_family_identity,
                     authorization=authorization,
                 )
             )
@@ -1367,6 +1417,8 @@ def generate_raytraced(
         ),
         "umcd_bundle_refs": [dict(item) for item in umcd_bundle_refs],
     }
+    if scene_family_identity is not None:
+        generation_report["scene_family_candidate"] = dict(scene_family_identity)
     generation_report["rt_run_identity"] = rt_run_identity(
         scene_asset_manifest=scene_assets,
         physical_config={
@@ -1378,6 +1430,7 @@ def generate_raytraced(
                 "scene_object_count": len(scene_geometry_inventory.object_names),
                 "scene_triangle_count": len(scene_geometry_inventory.triangles_m),
             },
+            **_scene_family_run_binding(scene_family_identity),
         },
         material_config=material_manifest,
         solver_config=solver_config,
@@ -1445,6 +1498,7 @@ def generate_raytraced_cached(
     output_destination: str | Path | None = None,
     failure_report_destination: str | Path | None = None,
     umcd_store_root: str | Path | None = None,
+    scene_family_candidate_id: str | None = None,
 ) -> ChannelDataset:
     """Return a verified cached RT dataset or generate and publish it immutably."""
     if authorization is None and not pilot and approval_manifest is None:
@@ -1477,6 +1531,18 @@ def generate_raytraced_cached(
             "unresolved_references": [reference],
             "complete": False,
         }
+    scene_family_identity: Mapping[str, Any] | None = None
+    if scene_family_candidate_id is not None:
+        from datasets.scene_families import (
+            load_scene_family_registry,
+            scene_candidate_split_metadata,
+        )
+
+        scene_family_identity = scene_candidate_split_metadata(
+            load_scene_family_registry(),
+            candidate_id=scene_family_candidate_id,
+            actual_geometry_asset_sha256=assets["asset_set_sha256"],
+        )
     scene = rt.load_scene(scene_ref)
     scene.frequency = grid.carrier_hz
     scene.bandwidth = grid.n_subcarriers * grid.spacing_hz
@@ -1539,6 +1605,7 @@ def generate_raytraced_cached(
                 "scene_object_count": len(scene_geometry_inventory.object_names),
                 "scene_triangle_count": len(scene_geometry_inventory.triangles_m),
             },
+            **_scene_family_run_binding(scene_family_identity),
         },
         material_config=material_manifest,
         solver_config=static_rt_solver_config(cfg.max_depth, cfg.max_num_paths_per_src),
@@ -1566,6 +1633,7 @@ def generate_raytraced_cached(
         output_destination=output_destination,
         failure_report_destination=failure_report_destination,
         umcd_store_root=umcd_store_root,
+        scene_family_candidate_id=scene_family_candidate_id,
         _authorization_destinations=(cache_directory,),
     )
     if identity["complete"]:

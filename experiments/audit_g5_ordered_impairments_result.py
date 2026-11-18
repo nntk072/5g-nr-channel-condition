@@ -25,6 +25,7 @@ from experiments.g5_acceptance import (
     G5_SNR_CURVE_BOOTSTRAP_BATCH_SIZE,
     G5_SNR_CURVE_BOOTSTRAP_DRAWS,
     G5_SNR_CURVE_BOOTSTRAP_SEED,
+    G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA,
     G5_SNR_REVIEWER_POLICY_PURPOSE,
     G5_SNR_REVIEWER_POLICY_SIGNATURE_NAMESPACE,
     G5_SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
@@ -61,8 +62,10 @@ _EXACT_SEED_ROSTER_CURVE_SCHEMAS = {
     "umcd.g5_ordered_impairments_independent_channels_snr_curve.v14",
     "umcd.g5_ordered_impairments_independent_channels_snr_curve.v15",
     "umcd.g5_ordered_impairments_independent_channels_snr_curve.v16",
+    "umcd.g5_ordered_impairments_independent_channels_snr_curve.v17",
+    "umcd.g5_ordered_impairments_independent_channels_snr_curve.v25",
 }
-_CUDA_CURVE_BASE_VERSIONS = {12: 9, 13: 7, 14: 8, 15: 10, 16: 11}
+_CUDA_CURVE_BASE_VERSIONS = {12: 9, 13: 7, 14: 8, 15: 10, 16: 11, 25: 17}
 
 
 def _canonical_json_bytes(value: Any) -> bytes:
@@ -121,6 +124,59 @@ def _g5_declared_preregistration_order_matches(criteria: Any, signature: Any) ->
     return bool(expected) and all(
         signature.get(field) == value for field, value in expected.items()
     )
+
+
+def _g5_execution_context_matches(contract: Any, points: Any) -> bool:
+    """Check a v3 context digest and exact receiver/waveform identity at every point."""
+    if not isinstance(contract, dict) or not isinstance(points, list):
+        return False
+    context = contract.get("execution_context")
+    if not isinstance(context, dict) or set(context) != {
+        "receiver_configuration",
+        "decoder_configuration",
+        "waveform_configuration",
+    }:
+        return False
+    try:
+        if contract.get("execution_context_sha256") != _sha256(_canonical_json_bytes(context)):
+            return False
+    except (TypeError, ValueError):
+        return False
+
+    waveform_keys = (
+        "sample_rate_hz",
+        "fft_size",
+        "cyclic_prefix_samples",
+        "echo_delay_samples_range",
+        "echo_amplitude_range",
+        "direct_coefficient_real_imag",
+        "cfo_hz",
+        "timing_offset_samples",
+        "tx_phase_noise_linewidth_hz",
+        "rx_phase_noise_linewidth_hz",
+        "tx_iq_gain_imbalance_db",
+        "tx_iq_phase_imbalance_rad",
+        "rx_iq_gain_imbalance_db",
+        "rx_iq_phase_imbalance_rad",
+    )
+    for point in points:
+        report = point.get("experiment") if isinstance(point, dict) else None
+        config = report.get("config") if isinstance(report, dict) else None
+        if not isinstance(config, dict) or any(key not in config for key in waveform_keys):
+            return False
+        observed = {
+            "receiver_configuration": config.get("receiver_configuration"),
+            "decoder_configuration": config.get("decoder_configuration"),
+            "waveform_configuration": {
+                "channel_family": "independently_seeded_static_two_path",
+                **{key: config[key] for key in waveform_keys},
+                "noise_variance_per_complex_sample": "10**(-snr_db/10)",
+                "noise_reference": "unit_complex_waveform_power",
+            },
+        }
+        if observed != context:
+            return False
+    return True
 
 
 def _is_sha256(value: Any) -> bool:
@@ -1347,6 +1403,8 @@ def _audit_independent_snr_curve(
         "umcd.g5_ordered_impairments_independent_channels_snr_curve.v14",
         "umcd.g5_ordered_impairments_independent_channels_snr_curve.v15",
         "umcd.g5_ordered_impairments_independent_channels_snr_curve.v16",
+        "umcd.g5_ordered_impairments_independent_channels_snr_curve.v17",
+        "umcd.g5_ordered_impairments_independent_channels_snr_curve.v25",
     }:
         raise ValueError("unsupported independent-channel SNR curve schema")
 
@@ -1878,6 +1936,8 @@ def _audit_independent_snr_curve(
         "umcd.g5_ordered_impairments_independent_channels_snr_curve.v14",
         "umcd.g5_ordered_impairments_independent_channels_snr_curve.v15",
         "umcd.g5_ordered_impairments_independent_channels_snr_curve.v16",
+        "umcd.g5_ordered_impairments_independent_channels_snr_curve.v17",
+        "umcd.g5_ordered_impairments_independent_channels_snr_curve.v25",
     }:
         frozen_contract = frozen_acceptance.get("criteria")
         contract_consistent = isinstance(frozen_contract, dict)
@@ -1892,18 +1952,25 @@ def _audit_independent_snr_curve(
                 "maximum_corrected_macro_bler",
                 "minimum_uncorrected_minus_corrected_macro_bler",
             }
-            timestamped_contract = (
-                frozen_contract.get("schema") == G5_SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA
+            timestamped_contract = frozen_contract.get("schema") in {
+                G5_SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
+                G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA,
+            }
+            execution_bound_contract = (
+                frozen_contract.get("schema") == G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA
             )
             expected_contract_keys = base_contract_keys | (
                 {"preregistered_utc"} if timestamped_contract else set()
             )
+            if execution_bound_contract:
+                expected_contract_keys |= {"execution_context", "execution_context_sha256"}
             contract_consistent = (
                 set(frozen_contract) == expected_contract_keys
                 and frozen_contract.get("schema")
                 in {
                     "umcd.g5_ordered_impairments_snr_acceptance.v1",
                     G5_SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
+                    G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA,
                 }
                 and timestamped_contract
                 == (
@@ -1911,6 +1978,16 @@ def _audit_independent_snr_curve(
                     in {
                         "umcd.g5_ordered_impairments_independent_channels_snr_curve.v10",
                         "umcd.g5_ordered_impairments_independent_channels_snr_curve.v11",
+                        "umcd.g5_ordered_impairments_independent_channels_snr_curve.v17",
+                        "umcd.g5_ordered_impairments_independent_channels_snr_curve.v25",
+                    }
+                )
+                and execution_bound_contract
+                == (
+                    curve_schema
+                    in {
+                        "umcd.g5_ordered_impairments_independent_channels_snr_curve.v17",
+                        "umcd.g5_ordered_impairments_independent_channels_snr_curve.v25",
                     }
                 )
                 and frozen_contract.get("snr_db") == snr_grid
@@ -1938,6 +2015,8 @@ def _audit_independent_snr_curve(
                 and frozen_acceptance.get("decision_unit")
                 == "independent synthetic channel; transport blocks are nested"
             )
+            if execution_bound_contract:
+                contract_consistent &= _g5_execution_context_matches(frozen_contract, points)
             if curve_schema in {
                 "umcd.g5_ordered_impairments_independent_channels_snr_curve.v6",
                 "umcd.g5_ordered_impairments_independent_channels_snr_curve.v8",
@@ -1972,6 +2051,8 @@ def _audit_independent_snr_curve(
             elif curve_schema in {
                 "umcd.g5_ordered_impairments_independent_channels_snr_curve.v10",
                 "umcd.g5_ordered_impairments_independent_channels_snr_curve.v11",
+                "umcd.g5_ordered_impairments_independent_channels_snr_curve.v17",
+                "umcd.g5_ordered_impairments_independent_channels_snr_curve.v25",
             }:
                 signature = frozen_acceptance.get("preregistration_signature")
                 temporal_order_consistent = _g5_declared_preregistration_order_matches(
@@ -2008,10 +2089,13 @@ def _audit_independent_snr_curve(
                     signature.get("reviewer_policy") if isinstance(signature, dict) else None
                 )
                 policy_reverified = False
-                policy_consistent = (
-                    curve_schema != "umcd.g5_ordered_impairments_independent_channels_snr_curve.v11"
-                )
-                if curve_schema == "umcd.g5_ordered_impairments_independent_channels_snr_curve.v11":
+                reviewer_policy_required = curve_schema in {
+                    "umcd.g5_ordered_impairments_independent_channels_snr_curve.v11",
+                    "umcd.g5_ordered_impairments_independent_channels_snr_curve.v17",
+                    "umcd.g5_ordered_impairments_independent_channels_snr_curve.v25",
+                }
+                policy_consistent = not reviewer_policy_required
+                if reviewer_policy_required:
                     policy_consistent = (
                         isinstance(policy_identity, dict)
                         and policy_identity.get("status") == "verified"
@@ -2050,10 +2134,7 @@ def _audit_independent_snr_curve(
                     policy_consistent &= bool(policy_reverified)
                     contract_consistent &= policy_consistent
                 checks["reviewer_policy_reverified"] = (
-                    policy_reverified
-                    if curve_schema
-                    == "umcd.g5_ordered_impairments_independent_channels_snr_curve.v11"
-                    else None
+                    policy_reverified if reviewer_policy_required else None
                 )
             else:
                 contract_consistent &= "preregistration_signature" not in frozen_acceptance
@@ -2345,6 +2426,8 @@ def audit_result_file(
         "umcd.g5_ordered_impairments_independent_channels_snr_curve.v14",
         "umcd.g5_ordered_impairments_independent_channels_snr_curve.v15",
         "umcd.g5_ordered_impairments_independent_channels_snr_curve.v16",
+        "umcd.g5_ordered_impairments_independent_channels_snr_curve.v17",
+        "umcd.g5_ordered_impairments_independent_channels_snr_curve.v25",
     }:
         if deterministic_replay:
             raise ValueError("deterministic replay is not available for diagnostic SNR curves")

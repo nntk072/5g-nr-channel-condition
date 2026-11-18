@@ -218,6 +218,7 @@ def test_rt_dataset_cache_rejects_identity_or_manifest_mismatch(tmp_path):
 
 
 def test_cache_aware_rt_generator_reuses_dataset_without_retracing(tmp_path, monkeypatch):
+    from datasets import scene_families
     from integrations.sionna import adapter, backend
     from integrations.sionna.adapter import RayScene
     from integrations.sionna.scene_assets import scene_asset_manifest
@@ -228,6 +229,19 @@ def test_cache_aware_rt_generator_reuses_dataset_without_retracing(tmp_path, mon
         triangles_m=np.zeros((4, 3, 3), dtype=np.float64),
     )
     monkeypatch.setattr(adapter, "extract_scene_triangle_inventory", lambda _scene: fake_inventory)
+
+    def candidate_metadata(_registry, *, candidate_id, actual_geometry_asset_sha256):
+        return {
+            "candidate_id": candidate_id,
+            "family_id": "S02",
+            "registry_sha256": "d" * 64,
+            "geometry_asset_sha256": actual_geometry_asset_sha256,
+            "split_leakage_relations": [],
+            "qualification_status": "NOT_QUALIFIED",
+        }
+
+    monkeypatch.setattr(scene_families, "load_scene_family_registry", lambda: {})
+    monkeypatch.setattr(scene_families, "scene_candidate_split_metadata", candidate_metadata)
 
     scene_xml = tmp_path / "mock_scene.xml"
     scene_xml.write_text("<scene/>", encoding="utf-8")
@@ -275,6 +289,13 @@ def test_cache_aware_rt_generator_reuses_dataset_without_retracing(tmp_path, mon
         **_kwargs,
     ):
         calls.append(config)
+        family_identity = None
+        if _kwargs.get("scene_family_candidate_id") is not None:
+            family_identity = candidate_metadata(
+                {},
+                candidate_id=_kwargs["scene_family_candidate_id"],
+                actual_geometry_asset_sha256=scene_asset_manifest(scene_xml)["asset_set_sha256"],
+            )
         identity = rt_run_identity(
             scene_asset_manifest=scene_asset_manifest(scene_xml),
             physical_config={
@@ -288,6 +309,7 @@ def test_cache_aware_rt_generator_reuses_dataset_without_retracing(tmp_path, mon
                     "scene_object_count": len(fake_inventory.object_names),
                     "scene_triangle_count": len(fake_inventory.triangles_m),
                 },
+                **adapter._scene_family_run_binding(family_identity),
             },
             material_config=_material_manifest_override,
             solver_config=static_rt_solver_config(config.max_depth),
@@ -301,25 +323,50 @@ def test_cache_aware_rt_generator_reuses_dataset_without_retracing(tmp_path, mon
     monkeypatch.setattr(adapter, "generate_raytraced", generate)
     config = RayScene(name="mock_scene", per_class=1, max_attempts=2, samples_per_src=100)
     first = adapter.generate_raytraced_cached(
-        config, cache_directory=tmp_path / "cache", seed=12, pilot=True
+        config,
+        cache_directory=tmp_path / "cache",
+        seed=12,
+        pilot=True,
+        scene_family_candidate_id="candidate-a",
     )
     second = adapter.generate_raytraced_cached(
-        config, cache_directory=tmp_path / "cache", seed=12, pilot=True
+        config,
+        cache_directory=tmp_path / "cache",
+        seed=12,
+        pilot=True,
+        scene_family_candidate_id="candidate-a",
     )
 
     assert len(calls) == 1
     np.testing.assert_array_equal(first.h, second.h)
     assert first.generation_report == second.generation_report
 
-    material.scattering_coefficient = 0.5
     third = adapter.generate_raytraced_cached(
-        config, cache_directory=tmp_path / "cache", seed=12, pilot=True
+        config,
+        cache_directory=tmp_path / "cache",
+        seed=12,
+        pilot=True,
+        scene_family_candidate_id="candidate-b",
     )
 
     assert len(calls) == 2
     assert (
         third.generation_report["rt_run_identity"]["cache_key_sha256"]
         != (first.generation_report["rt_run_identity"]["cache_key_sha256"])
+    )
+
+    material.scattering_coefficient = 0.5
+    fourth = adapter.generate_raytraced_cached(
+        config,
+        cache_directory=tmp_path / "cache",
+        seed=12,
+        pilot=True,
+        scene_family_candidate_id="candidate-b",
+    )
+    assert len(calls) == 3
+    assert (
+        fourth.generation_report["rt_run_identity"]["cache_key_sha256"]
+        != third.generation_report["rt_run_identity"]["cache_key_sha256"]
     )
 
 

@@ -12,12 +12,16 @@ from integrations.sionna.network_phy import (  # noqa: E402
     add_independent_receiver_waveform_awgn,
     apply_network_transmitter_iq_imbalance,
     compose_received_waveforms,
+    propagate_network_transmit_waveforms,
 )
 from integrations.sionna.network_receiver import (  # noqa: E402
+    NetworkPUSCHWorkflowResult,
     _receiver_implementation_identity,
     _tensor_sha256,
     _unitary_sionna_noise_conversion,
     decode_noisy_network_pusch,
+    run_network_pusch_from_transmitters,
+    run_network_pusch_receiver,
 )
 from integrations.sionna.ofdm_impairments import apply_iq_imbalance  # noqa: E402
 
@@ -128,6 +132,79 @@ def test_network_transmitter_iq_imbalance_precedes_per_link_propagation(device: 
     assert not torch.allclose(tx_first_then_channel, channel_first_then_tx)
 
 
+def test_transmitter_to_pusch_workflow_applies_iq_before_declared_mimo_fir():
+    transmit = torch.ones((1, 1, 1, 8), dtype=torch.complex64)
+    taps = torch.tensor([[[[[1.0 + 0.5j]]]]], dtype=torch.complex64)
+    result = run_network_pusch_from_transmitters(
+        transmit,
+        taps,
+        _FakePUSCHReceiver(),
+        tx_iq_gain_imbalance_db=(6.0,),
+        tx_iq_phase_imbalance_rad=(0.0,),
+        link_start_samples=((0,),),
+        capture_num_samples=8,
+        sample_rate_hz=4.0,
+        noise_variance_w_per_sample=(0.0,),
+        noise_seed=19,
+        noise_variance_w_per_re=(0.04,),
+    )
+
+    expected_tx = 10 ** (6.0 / 40.0)
+    torch.testing.assert_close(
+        result.propagation.link_waveforms,
+        torch.full((1, 1, 1, 1, 8), expected_tx * (1.0 + 0.5j), dtype=torch.complex64),
+    )
+    assert result.transmitter_stage.signal_stage == "transmitter_iq_imbalance_before_propagation"
+    assert result.report["status"] == "OBSERVED_NOT_QUALIFIED"
+    assert result.report["dimensions"]["fir_taps"] == 1
+    assert (
+        result.report["receiver_workflow_report_sha256"]
+        == result.receiver_workflow.report["report_sha256"]
+    )
+    assert len(result.report["report_sha256"]) == 64
+
+
+def test_transmitter_to_pusch_workflow_preflights_total_memory_before_tx_iq(monkeypatch):
+    def fail_if_applied(*args, **kwargs):
+        pytest.fail("TX IQ must not run before the end-to-end allocation preflight")
+
+    monkeypatch.setattr(
+        "integrations.sionna.network_receiver.apply_network_transmitter_iq_imbalance",
+        fail_if_applied,
+    )
+    with pytest.raises(ValueError, match="before TX IQ"):
+        run_network_pusch_from_transmitters(
+            torch.ones((1, 1, 1, 8), dtype=torch.complex64),
+            torch.ones((1, 1, 1, 1, 1), dtype=torch.complex64),
+            _FakePUSCHReceiver(),
+            tx_iq_gain_imbalance_db=(0.0,),
+            tx_iq_phase_imbalance_rad=(0.0,),
+            link_start_samples=((0,),),
+            capture_num_samples=8,
+            sample_rate_hz=4.0,
+            noise_variance_w_per_sample=(0.02,),
+            noise_seed=19,
+            noise_variance_w_per_re=(0.04,),
+            max_tensor_elements=1,
+        )
+
+
+def test_propagate_network_transmitter_waveforms_preserves_full_fir_tail():
+    tx_stage = apply_network_transmitter_iq_imbalance(
+        torch.tensor([[[[1.0 + 0j, 2.0 + 0j]]]], dtype=torch.complex64),
+        tx_iq_gain_imbalance_db=(0.0,),
+        tx_iq_phase_imbalance_rad=(0.0,),
+    )
+    taps = torch.tensor([[[[[1.0 + 0j, 0.5 + 0j]]]]], dtype=torch.complex64)
+
+    result = propagate_network_transmit_waveforms(tx_stage, taps)
+
+    torch.testing.assert_close(
+        result.link_waveforms,
+        torch.tensor([[[[[1.0 + 0j, 2.5 + 0j, 1.0 + 0j]]]]], dtype=torch.complex64),
+    )
+
+
 @pytest.mark.parametrize(
     ("gain", "phase", "error"),
     [
@@ -193,6 +270,68 @@ def test_network_waveform_reaches_pusch_decoder_with_bound_inputs_and_status():
             json.dumps(report_body, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
         ).hexdigest()
     )
+
+
+def test_network_pusch_workflow_composes_adds_noise_decodes_and_binds_replay():
+    link_waveforms = torch.ones((1, 1, 1, 1, 8), dtype=torch.complex64)
+    kwargs = {
+        "link_start_samples": ((0,),),
+        "capture_num_samples": 8,
+        "sample_rate_hz": 4.0,
+        "noise_variance_w_per_sample": (0.02,),
+        "noise_seed": 19,
+        "noise_variance_w_per_re": (0.04,),
+    }
+    first = run_network_pusch_receiver(link_waveforms, _FakePUSCHReceiver(), **kwargs)
+    second = run_network_pusch_receiver(link_waveforms, _FakePUSCHReceiver(), **kwargs)
+
+    assert isinstance(first, NetworkPUSCHWorkflowResult)
+    assert first.report["schema"] == "umcd.network_pusch_receiver_workflow.v1"
+    assert first.report["status"] == "OBSERVED_NOT_QUALIFIED"
+    assert first.report["noise_seed"] == 19
+    assert first.report["report_sha256"] == second.report["report_sha256"]
+    assert first.report["decode_report_sha256"] == first.decode.report["report_sha256"]
+    report_body = dict(first.report)
+    report_sha256 = report_body.pop("report_sha256")
+    assert (
+        report_sha256
+        == hashlib.sha256(
+            json.dumps(report_body, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
+        ).hexdigest()
+    )
+    assert set(first.report["implementation_sha256"]) == {
+        "workflow",
+        "waveform_composition",
+        "receiver_awgn",
+        "pusch_decode",
+    }
+    assert first.report["boundary"] == (
+        "SOFTWARE_REPLAY_ONLY_NOT_RECEIVER_OR_CHANNEL_QUALIFICATION"
+    )
+    assert first.report["input_sha256"]["noise_waveform"] == _tensor_sha256(
+        torch, first.noisy_waveform.noise_waveform
+    )
+
+
+def test_network_pusch_workflow_preflights_capture_memory_before_composition(monkeypatch):
+    def fail_if_composed(*args, **kwargs):
+        pytest.fail("waveform composition must not run before the memory preflight")
+
+    monkeypatch.setattr(
+        "integrations.sionna.network_receiver.compose_received_waveforms", fail_if_composed
+    )
+    with pytest.raises(ValueError, match="exceeds max_tensor_elements before composition"):
+        run_network_pusch_receiver(
+            torch.ones((1, 1, 1, 1, 8), dtype=torch.complex64),
+            _FakePUSCHReceiver(),
+            link_start_samples=((0,),),
+            capture_num_samples=8,
+            sample_rate_hz=4.0,
+            noise_variance_w_per_sample=(0.02,),
+            noise_seed=19,
+            noise_variance_w_per_re=(0.04,),
+            max_tensor_elements=16,
+        )
 
 
 def test_network_receiver_hashes_the_complex64_waveform_actually_demodulated():

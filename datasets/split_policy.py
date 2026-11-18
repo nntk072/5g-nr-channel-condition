@@ -773,6 +773,10 @@ def network_episode_subject(
         source_family=episode.family_id,
         relations=(
             LeakageRelation(LeakageNamespace.ASSET_FAMILY, episode.split_group_id),
+            *(
+                LeakageRelation(LeakageNamespace(namespace), identity)
+                for namespace, identity in episode.split_leakage_relations
+            ),
             *tuple(relations),
         ),
         partition_id=episode.episode_id,

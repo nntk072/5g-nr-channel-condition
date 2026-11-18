@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 
 import pytest
+from artifacts.run_replay import build_run_replay_provenance, transition_run_replay
 from scripts.summarize_capacity_loso import summarize_capacity_loso
 
 
@@ -122,6 +123,46 @@ def _make_suite(root: Path) -> Path:
     return root
 
 
+def _upgrade_parent_manifest_to_v2(path: Path) -> dict:
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    manifest["config_sha256"] = "c" * 64
+    report_path = path.parent / "capacity_sweep.json"
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    report["config_sha256"] = manifest["config_sha256"]
+    _write_json(report_path, report)
+    manifest["report_sha256"] = hashlib.sha256(report_path.read_bytes()).hexdigest()
+    manifest["schema"] = "loslab.capacity_sweep.v2"
+    manifest["created_utc"] = "2026-11-12T10:00:00+00:00"
+    manifest["run_replay"] = build_run_replay_provenance(
+        created_utc=manifest["created_utc"],
+        command_argv=["capacity-sweep", "--input", "observations.npz"],
+        command_source="test_fixture",
+        source_revision="unavailable",
+        package_source_sha256="a" * 64,
+        config_sha256=manifest["config_sha256"],
+        inputs=manifest["inputs"],
+        backend_identity={
+            "requested_device": "cuda:0",
+            "platform": "test-platform",
+            "dependencies": {"python": "test"},
+        },
+        rng_streams=[
+            {
+                "name": f"capacity_child_seed_{seed}",
+                "library": "numpy/scikit-learn/torch",
+                "algorithm": "common_runner_seed_v1",
+                "seed_material": [seed],
+                "derived_seed": seed,
+                "purpose": "child split/model fitting/evaluation",
+            }
+            for seed in manifest["config"]["seeds"]
+        ],
+    )
+    manifest["run_replay"] = transition_run_replay(manifest["run_replay"], state="complete")
+    manifest["completed_utc"] = manifest["run_replay"]["state_changed_utc"]
+    return manifest
+
+
 def test_capacity_loso_audits_all_splits_and_aggregates_scenes(tmp_path):
     root = _make_suite(tmp_path)
 
@@ -143,6 +184,27 @@ def test_capacity_loso_audits_all_splits_and_aggregates_scenes(tmp_path):
     )
     assert delta["scenes_improved"] == 2
     assert delta["scene_macro_paired_auroc_delta"] == pytest.approx(0.04)
+
+
+def test_capacity_loso_audits_v2_parent_replay_contract(tmp_path):
+    root = _make_suite(tmp_path)
+    manifest_path = root / "rt_a" / "manifest.json"
+    _write_json(manifest_path, _upgrade_parent_manifest_to_v2(manifest_path))
+
+    report = summarize_capacity_loso(root, ("rt_a", "rt_b"))
+
+    assert report["fit_count"] == 24
+
+
+def test_capacity_loso_rejects_tampered_v2_parent_replay_contract(tmp_path):
+    root = _make_suite(tmp_path)
+    manifest_path = root / "rt_a" / "manifest.json"
+    manifest = _upgrade_parent_manifest_to_v2(manifest_path)
+    manifest["run_replay"]["inputs"][0]["sha256"] = "0" * 64
+    _write_json(manifest_path, manifest)
+
+    with pytest.raises(ValueError, match="run replay contract digest mismatch"):
+        summarize_capacity_loso(root, ("rt_a", "rt_b"))
 
 
 def test_capacity_loso_rejects_changed_observation_artifact(tmp_path):

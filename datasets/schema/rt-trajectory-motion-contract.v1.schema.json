@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nntk072.github.io/5g-nr-channel-condition/schema/rt-trajectory-motion-contract.v1.schema.json",
+  "title": "Sionna RT trajectory motion and clock contract v1",
+  "description": "Frozen support declaration for quasi-static retraced trajectory snapshots; no between-snapshot or material-state interpolation is implied.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "coordinate_frame",
+    "time_origin",
+    "timestamp_rule",
+    "receiver_route",
+    "moving_scene_objects",
+    "orientation",
+    "solver_time_model",
+    "between_snapshot_interpolation",
+    "external_clock_alignment",
+    "scene_object_rotation",
+    "scene_object_deformation",
+    "per_frame_material_updates",
+    "material_state"
+  ],
+  "properties": {
+    "schema": {"const": "loslab.rt_trajectory_motion_contract.v1"},
+    "coordinate_frame": {"const": "loaded_scene_world_meters"},
+    "time_origin": {"const": "trajectory_relative_zero_seconds"},
+    "timestamp_rule": {"const": "t_i=i*sample_interval_s"},
+    "receiver_route": {"const": "p_i=p_0+v_receiver*t_i"},
+    "moving_scene_objects": {"const": "p_i=p_0+v_object*t_i"},
+    "orientation": {"const": "look_at_peer_at_each_snapshot"},
+    "solver_time_model": {"const": "quasi_static_retrace_at_each_timestamp"},
+    "between_snapshot_interpolation": {"const": "none"},
+    "external_clock_alignment": {"const": "unsupported"},
+    "scene_object_rotation": {"const": "unsupported"},
+    "scene_object_deformation": {"const": "unsupported"},
+    "per_frame_material_updates": {"const": "unsupported"},
+    "material_state": {"const": "constant_loaded_manifest_for_entire_run"}
+  }
+}

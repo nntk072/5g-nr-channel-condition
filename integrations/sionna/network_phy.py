@@ -263,6 +263,15 @@ class NetworkTransmitterWaveform:
 
 
 @dataclass(frozen=True, slots=True)
+class NetworkMIMOChannelPropagation:
+    """Per-transmitter waveforms propagated through declared causal MIMO FIRs."""
+
+    link_waveforms: Any
+    channel_fir_taps: Any
+    output_sample_count: int
+
+
+@dataclass(frozen=True, slots=True)
 class NoisyNetworkWaveform:
     """Receiver-specific independent complex AWGN added to a network capture."""
 
@@ -357,6 +366,82 @@ def apply_network_transmitter_iq_imbalance(
         tx_iq_gain_imbalance_db=gain_db,
         tx_iq_phase_imbalance_rad=phase_rad,
     )
+
+
+def propagate_network_transmit_waveforms(
+    transmitter_waveform: NetworkTransmitterWaveform,
+    channel_fir_taps: Any,
+    *,
+    max_output_elements: int = 64_000_000,
+) -> NetworkMIMOChannelPropagation:
+    """Apply declared causal MIMO channel FIRs to transmitter-stage waveforms.
+
+    The FIR has ``[rx, rx_port, tx, tx_port, tap]`` axes. Full causal
+    convolution is retained, including the ``tap_count - 1`` tail samples.
+    Taps are caller-supplied channel truth; the function does not derive them
+    from a scene or infer calibration from a link-budget profile.
+    """
+    try:
+        import torch
+    except ImportError as error:
+        raise RuntimeError("Install PyTorch to propagate network transmitter waveforms") from error
+
+    waveform = getattr(transmitter_waveform, "waveform", None)
+    if (
+        not torch.is_tensor(waveform)
+        or waveform.layout != torch.strided
+        or not torch.is_complex(waveform)
+        or waveform.ndim != 4
+    ):
+        raise TypeError(
+            "transmitter_waveform must contain dense complex [batch, tx, tx_port, sample]"
+        )
+    try:
+        taps = torch.as_tensor(channel_fir_taps, device=waveform.device)
+    except (TypeError, ValueError, RuntimeError, OverflowError) as error:
+        raise ValueError("channel_fir_taps must be a complex MIMO FIR tensor") from error
+    if (
+        taps.layout != torch.strided
+        or not torch.is_complex(taps)
+        or taps.ndim != 5
+        or tuple(taps.shape[2:4]) != tuple(waveform.shape[1:3])
+        or any(size <= 0 for size in taps.shape)
+        or taps.shape[-1] > 128
+    ):
+        raise ValueError(
+            "channel_fir_taps must have [rx, rx_port, tx, tx_port, tap] axes with 1–128 taps"
+        )
+    if taps.dtype != waveform.dtype:
+        raise ValueError("channel_fir_taps and transmitter waveform must share complex dtype")
+    if not bool(torch.isfinite(waveform).all()) or not bool(torch.isfinite(taps).all()):
+        raise ValueError("transmitter waveform and channel FIR taps must be finite")
+    if (
+        isinstance(max_output_elements, bool)
+        or not isinstance(max_output_elements, int)
+        or max_output_elements < 1
+    ):
+        raise ValueError("max_output_elements must be a positive integer")
+
+    batch, tx_count, _tx_ports, sample_count = (int(value) for value in waveform.shape)
+    rx_count, rx_ports, _tx_count, _tx_ports, tap_count = (int(value) for value in taps.shape)
+    output_samples = sample_count + tap_count - 1
+    link_cells = batch * rx_count * tx_count * rx_ports * output_samples
+    temporary_cells = batch * rx_count * tx_count * rx_ports * sample_count
+    estimated_cells = waveform.numel() + taps.numel() + link_cells + temporary_cells
+    if estimated_cells > max_output_elements:
+        raise ValueError("MIMO propagation waveform and FIR work exceed max_output_elements")
+
+    links = torch.zeros(
+        (batch, rx_count, tx_count, rx_ports, output_samples),
+        dtype=waveform.dtype,
+        device=waveform.device,
+    )
+    for tap_index in range(tap_count):
+        contribution = torch.einsum("rptq,btqs->brtps", taps[..., tap_index], waveform)
+        if not bool(torch.isfinite(contribution).all()):
+            raise ValueError("MIMO channel propagation produced non-finite samples")
+        links[..., tap_index : tap_index + sample_count] += contribution
+    return NetworkMIMOChannelPropagation(links, taps, output_samples)
 
 
 def apply_network_link_budget(

@@ -340,9 +340,7 @@ def test_snr_acceptance_rejects_malformed_simultaneous_intervals(
         "paired_contrast_definition": G5_SNR_CURVE_PAIRED_CONTRAST,
         "simultaneous_radius": 0.05,
         "by_condition": {
-            condition: [
-                {"snr_db": 0.0, "simultaneous_95_percent_interval": interval}
-            ]
+            condition: [{"snr_db": 0.0, "simultaneous_95_percent_interval": interval}]
             for condition, interval in (
                 ("clean", [0.0, 1.0]),
                 ("uncorrected", [0.0, 1.0]),

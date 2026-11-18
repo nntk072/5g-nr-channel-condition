@@ -14,8 +14,10 @@ from experiments.g5_acceptance import (
     G5_SNR_CURVE_INFERENCE_METHOD,
     G5_SNR_CURVE_INFERENCE_UNIT,
     G5_SNR_CURVE_PAIRED_CONTRAST,
+    G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA,
     evaluate_g5_snr_curve_acceptance,
     freeze_g5_snr_acceptance_criteria,
+    g5_snr_execution_context_from_config,
     load_g5_snr_acceptance_contract,
     validate_g5_preregistration_order,
 )
@@ -39,6 +41,78 @@ def _timestamped_criteria() -> dict[str, object]:
     criteria["schema"] = "umcd.g5_ordered_impairments_snr_acceptance.v2"
     criteria["preregistered_utc"] = "2026-10-25T09:00:00Z"
     return criteria
+
+
+def _execution_bound_criteria() -> dict[str, object]:
+    criteria = _timestamped_criteria()
+    criteria["schema"] = G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA
+    context = {
+        "receiver_configuration": {"receiver": "fixture"},
+        "decoder_configuration": {"decoder": "fixture"},
+        "waveform_configuration": {"waveform": "fixture"},
+    }
+    criteria["execution_context"] = context
+    criteria["execution_context_sha256"] = hashlib.sha256(
+        json.dumps(context, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
+    ).hexdigest()
+    return criteria
+
+
+def test_execution_context_from_point_config_binds_receiver_decoder_and_waveform() -> None:
+    config = {
+        "receiver_configuration": {"receiver": "fixture"},
+        "decoder_configuration": {"decoder": "fixture"},
+        "sample_rate_hz": 30_720_000,
+        "fft_size": 1024,
+        "cyclic_prefix_samples": 72,
+        "echo_delay_samples_range": [2, 6],
+        "echo_amplitude_range": [0.2, 0.5],
+        "direct_coefficient_real_imag": [0.9, -0.1],
+        "cfo_hz": 250.0,
+        "timing_offset_samples": 0,
+        "tx_phase_noise_linewidth_hz": 100.0,
+        "rx_phase_noise_linewidth_hz": 100.0,
+        "tx_iq_gain_imbalance_db": 0.0,
+        "tx_iq_phase_imbalance_rad": 0.0,
+        "rx_iq_gain_imbalance_db": 0.0,
+        "rx_iq_phase_imbalance_rad": 0.0,
+    }
+
+    context = g5_snr_execution_context_from_config(config)
+
+    assert context["receiver_configuration"] == config["receiver_configuration"]
+    assert context["decoder_configuration"] == config["decoder_configuration"]
+    assert context["waveform_configuration"]["channel_family"] == (
+        "independently_seeded_static_two_path"
+    )
+    assert context["waveform_configuration"]["fft_size"] == 1024
+    assert context["waveform_configuration"]["noise_reference"] == ("unit_complex_waveform_power")
+
+
+def test_execution_context_from_point_config_rejects_missing_or_noncanonical_fields() -> None:
+    with pytest.raises(ValueError, match="missing frozen execution-context fields"):
+        g5_snr_execution_context_from_config({})
+    with pytest.raises(ValueError, match="canonical JSON"):
+        g5_snr_execution_context_from_config(
+            {
+                "receiver_configuration": {"value": float("nan")},
+                "decoder_configuration": {},
+                "sample_rate_hz": 1,
+                "fft_size": 1,
+                "cyclic_prefix_samples": 1,
+                "echo_delay_samples_range": [1, 1],
+                "echo_amplitude_range": [0.2, 0.5],
+                "direct_coefficient_real_imag": [1.0, 0.0],
+                "cfo_hz": 0.0,
+                "timing_offset_samples": 0,
+                "tx_phase_noise_linewidth_hz": 0.0,
+                "rx_phase_noise_linewidth_hz": 0.0,
+                "tx_iq_gain_imbalance_db": 0.0,
+                "tx_iq_phase_imbalance_rad": 0.0,
+                "rx_iq_gain_imbalance_db": 0.0,
+                "rx_iq_phase_imbalance_rad": 0.0,
+            }
+        )
 
 
 def _freeze(criteria: dict[str, object] | None = None) -> dict[str, object]:
@@ -118,6 +192,63 @@ def test_g5_timestamped_acceptance_contract_freezes_declared_preregistration_tim
         "receiver_run_started_utc": "2026-10-26T09:00:00Z",
         "timestamp_authority": "not_established_by_this_verifier",
     }
+
+
+def test_g5_execution_bound_contract_freezes_receiver_decoder_and_waveform() -> None:
+    criteria = _execution_bound_criteria()
+    context = criteria["execution_context"]
+    frozen = freeze_g5_snr_acceptance_criteria(
+        criteria,
+        snr_values=(0.0, 5.0),
+        channel_seeds=tuple(range(100, 120)),
+        channel_estimator="sionna_default_ls",
+        blocks_per_channel=4,
+        execution_context=context,
+    )
+
+    assert frozen == criteria
+    with pytest.raises(ValueError, match="execution context differs"):
+        freeze_g5_snr_acceptance_criteria(
+            criteria,
+            snr_values=(0.0, 5.0),
+            channel_seeds=tuple(range(100, 120)),
+            channel_estimator="sionna_default_ls",
+            blocks_per_channel=4,
+            execution_context={**context, "decoder_configuration": {"decoder": "changed"}},
+        )
+
+
+def test_g5_execution_bound_contract_rejects_modified_context_digest() -> None:
+    criteria = _execution_bound_criteria()
+    criteria["execution_context"]["receiver_configuration"] = {"receiver": "changed"}
+
+    with pytest.raises(ValueError, match="execution_context_sha256"):
+        _freeze(criteria)
+
+
+def test_g5_execution_bound_acceptance_schema_requires_exact_context() -> None:
+    jsonschema = pytest.importorskip("jsonschema")
+    schema_path = (
+        Path(__file__).resolve().parents[2]
+        / "datasets"
+        / "schema"
+        / "g5-ordered-impairments-snr-acceptance.v3.schema.json"
+    )
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    jsonschema.Draft202012Validator.check_schema(schema)
+    criteria = _execution_bound_criteria()
+    jsonschema.Draft202012Validator(schema).validate(criteria)
+    del criteria["execution_context"]["decoder_configuration"]
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.Draft202012Validator(schema).validate(criteria)
+
+
+def test_execution_bound_contract_requires_reviewer_policy_before_load(tmp_path: Path) -> None:
+    contract_path = tmp_path / "contract.json"
+    contract_path.write_text(json.dumps(_execution_bound_criteria()), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="v3 requires independent reviewer-policy admission"):
+        load_g5_snr_acceptance_contract(contract_path)
 
 
 @pytest.mark.parametrize(

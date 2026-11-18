@@ -86,6 +86,25 @@ child roster. The report records exact registry, signature, and trust-file
 digests. Omitting all three signature options uses the legacy path and marks
 its split provenance diagnostic-only. Neither mode makes this small fixed
 baseline a forecasting qualification result.
+
+An individual trajectory spec may opt into explicit elapsed-time horizons:
+
+```json
+{
+  "trajectory_id": "trajectory-id",
+  "scene": "scene-id",
+  "horizons_s": [0.1, 0.5, 1.0],
+  "maximum_inter_sample_gap_s": 0.2,
+  "timestamp_tolerance_s": 1e-9
+}
+```
+
+Horizon targets require exact timestamp matches within the declared absolute
+tolerance. The optional maximum gap is caller-frozen and blocks target pairs
+and linear-predictor histories across larger intervals; no interpolation or
+gap threshold is inferred. The output records the applied forecast design and
+the exact spec digest. Omitting `horizons_s` preserves the adjacent-sample
+diagnostic mode.
 # Reproducible research runs
 
 Use `run_rt_cross_scene_pilot.sh` to generate and evaluate the small, exploratory

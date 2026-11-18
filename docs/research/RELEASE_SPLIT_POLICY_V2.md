@@ -279,6 +279,42 @@ audit_split_policy_registry(registry, subjects, children)
 lock_sha256 = freeze_split_policy_registry("release/split-registry.json", registry)
 ```
 
+For stored standardized TDL/CDL channel runs, the canonical builder now reads
+the immutable run manifest and verifies every referenced record object before
+adapting each draw into a split parent. It publishes the candidate lock and
+its hash-bound, `NOT_QUALIFIED` report together in a new output directory:
+
+```bash
+./.venv/bin/python -m scripts.build_standardized_split_registry \
+  --run tdl-a=/data/standardized/manifests/runs/RUN_MANIFEST.json \
+  --policy config/release-split-policy-v2.json \
+  --output-dir release/standardized-split-candidate
+```
+
+Use one `--run NAME=MANIFEST_PATH` per input run. A repeated seed/index pair
+across distinct draw records fails closed unless each draw carries an explicit,
+stable opaque `partition_id`; profile labels never determine assignment. The
+output remains a candidate lock and requires the same exact-roster, provenance,
+signature-custody, and external-review steps as any other release split.
+
+Bind a frozen child roster to a candidate lock in a separate no-overwrite
+publication step. The parent lock is never rewritten in place:
+
+```bash
+./.venv/bin/python -m scripts.bind_split_registry_children \
+  --registry release/standardized-split-candidate/split-registry.json \
+  --child-roster release/standardized-split-candidate/receiver-view-roster.json \
+  --output-dir release/standardized-split-bound
+```
+
+The roster must pass `datasets/schema/channel-dataset-child-roster.v1.schema.json`.
+Multiple `--child-roster` inputs may be supplied. Parent IDs must exist in the
+lock; conflicting child IDs, invalid rosters, and changed input snapshots
+reject before output publication. The output report binds the parent lock,
+rosters, policy, and resulting lock. It remains a candidate artifact until the
+rosters are proven complete and the final lock receives independent review and
+signature custody.
+
 Persist the returned lock digest with release provenance. Existing lock files
 are immutable: attempts to replace them with different policy, assignment,
 parent, or lineage data fail. Reading validates canonical serialization and

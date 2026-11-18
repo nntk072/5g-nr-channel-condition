@@ -29,7 +29,7 @@
         {"type": "array", "items": {"type": "string", "minLength": 1}}
       ]
     },
-    "coefficient_convention": {"type": "string", "minLength": 1},
+    "coefficient_convention": {"const": "sionna_rt_path_coefficient_v1"},
     "optional_fields": {
       "type": "object",
       "additionalProperties": false,

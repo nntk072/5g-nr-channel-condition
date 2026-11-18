@@ -1,9 +1,27 @@
-# Proposed execution guide for Luna
+# Luna execution guide for the 5G NR Multipath MVP
 
-Date: 2026-11-11. Reviewed checkout: `42e9d08` on `main`, with active,
-uncommitted run-replay provenance work. This guide proposes execution order;
-it does not resume the cleared thread goal, authorize experiments, change
-scientific thresholds, or remove requirements from either governing plan.
+Original source audit: 2026-11-11. Active checkpoint: 2026-11-12,
+checkout `639a508` with preserved active worktree changes. This is the working
+execution guide for the existing mission. The governing research and dataset
+plans remain authoritative for scientific scope and acceptance; this guide
+turns their code dependencies into ordered, reviewable tasks. Production RT,
+advanced training, and scientific qualification remain gated by their stated
+criteria.
+
+## Live executor state (2026-11-12)
+
+The initial E00/E01/E02/E03 prerequisite slices are recorded in
+[`EXECUTION_QUEUE.md`](EXECUTION_QUEUE.md); E03 software closures do not imply
+channel-truth or physical qualification. E04 is the active receiver/G3
+readiness workstream. Its PUSCH hopping slice now includes caller-resolved
+timing, port-0 DM-RS references, one-layer local RE mapping, and a replayable
+data-RE mask digest. The next implementation task is a per-call hop-aware
+estimator/demapper whose pilot and data masks consume that contract without
+mutating shared Sionna objects. UL-SCH/grant binding, unsupported modes,
+task-specific G5 scope, G3 run power, and independent review remain separately
+open. See E04 for entry conditions and the finite next-action order; do not
+restart E00/E01 or infer closure from historical checkboxes or feature-map
+counts.
 
 ## Why the execution plan needs revision
 
@@ -48,7 +66,9 @@ hierarchy for the proposed execution process:
 The active, finite task queue is [EXECUTION_QUEUE.md](EXECUTION_QUEUE.md); its
 initial requirement index is [REQUIREMENT_LEDGER.json](REQUIREMENT_LEDGER.json)
 with schema [requirement-ledger.v1.schema.json](schema/requirement-ledger.v1.schema.json).
-The queue records E00 as focused-verified and E01 as the current audit task.
+The queue records E00 as focused-verified and E01 as the initial audit task;
+those initial statuses are historical and superseded by the live executor state
+above and the current queue.
 
 Use `DS.G0`–`DS.G8` for unified dataset gates and `RS.Phase0`–`RS.Phase10`
 plus `RS.AppendixE.G0`–`RS.AppendixE.G9` for research phases/gates in new
@@ -231,19 +251,16 @@ task. Keep numerical result detail in the evidence artifact and link it from
 the index. Preserve historical entries; replace their role as the active queue
 rather than copying each new paragraph into four plans.
 
-## Suggested continuation instruction after approving the ledger process
+## Current continuation instruction
 
-> Work as one agent in the verified Halti checkout. Read this execution guide
-> and the current task card, inspect/preserve the worktree, and complete E00
-> before new work. Then execute E01 to produce the explicit requirement and
-> dependency ledger, cross-checking both governing plans without reducing their
-> scope. Select subsequent work only from the resulting ready queue, prioritizing
-> the required runnable dataset/split/receiver/evaluation path. A task closes
-> only when its concrete deliverable and evidence satisfy its exit rule. Keep
-> implementation, verification and scientific qualification separate; retain
-> failures and external blockers. Freeze a finite G4 scope before adding more
-> covariance families. Preserve the City43, ODbL, production-RT and advanced-
-> training constraints. Commit coherent verified units and push when authorized
-> and transport works. Report the next task ID and any actual user decision
-> required. Do not claim the mission is complete until every original required
-> downstream phase and evidence deliverable is satisfied.
+> Continue the existing active goal from the current checkout. First inspect
+> and preserve all worktree changes. Use the current queue and requirement
+> ledger, not the historical task order in the original proposal. Complete the
+> next dependency-ready implementation card (currently E04), including its
+> focused verifier and dated status update. Do not rerun completed source audits
+> or broad CI mid-implementation. Keep scientific criteria and qualification
+> separate from software evidence; production D1 RT and advanced training stay
+> gated. Preserve the City43 Phase-0 disposition and accepted ODbL policy. Keep
+> failures and external blockers visible, and stop only for an actual external
+> decision or unmet dependency; otherwise take the next independent task. Do not
+> claim the mission complete until all required phases and evidence are delivered.

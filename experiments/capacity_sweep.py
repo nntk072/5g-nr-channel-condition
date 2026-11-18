@@ -3,15 +3,118 @@
 from __future__ import annotations
 
 import json
+import platform
+import sys
+from datetime import datetime, timezone
+from numbers import Integral
 from pathlib import Path
 from typing import Any, Sequence
 
+import jsonschema
 import numpy as np
-from artifacts.provenance import atomic_json, canonical_hash, sha256_file
+from artifacts.manifest import mark_complete, mark_failed
+from artifacts.provenance import (
+    atomic_json,
+    canonical_hash,
+    package_source_sha256,
+    sha256_file,
+    versions,
+)
+from artifacts.run_replay import build_run_replay_provenance
+from referencing import Registry, Resource
 
 from experiments.runner import run_experiment
 
 CAPACITY_TIERS = ("small", "medium", "large")
+_MANIFEST_SCHEMA_PATH = (
+    Path(__file__).resolve().parent / "schema" / "capacity-sweep-manifest.v2.schema.json"
+)
+
+
+def _validate_manifest(value: dict[str, Any]) -> dict[str, Any]:
+    schema = json.loads(_MANIFEST_SCHEMA_PATH.read_text(encoding="utf-8"))
+    replay_schema_path = (
+        Path(__file__).resolve().parents[1]
+        / "datasets"
+        / "schema"
+        / "run-replay-provenance.v1.schema.json"
+    )
+    registry = Registry().with_resource(
+        replay_schema_path.as_uri(),
+        Resource.from_contents(json.loads(replay_schema_path.read_text(encoding="utf-8"))),
+    )
+    jsonschema.Draft202012Validator(
+        schema, registry=registry, format_checker=jsonschema.FormatChecker()
+    ).validate(value)
+    if value["run_replay"]["state"] != value["state"]:
+        raise ValueError("capacity sweep and replay provenance states differ")
+    if value["run_replay"]["config_sha256"] != value["config_sha256"]:
+        raise ValueError("capacity sweep replay config digest differs from its manifest")
+    if value["run_replay"]["inputs"] != value["inputs"]:
+        raise ValueError("capacity sweep replay input roster differs from its manifest")
+    return value
+
+
+def _capacity_sweep_rng_streams(config: dict[str, Any]) -> list[dict[str, Any]]:
+    streams = [
+        {
+            "name": f"capacity_child_seed_{seed}",
+            "library": "numpy/scikit-learn/torch",
+            "algorithm": "common_runner_seed_v1",
+            "seed_material": [seed],
+            "derived_seed": seed,
+            "purpose": "child split, model fitting, and seed-clustered evaluation",
+        }
+        for seed in config["seeds"]
+    ]
+    if config["observation"] == "comb_ls":
+        seed = int(config["observation_seed"])
+        streams.append(
+            {
+                "name": "observation_noise",
+                "library": "numpy",
+                "algorithm": "comb_ls_estimate_rng_v1",
+                "seed_material": [seed],
+                "derived_seed": seed,
+                "purpose": "comb-LS observation noise in each child run",
+            }
+        )
+    seed = int(config["phase_randomization_seed"])
+    streams.append(
+        {
+            "name": "phase_randomization_control",
+            "library": "numpy",
+            "algorithm": "default_rng_uniform_phase_v1",
+            "seed_material": [seed],
+            "derived_seed": seed,
+            "purpose": "phase-randomized falsification features in each child run",
+        }
+    )
+    if "label_permuted" in config["methods"]:
+        seed = int(config["label_permutation_seed"])
+        streams.append(
+            {
+                "name": "label_permutation_base",
+                "library": "numpy",
+                "algorithm": "seedsequence_run_plus_base_permutation_v1",
+                "seed_material": [seed],
+                "derived_seed": seed,
+                "purpose": "training-label permutation control in each child run",
+            }
+        )
+    if "row_shuffled" in config["methods"]:
+        seed = int(config["row_shuffle_seed"])
+        streams.append(
+            {
+                "name": "row_shuffle_base",
+                "library": "numpy",
+                "algorithm": "seedsequence_run_plus_base_permutation_v1",
+                "seed_material": [seed],
+                "derived_seed": seed,
+                "purpose": "training-feature row-shuffle control in each child run",
+            }
+        )
+    return streams
 
 
 def run_capacity_sweep(
@@ -27,6 +130,9 @@ def run_capacity_sweep(
     pilot_spacing: int = 4,
     pilot_snr_db: float = 12.0,
     observation_seed: int = 2026,
+    phase_randomization_seed: int = 2027,
+    label_permutation_seed: int = 2028,
+    row_shuffle_seed: int = 2029,
     device: str = "cpu",
     coral_penalty: float = 0.1,
 ) -> dict:
@@ -41,33 +147,75 @@ def run_capacity_sweep(
         raise ValueError("methods and seeds must both be nonempty")
     if len(set(methods)) != len(methods) or len(set(seeds)) != len(seeds):
         raise ValueError("methods and seeds must not contain duplicates")
+    if any(isinstance(seed, bool) or not isinstance(seed, Integral) for seed in seeds):
+        raise TypeError("seeds must be non-Boolean integers")
+    seed_values = [int(seed) for seed in seeds]
+    if any(not 0 <= seed < 2**63 for seed in seed_values):
+        raise ValueError("seeds must be in [0, 2**63)")
+    control_seeds = {
+        "observation_seed": observation_seed,
+        "phase_randomization_seed": phase_randomization_seed,
+        "label_permutation_seed": label_permutation_seed,
+        "row_shuffle_seed": row_shuffle_seed,
+    }
+    for name, seed in control_seeds.items():
+        if isinstance(seed, bool) or not isinstance(seed, Integral):
+            raise TypeError(f"{name} must be a non-Boolean integer")
+        if not 0 <= int(seed) < 2**63:
+            raise ValueError(f"{name} must be in [0, 2**63)")
     input_hashes = [{"path": str(path), "sha256": sha256_file(path)} for path in paths]
     root = Path(output)
     if root.exists():
         raise FileExistsError(f"capacity sweep output already exists: {root}")
-    root.mkdir(parents=True)
     config = {
         "capacity_tiers": list(CAPACITY_TIERS),
         "methods": list(methods),
-        "seeds": list(seeds),
+        "seeds": seed_values,
         "bootstrap": bootstrap,
         "holdout": holdout,
         "include_phase": include_phase,
         "observation": observation,
         "pilot_spacing": pilot_spacing,
         "pilot_snr_db": pilot_snr_db,
-        "observation_seed": observation_seed,
+        "observation_seed": int(observation_seed),
+        "phase_randomization_seed": int(phase_randomization_seed),
+        "label_permutation_seed": int(label_permutation_seed),
+        "row_shuffle_seed": int(row_shuffle_seed),
         "device": device,
         "coral_penalty": coral_penalty,
     }
+    dependency_versions = versions()
+    created_utc = datetime.now(timezone.utc).isoformat()
+    source_revision = dependency_versions.get("git_sha", "unavailable") or "unavailable"
+    run_replay = build_run_replay_provenance(
+        created_utc=created_utc,
+        command_argv=list(sys.argv) or ["capacity_sweep"],
+        command_source="process_argv_snapshot",
+        source_revision=source_revision,
+        package_source_sha256=package_source_sha256(),
+        config_sha256=canonical_hash(config),
+        inputs=input_hashes,
+        backend_identity={
+            "requested_device": device,
+            "platform": platform.platform(),
+            "dependencies": dependency_versions,
+        },
+        rng_streams=_capacity_sweep_rng_streams(config),
+    )
     manifest: dict[str, Any] = {
-        "schema": "loslab.capacity_sweep.v1",
+        "schema": "loslab.capacity_sweep.v2",
         "state": "running",
+        "created_utc": created_utc,
         "config": config,
         "config_sha256": canonical_hash(config),
         "inputs": input_hashes,
+        "run_replay": run_replay,
     }
+    _validate_manifest(manifest)
+    root.mkdir(parents=True)
     atomic_json(root / "manifest.json", manifest)
+    running_manifest = manifest
+    complete_marker_written = False
     child_runs: dict[str, dict[str, Any]] = {}
     try:
         for tier in CAPACITY_TIERS:
@@ -77,13 +225,16 @@ def run_capacity_sweep(
                 child,
                 holdout=holdout,
                 methods=methods,
-                seeds=seeds,
+                seeds=seed_values,
                 bootstrap=bootstrap,
                 include_phase=include_phase,
                 observation=observation,
                 pilot_spacing=pilot_spacing,
                 pilot_snr_db=pilot_snr_db,
                 observation_seed=observation_seed,
+                phase_randomization_seed=phase_randomization_seed,
+                label_permutation_seed=label_permutation_seed,
+                row_shuffle_seed=row_shuffle_seed,
                 device=device,
                 coral_penalty=coral_penalty,
                 capacity=tier,
@@ -144,6 +295,9 @@ def run_capacity_sweep(
                         ),
                     }
                 )
+        for record in input_hashes:
+            if sha256_file(record["path"]) != record["sha256"]:
+                raise ValueError(f"capacity sweep input changed during execution: {record['path']}")
         report = {
             "schema": "loslab.capacity_sweep_report.v1",
             "config_sha256": manifest["config_sha256"],
@@ -160,19 +314,30 @@ def run_capacity_sweep(
             ),
         }
         atomic_json(root / "capacity_sweep.json", report)
-        manifest["state"] = "complete"
         manifest["report_sha256"] = sha256_file(root / "capacity_sweep.json")
-        atomic_json(root / "manifest.json", manifest)
         atomic_json(
             root / "COMPLETE",
             {
                 "config_sha256": manifest["config_sha256"],
                 "report_sha256": manifest["report_sha256"],
             },
+            overwrite=False,
         )
+        complete_marker_written = True
+        manifest = mark_complete(manifest)
+        _validate_manifest(manifest)
+        atomic_json(root / "manifest.json", manifest)
         return report
     except Exception as error:
-        manifest["state"] = "failed"
+        if complete_marker_written:
+            (root / "COMPLETE").unlink(missing_ok=True)
+        manifest = mark_failed(
+            running_manifest,
+            error_type=type(error).__name__,
+            error_message=str(error),
+            stage="capacity_sweep",
+        )
         manifest["error"] = f"{type(error).__name__}: {error}"
+        _validate_manifest(manifest)
         atomic_json(root / "manifest.json", manifest)
         raise

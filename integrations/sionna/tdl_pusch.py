@@ -280,7 +280,16 @@ def tdl_pusch_records(
                             "retain each effective subcarrier coefficient; no antenna, "
                             "symbol, or power averaging"
                         ),
-                        definition_version="umcd.tdl-pusch.effective-cfr.v1",
+                        definition_version="umcd.tdl-pusch.effective-cfr.v2",
+                        value_axes=(
+                            "batch",
+                            "rx_antenna",
+                            "rx_stream",
+                            "ofdm_symbol",
+                            "tx_stream",
+                            "tx_antenna",
+                            "effective_subcarrier",
+                        ),
                     )
                 },
                 provenance={

@@ -144,6 +144,291 @@ def test_run_experiment_uses_verified_signed_split_lock(tmp_path) -> None:
     )
 
 
+def test_run_experiment_scores_selected_signed_benchmark_cohort(tmp_path) -> None:
+    from datasets.split_policy import (
+        SplitParentType,
+        SplitPolicy,
+        SplitSubject,
+        freeze_split_policy_registry,
+        make_split_policy_registry,
+        verify_openssh_signed_artifact,
+        verify_signed_split_policy_registry_attestation,
+    )
+    from evaluation.benchmark_partitions import materialize_benchmark_manifest
+
+    ssh_keygen = shutil.which("ssh-keygen")
+    if ssh_keygen is None:
+        pytest.skip("OpenSSH is unavailable")
+    signer = "signed-benchmark-runner-test"
+    private_key = tmp_path / "key"
+    subprocess.run(
+        [ssh_keygen, "-q", "-t", "ed25519", "-N", "", "-C", signer, "-f", str(private_key)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    public_key = private_key.with_suffix(".pub").read_text(encoding="utf-8").strip()
+    registry_namespace = "umcd-split-policy-v2@github.com"
+    declaration_namespace = "umcd-benchmark-cohort-v1@github.com"
+    registry_keyring = tmp_path / "registry_allowed_signers"
+    registry_keyring.write_text(
+        f'{signer} namespaces="{registry_namespace}" {public_key}\n', encoding="utf-8"
+    )
+    declaration_keyring = tmp_path / "declaration_allowed_signers"
+    declaration_keyring.write_text(
+        f'{signer} namespaces="{declaration_namespace}" {public_key}\n', encoding="utf-8"
+    )
+
+    subjects = [
+        SplitSubject(f"parent-{index:03d}", SplitParentType.NETWORK_EPISODE, "test")
+        for index in range(80)
+    ]
+    registry = make_split_policy_registry(
+        subjects, policy=SplitPolicy.release_v2(seed="signed-benchmark-runner-test")
+    )
+    lock = tmp_path / "split-registry.json"
+    freeze_split_policy_registry(lock, registry)
+    subprocess.run(
+        [
+            ssh_keygen,
+            "-Y",
+            "sign",
+            "-n",
+            registry_namespace,
+            "-f",
+            str(private_key),
+            str(lock),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    labels = np.arange(len(subjects), dtype=np.uint8) % 2
+    data = ChannelDataset(
+        h=np.broadcast_to((1 + labels[:, None, None]).astype(np.complex64), (80, 1, 16)).copy(),
+        y=labels,
+        group=np.asarray([subject.subject_id for subject in subjects]),
+        domain=np.full(len(subjects), "scene-a"),
+        source=np.full(len(subjects), "sionna_rt"),
+        metadata=tuple(
+            {
+                "geometry_label": "GEOMETRIC_DIRECT_PATH_ORACLE",
+                "split_subject_id": subject.subject_id,
+                "split_source_family": subject.source_family,
+                "split_parent_type": subject.parent_type.value,
+            }
+            for subject in subjects
+        ),
+    )
+    source = tmp_path / "locked.npz"
+    data.save(source)
+    registry_verified, registry_artifact = verify_signed_split_policy_registry_attestation(
+        lock,
+        Path(f"{lock}.sig"),
+        trusted_allowed_signers_path=registry_keyring,
+        signer_id=signer,
+    )
+    test_parents = [
+        parent
+        for parent in sorted(registry_verified.subjects)
+        if registry_verified.split_for_parent(parent) == "test"
+    ]
+    positive = next(parent for parent in test_parents if labels[int(parent[-3:])] == 1)
+    negative = next(parent for parent in test_parents if labels[int(parent[-3:])] == 0)
+    held_out = [positive, negative]
+    remaining = [parent for parent in test_parents if parent not in held_out]
+    site_array = remaining[:2]
+    external = remaining[2:]
+    declaration = {
+        "schema": "umcd.benchmark_cohort_declaration.v1",
+        "schema_version": 1,
+        "test_cohorts": {
+            "site_held_out": sorted(held_out),
+            "site_array_held_out": sorted(site_array),
+            "real_external": sorted(external),
+        },
+        "site_ids": {parent.subject_id: f"site-{parent.subject_id}" for parent in subjects},
+        "array_ids": {parent.subject_id: f"array-{parent.subject_id}" for parent in subjects},
+        "external_evidence": {
+            parent: {
+                "measurement_inventory_sha256": "1" * 64,
+                "measurement_protocol_sha256": "2" * 64,
+                "rights_review_sha256": "3" * 64,
+            }
+            for parent in external
+        },
+    }
+    declaration_path = tmp_path / "cohort-declaration.json"
+    declaration_path.write_text(json.dumps(declaration, sort_keys=True), encoding="utf-8")
+    subprocess.run(
+        [
+            ssh_keygen,
+            "-Y",
+            "sign",
+            "-n",
+            declaration_namespace,
+            "-f",
+            str(private_key),
+            str(declaration_path),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    declaration_artifact = verify_openssh_signed_artifact(
+        declaration_path,
+        Path(f"{declaration_path}.sig"),
+        trusted_allowed_signers_path=declaration_keyring,
+        signer_id=signer,
+        namespace=declaration_namespace,
+    )
+
+    def attestation(artifact):
+        return {
+            "artifact_sha256": artifact.artifact_sha256,
+            "signature_sha256": artifact.signature_sha256,
+            "allowed_signers_sha256": artifact.allowed_signers_sha256,
+            "signer_id": artifact.signer_id,
+            "namespace": artifact.namespace,
+        }
+
+    benchmark_manifest = materialize_benchmark_manifest(
+        registry_verified,
+        declaration,
+        [("locked", hashlib.sha256(source.read_bytes()).hexdigest(), data)],
+        registry_attestation=attestation(registry_artifact),
+        declaration_attestation=attestation(declaration_artifact),
+    )
+    manifest_path = tmp_path / "benchmark-manifest.json"
+    manifest_path.write_text(json.dumps(benchmark_manifest, sort_keys=True), encoding="utf-8")
+    output = tmp_path / "runs" / "benchmark"
+
+    run_experiment(
+        [source],
+        output,
+        methods=("logreg",),
+        seeds=(11,),
+        bootstrap=100,
+        split_lock_path=lock,
+        split_signature_path=Path(f"{lock}.sig"),
+        trusted_split_signers_path=registry_keyring,
+        split_signer_id=signer,
+        benchmark_manifest_path=manifest_path,
+        benchmark_declaration_path=declaration_path,
+        benchmark_declaration_signature_path=Path(f"{declaration_path}.sig"),
+        benchmark_declaration_allowed_signers_path=declaration_keyring,
+        benchmark_declaration_signer_id=signer,
+        benchmark_dataset_names=("locked",),
+        benchmark_test_cohort="site_held_out",
+    )
+
+    saved_manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
+    result = json.loads((output / "results.json").read_text(encoding="utf-8"))[0]
+    assert saved_manifest["split_policy"]["benchmark_cohort"]["selected_test_cohort"] == (
+        "site_held_out"
+    )
+    assert result["split"]["test_size"] == len(held_out)
+    expected_test_indices = sorted(int(parent[-3:]) for parent in held_out)
+    assert result["split"]["benchmark_cohort"]["selected_test_indices_sha256"] == canonical_hash(
+        expected_test_indices
+    )
+    assert result["model_input_artifact_contract_verification"]["benchmark_cohort"] == {
+        "selected_test_cohort": "site_held_out",
+        "benchmark_manifest_sha256": benchmark_manifest["manifest_sha256"],
+        "selected_test_indices_sha256": canonical_hash(expected_test_indices),
+    }
+    model_info_path = output / "models" / "logreg_seed11_modelinfo.json"
+    original_sidecar = model_info_path.read_bytes()
+    tampered_sidecar = json.loads(original_sidecar)
+    tampered_sidecar["benchmark_cohort"]["manifest_sha256"] = "f" * 64
+    model_info_path.write_text(json.dumps(tampered_sidecar), encoding="utf-8")
+    with np.load(output / "predictions" / "logreg_seed11.npz", allow_pickle=False) as prediction:
+        partition_indices = {
+            "train": prediction["train_idx"],
+            "validation": prediction["val_idx"],
+            "test": prediction["test_idx"],
+        }
+    with pytest.raises(ValueError, match="provenance does not match replay"):
+        runner_module.verify_model_input_artifact_contract(
+            model_info_path,
+            output / "models" / "logreg_seed11.joblib",
+            partition_indices=partition_indices,
+            benchmark_cohort=result["split"]["benchmark_cohort"],
+        )
+    model_info_path.write_bytes(original_sidecar)
+
+
+def test_benchmark_preflight_failure_receipt_is_exclusive(tmp_path) -> None:
+    output = tmp_path / "runs" / "preflight-failure"
+    with pytest.raises(ValueError, match="No datasets supplied"):
+        run_experiment(
+            [],
+            output,
+            benchmark_manifest_path=tmp_path / "missing-manifest.json",
+            benchmark_test_cohort="site_held_out",
+        )
+    receipt_path = output / "benchmark-cohort-preflight.json"
+    first = receipt_path.read_bytes()
+    receipt = json.loads(first)
+    assert receipt == {
+        "schema": "loslab.benchmark_cohort_preflight.v1",
+        "status": "FAILED_BEFORE_RUN_MANIFEST",
+        "qualification_status": "NOT_QUALIFIED",
+        "selected_test_cohort": "site_held_out",
+        "error_type": "ValueError",
+        "error_message": "No datasets supplied",
+    }
+
+    with pytest.raises(ValueError, match="No datasets supplied"):
+        run_experiment(
+            [],
+            output,
+            benchmark_manifest_path=tmp_path / "other-manifest.json",
+            benchmark_test_cohort="site_array_held_out",
+        )
+    assert receipt_path.read_bytes() == first
+
+    protected_output = tmp_path / "runs" / "existing-user-data"
+    protected_output.mkdir()
+    existing_manifest = protected_output / "manifest.json"
+    existing_manifest.write_text("preserve this user file", encoding="utf-8")
+    with pytest.raises(ValueError, match="No datasets supplied"):
+        run_experiment(
+            [],
+            protected_output,
+            benchmark_manifest_path=tmp_path / "missing-manifest.json",
+            benchmark_test_cohort="site_held_out",
+        )
+    assert existing_manifest.read_text(encoding="utf-8") == "preserve this user file"
+    assert not (protected_output / "benchmark-cohort-preflight.json").exists()
+
+
+def test_unsupported_cohort_report_names_reasons_and_external_dependencies() -> None:
+    report = runner_module._unsupported_benchmark_test_cohorts(
+        {
+            "site_held_out": {
+                "rows": 0,
+                "independent_components": 0,
+            },
+            "site_array_held_out": {
+                "rows": 4,
+                "independent_components": 2,
+            },
+            "real_external": {
+                "rows": 0,
+                "independent_components": 0,
+            },
+        }
+    )
+    assert [item["cohort"] for item in report] == ["site_held_out", "real_external"]
+    assert report[0]["reason_codes"] == ["NO_ROWS", "NO_INDEPENDENT_COMPONENTS"]
+    assert (
+        "independent physical-unit validation and trusted signer custody"
+        in report[0]["external_dependencies"]
+    )
+    assert "rights review and measurement validity evidence" in report[1]["external_dependencies"]
+
+
 def test_locked_split_indices_resolves_child_rows_through_parent_bindings() -> None:
     from datasets.channel import ChannelDataset
     from datasets.split_policy import (

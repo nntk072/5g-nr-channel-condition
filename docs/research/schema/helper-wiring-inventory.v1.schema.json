@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:loslab:helper-wiring-inventory:v1",
+  "title": "Exported helper wiring source inventory",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "method", "scope_packages", "reference_scan_roots", "test_reference_scan_roots", "source_sha256", "helper_count", "helpers", "non_exported_plan_named_definition_count", "non_exported_plan_named_definitions"],
+  "properties": {
+    "schema": {"const": "loslab.helper_wiring_inventory.v1"},
+    "method": {"type": "string", "minLength": 1},
+    "scope_packages": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": true},
+    "reference_scan_roots": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": true},
+    "test_reference_scan_roots": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": true},
+    "source_sha256": {
+      "type": "object",
+      "minProperties": 2,
+      "additionalProperties": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+    },
+    "helper_count": {"type": "integer", "minimum": 0},
+    "non_exported_plan_named_definition_count": {"type": "integer", "minimum": 0},
+    "non_exported_plan_named_definitions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["public_name", "qualified_name", "source", "definition_line", "definition_kind", "plan_reference_files", "direct_production_references", "direct_test_references"],
+        "properties": {
+          "public_name": {"type": "string", "minLength": 1},
+          "qualified_name": {"type": "string", "minLength": 1},
+          "source": {"type": "string", "pattern": "^[^/].*\\.py$"},
+          "definition_line": {"type": "integer", "minimum": 1},
+          "definition_kind": {"enum": ["function", "method"]},
+          "plan_reference_files": {"type": "array", "items": {"type": "string", "pattern": "^docs/research/.+\\.md$"}, "minItems": 1, "uniqueItems": true},
+          "direct_production_references": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["path", "line"], "properties": {"path": {"type": "string", "pattern": "^[^/].*\\.py$"}, "line": {"type": "integer", "minimum": 1}}}},
+          "direct_test_references": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["path", "line"], "properties": {"path": {"type": "string", "pattern": "^tests/[^/].*\\.py$"}, "line": {"type": "integer", "minimum": 1}}}}
+        }
+      }
+    },
+    "helpers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["public_name", "qualified_name", "source", "definition_line", "direct_production_references", "direct_test_references", "exact_plan_reference_files", "documented_route", "audit_disposition"],
+        "properties": {
+          "public_name": {"type": "string", "minLength": 1},
+          "qualified_name": {"type": "string", "minLength": 1},
+          "source": {"type": "string", "pattern": "^[^/].*\\.py$"},
+          "definition_line": {"type": "integer", "minimum": 1},
+          "direct_production_references": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["path", "line"],
+              "properties": {
+                "path": {"type": "string", "pattern": "^[^/].*\\.py$"},
+                "line": {"type": "integer", "minimum": 1}
+              }
+            }
+          },
+          "direct_test_references": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["path", "line"],
+              "properties": {
+                "path": {"type": "string", "pattern": "^tests/[^/].*\\.py$"},
+                "line": {"type": "integer", "minimum": 1}
+              }
+            }
+          },
+          "exact_plan_reference_files": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^docs/research/.+\\.md$"}},
+          "documented_route": {"type": "boolean"},
+          "audit_disposition": {
+            "enum": ["documented_route_requires_manual_review", "route_mapping_required", "no_direct_production_reference_found"]
+          }
+        }
+      }
+    }
+  }
+}

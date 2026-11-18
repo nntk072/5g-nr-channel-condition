@@ -407,6 +407,62 @@ def test_joint_bundle_input_digest_changes_with_complex_cfr_bytes(monkeypatch) -
     )
 
 
+def test_joint_complex_csi_route_replays_phase_view_contracts(monkeypatch) -> None:
+    monkeypatch.setattr(
+        joint,
+        "evaluate_g3_material_calibration",
+        lambda payload: {"status": "MATERIAL_DIAGNOSTIC"},
+    )
+    monkeypatch.setattr(
+        joint,
+        "evaluate_propagation_metrics",
+        lambda **kwargs: {"status": "PROPAGATION_DIAGNOSTIC"},
+    )
+    monkeypatch.setattr(
+        joint,
+        "evaluate_receiver_impact",
+        lambda **kwargs: {"status": "RECEIVER_DIAGNOSTIC"},
+    )
+    monkeypatch.setattr(
+        joint,
+        "evaluate_path_equivalence_roster",
+        lambda **kwargs: {"status": "PATH_DIAGNOSTIC", "scenarios": []},
+    )
+    payload = _inputs()
+    exact = np.ones((1, 1, 1, 2), dtype=np.complex128)
+    contract = {
+        "link_id": "link-1",
+        "frame_times_s": [0.0],
+        "rx_port_ids": ["rx-1"],
+        "tx_port_ids": ["tx-1"],
+        "carrier_hz": 3.5e9,
+        "subcarrier_offsets_hz": [-15_000.0, 0.0],
+        "delay_reference": "absolute_propagation_delay",
+        "power_scale": "absolute_power_gain",
+        "phase_gauge_id": "gauge-1",
+    }
+    payload["complex_csi"]["records"] = [
+        {
+            **payload["complex_csi"]["records"][0],
+            "cluster_id": f"cluster-{index}",
+            "candidate_cfr": exact,
+            "challenger_cfr": exact,
+            "candidate_view_contract": {**contract, "view_id": f"candidate-{index}"},
+            "challenger_view_contract": {**contract, "view_id": f"challenger-{index}"},
+        }
+        for index in range(2)
+    ]
+
+    result = joint._recompute(payload)
+
+    assert result["evaluations"]["complex_csi"]["phase_reference_audit"]["status"] == (
+        "ALL_DECLARED_CONTRACTS_MATCH"
+    )
+    assert (
+        result["evaluations"]["complex_csi"]["phase_reference_audit"]["checked_record_count"] == 2
+    )
+
+
 @pytest.mark.parametrize(
     ("mutation", "message"),
     [

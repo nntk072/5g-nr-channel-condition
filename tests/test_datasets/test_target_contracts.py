@@ -1,3 +1,9 @@
+import json
+from pathlib import Path
+
+import datasets.nr_store as nr_store
+import datasets.targets as target_contracts
+import jsonschema
 import numpy as np
 import pytest
 from datasets.nr import NRChannelRecord, NRObservation
@@ -11,8 +17,43 @@ from datasets.targets import (
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
 
+def test_target_family_inventory_covers_every_recognized_contract() -> None:
+    repository = Path(__file__).parents[2]
+    inventory_path = repository / "docs/research/TARGET_FAMILY_PRODUCER_CONSUMER_MATRIX.json"
+    inventory = json.loads(inventory_path.read_text(encoding="utf-8"))
+    assert inventory["schema"] == "loslab.target-family-producer-consumer-matrix.v1"
+    matrix_schema = json.loads(
+        (
+            repository / "datasets/schema/target-family-producer-consumer-matrix.v1.schema.json"
+        ).read_text(encoding="utf-8")
+    )
+    jsonschema.Draft202012Validator.check_schema(matrix_schema)
+    jsonschema.Draft202012Validator(matrix_schema).validate(inventory)
+    rows = inventory["rows"]
+    versions = [row["version"] for row in rows]
+
+    assert len(versions) == len(set(versions))
+    assert set(versions) == set(target_contracts._CANONICAL_TARGET_CONTRACTS)
+    assert set(versions) == set(target_contracts._CANONICAL_TARGET_PROVENANCE)
+    for row in rows:
+        assert row["name"]
+        assert row["producer"]
+        assert row["shape"]
+        assert row["policy"]
+        assert row["consumers"]
+        assert all((repository / path).is_file() for path in row["stored_contracts"])
+        assert all((repository / path).is_file() for path in row["evidence"].split("; "))
+        if "NR writers" in row["policy"]:
+            assert row["version"] in nr_store._AXIS_AMBIGUOUS_NR_TARGET_VERSIONS
+
+
 def _definition(version: str, *, semantic: str, units: str) -> TargetDefinition:
     provenance = {
+        "umcd.standardized.profile-los-proxy.v1": (
+            "Sionna standardized TDL/CDL profile model",
+            "profile_los_component false maps to 0 and true maps to 1; not geometric LOS truth",
+            "one profile-category proxy per generated channel record",
+        ),
         "profile_los_proxy.v2": (
             "Sionna standardized TDL/CDL profile model",
             "profile_los_component false maps to 0 and true maps to 1; not geometric LOS truth",
@@ -30,6 +71,16 @@ def _definition(version: str, *, semantic: str, units: str) -> TargetDefinition:
             "and effective FFT-bin mapping",
             "retain each effective subcarrier coefficient; no antenna, symbol, or power averaging",
         ),
+        "umcd.standardized.effective-cfr.v2": (
+            "standardized Sionna TDL/CDL CFR adapter",
+            "profile-relative excess-delay CFR resampled to this resource grid",
+            "retain each effective subcarrier coefficient in receiver FFT-bin order; no antenna, symbol, or power averaging",
+        ),
+        "umcd.tdl-pusch.effective-cfr.v2": (
+            "sionna_phy_ofdmchannel_return_channel",
+            "OFDMChannel return_channel with the configured TDL profile, carrier, sample rate, and effective FFT-bin mapping",
+            "retain each effective subcarrier coefficient; no antenna, symbol, or power averaging",
+        ),
         "umcd.rt-trajectory.absolute-cfr.v1": (
             "sionna_rt_pathsolver",
             "Sionna RT full solver-valid path set evaluated with absolute propagation delays "
@@ -43,12 +94,32 @@ def _definition(version: str, *, semantic: str, units: str) -> TargetDefinition:
             "coherent sum of retained solver-valid paths per effective subcarrier and OFDM symbol; "
             "no path or symbol averaging",
         ),
+        "umcd.rt-trajectory.absolute-cfr.v2": (
+            "sionna_rt_pathsolver",
+            "Sionna RT full solver-valid path set evaluated with absolute propagation delays and configured carrier/subcarrier offsets",
+            "coherent sum of all retained solver-valid paths per effective subcarrier and frame; no path-count or power normalization",
+        ),
+        "umcd.rt-trajectory.symbol-cfr.v2": (
+            "sionna_rt_paths_cfr_doppler",
+            "absolute-delay RT path channel evaluated at the declared NR OFDM symbol start timestamps",
+            "coherent sum of retained solver-valid paths per effective subcarrier and OFDM symbol; no path or symbol averaging",
+        ),
+        "umcd.rms_delay_spread.v1": (
+            "path_oracle",
+            "absolute_physical_channel_path_oracle",
+            "RMS over valid paths after power normalization",
+        ),
         "umcd.rt-trajectory.geometric-los.v1": (
             "mitsuba_segment_intersection_oracle",
             "independent finite-segment visibility query for the recorded TX/RX poses and scene geometry",
             "one independent direct-path visibility value per frame",
         ),
         "umcd.f04_rt_dynamic.direct_visibility.v3": (
+            "numpy_loaded_scene_triangle_inventory",
+            "digest-bound loaded-scene triangle query cross-checked with Mitsuba segment intersection and depth-zero Sionna PathSolver at each recorded pose",
+            "one visibility value per trajectory frame; no spatial or temporal pooling",
+        ),
+        "umcd.f04_rt_dynamic.direct_visibility.v4": (
             "numpy_loaded_scene_triangle_inventory",
             "digest-bound loaded-scene triangle query cross-checked with Mitsuba segment intersection and depth-zero Sionna PathSolver at each recorded pose",
             "one visibility value per trajectory frame; no spatial or temporal pooling",
@@ -68,6 +139,29 @@ def _definition(version: str, *, semantic: str, units: str) -> TargetDefinition:
         reference=provenance[1],
         aggregation_rule=provenance[2],
         definition_version=version,
+        value_axes={
+            "umcd.f04_rt_dynamic.direct_visibility.v4": ("frame",),
+            "umcd.rt-trajectory.absolute-cfr.v2": ("effective_subcarrier",),
+            "umcd.rt-trajectory.symbol-cfr.v2": ("ofdm_symbol", "effective_subcarrier"),
+            "umcd.standardized.effective-cfr.v2": (
+                "batch",
+                "rx_antenna",
+                "rx_stream",
+                "ofdm_symbol",
+                "tx_stream",
+                "tx_antenna",
+                "effective_subcarrier",
+            ),
+            "umcd.tdl-pusch.effective-cfr.v2": (
+                "batch",
+                "rx_antenna",
+                "rx_stream",
+                "ofdm_symbol",
+                "tx_stream",
+                "tx_antenna",
+                "effective_subcarrier",
+            ),
+        }.get(version),
     )
 
 
@@ -97,6 +191,103 @@ def test_standardized_profile_los_target_is_single_binary_value() -> None:
             confidence="standardized profile metadata",
         )
 
+    with pytest.raises(ValueError, match=r"fixed \(1,\) storage shape"):
+        TargetValue(
+            entity_id="profile-c",
+            definition=definition,
+            values=np.asarray([[1]], dtype=np.uint8),
+            valid_mask=np.asarray([[True]]),
+            reason_codes=(TargetValidity.VALID,),
+            confidence="standardized profile metadata",
+        )
+
+    axisful_definition = TargetDefinition.versioned(
+        semantic=definition.semantic,
+        units=definition.units,
+        source=definition.source,
+        reference=definition.reference,
+        aggregation_rule=definition.aggregation_rule,
+        definition_version=definition.definition_version,
+        value_axes=("category",),
+    )
+    with pytest.raises(ValueError, match="must not declare value axes"):
+        TargetValue(
+            entity_id="profile-d",
+            definition=axisful_definition,
+            values=np.asarray([1], dtype=np.uint8),
+            valid_mask=np.asarray([True]),
+            reason_codes=(TargetValidity.VALID,),
+            confidence="standardized profile metadata",
+        )
+
+
+def test_current_standardized_pusch_profile_proxy_v1_has_fixed_singleton_shape() -> None:
+    definition = _definition(
+        "umcd.standardized.profile-los-proxy.v1",
+        semantic="standardized_profile_los_category_proxy",
+        units="binary_class",
+    )
+    valid = TargetValue(
+        entity_id="current-profile",
+        definition=definition,
+        values=np.asarray([1], dtype=np.uint8),
+        valid_mask=np.asarray([True]),
+        reason_codes=(TargetValidity.VALID,),
+        confidence="standardized profile metadata",
+    )
+    assert valid.values.shape == (1,)
+
+    with pytest.raises(ValueError, match=r"fixed \(1,\) storage shape"):
+        TargetValue(
+            entity_id="current-profile-wrong-shape",
+            definition=definition,
+            values=np.asarray([[1]], dtype=np.uint8),
+            valid_mask=np.asarray([[True]]),
+            reason_codes=(TargetValidity.VALID,),
+            confidence="standardized profile metadata",
+        )
+
+    axisful = TargetDefinition.versioned(
+        semantic=definition.semantic,
+        units=definition.units,
+        source=definition.source,
+        reference=definition.reference,
+        aggregation_rule=definition.aggregation_rule,
+        definition_version=definition.definition_version,
+        value_axes=("category",),
+    )
+    with pytest.raises(ValueError, match="must not declare value axes"):
+        validate_canonical_target_contract(np.asarray([1]), axisful, name="profile_los_proxy")
+
+
+def test_historical_static_visibility_v1_keeps_legacy_rank_readable() -> None:
+    definition = TargetDefinition.versioned(
+        semantic="geometric direct-path visibility",
+        units="boolean",
+        source="independent_segment_visibility_oracle",
+        reference="finite scene-segment visibility cross-checked by depth-zero PathSolver",
+        aggregation_rule="one direct-path visibility label per link; no temporal or port pooling",
+        definition_version="umcd.f03_rt_static.direct_visibility.v1",
+    )
+    scalar = TargetValue(
+        entity_id="link",
+        definition=definition,
+        values=np.asarray([1], dtype=np.uint8),
+        valid_mask=np.asarray([True]),
+        reason_codes=(TargetValidity.VALID,),
+        confidence="legacy static visibility record",
+    )
+    matrix = TargetValue(
+        entity_id="link",
+        definition=definition,
+        values=np.asarray([[1]], dtype=np.uint8),
+        valid_mask=np.asarray([[True]]),
+        reason_codes=(TargetValidity.VALID,),
+        confidence="legacy static visibility record",
+    )
+    assert scalar.values.shape == (1,)
+    assert matrix.values.shape == (1, 1)
+
 
 def test_geometric_los_contract_checks_name_semantics_and_scalar_domain() -> None:
     definition = _definition(
@@ -104,13 +295,28 @@ def test_geometric_los_contract_checks_name_semantics_and_scalar_domain() -> Non
         semantic="independent Mitsuba segment-intersection geometry oracle",
         units="boolean",
     )
-    validate_canonical_target_contract(np.asarray(True), definition, name="geometric_los")
+    validate_canonical_target_contract(np.asarray([True, False]), definition, name="geometric_los")
     with pytest.raises(ValueError, match="only valid for target"):
         validate_canonical_target_contract(np.asarray(True), definition, name="los")
-    with pytest.raises(ValueError, match="exactly one value"):
-        validate_canonical_target_contract(
-            np.asarray([True, False]), definition, name="geometric_los"
-        )
+    with pytest.raises(ValueError, match="values must be binary"):
+        validate_canonical_target_contract(np.asarray([True, 2]), definition, name="geometric_los")
+
+
+def test_legacy_scalar_target_rank_remains_readable_without_axis_inference() -> None:
+    definition = _definition(
+        "umcd.rt-trajectory.geometric-los.v1",
+        semantic="independent Mitsuba segment-intersection geometry oracle",
+        units="boolean",
+    )
+    target = TargetValue(
+        entity_id="legacy-link",
+        definition=definition,
+        values=np.asarray([[1]], dtype=np.uint8),
+        valid_mask=np.asarray([[True]]),
+        reason_codes=(TargetValidity.VALID,),
+        confidence="legacy shape preserved; axes not inferred",
+    )
+    assert target.values.shape == (1, 1)
 
 
 def test_frame_visibility_contract_accepts_binary_values_per_frame() -> None:
@@ -125,6 +331,36 @@ def test_frame_visibility_contract_accepts_binary_values_per_frame() -> None:
     with pytest.raises(ValueError, match="must be binary"):
         validate_canonical_target_contract(
             np.asarray([1, 2, 0], dtype=np.uint8), definition, name="geometric_los"
+        )
+
+
+def test_dynamic_geometric_los_v4_binds_frame_axis() -> None:
+    definition = TargetDefinition.versioned(
+        semantic="geometric direct-path visibility",
+        units="boolean",
+        source="numpy_loaded_scene_triangle_inventory",
+        reference=(
+            "digest-bound loaded-scene triangle query cross-checked with Mitsuba segment "
+            "intersection and depth-zero Sionna PathSolver at each recorded pose"
+        ),
+        aggregation_rule="one visibility value per trajectory frame; no spatial or temporal pooling",
+        definition_version="umcd.f04_rt_dynamic.direct_visibility.v4",
+        value_axes=("frame",),
+    )
+    validate_canonical_target_contract(
+        np.asarray([1, 0, 1], dtype=np.uint8), definition, name="geometric_los"
+    )
+    axisless = TargetDefinition.versioned(
+        semantic=definition.semantic,
+        units=definition.units,
+        source=definition.source,
+        reference=definition.reference,
+        aggregation_rule=definition.aggregation_rule,
+        definition_version=definition.definition_version,
+    )
+    with pytest.raises(ValueError, match=r"explicit \('frame',\)"):
+        validate_canonical_target_contract(
+            np.asarray([1, 0, 1], dtype=np.uint8), axisless, name="geometric_los"
         )
 
 
@@ -170,6 +406,16 @@ def test_frame_visibility_contract_accepts_binary_values_per_frame() -> None:
             "intersection and depth-zero Sionna PathSolver at each recorded pose",
             "one visibility value per trajectory frame; no spatial or temporal pooling",
         ),
+        (
+            "geometric_los",
+            "umcd.f04_rt_dynamic.direct_visibility.v4",
+            "geometric direct-path visibility",
+            "boolean",
+            "numpy_loaded_scene_triangle_inventory",
+            "digest-bound loaded-scene triangle query cross-checked with Mitsuba segment "
+            "intersection and depth-zero Sionna PathSolver at each recorded pose",
+            "one visibility value per trajectory frame; no spatial or temporal pooling",
+        ),
     ],
 )
 def test_current_producer_target_versions_pin_semantics_and_provenance(
@@ -182,6 +428,7 @@ def test_current_producer_target_versions_pin_semantics_and_provenance(
         reference=reference,
         aggregation_rule=aggregation,
         definition_version=version,
+        value_axes=("frame",) if version == "umcd.f04_rt_dynamic.direct_visibility.v4" else None,
     )
     validate_canonical_target_contract(np.asarray([True]), definition, name=target_name)
 
@@ -197,6 +444,21 @@ def test_current_producer_target_versions_pin_semantics_and_provenance(
         validate_canonical_target_contract(np.asarray([True]), altered, name=target_name)
 
 
+def test_canonical_target_admission_fails_closed_without_provenance_pin(monkeypatch) -> None:
+    definition = _definition(
+        "umcd.rt-trajectory.geometric-los.v1",
+        semantic="independent Mitsuba segment-intersection geometry oracle",
+        units="boolean",
+    )
+    monkeypatch.delitem(
+        target_contracts._CANONICAL_TARGET_PROVENANCE,
+        definition.definition_version,
+    )
+
+    with pytest.raises(RuntimeError, match="has no provenance pin"):
+        validate_canonical_target_contract(np.asarray([True]), definition, name="geometric_los")
+
+
 def test_canonical_cfr_contract_requires_complex_coefficients() -> None:
     definition = _definition(
         "umcd.tdl-pusch.effective-cfr.v1",
@@ -209,6 +471,110 @@ def test_canonical_cfr_contract_requires_complex_coefficients() -> None:
     with pytest.raises(TypeError, match="must use a complex dtype"):
         validate_canonical_target_contract(
             np.asarray([1.0], dtype=np.float32), definition, name="channel_cfr"
+        )
+
+
+def test_rms_delay_spread_contract_requires_nonnegative_real_seconds() -> None:
+    definition = _definition(
+        "umcd.rms_delay_spread.v1",
+        semantic="rms_delay_spread",
+        units="s",
+    )
+    validate_canonical_target_contract(
+        np.asarray([0.0, 25e-9]), definition, name="rms_delay_spread"
+    )
+    with pytest.raises(ValueError, match="must be nonnegative"):
+        validate_canonical_target_contract(
+            np.asarray([25e-9, -1e-9]), definition, name="rms_delay_spread"
+        )
+    with pytest.raises(TypeError, match="real numeric dtype"):
+        validate_canonical_target_contract(
+            np.asarray([25e-9 + 0j]), definition, name="rms_delay_spread"
+        )
+    for invalid in (np.nan, np.inf, -np.inf):
+        with pytest.raises(ValueError, match="must be finite"):
+            validate_canonical_target_contract(
+                np.asarray([invalid]), definition, name="rms_delay_spread"
+            )
+
+
+def test_canonical_complex_cfr_contract_rejects_nonfinite_values() -> None:
+    definition = _definition(
+        "umcd.standardized.effective-cfr.v1",
+        semantic="perfect_synchronized_effective_subcarrier_cfr",
+        units="complex channel gain (dimensionless)",
+    )
+
+    for invalid in (complex(np.nan, 0.0), complex(0.0, np.inf)):
+        with pytest.raises(ValueError, match="must contain finite values"):
+            validate_canonical_target_contract(
+                np.asarray([invalid], dtype=np.complex128), definition, name="channel_cfr"
+            )
+
+
+def test_rms_delay_spread_v2_binds_frame_axis_in_its_digest() -> None:
+    definition = TargetDefinition.versioned(
+        semantic="rms_delay_spread",
+        units="s",
+        source="path_oracle",
+        reference="absolute_physical_channel_path_oracle",
+        aggregation_rule=(
+            "RMS over valid per-path powers in the declared frame and delay reference"
+        ),
+        definition_version="umcd.rms_delay_spread.v2",
+        value_axes=("frame",),
+    )
+    target = TargetValue(
+        entity_id="link-1",
+        definition=definition,
+        values=np.asarray([0.0, 20e-9]),
+        valid_mask=np.ones(2, dtype=bool),
+        reason_codes=(TargetValidity.VALID, TargetValidity.VALID),
+        confidence="synthetic_contract_check",
+    )
+    assert definition.value_axes == ("frame",)
+    assert target.values.shape == (2,)
+
+    with pytest.raises(ValueError, match="rank must match its declared value axes"):
+        TargetValue(
+            entity_id="link-1",
+            definition=definition,
+            values=np.asarray([[0.0, 20e-9]]),
+            valid_mask=np.ones((1, 2), dtype=bool),
+            reason_codes=(TargetValidity.VALID, TargetValidity.VALID),
+            confidence="synthetic_contract_check",
+        )
+    with pytest.raises(TypeError, match="tuple or list"):
+        TargetDefinition.versioned(
+            semantic="rms_delay_spread",
+            units="s",
+            source="path_oracle",
+            reference="absolute_physical_channel_path_oracle",
+            aggregation_rule=(
+                "RMS over valid per-path powers in the declared frame and delay reference"
+            ),
+            definition_version="umcd.rms_delay_spread.v2",
+            value_axes="frame",  # type: ignore[arg-type]
+        )
+
+    missing_axis = TargetDefinition.versioned(
+        semantic="rms_delay_spread",
+        units="s",
+        source="path_oracle",
+        reference="absolute_physical_channel_path_oracle",
+        aggregation_rule=(
+            "RMS over valid per-path powers in the declared frame and delay reference"
+        ),
+        definition_version="umcd.rms_delay_spread.v2",
+    )
+    with pytest.raises(ValueError, match="v2 needs explicit"):
+        TargetValue(
+            entity_id="link-1",
+            definition=missing_axis,
+            values=np.asarray([20e-9]),
+            valid_mask=np.ones(1, dtype=bool),
+            reason_codes=(TargetValidity.VALID,),
+            confidence="synthetic_contract_check",
         )
 
 
@@ -433,6 +799,20 @@ def test_nr_storage_admission_enforces_canonical_cfr_value_domain() -> None:
             (1, 1, 1, 1, 1, 3, 1),
         ),
         (
+            "umcd.standardized.effective-cfr.v2",
+            "perfect_synchronized_effective_subcarrier_cfr",
+            "channel_cfr",
+            (1, 1, 1, 1, 1, 3, 2),
+            (1, 1, 1, 1, 1, 3, 1),
+        ),
+        (
+            "umcd.tdl-pusch.effective-cfr.v2",
+            "perfect synchronized effective-subcarrier CFR",
+            "channel_cfr",
+            (1, 1, 1, 1, 1, 3, 2),
+            (1, 1, 1, 1, 1, 3, 1),
+        ),
+        (
             "umcd.rt-trajectory.absolute-cfr.v1",
             "absolute-delay full-path complex CFR on effective PUSCH subcarriers",
             "channel_cfr",
@@ -440,7 +820,21 @@ def test_nr_storage_admission_enforces_canonical_cfr_value_domain() -> None:
             (1,),
         ),
         (
+            "umcd.rt-trajectory.absolute-cfr.v2",
+            "absolute-delay full-path complex CFR on effective PUSCH subcarriers",
+            "channel_cfr",
+            (2,),
+            (1,),
+        ),
+        (
             "umcd.rt-trajectory.symbol-cfr.v1",
+            "absolute-delay full-path CFR with path-Doppler phase evolution sampled at PUSCH OFDM symbols",
+            "channel_cfr_ofdm_symbols",
+            (3, 2),
+            (3, 1),
+        ),
+        (
+            "umcd.rt-trajectory.symbol-cfr.v2",
             "absolute-delay full-path CFR with path-Doppler phase evolution sampled at PUSCH OFDM symbols",
             "channel_cfr_ofdm_symbols",
             (3, 2),
@@ -483,3 +877,124 @@ def test_nr_cfr_target_shape_matches_its_observation_contract(
     record(expected_shape).require_versioned_target_definitions()
     with pytest.raises(ValueError, match="shape .* expected .* from its observation"):
         record(wrong_shape).require_versioned_target_definitions()
+
+
+def test_nr_trajectory_geometric_visibility_is_one_scalar_per_record() -> None:
+    h_hat = np.zeros((1, 1, 1, 1, 1, 3, 2), dtype=np.complex64)
+    estimate = NRChannelEstimate(
+        h_hat=h_hat,
+        error_variance=np.zeros_like(h_hat.real),
+        pilot_mask=np.ones((1, 1, 3, 2), dtype=bool),
+        metadata={"receiver": "trajectory-geometric-los-shape-fixture"},
+    )
+    observation = NRObservation(
+        sample_id="trajectory-geometric-los-shape-fixture",
+        received_grid=np.zeros((1, 1, 1, 3, 4), dtype=np.complex64),
+        channel_estimate=estimate,
+        fft_bin_indices=(1, 2),
+        receiver_config=NRPUSCHConfig(n_size_bwp=1, subcarrier_spacing_khz=15),
+    )
+    definition = TargetDefinition.versioned(
+        semantic="digest-bound NumPy loaded-scene direct-visibility oracle",
+        units="boolean",
+        source="numpy_loaded_scene_triangle_inventory",
+        reference=(
+            "loaded-scene triangle query cross-checked with Mitsuba segment intersection "
+            "and depth-zero Sionna PathSolver for each recorded TX/RX pose and geometry digest"
+        ),
+        aggregation_rule="one independent direct-path visibility value per frame",
+        definition_version="umcd.rt-trajectory.geometric-los.v2",
+    )
+
+    def record(value: np.ndarray) -> NRChannelRecord:
+        return NRChannelRecord(
+            observation=observation,
+            targets={"geometric_los": value},
+            target_masks={"geometric_los": np.ones(value.shape, dtype=bool)},
+            provenance={"source": "trajectory geometric LOS shape fixture"},
+            target_definitions={"geometric_los": definition},
+        )
+
+    record(np.asarray(True)).require_versioned_target_definitions()
+    with pytest.raises(ValueError, match=r"shape .* expected \(\) from its observation"):
+        record(np.asarray([True])).require_versioned_target_definitions()
+
+
+def test_nr_standardized_profile_proxy_uses_fixed_singleton_storage_shape() -> None:
+    h_hat = np.zeros((1, 1, 1, 1, 1, 3, 2), dtype=np.complex64)
+    estimate = NRChannelEstimate(
+        h_hat=h_hat,
+        error_variance=np.zeros_like(h_hat.real),
+        pilot_mask=np.ones((1, 1, 3, 2), dtype=bool),
+        metadata={"receiver": "profile-proxy-shape-fixture"},
+    )
+    observation = NRObservation(
+        sample_id="profile-proxy-shape-fixture",
+        received_grid=np.zeros((1, 1, 1, 3, 4), dtype=np.complex64),
+        channel_estimate=estimate,
+        fft_bin_indices=(1, 2),
+        receiver_config=NRPUSCHConfig(n_size_bwp=1, subcarrier_spacing_khz=15),
+    )
+    definition = TargetDefinition.versioned(
+        semantic="standardized_profile_los_category_proxy",
+        units="binary_class",
+        source="Sionna standardized TDL/CDL profile model",
+        reference=(
+            "profile_los_component false maps to 0 and true maps to 1; not geometric LOS truth"
+        ),
+        aggregation_rule="one profile-category proxy per generated channel record",
+        definition_version="umcd.standardized.profile-los-proxy.v1",
+    )
+
+    def record(value: np.ndarray) -> NRChannelRecord:
+        return NRChannelRecord(
+            observation=observation,
+            targets={"profile_los_proxy": value},
+            target_masks={"profile_los_proxy": np.ones(value.shape, dtype=bool)},
+            provenance={"source": "profile proxy shape fixture"},
+            target_definitions={"profile_los_proxy": definition},
+        )
+
+    record(np.asarray([1], dtype=np.uint8)).require_versioned_target_definitions()
+    with pytest.raises(ValueError, match=r"shape .* expected \(1,\) from its observation"):
+        record(np.asarray([[1]], dtype=np.uint8)).require_versioned_target_definitions()
+
+
+@pytest.mark.parametrize(
+    ("version", "semantic", "units", "expected_axes"),
+    [
+        (
+            "umcd.rt-trajectory.absolute-cfr.v2",
+            "absolute-delay full-path complex CFR on effective PUSCH subcarriers",
+            "complex channel gain (dimensionless)",
+            ("effective_subcarrier",),
+        ),
+        (
+            "umcd.rt-trajectory.symbol-cfr.v2",
+            "absolute-delay full-path CFR with path-Doppler phase evolution sampled at PUSCH OFDM symbols",
+            "complex channel gain (dimensionless)",
+            ("ofdm_symbol", "effective_subcarrier"),
+        ),
+    ],
+)
+def test_rt_cfr_v2_requires_semantic_value_axes(version, semantic, units, expected_axes):
+    definition = _definition(version, semantic=semantic, units=units)
+    assert definition.value_axes == expected_axes
+    validate_canonical_target_contract(
+        np.ones((2,) if len(expected_axes) == 1 else (3, 2), dtype=np.complex64),
+        definition,
+        name="channel_cfr" if len(expected_axes) == 1 else "channel_cfr_ofdm_symbols",
+    )
+    axisless = TargetDefinition.versioned(
+        semantic=semantic,
+        units=units,
+        source=definition.source,
+        reference=definition.reference,
+        aggregation_rule=definition.aggregation_rule,
+        definition_version=version,
+    )
+    with pytest.raises(ValueError, match="explicit .* value axes"):
+        validate_canonical_target_contract(
+            np.ones((2,) if len(expected_axes) == 1 else (3, 2), dtype=np.complex64),
+            axisless,
+        )

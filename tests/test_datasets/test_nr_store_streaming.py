@@ -5,8 +5,11 @@ import io
 import os
 import shutil
 import zipfile
+from dataclasses import replace
 from pathlib import Path
 
+import datasets.nr_store as nr_store
+import datasets.targets as target_contracts
 import numpy as np
 import pytest
 from datasets import iter_nr_record_shards
@@ -81,6 +84,47 @@ def test_shards_are_bounded_lazy_and_ordered_by_sample_id(tmp_path, monkeypatch)
         "c",
     )
     assert loaded_ids == ["a", "b", "c"]
+
+
+@pytest.mark.parametrize(
+    "version",
+    (
+        "umcd.rt-trajectory.geometric-los.v1",
+        "umcd.f04_rt_dynamic.direct_visibility.v2",
+        "umcd.f04_rt_dynamic.direct_visibility.v3",
+    ),
+)
+def test_trajectory_visibility_vectors_are_read_only_in_nr_store(tmp_path, monkeypatch, version):
+    record = _record("legacy-trajectory-visibility")
+    name, semantic, units, _domain = target_contracts._CANONICAL_TARGET_CONTRACTS[version]
+    source, references, aggregations = target_contracts._CANONICAL_TARGET_PROVENANCE[version]
+    reference = next(iter(references))
+    aggregation = next(iter(aggregations)) if isinstance(aggregations, frozenset) else aggregations
+    definition = TargetDefinition.versioned(
+        semantic=semantic,
+        units=units,
+        source=source,
+        reference=reference,
+        aggregation_rule=aggregation,
+        definition_version=version,
+    )
+    trajectory_record = replace(
+        record,
+        targets={name: np.asarray([True, False], dtype=np.bool_)},
+        target_masks={name: np.asarray([True, True], dtype=np.bool_)},
+        target_reason_codes={name: record.target_reason_codes["profile_proxy"] * 2},
+        target_definitions={name: definition},
+    )
+
+    with pytest.raises(ValueError, match="axis-ambiguous NR target definitions are read-only"):
+        write_nr_record(tmp_path, trajectory_record)
+
+    # Existing content remains readable even though current writers reject it.
+    monkeypatch.setattr(nr_store, "_AXIS_AMBIGUOUS_NR_TARGET_VERSIONS", frozenset())
+    stored = write_nr_record(tmp_path, trajectory_record)
+    restored = read_nr_record(tmp_path, stored)
+    assert restored.targets[name].tolist() == [True, False]
+    assert restored.target_definitions[name].definition_version == version
 
 
 def test_shard_order_is_repeatable_independent_of_write_order(tmp_path):

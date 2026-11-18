@@ -15,6 +15,7 @@ from .los_oracle import independent_mesh_segment_visibility
 from .network_phy import (
     NetworkGridComposition,
     NetworkLinkBudget,
+    NetworkMIMOChannelPropagation,
     NetworkResourceSINR,
     NetworkSINR,
     NetworkTransmitterWaveform,
@@ -29,8 +30,17 @@ from .network_phy import (
     compose_received_waveforms,
     network_resource_sinr,
     network_sinr,
+    propagate_network_transmit_waveforms,
 )
-from .network_receiver import NetworkPUSCHDecode, decode_noisy_network_pusch
+from .network_receiver import (
+    NetworkPUSCHDecode,
+    NetworkPUSCHWorkflowResult,
+    NetworkTransmitterPUSCHWorkflowResult,
+    decode_noisy_network_pusch,
+    run_network_pusch_from_transmitters,
+    run_network_pusch_receiver,
+)
+from .network_sinr import NetworkGridSINRWorkflowResult, run_network_grid_sinr
 from .nr_prs import (
     NRPRSDelayCFOProfile,
     NRPRSDLRSTDMeasurement,
@@ -225,6 +235,7 @@ __all__ = [
     "NRSRSResourceGrid",
     "NetworkGridComposition",
     "NetworkLinkBudget",
+    "NetworkMIMOChannelPropagation",
     "NetworkResourceSINR",
     "NetworkSINR",
     "NetworkTransmitterWaveform",
@@ -291,6 +302,13 @@ __all__ = [
     "map_nr_srs_hopped_multiport_resource",
     "network_sinr",
     "decode_noisy_network_pusch",
+    "NetworkPUSCHWorkflowResult",
+    "NetworkTransmitterPUSCHWorkflowResult",
+    "run_network_pusch_receiver",
+    "run_network_pusch_from_transmitters",
+    "propagate_network_transmit_waveforms",
+    "NetworkGridSINRWorkflowResult",
+    "run_network_grid_sinr",
     "map_nr_dl_prs_resource",
     "map_nr_dl_prs_resource_set",
     "measure_nr_dl_rstd",

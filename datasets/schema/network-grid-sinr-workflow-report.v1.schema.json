@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "umcd.network_grid_sinr_workflow.report.v1",
+  "title": "UMCD network grid SINR workflow report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "status", "boundary", "dimensions", "input_channel_semantics", "max_tensor_elements",
+    "estimated_live_tensor_elements", "serving_tx_indices_sha256",
+    "noise_variance_input_sha256", "implementation_sha256", "tensor_sha256", "aggregate_metrics_sha256", "link_budget_sha256",
+    "schema_sha256", "report_sha256"
+  ],
+  "properties": {
+    "schema": {"const": "umcd.network_grid_sinr_workflow.v1"},
+    "status": {"const": "OBSERVED_NOT_QUALIFIED"},
+    "boundary": {"const": "SYNCHRONIZED_GRID_SOFTWARE_DIAGNOSTIC_NOT_RECEIVER_QUALIFICATION"},
+    "dimensions": {
+      "type": "object", "additionalProperties": false,
+      "required": ["batch", "rx", "rx_port", "tx", "symbol", "subcarrier"],
+      "properties": {
+        "batch": {"type": "integer", "minimum": 1}, "rx": {"type": "integer", "minimum": 1},
+        "rx_port": {"type": "integer", "minimum": 1}, "tx": {"type": "integer", "minimum": 1},
+        "symbol": {"type": "integer", "minimum": 1}, "subcarrier": {"type": "integer", "minimum": 1}
+      }
+    },
+    "input_channel_semantics": {"enum": ["caller_supplied_effective_channel", "unit_mean_small_scale_fading_with_declared_profiles"]},
+    "max_tensor_elements": {"type": "integer", "minimum": 1},
+    "estimated_live_tensor_elements": {"type": "integer", "minimum": 1},
+    "serving_tx_indices_sha256": {"$ref": "#/$defs/sha256"},
+    "noise_variance_input_sha256": {"$ref": "#/$defs/sha256"},
+    "implementation_sha256": {
+      "type": "object", "additionalProperties": false,
+      "required": ["workflow", "grid_composition", "resource_sinr"],
+      "minProperties": 3,
+      "maxProperties": 5,
+      "properties": {
+        "workflow": {"$ref": "#/$defs/sha256"},
+        "grid_composition": {"$ref": "#/$defs/sha256"},
+        "resource_sinr": {"$ref": "#/$defs/sha256"},
+        "link_budget": {"$ref": "#/$defs/sha256"},
+        "network_sinr": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "tensor_sha256": {
+      "type": "object", "additionalProperties": false,
+      "required": ["channel", "effective_channel", "transmit_grids", "transmit_power_w_per_re", "source_contributions", "received_grid", "desired_power_w_per_re", "interference_power_w_per_re", "noise_power_w_per_re", "sinr_linear", "valid"],
+      "properties": {
+        "channel": {"$ref": "#/$defs/sha256"}, "effective_channel": {"$ref": "#/$defs/sha256"}, "transmit_grids": {"$ref": "#/$defs/sha256"},
+        "transmit_power_w_per_re": {"$ref": "#/$defs/sha256"}, "source_contributions": {"$ref": "#/$defs/sha256"},
+        "received_grid": {"$ref": "#/$defs/sha256"}, "desired_power_w_per_re": {"$ref": "#/$defs/sha256"},
+        "interference_power_w_per_re": {"$ref": "#/$defs/sha256"}, "noise_power_w_per_re": {"$ref": "#/$defs/sha256"},
+        "sinr_linear": {"$ref": "#/$defs/sha256"}, "valid": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "aggregate_metrics_sha256": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["desired_power_w_per_re", "interference_power_w_per_re", "noise_power_w_per_re", "sinr_linear", "valid"],
+          "properties": {
+            "desired_power_w_per_re": {"$ref": "#/$defs/sha256"},
+            "interference_power_w_per_re": {"$ref": "#/$defs/sha256"},
+            "noise_power_w_per_re": {"$ref": "#/$defs/sha256"},
+            "sinr_linear": {"$ref": "#/$defs/sha256"},
+            "valid": {"$ref": "#/$defs/sha256"}
+          }
+        }
+      ]
+    },
+    "link_budget_sha256": {"oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+    "schema_sha256": {"$ref": "#/$defs/sha256"},
+    "report_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

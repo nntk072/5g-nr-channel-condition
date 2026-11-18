@@ -1,13 +1,16 @@
-"""Evaluate fixed one-step CSI forecasts against the frozen RT scene split."""
+"""Evaluate fixed CSI forecast baselines against the frozen RT scene split."""
 
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import hashlib
 import json
+import sys
 from pathlib import Path
 from typing import Any
 
+import jsonschema
 from artifacts.provenance import package_source_sha256, sha256_file, versions
 from datasets.nr_store import NRStoredTrajectory, read_nr_trajectory
 from datasets.split_policy import (
@@ -19,6 +22,10 @@ from evaluation.independent_splits import IndependentSplit
 from experiments.rt_trajectory_forecast import (
     evaluate_trajectory_forecasts,
     summarize_forecast_rows,
+)
+
+REPORT_SCHEMA = (
+    Path(__file__).resolve().parents[1] / "datasets/schema/rt-nr-forecast-pilot.v2.schema.json"
 )
 
 
@@ -38,6 +45,7 @@ def evaluate_frozen_trajectories(
     split_signature_path: Path | None = None,
     trusted_split_allowed_signers_path: Path | None = None,
     split_signer_id: str | None = None,
+    command: list[str] | None = None,
 ) -> dict[str, Any]:
     """Evaluate fixed baselines under a signed registry or legacy diagnostic lock."""
     signed_arguments = (
@@ -84,6 +92,7 @@ def evaluate_frozen_trajectories(
 
     all_rows: list[dict[str, Any]] = []
     trajectories: list[dict[str, Any]] = []
+    forecast_designs: list[dict[str, Any]] = []
     input_specs: list[dict[str, str]] = []
     observed_samples: set[str] = set()
     for spec_path in spec_paths:
@@ -95,9 +104,7 @@ def evaluate_frozen_trajectories(
             raise ValueError(f"trajectory specs contain duplicate samples: {trajectory_id}")
         observed_samples.update(trajectory.sample_ids)
         if registry is not None:
-            for sample_id, record in zip(
-                trajectory.sample_ids, trajectory.records, strict=True
-            ):
+            for sample_id, record in zip(trajectory.sample_ids, trajectory.records, strict=True):
                 try:
                     binding = registry.child_bindings[sample_id]
                 except KeyError as exc:
@@ -105,9 +112,7 @@ def evaluate_frozen_trajectories(
                         f"trajectory sample is absent from signed split registry: {sample_id}"
                     ) from exc
                 if binding.child_kind != "nr_trajectory_sample":
-                    raise ValueError(
-                        f"trajectory sample has wrong signed child kind: {sample_id}"
-                    )
+                    raise ValueError(f"trajectory sample has wrong signed child kind: {sample_id}")
                 expected_lineage = {
                     "split_subject_id": binding.parent_subject_id,
                     "split_child_id": sample_id,
@@ -145,10 +150,22 @@ def evaluate_frozen_trajectories(
                 raise ValueError(
                     f"trajectory scene group differs from frozen lock: {trajectory_id}"
                 )
+        forecast_kwargs: dict[str, Any] = {}
+        if "horizons_s" in spec:
+            horizons = spec["horizons_s"]
+            if not isinstance(horizons, list) or not horizons:
+                raise ValueError("trajectory spec horizons_s must be a nonempty array")
+            forecast_kwargs["horizons_s"] = tuple(horizons)
+        elif "timestamp_tolerance_s" in spec:
+            raise ValueError("trajectory spec timestamp_tolerance_s requires explicit horizons_s")
+        for field in ("maximum_inter_sample_gap_s", "timestamp_tolerance_s"):
+            if field in spec:
+                forecast_kwargs[field] = spec[field]
         rows = evaluate_trajectory_forecasts(
             trajectory,
             split=assigned_split,
             split_registry=registry,
+            **forecast_kwargs,
         )
         all_rows.extend(rows)
         trajectories.append(
@@ -158,6 +175,19 @@ def evaluate_frozen_trajectories(
                 "split": assigned_split,
                 "content_sha256": stored.content_sha256,
                 "sample_count": len(trajectory.records),
+            }
+        )
+        forecast_designs.append(
+            {
+                "trajectory_id": trajectory_id,
+                "horizons_s": (
+                    list(forecast_kwargs["horizons_s"]) if "horizons_s" in forecast_kwargs else None
+                ),
+                "maximum_inter_sample_gap_s": forecast_kwargs.get("maximum_inter_sample_gap_s"),
+                "timestamp_tolerance_s": forecast_kwargs.get("timestamp_tolerance_s", 0.0),
+                "mode": "explicit_elapsed_time_horizons"
+                if "horizons_s" in forecast_kwargs
+                else "adjacent_sample_diagnostic",
             }
         )
         input_specs.append({"path": str(spec_path), "sha256": sha256_file(spec_path)})
@@ -188,8 +218,12 @@ def evaluate_frozen_trajectories(
             row["method"],
         ),
     )
-    return {
-        "schema": "loslab.rt_nr_forecast_pilot.v1",
+    report = {
+        "schema": "loslab.rt_nr_forecast_pilot.v2",
+        "report_schema_sha256": sha256_file(REPORT_SCHEMA),
+        "runner_source_sha256": sha256_file(Path(__file__)),
+        "generated_at_utc": dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z"),
+        "command": command,
         "status": "PILOT_FIXED_BASELINES_NOT_A_FORECASTING_CLAIM",
         "target": "future absolute-delay full RT CFR",
         "model_inputs": "past receiver-visible PUSCH DMRS channel estimates only",
@@ -224,6 +258,7 @@ def evaluate_frozen_trajectories(
         "trajectory_count": len(trajectories),
         "transition_count": len(predictions),
         "trajectories": trajectories,
+        "forecast_designs": forecast_designs,
         "specs": input_specs,
         "metrics_by_split": metrics_by_split,
         "predictions": predictions,
@@ -231,12 +266,15 @@ def evaluate_frozen_trajectories(
         "package_source_sha256": package_source_sha256(),
         "limitations": [
             "Only six short synthetic or built-in scene trajectories are available.",
-            "The locked test split contains one independent scene group and three one-step persistence transitions.",
             "The linear complex trend is a simple baseline, not a Doppler or learned dynamics model.",
             "Targets are simulator CFR truth; no measured channel or within-slot dynamics are evaluated.",
             "Metrics are descriptive and do not support a statistical scene-generalization claim.",
         ],
     }
+    schema = json.loads(REPORT_SCHEMA.read_text(encoding="utf-8"))
+    jsonschema.Draft202012Validator.check_schema(schema)
+    jsonschema.validate(report, schema)
+    return report
 
 
 def main() -> None:
@@ -256,6 +294,7 @@ def main() -> None:
         split_signature_path=args.split_signature,
         trusted_split_allowed_signers_path=args.trusted_split_allowed_signers,
         split_signer_id=args.split_signer_id,
+        command=[sys.executable, *sys.argv],
     )
     payload = json.dumps(report, indent=2, sort_keys=True, allow_nan=False).encode() + b"\n"
     if args.output.exists():

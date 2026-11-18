@@ -5,14 +5,24 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import platform
 import shutil
 import subprocess
+import sys
 import tempfile
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 import numpy as np
-from artifacts.provenance import package_source_sha256, sha256_file, versions
+from artifacts.provenance import (
+    atomic_json,
+    canonical_hash,
+    package_source_sha256,
+    sha256_file,
+    versions,
+)
+from artifacts.run_replay import build_run_replay_provenance, transition_run_replay
 from evaluation.statistics import paired_group_regression_comparison
 from evaluation.uncertainty_io import evaluate_prediction_file
 from experiments.observable_multipath import (
@@ -66,13 +76,31 @@ def run_experiment(
     if output_dir.exists():
         raise FileExistsError(f"refusing to overwrite existing output directory: {output_dir}")
     output_dir.parent.mkdir(parents=True, exist_ok=True)
+    created_utc = datetime.now(timezone.utc).isoformat()
+    preparation = _build_preparation_receipt(
+        output_dir,
+        created_utc=created_utc,
+        num_groups=num_groups,
+        samples_per_group=samples_per_group,
+        n_tones=n_tones,
+        seed=seed,
+        epochs=epochs,
+        batch_size=batch_size,
+        patience=patience,
+        device=device,
+        identifiability_weight=identifiability_weight,
+        bootstrap_draws=bootstrap_draws,
+    )
     staging_dir = Path(
         tempfile.mkdtemp(prefix=f".{output_dir.name}.staging-", dir=output_dir.parent)
     )
     try:
+        atomic_json(staging_dir / "run_manifest.json", preparation, overwrite=False)
         return _run_experiment_in_staging(
             staging_dir,
             output_dir,
+            preparation=preparation,
+            created_utc=created_utc,
             num_groups=num_groups,
             samples_per_group=samples_per_group,
             n_tones=n_tones,
@@ -89,10 +117,84 @@ def run_experiment(
         raise
 
 
+def _build_preparation_receipt(
+    output_dir: Path,
+    *,
+    created_utc: str,
+    num_groups: int,
+    samples_per_group: int,
+    n_tones: int,
+    seed: int,
+    epochs: int,
+    batch_size: int,
+    patience: int,
+    device: str,
+    identifiability_weight: float,
+    bootstrap_draws: int,
+) -> dict[str, Any]:
+    """Bind run identity before allocating a private staging directory."""
+    run_config = {
+        "num_groups": num_groups,
+        "samples_per_group": samples_per_group,
+        "n_tones": n_tones,
+        "seed": seed,
+        "epochs": epochs,
+        "batch_size": batch_size,
+        "patience": patience,
+        "device": device,
+        "identifiability_weight": identifiability_weight,
+        "bootstrap_draws": bootstrap_draws,
+    }
+    dependency_versions = versions()
+    source_revision = dependency_versions.get("git_sha", "unavailable") or "unavailable"
+    source_digest = package_source_sha256()
+    rng_streams = [
+        {
+            "name": "dataset_and_training_seed",
+            "library": "numpy/torch",
+            "algorithm": "observable_two_path_seed_v1",
+            "seed_material": [seed],
+            "derived_seed": seed,
+            "purpose": "synthetic dataset generation and paired decoder training",
+        },
+        {
+            "name": "group_bootstrap_seed",
+            "library": "numpy",
+            "algorithm": "paired_group_regression_bootstrap_v1",
+            "seed_material": [seed],
+            "derived_seed": seed,
+            "purpose": "paired group bootstrap and descriptive calibration intervals",
+        },
+    ]
+    return {
+        "schema": "loslab.observable_multipath_staging.v2",
+        "state": "running",
+        "phase": "dataset_generation",
+        "created_utc": created_utc,
+        "output_directory_name": output_dir.name,
+        "run_config": run_config,
+        "run_config_sha256": canonical_hash(run_config),
+        "qualification_status": "NOT_QUALIFIED",
+        "source_identity": {
+            "revision": source_revision,
+            "package_source_sha256": source_digest,
+        },
+        "runtime_identity": {
+            "platform": platform.platform(),
+            "dependencies": dependency_versions,
+            "requested_device": device,
+        },
+        "command_argv": list(sys.argv) or ["run_observable_multipath_experiment"],
+        "rng_streams": rng_streams,
+    }
+
+
 def _run_experiment_in_staging(
     staging_dir: Path,
     output_dir: Path,
     *,
+    preparation: dict[str, Any],
+    created_utc: str,
     num_groups: int,
     samples_per_group: int,
     n_tones: int,
@@ -105,11 +207,48 @@ def _run_experiment_in_staging(
     bootstrap_draws: int,
 ) -> dict[str, Any]:
     """Create all files privately, then publish the complete run atomically."""
+    run_config = preparation["run_config"]
+    dependency_versions = preparation["runtime_identity"]["dependencies"]
+    source_revision = preparation["source_identity"]["revision"]
+    source_digest = preparation["source_identity"]["package_source_sha256"]
+    command_argv = preparation["command_argv"]
+    rng_streams = preparation["rng_streams"]
+    config_sha256 = preparation["run_config_sha256"]
+
     dataset = generate_grouped_two_path_dataset(
         num_groups=num_groups,
         samples_per_group=samples_per_group,
         n_tones=n_tones,
         seed=seed,
+    )
+    run_replay = build_run_replay_provenance(
+        created_utc=created_utc,
+        command_argv=command_argv,
+        command_source="process_argv_snapshot",
+        source_revision=source_revision,
+        package_source_sha256=source_digest,
+        config_sha256=config_sha256,
+        inputs=[
+            {
+                "path": "generated:grouped_synthetic_two_path_dataset",
+                "sha256": dataset.source_sha256,
+            }
+        ],
+        backend_identity={
+            "requested_device": device,
+            "platform": platform.platform(),
+            "dependencies": dependency_versions,
+        },
+        rng_streams=rng_streams,
+    )
+    atomic_json(
+        staging_dir / "run_manifest.json",
+        {
+            **preparation,
+            "state": "running",
+            "phase": "model_fitting",
+            "run_replay": run_replay,
+        },
     )
     model_inputs = dataset.model_inputs()
     model_off, training_off = fit_two_path_decoder(
@@ -276,9 +415,13 @@ def _run_experiment_in_staging(
             ),
         )
     manifest = {
-        "schema": "loslab.observable_multipath_experiment.v2",
+        "schema": "loslab.observable_multipath_experiment.v3",
         "status": "DESCRIPTIVE_ANALYTICAL_PILOT",
         "claim_status": "NO_SCIENTIFIC_ADVANTAGE_CLAIM",
+        "created_utc": created_utc,
+        "run_config": run_config,
+        "run_config_sha256": canonical_hash(run_config),
+        "run_replay": run_replay,
         "dataset": {
             "groups": num_groups,
             "samples_per_group": samples_per_group,
@@ -315,8 +458,8 @@ def _run_experiment_in_staging(
         },
         "provenance": {
             "git_revision": _git_revision(Path(__file__).resolve().parents[1]),
-            "package_source_sha256": package_source_sha256(),
-            "runtime_versions": versions(),
+            "package_source_sha256": source_digest,
+            "runtime_versions": dependency_versions,
             "seed": seed,
             "source_sha256": sha256_file(Path(__file__)),
         },
@@ -343,8 +486,9 @@ def _run_experiment_in_staging(
             "No diffuse paths, channel-estimation errors, synchronization impairments, or measured data.",
         ],
     }
+    manifest["run_replay"] = transition_run_replay(run_replay, state="complete")
     manifest_path = staging_dir / "run_manifest.json"
-    _write_json(manifest_path, manifest)
+    atomic_json(manifest_path, manifest)
     staging_dir.rename(output_dir)
     return manifest
 

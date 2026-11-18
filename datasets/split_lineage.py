@@ -25,7 +25,9 @@ from datasets.split_policy import (
     derive_spatiotemporal_leakage_relations,
     derive_split_components,
     make_split_policy_registry,
+    standardized_draw_subject,
 )
+from datasets.standardized import StandardizedChannelRun
 
 
 def _require_canonical_identity(value: Any, *, name: str, context: str) -> str:
@@ -503,9 +505,8 @@ def derive_channel_dataset_split_evidence(
     shared_geometry_relations: dict[str, set[str]] = {}
     for subject in subjects:
         for relation in subject.relations:
-            if (
-                relation.namespace is LeakageNamespace.ASSET_FAMILY
-                and relation.identity.startswith("geometry-asset:")
+            if relation.namespace is LeakageNamespace.ASSET_FAMILY and relation.identity.startswith(
+                "geometry-asset:"
             ):
                 shared_geometry_relations.setdefault(relation.identity, set()).add(
                     subject.subject_id
@@ -550,9 +551,7 @@ def derive_channel_dataset_split_evidence(
         "leakage_component_sizes_descending": component_sizes,
         "largest_leakage_component_subjects": component_sizes[0],
         "subjects_reused_across_inputs": sum(count > 1 for count in parent_run_counts.values()),
-        "subjects_with_complete_geometry_asset_inventory": len(
-            geometry_asset_manifest_subjects
-        ),
+        "subjects_with_complete_geometry_asset_inventory": len(geometry_asset_manifest_subjects),
         "subjects_without_complete_geometry_asset_inventory": len(parent_records)
         - len(geometry_asset_manifest_subjects),
         "subjects_linked_by_exact_shared_geometry_assets": len(
@@ -609,4 +608,76 @@ def make_channel_dataset_split_registry(
     registry = bind_spatiotemporal_audit_to_registry(
         registry, footprints, spatial_buffer_m=spatial_buffer_m
     )
+    return registry, report
+
+
+def derive_standardized_run_split_subjects(
+    runs: Sequence[StandardizedChannelRun],
+) -> tuple[tuple[SplitSubject, ...], dict[str, Any]]:
+    """Adapt persisted standardized draws into leakage-safe split parents.
+
+    Draw identity and partition identity come from ``standardized_draw_subject``;
+    profile labels, source-family labels, and model targets do not choose the
+    partition. Reused seed/index pairs across distinct draws remain a hard
+    collision for registry construction unless each record supplies an explicit
+    opaque ``partition_id`` in its metadata.
+    """
+    if not runs:
+        raise ValueError("at least one standardized run is required")
+    if any(not isinstance(run, StandardizedChannelRun) for run in runs):
+        raise TypeError("runs must contain StandardizedChannelRun values")
+    normalized = tuple(sorted(runs, key=lambda run: run.run_id))
+    run_ids = [run.run_id for run in normalized]
+    if len(set(run_ids)) != len(run_ids):
+        raise ValueError("standardized run IDs must be unique")
+    records = [record for run in normalized for record in run.records]
+    sample_ids = [record.sample_id for record in records]
+    if len(set(sample_ids)) != len(sample_ids):
+        raise ValueError("standardized sample IDs must be unique across runs")
+    subjects = tuple(
+        sorted(
+            (standardized_draw_subject(record) for record in records), key=lambda s: s.subject_id
+        )
+    )
+
+    def canonical(value: Any) -> bytes:
+        return json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False).encode(
+            "utf-8"
+        )
+
+    report = {
+        "schema": "umcd.standardized_split_lineage.v1",
+        "status": "PASS_INPUT_SCOPED",
+        "qualification_status": "NOT_QUALIFIED",
+        "run_count": len(normalized),
+        "draw_count": len(subjects),
+        "run_ids_sha256": hashlib.sha256(canonical(run_ids)).hexdigest(),
+        "subject_roster_sha256": hashlib.sha256(
+            canonical({subject.subject_id: subject.to_dict() for subject in subjects})
+        ).hexdigest(),
+        "partition_roster_sha256": hashlib.sha256(
+            canonical({subject.subject_id: subject.partition_id for subject in subjects})
+        ).hexdigest(),
+        "source_families": dict(
+            sorted(
+                (family, sum(subject.source_family == family for subject in subjects))
+                for family in {subject.source_family for subject in subjects}
+            )
+        ),
+    }
+    return subjects, report
+
+
+def make_standardized_run_split_registry(
+    runs: Sequence[StandardizedChannelRun], *, policy: SplitPolicy
+) -> tuple[SplitPolicyRegistry, dict[str, Any]]:
+    """Build the canonical split registry for standardized channel draws."""
+    subjects, report = derive_standardized_run_split_subjects(runs)
+    registry = make_split_policy_registry(subjects, policy=policy)
+    report["policy_sha256"] = policy.to_dict()["policy_sha256"]
+    report["registry_sha256"] = registry.to_dict()["registry_sha256"]
+    report["parent_counts_by_split"] = {
+        split: sum(registry.split_for_parent(subject.subject_id) == split for subject in subjects)
+        for split in policy.split_fractions
+    }
     return registry, report

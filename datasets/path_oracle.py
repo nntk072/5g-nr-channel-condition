@@ -8,6 +8,9 @@ from enum import StrEnum
 import numpy as np
 
 from .network import NetworkEpisode
+from .targets import TargetDefinition, TargetValidity, TargetValue
+
+PATH_COEFFICIENT_CONVENTION = "sionna_rt_path_coefficient_v1"
 
 
 class PathSolveStatus(StrEnum):
@@ -17,6 +20,96 @@ class PathSolveStatus(StrEnum):
     NO_PATH = "no_path"
     SOLVER_FAILURE = "solver_failure"
     UNCONVERGED = "unconverged"
+
+
+def rms_delay_spread_target(
+    table: PathOracleTable,
+    *,
+    link_id: str,
+    frame_count: int,
+) -> TargetValue:
+    """Build an unqualified path-oracle RMS-delay target for one link.
+
+    This software producer deliberately supports one link-local RX/TX port
+    pair. It never pools antenna-pair channels or applies an implicit power
+    threshold. ``NO_PATH`` and zero-power frames are represented as unavailable
+    values; failed or unconverged solves reject the whole target.
+    """
+    if not isinstance(table, PathOracleTable):
+        raise TypeError("table must be a PathOracleTable")
+    if not isinstance(link_id, str) or not link_id or link_id != link_id.strip():
+        raise ValueError("link_id must be a non-empty canonical string")
+    if isinstance(frame_count, bool) or not isinstance(frame_count, int) or frame_count <= 0:
+        raise ValueError("frame_count must be a positive integer")
+
+    selected = [index for index, candidate in enumerate(table.link_ids) if candidate == link_id]
+    if not selected:
+        raise ValueError(f"path oracle has no groups for link {link_id!r}")
+    rx_ports = {int(table.rx_port_indices[index]) for index in selected}
+    tx_ports = {int(table.tx_port_indices[index]) for index in selected}
+    if len(rx_ports) != 1 or len(tx_ports) != 1:
+        raise ValueError(
+            "RMS delay spread v2 requires exactly one RX/TX port pair per link; "
+            "multiport aggregation is not defined"
+        )
+    by_frame = {int(table.frame_indices[index]): index for index in selected}
+    expected_frames = set(range(frame_count))
+    if set(by_frame) != expected_frames:
+        raise ValueError("path oracle link groups must cover the exact frame roster")
+
+    values = np.zeros(frame_count, dtype=np.float64)
+    valid = np.zeros(frame_count, dtype=np.bool_)
+    reasons: list[TargetValidity] = []
+    for frame in range(frame_count):
+        group = by_frame[frame]
+        status = table.solve_status[group]
+        if status in (PathSolveStatus.SOLVER_FAILURE, PathSolveStatus.UNCONVERGED):
+            raise ValueError(f"cannot produce RMS delay spread for {status.value} frame {frame}")
+        if status is PathSolveStatus.NO_PATH:
+            reasons.append(TargetValidity.NOT_OBSERVABLE)
+            continue
+
+        path_slice = table.group_slice(group)
+        delays = table.delay_s[path_slice]
+        gains = table.complex_gain[path_slice]
+        coefficient_scale = float(max(np.max(np.abs(gains.real)), np.max(np.abs(gains.imag))))
+        if coefficient_scale == 0.0:
+            reasons.append(TargetValidity.NOT_OBSERVABLE)
+            continue
+        scaled_gains = gains / coefficient_scale
+        magnitudes = np.hypot(scaled_gains.real, scaled_gains.imag)
+        magnitude_scale = float(np.max(magnitudes))
+        weights = np.square(magnitudes / magnitude_scale)
+        total_power = float(np.sum(weights, dtype=np.float64))
+        if not np.isfinite(total_power) or total_power <= 0.0:
+            reasons.append(TargetValidity.NOT_OBSERVABLE)
+            continue
+        normalized = weights / total_power
+        mean_delay = float(np.sum(normalized * delays, dtype=np.float64))
+        variance = float(np.sum(normalized * np.square(delays - mean_delay), dtype=np.float64))
+        if not np.isfinite(variance) or variance < 0.0:
+            raise ValueError(f"RMS delay spread is numerically invalid for frame {frame}")
+        values[frame] = np.sqrt(variance)
+        valid[frame] = True
+        reasons.append(TargetValidity.VALID)
+
+    definition = TargetDefinition.versioned(
+        semantic="rms_delay_spread",
+        units="s",
+        source="path_oracle",
+        reference="absolute_physical_channel_path_oracle",
+        aggregation_rule="RMS over valid per-path powers in the declared frame and delay reference",
+        definition_version="umcd.rms_delay_spread.v2",
+        value_axes=("frame",),
+    )
+    return TargetValue(
+        entity_id=link_id,
+        definition=definition,
+        values=values,
+        valid_mask=valid,
+        reason_codes=tuple(reasons),
+        confidence="path_oracle_contract_unqualified",
+    )
 
 
 def _freeze_vector(value: np.ndarray, *, name: str, dtype: np.dtype) -> np.ndarray:
@@ -82,14 +175,13 @@ class PathOracleTable:
     primitive_ids: np.ndarray | None = None
     interaction_vertices_m: np.ndarray | None = None
     interaction_vertex_frame: str | None = None
-    coefficient_convention: str = "sionna_rt_path_coefficient_v1"
+    coefficient_convention: str = PATH_COEFFICIENT_CONVENTION
 
     def __post_init__(self) -> None:
         links = tuple(self.link_ids)
         status = tuple(self.solve_status)
         if not links or any(
-            not isinstance(link, str) or not link.strip() or link != link.strip()
-            for link in links
+            not isinstance(link, str) or not link.strip() or link != link.strip() for link in links
         ):
             raise ValueError("path groups need non-empty canonical link IDs")
         group_count = len(links)
@@ -228,6 +320,10 @@ class PathOracleTable:
             or self.coefficient_convention != self.coefficient_convention.strip()
         ):
             raise ValueError("coefficient_convention must be a non-empty canonical string")
+        if self.coefficient_convention != PATH_COEFFICIENT_CONVENTION:
+            raise ValueError(
+                f"unsupported path coefficient convention; expected {PATH_COEFFICIENT_CONVENTION!r}"
+            )
         for index, outcome in enumerate(status):
             path_number = int(offsets[index + 1] - offsets[index])
             if outcome is PathSolveStatus.SOLVED and path_number == 0:
@@ -301,7 +397,7 @@ class PathOracleTable:
         return slice(int(self.path_offsets[group_index]), int(self.path_offsets[group_index + 1]))
 
     def validate_for(self, episode: NetworkEpisode) -> None:
-        """Reject path groups that do not resolve to a valid episode link/frame/port."""
+        """Require one explicit solve outcome for every episode link/frame/port pair."""
         links = {link.link_id: link for link in episode.links}
         for index, link_id in enumerate(self.link_ids):
             if link_id not in links:
@@ -313,3 +409,96 @@ class PathOracleTable:
                 raise ValueError("path group RX port index is outside the link port map")
             if self.tx_port_indices[index] >= len(link.tx_port_indices):
                 raise ValueError("path group TX port index is outside the link port map")
+        expected = {
+            (link.link_id, frame_index, rx_port_index, tx_port_index)
+            for link in episode.links
+            for frame_index in range(len(episode.frame_times_s))
+            for rx_port_index in range(len(link.rx_port_indices))
+            for tx_port_index in range(len(link.tx_port_indices))
+        }
+        actual = set(
+            zip(
+                self.link_ids,
+                self.frame_indices.tolist(),
+                self.rx_port_indices.tolist(),
+                self.tx_port_indices.tolist(),
+                strict=True,
+            )
+        )
+        if actual != expected:
+            missing = sorted(expected - actual)
+            unexpected = sorted(actual - expected)
+            raise ValueError(
+                "path oracle must represent every episode link/frame/port pair exactly; "
+                f"missing={missing}, unexpected={unexpected}"
+            )
+
+
+def reconstruct_path_oracle_cfr(
+    table: PathOracleTable,
+    frequency_offset_hz: np.ndarray,
+    *,
+    carrier_hz: float,
+    include_path_mask: np.ndarray | None = None,
+) -> np.ndarray:
+    """Reconstruct complex CFR from the pinned Sionna RT path coefficients.
+
+    Frequencies are offsets from ``carrier_hz`` in Hz. The stored Sionna RT
+    coefficients are passband path coefficients, so this transform applies
+    both carrier and subcarrier phase:
+    ``a * exp(-2j*pi*delay*carrier_hz) * exp(-2j*pi*delay*offset)``. Absolute
+    path delays are retained; no delay normalization or path-power scaling is
+    applied. Explicit ``NO_PATH`` groups produce zero rows, while failed or
+    unconverged groups are rejected instead of being misrepresented as zero.
+    """
+    if not isinstance(table, PathOracleTable):
+        raise TypeError("table must be a PathOracleTable")
+    if isinstance(carrier_hz, bool) or not isinstance(carrier_hz, (int, float)):
+        raise TypeError("carrier_hz must be a real numeric scalar")
+    carrier = float(carrier_hz)
+    if not np.isfinite(carrier) or carrier <= 0.0:
+        raise ValueError("carrier_hz must be finite and positive")
+    unsuccessful = [
+        index
+        for index, status in enumerate(table.solve_status)
+        if status in (PathSolveStatus.SOLVER_FAILURE, PathSolveStatus.UNCONVERGED)
+    ]
+    if unsuccessful:
+        raise ValueError(
+            "path-oracle CFR reconstruction requires solved or explicit no-path groups; "
+            f"failed/unconverged path groups={unsuccessful}"
+        )
+    raw_frequencies = np.asarray(frequency_offset_hz)
+    if raw_frequencies.dtype.kind not in "iuf" or raw_frequencies.ndim != 1:
+        raise TypeError("frequency_offset_hz must be a one-dimensional real numeric vector")
+    frequencies = np.array(raw_frequencies, dtype=np.float64, copy=True)
+    if len(frequencies) == 0 or not np.isfinite(frequencies).all():
+        raise ValueError("frequency_offset_hz must be a non-empty finite vector")
+    if len(frequencies) > 1 and np.any(np.diff(frequencies) <= 0):
+        raise ValueError("frequency_offset_hz must be strictly increasing")
+    absolute_frequencies_hz = carrier + frequencies
+    if not np.isfinite(absolute_frequencies_hz).all() or np.any(absolute_frequencies_hz <= 0.0):
+        raise ValueError("carrier plus frequency offsets must be positive RF frequencies")
+    if include_path_mask is None:
+        selected_paths = np.ones(table.path_count, dtype=np.bool_)
+    else:
+        raw_mask = np.asarray(include_path_mask)
+        if raw_mask.dtype.kind != "b" or raw_mask.shape != (table.path_count,):
+            raise ValueError("include_path_mask must be boolean with one entry per path")
+        selected_paths = np.asarray(raw_mask, dtype=np.bool_)
+
+    cfr = np.zeros((table.group_count, len(frequencies)), dtype=np.complex128)
+    for group in range(table.group_count):
+        path_slice = table.group_slice(group)
+        path_indices = np.arange(path_slice.start, path_slice.stop, dtype=np.int64)
+        path_indices = path_indices[selected_paths[path_slice]]
+        if path_indices.size == 0:
+            continue
+        phase = np.exp(
+            -2j * np.pi * table.delay_s[path_indices, None] * (carrier + frequencies[None, :])
+        )
+        cfr[group] = np.sum(table.complex_gain[path_indices, None] * phase, axis=0)
+    if not np.isfinite(cfr.real).all() or not np.isfinite(cfr.imag).all():
+        raise ValueError("reconstructed path-oracle CFR must be finite")
+    cfr.setflags(write=False)
+    return cfr

@@ -119,6 +119,9 @@ class PhysicalChannelView:
         carrier_hz = float(self.carrier_hz)
         if not math.isfinite(carrier_hz) or carrier_hz <= 0:
             raise ValueError("carrier_hz must be finite and positive")
+        absolute_frequencies_hz = carrier_hz + frequencies
+        if not np.isfinite(absolute_frequencies_hz).all() or np.any(absolute_frequencies_hz <= 0.0):
+            raise ValueError("carrier plus baseband offsets must be positive RF frequencies")
         if not isinstance(self.delay_reference, ChannelDelayReference):
             raise TypeError("delay_reference must use ChannelDelayReference")
         if not isinstance(self.power_scale, ChannelPowerScale):

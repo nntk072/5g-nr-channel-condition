@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:benchmark-cohort-preflight:v1",
+  "title": "Benchmark cohort preflight receipt v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "qualification_status",
+    "selected_test_cohort",
+    "error_type",
+    "error_message"
+  ],
+  "properties": {
+    "schema": {"const": "loslab.benchmark_cohort_preflight.v1"},
+    "status": {
+      "enum": ["FAILED_BEFORE_RUN_MANIFEST", "UNSUPPORTED_COHORT"]
+    },
+    "qualification_status": {"const": "NOT_QUALIFIED"},
+    "selected_test_cohort": {
+      "type": ["string", "null"],
+      "minLength": 1
+    },
+    "error_type": {"type": "string", "minLength": 1},
+    "error_message": {"type": "string", "minLength": 1}
+  },
+  "additionalProperties": false
+}

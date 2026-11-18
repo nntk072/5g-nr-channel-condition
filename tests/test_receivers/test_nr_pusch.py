@@ -1,11 +1,21 @@
 import hashlib
+import json
+from pathlib import Path
 
 import numpy as np
 import pytest
 from receivers.nr import (
     NRChannelEstimate,
     NRPUSCHConfig,
+    build_pusch_intra_slot_hop_dmrs_grid,
     compose_pusch_intra_slot_hops,
+    dehop_pusch_intra_slot_received_grid,
+    derive_pusch_intra_slot_hop_dmrs_plan,
+    map_pusch_intra_slot_hop_data_symbols,
+    verify_pusch_intra_slot_dehopped_grid,
+    verify_pusch_intra_slot_hop_allocation_grid,
+    verify_pusch_intra_slot_hop_dmrs_grid,
+    verify_pusch_intra_slot_hop_dmrs_plan,
     verify_pusch_intra_slot_hops,
 )
 
@@ -24,6 +34,227 @@ def test_pusch_config_accepts_valid_dmrs_configuration():
 
 def test_pusch_config_defaults_to_sionna_receiver_linear_interpolation():
     assert NRPUSCHConfig().interpolation_type == "lin"
+
+
+@pytest.mark.parametrize(
+    ("mapping_type", "start", "first", "second", "additional", "type_a", "expected"),
+    (
+        ("B", 2, 5, 5, 1, 2, ([2, 6], [7, 11])),
+        ("B", 0, 4, 4, 0, 2, ([0], [4])),
+        ("B", 0, 2, 2, 1, 2, ([0], [2])),
+        ("A", 0, 7, 7, 1, 2, ([2, 6], [7, 11])),
+        ("A", 0, 5, 6, 1, 3, ([3], [5, 9])),
+    ),
+)
+def test_pusch_intra_slot_hop_dmrs_plan_matches_ts_38211_v192_table(
+    mapping_type, start, first, second, additional, type_a, expected
+):
+    plan = derive_pusch_intra_slot_hop_dmrs_plan(
+        mapping_type=mapping_type,
+        allocation_start_symbol=start,
+        first_hop_symbol_count=first,
+        second_hop_symbol_count=second,
+        dmrs_additional_position=additional,
+        dmrs_type_a_position=type_a,
+    )
+    assert plan.metadata["first_hop_dmrs_symbols"] == expected[0]
+    assert plan.metadata["second_hop_dmrs_symbols"] == expected[1]
+    assert plan.metadata["standard"] == "3GPP TS 38.211 V19.2.0"
+    assert plan.metadata["dmrs_additional_position_used_per_hop"] == min(additional, 1)
+    import jsonschema
+
+    schema = json.loads(
+        Path("datasets/schema/nr-pusch-intra-slot-hop-dmrs-plan.v1.schema.json").read_text()
+    )
+    jsonschema.Draft202012Validator(schema).validate(plan.metadata)
+    assert verify_pusch_intra_slot_hop_dmrs_plan(plan.metadata)["status"] == (
+        "PASS_TABLE_DERIVATION_REPLAY"
+    )
+
+
+@pytest.mark.parametrize(
+    "configuration",
+    (
+        {
+            "mapping_type": "A",
+            "allocation_start_symbol": 1,
+            "first_hop_symbol_count": 6,
+            "second_hop_symbol_count": 6,
+            "dmrs_additional_position": 1,
+        },
+        {
+            "mapping_type": "B",
+            "allocation_start_symbol": 0,
+            "first_hop_symbol_count": 4,
+            "second_hop_symbol_count": 5,
+            "dmrs_additional_position": 1,
+        },
+        {
+            "mapping_type": "B",
+            "allocation_start_symbol": 0,
+            "first_hop_symbol_count": 8,
+            "second_hop_symbol_count": 6,
+            "dmrs_additional_position": 1,
+        },
+    ),
+)
+def test_pusch_intra_slot_hop_dmrs_plan_rejects_out_of_table_allocations(configuration):
+    with pytest.raises(ValueError):
+        derive_pusch_intra_slot_hop_dmrs_plan(**configuration)
+
+
+def test_pusch_intra_slot_hop_dmrs_grid_uses_absolute_symbol_gold_sequences():
+    import jsonschema
+
+    plan = derive_pusch_intra_slot_hop_dmrs_plan(
+        mapping_type="B",
+        allocation_start_symbol=2,
+        first_hop_symbol_count=5,
+        second_hop_symbol_count=5,
+        dmrs_additional_position=1,
+    )
+    configuration = {
+        "allocation_rb_count": 1,
+        "dmrs_config_type": 1,
+        "n_cell_id": 17,
+        "dmrs_n_id": (100, 321),
+        "dmrs_n_scid": 1,
+        "subcarrier_spacing_khz": 30,
+        "slot_index": 3,
+    }
+    result = build_pusch_intra_slot_hop_dmrs_grid(plan.metadata, **configuration)
+    schema = json.loads(
+        Path("datasets/schema/nr-pusch-intra-slot-hop-dmrs-grid.v1.schema.json").read_text()
+    )
+    jsonschema.Draft202012Validator(schema).validate(result.metadata)
+    assert result.pilot_mask.shape == (14, 12)
+    assert result.pilot_mask.dtype == np.bool_
+    assert tuple(np.flatnonzero(result.pilot_mask[2])) == (0, 2, 4, 6, 8, 10)
+    assert tuple(np.flatnonzero(result.pilot_mask[7])) == (0, 2, 4, 6, 8, 10)
+    expected_first = np.asarray(
+        [
+            1 + 1j,
+            1 - 1j,
+            -1 - 1j,
+        ],
+        dtype=np.complex128,
+    ) / np.sqrt(2)
+    np.testing.assert_allclose(result.pilot_grid[2, result.pilot_mask[2]][:3], expected_first)
+    receipt = verify_pusch_intra_slot_hop_dmrs_grid(
+        plan.metadata,
+        result.pilot_mask,
+        result.pilot_grid,
+        **configuration,
+    )
+    assert receipt["status"] == "PASS_DMRS_GRID_REPLAY"
+    assert result.metadata["qualification"] == "NOT_QUALIFIED"
+
+    tampered = result.pilot_grid.copy()
+    tampered[2, 0] *= -1
+    with pytest.raises(ValueError, match="pilot values"):
+        verify_pusch_intra_slot_hop_dmrs_grid(
+            plan.metadata,
+            result.pilot_mask,
+            tampered,
+            **configuration,
+        )
+
+
+def test_pusch_intra_slot_hop_data_mapping_follows_frequency_then_symbol_order():
+    import jsonschema
+
+    plan = derive_pusch_intra_slot_hop_dmrs_plan(
+        mapping_type="B",
+        allocation_start_symbol=2,
+        first_hop_symbol_count=5,
+        second_hop_symbol_count=5,
+        dmrs_additional_position=1,
+    )
+    dmrs = build_pusch_intra_slot_hop_dmrs_grid(
+        plan.metadata,
+        allocation_rb_count=1,
+        dmrs_config_type=1,
+        n_cell_id=17,
+        dmrs_n_id=(100, 321),
+        dmrs_n_scid=1,
+        subcarrier_spacing_khz=30,
+        slot_index=3,
+    )
+    first_data = np.arange(48, dtype=np.float64).astype(np.complex128) + 1j
+    second_data = (100 + np.arange(48, dtype=np.float64)).astype(np.complex128) - 2j
+    mapped = map_pusch_intra_slot_hop_data_symbols(
+        plan.metadata,
+        dmrs,
+        first_hop_data_symbols=first_data,
+        second_hop_data_symbols=second_data,
+    )
+    assert mapped.allocation_grid.shape == (10, 12)
+    assert mapped.data_mask.dtype == np.bool_
+    assert mapped.data_mask.shape == mapped.allocation_grid.shape
+    first_mask = dmrs.pilot_mask[2:7]
+    first_coordinates = np.argwhere((~first_mask).T)
+    np.testing.assert_array_equal(
+        mapped.allocation_grid[first_coordinates[:, 1], first_coordinates[:, 0]],
+        first_data,
+    )
+    expected_data_mask = np.zeros((10, 12), dtype=np.bool_)
+    expected_data_mask[:5] = ~dmrs.pilot_mask[2:7]
+    expected_data_mask[5:] = ~dmrs.pilot_mask[7:12]
+    np.testing.assert_array_equal(mapped.data_mask, expected_data_mask)
+    assert mapped.metadata["data_mapping_order"] == (
+        "increasing_frequency_subcarrier_then_ofdm_symbol_per_hop"
+    )
+    schema = json.loads(
+        Path("datasets/schema/nr-pusch-hopped-allocation-grid.v2.schema.json").read_text()
+    )
+    jsonschema.Draft202012Validator(schema).validate(mapped.metadata)
+    replay = verify_pusch_intra_slot_hop_allocation_grid(
+        plan.metadata,
+        dmrs,
+        mapped.allocation_grid,
+        mapped.data_mask,
+        mapped.metadata,
+        first_hop_data_symbols=first_data,
+        second_hop_data_symbols=second_data,
+    )
+    assert replay["status"] == "PASS_HOPPED_ALLOCATION_REPLAY"
+    tampered_allocation = mapped.allocation_grid.copy()
+    tampered_allocation[0, 0] += 1
+    with pytest.raises(ValueError, match="does not replay"):
+        verify_pusch_intra_slot_hop_allocation_grid(
+            plan.metadata,
+            dmrs,
+            tampered_allocation,
+            mapped.data_mask,
+            mapped.metadata,
+            first_hop_data_symbols=first_data,
+            second_hop_data_symbols=second_data,
+        )
+    tampered_data_mask = mapped.data_mask.copy()
+    tampered_data_mask[0, 0] = not tampered_data_mask[0, 0]
+    with pytest.raises(ValueError, match="data mask does not replay"):
+        verify_pusch_intra_slot_hop_allocation_grid(
+            plan.metadata,
+            dmrs,
+            mapped.allocation_grid,
+            tampered_data_mask,
+            mapped.metadata,
+            first_hop_data_symbols=first_data,
+            second_hop_data_symbols=second_data,
+        )
+
+    carrier = compose_pusch_intra_slot_hops(
+        mapped.allocation_grid[np.newaxis, np.newaxis, np.newaxis],
+        carrier_grid_size_rb=24,
+        carrier_grid_start_rb=10,
+        bwp_start_rb=12,
+        bwp_size_rb=12,
+        allocation_start_symbol=2,
+        first_hop_rb_start=0,
+        second_hop_rb_start=7,
+        first_hop_symbol_count=5,
+    )
+    assert carrier.metadata["receiver_hopping_qualification"] == "NOT_QUALIFIED"
 
 
 def test_pusch_config_accepts_bwp_offset_inside_wider_carrier_grid():
@@ -107,7 +338,6 @@ def test_pusch_intra_slot_hops_map_bwp_segments_to_absolute_carrier_crbs():
             result.metadata,
             max_output_elements=100,
         )
-
     changed_grid = result.frequency_grid.copy()
     changed_grid[0, 0, 0, 4, 120] += 1
     with pytest.raises(ValueError, match="carrier grid does not replay"):
@@ -117,6 +347,90 @@ def test_pusch_intra_slot_hops_map_bwp_segments_to_absolute_carrier_crbs():
     changed_metadata["second_hop_start_crb"] += 1
     with pytest.raises(ValueError, match="metadata does not replay"):
         verify_pusch_intra_slot_hops(bwp_grid, result.frequency_grid, changed_metadata)
+
+
+def test_pusch_dehop_rehomes_received_segments_to_first_allocation():
+    source = np.zeros((1, 1, 1, 6, 24), dtype=np.complex64)
+    source[..., :3, :] = 1.0 + 2.0j
+    source[..., 3:, :] = 3.0 + 4.0j
+    composed = compose_pusch_intra_slot_hops(
+        source,
+        carrier_grid_size_rb=52,
+        carrier_grid_start_rb=0,
+        bwp_start_rb=8,
+        bwp_size_rb=24,
+        allocation_start_symbol=4,
+        first_hop_rb_start=2,
+        second_hop_rb_start=14,
+        first_hop_symbol_count=3,
+    )
+
+    received = composed.frequency_grid.copy()
+    received[..., 4:7, 120:144] *= 0.5 - 0.25j
+    received[..., 7:10, 264:288] *= 0.75 + 0.125j
+    result = dehop_pusch_intra_slot_received_grid(received, composed.metadata)
+
+    assert result.frequency_grid.shape == received.shape
+    np.testing.assert_array_equal(result.frequency_grid[..., 4:7, 120:144], 1.0 + 0.75j)
+    np.testing.assert_array_equal(result.frequency_grid[..., 7:10, 120:144], 1.75 + 3.375j)
+    assert np.count_nonzero(result.frequency_grid[..., :4, :]) == 0
+    assert np.count_nonzero(result.frequency_grid[..., 10:, :]) == 0
+    assert np.count_nonzero(result.frequency_grid[..., 4:10, :120]) == 0
+    assert result.metadata["receiver_bwp_start_rb"] == 10
+    assert result.metadata["receiver_bwp_size_rb"] == 2
+    assert result.metadata["receiver_hopping_qualification"] == "NOT_QUALIFIED"
+    import json
+    from pathlib import Path
+
+    import jsonschema
+
+    schema = json.loads(
+        Path("datasets/schema/nr-pusch-intra-slot-dehopped-grid.v1.schema.json").read_text()
+    )
+    jsonschema.Draft202012Validator(schema).validate(result.metadata)
+    replay = verify_pusch_intra_slot_dehopped_grid(
+        received, composed.metadata, result.frequency_grid, result.metadata
+    )
+    replay_schema = json.loads(
+        Path("datasets/schema/nr-pusch-dehopped-grid-replay.v1.schema.json").read_text()
+    )
+    jsonschema.Draft202012Validator(replay_schema).validate(replay)
+    assert replay["qualification_status"] == "NOT_QUALIFIED"
+
+    tampered = result.frequency_grid.copy()
+    tampered[..., 4, 120] += 1
+    with pytest.raises(ValueError, match="does not replay"):
+        verify_pusch_intra_slot_dehopped_grid(
+            received, composed.metadata, tampered, result.metadata
+        )
+
+
+@pytest.mark.parametrize(
+    ("metadata_change", "message"),
+    [
+        ({"hop_boundary_symbol": 9}, "invalid symbol layout"),
+        ({"first_hop_start_crb": 0}, "fit within the declared BWP"),
+        ({"allocation_grid_shape": [1, 1, 1, 6, 12]}, "shapes disagree"),
+        ({"carrier_grid_shape": [2, 1, 1, 14, 624]}, "shapes disagree"),
+        ({"receiver_hopping_qualification": "PASS"}, "unqualified status"),
+    ],
+)
+def test_pusch_dehop_rejects_inconsistent_layout_metadata(metadata_change, message):
+    allocation = np.ones((1, 1, 1, 6, 24), dtype=np.complex64)
+    composed = compose_pusch_intra_slot_hops(
+        allocation,
+        carrier_grid_size_rb=52,
+        carrier_grid_start_rb=0,
+        bwp_start_rb=8,
+        bwp_size_rb=24,
+        allocation_start_symbol=4,
+        first_hop_rb_start=2,
+        second_hop_rb_start=14,
+        first_hop_symbol_count=3,
+    )
+    metadata = {**composed.metadata, **metadata_change}
+    with pytest.raises(ValueError, match=message):
+        dehop_pusch_intra_slot_received_grid(composed.frequency_grid, metadata)
 
 
 @pytest.mark.parametrize(

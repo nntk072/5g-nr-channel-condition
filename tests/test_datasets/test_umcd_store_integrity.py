@@ -43,9 +43,9 @@ from datasets.split_policy import (
     SplitSubject,
     bind_split_children,
     make_split_policy_registry,
+    network_episode_subject,
 )
 from datasets.targets import (
-    CensoringInterval,
     TargetDefinition,
     TargetValidity,
     TargetValue,
@@ -90,22 +90,23 @@ def _versioned_delay_target() -> TargetValue:
         "semantic": "rms_delay_spread",
         "units": "s",
         "source": "path_oracle",
-        "reference": "absolute_propagation_delay_v1",
-        "aggregation_rule": "power_weighted_rms_over_valid_paths",
-        "definition_version": "umcd.rms_delay_spread.v1",
+        "reference": "absolute_physical_channel_path_oracle",
+        "aggregation_rule": "RMS over valid per-path powers in the declared frame and delay reference",
+        "definition_version": "umcd.rms_delay_spread.v2",
     }
     definition = TargetDefinition(
         **fields,
-        definition_sha256=target_definition_digest(**fields),
+        value_axes=("frame",),
+        definition_sha256=target_definition_digest(**fields, value_axes=("frame",)),
     )
     return TargetValue(
         entity_id="gNB-0-to-UE-0",
         definition=definition,
-        values=np.asarray([1.234567890123456e-9, 0.0, 9.876543210987654e-9], dtype=np.float64),
-        valid_mask=np.asarray([True, False, True]),
-        reason_codes=(TargetValidity.VALID, TargetValidity.CENSORED, TargetValidity.VALID),
+        # The fixture path table has one nonzero path, so replayed RMS spread is 0 s.
+        values=np.asarray([0.0], dtype=np.float64),
+        valid_mask=np.asarray([True]),
+        reason_codes=(TargetValidity.VALID,),
         confidence="synthetic_fixture",
-        censoring_intervals=(None, CensoringInterval(lower=0.0), None),
     )
 
 
@@ -134,20 +135,21 @@ def _versioned_path_loss_target() -> TargetValue:
 
 def _versioned_complex_cfr_target() -> TargetValue:
     fields = {
-        "semantic": "perfect synchronized effective-subcarrier CFR",
+        "semantic": "absolute-delay full-path complex CFR on effective PUSCH subcarriers",
         "units": "complex channel gain (dimensionless)",
-        "source": "sionna_phy_ofdmchannel_return_channel",
+        "source": "sionna_rt_pathsolver",
         "reference": (
-            "OFDMChannel return_channel with the configured TDL profile, carrier, "
-            "sample rate, and effective FFT-bin mapping"
+            "Sionna RT full solver-valid path set evaluated with absolute propagation "
+            "delays and configured carrier/subcarrier offsets"
         ),
-        "aggregation_rule": "retain each effective subcarrier coefficient; "
-        "no antenna, symbol, or power averaging",
-        "definition_version": "umcd.tdl-pusch.effective-cfr.v1",
+        "aggregation_rule": "coherent sum of all retained solver-valid paths per effective "
+        "subcarrier and frame; no path-count or power normalization",
+        "definition_version": "umcd.rt-trajectory.absolute-cfr.v2",
     }
     definition = TargetDefinition(
         **fields,
-        definition_sha256=target_definition_digest(**fields),
+        definition_sha256=target_definition_digest(**fields, value_axes=("effective_subcarrier",)),
+        value_axes=("effective_subcarrier",),
     )
     return TargetValue(
         entity_id="gNB-0-to-UE-0",
@@ -275,6 +277,7 @@ def _episode_bundle_with_counterfactual() -> EpisodeBundle:
     ablation = remove_direct_path_component(
         bundle.path_oracle,
         frequency_offset_hz=bundle.episode.subcarrier_offsets_hz,
+        carrier_hz=bundle.episode.carrier_hz,
         registry=registry,
         parent_subject_id=parent_id,
         base_child_id="counterfactual-base",
@@ -642,6 +645,33 @@ def test_episode_bundle_shards_split_before_exceeding_accounting_budget(tmp_path
         ["g7-06-integrity-episode"],
         ["g7-06-integrity-episode-b"],
     ]
+
+
+def test_episode_split_relations_survive_storage_and_feed_split_policy(tmp_path):
+    bundle = _episode_bundle()
+    episode = replace(
+        bundle.episode,
+        split_leakage_relations=(
+            ("asset_family", "asset:geometry-family"),
+            ("site", "site:research-city-1"),
+            ("scene_realization", "scene:odbl-etoile-v1"),
+        ),
+    )
+    stored = write_episode_bundle(tmp_path, replace(bundle, episode=episode))
+    restored = read_episode_bundle(tmp_path, stored)
+
+    assert restored.episode.split_leakage_relations == episode.split_leakage_relations
+    split_subject = network_episode_subject(restored.episode)
+    assert {relation.to_dict()["namespace"] for relation in split_subject.relations} == {
+        "asset_family",
+        "site",
+        "scene_realization",
+    }
+    assert {relation.identity for relation in split_subject.relations} >= {
+        "asset:geometry-family",
+        "site:research-city-1",
+        "scene:odbl-etoile-v1",
+    }
 
 
 def test_episode_bundle_shards_reject_a_budget_smaller_than_one_bundle(tmp_path):

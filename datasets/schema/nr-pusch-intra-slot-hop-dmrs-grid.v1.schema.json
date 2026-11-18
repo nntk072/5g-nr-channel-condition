@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.example/schemas/nr-pusch-intra-slot-hop-dmrs-grid.v1.schema.json",
+  "title": "NR PUSCH two-hop single-port DM-RS reference grid receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "status", "standard", "sequence_clause", "sequence_definition",
+    "dmrs_plan_sha256", "dmrs_config_type", "port", "n_id", "n_scid",
+    "slot_index", "subcarrier_spacing_khz", "allocation_rb_count", "grid_shape",
+    "pilot_mask_sha256", "pilot_grid_sha256", "scope", "qualification"
+  ],
+  "properties": {
+    "schema": {"const": "loslab.nr_pusch_intra_slot_hop_dmrs_grid.v1"},
+    "status": {"const": "GENERATED_NOT_QUALIFIED"},
+    "standard": {"const": "3GPP TS 38.211 V19.2.0"},
+    "sequence_clause": {"const": "6.4.1.1.1.1"},
+    "sequence_definition": {"const": "5.2.1"},
+    "dmrs_plan_sha256": {"$ref": "#/$defs/sha256"},
+    "dmrs_config_type": {"enum": [1, 2]},
+    "port": {"const": 0},
+    "n_id": {"type": "integer", "minimum": 0, "maximum": 65535},
+    "n_scid": {"enum": [0, 1]},
+    "slot_index": {"type": "integer", "minimum": 0, "maximum": 639},
+    "subcarrier_spacing_khz": {"enum": [15, 30, 60, 120, 240, 480, 960]},
+    "allocation_rb_count": {"type": "integer", "minimum": 1, "maximum": 275},
+    "grid_shape": {
+      "type": "array", "prefixItems": [{"const": 14}, {"type": "integer", "minimum": 12, "maximum": 3300}],
+      "minItems": 2, "maxItems": 2
+    },
+    "pilot_mask_sha256": {"$ref": "#/$defs/sha256"},
+    "pilot_grid_sha256": {"$ref": "#/$defs/sha256"},
+    "scope": {"const": "single_port_dmrs_sequence_and_re_mask_only"},
+    "qualification": {"const": "NOT_QUALIFIED"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

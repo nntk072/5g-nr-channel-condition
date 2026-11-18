@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:loslab:g3-complex-csi-channel-view-contract:v1",
+  "title": "G3 complex-CSI physical channel-view contract",
+  "description": "Declared metadata required to check whether two stored CFR views may be compared coherently. Matching declarations do not establish calibration or physical phase truth.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "view_id",
+    "link_id",
+    "frame_times_s",
+    "rx_port_ids",
+    "tx_port_ids",
+    "carrier_hz",
+    "subcarrier_offsets_hz",
+    "delay_reference",
+    "power_scale",
+    "phase_gauge_id"
+  ],
+  "properties": {
+    "view_id": {"type": "string", "minLength": 1},
+    "link_id": {"type": "string", "minLength": 1},
+    "frame_times_s": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "number"}
+    },
+    "rx_port_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "tx_port_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "carrier_hz": {"type": "number", "exclusiveMinimum": 0},
+    "subcarrier_offsets_hz": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "number"}
+    },
+    "delay_reference": {
+      "enum": ["absolute_propagation_delay", "relative_delay"]
+    },
+    "power_scale": {"enum": ["absolute_power_gain", "normalized_power"]},
+    "normalization_recipe": {"type": "string", "minLength": 1},
+    "phase_gauge_id": {"type": "string", "minLength": 1},
+    "axes": {
+      "const": ["frame", "rx_port", "tx_port", "subcarrier"]
+    },
+    "valid_mask": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {"type": "boolean"}
+          }
+        }
+      }
+    }
+  }
+  ,
+  "allOf": [
+    {
+      "if": {
+        "anyOf": [
+          {"properties": {"delay_reference": {"const": "relative_delay"}}},
+          {"properties": {"power_scale": {"const": "normalized_power"}}}
+        ]
+      },
+      "then": {"required": ["normalization_recipe"]}
+    }
+  ]
+}

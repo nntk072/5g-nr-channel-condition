@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 from dataclasses import replace
 
+import numpy as np
 import pytest
 
 torch = pytest.importorskip("torch")
@@ -18,6 +19,7 @@ from integrations.sionna.network_phy import (  # noqa: E402
     network_resource_sinr,
     network_sinr,
 )
+from propagation.physics import frequency_response, subcarrier_frequencies  # noqa: E402
 
 
 def _two_node_fixture():
@@ -73,6 +75,43 @@ def test_per_link_budget_applies_antenna_beam_and_path_loss_once():
         expected_power_gain[None, :, None, :, None, None, None]
         .expand_as(budget.channel.real)
         .to(torch.float64),
+    )
+
+
+def test_link_budget_preserves_analytical_multipath_phase_and_applies_power_gain():
+    frequencies_hz = subcarrier_frequencies(16, 30e3)
+    path_gains = np.asarray([0.8 + 0.2j, -0.15 + 0.35j, 0.1 - 0.2j])
+    delays_s = np.asarray([0.0, 0.42e-6, 1.17e-6])
+    channel = frequency_response(path_gains, delays_s, frequencies_hz)
+    channel /= np.sqrt(np.mean(np.abs(channel) ** 2))
+    small_scale = torch.as_tensor(channel, dtype=torch.complex64).reshape(1, 1, 1, 1, 1, 1, -1)
+
+    budget = apply_network_link_budget(
+        small_scale,
+        path_loss_db=((0.0,),),
+        tx_antenna_gain_dbi=(2.0,),
+        rx_antenna_gain_dbi=(1.0,),
+        tx_beam_gain_dbi=((2.0,),),
+        rx_beam_gain_dbi=((1.0,),),
+        transmit_power_w_per_re=(0.5,),
+        input_channel_semantics="unit_mean_small_scale_fading",
+    )
+
+    amplitude_gain = 10.0 ** (6.0 / 20.0)
+    power_gain = 10.0 ** (6.0 / 10.0)
+    torch.testing.assert_close(
+        budget.channel[0, 0, 0, 0, 0, 0],
+        small_scale[0, 0, 0, 0, 0, 0] * amplitude_gain,
+    )
+    torch.testing.assert_close(
+        budget.channel[0, 0, 0, 0, 0, 0].abs().square().to(torch.float64),
+        small_scale[0, 0, 0, 0, 0, 0].abs().square().to(torch.float64) * power_gain,
+        rtol=3e-7,
+        atol=1e-7,
+    )
+    torch.testing.assert_close(
+        budget.mean_received_power_w_per_re,
+        torch.tensor([[0.5 * power_gain]], dtype=torch.float64),
     )
 
 

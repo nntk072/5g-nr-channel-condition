@@ -1,6 +1,8 @@
 # Active implementation queue
 
-Checkpoint: 2026-11-11, based on `ef6cb5c` plus the current PKG08 audit work.
+Checkpoint: 2026-11-12, source audits recorded through `639a508`; the phase and
+crosswalk source audits are complete, the V100 bounded runtime probe is
+complete, and target-family implementation is active.
 This queue is the executor's next-action list; the research and dataset
 plans remain authoritative for scope and acceptance. Update this file only when
 a task closes, its dependency changes, or a concrete blocker appears; retain
@@ -16,25 +18,39 @@ scientific-qualification claims. Most entries remain
 implementation, verifier and exact evidence. The feature-map parser does not
 determine ledger status.
 
-## Current task
+## Recently closed prerequisite
 
 ### E00 — finish common-runner replay provenance
 
 - **Requirements:** `PKG01-006` (partial common-runner implementation); replay
   contract and runnable producer integration.
-- **Status:** focused implementation and verification complete (37 passed).
-- **Changed files:** `artifacts/run_replay.py`, its JSON schema, manifest and
-  experiment runner integration, CLI replay arguments, and focused tests.
+- **Status:** common-runner replay, capacity-sweep parent replay, and the
+  standalone observable-multipath completed-run receipt are implemented and
+  focused-verification complete. The common-runner suite previously passed 37
+  tests; capacity sweep/auditor passes 9, and the observable-multipath runner /
+  summarizer integration passes focused recovery and producer tests.
+- **Changed files:** common replay contract/schema, manifest and experiment
+  runner integration, CLI replay arguments, plus
+  `experiments/capacity_sweep.py` and its v2 schema/LOSO auditor; the
+  observable-multipath runner/summarizer and their focused producer/consumer
+  tests.
 - **Delivered:** a digest-bound command/source/config/input/backend/RNG/attempt
   contract; complete and failed terminal transitions; a common API wrapper
   that writes failure receipts when a started manifest exists; CLI retry
   identity arguments.
 - **Known boundary:** failures before the initial manifest exists have no
-  replay receipt. Process interruption leaves a durable `running` receipt for
-  recovery; no recovery/reconciliation workflow is implemented yet. Other
-  experiment producers were found in
-  `scripts/run_observable_multipath_experiment.py` and
-  `experiments/capacity_sweep.py` and have not been audited for replay coverage.
+  replay receipt. Process interruption leaves a durable `running` receipt.
+`scripts/audit_interrupted_runs.py` now inventories those receipts and hidden
+staging directories; an explicit digest-pinned operator action can mark a
+schema-valid common-runner or capacity-sweep v2 receipt failed. The
+  capacity-sweep parent now binds config, source/runtime/backend, input hashes,
+  and child/control RNG streams; its LOSO consumer audits the v2 receipt and
+  continues to read historical v1 sweeps. The standalone analytical pilot now
+  publishes manifest v3 with the generated synthetic-dataset hash, run config,
+  source/runtime identity and RNG streams; the summarizer validates the receipt
+  while preserving v1/v2 reads. Its staging directory is only published after
+  all outputs and hashes are complete, so failures before publication leave no
+  user-visible partial result.
 - **Verification command:**
 
   ```bash
@@ -44,10 +60,112 @@ determine ledger status.
     tests/test_experiments/test_runner.py
   ```
 
-- **Closure:** command passes; changed-file Ruff and schema checks pass; check
-  the feature-map freshness and `git diff --check`; ledger records common-runner
-  coverage as partial, with non-run producers and interrupted-run recovery
-  explicitly open. This task does not qualify a scientific run.
+- **Closure:** common-runner, capacity-sweep parent/auditor, observable-
+  multipath producer/summary focused tests pass; Ruff/format, schema, feature-map
+  freshness, ledger, compilation, and `git diff --check` pass. Interrupted-run
+  inventory and explicit failed-state recovery are implemented for common
+  `loslab.run.v2`, capacity-sweep v2, and observable-multipath staging v1/v2
+  receipts. The v2 observable runner writes a preparation receipt before
+  synthetic dataset generation without claiming a dataset hash, then upgrades
+  it to a replay-bound receipt before model fitting; the final completed
+  manifest atomically replaces it before output publication. The tool does not prove a
+  process is inactive; recovery requires a current manifest digest and operator
+  attestation. It inventories but never resumes or deletes staging data.
+  Ordinary exceptions clean staging as before; process interruption leaves a
+  recoverable receipt and preserved partial artifacts. The configuration and
+  provenance snapshot is assembled before staging allocation, and the receipt
+  is written immediately after directory creation; only interruption in the
+  directory-create-to-atomic-receipt interval can leave a staging directory
+  without a manifest. Other standalone formats remain open. This does not
+  qualify a scientific run or model.
+
+- **Capacity-sweep integration:** parent manifest v2 binds the common config
+  digest, exact input hashes, source/runtime/backend identity, every child seed,
+  and phase/observation/permutation-control RNG streams. Input hashes are
+  rechecked before report publication. Complete and failed transitions update
+  the replay receipt, and `summarize_capacity_loso` validates v2 receipts while
+  retaining v1 read compatibility. `tests/test_experiments/test_capacity_sweep.py`
+  and `tests/test_scripts/test_summarize_capacity_loso.py` pass 9 tests. This
+  covers one canonical orchestration consumer; no model qualification is
+  claimed.
+- **Capacity-sweep verification command:**
+
+  ```bash
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+    MKL_NUM_THREADS=1 CUDA_VISIBLE_DEVICES='' ./.venv/bin/python -m pytest \
+    -o addopts='' -q tests/test_experiments/test_capacity_sweep.py \
+    tests/test_scripts/test_summarize_capacity_loso.py
+  ```
+
+- **Interrupted-run recovery:** `scripts/audit_interrupted_runs.py` performs a
+  bounded read-only inventory of `manifest.json` / `run_manifest.json` files
+  and hidden staging directories. To terminalize a common-runner manifest,
+  pass its relative path, the digest from the inventory, and an explicit
+  operator statement that the process is no longer active. Existing output
+  files and staging directories are preserved.
+
+  ```bash
+  ./.venv/bin/python -m scripts.audit_interrupted_runs OUTPUT_ROOT
+  ./.venv/bin/python -m scripts.audit_interrupted_runs OUTPUT_ROOT \
+    --mark-failed RUN_ID/manifest.json \
+    --expected-sha256 MANIFEST_SHA256 \
+    --operator-attestation 'I verified this process is no longer active.'
+  ```
+
+  Focused coverage: `tests/test_scripts/test_audit_interrupted_runs.py`
+  (11 cases; 19 pass including the shared manifest/replay contract tests).
+  The observable runner module passes 3 tests, including checks that the
+  preparation receipt exists before dataset generation and the upgraded
+  receipt is recoverable before decoder training.
+
+- **Observable-multipath integration command:**
+
+  ```bash
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+    MKL_NUM_THREADS=1 CUDA_VISIBLE_DEVICES='' ./.venv/bin/python -m pytest \
+    -o addopts='' -q tests/test_scripts/test_two_path_runner_cli.py
+  ```
+
+## Most recently delivered prerequisite
+
+The shared multi-node RT producer integration below is implemented as a
+dependency-ready software slice, but it is no longer the active code task.
+Its native backend and scientific qualification remain gated. The current
+implementation task is E03 in the ready queue; E04 follows its applicable
+software dependencies, and neither queue entry authorizes production RT.
+
+### M1.MULTINODE_RT_SUPPORT_MATRIX — shared-solve producer integration
+
+- **Requirements:** `PKG02-005`, Unified Plan §18, and G5 topology consumers.
+- **Current implementation:** scene extraction now carries an exact serving/
+  interference role per TX→RX association. Shared `Paths` bindings convert to
+  absolute CFR views and provenance-bound bundles; the D1-gated publisher and
+  network-PHY consumer are wired, and the common static single-link publisher
+  uses the shared converter. `network_episode_identity()` covers the full
+  topology content, and `build_rt_network_generation_request()` binds that
+  identity, complete scene assets, materials, backend selection, grid, solver
+  settings, seed, and destinations into an exact D1 request. The new
+  `run_authorized_static_network_episode()` runner checks D1 authorization and
+  destination before backend activation, cross-checks run identity against the
+  request, and revalidates the live scene assets, material manifest, geometry,
+  carrier, node/array/pose state, and network identity before constructing the
+  solver. It records per-source candidate counts and turns cap-filled and
+  solver-exception outcomes into masked path/channel layers plus an immutable,
+  digest-bound receipt. Successful output is converted into the topology-bound
+  UMCD bundle and published immutably.
+- **Verification:** 39 focused topology, Sionna adapter, and RT network tests
+  pass; two native tests were deselected. Tests cover request authorization,
+  incomplete-matrix rejection, live-scene identity checks, and deterministic
+  fake-solver success, cap, and exception paths including receipt schema and
+  bundle reload. Ruff, format, and compilation pass. No native multi-link solve
+  ran; this is software contract verification, not solver/backend qualification.
+- **Remaining:** native Sionna execution and qualification for the documented
+  topology roster, scene/material/runtime evidence, and scientific acceptance
+  remain open. The pilot runner is dependency-ready software; production RT
+  remains gated until the required G3 criteria and scientific gates pass.
+- **Next:** complete remaining software work in the ordered queue, then run the
+  separately frozen native qualification only after its environment and
+  acceptance criteria are ready.
 
 ## Ready queue
 
@@ -79,6 +197,118 @@ ledger validator. The inventory is structurally executable, but its
 classifications remain heuristics and the duplicate-history/helper-wiring
 requirements remain open. The validator reports exact row/gate coverage; it
 does not claim source audit completion.
+
+The `PKG00-002` authority pass now identifies the ledger as the one current
+requirement disposition and this queue as the one ordered action list. The
+bounded six-scene MVP checklist is labeled historical; no dated results were
+removed or rewritten. The full edition-to-requirement crosswalk remains open.
+`scripts/build_historical_status_crosswalk.py` now inventories dated entries
+from `MASTER_RESEARCH_PLAN.md` and `MVP_STATUS.md`, binding source/ledger and
+manual-map digests, exact headings and note blocks. Reviewed mappings are kept
+in `HISTORICAL_STATUS_MANUAL_MAPPINGS.json`; they add only canonical ledger IDs
+with a rationale and cannot duplicate explicit matches. Numbered
+dataset criteria such as `G4.07` map only when the corresponding exact
+`DS.G4.07` ledger row exists; bare `G4` remains unresolved because the plans
+reuse gate numbers. Current state: 603 exact-ID/numbered-criterion matches, 80
+reviewed manual mappings, and 706 notes still unresolved. The expanded G4
+batch covers finite covariance, polarization, temporal, PDP/RMS, angular,
+and marginal-family evidence; these mappings identify owning requirements
+without upgrading any frozen result or scientific qualification state. The
+path extractor also indexes existing bare repository paths cited in prose,
+not only Markdown links and backticks. Fifty-four additional cited notes now have pinned mappings: 21 duplicate G4 result references, nine source-audited G4 notes, and 24 direct evidence-to-owner mappings across replay/runtime, synchronized time, receiver software, corpus release, Phase-0, priors/baselines, and plan tooling. Each keeps its own source hashes; their outcomes and qualification states remain unchanged. Manual records pin
+the exact heading and full note-block hashes, requirement IDs, and rationale.
+They do not alter historical notes or current requirement status. The helper
+inventory remains separately open under `PKG00-003`.
+
+Verification: `tests/test_scripts/test_build_historical_status_crosswalk.py`
+passes (3 tests); `scripts/build_historical_status_crosswalk.py --check`
+confirms the saved inventory matches current source and manual-map bytes.
+`PKG00-003` has one additional canonical edge: the exported
+`standardized_draw_subject()` adapter was source-found to have no production
+consumer. `make_standardized_run_split_registry()` now builds draw-level locks,
+and `loslab-build-standardized-split-registry` consumes immutable stored-run
+manifests and publishes a strict report plus candidate lock. Receiver view
+children inherit the draw split through the shared child-binding API. Reused
+seed/index pairs fail closed without explicit per-draw opaque identities. Five
+focused API/builder tests pass; the global helper inventory remains open.
+
+`loslab-audit-helper-wiring` now emits a source-hash-bound inventory of 254
+exported top-level functions across `datasets`, `evaluation`, `experiments`,
+`integrations.sionna`, `propagation`, and `receivers`, scanning internal
+callers in `loslab`, scripts and the source packages, plus test references in a
+separate inventory field. After correcting same-module and imported-submodule
+alias resolution, the matrix records source-audited routes for all 185
+functions with detected direct production callsites. The other 69 have no
+production callsite but all have direct test references; 14 are exact-name
+references in governing plans/backlog. All 69 now have explicit no-internal-
+consumer dispositions in the source matrix; this closes export classification
+only. Test coverage is not production workflow wiring. The report schema and
+focused test pass. This remains a syntactic audit: dynamic/indirect calls and
+semantic completeness remain open. The report also enumerates 16 non-exported
+plan-named definitions and their direct source/test references. Manual method
+tracing found three in-repository routes missed by AST name matching. Four
+definitions have no production consumer: pose alignment, the test-only fixed-
+TDL reference, partition-support replay, and multi-horizon target indexing.
+Their evidence boundaries and dispositions are in the matrix; enumeration does
+not establish that an unconnected helper fulfills its broader plan row. A canonical
+software path now composes already channelized links, adds seeded receiver AWGN
+and invokes the bounded network PUSCH decoder under a strict hash-bound
+workflow report; its outcome remains `OBSERVED_NOT_QUALIFIED`. The next TX
+workflow now applies node-specific IQ imbalance before caller-declared causal
+MIMO FIR propagation, then enters this bounded PUSCH path. The persisted NR
+inference reader now has a row-aware public API; its focused regression verifies
+the identity stays outside model inputs and oracle corruption does not block
+inference. The common ML runner consumes `ChannelDataset` channel views, while
+this API serves stored NR PUSCH receiver tensors. There is no current MVP model
+training target for that receiver payload, so do not invent a second model task
+or connect labels by row order. Keep this reader as an external inference API
+until an NR learned-task target and evaluator are explicitly required. Next:
+resolve the four no-production helper cases only where an owning requirement
+requires an internal consumer, then audit dynamic/indirect routes. E04 still
+requires exact G5 receiver scope, sourced criteria, powered independent-channel
+design and reviewer authority before qualification.
+`run_network_grid_sinr` provides a bounded, hash-bound workflow for aligned
+grid composition and per-resource SINR, and also calls the aggregate SINR
+helper for fixed serving maps; resource-varying maps retain per-RE metrics
+without an invalid fixed-map aggregate. It can optionally apply declared
+frequency-dependent link-budget
+profiles to explicitly unit-mean fading inputs, binding those inputs and the
+resulting channel in the receipt. This closes only the declared-profile grid
+route; calibration and frequency-to-causal-FIR mapping remain open. The TX
+workflow accepts declared FIRs but does not derive them from RT. PKG00-003
+remains open.
+
+The stored-frequency helper edge is now executable through
+`loslab-pair-stored-frequency-views`. It verifies exact immutable bundle
+references and both child bindings against the frozen source-scene parent,
+then publishes content-addressed pair and split-audit manifests. It consumes
+existing independent solves only, marks results `NOT_QUALIFIED`, and never
+invokes RT. This wires storage and split lineage; producing frequency-specific
+RT solves and satisfying the paired-frequency G3 criteria remain open.
+Focused verification commands:
+`python -m pytest -o addopts='' --confcutdir=tests/test_scripts tests/test_scripts/test_pair_stored_frequency_views.py -q`
+and `python -m pytest -o addopts='' --confcutdir=tests/test_datasets tests/test_datasets/test_frequency_pair.py -q`.
+
+The mathematical direct-path helper is also wired through
+`loslab-materialize-direct-path-ablation`. It reads an exact path-table bundle,
+checks frozen split parent/children, and publishes a replay-validated derived
+bundle into a separate store while leaving the source store untouched. This
+implements same-path component removal only; it does not model or retrace a
+physical blocker. A content-addressed receipt binds the source and derived
+bundles, path-table digest, split-lock digest, and child IDs. Verification:
+`python -m pytest -o addopts='' --confcutdir=tests/test_scripts tests/test_scripts/test_materialize_direct_path_ablation.py -q`.
+
+Source tracing then found the exported `bind_split_children()` API had no
+production caller. The new `loslab-bind-split-registry-children` command
+consumes strict child-roster files, uses the existing binding helper, preserves
+the parent lock, and publishes a candidate bound lock/report. Three focused
+tests verify split inheritance, no parent mutation, orphan rejection, and
+duplicate-child rejection. This
+does not establish child-roster completeness or release approval.
+
+The manual audit
+must map dated notes to ledger IDs and retained evidence or explicitly classify
+them as context with a reason, without rewriting their result claims.
 
 `E01.PKG01` is now closed after source review and a focused suite passed 107 tests. The cache fixture was updated to bind the antenna configuration already included in the runtime cache identity. The exact command is listed on PKG01 rows in the ledger. PKG01 remains software-implemented within the declared slice; full runtime matrix/attestation, arbitrary override coverage, and ODbL release records remain explicit limitations.
 
@@ -232,14 +462,24 @@ the separate post-hoc 65,536-draw diagnostic cannot replace it. A fresh-seed
 preregistration is queued and must not run until its seed roster and environment
 are frozen.
 
+The fresh-seed claim auditor now also validates the declared alpha and precision
+criterion domains, exact claim field set, finite real claim values, nonnegative
+uncertainties/errors, Boolean decisions, and finite interval bounds before
+recomputing outcomes. The focused evaluator suite passes 15 tests, including
+malformed-claim and invalid-criterion cases; Ruff passes. This is software
+input-integrity evidence only. The frozen seed-6714 failure remains authoritative,
+and no fresh-seed native replication or overall G4 qualification is claimed.
+
 `E01.PKG07` is source-audited. `E01.PKG08` is active. Rows `PKG08-001` through
 `PKG08-024` have source/test evidence and separate software/qualification
 statuses; `PKG08-039` is independently source-audited as complete release-gate
 software, with current-scene legal/provenance eligibility still blocked.
 `PKG08-015` remains partial on trusted signer custody and authoritative
 inventory; `PKG08-016` is software-complete while reviewer custody/evidence
-truth remain external. `PKG08-017` and the broader producer audit remain
-partial. `PKG08-023` is source-audited complete for the declared NR/UMCD NPZ
+truth remain external. `PKG08-017` now closes the repository-local producer/consumer audit after
+fit/save/predict/load and archive-import source enumeration; external consumers
+remain outside the claim. Broader model-input scientific and measured-data
+qualification remains open. `PKG08-023` is source-audited complete for the declared NR/UMCD NPZ
 stores: 43 streaming/memory/UMCD tests and six focused NR trajectory-store tests
 pass. `PKG08-024` adds retry injection across all UMCD episode layers and the
 standardized channel/learning stores (five standardized cases pass). Bounded
@@ -350,6 +590,12 @@ complete one-to-one requirement coverage and resolves dependencies/blockers.
   fail-closed asset/table/promotion contracts from Halti-host runtime checks,
   legacy result gaps, dynamic-input identity coverage, and per-scene ODbL
   redistribution records. No host qualification or release was performed.
+- **New runnable export route:** `loslab-export-public-release` invokes the
+  strict v3 exporter with an exact detached manifest signature and externally
+  supplied OpenSSH signer policy. Its CLI and exporter suites pass 49 tests.
+  This command packages only fully declared/reviewed manifests; current OSM
+  extract/conversion provenance and third-party license closure remain absent,
+  so no Etoile/Florence/Munich archive was generated or cleared.
 - **Verification:** `uv run --no-sync --locked pytest -q --no-cov tests/test_integrations/test_runtime_inventory.py tests/test_integrations/test_sionna_runtime.py tests/test_integrations/test_scene_assets.py tests/test_scripts/test_audit_research_result_provenance.py tests/test_scripts/test_build_result_promotion_manifest.py tests/test_datasets/test_public_release.py` (exit 0); `uv run --no-sync --locked python -m scripts.validate_requirement_ledger`.
 - **Disposition:** DS.G0 remains `not_qualified`; every G0 implementation
   status is limited to its named software contract. The Halti runtime/backend
@@ -469,9 +715,28 @@ complete one-to-one requirement coverage and resolves dependencies/blockers.
 - **Disposition:** G8 remains `not_qualified`; physical independent-unit
   authority, selection-bias closure, complete classic baseline roster, and
   source-verified measured held-out data remain open.
-- **Next:** reconcile research phases and Appendix E, then finish the
-  requirement crosswalk and implementation dependencies before advanced
-  training or broad evaluation.
+- **Next:** the source reconciliation now covers `E01.RS.PHASES`,
+  `E01.RS.APPENDIX_E`, and all 316 ledger crosswalk records: zero unreviewed
+  scope entries, unknown implementation states, or missing next tasks. This is
+a planning/source audit, not implementation completion or gate
+qualification. The V100 runtime recipe is now locked to CUDA 12.6, Torch's
+small CUDA device smoke passes, and the CPU LLVM Sionna RT API imports. The
+first target-family slice (`rms_delay_spread` units, reference, aggregation,
+and nonnegative range) passes 180 focused tests; explicit multi-value axes and
+the other primary targets remain open. Continue the finite PKG00
+history-reconciliation and canonical-helper wiring cards, then close the
+split-to-evaluation implementation route before broad validation or advanced
+training.
+
+The pinned Sionna extras now resolve to PyTorch CUDA 12.6 on Linux, which is
+compatible with the installed CUDA 12.9 driver. A bounded device smoke passed
+on the Tesla V100 (compute capability 7.0). Mitsuba 3.9.1 reports that the
+V100 is below the 7.5 minimum for its selected CUDA variant; its LLVM CPU
+variant imported successfully when CUDA was hidden, selecting
+`llvm_ad_mono_polarized`. The V100 GPU RT variant is not supported by the
+reported minimum; native RT API/backend qualification remains open. No scene
+was loaded and no path solver or production RT work was run. See the
+environment note at the top of `MVP_STATUS.md`.
 
 For every batch, retain the exact source files inspected in that ledger row;
 do not copy the whole chronological status history. If a row is already
@@ -480,14 +745,66 @@ reimplementing it.
 
 ### Implementation card discovered by E01.PKG08
 
-#### M1.PKG08_MODEL_INPUT_PRODUCER_RECONCILIATION — close the uncovered model routes
+#### M1.PKG08_MODEL_INPUT_PRODUCER_RECONCILIATION — repository route audit closed 2026-11-12
 
 - **Requirements:** `PKG08-017`; interfaces covered by `PKG08-018`–`PKG08-022`.
 - **Dependencies:** finish `E01.PKG08`–`E01.CROSSWALK`; use the current model-input route inventory and preserve the CAEZ data-use license.
-- **Current evidence:** canonical runner v2+ contracts, profile-holdout v1 contract, registered adapter audit, `TwoPathModelInputs`, CAEZ Ridge input/target/temporal-pair contracts, analytical two-path checkpoint sidecars, and the working source inventory in `docs/research/MODEL_INPUT_ROUTE_INVENTORY.md`. Real-CNN, complex-CNN, and CORAL checkpoint payloads now carry `external_input_contract_required`; repository save callers route through the canonical runner, which retains the exact sidecar and replay verification. Remaining work is to inspect non-fit/save wrappers and generated entry points and reconcile archive disposition through `E01.CROSSWALK`.
+- **Current evidence:** canonical runner v2+ contracts, profile-holdout v1 contract, registered adapter audit, `TwoPathModelInputs`, CAEZ Ridge input/target/temporal-pair contracts, analytical two-path checkpoint sidecars, and the source inventory in `docs/research/MODEL_INPUT_ROUTE_INVENTORY.md`. The 2026-11-12 fit/save/predict/transform/load/import enumeration resolved every active match to a listed route. Real-CNN, complex-CNN, and CORAL raw checkpoints retain `external_input_contract_required`; canonical runner publications bind and replay sidecars. The 69-file historical archive is README-classified, with no active imports.
 - **Deliverable:** exact producer/consumer matrix; replayable input/target/split contract for every retained model artifact; explicit nondeployment scope for synthetic diagnostics; explicit historical disposition for archived scripts.
 - **Verification:** focused tests prove truth/metadata exclusion, exact matrix/partition binding, and two-path checkpoint loader replay against input/target/split and checkpoint digests. Use only bounded synthetic fixtures; no measured CAEZ archive, production RT, or advanced training run is needed for the software contract.
-- **Closure:** every active producer is covered or has a cited authoritative later-stage scope; saved artifacts bind exact input and split bytes. Otherwise retain a precise partial status and next task.
+- **Verification:** the three standalone CNN/CORAL loader status tests, one two-path checkpoint contract test, and one canonical runner publication test pass. Exact searches and limitations are recorded in the route inventory. No licensed measured archive or external consumer is claimed as audited.
+- **Closure:** repository-local active routes are enumerated and have replayable artifact contracts or explicit nondeployment/external-contract status. Broader scientific qualification, measured CAEZ evaluation, and unknown external consumers remain outside this source audit.
+
+#### M1.TARGET_FAMILY_SEMANTICS — complete the primary target contracts
+
+- **Requirements:** `PKG08-008`, dataset-plan G7.01–G7.05 and G7.14, and the
+  target manifest requirements in Unified Plan §§17 and 20.3–20.4.
+- **Implemented slice:** `umcd.rms_delay_spread.v1` pins seconds, a path-oracle
+  producer, accepted reference/aggregation vocabulary, and a finite
+  nonnegative real value domain. `umcd.rms_delay_spread.v2` declares its `frame`
+  axis in the definition digest; `EpisodeBundle` requires link identity and an
+  exact frame-roster shape. NR metadata schema v5 serializes value axes while
+  v1-v4 readers remain supported. The focused target/UMCD/NR/storage/
+  standardized slice passes 311 tests under the CPU LLVM backend. The reviewed
+  dynamic geometric-LOS producer now publishes v4 with an explicit `frame` axis;
+  its focused contract and storage checks pass (7 + 3 tests). The producer emits
+  one value per frame, while its separate NR record remains scalar. NR RT
+  trajectory CFR producers now publish v2 definitions with explicit
+  effective-subcarrier and OFDM-symbol axes and observation-derived shape
+  validation. TDL-PUSCH and standardized CFR producers also publish v2 with
+  their reviewed seven-axis tensor layout. The complete target-contract module
+  passes (39 tests), and NR v5 round-trips the actual standardized and TDL CFR
+  v2 definitions with their seven axes (3 focused tests, including the generic
+  axis contract). Existing v1-v3 records remain readable without inferred axes.
+- **Next tasks in dependency order:**
+  1. Continue auditing current targets for producer-backed range,
+     gauge/reference, mask, or missingness invariants; enforce only rules
+     specified by the producer contract.
+  2. Review producer semantics before axis-tagging additional multi-value
+     target families. Preserve current records until their axes are reviewed;
+     do not reinterpret stored vectors.
+  3. Define `detectable_direct_path` only after freezing detector, bandwidth,
+     SNR/noise, and false-alarm criteria; keep it distinct from geometric LOS.
+  4. Define `relative_first_path_delay` only after timing reference, acquisition,
+     resolvability and censoring rules are fixed. Absolute ToA stays unavailable
+     without synchronized clock provenance.
+  5. Define dominant received-path power only after path-power and receiver
+     link-budget references are fixed; keep normalized TDL/CDL power distinct
+     from physical received power.
+  6. Add a separate finite-bandwidth receiver-estimated delay-spread definition;
+     do not pool it with path-oracle RMS delay spread.
+- **Deliverable:** versioned schemas/producers for each accepted family with
+  explicit axes, units, reference/gauge, aggregation, validity conditions,
+  unavailable reasons, ranges, and legacy read/publication policy.
+- **Verification:** focused contract/storage round trips and negative domain,
+  axis, missingness, legacy-migration and schema tests. Use synthetic fixtures
+  only; no target family is scientifically qualified by these checks.
+- **External dependencies:** frozen detector configuration, calibrated clock
+  evidence, and link-budget evidence block the corresponding families; do not
+  invent defaults to clear those dependencies.
+- **Closure:** all plan-mandated target families have a canonical producer and
+  consumer contract, unknown axes/references cannot publish as canonical, and
+  legacy data remain readable without silently upgrading scientific meaning.
 
 ### Implementation cards discovered by E01.PKG02
 
@@ -523,6 +840,16 @@ variation versus simulator/reference mismatch unresolved. See
 `docs/research/G4_CDL_E_FROZEN_MISS_REVIEW_2026-11-11.md`. The five dependency-
 light oracle checks pass. No native rerun or result/threshold edit was made.
 
+**Preregistration increment (2026-11-12):** seed `2823000` clears the retained
+JSON/JSON.GZ result corpora with no collision, malformed field, or incomplete
+file (2,302 files; corpus-scoped only). The separate CDL-E replication
+protocol, digest-bound seed receipt, per-coordinate evaluator, immutable
+report schema, and one-shot CPU runner are now present. Five deterministic
+synthetic evaluator tests pass alongside the 23-test seed-audit suite (28
+tests total). The original frozen seed-6714 failure remains unchanged. The native
+replication was not run. This card's preregistration/software deliverable is
+implemented; native execution remains a later gated action.
+
 #### M1.G4_CDL_E_FRESH_SEED_REPLICATION_PROTOCOL — preregister without running
 
 - **Requirements:** `PKG05-024` and the applicable G4 covariance criteria.
@@ -555,12 +882,46 @@ light oracle checks pass. No native rerun or result/threshold edit was made.
   measured campaigns distinct. Empty or unqualified families must report
   unsupported/shortfall; registry membership is not evidence of scene
   availability or qualification.
+- **Progress (2026-11-12):** `config/scenes/scene-family-registry.v1.json`
+  now binds the full taxonomy and seven source-audited candidates, with source
+  evidence digests, asset-tree digests, source kind, independence group,
+  license state, and separate internal/public-release dispositions.
+  `datasets.scene_families` provides canonical validation, permutation-stable
+  SHA-256 family sampling, explicit unsupported/shortfall rows, and a relation
+  adapter for the existing signed split union-find. The CLI and versioned
+  sample report schema are in `scripts/sample_scene_families.py` and
+  `datasets/schema/scene-family-sample.v1.schema.json`. The built-in
+  street-canyon candidate is excluded from sampling because per-scene data
+  licensing is not independently recorded. ODbL candidates remain eligible
+  for internal research under the accepted policy and uncleared for public
+  release.
 - **Verification:** schema/hash roundtrip; deterministic sampling under a
   frozen seed; reject the same site or exact geometry asset crossing a frozen
   holdout boundary; tests for ODbL use eligibility versus public-release
   eligibility. Do not add a second split allocator.
 - **Exit:** named family candidates flow into existing signed split audit, and
   unsupported families remain visible in reports.
+- **Current status:** partial. Six focused tests pass. The direct RT dataset
+  adapter accepts an optional candidate ID, verifies the actual asset digest,
+  and records registry/family/leakage bindings in split-parent metadata; the
+  existing split-lineage builder consumes those relations. The cached RT
+  adapter now accepts the candidate ID, validates it against loaded asset
+  bytes, binds candidate/family/registry/geometry identity into the cache key,
+  and passes the identity to per-sample UMCD run identities. UMCD episodes now
+  preserve optional split leakage relations through immutable storage, and the
+  existing split-policy episode adapter consumes those relations. Static UMCD
+  publication and the RT trajectory producer carry candidate relations,
+  provenance, and run identity into their outputs. Focused cache (13), UMCD
+  store-integrity (28), array-layout (7), and episode-schema compatibility
+  (103) tests pass. The repository's Sionna `PathSolver` generation entry
+  points are now covered by direct/cached adapter or trajectory integrations;
+  future producer routes must use the same candidate binding. The new
+  `umcd-episode-metadata.v1` schema documents the embedded episode object and
+  its optional leakage relations; `_episode_payload` validates every newly
+  written episode metadata object against it. The combined UMCD schema/store
+  test modules pass (131). Two of twelve families have eligible candidates at
+  the one-group design point; S00 plus S03–S11 report shortfalls. No
+  qualification is implied.
 
 #### M1.SCENE_VISIBILITY_EDGE_CASES — close the geometry oracle contract
 
@@ -575,6 +936,20 @@ light oracle checks pass. No native rerun or result/threshold edit was made.
 - **Verification:** dependency-light analytic tests plus a separately named
   native comparison only when the environment and frozen geometry fixture are
   ready. Native comparison is not required to close the software contract.
+- **Software closure (2026-11-12):** the independent mesh oracle now has
+  focused regressions for clear/interior intersection, edge/endpoint/coplanar
+  ambiguity, nearly grazing crossings, degenerate faces, coincident and
+  tolerance-short segments, metric scaling and affine transforms, blocker
+  insertion/removal, and a zero-thickness opaque surface whose geometric
+  result carries no material-transmission claim. The loaded-scene adapter is
+  also checked against an affine scale/shear/translation before unit
+  conversion. The two dependency-light modules pass 19 tests with Ruff,
+  formatting, compilation, and diff checks clean.
+- **Boundary:** this closes the bounded software predicate contract only.
+  Depth-zero PathSolver agreement for well-conditioned scene cases (G1.02),
+  antenna placement outside forbidden solids, and material-aware RF
+  transmission remain separately unverified; no native RT or production data
+  generation was run.
 - **Exit:** deterministic classifications and tolerances are documented and
   tested; material transmission remains an independent model/evidence branch.
 
@@ -590,6 +965,21 @@ light oracle checks pass. No native rerun or result/threshold edit was made.
   inferring it from a sample grid.
 - **Verification:** time-gap, endpoint, continuity and digest-binding tests;
   analytic motion fixtures before any retraced RT evidence.
+- **Progress (2026-11-12):** froze
+  `loslab.rt_trajectory_motion_contract.v1` and its JSON Schema: receiver and
+  object positions use `p_i=p_0+v*t_i` on a trajectory-relative clock, with
+  quasi-static retracing at each sample and no between-sample interpolation.
+  Look-at orientation is recomputed per snapshot. Rotation, deformation,
+  external clock alignment, and per-frame material updates are explicitly
+  unsupported. The contract is bound into D1 requests, RT run identity, record
+  provenance, and the generation sidecar. Object translations now use one
+  finite-input checked equation helper; trajectory generation fails if the
+  loaded material manifest changes during the run. The 39-test dependency-light
+  trajectory contract suite passes; no path solver ran.
+- **Current status:** software contract partial. The route/configuration and
+  material invariant are explicit, but replay against native scene transforms
+  and complete per-time state attestation remain unverified. G0/G1/G3
+  qualification is not implied.
 - **Exit:** generated pose/material state reproduces exactly from the stored
   contract, with unsupported motion rejected or marked missing.
 
@@ -607,10 +997,66 @@ light oracle checks pass. No native rerun or result/threshold edit was made.
 - **Verification:** analytical multi-link composition and shape/identity
   contract tests; native backend qualification stays a later, separately
   frozen task.
+- **Progress (2026-11-12):** added a finite downlink support matrix in
+  `docs/research/NETWORK_TOPOLOGY_SUPPORT.md` and
+  `episode_channels_to_network_phy_input()`. It requires a complete TX×RX
+  link matrix, exactly one serving transmitter per UE, explicit interfering
+  links, homogeneous TX/RX port counts, one fully valid absolute channel view
+  per link, and exact parent episode/grid alignment. The adapter preserves
+  episode/node/frame identity and expands stored per-link CFRs over the caller's
+  requested OFDM-symbol axis without claiming temporal channel evolution. A
+  dependency-light 2×2 test writes and reloads the UMCD bundle, composes its
+  views with the existing network PHY, and checks desired/interference powers;
+  incomplete topology is rejected. Focused software tests pass (5).
+- **Additional progress (2026-11-12):** added
+  `sionna_bindings_to_channel_views()` to convert the exact link/frame binding
+  set from `Paths.cfr()` into one absolute-delay, absolute-power UMCD view per
+  directed link. It uses explicit device indices and link-local port maps,
+  preserves episode frame and frequency axes, rejects malformed/nonfinite CFR
+  data, and masks failed/unconverged solves so they cannot be consumed as
+  measured zeros. Two dependency-light regressions cover 2×2 port reordering
+  and failed-solve masking; `build_sionna_rt_episode_bundle_from_paths()` now
+  composes those views with the canonical path/provenance bundle builder, and
+  `write_sionna_rt_episode_bundle_from_paths()` applies the existing D1
+  destination gate before immutable publication. The existing static RT UMCD
+  producer now uses the same path-to-view converter before its provenance-bound
+  bundle publication. A publisher contract test checks the gate and storage
+  handoff. The RT network and Sionna adapter slices pass 25 tests with 1 native
+  test deselected; Ruff, format and compilation checks pass. Pytest required
+  plugin autoload and numerical
+  thread fanout to be disabled after the default invocation stalled at full
+  CPU without output.
+- **Boundary (superseded by the static shared-solve runner progress below):**
+  at this checkpoint, the software route covered caller-supplied `Paths`
+  results through per-link CFR views, canonical immutable bundle publication,
+  and the network PHY input adapter; only the common static single-link
+  producer used the converter. The runner and retained failure states described
+  in the later progress entry now close that bounded software gap. Native
+  multi-link solver/backend qualification remains open. A narrow native 2×2
+  path-binding smoke previously passed but is not qualification.
+- **Topology extraction progress (2026-11-12):**
+  `sionna_scene_to_network_episode()` now accepts a complete
+  `link_roles_by_association` map. This lets a scene-derived complete 2×2
+  downlink mark one serving GNB and one interfering transmitter per UE rather
+  than assigning one role to every pair. Missing/extra role entries are
+  rejected. Scene extraction plus network-composition slices pass 17 tests
+  with 2 native tests deselected; Ruff, format, and compilation pass.
+- **Static shared-solve runner progress (2026-11-12):** added
+  `run_authorized_static_network_episode()` and a versioned generation-receipt
+  schema. The runner binds the live scene and run identity to the D1 request,
+  audits source candidate counts, publishes successful topology-bound channel
+  and path layers, and retains explicit masked `UNCONVERGED` or
+  `SOLVER_FAILURE` outcomes. Fake-solver tests cover those three terminal
+  states and reload the immutable bundle/receipt. This completes the bounded
+  software producer route; native multi-link backend qualification and the
+  full planned topology roster remain separate open items.
+- **Latest verification (2026-11-12):** 39 focused tests pass and two native
+  tests are deselected; Ruff, formatting, and compilation pass. The full suite
+  and native solver qualification have not been run.
 - **Exit:** every requested topology is either generated and consumed through
   the same episode identity or explicitly rejected with a reason.
 
-### E02 — close the split-to-evaluation integration slice
+### E02 — split-to-evaluation integration (software slice closed 2026-11-12)
 
 - **Dependencies:** E01 audit of split, benchmark, lineage and evaluator
   requirements; retain existing signed partition materializer and result
@@ -620,6 +1066,21 @@ light oracle checks pass. No native rerun or result/threshold edit was made.
   row/parent/component bindings and inference-time leakage. Implement only gaps
   demonstrated in this end-to-end route; do not add another parallel split
   helper if existing contracts can be wired in.
+- **Closure:** `run_experiment` verifies the separately
+  signed cohort declaration and the canonical signed split registry, snapshots
+  exact named dataset bytes, replays the six-cohort index, checks that the
+  train/validation/calibration rows match the split lock, and uses only the
+  selected declared test cohort for scoring. The run manifest and result bind
+  the chosen cohort, replay digest, and unsupported empty test-cohort list.
+  Pre-manifest failures now create an exclusive
+  `benchmark-cohort-preflight.json` receipt, preserving any existing receipt.
+  The model-input verifier checks that model-sidecar cohort provenance
+  matches the replay result and that its selected-test digest matches the exact
+  inference indices. Unsupported cohorts include reason codes and external
+  dependencies. Focused signed scoring, sidecar-tamper, failure-preservation
+  and unsupported-cohort tests pass (3); manifest-replay tests pass (2).
+  Ruff, formatting, compilation, ledger validation and `git diff --check`
+  pass. These are software checks; no cohort is scientifically qualified.
 - **Deliverable:** one runnable consumer path, retained audit artifact and
   finite unsupported-cohort list with precise external dependencies.
 - **Verification:** targeted tests for every changed integration boundary and
@@ -627,11 +1088,236 @@ light oracle checks pass. No native rerun or result/threshold edit was made.
 - **Exit rule:** consumers use the signed partition identity and validate exact
   parent/child lineage before scoring; the artifact reports unsupported or
   missing cohorts instead of silently treating them as qualified.
+- **Boundary:** this closes the six-cohort scoring route only. PKG08-025 still
+  tracks corpus-wide child artifact semantics, authoritative inventory and
+  signer custody; those broader lineage gates are not implied complete here.
+- **Candidate-registry software verification (2026-11-12):** the separate
+  `build_channel_split_registry.py` workflow's focused suite passes all 10
+  cases, including complete legacy RT migration, bounded archive expansion,
+  exact source digests, exclusive publication, and exact cache reuse. The
+  registry stays `CANDIDATE_NOT_EXTERNALLY_REVIEWED` / `NOT_QUALIFIED`; this
+  does not establish authoritative inventory or release eligibility.
 
 ### E03 — canonical path, target and storage contract audit
 
 - **Dependencies:** E01 source map for `DS.G1`, `DS.G2`, `DS.G7`, targets and
   serialization; use analytical and already-retained evidence first.
+- **Current implementation:** producer/source inspection found that the current
+  standardized-PUSCH writer emits `umcd.standardized.profile-los-proxy.v1` as
+  one binary value with shape `(1,)`, but the canonical validator did not bind
+  this version to the fixed singleton shape or prohibit value axes. It now
+  shares the scalar guard used by the current profile-proxy and geometric-LOS
+  versions. Seven focused scalar/producer cases and the complete 42-test target
+  contract module pass. Canonical path-oracle RMS and complex CFR target
+  admission also rejects NaN and infinity. Historical target ranks remain
+  readable; other target families are still open. Same-path direct-path
+  ablation now rejects `SOLVER_FAILURE` and `UNCONVERGED` source groups rather
+  than treating their empty storage as a zero channel; an explicit `NO_PATH`
+  group remains represented as a finite-budget zero without a physical absence
+  claim. An analytical three-path case checks closely spaced delays, coherent
+  direct-path cancellation at the reference bin, signed phase across nonzero
+  frequency offsets, and exact same-path indirect residual. The combined
+  counterfactual/storage slice passes 35 tests; Ruff, format, and compilation
+  pass. The recognized canonical target registry has matching provenance pins
+  for all 19 versions. `direct_indirect_diagnostics()` now also rejects
+  nonfinite full or direct CFR input instead of returning NaN/Inf power and
+  ratio summaries; its focused adapter selection passes 8 tests with Ruff,
+  format, and compilation clean. `PathOracleTable.validate_for()` now requires
+  one explicit solve outcome for every episode link/frame/RX-port/TX-port pair;
+  omitted rows cannot vanish from immutable episode storage. Path coefficient
+  metadata is pinned to `sionna_rt_path_coefficient_v1` in the table constructor,
+  storage reader and layer schema. The UMCD schema/store/counterfactual slice
+  passes 140 tests; the Sionna path-adapter/RT-network slice passes 19 tests
+  with one native test deselected. No native channel reconstruction ran. The
+  UMCD writer now rejects seven legacy target versions whose axes were not
+  digest-bound: standardized and TDL CFR v1, RT trajectory absolute and symbol
+  CFR v1, RT geometric-LOS v2, and dynamic visibility v2/v3. Their historical
+  records remain readable; producers already publish axis-bound successors.
+  All seven refusal cases plus UMCD schema, store-integrity and target-contract
+  suites pass (182 tests). Canonical target admission now also fails closed if
+  a recognized version has no producer/reference/aggregation pin; the complete
+  target/storage focused slice passes (183 tests). Ruff, formatting and
+  compilation pass for the changed contract files. No native channel
+  reconstruction ran. E03 now exposes `reconstruct_path_oracle_cfr()` as the
+  shared path-to-CFR implementation: it preserves absolute path delays,
+  carrier-relative frequency offsets and complex128 accumulation, returns
+  explicit no-path groups as zero, and rejects failed/unconverged solves. The
+  direct-path ablation consumer uses the same transform for its full and
+  indirect-only views. The transform includes the carrier-phase term applied
+  by Sionna `Paths.cir()` to passband coefficients, plus the subcarrier-offset
+  phase. New counterfactual storage is layer v2 and binds `carrier_hz`; v1
+  records remain readable but are write-protected because their carrier phase
+  cannot be reconstructed from the saved layer alone. The counterfactual,
+  UMCD schema, and store-integrity selection passes 149 tests; native
+  `Paths.cfr()` parity and calibrated received-power truth remain open. The
+  analytical CFR utilities now reject nonfinite path gains/delays and invalid
+  FFT dimensions/spacings. Odd/even analytical grids verify the full centered
+  frequency axis, unnormalized complex path gains, and coherent zero-bin sum;
+  the existing RT-to-NR checks cover odd/even FFT ordering and DC placement.
+  The focused analytical/path/NR frequency-order selection passes 44 tests.
+  A direct integration regression now feeds a unit-mean analytical multipath
+  CFR through the flat network link budget and verifies complex phase
+  preservation, 6 dB voltage/power scaling, and transmit-power conversion. It
+  passes with the existing flat-budget oracle check (2 selected tests); this
+  verifies coefficient arithmetic only, not calibrated propagation.
+  Producer/consumer tracing also found that RT trajectory NR records carry one
+  geometric-LOS boolean per record, while UMCD stores the full trajectory on
+  an explicit frame axis. NR admission now enforces the scalar per-record
+  shape for `umcd.rt-trajectory.geometric-los.v2`; the UMCD route continues to
+  use the axis-bound dynamic v4 definition. The focused target-contract and NR
+  suite passes 119 tests. The same audit found the standardized PUSCH producer's
+  profile-LOS proxy is fixed at `(1,)`, while NR admission accepted any
+  one-element shape; admission now enforces `(1,)` and rejects `(1, 1)`. The
+  expanded target-contract and NR suite passes 120 tests. Remaining target
+  versions and schemas still need the complete matrix audit.
+  The NR v5 writer now also refuses four axis-ambiguous canonical CFR v1
+  versions whose producer-backed v2 successors bind tensor axes. Trajectory
+  publication preflights every child record before writing any, so a rejected
+  legacy target cannot leave a partially published route. The NR reader remains
+  unchanged for historical records; the expanded target-contract and NR suites
+  pass 125 tests.
+  The current RMS-delay v2 contract now has a bounded path-oracle producer in
+  `datasets.path_oracle.rms_delay_spread_target()`: one RX/TX port pair per
+  link, exact frame coverage, power-weighted delay moments, no implicit power
+  floor, explicit `NO_PATH`/zero-power missingness, and fail-closed solver
+  errors. Its analytic producer regressions cover a known two-path spread,
+  unavailable outcomes, multiport refusal, and solver-failure refusal. This
+  wires a software producer only; multiport aggregation and physical truth
+  qualification remain open. Exact focused command: `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 CUDA_VISIBLE_DEVICES='' ./.venv/bin/python -m pytest -o addopts='' --confcutdir=tests/test_datasets -q tests/test_datasets/test_umcd_schema.py -k 'rms_delay_spread_producer'` (2 passed).
+  The helper is now wired into `build_sionna_rt_episode_bundle()` as an
+  explicit opt-in derived target, and the timestamped F04 RT trajectory
+  producer enables that option. It derives the RMS target from the same
+  `PathOracleTable` assembled for the path layer, so path extraction is not
+  repeated; multiport callers are rejected by the helper. An integration-level
+  fake-table test confirms one frame-axis target per single-port link and
+  reasoned missingness for no-path frames. This does not run a path solver.
+  `EpisodeBundle` now requires the current v2 target to have its declared path
+  oracle layer and replays the canonical producer against that exact table;
+  altered values, validity masks, reasons, censoring, or definition reject
+  before storage. Six focused target/storage cases pass, and the complete
+  RT-network module passes 17 tests. This validates source-to-target consistency
+  only; it does not validate path-table physical truth or permit multiport
+  aggregation.
+  The current registry contains 19 canonical versions. Producer/storage review
+  classifies four CFR v2 versions, dynamic visibility v4, and RMS v2 as
+  axis-bound UMCD targets; standardized profile v1, standardized profile v2,
+  and static visibility v2 are fixed singletons, while trajectory geometric
+  visibility v2 is a fixed scalar in each NR record and remains UMCD-write
+  protected. UMCD publication is now read-only for superseded or axis-unbound
+  CFR v1s, trajectory geometric-visibility v1/v2, static visibility v1,
+  dynamic visibility v2/v3, and RMS v1; the reader preserves legacy bytes/ranks.
+  Trajectory geometric-visibility v1 retains its per-frame binary semantics for
+  reads, but the frame axis remains digest-unbound and publication is refused.
+  Static visibility v1’s old ranks remain constructible for reads. The focused
+  guard slice passes nine refusal cases, plus a legacy-rank compatibility case.
+  Exact commands:
+  `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 CUDA_VISIBLE_DEVICES='' ./.venv/bin/python -m pytest -o addopts='' --confcutdir=tests/test_datasets -q tests/test_datasets/test_umcd_schema.py -k 'superseded_target_versions_are_read_only'`
+  (9 passed), and
+  `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 CUDA_VISIBLE_DEVICES='' ./.venv/bin/python -m pytest -o addopts='' --confcutdir=tests/test_datasets -q tests/test_datasets/test_target_contracts.py -k 'historical_static_visibility_v1'`
+  (1 passed).
+  A handcrafted historical target object also passes the full manifest,
+  content-digest, and bundle-reader path without adding axes or changing the
+  frame-value array; exact command `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1
+  OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1
+  CUDA_VISIBLE_DEVICES='' ./.venv/bin/python -m pytest -o addopts=''
+  --confcutdir=tests/test_datasets -q tests/test_datasets/test_umcd_schema.py
+  -k 'historical_frame_visibility_v1_layer_reads_without_axis_upgrade'` passes
+  (1 test).
+  This closes only the audited write/read policy rows; target families lacking
+  producers, delay-estimator targets, receiver-detectable direct path, and
+  physical received-path power remain open.
+- **Producer/consumer matrix increment (2026-11-12):** added a versioned
+  source inventory for all 19 recognized target definitions, with producer,
+  shape/axis and publication policy, stored contract, consumer path, and source
+  evidence. A strict JSON Schema now defines the matrix artifact. A focused
+  regression validates that schema and enforces complete one-to-one version
+  coverage and checks every cited source/schema file. The matrix deliberately
+  leaves detector-, timing-, receiver-, and calibrated-power-dependent target
+  families without invented producers. Verification: the selected inventory
+  regression passes (1 test); JSON parsing and `git diff --check` pass. This
+  closes the source-map portion only; E03 remains active because target
+  producer/read round trips, malformed-shape cases, and remaining analytical
+  consumer checks are not yet complete.
+- **NR trajectory-array publication guard (2026-11-12):** the matrix review
+  found that the NR writer rejected legacy CFR axes but could still admit
+  historical frame-vector geometric-visibility targets as if they were one
+  timestamp record. NR publication now rejects the axis-unbound trajectory
+  geometric-visibility v1 and F04 dynamic-visibility v2/v3 definitions while
+  leaving existing NR reads intact. The regression confirms v1 fails before
+  publication and parameterized cases verify refusal plus historical
+  content-addressed readback for all three versions. The focused writer/read
+  guard passes (3 tests); this is storage compatibility only, not channel
+  qualification.
+- **Static F03 visibility store contract (2026-11-12):** added a canonical
+  `EpisodeBundle` write/read regression for visibility v2 plus a malformed
+  `(1, 1)` singleton-shape rejection case. The focused constructor and
+  content-addressed round-trip selection passes (2 tests). This closes that
+  producer/storage boundary only; loaded-scene and geometry truth remain
+  unqualified.
+- **NR scalar target preservation (2026-11-12):** a canonical trajectory
+  geometric-visibility v2 round trip exposed that the NR storage snapshot
+  promoted zero-dimensional values to `(1,)`, violating the per-record scalar
+  contract. `_as_numpy()` now takes an owned copy of 0-D arrays without changing
+  rank; non-scalars remain contiguous snapshots. The v5 scalar LOS round-trip
+  regression passes; the broader NR record/store suite passes (105 tests).
+  The focused UMCD visibility/store selection passes (2 tests), and the
+  inventory/legacy-target checks pass (13 selected tests). Ruff, format,
+  compilation, JSON parsing, the ledger validator and `git diff --check` pass.
+  This corrects storage shape only; LOS geometry is not qualified.
+- **Standardized profile proxy v1 consumer correction (2026-11-12):** source
+  inspection found `umcd.standardized.profile-los-proxy.v1` is actively emitted
+  by `build_standardized_pusch_dmrs_records()` and admitted as a fixed `(1,)`
+  NR target; the earlier inventory entry incorrectly called it producerless
+  and read-only. The inventory now records the exact producer and current NR
+  route. A schema-v5 content-addressed write/read regression passes alongside
+  the geometric-visibility scalar regression (2 tests). This remains a
+  profile-category proxy, not geometric visibility.
+- **RT CFR v2 NR persistence (2026-11-12):** added schema-v5 write/read
+  round trips for absolute-delay CFR v2 and symbol/Doppler CFR v2, asserting
+  exact complex arrays, target names, and digest-bound axis definitions. Both
+  focused cases pass. These tests establish the NR storage contract only;
+  native path/CFR equivalence remains an external G2/G3 qualification item.
+- **Legacy dynamic visibility reader compatibility (2026-11-12):** added
+  content-addressed `EpisodeBundle` readback for superseded dynamic visibility
+  v2 and v3, verifying historical frame arrays retain their original values
+  and axisless definitions after canonical writes were disabled. Both focused
+  cases pass; no axes are inferred.
+- **Read-only target legacy rank matrix (2026-11-12):** added handcrafted,
+  manifest- and object-digest-valid UMCD bundles for all nine versions blocked
+  from canonical publication plus RMS v1. Ten parameterized cases verify the
+  historical values, ranks and axisless definitions survive bundle readback;
+  they do not infer axes or assert physical truth.
+- **UMCD CFR frequency-grid admission (2026-11-12):** `EpisodeBundle` now
+  checks every declared `effective_subcarrier` target axis against the parent
+  episode's exact subcarrier-grid length. Four parameterized cases cover the
+  standardized, TDL-PUSCH, RT absolute-CFR, and RT symbol-CFR v2 contracts;
+  each rejects a mismatched grid, accepts a matching one, and round-trips
+  values plus declared axes through the content-addressed UMCD store. This
+  closes a storage-shape invariant only and does not establish numerical CFR
+  truth. The combined NR/store/target/UMCD schema slice passes 289 tests.
+- **Positive absolute-frequency admission (2026-11-12):** network episode,
+  physical-channel view, frequency-domain observation, path-oracle CFR,
+  standardized TDL/CDL record, and Scenario GBSM record now reject a carrier
+  plus baseband offset that is nonpositive or nonfinite. This closes the shared
+  RF-grid input invariant before path phase evaluation; it does not verify a
+  simulator or calibrated frequency reference. The UMCD-schema and path-
+  counterfactual modules pass 146 tests, the standardized software module
+  passes 58 tests with 2 native cases deselected, and the Scenario GBSM store
+  module passes 19 tests. Changed modules pass Ruff, format, and compilation.
+- **G6 horizon-indexer consumer (2026-11-12):** the receiver-only RT trajectory
+  evaluator now has an opt-in `horizons_s` route through the canonical
+  `build_trajectory_horizon_targets()` indexer. It uses exact elapsed-time
+  matches, retains frozen split and explicit/frozen-gap controls, and preserves
+  the prior adjacent-sample behavior when horizons are omitted. Nine focused
+  tests pass. This closes one helper-consumer edge only; no forecast criterion,
+  training route, or G6 scientific qualification is established.
+- **G6 runnable multi-horizon spec (2026-11-12):** per-trajectory specs can
+  freeze elapsed-time horizons, timestamp tolerance, and a maximum inter-sample
+  gap. The CLI records the applied design alongside each exact input-spec
+  digest, runner source digest, UTC generation time, and CLI command; it
+  validates the v2 report schema. Its focused evaluator/CLI slice passes 16
+  tests. This is a
+  fixed-baseline workflow only; it makes no qualification claim.
 - **Scope:** identify concrete gaps in same-path reconstruction, units/gauge,
   dtype/masks, missingness, arrays, retry/failure state, and model-input
   consumers. Each change must name an original requirement and downstream
@@ -640,11 +1326,79 @@ light oracle checks pass. No native rerun or result/threshold edit was made.
   remaining qualification dependencies; no broad rewrite.
 - **Verification:** focused round-trip, analytic-oracle and failure-path checks
   for changed contracts.
+- **Disposition:** the current-target producer/consumer software audit is
+  recorded in `TARGET_FAMILY_PRODUCER_CONSUMER_MATRIX.md`, including enforced
+  value domains, shapes, axes, missingness/source replay, and the limits where
+  physical meaning cannot be admitted. The current RMS-delay v2 source replay
+  check is covered by 136 UMCD schema tests and 17 RT-network tests. This does
+  not close PKG08-008: future target families and physical reference evidence
+  remain open.
+- **Next:** E04's G5 receipt binding cannot be implemented as an admission
+  contract until the exact receiver scope, sourced acceptance criteria, powered
+  independent-channel design, and independent reviewer authority are frozen.
+  While that task is externally defined, continue the remaining manual
+  package-0 history crosswalk (PKG00-002) and semantic/dynamic helper-route
+  audit (PKG00-003); the multi-horizon target-indexer production edge is now
+  wired through the fixed-baseline evaluator. Receiver-estimated
+  delay, detectable direct path, and physical received-path power remain open
+  until detector/timing/calibration criteria are frozen. Native path
+  coefficient/reference comparison remains a separate G2/G3 qualification
+  item.
 
 ### E04 — bounded receiver integration and G3 readiness
 
 - **Dependencies:** E01 task-level scope audit; existing G5 receiver work and
   task-specific G3 acceptance definitions.
+- **Current evidence:** the 2026-11-12 [G5 receiver support matrix](G5_RECEIVER_SUPPORT_MATRIX_2026-11-12.md)
+  maps PUSCH, sample-domain impairment, multi-link, SSB/PBCH, PRS, and SRS
+  receiver paths to their implemented boundaries and named blockers. It records
+  the pinned Sionna 2.2.0 frequency-hopping/transform-precoding limitation and
+  explicitly separates software support from qualification. The existing G3
+  joint contract freezes complex CSI, delay/angular, path-equivalence, and
+  receiver-impact margins; each run still needs its own config/strata and
+  powered sample-size contract. Caller-resolved intra-slot PUSCH grids now have
+  a bounded dehop/replay software interface with digest-bound metadata. The new
+  adapter verifies the caller-resolved layout against the receiver config and
+  forwards the rehomed allocation through the ordinary LS/DMRS decoder; a CPU
+  loopback passes and its strict report remains `NOT_QUALIFIED`. This does not
+  resolve scheduling, independently generate hop-specific DMRS, implement
+  transform precoding, or qualify receiver performance. No receiver or G3
+  qualification run occurred.
+  A dependency-ready sample-domain workflow now connects channelized per-link
+  captures to composition, seeded receiver AWGN and `decode_noisy_network_pusch`
+  through `run_network_pusch_receiver()`. Its strict receipt binds the exact
+  waveform/configuration and implementation hashes and remains
+  `OBSERVED_NOT_QUALIFIED`; the 32-test network receiver module passes on CPU
+  with one unavailable-CUDA case skipped. Calibrated link generation, budget-
+  to-FIR construction, SINR truth, synchronization/acquisition, powered G5
+  acceptance and G3 receipt admission remain open. No qualification run
+  occurred.
+  The G3 contract-v4 path already binds the exact candidate/challenger configs,
+  waveform, link budget/noise and outcome-row execution digest; four current
+  preflight regressions pass for those bindings. No duplicate binding interface
+  was added. Existing G5.09 signed contracts cover a synthetic two-path scope;
+  they do not provide a general G5-qualified receiver receipt for G3 admission.
+  A v3 contract now binds the exact receiver, decoder and waveform context in
+  addition to timestamped acceptance criteria. It requires independent-reviewer
+  policy admission and a detached signature, and emits CPU v17/CUDA v25 curve
+  schemas. The 68-test acceptance and audit-contract suites and the 30-test
+  retained-result auditor suite pass; Ruff, format, compilation, requirement
+  ledger validation, and all three new schemas validate. Pure context assembly
+  and auditor replay are covered; the receiver module import stalled in the
+  local Sionna stack before native runner tests ran. This does not
+  qualify a receiver mode or define the powered G3 sampling design.
+  Source audit confirms that G3 contract v4 binds its criterion family,
+  configurations, waveform, link budget/noise, powered sample design and raw
+  path criteria, but its run manifest and receiver-impact evaluator do not
+  validate an external G5-qualified receiver receipt. The manifest remains
+  `NOT_QUALIFIED`; synthetic G5 v3 acceptance cannot satisfy that prerequisite.
+  The complex-CSI scorer now uses `phase_comparison_disposition()` for records
+  that carry paired physical-view contracts validated by strict schema
+  `evaluation/schema/g3-complex-csi-channel-view-contract.v1.schema.json`,
+  records the declared-gauge audit, and rejects mismatched or masked views; 50
+  focused CSI/joint-evaluator tests pass. Legacy raw-array diagnostics remain
+  accepted with `NOT_PROVIDED`, and the contract does not establish physical
+  phase calibration.
 - **Scope:** map exact required waveform/receiver configurations, implement
   missing interface/criteria plumbing, and distinguish code gaps from backend
   limitations. Freeze run-specific G3 contracts and sampling design before
@@ -655,6 +1409,27 @@ light oracle checks pass. No native rerun or result/threshold edit was made.
 - **Entry rule:** do not launch scientific qualification until the applicable
   G3 contract and sampling are frozen. Production D1 RT and advanced training
   remain gated until their existing criteria pass.
+- **Next:** freeze the task-specific G5 receiver scope, scientifically sourced
+  acceptance criteria, powered independent-channel design, and independent
+  review authority for the exact receiver/waveform needed by G3. Then add a
+  verifiable G5 receipt binding to a new G3 contract version before enabling
+  signed G3 receiver-impact admission. Existing synthetic G5 curves cannot be
+  promoted to that receipt. Do not label a new receipt qualified until its
+  result auditor, source/runtime identity, reviewer authority, and exact
+  receiver scope are verified.
+  For PUSCH hopping, replayable TS 38.211 V19.2.0 Table 6.4.1.1.3-6 timing,
+  port-0 DM-RS sequence/reference-grid generation, and a one-layer local
+  allocation mapper now cover bounded A/B rows through seven symbols per hop.
+  The mapper consumes caller-resolved per-hop modulation symbols in the
+  frequency-subcarrier-then-symbol order and feeds the existing carrier-grid
+  composer. It now also returns the exact boolean data-RE roster and binds its
+  packed-bit digest in the replayed allocation metadata. Next implement a
+  per-call estimator/demapper route that consumes the standards-derived pilot
+  and data masks without mutating shared Sionna objects; its interface must
+  preserve the mapper's active allocation span and reject unsupported CDM,
+  PT-RS, or puncturing cases. Then bind grant/UL-SCH coding. The pinned Sionna
+  receiver remains non-hopping and transform precoding remains unsupported.
+  Do not admit a G5 run from the support matrix or software loopbacks alone.
 
 ## Scientific and release guardrails
 

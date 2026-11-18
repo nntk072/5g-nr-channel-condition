@@ -2,6 +2,7 @@ import hashlib
 import io
 import json
 import os
+from dataclasses import replace
 from pathlib import Path
 
 import numpy as np
@@ -669,7 +670,7 @@ def test_nr_record_round_trip_is_lossless_pickle_free_and_content_addressed(tmp_
     )
 
     stored = write_nr_record(tmp_path, record)
-    assert stored.schema_version == 4
+    assert stored.schema_version == 5
     assert write_nr_record(tmp_path, record) == stored
     restored = read_nr_record(tmp_path, stored)
 
@@ -694,13 +695,240 @@ def test_nr_record_round_trip_is_lossless_pickle_free_and_content_addressed(tmp_
     with np.load(tmp_path / stored.relative_path, allow_pickle=False) as archive:
         metadata = json.loads(archive["metadata_json"].tobytes().decode("utf-8"))
     schema_path = (
-        Path(__file__).resolve().parents[2] / "datasets/schema/nr-record-metadata.v4.schema.json"
+        Path(__file__).resolve().parents[2] / "datasets/schema/nr-record-metadata.v5.schema.json"
     )
     import jsonschema
 
     schema = json.loads(schema_path.read_text(encoding="utf-8"))
     jsonschema.Draft202012Validator.check_schema(schema)
     jsonschema.Draft202012Validator(schema).validate(metadata)
+
+
+def test_nr_v5_round_trip_preserves_digest_bound_target_axes(tmp_path):
+    record = make_single_record("axis-bound", targets={"metric": np.asarray([1.0])})
+    definition = TargetDefinition.versioned(
+        semantic="synthetic axis-bound metric",
+        units="fixture unit",
+        source="NR dataset test fixture",
+        reference="deterministic in-memory fixture values",
+        aggregation_rule="one value per declared element",
+        definition_version="tests.nr.fixture.v2",
+        value_axes=("element",),
+    )
+    record = replace(record, target_definitions={"metric": definition})
+    stored = write_nr_record(tmp_path, record)
+    restored = read_nr_record(tmp_path, stored)
+    assert restored.target_definitions["metric"].value_axes == ("element",)
+
+
+def test_nr_geometric_visibility_v2_scalar_roundtrips_in_schema_v5(tmp_path):
+    record = make_single_record("geometric-visibility-v2", targets={"geometric_los": True})
+    definition = TargetDefinition.versioned(
+        semantic="digest-bound NumPy loaded-scene direct-visibility oracle",
+        units="boolean",
+        source="numpy_loaded_scene_triangle_inventory",
+        reference=(
+            "loaded-scene triangle query cross-checked with Mitsuba segment intersection "
+            "and depth-zero Sionna PathSolver for each recorded TX/RX pose and geometry digest"
+        ),
+        aggregation_rule="one independent direct-path visibility value per frame",
+        definition_version="umcd.rt-trajectory.geometric-los.v2",
+    )
+    record = replace(record, target_definitions={"geometric_los": definition})
+
+    stored = write_nr_record(tmp_path, record)
+    restored = read_nr_record(tmp_path, stored)
+
+    assert restored.targets["geometric_los"].shape == ()
+    assert bool(restored.targets["geometric_los"])
+    assert restored.target_definitions["geometric_los"] == definition
+
+
+def test_nr_standardized_profile_proxy_v1_roundtrips_fixed_singleton_schema_v5(tmp_path):
+    record = make_single_record(
+        "standardized-profile-proxy-v1",
+        targets={"profile_los_proxy": np.asarray([1], dtype=np.uint8)},
+    )
+    definition = TargetDefinition.versioned(
+        semantic="standardized_profile_los_category_proxy",
+        units="binary_class",
+        source="Sionna standardized TDL/CDL profile model",
+        reference="profile_los_component false maps to 0 and true maps to 1; not geometric LOS truth",
+        aggregation_rule="one profile-category proxy per generated channel record",
+        definition_version="umcd.standardized.profile-los-proxy.v1",
+    )
+    record = replace(record, target_definitions={"profile_los_proxy": definition})
+
+    stored = write_nr_record(tmp_path, record)
+    restored = read_nr_record(tmp_path, stored)
+
+    assert restored.targets["profile_los_proxy"].shape == (1,)
+    np.testing.assert_array_equal(restored.targets["profile_los_proxy"], [1])
+    assert restored.target_definitions["profile_los_proxy"] == definition
+
+
+@pytest.mark.parametrize(
+    "version",
+    [
+        "umcd.standardized.effective-cfr.v1",
+        "umcd.tdl-pusch.effective-cfr.v1",
+        "umcd.rt-trajectory.absolute-cfr.v1",
+        "umcd.rt-trajectory.symbol-cfr.v1",
+    ],
+)
+def test_nr_writer_keeps_axis_ambiguous_canonical_cfr_versions_read_only(tmp_path, version):
+    record = make_single_record(
+        "legacy-axis-cfr",
+        targets={"channel_cfr": np.ones((24,), dtype=np.complex64)},
+    )
+    definition = TargetDefinition.versioned(
+        semantic="legacy axis-ambiguous fixture",
+        units="complex channel gain",
+        source="legacy fixture",
+        reference="historical unbound axis declaration",
+        aggregation_rule="historical coefficient sequence",
+        definition_version=version,
+    )
+    record = replace(record, target_definitions={"channel_cfr": definition})
+
+    with pytest.raises(ValueError, match="axis-ambiguous NR target definitions are read-only"):
+        write_nr_record(tmp_path, record)
+    assert not (tmp_path / "records").exists()
+
+
+def test_nr_trajectory_writer_preflights_axis_ambiguous_targets_before_any_publish(tmp_path):
+    valid = make_single_record("route-valid-first", targets={"diagnostic": np.asarray([1.0])})
+    legacy = make_single_record(
+        "route-legacy-second",
+        targets={"channel_cfr": np.ones((24,), dtype=np.complex64)},
+    )
+    legacy_definition = TargetDefinition.versioned(
+        semantic="legacy axis-ambiguous fixture",
+        units="complex channel gain",
+        source="legacy fixture",
+        reference="historical unbound axis declaration",
+        aggregation_rule="historical coefficient sequence",
+        definition_version="umcd.rt-trajectory.absolute-cfr.v1",
+    )
+    legacy = replace(legacy, target_definitions={"channel_cfr": legacy_definition})
+    trajectory = NRTrajectory("axis-policy-route", (0.0, 1e-3), (valid, legacy))
+
+    with pytest.raises(ValueError, match="axis-ambiguous NR target definitions are read-only"):
+        write_nr_trajectory(tmp_path, trajectory)
+    assert not (tmp_path / "records").exists()
+
+
+@pytest.mark.parametrize(
+    ("version", "semantic", "source", "reference", "aggregation"),
+    [
+        (
+            "umcd.standardized.effective-cfr.v2",
+            "perfect_synchronized_effective_subcarrier_cfr",
+            "standardized Sionna TDL/CDL CFR adapter",
+            "profile-relative excess-delay CFR resampled to this resource grid",
+            "retain each effective subcarrier coefficient in receiver FFT-bin order; "
+            "no antenna, symbol, or power averaging",
+        ),
+        (
+            "umcd.tdl-pusch.effective-cfr.v2",
+            "perfect synchronized effective-subcarrier CFR",
+            "sionna_phy_ofdmchannel_return_channel",
+            "OFDMChannel return_channel with the configured TDL profile, carrier, "
+            "sample rate, and effective FFT-bin mapping",
+            "retain each effective subcarrier coefficient; no antenna, symbol, or power averaging",
+        ),
+    ],
+)
+def test_nr_v5_round_trip_preserves_canonical_cfr_v2_axes(
+    tmp_path, version, semantic, source, reference, aggregation
+):
+    axes = (
+        "batch",
+        "rx_antenna",
+        "rx_stream",
+        "ofdm_symbol",
+        "tx_stream",
+        "tx_antenna",
+        "effective_subcarrier",
+    )
+    shape = (1, 1, 2, 1, 1, 14, 24)
+    record = make_single_record(
+        "canonical-cfr-axis-bound",
+        targets={"channel_cfr": np.ones(shape, dtype=np.complex64)},
+        target_masks={"channel_cfr": np.ones(shape, dtype=bool)},
+    )
+    definition = TargetDefinition.versioned(
+        semantic=semantic,
+        units="complex channel gain (dimensionless)",
+        source=source,
+        reference=reference,
+        aggregation_rule=aggregation,
+        definition_version=version,
+        value_axes=axes,
+    )
+    record = replace(record, target_definitions={"channel_cfr": definition})
+    stored = write_nr_record(tmp_path / version, record)
+    restored = read_nr_record(tmp_path / version, stored)
+    assert restored.target_definitions["channel_cfr"] == definition
+    np.testing.assert_array_equal(restored.targets["channel_cfr"], record.targets["channel_cfr"])
+
+
+@pytest.mark.parametrize(
+    (
+        "version",
+        "target_name",
+        "semantic",
+        "axes",
+        "shape",
+        "source",
+        "reference",
+        "aggregation",
+    ),
+    [
+        (
+            "umcd.rt-trajectory.absolute-cfr.v2",
+            "channel_cfr",
+            "absolute-delay full-path complex CFR on effective PUSCH subcarriers",
+            ("effective_subcarrier",),
+            (24,),
+            "sionna_rt_pathsolver",
+            "Sionna RT full solver-valid path set evaluated with absolute propagation delays and configured carrier/subcarrier offsets",
+            "coherent sum of all retained solver-valid paths per effective subcarrier and frame; no path-count or power normalization",
+        ),
+        (
+            "umcd.rt-trajectory.symbol-cfr.v2",
+            "channel_cfr_ofdm_symbols",
+            "absolute-delay full-path CFR with path-Doppler phase evolution sampled at PUSCH OFDM symbols",
+            ("ofdm_symbol", "effective_subcarrier"),
+            (14, 24),
+            "sionna_rt_paths_cfr_doppler",
+            "absolute-delay RT path channel evaluated at the declared NR OFDM symbol start timestamps",
+            "coherent sum of retained solver-valid paths per effective subcarrier and OFDM symbol; no path or symbol averaging",
+        ),
+    ],
+)
+def test_nr_v5_round_trip_preserves_rt_cfr_v2_axis_shapes(
+    tmp_path, version, target_name, semantic, axes, shape, source, reference, aggregation
+):
+    values = np.arange(np.prod(shape), dtype=np.float32).reshape(shape).astype(np.complex64)
+    record = make_single_record("rt-cfr-v2", targets={target_name: values})
+    definition = TargetDefinition.versioned(
+        semantic=semantic,
+        units="complex channel gain (dimensionless)",
+        source=source,
+        reference=reference,
+        aggregation_rule=aggregation,
+        definition_version=version,
+        value_axes=axes,
+    )
+    record = replace(record, target_definitions={target_name: definition})
+
+    stored = write_nr_record(tmp_path / version, record)
+    restored = read_nr_record(tmp_path / version, stored)
+
+    assert restored.targets[target_name].shape == shape
+    np.testing.assert_array_equal(restored.targets[target_name], values)
+    assert restored.target_definitions[target_name] == definition
 
 
 @pytest.mark.parametrize(
@@ -765,7 +993,7 @@ def test_nr_v4_reader_rejects_rehashed_reference_payload_provenance_drift(tmp_pa
         sample_id=stored.sample_id,
         content_sha256=digest,
         relative_path=relative_path,
-        schema_version=4,
+        schema_version=5,
     )
     with pytest.raises(ValueError, match="provenance shape/digest"):
         read_nr_record(tmp_path, forged)

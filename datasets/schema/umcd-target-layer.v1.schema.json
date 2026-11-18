@@ -8,7 +8,16 @@
   "properties": {
     "schema": {"const": "umcd.target.v2"},
     "entity_id": {"type": "string", "minLength": 1},
-    "definition": {"type": "object"},
+    "definition": {
+      "type": "object",
+      "properties": {
+        "value_axes": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        }
+      }
+    },
     "reason_codes": {
       "type": "array",
       "items": {

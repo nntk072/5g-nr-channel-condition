@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.dev/schema/nr-pusch-dehopped-grid-replay.v1.schema.json",
+  "title": "PUSCH received-grid dehopping replay report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "status",
+    "qualification_status",
+    "input_carrier_grid_sha256",
+    "output_carrier_grid_sha256",
+    "hop_composition_sha256"
+  ],
+  "properties": {
+    "schema": {"const": "loslab.nr_pusch_dehopped_grid_replay.v1"},
+    "status": {"const": "PASS_INPUT_SCOPED_REPLAY"},
+    "qualification_status": {"const": "NOT_QUALIFIED"},
+    "input_carrier_grid_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "output_carrier_grid_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "hop_composition_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

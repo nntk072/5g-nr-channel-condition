@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
+import jsonschema
 import numpy as np
 import pytest
 from evaluation.g3_complex_csi import evaluate_complex_csi, symmetric_complex_csi_error
@@ -30,9 +34,40 @@ def _record(
     }
 
 
+def _view_contract(view_id: str, *, phase_gauge_id: str = "gauge-a") -> dict[str, object]:
+    return {
+        "view_id": view_id,
+        "link_id": "link-1",
+        "frame_times_s": [0.0],
+        "rx_port_ids": ["rx-1"],
+        "tx_port_ids": ["tx-1"],
+        "carrier_hz": 3.5e9,
+        "subcarrier_offsets_hz": [-15_000.0, 0.0],
+        "delay_reference": "absolute_propagation_delay",
+        "power_scale": "absolute_power_gain",
+        "phase_gauge_id": phase_gauge_id,
+    }
+
+
 def _score(records: list[dict[str, object]], **kwargs: object) -> dict[str, object]:
     expected = sorted({(row["family_id"], row["condition"]) for row in records})
     return evaluate_complex_csi(records, expected_strata=expected, **kwargs)  # type: ignore[arg-type]
+
+
+def test_complex_csi_view_contract_schema_is_strict_and_requires_normalization_recipe() -> None:
+    schema_path = (
+        Path(__file__).parents[2]
+        / "evaluation/schema/g3-complex-csi-channel-view-contract.v1.schema.json"
+    )
+    schema = json.loads(schema_path.read_text())
+    jsonschema.Draft202012Validator.check_schema(schema)
+    validator = jsonschema.Draft202012Validator(schema)
+    validator.validate(_view_contract("view-1"))
+
+    with pytest.raises(jsonschema.ValidationError):
+        validator.validate({**_view_contract("view-2"), "unreviewed_field": True})
+    with pytest.raises(jsonschema.ValidationError):
+        validator.validate({**_view_contract("view-3"), "power_scale": "normalized_power"})
 
 
 def test_symmetric_complex_csi_error_matches_frozen_formula_without_phase_alignment() -> None:
@@ -63,6 +98,62 @@ def test_symmetric_complex_csi_error_rejects_invalid_inputs(
 ) -> None:
     with pytest.raises(ValueError, match=message):
         symmetric_complex_csi_error(candidate, challenger, h_floor=floor)
+
+
+def test_complex_csi_view_contract_uses_declared_phase_gauge_audit() -> None:
+    exact = np.ones((1, 1, 1, 2), dtype=np.complex128)
+    records = [
+        {
+            **_record(f"cluster-{index}", "episode-0", exact, exact),
+            "candidate_view_contract": _view_contract(f"candidate-{index}"),
+            "challenger_view_contract": _view_contract(f"challenger-{index}"),
+        }
+        for index in range(2)
+    ]
+
+    report = _score(records, bootstrap_draws=1_000)
+
+    assert report["phase_reference_audit"] == {
+        "status": "ALL_DECLARED_CONTRACTS_MATCH",
+        "checked_record_count": 2,
+        "total_record_count": 2,
+        "disposition": "eligible_same_declared_gauge",
+        "meaning": "declared view contracts match; calibration and physical phase truth remain unverified",
+    }
+
+
+def test_complex_csi_view_contract_rejects_gauge_mismatch_and_masked_channels() -> None:
+    exact = np.ones((1, 1, 1, 2), dtype=np.complex128)
+    mismatch = [
+        {
+            **_record("cluster-a", "episode-0", exact, exact),
+            "candidate_view_contract": _view_contract("candidate", phase_gauge_id="gauge-a"),
+            "challenger_view_contract": _view_contract("challenger", phase_gauge_id="gauge-b"),
+        },
+        {
+            **_record("cluster-b", "episode-0", exact, exact),
+            "candidate_view_contract": _view_contract("candidate-b"),
+            "challenger_view_contract": _view_contract("challenger-b"),
+        },
+    ]
+    with pytest.raises(ValueError, match="phase_gauge_mismatch"):
+        _score(mismatch, bootstrap_draws=1_000)
+
+    zeroed_masked = np.ones_like(exact)
+    zeroed_masked[..., 1] = 0.0
+    masked = [
+        {
+            **_record(f"cluster-{index}", "episode-0", zeroed_masked, exact),
+            "candidate_view_contract": {
+                **_view_contract(f"candidate-{index}"),
+                "valid_mask": [[[[True, False]]]],
+            },
+            "challenger_view_contract": _view_contract(f"challenger-{index}"),
+        }
+        for index in range(2)
+    ]
+    with pytest.raises(ValueError, match="fully valid channel views"):
+        _score(masked, bootstrap_draws=1_000)
 
 
 def test_complex_csi_evaluation_weights_clusters_equally_and_never_qualifies() -> None:

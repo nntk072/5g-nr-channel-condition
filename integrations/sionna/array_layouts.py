@@ -85,6 +85,8 @@ def sionna_scene_to_network_episode(
     tx_pattern_labels: Sequence[str] | None = None,
     rx_pattern_labels: Sequence[str] | None = None,
     associations: Sequence[tuple[str, str]] | None = None,
+    link_roles_by_association: Mapping[tuple[str, str], LinkRole] | None = None,
+    split_leakage_relations: Sequence[tuple[str, str]] = (),
     direction: LinkDirection = LinkDirection.OTHER,
     link_role: LinkRole = LinkRole.OTHER,
 ) -> SionnaSceneNetwork:
@@ -173,6 +175,15 @@ def sionna_scene_to_network_episode(
         raise ValueError("at least one TX→RX association is required")
     if len(set(link_pairs)) != len(link_pairs):
         raise ValueError("TX→RX associations must be unique")
+    roles_by_pair = (
+        {pair: link_role for pair in link_pairs}
+        if link_roles_by_association is None
+        else dict(link_roles_by_association)
+    )
+    if set(roles_by_pair) != set(link_pairs):
+        raise ValueError("link roles must cover every selected TX→RX association exactly")
+    if any(not isinstance(role, LinkRole) for role in roles_by_pair.values()):
+        raise TypeError("link_roles_by_association values must be LinkRole values")
     tx_node_by_id = {node.node_id: node for node in nodes if node.node_id in tx_ids}
     rx_node_by_id = {node.node_id: node for node in nodes if node.node_id in rx_ids}
     links: list[DirectedLink] = []
@@ -191,7 +202,7 @@ def sionna_scene_to_network_episode(
                 tuple(range(tx_spec.num_ports)),
                 tuple(range(rx_spec.num_ports)),
                 direction,
-                link_role,
+                roles_by_pair[(tx_id, rx_id)],
             )
         )
         mappings.append(
@@ -213,6 +224,7 @@ def sionna_scene_to_network_episode(
         links=tuple(links),
         frame_times_s=(0.0,),
         subcarrier_offsets_hz=np.asarray(subcarrier_offsets_hz, dtype=np.float64),
+        split_leakage_relations=tuple(split_leakage_relations),
     )
     return SionnaSceneNetwork(episode, tuple(mappings))
 

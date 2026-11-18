@@ -81,6 +81,45 @@ class NRModelInputs:
 
 
 @dataclass(frozen=True, slots=True)
+class NRReceiverInferenceRecord:
+    """Receiver-only input row with a separate stable evaluation join key.
+
+    Identity is deliberately outside ``model_inputs``. A prediction writer can
+    retain the composite row identity without exposing sample IDs to a model.
+    This record contains no target or oracle value.
+    """
+
+    episode_id: str
+    link_id: str
+    frame_index: int
+    sample_id: str
+    model_inputs: NRModelInputs
+
+    def __post_init__(self) -> None:
+        for name, value in (
+            ("episode_id", self.episode_id),
+            ("link_id", self.link_id),
+            ("sample_id", self.sample_id),
+        ):
+            if not isinstance(value, str) or not value.strip() or value != value.strip():
+                raise ValueError(f"{name} must be a non-empty canonical string")
+        if (
+            isinstance(self.frame_index, bool)
+            or not isinstance(self.frame_index, int)
+            or self.frame_index < 0
+        ):
+            raise ValueError("frame_index must be a nonnegative integer")
+        if not isinstance(self.model_inputs, NRModelInputs):
+            raise TypeError("model_inputs must be NRModelInputs")
+        audit_model_input_payload(self.model_inputs)
+        grid_shape = tuple(getattr(self.model_inputs.received_grid, "shape", ()))
+        if len(grid_shape) != 5 or grid_shape[0] != 1:
+            raise ValueError(
+                "one NRReceiverInferenceRecord must identify exactly one received-grid sample"
+            )
+
+
+@dataclass(frozen=True, slots=True)
 class NRObservation:
     """Receiver-visible PUSCH data with explicit FFT-to-estimator bin mapping."""
 
@@ -461,19 +500,41 @@ class NRChannelRecord:
                 if target_shape_attribute is not None
                 else tuple(np.shape(target_value))
             )
+            if definition.value_axes and len(definition.value_axes) != len(target_shape):
+                raise ValueError(
+                    f"canonical NR target {name!r} rank must match its declared value axes"
+                )
             version = definition.definition_version
             estimate_shape = tuple(self.observation.channel_estimate.h_hat.shape)
             effective_subcarrier_count = len(self.observation.fft_bin_indices)
             expected_shape: tuple[int, ...] | None = None
             if version in {
                 "umcd.standardized.effective-cfr.v1",
+                "umcd.standardized.effective-cfr.v2",
                 "umcd.tdl-pusch.effective-cfr.v1",
+                "umcd.tdl-pusch.effective-cfr.v2",
             }:
                 expected_shape = estimate_shape
-            elif version == "umcd.rt-trajectory.absolute-cfr.v1":
+            elif version in {
+                "umcd.rt-trajectory.absolute-cfr.v1",
+                "umcd.rt-trajectory.absolute-cfr.v2",
+            }:
                 expected_shape = (effective_subcarrier_count,)
-            elif version == "umcd.rt-trajectory.symbol-cfr.v1":
+            elif version in {
+                "umcd.rt-trajectory.symbol-cfr.v1",
+                "umcd.rt-trajectory.symbol-cfr.v2",
+            }:
                 expected_shape = (estimate_shape[5], effective_subcarrier_count)
+            elif version == "umcd.rt-trajectory.geometric-los.v2":
+                # NR trajectory records represent one timestamp each. The
+                # axisless value is therefore one scalar observation; the
+                # multi-frame UMCD route uses its separately axis-bound v4
+                # geometric visibility target.
+                expected_shape = ()
+            elif version == "umcd.standardized.profile-los-proxy.v1":
+                # The standardized PUSCH producer stores exactly one category
+                # value; singleton multidimensional shapes are not equivalent.
+                expected_shape = (1,)
             if expected_shape is not None and target_shape != expected_shape:
                 raise ValueError(
                     f"canonical NR target {name!r} has shape {target_shape}, "

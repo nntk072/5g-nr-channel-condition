@@ -21,6 +21,7 @@ from datasets.network import (
     NetworkNode,
     NodeRole,
 )
+from datasets.split_lineage import make_standardized_run_split_registry
 from datasets.split_policy import (
     LeakageNamespace,
     LeakageRelation,
@@ -46,7 +47,13 @@ from datasets.split_policy import (
     standardized_draw_subject,
     verify_registry_spatiotemporal_audit,
 )
-from datasets.standardized import StandardizedChannelRecord, StandardizedFamily
+from datasets.standardized import (
+    StandardizedChannelRecord,
+    StandardizedChannelRun,
+    StandardizedFamily,
+    read_standardized_run,
+    write_standardized_run,
+)
 from evaluation.independent_splits import make_independent_split
 
 
@@ -242,9 +249,7 @@ def test_whole_scene_holdout_auditor_rejects_omitted_registered_scene_parent():
         (LeakageNamespace.SCENE_REALIZATION, "scene-e"),
         family="rt.scene",
     )
-    registry = make_split_policy_registry(
-        [*subjects, omitted_subject], policy=registry.policy
-    )
+    registry = make_split_policy_registry([*subjects, omitted_subject], policy=registry.policy)
 
     with pytest.raises(ValueError, match="omit frozen scene-lineage parents"):
         audit_whole_scene_holdout(
@@ -357,6 +362,23 @@ def _standardized_record() -> StandardizedChannelRecord:
     )
 
 
+def _standardized_run(run_id: str, *, seed: int, draw_count: int = 8) -> StandardizedChannelRun:
+    template = _standardized_record()
+    return StandardizedChannelRun(
+        run_id,
+        tuple(
+            replace(
+                template,
+                sample_id=f"{run_id}-sample-{index:04d}",
+                run_id=run_id,
+                sample_index=index,
+                metadata={**template.metadata, "seed": seed},
+            )
+            for index in range(draw_count)
+        ),
+    )
+
+
 def _four_way_registry(subjects: list[SplitSubject] | None = None):
     policy = SplitPolicy.release_v2(seed="release-v2-test")
     registry = make_split_policy_registry(subjects or _unlinked_subjects(), policy=policy)
@@ -458,12 +480,8 @@ def test_spatiotemporal_relation_identity_binds_buffer_and_exact_footprint_evide
         SpatiotemporalFootprint("a", ((0.0, 0.0, 0.0),), "local-map"),
         SpatiotemporalFootprint("b", ((1.0, 0.0, 0.0),), "local-map"),
     )
-    at_one_meter = derive_spatiotemporal_leakage_relations(
-        footprints, spatial_buffer_m=1.0
-    )
-    at_two_meters = derive_spatiotemporal_leakage_relations(
-        footprints, spatial_buffer_m=2.0
-    )
+    at_one_meter = derive_spatiotemporal_leakage_relations(footprints, spatial_buffer_m=1.0)
+    at_two_meters = derive_spatiotemporal_leakage_relations(footprints, spatial_buffer_m=2.0)
     changed_position = derive_spatiotemporal_leakage_relations(
         (footprints[0], replace(footprints[1], positions_m=((0.9, 0.0, 0.0),))),
         spatial_buffer_m=1.0,
@@ -510,9 +528,7 @@ def test_spatiotemporal_lineage_audit_recomputes_relations_from_footprints():
         for footprint in footprints
     ]
 
-    report = audit_spatiotemporal_leakage_relations(
-        footprints, subjects, spatial_buffer_m=1.0
-    )
+    report = audit_spatiotemporal_leakage_relations(footprints, subjects, spatial_buffer_m=1.0)
 
     assert report["status"] == "PASS_INPUT_SCOPED"
     assert report["parent_count"] == 4
@@ -546,9 +562,7 @@ def test_v3_registry_freezes_complete_footprint_inventory_digest(tmp_path: Path)
     base = make_split_policy_registry(
         subjects, policy=SplitPolicy.release_v2(seed="footprint-inventory-lock")
     )
-    frozen = bind_spatiotemporal_audit_to_registry(
-        base, footprints, spatial_buffer_m=1.0
-    )
+    frozen = bind_spatiotemporal_audit_to_registry(base, footprints, spatial_buffer_m=1.0)
     changed = bind_spatiotemporal_audit_to_registry(
         base,
         (replace(footprints[0], positions_m=((0.25, 0.0, 0.0),)), *footprints[1:]),
@@ -557,9 +571,9 @@ def test_v3_registry_freezes_complete_footprint_inventory_digest(tmp_path: Path)
 
     assert frozen.to_dict()["schema"] == "umcd.split_registry.v3"
     assert frozen.to_dict()["registry_sha256"] != changed.to_dict()["registry_sha256"]
-    assert verify_registry_spatiotemporal_audit(
-        frozen, footprints, spatial_buffer_m=1.0
-    ) == dict(frozen.spatiotemporal_audit)
+    assert verify_registry_spatiotemporal_audit(frozen, footprints, spatial_buffer_m=1.0) == dict(
+        frozen.spatiotemporal_audit
+    )
     with pytest.raises(ValueError, match="differs from frozen registry audit"):
         verify_registry_spatiotemporal_audit(
             frozen,
@@ -571,9 +585,9 @@ def test_v3_registry_freezes_complete_footprint_inventory_digest(tmp_path: Path)
     freeze_split_policy_registry(lock_path, frozen)
     loaded = read_split_policy_registry(lock_path)
     assert loaded.to_dict() == frozen.to_dict()
-    assert verify_registry_spatiotemporal_audit(
-        loaded, footprints, spatial_buffer_m=1.0
-    ) == dict(frozen.spatiotemporal_audit)
+    assert verify_registry_spatiotemporal_audit(loaded, footprints, spatial_buffer_m=1.0) == dict(
+        frozen.spatiotemporal_audit
+    )
 
 
 def test_registry_refuses_to_freeze_spatial_relations_without_footprint_audit(
@@ -799,6 +813,51 @@ def test_standardized_draw_not_generator_batch_is_parent_for_all_views():
     assert parent.relations == ()
 
 
+def test_standardized_run_storage_builds_and_freezes_draw_split_registry(tmp_path):
+    run = _standardized_run("stored-tdl-run", seed=20261112)
+    stored = write_standardized_run(tmp_path / "standardized", run)
+    restored = read_standardized_run(tmp_path / "standardized", stored)
+    policy = SplitPolicy.release_v2(seed="stored-standardized-splits")
+
+    registry, report = make_standardized_run_split_registry((restored,), policy=policy)
+
+    assert report["status"] == "PASS_INPUT_SCOPED"
+    assert report["qualification_status"] == "NOT_QUALIFIED"
+    assert report["draw_count"] == len(run.records)
+    assert set(report["parent_counts_by_split"]) == set(policy.split_fractions)
+    assert all(count > 0 for count in report["parent_counts_by_split"].values())
+    assert set(registry.subjects) == {record.sample_id for record in run.records}
+    assert all(
+        registry.subjects[record.sample_id].partition_id
+        == standardized_draw_subject(record).partition_id
+        for record in run.records
+    )
+
+    bindings = tuple(
+        SplitChildBinding(f"{record.sample_id}:pusch-view", record.sample_id, "pusch_view")
+        for record in run.records
+    )
+    registry = bind_split_children(registry, bindings)
+    audit_split_policy_registry(registry, tuple(registry.subjects.values()), bindings)
+    registry_path = tmp_path / "split-registry.json"
+    freeze_split_policy_registry(registry_path, registry)
+    restored_registry = read_split_policy_registry(registry_path)
+    assert all(
+        restored_registry.split_for_child(binding.child_id)
+        == restored_registry.split_for_parent(binding.parent_subject_id)
+        for binding in bindings
+    )
+
+
+def test_standardized_run_registry_fails_closed_on_reused_seed_index(tmp_path):
+    first = _standardized_run("run-a", seed=71, draw_count=1)
+    second = _standardized_run("run-b", seed=71, draw_count=1)
+    with pytest.raises(ValueError, match="partition_id values must uniquely identify"):
+        make_standardized_run_split_registry(
+            (first, second), policy=SplitPolicy.release_v2(seed="seed-index-collision")
+        )
+
+
 def test_counterfactual_descendants_and_repeated_receiver_variants_stay_with_parent():
     subjects = [
         _subject(
@@ -889,18 +948,14 @@ def test_child_kind_roster_audit_scopes_exact_coverage_with_hashes():
     [
         (lambda children: children[:1], "receiver_observation", "exactly the frozen"),
         (
-            lambda children: (
-                SplitChildBinding("extra", "parent-a", "receiver_observation"),
-            ),
+            lambda children: (SplitChildBinding("extra", "parent-a", "receiver_observation"),),
             "receiver_observation",
             "absent from frozen",
         ),
         (lambda children: children[:1], "path_oracle", "expected 'path_oracle'"),
     ],
 )
-def test_child_kind_roster_audit_rejects_incomplete_or_mismatched_bindings(
-    observed, kind, message
-):
+def test_child_kind_roster_audit_rejects_incomplete_or_mismatched_bindings(observed, kind, message):
     subjects = [_subject("parent-a"), *_unlinked_subjects(8)]
     registry = make_split_policy_registry(
         subjects, policy=SplitPolicy.release_v2(seed="child-kind-reject")

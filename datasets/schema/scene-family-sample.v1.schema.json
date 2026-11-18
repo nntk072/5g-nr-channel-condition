@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:5gnr:umcd:scene-family-sample:v1",
+  "title": "Deterministic scene-family candidate sample v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "registry_sha256", "implementation_source_sha256", "cli_source_sha256", "sampling_algorithm", "seed", "qualification_status", "selected_candidates", "family_coverage", "sample_sha256"],
+  "properties": {
+    "schema": {"const": "umcd.scene_family_sample.v1"},
+    "registry_sha256": {"$ref": "#/$defs/sha256"},
+    "implementation_source_sha256": {"$ref": "#/$defs/sha256"},
+    "cli_source_sha256": {"$ref": "#/$defs/sha256"},
+    "sampling_algorithm": {"const": "sha256_rank_independence_group_v1"},
+    "seed": {"type": "integer", "minimum": 0, "maximum": 340282366920938463463374607431768211455},
+    "qualification_status": {"const": "NOT_QUALIFIED"},
+    "selected_candidates": {"type": "array", "items": {"$ref": "#/$defs/selected"}},
+    "family_coverage": {"type": "array", "minItems": 12, "maxItems": 12, "items": {"$ref": "#/$defs/coverage"}},
+    "sample_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "selected": {
+      "type": "object", "additionalProperties": false,
+      "required": ["candidate_id", "family_id", "independence_group_id", "geometry_asset_sha256", "public_release_status"],
+      "properties": {
+        "candidate_id": {"type": "string", "minLength": 1},
+        "family_id": {"type": "string", "minLength": 1},
+        "independence_group_id": {"type": "string", "minLength": 1},
+        "geometry_asset_sha256": {"$ref": "#/$defs/sha256"},
+        "public_release_status": {"enum": ["not_cleared", "review_required", "not_applicable"]}
+      }
+    },
+    "coverage": {
+      "type": "object", "additionalProperties": false,
+      "required": ["family_id", "available_candidates", "available_independence_groups", "requested_independence_groups", "selected_independence_groups", "shortfall", "status"],
+      "properties": {
+        "family_id": {"type": "string", "minLength": 1},
+        "available_candidates": {"type": "integer", "minimum": 0},
+        "available_independence_groups": {"type": "integer", "minimum": 0},
+        "requested_independence_groups": {"type": "integer", "minimum": 1},
+        "selected_independence_groups": {"type": "integer", "minimum": 0},
+        "shortfall": {"type": "integer", "minimum": 0},
+        "status": {"enum": ["CANDIDATES_AVAILABLE", "UNSUPPORTED_NO_CANDIDATE"]}
+      }
+    }
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "umcd.network_transmitter_pusch_workflow.report.v1",
+  "title": "UMCD transmitter-to-PUSCH workflow report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "status", "boundary", "dimensions", "estimated_live_tensor_elements",
+    "max_tensor_elements", "implementation_sha256", "input_sha256",
+    "receiver_workflow_report_sha256", "receiver_output_sha256", "schema_sha256",
+    "report_sha256"
+  ],
+  "properties": {
+    "schema": {"const": "umcd.network_transmitter_pusch_workflow.v1"},
+    "status": {"const": "OBSERVED_NOT_QUALIFIED"},
+    "boundary": {"const": "CALLER_DECLARED_MIMO_FIR_SOFTWARE_REPLAY_ONLY_NOT_CHANNEL_OR_RECEIVER_QUALIFICATION"},
+    "dimensions": {
+      "type": "object", "additionalProperties": false,
+      "required": ["batch", "rx", "rx_port", "tx", "tx_port", "input_samples", "propagated_samples", "fir_taps"],
+      "properties": {
+        "batch": {"type": "integer", "minimum": 1}, "rx": {"type": "integer", "minimum": 1},
+        "rx_port": {"type": "integer", "minimum": 1}, "tx": {"type": "integer", "minimum": 1},
+        "tx_port": {"type": "integer", "minimum": 1}, "input_samples": {"type": "integer", "minimum": 1},
+        "propagated_samples": {"type": "integer", "minimum": 1}, "fir_taps": {"type": "integer", "minimum": 1}
+      }
+    },
+    "estimated_live_tensor_elements": {"type": "integer", "minimum": 1},
+    "max_tensor_elements": {"type": "integer", "minimum": 1},
+    "implementation_sha256": {
+      "type": "object", "additionalProperties": false,
+      "required": ["workflow", "transmitter_iq", "mimo_fir_propagation"],
+      "properties": {
+        "workflow": {"$ref": "#/$defs/sha256"},
+        "transmitter_iq": {"$ref": "#/$defs/sha256"},
+        "mimo_fir_propagation": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "input_sha256": {
+      "type": "object", "additionalProperties": false,
+      "required": ["transmit_waveforms", "tx_iq_gain_imbalance_db", "tx_iq_phase_imbalance_rad", "transmitter_waveforms_after_iq", "channel_fir_taps", "channelized_link_waveforms"],
+      "properties": {
+        "transmit_waveforms": {"$ref": "#/$defs/sha256"},
+        "tx_iq_gain_imbalance_db": {"$ref": "#/$defs/sha256"},
+        "tx_iq_phase_imbalance_rad": {"$ref": "#/$defs/sha256"},
+        "transmitter_waveforms_after_iq": {"$ref": "#/$defs/sha256"},
+        "channel_fir_taps": {"$ref": "#/$defs/sha256"},
+        "channelized_link_waveforms": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "receiver_workflow_report_sha256": {"$ref": "#/$defs/sha256"},
+    "receiver_output_sha256": {
+      "type": "object", "additionalProperties": false,
+      "required": ["received_grid", "decoded_bits", "crc_ok"],
+      "properties": {
+        "received_grid": {"$ref": "#/$defs/sha256"},
+        "decoded_bits": {"$ref": "#/$defs/sha256"},
+        "crc_ok": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "schema_sha256": {"$ref": "#/$defs/sha256"},
+    "report_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

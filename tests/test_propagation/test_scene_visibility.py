@@ -89,6 +89,9 @@ def test_scene_inventory_hash_is_order_independent_and_records_metric_scale() ->
 
 def test_scene_inventory_applies_mesh_to_world_transform_before_unit_conversion() -> None:
     transform = np.eye(4)
+    transform[:3, :3] = np.asarray(
+        [[2.0, 0.5, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 0.5]], dtype=np.float64
+    )
     transform[0, 3] = 2.0
     mesh = _Mesh(
         np.asarray([[0.0, -1.0, -1.0], [0.0, 1.0, -1.0], [0.0, 0.0, 1.0]]),
@@ -100,7 +103,10 @@ def test_scene_inventory_applies_mesh_to_world_transform_before_unit_conversion(
         meters_per_unit=0.5,
     )
 
-    assert inventory.triangles_m[:, :, 0].mean() == pytest.approx(1.0)
+    np.testing.assert_allclose(
+        inventory.triangles_m,
+        np.asarray([[[0.75, -0.5, -0.25], [1.25, 0.5, -0.25], [1.0, 0.0, 0.25]]]),
+    )
 
 
 @pytest.mark.parametrize(

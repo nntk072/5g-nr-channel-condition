@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.dev/schema/target-family-producer-consumer-matrix.v1.schema.json",
+  "title": "Canonical target producer and consumer source matrix",
+  "description": "Repository-source inventory only; it does not qualify target truth.",
+  "type": "object",
+  "required": ["schema", "scope", "rows"],
+  "properties": {
+    "schema": {"const": "loslab.target-family-producer-consumer-matrix.v1"},
+    "scope": {"type": "string", "minLength": 1},
+    "rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "version",
+          "name",
+          "producer",
+          "shape",
+          "policy",
+          "stored_contracts",
+          "consumers",
+          "evidence"
+        ],
+        "properties": {
+          "version": {"type": "string", "minLength": 1},
+          "name": {"type": "string", "minLength": 1},
+          "producer": {"type": "string", "minLength": 1},
+          "shape": {"type": "string", "minLength": 1},
+          "policy": {"type": "string", "minLength": 1},
+          "stored_contracts": {
+            "type": "array",
+            "minItems": 1,
+            "items": {"type": "string", "minLength": 1}
+          },
+          "consumers": {
+            "type": "array",
+            "minItems": 1,
+            "items": {"type": "string", "minLength": 1}
+          },
+          "evidence": {"type": "string", "minLength": 1}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

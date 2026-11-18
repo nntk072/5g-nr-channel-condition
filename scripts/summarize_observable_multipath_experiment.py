@@ -8,6 +8,9 @@ import json
 from pathlib import Path
 from typing import Any
 
+from artifacts.provenance import canonical_hash
+from artifacts.run_replay import validate_run_replay_provenance
+
 
 def summarize_run(run_dir: Path, output: Path) -> dict[str, Any]:
     """Verify every run artifact hash and publish a compact, no-claim summary."""
@@ -23,8 +26,35 @@ def summarize_run(run_dir: Path, output: Path) -> dict[str, Any]:
     if manifest_schema not in {
         "loslab.observable_multipath_experiment.v1",
         "loslab.observable_multipath_experiment.v2",
+        "loslab.observable_multipath_experiment.v3",
     }:
         raise ValueError("unsupported experiment manifest schema")
+    if manifest_schema == "loslab.observable_multipath_experiment.v3":
+        replay = validate_run_replay_provenance(manifest.get("run_replay", {}))
+        if replay["state"] != "complete":
+            raise ValueError("observable multipath replay receipt is incomplete")
+        run_config = manifest.get("run_config")
+        if not isinstance(run_config, dict):
+            raise ValueError("observable multipath manifest is missing its run configuration")
+        config_sha256 = canonical_hash(run_config)
+        if (
+            manifest.get("run_config_sha256") != config_sha256
+            or replay["config_sha256"] != config_sha256
+        ):
+            raise ValueError("observable multipath replay configuration digest mismatch")
+        if replay["inputs"] != [
+            {
+                "path": "generated:grouped_synthetic_two_path_dataset",
+                "sha256": manifest.get("dataset", {}).get("source_sha256"),
+            }
+        ]:
+            raise ValueError("observable multipath replay dataset identity mismatch")
+        provenance = manifest.get("provenance", {})
+        if replay["source"]["package_source_sha256"] != provenance.get("package_source_sha256"):
+            raise ValueError("observable multipath replay source digest mismatch")
+        expected_revision = provenance.get("git_revision") or "unavailable"
+        if replay["source"]["git_commit"] != expected_revision:
+            raise ValueError("observable multipath replay Git revision mismatch")
     verified: dict[str, dict[str, Any]] = {}
     for name, descriptor in manifest.get("artifacts", {}).items():
         path = run_dir / name
@@ -66,7 +96,10 @@ def summarize_run(run_dir: Path, output: Path) -> dict[str, Any]:
         profile_set = json.loads(profile_set_path.read_text(encoding="utf-8"))
         if profile_set.get("schema") != "loslab.profile_likelihood_delay_sets.v1":
             raise ValueError("unsupported profile-likelihood set schema")
-    elif manifest_schema == "loslab.observable_multipath_experiment.v2":
+    elif manifest_schema in {
+        "loslab.observable_multipath_experiment.v2",
+        "loslab.observable_multipath_experiment.v3",
+    }:
         raise FileNotFoundError(f"run artifact is missing: {profile_set_path}")
     summary = {
         "schema": (

@@ -16,14 +16,28 @@ def frequency_response(a: np.ndarray, tau: np.ndarray, frequencies: np.ndarray) 
     frequencies = np.asarray(frequencies, dtype=np.float64)
     if a.ndim < 1 or not np.iscomplexobj(a) or tau.shape != a.shape:
         raise ValueError("a and tau must be identically shaped, with complex a")
+    if not np.isfinite(a.real).all() or not np.isfinite(a.imag).all():
+        raise ValueError("a must contain finite complex gains")
+    if not np.isfinite(tau).all():
+        raise ValueError("tau must contain finite delays")
     if frequencies.ndim != 1 or not np.isfinite(frequencies).all():
         raise ValueError("frequencies must be finite 1D")
     return np.sum(a[..., :, None] * np.exp(-2j * np.pi * tau[..., :, None] * frequencies), axis=-2)
 
 
 def subcarrier_frequencies(n_subcarriers: int, spacing_hz: float) -> np.ndarray:
-    if n_subcarriers < 8 or spacing_hz <= 0:
+    if isinstance(n_subcarriers, (bool, np.bool_)) or not isinstance(
+        n_subcarriers, (int, np.integer)
+    ):
+        raise TypeError("n_subcarriers must be an integer")
+    if n_subcarriers < 8:
         raise ValueError("invalid OFDM grid")
+    if isinstance(spacing_hz, (bool, np.bool_)) or not isinstance(
+        spacing_hz, (int, float, np.integer, np.floating)
+    ):
+        raise TypeError("spacing_hz must be a real number")
+    if not np.isfinite(spacing_hz) or spacing_hz <= 0:
+        raise ValueError("spacing_hz must be finite and positive")
     return (np.arange(n_subcarriers, dtype=np.float64) - n_subcarriers // 2) * spacing_hz
 
 

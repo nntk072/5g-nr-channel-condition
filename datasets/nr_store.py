@@ -24,6 +24,21 @@ from .targets import TargetValidity
 _MAX_NR_RECORD_MANIFEST_BYTES = 1 * 1024 * 1024
 _MAX_NR_TRAJECTORY_MANIFEST_BYTES = 1 * 1024 * 1024
 _MAX_NR_TRAJECTORY_CONTENT_BYTES = 64 * 1024 * 1024
+_AXIS_AMBIGUOUS_NR_TARGET_VERSIONS = frozenset(
+    {
+        "umcd.standardized.effective-cfr.v1",
+        "umcd.tdl-pusch.effective-cfr.v1",
+        "umcd.rt-trajectory.absolute-cfr.v1",
+        "umcd.rt-trajectory.symbol-cfr.v1",
+        # These historical values represent a trajectory's frame vector, not
+        # one NR timestamp record. Keep their existing read path, but require
+        # axis-bound UMCD successors or scalar per-record NR target routes for
+        # new publications.
+        "umcd.rt-trajectory.geometric-los.v1",
+        "umcd.f04_rt_dynamic.direct_visibility.v2",
+        "umcd.f04_rt_dynamic.direct_visibility.v3",
+    }
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -61,7 +76,11 @@ def _as_numpy(value: Any, *, field: str) -> np.ndarray:
         raise TypeError(f"{field} may not contain Python objects")
     if array.dtype.kind not in "biufc":
         raise TypeError(f"{field} must use a numeric, boolean, or complex dtype")
-    return np.ascontiguousarray(array)
+    # ``np.ascontiguousarray`` promotes a 0-D scalar to shape ``(1,)``. NR
+    # target contracts include genuine scalar observations (for example one
+    # geometric-visibility value per timestamp), so preserve that rank while
+    # still taking an owned snapshot.
+    return np.array(array, copy=True) if array.ndim == 0 else np.ascontiguousarray(array)
 
 
 def _json_bytes(value: Any) -> bytes:
@@ -69,6 +88,19 @@ def _json_bytes(value: Any) -> bytes:
         return json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
     except (TypeError, ValueError) as exc:
         raise TypeError("record metadata must be finite JSON-compatible values") from exc
+
+
+def _reject_axis_ambiguous_target_versions(record: NRChannelRecord) -> None:
+    versions = sorted(
+        definition.definition_version
+        for definition in record.target_definitions.values()
+        if definition.definition_version in _AXIS_AMBIGUOUS_NR_TARGET_VERSIONS
+    )
+    if versions:
+        raise ValueError(
+            "axis-ambiguous NR target definitions are read-only; use the producer-backed "
+            f"axis-bound successors instead: {versions}"
+        )
 
 
 def _reject_duplicate_json_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
@@ -305,7 +337,7 @@ def iter_nr_record_shards(
                 )
                 if resolved_manifest.name != expected_manifest_name:
                     raise ValueError("NR record manifest filename does not match its sample ID")
-                if stored.schema_version not in {1, 2, 3, 4}:
+                if stored.schema_version not in {1, 2, 3, 4, 5}:
                     raise ValueError(
                         f"unsupported NR record schema version: {stored.schema_version}"
                     )
@@ -411,6 +443,7 @@ def write_nr_record(root: str | Path, record: NRChannelRecord) -> NRStoredRecord
     retain exact reference transport-block bits outside the model input view.
     v1-v3 remain read-only historical formats.
     """
+    _reject_axis_ambiguous_target_versions(record)
     # Snapshot mutable NumPy/Torch backing arrays before semantic admission so
     # the values checked here are exactly the values passed to NPZ encoding.
     observation = record.observation
@@ -516,7 +549,7 @@ def write_nr_record(root: str | Path, record: NRChannelRecord) -> NRStoredRecord
         )
 
     metadata = {
-        "schema_version": 4,
+        "schema_version": 5,
         "sample_id": record.observation.sample_id,
         "receiver_config": asdict(record.observation.receiver_config),
         "fft_bin_indices": list(record.observation.fft_bin_indices),
@@ -539,9 +572,7 @@ def write_nr_record(root: str | Path, record: NRChannelRecord) -> NRStoredRecord
     relative_path = f"records/{digest[:2]}/{digest}.npz"
     _publish_immutable(base / relative_path, payload)
 
-    manifest = NRStoredRecord(
-        record.observation.sample_id, digest, relative_path, schema_version=4
-    )
+    manifest = NRStoredRecord(record.observation.sample_id, digest, relative_path, schema_version=5)
     sample_key = hashlib.sha256(manifest.sample_id.encode()).hexdigest()
     manifest_path = base / "manifests" / f"{sample_key}.json"
     manifest_data = _json_bytes(asdict(manifest)) + b"\n"
@@ -578,7 +609,7 @@ def read_nr_record(root: str | Path, manifest: NRStoredRecord | str | Path) -> N
         if not isinstance(raw_manifest, dict):
             raise ValueError("NR record manifest must be a JSON object")
         stored = NRStoredRecord(**raw_manifest)
-    if stored.schema_version not in {1, 2, 3, 4}:
+    if stored.schema_version not in {1, 2, 3, 4, 5}:
         raise ValueError(f"unsupported NR record schema version: {stored.schema_version}")
     if Path(stored.relative_path).is_absolute() or ".." in Path(stored.relative_path).parts:
         raise ValueError("manifest record path must remain inside the store")
@@ -602,10 +633,10 @@ def read_nr_record(root: str | Path, manifest: NRStoredRecord | str | Path) -> N
         )
         reference_payload_present = False
         reference_payload_bits = None
-        if stored.schema_version == 4:
+        if stored.schema_version in {4, 5}:
             reference_payload_present = metadata.get("reference_transport_block_bits_present")
             if not isinstance(reference_payload_present, bool):
-                raise ValueError("NR v4 record reference-payload presence flag must be Boolean")
+                raise ValueError("NR v4/v5 record reference-payload presence flag must be Boolean")
             archived_reference_payload = "reference_transport_block_bits" in archive.files
             if archived_reference_payload != reference_payload_present:
                 raise ValueError("NR v4 reference-payload flag differs from the stored arrays")
@@ -627,10 +658,10 @@ def read_nr_record(root: str | Path, manifest: NRStoredRecord | str | Path) -> N
         masks: Mapping[str, np.ndarray] = {
             name: archive[key] for name, key in metadata["target_masks"].items()
         }
-        if stored.schema_version in {2, 3, 4}:
+        if stored.schema_version in {2, 3, 4, 5}:
             raw_reasons = metadata.get("target_reason_codes")
             if not isinstance(raw_reasons, dict) or set(raw_reasons) != set(targets):
-                raise ValueError("NR v2/v3/v4 record must store reason codes for every target")
+                raise ValueError("NR v2-v5 record must store reason codes for every target")
             if metadata.get("target_reason_codebook") != [
                 reason.value for reason in TargetValidity
             ]:
@@ -673,13 +704,15 @@ def read_nr_record(root: str | Path, manifest: NRStoredRecord | str | Path) -> N
             target_reason_codes=reason_codes,
             reference_transport_block_bits=reference_payload_bits,
         )
-        if stored.schema_version in {3, 4}:
+        if stored.schema_version in {3, 4, 5}:
             record.require_versioned_target_definitions()
         return record
 
 
 def write_nr_trajectory(root: str | Path, trajectory: NRTrajectory) -> NRStoredTrajectory:
     """Store trajectory records individually and publish an immutable ordered index."""
+    for record in trajectory.records:
+        _reject_axis_ambiguous_target_versions(record)
     base = Path(root)
     record_manifests = [write_nr_record(base, record) for record in trajectory.records]
     trajectory_payload = {
@@ -691,8 +724,7 @@ def write_nr_trajectory(root: str | Path, trajectory: NRTrajectory) -> NRStoredT
     payload = _json_bytes(trajectory_payload)
     if len(payload) > _MAX_NR_TRAJECTORY_CONTENT_BYTES:
         raise ValueError(
-            "NR trajectory content exceeds the "
-            f"{_MAX_NR_TRAJECTORY_CONTENT_BYTES}-byte limit"
+            f"NR trajectory content exceeds the {_MAX_NR_TRAJECTORY_CONTENT_BYTES}-byte limit"
         )
     digest = hashlib.sha256(payload).hexdigest()
     relative_path = f"trajectories/{digest[:2]}/{digest}.json"
@@ -706,8 +738,7 @@ def write_nr_trajectory(root: str | Path, trajectory: NRTrajectory) -> NRStoredT
     manifest_data = _json_bytes(asdict(stored)) + b"\n"
     if len(manifest_data) > _MAX_NR_TRAJECTORY_MANIFEST_BYTES:
         raise ValueError(
-            "NR trajectory manifest exceeds the "
-            f"{_MAX_NR_TRAJECTORY_MANIFEST_BYTES}-byte limit"
+            f"NR trajectory manifest exceeds the {_MAX_NR_TRAJECTORY_MANIFEST_BYTES}-byte limit"
         )
     _publish_immutable(base / relative_path, payload)
     _publish_immutable(

@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loslab.invalid/schema/static-network-rt-generation-receipt.v1.schema.json",
+  "title": "Static network RT generation receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "episode_id",
+    "network_episode_identity_sha256",
+    "run_identity_sha256",
+    "authorization_request_sha256",
+    "bundle_sha256",
+    "status",
+    "candidate_path_counts_per_source",
+    "candidate_path_cap_per_source",
+    "seed",
+    "error_type",
+    "error_message",
+    "receipt_sha256"
+  ],
+  "properties": {
+    "schema": {"const": "umcd.static_network_rt_generation_receipt.v1"},
+    "episode_id": {"type": "string", "minLength": 1},
+    "network_episode_identity_sha256": {"$ref": "#/$defs/sha256"},
+    "run_identity_sha256": {"$ref": "#/$defs/sha256"},
+    "authorization_request_sha256": {"$ref": "#/$defs/sha256"},
+    "bundle_sha256": {"$ref": "#/$defs/sha256"},
+    "status": {"enum": ["SOLVED", "UNCONVERGED", "SOLVER_FAILURE"]},
+    "candidate_path_counts_per_source": {
+      "type": ["array", "null"],
+      "items": {"type": "integer", "minimum": 0}
+    },
+    "candidate_path_cap_per_source": {"type": "integer", "minimum": 1},
+    "seed": {"type": "integer", "minimum": 0},
+    "error_type": {"type": ["string", "null"]},
+    "error_message": {"type": ["string", "null"]},
+    "receipt_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

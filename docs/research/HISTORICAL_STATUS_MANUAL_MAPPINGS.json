@@ -1,0 +1,727 @@
+{
+  "entries": [
+    {
+      "entry_key": "0102eb57fc0f0a1ca5b4c43b44978319af38da98b78f5a9dd9034d185ecd917c",
+      "heading_sha256": "b006e85ff5786455706bbf88c854a87540c3e040d9493c4ef1be1cd62b3079c7",
+      "block_sha256": "158b05d0641e861ade56a2055142665488af113cbf0f6ac776c452f269367fcd",
+      "requirement_ids": [
+        "PKG05-015"
+      ],
+      "rationale": "This retained native evidence record is a finite statistical family named by the ledger requirement. It is cross-referenced to PKG05-015 based on its stated profile/configuration and confidence-check scope; the retained result does not establish overall G4 qualification."
+    },
+    {
+      "entry_key": "043f38cd64bb27d870361fac9c9e7bd2ac1c793aa6959240b938670f2971afe2",
+      "heading_sha256": "6346b2df8e3391a7495a2072a3bd9d31fea1f80f767c8aa0361b32205b4f4bc9",
+      "block_sha256": "403e028e9201f3de3c12bb559be615056a59f2ee94293a7114605b32b738e191",
+      "requirement_ids": [
+        "PKG05-026"
+      ],
+      "rationale": "This retained native evidence record is a finite statistical family named by the ledger requirement. It is cross-referenced to PKG05-026 based on its stated profile/configuration and confidence-check scope; the retained result does not establish overall G4 qualification."
+    },
+    {
+      "entry_key": "04a0f72b1609bbb315633913684d86f76eb7d0a818153c939d5aa1bbdfd08728",
+      "heading_sha256": "ea9713b28760fb9db135bbba900ed88c6310844135b3a70bd1af2fe39918a8d1",
+      "block_sha256": "1e7ac6f20433519ea42f02b3b782e14c03a18f4a9a6bd0aef7c2d9748ac04f5f",
+      "requirement_ids": [
+        "PKG05-015"
+      ],
+      "rationale": "This retained native evidence record is a finite statistical family named by the ledger requirement. It is cross-referenced to PKG05-015 based on its stated profile/configuration and confidence-check scope; the retained result does not establish overall G4 qualification."
+    },
+    {
+      "entry_key": "079b580bb5c25949320a2e2828543ebbaf1d85dfc033beb7e523593af899bcad",
+      "heading_sha256": "1a948e83a0741c6b65b12874e084f2788068d21d00c233b5de6af9b718360374",
+      "block_sha256": "b5ae8ad2c5c221e0df72f7a36cdfc993ef10e1d1f2dcf0acd4246608633910c8",
+      "requirement_ids": [
+        "PKG05-015"
+      ],
+      "rationale": "This retained native evidence record is a finite statistical family named by the ledger requirement. It is cross-referenced to PKG05-015 based on its stated profile/configuration and confidence-check scope; the retained result does not establish overall G4 qualification."
+    },
+    {
+      "entry_key": "08679420664b3a3cbafcfcdf811cbd4d2fc681b9d8c557bde134aaca769efc42",
+      "heading_sha256": "e8043dcb589368ed70ea7f88a950925a224d468b7e00da3edf97917aa179b62c",
+      "block_sha256": "6e4ae898a46d6054b8764510ec9950c0581827ff18dbd9bfe26c9356c5f5938f",
+      "requirement_ids": [
+        "PKG05-026"
+      ],
+      "rationale": "This retained native evidence record is a finite statistical family named by the ledger requirement. It is cross-referenced to PKG05-026 based on its stated profile/configuration and confidence-check scope; the retained result does not establish overall G4 qualification."
+    },
+    {
+      "entry_key": "09dd0c1836199450ab2193a8edfdf089d918e991a58d88b8f4047071ffbd540d",
+      "heading_sha256": "b4a7e2f29bde37d02449882618a2a8c754f8e353ab65331b427ff67321ea4640",
+      "block_sha256": "6d386b96e2e901e4391de2250cc556ae63f7fbf24f49d7e070862aaa9cb1665d",
+      "requirement_ids": [
+        "PKG09-007"
+      ],
+      "rationale": "The cited metric regression repairs an estimator-comparison truth mismatch, within the classic-baseline and falsification implementation owned by PKG09-007."
+    },
+    {
+      "entry_key": "0fdc63549bb6df464ef9c41af8430921f512389f5a079bdaa027c5c956d67ca5",
+      "heading_sha256": "9ea6b1e94234a2e04ea93b0709b1955917ae159fadb1c3165b41cdfccb7f4ded",
+      "block_sha256": "0a70544f0691773a664effc4e2f0caaf6b4e7b6a4f8b6615a2d184ea78166640",
+      "requirement_ids": [
+        "PKG05-011"
+      ],
+      "rationale": "The note and cited exact-byte report establish only pinned ETSI source identity; PKG05-011 owns the bounded normative source-byte audit, not extracted-value or conformance claims."
+    },
+    {
+      "entry_key": "ce0bb90a1a987afe18f6554169b9ac1eb0f4385fef081736c1b4d991d867e22b",
+      "heading_sha256": "957a5109b3a45e1bc12e399e218774b10921388baca30ff3681da00ceec9e16a",
+      "block_sha256": "03a3016ffe0a100597f3d81f6953b199b347c7162715eb030c9ccf2d927dfd9a",
+      "requirement_ids": [
+        "PKG05-026"
+      ],
+      "rationale": "This dated status note cites the same retained result artifact as an already reviewed G4 evidence note; the mapping records the owning implementation family only and preserves the artifact’s stated finite outcome and qualification limits."
+    },
+    {
+      "entry_key": "21f88e1ce79a6562587c4fada8dbf610db287be75d31dfe326b934c9d7d317c2",
+      "heading_sha256": "b2289b8037e57895da9158dd21a3dcdff025a30f40eb8f179565c3414b0a2250",
+      "block_sha256": "884be02b40bca4afdd67f51959eaac0d4bb1b63fda13a821d4047be8f24d330d",
+      "requirement_ids": [
+        "PKG05-026"
+      ],
+      "rationale": "This rotated dual-endpoint CDL space-time covariance family directly extends the multi-element covariance and temporal-reference inventory in PKG05-026."
+    },
+    {
+      "entry_key": "23e5f17cd71e335d4adf35b4c6fd67b037af0e573ec1f3f6cbfc07a0ea949a9e",
+      "heading_sha256": "ccc51171bc74b8b52915b580a0e658bc4ce6a6de0fe60755b77263f68d1c12bb",
+      "block_sha256": "803006c2bb95a7e8d70c799ff8e435240290e4aea66525cc83d8f7103a028f58",
+      "requirement_ids": [
+        "PKG05-026"
+      ],
+      "rationale": "This patterned rotated dual-endpoint CDL space-time covariance family directly extends the multi-element covariance and temporal-reference inventory in PKG05-026."
+    },
+    {
+      "entry_key": "5f5f35956f96db5532e0832f9bdd6b51bfe60d733745de966452abd54d3c78cb",
+      "heading_sha256": "c33ec7d9bc30c53ec5cb05cf0f0855122191ec8b8cc01e1027be60578d27e01d",
+      "block_sha256": "df931a716bf0c77504176eae9ca0434c529e72d7bff7e8deda3fa821d1aac738",
+      "requirement_ids": [
+        "PKG05-026"
+      ],
+      "rationale": "This dated status note cites the same retained result artifact as an already reviewed G4 evidence note; the mapping records the owning implementation family only and preserves the artifact’s stated finite outcome and qualification limits."
+    },
+    {
+      "entry_key": "320acc5016c9141d6fcb98c207e24dc5ac282625dfa496c8b2964a883908f02e",
+      "heading_sha256": "18f48cd1cd9dc7c580e60edf2c9f02df049e1123b1e8ced72b579ba61426172e",
+      "block_sha256": "727d654e8709cdcdd19c9f60c87cc60cce2a40ef5eca3aaadba8d8d70ecb19d1",
+      "requirement_ids": [
+        "PKG05-026"
+      ],
+      "rationale": "This dual-endpoint CDL space-time covariance family directly extends the multi-element covariance and temporal-reference inventory in PKG05-026."
+    },
+    {
+      "entry_key": "fedc907e8f072eeaad17b7f887cffab02dc7fc9ead18423e463c992ae54bba82",
+      "heading_sha256": "4963f9c00c549372ee827adb56eb642971f44d10a402809bb07a06cf70edfdf4",
+      "block_sha256": "d76da700f4bf3c87a21d04794d5f890eac54dcb5991995ad83efe75a24a99a9b",
+      "requirement_ids": [
+        "PKG01-006"
+      ],
+      "rationale": "The cited schema defines the RT execution-replay receipt, matching PKG01-006; replay identity is software provenance and does not qualify a solver run."
+    },
+    {
+      "entry_key": "1f872bd789ba7ecaa2df7ce06d9cfe57817058bd62638a0270f437f177b8a025",
+      "heading_sha256": "2c34316952fa6a79f748b4a2a8b61df5f8a3491d87f2df780b7aab80374de6f9",
+      "block_sha256": "782c3e8234efe364bd1dcf0c3a7007a5b1b9322af2c3b4b225200486b435bc4d",
+      "requirement_ids": [
+        "PKG05-026"
+      ],
+      "rationale": "This dated status note cites the same retained result artifact as an already reviewed G4 evidence note; the mapping records the owning implementation family only and preserves the artifact’s stated finite outcome and qualification limits."
+    },
+    {
+      "entry_key": "3ab3449268ff3c9d5b77b521cd10881bad0ce74e1de9cdfc21b737ee58c9c3dc",
+      "heading_sha256": "5cfb65fead7f1fc6c5f563b5db9fe283d8b313f9848cee226b6f1a71b5ac4a28",
+      "block_sha256": "21586101f08121d4f05d0ae3215c598794082957d646220fe6b7d875c97b0be8",
+      "requirement_ids": [
+        "PKG08-008"
+      ],
+      "rationale": "The note records canonical target value, shape, and finite-value admission fixes, which belong to PKG08-008 target-domain and contract semantics."
+    },
+    {
+      "entry_key": "34308425b0d8f575a63c62b3f35dc1f8f399bcdc027f088f8a00cbea3f61ee1c",
+      "heading_sha256": "85aec0ab70c77122aa7bdc9175102af7d54681b7c3082fa08a768320884d38d1",
+      "block_sha256": "1f31046f712cf4e6d213f8e3abf87870b20eef935f439c686fe9686b1fc1b4d7",
+      "requirement_ids": [
+        "PKG08-025"
+      ],
+      "rationale": "The cited corpus-audit schema represents unscorable near-duplicate comparisons within PKG08-025; incomplete comparison evidence is not a release pass."
+    },
+    {
+      "entry_key": "b6704c7ff6e58ff70e8993f49761272c3ae552cc94f175145e898b4d00cf08b6",
+      "heading_sha256": "e05874061508912ec840856a8a703f5012aa4a31bdf304b83e5a965749fbe03d",
+      "block_sha256": "e5d61c1862910aec8fcd94030ca07d2f9363b8274861c84dcef1bfbc1e22fe81",
+      "requirement_ids": [
+        "PKG06-003"
+      ],
+      "rationale": "The cited standardized PUSCH producer is part of the bounded PUSCH/DMRS mapping and decoder route owned by PKG06-003; support in one profile does not close remaining receiver cases."
+    },
+    {
+      "entry_key": "3d15563d2a8a7e09a997b173771972b68e1a480cb071ca23388827da849f4f85",
+      "heading_sha256": "6eef66140bf66ed91d48ad39b605d47ca2d914856b1e0f26e174fd23283c270a",
+      "block_sha256": "24ca2348b9d2ba6102f45fc14ba165c5cdda4d4ab2495c97f966abe626510454",
+      "requirement_ids": [
+        "PKG05-015"
+      ],
+      "rationale": "This retained native evidence record is a finite statistical family named by the ledger requirement. It is cross-referenced to PKG05-015 based on its stated profile/configuration and confidence-check scope; the retained result does not establish overall G4 qualification."
+    },
+    {
+      "entry_key": "3e8f0e4abaea87d4222fbe85f67da42570b7948a87470ba7db453c4ea1bbaea6",
+      "heading_sha256": "2f0086a2ba025f9b6488f5d1b3c01b027a380e5b6b96359477f214276e0a1c19",
+      "block_sha256": "86089825fab172e68a6e6cca39d026a06419d9a484b871cde9e3d2198865550a",
+      "requirement_ids": [
+        "PKG09-004"
+      ],
+      "rationale": "The cited policy covers train-only prior adjustment and calibration, directly matching PKG09-004; it does not establish population representativeness."
+    },
+    {
+      "entry_key": "a92f8629e8b996b179e315f5368b98684b8ee703ecb4ca2e1468aff7d4898a07",
+      "heading_sha256": "5d0f660d05caf86087bb8d2d2c6ed0160369e58a8d95356135b0da31c53a46f6",
+      "block_sha256": "a53b60377d4ceedf593572bc0f9d522fb07831e95ba848deb2bfb9eb74a232f6",
+      "requirement_ids": [
+        "PKG05-015"
+      ],
+      "rationale": "The note records a bounded CDL delay/cos(AoA) cluster-moment confidence family; PKG05-015 owns this confidence-controlled statistical test scope, not broad angular or physical-channel qualification."
+    },
+    {
+      "entry_key": "f4b7dc3f151043213b51f268628f04871c0dbec432970db02f7fdc05f6002346",
+      "heading_sha256": "97511d7dab04012c4a52730a43c7847b159be436c785d10259eb1040e13cac72",
+      "block_sha256": "1681ece953fe0ad27d60e874ed9ba29586d8b4efdc634bb8e9fe16f1261b0e30",
+      "requirement_ids": [
+        "PKG06-031"
+      ],
+      "rationale": "The cited regression validates the bounded paired diagnostic SNR-curve scorer owned by PKG06-031; scorer behavior is not receiver acceptance."
+    },
+    {
+      "entry_key": "40d50ec30cd77f3996ee926dd06c9d7209c6671cc7022ea0b53433923b215cf3",
+      "heading_sha256": "9f09834049939dd540abf259b5c12223f5977e827f7a8536efc31e628cd7794e",
+      "block_sha256": "8d1cc461d49fe753bcb8cc05f27955cbe7083f7636069a7b0e3063f4de6269dd",
+      "requirement_ids": [
+        "PKG05-026"
+      ],
+      "rationale": "This larger dual-endpoint CDL space-time covariance family directly extends the multi-element covariance and temporal-reference inventory in PKG05-026."
+    },
+    {
+      "entry_key": "1f446e36c2e871a0587ef818d5b56ec729b51c0e165df44cbe3d9c5f3fad6a7a",
+      "heading_sha256": "4356e51f398d69c5ba17cc9a699698328d737c180ebb45e78055779c3a1f2e37",
+      "block_sha256": "68d0fab6d3f16e88f0412fbe49ce08f9bf33083cabd911a3d3856747d265167d",
+      "requirement_ids": [
+        "PKG06-001"
+      ],
+      "rationale": "The cited test covers the bounded SRS frequency/resource mapping implementation, owned by PKG06-001; native scope remains limited."
+    },
+    {
+      "entry_key": "94f7243a842412e02cd6da68d1f7de3ef50dbead468a4630bd46596433ffbf5a",
+      "heading_sha256": "8b5cd9a3cb3f0e872777e092831432245e45c3ab27258d3a44347d3e87719be5",
+      "block_sha256": "482f9a56a81c1fb050a500fc67983979f53281e92c21a925cc80b922c2f7dc03",
+      "requirement_ids": [
+        "PKG05-015"
+      ],
+      "rationale": "This dated status note cites the same retained result artifact as an already reviewed G4 evidence note; the mapping records the owning implementation family only and preserves the artifact’s stated finite outcome and qualification limits."
+    },
+    {
+      "entry_key": "4b4e6fd95cc088498744755ed0cab936eb6602cf43180628eea52f02101cf43b",
+      "heading_sha256": "8d518e6b041579ffed83a3131954458c54f8545ff2735c06be527ec98c132ef0",
+      "block_sha256": "7d1117871195007225773cc641798f3879d00d20cfe087cefecf02b0a7e1a85d",
+      "requirement_ids": [
+        "PKG06-003"
+      ],
+      "rationale": "The cited native test exercises the bounded TDL-A PUSCH waveform-to-decoder path, within PKG06-003; one native configuration is not broad receiver qualification."
+    },
+    {
+      "entry_key": "4c40a5a2519ca52fc793697bf318bdd364e385fd4008f9fd3f67cb13f23be991",
+      "heading_sha256": "499b94105846411438223bd7379904440468cbeba683eeac54c8e96b7d7bc3c5",
+      "block_sha256": "120e5f79a88d164784773ffb7b60f22c9788e2b44bfae2899f8faf82268bc2a5",
+      "requirement_ids": [
+        "PKG05-026"
+      ],
+      "rationale": "This retained native evidence record is a finite statistical family named by the ledger requirement. It is cross-referenced to PKG05-026 based on its stated profile/configuration and confidence-check scope; the retained result does not establish overall G4 qualification."
+    },
+    {
+      "entry_key": "27ea888a9305432b8ed77e97fc917a1126286d3547938ec21ced73e6a418e14c",
+      "heading_sha256": "5b2e2df2197f6e8263f8632451196ccf2e41e642d31790f357aa50359f75f683",
+      "block_sha256": "c69a57da4ea5bc19604d1367e2eff94afab546af1e4e4d127c26830bbbf1fe39",
+      "requirement_ids": [
+        "PKG05-015"
+      ],
+      "rationale": "This dated status note cites the same retained result artifact as an already reviewed G4 evidence note; the mapping records the owning implementation family only and preserves the artifact’s stated finite outcome and qualification limits."
+    },
+    {
+      "entry_key": "51f6de7023467db53aee64b3c816e658d3a9f05bd5709311b6882ab8eb779613",
+      "heading_sha256": "e6077926427e5022f4bc9bf067439d6e61962886bb2e1deec340866923bdf6f7",
+      "block_sha256": "fbe65fe6be7a631a26f94ca23eb8120a3f3d3f429fabba1f11dbe15408bcd7e9",
+      "requirement_ids": [
+        "PKG06-001"
+      ],
+      "rationale": "The cited focused test covers the bounded SRS resource-mapping implementation, owned by PKG06-001; this software slice does not establish full conformance."
+    },
+    {
+      "entry_key": "5b29557c5a3623522595b19cde4eb266632e6171f5de9574be2404bfdbd820a9",
+      "heading_sha256": "ec277b709766086683341ef4bdd18051892b9ab93434d33534290c3ecc400765",
+      "block_sha256": "fc77cd8af0ebafd1c452be0464544cd1262fb4e24130fbb62ab2e6eb804089b6",
+      "requirement_ids": [
+        "PKG05-015"
+      ],
+      "rationale": "The cited repeatable seed-roster audit supports reproducibility controls for the fixed-TDL Rician marginal family; its scanned-root scope does not establish global seed exclusivity or statistical qualification."
+    },
+    {
+      "entry_key": "90325156dee3695dae5ffe03e72cdf1ce9aed2c2c501ab11748364d272b1987d",
+      "heading_sha256": "0b6ef0c0b5981b632815e8508872d88bc73a4f3ea4a23b47a5399ff4e1bd81a5",
+      "block_sha256": "3304a1b4747811303e01ae9ec4814362dfc29aa2ad3c0078bf08e3746b51c131",
+      "requirement_ids": [
+        "PKG05-026"
+      ],
+      "rationale": "This dated status note cites the same retained result artifact as an already reviewed G4 evidence note; the mapping records the owning implementation family only and preserves the artifact’s stated finite outcome and qualification limits."
+    },
+    {
+      "entry_key": "c2690a208dae4785968af3ce715478b6160245cff99be117d1597f43b0e4dd39",
+      "heading_sha256": "9e7741bdb04e8c51292a39c79a3f865a21f890cf908719850381b53191a11774",
+      "block_sha256": "be1bc38b5db60f51e594a472e9f00fcb986ca7f6d670f9d937c0f27252c6abc8",
+      "requirement_ids": [
+        "PKG05-011"
+      ],
+      "rationale": "The note cites the same exact-byte ETSI reference audit as the reviewed source-identity entry; PKG05-011 owns only the bounded normative source-byte audit."
+    },
+    {
+      "entry_key": "5ebfe2c15aa8a25ef5ce2378a89f026ae2a4ae47ec8bd37d5e01153188d70d3e",
+      "heading_sha256": "2dfa462bd1291f8ae51e08d4b263788002ae9f019b577d3c99cb2f40d6b0ff35",
+      "block_sha256": "2ff6df10a4af6629c35b33181a5a655a2d82569ccb92738257ea523b3618d258",
+      "requirement_ids": [
+        "PKG05-015"
+      ],
+      "rationale": "This retained native evidence record is a finite statistical family named by the ledger requirement. It is cross-referenced to PKG05-015 based on its stated profile/configuration and confidence-check scope; the retained result does not establish overall G4 qualification."
+    },
+    {
+      "entry_key": "7ab731994bd0f33b3adf214b5d5b976f81fcefc1534a0f85fc14b89fa6e44312",
+      "heading_sha256": "61393f9b0451ea9825b8b9b91ae69978d2e692f40064e93451ea9ce56afc400b",
+      "block_sha256": "63c91010c37b086227e2a968d1401eb1177876aa5916cdbf98c6bc2fda29abfd",
+      "requirement_ids": [
+        "PKG05-026"
+      ],
+      "rationale": "This dated status note cites the same retained result artifact as an already reviewed G4 evidence note; the mapping records the owning implementation family only and preserves the artifact’s stated finite outcome and qualification limits."
+    },
+    {
+      "entry_key": "ffc37d3010180df649fd9b68a90f235bf95f67ca075e715478ea8f29f7fc69d0",
+      "heading_sha256": "ae69f6da1dddb3ba60b6586d17f2dce943326f1a404b97a22cd414aa717a6656",
+      "block_sha256": "ae72a2fa13b47ac12545378751f69f7a649b6badb81464a0930ff785fd034adc",
+      "requirement_ids": [
+        "PKG05-015"
+      ],
+      "rationale": "The note defines a finite fixed-TDL temporal-covariance family and explicit seed roster; PKG05-015 owns this bounded confidence-controlled family, with native qualification still open."
+    },
+    {
+      "entry_key": "1e59c4699f1550085f7245e76e82f062d2d66c0abf8333d263705e32fec0c963",
+      "heading_sha256": "e12be49c79d30f7fe7261d5f1ed5368f09f5ec4694c4a00e0c9000d4ec9e39a2",
+      "block_sha256": "f77eb3a233110381d851b85c364afb3ce9c333f958db47559e010edb3f0715f7",
+      "requirement_ids": [
+        "PKG05-015"
+      ],
+      "rationale": "The note defines a finite fixed-TDL Doppler-spectrum confidence family and explicitly records that native generation was not run; PKG05-015 owns this bounded statistical-family scope."
+    },
+    {
+      "entry_key": "12c06819bac1803a602f57636986fd67b155f4d93b5966f224c87160eb7c3b4b",
+      "heading_sha256": "ceee67001e0d18cce6202835e0229dc6b6546be5b27fd0accd072359985335b3",
+      "block_sha256": "6f2d6952a24dbb55a5f68bc4ebd7fbe80e6223fdbf4e46a619314bd922618f97",
+      "requirement_ids": [
+        "PKG08-025"
+      ],
+      "rationale": "The corpus-audit consumer verifies signed split-lock admission, within the signed corpus release audit owned by PKG08-025; signer custody and release completeness remain external."
+    },
+    {
+      "entry_key": "0727d912a13273a257e65183458d8e68887a287d23171a66a60cbcaff4a80dce",
+      "heading_sha256": "983415bbf4ac770f7c72f036924540d19c11eb12524b2b7a583ac0f8f6691098",
+      "block_sha256": "b2ab266956ffb4d39c897e5aa04e0420c557b1ab4252dcd2603121b3ac27af9e",
+      "requirement_ids": [
+        "PKG05-015"
+      ],
+      "rationale": "This dated status note cites the same retained result artifact as an already reviewed G4 evidence note; the mapping records the owning implementation family only and preserves the artifact’s stated finite outcome and qualification limits."
+    },
+    {
+      "entry_key": "87483fb551fe4f750119cc3632d1515c534d896e6990f8f435e3f72ff6cc3a21",
+      "heading_sha256": "683337fd5af0972fa0bd4827dcebc3f778124a983e739259d58b9530b60c84b3",
+      "block_sha256": "194e38d81273d5acd8b1e77746c0c9ce07db0948926ae865ded041f764070df9",
+      "requirement_ids": [
+        "PKG05-015"
+      ],
+      "rationale": "This dated status note cites the same retained result artifact as an already reviewed G4 evidence note; the mapping records the owning implementation family only and preserves the artifact’s stated finite outcome and qualification limits."
+    },
+    {
+      "entry_key": "732948cd1f72e8444ccabb94a0f9165e3955895239b77f8d6f5af5375f8e9907",
+      "heading_sha256": "436d95e62a0843f3de9c2000745dd49ccd3509fa73c98c63cba33fd8d320bdb8",
+      "block_sha256": "9fdc87089ce13e6a7ecc1664a704301d0182ab34568042b8376301ced05ae5bf",
+      "requirement_ids": [
+        "PKG04-032"
+      ],
+      "rationale": "The cited document is the bounded City43 zero-scattering Phase-0 diagnosis, exactly scoped by PKG04-032; no convergence run or ground-truth claim is implied."
+    },
+    {
+      "entry_key": "746c3f85809edeaa5d9f7099f708470b9a925b30eec9aebc836964d0d0344d59",
+      "heading_sha256": "ae9303aa62b6855ebcdf1c4fe6b9fb363194f195c7986b940a507aa86e782d99",
+      "block_sha256": "d2aa76377f0d28e490574a532004a5c60048ec784b1b24c17e6ae39af2033f4a",
+      "requirement_ids": [
+        "PKG05-026"
+      ],
+      "rationale": "This retained native evidence record is a finite statistical family named by the ledger requirement. It is cross-referenced to PKG05-026 based on its stated profile/configuration and confidence-check scope; the retained result does not establish overall G4 qualification."
+    },
+    {
+      "entry_key": "60b441398328380f29ec19d9c80332a6db63bd3a42cd8df697737c1e8fd96ed8",
+      "heading_sha256": "8e884bc206715a2eb6b8b7e226134bdde9fca388217fc13846b45b6546f04ecd",
+      "block_sha256": "0acf19a7ab4e92370849a31760c63afc7cd79ff8fba7b4a95ae59889744c1c64",
+      "requirement_ids": [
+        "PKG05-015"
+      ],
+      "rationale": "This dated status note cites the same retained result artifact as an already reviewed G4 evidence note; the mapping records the owning implementation family only and preserves the artifact’s stated finite outcome and qualification limits."
+    },
+    {
+      "entry_key": "0fa3fec07cee456cb8d4f6da71e87794d0a7e7f4a1d49ff59400d8a0e3717a6b",
+      "heading_sha256": "14a7282dc9cf46d2558194edd9162863fd26d8be8de66802f45958e83e819f0e",
+      "block_sha256": "2b47a6ac44a2793c0d3e16a7414596cd9306a455c8e2d1527cf57320085f92d4",
+      "requirement_ids": [
+        "PKG06-027"
+      ],
+      "rationale": "The cited PRS receiver test covers the bounded standards-defined PRS mapping/delay/CFO implementation owned by PKG06-027; receiver qualification remains open."
+    },
+    {
+      "entry_key": "85c6f00d94d213f50384191d0da8583f7383e1199eeb63a503b430e9bc935145",
+      "heading_sha256": "2df8de8d393d9792b31f438c3c947b5388d32c5bb0651747876a138185f386fd",
+      "block_sha256": "e8a67a8e307bca5419f9a08835fb7af8e3008be1abee085cd7b42e9922bc5174",
+      "requirement_ids": [
+        "PKG05-015"
+      ],
+      "rationale": "This retained native evidence record is a finite statistical family named by the ledger requirement. It is cross-referenced to PKG05-015 based on its stated profile/configuration and confidence-check scope; the retained result does not establish overall G4 qualification."
+    },
+    {
+      "entry_key": "d39f22764f1ea98b99f12b04276fabad561c776ca05a0b8fccb5a308f75c7f6e",
+      "heading_sha256": "b7338bc4ad6abcc720bd6b050b26fab867b0e64fc68c604e6afb637bf8a91620",
+      "block_sha256": "114155c6b8a1ade6f368b5494bee68ef5af8e1132cd2233d77188331d8760ad4",
+      "requirement_ids": [
+        "PKG05-015"
+      ],
+      "rationale": "This dated status note cites the same retained result artifact as an already reviewed G4 evidence note; the mapping records the owning implementation family only and preserves the artifact’s stated finite outcome and qualification limits."
+    },
+    {
+      "entry_key": "ab876ad95352411876180bf8a960057a12f0a7398cba322b0dbc14e8a7ed12aa",
+      "heading_sha256": "fea9ef5351894bca5054a85b28c370fe7bbaed93bc6f495f0117268883f999a6",
+      "block_sha256": "f4b1e27aa80a8850c941d1323288344810d8bb36900afea954c7c004bde09517",
+      "requirement_ids": [
+        "PKG05-015"
+      ],
+      "rationale": "This dated status note cites the same retained result artifact as an already reviewed G4 evidence note; the mapping records the owning implementation family only and preserves the artifact’s stated finite outcome and qualification limits."
+    },
+    {
+      "entry_key": "68810d402e19c8439203fd09b404318933749513525cc201dd129f0d15d484fd",
+      "heading_sha256": "6509aa6566ffd20825e215f1c25467a02b704c89d1783adf7295459ea95b5b31",
+      "block_sha256": "bc016d8a249fb30437b85e256245879f5452b0224035ee7596435cce9b0f15e3",
+      "requirement_ids": [
+        "PKG05-022"
+      ],
+      "rationale": "The cited result is the bounded directional-element and dual-end antenna-pattern power family; PKG05-022 owns that independent ETSI-derived pattern-power regression, not arbitrary-array or geometric-RT validity."
+    },
+    {
+      "entry_key": "8532973d8313e4e2148ffcece6160ce1ee5aa8ce296198a90bf8099a6a98a28f",
+      "heading_sha256": "5d8e1d034ee48af154adb45c362041370f465956998055aac1caac003a67c934",
+      "block_sha256": "543c043d11959cb23cce0f763612988345e2231e4cf0c48e76b44d65b26a07cb",
+      "requirement_ids": [
+        "PKG05-002"
+      ],
+      "rationale": "The note reports the canonical hash-bound TDL/CDL profile-applicability ledger, directly matching PKG05-002; profile metadata does not establish statistical conformance."
+    },
+    {
+      "entry_key": "97ecd0564d0870804480d632591ca5523d1428ef2fa5d13cfbfb7f4da1d13529",
+      "heading_sha256": "2b730c9eb4aaa7e872a50a725155485728554790ddab7f929a896324bc5c1e87",
+      "block_sha256": "d46c110db37f08ee2a3c4eac38a1160ce6a6373d3faaf10b538e3d5db715a206",
+      "requirement_ids": [
+        "PKG08-025"
+      ],
+      "rationale": "The cited audit schema records incomplete/unscorable near-duplicate comparisons in the corpus release audit, owned by PKG08-025; skipped comparisons remain unresolved."
+    },
+    {
+      "entry_key": "985fc1a2862ed7a0169097db622d3bc6e1528685b12abed0db770371562da62d",
+      "heading_sha256": "6f263ea51e943ad62dfa0215cf80d57e30819259c51b9bfe26f74ce71b0e1a2c",
+      "block_sha256": "ba74ec26d2ec1f743b6910842cbd0aa079733b950be77f2a3c3c822fe9ce9685",
+      "requirement_ids": [
+        "PKG06-035"
+      ],
+      "rationale": "The cited test fixture change supports G5 payload/provenance consistency in receiver evidence; PKG06-035 owns exact waveform/configuration/report binding, not qualification."
+    },
+    {
+      "entry_key": "586752e43e10e634f7e61d36fe0f9ff5f4668a9301f96ed80198770e1885e2cf",
+      "heading_sha256": "d248ed430ad8663c77e4afe1973edcf1695af9d1ccac01db1ec0e4b76b7a8b6b",
+      "block_sha256": "82d0ec25eab390afc9694310f7317a38118052a08c497391cc43e561463f2256",
+      "requirement_ids": [
+        "PKG05-026"
+      ],
+      "rationale": "This dated status note cites the same retained result artifact as an already reviewed G4 evidence note; the mapping records the owning implementation family only and preserves the artifact’s stated finite outcome and qualification limits."
+    },
+    {
+      "entry_key": "8ae2566181240e30ff386b0a6f184e7db5684bbdfe3b2c6c61d70492e951dca3",
+      "heading_sha256": "a6cf407515326767f972f42254e0058ac2c333b4786aacfd6219ab6b28d6bac8",
+      "block_sha256": "829ed87cf26cbff85b13bf9c225a76e161ccecc4a26557083afde64798169f3a",
+      "requirement_ids": [
+        "PKG05-015"
+      ],
+      "rationale": "This dated status note cites the same retained result artifact as an already reviewed G4 evidence note; the mapping records the owning implementation family only and preserves the artifact’s stated finite outcome and qualification limits."
+    },
+    {
+      "entry_key": "a5986c19990b0335479739d30ffecc4c70091445cd3721f73ca33f5e6182470f",
+      "heading_sha256": "2a6efad2597a9d248acba35e73ead504476c134f586af4aa62a1feaf9013125b",
+      "block_sha256": "8d48163be21207038e44ae51c97f597b7e9ce8e4e357055caf24cce7efe94563",
+      "requirement_ids": [
+        "PKG07-001"
+      ],
+      "rationale": "The cited schema records the episode time-axis alignment contract, directly matching PKG07-001; timestamp alignment does not establish independent clock calibration."
+    },
+    {
+      "entry_key": "a62fc613ac3a9e2c4c4dd4542c9c3efd217cce0193647cc747fd8eb49c774071",
+      "heading_sha256": "6dfcc3ea6b8270fabd210bae0472883237e3ded3bed4b38a182d39c8da7b0d54",
+      "block_sha256": "0fe78f1af1a9a8fb743e610bfa4773c459a9fb8531c3e1676c0529a805b6342d",
+      "requirement_ids": [
+        "PKG05-015"
+      ],
+      "rationale": "This retained native evidence record is a finite statistical family named by the ledger requirement. It is cross-referenced to PKG05-015 based on its stated profile/configuration and confidence-check scope; the retained result does not establish overall G4 qualification."
+    },
+    {
+      "entry_key": "abfd6f0895b9a05c601f1304c750b97e5525d0ab4f0c01f6b278600115fd9944",
+      "heading_sha256": "6e652421fc20a4356347a61c0156d9afbc74386827cc7c99c6345bfc620e32e3",
+      "block_sha256": "4bd279a26a5ba3163b9759a19ab3ebac281de8a4e8d896e5297dbb58d0ef9ce7",
+      "requirement_ids": [
+        "PKG05-026"
+      ],
+      "rationale": "This physical HandheldUTArray CDL space-time covariance result directly extends the independent-reference multi-element covariance and temporal branch covered by PKG05-026."
+    },
+    {
+      "entry_key": "4ef37e9bb09f6d00680d826b6d31b71301898d8ca6e4b6cae9a53bc7f405a091",
+      "heading_sha256": "cce55e2f54aa47ba55da95cce4c226f304261787d4a974f613a9bd3fad5cf003",
+      "block_sha256": "bd5a29a912c03af6f1763b7399e0e0267ab4dba5ff0ec3b8818e0f3450b2b770",
+      "requirement_ids": [
+        "PKG05-015"
+      ],
+      "rationale": "This dated status note cites the same retained result artifact as an already reviewed G4 evidence note; the mapping records the owning implementation family only and preserves the artifact’s stated finite outcome and qualification limits."
+    },
+    {
+      "entry_key": "26d10e2d90fc5d24d067f82505c6a312a04e53c47dbc26cd0ee781c901f503ca",
+      "heading_sha256": "b119c7b5350b858da46d35676bc7f9867a5abf79d28381aff3339722d7078fe3",
+      "block_sha256": "94a960da4f11fb20df5bfde896d78f49e7dc1d413910cd1aba67012363267974",
+      "requirement_ids": [
+        "PKG05-026"
+      ],
+      "rationale": "This dated status note cites the same retained result artifact as an already reviewed G4 evidence note; the mapping records the owning implementation family only and preserves the artifact’s stated finite outcome and qualification limits."
+    },
+    {
+      "entry_key": "90c1ac368d0eb270ecff364cd57afd465041631ad140f8eb01a32fe64c56e2f2",
+      "heading_sha256": "3b9b00631cb19f6efe2557dd9630dd9fbd7402d9832dd5163d4755d1c1610ede",
+      "block_sha256": "b77a9a70be9657fae9601b16ed7c25099510c6fb139fd4207e812b36e500aa52",
+      "requirement_ids": [
+        "PKG06-029"
+      ],
+      "rationale": "The cited test covers semantic composition of bounded NR DL-RSTD reports from estimated timestamps, matching PKG06-029; it is not positioning-receiver qualification."
+    },
+    {
+      "entry_key": "b32f61f3c24e4cc6985e3ddda1a4c8e1b5916443014f97ee4785214a0930ab8c",
+      "heading_sha256": "69737d73fc44cdc3818bbf9ddaa8bcbd1790a5410b34e180262b9bf33e91605a",
+      "block_sha256": "d46a23643de1beac8084f4b6aa1b193c9b8e5c1b9c76b5b97889b91008b1fa63",
+      "requirement_ids": [
+        "PKG06-001"
+      ],
+      "rationale": "The cited regression exercises SRS resource mapping after DCI/timing fixes, within the TS 38.211 SRS mapping implementation owned by PKG06-001."
+    },
+    {
+      "entry_key": "b80e9929f2a321467262c624a94beca4ab2df74861419783c17af93215a0b64b",
+      "heading_sha256": "1911613f05bc4b11cc3de8109b40adc3fb331c9311dcaea9a2ad13a2c997c78b",
+      "block_sha256": "ce7670c2ac673744841388224141fc8b245b37c8afddca723e53399b20bb5ba2",
+      "requirement_ids": [
+        "PKG05-026"
+      ],
+      "rationale": "This retained native evidence record is a finite statistical family named by the ledger requirement. It is cross-referenced to PKG05-026 based on its stated profile/configuration and confidence-check scope; the retained result does not establish overall G4 qualification."
+    },
+    {
+      "entry_key": "b9c2ac2f36e5c6eaec6c97bbab1a110ded3365ba0631e14ce307eb170bdbc1c6",
+      "heading_sha256": "08a95178d53a4b74e5d3e68ee5482de6ffc14cb0aa6c928b279ceb7c891b42ca",
+      "block_sha256": "24f6dfaf6bcb56063c1b91fec7024e858efa44c7e3c4cacd9a8260ccb1f16432",
+      "requirement_ids": [
+        "PKG01-006"
+      ],
+      "rationale": "The cited schema defines the durable RT execution-replay receipt; PKG01-006 owns run/retry provenance contracts, without implying the receipt qualifies a solver run."
+    },
+    {
+      "entry_key": "08649bc38f727030c2cc392cd0c5bc6084e93645c5e8bce29a6826ba9cdcaa22",
+      "heading_sha256": "b811463c42b47e3c999ef451d4a851e81b91bb26cabc3009afb0fb30e68c30af",
+      "block_sha256": "e5f6efd1ccec8fb924063c5e488a731813da5e65de4f311c3d15bcb575ed2744",
+      "requirement_ids": [
+        "PKG05-026"
+      ],
+      "rationale": "This dated status note cites the same retained result artifact as an already reviewed G4 evidence note; the mapping records the owning implementation family only and preserves the artifact’s stated finite outcome and qualification limits."
+    },
+    {
+      "entry_key": "bcd0a91a951cb8cb6aa30dab08e219d2fab34f8fec925b4fb9eaa7665af90de2",
+      "heading_sha256": "8173ed4967f50a44181bd35c3b36251c0fed8b41a43ce796dadacfb65f5c8d40",
+      "block_sha256": "a2ae8177efd90b32697cc0405d790c4a784a98896855cd8661cf9a000ba4962d",
+      "requirement_ids": [
+        "DS.G6.02",
+        "PKG07-001"
+      ],
+      "rationale": "This note wires the explicit elapsed-time horizon contract into the frozen forecast pilot CLI and records its gap/tolerance controls; it advances DS.G6.02 and the timestamp-target workflow in PKG07-001."
+    },
+    {
+      "entry_key": "dd53a53cc464892c48bdde354c68bc445f4b6828c6771789b12d5e9aa552fe85",
+      "heading_sha256": "9df790ed2b78cff893cbd86bf57f3f8e4fc9ff7e63770fc0da93643a806af0b7",
+      "block_sha256": "1891aa049b451803d408c745beacac13e200a08e2fcf8417e03e5145d9e0cfd9",
+      "requirement_ids": [
+        "PKG05-026"
+      ],
+      "rationale": "This dated status note cites the same retained result artifact as an already reviewed G4 evidence note; the mapping records the owning implementation family only and preserves the artifact’s stated finite outcome and qualification limits."
+    },
+    {
+      "entry_key": "c00d63c573d4f1ab7bc9a2f59f9263545b54af4588ae936bc31d8a682dfe0b17",
+      "heading_sha256": "90f13d5f7aab3fc5308d6ad6f6d61bbe0193fae607c141db172786ffaa0b00cf",
+      "block_sha256": "1d573235974d27b7cfa21d750e99c127dd49914edb7f15ec4006cd24b87f4297",
+      "requirement_ids": [
+        "PKG05-021"
+      ],
+      "rationale": "The note cites the bounded four-angle CDL sector-power/ray-coupling confidence regression; PKG05-021 owns the sector-power family, while continuous angular-law and geometric-RT validity remain open."
+    },
+    {
+      "entry_key": "c0f6b9205ec7e1d3bb43460341da88e5d3746eb5baf5ded7efce60271ae74e71",
+      "heading_sha256": "8fb9805f87f2ce3f1599751982f89e94e3f027036d7ccde049812cdde4482591",
+      "block_sha256": "775fbda9e25c3cbeb62284adce547a8b41fb11b81b9500e717137c9e0f711f35",
+      "requirement_ids": [
+        "PKG01-004"
+      ],
+      "rationale": "The retained runtime-inventory report records loaded native runtime identities, matching PKG01-004; this scoped report does not establish external runtime attestation."
+    },
+    {
+      "entry_key": "c661e229eb871a406b7dfe4975fcc596d6f246c6db8f5206a74634e7f39e8a57",
+      "heading_sha256": "14303a5aa23519508291b4c144e589dcf9ad76bdba4b647d1cfb862ec6b02e60",
+      "block_sha256": "74ba99c00a3f6ee173b2281fd95784c3da3943ea181e27b458189bc0d97342ec",
+      "requirement_ids": [
+        "PKG05-026"
+      ],
+      "rationale": "This retained native evidence record is a finite statistical family named by the ledger requirement. It is cross-referenced to PKG05-026 based on its stated profile/configuration and confidence-check scope; the retained result does not establish overall G4 qualification."
+    },
+    {
+      "entry_key": "c917473e5f527a99a0ac8de370c4bf395d9ea523b175047a2d078d91b0f181c5",
+      "heading_sha256": "7f0015f59af4a6f4cabdc7f5d9b644e6d788963953cfb2c780865cc83d9fdb35",
+      "block_sha256": "9b90d9b16716e5947bdaae5993f77b9a71b160b9e8dd01009ac286cf5ef806c3",
+      "requirement_ids": [
+        "PKG08-025"
+      ],
+      "rationale": "The note concerns signed near-duplicate disposition admission in the corpus release audit, owned by PKG08-025; signed local admission does not clear an external release."
+    },
+    {
+      "entry_key": "ce6f4ecb92cf07c303e0c206fd50acfe564491cb6dd0e3cfc28de9c461cf6e3c",
+      "heading_sha256": "1dec0b266dc16072d3e4d7b3283e3dfdeb87813831bd47b6ac1bc66fe213e65d",
+      "block_sha256": "1f82f984f45e47de95d8b8c097b0573709da3902f0bae162bb900ddb70d2a1b1",
+      "requirement_ids": [
+        "PKG05-015"
+      ],
+      "rationale": "This retained native evidence record is a finite statistical family named by the ledger requirement. It is cross-referenced to PKG05-015 based on its stated profile/configuration and confidence-check scope; the retained result does not establish overall G4 qualification."
+    },
+    {
+      "entry_key": "d08a05b2176973c953d93918c760240a7414f17a44081973b088e56b8a8f49be",
+      "heading_sha256": "bd29261d821a679a6ddb8f701694dbecdb1280bc64db826e4917d2dd4cb1c4bc",
+      "block_sha256": "e6220ea8cb621343139caa00206f173a7bef2c9280ce31a0cf4679bd3a90f5f2",
+      "requirement_ids": [
+        "PKG05-015"
+      ],
+      "rationale": "This retained native evidence record is a finite statistical family named by the ledger requirement. It is cross-referenced to PKG05-015 based on its stated profile/configuration and confidence-check scope; the retained result does not establish overall G4 qualification."
+    },
+    {
+      "entry_key": "2979a4d1c5a4931f73f4a60ef4848e7c81e4421fbfa4118f96cc789cf89b0bfe",
+      "heading_sha256": "37e4594c1eadbe7e635eb71ea7ae67aa1ce4d9b6e76ce67665339ad213082005",
+      "block_sha256": "5d44c418fe3ddb67e2cecfa9f98f05f6ba07f11d51b3b8439014c99ece46896e",
+      "requirement_ids": [
+        "PKG05-026"
+      ],
+      "rationale": "This dated status note cites the same retained result artifact as an already reviewed G4 evidence note; the mapping records the owning implementation family only and preserves the artifact’s stated finite outcome and qualification limits."
+    },
+    {
+      "entry_key": "cb46f9ad88f36363afa4a913ea94d8c657f3af0293c3ab0582f59a3aa9d1aa0e",
+      "heading_sha256": "6ac3395a41d6c3633696412cdb65915e2a4a8b6e3d10fb4f4baae7b81d503816",
+      "block_sha256": "896f0b07699ce581a6bbb6f8c85f16c78875b95dd1864f5ad6a57ab1f43cac21",
+      "requirement_ids": [
+        "PKG01-004"
+      ],
+      "rationale": "The cited runtime report records loaded native runtime identities, matching PKG01-004; corpus/runtime scope and external attestation remain separate."
+    },
+    {
+      "entry_key": "d96bd5fb5146bb80960badfe4e28ee15647f4314e5b5bd43415855a52e24686c",
+      "heading_sha256": "c7ee23ab98fe6122150bd3afb1bd85342052fce9fae4eee2835ceb185433ec33",
+      "block_sha256": "4565a5f4d9e98dfe31b49293dbae5bb3eb39ad1f6843b07dbc6a40e5ab79c495",
+      "requirement_ids": [
+        "PKG00-001"
+      ],
+      "rationale": "The cited script regenerates the repository feature map, directly matching PKG00-001; its classifications remain heuristic and do not determine requirement status."
+    },
+    {
+      "entry_key": "3c5ae6dfc0d7e786ca3f152aa047b8f4579786291894069fa5f342e7343e8ae3",
+      "heading_sha256": "dac5d61c64dbe86cbd9ae126d5212941c7bed62a2b448b224718eae9644cf6bd",
+      "block_sha256": "5bb034961d133001651ecd951327c9f9c4cbcfe5e77f1616eeb7e6f224afab5d",
+      "requirement_ids": [
+        "PKG05-026"
+      ],
+      "rationale": "This dated status note cites the same retained result artifact as an already reviewed G4 evidence note; the mapping records the owning implementation family only and preserves the artifact’s stated finite outcome and qualification limits."
+    },
+    {
+      "entry_key": "60cfa26c134bb09e15a6e45cdf49b1e86dbb2eaa3b6a182779733f54c31ad9f4",
+      "heading_sha256": "3a605dfcd9846a97cc3c6392d5f92c2e0a6e10314ab69d39bc2c68f6e72454df",
+      "block_sha256": "6d47fb67dd159f0c04342b8544febdef1fa1a0d72c28d3d0e0e64403818d3719",
+      "requirement_ids": [
+        "PKG06-004"
+      ],
+      "rationale": "The cited impairment implementation supports the bounded G5 source-bound report refresh; PKG06-004 owns the software impairment path, not calibrated propagation or qualification."
+    },
+    {
+      "entry_key": "f1effab91a5a5d5e2be1bd5516d4b4e527480d13478acd801e9f14cab001f513",
+      "heading_sha256": "dbfb2896815ab3de9331b5a64399c91ef7369d6af907c2667ae6dd650e1d7e8d",
+      "block_sha256": "76a054920647c6b693c0c7506e58d48077d5d0e05333f9959835c5d907db6567",
+      "requirement_ids": [
+        "DS.G6.02",
+        "PKG07-001"
+      ],
+      "rationale": "This note implements timestamp-based t+h target alignment through the canonical horizon indexer; DS.G6.02 states that target timestamps, rather than row offsets, define eligibility, and PKG07-001 owns future-target alignment."
+    },
+    {
+      "entry_key": "f22e95100bb6d11a71068bb1c25f19cab4f4690127ae8c435247af58c76310a0",
+      "heading_sha256": "2278ef19ce8368b1c033efb39e4af194591b9d41988bf3c8a382d4258a5d8dde",
+      "block_sha256": "3c168d76bb5f943b56409b86f25ac82d05ab8d652ba9c1797f5a7df2ca993834",
+      "requirement_ids": [
+        "PKG05-026"
+      ],
+      "rationale": "This retained native evidence record is a finite statistical family named by the ledger requirement. It is cross-referenced to PKG05-026 based on its stated profile/configuration and confidence-check scope; the retained result does not establish overall G4 qualification."
+    },
+    {
+      "entry_key": "a3a0d3cc23d713b93da7e1503629c452c0cbddc2004a3e320608afe6480cdd13",
+      "heading_sha256": "3658be95144a387124fa18a3c9b2807aa0fa2b9342e18f671a9e2ba54695f797",
+      "block_sha256": "74f31bd0131f26275af9d00654663b9fb4ee1739eb0f5a7fa86d43e1f27c46f9",
+      "requirement_ids": [
+        "PKG05-026"
+      ],
+      "rationale": "This dated status note cites the same retained result artifact as an already reviewed G4 evidence note; the mapping records the owning implementation family only and preserves the artifact’s stated finite outcome and qualification limits."
+    },
+    {
+      "entry_key": "f306bfe85f9e9bde91dfed10b90918418698c21453434b06e943f1ab9dc6ad5d",
+      "heading_sha256": "d2939e1be967ff775cf1f7ae6a489c7841f4f679ba40936043956e423d7b4af0",
+      "block_sha256": "9b3e20e412e815c06172d2187300f9f0c91cdd0f43c0a567c713701ccd5b5e2b",
+      "requirement_ids": [
+        "PKG01-008"
+      ],
+      "rationale": "The cited report records a source-only ODbL scene snapshot audit, within PKG01-008; missing extract/conversion and rights evidence remain release blockers."
+    },
+    {
+      "entry_key": "fca0e520d9f2be593daede9e23ecac27057bde86d1f0974de77c4cc2d4073e6e",
+      "heading_sha256": "c02b994b610f197252af96351466da35bf39299b154c589de1744057a1f88f1a",
+      "block_sha256": "8fbfefb19d7d36cef5b4d347d2d0ba6143c4ef1772b57d1f5226e9f2bc2498ae",
+      "requirement_ids": [
+        "PKG05-024"
+      ],
+      "rationale": "This retained native evidence record is a finite statistical family named by the ledger requirement. It is cross-referenced to PKG05-024 based on its stated profile/configuration and confidence-check scope; the retained result does not establish overall G4 qualification."
+    },
+    {
+      "entry_key": "fd1b8e90b6624a9a39db94b7333515bf0ce808fb9147237bc8767047da852b19",
+      "heading_sha256": "abc98724b7f7a5babae7f105cdb0d3b5c41f48e430cdfc24dd7cd3581ca34a90",
+      "block_sha256": "e359ba657a433f12fc31b06937ca80a93bc055fcd9d71b3be9e2d5bd32eddfcb",
+      "requirement_ids": [
+        "PKG05-026"
+      ],
+      "rationale": "This bounded physical dual-cross handheld CDL covariance family directly extends the independent-reference multi-element covariance and temporal branch covered by PKG05-026."
+    }
+  ],
+  "schema": "loslab.historical_status_manual_mappings.v1"
+}

@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import hashlib
+from collections.abc import Mapping
 from dataclasses import asdict
 from importlib.metadata import PackageNotFoundError
 from typing import Any
 
+import numpy as np
 from datasets.nr import NRObservation
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
@@ -478,6 +481,90 @@ class SionnaPUSCHLSReceiver:
         carrier_grid = self.demodulate_carrier_slot_waveform(waveform)
         allocation_grid = self.extract_bwp_allocation_from_carrier_slot(carrier_grid)
         return self.decode_pusch(allocation_grid, noise_variance)
+
+    def decode_intra_slot_hopped_carrier_grid(
+        self,
+        received_carrier_grid: Any,
+        hop_metadata: Any,
+        noise_variance: Any,
+    ) -> tuple[Any, Any, dict[str, Any]]:
+        """Replay caller-resolved intra-slot dehopping, then use the regular LS receiver.
+
+        The hop layout and symbol boundary must already be resolved and the
+        received grid must contain the caller's per-hop resource mapping,
+        including its DM-RS. This adapter rehomes those resources onto the
+        first-hop allocation, verifies the exact relocation, and passes the
+        resulting allocation through the ordinary non-hopping Sionna receiver.
+        It does not derive a grant, generate hop-specific DM-RS, support
+        transform precoding, or qualify hopping performance.
+        """
+        from receivers.nr.pusch import (
+            dehop_pusch_intra_slot_received_grid,
+            verify_pusch_intra_slot_dehopped_grid,
+        )
+
+        if not isinstance(received_carrier_grid, np.ndarray):
+            raise TypeError("received_carrier_grid must be a NumPy array")
+        if not isinstance(hop_metadata, Mapping):
+            raise TypeError("hop_metadata must be a mapping")
+        if self.config.frequency_hopping != "neither" or self.config.transform_precoding:
+            raise ValueError("dehopped-grid decoding requires the supported non-hopping receiver")
+        expected_fields = {
+            "carrier_grid_start_rb": self.config.n_start_grid,
+            "carrier_grid_size_rb": self.config.carrier_grid_size,
+            "first_hop_start_crb": self.config.n_start_bwp,
+            "allocation_rb_count": self.config.n_size_bwp,
+            "allocation_start_symbol": self.config.symbol_allocation[0],
+            "allocation_symbol_count": self.config.symbol_allocation[1],
+        }
+        for name, expected in expected_fields.items():
+            if hop_metadata.get(name) != expected:
+                raise ValueError(
+                    f"hop metadata {name} does not match the configured PUSCH receiver"
+                )
+
+        dehopped = dehop_pusch_intra_slot_received_grid(
+            received_carrier_grid,
+            hop_metadata,
+        )
+        replay = verify_pusch_intra_slot_dehopped_grid(
+            received_carrier_grid,
+            hop_metadata,
+            dehopped.frequency_grid,
+            dehopped.metadata,
+        )
+        allocation_grid = self.extract_bwp_allocation_from_carrier_slot(
+            self._torch.as_tensor(
+                np.array(dehopped.frequency_grid, copy=True),
+                device=self.device,
+            )
+        )
+        normalized_noise = _validated_noise_variance(
+            self._torch,
+            noise_variance,
+            device=self.device,
+        )
+        decoded_bits, crc_ok = self.decode_pusch(allocation_grid, normalized_noise)
+
+        def tensor_digest(value: Any) -> str:
+            payload = value.detach().to(device="cpu").contiguous().numpy().tobytes(order="C")
+            return hashlib.sha256(payload).hexdigest()
+
+        report = {
+            "schema": "loslab.nr_pusch_intra_slot_hopped_decode.v1",
+            "status": "DECODED_NOT_QUALIFIED",
+            "scope": "caller_resolved_intra_slot_dehop_with_nonhopping_receiver",
+            "receiver_hopping_qualification": "NOT_QUALIFIED",
+            "receiver_config": self.metadata,
+            "dehopped_grid_metadata": dehopped.metadata,
+            "dehop_replay": replay,
+            "noise_variance_shape": list(normalized_noise.shape),
+            "noise_variance_sha256": tensor_digest(normalized_noise),
+            "decoded_bits_sha256": tensor_digest(decoded_bits),
+            "transport_block_crc_sha256": tensor_digest(crc_ok),
+            "dmrs_source": "caller_supplied_hop_mapped_received_grid",
+        }
+        return decoded_bits, crc_ok, report
 
     def decode_pusch(self, received_grid: Any, noise_variance: Any) -> tuple[Any, Any]:
         """Decode with this receiver's configured DM-RS estimator and return CRC status."""

@@ -453,6 +453,9 @@ class StandardizedChannelRecord:
         validate_standardized_channel_admission(
             self.family, self.profile_model, h_path, raw_metadata
         )
+        absolute_frequencies_hz = float(raw_metadata["carrier_frequency_hz"]) + offsets
+        if not np.isfinite(absolute_frequencies_hz).all() or np.any(absolute_frequencies_hz <= 0.0):
+            raise ValueError("carrier plus subcarrier offsets must be positive RF frequencies")
         snapshot = json.loads(_canonical_json(raw_metadata, name="metadata"))
         h_path.setflags(write=False)
         tau_s.setflags(write=False)
@@ -762,6 +765,7 @@ def _target_bytes(targets: Mapping[str, TargetValue]) -> bytes:
                 "definition_sha256": definition.definition_sha256,
                 "aggregation_rule": definition.aggregation_rule,
                 "definition_version": definition.definition_version,
+                "value_axes": list(definition.value_axes),
             },
             "values": target.values.tolist(),
             "valid_mask": target.valid_mask.tolist(),

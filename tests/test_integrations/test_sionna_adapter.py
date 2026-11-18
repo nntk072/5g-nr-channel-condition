@@ -178,6 +178,17 @@ def test_power_diagnostic_requires_aligned_complex_cfr(full, direct):
         direct_indirect_diagnostics(full, direct)
 
 
+@pytest.mark.parametrize("invalid", [complex(np.nan, 0.0), complex(0.0, np.inf)])
+@pytest.mark.parametrize("input_name", ["full", "direct"])
+def test_power_diagnostic_rejects_nonfinite_cfr_values(invalid, input_name):
+    full = np.ones(4, dtype=np.complex64)
+    direct = np.ones(4, dtype=np.complex64)
+    (full if input_name == "full" else direct)[2] = invalid
+
+    with pytest.raises(ValueError, match="must contain only finite values"):
+        direct_indirect_diagnostics(full, direct)
+
+
 def test_decomposition_never_used_as_model_feature():
     from propagation.physics import observable_features
 

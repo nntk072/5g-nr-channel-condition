@@ -10,6 +10,7 @@ from statistics import fmean, stdev
 from typing import Any, Sequence
 
 from artifacts.provenance import atomic_json, package_source_sha256, sha256_file, versions
+from artifacts.run_replay import validate_run_replay_provenance
 
 CAPACITY_TIERS = ("small", "medium", "large")
 DEFAULT_DOMAINS = (
@@ -32,8 +33,23 @@ def _verify_fold(root: Path, domain: str) -> dict[str, Any]:
     report_path = fold / "capacity_sweep.json"
     manifest = _json(manifest_path)
     report = _json(report_path)
-    if manifest.get("schema") != "loslab.capacity_sweep.v1" or manifest.get("state") != "complete":
+    if (
+        manifest.get("schema")
+        not in {
+            "loslab.capacity_sweep.v1",
+            "loslab.capacity_sweep.v2",
+        }
+        or manifest.get("state") != "complete"
+    ):
         raise ValueError(f"incomplete or unsupported capacity sweep: {fold}")
+    if manifest["schema"] == "loslab.capacity_sweep.v2":
+        replay = validate_run_replay_provenance(manifest.get("run_replay", {}))
+        if replay["state"] != "complete":
+            raise ValueError(f"capacity sweep replay receipt is incomplete: {fold}")
+        if replay["config_sha256"] != manifest.get("config_sha256"):
+            raise ValueError(f"capacity sweep replay config digest mismatch: {fold}")
+        if replay["inputs"] != manifest.get("inputs"):
+            raise ValueError(f"capacity sweep replay input roster mismatch: {fold}")
     if sha256_file(report_path) != manifest.get("report_sha256"):
         raise ValueError(f"capacity report hash mismatch: {fold}")
     config = manifest.get("config", {})

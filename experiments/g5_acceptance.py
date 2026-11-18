@@ -19,6 +19,7 @@ MAX_G5_INDEPENDENT_ACCEPTANCE_TRANSPORT_BLOCKS = 16_384
 MAX_G5_INDEPENDENT_ACCEPTANCE_SNR_POINTS = 64
 G5_SNR_ACCEPTANCE_SCHEMA = "umcd.g5_ordered_impairments_snr_acceptance.v1"
 G5_SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA = "umcd.g5_ordered_impairments_snr_acceptance.v2"
+G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA = "umcd.g5_ordered_impairments_snr_acceptance.v3"
 G5_SNR_ACCEPTANCE_SIGNATURE_NAMESPACE = "umcd-g5-snr-acceptance-v1"
 G5_SNR_REVIEWER_POLICY_SCHEMA = "umcd.g5_snr_reviewer_policy.v1"
 G5_SNR_REVIEWER_POLICY_PURPOSE = "g5_ordered_impairments_snr_preregistration"
@@ -40,6 +41,44 @@ def _canonical_json_bytes(value: Any) -> bytes:
     return json.dumps(
         value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
     ).encode("utf-8")
+
+
+def g5_snr_execution_context_from_config(config: dict[str, Any]) -> dict[str, Any]:
+    """Select canonical receiver, decoder and waveform identity from a point report."""
+    fields = (
+        "receiver_configuration",
+        "decoder_configuration",
+        "sample_rate_hz",
+        "fft_size",
+        "cyclic_prefix_samples",
+        "echo_delay_samples_range",
+        "echo_amplitude_range",
+        "direct_coefficient_real_imag",
+        "cfo_hz",
+        "timing_offset_samples",
+        "tx_phase_noise_linewidth_hz",
+        "rx_phase_noise_linewidth_hz",
+        "tx_iq_gain_imbalance_db",
+        "tx_iq_phase_imbalance_rad",
+        "rx_iq_gain_imbalance_db",
+        "rx_iq_phase_imbalance_rad",
+    )
+    if not isinstance(config, dict) or any(name not in config for name in fields):
+        raise ValueError("G5 point configuration is missing frozen execution-context fields")
+    context = {
+        "receiver_configuration": config["receiver_configuration"],
+        "decoder_configuration": config["decoder_configuration"],
+        "waveform_configuration": {
+            "channel_family": "independently_seeded_static_two_path",
+            **{name: config[name] for name in fields[2:]},
+            "noise_variance_per_complex_sample": "10**(-snr_db/10)",
+            "noise_reference": "unit_complex_waveform_power",
+        },
+    }
+    try:
+        return json.loads(_canonical_json_bytes(context).decode("utf-8"))
+    except (TypeError, ValueError, UnicodeDecodeError) as error:
+        raise ValueError("G5 execution context must contain canonical JSON values") from error
 
 
 def load_g5_snr_acceptance_contract(
@@ -99,8 +138,21 @@ def load_g5_snr_acceptance_contract(
         raise ValueError("acceptance contract must be valid UTF-8 JSON") from error
     if not isinstance(value, dict):
         raise ValueError("acceptance contract root must be an object")
-    if value.get("schema") == G5_SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA and signature_path is None:
-        raise ValueError("timestamped acceptance contract v2 requires a verified signature")
+    if value.get("schema") == G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA and not all(
+        item is not None for item in policy_options
+    ):
+        raise ValueError("acceptance contract v3 requires independent reviewer-policy admission")
+    if (
+        value.get("schema")
+        in {
+            G5_SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
+            G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA,
+        }
+        and signature_path is None
+    ):
+        raise ValueError(
+            "timestamped acceptance contract v2 requires a verified signature; v3 also requires one"
+        )
     signature_identity: dict[str, str] | None = None
     if signature_path is not None:
         canonical_payload = _canonical_json_bytes(value)
@@ -126,12 +178,18 @@ def load_g5_snr_acceptance_contract(
             "trusted_allowed_signers_sha256": verified["allowed_signers_sha256"],
             "trust_file_custody": "not_established_by_this_verifier",
         }
-        if value.get("schema") == G5_SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA:
+        if value.get("schema") in {
+            G5_SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
+            G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA,
+        }:
             signature_identity["preregistered_utc"] = value.get("preregistered_utc")
         if reviewer_policy_path is not None:
-            if value.get("schema") != G5_SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA:
+            if value.get("schema") not in {
+                G5_SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
+                G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA,
+            }:
                 raise ValueError(
-                    "G5 reviewer-role policy admission requires timestamped contract v2"
+                    "G5 reviewer-role policy admission requires timestamped contract v2 or v3"
                 )
             assert reviewer_policy_signature_path is not None
             assert trusted_reviewer_allowed_signers_path is not None
@@ -305,6 +363,12 @@ def _validate_g5_snr_acceptance_criteria(criteria: Any) -> dict[str, Any]:
         required = base_fields
     elif schema == G5_SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA:
         required = base_fields | {"preregistered_utc"}
+    elif schema == G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA:
+        required = base_fields | {
+            "preregistered_utc",
+            "execution_context",
+            "execution_context_sha256",
+        }
     else:
         raise ValueError("acceptance_criteria has an unsupported schema")
     if set(criteria) != required:
@@ -342,8 +406,26 @@ def _validate_g5_snr_acceptance_criteria(criteria: Any) -> dict[str, Any]:
         frozen = json.loads(_canonical_json_bytes(criteria).decode("utf-8"))
     except (TypeError, ValueError, UnicodeDecodeError) as error:
         raise ValueError("acceptance_criteria must contain canonical JSON values") from error
-    if schema == G5_SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA:
+    if schema in {
+        G5_SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
+        G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA,
+    }:
         _parse_utc_timestamp(frozen["preregistered_utc"], field="preregistered_utc")
+    if schema == G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA:
+        context = frozen["execution_context"]
+        if not isinstance(context, dict) or set(context) != {
+            "receiver_configuration",
+            "decoder_configuration",
+            "waveform_configuration",
+        }:
+            raise ValueError(
+                "execution_context must freeze receiver, decoder, and waveform objects"
+            )
+        if any(not isinstance(context[name], dict) for name in context):
+            raise ValueError("execution_context entries must be objects")
+        expected_digest = _sha256(_canonical_json_bytes(context))
+        if frozen["execution_context_sha256"] != expected_digest:
+            raise ValueError("execution_context_sha256 does not match the frozen execution context")
 
     contract_snr = frozen["snr_db"]
     if (
@@ -414,8 +496,13 @@ def validate_g5_preregistration_order(
     an OpenSSH signature establishes trusted timestamp authority or signing time.
     """
     frozen = _validate_g5_snr_acceptance_criteria(criteria)
-    if frozen["schema"] != G5_SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA:
-        raise ValueError("signed G5 preregistration requires acceptance contract schema v2")
+    if frozen["schema"] not in {
+        G5_SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
+        G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA,
+    }:
+        raise ValueError(
+            "signed G5 preregistration requires timestamped acceptance contract v2 or v3"
+        )
     preregistered_at = _parse_utc_timestamp(frozen["preregistered_utc"], field="preregistered_utc")
     run_started_at = _parse_utc_timestamp(
         receiver_run_started_utc, field="receiver_run_started_utc"
@@ -437,6 +524,7 @@ def freeze_g5_snr_acceptance_criteria(
     channel_seeds: tuple[int, ...],
     channel_estimator: str,
     blocks_per_channel: int,
+    execution_context: dict[str, Any] | None = None,
 ) -> dict[str, Any] | None:
     """Validate and snapshot the caller's pre-run receiver acceptance contract."""
     if criteria is None:
@@ -467,6 +555,11 @@ def freeze_g5_snr_acceptance_criteria(
         raise ValueError("acceptance contract channel seeds must exactly match the requested curve")
     if frozen["blocks_per_channel"] != blocks_per_channel:
         raise ValueError("acceptance contract block count does not match the requested curve")
+    if frozen["schema"] == G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA:
+        if execution_context is None:
+            raise ValueError("acceptance contract v3 requires a preflight execution context")
+        if frozen["execution_context"] != execution_context:
+            raise ValueError("acceptance contract execution context differs from the receiver run")
     return frozen
 
 

@@ -1,4 +1,4 @@
-# G5.09 bounded SNR-family acceptance contracts v1 and v2
+# G5.09 bounded SNR-family acceptance contracts v1, v2 and v3
 
 ## Purpose and scope
 
@@ -10,6 +10,8 @@ An acceptance contract requires at least 20 independent channel clusters as an e
 
 Contract v2's runner records its run-start time before receiver execution and requires the declared preregistration time to precede it. The independent auditor recomputes that ordering from the retained contract and signature metadata. This is a consistency check over declared times: the verifier does not establish a trusted clock, timestamp authority, or actual signing time. Contract v1 remains available for historical signed runs.
 
+Execution-bound contract v3 adds a digest-bound `execution_context` with exact receiver, decoder and waveform configuration objects. The runner constructs the receiver metadata and decoder identity before the first trial, then rejects any point report whose context differs. V3 requires a detached contract signature and the independent-reviewer policy admission already used by signed v2. Curves use schema v17 on CPU and v25 on CUDA; the independent auditor checks the context digest, every point's context and the reviewer-policy proof. This freezes only the existing independently seeded synthetic two-path fixture. It does not provide a generally qualified G5 receiver receipt, powered sample-size design, calibrated deployment evidence, or a qualification verdict.
+
 This is a conditional result for the synthetic two-path fixture. It does not estimate field BLER, qualify other channel families or receiver configurations, or close G5.09 for deployment.
 
 ## Detached signature for a frozen acceptance contract
@@ -20,7 +22,7 @@ This proves that the supplied allowed-signers file authorizes the principal for 
 
 ## Contract
 
-The v1 input schema is `datasets/schema/g5-ordered-impairments-snr-acceptance.v1.schema.json`; the v2 schema is `datasets/schema/g5-ordered-impairments-snr-acceptance.v2.schema.json`. Threshold arrays must have one entry per SNR point. Contract channel seeds, SNR values, estimator, and block count must exactly match the run request. A v2 contract additionally requires a UTC timestamp ending in `Z`.
+The v1, v2 and v3 input schemas are `datasets/schema/g5-ordered-impairments-snr-acceptance.v1.schema.json`, `datasets/schema/g5-ordered-impairments-snr-acceptance.v2.schema.json` and `datasets/schema/g5-ordered-impairments-snr-acceptance.v3.schema.json`. Threshold arrays must have one entry per SNR point. Contract channel seeds, SNR values, estimator, and block count must exactly match the run request. V2 and v3 require a UTC timestamp ending in `Z`; v3 additionally requires the exact three-part execution context and its SHA-256 digest.
 
 ~~~json
 {
@@ -35,6 +37,6 @@ The v1 input schema is `datasets/schema/g5-ordered-impairments-snr-acceptance.v1
 }
 ~~~
 
-For a diagnostic unsigned v1-compatible acceptance run, supply `--independent-channel-count 20 --channel-seed-start 1001 --blocks-per-seed 8 --snr-db 0 5 10 --acceptance-contract contract.json`. Signed acceptance runs also supply all three signature options listed above. A timestamped v2 contract must be signed; it emits schema v10 after the runner confirms the declared timestamp precedes its recorded start. Unsigned v1 acceptance uses schema v7 and signed v1 uses v8. The auditor recomputes the curve intervals and decision from the retained channel/block CRC roster.
+For a diagnostic unsigned v1-compatible acceptance run, supply `--independent-channel-count 20 --channel-seed-start 1001 --blocks-per-seed 8 --snr-db 0 5 10 --acceptance-contract contract.json`. Signed acceptance runs also supply all three contract-signature options listed above. V2 must be signed and emits schema v10 (or CUDA schema v15). V3 must be signed and admitted with the independent-reviewer policy/signature/trust options; it emits schema v17 on CPU or v25 on CUDA. Unsigned v1 acceptance uses schema v7 and signed v1 uses v8. The auditor recomputes the curve intervals and decision from the retained channel/block CRC roster and rechecks the v3 execution binding.
 
 Threshold values are task-specific preregistration inputs. The example values are illustrative and are not endorsed acceptance thresholds. Select them from the intended receiver operating requirements before running qualification data.

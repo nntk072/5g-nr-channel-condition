@@ -42,20 +42,48 @@ read-only historical reproduction. No active Python import from those trees
 was found. This is repository-local evidence and does not establish that no
 external consumer exists.
 
-## Remaining audit work
+## Repository-local audit closure (2026-11-12)
 
-- Finish transform and artifact inventory for model-like producers not found by
-  source-level fit/save searches, including scripts that call library wrappers.
-- Inspect diagnostic estimators and prediction consumers beyond fit/save searches
-  to confirm generated features and oracle-only metrics remain separated.
-- Reconcile all generated command entry points and saved-artifact loaders against
-  this matrix, and verify that each retained artifact reaches the canonical
-  replay verifier or remains explicitly marked as requiring an external
-  contract.
-- Reconcile this inventory against archived and generated entry points, retain
-  the exact source search/verifier, and have the independent package crosswalk
-  confirm complete coverage.
+Repeated the source enumeration against the current worktree, including
+prediction, transform, checkpoint-load, and active archive-import searches.
+The active matches resolve to the routes in the matrix; diagnostic/local-MLE
+paths remain explicitly synthetic, privileged, or oracle-aided. The three
+standalone real-CNN, complex-CNN, and CORAL loader tests pass and confirm raw
+checkpoints retain `external_input_contract_required`; canonical runner
+artifacts bind and replay their exact sidecars. The two-path CLI writes model
+contracts before atomic publication. Direct canonical-runner artifact
+publication and two-path checkpoint binding regressions each pass. The archive and historical-notebook trees
+contain 69 files, their README files classify them as historical, and no active
+Python import from those trees was found.
 
-Until those items close, `PKG08-017` remains partial. No scientific acceptance,
-production RT generation, or deployment claim follows from these software
-contracts.
+Exact source checks:
+
+```bash
+rg -n '(optimizer\s*=|\.backward\(|partial_fit\(|\.fit\(|fit_[A-Za-z0-9_]+\()' \
+  --glob '*.py' --glob '!tests/**' --glob '!archive/**' --glob '!notebooks/**' .
+rg -n '(\.predict\(|predict_proba\(|decision_function\(|transform\()' \
+  --glob '*.py' --glob '!tests/**' --glob '!archive/**' --glob '!notebooks/**' .
+rg -n '(torch\.save|joblib\.dump|pickle\.dump|state_dict\(\)|load_.*checkpoint|load_.*cnn|torch\.load|joblib\.load|pickle\.load)' \
+  --glob '*.py' --glob '!tests/**' --glob '!archive/**' --glob '!notebooks/**' .
+rg -n '(from archive|import archive|legacy_2025)' \
+  --glob '*.py' --glob '!archive/**' --glob '!notebooks/**' .
+```
+
+This closes the repository-local enumeration and leakage-boundary audit only.
+It cannot enumerate external callers or certify measured CAEZ archives. No
+scientific acceptance, production RT generation, or deployment claim follows.
+Focused verification commands:
+
+```bash
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 uv run --no-sync --locked python -m pytest \
+  -o addopts='' -q --confcutdir=tests/test_learning \
+  tests/test_learning/test_real_cnn.py tests/test_learning/test_complex_cnn.py \
+  tests/test_learning/test_coral.py -k 'load or checkpoint'  # 3 passed
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 uv run --no-sync --locked python -m pytest \
+  -o addopts='' -q --confcutdir=tests/test_experiments \
+  tests/test_two_path_experiment_contract.py \
+  -k 'checkpoint_contract_binds_inputs_targets_splits'  # 1 passed
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 uv run --no-sync --locked python -m pytest \
+  -o addopts='' -q --confcutdir=tests/test_experiments \
+  tests/test_runner.py -k 'writes_reproducible_complete_artifacts'  # 1 passed
+```

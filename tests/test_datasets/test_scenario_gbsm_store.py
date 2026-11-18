@@ -58,7 +58,7 @@ class _NativeChannel:
     metadata: dict[str, object]
 
 
-def _native_channel(*, scenario_los: bool = False) -> _NativeChannel:
+def _native_channel(*, scenario_los: bool = False, carrier_hz: float = 3.5e9) -> _NativeChannel:
     h_path = np.zeros((1, 1, 1, 1, 1, 2, 1), dtype=np.complex128)
     h_path[0, 0, 0, 0, 0, :, 0] = (1.0 + 0.5j, 0.25 - 0.25j)
     tau_s = np.asarray([[[[0.0, 2.0e-7]]]], dtype=np.float64)
@@ -83,7 +83,7 @@ def _native_channel(*, scenario_los: bool = False) -> _NativeChannel:
         "scenario": "UMi",
         "sionna_version": "2.2.0",
         "direction": "downlink",
-        "carrier_frequency_hz": 3.5e9,
+        "carrier_frequency_hz": carrier_hz,
         "sampling_frequency_hz": 30_000.0,
         "batch_size": 1,
         "subcarrier_spacing_hz": 30_000.0,
@@ -132,6 +132,13 @@ def test_scenario_gbsm_conversion_and_store_round_trip(tmp_path) -> None:
     np.testing.assert_array_equal(restored.records[0].h_path, run.records[0].h_path)
     np.testing.assert_array_equal(restored.records[0].tau_s, run.records[0].tau_s)
     np.testing.assert_array_equal(restored.records[0].cfr, run.records[0].cfr)
+
+
+def test_scenario_gbsm_record_rejects_nonpositive_absolute_rf_frequency() -> None:
+    with pytest.raises(ValueError, match="positive RF frequencies"):
+        scenario_gbsm_run_from_channel(
+            _native_channel(carrier_hz=30_000.0), run_id="invalid-rf-grid", sample_ids=["drop-000"]
+        )
 
 
 def test_scenario_gbsm_run_split_audit_binds_shared_parent_component() -> None:
@@ -221,17 +228,16 @@ def test_signed_child_roster_semantically_audits_scenario_gbsm_run(tmp_path) -> 
     store_pointer = write_scenario_gbsm_run(artifact_root, run)
     manifest_path = artifact_root / store_pointer.relative_path
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    parent_to_child = {
-        record.sample_id: f"child-{record.sample_id}"
-        for record in run.records
-    }
+    parent_to_child = {record.sample_id: f"child-{record.sample_id}" for record in run.records}
     bindings = {
         child_id: SplitChildBinding(child_id, parent_id, "receiver_observation")
         for parent_id, child_id in parent_to_child.items()
     }
     entries: list[dict[str, object]] = []
 
-    def declare(artifact_id: str, artifact_type: str, relative_path: str, *, child_id=None, child_ids=None):
+    def declare(
+        artifact_id: str, artifact_type: str, relative_path: str, *, child_id=None, child_ids=None
+    ):
         payload = (artifact_root / relative_path).read_bytes()
         entry: dict[str, object] = {
             "artifact_id": artifact_id,
@@ -334,7 +340,8 @@ def test_signed_child_roster_semantically_audits_scenario_gbsm_run(tmp_path) -> 
     assert result["schema"] == "umcd.split_child_artifact_audit.v7"
     assert result["semantic_artifact_count"] == len(entries)
     scenario_entry = next(
-        item for item in result["artifacts"]
+        item
+        for item in result["artifacts"]
         if item["artifact_type"] == "scenario_gbsm_run_manifest_json"
     )
     assert scenario_entry["scenario_parent_count"] == 2
@@ -342,7 +349,8 @@ def test_signed_child_roster_semantically_audits_scenario_gbsm_run(tmp_path) -> 
 
     altered_entries = [dict(entry) for entry in entries]
     manifest_entry = next(
-        entry for entry in altered_entries
+        entry
+        for entry in altered_entries
         if entry["artifact_type"] == "scenario_gbsm_run_manifest_json"
     )
     manifest_entry["child_ids"] = manifest_entry["child_ids"][:1]
