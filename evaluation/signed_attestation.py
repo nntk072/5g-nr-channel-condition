@@ -18,7 +18,7 @@ from typing import Any, Sequence
 
 from evaluation.acquisition_package import verify_acquisition_package
 
-SCHEMA = "loslab.signed_attestation.v1"
+SCHEMA = "loslab.g3_signed_attestation.v1"
 SIGNATURE_NAMESPACE = "loslab-g3-acquisition-attestation-v1@github.com"
 ATTESTATION_TYPES = {
     "split_preregistration",

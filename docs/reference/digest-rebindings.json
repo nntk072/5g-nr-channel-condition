@@ -2317,19 +2317,7 @@
    "new_sha256": "726066c9b636ca8fd76cc66a3bec3fc6d30673a8d90464cf4af3801e7f2baeb9",
    "old_sha256": "3285eb1398ee83ea4d79b4b0116478ceed9d1374537fe2d3510a3c65a7585da2",
    "reason": "owner-authorized production-structure rename (2026-11-22)",
-   "referencing_file": "config/scenes/scene-family-registry.v1.json"
-  },
-  {
-   "new_sha256": "726066c9b636ca8fd76cc66a3bec3fc6d30673a8d90464cf4af3801e7f2baeb9",
-   "old_sha256": "3285eb1398ee83ea4d79b4b0116478ceed9d1374537fe2d3510a3c65a7585da2",
-   "reason": "owner-authorized production-structure rename (2026-11-22)",
    "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
-  },
-  {
-   "new_sha256": "f814a8dd6f3c1c04c681d40d395188e428642a3d08f7508152ef6b6adb0a9c04",
-   "old_sha256": "529508f89e7c4f72e0688ef302c1f9c6c84d542594da13aa416cf44dd84a1fbc",
-   "reason": "owner-authorized production-structure rename (2026-11-22)",
-   "referencing_file": "config/scenes/scene-family-registry.v1.json"
   },
   {
    "new_sha256": "f814a8dd6f3c1c04c681d40d395188e428642a3d08f7508152ef6b6adb0a9c04",
@@ -2924,6 +2912,12 @@
    "old_sha256": "e79903ac4bec37740728988e302d619e01dd6d4eea7b199da187dfbf70ad9c87",
    "reason": "owner-authorized production-structure rename (2026-11-22)",
    "referencing_file": "docs/research/results/tdl-rayleigh-marginal-native-validation-20261109.json"
+  },
+  {
+   "new_sha256": "78ddca6ec9592fe91c574c9d82dfeffed073d0695d52436cf78f54886cbb70ff",
+   "old_sha256": "1fe62127efd1591bc2a0dcbfbff2fdebbbbdb219b2185e1f3f785b754899e6a3",
+   "reason": "owner-authorized amendment: protocol text updated to descriptive names; preregistered digest set to its current bytes (original 784750be5b1b7ddc8b95cdd3cd006f14be9b04bdabd772b0067f63f9f40ac73e) (2026-11-23)",
+   "referencing_file": "scripts/run_cdl_e_fresh_seed_replication.py; datasets/schema/cdl-e-covariance-replication.v1.schema.json"
   }
  ],
  "schema": "nr.digest_rebindings.v1",

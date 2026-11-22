@@ -245,7 +245,6 @@ def test_independent_channel_snr_curve_v2_schema_rejects_more_than_64_points() -
 def test_signed_snr_acceptance_contract_binds_exact_canonical_bytes(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    acceptance = acceptance
     criteria = {
         "schema": "umcd.g5_ordered_impairments_snr_acceptance.v1",
         "snr_db": [0.0],
@@ -303,7 +302,6 @@ def test_signed_snr_acceptance_contract_binds_exact_canonical_bytes(
 def test_signed_snr_acceptance_contract_rejects_noncanonical_bytes(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    acceptance = acceptance
     criteria = {"schema": "umcd.g5_ordered_impairments_snr_acceptance.v1", "snr_db": [0.0]}
     contract_path = tmp_path / "contract.json"
     contract_path.write_text(json.dumps(criteria, indent=2), encoding="utf-8")
@@ -422,7 +420,7 @@ def test_curve_auditor_reverifies_signed_preregistration_identity(
             "allowed_signers_sha256": "2" * 64,
         }
 
-    monkeypatch.setattr(curve_auditor, "verify_openssh_signature_for_bytes", verify)
+    monkeypatch.setattr(curve_auditor.waveform, "verify_openssh_signature_for_bytes", verify)
     signature_path = tmp_path / "contract.sig"
     allowed_signers_path = tmp_path / "allowed_signers"
 

@@ -157,7 +157,7 @@ def test_planner_is_data_free_bonferroni_adjusted_and_never_admits() -> None:
         planned_complex_csi_failure_probability=0.01,
     )
 
-    assert result["schema"] == "loslab.sample_size_planning.v3"
+    assert result["schema"] == "loslab.g3_sample_size_planning.v3"
     assert result["status"] == "PLANNING_ONLY_NOT_QUALIFICATION"
     assert result["uses_measurement_or_pilot_data"] is False
     assert result["admission_possible"] is False

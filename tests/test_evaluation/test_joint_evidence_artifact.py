@@ -546,7 +546,7 @@ def test_run_manifest_v4_binds_runtime_inventory_and_preserves_not_qualified_sta
     _write_canonical(manifest_path, manifest)
     report = run_manifest.verify_g3_joint_evidence_run_manifest(manifest_path)
 
-    assert manifest["schema"] == "loslab.joint_evidence_run_manifest.v4"
+    assert manifest["schema"] == "loslab.g3_joint_evidence_run_manifest.v4"
     assert manifest["runtime_inventory"]["role"] == "runtime_inventory"
     assert len(manifest["evaluator_sources"]) == len(run_manifest.V4_EVALUATOR_SOURCE_PATHS)
     assert report["status"] == "PASS_INPUT_SCOPED_RECOMPUTATION"
@@ -951,7 +951,7 @@ def test_run_manifest_v1_keeps_its_frozen_source_roster(
             }
         )
     manifest.pop("runtime_identity")
-    manifest["schema"] = "loslab.joint_evidence_run_manifest.v1"
+    manifest["schema"] = "loslab.g3_joint_evidence_run_manifest.v1"
     manifest["evaluator_sources"] = legacy_sources
     manifest["evaluator_source_bundle_sha256"] = run_manifest._source_bundle_sha256(legacy_sources)
     manifest_path = tmp_path / "legacy-run-manifest.json"
@@ -975,7 +975,7 @@ def test_run_manifest_v2_remains_readable_after_runtime_identity_v3(
         "joint-run-001", source, saved, package_root=tmp_path
     )
     manifest.pop("runtime_identity")
-    manifest["schema"] = "loslab.joint_evidence_run_manifest.v2"
+    manifest["schema"] = "loslab.g3_joint_evidence_run_manifest.v2"
     manifest["evaluator_sources"] = [
         item
         for item in manifest["evaluator_sources"]

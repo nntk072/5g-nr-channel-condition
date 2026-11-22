@@ -61,7 +61,7 @@ def test_saved_mobility_receiver_report_is_hash_bound_and_meets_frozen_fixture_c
         json.dumps(report, sort_keys=True, separators=(",", ":")).encode("utf-8")
     ).hexdigest()
 
-    assert report["schema"] == "umcd.time_varying_multipath_receiver.v2"
+    assert report["schema"] == "umcd.g5_time_varying_multipath_receiver.v2"
     assert recorded_hash == actual_hash
     assert_frozen_source_manifest(
         report,

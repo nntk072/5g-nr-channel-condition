@@ -77,7 +77,7 @@ from experiments.acceptance import (
     load_g5_snr_acceptance_contract as _load_snr_acceptance_contract,
 )
 
-SCHEMA = "umcd.ordered_impairments_receiver.v2"
+SCHEMA = "umcd.g5_ordered_impairments_receiver.v2"
 RESULT_SCHEMA = "umcd.g5_ordered_impairments_result.v2"
 _LEGACY_RESULT_SCHEMA = "umcd.g5_ordered_impairments_result.v1"
 PAYLOAD_SEEDS = tuple(range(73_501, 73_509))

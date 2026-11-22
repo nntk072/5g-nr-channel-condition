@@ -69,7 +69,7 @@ def test_saved_doppler_awgn_report_recomputes_paired_outcomes_and_source_hashes(
         json.dumps(report, sort_keys=True, separators=(",", ":")).encode("utf-8")
     ).hexdigest()
 
-    assert report["schema"] == "umcd.doppler_awgn_receiver.v1"
+    assert report["schema"] == "umcd.g5_doppler_awgn_receiver.v1"
     assert recorded_hash == actual_hash
     assert_frozen_source_manifest(
         report,

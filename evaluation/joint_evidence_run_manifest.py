@@ -824,9 +824,9 @@ def build_g3_joint_evidence_run_manifest(
         raise ValueError("qualification contract source bundle differs from run receipt sources")
     manifest = {
         "schema": (
-            "loslab.joint_evidence_run_manifest.v4"
+            "loslab.g3_joint_evidence_run_manifest.v4"
             if runtime_inventory_entry is not None
-            else "loslab.joint_evidence_run_manifest.v3"
+            else "loslab.g3_joint_evidence_run_manifest.v3"
         ),
         "run_id": run_id,
         "qualification_status": "NOT_QUALIFIED",
@@ -1099,30 +1099,30 @@ def verify_g3_joint_evidence_run_manifest(
                 )
 
         manifest_version = manifest.get("schema")
-        if manifest_version == "loslab.joint_evidence_run_manifest.v1":
+        if manifest_version == "loslab.g3_joint_evidence_run_manifest.v1":
             manifest_schema_path = V1_SCHEMA_RELATIVE_PATH
             expected_source_paths = V1_EVALUATOR_SOURCE_PATHS
-        elif manifest_version == "loslab.joint_evidence_run_manifest.v2":
+        elif manifest_version == "loslab.g3_joint_evidence_run_manifest.v2":
             manifest_schema_path = SCHEMA_RELATIVE_PATH
             expected_source_paths = V2_EVALUATOR_SOURCE_PATHS
-        elif manifest_version == "loslab.joint_evidence_run_manifest.v3":
+        elif manifest_version == "loslab.g3_joint_evidence_run_manifest.v3":
             manifest_schema_path = SCHEMA_V3_RELATIVE_PATH
             expected_source_paths = EVALUATOR_SOURCE_PATHS
-        elif manifest_version == "loslab.joint_evidence_run_manifest.v4":
+        elif manifest_version == "loslab.g3_joint_evidence_run_manifest.v4":
             manifest_schema_path = SCHEMA_V4_RELATIVE_PATH
             expected_source_paths = V4_EVALUATOR_SOURCE_PATHS
         else:
             raise ValueError("unsupported G3 run manifest schema")
         if require_signed_reviewer_admission and manifest_version != (
-            "loslab.joint_evidence_run_manifest.v4"
+            "loslab.g3_joint_evidence_run_manifest.v4"
         ):
             raise ValueError(
                 "strict signed reviewer admission requires v4 signed runtime inventory provenance"
             )
         validate_schema(manifest, manifest_schema_path, "G3 run manifest")
         if manifest_version in (
-            "loslab.joint_evidence_run_manifest.v3",
-            "loslab.joint_evidence_run_manifest.v4",
+            "loslab.g3_joint_evidence_run_manifest.v3",
+            "loslab.g3_joint_evidence_run_manifest.v4",
         ):
             runtime_identity = manifest["runtime_identity"]
             report.update(
@@ -1191,7 +1191,7 @@ def verify_g3_joint_evidence_run_manifest(
                     min(MAX_ARTIFACT_BYTES, _MAX_CAPTURE_BYTES),
                 ),
             ]
-            if manifest_version == "loslab.joint_evidence_run_manifest.v4":
+            if manifest_version == "loslab.g3_joint_evidence_run_manifest.v4":
                 capture_fields.append(
                     (
                         "runtime_inventory",
@@ -1207,7 +1207,7 @@ def verify_g3_joint_evidence_run_manifest(
                 seen_paths.add(parts)
                 total_limit = (
                     _MAX_V4_MANIFEST_TOTAL_BYTES
-                    if manifest_version == "loslab.joint_evidence_run_manifest.v4"
+                    if manifest_version == "loslab.g3_joint_evidence_run_manifest.v4"
                     else _MAX_MANIFEST_TOTAL_BYTES
                 )
                 remaining = total_limit - total
@@ -1274,8 +1274,8 @@ def verify_g3_joint_evidence_run_manifest(
             ARTIFACT_SCHEMA_RELATIVE_PATH
             if manifest_version
             in (
-                "loslab.joint_evidence_run_manifest.v3",
-                "loslab.joint_evidence_run_manifest.v4",
+                "loslab.g3_joint_evidence_run_manifest.v3",
+                "loslab.g3_joint_evidence_run_manifest.v4",
             )
             else ARTIFACT_SCHEMA_V1_RELATIVE_PATH
         )
@@ -1284,7 +1284,7 @@ def verify_g3_joint_evidence_run_manifest(
             artifact_schema_path,
             "G3 joint evaluator artifact",
         )
-        if manifest_version == "loslab.joint_evidence_run_manifest.v4":
+        if manifest_version == "loslab.g3_joint_evidence_run_manifest.v4":
             runtime_inventory_payload = _json_bytes(
                 captured["runtime_inventory"], "G3 runtime inventory"
             )
@@ -1293,7 +1293,7 @@ def verify_g3_joint_evidence_run_manifest(
                 RUNTIME_INVENTORY_SCHEMA_V3_RELATIVE_PATH,
                 "G3 runtime inventory",
             )
-        if manifest_version == "loslab.joint_evidence_run_manifest.v4":
+        if manifest_version == "loslab.g3_joint_evidence_run_manifest.v4":
             if runtime_inventory_signature_path is not None:
                 assert trusted_runtime_inventory_signers_path is not None
                 assert runtime_inventory_signer_id is not None

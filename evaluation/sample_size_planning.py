@@ -478,7 +478,7 @@ def plan_g3_independent_acquisition_units(
         )
 
     return {
-        "schema": "loslab.sample_size_planning.v3",
+        "schema": "loslab.g3_sample_size_planning.v3",
         "status": "PLANNING_ONLY_NOT_QUALIFICATION",
         "uses_measurement_or_pilot_data": False,
         "admission_possible": False,

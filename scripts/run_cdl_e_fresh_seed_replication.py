@@ -32,7 +32,7 @@ RESERVED_SEED = 2_823_000
 DRAW_COUNT = 8_192
 PROFILE_TABLE_SHA256 = "04328f33d8d79b24aa3d0303fecb58b465ed7e13874930b05e76be0d97743480"
 SEED_AUDIT_SHA256 = "4eb74446ac3e1f50b1fc9644c43f8974bc899ab30b1a3897e570a8dacf38ae86"
-PROTOCOL_SHA256 = "1fe62127efd1591bc2a0dcbfbff2fdebbbbdb219b2185e1f3f785b754899e6a3"
+PROTOCOL_SHA256 = "78ddca6ec9592fe91c574c9d82dfeffed073d0695d52436cf78f54886cbb70ff"
 
 
 def _sha256_bytes(payload: bytes) -> str:
@@ -81,7 +81,7 @@ def _verify_preregistration() -> tuple[dict[str, Any], dict[str, Any]]:
         raise ValueError("protocol bytes differ from the preregistered digest")
     audit = json.loads(audit_bytes)
     if (
-        audit.get("schema") != "loslab.seed_roster_collision_audit.v2"
+        audit.get("schema") != "loslab.g4_seed_roster_collision_audit.v2"
         or audit.get("status") != "CLEAR_WITHIN_SCANNED_JSON_CORPUS"
         or audit.get("reserved_seeds") != [RESERVED_SEED]
         or audit.get("collisions")

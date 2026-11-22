@@ -21,7 +21,7 @@ from typing import Any
 
 from integrations.sionna_runtime import sionna_phy_version
 
-SCHEMA = "umcd.doppler_awgn_receiver.v1"
+SCHEMA = "umcd.g5_doppler_awgn_receiver.v1"
 BATCH_SEEDS = tuple(range(29_061, 29_073))
 BLOCKS_PER_BATCH = 16
 NOISE_VARIANCE = 0.01

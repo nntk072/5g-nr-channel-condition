@@ -20,7 +20,7 @@ from typing import Any
 
 from integrations.sionna_runtime import sionna_phy_version
 
-SCHEMA = "umcd.time_varying_multipath_receiver.v2"
+SCHEMA = "umcd.g5_time_varying_multipath_receiver.v2"
 DOPPLERS_HZ = (0.0, 350.0, 750.0, 1500.0)
 CONFIRMATORY_DOPPLER_HZ = 750.0
 CHANNEL_CONDITIONS = tuple((doppler, "continuous") for doppler in DOPPLERS_HZ) + (

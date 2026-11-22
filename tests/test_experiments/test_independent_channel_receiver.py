@@ -76,7 +76,7 @@ def test_saved_independent_channel_report_has_cluster_level_reproducible_decisio
         json.dumps(report, sort_keys=True, separators=(",", ":")).encode("utf-8")
     ).hexdigest()
 
-    assert report["schema"] == "umcd.independent_channel_receiver.v3"
+    assert report["schema"] == "umcd.g5_independent_channel_receiver.v3"
     assert recorded_hash == actual_hash
     assert_frozen_source_manifest(
         report,

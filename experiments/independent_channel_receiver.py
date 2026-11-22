@@ -16,7 +16,7 @@ from typing import Any
 
 from integrations.sionna_runtime import sionna_phy_version
 
-SCHEMA = "umcd.independent_channel_receiver.v3"
+SCHEMA = "umcd.g5_independent_channel_receiver.v3"
 CHANNEL_SEEDS = tuple(range(73_001, 73_065))
 BLOCKS_PER_CHANNEL = 8
 NOISE_VARIANCE = 0.01
