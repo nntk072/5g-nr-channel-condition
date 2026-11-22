@@ -27,14 +27,14 @@ def _bootstrap_interval(values: list[float], *, seed: int, alpha: float) -> tupl
 
 def test_confirmatory_dmrs_density_result_is_source_and_protocol_bound():
     root = Path(__file__).resolve().parents[2]
-    result_path = root / "docs/research/results/g5-doppler-dmrs-density-confirm-20261024.json"
+    result_path = root / "docs/research/results/doppler-dmrs-density-confirm-20261024.json"
     report = json.loads(result_path.read_text(encoding="utf-8"))
     digest = report.pop("result_sha256")
     actual_digest = hashlib.sha256(
         json.dumps(report, sort_keys=True, separators=(",", ":"), allow_nan=False).encode("utf-8")
     ).hexdigest()
     protocol = root / report["protocol_path"]
-    development = root / "docs/research/results/g5-doppler-dmrs-density-scan-20261024.json"
+    development = root / "docs/research/results/doppler-dmrs-density-scan-20261024.json"
     development_report = json.loads(development.read_text(encoding="utf-8"))
 
     assert report["schema"] == "umcd.g5_doppler_dmrs_density_confirmatory.v1"
@@ -67,7 +67,7 @@ def test_confirmatory_dmrs_density_result_is_source_and_protocol_bound():
 def test_confirmatory_dmrs_density_claims_recompute_from_channel_records():
     path = (
         Path(__file__).resolve().parents[2]
-        / "docs/research/results/g5-doppler-dmrs-density-confirm-20261024.json"
+        / "docs/research/results/doppler-dmrs-density-confirm-20261024.json"
     )
     report = json.loads(path.read_text(encoding="utf-8"))
     records = report["confirmatory_channel_draw_records"]

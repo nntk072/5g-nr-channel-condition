@@ -68,7 +68,7 @@ def test_exact_channel_prevalence_bound_is_nonzero_for_zero_failures():
 def test_saved_independent_channel_report_has_cluster_level_reproducible_decision():
     report_path = (
         Path(__file__).resolve().parents[2]
-        / "docs/research/results/g5-independent-channel-pusch-doppler-stress-20261024.json"
+        / "docs/research/results/independent-channel-pusch-doppler-stress-20261024.json"
     )
     report = json.loads(report_path.read_text(encoding="utf-8"))
     recorded_hash = report.pop("result_sha256")

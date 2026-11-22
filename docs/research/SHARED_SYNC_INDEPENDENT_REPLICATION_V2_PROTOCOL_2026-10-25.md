@@ -54,7 +54,7 @@ OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 uv run --no-sync --locked \
   --independent-channel-count 64 \
   --blocks-per-seed 8 \
   --channel-seed-start 120000 \
-  --output docs/research/results/g5-ordered-impairments-independent-channels-cpu-64x8-shared-sync-replication-v2-20261025.json
+  --output docs/research/results/ordered-impairments-independent-channels-cpu-64x8-shared-sync-replication-v2-20261025.json
 ```
 
 Audit the retained artifact against the exact worktree source. Preserve a

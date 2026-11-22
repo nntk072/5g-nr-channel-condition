@@ -12,6 +12,7 @@ from typing import cast
 
 import numpy as np
 import pytest
+from datasets.independent_splits import make_independent_split
 from datasets.network import (
     AntennaArraySpec,
     DirectedLink,
@@ -54,7 +55,6 @@ from datasets.standardized import (
     read_standardized_run,
     write_standardized_run,
 )
-from datasets.independent_splits import make_independent_split
 
 
 def _subject(

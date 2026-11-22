@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-RESULT = ROOT / "docs/research/results/g5-estimator-choice-posthoc-20261024.json"
+RESULT = ROOT / "docs/research/results/estimator-choice-posthoc-20261024.json"
 
 
 def _canonical_sha256(value: object) -> str:

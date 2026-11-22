@@ -15,16 +15,16 @@ pytest.importorskip("sionna")
 
 import experiments.audit_ordered_impairments_result as audit_module  # noqa: E402
 import experiments.ordered_impairments_receiver as experiment  # noqa: E402
-from experiments.audit_ordered_impairments_result import (  # noqa: E402
-    _recompute_waveform_diagnostics,
-    audit_result_file,
-)
 from experiments.acceptance import (  # noqa: E402
     G5_SNR_CURVE_BOOTSTRAP_DRAWS,
     G5_SNR_CURVE_BOOTSTRAP_SEED,
     G5_SNR_CURVE_INFERENCE_METHOD,
     G5_SNR_CURVE_INFERENCE_UNIT,
     G5_SNR_CURVE_PAIRED_CONTRAST,
+)
+from experiments.audit_ordered_impairments_result import (  # noqa: E402
+    _recompute_waveform_diagnostics,
+    audit_result_file,
 )
 from experiments.ordered_impairments_receiver import (  # noqa: E402
     build_hash_bound_result,
@@ -629,9 +629,7 @@ def test_probe_decoder_selection_binds_finite_delay_estimator_source(monkeypatch
         "min_delay_samples": 0,
         "max_delay_samples": 7,
     }
-    estimator_source = (
-        Path(experiment.__file__).resolve().with_name("cp_bounded_dft_estimator.py")
-    )
+    estimator_source = Path(experiment.__file__).resolve().with_name("cp_bounded_dft_estimator.py")
     assert identity == {
         "name": "finite_delay_dft",
         "min_delay_samples": 0,

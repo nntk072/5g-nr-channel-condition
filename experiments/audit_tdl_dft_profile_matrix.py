@@ -12,7 +12,7 @@ from experiments.audit_tdl_c_dmrs_density import ROOT, _canonical_sha256
 from experiments.audit_tdl_dft_density import EXPECTED_ESTIMATOR, audit_dft_report
 
 PROTOCOL = Path("docs/research/TDL_AE_SIGNED_LAG_DFT_FAMILY_CONFIRMATORY_PROTOCOL_2026-10-24.md")
-DEFAULT_REPORT = Path("docs/research/results/g5-tdl-ae-signed-lag-dft-family-confirm-20261024.json")
+DEFAULT_REPORT = Path("docs/research/results/tdl-ae-signed-lag-dft-family-confirm-20261024.json")
 PROFILES = ("A", "B", "C", "D", "E")
 EXPECTED_SEEDS = list(range(949_001, 949_081))
 FAMILYWISE_ALPHA = 0.01

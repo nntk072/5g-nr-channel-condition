@@ -30,7 +30,7 @@ def test_dmrs_density_scan_rejects_invalid_design(seeds, blocks, error, message)
 def test_saved_dmrs_density_scan_preserves_pairing_and_goodput_accounting():
     path = (
         Path(__file__).resolve().parents[2]
-        / "docs/research/results/g5-doppler-dmrs-density-scan-20261024.json"
+        / "docs/research/results/doppler-dmrs-density-scan-20261024.json"
     )
     report = json.loads(path.read_text(encoding="utf-8"))
     digest = report.pop("result_sha256")

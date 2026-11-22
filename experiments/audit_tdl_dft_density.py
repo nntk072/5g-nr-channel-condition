@@ -10,7 +10,7 @@ from typing import Any
 from experiments.audit_tdl_c_dmrs_density import ROOT, audit_report
 
 PROTOCOL = Path("docs/research/TDL_C_SIGNED_LAG_DFT_CONFIRMATORY_PROTOCOL_2026-10-24.md")
-DEFAULT_REPORT = Path("docs/research/results/g5-tdl-c-signed-lag-dft-confirm-20261024.json")
+DEFAULT_REPORT = Path("docs/research/results/tdl-c-signed-lag-dft-confirm-20261024.json")
 EXPECTED_SEEDS = list(range(948_001, 948_081))
 BOOTSTRAP_SEEDS = {"bler": 948_099, "goodput": 948_100}
 FAMILYWISE_ALPHA = 0.01

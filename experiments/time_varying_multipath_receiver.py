@@ -267,7 +267,7 @@ def main() -> None:
         "--output",
         type=Path,
         default=Path(
-            "docs/research/results/g5-time-varying-multipath-pusch-symbol-control-20261023.json"
+            "docs/research/results/time-varying-multipath-pusch-symbol-control-20261023.json"
         ),
     )
     args = parser.parse_args()

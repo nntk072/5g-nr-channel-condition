@@ -10,7 +10,7 @@ not a consolidated qualification report.
 ## Retained-result workflow
 
 Run `./.venv/bin/python -m scripts.run_cdl_directional_pattern_power
---output docs/research/results/g4-cdl-directional-pattern-power-result-20261101.json`.
+--output docs/research/results/cdl-directional-pattern-power-result-20261101.json`.
 The runner uses the frozen seeds and draw count, captures the per-cluster
 reference, estimate, interval, and case identity from each test, checks the
 exact 70-case/1,358-claim roster and interval arithmetic, validates the strict

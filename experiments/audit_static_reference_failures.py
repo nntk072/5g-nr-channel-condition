@@ -21,7 +21,7 @@ from integrations.sionna.nr_pusch import SionnaPUSCHLSReceiver
 from integrations.sionna.ofdm_impairments import apply_time_varying_multipath
 from receivers.nr import NRPUSCHConfig
 
-CONFIRMATION_PATH = Path("docs/research/results/g5-doppler-dmrs-density-confirm-20261024.json")
+CONFIRMATION_PATH = Path("docs/research/results/doppler-dmrs-density-confirm-20261024.json")
 CONFIRMATION_SOURCE_COMMIT = "8ba3482539ccc4774175f86b4e9938081424a268"
 DIAGNOSTIC_SOURCES = (
     "experiments/audit_static_reference_failures.py",
@@ -205,7 +205,7 @@ def main() -> None:
         "--output",
         type=Path,
         default=Path(
-            "docs/research/results/g5-static-reference-failure-path-diagnostic-20261024.json"
+            "docs/research/results/static-reference-failure-path-diagnostic-20261024.json"
         ),
     )
     args = parser.parse_args()

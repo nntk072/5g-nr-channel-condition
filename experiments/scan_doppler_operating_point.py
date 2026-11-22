@@ -266,7 +266,7 @@ def main() -> None:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("docs/research/results/g5-doppler-operating-point-scan-20261024.json"),
+        default=Path("docs/research/results/doppler-operating-point-scan-20261024.json"),
     )
     args = parser.parse_args()
     report = run_operating_point_scan()

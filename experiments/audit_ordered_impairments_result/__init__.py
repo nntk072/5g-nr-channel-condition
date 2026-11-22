@@ -1,0 +1,124 @@
+# ruff: noqa: F401
+"""audit_head split by concept."""
+
+import argparse
+import hashlib
+import io
+import json
+import math
+import os
+import random
+import stat
+import subprocess
+import sys
+import tempfile
+import zipfile
+from pathlib import Path
+from typing import Any, TypeGuard
+
+import numpy as np
+from evaluation.signed_attestation import verify_openssh_signature_for_bytes
+from scipy.stats import beta
+
+from experiments.acceptance import (
+    G5_SNR_CURVE_BOOTSTRAP_BATCH_SIZE,
+    G5_SNR_CURVE_BOOTSTRAP_DRAWS,
+    G5_SNR_CURVE_BOOTSTRAP_SEED,
+    G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA,
+    G5_SNR_REVIEWER_POLICY_PURPOSE,
+    G5_SNR_REVIEWER_POLICY_SIGNATURE_NAMESPACE,
+    G5_SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
+    MIN_G5_INDEPENDENT_ACCEPTANCE_CHANNELS,
+    _verify_g5_reviewer_policy,
+    validate_g5_preregistration_order,
+)
+
+from .file import (
+    audit_result_file,
+    main,
+)
+from .independent import (
+    _audit_independent_snr_curve,
+    _audit_result,
+)
+from .waveform import (
+    _BLOCK_BOUND_REPORT_SCHEMAS,
+    _CFO_CHANNEL_TAIL_SCHEMAS,
+    _CUDA_CURVE_BASE_VERSIONS,
+    _CUDA_DEVICE_REPORT_SCHEMAS,
+    _EXACT_SEED_ROSTER_CURVE_SCHEMAS,
+    _G5_SNR_ACCEPTANCE_SIGNATURE_NAMESPACE,
+    _HEX,
+    _MAX_RESULT_BYTES,
+    _MAX_WAVEFORM_EVIDENCE_BYTES,
+    _MAX_WAVEFORM_EVIDENCE_UNCOMPRESSED_BYTES,
+    _PER_CHANNEL_WAVEFORM_DIAGNOSTIC_SCHEMAS,
+    _RESULT_SCHEMA,
+    REPOSITORY_ROOT,
+    _canonical_json_bytes,
+    _cluster_bootstrap_interval,
+    _curve_report_schema_status,
+    _estimator_source_checks,
+    _g5_declared_preregistration_order_matches,
+    _g5_execution_context_matches,
+    _inference_seed_roster_consistent,
+    _iq_imbalance_reference,
+    _is_finite_nonnegative,
+    _is_finite_number,
+    _is_sha256,
+    _path_sum_reference,
+    _positive_integer_delay_reference,
+    _preflight_waveform_archive,
+    _read_bounded_evidence_file,
+    _recompute_waveform_diagnostics,
+    _reject_constant,
+    _replay_experiment,
+    _run_receiver_probe,
+    _same_float,
+    _sha256,
+    _unique_object,
+    _verify_g5_preregistration_signature,
+)
+
+__all__ = [
+    "REPOSITORY_ROOT",
+    "_BLOCK_BOUND_REPORT_SCHEMAS",
+    "_CFO_CHANNEL_TAIL_SCHEMAS",
+    "_CUDA_CURVE_BASE_VERSIONS",
+    "_CUDA_DEVICE_REPORT_SCHEMAS",
+    "_EXACT_SEED_ROSTER_CURVE_SCHEMAS",
+    "_G5_SNR_ACCEPTANCE_SIGNATURE_NAMESPACE",
+    "_HEX",
+    "_MAX_RESULT_BYTES",
+    "_MAX_WAVEFORM_EVIDENCE_BYTES",
+    "_MAX_WAVEFORM_EVIDENCE_UNCOMPRESSED_BYTES",
+    "_PER_CHANNEL_WAVEFORM_DIAGNOSTIC_SCHEMAS",
+    "_RESULT_SCHEMA",
+    "_canonical_json_bytes",
+    "_cluster_bootstrap_interval",
+    "_curve_report_schema_status",
+    "_estimator_source_checks",
+    "_g5_declared_preregistration_order_matches",
+    "_g5_execution_context_matches",
+    "_inference_seed_roster_consistent",
+    "_iq_imbalance_reference",
+    "_is_finite_nonnegative",
+    "_is_finite_number",
+    "_is_sha256",
+    "_path_sum_reference",
+    "_positive_integer_delay_reference",
+    "_preflight_waveform_archive",
+    "_read_bounded_evidence_file",
+    "_recompute_waveform_diagnostics",
+    "_reject_constant",
+    "_replay_experiment",
+    "_run_receiver_probe",
+    "_same_float",
+    "_sha256",
+    "_unique_object",
+    "_verify_g5_preregistration_signature",
+    "_audit_independent_snr_curve",
+    "_audit_result",
+    "audit_result_file",
+    "main",
+]

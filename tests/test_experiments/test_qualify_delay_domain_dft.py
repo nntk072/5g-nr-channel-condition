@@ -9,7 +9,7 @@ from experiments.audit_delay_domain_dft import audit_report
 
 def test_historical_delay_domain_dft_result_is_rejected_after_source_drift() -> None:
     root = Path(__file__).resolve().parents[2]
-    result_path = root / "docs/research/results/g5-delay-domain-dft-confirm-20261024.json"
+    result_path = root / "docs/research/results/delay-domain-dft-confirm-20261024.json"
     report = json.loads(result_path.read_text(encoding="utf-8"))
 
     with pytest.raises(ValueError, match="source fingerprint mismatch"):

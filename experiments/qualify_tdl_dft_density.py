@@ -11,7 +11,7 @@ from experiments.qualify_tdl_c_dmrs_density import FAMILYWISE_ALPHA, run_confirm
 
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL = Path("docs/research/TDL_C_SIGNED_LAG_DFT_CONFIRMATORY_PROTOCOL_2026-10-24.md")
-DEFAULT_OUTPUT = Path("docs/research/results/g5-tdl-c-signed-lag-dft-confirm-20261024.json")
+DEFAULT_OUTPUT = Path("docs/research/results/tdl-c-signed-lag-dft-confirm-20261024.json")
 CHANNEL_SEEDS = tuple(range(948_001, 948_081))
 FAMILY_CLAIM_COUNT = 3
 PER_CLAIM_ALPHA = FAMILYWISE_ALPHA / FAMILY_CLAIM_COUNT

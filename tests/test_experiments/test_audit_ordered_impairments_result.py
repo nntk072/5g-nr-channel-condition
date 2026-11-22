@@ -14,6 +14,7 @@ from typing import Any
 import experiments.audit_ordered_impairments_result as auditor
 import numpy as np
 import pytest
+from artifacts.rebinding import resolve_recorded_path
 from experiments.audit_ordered_impairments_result import (
     _audit_result,
     _canonical_json_bytes,
@@ -96,15 +97,14 @@ def test_deterministic_replay_forwards_the_recorded_estimator(monkeypatch) -> No
 ROOT = Path(__file__).resolve().parents[2]
 RESULT = (
     ROOT
-    / "docs/research/results/g5-ordered-impairments-independent-channels-cpu-64x8-shared-sync-diagnostic-retention-v3-20261025.json"
+    / "docs/research/results/ordered-impairments-independent-channels-cpu-64x8-shared-sync-diagnostic-retention-v3-20261025.json"
 )
 LEGACY_V6_RESULT = (
     ROOT
-    / "docs/research/results/g5-ordered-impairments-independent-channels-cpu-64x8-shared-sync-replication-v2-20261025.json"
+    / "docs/research/results/ordered-impairments-independent-channels-cpu-64x8-shared-sync-replication-v2-20261025.json"
 )
 LEGACY_V4_RESULT = (
-    ROOT
-    / "docs/research/results/g5-ordered-impairments-independent-channels-cpu-64x8-20261024.json"
+    ROOT / "docs/research/results/ordered-impairments-independent-channels-cpu-64x8-20261024.json"
 )
 
 
@@ -137,7 +137,7 @@ def test_v10_declared_preregistration_order_is_recomputed_by_auditor() -> None:
 def _current_source_bound_result() -> tuple[dict[str, Any], bytes]:
     """Build a synthetic current-source receipt without rewriting archived evidence."""
     result: dict[str, Any] = json.loads(RESULT.read_text(encoding="utf-8"))
-    source_path = ROOT / result["provenance"]["source_path"]
+    source_path = resolve_recorded_path(result["provenance"]["source_path"], ROOT)
     source_bytes = source_path.read_bytes()
     source_digest = hashlib.sha256(source_bytes).hexdigest()
     result["source_sha256"] = source_digest
@@ -509,7 +509,7 @@ def test_auditor_recomputes_waveform_diagnostic_extrema_from_channel_records() -
     unhashed = dict(result)
     unhashed.pop("result_sha256")
     result["result_sha256"] = hashlib.sha256(_canonical_json_bytes(unhashed)).hexdigest()
-    source_path = ROOT / result["provenance"]["source_path"]
+    source_path = resolve_recorded_path(result["provenance"]["source_path"], ROOT)
 
     report = _audit_result(result, source_path.read_bytes(), None)
 
@@ -525,7 +525,7 @@ def test_auditor_detects_recomputed_hash_with_inconsistent_retained_arrays() -> 
     unhashed = dict(result)
     unhashed.pop("result_sha256")
     result["result_sha256"] = hashlib.sha256(_canonical_json_bytes(unhashed)).hexdigest()
-    source_path = ROOT / result["provenance"]["source_path"]
+    source_path = resolve_recorded_path(result["provenance"]["source_path"], ROOT)
 
     report = _audit_result(result, source_path.read_bytes(), None)
 

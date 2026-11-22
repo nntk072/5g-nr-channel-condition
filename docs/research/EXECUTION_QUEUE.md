@@ -817,7 +817,7 @@ they do not authorize native qualification.
 - **Dependencies:** finish `E01.PKG05` and the G4 gate crosswalk; retain the
   frozen protocol/result and independent ETSI fixture identities.
 - **Current evidence:** result artifact
-  `docs/research/results/g4-cdl-four-element-covariance-frozen-execution-20261109.json`;
+  `docs/research/results/cdl-four-element-covariance-frozen-execution-20261109.json`;
   frozen seed 6714, 8,192 draws/profile, CDL-E `Re(C[0,1])` absolute error
   0.0135743014 and half-width 0.0129694116. The deterministic ray oracle passes
   Hermitian/unit-diagonal/PSD checks. A larger post-hoc diagnostic is

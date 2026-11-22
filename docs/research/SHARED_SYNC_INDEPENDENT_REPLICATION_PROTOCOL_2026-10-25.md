@@ -68,7 +68,7 @@ uv run --no-sync --locked python -m experiments.ordered_impairments_receiver \
   --independent-channel-count 64 \
   --blocks-per-seed 8 \
   --channel-seed-start 80000 \
-  --output docs/research/results/g5-ordered-impairments-independent-channels-cpu-64x8-shared-sync-replication-20261025.json
+  --output docs/research/results/ordered-impairments-independent-channels-cpu-64x8-shared-sync-replication-20261025.json
 ```
 
 Run the result auditor against the retained report without deterministic

@@ -19,9 +19,7 @@ from scripts.plan_acquisition_design import _complete_design_status, main
 
 ROOT = Path(__file__).resolve().parents[2]
 SCHEMA = ROOT / "datasets/schema/acquisition-design-assumptions.v3.schema.json"
-EXAMPLE = (
-    ROOT / "datasets/schema/examples/acquisition-design-assumptions.synthetic-example.json"
-)
+EXAMPLE = ROOT / "datasets/schema/examples/acquisition-design-assumptions.synthetic-example.json"
 V5_EXAMPLE = (
     ROOT / "datasets/schema/examples/acquisition-design-assumptions.v5.synthetic-example.json"
 )

@@ -79,7 +79,7 @@ or two-path runs.
 
 Run `uv run --no-sync --locked python experiments/qualify_tdl_dft_density.py`.
 The output is
-`docs/research/results/g5-tdl-c-signed-lag-dft-confirm-20261024.json`.
+`docs/research/results/tdl-c-signed-lag-dft-confirm-20261024.json`.
 Verify it with
 `uv run --no-sync --locked python experiments/audit_tdl_dft_density.py`.
 The report binds this protocol, source hashes, the exact estimator interval,

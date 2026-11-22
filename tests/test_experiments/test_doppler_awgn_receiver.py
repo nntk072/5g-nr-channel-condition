@@ -61,7 +61,7 @@ def test_doppler_awgn_probe_rejects_invalid_batch_seed_design(seeds):
 def test_saved_doppler_awgn_report_recomputes_paired_outcomes_and_source_hashes():
     report_path = (
         Path(__file__).resolve().parents[2]
-        / "docs/research/results/g5-time-varying-multipath-pusch-awgn-20261023.json"
+        / "docs/research/results/time-varying-multipath-pusch-awgn-20261023.json"
     )
     report = json.loads(report_path.read_text(encoding="utf-8"))
     recorded_hash = report.pop("result_sha256")

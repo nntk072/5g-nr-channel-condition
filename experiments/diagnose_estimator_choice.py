@@ -20,7 +20,7 @@ from integrations.sionna.nr_pusch import SionnaPUSCHLSReceiver
 from integrations.sionna.ofdm_impairments import apply_time_varying_multipath
 from receivers.nr import NRPUSCHConfig
 
-CONFIRMATION = Path("docs/research/results/g5-doppler-dmrs-density-confirm-20261024.json")
+CONFIRMATION = Path("docs/research/results/doppler-dmrs-density-confirm-20261024.json")
 INTERPOLATORS = ("nn", "lin", "lin_time_avg")
 
 
@@ -172,7 +172,7 @@ def main() -> None:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("docs/research/results/g5-estimator-choice-posthoc-20261024.json"),
+        default=Path("docs/research/results/estimator-choice-posthoc-20261024.json"),
     )
     args = parser.parse_args()
     if args.output.exists():

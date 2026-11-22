@@ -298,7 +298,7 @@ def main() -> None:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("docs/research/results/g3-fr3-building-scattering-audit-20261024.json"),
+        default=Path("docs/research/results/fr3-building-scattering-audit-20261024.json"),
     )
     args = parser.parse_args()
     if args.output.exists():

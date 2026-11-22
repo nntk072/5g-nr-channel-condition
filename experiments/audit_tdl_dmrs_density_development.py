@@ -17,7 +17,7 @@ from evaluation.statistics import paired_cluster_binary_error_comparison
 from experiments.link_curves import run_tdl_pusch_time_bler_curve
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_OUTPUT = Path("docs/research/results/g5-tdl-cpu-dmrs-density-development-20261024.json")
+DEFAULT_OUTPUT = Path("docs/research/results/tdl-cpu-dmrs-density-development-20261024.json")
 SOURCE_FILES = (
     "experiments/audit_tdl_dmrs_density_development.py",
     "experiments/link_curves.py",

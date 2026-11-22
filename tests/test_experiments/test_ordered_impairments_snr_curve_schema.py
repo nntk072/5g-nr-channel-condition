@@ -5,8 +5,8 @@ import json
 from pathlib import Path
 from typing import Any
 
-import experiments.audit_ordered_impairments_result as curve_auditor
 import experiments.acceptance as acceptance
+import experiments.audit_ordered_impairments_result as curve_auditor
 import pytest
 from experiments.audit_ordered_impairments_result import _curve_report_schema_status
 

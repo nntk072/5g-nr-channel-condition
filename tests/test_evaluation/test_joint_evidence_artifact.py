@@ -313,20 +313,16 @@ def test_joint_artifact_binds_exact_inputs_and_recomputes(
         / "datasets/schema/joint-evaluator-artifact.v2.schema.json"
     )
     input_schema_path = (
-        Path(__file__).resolve().parents[2]
-        / "datasets/schema/joint-evaluator-input.v1.schema.json"
+        Path(__file__).resolve().parents[2] / "datasets/schema/joint-evaluator-input.v1.schema.json"
     )
     input_schema_v4_path = (
-        Path(__file__).resolve().parents[2]
-        / "datasets/schema/joint-evaluator-input.v4.schema.json"
+        Path(__file__).resolve().parents[2] / "datasets/schema/joint-evaluator-input.v4.schema.json"
     )
     input_schema_v5_path = (
-        Path(__file__).resolve().parents[2]
-        / "datasets/schema/joint-evaluator-input.v5.schema.json"
+        Path(__file__).resolve().parents[2] / "datasets/schema/joint-evaluator-input.v5.schema.json"
     )
     input_schema_v6_path = (
-        Path(__file__).resolve().parents[2]
-        / "datasets/schema/joint-evaluator-input.v6.schema.json"
+        Path(__file__).resolve().parents[2] / "datasets/schema/joint-evaluator-input.v6.schema.json"
     )
     jsonschema.Draft202012Validator(
         json.loads(artifact_schema_path.read_text(encoding="utf-8"))
@@ -355,8 +351,7 @@ def test_v4_schema_requires_row_configuration_identity() -> None:
     payload = _payload_v4()
     payload["receiver_impact"]["records"][0].pop("configuration_id")
     schema_path = (
-        Path(__file__).resolve().parents[2]
-        / "datasets/schema/joint-evaluator-input.v4.schema.json"
+        Path(__file__).resolve().parents[2] / "datasets/schema/joint-evaluator-input.v4.schema.json"
     )
     validator = jsonschema.Draft202012Validator(json.loads(schema_path.read_text(encoding="utf-8")))
 
@@ -369,8 +364,7 @@ def test_v4_schema_requires_path_comparison_binding() -> None:
         "delay_tolerance_s"
     )
     schema_path = (
-        Path(__file__).resolve().parents[2]
-        / "datasets/schema/joint-evaluator-input.v4.schema.json"
+        Path(__file__).resolve().parents[2] / "datasets/schema/joint-evaluator-input.v4.schema.json"
     )
     validator = jsonschema.Draft202012Validator(json.loads(schema_path.read_text(encoding="utf-8")))
 
@@ -381,8 +375,7 @@ def test_v5_schema_requires_raw_paths_and_frozen_configuration() -> None:
     payload = _payload_v5()
     payload["path_equivalence"]["comparison_configuration"]["h_floor"] = 0.0
     schema_path = (
-        Path(__file__).resolve().parents[2]
-        / "datasets/schema/joint-evaluator-input.v5.schema.json"
+        Path(__file__).resolve().parents[2] / "datasets/schema/joint-evaluator-input.v5.schema.json"
     )
     validator = jsonschema.Draft202012Validator(json.loads(schema_path.read_text(encoding="utf-8")))
 

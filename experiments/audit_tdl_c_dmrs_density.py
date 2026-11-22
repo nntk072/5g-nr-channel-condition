@@ -16,7 +16,7 @@ from experiments.independent_channel_receiver import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_REPORT = Path("docs/research/results/g5-tdl-c-dmrs-density-confirm-20261024.json")
+DEFAULT_REPORT = Path("docs/research/results/tdl-c-dmrs-density-confirm-20261024.json")
 PROTOCOL = Path("docs/research/TDL_C_DMRS_DENSITY_CONFIRMATORY_PROTOCOL_2026-10-24.md")
 EXPECTED_SEEDS = list(range(933_001, 933_065))
 ALPHA = 0.01 / 3

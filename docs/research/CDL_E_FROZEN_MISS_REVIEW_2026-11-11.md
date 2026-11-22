@@ -7,7 +7,7 @@ not change the protocol, thresholds, result bytes, or G4 qualification status.
 ## Frozen evidence
 
 The retained run is
-`docs/research/results/g4-cdl-four-element-covariance-frozen-execution-20261109.json`:
+`docs/research/results/cdl-four-element-covariance-frozen-execution-20261109.json`:
 seed 6714, 8,192 channel draws per CDL profile, 16 unique real covariance
 coordinates per profile, two-sided 99% Bonferroni intervals, and maximum
 half-width 0.05. CDL-A–D pass. CDL-E fails only `Re(C[0,1])`: absolute error

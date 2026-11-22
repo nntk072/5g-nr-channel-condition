@@ -184,7 +184,7 @@ def main() -> None:
         "result",
         nargs="?",
         type=Path,
-        default=Path("docs/research/results/g5-delay-domain-dft-confirm-20261024.json"),
+        default=Path("docs/research/results/delay-domain-dft-confirm-20261024.json"),
     )
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]

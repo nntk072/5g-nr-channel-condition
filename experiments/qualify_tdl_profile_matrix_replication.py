@@ -14,7 +14,7 @@ from experiments.qualify_tdl_c_dmrs_density import FAMILYWISE_ALPHA, run_confirm
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL = Path("docs/research/TDL_AE_DMRS_DENSITY_FAMILY_REPLICATION_V2_PROTOCOL_2026-10-24.md")
 DEFAULT_OUTPUT = Path(
-    "docs/research/results/g5-tdl-ae-dmrs-density-family-reconfirm-v2-20261024.json"
+    "docs/research/results/tdl-ae-dmrs-density-family-reconfirm-v2-20261024.json"
 )
 PROFILES = ("A", "B", "C", "D", "E")
 CHANNEL_SEEDS = tuple(range(936_001, 936_081))
@@ -97,8 +97,8 @@ def run_replication() -> dict[str, Any]:
         "conditions_per_profile": 3,
         "transport_blocks_are_nested_within_channel_seed": True,
         "independent_of_prior_64_seed_family": True,
-        "prior_family_result": "docs/research/results/g5-tdl-ae-dmrs-density-family-confirm-20261024.json",
-        "invalid_runner_defect_run": "docs/research/results/g5-tdl-ae-dmrs-density-family-reconfirm-20261024.json",
+        "prior_family_result": "docs/research/results/tdl-ae-dmrs-density-family-confirm-20261024.json",
+        "invalid_runner_defect_run": "docs/research/results/tdl-ae-dmrs-density-family-reconfirm-20261024.json",
         "profile_summaries": summaries,
         "interpretation": (
             "This disjoint replication supports only the named TDL-A-E fixture if all "

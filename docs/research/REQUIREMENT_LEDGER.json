@@ -369,7 +369,7 @@
           "datasets/public_release.py",
           "datasets/schema/public-release-manifest.v3.schema.json",
           "datasets/schema/odbl-scene-source-snapshot-audit.v1.schema.json",
-          "docs/research/results/g3-odbl-scene-source-audit-20261027.json",
+          "docs/research/results/odbl-scene-source-audit-20261027.json",
           "docs/research/SCENE_FAMILY_LICENSE_AUDIT_2026-10-23.md",
           "tests/test_datasets/test_public_release.py"
         ],
@@ -1695,7 +1695,7 @@
           "evaluation/material_calibration.py",
           "tests/test_evaluation/test_material_calibration.py",
           "docs/research/SCENE_FAMILY_LICENSE_AUDIT_2026-10-23.md",
-          "docs/research/results/g3-fr3-building-scattering-audit-20261024.json"
+          "docs/research/results/fr3-building-scattering-audit-20261024.json"
         ],
         "basis": "A strict measurement-only evaluator and acquisition-package contracts exist, but repository literature and source audits do not provide admitted calibrated 3.5-GHz nonzero-scattering measurements for the ODbL scenes."
       },
@@ -4134,7 +4134,7 @@
           "datasets/public_release.py",
           "datasets/schema/public-release-manifest.v3.schema.json",
           "tests/test_datasets/test_public_release.py",
-          "docs/research/results/g3-odbl-scene-source-audit-20261027.json"
+          "docs/research/results/odbl-scene-source-audit-20261027.json"
         ],
         "basis": "Export enforces declared redistribution eligibility, verifies hashes and ODbL source/attribution/offer/third-party manifest fields, and writes through safe temporary archive paths; current Etoile/Florence/Munich scene source and third-party closure remains incomplete."
       },
@@ -7582,7 +7582,7 @@
       "backlog_aliases": [
         "PKG05-001"
       ],
-      "requirement": "Retain the preregistered G4.10 physical dual-cross handheld CDL covariance family and its 10 passing native cases and 3,200 passing simultaneous claims. Sources: docs/research/CDL_PHYSICAL_DUAL_CROSS_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-10.md, docs/research/CDL_PHYSICAL_DUAL_CROSS_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json, docs/research/results/g4-cdl-physical-dual-cross-handheld-ut-spatiotemporal-covariance-native-validation-20261110.json. This closes the named bounded case family; broader G4 remains open.",
+      "requirement": "Retain the preregistered G4.10 physical dual-cross handheld CDL covariance family and its 10 passing native cases and 3,200 passing simultaneous claims. Sources: docs/research/CDL_PHYSICAL_DUAL_CROSS_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-10.md, docs/research/CDL_PHYSICAL_DUAL_CROSS_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json, docs/research/results/cdl-physical-dual-cross-handheld-ut-spatiotemporal-covariance-native-validation-20261110.json. This closes the named bounded case family; broader G4 remains open.",
       "scope": {
         "status": "mandatory",
         "support_envelope": null,
@@ -7605,7 +7605,7 @@
       "qualification": {
         "status": "qualified_within_scope",
         "evidence": [
-          "docs/research/results/g4-cdl-physical-dual-cross-handheld-ut-spatiotemporal-covariance-native-validation-20261110.json",
+          "docs/research/results/cdl-physical-dual-cross-handheld-ut-spatiotemporal-covariance-native-validation-20261110.json",
           "docs/research/CDL_PHYSICAL_DUAL_CROSS_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json",
           "PASS_WITHIN_BOUNDED_PROTOCOL_SCOPE only; 10 cases, 3,200 claims. This does not qualify overall G4, measured or RT truth, G5, or production D1."
         ]
@@ -7804,7 +7804,7 @@
       "backlog_aliases": [
         "PKG05-006"
       ],
-      "requirement": "Inventory each remaining G4 gate against existing native checks and implement only genuine gaps: hash-pinned tables, tap/delay/power and LOS partition, angular geometry, array/orientation, polarization, covariance, circularity, and temporal evolution. The frozen CDL joint delay/four-angle characteristic and fixed-TDL Rayleigh properness have pinned-reference native regression definitions; scalable TDL-A–E first-tap covariance and scalable/fixed TDL Doppler expectation inputs now come from independent ETSI component fixtures rather than adapter metadata. Scalable TDL-A–E now retain a source-bound three-lag Jakes temporal covariance native pass across all 95 ETSI-labeled Rayleigh taps (570 simultaneous coordinates), with a worst simultaneous bound of 0.02587134 versus 0.05 (`docs/research/results/g4-scalable-tdl-temporal-covariance-native-validation-20261109.json`). Fixed TDL A10/A30/B100/C60/C300/D10/D30 retain the matching 82-Rayleigh-tap/492-coordinate pass with a worst bound of 0.02634302 (`docs/research/results/g4-fixed-tdl-temporal-covariance-native-validation-20261109.json`). Their fresh seed audits cover 2,282 and 2,280 saved JSON/JSON.GZ files respectively. A scalable-TDL proper-complex protocol covers every ETSI-labeled Rayleigh tap outside the merged TDL-D/E LOS tap. A fixed-TDL-D10/D30 first-tap Rician marginal scorer and native regression derive the noncentral-chi-square reference from the byte-pinned ETSI component fixture. The 2026-11-09 fresh seed audit (`docs/research/FIXED_TDL_RICIAN_MARGINAL_SEED_AUDIT_2026-11-09.json`) is clear within 2,279 scanned JSON/JSON.GZ files for seeds 1,880,010–1,880,011, without claiming global exclusivity. The focused portable plus native slice passes 12/12 tests, and the frozen 32,768-draw/profile rerun passes both profiles: D10 simultaneous CDF upper bound 0.01342599 and D30 0.01558082 versus the unchanged 0.05 ceiling. The retained result is `docs/research/results/g4-fixed-tdl-rician-marginal-native-validation-20261109.json`. This closes only the declared first-tap marginal family; fixed and scalable TDL temporal-covariance and Doppler-spectrum families now also have retained bounded native passes, while broader spatial/delay-angle/configuration coverage, measured/RT, receiver, and overall G4 qualification questions remain open.",
+      "requirement": "Inventory each remaining G4 gate against existing native checks and implement only genuine gaps: hash-pinned tables, tap/delay/power and LOS partition, angular geometry, array/orientation, polarization, covariance, circularity, and temporal evolution. The frozen CDL joint delay/four-angle characteristic and fixed-TDL Rayleigh properness have pinned-reference native regression definitions; scalable TDL-A–E first-tap covariance and scalable/fixed TDL Doppler expectation inputs now come from independent ETSI component fixtures rather than adapter metadata. Scalable TDL-A–E now retain a source-bound three-lag Jakes temporal covariance native pass across all 95 ETSI-labeled Rayleigh taps (570 simultaneous coordinates), with a worst simultaneous bound of 0.02587134 versus 0.05 (`docs/research/results/scalable-tdl-temporal-covariance-native-validation-20261109.json`). Fixed TDL A10/A30/B100/C60/C300/D10/D30 retain the matching 82-Rayleigh-tap/492-coordinate pass with a worst bound of 0.02634302 (`docs/research/results/fixed-tdl-temporal-covariance-native-validation-20261109.json`). Their fresh seed audits cover 2,282 and 2,280 saved JSON/JSON.GZ files respectively. A scalable-TDL proper-complex protocol covers every ETSI-labeled Rayleigh tap outside the merged TDL-D/E LOS tap. A fixed-TDL-D10/D30 first-tap Rician marginal scorer and native regression derive the noncentral-chi-square reference from the byte-pinned ETSI component fixture. The 2026-11-09 fresh seed audit (`docs/research/FIXED_TDL_RICIAN_MARGINAL_SEED_AUDIT_2026-11-09.json`) is clear within 2,279 scanned JSON/JSON.GZ files for seeds 1,880,010–1,880,011, without claiming global exclusivity. The focused portable plus native slice passes 12/12 tests, and the frozen 32,768-draw/profile rerun passes both profiles: D10 simultaneous CDF upper bound 0.01342599 and D30 0.01558082 versus the unchanged 0.05 ceiling. The retained result is `docs/research/results/fixed-tdl-rician-marginal-native-validation-20261109.json`. This closes only the declared first-tap marginal family; fixed and scalable TDL temporal-covariance and Doppler-spectrum families now also have retained bounded native passes, while broader spatial/delay-angle/configuration coverage, measured/RT, receiver, and overall G4 qualification questions remain open.",
       "scope": {
         "status": "mandatory",
         "support_envelope": null,
@@ -7822,11 +7822,11 @@
           "tests/test_integrations/test_fixed_tdl_doppler_spectrum_native.py",
           "tests/test_integrations/test_scalable_tdl_doppler_spectrum_native.py",
           "tests/test_integrations/test_fixed_tdl_rician_marginal_native.py",
-          "docs/research/results/g4-scalable-tdl-temporal-covariance-native-validation-20261109.json",
-          "docs/research/results/g4-fixed-tdl-temporal-covariance-native-validation-20261109.json",
-          "docs/research/results/g4-scalable-tdl-doppler-spectrum-native-validation-20261109.json",
-          "docs/research/results/g4-fixed-tdl-doppler-spectrum-native-validation-20261109.json",
-          "docs/research/results/g4-fixed-tdl-rician-marginal-native-validation-20261109.json"
+          "docs/research/results/scalable-tdl-temporal-covariance-native-validation-20261109.json",
+          "docs/research/results/fixed-tdl-temporal-covariance-native-validation-20261109.json",
+          "docs/research/results/scalable-tdl-doppler-spectrum-native-validation-20261109.json",
+          "docs/research/results/fixed-tdl-doppler-spectrum-native-validation-20261109.json",
+          "docs/research/results/fixed-tdl-rician-marginal-native-validation-20261109.json"
         ],
         "basis": "Several source-bound finite subfamilies (TDL temporal covariance, Doppler, properness and fixed-D first-tap Rician marginal) have retained bounded passes. The named inventory is incomplete: CDL angular/array/covariance failures and broader native/measured/RT/receiver gaps remain; implementation state is partial."
       },
@@ -8219,7 +8219,7 @@
       "backlog_aliases": [
         "PKG05-015"
       ],
-      "requirement": "Complete confidence-controlled tests for remaining profile/configuration/topology combinations and criteria at the gate's required statistical unit; do not mistake deterministic table checks or helper self-consistency for a population qualification. Frozen software protocols include fixed-TDL proper-complex, temporal covariance, and Doppler-spectrum CDF checks; scalable TDL temporal covariance and a scalable TDL Doppler-spectrum CDF family are also defined. The fixed-TDL proper-complex native cohort passes all seven profiles, fixed-TDL temporal covariance passes all seven profiles across 492 simultaneous coordinates, scalable TDL proper-complex passes A–E, and scalable TDL temporal covariance now passes A–E across 570 simultaneous coordinates, all with audited seed rosters. The shared Doppler estimator's four portable cases pass. The fixed-TDL Doppler family retains all seven profile cases and all 49 simultaneous CDF claims as passes, with a worst `absolute_error + half_width` of 0.00483443 (`docs/research/results/g4-fixed-tdl-doppler-spectrum-native-validation-20261109.json`); the scalable TDL Doppler family now retains all five profile cases and all 35 claims as passes, with a worst bound of 0.00317472 (`docs/research/results/g4-scalable-tdl-doppler-spectrum-native-validation-20261109.json`). Both use the unchanged frozen 0.05 ceiling and independent ETSI-derived tap rosters. A bounded fixed-TDL-D Rician first-tap marginal family is also defined against separate ETSI LOS/diffuse component powers; its portable/native focused slice passes 12/12 tests and the retained frozen D10/D30 run passes both simultaneous DKW criteria. Broader native statistical families remain deferred and G4 qualification remains open.",
+      "requirement": "Complete confidence-controlled tests for remaining profile/configuration/topology combinations and criteria at the gate's required statistical unit; do not mistake deterministic table checks or helper self-consistency for a population qualification. Frozen software protocols include fixed-TDL proper-complex, temporal covariance, and Doppler-spectrum CDF checks; scalable TDL temporal covariance and a scalable TDL Doppler-spectrum CDF family are also defined. The fixed-TDL proper-complex native cohort passes all seven profiles, fixed-TDL temporal covariance passes all seven profiles across 492 simultaneous coordinates, scalable TDL proper-complex passes A–E, and scalable TDL temporal covariance now passes A–E across 570 simultaneous coordinates, all with audited seed rosters. The shared Doppler estimator's four portable cases pass. The fixed-TDL Doppler family retains all seven profile cases and all 49 simultaneous CDF claims as passes, with a worst `absolute_error + half_width` of 0.00483443 (`docs/research/results/fixed-tdl-doppler-spectrum-native-validation-20261109.json`); the scalable TDL Doppler family now retains all five profile cases and all 35 claims as passes, with a worst bound of 0.00317472 (`docs/research/results/scalable-tdl-doppler-spectrum-native-validation-20261109.json`). Both use the unchanged frozen 0.05 ceiling and independent ETSI-derived tap rosters. A bounded fixed-TDL-D Rician first-tap marginal family is also defined against separate ETSI LOS/diffuse component powers; its portable/native focused slice passes 12/12 tests and the retained frozen D10/D30 run passes both simultaneous DKW criteria. Broader native statistical families remain deferred and G4 qualification remains open.",
       "scope": {
         "status": "mandatory",
         "support_envelope": null,
@@ -8234,10 +8234,10 @@
           "tests/test_integrations/test_fixed_tdl_temporal_reference_native.py",
           "tests/test_integrations/test_fixed_tdl_doppler_spectrum_native.py",
           "tests/test_integrations/test_scalable_tdl_doppler_spectrum_native.py",
-          "docs/research/results/g4-fixed-tdl-doppler-spectrum-native-validation-20261109.json",
-          "docs/research/results/g4-scalable-tdl-doppler-spectrum-native-validation-20261109.json",
-          "docs/research/results/g4-scalable-tdl-temporal-covariance-native-validation-20261109.json",
-          "docs/research/results/g4-fixed-tdl-temporal-covariance-native-validation-20261109.json"
+          "docs/research/results/fixed-tdl-doppler-spectrum-native-validation-20261109.json",
+          "docs/research/results/scalable-tdl-doppler-spectrum-native-validation-20261109.json",
+          "docs/research/results/scalable-tdl-temporal-covariance-native-validation-20261109.json",
+          "docs/research/results/fixed-tdl-temporal-covariance-native-validation-20261109.json"
         ],
         "basis": "Confidence-controlled finite TDL statistical families have retained passes, but not every required profile/configuration/topology/observable combination is covered. This broad cross-family completion criterion remains partial and does not qualify overall G4."
       },
@@ -8359,7 +8359,7 @@
       "backlog_aliases": [
         "PKG05-018"
       ],
-      "requirement": "Make the CDL-A–E draw-level ensemble PDP/RMS confidence regression compare empirical channel draws against powers and delays independently recomputed from the exact-digest-pinned ETSI per-cluster reference. Merge specular and diffuse source power by cluster index so CDL-D/E first-cluster expectations match the standardized LOS/diffuse composition. On 2026-11-09 the unchanged seed-7311, 4,096-draw/case, `z=3.5` selection was re-executed after a fresh 2,286-file seed audit; all five CDL cases pass and their claim-level evidence is retained within `docs/research/results/g4-pdp-rms-native-validation-20261109.json`. This remains bounded standardized-model consistency evidence; no new cross-profile family-wise criterion or precision cap is claimed and G4 remains open.",
+      "requirement": "Make the CDL-A–E draw-level ensemble PDP/RMS confidence regression compare empirical channel draws against powers and delays independently recomputed from the exact-digest-pinned ETSI per-cluster reference. Merge specular and diffuse source power by cluster index so CDL-D/E first-cluster expectations match the standardized LOS/diffuse composition. On 2026-11-09 the unchanged seed-7311, 4,096-draw/case, `z=3.5` selection was re-executed after a fresh 2,286-file seed audit; all five CDL cases pass and their claim-level evidence is retained within `docs/research/results/pdp-rms-native-validation-20261109.json`. This remains bounded standardized-model consistency evidence; no new cross-profile family-wise criterion or precision cap is claimed and G4 remains open.",
       "scope": {
         "status": "mandatory",
         "support_envelope": null,
@@ -8370,19 +8370,19 @@
         "evidence": [
           "tests/test_integrations/test_statistical_confidence_native.py",
           "docs/research/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json",
-          "docs/research/results/g4-pdp-rms-native-validation-20261109.json"
+          "docs/research/results/pdp-rms-native-validation-20261109.json"
         ],
         "basis": "The retained draw-level confidence run compares CDL-A–E outputs to independent ETSI cluster powers/delays, merging D/E LOS and diffuse first-cluster power; all five CDL cases pass within the fixed seed/draw protocol."
       },
       "verification": {
         "status": "pass",
-        "command": "Retained frozen native result: docs/research/results/g4-pdp-rms-native-validation-20261109.json; seed 7311, 4096 independent draws/case, z=3.5; no native rerun in this audit.",
+        "command": "Retained frozen native result: docs/research/results/pdp-rms-native-validation-20261109.json; seed 7311, 4096 independent draws/case, z=3.5; no native rerun in this audit.",
         "commit": "Retained result SHA-256 9c364450c52d6117d3224d1cd7ca921cedddf27ca173e5196d0637f5a09c243e"
       },
       "qualification": {
         "status": "qualified_within_scope",
         "evidence": [
-          "docs/research/results/g4-pdp-rms-native-validation-20261109.json",
+          "docs/research/results/pdp-rms-native-validation-20261109.json",
           "PASS_WITHIN_BOUNDED_PROTOCOL_SCOPE; limited to the named profile cases and draw-level PDP/RMS observables. No new family-wise guarantee or precision cap; overall G4 remains open."
         ]
       },
@@ -8403,7 +8403,7 @@
       "backlog_aliases": [
         "PKG05-019"
       ],
-      "requirement": "Remove fixed-TDL self-reference from the draw-level PDP/RMS confidence regression. Its fixed A10/A30/B100/C60/C300/D10/D30 expected tap powers and absolute delays come from the exact-digest-pinned TS 38.101-4 per-tap fixture; fixed D LOS and diffuse rows are merged by normative tap index before normalization. The dependency-light reference module passes 17 tests. On 2026-11-09 the unchanged native seed-7311, 4,096-draw/case, `z=3.5` confidence selection was re-executed after a fresh 2,286-file seed audit; all seven fixed-TDL cases pass and claim-level evidence is retained in `docs/research/results/g4-pdp-rms-native-validation-20261109.json`. Broader G4 qualification remains open.",
+      "requirement": "Remove fixed-TDL self-reference from the draw-level PDP/RMS confidence regression. Its fixed A10/A30/B100/C60/C300/D10/D30 expected tap powers and absolute delays come from the exact-digest-pinned TS 38.101-4 per-tap fixture; fixed D LOS and diffuse rows are merged by normative tap index before normalization. The dependency-light reference module passes 17 tests. On 2026-11-09 the unchanged native seed-7311, 4,096-draw/case, `z=3.5` confidence selection was re-executed after a fresh 2,286-file seed audit; all seven fixed-TDL cases pass and claim-level evidence is retained in `docs/research/results/pdp-rms-native-validation-20261109.json`. Broader G4 qualification remains open.",
       "scope": {
         "status": "mandatory",
         "support_envelope": null,
@@ -8416,19 +8416,19 @@
           "tests/test_evaluation/test_tdl_profile_reference.py",
           "tests/test_integrations/test_statistical_confidence_native.py",
           "docs/research/FIXED_TDL_TAP_PROFILE_REFERENCE_2026-10-26.json",
-          "docs/research/results/g4-pdp-rms-native-validation-20261109.json"
+          "docs/research/results/pdp-rms-native-validation-20261109.json"
         ],
         "basis": "Fixed TDL expectations come from the ETSI component fixture, with D LOS/diffuse rows merged at tap index. The retained result reports all seven fixed-profile cases passing; reference helper tests pass."
       },
       "verification": {
         "status": "pass",
-        "command": "Retained frozen native result: docs/research/results/g4-pdp-rms-native-validation-20261109.json; seed 7311, 4096 independent draws/case, z=3.5; no native rerun in this audit.",
+        "command": "Retained frozen native result: docs/research/results/pdp-rms-native-validation-20261109.json; seed 7311, 4096 independent draws/case, z=3.5; no native rerun in this audit.",
         "commit": "Retained result SHA-256 9c364450c52d6117d3224d1cd7ca921cedddf27ca173e5196d0637f5a09c243e"
       },
       "qualification": {
         "status": "qualified_within_scope",
         "evidence": [
-          "docs/research/results/g4-pdp-rms-native-validation-20261109.json",
+          "docs/research/results/pdp-rms-native-validation-20261109.json",
           "PASS_WITHIN_BOUNDED_PROTOCOL_SCOPE; limited to the named profile cases and draw-level PDP/RMS observables. No new family-wise guarantee or precision cap; overall G4 remains open."
         ]
       },
@@ -8449,7 +8449,7 @@
       "backlog_aliases": [
         "PKG05-020"
       ],
-      "requirement": "Rebase the all-profile dual-VH CDL polarization power regressions on the byte-pinned ETSI per-cluster and scalar reference fixtures for nominal XPR, LOS K factor, cluster powers/angles, and angular spreads. Sionna's packaged table digest remains checked only as implementation provenance. On 2026-11-09 a fresh pre-run audit cleared every seed value used by the file within 2,287 saved artifacts, and the unchanged native suite passed 15/15 cases. Claim-level retention covers the pre-existing 12-claim NLOS XPR family, 2-claim LOS aggregate family, and 40-claim rotated-plus-aligned LOS family: all 54 intervals and all 54 precision checks pass, with a maximum precision-cap utilization of 0.886388. Evidence: `docs/research/results/g4-cdl-dual-vh-polarization-power-native-validation-20261109.json`. This does not qualify arbitrary antenna patterns/arrays, continuous orientations, coupling, measured/RT truth, or overall G4.",
+      "requirement": "Rebase the all-profile dual-VH CDL polarization power regressions on the byte-pinned ETSI per-cluster and scalar reference fixtures for nominal XPR, LOS K factor, cluster powers/angles, and angular spreads. Sionna's packaged table digest remains checked only as implementation provenance. On 2026-11-09 a fresh pre-run audit cleared every seed value used by the file within 2,287 saved artifacts, and the unchanged native suite passed 15/15 cases. Claim-level retention covers the pre-existing 12-claim NLOS XPR family, 2-claim LOS aggregate family, and 40-claim rotated-plus-aligned LOS family: all 54 intervals and all 54 precision checks pass, with a maximum precision-cap utilization of 0.886388. Evidence: `docs/research/results/cdl-dual-vh-polarization-power-native-validation-20261109.json`. This does not qualify arbitrary antenna patterns/arrays, continuous orientations, coupling, measured/RT truth, or overall G4.",
       "scope": {
         "status": "mandatory",
         "support_envelope": null,
@@ -8462,19 +8462,19 @@
           "tests/test_integrations/test_cdl_dual_polarization_power_matrix_native.py",
           "docs/research/CDL_PROFILE_SCALAR_REFERENCE_2026-10-26.json",
           "docs/research/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json",
-          "docs/research/results/g4-cdl-dual-vh-polarization-power-native-validation-20261109.json"
+          "docs/research/results/cdl-dual-vh-polarization-power-native-validation-20261109.json"
         ],
         "basis": "The declared finite independent-reference/native regression implementation and retained result artifact are present. This only closes the named bounded family."
       },
       "verification": {
         "status": "pass",
-        "command": "Retained frozen native evidence: docs/research/results/g4-cdl-dual-vh-polarization-power-native-validation-20261109.json; no native rerun during the current source audit.",
+        "command": "Retained frozen native evidence: docs/research/results/cdl-dual-vh-polarization-power-native-validation-20261109.json; no native rerun during the current source audit.",
         "commit": "The result artifact retains its historical base commit, source identities, seed audit and frozen criteria."
       },
       "qualification": {
         "status": "qualified_within_scope",
         "evidence": [
-          "docs/research/results/g4-cdl-dual-vh-polarization-power-native-validation-20261109.json",
+          "docs/research/results/cdl-dual-vh-polarization-power-native-validation-20261109.json",
           "PASS_WITHIN_BOUNDED_PROTOCOL_SCOPE; 15 retained native cases and the documented 54 claim/precision checks pass. The result is finite dual-VH power evidence, not arbitrary-pattern or overall G4 qualification."
         ]
       },
@@ -8495,7 +8495,7 @@
       "backlog_aliases": [
         "PKG05-021"
       ],
-      "requirement": "Rebase the all-profile four-angle sector-power confidence regression on the byte-pinned ETSI per-cluster delays/powers/angles/spreads and independent LOS K-factor reference. Sionna's packaged-table digest remains implementation provenance only. On 2026-11-09 a fresh audit cleared seeds 239165–239169 within 2,288 saved artifacts; the unchanged 8,192-draw/profile native family passed 5/5 profile cases. Claim-level evidence retains the three original families separately: 80 sector-marginal, 12,000 pairwise diffuse rank, and 1,280 four-angle rank-bin claims, with every interval and precision check passing. The four-angle worst half-width is 0.00030415 versus the unchanged 0.001 ceiling. Evidence: `docs/research/results/g4-cdl-angular-power-native-validation-20261109.json`. This finite family does not qualify the complete continuous angular law, arbitrary antenna configurations, measured/RT truth, or overall G4.",
+      "requirement": "Rebase the all-profile four-angle sector-power confidence regression on the byte-pinned ETSI per-cluster delays/powers/angles/spreads and independent LOS K-factor reference. Sionna's packaged-table digest remains implementation provenance only. On 2026-11-09 a fresh audit cleared seeds 239165–239169 within 2,288 saved artifacts; the unchanged 8,192-draw/profile native family passed 5/5 profile cases. Claim-level evidence retains the three original families separately: 80 sector-marginal, 12,000 pairwise diffuse rank, and 1,280 four-angle rank-bin claims, with every interval and precision check passing. The four-angle worst half-width is 0.00030415 versus the unchanged 0.001 ceiling. Evidence: `docs/research/results/cdl-angular-power-native-validation-20261109.json`. This finite family does not qualify the complete continuous angular law, arbitrary antenna configurations, measured/RT truth, or overall G4.",
       "scope": {
         "status": "mandatory",
         "support_envelope": null,
@@ -8506,19 +8506,19 @@
         "evidence": [
           "tests/test_integrations/test_cdl_angular_power_confidence_native.py",
           "docs/research/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json",
-          "docs/research/results/g4-cdl-angular-power-native-validation-20261109.json"
+          "docs/research/results/cdl-angular-power-native-validation-20261109.json"
         ],
         "basis": "The declared finite independent-reference/native regression implementation and retained result artifact are present. This only closes the named bounded family."
       },
       "verification": {
         "status": "pass",
-        "command": "Retained frozen native evidence: docs/research/results/g4-cdl-angular-power-native-validation-20261109.json; no native rerun during the current source audit.",
+        "command": "Retained frozen native evidence: docs/research/results/cdl-angular-power-native-validation-20261109.json; no native rerun during the current source audit.",
         "commit": "The result artifact retains its historical base commit, source identities, seed audit and frozen criteria."
       },
       "qualification": {
         "status": "qualified_within_scope",
         "evidence": [
-          "docs/research/results/g4-cdl-angular-power-native-validation-20261109.json",
+          "docs/research/results/cdl-angular-power-native-validation-20261109.json",
           "PASS_WITHIN_BOUNDED_PROTOCOL_SCOPE for the frozen 8,192-draw/profile, finite four-angle sector-power and rank claims. Full continuous angular-law and overall G4 qualification remain unproven."
         ]
       },
@@ -8539,7 +8539,7 @@
       "backlog_aliases": [
         "PKG05-022"
       ],
-      "requirement": "Rebase the CDL directional-element and dual-end antenna-pattern power regressions on byte-pinned ETSI cluster delay/power/angle/spread rows and the independent LOS K-factor reference. Preserve the existing Table 7.3 antenna gain law, orientation grid, familywise uncertainty, precision limits, and packaged Sionna table digest as system-under-test provenance only. The clean-commit 2026-11-01 retained run passes all 70 cases and all 1,358 cluster claims under the frozen criteria (`docs/research/results/g4-cdl-directional-pattern-power-result-20261101.json`); this remains finite pattern/orientation evidence rather than broad G4 qualification.",
+      "requirement": "Rebase the CDL directional-element and dual-end antenna-pattern power regressions on byte-pinned ETSI cluster delay/power/angle/spread rows and the independent LOS K-factor reference. Preserve the existing Table 7.3 antenna gain law, orientation grid, familywise uncertainty, precision limits, and packaged Sionna table digest as system-under-test provenance only. The clean-commit 2026-11-01 retained run passes all 70 cases and all 1,358 cluster claims under the frozen criteria (`docs/research/results/cdl-directional-pattern-power-result-20261101.json`); this remains finite pattern/orientation evidence rather than broad G4 qualification.",
       "scope": {
         "status": "mandatory",
         "support_envelope": null,
@@ -8551,19 +8551,19 @@
           "tests/test_integrations/test_cdl_antenna_pattern_power_native.py",
           "scripts/run_cdl_directional_pattern_power.py",
           "docs/research/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json",
-          "docs/research/results/g4-cdl-directional-pattern-power-result-20261101.json"
+          "docs/research/results/cdl-directional-pattern-power-result-20261101.json"
         ],
         "basis": "The declared finite independent-reference/native regression implementation and retained result artifact are present. This only closes the named bounded family."
       },
       "verification": {
         "status": "pass",
-        "command": "Retained frozen native evidence: docs/research/results/g4-cdl-directional-pattern-power-result-20261101.json; no native rerun during the current source audit.",
+        "command": "Retained frozen native evidence: docs/research/results/cdl-directional-pattern-power-result-20261101.json; no native rerun during the current source audit.",
         "commit": "The result artifact retains its historical base commit, source identities, seed audit and frozen criteria."
       },
       "qualification": {
         "status": "qualified_within_scope",
         "evidence": [
-          "docs/research/results/g4-cdl-directional-pattern-power-result-20261101.json",
+          "docs/research/results/cdl-directional-pattern-power-result-20261101.json",
           "PASS_WITHIN_BOUNDED_PROTOCOL_SCOPE for the retained finite directional-element pattern/orientation roster (70 cases, 1,358 cluster claims); arbitrary patterns/orientations and overall G4 remain open."
         ]
       },
@@ -8584,7 +8584,7 @@
       "backlog_aliases": [
         "PKG05-023"
       ],
-      "requirement": "Rebase CDL complex-pseudocovariance family accounting on the byte-pinned ETSI profile roster for output cluster counts and LOS status; the packaged profile table remains implementation provenance only. The unchanged 32,768-draw/profile, 194-coordinate family was executed on 2026-11-09 after a fresh five-seed audit cleared 2,285 saved JSON/JSON.GZ files. All 8 native tests and all 194 retained claims pass with maximum half-width 0.02237055 versus 0.05. The LOS diffuse-only decomposition remains bound to exact Sionna 2.2.0 source hashes. Claim-level evidence is in docs/research/results/g4-cdl-complex-circularity-native-validation-20261109.json; overall G4 remains open.",
+      "requirement": "Rebase CDL complex-pseudocovariance family accounting on the byte-pinned ETSI profile roster for output cluster counts and LOS status; the packaged profile table remains implementation provenance only. The unchanged 32,768-draw/profile, 194-coordinate family was executed on 2026-11-09 after a fresh five-seed audit cleared 2,285 saved JSON/JSON.GZ files. All 8 native tests and all 194 retained claims pass with maximum half-width 0.02237055 versus 0.05. The LOS diffuse-only decomposition remains bound to exact Sionna 2.2.0 source hashes. Claim-level evidence is in docs/research/results/cdl-complex-circularity-native-validation-20261109.json; overall G4 remains open.",
       "scope": {
         "status": "mandatory",
         "support_envelope": null,
@@ -8595,19 +8595,19 @@
         "evidence": [
           "tests/test_integrations/test_cdl_complex_circularity_native.py",
           "docs/research/CDL_PROFILE_SCALAR_REFERENCE_2026-10-26.json",
-          "docs/research/results/g4-cdl-complex-circularity-native-validation-20261109.json"
+          "docs/research/results/cdl-complex-circularity-native-validation-20261109.json"
         ],
         "basis": "The declared finite independent-reference/native regression implementation and retained result artifact are present. This only closes the named bounded family."
       },
       "verification": {
         "status": "pass",
-        "command": "Retained frozen native evidence: docs/research/results/g4-cdl-complex-circularity-native-validation-20261109.json; no native rerun during the current source audit.",
+        "command": "Retained frozen native evidence: docs/research/results/cdl-complex-circularity-native-validation-20261109.json; no native rerun during the current source audit.",
         "commit": "The result artifact retains its historical base commit, source identities, seed audit and frozen criteria."
       },
       "qualification": {
         "status": "qualified_within_scope",
         "evidence": [
-          "docs/research/results/g4-cdl-complex-circularity-native-validation-20261109.json",
+          "docs/research/results/cdl-complex-circularity-native-validation-20261109.json",
           "PASS_WITHIN_BOUNDED_PROTOCOL_SCOPE for the retained finite CDL output-cluster pseudocovariance roster (194 claims); it does not cover all complex channel distributions or qualify G4."
         ]
       },
@@ -8628,7 +8628,7 @@
       "backlog_aliases": [
         "PKG05-024"
       ],
-      "requirement": "Extend the four-element half-wavelength receive-array covariance reference across CDL-A–E, deriving each expectation from the pinned ETSI component fixture. Diffuse ray covariance is computed profile-wise; CDL-D/E specular LOS steering is added separately using its independently transcribed angle and normalized component power. The 16-component, simultaneous 99% confidence and 0.05 normalized-power interval-width criteria remain unchanged. On 2026-11-09 the frozen native run used the pre-existing seed 6714 and 8,192 draws/profile: A–D passed their covariance families, while CDL-E failed only `Re(C[0,1])` by 0.00060489 beyond its simultaneous half-width. The unrelated metadata assertion was corrected to recognize D/E as LOS profiles. A separate post-hoc 65,536-draw E diagnostic was centered on the oracle (z≈0.52) but is not admissible to replace the frozen failure. Retained evidence is in `docs/research/results/g4-cdl-four-element-covariance-frozen-execution-20261109.json`; this branch remains statistically unresolved and G4 remains open.",
+      "requirement": "Extend the four-element half-wavelength receive-array covariance reference across CDL-A–E, deriving each expectation from the pinned ETSI component fixture. Diffuse ray covariance is computed profile-wise; CDL-D/E specular LOS steering is added separately using its independently transcribed angle and normalized component power. The 16-component, simultaneous 99% confidence and 0.05 normalized-power interval-width criteria remain unchanged. On 2026-11-09 the frozen native run used the pre-existing seed 6714 and 8,192 draws/profile: A–D passed their covariance families, while CDL-E failed only `Re(C[0,1])` by 0.00060489 beyond its simultaneous half-width. The unrelated metadata assertion was corrected to recognize D/E as LOS profiles. A separate post-hoc 65,536-draw E diagnostic was centered on the oracle (z≈0.52) but is not admissible to replace the frozen failure. Retained evidence is in `docs/research/results/cdl-four-element-covariance-frozen-execution-20261109.json`; this branch remains statistically unresolved and G4 remains open.",
       "scope": {
         "status": "mandatory",
         "support_envelope": null,
@@ -8639,7 +8639,7 @@
         "evidence": [
           "tests/test_integrations/test_cdl_spatial_covariance_4element_native.py",
           "docs/research/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json",
-          "docs/research/results/g4-cdl-four-element-covariance-frozen-execution-20261109.json",
+          "docs/research/results/cdl-four-element-covariance-frozen-execution-20261109.json",
           "docs/research/CDL_E_FROZEN_MISS_REVIEW_2026-11-11.md",
           "docs/research/CDL_E_FRESH_SEED_REPLICATION_PROTOCOL_2026-11-12.md",
           "docs/research/CDL_E_FRESH_SEED_AUDIT_2026-11-12.json",
@@ -8658,7 +8658,7 @@
       "qualification": {
         "status": "failed",
         "evidence": [
-          "docs/research/results/g4-cdl-four-element-covariance-frozen-execution-20261109.json",
+          "docs/research/results/cdl-four-element-covariance-frozen-execution-20261109.json",
           "FROZEN_FAILURE: the exact 8,192-draw/profile execution fails CDL-E Re(C[0,1]) by 0.00060489 beyond the simultaneous interval. A later post-hoc diagnostic is not admissible to replace this outcome; whether the failure is oracle/implementation error or stochastic miss remains unresolved.",
           "Five deterministic CPU checks of the ETSI-derived covariance oracle pass (Hermitian, unit diagonal and PSD); they do not settle the frozen native interval miss."
         ]
@@ -8680,7 +8680,7 @@
       "backlog_aliases": [
         "PKG05-025"
       ],
-      "requirement": "Add an independent normative reference and confidence-controlled regression for CDL-D/E LOS dual-polarized two-element receive covariance at zero endpoint orientation. The 4-by-4 expectation combines deterministic LOS steering at K/(K+1) with ETSI-derived diffuse ray covariance at 1/(K+1). On 2026-11-09 the original seeds 1,710,000–1,710,001 and unchanged 16,384-draw/profile, 32-claim Bonferroni 99% family were retained: the fresh 2,284-file seed audit is clear, both native cases pass, and all 32 claim intervals contain their references with maximum half-width 0.01294770 versus 0.05. Claim-level evidence is in docs/research/results/g4-cdl-de-zero-orientation-covariance-native-validation-20261109.json. This does not cover rotated LOS polarization or qualify G4.",
+      "requirement": "Add an independent normative reference and confidence-controlled regression for CDL-D/E LOS dual-polarized two-element receive covariance at zero endpoint orientation. The 4-by-4 expectation combines deterministic LOS steering at K/(K+1) with ETSI-derived diffuse ray covariance at 1/(K+1). On 2026-11-09 the original seeds 1,710,000–1,710,001 and unchanged 16,384-draw/profile, 32-claim Bonferroni 99% family were retained: the fresh 2,284-file seed audit is clear, both native cases pass, and all 32 claim intervals contain their references with maximum half-width 0.01294770 versus 0.05. Claim-level evidence is in docs/research/results/cdl-de-zero-orientation-covariance-native-validation-20261109.json. This does not cover rotated LOS polarization or qualify G4.",
       "scope": {
         "status": "mandatory",
         "support_envelope": null,
@@ -8691,19 +8691,19 @@
         "evidence": [
           "tests/test_integrations/test_cdl_de_los_dual_pol_array_covariance_native.py",
           "docs/research/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json",
-          "docs/research/results/g4-cdl-de-zero-orientation-covariance-native-validation-20261109.json"
+          "docs/research/results/cdl-de-zero-orientation-covariance-native-validation-20261109.json"
         ],
         "basis": "The declared finite independent-reference/native regression implementation and retained result artifact are present. This only closes the named bounded family."
       },
       "verification": {
         "status": "pass",
-        "command": "Retained frozen native evidence: docs/research/results/g4-cdl-de-zero-orientation-covariance-native-validation-20261109.json; no native rerun during the current source audit.",
+        "command": "Retained frozen native evidence: docs/research/results/cdl-de-zero-orientation-covariance-native-validation-20261109.json; no native rerun during the current source audit.",
         "commit": "The result artifact retains its historical base commit, source identities, seed audit and frozen criteria."
       },
       "qualification": {
         "status": "qualified_within_scope",
         "evidence": [
-          "docs/research/results/g4-cdl-de-zero-orientation-covariance-native-validation-20261109.json",
+          "docs/research/results/cdl-de-zero-orientation-covariance-native-validation-20261109.json",
           "PASS_WITHIN_BOUNDED_PROTOCOL_SCOPE for the retained CDL-D/E, zero-orientation dual-pol receive covariance family (32 claims). Rotated LOS polarization and overall G4 remain open."
         ]
       },
@@ -8724,7 +8724,7 @@
       "backlog_aliases": [
         "PKG05-026"
       ],
-      "requirement": "Extend independent normative references to remaining multi-element array coupling, covariance, and temporal branches. The corrected three-orientation CDL-A/B/C dual-polarized two-element receive-covariance family passes 9/9 native cases under its frozen 144-claim, 8,192-draw design in `tests/test_integrations/test_cdl_abc_rotated_dual_pol_array_covariance_native.py`; the CDL-D/E companion passes 12/12 tests (six deterministic Step-11 LOS-vector checks plus six frozen 16,384-draw statistical cases spanning 96 claims) in `tests/test_integrations/test_cdl_de_rotated_los_dual_pol_array_covariance_native.py`, with the zero-orientation D/E control passing 2/2. Fresh corpus-scoped audits `docs/research/SEED_ROSTER_AUDIT_2026-11-09_ROTATED_ABC.json` and `docs/research/SEED_ROSTER_AUDIT_2026-11-09_ROTATED_DE.json` each scanned 2,277 files with no collision, malformed seed field, or incomplete file. The protocols `docs/research/CDL_ABC_ROTATED_DUAL_POL_ARRAY_COVARIANCE_PROTOCOL_2026-10-26.md` and `docs/research/CDL_DE_ROTATED_LOS_DUAL_POL_ARRAY_COVARIANCE_PROTOCOL_2026-10-26.md` record the corrected rotated-basis reference. Retained validation metadata is in docs/research/results/g4-cdl-rotated-dual-pol-covariance-validation-20261109.json. The joint two-element receive space-time covariance family additionally passes all 10 profile/velocity cases and all 80 simultaneous claims in `docs/research/results/g4-cdl-spatiotemporal-covariance-native-validation-20261109.json`. The frozen larger-topology joint TX/RX space-time family extends the same independent oracle to `(4,4)`, `(1,4)`, and `(4,1)` single-V links; all 15 profile/topology cases and all 2,880 simultaneous real/imaginary claims pass at 16,384 draws/case under the 0.05 half-width ceiling in `docs/research/results/g4-cdl-larger-topology-joint-tx-rx-spatiotemporal-covariance-native-validation-20261109.json`. The dual-TX/dual-RX companion fixes two physical dual-VH elements at each endpoint and passes all 5 profile cases and all 2,560 simultaneous claims at 16,384 draws/profile in `docs/research/results/g4-cdl-joint-tx-rx-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json`. The larger dual-TX/dual-RX companion extends the unchanged oracle to zero-oriented dual-VH physical-element topologies (4,2), (2,4), and (3,3); all 15 profile/topology cases and all 33,440 simultaneous claims pass at 16,384 draws/case in docs/research/results/g4-cdl-larger-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json. The rotated dual-TX/dual-RX companion additionally covers the three frozen simultaneous endpoint-orientation pairs at two physical dual-VH elements per endpoint; all 15 profile/orientation cases and all 7,680 simultaneous claims pass at 16,384 draws/case in `docs/research/results/g4-cdl-rotated-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json` (SHA-256 `237e50fb6f5fc75e7ae1e2599727641a22a75c4e123e9319b93bc98ff00b84e2`), generated from clean protocol commit `4fac135`. The separate physical-HandheldUTArray operating-point family now adds CDL-A-E coverage for `tr38901-4` and `tr38901` rosters across three preregistered orientation/velocity/carrier/lag points; all 30 cases and 2,400 simultaneous claims pass at 16,384 draws/case with maximum absolute error 0.01572676297150255 and maximum half-width 0.04232497534616065 in `docs/research/results/g4-cdl-physical-handheld-ut-operating-point-spatiotemporal-covariance-native-validation-20261110.json` (SHA-256 `376c76e23a2f7ecdd49b3d5104c85e1077e9cbe0b8a848859611a50a1292d1da`). This adds finite physical-handheld operating-point evidence only. Remaining arbitrary arrays beyond these frozen rosters, endpoint orientations/velocities beyond the retained finite families, patterned arrays, mutual coupling, RT/measured validation, receiver-impact validation, and scientific qualification keep this package open; G4 is not qualified.",
+      "requirement": "Extend independent normative references to remaining multi-element array coupling, covariance, and temporal branches. The corrected three-orientation CDL-A/B/C dual-polarized two-element receive-covariance family passes 9/9 native cases under its frozen 144-claim, 8,192-draw design in `tests/test_integrations/test_cdl_abc_rotated_dual_pol_array_covariance_native.py`; the CDL-D/E companion passes 12/12 tests (six deterministic Step-11 LOS-vector checks plus six frozen 16,384-draw statistical cases spanning 96 claims) in `tests/test_integrations/test_cdl_de_rotated_los_dual_pol_array_covariance_native.py`, with the zero-orientation D/E control passing 2/2. Fresh corpus-scoped audits `docs/research/SEED_ROSTER_AUDIT_2026-11-09_ROTATED_ABC.json` and `docs/research/SEED_ROSTER_AUDIT_2026-11-09_ROTATED_DE.json` each scanned 2,277 files with no collision, malformed seed field, or incomplete file. The protocols `docs/research/CDL_ABC_ROTATED_DUAL_POL_ARRAY_COVARIANCE_PROTOCOL_2026-10-26.md` and `docs/research/CDL_DE_ROTATED_LOS_DUAL_POL_ARRAY_COVARIANCE_PROTOCOL_2026-10-26.md` record the corrected rotated-basis reference. Retained validation metadata is in docs/research/results/cdl-rotated-dual-pol-covariance-validation-20261109.json. The joint two-element receive space-time covariance family additionally passes all 10 profile/velocity cases and all 80 simultaneous claims in `docs/research/results/cdl-spatiotemporal-covariance-native-validation-20261109.json`. The frozen larger-topology joint TX/RX space-time family extends the same independent oracle to `(4,4)`, `(1,4)`, and `(4,1)` single-V links; all 15 profile/topology cases and all 2,880 simultaneous real/imaginary claims pass at 16,384 draws/case under the 0.05 half-width ceiling in `docs/research/results/cdl-larger-topology-joint-tx-rx-spatiotemporal-covariance-native-validation-20261109.json`. The dual-TX/dual-RX companion fixes two physical dual-VH elements at each endpoint and passes all 5 profile cases and all 2,560 simultaneous claims at 16,384 draws/profile in `docs/research/results/cdl-joint-tx-rx-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json`. The larger dual-TX/dual-RX companion extends the unchanged oracle to zero-oriented dual-VH physical-element topologies (4,2), (2,4), and (3,3); all 15 profile/topology cases and all 33,440 simultaneous claims pass at 16,384 draws/case in docs/research/results/cdl-larger-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json. The rotated dual-TX/dual-RX companion additionally covers the three frozen simultaneous endpoint-orientation pairs at two physical dual-VH elements per endpoint; all 15 profile/orientation cases and all 7,680 simultaneous claims pass at 16,384 draws/case in `docs/research/results/cdl-rotated-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json` (SHA-256 `237e50fb6f5fc75e7ae1e2599727641a22a75c4e123e9319b93bc98ff00b84e2`), generated from clean protocol commit `4fac135`. The separate physical-HandheldUTArray operating-point family now adds CDL-A-E coverage for `tr38901-4` and `tr38901` rosters across three preregistered orientation/velocity/carrier/lag points; all 30 cases and 2,400 simultaneous claims pass at 16,384 draws/case with maximum absolute error 0.01572676297150255 and maximum half-width 0.04232497534616065 in `docs/research/results/cdl-physical-handheld-ut-operating-point-spatiotemporal-covariance-native-validation-20261110.json` (SHA-256 `376c76e23a2f7ecdd49b3d5104c85e1077e9cbe0b8a848859611a50a1292d1da`). This adds finite physical-handheld operating-point evidence only. Remaining arbitrary arrays beyond these frozen rosters, endpoint orientations/velocities beyond the retained finite families, patterned arrays, mutual coupling, RT/measured validation, receiver-impact validation, and scientific qualification keep this package open; G4 is not qualified.",
       "scope": {
         "status": "mandatory",
         "support_envelope": null,
@@ -8739,13 +8739,13 @@
           "docs/research/SEED_ROSTER_AUDIT_2026-11-09_ROTATED_DE.json",
           "docs/research/CDL_ABC_ROTATED_DUAL_POL_ARRAY_COVARIANCE_PROTOCOL_2026-10-26.md",
           "docs/research/CDL_DE_ROTATED_LOS_DUAL_POL_ARRAY_COVARIANCE_PROTOCOL_2026-10-26.md",
-          "docs/research/results/g4-cdl-rotated-dual-pol-covariance-validation-20261109.json",
-          "docs/research/results/g4-cdl-spatiotemporal-covariance-native-validation-20261109.json",
-          "docs/research/results/g4-cdl-larger-topology-joint-tx-rx-spatiotemporal-covariance-native-validation-20261109.json",
-          "docs/research/results/g4-cdl-joint-tx-rx-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json",
-          "docs/research/results/g4-cdl-larger-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json",
-          "docs/research/results/g4-cdl-rotated-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json",
-          "docs/research/results/g4-cdl-physical-handheld-ut-operating-point-spatiotemporal-covariance-native-validation-20261110.json"
+          "docs/research/results/cdl-rotated-dual-pol-covariance-validation-20261109.json",
+          "docs/research/results/cdl-spatiotemporal-covariance-native-validation-20261109.json",
+          "docs/research/results/cdl-larger-topology-joint-tx-rx-spatiotemporal-covariance-native-validation-20261109.json",
+          "docs/research/results/cdl-joint-tx-rx-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json",
+          "docs/research/results/cdl-larger-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json",
+          "docs/research/results/cdl-rotated-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json",
+          "docs/research/results/cdl-physical-handheld-ut-operating-point-spatiotemporal-covariance-native-validation-20261110.json"
         ],
         "basis": "Retained finite rotated-array, dual-polarized space-time, larger-topology, and physical-handheld families pass their frozen criteria. Implementation is partial because the backlog explicitly retains arbitrary unseen arrays/orientations, mutual coupling, measured/RT truth, receiver impact and overall qualification as open."
       },

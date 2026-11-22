@@ -291,7 +291,7 @@ def main() -> None:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("docs/research/results/g5-time-varying-multipath-pusch-awgn-20261023.json"),
+        default=Path("docs/research/results/time-varying-multipath-pusch-awgn-20261023.json"),
     )
     args = parser.parse_args()
     report = run_doppler_awgn_probe()

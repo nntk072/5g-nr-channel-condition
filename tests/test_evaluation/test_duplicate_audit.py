@@ -1,10 +1,10 @@
 import numpy as np
 import pytest
+from datasets.independent_splits import make_independent_split
 from evaluation.duplicate_audit import (
     audit_cfr_near_duplicates,
     find_cross_split_temporal_overlaps,
 )
-from datasets.independent_splits import make_independent_split
 
 
 def make_records():

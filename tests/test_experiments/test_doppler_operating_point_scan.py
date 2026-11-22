@@ -32,7 +32,7 @@ def test_operating_point_scan_rejects_invalid_design(seeds, variances, message):
 def test_saved_doppler_operating_point_scan_is_hash_bound_and_development_only():
     path = (
         Path(__file__).resolve().parents[2]
-        / "docs/research/results/g5-doppler-operating-point-scan-20261024.json"
+        / "docs/research/results/doppler-operating-point-scan-20261024.json"
     )
     report = json.loads(path.read_text(encoding="utf-8"))
     digest = report.pop("result_sha256")

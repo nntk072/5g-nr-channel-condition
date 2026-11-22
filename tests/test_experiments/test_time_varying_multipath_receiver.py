@@ -53,7 +53,7 @@ def test_paired_exact_binomial_test_uses_discordant_pairs(reference, comparison,
 def test_saved_mobility_receiver_report_is_hash_bound_and_meets_frozen_fixture_criteria():
     report_path = (
         Path(__file__).resolve().parents[2]
-        / "docs/research/results/g5-time-varying-multipath-pusch-symbol-control-20261023.json"
+        / "docs/research/results/time-varying-multipath-pusch-symbol-control-20261023.json"
     )
     report = json.loads(report_path.read_text(encoding="utf-8"))
     recorded_hash = report.pop("result_sha256")

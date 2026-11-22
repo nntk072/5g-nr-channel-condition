@@ -363,9 +363,7 @@ def test_v04_proposal_fixture_validates_noise_floor_derivation_contract():
     jsonschema = pytest.importorskip("jsonschema")
     package = _package("g3.03-acquisition-package.v0.4")
     schema = json.loads(
-        (ROOT / "datasets/schema/acquisition-package.v0.4.schema.json").read_text(
-            encoding="utf-8"
-        )
+        (ROOT / "datasets/schema/acquisition-package.v0.4.schema.json").read_text(encoding="utf-8")
     )
     jsonschema.Draft202012Validator.check_schema(schema)
     validator = jsonschema.Draft202012Validator(schema, format_checker=jsonschema.FormatChecker())

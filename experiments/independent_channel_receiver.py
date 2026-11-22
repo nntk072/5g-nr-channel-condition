@@ -349,7 +349,7 @@ def main() -> None:
         "--output",
         type=Path,
         default=Path(
-            "docs/research/results/g5-independent-channel-pusch-doppler-stress-20261024.json"
+            "docs/research/results/independent-channel-pusch-doppler-stress-20261024.json"
         ),
     )
     args = parser.parse_args()

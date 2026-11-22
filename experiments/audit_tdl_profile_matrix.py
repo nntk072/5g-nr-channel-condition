@@ -13,10 +13,10 @@ from typing import Any
 from scipy.stats import beta
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_REPORT = Path("docs/research/results/g5-tdl-ae-dmrs-density-family-confirm-20261024.json")
+DEFAULT_REPORT = Path("docs/research/results/tdl-ae-dmrs-density-family-confirm-20261024.json")
 PROTOCOL = Path("docs/research/TDL_AE_DMRS_DENSITY_FAMILY_CONFIRMATORY_PROTOCOL_2026-10-24.md")
 REPLICATION_REPORT = Path(
-    "docs/research/results/g5-tdl-ae-dmrs-density-family-reconfirm-20261024.json"
+    "docs/research/results/tdl-ae-dmrs-density-family-reconfirm-20261024.json"
 )
 REPLICATION_PROTOCOL = Path(
     "docs/research/TDL_AE_DMRS_DENSITY_FAMILY_REPLICATION_PROTOCOL_2026-10-24.md"
@@ -383,7 +383,7 @@ def audit_report(report: dict[str, Any], *, root: Path = ROOT) -> dict[str, Any]
     ) is not True:
         issues.append("replication independence declaration missing")
     if is_replication_v2 and report.get("invalid_runner_defect_run") != (
-        "docs/research/results/g5-tdl-ae-dmrs-density-family-reconfirm-20261024.json"
+        "docs/research/results/tdl-ae-dmrs-density-family-reconfirm-20261024.json"
     ):
         issues.append("revision-2 invalid-run disclosure missing")
     if report.get("g5_09_closed") is not False:

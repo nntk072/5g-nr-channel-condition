@@ -269,7 +269,7 @@ def main() -> None:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("docs/research/results/g5-doppler-dmrs-density-scan-20261024.json"),
+        default=Path("docs/research/results/doppler-dmrs-density-scan-20261024.json"),
     )
     args = parser.parse_args()
     report = run_dmrs_density_scan()

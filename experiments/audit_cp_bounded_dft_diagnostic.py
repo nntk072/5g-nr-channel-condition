@@ -20,8 +20,8 @@ from experiments.cp_bounded_dft_estimator import (
     make_finite_delay_dft_decoder,
 )
 
-CONFIRMATION_PATH = Path("docs/research/results/g5-doppler-dmrs-density-confirm-20261024.json")
-DEFAULT_OUTPUT = Path("docs/research/results/g5-cp-bounded-dft-selected-failures-20261024.json")
+CONFIRMATION_PATH = Path("docs/research/results/doppler-dmrs-density-confirm-20261024.json")
+DEFAULT_OUTPUT = Path("docs/research/results/cp-bounded-dft-selected-failures-20261024.json")
 CYCLIC_PREFIX_SAMPLES = 7
 SOURCE_PATHS = (
     "experiments/audit_cp_bounded_dft_diagnostic.py",

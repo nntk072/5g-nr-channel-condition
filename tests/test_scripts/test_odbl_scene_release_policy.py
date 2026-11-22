@@ -13,7 +13,7 @@ def test_odbl_policy_binds_all_audited_osm_scenes_and_keeps_release_gated() -> N
         (ROOT / "docs/research/licenses/odbl-osm-scene-release-policy-20261023.json").read_text()
     )
     audit = json.loads(
-        (ROOT / "docs/research/results/g3-scene-asset-material-audit-20261023.json").read_text()
+        (ROOT / "docs/research/results/scene-asset-material-audit-20261023.json").read_text()
     )
 
     assert policy["schema"] == "umcd.odbl_osm_scene_release_policy.v1"

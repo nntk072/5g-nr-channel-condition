@@ -8,9 +8,7 @@ from pathlib import Path
 
 from scripts.verify_acquisition_package import main
 
-FIXTURE_HELPERS = (
-    Path(__file__).parents[1] / "test_evaluation/test_acquisition_package_verifier.py"
-)
+FIXTURE_HELPERS = Path(__file__).parents[1] / "test_evaluation/test_acquisition_package_verifier.py"
 _make_package = runpy.run_path(str(FIXTURE_HELPERS))["_make_package"]
 
 
