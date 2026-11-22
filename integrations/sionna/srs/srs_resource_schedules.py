@@ -15,7 +15,7 @@ from .srs_configuration import (
     nr_srs_hopped_sequence_type1,
     nr_srs_type1_bandwidth_configuration,
 )
-from .srs_primitives import (
+from .srs_constants import (
     _MAX_SRS_INTERCELL_AUDIT_COORDINATES,
     _MAX_SRS_INTERCELL_AUDIT_RESOURCE_ELEMENTS,
     _SRS_BANDWIDTH_TABLE,
@@ -23,6 +23,8 @@ from .srs_primitives import (
     NRSRSHoppedMultiportResourceGrid,
     NRSRSHoppedResourceGrid,
     _normalized_multiport_beta,
+)
+from .srs_lookups import (
     nr_srs_frequency_position_indices,
     nr_srs_periodicity_and_offset_slots,
     nr_srs_positioning_symbol_offset,

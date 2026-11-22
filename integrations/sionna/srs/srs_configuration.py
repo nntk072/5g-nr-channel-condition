@@ -9,7 +9,7 @@ from typing import cast
 
 import numpy as np
 
-from .srs_primitives import (
+from .srs_constants import (
     _SRS_BANDWIDTH_TABLE,
     _SRS_COMB_SIZES,
     _SRS_SYMBOL_COUNTS,
@@ -24,11 +24,13 @@ from .srs_primitives import (
     _nr_srs_dci_0_3_scell_dormancy_width,
     _nr_srs_dci_0_3_sri_width,
     _validate_srs_hopping_position,
+    nr_srs_dci_0_3_frequency_assignment_widths,
+    nr_srs_dci_0_3_scheduled_cell_ids,
+)
+from .srs_lookups import (
     map_nr_srs_resource,
     nr_dci_0_3_field_values_from_layout,
     nr_low_papr_sequence_type1,
-    nr_srs_dci_0_3_frequency_assignment_widths,
-    nr_srs_dci_0_3_scheduled_cell_ids,
     nr_srs_dci_0_3_ul_bwp_selection,
     nr_srs_frequency_position_indices,
     nr_srs_group_hopping_index,

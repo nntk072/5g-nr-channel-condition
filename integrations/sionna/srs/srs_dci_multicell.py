@@ -13,10 +13,12 @@ from .srs_bwp_schedules import (
     nr_srs_multicell_aperiodic_resource_set_schedules,
     nr_srs_periodic_resource_set_schedule,
 )
-from .srs_primitives import (
+from .srs_constants import (
     NRSRSBWPFrequencyBounds,
     nr_srs_dci_0_3_request_list_index_from_bits,
     nr_srs_dci_0_3_scheduled_cell_ids,
+)
+from .srs_lookups import (
     nr_srs_dci_0_3_ul_bwp_selection,
 )
 from .srs_resource_schedules import (

@@ -13,9 +13,11 @@ from .srs_configuration import (
     nr_srs_multicell_request_resource_set_ids,
     nr_srs_port_cyclic_shift_indices,
 )
-from .srs_primitives import (
+from .srs_constants import (
     NRSRSBWPFrequencyBounds,
     nr_srs_aperiodic_target_slot_index,
+)
+from .srs_lookups import (
     nr_srs_triggered_resource_set_ids,
 )
 from .srs_resource_schedules import (
