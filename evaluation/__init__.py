@@ -26,7 +26,7 @@ from .sample_size_planning import (
     compose_g3_joint_sample_size_design,
     verify_g3_joint_sample_size_design,
 )
-from .independent_splits import (
+from datasets.independent_splits import (
     IndependentSplit,
     audit_group_leakage,
     freeze_split_lock,

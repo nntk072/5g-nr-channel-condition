@@ -8,7 +8,7 @@ from typing import Any, Mapping, Sequence
 
 import numpy as np
 
-from .independent_splits import IndependentSplit
+from datasets.independent_splits import IndependentSplit
 
 
 @dataclass(frozen=True, slots=True)

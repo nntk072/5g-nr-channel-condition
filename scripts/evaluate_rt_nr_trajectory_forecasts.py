@@ -18,7 +18,7 @@ from datasets.split_policy import (
     VerifiedOpenSSHArtifact,
     verify_signed_split_policy_registry_attestation,
 )
-from evaluation.independent_splits import IndependentSplit
+from datasets.independent_splits import IndependentSplit
 from experiments.rt_trajectory_forecast import (
     evaluate_trajectory_forecasts,
     summarize_forecast_rows,

@@ -74,17 +74,7 @@ compute = ["schema/*.json"]
 testpaths = ["tests"]
 addopts = [
   "-q",
-  "--cov=artifacts",
-  "--cov=configuration",
-  "--cov=datasets",
-  "--cov=propagation",
-  "--cov=receivers",
-  "--cov=models",
-  "--cov=learning",
-  "--cov=evaluation",
-  "--cov=experiments",
-  "--cov=integrations",
-  "--cov=loslab",
+  "--cov",
   "--cov-report=term-missing",
   "--cov-fail-under=75",
 ]
@@ -92,6 +82,9 @@ markers = [
   "integration: tests for optional integrations and external libraries",
   "native_sionna: requires Sionna 2.2 PHY; RT cases additionally require the sionna-rt extra",
 ]
+
+[tool.coverage.run]
+source = ["agentops", "artifacts", "compute", "configuration", "datasets", "evaluation", "experiments", "integrations", "learning", "loslab", "models", "propagation", "receivers"]
 
 [tool.ruff]
 line-length = 100

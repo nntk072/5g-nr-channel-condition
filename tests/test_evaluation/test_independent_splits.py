@@ -1,7 +1,7 @@
 import json
 
 import pytest
-from evaluation.independent_splits import (
+from datasets.independent_splits import (
     IndependentSplit,
     audit_group_leakage,
     freeze_split_lock,
