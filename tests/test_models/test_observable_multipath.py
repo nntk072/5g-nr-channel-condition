@@ -10,6 +10,7 @@ import pytest
 from experiments.observable_multipath import (
     generate_grouped_two_path_dataset,
     two_path_model_artifact_contract,
+    validate_two_path_model_artifact_contract,
 )
 from models.observable_multipath import (
     build_two_path_uncertainty_decoder,
@@ -165,7 +166,13 @@ def test_decoder_loader_replays_contract_and_rejects_checkpoint_tampering(tmp_pa
     checkpoint.with_suffix(".contract.json").write_text(json.dumps(contract), encoding="utf-8")
 
     loaded = load_two_path_uncertainty_decoder(
-        checkpoint, 8, 1e-6, hidden_dims=(8,), dataset=dataset, require_contract=True
+        checkpoint,
+        8,
+        1e-6,
+        hidden_dims=(8,),
+        dataset=dataset,
+        contract_validator=validate_two_path_model_artifact_contract,
+        require_contract=True,
     )
     assert loaded.artifact_contract_status == "input_contract_replayed"
 

@@ -363,6 +363,7 @@ def load_two_path_uncertainty_decoder(
     hidden_dims: Sequence[int] = (256, 128),
     device: str = "cpu",
     dataset: Any | None = None,
+    contract_validator: Any | None = None,
     require_contract: bool = False,
 ):
     """Load a non-pickle state dictionary and verify its input-contract sidecar.
@@ -420,9 +421,9 @@ def load_two_path_uncertainty_decoder(
         if contract["checkpoint_sha256"] != checkpoint_digest:
             raise ValueError("two-path model contract checkpoint digest does not match")
         if dataset is not None:
-            from experiments.observable_multipath import validate_two_path_model_artifact_contract
-
-            validate_two_path_model_artifact_contract(
+            if contract_validator is None:
+                raise ValueError("a contract_validator is required when a dataset is given")
+            contract_validator(
                 contract,
                 dataset,
                 model_id=contract["model_id"],
