@@ -75,7 +75,7 @@ def test_deterministic_replay_forwards_the_recorded_estimator(monkeypatch) -> No
         return {"replayed": True}
 
     monkeypatch.setattr(
-        auditor,
+        auditor.waveform,
         "_run_receiver_probe",
         fake_probe,
     )
@@ -548,7 +548,7 @@ def test_deterministic_replay_reuses_exact_saved_seed_roster(
         calls.append((channel_seeds, blocks_per_channel, channel_estimator))
         return deepcopy(experiment)
 
-    monkeypatch.setattr(auditor, "_run_receiver_probe", replay)
+    monkeypatch.setattr(auditor.waveform, "_run_receiver_probe", replay)
 
     report = audit_result_file(
         _write_current_source_bound_result(tmp_path), deterministic_replay=True
@@ -610,7 +610,7 @@ def test_deterministic_replay_recreates_waveform_sidecar_manifest(
         kwargs["waveform_evidence_output"].write_bytes(b"synthetic evidence")
         return experiment
 
-    monkeypatch.setattr(auditor, "_run_receiver_probe", replay)
+    monkeypatch.setattr(auditor.waveform, "_run_receiver_probe", replay)
 
     assert _replay_experiment(experiment) == experiment
     assert calls[0]["channel_seeds"] == (74_001,)
