@@ -1,0 +1,35 @@
+schema: nr-agentops.task-card.v1
+task_id: E04.PKG06-003.HOP_EST_DEMAP
+title: Add bounded per-call estimator and demapper for intra-slot PUSCH hopping
+kind: implementation
+source_revision: 2e6780dc7f006526a811fc48156358ff39f361ba
+status: ready
+priority: 100
+requirement_ids:
+  - PKG06-003
+dependencies:
+  - AGENT.INFRA.SELFTEST
+owned_paths:
+  - receivers/nr/pusch.py
+  - receivers/nr/__init__.py
+  - tests/test_receivers/test_nr_pusch.py
+readonly_paths:
+  - docs/research/EXECUTION_QUEUE.md
+  - docs/research/REQUIREMENT_LEDGER.json
+  - docs/research/G5_RECEIVER_SUPPORT_MATRIX_2026-11-12.md
+resource_class: cpu_test
+verification_gates:
+  - scoped
+  - fast
+scoped_verification:
+  - ["uv", "run", "--locked", "python", "-m", "pytest", "--no-cov", "-o", "addopts=", "-q", "tests/test_receivers/test_nr_pusch.py"]
+scientific_disposition: NOT_QUALIFIED
+owner_id: nr_phy_receiver_engineer
+reviewer_id: independent_reviewer
+permissions:
+  source_write: true
+  commit: false
+  push: false
+  native_gpu: false
+  scientific_qualification: false
+max_fix_attempts: 2

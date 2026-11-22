@@ -1,0 +1,33 @@
+schema: nr-agentops.task-card.v1
+task_id: AGENT.INFRA.SELFTEST
+title: Validate agent control-plane contracts and state
+kind: validation
+source_revision: 2e6780dc7f006526a811fc48156358ff39f361ba
+status: done
+priority: 10
+requirement_ids: []
+dependencies: []
+owned_paths:
+  - agentops
+  - tools/agent
+  - tests/test_agentops
+  - tests/test_scripts/test_agent_rule_validation.py
+readonly_paths:
+  - AGENTS.md
+  - .agents
+  - docs/research/EXECUTION_QUEUE.md
+  - docs/research/REQUIREMENT_LEDGER.json
+resource_class: cpu_test
+verification_gates:
+  - agent
+  - fast
+scientific_disposition: NOT_APPLICABLE
+owner_id: architect
+reviewer_id: independent_reviewer
+permissions:
+  source_write: false
+  commit: false
+  push: false
+  native_gpu: false
+  scientific_qualification: false
+max_fix_attempts: 0

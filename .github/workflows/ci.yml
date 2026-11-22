@@ -39,10 +39,10 @@ jobs:
         run: uv sync --locked --extra dev
 
       - name: Lint
-        run: uv run --locked ruff check artifacts configuration datasets propagation receivers models learning evaluation experiments integrations compute loslab scripts tests
+        run: uv run --locked ruff check artifacts configuration datasets propagation receivers models learning evaluation experiments integrations compute loslab scripts agentops tests
 
       - name: Check formatting
-        run: uv run --locked ruff format --check artifacts configuration datasets propagation receivers models learning evaluation experiments integrations compute loslab scripts tests
+        run: uv run --locked ruff format --check artifacts configuration datasets propagation receivers models learning evaluation experiments integrations compute loslab scripts agentops tests
 
       - name: Type check
         run: uv run --locked mypy
@@ -89,3 +89,20 @@ jobs:
 
       - name: Build wheel and source distribution
         run: uv build
+
+  agent-policy:
+    name: Agent policy and control-plane checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Install project and test dependencies
+        run: uv sync --locked --extra dev
+      - name: Run agent policy gate
+        run: ./tools/check agent

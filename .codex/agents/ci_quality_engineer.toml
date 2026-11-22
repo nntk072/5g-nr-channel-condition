@@ -1,0 +1,3 @@
+role_id = "ci_quality_engineer"
+canonical_delegation = ".agents/rules/delegation.md"
+intent = "bounded repository engineering"

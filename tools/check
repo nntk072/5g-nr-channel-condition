@@ -1,0 +1,150 @@
+#!/usr/bin/env python3
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+UV = shutil.which("uv") or str(Path.home() / ".local/bin/uv")
+BASE = [
+    "artifacts",
+    "configuration",
+    "datasets",
+    "propagation",
+    "receivers",
+    "models",
+    "learning",
+    "evaluation",
+    "experiments",
+    "integrations",
+    "compute",
+    "loslab",
+    "scripts",
+    "tests",
+]
+AGENT = ["agentops", "tests/test_agentops", "tools/agent"]
+
+
+def dirty_paths():
+    result = subprocess.run(
+        ["git", "status", "--porcelain=v1", "-z", "--untracked-files=all"],
+        cwd=ROOT,
+        shell=False,
+        check=False,
+        capture_output=True,
+        timeout=10,
+    )
+    if result.returncode:
+        raise SystemExit(result.returncode)
+    paths = []
+    entries = result.stdout.decode("utf-8", errors="strict").split("\0")
+    index = 0
+    while index < len(entries):
+        entry = entries[index]
+        index += 1
+        if not entry:
+            continue
+        status, path = entry[:2], entry[3:]
+        if "R" in status or "C" in status:
+            # With -z, a rename/copy source is a separate NUL field without an XY prefix.
+            index += 1
+        if (ROOT / path).is_file():
+            paths.append(path)
+    return sorted(set(paths))
+
+
+def active_python_paths():
+    return [path for path in dirty_paths() if path.endswith(".py")]
+
+
+def unique_paths(*groups):
+    return list(dict.fromkeys(item for group in groups for item in group))
+
+
+def run(argv):
+    print("+", " ".join(str(item) for item in argv), flush=True)
+    result = subprocess.run(argv, cwd=ROOT, shell=False, check=False)
+    if result.returncode:
+        raise SystemExit(result.returncode)
+
+
+def uv(*args):
+    run([UV, *args])
+
+
+gate = sys.argv[1] if len(sys.argv) == 2 else ""
+if gate == "agent":
+    uv("run", "--locked", "python", "tools/agent/validate-rules")
+    uv("run", "--locked", "python", "tools/agent/validate-profiles")
+    uv("run", "--locked", "python", "tools/agent/doctor")
+    uv(
+        "run",
+        "--locked",
+        "python",
+        "-m",
+        "pytest",
+        "--no-cov",
+        "-o",
+        "addopts=",
+        "-q",
+        "tests/test_agentops",
+        "tests/test_scripts/test_agent_rule_validation.py",
+    )
+elif gate == "fast":
+    active = active_python_paths()
+    ruff_paths = unique_paths(AGENT, active)
+    mypy_paths = unique_paths(
+        ["agentops"],
+        [
+            path
+            for path in active
+            if not path.startswith(("agentops/", "tests/", "tools/"))
+        ],
+    )
+    active_tests = [path for path in active if path.startswith("tests/")]
+    uv("run", "--locked", "ruff", "check", *ruff_paths)
+    uv("run", "--locked", "ruff", "format", "--check", *ruff_paths)
+    uv("run", "--locked", "mypy", *mypy_paths)
+    uv(
+        "run",
+        "--locked",
+        "python",
+        "-m",
+        "pytest",
+        "--no-cov",
+        "-o",
+        "addopts=",
+        "-q",
+        "tests/test_agentops",
+        *active_tests,
+    )
+elif gate == "core":
+    uv("run", "--locked", "python", "-m", "pytest", "--no-cov")
+elif gate == "build":
+    uv("build")
+elif gate == "full":
+    uv("lock", "--check")
+    uv("run", "--locked", "ruff", "check", *BASE, "agentops")
+    uv("run", "--locked", "ruff", "format", "--check", *BASE, "agentops")
+    uv("run", "--locked", "mypy")
+    uv("run", "--locked", "python", "-m", "pytest", "--no-cov")
+    uv("build")
+elif gate == "native-smoke":
+    if os.environ.get("NR_AGENT_ALLOW_NATIVE_SMOKE") != "1":
+        print(
+            "BLOCKED: native-smoke requires explicit NR_AGENT_ALLOW_NATIVE_SMOKE=1",
+            file=sys.stderr,
+        )
+        raise SystemExit(4)
+    print(
+        "native-smoke authorization accepted; no generic native workload is defined",
+        file=sys.stderr,
+    )
+    raise SystemExit(4)
+else:
+    print(
+        "usage: tools/check {agent|fast|core|build|full|native-smoke}",
+        file=sys.stderr,
+    )
+    raise SystemExit(2)

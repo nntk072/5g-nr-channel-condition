@@ -20,3 +20,29 @@ and the phased acceptance gates. The active research workflow is in
 
 The automated checks and matching local commands are documented in
 [`CI.md`](CI.md).
+
+## Agent control plane
+
+The repository's scientific data plane remains in the existing dataset, propagation,
+receiver, learning, evaluation, experiment, artifact, and compute packages.
+`agentops/` is an engineering control plane for bounded task execution.
+
+Canonical policy lives in `AGENTS.md` and `.agents/`. `.codex/` and `.claude/`
+are thin role adapters. `config/agentops/default.yaml` lists reviewed task cards.
+Runtime state is written only beneath ignored `outputs/agentops/` and logs beneath
+ignored `logs/agents/`.
+
+The control plane reuses the existing requirement ledger, `artifacts/` provenance
+helpers, `experiments/runner.py`, split policy, and `compute/resource_budget.py`.
+It does not implement alternate scientific manifests, split registries, experiment
+runners, qualification gates, or requirement databases.
+
+Execution is source/card/worktree-bound. Durable task state, provider receipts,
+verification receipts, telemetry, and handoffs remain beneath ignored operational
+roots. The curated queue reconciles those operational states without rewriting
+`docs/research/EXECUTION_QUEUE.md` or `docs/research/REQUIREMENT_LEDGER.json`.
+
+Native resource classes are fail-closed behind explicit resource authorization and
+measured host inventory. Portable CPU engineering paths do not import Sionna RT or
+allocate GPU resources. See [Agent Operations](../operations/AGENT_OPERATIONS.md)
+for the operator workflow.

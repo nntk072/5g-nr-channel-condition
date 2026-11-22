@@ -1,0 +1,2 @@
+schema = "nr-agentops.codex.v1"
+canonical_delegation = ".agents/rules/delegation.md"

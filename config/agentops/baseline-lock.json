@@ -1,0 +1,31 @@
+{
+  "baseline_checks": {
+    "build": "pass",
+    "mypy": "fail_existing_269_errors_54_files",
+    "pytest_no_cov": "collection_error_missing_torch",
+    "ruff_format": "fail_existing_83_files",
+    "ruff_lint": "pass"
+  },
+  "branch": "main",
+  "ci_sha256": "4a4418eacfa960a46ca225048af1c11b79132831cd91d1a96356c0d6c45be090",
+  "date": "2026-11-19",
+  "execution_queue_sha256": "8a49c5c6a75973c0aeaf5ab93cd46ff99f4b1feff46b2a1074011d893838d7b7",
+  "host": {
+    "active_gpu_compute_processes": 0,
+    "architecture": "x86_64",
+    "gpus": "3 x Tesla V100-PCIE-16GB",
+    "name": "halti",
+    "slurm_client": false
+  },
+  "pyproject_sha256": "b7b4835b2edcf088d14898dbb50b48e83e5db7e0ad78f97c8f425b94874e645d",
+  "requirement_ledger_sha256": "de1c2b6d7b366cd3eb03de905915b7c2c5215cda1b54e6c618c65a7b40259b4e",
+  "schema": "nr-agentops.baseline-lock.v1",
+  "target_head": "2e6780dc7f006526a811fc48156358ff39f361ba",
+  "toolchain": {
+    "python": "3.12.16",
+    "python_3_11": "unavailable",
+    "python_3_12": "3.12.16",
+    "uv": "0.13.9"
+  },
+  "working_tree": "clean_at_capture"
+}

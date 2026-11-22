@@ -1,0 +1,25 @@
+#!/usr/bin/env python3
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+from agentops.doctor import doctor_report
+
+ROOT = Path(__file__).resolve().parents[2]
+
+
+def run(path: str) -> int:
+    result = subprocess.run([sys.executable, str(ROOT / path)], cwd=ROOT, shell=False, check=False)
+    return result.returncode
+
+
+def main() -> int:
+    failed = run("tools/agent/validate-rules") or run("tools/agent/validate-profiles")
+    report = doctor_report(ROOT)
+    print(json.dumps(report, indent=2, sort_keys=True))
+    return int(bool(failed) or not report["ok"])
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

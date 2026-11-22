@@ -1,0 +1,11 @@
+# Agent Compute Policy
+
+The engineering control plane recognizes `docs_only`, `cpu_test`, `native_smoke`, `scientific_native`, and `production_d1` resource classes.
+
+`docs_only` and `cpu_test` may run bounded local checks. All native classes require an `nr-agentops.resource-authorization.v1` receipt (unsigned: the schema has no signature field, no signature verifier exists, and the `approved_by` field is not authenticated) bound to task ID, source SHA, task-card SHA, host, canonical device (`cpu` or `cuda:<index>`), budget-report digest, GPU-hour ceiling, RAM/disk ceilings, scheduler argv, expiry, and approver. The runtime reads the referenced measured budget report as a bounded, non-symlinked regular file, validates it against the existing `compute/resource_budget.py` report schema, and verifies its exact SHA-256 before accepting the authorization. `scientific_native` requires scientific gate admission. `production_d1` is denied by AgentOps while the existing `integrations/sionna/d1_generation_gate.py` production gate is disabled because no trusted signature keyring is configured; an AgentOps boolean cannot substitute for a gate-issued production authorization.
+
+Resource authorization does not qualify a workload. Measurement-driven scientific budgets remain owned by `compute/resource_budget.py`. Native Sionna behavior remains host/version/device qualified under the existing scientific protocols.
+
+CUDA-backed native verification is charged against a durable per-authorization usage ledger under `outputs/agentops/resource-usage/`. Pending reservations survive interruption and count against the ceiling, failed executions still consume their measured wall-clock GPU time, and a repeated execution is denied when cumulative consumed plus reserved GPU hours would exceed the authorized limit.
+
+Scheduler execution is absent from the current control plane. Any future scheduler adapter must pass its exact argv through `agentops.resources.validate_scheduler_argv` before process creation. The helper accepts only exact argv equality with `allowed_scheduler_argv`, so a scheduler wrapper cannot widen an approved command. Unit tests never allocate GPU resources or call a scheduler. Optional Slurm integration must be introduced only after a real scheduler environment is supplied and fixture-tested.

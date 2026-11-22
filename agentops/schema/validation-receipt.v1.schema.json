@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "nr-agentops.validation-receipt.v1",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "gate", "command_argv", "source_revision", "worktree_digest", "task_card_sha256", "environment_id", "started_at", "ended_at", "exit_code", "skipped", "stdout_sha256", "stderr_sha256", "log_path", "scope", "provenance"],
+  "properties": {
+    "schema": {"const": "nr-agentops.validation-receipt.v1"}, "gate": {"type": "string"}, "command_argv": {"type": "array", "items": {"type": "string"}},
+    "source_revision": {"type": "string", "pattern": "^[0-9a-f]{40}$"}, "worktree_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "task_card_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "environment_id": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "started_at": {"type": "string"}, "ended_at": {"type": "string"}, "exit_code": {"type": "integer"}, "skipped": {"type": "boolean"},
+    "stdout_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "stderr_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "log_path": {"type": "string"}, "scope": {"type": "string"}, "provenance": {"const": "engineering_verification_only"}
+  }
+}
