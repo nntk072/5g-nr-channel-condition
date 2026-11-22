@@ -9,8 +9,7 @@ command runs locally and in CI.
 | `lock` | `./tools/check lock` | `uv.lock` matches `pyproject.toml`. Runs first; every other job waits for it. |
 | `lint` | `./tools/check lint` | Ruff lint and Ruff formatting over the source, scripts, AgentOps, and tests. |
 | `typecheck` | `./tools/check typecheck` | mypy over the configured packages. |
-| `architecture` | `./tools/check architecture` | Package-boundary tests in `tests/architecture`. |
-| `test` | `./tools/check test` | Core pytest suite on Python 3.12 with coverage disabled. |
+| `test` | `./tools/check test` | Core pytest suite on Python 3.12 with coverage disabled, including the package-boundary tests in `tests/architecture`. |
 | `neural` | `./tools/check neural` | Neural and boosted baseline tests with CPU-only PyTorch and the configured 75% coverage threshold. |
 | `build` | `./tools/check build` | Wheel and source distribution, plus an import smoke test of the packages. |
 | `ci-success` | (aggregator) | Fails if any job above failed or was skipped. Make this the required check on the branch. |
@@ -27,7 +26,6 @@ Run the same checks locally from the repository root:
 uv sync --locked --extra dev
 ./tools/check lint
 ./tools/check typecheck
-./tools/check architecture
 ./tools/check test
 ./tools/check build
 ```

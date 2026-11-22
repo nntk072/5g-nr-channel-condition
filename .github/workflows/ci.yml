@@ -79,29 +79,6 @@ jobs:
       - name: Type check
         run: ./tools/check typecheck
 
-  architecture:
-    name: Architecture tests
-    needs: lock
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Install uv and Python
-        uses: astral-sh/setup-uv@v6
-        with:
-          python-version: "3.12"
-          enable-cache: true
-          cache-dependency-glob: uv.lock
-
-      - name: Install project and test dependencies
-        run: uv sync --locked --extra dev
-
-      - name: Run architecture tests
-        run: ./tools/check architecture
-
   test:
     name: Core tests (Python 3.12)
     needs: lock
@@ -177,7 +154,7 @@ jobs:
   ci-success:
     name: CI result
     if: always()
-    needs: [lock, lint, typecheck, architecture, test, neural, build]
+    needs: [lock, lint, typecheck, test, neural, build]
     runs-on: ubuntu-latest
     steps:
       - name: Require all jobs to succeed

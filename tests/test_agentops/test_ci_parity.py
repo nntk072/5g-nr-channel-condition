@@ -3,7 +3,7 @@ from pathlib import Path
 import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
-GATES = ("lock", "lint", "typecheck", "architecture", "test", "neural", "build")
+GATES = ("lock", "lint", "typecheck", "test", "neural", "build")
 
 
 def _workflow() -> dict:
