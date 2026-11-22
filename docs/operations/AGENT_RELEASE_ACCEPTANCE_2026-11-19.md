@@ -6,6 +6,8 @@ Date: 2026-11-19 (revised 2026-11-22)
 
 **FINALIZED WITH DISCLOSED LIMITS (owner decision, 2026-11-22). Not a reviewer APPROVE.**
 
+Final owner instruction, 2026-11-22: accept the current state as final. This accepts item 19 as portable local parity and items 22 and 30 as owner-accepted with disclosed limits. It does not convert them to reviewer PASS: no reviewer approved any revision, and the committed branch was not independently reviewed. Items 3, the synthetic telemetry rows, the two retained handoffs, and `finalize-manual` remain open owner decisions.
+
 - The owner chose to finalize with the limits below disclosed. This is not an independent reviewer APPROVE: twenty fresh independent reviews, one per round, all returned `REQUEST_CHANGES` (see [Review rounds](#review-rounds)). Item 22 is recorded as **accepted by owner with disclosed limits**, not as a reviewer approval.
 - Every engineering gate and the portable matrix pass on the frozen final worktree (see [Executed verification](#executed-verification)).
 - Item 19 is recorded as portable local parity. Literal hosted CI was not run and needs authorization to push and dispatch a workflow.
