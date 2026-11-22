@@ -771,7 +771,7 @@ def test_run_experiment_persists_failure_after_manifest_start(tmp_path, monkeypa
     def fail_metrics(*args, **kwargs):
         raise RuntimeError("injected post-start failure")
 
-    monkeypatch.setattr(runner_module, "binary_metrics", fail_metrics)
+    monkeypatch.setattr(runner_module.experiment_runner, "binary_metrics", fail_metrics)
     with pytest.raises(RuntimeError, match="injected post-start failure"):
         run_experiment([source], output, methods=("logreg",), seeds=(11,), bootstrap=20)
 
@@ -1103,7 +1103,7 @@ def test_parameter_matched_neural_trio_uses_common_split_and_records_budget(
         def save(self, path, **kwargs):
             path.write_bytes(b"synthetic parameter-matching predictor")
 
-    original_fit_sklearn = runner_module.fit_sklearn
+    original_fit_sklearn = runner_module.experiment_runner.fit_sklearn
 
     def capture_sklearn(x, y, *, seed, method, capacity):
         seen_capacities["raw_mlp"] = capacity
@@ -1117,9 +1117,9 @@ def test_parameter_matched_neural_trio_uses_common_split_and_records_budget(
         seen_capacities["cvnn"] = capacity
         return Predictor(), {"trainable_parameters": profile["complex_cnn_parameters"]}
 
-    monkeypatch.setattr(runner_module, "fit_sklearn", capture_sklearn)
-    monkeypatch.setattr(runner_module, "fit_real_cnn", fake_real_cnn)
-    monkeypatch.setattr(runner_module, "fit_complex_cnn", fake_complex_cnn)
+    monkeypatch.setattr(runner_module.experiment_runner, "fit_sklearn", capture_sklearn)
+    monkeypatch.setattr(runner_module.experiment_runner, "fit_real_cnn", fake_real_cnn)
+    monkeypatch.setattr(runner_module.experiment_runner, "fit_complex_cnn", fake_complex_cnn)
     output = tmp_path / "runs" / "matched"
     run_experiment(
         [source],
@@ -1168,7 +1168,7 @@ def test_run_experiment_routes_raw_observations_to_real_cnn(tmp_path, monkeypatc
         assert labels.ndim == validation_labels.ndim == 1
         return Predictor(), {"epoch_count": 1, "trainable_parameters": 1}
 
-    monkeypatch.setattr(runner, "fit_real_cnn", fake_fit)
+    monkeypatch.setattr(runner.experiment_runner, "fit_real_cnn", fake_fit)
     output = tmp_path / "runs" / "cnn"
     result = run_experiment([source], output, methods=("cnn",), seeds=(13,), bootstrap=10)
 
@@ -1212,7 +1212,7 @@ def test_run_experiment_routes_raw_observations_to_complex_cnn(tmp_path, monkeyp
         assert labels.ndim == validation_labels.ndim == 1
         return Predictor(), {"epoch_count": 1, "trainable_parameters": 1}
 
-    monkeypatch.setattr(runner, "fit_complex_cnn", fake_fit)
+    monkeypatch.setattr(runner.experiment_runner, "fit_complex_cnn", fake_fit)
     output = tmp_path / "runs" / "cvnn"
     result = run_experiment([source], output, methods=("cvnn",), seeds=(17,), bootstrap=10)
 
@@ -1226,7 +1226,7 @@ def test_run_experiment_routes_flattened_real_imag_to_raw_mlp(tmp_path, monkeypa
 
     source = tmp_path / "debug.npz"
     debug_multipath(n_scenes=8, links_per_scene=16, seed=71).save(source)
-    original_fit = runner.fit_sklearn
+    original_fit = runner.experiment_runner.fit_sklearn
     observed_shapes = []
 
     def capture_fit(values, labels, *, seed, method, capacity):
@@ -1235,7 +1235,7 @@ def test_run_experiment_routes_flattened_real_imag_to_raw_mlp(tmp_path, monkeypa
         assert method == "mlp"
         return original_fit(values, labels, seed=seed, method="logreg", capacity=capacity)
 
-    monkeypatch.setattr(runner, "fit_sklearn", capture_fit)
+    monkeypatch.setattr(runner.experiment_runner, "fit_sklearn", capture_fit)
     output = tmp_path / "runs" / "raw-mlp"
     run_experiment([source], output, methods=("raw_mlp",), seeds=(19,), bootstrap=10)
     data = np.load(source)
@@ -1269,14 +1269,14 @@ def test_run_experiment_routes_power_only_to_observation_derived_features(
 
     source = tmp_path / "debug.npz"
     debug_multipath(n_scenes=8, links_per_scene=16, seed=73).save(source)
-    original_fit = runner.fit_sklearn
+    original_fit = runner.experiment_runner.fit_sklearn
     captures = []
 
     def capture_fit(values, labels, *, seed, method, capacity):
         captures.append((values.copy(), method))
         return original_fit(values, labels, seed=seed, method=method, capacity=capacity)
 
-    monkeypatch.setattr(runner, "fit_sklearn", capture_fit)
+    monkeypatch.setattr(runner.experiment_runner, "fit_sklearn", capture_fit)
     output = tmp_path / "runs" / "power-only"
     run_experiment([source], output, methods=("power_only", "rf"), seeds=(29,), bootstrap=10)
 
@@ -1343,14 +1343,14 @@ def test_run_experiment_routes_permuted_labels_on_shared_split(tmp_path, monkeyp
 
     source = tmp_path / "debug.npz"
     debug_multipath(n_scenes=8, links_per_scene=16, seed=83).save(source)
-    original_fit = runner.fit_sklearn
+    original_fit = runner.experiment_runner.fit_sklearn
     captures = []
 
     def capture_fit(values, labels, *, seed, method, capacity):
         captures.append((values.copy(), labels.copy(), method))
         return original_fit(values, labels, seed=seed, method="logreg", capacity=capacity)
 
-    monkeypatch.setattr(runner, "fit_sklearn", capture_fit)
+    monkeypatch.setattr(runner.experiment_runner, "fit_sklearn", capture_fit)
     output = tmp_path / "runs" / "label-permuted"
     run_experiment(
         [source],
@@ -1406,14 +1406,14 @@ def test_run_experiment_routes_row_shuffled_features_on_shared_split(tmp_path, m
 
     source = tmp_path / "debug.npz"
     debug_multipath(n_scenes=8, links_per_scene=16, seed=89).save(source)
-    original_fit = runner.fit_sklearn
+    original_fit = runner.experiment_runner.fit_sklearn
     captures = []
 
     def capture_fit(values, labels, *, seed, method, capacity):
         captures.append((values.copy(), labels.copy(), method))
         return original_fit(values, labels, seed=seed, method="logreg", capacity=capacity)
 
-    monkeypatch.setattr(runner, "fit_sklearn", capture_fit)
+    monkeypatch.setattr(runner.experiment_runner, "fit_sklearn", capture_fit)
     output = tmp_path / "runs" / "row-shuffled"
     run_experiment(
         [source],
@@ -1470,14 +1470,14 @@ def test_run_experiment_routes_phase_randomization_on_shared_split(tmp_path, mon
 
     source = tmp_path / "debug.npz"
     debug_multipath(n_scenes=8, links_per_scene=16, seed=79).save(source)
-    original_fit = runner.fit_sklearn
+    original_fit = runner.experiment_runner.fit_sklearn
     captures = []
 
     def capture_fit(values, labels, *, seed, method, capacity):
         captures.append((values.copy(), method))
         return original_fit(values, labels, seed=seed, method=method, capacity=capacity)
 
-    monkeypatch.setattr(runner, "fit_sklearn", capture_fit)
+    monkeypatch.setattr(runner.experiment_runner, "fit_sklearn", capture_fit)
     output = tmp_path / "runs" / "phase-randomized"
     run_experiment(
         [source],
@@ -1578,14 +1578,14 @@ def test_run_experiment_routes_metadata_only_as_replayable_shared_split_control(
 
     source = tmp_path / "debug.npz"
     debug_multipath(n_scenes=8, links_per_scene=16, seed=101).save(source)
-    original_fit = runner.fit_sklearn
+    original_fit = runner.experiment_runner.fit_sklearn
     captures = []
 
     def capture_fit(values, labels, *, seed, method, capacity):
         captures.append((values.copy(), labels.copy(), method))
         return original_fit(values, labels, seed=seed, method="logreg", capacity=capacity)
 
-    monkeypatch.setattr(runner, "fit_sklearn", capture_fit)
+    monkeypatch.setattr(runner.experiment_runner, "fit_sklearn", capture_fit)
     output = tmp_path / "runs" / "metadata-only"
     run_experiment(
         [source],
@@ -1648,14 +1648,14 @@ def test_run_experiment_routes_source_only_on_shared_split(tmp_path, monkeypatch
 
     source = tmp_path / "debug.npz"
     debug_multipath(n_scenes=8, links_per_scene=16, seed=97).save(source)
-    original_fit = runner.fit_sklearn
+    original_fit = runner.experiment_runner.fit_sklearn
     captures = []
 
     def capture_fit(values, labels, *, seed, method, capacity):
         captures.append((values.copy(), labels.copy(), method))
         return original_fit(values, labels, seed=seed, method="logreg", capacity=capacity)
 
-    monkeypatch.setattr(runner, "fit_sklearn", capture_fit)
+    monkeypatch.setattr(runner.experiment_runner, "fit_sklearn", capture_fit)
     output = tmp_path / "runs" / "source-only"
     run_experiment(
         [source],
