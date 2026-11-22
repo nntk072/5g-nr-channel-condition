@@ -1,55 +1,59 @@
 # Continuous integration
 
-GitHub Actions runs `.github/workflows/ci.yml` for pushes to `main` or
-`master`, pull requests, and manual dispatches.
+GitHub Actions runs `.github/workflows/ci.yml` on every push, every pull request,
+and manual dispatch. Each job runs one named gate from `tools/check`, so the same
+command runs locally and in CI.
 
-The test job checks that `uv.lock` matches `pyproject.toml`, installs the
-project with its development dependencies, runs Ruff lint and formatting
-checks, runs mypy, and executes pytest with coverage disabled on Python 3.11 and
-3.12. A separate Python 3.12 job installs CPU PyTorch and runs pytest with
-coverage enabled to exercise neural training and checkpoint reloads; this job
-enforces the configured 75% total coverage threshold. The build job creates
-both a wheel and a source distribution. Sionna's native ray-tracing stack is an
-optional research dependency and is not installed on standard CI runners; its adapter is covered
-with mocked boundaries, with a separate native smoke command documented in
-the research quickstart.
+| Job | Gate | What it checks |
+| --- | --- | --- |
+| `lock` | `./tools/check lock` | `uv.lock` matches `pyproject.toml`. Runs first; every other job waits for it. |
+| `lint` | `./tools/check lint` | Ruff lint and Ruff formatting over the source, scripts, AgentOps, and tests. |
+| `typecheck` | `./tools/check typecheck` | mypy over the configured packages. |
+| `architecture` | `./tools/check architecture` | Package-boundary tests in `tests/architecture`. |
+| `test` | `./tools/check test` | Core pytest suite on Python 3.12 with coverage disabled. |
+| `neural` | `./tools/check neural` | Neural and boosted baseline tests with CPU-only PyTorch and the configured 75% coverage threshold. |
+| `build` | `./tools/check build` | Wheel and source distribution, plus an import smoke test of the packages. |
+| `ci-success` | (aggregator) | Fails if any job above failed or was skipped. Make this the required check on the branch. |
+
+Python 3.12 is the only supported CI version. Sionna's native ray-tracing stack is
+an optional research dependency and is not installed on CI runners. Its adapter is
+covered with mocked boundaries, and native checks run only through the opt-in
+gates described below.
 
 Run the same checks locally from the repository root:
 
 ```bash
-uv lock --check
+./tools/check lock
 uv sync --locked --extra dev
-uv run --locked ruff check artifacts configuration datasets propagation receivers models learning evaluation experiments integrations compute loslab scripts agentops tests
-uv run --locked ruff format --check artifacts configuration datasets propagation receivers models learning evaluation experiments integrations compute loslab scripts agentops tests
-uv run --locked mypy
-uv run --locked python -m pytest
-uv build
+./tools/check lint
+./tools/check typecheck
+./tools/check architecture
+./tools/check test
+./tools/check build
 ```
 
-To run the optional neural checks locally, install the CPU-only PyTorch wheel
-and avoid resynchronizing the base environment for that invocation:
+The neural gate needs the boosting extra and CPU-only PyTorch, which CI installs
+before running it. Locally:
 
 ```bash
+uv sync --locked --extra dev --extra boosting
 uv pip install --python .venv/bin/python torch==2.11.0 --index-url https://download.pytorch.org/whl/cpu
-uv run --no-sync --locked python -m pytest
+./tools/check neural
 ```
 
-The core workflow jobs use `--no-cov`; the neural job enforces the configured
-coverage threshold. Native Sionna/RT remains an opt-in environment check
-because its Mitsuba and Dr.Jit runtimes are not part of the standard CPU CI
-environment.
+The core and test gates use `--no-cov`. The neural gate enforces the configured
+coverage threshold.
 
-## Agent policy and control-plane checks
+## Agent governance checks (local only)
 
-`tools/check agent` validates canonical rules and profiles, runs the read-only
-doctor, and executes the isolated `tests/test_agentops` suite plus structural
-rule-validation tests without native Sionna. `tools/check fast` adds Ruff,
-formatting, mypy, and the active changed Python tests.
+`tools/check agent` validates canonical agent rules and profiles, runs the
+read-only doctor, and executes the isolated `tests/test_agentops` suite and
+rule-validation tests without native Sionna. It is a local gate. CI does not run it
+as a separate job: the AgentOps tests already run in the `test` job. `tools/check fast`
+adds Ruff, formatting, mypy, and the active changed Python tests.
 
-The existing Python 3.11/3.12 test jobs, neural/coverage job, and package build remain
-the authoritative portable CI surfaces. The additive `agent-policy` job runs on
-Python 3.12 and is CPU-only. `tools/check native-smoke` remains an explicit opt-in
-gate and has no generic native workload.
+`tools/check native-smoke` remains an explicit opt-in gate and has no generic native
+workload.
 
 Agent verification receipts record exact argv, exit code, bounded output hashes,
 source revision, task-card SHA-256, and worktree digest. A later worktree mutation

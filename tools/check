@@ -24,6 +24,14 @@ BASE = [
     "tests",
 ]
 AGENT = ["agentops", "tests/test_agentops", "tools/agent"]
+IMPORT_SMOKE = (
+    "import importlib; "
+    "[importlib.import_module(name) for name in ("
+    "'artifacts', 'configuration', 'datasets', 'propagation', 'receivers', 'models', "
+    "'learning', 'evaluation', 'experiments', 'integrations', 'compute', 'loslab', "
+    "'agentops')]; "
+    "print('import-smoke-ok')"
+)
 
 
 def dirty_paths():
@@ -96,11 +104,7 @@ elif gate == "fast":
     ruff_paths = unique_paths(AGENT, active)
     mypy_paths = unique_paths(
         ["agentops"],
-        [
-            path
-            for path in active
-            if not path.startswith(("agentops/", "tests/", "tools/"))
-        ],
+        [path for path in active if not path.startswith(("agentops/", "tests/", "tools/"))],
     )
     active_tests = [path for path in active if path.startswith("tests/")]
     uv("run", "--locked", "ruff", "check", *ruff_paths)
@@ -119,10 +123,23 @@ elif gate == "fast":
         "tests/test_agentops",
         *active_tests,
     )
-elif gate == "core":
+elif gate == "lock":
+    uv("lock", "--check")
+elif gate == "lint":
+    uv("run", "--locked", "ruff", "check", *BASE, "agentops")
+    uv("run", "--locked", "ruff", "format", "--check", *BASE, "agentops")
+elif gate == "typecheck":
+    uv("run", "--locked", "mypy")
+elif gate == "architecture":
+    uv("run", "--locked", "python", "-m", "pytest", "--no-cov", "-q", "tests/architecture")
+elif gate in {"core", "test"}:
     uv("run", "--locked", "python", "-m", "pytest", "--no-cov")
+elif gate == "neural":
+    # CI installs the boosting extra and CPU-only PyTorch before this gate runs.
+    uv("run", "--no-sync", "--locked", "python", "-m", "pytest")
 elif gate == "build":
     uv("build")
+    uv("run", "--locked", "python", "-c", IMPORT_SMOKE)
 elif gate == "full":
     uv("lock", "--check")
     uv("run", "--locked", "ruff", "check", *BASE, "agentops")
@@ -144,7 +161,7 @@ elif gate == "native-smoke":
     raise SystemExit(4)
 else:
     print(
-        "usage: tools/check {agent|fast|core|build|full|native-smoke}",
+        "usage: tools/check {lock|lint|typecheck|architecture|test|core|neural|build|agent|fast|full|native-smoke}",
         file=sys.stderr,
     )
     raise SystemExit(2)

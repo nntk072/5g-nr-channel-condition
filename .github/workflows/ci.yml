@@ -12,8 +12,9 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Every job calls one named gate from tools/check, so the same command runs locally.
 jobs:
-  dependency-lock:
+  lock:
     name: Lockfile
     runs-on: ubuntu-latest
     steps:
@@ -28,11 +29,11 @@ jobs:
           cache-dependency-glob: uv.lock
 
       - name: Verify lockfile
-        run: uv lock --check
+        run: ./tools/check lock
 
   lint:
-    name: Lint, format and type check
-    needs: dependency-lock
+    name: Lint and format
+    needs: lock
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -48,18 +49,54 @@ jobs:
       - name: Install project and test dependencies
         run: uv sync --locked --extra dev
 
-      - name: Lint
-        run: uv run --locked ruff check artifacts configuration datasets propagation receivers models learning evaluation experiments integrations compute loslab scripts agentops tests
+      - name: Lint and check formatting
+        run: ./tools/check lint
 
-      - name: Check formatting
-        run: uv run --locked ruff format --check artifacts configuration datasets propagation receivers models learning evaluation experiments integrations compute loslab scripts agentops tests
+  typecheck:
+    name: Type check
+    needs: lock
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install project and test dependencies
+        run: uv sync --locked --extra dev
 
       - name: Type check
-        run: uv run --locked mypy
+        run: ./tools/check typecheck
+
+  architecture:
+    name: Architecture tests
+    needs: lock
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install project and test dependencies
+        run: uv sync --locked --extra dev
+
+      - name: Run architecture tests
+        run: ./tools/check architecture
 
   test:
-    name: Tests (Python 3.12)
-    needs: dependency-lock
+    name: Core tests (Python 3.12)
+    needs: lock
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -76,11 +113,11 @@ jobs:
         run: uv sync --locked --extra dev
 
       - name: Run core tests
-        run: uv run --locked python -m pytest --no-cov
+        run: ./tools/check test
 
   neural:
     name: Neural and boosted baseline tests (Python 3.12)
-    needs: dependency-lock
+    needs: lock
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -99,12 +136,12 @@ jobs:
       - name: Install CPU-only PyTorch
         run: uv pip install --python .venv/bin/python torch==2.11.0 --index-url https://download.pytorch.org/whl/cpu
 
-      - name: Run full test suite including neural training
-        run: uv run --no-sync --locked python -m pytest
+      - name: Run neural and boosted tests with coverage
+        run: ./tools/check neural
 
   build:
-    name: Build package
-    needs: dependency-lock
+    name: Build package and import smoke
+    needs: lock
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -117,13 +154,16 @@ jobs:
           enable-cache: true
           cache-dependency-glob: uv.lock
 
-      - name: Build wheel and source distribution
-        run: uv build
+      - name: Install project and test dependencies
+        run: uv sync --locked --extra dev
+
+      - name: Build and import-smoke the package
+        run: ./tools/check build
 
   ci-success:
     name: CI result
     if: always()
-    needs: [dependency-lock, lint, test, neural, build]
+    needs: [lock, lint, typecheck, architecture, test, neural, build]
     runs-on: ubuntu-latest
     steps:
       - name: Require all jobs to succeed
