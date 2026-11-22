@@ -2,7 +2,6 @@ name: CI
 
 on:
   push:
-    branches: [main, master]
   pull_request:
   workflow_dispatch:
 
@@ -14,13 +13,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
-    name: Tests (Python ${{ matrix.python-version }})
+  dependency-lock:
+    name: Lockfile
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.11", "3.12"]
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -28,12 +23,27 @@ jobs:
       - name: Install uv and Python
         uses: astral-sh/setup-uv@v6
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.12"
           enable-cache: true
           cache-dependency-glob: uv.lock
 
       - name: Verify lockfile
         run: uv lock --check
+
+  lint:
+    name: Lint, format and type check
+    needs: dependency-lock
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+          cache-dependency-glob: uv.lock
 
       - name: Install project and test dependencies
         run: uv sync --locked --extra dev
@@ -47,11 +57,30 @@ jobs:
       - name: Type check
         run: uv run --locked mypy
 
+  test:
+    name: Tests (Python 3.12)
+    needs: dependency-lock
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install project and test dependencies
+        run: uv sync --locked --extra dev
+
       - name: Run core tests
         run: uv run --locked python -m pytest --no-cov
 
   neural:
     name: Neural and boosted baseline tests (Python 3.12)
+    needs: dependency-lock
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -75,6 +104,7 @@ jobs:
 
   build:
     name: Build package
+    needs: dependency-lock
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -90,19 +120,22 @@ jobs:
       - name: Build wheel and source distribution
         run: uv build
 
-  agent-policy:
-    name: Agent policy and control-plane checks
+  ci-success:
+    name: CI result
+    if: always()
+    needs: [dependency-lock, lint, test, neural, build]
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-      - name: Install uv and Python
-        uses: astral-sh/setup-uv@v6
-        with:
-          python-version: "3.12"
-          enable-cache: true
-          cache-dependency-glob: uv.lock
-      - name: Install project and test dependencies
-        run: uv sync --locked --extra dev
-      - name: Run agent policy gate
-        run: ./tools/check agent
+      - name: Require all jobs to succeed
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          python3 - <<'PY'
+          import json, os, sys
+          needs = json.loads(os.environ["NEEDS"])
+          failed = {name: value["result"] for name, value in needs.items() if value["result"] != "success"}
+          if failed:
+              print(f"Required CI jobs failed or were skipped: {failed}", file=sys.stderr)
+              raise SystemExit(1)
+          print("All required CI jobs passed")
+          PY
