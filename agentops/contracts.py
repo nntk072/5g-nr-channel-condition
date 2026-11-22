@@ -6,6 +6,7 @@ import hashlib
 import json
 import math
 import os
+import re
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
@@ -87,6 +88,32 @@ def reject_nonfinite(value: Any) -> None:
                 continue
             seen.add(id(item))
             stack.extend(item)
+
+
+_GIT_OBJECT_ID = re.compile(r"[0-9a-f]{40}")
+
+
+def is_ancestor_revision(candidate: str, head: str, repo_root: Path = ROOT) -> bool:
+    """True when ``candidate`` is ``head`` or one of its ancestors.
+
+    Task cards bind to the revision they were authored against. Committing the work they
+    describe necessarily moves HEAD, so the card's revision must be HEAD or an ancestor of it,
+    rather than equal to HEAD. Anything else, including an unknown object, is not an ancestor.
+    """
+    if not _GIT_OBJECT_ID.fullmatch(candidate) or not _GIT_OBJECT_ID.fullmatch(head):
+        return False
+    try:
+        completed = subprocess.run(
+            ["git", "merge-base", "--is-ancestor", candidate, head],
+            cwd=repo_root,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=10,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired) as error:
+        raise ContractError("cannot resolve revision ancestry") from error
+    return completed.returncode == 0
 
 
 def current_git_revision(repo_root: Path = ROOT) -> str:
@@ -243,9 +270,10 @@ def load_task_card(path: str | Path, repo_root: Path = ROOT) -> LoadedTaskCard:
     for field in ("owned_paths", "readonly_paths"):
         value[field] = [validate_relative_path(item, repo_root) for item in value.get(field, [])]
     revision = current_git_revision(repo_root)
-    if value["source_revision"] != revision:
+    if not is_ancestor_revision(value["source_revision"], revision, repo_root):
         raise ContractError(
-            f"stale task card source revision {value['source_revision']} does not match {revision}"
+            f"stale task card source revision {value['source_revision']} "
+            f"is not HEAD or an ancestor of {revision}"
         )
     return LoadedTaskCard(
         data=value,

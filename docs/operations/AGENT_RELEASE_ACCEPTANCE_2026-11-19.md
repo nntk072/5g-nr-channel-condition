@@ -30,15 +30,15 @@ Final-round evidence lives in `/home/l2nguyen/agent-final-2026-11-22/logs/`. Ear
 | Command | Exit | Result |
 | --- | ---: | --- |
 | `uv lock --check` | 0 | lock resolves |
-| `./tools/check agent` | 0 | rules and 10 profiles valid, doctor ok, 174 AgentOps tests passed (includes the 13 tests for items 9, 12 and 23) |
+| `./tools/check agent` | 0 | rules and 10 profiles valid, doctor ok, 178 AgentOps tests passed (includes the 13 tests for items 9, 12 and 23 and the 4 revision-ancestry tests) |
 | `./tools/check fast` | 0 | Ruff, format, mypy clean; 1426 passed, 34 skipped |
 | `./tools/check build` | 0 | sdist and wheel built |
 | `uv run --locked nr-agent validate-tasks` | 0 | 2 task cards valid |
 | `git diff --check` | 0 | no whitespace errors |
 | authority SHA-256 and diff | 0 | hashes unchanged, zero diff |
-| Portable matrix, Python 3.11 (`uv sync --locked --extra dev`) | 0 | lock check, Ruff check, Ruff format, mypy, core pytest `--no-cov`: 3685 passed, 223 skipped |
-| Portable matrix, Python 3.12 core | 0 | same steps: 3685 passed, 223 skipped |
-| Neural and boosting, Python 3.12 (`--extra boosting`, CPU Torch 2.11.0) | 0 | 3914 passed, 168 skipped; coverage 75.24% against the 75% threshold. The first matrix attempt after items 9, 12 and 23 failed one timing-sensitive memory test; see Limitation 13 and `logs-items-9-12-23-attempt1-before-conftest/` |
+| Portable matrix, Python 3.11 (`uv sync --locked --extra dev`) | 0 | lock check, Ruff check, Ruff format, mypy, core pytest `--no-cov`: 3689 passed, 223 skipped |
+| Portable matrix, Python 3.12 core | 0 | same steps: 3689 passed, 223 skipped |
+| Neural and boosting, Python 3.12 (`--extra boosting`, CPU Torch 2.11.0) | 0 | 3918 passed, 168 skipped; coverage 75.24% against the 75% threshold. The first matrix attempt after items 9, 12 and 23 failed one timing-sensitive memory test; see Limitation 13 and `logs-items-9-12-23-attempt1-before-conftest/` |
 | `uv build` | 0 | sdist and wheel built |
 
 The matrix mirrors the steps in `.github/workflows/ci.yml` but runs in local virtualenvs outside the repository, so the project `.venv` is untouched. It is portable local parity, not a hosted run.
@@ -178,7 +178,7 @@ Status key: PASS = supported by current final-worktree evidence. PARTIAL = part 
 | 15 | Engineering and scientific status independent | state schema; E04 `DONE` with `NOT_QUALIFIED` | PASS | None |
 | 16 | Existing artifact, experiment, resource-budget, split owners authoritative | architecture docs; authority diff | PASS | None |
 | 17 | Source changes scoped; unexpected edits stop execution | worktree digest and ownership guards | PASS | None |
-| 18 | Portable `tools/check agent` passes; failures propagate nonzero | final-revision `tools/check agent` exit 0 (174 passed) | PASS | None |
+| 18 | Portable `tools/check agent` passes; failures propagate nonzero | final-revision `tools/check agent` exit 0 (178 passed) | PASS | None |
 | 19 | Portable Python 3.11/3.12 CI, neural coverage, and build viable | Final-revision matrix exit 0 on the frozen worktree: 3.11 core, 3.12 core, neural 75.24%, build (see Executed verification). The pinned hosted run `44413305629` is stale and was not rerun; literal hosted CI was not verified. | **PASS for portable local parity; ACCEPTED BY OWNER.** Literal hosted CI is not verified. | Owner decision: accept portable parity as item 19, or authorize a hosted run (requires push and workflow dispatch, which were not authorized). |
 | 20 | Agent code packaged, linted, typed, tested | fast gate; build | PASS | None |
 | 21 | Not run. The owner directed no further independent reviewers after round 20. The items 9, 12 and 23 changes are therefore unreviewed. | None | Owner directed no further reviews; not an approval of the changes |
@@ -227,6 +227,8 @@ Status key: PASS = supported by current final-worktree evidence. PARTIAL = part 
     - *Review artifacts (item 23).* Each review cycle keeps its own directory under `review-cycles/`. Cycles that fail before a report exists keep only the source context.
     - *Test isolation.* With the active-job check live, the full neural suite's traced-memory test `tests/test_datasets/test_nr_store_memory_scaling.py` failed in this environment. The runner tests now stub the host process scan through `tests/test_agentops/conftest.py`. Bisection showed the failure needed the real `/proc` scan inside the runner tests. The mechanism was not identified; the fixture removes the interaction, and the memory test passes in the final matrix.
     - None of these changes has been reviewed by an independent reviewer. Item 22 is unchanged by them.
+    - *Revision binding (commit step).* Task cards now bind `source_revision` to HEAD or an ancestor of HEAD (`agentops.contracts.is_ancestor_revision`), not to exact equality with HEAD. Equality cannot hold once the transfer is committed, since the commit moves HEAD. A card with a revision that is not HEAD or an ancestor is still rejected as stale. The first commit (69ace52) broke 38 AgentOps tests under equality; the follow-up commit fixes this. Four regression tests are in `tests/test_agentops/test_revision_ancestry.py`.
+    - *Commit scope.* The transfer is committed on branch `agentops-architecture-transfer` and pushed to `origin`. The commit contains only AgentOps, agent-governance, CI parity, and documentation paths (122 files in the first commit). Unowned scientific-module changes are not committed; they remain in the worktree and are the open owner decision in item 3.
 
 ## Changed files
 
