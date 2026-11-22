@@ -70,7 +70,7 @@
   ],
   "evidence": {
     "asset_material_audit": "docs/research/results/g3-scene-asset-material-audit-20261023.json",
-    "license_audit": "docs/research/G3_SCENE_FAMILY_LICENSE_AUDIT_2026-10-23.md",
+    "license_audit": "docs/research/SCENE_FAMILY_LICENSE_AUDIT_2026-10-23.md",
     "official_osm_copyright": "https://www.openstreetmap.org/copyright",
     "official_odbl_1_0": "https://opendatacommons.org/licenses/odbl/1-0/",
     "osmf_produced_work_guideline": "https://osmfoundation.org/wiki/Licence/Community_Guidelines/Produced_Work_-_Guideline"

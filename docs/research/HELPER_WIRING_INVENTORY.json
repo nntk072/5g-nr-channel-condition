@@ -37,7 +37,7 @@
     "datasets/observations.py": "89aa8449476680b129326cb1e2400aaad63def9c04ad0d427d5087f0d49ad7bf",
     "datasets/path_evolution.py": "5ae95a76be88c731109244bbe088d35069b948846450c9480a6ce1ef6f107f7d",
     "datasets/path_oracle.py": "8bb401d6eb2c27246ecff25c8f59142daa281c356b363b0ff88ba5a536fc5899",
-    "datasets/public_release.py": "c7250e3eca5c2cdc296fa282ef7ee40790b12f1bc3cf0f570dee0cc862166173",
+    "datasets/public_release.py": "796619cbc98d0195f340579368dd3cbdcf89e7f998896c113cb9de8dea1db0b5",
     "datasets/scenario_gbsm.py": "46b20869adfe2d47791dce1a2d7c7e6291b4331ebb223cfbf218e3b9f0e8f3ef",
     "datasets/schema/network-grid-sinr-workflow-report.v1.schema.json": "343f4cb539c80d3796210a6c86c97235daa81957215cd9f315ed779001f3e042",
     "datasets/schema/network-pusch-workflow-report.v1.schema.json": "fb888b2e609160fba82a953788aee3a2114f954ae74eddec41f0cb77c5a3ec8e",
@@ -50,31 +50,31 @@
     "datasets/synthetic.py": "eacec8d5eb8001160c6765bfa70520036cf19a4e03668f3370c88af65729fd56",
     "datasets/targets.py": "3cad092a56093d80c1b86bb8ddbb05c78ff4d50f6d90f2018928feedf1d2c21d",
     "datasets/time_axis.py": "cd937fc916fb655cdd649311c46cd710f326080b272c8416fa11fa0ecaea4893",
-    "docs/research/EXECUTION_QUEUE.md": "8a49c5c6a75973c0aeaf5ab93cd46ff99f4b1feff46b2a1074011d893838d7b7",
-    "docs/research/HELPER_WIRING_MATRIX.md": "aa450b0d1865734d78f0bf461e75eedb8a7b3b779cde89929a7b53e967b7d0e1",
+    "docs/research/EXECUTION_QUEUE.md": "0ec2846b3f9c8ed277f0a3e05527b1ba45591e001e41d09c937c446c223db78d",
+    "docs/research/HELPER_WIRING_MATRIX.md": "ae5c83a3db0add5fd173659ce1d2735368a8bbe624e16510d4469a02f28793f6",
     "docs/research/IMPLEMENTATION_BACKLOG.md": "45282b0ce4128421f9a289b0d5cbb23727ff58978ec0ef423bc5ad2fe0305bcb",
     "docs/research/MASTER_RESEARCH_PLAN.md": "f30d8f567f97443aec722eabc459843aa4e5821f7574ce67080ab99747c5de93",
-    "docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md": "3285eb1398ee83ea4d79b4b0116478ceed9d1374537fe2d3510a3c65a7585da2",
+    "docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md": "726066c9b636ca8fd76cc66a3bec3fc6d30673a8d90464cf4af3801e7f2baeb9",
     "docs/research/schema/helper-wiring-inventory.v1.schema.json": "cbf3f4f5d3f5711d5d0bd208060e90543cbfba890ca718228f7be2befd0a170f",
     "evaluation/caez_forecast.py": "43a1f1d284c28ba12c8bc8265ef5d9e6aba15ef109a4c7f8e884718e1984c61e",
     "evaluation/class_support.py": "f85c297bc8b7451417012f0d90f5a255859a8e08a445f3bcffefae72c72b7d34",
     "evaluation/duplicate_audit.py": "e905d7f7ed273e8644df8c9d8285b53b09a9d67dc0bd113efe1d876b9dfe021b",
-    "evaluation/g3_acquisition_package.py": "5bc05c89f8091e82dbb725469bba5eaf8e79d781fcc7159720cd7e590071557d",
-    "evaluation/g3_complex_csi.py": "8363023e1436e465bc6303fdea9f6667100f3f100d201494de74df8fd3163694",
-    "evaluation/g3_joint_acceptance.py": "cce91bbf6e974361efdeb83fe909ec4f1df8b396d0c7ede31e8aaaf4db6257ab",
-    "evaluation/g3_joint_evaluation.py": "c72997bd9546096e03eda19e58f197c7d884ad8fea61bef9b8e9e7ac281fac46",
-    "evaluation/g3_joint_evidence_artifact.py": "df060b06e242c0e7cc78cc0bdb112c8c399a200056b3c841d71177e2266043ac",
-    "evaluation/g3_joint_evidence_run_manifest.py": "9427fe1c8c765f471abb7854569ce0d5e31d4f7d6e8b9fbb1a3436230dce507d",
-    "evaluation/g3_material_calibration.py": "5b447affb8d5ab934a441606f0319fceeb40b5c8ab015925c849b14d347fae86",
-    "evaluation/g3_path_equivalence_assurance.py": "d75c5beb6b92de37fd633dad98d55e6c86ebedbe6e727aa2f1ba60f4f46c21bc",
-    "evaluation/g3_path_equivalence_roster_cli.py": "72ba8da9107ee8d6c8e5a5bd5026740ce9bc5ba75e0b91fa55da28d3fd261606",
-    "evaluation/g3_propagation_assurance.py": "9a12574a84e2f5585b9b1b694c08690cdf55b04fda38764bc3a69237980bb08d",
-    "evaluation/g3_propagation_metrics.py": "ff2a4c0671eb23b8856d660f8db2f74a3ed639ad827a2072b8c725a5d852689e",
-    "evaluation/g3_qualification_contract.py": "44739adf43c46877d17ce7babdad2d5ea8313cb2b0db2aa88c7ec573074ec91d",
-    "evaluation/g3_receiver_assurance.py": "e35cb9d15fcd98778b1cba9bca2ebe62796e27822f37a7979a70921361cf5d5f",
-    "evaluation/g3_receiver_impact.py": "9a0233abc1555b64696b6c05101a298dc55db883254797e8e3fa75a753536943",
-    "evaluation/g3_sample_size_planning.py": "5c24eb435d7cc8117b49436ac0ba620eaf22a7da53dd1b6fd3d266040ba12090",
-    "evaluation/g4_tdl_profile_reference.py": "d21cd18da8f0377c67b424e368ab18a6bc3e5db8f3fb52d04c6b1ae439109c02",
+    "evaluation/acquisition_package.py": "5bc05c89f8091e82dbb725469bba5eaf8e79d781fcc7159720cd7e590071557d",
+    "evaluation/complex_csi.py": "4ead85243feac621007693dad949d6c331ee9af70ce4efd02f57413986c17177",
+    "evaluation/joint_acceptance.py": "cce91bbf6e974361efdeb83fe909ec4f1df8b396d0c7ede31e8aaaf4db6257ab",
+    "evaluation/joint_evaluation.py": "c0a0ad02150c580d71737325d34b258781c2d68d9b55b1b582ee5b17208e4213",
+    "evaluation/joint_evidence_artifact.py": "df060b06e242c0e7cc78cc0bdb112c8c399a200056b3c841d71177e2266043ac",
+    "evaluation/joint_evidence_run_manifest.py": "9427fe1c8c765f471abb7854569ce0d5e31d4f7d6e8b9fbb1a3436230dce507d",
+    "evaluation/material_calibration.py": "5b447affb8d5ab934a441606f0319fceeb40b5c8ab015925c849b14d347fae86",
+    "evaluation/path_equivalence_assurance.py": "d75c5beb6b92de37fd633dad98d55e6c86ebedbe6e727aa2f1ba60f4f46c21bc",
+    "evaluation/path_equivalence_roster_cli.py": "72ba8da9107ee8d6c8e5a5bd5026740ce9bc5ba75e0b91fa55da28d3fd261606",
+    "evaluation/propagation_assurance.py": "b2d9b67f4943906afc3ee66c5ef9ec1b9abe9c6a5d51db1c396164613cbb1752",
+    "evaluation/propagation_metrics.py": "2bc4e48780c040648ed6045cc7e5cadfd192423ac6fdddce06a701361b2a1592",
+    "evaluation/qualification_contract.py": "44739adf43c46877d17ce7babdad2d5ea8313cb2b0db2aa88c7ec573074ec91d",
+    "evaluation/receiver_assurance.py": "e35cb9d15fcd98778b1cba9bca2ebe62796e27822f37a7979a70921361cf5d5f",
+    "evaluation/receiver_impact.py": "25e2e1ac5adc9d26aca823487dedccddbc23283ba07d50f41ba2b3465779a281",
+    "evaluation/sample_size_planning.py": "5c24eb435d7cc8117b49436ac0ba620eaf22a7da53dd1b6fd3d266040ba12090",
+    "evaluation/tdl_profile_reference.py": "4ebe001194e9a82ec2e2ec304d0fb168170b9654a739b8b6017537432a5889ee",
     "evaluation/independent_splits.py": "35e70b894173e0820bc8a6cdb0f3bd3a0e5a7881c2077482fa0d966ba8baea5a",
     "evaluation/low_confidence.py": "d1d5eff3513dcf5556ce78010ad05bc16b69bfeae85a59c5e99c24aa2c47203a",
     "evaluation/metrics.py": "7b4e2f348fc3fa3f5e2142d67494a3dfbd02fe7cbb9439825a74621b7c821a36",
@@ -87,26 +87,26 @@
     "evaluation/target_coverage.py": "d9f431a645927312d2cd90512566207a5b7834cd554e698c1e774c8b2bedabed",
     "evaluation/uncertainty.py": "6d8f29ea70b4ab5a1bd21a29155aaa8569ed483a84d04d67b9b25f958412fa2d",
     "evaluation/uncertainty_io.py": "837f93820c2d81533fdede9e9f43fe9e9946598a485a4576e1c6c26b0a736462",
-    "experiments/audit_g5_cp_bounded_dft_diagnostic.py": "f86d29b84b0dd174cbf92eab3952de914e76ac4192ce4fe534c3bb969c6e5811",
-    "experiments/audit_g5_static_reference_failures.py": "52c775201ee7b08d2387218fb1b0336e52c0b4ce3116fcc2c08758137bf4480e",
-    "experiments/audit_g5_tdl_dmrs_density_development.py": "156d5617393f208644bd9fc79d7e5a3076e1a90a568d05a1d9db0f7d4069b7b7",
+    "experiments/audit_cp_bounded_dft_diagnostic.py": "d488f78937af59dcbc107554bcb7849a12bd96913f733c5f8c8db9a175d4eaa8",
+    "experiments/audit_static_reference_failures.py": "648fc5a4c664d11d2255192a4043d4c72c7f975ff8ef3942bb3e00ec015199c3",
+    "experiments/audit_tdl_dmrs_density_development.py": "aad3256e9eda5beb87706475cc3f9466c8d6f25400fb47d5395ff669c5834fcb",
     "experiments/capacity_sweep.py": "123cfcec10335e46fda2a00c53e8a448e5fd4fa3cdc23af06f464d824f52dc40",
     "experiments/cp_margin.py": "27c3d25e03f17e43ef41251eddee79bd1790f84d902039836f8b1b439e3bfb6a",
-    "experiments/diagnose_g5_estimator_choice.py": "c1139044996c9429ad8aca0d23ddbfb2e7a64628cd7dd696e66bc36e00092f5c",
-    "experiments/g5_acceptance.py": "c7050a6f82f2e5047b43e3962dee7a9532c2677f07ae8a5fffb9f1389cc0caa0",
-    "experiments/g5_doppler_awgn_receiver.py": "3b6e9d65866c3a376e7bd5edccf244516d14404ba98cf6c5cb309aade8d18f8c",
-    "experiments/g5_independent_channel_receiver.py": "792c926fe25b5ff7d8b7b5f642136843ef7cb1055dc725e4efd7d7f662cd1f1c",
-    "experiments/g5_ordered_impairments_receiver.py": "13413556d401c7cf280d9d3a3297122c1c373ef66110df04a79fbe07706ecbab",
-    "experiments/g5_time_varying_multipath_receiver.py": "e8d467565092070e1ad6f62b0755339a63ca6375aac92324a1a7f2219c3146d4",
-    "experiments/link_curves.py": "1732b46fd12648e3b1fd1fb29c5c832ae1c3e01f73e83940ffcbabfc86ac3ae5",
+    "experiments/diagnose_estimator_choice.py": "3ce90a31a39fda088f80472223b8a506dc0607024916c16e49162a1fc95b1aa5",
+    "experiments/acceptance.py": "c7050a6f82f2e5047b43e3962dee7a9532c2677f07ae8a5fffb9f1389cc0caa0",
+    "experiments/doppler_awgn_receiver.py": "3b6e9d65866c3a376e7bd5edccf244516d14404ba98cf6c5cb309aade8d18f8c",
+    "experiments/independent_channel_receiver.py": "792c926fe25b5ff7d8b7b5f642136843ef7cb1055dc725e4efd7d7f662cd1f1c",
+    "experiments/ordered_impairments_receiver.py": "13413556d401c7cf280d9d3a3297122c1c373ef66110df04a79fbe07706ecbab",
+    "experiments/time_varying_multipath_receiver.py": "e8d467565092070e1ad6f62b0755339a63ca6375aac92324a1a7f2219c3146d4",
+    "experiments/link_curves.py": "01a97663b6c9566fe0e60199c5e77a6a5c3c421e26133012a8e058b725dbe16a",
     "experiments/observable_multipath.py": "39a9008ee9d3d7ca4467be0a5310b9ce03ea48dfdb98b1431fd2197b91a24d2c",
     "experiments/profile_holdout.py": "33dec583942a07cb5bc0fee759636f735a72f2420415ce1382b758c8ec304d7a",
-    "experiments/qualify_g5_delay_domain_dft.py": "a02496531a8cdc938d852c08d8253f7a31c7deca9d17c1ac807f3ba1c67efec1",
-    "experiments/qualify_g5_tdl_c_dmrs_density.py": "c7a125dd9406fb1a33a38667e40cb74e54aaff3c90f4787e2a9803fbbb780422",
+    "experiments/qualify_delay_domain_dft.py": "80c746d67c3c0620cf3cbd6b526fff1563289e4094b8bd484a9f2040f4b28c91",
+    "experiments/qualify_tdl_c_dmrs_density.py": "cf670cbb8c0c8fb834177a1ed63b52fd307dc719272629b00e55f7d111a13875",
     "experiments/rt_trajectory_forecast.py": "4a49d1eebea4e1172aa967aa290e396a87d25fa97c5de74b970c291f2ad323a3",
     "experiments/runner.py": "377311a3745f2bce6b864c9f220cb84cb1ad36eecab1f7b91597227787d3fa02",
-    "experiments/scan_g5_doppler_dmrs_density.py": "af3eaedfd90136035e3d2c4819ef5fcba91cf33d2d362249b84b74f73d7a3690",
-    "experiments/scan_g5_doppler_operating_point.py": "374d3661de765b8610c4c7b1f7cdf99f9e6c6f6ae2b30634331758b5e080aad4",
+    "experiments/scan_doppler_dmrs_density.py": "af3eaedfd90136035e3d2c4819ef5fcba91cf33d2d362249b84b74f73d7a3690",
+    "experiments/scan_doppler_operating_point.py": "9e367823759899aa39103bb099682fa99ed6651a2276da5d9ef4e70302b5109b",
     "experiments/standardized_pusch_cp_exceedance.py": "db620a92883dbe21807c27bb84d686c3aca186db123795bc5446f6dd550f9f74",
     "experiments/trajectory_targets.py": "f966f7b4d0a42a2fc56a5764511f3f7f771f1a926b6a065ba8a33348d5d89cd2",
     "integrations/sionna/adapter.py": "29dc2914fb1ab475c02871ba7ee6dd94aa5ecd4045a97a550085dea39800ffed",
@@ -174,10 +174,10 @@
     "scripts/materialize_direct_path_ablation.py": "fef1f3503ceaaa9e04f3e84a58826dc1051fec1837a288086609986f91da0954",
     "scripts/measure_nr_store_memory.py": "975293f477ce75d16599d0c32ab5c724a118cf724cabee2fed0db865783a25a8",
     "scripts/pair_stored_frequency_views.py": "8ef82c0ae945d5522b0060c02c724f4b8576cf7986efa60d029e9fc8edcfda12",
-    "scripts/plan_g3_acquisition_design.py": "ca68c1de7be7d905ccd6d01265079332d3b4e6ffeecfef7c06e2c4713da43715",
+    "scripts/plan_acquisition_design.py": "ca68c1de7be7d905ccd6d01265079332d3b4e6ffeecfef7c06e2c4713da43715",
     "scripts/render_rt_endpoint_positions.py": "7fc16121d551402f042cdccaeca206b0a541172796c3c0d6ddf7d54ad2faae18",
     "scripts/render_rt_path_qa.py": "9a46318f58d860819b7d41ee89afbb89fa0ecd425c33ae01268dcf050ece0339",
-    "scripts/run_g4_cdl_e_fresh_seed_replication.py": "ae99227306d5486d612526c916b14e91a1920b824db0e9f63b1b8c732204aae5",
+    "scripts/run_cdl_e_fresh_seed_replication.py": "ae99227306d5486d612526c916b14e91a1920b824db0e9f63b1b8c732204aae5",
     "scripts/run_observable_multipath_experiment.py": "ade85753c92f35f8337a893aa89c24689e657c161a298fe9fd3202e9b016ed33",
     "scripts/run_profile_proxy_dataset.py": "7e569af9db6b7463eecb592380e3e67f5d2dcdd0eb9c5b8e6ea7befd1cecfeaf",
     "scripts/run_rt_solver_convergence.py": "df0da07a637aa177178ceaa1cb765d46e59ea96aa2d3b8ccfe79fb29175bc66c",
@@ -207,14 +207,14 @@
     "tests/test_evaluation/test_benchmark_partitions.py": "e69be8cc1c6117c70ee765be74608b6ab724e2442942da80dec8b04dc066dafb",
     "tests/test_evaluation/test_class_support.py": "445bf93cc05c046989d1ebfdacc3ea3970cc38fdaf5ffc2c2dfeae74ab6d99cb",
     "tests/test_evaluation/test_duplicate_audit.py": "8f391f39c9f42ceab95a27d60f14dac72b925442ca6260c0df05737614fa8470",
-    "tests/test_evaluation/test_g3_joint_acceptance.py": "693eca9649948db9ba98209e227a71f960fa652331fabf70c4fe3c69eee273b5",
-    "tests/test_evaluation/test_g3_joint_evaluation.py": "1802a5f12a2d5f8515224351b4c6ea4e317cab5e1fa56aaa2e4d0574382a3462",
-    "tests/test_evaluation/test_g3_joint_evidence_artifact.py": "bfc9dd7db0153d19d987fdb3b68dbf84436bf7d2042f8f707f7f65bf9479ec33",
-    "tests/test_evaluation/test_g3_path_equivalence_assurance.py": "26e92e162bf722d41ae987008d1bce6066a144c46662a2301a15099b247e856d",
-    "tests/test_evaluation/test_g3_qualification_contract.py": "f8f1522af73e1662996268193d9c06b23e54cdb40dd0b00647562e5b28bb5501",
-    "tests/test_evaluation/test_g3_receiver_impact.py": "0073a14ade3cee7c2b8ecd29f455643ce368a88f99db21512ca9fce047d581eb",
-    "tests/test_evaluation/test_g3_sample_size_planning.py": "c67ddc6b866e2c1c7cd03151a41b05cf241130e88f7ead60bee3a67c700df38d",
-    "tests/test_evaluation/test_g4_tdl_profile_reference.py": "d7623a6c227512419fa1e88123c84ae0d6b5b2c38573bfc467d09b28c349a95c",
+    "tests/test_evaluation/test_joint_acceptance.py": "693eca9649948db9ba98209e227a71f960fa652331fabf70c4fe3c69eee273b5",
+    "tests/test_evaluation/test_joint_evaluation.py": "958d1f5982b654f961cbabf71f17f8325031dc21b8019138690960f6ba98989a",
+    "tests/test_evaluation/test_joint_evidence_artifact.py": "bfc9dd7db0153d19d987fdb3b68dbf84436bf7d2042f8f707f7f65bf9479ec33",
+    "tests/test_evaluation/test_path_equivalence_assurance.py": "26e92e162bf722d41ae987008d1bce6066a144c46662a2301a15099b247e856d",
+    "tests/test_evaluation/test_qualification_contract.py": "f8f1522af73e1662996268193d9c06b23e54cdb40dd0b00647562e5b28bb5501",
+    "tests/test_evaluation/test_receiver_impact.py": "0073a14ade3cee7c2b8ecd29f455643ce368a88f99db21512ca9fce047d581eb",
+    "tests/test_evaluation/test_sample_size_planning.py": "c67ddc6b866e2c1c7cd03151a41b05cf241130e88f7ead60bee3a67c700df38d",
+    "tests/test_evaluation/test_tdl_profile_reference.py": "d7623a6c227512419fa1e88123c84ae0d6b5b2c38573bfc467d09b28c349a95c",
     "tests/test_evaluation/test_independent_splits.py": "a8aace325cf97ebe1773784874a0fb30c7022871ecd6d5327f0a1edd55b53d41",
     "tests/test_evaluation/test_low_confidence.py": "868ca0cc19a4fbe94c5c2e35a610195e27c4f78bcaf224eb53dcd2db844895a1",
     "tests/test_evaluation/test_metrics.py": "c271db2cd2221e1e55500aa05bc3ca2250b6b9ea98e98441aabc4aab0d927077",
@@ -226,8 +226,8 @@
     "tests/test_evaluation/test_target_coverage.py": "45aaf9e23c01432c3e278f6250296de3e40a5da4a5d18485898d807b758cfc18",
     "tests/test_evaluation/test_uncertainty.py": "8707bed75d054e54bd6dde865ed2decc252ed7fa05a647fd4e24e1f6437cdf38",
     "tests/test_experiments/test_capacity_sweep.py": "a71191c4061760aa8f107c777c8795efe97552820d458d8c524e3fae66459442",
-    "tests/test_experiments/test_g5_acceptance.py": "de989f74513425e434b303cfd588c3c5993a1e8bd750e4786837d02ea3a008c2",
-    "tests/test_experiments/test_g5_cp_bounded_dft_estimator.py": "c72e90755aac99f5f36fba5e6f728bb72a6e0ea4dc98f38816f6bf341974d36b",
+    "tests/test_experiments/test_acceptance.py": "de989f74513425e434b303cfd588c3c5993a1e8bd750e4786837d02ea3a008c2",
+    "tests/test_experiments/test_cp_bounded_dft_estimator.py": "9ecd5cc6f3049cabf1871fb6b3ad1bdc937a223e27ec2660aa9fe88de9ffd3ff",
     "tests/test_experiments/test_link_curves.py": "ebe70899c1af7d206130a0f15f1b1e62f91b8afda6420303bf5c2dddf6fe73c4",
     "tests/test_experiments/test_observable_multipath_inputs.py": "25ff7aa6b4e328b34bf5962e4b93111d447d94665eebccd01570ef3b0a9c2139",
     "tests/test_experiments/test_rt_trajectory_forecast.py": "2feb3147ae81905b16d76efe84eaa8f8ad83a39a27f04853781a97760725b141",
@@ -238,65 +238,65 @@
     "tests/test_integrations/test_cdl_native.py": "756fc25cc89e00c192cae8d630e32aba123ddc3633e573a39394fd7ad1fde477",
     "tests/test_integrations/test_cdl_profile_tables_native.py": "b6b0ea7aecba9a8f73ff352e02145d196b62740438ed98f568498952669c2228",
     "tests/test_integrations/test_channel_draw_semantics_native.py": "06d870e7d9272a1f312be529bfc4da23772acf1f5b2aff13091e9925138f6f04",
-    "tests/test_integrations/test_g2_nr_frequency_order.py": "58c78fb702ac3d82447fb9c1cd07dc97fadb94aa360137dc15a1a26d49e42fd7",
-    "tests/test_integrations/test_g4_admission_native.py": "91c992a7260d6876a825e29255358b1da82ab353f25cd9a6542854f9b3b1d889",
-    "tests/test_integrations/test_g4_cdl_abc_rotated_dual_pol_array_covariance_native.py": "b0d33298d16e43f2536c735a5eb978a3d8e06f3e5162acc74da3d5b743c11ed6",
-    "tests/test_integrations/test_g4_cdl_angular_power_confidence_native.py": "454c9587e36724621f069bcb43b73fcf503538a6685367c2f74d0a6c03bea664",
-    "tests/test_integrations/test_g4_cdl_antenna_pattern_power_native.py": "fd09f1c1bdc1ad216c018de09d90e944ca26f27a861ea0fc81b1a13c3cef80f7",
-    "tests/test_integrations/test_g4_cdl_c_spatial_covariance_reference_native.py": "f0d47233fe81da3deae34f072db784fc3aebe4e331919437c21b2cf559a1b786",
-    "tests/test_integrations/test_g4_cdl_complex_circularity_native.py": "3379f82c73f8f4df78534889cd3f0faaaf8ac03518bba065f885e343e21c5c87",
-    "tests/test_integrations/test_g4_cdl_d_los_diffuse_spatial_reference_native.py": "03ee2ece5ba78b5e3e5d7fdd7f857e58fb85418b396e0ecaa1c818867d0dcdd3",
-    "tests/test_integrations/test_g4_cdl_d_los_temporal_reference_native.py": "1118c2757d9e24434ed4f83394b8d6590d8d8724c71d482610da9be1123e42ef",
-    "tests/test_integrations/test_g4_cdl_de_los_dual_pol_array_covariance_native.py": "7d0e1c00a28eebdb522d4221d0689fb2f05fe869f5c3a84641a964c97741e148",
-    "tests/test_integrations/test_g4_cdl_de_rotated_los_dual_pol_array_covariance_native.py": "38251e6f1b8ae4c1f61e376275f8b10f6a9b70b5c85e79f56ed3aa65467c7b45",
-    "tests/test_integrations/test_g4_cdl_delay_angular_moment_native.py": "280dbba38a8e72e901fd06f6d0964782922d5c4e1f22174dd152ece5a339fd3a",
-    "tests/test_integrations/test_g4_cdl_dual_cross_handheld_ut_spatiotemporal_covariance_native.py": "fc116bbbcc1ac3002270536e8ff7b08abca3d5a6d82ac3937b2573fda038d455",
-    "tests/test_integrations/test_g4_cdl_dual_pol_array_covariance_native.py": "1a7584d1146d301ffc74e25928669f5ae326bb165457caec6715e4af1df325fb",
-    "tests/test_integrations/test_g4_cdl_dual_polarization_power_matrix_native.py": "6709cf0300cc847aec39659925b42786c6d6519f6a11137b05b2a79f529e22d7",
-    "tests/test_integrations/test_g4_cdl_dual_polarized_xpr_covariance_native.py": "08262c6e7d4464af2dd3f339af2e63c96acc8a797ecf77d0cd20f2a6cdd43be8",
-    "tests/test_integrations/test_g4_cdl_e_los_temporal_reference_native.py": "09186e73ef5a91f67388d086e1e88c82ca45ea56262a9a11fdf7fba711d68915",
-    "tests/test_integrations/test_g4_cdl_handheld_ut_operating_point_spatiotemporal_covariance_native.py": "894a243740bf92afddd7ac630c21acaf955f191b0e638f00f67dbad6ecf24285",
-    "tests/test_integrations/test_g4_cdl_handheld_ut_oracle_native.py": "23fb95a0bd25ea44db9f47621d0115949783a030d5a14eaaa31d330e00517b3c",
-    "tests/test_integrations/test_g4_cdl_handheld_ut_spatiotemporal_covariance_native.py": "6fbc6dfb2cdfa187b8707ed664c8868c238e7798b36db53973ba902b0e075df6",
-    "tests/test_integrations/test_g4_cdl_joint_tx_rx_dual_pol_spatiotemporal_covariance_native.py": "775c688ddbec6a44e56c38f9fcdf9beab429b04309b14db2ddfebebef02c4652",
-    "tests/test_integrations/test_g4_cdl_joint_tx_rx_dual_tx_rx_spatiotemporal_covariance_native.py": "64c9f529c6f0da085f238a60b4dc2c15656289e748275a9ce167eb3c35e93175",
-    "tests/test_integrations/test_g4_cdl_joint_tx_rx_spatial_covariance_native.py": "ec840f8f67f385a5d060962a13f348b42d0ce4a08e52cab5a406c1bfc087d66c",
-    "tests/test_integrations/test_g4_cdl_joint_tx_rx_spatiotemporal_covariance_native.py": "93f1d8c13fc728b05596619bd83762330b265602ebf4ec771fa1390f35477119",
-    "tests/test_integrations/test_g4_cdl_larger_dual_tx_rx_spatiotemporal_covariance_native.py": "4dd96d2db7a1722299c4d822c53f99108c86d43918395b32b5bc60252575ec5b",
-    "tests/test_integrations/test_g4_cdl_larger_topology_joint_tx_rx_spatiotemporal_covariance_native.py": "566f7b64969fc5b103cf1f909fbb8ce45c5137d98ef4becf24aeb96fadf51ae3",
-    "tests/test_integrations/test_g4_cdl_los_delay_angular_moment_native.py": "ad3cfedaa8c8fc003a0b9efdeede20ec1f2bdc5ad0d561680ffe36941ade9119",
-    "tests/test_integrations/test_g4_cdl_patterned_rotated_dual_tx_rx_spatiotemporal_covariance_native.py": "0ba3092be13bb3059dde1c6598fb5972ded04a7d42ed7b9c7041fc1f5492e8f5",
-    "tests/test_integrations/test_g4_cdl_rotated_dual_tx_rx_spatiotemporal_covariance_native.py": "22b14a596c4df4f3137c418b97d98735084f0caf81148073bcf1c337e13bf327",
-    "tests/test_integrations/test_g4_cdl_spatial_covariance_4element_native.py": "71193b36a4bcafd9269561c1da5ba2143b0161fad8f1f2fd4560402e26950295",
-    "tests/test_integrations/test_g4_cdl_spatial_covariance_reference_native.py": "c13405e4fa8da374294d0776bcfb7880485e9dde5afc81a93aaa9c53ab899542",
-    "tests/test_integrations/test_g4_cdl_spatiotemporal_covariance_native.py": "a38b385ab339ad4f0228ec6cf68fb19f706d88462489b4452ad1610681267ba0",
-    "tests/test_integrations/test_g4_cdl_temporal_vector_reference_native.py": "c6c07aebdc949b011c1709ef901da71c5220913d1e48aadb9c22d5d3cbb05a95",
-    "tests/test_integrations/test_g4_core1_covariance_matrix_native.py": "5bf4674c78e7570e23a4d7ae2aaecfa6b4d33fc61a63726ce51fd3c44c7af5bf",
-    "tests/test_integrations/test_g4_core1_topology_native.py": "4e682a850eb59ba50b2fdc6987c61df2358b1c656402c8ad47cb6d52b2c8e166",
-    "tests/test_integrations/test_g4_fixed_tdl_complex_circularity_native.py": "040625e8c8b1a335b7423b671f10c7d9e536178517c9de3c658f53ea9f1a5213",
-    "tests/test_integrations/test_g4_fixed_tdl_doppler_spectrum_native.py": "39b88d8374dc582e8641eecc504ccff9e340c49bda6a789bd08540767906d3de",
-    "tests/test_integrations/test_g4_fixed_tdl_fr2_admission_reference_native.py": "9caf9381acb73156b7dae38dc735337f3f6a3bbd172bfb69643d15f93f2291db",
-    "tests/test_integrations/test_g4_fixed_tdl_rician_marginal_native.py": "4981a80365f2e67c443e4f48328eacc50f9405314b14ea83506f706a0ace3586",
-    "tests/test_integrations/test_g4_fixed_tdl_temporal_reference_native.py": "66671cce4b2d74eeea62348d44e582e7ae05ac4508c90e19df4076ab3584df76",
-    "tests/test_integrations/test_g4_scalable_tdl_complex_circularity_native.py": "5462d63755242d13c5026e31d8ad5bdccb1312463edab0823f3ba8275b81eeb0",
-    "tests/test_integrations/test_g4_scalable_tdl_doppler_spectrum_native.py": "ecf93a04b49421889b7127581c99fdb1923824fbc5456f36f16227d6644e4b1a",
-    "tests/test_integrations/test_g4_scalable_tdl_temporal_reference_native.py": "13515fa377f8d121b4c76c15ded8ddef252c82d75d230dbb412b6a5b52a9715e",
-    "tests/test_integrations/test_g4_statistical_confidence_native.py": "3cdb0a10294c10caf3742d888f289e5b442b304adae11dfeab6295e221b4bfb3",
-    "tests/test_integrations/test_g4_tdl_fixed_profile_scalar_reference_native.py": "f95099784395df4405c2e44aad6b9e3e2fc8b83991c2061c380c6fb1626ecd1a",
-    "tests/test_integrations/test_g4_tdl_los_k_factor_reference_native.py": "28df2bcb68c6863ba812a3c936a1609b4dfd23859b5a60cf871b1b39084956e6",
-    "tests/test_integrations/test_g4_tdl_rayleigh_marginal_native.py": "e79903ac4bec37740728988e302d619e01dd6d4eea7b199da187dfbf70ad9c87",
-    "tests/test_integrations/test_g5_pbch_bch_native.py": "51f34b99d2a8e929c8e767220c27123a6e33be7ca9151f980b6af2eebc7dbd1b",
-    "tests/test_integrations/test_g5_pbch_data_native.py": "db456abdb1bad9bec345f1e339687857430529e7aaa78d11f672be4e9dd1d7bd",
-    "tests/test_integrations/test_g5_pbch_dmrs_native.py": "ccc3c3f8344875e27eec6b35cda47d61898e477ab803743e2cdd417cba44c4e7",
-    "tests/test_integrations/test_g5_pbch_mib_native.py": "a3aaefb193a8bcab0f6a2ca555d2bea69f5fc4d6186858c03f0063b80a87f4f7",
-    "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py": "d2163cfdb0c0cfc49781d1f2bc6765aeb12589e3f3fa0e8b40b29d783bdf54ad",
-    "tests/test_integrations/test_g5_pbch_payload_native.py": "8aa7b8b1553eb05246c6dd3f52fa90af7db159830723057a7e2e30c0ea6abc48",
-    "tests/test_integrations/test_g5_srs_measurements.py": "d422d1394befd33484cf6bcc294ddb704572cbd291dcfe4f7246ea76fd57ccb8",
-    "tests/test_integrations/test_g5_srs_resource_mapping.py": "d4d39bb644653163d09774e49bccb4b0c76580ad6c570e63135a1af4933fd028",
-    "tests/test_integrations/test_g5_ssb_epre_native.py": "c5f326fecba6a1b4cecdf2ca5088da019821137ad1be2530e6b9190e840ad92a",
-    "tests/test_integrations/test_g5_ssb_half_frame_native.py": "9f314314118f66291205975ea3641665a86643f4a9ce6f8aba719f11bbfc5f07",
-    "tests/test_integrations/test_g5_ssb_timing_native.py": "7642b672b9602120099de31ba804a1f868a590ce742711e7a1c56c733c4b4a67",
-    "tests/test_integrations/test_g5_ssb_waveform_config_native.py": "abb06cd5cda4ea97ae0c27dc0567db5f562725d883c081b69908d31ca30ade4f",
+    "tests/test_integrations/test_nr_frequency_order.py": "58c78fb702ac3d82447fb9c1cd07dc97fadb94aa360137dc15a1a26d49e42fd7",
+    "tests/test_integrations/test_admission_native.py": "91c992a7260d6876a825e29255358b1da82ab353f25cd9a6542854f9b3b1d889",
+    "tests/test_integrations/test_cdl_abc_rotated_dual_pol_array_covariance_native.py": "f89320b82096605c9bf93395b831cb6f406b9ac4b256ebef27b09ca4da478d8c",
+    "tests/test_integrations/test_cdl_angular_power_confidence_native.py": "e88dd3400a80920407d53545230c4ed731dfbae97a7f9e4a04a80ad22a03fdaf",
+    "tests/test_integrations/test_cdl_antenna_pattern_power_native.py": "2774d6884ca37c8bb516b9b2ca0d3f6c3051803073a9cec4063ea162f77b84fb",
+    "tests/test_integrations/test_cdl_c_spatial_covariance_reference_native.py": "f0d47233fe81da3deae34f072db784fc3aebe4e331919437c21b2cf559a1b786",
+    "tests/test_integrations/test_cdl_complex_circularity_native.py": "3379f82c73f8f4df78534889cd3f0faaaf8ac03518bba065f885e343e21c5c87",
+    "tests/test_integrations/test_cdl_d_los_diffuse_spatial_reference_native.py": "e13bef2475f613908d207773bec38d9edf6a8fff75f9b556c7d06c5b44ab2c67",
+    "tests/test_integrations/test_cdl_d_los_temporal_reference_native.py": "317ba1375c755644c29928051786aa5702f5eaceeed9b9ca143a548ab8437b41",
+    "tests/test_integrations/test_cdl_de_los_dual_pol_array_covariance_native.py": "7d0e1c00a28eebdb522d4221d0689fb2f05fe869f5c3a84641a964c97741e148",
+    "tests/test_integrations/test_cdl_de_rotated_los_dual_pol_array_covariance_native.py": "f34b4933b4b481470ba83b21ff699b449696067abb11f54b814ffe3663406703",
+    "tests/test_integrations/test_cdl_delay_angular_moment_native.py": "280dbba38a8e72e901fd06f6d0964782922d5c4e1f22174dd152ece5a339fd3a",
+    "tests/test_integrations/test_cdl_dual_cross_handheld_ut_spatiotemporal_covariance_native.py": "cbc2d9bf3d371f0f3572a1d9af6f5acd6ef313639a6e56d2d81fff8886e8ba47",
+    "tests/test_integrations/test_cdl_dual_pol_array_covariance_native.py": "1a7584d1146d301ffc74e25928669f5ae326bb165457caec6715e4af1df325fb",
+    "tests/test_integrations/test_cdl_dual_polarization_power_matrix_native.py": "6709cf0300cc847aec39659925b42786c6d6519f6a11137b05b2a79f529e22d7",
+    "tests/test_integrations/test_cdl_dual_polarized_xpr_covariance_native.py": "b4eeacadd7ae0385c72683f16c74dc3fd0931a46095387935af947b829cd35f3",
+    "tests/test_integrations/test_cdl_e_los_temporal_reference_native.py": "01b62eeb920a4381fb10e3e6553fc8c10611e7d0fab3689359d7473364b0158e",
+    "tests/test_integrations/test_cdl_handheld_ut_operating_point_spatiotemporal_covariance_native.py": "935b9e5c1d46b1e777693e9e7c7421cce8d90b4f9b0587fc8cd686c932bf1db2",
+    "tests/test_integrations/test_cdl_handheld_ut_oracle_native.py": "e2747de64c9ecd77c2a3f14da28bdfe8c1772e95f4adbed2f95bfab075f1cdc0",
+    "tests/test_integrations/test_cdl_handheld_ut_spatiotemporal_covariance_native.py": "ef389704d3e6b51686ab14893a1da9f6de4ac2ca1abd8a8ebebdf8f348c19ada",
+    "tests/test_integrations/test_cdl_joint_tx_rx_dual_pol_spatiotemporal_covariance_native.py": "62af37174c505bb2ad8f17a670ccd879a40c1211fc3edf95cb8b2c76fb21f6a8",
+    "tests/test_integrations/test_cdl_joint_tx_rx_dual_tx_rx_spatiotemporal_covariance_native.py": "d6be82b2465ec3f5d2951993078472e66d2c7aadf583daafdee0189ea23dba18",
+    "tests/test_integrations/test_cdl_joint_tx_rx_spatial_covariance_native.py": "ec840f8f67f385a5d060962a13f348b42d0ce4a08e52cab5a406c1bfc087d66c",
+    "tests/test_integrations/test_cdl_joint_tx_rx_spatiotemporal_covariance_native.py": "413cfc8f817b8a6b6c38e5f233d8569037219abcdcc4e0603b71ded61fa0d0b5",
+    "tests/test_integrations/test_cdl_larger_dual_tx_rx_spatiotemporal_covariance_native.py": "206ce0cf9276ac692f6a52eb055d1ab59916e8a3a3c8bf866ab1a868e61841f2",
+    "tests/test_integrations/test_cdl_larger_topology_joint_tx_rx_spatiotemporal_covariance_native.py": "95764c0296f638fe3614fab19a31817c39d3ee1dd8acdbe03e3c1db56b1c16ef",
+    "tests/test_integrations/test_cdl_los_delay_angular_moment_native.py": "ad3cfedaa8c8fc003a0b9efdeede20ec1f2bdc5ad0d561680ffe36941ade9119",
+    "tests/test_integrations/test_cdl_patterned_rotated_dual_tx_rx_spatiotemporal_covariance_native.py": "0ba3092be13bb3059dde1c6598fb5972ded04a7d42ed7b9c7041fc1f5492e8f5",
+    "tests/test_integrations/test_cdl_rotated_dual_tx_rx_spatiotemporal_covariance_native.py": "1c5f0408dedd46536f95b8876ba4e86fcc63edce3b5b804c45ed71508b2c2193",
+    "tests/test_integrations/test_cdl_spatial_covariance_4element_native.py": "a37b5133f839a7ee2b8b332caf27bd26e6842d1b8015fc2cd95becce94fca5a2",
+    "tests/test_integrations/test_cdl_spatial_covariance_reference_native.py": "c13405e4fa8da374294d0776bcfb7880485e9dde5afc81a93aaa9c53ab899542",
+    "tests/test_integrations/test_cdl_spatiotemporal_covariance_native.py": "d78fc6dcc49c8e60ddc0142527655ed866e9a329ae27e0e49dd3a858144366f3",
+    "tests/test_integrations/test_cdl_temporal_vector_reference_native.py": "c0b55ec45aa7d66f11a5e943d5e4117817bf7fbd90af84d3b962172848704bca",
+    "tests/test_integrations/test_core1_covariance_matrix_native.py": "8acfbcd5e32150e84f1d15922d769231d2e82cb95062852addfc5f9aa92c2a5c",
+    "tests/test_integrations/test_core1_topology_native.py": "4e682a850eb59ba50b2fdc6987c61df2358b1c656402c8ad47cb6d52b2c8e166",
+    "tests/test_integrations/test_fixed_tdl_complex_circularity_native.py": "3f39fc732f8c7b0c51fe393b09a2cc8f6f78eaf26839ca6c23365b9aa9a5ce0c",
+    "tests/test_integrations/test_fixed_tdl_doppler_spectrum_native.py": "542c4c0c949b82bfa5447cb0d540d012c1b3471dc70cfbe96e75c32a73502562",
+    "tests/test_integrations/test_fixed_tdl_fr2_admission_reference_native.py": "9caf9381acb73156b7dae38dc735337f3f6a3bbd172bfb69643d15f93f2291db",
+    "tests/test_integrations/test_fixed_tdl_rician_marginal_native.py": "3f23a856e5c0470e80f487a36bcd739ff149130140094cee456b77a734b3d5a9",
+    "tests/test_integrations/test_fixed_tdl_temporal_reference_native.py": "98a453f188f3fd492ab6295100b485f44b9189bd57d84619263e1961588dd854",
+    "tests/test_integrations/test_scalable_tdl_complex_circularity_native.py": "7cb428b897e69b8455fa1dea2f9c6a2b95e2faeae84a4ab869b47db1a39aadff",
+    "tests/test_integrations/test_scalable_tdl_doppler_spectrum_native.py": "779648046f76e43d176bfad7a82e945e925ee5f95a93110d26937068a756aed6",
+    "tests/test_integrations/test_scalable_tdl_temporal_reference_native.py": "9699146e6544fa1683f9e285ed632f5cae2de9216876e1a9e63b5a2d99b4632b",
+    "tests/test_integrations/test_statistical_confidence_native.py": "3cdb0a10294c10caf3742d888f289e5b442b304adae11dfeab6295e221b4bfb3",
+    "tests/test_integrations/test_tdl_fixed_profile_scalar_reference_native.py": "f95099784395df4405c2e44aad6b9e3e2fc8b83991c2061c380c6fb1626ecd1a",
+    "tests/test_integrations/test_tdl_los_k_factor_reference_native.py": "28df2bcb68c6863ba812a3c936a1609b4dfd23859b5a60cf871b1b39084956e6",
+    "tests/test_integrations/test_tdl_rayleigh_marginal_native.py": "e44e441f3c6d337e7875d635f176642b971827fd7d17056fee724f76ac8c89ee",
+    "tests/test_integrations/test_pbch_bch_native.py": "51f34b99d2a8e929c8e767220c27123a6e33be7ca9151f980b6af2eebc7dbd1b",
+    "tests/test_integrations/test_pbch_data_native.py": "db456abdb1bad9bec345f1e339687857430529e7aaa78d11f672be4e9dd1d7bd",
+    "tests/test_integrations/test_pbch_dmrs_native.py": "ccc3c3f8344875e27eec6b35cda47d61898e477ab803743e2cdd417cba44c4e7",
+    "tests/test_integrations/test_pbch_mib_native.py": "a3aaefb193a8bcab0f6a2ca555d2bea69f5fc4d6186858c03f0063b80a87f4f7",
+    "tests/test_integrations/test_pbch_ofdm_receiver_native.py": "d2163cfdb0c0cfc49781d1f2bc6765aeb12589e3f3fa0e8b40b29d783bdf54ad",
+    "tests/test_integrations/test_pbch_payload_native.py": "8aa7b8b1553eb05246c6dd3f52fa90af7db159830723057a7e2e30c0ea6abc48",
+    "tests/test_integrations/test_srs_measurements.py": "d422d1394befd33484cf6bcc294ddb704572cbd291dcfe4f7246ea76fd57ccb8",
+    "tests/test_integrations/test_srs_resource_mapping.py": "d4d39bb644653163d09774e49bccb4b0c76580ad6c570e63135a1af4933fd028",
+    "tests/test_integrations/test_ssb_epre_native.py": "c5f326fecba6a1b4cecdf2ca5088da019821137ad1be2530e6b9190e840ad92a",
+    "tests/test_integrations/test_ssb_half_frame_native.py": "9f314314118f66291205975ea3641665a86643f4a9ce6f8aba719f11bbfc5f07",
+    "tests/test_integrations/test_ssb_timing_native.py": "7642b672b9602120099de31ba804a1f868a590ce742711e7a1c56c733c4b4a67",
+    "tests/test_integrations/test_ssb_waveform_config_native.py": "abb06cd5cda4ea97ae0c27dc0567db5f562725d883c081b69908d31ca30ade4f",
     "tests/test_integrations/test_los_oracle_native.py": "bc4f8422005809495fa7501db586096b5fd50a40a1abebfa99da915bd1a42979",
     "tests/test_integrations/test_network_phy.py": "a56a5ab6d577f22d44743df3dbbfc7fc632ba794ead9c4624db25a7da112d7c4",
     "tests/test_integrations/test_network_phy_native.py": "4e30aac0bfd7537aa7fbd972b345dfd9da407065dc15e32119afc5a45aa3f968",
@@ -2251,7 +2251,7 @@
       "definition_line": 191,
       "direct_production_references": [
         {
-          "path": "evaluation/g3_complex_csi.py",
+          "path": "evaluation/complex_csi.py",
           "line": 119
         }
       ],
@@ -3063,11 +3063,11 @@
           "line": 80
         },
         {
-          "path": "tests/test_integrations/test_g4_admission_native.py",
+          "path": "tests/test_integrations/test_admission_native.py",
           "line": 141
         },
         {
-          "path": "tests/test_integrations/test_g4_admission_native.py",
+          "path": "tests/test_integrations/test_admission_native.py",
           "line": 212
         }
       ],
@@ -3386,7 +3386,7 @@
           "line": 649
         },
         {
-          "path": "tests/test_integrations/test_g4_admission_native.py",
+          "path": "tests/test_integrations/test_admission_native.py",
           "line": 145
         }
       ],
@@ -3624,39 +3624,39 @@
           "line": 75
         },
         {
-          "path": "tests/test_integrations/test_g4_admission_native.py",
+          "path": "tests/test_integrations/test_admission_native.py",
           "line": 42
         },
         {
-          "path": "tests/test_integrations/test_g4_admission_native.py",
+          "path": "tests/test_integrations/test_admission_native.py",
           "line": 73
         },
         {
-          "path": "tests/test_integrations/test_g4_admission_native.py",
+          "path": "tests/test_integrations/test_admission_native.py",
           "line": 131
         },
         {
-          "path": "tests/test_integrations/test_g4_admission_native.py",
+          "path": "tests/test_integrations/test_admission_native.py",
           "line": 210
         },
         {
-          "path": "tests/test_integrations/test_g4_admission_native.py",
+          "path": "tests/test_integrations/test_admission_native.py",
           "line": 52
         },
         {
-          "path": "tests/test_integrations/test_g4_admission_native.py",
+          "path": "tests/test_integrations/test_admission_native.py",
           "line": 94
         },
         {
-          "path": "tests/test_integrations/test_g4_admission_native.py",
+          "path": "tests/test_integrations/test_admission_native.py",
           "line": 175
         },
         {
-          "path": "tests/test_integrations/test_g4_admission_native.py",
+          "path": "tests/test_integrations/test_admission_native.py",
           "line": 262
         },
         {
-          "path": "tests/test_integrations/test_g4_fixed_tdl_fr2_admission_reference_native.py",
+          "path": "tests/test_integrations/test_fixed_tdl_fr2_admission_reference_native.py",
           "line": 53
         },
         {
@@ -4753,11 +4753,11 @@
           "line": 79
         },
         {
-          "path": "tests/test_integrations/test_g4_admission_native.py",
+          "path": "tests/test_integrations/test_admission_native.py",
           "line": 140
         },
         {
-          "path": "tests/test_integrations/test_g4_admission_native.py",
+          "path": "tests/test_integrations/test_admission_native.py",
           "line": 211
         },
         {
@@ -5091,53 +5091,53 @@
     {
       "public_name": "build_g3_joint_evidence_run_manifest",
       "qualified_name": "evaluation.build_g3_joint_evidence_run_manifest",
-      "source": "evaluation/g3_joint_evidence_run_manifest.py",
+      "source": "evaluation/joint_evidence_run_manifest.py",
       "definition_line": 682,
       "direct_production_references": [
         {
-          "path": "evaluation/g3_joint_evidence_artifact.py",
+          "path": "evaluation/joint_evidence_artifact.py",
           "line": 299
         },
         {
-          "path": "evaluation/g3_joint_evidence_run_manifest.py",
+          "path": "evaluation/joint_evidence_run_manifest.py",
           "line": 1630
         }
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 527
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 555
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 969
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1009
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1514
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1066
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1869
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1899
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1917
         }
       ],
@@ -5148,65 +5148,65 @@
     {
       "public_name": "build_g3_qualification_run_contract",
       "qualified_name": "evaluation.build_g3_qualification_run_contract",
-      "source": "evaluation/g3_qualification_contract.py",
+      "source": "evaluation/qualification_contract.py",
       "definition_line": 148,
       "direct_production_references": [
         {
-          "path": "evaluation/g3_qualification_contract.py",
+          "path": "evaluation/qualification_contract.py",
           "line": 517
         },
         {
-          "path": "evaluation/g3_qualification_contract.py",
+          "path": "evaluation/qualification_contract.py",
           "line": 662
         }
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_evaluation/test_g3_qualification_contract.py",
+          "path": "tests/test_evaluation/test_qualification_contract.py",
           "line": 195
         },
         {
-          "path": "tests/test_evaluation/test_g3_qualification_contract.py",
+          "path": "tests/test_evaluation/test_qualification_contract.py",
           "line": 385
         },
         {
-          "path": "tests/test_evaluation/test_g3_qualification_contract.py",
+          "path": "tests/test_evaluation/test_qualification_contract.py",
           "line": 228
         },
         {
-          "path": "tests/test_evaluation/test_g3_qualification_contract.py",
+          "path": "tests/test_evaluation/test_qualification_contract.py",
           "line": 365
         },
         {
-          "path": "tests/test_evaluation/test_g3_qualification_contract.py",
+          "path": "tests/test_evaluation/test_qualification_contract.py",
           "line": 373
         },
         {
-          "path": "tests/test_evaluation/test_g3_qualification_contract.py",
+          "path": "tests/test_evaluation/test_qualification_contract.py",
           "line": 381
         },
         {
-          "path": "tests/test_evaluation/test_g3_qualification_contract.py",
+          "path": "tests/test_evaluation/test_qualification_contract.py",
           "line": 399
         },
         {
-          "path": "tests/test_evaluation/test_g3_qualification_contract.py",
+          "path": "tests/test_evaluation/test_qualification_contract.py",
           "line": 410
         },
         {
-          "path": "tests/test_evaluation/test_g3_qualification_contract.py",
+          "path": "tests/test_evaluation/test_qualification_contract.py",
           "line": 430
         },
         {
-          "path": "tests/test_evaluation/test_g3_qualification_contract.py",
+          "path": "tests/test_evaluation/test_qualification_contract.py",
           "line": 440
         },
         {
-          "path": "tests/test_evaluation/test_g3_qualification_contract.py",
+          "path": "tests/test_evaluation/test_qualification_contract.py",
           "line": 448
         },
         {
-          "path": "tests/test_evaluation/test_g3_qualification_contract.py",
+          "path": "tests/test_evaluation/test_qualification_contract.py",
           "line": 459
         }
       ],
@@ -5217,33 +5217,33 @@
     {
       "public_name": "build_g3_qualification_run_contract_v3",
       "qualified_name": "evaluation.build_g3_qualification_run_contract_v3",
-      "source": "evaluation/g3_qualification_contract.py",
+      "source": "evaluation/qualification_contract.py",
       "definition_line": 501,
       "direct_production_references": [
         {
-          "path": "evaluation/g3_qualification_contract.py",
+          "path": "evaluation/qualification_contract.py",
           "line": 580
         },
         {
-          "path": "evaluation/g3_qualification_contract.py",
+          "path": "evaluation/qualification_contract.py",
           "line": 660
         }
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 828
         },
         {
-          "path": "tests/test_evaluation/test_g3_qualification_contract.py",
+          "path": "tests/test_evaluation/test_qualification_contract.py",
           "line": 235
         },
         {
-          "path": "tests/test_evaluation/test_g3_qualification_contract.py",
+          "path": "tests/test_evaluation/test_qualification_contract.py",
           "line": 258
         },
         {
-          "path": "tests/test_evaluation/test_g3_qualification_contract.py",
+          "path": "tests/test_evaluation/test_qualification_contract.py",
           "line": 276
         }
       ],
@@ -5279,21 +5279,21 @@
     {
       "public_name": "compose_g3_joint_sample_size_design",
       "qualified_name": "evaluation.compose_g3_joint_sample_size_design",
-      "source": "evaluation/g3_sample_size_planning.py",
+      "source": "evaluation/sample_size_planning.py",
       "definition_line": 873,
       "direct_production_references": [
         {
-          "path": "scripts/plan_g3_acquisition_design.py",
+          "path": "scripts/plan_acquisition_design.py",
           "line": 783
         }
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_evaluation/test_g3_sample_size_planning.py",
+          "path": "tests/test_evaluation/test_sample_size_planning.py",
           "line": 779
         },
         {
-          "path": "tests/test_evaluation/test_g3_sample_size_planning.py",
+          "path": "tests/test_evaluation/test_sample_size_planning.py",
           "line": 933
         }
       ],
@@ -5306,57 +5306,57 @@
     {
       "public_name": "evaluate_g3_joint_evidence",
       "qualified_name": "evaluation.evaluate_g3_joint_evidence",
-      "source": "evaluation/g3_joint_evaluation.py",
+      "source": "evaluation/joint_evaluation.py",
       "definition_line": 609,
       "direct_production_references": [
         {
-          "path": "evaluation/g3_joint_evidence_artifact.py",
+          "path": "evaluation/joint_evidence_artifact.py",
           "line": 175
         }
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_evaluation/test_g3_joint_evaluation.py",
+          "path": "tests/test_evaluation/test_joint_evaluation.py",
           "line": 153
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evaluation.py",
+          "path": "tests/test_evaluation/test_joint_evaluation.py",
           "line": 376
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evaluation.py",
+          "path": "tests/test_evaluation/test_joint_evaluation.py",
           "line": 401
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evaluation.py",
+          "path": "tests/test_evaluation/test_joint_evaluation.py",
           "line": 402
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evaluation.py",
+          "path": "tests/test_evaluation/test_joint_evaluation.py",
           "line": 198
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evaluation.py",
+          "path": "tests/test_evaluation/test_joint_evaluation.py",
           "line": 484
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evaluation.py",
+          "path": "tests/test_evaluation/test_joint_evaluation.py",
           "line": 536
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evaluation.py",
+          "path": "tests/test_evaluation/test_joint_evaluation.py",
           "line": 547
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evaluation.py",
+          "path": "tests/test_evaluation/test_joint_evaluation.py",
           "line": 563
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evaluation.py",
+          "path": "tests/test_evaluation/test_joint_evaluation.py",
           "line": 575
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evaluation.py",
+          "path": "tests/test_evaluation/test_joint_evaluation.py",
           "line": 591
         }
       ],
@@ -5412,113 +5412,113 @@
     {
       "public_name": "evaluate_path_equivalence_roster",
       "qualified_name": "evaluation.evaluate_path_equivalence_roster",
-      "source": "evaluation/g3_path_equivalence_assurance.py",
+      "source": "evaluation/path_equivalence_assurance.py",
       "definition_line": 400,
       "direct_production_references": [
         {
-          "path": "evaluation/g3_joint_evaluation.py",
+          "path": "evaluation/joint_evaluation.py",
           "line": 577
         },
         {
-          "path": "evaluation/g3_path_equivalence_roster_cli.py",
+          "path": "evaluation/path_equivalence_roster_cli.py",
           "line": 106
         }
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_evaluation/test_g3_path_equivalence_assurance.py",
+          "path": "tests/test_evaluation/test_path_equivalence_assurance.py",
           "line": 148
         },
         {
-          "path": "tests/test_evaluation/test_g3_path_equivalence_assurance.py",
+          "path": "tests/test_evaluation/test_path_equivalence_assurance.py",
           "line": 164
         },
         {
-          "path": "tests/test_evaluation/test_g3_path_equivalence_assurance.py",
+          "path": "tests/test_evaluation/test_path_equivalence_assurance.py",
           "line": 176
         },
         {
-          "path": "tests/test_evaluation/test_g3_path_equivalence_assurance.py",
+          "path": "tests/test_evaluation/test_path_equivalence_assurance.py",
           "line": 202
         },
         {
-          "path": "tests/test_evaluation/test_g3_path_equivalence_assurance.py",
+          "path": "tests/test_evaluation/test_path_equivalence_assurance.py",
           "line": 258
         },
         {
-          "path": "tests/test_evaluation/test_g3_path_equivalence_assurance.py",
+          "path": "tests/test_evaluation/test_path_equivalence_assurance.py",
           "line": 284
         },
         {
-          "path": "tests/test_evaluation/test_g3_path_equivalence_assurance.py",
+          "path": "tests/test_evaluation/test_path_equivalence_assurance.py",
           "line": 310
         },
         {
-          "path": "tests/test_evaluation/test_g3_path_equivalence_assurance.py",
+          "path": "tests/test_evaluation/test_path_equivalence_assurance.py",
           "line": 436
         },
         {
-          "path": "tests/test_evaluation/test_g3_path_equivalence_assurance.py",
+          "path": "tests/test_evaluation/test_path_equivalence_assurance.py",
           "line": 468
         },
         {
-          "path": "tests/test_evaluation/test_g3_path_equivalence_assurance.py",
+          "path": "tests/test_evaluation/test_path_equivalence_assurance.py",
           "line": 230
         },
         {
-          "path": "tests/test_evaluation/test_g3_path_equivalence_assurance.py",
+          "path": "tests/test_evaluation/test_path_equivalence_assurance.py",
           "line": 241
         },
         {
-          "path": "tests/test_evaluation/test_g3_path_equivalence_assurance.py",
+          "path": "tests/test_evaluation/test_path_equivalence_assurance.py",
           "line": 250
         },
         {
-          "path": "tests/test_evaluation/test_g3_path_equivalence_assurance.py",
+          "path": "tests/test_evaluation/test_path_equivalence_assurance.py",
           "line": 326
         },
         {
-          "path": "tests/test_evaluation/test_g3_path_equivalence_assurance.py",
+          "path": "tests/test_evaluation/test_path_equivalence_assurance.py",
           "line": 331
         },
         {
-          "path": "tests/test_evaluation/test_g3_path_equivalence_assurance.py",
+          "path": "tests/test_evaluation/test_path_equivalence_assurance.py",
           "line": 336
         },
         {
-          "path": "tests/test_evaluation/test_g3_path_equivalence_assurance.py",
+          "path": "tests/test_evaluation/test_path_equivalence_assurance.py",
           "line": 341
         },
         {
-          "path": "tests/test_evaluation/test_g3_path_equivalence_assurance.py",
+          "path": "tests/test_evaluation/test_path_equivalence_assurance.py",
           "line": 349
         },
         {
-          "path": "tests/test_evaluation/test_g3_path_equivalence_assurance.py",
+          "path": "tests/test_evaluation/test_path_equivalence_assurance.py",
           "line": 356
         },
         {
-          "path": "tests/test_evaluation/test_g3_path_equivalence_assurance.py",
+          "path": "tests/test_evaluation/test_path_equivalence_assurance.py",
           "line": 364
         },
         {
-          "path": "tests/test_evaluation/test_g3_path_equivalence_assurance.py",
+          "path": "tests/test_evaluation/test_path_equivalence_assurance.py",
           "line": 376
         },
         {
-          "path": "tests/test_evaluation/test_g3_path_equivalence_assurance.py",
+          "path": "tests/test_evaluation/test_path_equivalence_assurance.py",
           "line": 384
         },
         {
-          "path": "tests/test_evaluation/test_g3_path_equivalence_assurance.py",
+          "path": "tests/test_evaluation/test_path_equivalence_assurance.py",
           "line": 392
         },
         {
-          "path": "tests/test_evaluation/test_g3_path_equivalence_assurance.py",
+          "path": "tests/test_evaluation/test_path_equivalence_assurance.py",
           "line": 420
         },
         {
-          "path": "tests/test_evaluation/test_g3_path_equivalence_assurance.py",
+          "path": "tests/test_evaluation/test_path_equivalence_assurance.py",
           "line": 459
         }
       ],
@@ -5555,65 +5555,65 @@
     {
       "public_name": "evaluate_receiver_impact",
       "qualified_name": "evaluation.evaluate_receiver_impact",
-      "source": "evaluation/g3_receiver_impact.py",
+      "source": "evaluation/receiver_impact.py",
       "definition_line": 51,
       "direct_production_references": [
         {
-          "path": "evaluation/g3_joint_evaluation.py",
+          "path": "evaluation/joint_evaluation.py",
           "line": 576
         },
         {
-          "path": "evaluation/g3_receiver_assurance.py",
+          "path": "evaluation/receiver_assurance.py",
           "line": 243
         }
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_evaluation/test_g3_receiver_impact.py",
+          "path": "tests/test_evaluation/test_receiver_impact.py",
           "line": 47
         },
         {
-          "path": "tests/test_evaluation/test_g3_receiver_impact.py",
+          "path": "tests/test_evaluation/test_receiver_impact.py",
           "line": 117
         },
         {
-          "path": "tests/test_evaluation/test_g3_receiver_impact.py",
+          "path": "tests/test_evaluation/test_receiver_impact.py",
           "line": 304
         },
         {
-          "path": "tests/test_evaluation/test_g3_receiver_impact.py",
+          "path": "tests/test_evaluation/test_receiver_impact.py",
           "line": 167
         },
         {
-          "path": "tests/test_evaluation/test_g3_receiver_impact.py",
+          "path": "tests/test_evaluation/test_receiver_impact.py",
           "line": 180
         },
         {
-          "path": "tests/test_evaluation/test_g3_receiver_impact.py",
+          "path": "tests/test_evaluation/test_receiver_impact.py",
           "line": 191
         },
         {
-          "path": "tests/test_evaluation/test_g3_receiver_impact.py",
+          "path": "tests/test_evaluation/test_receiver_impact.py",
           "line": 219
         },
         {
-          "path": "tests/test_evaluation/test_g3_receiver_impact.py",
+          "path": "tests/test_evaluation/test_receiver_impact.py",
           "line": 232
         },
         {
-          "path": "tests/test_evaluation/test_g3_receiver_impact.py",
+          "path": "tests/test_evaluation/test_receiver_impact.py",
           "line": 249
         },
         {
-          "path": "tests/test_evaluation/test_g3_receiver_impact.py",
+          "path": "tests/test_evaluation/test_receiver_impact.py",
           "line": 262
         },
         {
-          "path": "tests/test_evaluation/test_g3_receiver_impact.py",
+          "path": "tests/test_evaluation/test_receiver_impact.py",
           "line": 285
         },
         {
-          "path": "tests/test_evaluation/test_g3_receiver_impact.py",
+          "path": "tests/test_evaluation/test_receiver_impact.py",
           "line": 339
         }
       ],
@@ -5715,73 +5715,73 @@
     {
       "public_name": "g3_evaluator_source_bundle_identity",
       "qualified_name": "evaluation.g3_evaluator_source_bundle_identity",
-      "source": "evaluation/g3_joint_evidence_run_manifest.py",
+      "source": "evaluation/joint_evidence_run_manifest.py",
       "definition_line": 636,
       "direct_production_references": [
         {
-          "path": "evaluation/g3_joint_evidence_artifact.py",
+          "path": "evaluation/joint_evidence_artifact.py",
           "line": 267
         },
         {
-          "path": "evaluation/g3_joint_evidence_run_manifest.py",
+          "path": "evaluation/joint_evidence_run_manifest.py",
           "line": 1585
         }
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1206
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1512
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1538
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1573
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1607
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1640
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1670
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1695
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1718
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1743
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1767
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1793
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1862
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1913
         }
       ],
@@ -6149,53 +6149,53 @@
     {
       "public_name": "run_g3_frozen_qualification_evaluation",
       "qualified_name": "evaluation.run_g3_frozen_qualification_evaluation",
-      "source": "evaluation/g3_joint_evidence_artifact.py",
+      "source": "evaluation/joint_evidence_artifact.py",
       "definition_line": 201,
       "direct_production_references": [
         {
-          "path": "evaluation/g3_joint_evidence_artifact.py",
+          "path": "evaluation/joint_evidence_artifact.py",
           "line": 424
         }
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1542
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1583
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1625
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1655
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1681
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1703
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1726
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1751
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1778
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1815
         }
       ],
@@ -6295,16 +6295,16 @@
     {
       "public_name": "verify_g3_joint_evidence_bundle",
       "qualified_name": "evaluation.verify_g3_joint_evidence_bundle",
-      "source": "evaluation/g3_joint_evaluation.py",
+      "source": "evaluation/joint_evaluation.py",
       "definition_line": 617,
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_evaluation/test_g3_joint_evaluation.py",
+          "path": "tests/test_evaluation/test_joint_evaluation.py",
           "line": 176
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evaluation.py",
+          "path": "tests/test_evaluation/test_joint_evaluation.py",
           "line": 381
         }
       ],
@@ -6315,89 +6315,89 @@
     {
       "public_name": "verify_g3_joint_evidence_run_manifest",
       "qualified_name": "evaluation.verify_g3_joint_evidence_run_manifest",
-      "source": "evaluation/g3_joint_evidence_run_manifest.py",
+      "source": "evaluation/joint_evidence_run_manifest.py",
       "definition_line": 872,
       "direct_production_references": [
         {
-          "path": "evaluation/g3_joint_evidence_run_manifest.py",
+          "path": "evaluation/joint_evidence_run_manifest.py",
           "line": 1661
         }
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 564
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 911
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 947
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 993
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1030
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1087
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1167
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1275
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1402
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1420
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1457
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1482
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1494
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1520
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1550
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1596
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1933
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1959
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py",
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
           "line": 1981
         }
       ],
@@ -6408,37 +6408,37 @@
     {
       "public_name": "verify_g3_joint_sample_size_design",
       "qualified_name": "evaluation.verify_g3_joint_sample_size_design",
-      "source": "evaluation/g3_sample_size_planning.py",
+      "source": "evaluation/sample_size_planning.py",
       "definition_line": 1349,
       "direct_production_references": [
         {
-          "path": "evaluation/g3_joint_evidence_run_manifest.py",
+          "path": "evaluation/joint_evidence_run_manifest.py",
           "line": 470
         },
         {
-          "path": "evaluation/g3_qualification_contract.py",
+          "path": "evaluation/qualification_contract.py",
           "line": 463
         },
         {
-          "path": "scripts/plan_g3_acquisition_design.py",
+          "path": "scripts/plan_acquisition_design.py",
           "line": 803
         }
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_evaluation/test_g3_sample_size_planning.py",
+          "path": "tests/test_evaluation/test_sample_size_planning.py",
           "line": 853
         },
         {
-          "path": "tests/test_evaluation/test_g3_sample_size_planning.py",
+          "path": "tests/test_evaluation/test_sample_size_planning.py",
           "line": 870
         },
         {
-          "path": "tests/test_evaluation/test_g3_sample_size_planning.py",
+          "path": "tests/test_evaluation/test_sample_size_planning.py",
           "line": 885
         },
         {
-          "path": "tests/test_evaluation/test_g3_sample_size_planning.py",
+          "path": "tests/test_evaluation/test_sample_size_planning.py",
           "line": 900
         }
       ],
@@ -6449,37 +6449,37 @@
     {
       "public_name": "verify_g3_qualification_run_contract",
       "qualified_name": "evaluation.verify_g3_qualification_run_contract",
-      "source": "evaluation/g3_qualification_contract.py",
+      "source": "evaluation/qualification_contract.py",
       "definition_line": 592,
       "direct_production_references": [
         {
-          "path": "evaluation/g3_joint_evidence_run_manifest.py",
+          "path": "evaluation/joint_evidence_run_manifest.py",
           "line": 460
         },
         {
-          "path": "evaluation/g3_joint_evidence_run_manifest.py",
+          "path": "evaluation/joint_evidence_run_manifest.py",
           "line": 845
         },
         {
-          "path": "evaluation/g3_joint_evidence_run_manifest.py",
+          "path": "evaluation/joint_evidence_run_manifest.py",
           "line": 1159
         }
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_evaluation/test_g3_qualification_contract.py",
+          "path": "tests/test_evaluation/test_qualification_contract.py",
           "line": 390
         },
         {
-          "path": "tests/test_evaluation/test_g3_qualification_contract.py",
+          "path": "tests/test_evaluation/test_qualification_contract.py",
           "line": 202
         },
         {
-          "path": "tests/test_evaluation/test_g3_qualification_contract.py",
+          "path": "tests/test_evaluation/test_qualification_contract.py",
           "line": 239
         },
         {
-          "path": "tests/test_evaluation/test_g3_qualification_contract.py",
+          "path": "tests/test_evaluation/test_qualification_contract.py",
           "line": 298
         }
       ],
@@ -6836,11 +6836,11 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_measurements.py",
+          "path": "tests/test_integrations/test_srs_measurements.py",
           "line": 499
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_measurements.py",
+          "path": "tests/test_integrations/test_srs_measurements.py",
           "line": 556
         },
         {
@@ -6930,39 +6930,39 @@
       "definition_line": 475,
       "direct_production_references": [
         {
-          "path": "experiments/g5_ordered_impairments_receiver.py",
+          "path": "experiments/ordered_impairments_receiver.py",
           "line": 368
         },
         {
-          "path": "experiments/g5_ordered_impairments_receiver.py",
+          "path": "experiments/ordered_impairments_receiver.py",
           "line": 526
         },
         {
-          "path": "experiments/g5_ordered_impairments_receiver.py",
+          "path": "experiments/ordered_impairments_receiver.py",
           "line": 947
         },
         {
-          "path": "experiments/g5_ordered_impairments_receiver.py",
+          "path": "experiments/ordered_impairments_receiver.py",
           "line": 542
         },
         {
-          "path": "experiments/g5_ordered_impairments_receiver.py",
+          "path": "experiments/ordered_impairments_receiver.py",
           "line": 545
         },
         {
-          "path": "experiments/g5_ordered_impairments_receiver.py",
+          "path": "experiments/ordered_impairments_receiver.py",
           "line": 572
         },
         {
-          "path": "experiments/g5_ordered_impairments_receiver.py",
+          "path": "experiments/ordered_impairments_receiver.py",
           "line": 986
         },
         {
-          "path": "experiments/g5_ordered_impairments_receiver.py",
+          "path": "experiments/ordered_impairments_receiver.py",
           "line": 988
         },
         {
-          "path": "experiments/g5_ordered_impairments_receiver.py",
+          "path": "experiments/ordered_impairments_receiver.py",
           "line": 1007
         },
         {
@@ -7130,23 +7130,23 @@
       "definition_line": 80,
       "direct_production_references": [
         {
-          "path": "experiments/g5_ordered_impairments_receiver.py",
+          "path": "experiments/ordered_impairments_receiver.py",
           "line": 361
         },
         {
-          "path": "experiments/g5_ordered_impairments_receiver.py",
+          "path": "experiments/ordered_impairments_receiver.py",
           "line": 518
         },
         {
-          "path": "experiments/g5_ordered_impairments_receiver.py",
+          "path": "experiments/ordered_impairments_receiver.py",
           "line": 583
         },
         {
-          "path": "experiments/g5_ordered_impairments_receiver.py",
+          "path": "experiments/ordered_impairments_receiver.py",
           "line": 939
         },
         {
-          "path": "experiments/g5_ordered_impairments_receiver.py",
+          "path": "experiments/ordered_impairments_receiver.py",
           "line": 1021
         },
         {
@@ -7247,65 +7247,65 @@
       "definition_line": 169,
       "direct_production_references": [
         {
-          "path": "experiments/audit_g5_cp_bounded_dft_diagnostic.py",
+          "path": "experiments/audit_cp_bounded_dft_diagnostic.py",
           "line": 103
         },
         {
-          "path": "experiments/audit_g5_static_reference_failures.py",
+          "path": "experiments/audit_static_reference_failures.py",
           "line": 126
         },
         {
-          "path": "experiments/diagnose_g5_estimator_choice.py",
+          "path": "experiments/diagnose_estimator_choice.py",
           "line": 83
         },
         {
-          "path": "experiments/g5_doppler_awgn_receiver.py",
+          "path": "experiments/doppler_awgn_receiver.py",
           "line": 154
         },
         {
-          "path": "experiments/g5_independent_channel_receiver.py",
+          "path": "experiments/independent_channel_receiver.py",
           "line": 184
         },
         {
-          "path": "experiments/g5_ordered_impairments_receiver.py",
+          "path": "experiments/ordered_impairments_receiver.py",
           "line": 354
         },
         {
-          "path": "experiments/g5_ordered_impairments_receiver.py",
+          "path": "experiments/ordered_impairments_receiver.py",
           "line": 511
         },
         {
-          "path": "experiments/g5_ordered_impairments_receiver.py",
+          "path": "experiments/ordered_impairments_receiver.py",
           "line": 534
         },
         {
-          "path": "experiments/g5_ordered_impairments_receiver.py",
+          "path": "experiments/ordered_impairments_receiver.py",
           "line": 932
         },
         {
-          "path": "experiments/g5_ordered_impairments_receiver.py",
+          "path": "experiments/ordered_impairments_receiver.py",
           "line": 978
         },
         {
-          "path": "experiments/g5_time_varying_multipath_receiver.py",
+          "path": "experiments/time_varying_multipath_receiver.py",
           "line": 134
         },
         {
-          "path": "experiments/qualify_g5_delay_domain_dft.py",
+          "path": "experiments/qualify_delay_domain_dft.py",
           "line": 122
         },
         {
-          "path": "experiments/scan_g5_doppler_dmrs_density.py",
+          "path": "experiments/scan_doppler_dmrs_density.py",
           "line": 139
         },
         {
-          "path": "experiments/scan_g5_doppler_operating_point.py",
+          "path": "experiments/scan_doppler_operating_point.py",
           "line": 156
         }
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_experiments/test_g5_cp_bounded_dft_estimator.py",
+          "path": "tests/test_experiments/test_cp_bounded_dft_estimator.py",
           "line": 37
         },
         {
@@ -7360,15 +7360,15 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 4268
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 4286
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 4319
         }
       ],
@@ -7413,11 +7413,11 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_measurements.py",
+          "path": "tests/test_integrations/test_srs_measurements.py",
           "line": 498
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_measurements.py",
+          "path": "tests/test_integrations/test_srs_measurements.py",
           "line": 555
         },
         {
@@ -7764,7 +7764,7 @@
           "line": 73
         },
         {
-          "path": "scripts/run_g4_cdl_e_fresh_seed_replication.py",
+          "path": "scripts/run_cdl_e_fresh_seed_replication.py",
           "line": 111
         }
       ],
@@ -7798,171 +7798,171 @@
           "line": 31
         },
         {
-          "path": "tests/test_integrations/test_g4_admission_native.py",
+          "path": "tests/test_integrations/test_admission_native.py",
           "line": 57
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_abc_rotated_dual_pol_array_covariance_native.py",
+          "path": "tests/test_integrations/test_cdl_abc_rotated_dual_pol_array_covariance_native.py",
           "line": 186
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_angular_power_confidence_native.py",
+          "path": "tests/test_integrations/test_cdl_angular_power_confidence_native.py",
           "line": 210
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_antenna_pattern_power_native.py",
+          "path": "tests/test_integrations/test_cdl_antenna_pattern_power_native.py",
           "line": 493
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_antenna_pattern_power_native.py",
+          "path": "tests/test_integrations/test_cdl_antenna_pattern_power_native.py",
           "line": 568
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_c_spatial_covariance_reference_native.py",
+          "path": "tests/test_integrations/test_cdl_c_spatial_covariance_reference_native.py",
           "line": 166
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_complex_circularity_native.py",
+          "path": "tests/test_integrations/test_cdl_complex_circularity_native.py",
           "line": 160
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_d_los_diffuse_spatial_reference_native.py",
+          "path": "tests/test_integrations/test_cdl_d_los_diffuse_spatial_reference_native.py",
           "line": 143
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_d_los_temporal_reference_native.py",
+          "path": "tests/test_integrations/test_cdl_d_los_temporal_reference_native.py",
           "line": 128
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_de_los_dual_pol_array_covariance_native.py",
+          "path": "tests/test_integrations/test_cdl_de_los_dual_pol_array_covariance_native.py",
           "line": 134
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_de_rotated_los_dual_pol_array_covariance_native.py",
+          "path": "tests/test_integrations/test_cdl_de_rotated_los_dual_pol_array_covariance_native.py",
           "line": 285
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_delay_angular_moment_native.py",
+          "path": "tests/test_integrations/test_cdl_delay_angular_moment_native.py",
           "line": 188
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_dual_cross_handheld_ut_spatiotemporal_covariance_native.py",
+          "path": "tests/test_integrations/test_cdl_dual_cross_handheld_ut_spatiotemporal_covariance_native.py",
           "line": 143
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_dual_pol_array_covariance_native.py",
+          "path": "tests/test_integrations/test_cdl_dual_pol_array_covariance_native.py",
           "line": 159
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_dual_polarization_power_matrix_native.py",
+          "path": "tests/test_integrations/test_cdl_dual_polarization_power_matrix_native.py",
           "line": 255
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_dual_polarization_power_matrix_native.py",
+          "path": "tests/test_integrations/test_cdl_dual_polarization_power_matrix_native.py",
           "line": 322
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_dual_polarization_power_matrix_native.py",
+          "path": "tests/test_integrations/test_cdl_dual_polarization_power_matrix_native.py",
           "line": 380
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_dual_polarization_power_matrix_native.py",
+          "path": "tests/test_integrations/test_cdl_dual_polarization_power_matrix_native.py",
           "line": 438
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_dual_polarized_xpr_covariance_native.py",
+          "path": "tests/test_integrations/test_cdl_dual_polarized_xpr_covariance_native.py",
           "line": 86
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_e_los_temporal_reference_native.py",
+          "path": "tests/test_integrations/test_cdl_e_los_temporal_reference_native.py",
           "line": 137
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_handheld_ut_operating_point_spatiotemporal_covariance_native.py",
+          "path": "tests/test_integrations/test_cdl_handheld_ut_operating_point_spatiotemporal_covariance_native.py",
           "line": 185
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_handheld_ut_oracle_native.py",
+          "path": "tests/test_integrations/test_cdl_handheld_ut_oracle_native.py",
           "line": 213
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_handheld_ut_spatiotemporal_covariance_native.py",
+          "path": "tests/test_integrations/test_cdl_handheld_ut_spatiotemporal_covariance_native.py",
           "line": 145
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_joint_tx_rx_dual_pol_spatiotemporal_covariance_native.py",
+          "path": "tests/test_integrations/test_cdl_joint_tx_rx_dual_pol_spatiotemporal_covariance_native.py",
           "line": 109
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_joint_tx_rx_dual_tx_rx_spatiotemporal_covariance_native.py",
+          "path": "tests/test_integrations/test_cdl_joint_tx_rx_dual_tx_rx_spatiotemporal_covariance_native.py",
           "line": 121
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_joint_tx_rx_spatial_covariance_native.py",
+          "path": "tests/test_integrations/test_cdl_joint_tx_rx_spatial_covariance_native.py",
           "line": 186
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_joint_tx_rx_spatiotemporal_covariance_native.py",
+          "path": "tests/test_integrations/test_cdl_joint_tx_rx_spatiotemporal_covariance_native.py",
           "line": 108
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_larger_dual_tx_rx_spatiotemporal_covariance_native.py",
+          "path": "tests/test_integrations/test_cdl_larger_dual_tx_rx_spatiotemporal_covariance_native.py",
           "line": 139
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_larger_topology_joint_tx_rx_spatiotemporal_covariance_native.py",
+          "path": "tests/test_integrations/test_cdl_larger_topology_joint_tx_rx_spatiotemporal_covariance_native.py",
           "line": 119
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_los_delay_angular_moment_native.py",
+          "path": "tests/test_integrations/test_cdl_los_delay_angular_moment_native.py",
           "line": 160
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_los_delay_angular_moment_native.py",
+          "path": "tests/test_integrations/test_cdl_los_delay_angular_moment_native.py",
           "line": 217
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_patterned_rotated_dual_tx_rx_spatiotemporal_covariance_native.py",
+          "path": "tests/test_integrations/test_cdl_patterned_rotated_dual_tx_rx_spatiotemporal_covariance_native.py",
           "line": 131
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_rotated_dual_tx_rx_spatiotemporal_covariance_native.py",
+          "path": "tests/test_integrations/test_cdl_rotated_dual_tx_rx_spatiotemporal_covariance_native.py",
           "line": 142
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_spatial_covariance_4element_native.py",
+          "path": "tests/test_integrations/test_cdl_spatial_covariance_4element_native.py",
           "line": 164
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_spatial_covariance_reference_native.py",
+          "path": "tests/test_integrations/test_cdl_spatial_covariance_reference_native.py",
           "line": 122
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_spatiotemporal_covariance_native.py",
+          "path": "tests/test_integrations/test_cdl_spatiotemporal_covariance_native.py",
           "line": 111
         },
         {
-          "path": "tests/test_integrations/test_g4_cdl_temporal_vector_reference_native.py",
+          "path": "tests/test_integrations/test_cdl_temporal_vector_reference_native.py",
           "line": 190
         },
         {
-          "path": "tests/test_integrations/test_g4_core1_covariance_matrix_native.py",
+          "path": "tests/test_integrations/test_core1_covariance_matrix_native.py",
           "line": 348
         },
         {
-          "path": "tests/test_integrations/test_g4_core1_topology_native.py",
+          "path": "tests/test_integrations/test_core1_topology_native.py",
           "line": 48
         },
         {
-          "path": "tests/test_integrations/test_g4_statistical_confidence_native.py",
+          "path": "tests/test_integrations/test_statistical_confidence_native.py",
           "line": 315
         },
         {
-          "path": "tests/test_integrations/test_g4_statistical_confidence_native.py",
+          "path": "tests/test_integrations/test_statistical_confidence_native.py",
           "line": 527
         },
         {
-          "path": "tests/test_integrations/test_g4_statistical_confidence_native.py",
+          "path": "tests/test_integrations/test_statistical_confidence_native.py",
           "line": 151
         },
         {
@@ -8130,115 +8130,115 @@
           "line": 707
         },
         {
-          "path": "tests/test_integrations/test_g4_admission_native.py",
+          "path": "tests/test_integrations/test_admission_native.py",
           "line": 29
         },
         {
-          "path": "tests/test_integrations/test_g4_admission_native.py",
+          "path": "tests/test_integrations/test_admission_native.py",
           "line": 82
         },
         {
-          "path": "tests/test_integrations/test_g4_admission_native.py",
+          "path": "tests/test_integrations/test_admission_native.py",
           "line": 120
         },
         {
-          "path": "tests/test_integrations/test_g4_admission_native.py",
+          "path": "tests/test_integrations/test_admission_native.py",
           "line": 163
         },
         {
-          "path": "tests/test_integrations/test_g4_admission_native.py",
+          "path": "tests/test_integrations/test_admission_native.py",
           "line": 194
         },
         {
-          "path": "tests/test_integrations/test_g4_admission_native.py",
+          "path": "tests/test_integrations/test_admission_native.py",
           "line": 251
         },
         {
-          "path": "tests/test_integrations/test_g4_admission_native.py",
+          "path": "tests/test_integrations/test_admission_native.py",
           "line": 235
         },
         {
-          "path": "tests/test_integrations/test_g4_core1_covariance_matrix_native.py",
+          "path": "tests/test_integrations/test_core1_covariance_matrix_native.py",
           "line": 310
         },
         {
-          "path": "tests/test_integrations/test_g4_core1_topology_native.py",
+          "path": "tests/test_integrations/test_core1_topology_native.py",
           "line": 41
         },
         {
-          "path": "tests/test_integrations/test_g4_fixed_tdl_complex_circularity_native.py",
+          "path": "tests/test_integrations/test_fixed_tdl_complex_circularity_native.py",
           "line": 128
         },
         {
-          "path": "tests/test_integrations/test_g4_fixed_tdl_doppler_spectrum_native.py",
+          "path": "tests/test_integrations/test_fixed_tdl_doppler_spectrum_native.py",
           "line": 76
         },
         {
-          "path": "tests/test_integrations/test_g4_fixed_tdl_fr2_admission_reference_native.py",
+          "path": "tests/test_integrations/test_fixed_tdl_fr2_admission_reference_native.py",
           "line": 43
         },
         {
-          "path": "tests/test_integrations/test_g4_fixed_tdl_rician_marginal_native.py",
+          "path": "tests/test_integrations/test_fixed_tdl_rician_marginal_native.py",
           "line": 65
         },
         {
-          "path": "tests/test_integrations/test_g4_fixed_tdl_temporal_reference_native.py",
+          "path": "tests/test_integrations/test_fixed_tdl_temporal_reference_native.py",
           "line": 119
         },
         {
-          "path": "tests/test_integrations/test_g4_scalable_tdl_complex_circularity_native.py",
+          "path": "tests/test_integrations/test_scalable_tdl_complex_circularity_native.py",
           "line": 107
         },
         {
-          "path": "tests/test_integrations/test_g4_scalable_tdl_doppler_spectrum_native.py",
+          "path": "tests/test_integrations/test_scalable_tdl_doppler_spectrum_native.py",
           "line": 131
         },
         {
-          "path": "tests/test_integrations/test_g4_scalable_tdl_temporal_reference_native.py",
+          "path": "tests/test_integrations/test_scalable_tdl_temporal_reference_native.py",
           "line": 116
         },
         {
-          "path": "tests/test_integrations/test_g4_statistical_confidence_native.py",
+          "path": "tests/test_integrations/test_statistical_confidence_native.py",
           "line": 250
         },
         {
-          "path": "tests/test_integrations/test_g4_statistical_confidence_native.py",
+          "path": "tests/test_integrations/test_statistical_confidence_native.py",
           "line": 364
         },
         {
-          "path": "tests/test_integrations/test_g4_statistical_confidence_native.py",
+          "path": "tests/test_integrations/test_statistical_confidence_native.py",
           "line": 420
         },
         {
-          "path": "tests/test_integrations/test_g4_statistical_confidence_native.py",
+          "path": "tests/test_integrations/test_statistical_confidence_native.py",
           "line": 472
         },
         {
-          "path": "tests/test_integrations/test_g4_statistical_confidence_native.py",
+          "path": "tests/test_integrations/test_statistical_confidence_native.py",
           "line": 139
         },
         {
-          "path": "tests/test_integrations/test_g4_statistical_confidence_native.py",
+          "path": "tests/test_integrations/test_statistical_confidence_native.py",
           "line": 574
         },
         {
-          "path": "tests/test_integrations/test_g4_tdl_fixed_profile_scalar_reference_native.py",
+          "path": "tests/test_integrations/test_tdl_fixed_profile_scalar_reference_native.py",
           "line": 157
         },
         {
-          "path": "tests/test_integrations/test_g4_tdl_fixed_profile_scalar_reference_native.py",
+          "path": "tests/test_integrations/test_tdl_fixed_profile_scalar_reference_native.py",
           "line": 243
         },
         {
-          "path": "tests/test_integrations/test_g4_tdl_fixed_profile_scalar_reference_native.py",
+          "path": "tests/test_integrations/test_tdl_fixed_profile_scalar_reference_native.py",
           "line": 305
         },
         {
-          "path": "tests/test_integrations/test_g4_tdl_los_k_factor_reference_native.py",
+          "path": "tests/test_integrations/test_tdl_los_k_factor_reference_native.py",
           "line": 78
         },
         {
-          "path": "tests/test_integrations/test_g4_tdl_rayleigh_marginal_native.py",
+          "path": "tests/test_integrations/test_tdl_rayleigh_marginal_native.py",
           "line": 119
         },
         {
@@ -8524,7 +8524,7 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2364
         }
       ],
@@ -8545,15 +8545,15 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2285
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2322
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 4003
         }
       ],
@@ -8569,47 +8569,47 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2875
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3049
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3086
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3214
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 4020
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 4063
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 4130
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 4154
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3094
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3296
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3298
         }
       ],
@@ -8625,11 +8625,11 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2649
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2678
         }
       ],
@@ -8650,15 +8650,15 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2581
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2618
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2730
         }
       ],
@@ -8679,47 +8679,47 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2844
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3685
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3876
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3900
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3978
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 4215
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2897
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3944
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3957
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3959
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3961
         }
       ],
@@ -8735,39 +8735,39 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_pbch_bch_native.py",
+          "path": "tests/test_integrations/test_pbch_bch_native.py",
           "line": 94
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_data_native.py",
+          "path": "tests/test_integrations/test_pbch_data_native.py",
           "line": 88
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_dmrs_native.py",
+          "path": "tests/test_integrations/test_pbch_dmrs_native.py",
           "line": 137
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_dmrs_native.py",
+          "path": "tests/test_integrations/test_pbch_dmrs_native.py",
           "line": 207
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 97
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 188
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_epre_native.py",
+          "path": "tests/test_integrations/test_ssb_epre_native.py",
           "line": 15
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_half_frame_native.py",
+          "path": "tests/test_integrations/test_ssb_half_frame_native.py",
           "line": 18
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_half_frame_native.py",
+          "path": "tests/test_integrations/test_ssb_half_frame_native.py",
           "line": 229
         }
       ],
@@ -8819,15 +8819,15 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_measurements.py",
+          "path": "tests/test_integrations/test_srs_measurements.py",
           "line": 30
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_measurements.py",
+          "path": "tests/test_integrations/test_srs_measurements.py",
           "line": 53
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_measurements.py",
+          "path": "tests/test_integrations/test_srs_measurements.py",
           "line": 595
         }
       ],
@@ -8848,19 +8848,19 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_measurements.py",
+          "path": "tests/test_integrations/test_srs_measurements.py",
           "line": 426
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_measurements.py",
+          "path": "tests/test_integrations/test_srs_measurements.py",
           "line": 462
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_measurements.py",
+          "path": "tests/test_integrations/test_srs_measurements.py",
           "line": 469
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_measurements.py",
+          "path": "tests/test_integrations/test_srs_measurements.py",
           "line": 476
         }
       ],
@@ -8879,11 +8879,11 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_measurements.py",
+          "path": "tests/test_integrations/test_srs_measurements.py",
           "line": 510
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_measurements.py",
+          "path": "tests/test_integrations/test_srs_measurements.py",
           "line": 565
         }
       ],
@@ -8998,11 +8998,11 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_pbch_mib_native.py",
+          "path": "tests/test_integrations/test_pbch_mib_native.py",
           "line": 82
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_payload_native.py",
+          "path": "tests/test_integrations/test_pbch_payload_native.py",
           "line": 256
         }
       ],
@@ -9018,15 +9018,15 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_pbch_mib_native.py",
+          "path": "tests/test_integrations/test_pbch_mib_native.py",
           "line": 77
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 171
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_payload_native.py",
+          "path": "tests/test_integrations/test_pbch_payload_native.py",
           "line": 239
         }
       ],
@@ -9047,27 +9047,27 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 153
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 176
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 217
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 219
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 221
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 225
         }
       ],
@@ -9234,19 +9234,19 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3317
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3378
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3437
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3415
         }
       ],
@@ -9262,31 +9262,31 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 413
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 474
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 550
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 607
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 676
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 771
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 817
         },
         {
@@ -9323,19 +9323,19 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_pbch_bch_native.py",
+          "path": "tests/test_integrations/test_pbch_bch_native.py",
           "line": 59
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_bch_native.py",
+          "path": "tests/test_integrations/test_pbch_bch_native.py",
           "line": 77
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_bch_native.py",
+          "path": "tests/test_integrations/test_pbch_bch_native.py",
           "line": 151
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_bch_native.py",
+          "path": "tests/test_integrations/test_pbch_bch_native.py",
           "line": 197
         },
         {
@@ -9355,35 +9355,35 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_pbch_bch_native.py",
+          "path": "tests/test_integrations/test_pbch_bch_native.py",
           "line": 29
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_bch_native.py",
+          "path": "tests/test_integrations/test_pbch_bch_native.py",
           "line": 86
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_bch_native.py",
+          "path": "tests/test_integrations/test_pbch_bch_native.py",
           "line": 133
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_bch_native.py",
+          "path": "tests/test_integrations/test_pbch_bch_native.py",
           "line": 56
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_bch_native.py",
+          "path": "tests/test_integrations/test_pbch_bch_native.py",
           "line": 73
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_bch_native.py",
+          "path": "tests/test_integrations/test_pbch_bch_native.py",
           "line": 179
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 89
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 180
         }
       ],
@@ -9408,39 +9408,39 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_pbch_dmrs_native.py",
+          "path": "tests/test_integrations/test_pbch_dmrs_native.py",
           "line": 59
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_dmrs_native.py",
+          "path": "tests/test_integrations/test_pbch_dmrs_native.py",
           "line": 84
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_dmrs_native.py",
+          "path": "tests/test_integrations/test_pbch_dmrs_native.py",
           "line": 104
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_dmrs_native.py",
+          "path": "tests/test_integrations/test_pbch_dmrs_native.py",
           "line": 107
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_dmrs_native.py",
+          "path": "tests/test_integrations/test_pbch_dmrs_native.py",
           "line": 110
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_dmrs_native.py",
+          "path": "tests/test_integrations/test_pbch_dmrs_native.py",
           "line": 113
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_dmrs_native.py",
+          "path": "tests/test_integrations/test_pbch_dmrs_native.py",
           "line": 116
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_dmrs_native.py",
+          "path": "tests/test_integrations/test_pbch_dmrs_native.py",
           "line": 119
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_dmrs_native.py",
+          "path": "tests/test_integrations/test_pbch_dmrs_native.py",
           "line": 271
         }
       ],
@@ -9461,19 +9461,19 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_pbch_bch_native.py",
+          "path": "tests/test_integrations/test_pbch_bch_native.py",
           "line": 156
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_mib_native.py",
+          "path": "tests/test_integrations/test_pbch_mib_native.py",
           "line": 46
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_mib_native.py",
+          "path": "tests/test_integrations/test_pbch_mib_native.py",
           "line": 62
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_mib_native.py",
+          "path": "tests/test_integrations/test_pbch_mib_native.py",
           "line": 84
         }
       ],
@@ -9494,19 +9494,19 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_pbch_bch_native.py",
+          "path": "tests/test_integrations/test_pbch_bch_native.py",
           "line": 122
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_mib_native.py",
+          "path": "tests/test_integrations/test_pbch_mib_native.py",
           "line": 41
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_mib_native.py",
+          "path": "tests/test_integrations/test_pbch_mib_native.py",
           "line": 105
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 80
         }
       ],
@@ -9527,7 +9527,7 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_pbch_payload_native.py",
+          "path": "tests/test_integrations/test_pbch_payload_native.py",
           "line": 203
         }
       ],
@@ -9543,39 +9543,39 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_pbch_bch_native.py",
+          "path": "tests/test_integrations/test_pbch_bch_native.py",
           "line": 123
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 79
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 170
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_payload_native.py",
+          "path": "tests/test_integrations/test_pbch_payload_native.py",
           "line": 134
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_payload_native.py",
+          "path": "tests/test_integrations/test_pbch_payload_native.py",
           "line": 157
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_payload_native.py",
+          "path": "tests/test_integrations/test_pbch_payload_native.py",
           "line": 214
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_payload_native.py",
+          "path": "tests/test_integrations/test_pbch_payload_native.py",
           "line": 226
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_payload_native.py",
+          "path": "tests/test_integrations/test_pbch_payload_native.py",
           "line": 241
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_payload_native.py",
+          "path": "tests/test_integrations/test_pbch_payload_native.py",
           "line": 283
         }
       ],
@@ -9596,15 +9596,15 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_pbch_bch_native.py",
+          "path": "tests/test_integrations/test_pbch_bch_native.py",
           "line": 152
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_payload_native.py",
+          "path": "tests/test_integrations/test_pbch_payload_native.py",
           "line": 168
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_payload_native.py",
+          "path": "tests/test_integrations/test_pbch_payload_native.py",
           "line": 240
         }
       ],
@@ -9629,7 +9629,7 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_pbch_payload_native.py",
+          "path": "tests/test_integrations/test_pbch_payload_native.py",
           "line": 200
         }
       ],
@@ -9645,31 +9645,31 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_pbch_bch_native.py",
+          "path": "tests/test_integrations/test_pbch_bch_native.py",
           "line": 93
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_bch_native.py",
+          "path": "tests/test_integrations/test_pbch_bch_native.py",
           "line": 140
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_data_native.py",
+          "path": "tests/test_integrations/test_pbch_data_native.py",
           "line": 62
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_data_native.py",
+          "path": "tests/test_integrations/test_pbch_data_native.py",
           "line": 87
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_data_native.py",
+          "path": "tests/test_integrations/test_pbch_data_native.py",
           "line": 156
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 96
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 187
         }
       ],
@@ -9690,27 +9690,27 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 198
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 340
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 370
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 132
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 238
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 284
         }
       ],
@@ -9731,35 +9731,35 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_pbch_bch_native.py",
+          "path": "tests/test_integrations/test_pbch_bch_native.py",
           "line": 87
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_bch_native.py",
+          "path": "tests/test_integrations/test_pbch_bch_native.py",
           "line": 134
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_bch_native.py",
+          "path": "tests/test_integrations/test_pbch_bch_native.py",
           "line": 144
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_data_native.py",
+          "path": "tests/test_integrations/test_pbch_data_native.py",
           "line": 46
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_data_native.py",
+          "path": "tests/test_integrations/test_pbch_data_native.py",
           "line": 81
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_data_native.py",
+          "path": "tests/test_integrations/test_pbch_data_native.py",
           "line": 142
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 90
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 181
         }
       ],
@@ -9784,11 +9784,11 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1841
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1866
         }
       ],
@@ -9804,15 +9804,15 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2216
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2257
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2261
         }
       ],
@@ -9833,47 +9833,47 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1830
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1831
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1832
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1879
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1881
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1883
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1885
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1889
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1893
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1897
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1901
         }
       ],
@@ -9894,27 +9894,27 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2976
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2983
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2978
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3001
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3005
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3011
         }
       ],
@@ -9935,11 +9935,11 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3720
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3846
         }
       ],
@@ -9955,131 +9955,131 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 506
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 512
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 647
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 655
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 663
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 683
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 695
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 723
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 732
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 785
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 796
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 802
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 889
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 524
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 533
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 551
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 588
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 594
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 618
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 700
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 745
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 756
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 764
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 811
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 545
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 556
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 562
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 568
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 574
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 580
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 609
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 601
         }
       ],
@@ -10100,11 +10100,11 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 335
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 359
         }
       ],
@@ -10129,11 +10129,11 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1292
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1393
         }
       ],
@@ -10149,7 +10149,7 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1151
         }
       ],
@@ -10165,11 +10165,11 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1333
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1356
         }
       ],
@@ -10190,23 +10190,23 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 84
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 87
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 90
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 93
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1030
         }
       ],
@@ -10222,15 +10222,15 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 279
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 781
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1010
         }
       ],
@@ -10255,23 +10255,23 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1051
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1054
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1222
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1223
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1252
         }
       ],
@@ -10296,23 +10296,23 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1060
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1077
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1089
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1095
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1115
         }
       ],
@@ -10333,59 +10333,59 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1420
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1488
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2567
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2614
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2639
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2715
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 4000
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 4229
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 4237
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 4298
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2749
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2268
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2311
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2347
         }
       ],
@@ -10410,15 +10410,15 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1486
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1452
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1475
         }
       ],
@@ -10439,15 +10439,15 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3484
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3523
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3573
         }
       ],
@@ -10468,27 +10468,27 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3577
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3605
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3625
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3788
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3657
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3754
         }
       ],
@@ -10509,11 +10509,11 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2106
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2161
         }
       ],
@@ -10529,11 +10529,11 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1796
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1817
         }
       ],
@@ -10554,15 +10554,15 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2004
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2022
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2186
         }
       ],
@@ -10578,47 +10578,47 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 4035
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 4090
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 4141
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 4165
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 4169
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 4173
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 4178
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 4182
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 4186
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 4190
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 4196
         }
       ],
@@ -10639,11 +10639,11 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1649
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1650
         }
       ],
@@ -10664,23 +10664,23 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1666
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1690
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1724
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1726
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1732
         }
       ],
@@ -10701,11 +10701,11 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1750
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1766
         }
       ],
@@ -10726,15 +10726,15 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1554
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1567
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1587
         }
       ],
@@ -10750,27 +10750,27 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3172
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3177
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3184
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3190
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3196
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3198
         }
       ],
@@ -10791,15 +10791,15 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2951
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2961
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3030
         }
       ],
@@ -10820,23 +10820,23 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2865
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2911
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3039
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3771
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3264
         }
       ],
@@ -10861,15 +10861,15 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3099
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2692
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3224
         }
       ],
@@ -10894,11 +10894,11 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2559
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2536
         }
       ],
@@ -10923,19 +10923,19 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1591
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1622
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1625
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1503
         }
       ],
@@ -10956,35 +10956,35 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3644
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3676
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3737
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3848
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3861
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3815
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3817
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3827
         }
       ],
@@ -11002,7 +11002,7 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3201
         }
       ],
@@ -11023,15 +11023,15 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3602
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3547
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3560
         }
       ],
@@ -11052,27 +11052,27 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3017
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3020
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3430
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3587
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3614
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3449
         }
       ],
@@ -11091,15 +11091,15 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3989
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 4012
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 4225
         }
       ],
@@ -11115,19 +11115,19 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3132
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3136
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3141
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3159
         }
       ],
@@ -11148,39 +11148,39 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2398
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2423
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2439
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2461
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2464
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2471
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2487
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2503
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2408
         }
       ],
@@ -11205,51 +11205,51 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1925
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1928
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1931
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1951
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1954
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1957
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1961
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1968
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1987
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 1994
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2200
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2205
         }
       ],
@@ -11270,23 +11270,23 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2794
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2864
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2764
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2817
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 2826
         }
       ],
@@ -11307,11 +11307,11 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 312
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_waveform_config_native.py",
+          "path": "tests/test_integrations/test_ssb_waveform_config_native.py",
           "line": 117
         }
       ],
@@ -11332,27 +11332,27 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 196
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 309
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 56
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_epre_native.py",
+          "path": "tests/test_integrations/test_ssb_epre_native.py",
           "line": 82
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_half_frame_native.py",
+          "path": "tests/test_integrations/test_ssb_half_frame_native.py",
           "line": 90
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_waveform_config_native.py",
+          "path": "tests/test_integrations/test_ssb_waveform_config_native.py",
           "line": 112
         }
       ],
@@ -11373,31 +11373,31 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 642
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 731
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_half_frame_native.py",
+          "path": "tests/test_integrations/test_ssb_half_frame_native.py",
           "line": 54
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_half_frame_native.py",
+          "path": "tests/test_integrations/test_ssb_half_frame_native.py",
           "line": 147
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_half_frame_native.py",
+          "path": "tests/test_integrations/test_ssb_half_frame_native.py",
           "line": 155
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_half_frame_native.py",
+          "path": "tests/test_integrations/test_ssb_half_frame_native.py",
           "line": 105
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_half_frame_native.py",
+          "path": "tests/test_integrations/test_ssb_half_frame_native.py",
           "line": 118
         }
       ],
@@ -11415,35 +11415,35 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 451
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 514
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_half_frame_native.py",
+          "path": "tests/test_integrations/test_ssb_half_frame_native.py",
           "line": 139
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_half_frame_native.py",
+          "path": "tests/test_integrations/test_ssb_half_frame_native.py",
           "line": 172
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_half_frame_native.py",
+          "path": "tests/test_integrations/test_ssb_half_frame_native.py",
           "line": 187
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_half_frame_native.py",
+          "path": "tests/test_integrations/test_ssb_half_frame_native.py",
           "line": 203
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_half_frame_native.py",
+          "path": "tests/test_integrations/test_ssb_half_frame_native.py",
           "line": 215
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_half_frame_native.py",
+          "path": "tests/test_integrations/test_ssb_half_frame_native.py",
           "line": 240
         }
       ],
@@ -11459,51 +11459,51 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 446
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 509
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 651
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 740
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_half_frame_native.py",
+          "path": "tests/test_integrations/test_ssb_half_frame_native.py",
           "line": 85
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_waveform_config_native.py",
+          "path": "tests/test_integrations/test_ssb_waveform_config_native.py",
           "line": 30
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_waveform_config_native.py",
+          "path": "tests/test_integrations/test_ssb_waveform_config_native.py",
           "line": 48
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_waveform_config_native.py",
+          "path": "tests/test_integrations/test_ssb_waveform_config_native.py",
           "line": 53
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_waveform_config_native.py",
+          "path": "tests/test_integrations/test_ssb_waveform_config_native.py",
           "line": 58
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_waveform_config_native.py",
+          "path": "tests/test_integrations/test_ssb_waveform_config_native.py",
           "line": 105
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_waveform_config_native.py",
+          "path": "tests/test_integrations/test_ssb_waveform_config_native.py",
           "line": 146
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_waveform_config_native.py",
+          "path": "tests/test_integrations/test_ssb_waveform_config_native.py",
           "line": 91
         }
       ],
@@ -11522,7 +11522,7 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g2_nr_frequency_order.py",
+          "path": "tests/test_integrations/test_nr_frequency_order.py",
           "line": 34
         },
         {
@@ -11625,7 +11625,7 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_measurements.py",
+          "path": "tests/test_integrations/test_srs_measurements.py",
           "line": 333
         }
       ],
@@ -11641,11 +11641,11 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_measurements.py",
+          "path": "tests/test_integrations/test_srs_measurements.py",
           "line": 353
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_measurements.py",
+          "path": "tests/test_integrations/test_srs_measurements.py",
           "line": 403
         }
       ],
@@ -11664,11 +11664,11 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_measurements.py",
+          "path": "tests/test_integrations/test_srs_measurements.py",
           "line": 317
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_measurements.py",
+          "path": "tests/test_integrations/test_srs_measurements.py",
           "line": 617
         }
       ],
@@ -11684,19 +11684,19 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_measurements.py",
+          "path": "tests/test_integrations/test_srs_measurements.py",
           "line": 77
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_measurements.py",
+          "path": "tests/test_integrations/test_srs_measurements.py",
           "line": 138
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_measurements.py",
+          "path": "tests/test_integrations/test_srs_measurements.py",
           "line": 168
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_measurements.py",
+          "path": "tests/test_integrations/test_srs_measurements.py",
           "line": 176
         }
       ],
@@ -11714,27 +11714,27 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_measurements.py",
+          "path": "tests/test_integrations/test_srs_measurements.py",
           "line": 192
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_measurements.py",
+          "path": "tests/test_integrations/test_srs_measurements.py",
           "line": 240
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_measurements.py",
+          "path": "tests/test_integrations/test_srs_measurements.py",
           "line": 247
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_measurements.py",
+          "path": "tests/test_integrations/test_srs_measurements.py",
           "line": 273
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_measurements.py",
+          "path": "tests/test_integrations/test_srs_measurements.py",
           "line": 283
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_measurements.py",
+          "path": "tests/test_integrations/test_srs_measurements.py",
           "line": 308
         }
       ],
@@ -11861,15 +11861,15 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_ssb_epre_native.py",
+          "path": "tests/test_integrations/test_ssb_epre_native.py",
           "line": 27
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_epre_native.py",
+          "path": "tests/test_integrations/test_ssb_epre_native.py",
           "line": 36
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_epre_native.py",
+          "path": "tests/test_integrations/test_ssb_epre_native.py",
           "line": 109
         }
       ],
@@ -11887,23 +11887,23 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_ssb_epre_native.py",
+          "path": "tests/test_integrations/test_ssb_epre_native.py",
           "line": 57
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_epre_native.py",
+          "path": "tests/test_integrations/test_ssb_epre_native.py",
           "line": 78
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_epre_native.py",
+          "path": "tests/test_integrations/test_ssb_epre_native.py",
           "line": 126
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_epre_native.py",
+          "path": "tests/test_integrations/test_ssb_epre_native.py",
           "line": 144
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_epre_native.py",
+          "path": "tests/test_integrations/test_ssb_epre_native.py",
           "line": 152
         }
       ],
@@ -12079,15 +12079,15 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3316
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3420
         },
         {
-          "path": "tests/test_integrations/test_g5_srs_resource_mapping.py",
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
           "line": 3426
         }
       ],
@@ -12116,39 +12116,39 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 440
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 503
         },
         {
-          "path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py",
+          "path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
           "line": 718
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_half_frame_native.py",
+          "path": "tests/test_integrations/test_ssb_half_frame_native.py",
           "line": 44
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_half_frame_native.py",
+          "path": "tests/test_integrations/test_ssb_half_frame_native.py",
           "line": 131
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_timing_native.py",
+          "path": "tests/test_integrations/test_ssb_timing_native.py",
           "line": 85
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_timing_native.py",
+          "path": "tests/test_integrations/test_ssb_timing_native.py",
           "line": 101
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_timing_native.py",
+          "path": "tests/test_integrations/test_ssb_timing_native.py",
           "line": 125
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_waveform_config_native.py",
+          "path": "tests/test_integrations/test_ssb_waveform_config_native.py",
           "line": 84
         }
       ],
@@ -12164,51 +12164,51 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_g5_ssb_timing_native.py",
+          "path": "tests/test_integrations/test_ssb_timing_native.py",
           "line": 147
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_timing_native.py",
+          "path": "tests/test_integrations/test_ssb_timing_native.py",
           "line": 155
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_timing_native.py",
+          "path": "tests/test_integrations/test_ssb_timing_native.py",
           "line": 162
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_timing_native.py",
+          "path": "tests/test_integrations/test_ssb_timing_native.py",
           "line": 101
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_timing_native.py",
+          "path": "tests/test_integrations/test_ssb_timing_native.py",
           "line": 174
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_timing_native.py",
+          "path": "tests/test_integrations/test_ssb_timing_native.py",
           "line": 182
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_timing_native.py",
+          "path": "tests/test_integrations/test_ssb_timing_native.py",
           "line": 190
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_timing_native.py",
+          "path": "tests/test_integrations/test_ssb_timing_native.py",
           "line": 195
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_timing_native.py",
+          "path": "tests/test_integrations/test_ssb_timing_native.py",
           "line": 197
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_timing_native.py",
+          "path": "tests/test_integrations/test_ssb_timing_native.py",
           "line": 209
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_timing_native.py",
+          "path": "tests/test_integrations/test_ssb_timing_native.py",
           "line": 225
         },
         {
-          "path": "tests/test_integrations/test_g5_ssb_timing_native.py",
+          "path": "tests/test_integrations/test_ssb_timing_native.py",
           "line": 233
         }
       ],
@@ -12842,8 +12842,8 @@
     },
     {
       "public_name": "validate_g3_joint_acceptance_family",
-      "qualified_name": "evaluation.g3_joint_acceptance.validate_g3_joint_acceptance_family",
-      "source": "evaluation/g3_joint_acceptance.py",
+      "qualified_name": "evaluation.joint_acceptance.validate_g3_joint_acceptance_family",
+      "source": "evaluation/joint_acceptance.py",
       "definition_line": 308,
       "definition_kind": "function",
       "plan_reference_files": [
@@ -12851,113 +12851,113 @@
       ],
       "direct_production_references": [
         {
-          "path": "evaluation/g3_acquisition_package.py",
+          "path": "evaluation/acquisition_package.py",
           "line": 1217
         },
         {
-          "path": "evaluation/g3_complex_csi.py",
+          "path": "evaluation/complex_csi.py",
           "line": 246
         },
         {
-          "path": "evaluation/g3_joint_acceptance.py",
+          "path": "evaluation/joint_acceptance.py",
           "line": 392
         },
         {
-          "path": "evaluation/g3_joint_evaluation.py",
+          "path": "evaluation/joint_evaluation.py",
           "line": 539
         },
         {
-          "path": "evaluation/g3_material_calibration.py",
+          "path": "evaluation/material_calibration.py",
           "line": 597
         },
         {
-          "path": "evaluation/g3_path_equivalence_assurance.py",
+          "path": "evaluation/path_equivalence_assurance.py",
           "line": 445
         },
         {
-          "path": "evaluation/g3_path_equivalence_roster_cli.py",
+          "path": "evaluation/path_equivalence_roster_cli.py",
           "line": 89
         },
         {
-          "path": "evaluation/g3_propagation_assurance.py",
+          "path": "evaluation/propagation_assurance.py",
           "line": 198
         },
         {
-          "path": "evaluation/g3_propagation_metrics.py",
+          "path": "evaluation/propagation_metrics.py",
           "line": 160
         },
         {
-          "path": "evaluation/g3_qualification_contract.py",
+          "path": "evaluation/qualification_contract.py",
           "line": 167
         },
         {
-          "path": "evaluation/g3_receiver_assurance.py",
+          "path": "evaluation/receiver_assurance.py",
           "line": 126
         },
         {
-          "path": "evaluation/g3_receiver_impact.py",
+          "path": "evaluation/receiver_impact.py",
           "line": 136
         },
         {
-          "path": "evaluation/g3_sample_size_planning.py",
+          "path": "evaluation/sample_size_planning.py",
           "line": 560
         },
         {
-          "path": "evaluation/g3_sample_size_planning.py",
+          "path": "evaluation/sample_size_planning.py",
           "line": 891
         },
         {
-          "path": "evaluation/g3_sample_size_planning.py",
+          "path": "evaluation/sample_size_planning.py",
           "line": 1604
         },
         {
-          "path": "evaluation/g3_sample_size_planning.py",
+          "path": "evaluation/sample_size_planning.py",
           "line": 2056
         },
         {
-          "path": "scripts/plan_g3_acquisition_design.py",
+          "path": "scripts/plan_acquisition_design.py",
           "line": 307
         }
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_evaluation/test_g3_joint_acceptance.py",
+          "path": "tests/test_evaluation/test_joint_acceptance.py",
           "line": 36
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_acceptance.py",
+          "path": "tests/test_evaluation/test_joint_acceptance.py",
           "line": 105
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_acceptance.py",
+          "path": "tests/test_evaluation/test_joint_acceptance.py",
           "line": 134
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_acceptance.py",
+          "path": "tests/test_evaluation/test_joint_acceptance.py",
           "line": 148
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_acceptance.py",
+          "path": "tests/test_evaluation/test_joint_acceptance.py",
           "line": 167
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_acceptance.py",
+          "path": "tests/test_evaluation/test_joint_acceptance.py",
           "line": 279
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_acceptance.py",
+          "path": "tests/test_evaluation/test_joint_acceptance.py",
           "line": 297
         },
         {
-          "path": "tests/test_evaluation/test_g3_joint_acceptance.py",
+          "path": "tests/test_evaluation/test_joint_acceptance.py",
           "line": 315
         }
       ]
     },
     {
       "public_name": "fixed_tdl_pdp_reference",
-      "qualified_name": "evaluation.g4_tdl_profile_reference.fixed_tdl_pdp_reference",
-      "source": "evaluation/g4_tdl_profile_reference.py",
+      "qualified_name": "evaluation.tdl_profile_reference.fixed_tdl_pdp_reference",
+      "source": "evaluation/tdl_profile_reference.py",
       "definition_line": 114,
       "definition_kind": "function",
       "plan_reference_files": [
@@ -12967,15 +12967,15 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_evaluation/test_g4_tdl_profile_reference.py",
+          "path": "tests/test_evaluation/test_tdl_profile_reference.py",
           "line": 123
         },
         {
-          "path": "tests/test_evaluation/test_g4_tdl_profile_reference.py",
+          "path": "tests/test_evaluation/test_tdl_profile_reference.py",
           "line": 142
         },
         {
-          "path": "tests/test_integrations/test_g4_statistical_confidence_native.py",
+          "path": "tests/test_integrations/test_statistical_confidence_native.py",
           "line": 178
         }
       ]
@@ -13076,8 +13076,8 @@
     },
     {
       "public_name": "evaluate_g5_snr_curve_acceptance",
-      "qualified_name": "experiments.g5_acceptance.evaluate_g5_snr_curve_acceptance",
-      "source": "experiments/g5_acceptance.py",
+      "qualified_name": "experiments.acceptance.evaluate_g5_snr_curve_acceptance",
+      "source": "experiments/acceptance.py",
       "definition_line": 566,
       "definition_kind": "function",
       "plan_reference_files": [
@@ -13085,45 +13085,45 @@
       ],
       "direct_production_references": [
         {
-          "path": "experiments/g5_ordered_impairments_receiver.py",
+          "path": "experiments/ordered_impairments_receiver.py",
           "line": 1772
         }
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_experiments/test_g5_acceptance.py",
+          "path": "tests/test_experiments/test_acceptance.py",
           "line": 613
         },
         {
-          "path": "tests/test_experiments/test_g5_acceptance.py",
+          "path": "tests/test_experiments/test_acceptance.py",
           "line": 621
         },
         {
-          "path": "tests/test_experiments/test_g5_acceptance.py",
+          "path": "tests/test_experiments/test_acceptance.py",
           "line": 635
         },
         {
-          "path": "tests/test_experiments/test_g5_acceptance.py",
+          "path": "tests/test_experiments/test_acceptance.py",
           "line": 609
         },
         {
-          "path": "tests/test_experiments/test_g5_acceptance.py",
+          "path": "tests/test_experiments/test_acceptance.py",
           "line": 649
         },
         {
-          "path": "tests/test_experiments/test_g5_acceptance.py",
+          "path": "tests/test_experiments/test_acceptance.py",
           "line": 657
         },
         {
-          "path": "tests/test_experiments/test_g5_acceptance.py",
+          "path": "tests/test_experiments/test_acceptance.py",
           "line": 673
         },
         {
-          "path": "tests/test_experiments/test_g5_acceptance.py",
+          "path": "tests/test_experiments/test_acceptance.py",
           "line": 690
         },
         {
-          "path": "tests/test_experiments/test_g5_acceptance.py",
+          "path": "tests/test_experiments/test_acceptance.py",
           "line": 709
         }
       ]
@@ -13139,11 +13139,11 @@
       ],
       "direct_production_references": [
         {
-          "path": "experiments/audit_g5_tdl_dmrs_density_development.py",
+          "path": "experiments/audit_tdl_dmrs_density_development.py",
           "line": 90
         },
         {
-          "path": "experiments/qualify_g5_tdl_c_dmrs_density.py",
+          "path": "experiments/qualify_tdl_c_dmrs_density.py",
           "line": 231
         },
         {

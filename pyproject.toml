@@ -50,8 +50,8 @@ loslab-pair-stored-frequency-views = "scripts.pair_stored_frequency_views:main"
 loslab-materialize-direct-path-ablation = "scripts.materialize_direct_path_ablation:main"
 loslab-materialize-benchmark-partitions = "scripts.materialize_benchmark_partitions:main"
 loslab-build-result-promotion-manifest = "scripts.build_result_promotion_manifest:main"
-loslab-g3-joint-evidence = "evaluation.g3_joint_evidence_artifact:main"
-loslab-verify-g3-run-report-signature = "scripts.verify_g3_run_report_signature:main"
+loslab-g3-joint-evidence = "evaluation.joint_evidence_artifact:main"
+loslab-verify-g3-run-report-signature = "scripts.verify_run_report_signature:main"
 loslab-export-public-release = "scripts.export_public_release:main"
 
 [tool.setuptools.packages.find]

@@ -20,7 +20,7 @@ def test_doctor_reports_environment_without_running_simulation(monkeypatch, caps
 
 
 def test_g3_path_roster_audit_dispatches_to_packaged_evaluator(monkeypatch, tmp_path) -> None:
-    from evaluation import g3_path_equivalence_roster_cli
+    from evaluation import path_equivalence_roster_cli
 
     input_path = tmp_path / "roster.json"
     captured: dict[str, object] = {}
@@ -29,7 +29,7 @@ def test_g3_path_roster_audit_dispatches_to_packaged_evaluator(monkeypatch, tmp_
         captured["argv"] = argv
         return 0
 
-    monkeypatch.setattr(g3_path_equivalence_roster_cli, "main", audit)
+    monkeypatch.setattr(path_equivalence_roster_cli, "main", audit)
     monkeypatch.setattr("sys.argv", ["loslab", "g3-path-roster-audit", str(input_path)])
 
     with pytest.raises(SystemExit) as error:

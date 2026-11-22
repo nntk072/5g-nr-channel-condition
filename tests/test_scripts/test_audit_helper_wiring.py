@@ -21,7 +21,7 @@ def test_helper_wiring_inventory_binds_exports_and_direct_call_sites() -> None:
     phase = by_name["datasets.phase_comparison_disposition"]
     assert phase["documented_route"] is True
     assert any(
-        item["path"] == "evaluation/g3_complex_csi.py"
+        item["path"] == "evaluation/complex_csi.py"
         for item in phase["direct_production_references"]
     )
 
@@ -41,7 +41,7 @@ def test_helper_wiring_inventory_binds_exports_and_direct_call_sites() -> None:
 
     g3_bundle_verifier = by_name["evaluation.verify_g3_joint_evidence_bundle"]
     assert any(
-        item["path"] == "tests/test_evaluation/test_g3_joint_evaluation.py"
+        item["path"] == "tests/test_evaluation/test_joint_evaluation.py"
         for item in g3_bundle_verifier["direct_test_references"]
     )
 

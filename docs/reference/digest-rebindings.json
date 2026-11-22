@@ -1,0 +1,2622 @@
+{
+ "file_moves": [
+  {
+   "new_path": "docs/research/LAB_ACQUISITION_DATA_CONTRACT_DRAFT.md",
+   "old_path": "docs/research/G3_03_LAB_ACQUISITION_DATA_CONTRACT_DRAFT.md"
+  },
+  {
+   "new_path": "docs/research/JOINT_EVALUATOR_ARTIFACT_V1.md",
+   "old_path": "docs/research/G3_JOINT_EVALUATOR_ARTIFACT_V1.md"
+  },
+  {
+   "new_path": "docs/research/QUALIFICATION_COST_BASELINE_2026-10-24.md",
+   "old_path": "docs/research/G3_QUALIFICATION_COST_BASELINE_2026-10-24.md"
+  },
+  {
+   "new_path": "docs/research/SCENE_FAMILY_LICENSE_AUDIT_2026-10-23.md",
+   "old_path": "docs/research/G3_SCENE_FAMILY_LICENSE_AUDIT_2026-10-23.md"
+  },
+  {
+   "new_path": "docs/research/CDL_ABC_ROTATED_DUAL_POL_ARRAY_COVARIANCE_PROTOCOL_2026-10-26.md",
+   "old_path": "docs/research/G4_07_CDL_ABC_ROTATED_DUAL_POL_ARRAY_COVARIANCE_PROTOCOL_2026-10-26.md"
+  },
+  {
+   "new_path": "docs/research/CDL_BOUNDED_JOINT_FOURIER_PROTOCOL_2026-10-25.md",
+   "old_path": "docs/research/G4_07_CDL_BOUNDED_JOINT_FOURIER_PROTOCOL_2026-10-25.md"
+  },
+  {
+   "new_path": "docs/research/CDL_DE_LOS_DUAL_POL_ARRAY_COVARIANCE_PROTOCOL_2026-10-26.md",
+   "old_path": "docs/research/G4_07_CDL_DE_LOS_DUAL_POL_ARRAY_COVARIANCE_PROTOCOL_2026-10-26.md"
+  },
+  {
+   "new_path": "docs/research/CDL_DE_ROTATED_LOS_DUAL_POL_ARRAY_COVARIANCE_PROTOCOL_2026-10-26.md",
+   "old_path": "docs/research/G4_07_CDL_DE_ROTATED_LOS_DUAL_POL_ARRAY_COVARIANCE_PROTOCOL_2026-10-26.md"
+  },
+  {
+   "new_path": "docs/research/CDL_DIRECTIONAL_PATTERN_VECTOR_FIELD_PROTOCOL_2026-11-01.md",
+   "old_path": "docs/research/G4_07_CDL_DIRECTIONAL_PATTERN_VECTOR_FIELD_PROTOCOL_2026-11-01.md"
+  },
+  {
+   "new_path": "docs/research/CDL_DUAL_ENDPOINT_PATTERN_PROTOCOL_2026-10-25.md",
+   "old_path": "docs/research/G4_07_CDL_DUAL_ENDPOINT_PATTERN_PROTOCOL_2026-10-25.md"
+  },
+  {
+   "new_path": "docs/research/CDL_DUAL_POL_ARRAY_COVARIANCE_PROTOCOL_2026-10-26.md",
+   "old_path": "docs/research/G4_07_CDL_DUAL_POL_ARRAY_COVARIANCE_PROTOCOL_2026-10-26.md"
+  },
+  {
+   "new_path": "docs/research/CDL_JOINT_DELAY_ANGLE_PROTOCOL_2026-10-25.md",
+   "old_path": "docs/research/G4_07_CDL_JOINT_DELAY_ANGLE_PROTOCOL_2026-10-25.md"
+  },
+  {
+   "new_path": "docs/research/CDL_JOINT_DELAY_ANGLE_PROTOCOL_V2_2026-10-27.md",
+   "old_path": "docs/research/G4_07_CDL_JOINT_DELAY_ANGLE_PROTOCOL_V2_2026-10-27.md"
+  },
+  {
+   "new_path": "docs/research/CDL_JOINT_DELAY_ANGLE_PROTOCOL_V3_2026-10-27.md",
+   "old_path": "docs/research/G4_07_CDL_JOINT_DELAY_ANGLE_PROTOCOL_V3_2026-10-27.md"
+  },
+  {
+   "new_path": "docs/research/CDL_JOINT_DELAY_ANGLE_PROTOCOL_V4_2026-10-27.md",
+   "old_path": "docs/research/G4_07_CDL_JOINT_DELAY_ANGLE_PROTOCOL_V4_2026-10-27.md"
+  },
+  {
+   "new_path": "docs/research/CDL_JOINT_DELAY_ANGLE_PROTOCOL_V5_2026-10-27.md",
+   "old_path": "docs/research/G4_07_CDL_JOINT_DELAY_ANGLE_PROTOCOL_V5_2026-10-27.md"
+  },
+  {
+   "new_path": "docs/research/CDL_JOINT_TX_RX_DUAL_POL_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-09.md",
+   "old_path": "docs/research/G4_07_CDL_JOINT_TX_RX_DUAL_POL_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-09.md"
+  },
+  {
+   "new_path": "docs/research/CDL_JOINT_TX_RX_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-10.md",
+   "old_path": "docs/research/G4_07_CDL_JOINT_TX_RX_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-10.md"
+  },
+  {
+   "new_path": "docs/research/CDL_JOINT_TX_RX_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-09.md",
+   "old_path": "docs/research/G4_07_CDL_JOINT_TX_RX_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-09.md"
+  },
+  {
+   "new_path": "docs/research/CDL_LARGER_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-10.md",
+   "old_path": "docs/research/G4_07_CDL_LARGER_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-10.md"
+  },
+  {
+   "new_path": "docs/research/CDL_LARGER_TOPOLOGY_JOINT_TX_RX_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-09.md",
+   "old_path": "docs/research/G4_07_CDL_LARGER_TOPOLOGY_JOINT_TX_RX_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-09.md"
+  },
+  {
+   "new_path": "docs/research/CDL_SINGLE_ANGLE_ATOM_ROSTER_2026-11-01.md",
+   "old_path": "docs/research/G4_07_CDL_SINGLE_ANGLE_ATOM_ROSTER_2026-11-01.md"
+  },
+  {
+   "new_path": "docs/research/CDL_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-09.md",
+   "old_path": "docs/research/G4_07_CDL_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-09.md"
+  },
+  {
+   "new_path": "docs/research/FIXED_TDL_COMPLEX_CIRCULARITY_PROTOCOL_2026-10-26.md",
+   "old_path": "docs/research/G4_07_FIXED_TDL_COMPLEX_CIRCULARITY_PROTOCOL_2026-10-26.md"
+  },
+  {
+   "new_path": "docs/research/FIXED_TDL_DOPPLER_SPECTRUM_PROTOCOL_V1_2026-10-27.md",
+   "old_path": "docs/research/G4_07_FIXED_TDL_DOPPLER_SPECTRUM_PROTOCOL_V1_2026-10-27.md"
+  },
+  {
+   "new_path": "docs/research/FIXED_TDL_RICIAN_MARGINAL_PROTOCOL_2026-10-27.md",
+   "old_path": "docs/research/G4_07_FIXED_TDL_RICIAN_MARGINAL_PROTOCOL_2026-10-27.md"
+  },
+  {
+   "new_path": "docs/research/FIXED_TDL_TEMPORAL_COVARIANCE_PROTOCOL_2026-10-27.md",
+   "old_path": "docs/research/G4_07_FIXED_TDL_TEMPORAL_COVARIANCE_PROTOCOL_2026-10-27.md"
+  },
+  {
+   "new_path": "docs/research/SCALABLE_TDL_COMPLEX_CIRCULARITY_PROTOCOL_2026-10-27.md",
+   "old_path": "docs/research/G4_07_SCALABLE_TDL_COMPLEX_CIRCULARITY_PROTOCOL_2026-10-27.md"
+  },
+  {
+   "new_path": "docs/research/SCALABLE_TDL_DOPPLER_SPECTRUM_PROTOCOL_V1_2026-10-27.md",
+   "old_path": "docs/research/G4_07_SCALABLE_TDL_DOPPLER_SPECTRUM_PROTOCOL_V1_2026-10-27.md"
+  },
+  {
+   "new_path": "docs/research/SCALABLE_TDL_TEMPORAL_COVARIANCE_PROTOCOL_2026-10-27.md",
+   "old_path": "docs/research/G4_07_SCALABLE_TDL_TEMPORAL_COVARIANCE_PROTOCOL_2026-10-27.md"
+  },
+  {
+   "new_path": "docs/research/TDL_RAYLEIGH_MARGINAL_PROTOCOL_2026-10-27.md",
+   "old_path": "docs/research/G4_07_TDL_RAYLEIGH_MARGINAL_PROTOCOL_2026-10-27.md"
+  },
+  {
+   "new_path": "docs/research/CDL_PATTERNED_ROTATED_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-10.md",
+   "old_path": "docs/research/G4_08_CDL_PATTERNED_ROTATED_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-10.md"
+  },
+  {
+   "new_path": "docs/research/CDL_PHYSICAL_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-10.md",
+   "old_path": "docs/research/G4_08_CDL_PHYSICAL_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-10.md"
+  },
+  {
+   "new_path": "docs/research/CDL_ROTATED_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-10.md",
+   "old_path": "docs/research/G4_08_CDL_ROTATED_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-10.md"
+  },
+  {
+   "new_path": "docs/research/CDL_PHYSICAL_HANDHELD_UT_OPERATING_POINT_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-10.md",
+   "old_path": "docs/research/G4_09_CDL_PHYSICAL_HANDHELD_UT_OPERATING_POINT_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-10.md"
+  },
+  {
+   "new_path": "docs/research/CDL_PHYSICAL_DUAL_CROSS_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-10.md",
+   "old_path": "docs/research/G4_10_CDL_PHYSICAL_DUAL_CROSS_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-10.md"
+  },
+  {
+   "new_path": "docs/research/CDL_3D_VELOCITY_TEMPORAL_COVARIANCE_PROTOCOL_2026-10-26.md",
+   "old_path": "docs/research/G4_CDL_3D_VELOCITY_TEMPORAL_COVARIANCE_PROTOCOL_2026-10-26.md"
+  },
+  {
+   "new_path": "docs/research/CDL_ANGULAR_POWER_SEED_AUDIT_2026-11-09.json",
+   "old_path": "docs/research/G4_CDL_ANGULAR_POWER_SEED_AUDIT_2026-11-09.json"
+  },
+  {
+   "new_path": "docs/research/CDL_ANTENNA_PATTERN_VECTOR_FIELD_SEED_AUDIT_2026-11-01.json",
+   "old_path": "docs/research/G4_CDL_ANTENNA_PATTERN_VECTOR_FIELD_SEED_AUDIT_2026-11-01.json"
+  },
+  {
+   "new_path": "docs/research/CDL_COMPLEX_CIRCULARITY_SEED_AUDIT_2026-11-09.json",
+   "old_path": "docs/research/G4_CDL_COMPLEX_CIRCULARITY_SEED_AUDIT_2026-11-09.json"
+  },
+  {
+   "new_path": "docs/research/CDL_COMPLEX_CIRCULARITY_SOURCE_PIN_2026-10-27.md",
+   "old_path": "docs/research/G4_CDL_COMPLEX_CIRCULARITY_SOURCE_PIN_2026-10-27.md"
+  },
+  {
+   "new_path": "docs/research/CDL_DE_ZERO_ORIENTATION_COVARIANCE_SEED_AUDIT_2026-11-09.json",
+   "old_path": "docs/research/G4_CDL_DE_ZERO_ORIENTATION_COVARIANCE_SEED_AUDIT_2026-11-09.json"
+  },
+  {
+   "new_path": "docs/research/CDL_E_FRESH_SEED_AUDIT_2026-11-12.json",
+   "old_path": "docs/research/G4_CDL_E_FRESH_SEED_AUDIT_2026-11-12.json"
+  },
+  {
+   "new_path": "docs/research/CDL_E_FRESH_SEED_REPLICATION_PROTOCOL_2026-11-12.md",
+   "old_path": "docs/research/G4_CDL_E_FRESH_SEED_REPLICATION_PROTOCOL_2026-11-12.md"
+  },
+  {
+   "new_path": "docs/research/CDL_E_FROZEN_MISS_REVIEW_2026-11-11.md",
+   "old_path": "docs/research/G4_CDL_E_FROZEN_MISS_REVIEW_2026-11-11.md"
+  },
+  {
+   "new_path": "docs/research/CDL_JOINT_TX_RX_DUAL_POL_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-09.json",
+   "old_path": "docs/research/G4_CDL_JOINT_TX_RX_DUAL_POL_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-09.json"
+  },
+  {
+   "new_path": "docs/research/CDL_JOINT_TX_RX_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json",
+   "old_path": "docs/research/G4_CDL_JOINT_TX_RX_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json"
+  },
+  {
+   "new_path": "docs/research/CDL_JOINT_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-09.json",
+   "old_path": "docs/research/G4_CDL_JOINT_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-09.json"
+  },
+  {
+   "new_path": "docs/research/CDL_LARGER_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json",
+   "old_path": "docs/research/G4_CDL_LARGER_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json"
+  },
+  {
+   "new_path": "docs/research/CDL_LARGER_TOPOLOGY_JOINT_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-09.json",
+   "old_path": "docs/research/G4_CDL_LARGER_TOPOLOGY_JOINT_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-09.json"
+  },
+  {
+   "new_path": "docs/research/CDL_PATTERNED_ROTATED_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json",
+   "old_path": "docs/research/G4_CDL_PATTERNED_ROTATED_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json"
+  },
+  {
+   "new_path": "docs/research/CDL_PHYSICAL_DUAL_CROSS_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json",
+   "old_path": "docs/research/G4_CDL_PHYSICAL_DUAL_CROSS_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json"
+  },
+  {
+   "new_path": "docs/research/CDL_PHYSICAL_HANDHELD_UT_OPERATING_POINT_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json",
+   "old_path": "docs/research/G4_CDL_PHYSICAL_HANDHELD_UT_OPERATING_POINT_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json"
+  },
+  {
+   "new_path": "docs/research/CDL_PHYSICAL_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json",
+   "old_path": "docs/research/G4_CDL_PHYSICAL_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json"
+  },
+  {
+   "new_path": "docs/research/CDL_POLARIZATION_POWER_SEED_AUDIT_2026-11-09.json",
+   "old_path": "docs/research/G4_CDL_POLARIZATION_POWER_SEED_AUDIT_2026-11-09.json"
+  },
+  {
+   "new_path": "docs/research/CDL_PROFILE_SCALAR_REFERENCE_2026-10-26.json",
+   "old_path": "docs/research/G4_CDL_PROFILE_SCALAR_REFERENCE_2026-10-26.json"
+  },
+  {
+   "new_path": "docs/research/CDL_ROTATED_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json",
+   "old_path": "docs/research/G4_CDL_ROTATED_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json"
+  },
+  {
+   "new_path": "docs/research/CDL_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-09.json",
+   "old_path": "docs/research/G4_CDL_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-09.json"
+  },
+  {
+   "new_path": "docs/research/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json",
+   "old_path": "docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
+  },
+  {
+   "new_path": "docs/research/FIXED_TDL_DOPPLER_SPECTRUM_SEED_AUDIT_2026-10-27.json",
+   "old_path": "docs/research/G4_FIXED_TDL_DOPPLER_SPECTRUM_SEED_AUDIT_2026-10-27.json"
+  },
+  {
+   "new_path": "docs/research/FIXED_TDL_DOPPLER_SPECTRUM_SEED_AUDIT_2026-11-09.json",
+   "old_path": "docs/research/G4_FIXED_TDL_DOPPLER_SPECTRUM_SEED_AUDIT_2026-11-09.json"
+  },
+  {
+   "new_path": "docs/research/FIXED_TDL_LOS_K_FACTOR_PROTOCOL_2026-10-26.md",
+   "old_path": "docs/research/G4_FIXED_TDL_LOS_K_FACTOR_PROTOCOL_2026-10-26.md"
+  },
+  {
+   "new_path": "docs/research/FIXED_TDL_LOS_K_FACTOR_REFERENCE_2026-10-26.json",
+   "old_path": "docs/research/G4_FIXED_TDL_LOS_K_FACTOR_REFERENCE_2026-10-26.json"
+  },
+  {
+   "new_path": "docs/research/FIXED_TDL_PROPERNESS_SEED_AUDIT_2026-10-27.json",
+   "old_path": "docs/research/G4_FIXED_TDL_PROPERNESS_SEED_AUDIT_2026-10-27.json"
+  },
+  {
+   "new_path": "docs/research/FIXED_TDL_RICIAN_MARGINAL_SEED_AUDIT_2026-10-27.json",
+   "old_path": "docs/research/G4_FIXED_TDL_RICIAN_MARGINAL_SEED_AUDIT_2026-10-27.json"
+  },
+  {
+   "new_path": "docs/research/FIXED_TDL_RICIAN_MARGINAL_SEED_AUDIT_2026-11-09.json",
+   "old_path": "docs/research/G4_FIXED_TDL_RICIAN_MARGINAL_SEED_AUDIT_2026-11-09.json"
+  },
+  {
+   "new_path": "docs/research/FIXED_TDL_RMS_REFERENCE_2026-10-26.json",
+   "old_path": "docs/research/G4_FIXED_TDL_RMS_REFERENCE_2026-10-26.json"
+  },
+  {
+   "new_path": "docs/research/FIXED_TDL_TAP_PROFILE_REFERENCE_2026-10-26.json",
+   "old_path": "docs/research/G4_FIXED_TDL_TAP_PROFILE_REFERENCE_2026-10-26.json"
+  },
+  {
+   "new_path": "docs/research/FIXED_TDL_TAP_SUMMARY_REFERENCE_2026-10-26.json",
+   "old_path": "docs/research/G4_FIXED_TDL_TAP_SUMMARY_REFERENCE_2026-10-26.json"
+  },
+  {
+   "new_path": "docs/research/FIXED_TDL_TEMPORAL_SEED_AUDIT_2026-10-27.json",
+   "old_path": "docs/research/G4_FIXED_TDL_TEMPORAL_SEED_AUDIT_2026-10-27.json"
+  },
+  {
+   "new_path": "docs/research/FIXED_TDL_TEMPORAL_SEED_AUDIT_2026-11-09.json",
+   "old_path": "docs/research/G4_FIXED_TDL_TEMPORAL_SEED_AUDIT_2026-11-09.json"
+  },
+  {
+   "new_path": "docs/research/PDP_RMS_SEED_AUDIT_2026-11-09.json",
+   "old_path": "docs/research/G4_PDP_RMS_SEED_AUDIT_2026-11-09.json"
+  },
+  {
+   "new_path": "docs/research/SCALABLE_TDL_DOPPLER_SPECTRUM_SEED_AUDIT_2026-10-27.json",
+   "old_path": "docs/research/G4_SCALABLE_TDL_DOPPLER_SPECTRUM_SEED_AUDIT_2026-10-27.json"
+  },
+  {
+   "new_path": "docs/research/SCALABLE_TDL_DOPPLER_SPECTRUM_SEED_AUDIT_2026-11-09.json",
+   "old_path": "docs/research/G4_SCALABLE_TDL_DOPPLER_SPECTRUM_SEED_AUDIT_2026-11-09.json"
+  },
+  {
+   "new_path": "docs/research/SCALABLE_TDL_POWER_DELAY_REFERENCE_2026-10-26.json",
+   "old_path": "docs/research/G4_SCALABLE_TDL_POWER_DELAY_REFERENCE_2026-10-26.json"
+  },
+  {
+   "new_path": "docs/research/SCALABLE_TDL_PROPERNESS_SEED_AUDIT_2026-10-27.json",
+   "old_path": "docs/research/G4_SCALABLE_TDL_PROPERNESS_SEED_AUDIT_2026-10-27.json"
+  },
+  {
+   "new_path": "docs/research/SCALABLE_TDL_TEMPORAL_SEED_AUDIT_2026-10-27.json",
+   "old_path": "docs/research/G4_SCALABLE_TDL_TEMPORAL_SEED_AUDIT_2026-10-27.json"
+  },
+  {
+   "new_path": "docs/research/SCALABLE_TDL_TEMPORAL_SEED_AUDIT_2026-11-09.json",
+   "old_path": "docs/research/G4_SCALABLE_TDL_TEMPORAL_SEED_AUDIT_2026-11-09.json"
+  },
+  {
+   "new_path": "docs/research/SCENARIO_GBSM_GENERATION_CLI_V1.md",
+   "old_path": "docs/research/G4_SCENARIO_GBSM_GENERATION_CLI_V1.md"
+  },
+  {
+   "new_path": "docs/research/SEED_ROSTER_AUDIT_2026-10-26.json",
+   "old_path": "docs/research/G4_SEED_ROSTER_AUDIT_2026-10-26.json"
+  },
+  {
+   "new_path": "docs/research/SEED_ROSTER_AUDIT_2026-10-26_ALL_FROZEN.json",
+   "old_path": "docs/research/G4_SEED_ROSTER_AUDIT_2026-10-26_ALL_FROZEN.json"
+  },
+  {
+   "new_path": "docs/research/SEED_ROSTER_AUDIT_2026-11-09_ROTATED_ABC.json",
+   "old_path": "docs/research/G4_SEED_ROSTER_AUDIT_2026-11-09_ROTATED_ABC.json"
+  },
+  {
+   "new_path": "docs/research/SEED_ROSTER_AUDIT_2026-11-09_ROTATED_DE.json",
+   "old_path": "docs/research/G4_SEED_ROSTER_AUDIT_2026-11-09_ROTATED_DE.json"
+  },
+  {
+   "new_path": "docs/research/STANDARD_REFERENCE_MANIFEST_2026-10-26.json",
+   "old_path": "docs/research/G4_STANDARD_REFERENCE_MANIFEST_2026-10-26.json"
+  },
+  {
+   "new_path": "docs/research/TDL_RAYLEIGH_MARGINAL_SEED_AUDIT_2026-10-27.json",
+   "old_path": "docs/research/G4_TDL_RAYLEIGH_MARGINAL_SEED_AUDIT_2026-10-27.json"
+  },
+  {
+   "new_path": "docs/research/TDL_RAYLEIGH_MARGINAL_SEED_AUDIT_2026-11-09.json",
+   "old_path": "docs/research/G4_TDL_RAYLEIGH_MARGINAL_SEED_AUDIT_2026-11-09.json"
+  },
+  {
+   "new_path": "docs/research/SHARED_SYNC_DIAGNOSTIC_RETENTION_V3_PROTOCOL_2026-10-25.md",
+   "old_path": "docs/research/G5_09_SHARED_SYNC_DIAGNOSTIC_RETENTION_V3_PROTOCOL_2026-10-25.md"
+  },
+  {
+   "new_path": "docs/research/SHARED_SYNC_INDEPENDENT_REPLICATION_PROTOCOL_2026-10-25.md",
+   "old_path": "docs/research/G5_09_SHARED_SYNC_INDEPENDENT_REPLICATION_PROTOCOL_2026-10-25.md"
+  },
+  {
+   "new_path": "docs/research/SHARED_SYNC_INDEPENDENT_REPLICATION_V2_PROTOCOL_2026-10-25.md",
+   "old_path": "docs/research/G5_09_SHARED_SYNC_INDEPENDENT_REPLICATION_V2_PROTOCOL_2026-10-25.md"
+  },
+  {
+   "new_path": "docs/research/SNR_FAMILY_ACCEPTANCE_CONTRACT_V1.md",
+   "old_path": "docs/research/G5_09_SNR_FAMILY_ACCEPTANCE_CONTRACT_V1.md"
+  },
+  {
+   "new_path": "docs/research/DELAY_DOMAIN_DFT_CONFIRMATORY_PROTOCOL_2026-10-24.md",
+   "old_path": "docs/research/G5_DELAY_DOMAIN_DFT_CONFIRMATORY_PROTOCOL_2026-10-24.md"
+  },
+  {
+   "new_path": "docs/research/DOPPLER_DMRS_DENSITY_CONFIRMATORY_PROTOCOL_2026-10-24.md",
+   "old_path": "docs/research/G5_DOPPLER_DMRS_DENSITY_CONFIRMATORY_PROTOCOL_2026-10-24.md"
+  },
+  {
+   "new_path": "docs/research/NR_DL_TDOA_SEMANTIC_REPORT_V1.md",
+   "old_path": "docs/research/G5_NR_DL_TDOA_SEMANTIC_REPORT_V1.md"
+  },
+  {
+   "new_path": "docs/research/ORDERED_IMPAIRMENTS_DFT_ESTIMATOR_PROTOCOL_2026-10-25.md",
+   "old_path": "docs/research/G5_ORDERED_IMPAIRMENTS_DFT_ESTIMATOR_PROTOCOL_2026-10-25.md"
+  },
+  {
+   "new_path": "docs/research/RECEIVER_SUPPORT_MATRIX_2026-11-12.md",
+   "old_path": "docs/research/G5_RECEIVER_SUPPORT_MATRIX_2026-11-12.md"
+  },
+  {
+   "new_path": "docs/research/SNR_PREREGISTRATION.md",
+   "old_path": "docs/research/G5_SNR_PREREGISTRATION.md"
+  },
+  {
+   "new_path": "docs/research/SRS_POSITIONING_MEASUREMENTS.md",
+   "old_path": "docs/research/G5_SRS_POSITIONING_MEASUREMENTS.md"
+  },
+  {
+   "new_path": "docs/research/TDL_AE_DMRS_DENSITY_FAMILY_CONFIRMATORY_PROTOCOL_2026-10-24.md",
+   "old_path": "docs/research/G5_TDL_AE_DMRS_DENSITY_FAMILY_CONFIRMATORY_PROTOCOL_2026-10-24.md"
+  },
+  {
+   "new_path": "docs/research/TDL_AE_DMRS_DENSITY_FAMILY_REPLICATION_PROTOCOL_2026-10-24.md",
+   "old_path": "docs/research/G5_TDL_AE_DMRS_DENSITY_FAMILY_REPLICATION_PROTOCOL_2026-10-24.md"
+  },
+  {
+   "new_path": "docs/research/TDL_AE_DMRS_DENSITY_FAMILY_REPLICATION_V2_PROTOCOL_2026-10-24.md",
+   "old_path": "docs/research/G5_TDL_AE_DMRS_DENSITY_FAMILY_REPLICATION_V2_PROTOCOL_2026-10-24.md"
+  },
+  {
+   "new_path": "docs/research/TDL_AE_SIGNED_LAG_DFT_FAMILY_CONFIRMATORY_PROTOCOL_2026-10-24.md",
+   "old_path": "docs/research/G5_TDL_AE_SIGNED_LAG_DFT_FAMILY_CONFIRMATORY_PROTOCOL_2026-10-24.md"
+  },
+  {
+   "new_path": "docs/research/TDL_C_DMRS_DENSITY_CONFIRMATORY_PROTOCOL_2026-10-24.md",
+   "old_path": "docs/research/G5_TDL_C_DMRS_DENSITY_CONFIRMATORY_PROTOCOL_2026-10-24.md"
+  },
+  {
+   "new_path": "docs/research/TDL_C_SIGNED_LAG_DFT_CONFIRMATORY_PROTOCOL_2026-10-24.md",
+   "old_path": "docs/research/G5_TDL_C_SIGNED_LAG_DFT_CONFIRMATORY_PROTOCOL_2026-10-24.md"
+  },
+  {
+   "new_path": "docs/research/SYNTHETIC_MEMORY_MEASUREMENT_2026-10-23.md",
+   "old_path": "docs/research/G7_13_SYNTHETIC_MEMORY_MEASUREMENT_2026-10-23.md"
+  },
+  {
+   "new_path": "docs/research/handoffs/CITY43_PHASE0_AGENT_REVIEW_2026-10-23.md",
+   "old_path": "docs/research/handoffs/CITY43_G3_PHASE0_AGENT_REVIEW_2026-10-23.md"
+  },
+  {
+   "new_path": "evaluation/acquisition_package.py",
+   "old_path": "evaluation/g3_acquisition_package.py"
+  },
+  {
+   "new_path": "evaluation/complex_csi.py",
+   "old_path": "evaluation/g3_complex_csi.py"
+  },
+  {
+   "new_path": "evaluation/joint_acceptance.py",
+   "old_path": "evaluation/g3_joint_acceptance.py"
+  },
+  {
+   "new_path": "evaluation/joint_evaluation.py",
+   "old_path": "evaluation/g3_joint_evaluation.py"
+  },
+  {
+   "new_path": "evaluation/joint_evidence_artifact.py",
+   "old_path": "evaluation/g3_joint_evidence_artifact.py"
+  },
+  {
+   "new_path": "evaluation/joint_evidence_run_manifest.py",
+   "old_path": "evaluation/g3_joint_evidence_run_manifest.py"
+  },
+  {
+   "new_path": "evaluation/material_calibration.py",
+   "old_path": "evaluation/g3_material_calibration.py"
+  },
+  {
+   "new_path": "evaluation/numeric.py",
+   "old_path": "evaluation/g3_numeric.py"
+  },
+  {
+   "new_path": "evaluation/path_equivalence.py",
+   "old_path": "evaluation/g3_path_equivalence.py"
+  },
+  {
+   "new_path": "evaluation/path_equivalence_assurance.py",
+   "old_path": "evaluation/g3_path_equivalence_assurance.py"
+  },
+  {
+   "new_path": "evaluation/path_equivalence_roster_cli.py",
+   "old_path": "evaluation/g3_path_equivalence_roster_cli.py"
+  },
+  {
+   "new_path": "evaluation/propagation_assurance.py",
+   "old_path": "evaluation/g3_propagation_assurance.py"
+  },
+  {
+   "new_path": "evaluation/propagation_metrics.py",
+   "old_path": "evaluation/g3_propagation_metrics.py"
+  },
+  {
+   "new_path": "evaluation/qualification_contract.py",
+   "old_path": "evaluation/g3_qualification_contract.py"
+  },
+  {
+   "new_path": "evaluation/receiver_assurance.py",
+   "old_path": "evaluation/g3_receiver_assurance.py"
+  },
+  {
+   "new_path": "evaluation/receiver_impact.py",
+   "old_path": "evaluation/g3_receiver_impact.py"
+  },
+  {
+   "new_path": "evaluation/sample_size_planning.py",
+   "old_path": "evaluation/g3_sample_size_planning.py"
+  },
+  {
+   "new_path": "evaluation/signed_attestation.py",
+   "old_path": "evaluation/g3_signed_attestation.py"
+  },
+  {
+   "new_path": "evaluation/cdl_four_element_covariance.py",
+   "old_path": "evaluation/g4_cdl_four_element_covariance.py"
+  },
+  {
+   "new_path": "evaluation/cdl_handheld_ut_spatiotemporal_covariance.py",
+   "old_path": "evaluation/g4_cdl_handheld_ut_spatiotemporal_covariance.py"
+  },
+  {
+   "new_path": "evaluation/cdl_joint_tx_rx_dual_pol_spatiotemporal_covariance.py",
+   "old_path": "evaluation/g4_cdl_joint_tx_rx_dual_pol_spatiotemporal_covariance.py"
+  },
+  {
+   "new_path": "evaluation/cdl_joint_tx_rx_dual_tx_rx_spatiotemporal_covariance.py",
+   "old_path": "evaluation/g4_cdl_joint_tx_rx_dual_tx_rx_spatiotemporal_covariance.py"
+  },
+  {
+   "new_path": "evaluation/cdl_joint_tx_rx_spatiotemporal_covariance.py",
+   "old_path": "evaluation/g4_cdl_joint_tx_rx_spatiotemporal_covariance.py"
+  },
+  {
+   "new_path": "evaluation/cdl_patterned_rotated_dual_tx_rx_spatiotemporal_covariance.py",
+   "old_path": "evaluation/g4_cdl_patterned_rotated_dual_tx_rx_spatiotemporal_covariance.py"
+  },
+  {
+   "new_path": "evaluation/cdl_rotated_dual_tx_rx_spatiotemporal_covariance.py",
+   "old_path": "evaluation/g4_cdl_rotated_dual_tx_rx_spatiotemporal_covariance.py"
+  },
+  {
+   "new_path": "evaluation/cdl_spatiotemporal_covariance.py",
+   "old_path": "evaluation/g4_cdl_spatiotemporal_covariance.py"
+  },
+  {
+   "new_path": "evaluation/cdl_temporal_reference.py",
+   "old_path": "evaluation/g4_cdl_temporal_reference.py"
+  },
+  {
+   "new_path": "evaluation/complex_circularity.py",
+   "old_path": "evaluation/g4_complex_circularity.py"
+  },
+  {
+   "new_path": "evaluation/doppler_spectrum.py",
+   "old_path": "evaluation/g4_doppler_spectrum.py"
+  },
+  {
+   "new_path": "evaluation/seed_roster.py",
+   "old_path": "evaluation/g4_seed_roster.py"
+  },
+  {
+   "new_path": "evaluation/tdl_covariance_reference.py",
+   "old_path": "evaluation/g4_tdl_covariance_reference.py"
+  },
+  {
+   "new_path": "evaluation/tdl_profile_reference.py",
+   "old_path": "evaluation/g4_tdl_profile_reference.py"
+  },
+  {
+   "new_path": "evaluation/tdl_rayleigh_marginal.py",
+   "old_path": "evaluation/g4_tdl_rayleigh_marginal.py"
+  },
+  {
+   "new_path": "evaluation/tdl_rician_marginal.py",
+   "old_path": "evaluation/g4_tdl_rician_marginal.py"
+  },
+  {
+   "new_path": "evaluation/schema/complex-csi-channel-view-contract.v1.schema.json",
+   "old_path": "evaluation/schema/g3-complex-csi-channel-view-contract.v1.schema.json"
+  },
+  {
+   "new_path": "experiments/audit_cp_bounded_dft_diagnostic.py",
+   "old_path": "experiments/audit_g5_cp_bounded_dft_diagnostic.py"
+  },
+  {
+   "new_path": "experiments/audit_cp_profile_matrix.py",
+   "old_path": "experiments/audit_g5_cp_profile_matrix.py"
+  },
+  {
+   "new_path": "experiments/audit_delay_domain_dft.py",
+   "old_path": "experiments/audit_g5_delay_domain_dft.py"
+  },
+  {
+   "new_path": "experiments/audit_ordered_impairments_result.py",
+   "old_path": "experiments/audit_g5_ordered_impairments_result.py"
+  },
+  {
+   "new_path": "experiments/audit_static_reference_failures.py",
+   "old_path": "experiments/audit_g5_static_reference_failures.py"
+  },
+  {
+   "new_path": "experiments/audit_tdl_c_dmrs_density.py",
+   "old_path": "experiments/audit_g5_tdl_c_dmrs_density.py"
+  },
+  {
+   "new_path": "experiments/audit_tdl_dft_density.py",
+   "old_path": "experiments/audit_g5_tdl_dft_density.py"
+  },
+  {
+   "new_path": "experiments/audit_tdl_dft_profile_matrix.py",
+   "old_path": "experiments/audit_g5_tdl_dft_profile_matrix.py"
+  },
+  {
+   "new_path": "experiments/audit_tdl_dmrs_density_development.py",
+   "old_path": "experiments/audit_g5_tdl_dmrs_density_development.py"
+  },
+  {
+   "new_path": "experiments/audit_tdl_profile_matrix.py",
+   "old_path": "experiments/audit_g5_tdl_profile_matrix.py"
+  },
+  {
+   "new_path": "experiments/diagnose_estimator_choice.py",
+   "old_path": "experiments/diagnose_g5_estimator_choice.py"
+  },
+  {
+   "new_path": "experiments/acceptance.py",
+   "old_path": "experiments/g5_acceptance.py"
+  },
+  {
+   "new_path": "experiments/cp_bounded_dft_estimator.py",
+   "old_path": "experiments/g5_cp_bounded_dft_estimator.py"
+  },
+  {
+   "new_path": "experiments/doppler_awgn_receiver.py",
+   "old_path": "experiments/g5_doppler_awgn_receiver.py"
+  },
+  {
+   "new_path": "experiments/independent_channel_receiver.py",
+   "old_path": "experiments/g5_independent_channel_receiver.py"
+  },
+  {
+   "new_path": "experiments/ordered_impairments_receiver.py",
+   "old_path": "experiments/g5_ordered_impairments_receiver.py"
+  },
+  {
+   "new_path": "experiments/time_varying_multipath_receiver.py",
+   "old_path": "experiments/g5_time_varying_multipath_receiver.py"
+  },
+  {
+   "new_path": "experiments/qualify_delay_domain_dft.py",
+   "old_path": "experiments/qualify_g5_delay_domain_dft.py"
+  },
+  {
+   "new_path": "experiments/qualify_doppler_dmrs_density.py",
+   "old_path": "experiments/qualify_g5_doppler_dmrs_density.py"
+  },
+  {
+   "new_path": "experiments/qualify_tdl_c_dmrs_density.py",
+   "old_path": "experiments/qualify_g5_tdl_c_dmrs_density.py"
+  },
+  {
+   "new_path": "experiments/qualify_tdl_dft_density.py",
+   "old_path": "experiments/qualify_g5_tdl_dft_density.py"
+  },
+  {
+   "new_path": "experiments/qualify_tdl_dft_profile_matrix.py",
+   "old_path": "experiments/qualify_g5_tdl_dft_profile_matrix.py"
+  },
+  {
+   "new_path": "experiments/qualify_tdl_profile_matrix.py",
+   "old_path": "experiments/qualify_g5_tdl_profile_matrix.py"
+  },
+  {
+   "new_path": "experiments/qualify_tdl_profile_matrix_replication.py",
+   "old_path": "experiments/qualify_g5_tdl_profile_matrix_replication.py"
+  },
+  {
+   "new_path": "experiments/results/ordered_impairments_cpu_fixture_2026-10-23.json",
+   "old_path": "experiments/results/g5_ordered_impairments_cpu_fixture_2026-10-23.json"
+  },
+  {
+   "new_path": "experiments/results/ordered_impairments_cpu_replay_2026-10-23.json",
+   "old_path": "experiments/results/g5_ordered_impairments_cpu_replay_2026-10-23.json"
+  },
+  {
+   "new_path": "experiments/scan_doppler_dmrs_density.py",
+   "old_path": "experiments/scan_g5_doppler_dmrs_density.py"
+  },
+  {
+   "new_path": "experiments/scan_doppler_dmrs_noise_operating_point.py",
+   "old_path": "experiments/scan_g5_doppler_dmrs_noise_operating_point.py"
+  },
+  {
+   "new_path": "experiments/scan_doppler_operating_point.py",
+   "old_path": "experiments/scan_g5_doppler_operating_point.py"
+  },
+  {
+   "new_path": "scripts/audit_attestation_set.py",
+   "old_path": "scripts/audit_g3_attestation_set.py"
+  },
+  {
+   "new_path": "scripts/audit_standard_references.py",
+   "old_path": "scripts/audit_g4_standard_references.py"
+  },
+  {
+   "new_path": "scripts/evaluate_path_equivalence_roster.py",
+   "old_path": "scripts/evaluate_g3_path_equivalence_roster.py"
+  },
+  {
+   "new_path": "scripts/plan_acquisition_design.py",
+   "old_path": "scripts/plan_g3_acquisition_design.py"
+  },
+  {
+   "new_path": "scripts/run_cdl_directional_pattern_power.py",
+   "old_path": "scripts/run_g4_cdl_directional_pattern_power.py"
+  },
+  {
+   "new_path": "scripts/run_cdl_dual_cross_handheld_ut_spatiotemporal_covariance.py",
+   "old_path": "scripts/run_g4_cdl_dual_cross_handheld_ut_spatiotemporal_covariance.py"
+  },
+  {
+   "new_path": "scripts/run_cdl_e_fresh_seed_replication.py",
+   "old_path": "scripts/run_g4_cdl_e_fresh_seed_replication.py"
+  },
+  {
+   "new_path": "scripts/run_cdl_handheld_ut_operating_point_spatiotemporal_covariance.py",
+   "old_path": "scripts/run_g4_cdl_handheld_ut_operating_point_spatiotemporal_covariance.py"
+  },
+  {
+   "new_path": "scripts/run_cdl_handheld_ut_spatiotemporal_covariance.py",
+   "old_path": "scripts/run_g4_cdl_handheld_ut_spatiotemporal_covariance.py"
+  },
+  {
+   "new_path": "scripts/run_cdl_joint_tx_rx_dual_pol_spatiotemporal_covariance.py",
+   "old_path": "scripts/run_g4_cdl_joint_tx_rx_dual_pol_spatiotemporal_covariance.py"
+  },
+  {
+   "new_path": "scripts/run_cdl_joint_tx_rx_dual_tx_rx_spatiotemporal_covariance.py",
+   "old_path": "scripts/run_g4_cdl_joint_tx_rx_dual_tx_rx_spatiotemporal_covariance.py"
+  },
+  {
+   "new_path": "scripts/run_cdl_joint_tx_rx_spatiotemporal_covariance.py",
+   "old_path": "scripts/run_g4_cdl_joint_tx_rx_spatiotemporal_covariance.py"
+  },
+  {
+   "new_path": "scripts/run_cdl_larger_dual_tx_rx_spatiotemporal_covariance.py",
+   "old_path": "scripts/run_g4_cdl_larger_dual_tx_rx_spatiotemporal_covariance.py"
+  },
+  {
+   "new_path": "scripts/run_cdl_larger_topology_joint_tx_rx_spatiotemporal_covariance.py",
+   "old_path": "scripts/run_g4_cdl_larger_topology_joint_tx_rx_spatiotemporal_covariance.py"
+  },
+  {
+   "new_path": "scripts/run_cdl_patterned_rotated_dual_tx_rx_spatiotemporal_covariance.py",
+   "old_path": "scripts/run_g4_cdl_patterned_rotated_dual_tx_rx_spatiotemporal_covariance.py"
+  },
+  {
+   "new_path": "scripts/run_cdl_rotated_dual_tx_rx_spatiotemporal_covariance.py",
+   "old_path": "scripts/run_g4_cdl_rotated_dual_tx_rx_spatiotemporal_covariance.py"
+  },
+  {
+   "new_path": "scripts/run_cdl_spatiotemporal_covariance.py",
+   "old_path": "scripts/run_g4_cdl_spatiotemporal_covariance.py"
+  },
+  {
+   "new_path": "scripts/run_tdl_rayleigh_marginal.py",
+   "old_path": "scripts/run_g4_tdl_rayleigh_marginal.py"
+  },
+  {
+   "new_path": "scripts/verify_acquisition_package.py",
+   "old_path": "scripts/verify_g3_acquisition_package.py"
+  },
+  {
+   "new_path": "scripts/verify_run_report_signature.py",
+   "old_path": "scripts/verify_g3_run_report_signature.py"
+  },
+  {
+   "new_path": "tests/test_datasets/test_acquisition_package_schema.py",
+   "old_path": "tests/test_datasets/test_g3_acquisition_package_schema.py"
+  },
+  {
+   "new_path": "tests/test_datasets/test_acquisition_package_v0_2.py",
+   "old_path": "tests/test_datasets/test_g3_acquisition_package_v0_2.py"
+  },
+  {
+   "new_path": "tests/test_evaluation/test_acquisition_package_verifier.py",
+   "old_path": "tests/test_evaluation/test_g3_acquisition_package_verifier.py"
+  },
+  {
+   "new_path": "tests/test_evaluation/test_complex_csi.py",
+   "old_path": "tests/test_evaluation/test_g3_complex_csi.py"
+  },
+  {
+   "new_path": "tests/test_evaluation/test_joint_acceptance.py",
+   "old_path": "tests/test_evaluation/test_g3_joint_acceptance.py"
+  },
+  {
+   "new_path": "tests/test_evaluation/test_joint_evaluation.py",
+   "old_path": "tests/test_evaluation/test_g3_joint_evaluation.py"
+  },
+  {
+   "new_path": "tests/test_evaluation/test_joint_evidence_artifact.py",
+   "old_path": "tests/test_evaluation/test_g3_joint_evidence_artifact.py"
+  },
+  {
+   "new_path": "tests/test_evaluation/test_material_calibration.py",
+   "old_path": "tests/test_evaluation/test_g3_material_calibration.py"
+  },
+  {
+   "new_path": "tests/test_evaluation/test_path_equivalence.py",
+   "old_path": "tests/test_evaluation/test_g3_path_equivalence.py"
+  },
+  {
+   "new_path": "tests/test_evaluation/test_path_equivalence_assurance.py",
+   "old_path": "tests/test_evaluation/test_g3_path_equivalence_assurance.py"
+  },
+  {
+   "new_path": "tests/test_evaluation/test_propagation_assurance.py",
+   "old_path": "tests/test_evaluation/test_g3_propagation_assurance.py"
+  },
+  {
+   "new_path": "tests/test_evaluation/test_propagation_metrics.py",
+   "old_path": "tests/test_evaluation/test_g3_propagation_metrics.py"
+  },
+  {
+   "new_path": "tests/test_evaluation/test_qualification_contract.py",
+   "old_path": "tests/test_evaluation/test_g3_qualification_contract.py"
+  },
+  {
+   "new_path": "tests/test_evaluation/test_receiver_assurance.py",
+   "old_path": "tests/test_evaluation/test_g3_receiver_assurance.py"
+  },
+  {
+   "new_path": "tests/test_evaluation/test_receiver_impact.py",
+   "old_path": "tests/test_evaluation/test_g3_receiver_impact.py"
+  },
+  {
+   "new_path": "tests/test_evaluation/test_run_report_signature.py",
+   "old_path": "tests/test_evaluation/test_g3_run_report_signature.py"
+  },
+  {
+   "new_path": "tests/test_evaluation/test_sample_size_planning.py",
+   "old_path": "tests/test_evaluation/test_g3_sample_size_planning.py"
+  },
+  {
+   "new_path": "tests/test_evaluation/test_signed_attestation.py",
+   "old_path": "tests/test_evaluation/test_g3_signed_attestation.py"
+  },
+  {
+   "new_path": "tests/test_evaluation/test_cdl_e_fresh_seed_replication.py",
+   "old_path": "tests/test_evaluation/test_g4_cdl_e_fresh_seed_replication.py"
+  },
+  {
+   "new_path": "tests/test_evaluation/test_cdl_handheld_ut_spatiotemporal_covariance.py",
+   "old_path": "tests/test_evaluation/test_g4_cdl_handheld_ut_spatiotemporal_covariance.py"
+  },
+  {
+   "new_path": "tests/test_evaluation/test_cdl_joint_tx_rx_dual_pol_spatiotemporal_covariance.py",
+   "old_path": "tests/test_evaluation/test_g4_cdl_joint_tx_rx_dual_pol_spatiotemporal_covariance.py"
+  },
+  {
+   "new_path": "tests/test_evaluation/test_cdl_joint_tx_rx_dual_tx_rx_spatiotemporal_covariance.py",
+   "old_path": "tests/test_evaluation/test_g4_cdl_joint_tx_rx_dual_tx_rx_spatiotemporal_covariance.py"
+  },
+  {
+   "new_path": "tests/test_evaluation/test_cdl_joint_tx_rx_spatiotemporal_covariance.py",
+   "old_path": "tests/test_evaluation/test_g4_cdl_joint_tx_rx_spatiotemporal_covariance.py"
+  },
+  {
+   "new_path": "tests/test_evaluation/test_cdl_patterned_rotated_dual_tx_rx_spatiotemporal_covariance.py",
+   "old_path": "tests/test_evaluation/test_g4_cdl_patterned_rotated_dual_tx_rx_spatiotemporal_covariance.py"
+  },
+  {
+   "new_path": "tests/test_evaluation/test_cdl_rotated_dual_tx_rx_spatiotemporal_covariance.py",
+   "old_path": "tests/test_evaluation/test_g4_cdl_rotated_dual_tx_rx_spatiotemporal_covariance.py"
+  },
+  {
+   "new_path": "tests/test_evaluation/test_cdl_spatiotemporal_covariance.py",
+   "old_path": "tests/test_evaluation/test_g4_cdl_spatiotemporal_covariance.py"
+  },
+  {
+   "new_path": "tests/test_evaluation/test_cdl_temporal_reference.py",
+   "old_path": "tests/test_evaluation/test_g4_cdl_temporal_reference.py"
+  },
+  {
+   "new_path": "tests/test_evaluation/test_complex_circularity.py",
+   "old_path": "tests/test_evaluation/test_g4_complex_circularity.py"
+  },
+  {
+   "new_path": "tests/test_evaluation/test_seed_roster.py",
+   "old_path": "tests/test_evaluation/test_g4_seed_roster.py"
+  },
+  {
+   "new_path": "tests/test_evaluation/test_tdl_covariance_reference.py",
+   "old_path": "tests/test_evaluation/test_g4_tdl_covariance_reference.py"
+  },
+  {
+   "new_path": "tests/test_evaluation/test_tdl_profile_reference.py",
+   "old_path": "tests/test_evaluation/test_g4_tdl_profile_reference.py"
+  },
+  {
+   "new_path": "tests/test_evaluation/test_tdl_rayleigh_marginal.py",
+   "old_path": "tests/test_evaluation/test_g4_tdl_rayleigh_marginal.py"
+  },
+  {
+   "new_path": "tests/test_evaluation/test_tdl_rician_marginal.py",
+   "old_path": "tests/test_evaluation/test_g4_tdl_rician_marginal.py"
+  },
+  {
+   "new_path": "tests/test_experiments/frozen_source_manifest.py",
+   "old_path": "tests/test_experiments/frozen_g5_source_manifest.py"
+  },
+  {
+   "new_path": "tests/test_experiments/test_audit_cp_profile_matrix.py",
+   "old_path": "tests/test_experiments/test_audit_g5_cp_profile_matrix.py"
+  },
+  {
+   "new_path": "tests/test_experiments/test_audit_ordered_impairments_result.py",
+   "old_path": "tests/test_experiments/test_audit_g5_ordered_impairments_result.py"
+  },
+  {
+   "new_path": "tests/test_experiments/test_audit_tdl_c_dmrs_density.py",
+   "old_path": "tests/test_experiments/test_audit_g5_tdl_c_dmrs_density.py"
+  },
+  {
+   "new_path": "tests/test_experiments/test_audit_tdl_dft_density.py",
+   "old_path": "tests/test_experiments/test_audit_g5_tdl_dft_density.py"
+  },
+  {
+   "new_path": "tests/test_experiments/test_audit_tdl_dft_profile_matrix.py",
+   "old_path": "tests/test_experiments/test_audit_g5_tdl_dft_profile_matrix.py"
+  },
+  {
+   "new_path": "tests/test_experiments/test_audit_tdl_dmrs_density_development.py",
+   "old_path": "tests/test_experiments/test_audit_g5_tdl_dmrs_density_development.py"
+  },
+  {
+   "new_path": "tests/test_experiments/test_audit_tdl_profile_matrix.py",
+   "old_path": "tests/test_experiments/test_audit_g5_tdl_profile_matrix.py"
+  },
+  {
+   "new_path": "tests/test_experiments/test_acceptance.py",
+   "old_path": "tests/test_experiments/test_g5_acceptance.py"
+  },
+  {
+   "new_path": "tests/test_experiments/test_cp_bounded_dft_estimator.py",
+   "old_path": "tests/test_experiments/test_g5_cp_bounded_dft_estimator.py"
+  },
+  {
+   "new_path": "tests/test_experiments/test_doppler_awgn_receiver.py",
+   "old_path": "tests/test_experiments/test_g5_doppler_awgn_receiver.py"
+  },
+  {
+   "new_path": "tests/test_experiments/test_doppler_dmrs_density_scan.py",
+   "old_path": "tests/test_experiments/test_g5_doppler_dmrs_density_scan.py"
+  },
+  {
+   "new_path": "tests/test_experiments/test_doppler_dmrs_noise_operating_point.py",
+   "old_path": "tests/test_experiments/test_g5_doppler_dmrs_noise_operating_point.py"
+  },
+  {
+   "new_path": "tests/test_experiments/test_doppler_operating_point_scan.py",
+   "old_path": "tests/test_experiments/test_g5_doppler_operating_point_scan.py"
+  },
+  {
+   "new_path": "tests/test_experiments/test_estimator_choice_diagnostic.py",
+   "old_path": "tests/test_experiments/test_g5_estimator_choice_diagnostic.py"
+  },
+  {
+   "new_path": "tests/test_experiments/test_independent_channel_receiver.py",
+   "old_path": "tests/test_experiments/test_g5_independent_channel_receiver.py"
+  },
+  {
+   "new_path": "tests/test_experiments/test_ordered_impairments_receiver.py",
+   "old_path": "tests/test_experiments/test_g5_ordered_impairments_receiver.py"
+  },
+  {
+   "new_path": "tests/test_experiments/test_ordered_impairments_result_binding.py",
+   "old_path": "tests/test_experiments/test_g5_ordered_impairments_result_binding.py"
+  },
+  {
+   "new_path": "tests/test_experiments/test_ordered_impairments_snr_curve_schema.py",
+   "old_path": "tests/test_experiments/test_g5_ordered_impairments_snr_curve_schema.py"
+  },
+  {
+   "new_path": "tests/test_experiments/test_snr_curve_audit_contract.py",
+   "old_path": "tests/test_experiments/test_g5_snr_curve_audit_contract.py"
+  },
+  {
+   "new_path": "tests/test_experiments/test_snr_curve_exact_seed_schema.py",
+   "old_path": "tests/test_experiments/test_g5_snr_curve_exact_seed_schema.py"
+  },
+  {
+   "new_path": "tests/test_experiments/test_time_varying_multipath_receiver.py",
+   "old_path": "tests/test_experiments/test_g5_time_varying_multipath_receiver.py"
+  },
+  {
+   "new_path": "tests/test_experiments/test_waveform_evidence_schema.py",
+   "old_path": "tests/test_experiments/test_g5_waveform_evidence_schema.py"
+  },
+  {
+   "new_path": "tests/test_experiments/test_qualify_delay_domain_dft.py",
+   "old_path": "tests/test_experiments/test_qualify_g5_delay_domain_dft.py"
+  },
+  {
+   "new_path": "tests/test_experiments/test_qualify_doppler_dmrs_density.py",
+   "old_path": "tests/test_experiments/test_qualify_g5_doppler_dmrs_density.py"
+  },
+  {
+   "new_path": "tests/test_experiments/test_qualify_tdl_c_dmrs_density.py",
+   "old_path": "tests/test_experiments/test_qualify_g5_tdl_c_dmrs_density.py"
+  },
+  {
+   "new_path": "tests/test_experiments/test_qualify_tdl_dft_profile_matrix.py",
+   "old_path": "tests/test_experiments/test_qualify_g5_tdl_dft_profile_matrix.py"
+  },
+  {
+   "new_path": "tests/test_experiments/test_qualify_tdl_profile_matrix.py",
+   "old_path": "tests/test_experiments/test_qualify_g5_tdl_profile_matrix.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_nr_frequency_order.py",
+   "old_path": "tests/test_integrations/test_g2_nr_frequency_order.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_admission_native.py",
+   "old_path": "tests/test_integrations/test_g4_admission_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_abc_rotated_dual_pol_array_covariance_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_abc_rotated_dual_pol_array_covariance_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_angular_power_confidence_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_angular_power_confidence_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_antenna_pattern_power_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_antenna_pattern_power_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_c_spatial_covariance_reference_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_c_spatial_covariance_reference_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_complex_circularity_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_complex_circularity_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_d_los_diffuse_spatial_reference_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_d_los_diffuse_spatial_reference_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_d_los_temporal_reference_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_d_los_temporal_reference_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_de_los_dual_pol_array_covariance_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_de_los_dual_pol_array_covariance_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_de_rotated_los_dual_pol_array_covariance_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_de_rotated_los_dual_pol_array_covariance_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_delay_angular_moment_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_delay_angular_moment_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_dual_cross_handheld_ut_spatiotemporal_covariance_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_dual_cross_handheld_ut_spatiotemporal_covariance_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_dual_pol_array_covariance_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_dual_pol_array_covariance_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_dual_polarization_power_matrix_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_dual_polarization_power_matrix_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_dual_polarized_xpr_covariance_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_dual_polarized_xpr_covariance_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_dual_vh_port_order_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_dual_vh_port_order_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_e_los_temporal_reference_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_e_los_temporal_reference_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_handheld_ut_operating_point_spatiotemporal_covariance_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_handheld_ut_operating_point_spatiotemporal_covariance_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_handheld_ut_oracle_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_handheld_ut_oracle_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_handheld_ut_spatiotemporal_covariance_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_handheld_ut_spatiotemporal_covariance_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_joint_angular_characteristic_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_joint_angular_characteristic_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_joint_tx_rx_dual_pol_spatiotemporal_covariance_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_joint_tx_rx_dual_pol_spatiotemporal_covariance_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_joint_tx_rx_dual_tx_rx_spatiotemporal_covariance_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_joint_tx_rx_dual_tx_rx_spatiotemporal_covariance_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_joint_tx_rx_spatial_covariance_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_joint_tx_rx_spatial_covariance_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_joint_tx_rx_spatiotemporal_covariance_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_joint_tx_rx_spatiotemporal_covariance_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_larger_dual_tx_rx_spatiotemporal_covariance_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_larger_dual_tx_rx_spatiotemporal_covariance_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_larger_topology_joint_tx_rx_spatiotemporal_covariance_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_larger_topology_joint_tx_rx_spatiotemporal_covariance_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_los_delay_angular_moment_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_los_delay_angular_moment_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_patterned_rotated_dual_tx_rx_spatiotemporal_covariance_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_patterned_rotated_dual_tx_rx_spatiotemporal_covariance_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_patterned_rotated_dual_tx_rx_spatiotemporal_oracle_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_patterned_rotated_dual_tx_rx_spatiotemporal_oracle_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_profile_scalar_reference_contract.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_profile_scalar_reference_contract.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_profile_scalar_reference_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_profile_scalar_reference_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_rotated_dual_tx_rx_spatiotemporal_covariance_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_rotated_dual_tx_rx_spatiotemporal_covariance_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_rotated_dual_tx_rx_spatiotemporal_oracle_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_rotated_dual_tx_rx_spatiotemporal_oracle_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_spatial_covariance_4element_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_spatial_covariance_4element_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_spatial_covariance_reference_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_spatial_covariance_reference_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_spatiotemporal_covariance_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_spatiotemporal_covariance_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_cdl_temporal_vector_reference_native.py",
+   "old_path": "tests/test_integrations/test_g4_cdl_temporal_vector_reference_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_core1_covariance_matrix_native.py",
+   "old_path": "tests/test_integrations/test_g4_core1_covariance_matrix_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_core1_topology_native.py",
+   "old_path": "tests/test_integrations/test_g4_core1_topology_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_fixed_tdl_complex_circularity_native.py",
+   "old_path": "tests/test_integrations/test_g4_fixed_tdl_complex_circularity_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_fixed_tdl_doppler_spectrum_native.py",
+   "old_path": "tests/test_integrations/test_g4_fixed_tdl_doppler_spectrum_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_fixed_tdl_fr2_admission_reference_native.py",
+   "old_path": "tests/test_integrations/test_g4_fixed_tdl_fr2_admission_reference_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_fixed_tdl_rician_marginal_native.py",
+   "old_path": "tests/test_integrations/test_g4_fixed_tdl_rician_marginal_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_fixed_tdl_temporal_reference_native.py",
+   "old_path": "tests/test_integrations/test_g4_fixed_tdl_temporal_reference_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_scalable_tdl_complex_circularity_native.py",
+   "old_path": "tests/test_integrations/test_g4_scalable_tdl_complex_circularity_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_scalable_tdl_doppler_spectrum_native.py",
+   "old_path": "tests/test_integrations/test_g4_scalable_tdl_doppler_spectrum_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_scalable_tdl_temporal_reference_native.py",
+   "old_path": "tests/test_integrations/test_g4_scalable_tdl_temporal_reference_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_statistical_confidence_native.py",
+   "old_path": "tests/test_integrations/test_g4_statistical_confidence_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_tdl_fixed_profile_scalar_reference_native.py",
+   "old_path": "tests/test_integrations/test_g4_tdl_fixed_profile_scalar_reference_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_tdl_los_k_factor_reference_native.py",
+   "old_path": "tests/test_integrations/test_g4_tdl_los_k_factor_reference_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_tdl_rayleigh_marginal_native.py",
+   "old_path": "tests/test_integrations/test_g4_tdl_rayleigh_marginal_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_pbch_bch_native.py",
+   "old_path": "tests/test_integrations/test_g5_pbch_bch_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_pbch_data_native.py",
+   "old_path": "tests/test_integrations/test_g5_pbch_data_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_pbch_dmrs_native.py",
+   "old_path": "tests/test_integrations/test_g5_pbch_dmrs_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_pbch_mib_native.py",
+   "old_path": "tests/test_integrations/test_g5_pbch_mib_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_pbch_ofdm_receiver_native.py",
+   "old_path": "tests/test_integrations/test_g5_pbch_ofdm_receiver_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_pbch_payload_native.py",
+   "old_path": "tests/test_integrations/test_g5_pbch_payload_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_pusch_partial_dmrs_native.py",
+   "old_path": "tests/test_integrations/test_g5_pusch_partial_dmrs_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_srs_measurements.py",
+   "old_path": "tests/test_integrations/test_g5_srs_measurements.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_srs_resource_mapping.py",
+   "old_path": "tests/test_integrations/test_g5_srs_resource_mapping.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_ssb_epre_native.py",
+   "old_path": "tests/test_integrations/test_g5_ssb_epre_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_ssb_half_frame_native.py",
+   "old_path": "tests/test_integrations/test_g5_ssb_half_frame_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_ssb_timing_native.py",
+   "old_path": "tests/test_integrations/test_g5_ssb_timing_native.py"
+  },
+  {
+   "new_path": "tests/test_integrations/test_ssb_waveform_config_native.py",
+   "old_path": "tests/test_integrations/test_g5_ssb_waveform_config_native.py"
+  },
+  {
+   "new_path": "tests/test_scripts/test_audit_standard_references.py",
+   "old_path": "tests/test_scripts/test_audit_g4_standard_references.py"
+  },
+  {
+   "new_path": "tests/test_scripts/test_evaluate_path_equivalence_roster.py",
+   "old_path": "tests/test_scripts/test_evaluate_g3_path_equivalence_roster.py"
+  },
+  {
+   "new_path": "tests/test_scripts/test_plan_acquisition_design.py",
+   "old_path": "tests/test_scripts/test_plan_g3_acquisition_design.py"
+  },
+  {
+   "new_path": "tests/test_scripts/test_run_cdl_directional_pattern_power.py",
+   "old_path": "tests/test_scripts/test_run_g4_cdl_directional_pattern_power.py"
+  },
+  {
+   "new_path": "tests/test_scripts/test_verify_acquisition_package.py",
+   "old_path": "tests/test_scripts/test_verify_g3_acquisition_package.py"
+  },
+  {
+   "new_path": "docs/research/results/fr3-building-scattering-audit-20261024.json",
+   "old_path": "docs/research/results/g3-fr3-building-scattering-audit-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/odbl-scene-source-audit-20261027.json",
+   "old_path": "docs/research/results/g3-odbl-scene-source-audit-20261027.json"
+  },
+  {
+   "new_path": "docs/research/results/scene-asset-material-audit-20261023.json",
+   "old_path": "docs/research/results/g3-scene-asset-material-audit-20261023.json"
+  },
+  {
+   "new_path": "docs/research/results/cdl-angular-power-native-validation-20261109.json",
+   "old_path": "docs/research/results/g4-cdl-angular-power-native-validation-20261109.json"
+  },
+  {
+   "new_path": "docs/research/results/cdl-angular-power-native-validation-20261109.json.sha256",
+   "old_path": "docs/research/results/g4-cdl-angular-power-native-validation-20261109.json.sha256"
+  },
+  {
+   "new_path": "docs/research/results/cdl-complex-circularity-native-validation-20261109.json",
+   "old_path": "docs/research/results/g4-cdl-complex-circularity-native-validation-20261109.json"
+  },
+  {
+   "new_path": "docs/research/results/cdl-complex-circularity-native-validation-20261109.json.sha256",
+   "old_path": "docs/research/results/g4-cdl-complex-circularity-native-validation-20261109.json.sha256"
+  },
+  {
+   "new_path": "docs/research/results/cdl-de-zero-orientation-covariance-native-validation-20261109.json",
+   "old_path": "docs/research/results/g4-cdl-de-zero-orientation-covariance-native-validation-20261109.json"
+  },
+  {
+   "new_path": "docs/research/results/cdl-de-zero-orientation-covariance-native-validation-20261109.json.sha256",
+   "old_path": "docs/research/results/g4-cdl-de-zero-orientation-covariance-native-validation-20261109.json.sha256"
+  },
+  {
+   "new_path": "docs/research/results/cdl-directional-pattern-power-result-20261101.json",
+   "old_path": "docs/research/results/g4-cdl-directional-pattern-power-result-20261101.json"
+  },
+  {
+   "new_path": "docs/research/results/cdl-directional-pattern-power-result-20261101.json.sha256",
+   "old_path": "docs/research/results/g4-cdl-directional-pattern-power-result-20261101.json.sha256"
+  },
+  {
+   "new_path": "docs/research/results/cdl-dual-vh-polarization-power-native-validation-20261109.json",
+   "old_path": "docs/research/results/g4-cdl-dual-vh-polarization-power-native-validation-20261109.json"
+  },
+  {
+   "new_path": "docs/research/results/cdl-dual-vh-polarization-power-native-validation-20261109.json.sha256",
+   "old_path": "docs/research/results/g4-cdl-dual-vh-polarization-power-native-validation-20261109.json.sha256"
+  },
+  {
+   "new_path": "docs/research/results/cdl-four-element-covariance-frozen-execution-20261109.json",
+   "old_path": "docs/research/results/g4-cdl-four-element-covariance-frozen-execution-20261109.json"
+  },
+  {
+   "new_path": "docs/research/results/cdl-joint-delay-angle-attempt-20261027.json",
+   "old_path": "docs/research/results/g4-cdl-joint-delay-angle-attempt-20261027.json"
+  },
+  {
+   "new_path": "docs/research/results/cdl-joint-delay-angle-attempt-20261027.json.sha256",
+   "old_path": "docs/research/results/g4-cdl-joint-delay-angle-attempt-20261027.json.sha256"
+  },
+  {
+   "new_path": "docs/research/results/cdl-joint-delay-angle-seed-collision-audit-20261027.json",
+   "old_path": "docs/research/results/g4-cdl-joint-delay-angle-seed-collision-audit-20261027.json"
+  },
+  {
+   "new_path": "docs/research/results/cdl-joint-delay-angle-seed-collision-audit-20261027.json.sha256",
+   "old_path": "docs/research/results/g4-cdl-joint-delay-angle-seed-collision-audit-20261027.json.sha256"
+  },
+  {
+   "new_path": "docs/research/results/cdl-joint-delay-angle-v2-20261027.log",
+   "old_path": "docs/research/results/g4-cdl-joint-delay-angle-v2-20261027.log"
+  },
+  {
+   "new_path": "docs/research/results/cdl-joint-delay-angle-v2-attempt-20261027.json",
+   "old_path": "docs/research/results/g4-cdl-joint-delay-angle-v2-attempt-20261027.json"
+  },
+  {
+   "new_path": "docs/research/results/cdl-joint-delay-angle-v2-attempt-20261027.json.sha256",
+   "old_path": "docs/research/results/g4-cdl-joint-delay-angle-v2-attempt-20261027.json.sha256"
+  },
+  {
+   "new_path": "docs/research/results/cdl-joint-delay-angle-v2-seed-collision-audit-20261027.json",
+   "old_path": "docs/research/results/g4-cdl-joint-delay-angle-v2-seed-collision-audit-20261027.json"
+  },
+  {
+   "new_path": "docs/research/results/cdl-joint-delay-angle-v2-seed-collision-audit-20261027.json.sha256",
+   "old_path": "docs/research/results/g4-cdl-joint-delay-angle-v2-seed-collision-audit-20261027.json.sha256"
+  },
+  {
+   "new_path": "docs/research/results/cdl-joint-delay-angle-v3-20261027.log",
+   "old_path": "docs/research/results/g4-cdl-joint-delay-angle-v3-20261027.log"
+  },
+  {
+   "new_path": "docs/research/results/cdl-joint-delay-angle-v3-attempt-20261027.json",
+   "old_path": "docs/research/results/g4-cdl-joint-delay-angle-v3-attempt-20261027.json"
+  },
+  {
+   "new_path": "docs/research/results/cdl-joint-delay-angle-v3-attempt-20261027.json.sha256",
+   "old_path": "docs/research/results/g4-cdl-joint-delay-angle-v3-attempt-20261027.json.sha256"
+  },
+  {
+   "new_path": "docs/research/results/cdl-joint-delay-angle-v3-seed-collision-audit-20261027.json",
+   "old_path": "docs/research/results/g4-cdl-joint-delay-angle-v3-seed-collision-audit-20261027.json"
+  },
+  {
+   "new_path": "docs/research/results/cdl-joint-delay-angle-v3-seed-collision-audit-20261027.json.sha256",
+   "old_path": "docs/research/results/g4-cdl-joint-delay-angle-v3-seed-collision-audit-20261027.json.sha256"
+  },
+  {
+   "new_path": "docs/research/results/cdl-joint-delay-angle-v4-20261027.log",
+   "old_path": "docs/research/results/g4-cdl-joint-delay-angle-v4-20261027.log"
+  },
+  {
+   "new_path": "docs/research/results/cdl-joint-delay-angle-v4-result-20261027.json",
+   "old_path": "docs/research/results/g4-cdl-joint-delay-angle-v4-result-20261027.json"
+  },
+  {
+   "new_path": "docs/research/results/cdl-joint-delay-angle-v4-result-20261027.json.sha256",
+   "old_path": "docs/research/results/g4-cdl-joint-delay-angle-v4-result-20261027.json.sha256"
+  },
+  {
+   "new_path": "docs/research/results/cdl-joint-delay-angle-v4-seed-collision-audit-20261027.json",
+   "old_path": "docs/research/results/g4-cdl-joint-delay-angle-v4-seed-collision-audit-20261027.json"
+  },
+  {
+   "new_path": "docs/research/results/cdl-joint-delay-angle-v4-seed-collision-audit-20261027.json.sha256",
+   "old_path": "docs/research/results/g4-cdl-joint-delay-angle-v4-seed-collision-audit-20261027.json.sha256"
+  },
+  {
+   "new_path": "docs/research/results/cdl-joint-delay-angle-v5-20261027.log",
+   "old_path": "docs/research/results/g4-cdl-joint-delay-angle-v5-20261027.log"
+  },
+  {
+   "new_path": "docs/research/results/cdl-joint-delay-angle-v5-result-20261027.json",
+   "old_path": "docs/research/results/g4-cdl-joint-delay-angle-v5-result-20261027.json"
+  },
+  {
+   "new_path": "docs/research/results/cdl-joint-delay-angle-v5-result-20261027.json.sha256",
+   "old_path": "docs/research/results/g4-cdl-joint-delay-angle-v5-result-20261027.json.sha256"
+  },
+  {
+   "new_path": "docs/research/results/cdl-joint-delay-angle-v5-seed-collision-audit-20261027.json",
+   "old_path": "docs/research/results/g4-cdl-joint-delay-angle-v5-seed-collision-audit-20261027.json"
+  },
+  {
+   "new_path": "docs/research/results/cdl-joint-delay-angle-v5-seed-collision-audit-20261027.json.sha256",
+   "old_path": "docs/research/results/g4-cdl-joint-delay-angle-v5-seed-collision-audit-20261027.json.sha256"
+  },
+  {
+   "new_path": "docs/research/results/cdl-joint-tx-rx-dual-pol-spatiotemporal-covariance-native-validation-20261109.json",
+   "old_path": "docs/research/results/g4-cdl-joint-tx-rx-dual-pol-spatiotemporal-covariance-native-validation-20261109.json"
+  },
+  {
+   "new_path": "docs/research/results/cdl-joint-tx-rx-dual-pol-spatiotemporal-covariance-native-validation-20261109.json.sha256",
+   "old_path": "docs/research/results/g4-cdl-joint-tx-rx-dual-pol-spatiotemporal-covariance-native-validation-20261109.json.sha256"
+  },
+  {
+   "new_path": "docs/research/results/cdl-joint-tx-rx-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json",
+   "old_path": "docs/research/results/g4-cdl-joint-tx-rx-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json"
+  },
+  {
+   "new_path": "docs/research/results/cdl-joint-tx-rx-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json.sha256",
+   "old_path": "docs/research/results/g4-cdl-joint-tx-rx-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json.sha256"
+  },
+  {
+   "new_path": "docs/research/results/cdl-joint-tx-rx-spatiotemporal-covariance-initial-frozen-execution-20261109.json",
+   "old_path": "docs/research/results/g4-cdl-joint-tx-rx-spatiotemporal-covariance-initial-frozen-execution-20261109.json"
+  },
+  {
+   "new_path": "docs/research/results/cdl-joint-tx-rx-spatiotemporal-covariance-initial-frozen-execution-20261109.json.sha256",
+   "old_path": "docs/research/results/g4-cdl-joint-tx-rx-spatiotemporal-covariance-initial-frozen-execution-20261109.json.sha256"
+  },
+  {
+   "new_path": "docs/research/results/cdl-larger-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json",
+   "old_path": "docs/research/results/g4-cdl-larger-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json"
+  },
+  {
+   "new_path": "docs/research/results/cdl-larger-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json.sha256",
+   "old_path": "docs/research/results/g4-cdl-larger-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json.sha256"
+  },
+  {
+   "new_path": "docs/research/results/cdl-larger-topology-joint-tx-rx-spatiotemporal-covariance-native-validation-20261109.json",
+   "old_path": "docs/research/results/g4-cdl-larger-topology-joint-tx-rx-spatiotemporal-covariance-native-validation-20261109.json"
+  },
+  {
+   "new_path": "docs/research/results/cdl-larger-topology-joint-tx-rx-spatiotemporal-covariance-native-validation-20261109.json.sha256",
+   "old_path": "docs/research/results/g4-cdl-larger-topology-joint-tx-rx-spatiotemporal-covariance-native-validation-20261109.json.sha256"
+  },
+  {
+   "new_path": "docs/research/results/cdl-patterned-rotated-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json",
+   "old_path": "docs/research/results/g4-cdl-patterned-rotated-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json"
+  },
+  {
+   "new_path": "docs/research/results/cdl-patterned-rotated-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json.sha256",
+   "old_path": "docs/research/results/g4-cdl-patterned-rotated-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json.sha256"
+  },
+  {
+   "new_path": "docs/research/results/cdl-physical-dual-cross-handheld-ut-spatiotemporal-covariance-native-validation-20261110.json",
+   "old_path": "docs/research/results/g4-cdl-physical-dual-cross-handheld-ut-spatiotemporal-covariance-native-validation-20261110.json"
+  },
+  {
+   "new_path": "docs/research/results/cdl-physical-dual-cross-handheld-ut-spatiotemporal-covariance-native-validation-20261110.json.sha256",
+   "old_path": "docs/research/results/g4-cdl-physical-dual-cross-handheld-ut-spatiotemporal-covariance-native-validation-20261110.json.sha256"
+  },
+  {
+   "new_path": "docs/research/results/cdl-physical-handheld-ut-operating-point-spatiotemporal-covariance-native-validation-20261110.json",
+   "old_path": "docs/research/results/g4-cdl-physical-handheld-ut-operating-point-spatiotemporal-covariance-native-validation-20261110.json"
+  },
+  {
+   "new_path": "docs/research/results/cdl-physical-handheld-ut-operating-point-spatiotemporal-covariance-native-validation-20261110.json.sha256",
+   "old_path": "docs/research/results/g4-cdl-physical-handheld-ut-operating-point-spatiotemporal-covariance-native-validation-20261110.json.sha256"
+  },
+  {
+   "new_path": "docs/research/results/cdl-physical-handheld-ut-spatiotemporal-covariance-native-validation-20261110.json",
+   "old_path": "docs/research/results/g4-cdl-physical-handheld-ut-spatiotemporal-covariance-native-validation-20261110.json"
+  },
+  {
+   "new_path": "docs/research/results/cdl-physical-handheld-ut-spatiotemporal-covariance-native-validation-20261110.json.sha256",
+   "old_path": "docs/research/results/g4-cdl-physical-handheld-ut-spatiotemporal-covariance-native-validation-20261110.json.sha256"
+  },
+  {
+   "new_path": "docs/research/results/cdl-rotated-dual-pol-covariance-validation-20261109.json",
+   "old_path": "docs/research/results/g4-cdl-rotated-dual-pol-covariance-validation-20261109.json"
+  },
+  {
+   "new_path": "docs/research/results/cdl-rotated-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json",
+   "old_path": "docs/research/results/g4-cdl-rotated-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json"
+  },
+  {
+   "new_path": "docs/research/results/cdl-rotated-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json.sha256",
+   "old_path": "docs/research/results/g4-cdl-rotated-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json.sha256"
+  },
+  {
+   "new_path": "docs/research/results/cdl-spatiotemporal-covariance-native-validation-20261109.json",
+   "old_path": "docs/research/results/g4-cdl-spatiotemporal-covariance-native-validation-20261109.json"
+  },
+  {
+   "new_path": "docs/research/results/cdl-spatiotemporal-covariance-native-validation-20261109.json.sha256",
+   "old_path": "docs/research/results/g4-cdl-spatiotemporal-covariance-native-validation-20261109.json.sha256"
+  },
+  {
+   "new_path": "docs/research/results/fixed-tdl-doppler-spectrum-native-validation-20261109.json",
+   "old_path": "docs/research/results/g4-fixed-tdl-doppler-spectrum-native-validation-20261109.json"
+  },
+  {
+   "new_path": "docs/research/results/fixed-tdl-rician-marginal-native-validation-20261109.json",
+   "old_path": "docs/research/results/g4-fixed-tdl-rician-marginal-native-validation-20261109.json"
+  },
+  {
+   "new_path": "docs/research/results/fixed-tdl-temporal-covariance-native-validation-20261109.json",
+   "old_path": "docs/research/results/g4-fixed-tdl-temporal-covariance-native-validation-20261109.json"
+  },
+  {
+   "new_path": "docs/research/results/pdp-rms-native-validation-20261109.json",
+   "old_path": "docs/research/results/g4-pdp-rms-native-validation-20261109.json"
+  },
+  {
+   "new_path": "docs/research/results/pdp-rms-native-validation-20261109.json.sha256",
+   "old_path": "docs/research/results/g4-pdp-rms-native-validation-20261109.json.sha256"
+  },
+  {
+   "new_path": "docs/research/results/scalable-tdl-doppler-spectrum-native-validation-20261109.json",
+   "old_path": "docs/research/results/g4-scalable-tdl-doppler-spectrum-native-validation-20261109.json"
+  },
+  {
+   "new_path": "docs/research/results/scalable-tdl-temporal-covariance-native-validation-20261109.json",
+   "old_path": "docs/research/results/g4-scalable-tdl-temporal-covariance-native-validation-20261109.json"
+  },
+  {
+   "new_path": "docs/research/results/standard-reference-audit-20261026.json",
+   "old_path": "docs/research/results/g4-standard-reference-audit-20261026.json"
+  },
+  {
+   "new_path": "docs/research/results/tdl-rayleigh-marginal-frozen-execution-20261109.json",
+   "old_path": "docs/research/results/g4-tdl-rayleigh-marginal-frozen-execution-20261109.json"
+  },
+  {
+   "new_path": "docs/research/results/tdl-rayleigh-marginal-frozen-execution-20261109.json.sha256",
+   "old_path": "docs/research/results/g4-tdl-rayleigh-marginal-frozen-execution-20261109.json.sha256"
+  },
+  {
+   "new_path": "docs/research/results/tdl-rayleigh-marginal-native-validation-20261109.json",
+   "old_path": "docs/research/results/g4-tdl-rayleigh-marginal-native-validation-20261109.json"
+  },
+  {
+   "new_path": "docs/research/results/tdl-rayleigh-marginal-native-validation-20261109.json.sha256",
+   "old_path": "docs/research/results/g4-tdl-rayleigh-marginal-native-validation-20261109.json.sha256"
+  },
+  {
+   "new_path": "docs/research/results/cp-bounded-dft-selected-failures-20261024.json",
+   "old_path": "docs/research/results/g5-cp-bounded-dft-selected-failures-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/cuda-snr-curve-implementation-smoke-seed-audit-20261027.json",
+   "old_path": "docs/research/results/g5-cuda-snr-curve-implementation-smoke-seed-audit-20261027.json"
+  },
+  {
+   "new_path": "docs/research/results/delay-domain-dft-confirm-20261024.json",
+   "old_path": "docs/research/results/g5-delay-domain-dft-confirm-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/doppler-dmrs-density-confirm-20261024.json",
+   "old_path": "docs/research/results/g5-doppler-dmrs-density-confirm-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/doppler-dmrs-density-scan-20261024.json",
+   "old_path": "docs/research/results/g5-doppler-dmrs-density-scan-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/doppler-dmrs-noise-scan-0p0001-20261024.json",
+   "old_path": "docs/research/results/g5-doppler-dmrs-noise-scan-0p0001-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/doppler-dmrs-noise-scan-0p0003-20261024.json",
+   "old_path": "docs/research/results/g5-doppler-dmrs-noise-scan-0p0003-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/doppler-dmrs-noise-scan-0p0006-20261024.json",
+   "old_path": "docs/research/results/g5-doppler-dmrs-noise-scan-0p0006-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/doppler-operating-point-scan-20261024.json",
+   "old_path": "docs/research/results/g5-doppler-operating-point-scan-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/estimator-choice-posthoc-20261024.json",
+   "old_path": "docs/research/results/g5-estimator-choice-posthoc-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/independent-channel-pusch-20261024.json",
+   "old_path": "docs/research/results/g5-independent-channel-pusch-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/independent-channel-pusch-doppler-stress-20261024.json",
+   "old_path": "docs/research/results/g5-independent-channel-pusch-doppler-stress-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/independent-channel-pusch-ici-20261024.json",
+   "old_path": "docs/research/results/g5-independent-channel-pusch-ici-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/ordered-impairments-independent-channels-cpu-64x8-20261024.json",
+   "old_path": "docs/research/results/g5-ordered-impairments-independent-channels-cpu-64x8-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/ordered-impairments-independent-channels-cpu-64x8-channel-truth-guard-diagnostic-20261024.json",
+   "old_path": "docs/research/results/g5-ordered-impairments-independent-channels-cpu-64x8-channel-truth-guard-diagnostic-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/ordered-impairments-independent-channels-cpu-64x8-fixed-max-guard-diagnostic-20261024.json",
+   "old_path": "docs/research/results/g5-ordered-impairments-independent-channels-cpu-64x8-fixed-max-guard-diagnostic-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/ordered-impairments-independent-channels-cpu-64x8-fixed2-guard-diagnostic-20261024.json",
+   "old_path": "docs/research/results/g5-ordered-impairments-independent-channels-cpu-64x8-fixed2-guard-diagnostic-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/ordered-impairments-independent-channels-cpu-64x8-shared-sync-confirm-20261024.json",
+   "old_path": "docs/research/results/g5-ordered-impairments-independent-channels-cpu-64x8-shared-sync-confirm-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/ordered-impairments-independent-channels-cpu-64x8-shared-sync-diagnostic-retention-v3-20261025.json",
+   "old_path": "docs/research/results/g5-ordered-impairments-independent-channels-cpu-64x8-shared-sync-diagnostic-retention-v3-20261025.json"
+  },
+  {
+   "new_path": "docs/research/results/ordered-impairments-independent-channels-cpu-64x8-shared-sync-diagnostic-retention-v3-audit-20261025.json",
+   "old_path": "docs/research/results/g5-ordered-impairments-independent-channels-cpu-64x8-shared-sync-diagnostic-retention-v3-audit-20261025.json"
+  },
+  {
+   "new_path": "docs/research/results/ordered-impairments-independent-channels-cpu-64x8-shared-sync-replication-20261025.json",
+   "old_path": "docs/research/results/g5-ordered-impairments-independent-channels-cpu-64x8-shared-sync-replication-20261025.json"
+  },
+  {
+   "new_path": "docs/research/results/ordered-impairments-independent-channels-cpu-64x8-shared-sync-replication-v2-20261025.json",
+   "old_path": "docs/research/results/g5-ordered-impairments-independent-channels-cpu-64x8-shared-sync-replication-v2-20261025.json"
+  },
+  {
+   "new_path": "docs/research/results/ordered-impairments-independent-channels-cpu-64x8-shared-sync-replication-v2-audit-20261025.json",
+   "old_path": "docs/research/results/g5-ordered-impairments-independent-channels-cpu-64x8-shared-sync-replication-v2-audit-20261025.json"
+  },
+  {
+   "new_path": "docs/research/results/ordered-impairments-tx-rx-iq-cpu-128-20261024.json",
+   "old_path": "docs/research/results/g5-ordered-impairments-tx-rx-iq-cpu-128-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/standardized-pusch-cp-exceedance-20261023.json",
+   "old_path": "docs/research/results/g5-standardized-pusch-cp-exceedance-20261023.json"
+  },
+  {
+   "new_path": "docs/research/results/standardized-pusch-cp-exceedance-cluster-bootstrap-20261023.json",
+   "old_path": "docs/research/results/g5-standardized-pusch-cp-exceedance-cluster-bootstrap-20261023.json"
+  },
+  {
+   "new_path": "docs/research/results/standardized-pusch-cp-exceedance-snr-curve-128-v5-20261024.json",
+   "old_path": "docs/research/results/g5-standardized-pusch-cp-exceedance-snr-curve-128-v5-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/standardized-pusch-cp-exceedance-snr-curve-20261023.json",
+   "old_path": "docs/research/results/g5-standardized-pusch-cp-exceedance-snr-curve-20261023.json"
+  },
+  {
+   "new_path": "docs/research/results/standardized-pusch-cp-exceedance-snr-curve-v2-20261023.json",
+   "old_path": "docs/research/results/g5-standardized-pusch-cp-exceedance-snr-curve-v2-20261023.json"
+  },
+  {
+   "new_path": "docs/research/results/standardized-pusch-cp-exceedance-snr-curve-v3-20261023.json",
+   "old_path": "docs/research/results/g5-standardized-pusch-cp-exceedance-snr-curve-v3-20261023.json"
+  },
+  {
+   "new_path": "docs/research/results/standardized-pusch-cp-exceedance-tdl-a-snr-curve-128-v1-20261024.json",
+   "old_path": "docs/research/results/g5-standardized-pusch-cp-exceedance-tdl-a-snr-curve-128-v1-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/standardized-pusch-cp-exceedance-tdl-a-snr-curve-128-v2-20261024.json",
+   "old_path": "docs/research/results/g5-standardized-pusch-cp-exceedance-tdl-a-snr-curve-128-v2-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/standardized-pusch-cp-exceedance-tdl-b-snr-curve-128-v1-20261024.json",
+   "old_path": "docs/research/results/g5-standardized-pusch-cp-exceedance-tdl-b-snr-curve-128-v1-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/standardized-pusch-cp-exceedance-tdl-c-snr-curve-128-v1-20261024.json",
+   "old_path": "docs/research/results/g5-standardized-pusch-cp-exceedance-tdl-c-snr-curve-128-v1-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/standardized-pusch-cp-exceedance-tdl-c-snr-curve-128-v2-20261024.json",
+   "old_path": "docs/research/results/g5-standardized-pusch-cp-exceedance-tdl-c-snr-curve-128-v2-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/standardized-pusch-cp-exceedance-tdl-c-snr-curve-128-v3-20261024.json",
+   "old_path": "docs/research/results/g5-standardized-pusch-cp-exceedance-tdl-c-snr-curve-128-v3-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/standardized-pusch-cp-exceedance-tdl-d-snr-curve-128-v1-20261024.json",
+   "old_path": "docs/research/results/g5-standardized-pusch-cp-exceedance-tdl-d-snr-curve-128-v1-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/standardized-pusch-cp-exceedance-tdl-e-snr-curve-128-v1-20261024.json",
+   "old_path": "docs/research/results/g5-standardized-pusch-cp-exceedance-tdl-e-snr-curve-128-v1-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/standardized-pusch-cp-profile-matrix-familywise-20261024.json",
+   "old_path": "docs/research/results/g5-standardized-pusch-cp-profile-matrix-familywise-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/standardized-pusch-cp-profile-matrix-familywise-v3-20261024.json",
+   "old_path": "docs/research/results/g5-standardized-pusch-cp-profile-matrix-familywise-v3-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/static-reference-failure-path-diagnostic-20261024.json",
+   "old_path": "docs/research/results/g5-static-reference-failure-path-diagnostic-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/tdl-ae-dmrs-density-family-confirm-20261024.json",
+   "old_path": "docs/research/results/g5-tdl-ae-dmrs-density-family-confirm-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/tdl-ae-dmrs-density-family-reconfirm-20261024.json",
+   "old_path": "docs/research/results/g5-tdl-ae-dmrs-density-family-reconfirm-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/tdl-ae-dmrs-density-family-reconfirm-v2-20261024.json",
+   "old_path": "docs/research/results/g5-tdl-ae-dmrs-density-family-reconfirm-v2-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/tdl-ae-signed-lag-dft-family-confirm-20261024.json",
+   "old_path": "docs/research/results/g5-tdl-ae-signed-lag-dft-family-confirm-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/tdl-c-dmrs-density-confirm-20261024.json",
+   "old_path": "docs/research/results/g5-tdl-c-dmrs-density-confirm-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/tdl-c-signed-lag-dft-confirm-20261024.json",
+   "old_path": "docs/research/results/g5-tdl-c-signed-lag-dft-confirm-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/tdl-cpu-dmrs-density-development-20261024.json",
+   "old_path": "docs/research/results/g5-tdl-cpu-dmrs-density-development-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/time-varying-multipath-pusch-20261023.json",
+   "old_path": "docs/research/results/g5-time-varying-multipath-pusch-20261023.json"
+  },
+  {
+   "new_path": "docs/research/results/time-varying-multipath-pusch-awgn-20261023.json",
+   "old_path": "docs/research/results/g5-time-varying-multipath-pusch-awgn-20261023.json"
+  },
+  {
+   "new_path": "docs/research/results/time-varying-multipath-pusch-symbol-control-20261023.json",
+   "old_path": "docs/research/results/g5-time-varying-multipath-pusch-symbol-control-20261023.json"
+  },
+  {
+   "new_path": "docs/research/results/08-city43-joint-tx-spatial-split-lineage-audit-20261024.json",
+   "old_path": "docs/research/results/g7-08-city43-joint-tx-spatial-split-lineage-audit-20261024.json"
+  },
+  {
+   "new_path": "docs/research/results/08-six-scene-pilot-legacy-asset-reconstruction-20261025.json",
+   "old_path": "docs/research/results/g7-08-six-scene-pilot-legacy-asset-reconstruction-20261025.json"
+  },
+  {
+   "new_path": "docs/research/results/08-six-scene-pilot-split-feasibility-20261025.json",
+   "old_path": "docs/research/results/g7-08-six-scene-pilot-split-feasibility-20261025.json"
+  }
+ ],
+ "note": "Retained evidence is not edited. Each entry maps a superseded SHA-256 to its replacement after a rename. Verifiers may accept either digest.",
+ "pin_rebindings": [
+  {
+   "new_sha256": "796619cbc98d0195f340579368dd3cbdcf89e7f998896c113cb9de8dea1db0b5",
+   "old_sha256": "c7250e3eca5c2cdc296fa282ef7ee40790b12f1bc3cf0f570dee0cc862166173",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "796619cbc98d0195f340579368dd3cbdcf89e7f998896c113cb9de8dea1db0b5",
+   "old_sha256": "c7250e3eca5c2cdc296fa282ef7ee40790b12f1bc3cf0f570dee0cc862166173",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/IMPLEMENTATION_FEATURE_MAP.json"
+  },
+  {
+   "new_sha256": "24c105b2cb7c331703a00b3e56ab45069db21511a8d60213b9eb933ad9f94709",
+   "old_sha256": "f00daa8024e296bd1c9df86d8a11584164c5db8e044036b0f6621b5ae2b3b2fa",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-directional-pattern-power-result-20261101.json"
+  },
+  {
+   "new_sha256": "565251437aacead29cf58bae019a8a630af7b4af249997d18fdf7d99fa59803f",
+   "old_sha256": "fc7bce1ead42dacba3f4658532b1333e87b6e57e73e2669d4dc4e845474cf145",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/IMPLEMENTATION_FEATURE_MAP.json"
+  },
+  {
+   "new_sha256": "bd2b1752e635a98d7999ccbef0ae378d96709dd4133b5c4d77c2ef1ac552536b",
+   "old_sha256": "447c7f7c0b995c95e1f2dc381daf65bd3e26de5aa85966594e64bb9ecf9f2f07",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/IMPLEMENTATION_FEATURE_MAP.json"
+  },
+  {
+   "new_sha256": "491a8958348db3a2929e60dd4e643b380ba601bc53d8884606840203b972ce07",
+   "old_sha256": "6fa83e65b9992ee9350de00a6e44b32de8498351782cdfe9c19266d15e11c6b6",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-directional-pattern-power-result-20261101.json"
+  },
+  {
+   "new_sha256": "1fe62127efd1591bc2a0dcbfbff2fdebbbbdb219b2185e1f3f785b754899e6a3",
+   "old_sha256": "c41e846deecae04238f647d1910a3df25f70d2f512ffc34b47c59182bccbe167",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "datasets/schema/cdl-e-covariance-replication.v1.schema.json"
+  },
+  {
+   "new_sha256": "1fe62127efd1591bc2a0dcbfbff2fdebbbbdb219b2185e1f3f785b754899e6a3",
+   "old_sha256": "c41e846deecae04238f647d1910a3df25f70d2f512ffc34b47c59182bccbe167",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/operations/AGENT_RELEASE_ACCEPTANCE_2026-11-19.md"
+  },
+  {
+   "new_sha256": "1fe62127efd1591bc2a0dcbfbff2fdebbbbdb219b2185e1f3f785b754899e6a3",
+   "old_sha256": "c41e846deecae04238f647d1910a3df25f70d2f512ffc34b47c59182bccbe167",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "scripts/run_cdl_e_fresh_seed_replication.py"
+  },
+  {
+   "new_sha256": "b7d4fc18b466b9ed2df85d205d343e7aa2901b3493ae9ab85adf27cb45a01e7f",
+   "old_sha256": "c0c535c18e93caa7b4ca20fd30210fa3d60651c510380144aea0a79e2e2462e6",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-joint-delay-angle-v5-result-20261027.json"
+  },
+  {
+   "new_sha256": "d681bf4da5b980543253cd044a983b418c1f6476bb5eea7d555203affb8da029",
+   "old_sha256": "9c927fdaee97eeb8fe8d8fcb87cdb070f60ac975975951be5adce08625780a81",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-joint-tx-rx-dual-pol-spatiotemporal-covariance-native-validation-20261109.json"
+  },
+  {
+   "new_sha256": "7695dac7d9d1cd2021850fc721a8ed6a86e2c75b66f7d55fb142ef3b6554d3f0",
+   "old_sha256": "5652cc9ee21622f503a3e42a5fc642cee4354347ec4e1b7710a4aef10baa941b",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-joint-tx-rx-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json"
+  },
+  {
+   "new_sha256": "aa2656b15b90324fe69f1f541ba210f9e1334893ce5689da6f3dc4bfeee32c76",
+   "old_sha256": "73ce371cf6df293bbc7ff68530b26206bb922f0d0ebdf3a40bb4ec0dfafa1863",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-joint-tx-rx-spatiotemporal-covariance-initial-frozen-execution-20261109.json"
+  },
+  {
+   "new_sha256": "cf59c32f0fbd301bbfac6b57718f4ad078ab089970a7039f9a3281e58c1d2c18",
+   "old_sha256": "da50c701b9ee36d1ffa0d3a4477a3cee137b3006f1eec73d93df5d9c255cbbfb",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-larger-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json"
+  },
+  {
+   "new_sha256": "7ec462b38b4756ec60faa85b16f71374d6c3f1bc339ce1aec64b0e94420fa321",
+   "old_sha256": "760d50d0b755a675ce6f6339180bb629f1e2c789fd90a54e525229ae8f5f897d",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-larger-topology-joint-tx-rx-spatiotemporal-covariance-native-validation-20261109.json"
+  },
+  {
+   "new_sha256": "26fc44628b3aa054a0ce2cb5c3b390685204feeae4f81c81a31ba8a94341b193",
+   "old_sha256": "9ef10227fd25a456bc82acef899ab861d3655618b426cc91e6e40b2da18495e0",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-patterned-rotated-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json"
+  },
+  {
+   "new_sha256": "8ff82c2b1e9a8796c0fad623e0ecf8d653d40bbd56d93ac5f4fc02a3b1b07d48",
+   "old_sha256": "7b02436d16d3769cd9a566d74053005c14c0ec828eb21f7ef0b26ffd76a2c6e0",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/IMPLEMENTATION_FEATURE_MAP.json"
+  },
+  {
+   "new_sha256": "8ff82c2b1e9a8796c0fad623e0ecf8d653d40bbd56d93ac5f4fc02a3b1b07d48",
+   "old_sha256": "7b02436d16d3769cd9a566d74053005c14c0ec828eb21f7ef0b26ffd76a2c6e0",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-physical-dual-cross-handheld-ut-spatiotemporal-covariance-native-validation-20261110.json"
+  },
+  {
+   "new_sha256": "5ac69cc1542a269b6cc5f9659e9be26b27589181857f29fbdb9353f46ed40d4b",
+   "old_sha256": "3cc3f55abfc28c08baf5eb8d5429e45670b182fc2ec54c44ea5934ef9a169eed",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-physical-handheld-ut-operating-point-spatiotemporal-covariance-native-validation-20261110.json"
+  },
+  {
+   "new_sha256": "388dabe9d1aeb9d1d80c0ca99d6bf2f3d334c644dec111b8f494c302093db01d",
+   "old_sha256": "cc7ad3f22036e21620bd64570e390db2fbae1bdb995a9333321ddd299897a3eb",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-physical-handheld-ut-spatiotemporal-covariance-native-validation-20261110.json"
+  },
+  {
+   "new_sha256": "07d5f280a65632db78ee9dd803c2916d2fd79a0fc8987e8ba2d50c1cb5d42d5a",
+   "old_sha256": "8f4abdc228fe5cd4896cb48173ffcab89a06dedbab2860c620a9c197559287a8",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-spatiotemporal-covariance-native-validation-20261109.json"
+  },
+  {
+   "new_sha256": "6a0f66e2b74fc2d15b4278cc5108f29fbebb70b179dfcd7ef0e062ac0b884d55",
+   "old_sha256": "3225d56ea26eedc98ddf2111eb44f598a16c704724a4fc5e7b18fdb8be32fa33",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g5-delay-domain-dft-confirm-20261024.json"
+  },
+  {
+   "new_sha256": "fdb837063523a1eee475810d27a60b8a4b2169759c69ca14ce1d6d59ec11f203",
+   "old_sha256": "4a22c4318c32c6f386e35e2d0e42763cf7e46b2598e1f114248144ce8dc67232",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g5-doppler-dmrs-density-confirm-20261024.json"
+  },
+  {
+   "new_sha256": "0ec2846b3f9c8ed277f0a3e05527b1ba45591e001e41d09c937c446c223db78d",
+   "old_sha256": "8a49c5c6a75973c0aeaf5ab93cd46ff99f4b1feff46b2a1074011d893838d7b7",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "config/agentops/baseline-lock.json"
+  },
+  {
+   "new_sha256": "0ec2846b3f9c8ed277f0a3e05527b1ba45591e001e41d09c937c446c223db78d",
+   "old_sha256": "8a49c5c6a75973c0aeaf5ab93cd46ff99f4b1feff46b2a1074011d893838d7b7",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/operations/AGENT_RELEASE_ACCEPTANCE_2026-11-19.md"
+  },
+  {
+   "new_sha256": "0ec2846b3f9c8ed277f0a3e05527b1ba45591e001e41d09c937c446c223db78d",
+   "old_sha256": "8a49c5c6a75973c0aeaf5ab93cd46ff99f4b1feff46b2a1074011d893838d7b7",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "ae5c83a3db0add5fd173659ce1d2735368a8bbe624e16510d4469a02f28793f6",
+   "old_sha256": "aa450b0d1865734d78f0bf461e75eedb8a7b3b779cde89929a7b53e967b7d0e1",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "ef7c8803d7a365941d6b4ad62bc9096c97b7c2794f98d57db5042f11b8492534",
+   "old_sha256": "28376f7ec3895d43e5d32f03551a8c4abffb5f970f702c32627f00cd36d58489",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/operations/AGENT_RELEASE_ACCEPTANCE_2026-11-19.md"
+  },
+  {
+   "new_sha256": "e5635b7282d8c596a624624e4da26ab0d716d24d120813e7cb8cb79c4f57ec07",
+   "old_sha256": "665d9a7757fc33f32e35fe60010d8e5f9c64a47f74ca5f520026d70844fda855",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HISTORICAL_STATUS_CROSSWALK.json"
+  },
+  {
+   "new_sha256": "9d0dc89ed8d2defc4dc80c823015520089050b3e06a80f157636ec8eb7f900fa",
+   "old_sha256": "9593bad8049fc6fb77b20c6d5b3a427ab2cb02350e2ed64abd677272aa4f79f6",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/operations/AGENT_RELEASE_ACCEPTANCE_2026-11-19.md"
+  },
+  {
+   "new_sha256": "49c7244e65207bd1336b66bf9c1addacd427b78264815d72a4c6d6a94d494315",
+   "old_sha256": "8d1b7e53a7f032d73b1c5e47f259b49889061ca726010d0ace87bd6c5735ec52",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g5-tdl-ae-signed-lag-dft-family-confirm-20261024.json"
+  },
+  {
+   "new_sha256": "6820536b590a118a7f5041d52b31ea0e4fa6cf603f1b5c4c64452072a8d2baa5",
+   "old_sha256": "d7c9e9f6a28cee607513b7eca501b837b1ed5b473c8c037da007b3df06e3f93f",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g5-tdl-c-dmrs-density-confirm-20261024.json"
+  },
+  {
+   "new_sha256": "070f7131868230b0a16c415ff6d920db46f1083fae0944b32fc624f1bcdc5cb1",
+   "old_sha256": "353bdae972d06b8f0ee8c3373a1c8cbe8521686d367aa2a9a8bf2ac07276e368",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g5-tdl-c-signed-lag-dft-confirm-20261024.json"
+  },
+  {
+   "new_sha256": "e1593073517d402a2d9938f0b2f49247a3386bd00a98f21d49fdf8c33fb29ca0",
+   "old_sha256": "2688fbc1e3e0c654e08f7a166a94d3c53ce0b62a0885e89a9f686a88f6c41816",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-tdl-rayleigh-marginal-frozen-execution-20261109.json"
+  },
+  {
+   "new_sha256": "e1593073517d402a2d9938f0b2f49247a3386bd00a98f21d49fdf8c33fb29ca0",
+   "old_sha256": "2688fbc1e3e0c654e08f7a166a94d3c53ce0b62a0885e89a9f686a88f6c41816",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-tdl-rayleigh-marginal-native-validation-20261109.json"
+  },
+  {
+   "new_sha256": "726066c9b636ca8fd76cc66a3bec3fc6d30673a8d90464cf4af3801e7f2baeb9",
+   "old_sha256": "3285eb1398ee83ea4d79b4b0116478ceed9d1374537fe2d3510a3c65a7585da2",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "config/scenes/scene-family-registry.v1.json"
+  },
+  {
+   "new_sha256": "726066c9b636ca8fd76cc66a3bec3fc6d30673a8d90464cf4af3801e7f2baeb9",
+   "old_sha256": "3285eb1398ee83ea4d79b4b0116478ceed9d1374537fe2d3510a3c65a7585da2",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "f814a8dd6f3c1c04c681d40d395188e428642a3d08f7508152ef6b6adb0a9c04",
+   "old_sha256": "529508f89e7c4f72e0688ef302c1f9c6c84d542594da13aa416cf44dd84a1fbc",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "config/scenes/scene-family-registry.v1.json"
+  },
+  {
+   "new_sha256": "f814a8dd6f3c1c04c681d40d395188e428642a3d08f7508152ef6b6adb0a9c04",
+   "old_sha256": "529508f89e7c4f72e0688ef302c1f9c6c84d542594da13aa416cf44dd84a1fbc",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g3-odbl-scene-source-audit-20261027.json"
+  },
+  {
+   "new_sha256": "4ead85243feac621007693dad949d6c331ee9af70ce4efd02f57413986c17177",
+   "old_sha256": "8363023e1436e465bc6303fdea9f6667100f3f100d201494de74df8fd3163694",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "c0a0ad02150c580d71737325d34b258781c2d68d9b55b1b582ee5b17208e4213",
+   "old_sha256": "c72997bd9546096e03eda19e58f197c7d884ad8fea61bef9b8e9e7ac281fac46",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "b2d9b67f4943906afc3ee66c5ef9ec1b9abe9c6a5d51db1c396164613cbb1752",
+   "old_sha256": "9a12574a84e2f5585b9b1b694c08690cdf55b04fda38764bc3a69237980bb08d",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "2bc4e48780c040648ed6045cc7e5cadfd192423ac6fdddce06a701361b2a1592",
+   "old_sha256": "ff2a4c0671eb23b8856d660f8db2f74a3ed639ad827a2072b8c725a5d852689e",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "25e2e1ac5adc9d26aca823487dedccddbc23283ba07d50f41ba2b3465779a281",
+   "old_sha256": "9a0233abc1555b64696b6c05101a298dc55db883254797e8e3fa75a753536943",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "34f128fdb200dbbc45e27a0d7483198d5f160821a7e09af12ab1e8fe247815c0",
+   "old_sha256": "026be1e82d94d4e151ffa61cf097f354320b344363e6d701fa7d0a1e405e3bdb",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-fixed-tdl-doppler-spectrum-native-validation-20261109.json"
+  },
+  {
+   "new_sha256": "34f128fdb200dbbc45e27a0d7483198d5f160821a7e09af12ab1e8fe247815c0",
+   "old_sha256": "026be1e82d94d4e151ffa61cf097f354320b344363e6d701fa7d0a1e405e3bdb",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-scalable-tdl-doppler-spectrum-native-validation-20261109.json"
+  },
+  {
+   "new_sha256": "34f128fdb200dbbc45e27a0d7483198d5f160821a7e09af12ab1e8fe247815c0",
+   "old_sha256": "026be1e82d94d4e151ffa61cf097f354320b344363e6d701fa7d0a1e405e3bdb",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-tdl-rayleigh-marginal-frozen-execution-20261109.json"
+  },
+  {
+   "new_sha256": "34f128fdb200dbbc45e27a0d7483198d5f160821a7e09af12ab1e8fe247815c0",
+   "old_sha256": "026be1e82d94d4e151ffa61cf097f354320b344363e6d701fa7d0a1e405e3bdb",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-tdl-rayleigh-marginal-native-validation-20261109.json"
+  },
+  {
+   "new_sha256": "4ebe001194e9a82ec2e2ec304d0fb168170b9654a739b8b6017537432a5889ee",
+   "old_sha256": "d21cd18da8f0377c67b424e368ab18a6bc3e5db8f3fb52d04c6b1ae439109c02",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "d488f78937af59dcbc107554bcb7849a12bd96913f733c5f8c8db9a175d4eaa8",
+   "old_sha256": "f86d29b84b0dd174cbf92eab3952de914e76ac4192ce4fe534c3bb969c6e5811",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "648fc5a4c664d11d2255192a4043d4c72c7f975ff8ef3942bb3e00ec015199c3",
+   "old_sha256": "52c775201ee7b08d2387218fb1b0336e52c0b4ce3116fcc2c08758137bf4480e",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "aad3256e9eda5beb87706475cc3f9466c8d6f25400fb47d5395ff669c5834fcb",
+   "old_sha256": "156d5617393f208644bd9fc79d7e5a3076e1a90a568d05a1d9db0f7d4069b7b7",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "aad3256e9eda5beb87706475cc3f9466c8d6f25400fb47d5395ff669c5834fcb",
+   "old_sha256": "156d5617393f208644bd9fc79d7e5a3076e1a90a568d05a1d9db0f7d4069b7b7",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g5-tdl-cpu-dmrs-density-development-20261024.json"
+  },
+  {
+   "new_sha256": "3ce90a31a39fda088f80472223b8a506dc0607024916c16e49162a1fc95b1aa5",
+   "old_sha256": "c1139044996c9429ad8aca0d23ddbfb2e7a64628cd7dd696e66bc36e00092f5c",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "3ce90a31a39fda088f80472223b8a506dc0607024916c16e49162a1fc95b1aa5",
+   "old_sha256": "c1139044996c9429ad8aca0d23ddbfb2e7a64628cd7dd696e66bc36e00092f5c",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g5-estimator-choice-posthoc-20261024.json"
+  },
+  {
+   "new_sha256": "01a97663b6c9566fe0e60199c5e77a6a5c3c421e26133012a8e058b725dbe16a",
+   "old_sha256": "1732b46fd12648e3b1fd1fb29c5c832ae1c3e01f73e83940ffcbabfc86ac3ae5",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "80c746d67c3c0620cf3cbd6b526fff1563289e4094b8bd484a9f2040f4b28c91",
+   "old_sha256": "a02496531a8cdc938d852c08d8253f7a31c7deca9d17c1ac807f3ba1c67efec1",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "80c746d67c3c0620cf3cbd6b526fff1563289e4094b8bd484a9f2040f4b28c91",
+   "old_sha256": "a02496531a8cdc938d852c08d8253f7a31c7deca9d17c1ac807f3ba1c67efec1",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g5-delay-domain-dft-confirm-20261024.json"
+  },
+  {
+   "new_sha256": "44cbd1957648400e851186d9d17f1364d839af4cc95ea51dca027c13bdadd9a1",
+   "old_sha256": "0b05d297a3dbe656de0902ab4f09e899ba03d0fd3a1591357433ae7f9466873b",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g5-doppler-dmrs-density-confirm-20261024.json"
+  },
+  {
+   "new_sha256": "44cbd1957648400e851186d9d17f1364d839af4cc95ea51dca027c13bdadd9a1",
+   "old_sha256": "0b05d297a3dbe656de0902ab4f09e899ba03d0fd3a1591357433ae7f9466873b",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g5-static-reference-failure-path-diagnostic-20261024.json"
+  },
+  {
+   "new_sha256": "44cbd1957648400e851186d9d17f1364d839af4cc95ea51dca027c13bdadd9a1",
+   "old_sha256": "0b05d297a3dbe656de0902ab4f09e899ba03d0fd3a1591357433ae7f9466873b",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "tests/test_experiments/frozen_source_manifest.py"
+  },
+  {
+   "new_sha256": "cf670cbb8c0c8fb834177a1ed63b52fd307dc719272629b00e55f7d111a13875",
+   "old_sha256": "c7a125dd9406fb1a33a38667e40cb74e54aaff3c90f4787e2a9803fbbb780422",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "b619f3ed5ad2797661ec5675a075b191b0326808295012867fab7766d3628ef8",
+   "old_sha256": "acae08a5dd37d3d5bd9884d38dec8c89121f1f1330a2cfbffff789f0d482980a",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g5-tdl-c-signed-lag-dft-confirm-20261024.json"
+  },
+  {
+   "new_sha256": "daa6b98bd26a455a95dc92a5df649fce30719a5ef22d524cf8ad568e2ba70f5e",
+   "old_sha256": "0aa1c62d39db54f92eff99958364a515206f7a985056ebdf2bcea9d171eb380f",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g5-tdl-ae-signed-lag-dft-family-confirm-20261024.json"
+  },
+  {
+   "new_sha256": "8d5557f40d3f112a31b5c4916fae69f77e9e3d6596943bb40110bbd751014a9b",
+   "old_sha256": "99b09bce0b633f0f273d925649895f570b219f2486ac0070a97010bc0f263482",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g5-tdl-ae-dmrs-density-family-confirm-20261024.json"
+  },
+  {
+   "new_sha256": "728c97d5d6e5a9444ad9401b10cf1e4f54465266f8bb08bd0a56da2bf3c82cbd",
+   "old_sha256": "b351df60bfdb1175e32f84b4d4c63841e1fa107b362ba55c9970b5b8594c76a7",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g5-tdl-ae-dmrs-density-family-reconfirm-v2-20261024.json"
+  },
+  {
+   "new_sha256": "8488141c97e22c649edbd1533de6f60c319aef288c6010a1a2c87282edaac5e4",
+   "old_sha256": "5622cf68a4d92de8d1391b2b6bcb041b360c11f9354f480ef0ff6960100fe297",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md"
+  },
+  {
+   "new_sha256": "9e367823759899aa39103bb099682fa99ed6651a2276da5d9ef4e70302b5109b",
+   "old_sha256": "374d3661de765b8610c4c7b1f7cdf99f9e6c6f6ae2b30634331758b5e080aad4",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "13070d2792d8071b7f96e2cd4d609aa953f5bcf30adf36a2f8129a1edc534305",
+   "old_sha256": "3400a9a528008bc0325aa75a32d0f00b5772f07318a81e868c1854de0bd66465",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-physical-dual-cross-handheld-ut-spatiotemporal-covariance-native-validation-20261110.json"
+  },
+  {
+   "new_sha256": "504b0a807f22d9b60b25efa4e6dda72acf7af515a3e483a210fe9868b55cf048",
+   "old_sha256": "094dc5a818a8d2d067cf8dba757094aa73fdb8dfc4e2b2dd62063f305477b4bb",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-physical-handheld-ut-operating-point-spatiotemporal-covariance-native-validation-20261110.json"
+  },
+  {
+   "new_sha256": "fe359031f44107923277fdec6383865204e6e5d491e700088e9a87595f4e6f39",
+   "old_sha256": "33e6b8968386d1b8fc0b08d8971427e8a3dc3c67b4c3f85cae10b7a80811bf9e",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-physical-handheld-ut-spatiotemporal-covariance-native-validation-20261110.json"
+  },
+  {
+   "new_sha256": "391ef5e249e7326a1ca200808dc69cdf472db638d49285594f40c5500beadb18",
+   "old_sha256": "9484cf87647b2e4bdea033d8d81def4aa6957d6492d52edff192239de2e9728c",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-joint-tx-rx-dual-pol-spatiotemporal-covariance-native-validation-20261109.json"
+  },
+  {
+   "new_sha256": "4abc8a3f08d13ab032ded39b14eb339344961f1daad957376f2fad22a8609715",
+   "old_sha256": "7a55ed594e77223d5276acf4055574d844eff8dd87f77c8d6d19ff867377fda4",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-joint-tx-rx-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json"
+  },
+  {
+   "new_sha256": "c3308a03b172483ed8e5460aad5c619ea9864c796145565355dfd252a33ff30c",
+   "old_sha256": "a048e7523e3dcdf453f0f18f9d87d25c12640389238f336876ad13ee781799aa",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-larger-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json"
+  },
+  {
+   "new_sha256": "a014563c8465d6be37af23ed6495d5ac34527e2e1fa8e4c37e45bdd26c68c202",
+   "old_sha256": "0c7c959ecb74c051475e169961eab162aae5a18ab761acedc1100f5d975243a5",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-larger-topology-joint-tx-rx-spatiotemporal-covariance-native-validation-20261109.json"
+  },
+  {
+   "new_sha256": "f6a8c97c8f45496c1dc3d2af48f028e6f82ae416c5710488c828bbeafe502ef8",
+   "old_sha256": "fb25211933f5a805118101a09a7e19bff2396ac07bd38ec8ee8360f9cea0f79a",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-rotated-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json"
+  },
+  {
+   "new_sha256": "21956541b2388adfcf701cc87a39be155c1ce2a54838fae71a227ff8655261e0",
+   "old_sha256": "10ace671faee1779a6cd9fa5a14eea693246ae79bb058520e5d56dea4eaaa25b",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-spatiotemporal-covariance-native-validation-20261109.json"
+  },
+  {
+   "new_sha256": "d948ee9efc22604b609b4d9ce09e887af25d421b1e08e2624182e01e7cbe2603",
+   "old_sha256": "252675b08c7b60e781e7d73aba3208bc288bfe65ddbda87f0f4c4ea73832159f",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/IMPLEMENTATION_FEATURE_MAP.json"
+  },
+  {
+   "new_sha256": "d0e649b6c2dd41ccea4c2360541a1df939fc554f694bee94c1d369887b82a7f8",
+   "old_sha256": "449e8d015e822c77a44336fb2b11d3762a87936da4b63ba8999a6354315d60df",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-physical-dual-cross-handheld-ut-spatiotemporal-covariance-native-validation-20261110.json"
+  },
+  {
+   "new_sha256": "958d1f5982b654f961cbabf71f17f8325031dc21b8019138690960f6ba98989a",
+   "old_sha256": "1802a5f12a2d5f8515224351b4c6ea4e317cab5e1fa56aaa2e4d0574382a3462",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "9ecd5cc6f3049cabf1871fb6b3ad1bdc937a223e27ec2660aa9fe88de9ffd3ff",
+   "old_sha256": "c72e90755aac99f5f36fba5e6f728bb72a6e0ea4dc98f38816f6bf341974d36b",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "f89320b82096605c9bf93395b831cb6f406b9ac4b256ebef27b09ca4da478d8c",
+   "old_sha256": "b0d33298d16e43f2536c735a5eb978a3d8e06f3e5162acc74da3d5b743c11ed6",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "f89320b82096605c9bf93395b831cb6f406b9ac4b256ebef27b09ca4da478d8c",
+   "old_sha256": "b0d33298d16e43f2536c735a5eb978a3d8e06f3e5162acc74da3d5b743c11ed6",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/IMPLEMENTATION_FEATURE_MAP.json"
+  },
+  {
+   "new_sha256": "f89320b82096605c9bf93395b831cb6f406b9ac4b256ebef27b09ca4da478d8c",
+   "old_sha256": "b0d33298d16e43f2536c735a5eb978a3d8e06f3e5162acc74da3d5b743c11ed6",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-rotated-dual-pol-covariance-validation-20261109.json"
+  },
+  {
+   "new_sha256": "e88dd3400a80920407d53545230c4ed731dfbae97a7f9e4a04a80ad22a03fdaf",
+   "old_sha256": "454c9587e36724621f069bcb43b73fcf503538a6685367c2f74d0a6c03bea664",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "e88dd3400a80920407d53545230c4ed731dfbae97a7f9e4a04a80ad22a03fdaf",
+   "old_sha256": "454c9587e36724621f069bcb43b73fcf503538a6685367c2f74d0a6c03bea664",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-angular-power-native-validation-20261109.json"
+  },
+  {
+   "new_sha256": "2774d6884ca37c8bb516b9b2ca0d3f6c3051803073a9cec4063ea162f77b84fb",
+   "old_sha256": "fd09f1c1bdc1ad216c018de09d90e944ca26f27a861ea0fc81b1a13c3cef80f7",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "2774d6884ca37c8bb516b9b2ca0d3f6c3051803073a9cec4063ea162f77b84fb",
+   "old_sha256": "fd09f1c1bdc1ad216c018de09d90e944ca26f27a861ea0fc81b1a13c3cef80f7",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-directional-pattern-power-result-20261101.json"
+  },
+  {
+   "new_sha256": "e13bef2475f613908d207773bec38d9edf6a8fff75f9b556c7d06c5b44ab2c67",
+   "old_sha256": "03ee2ece5ba78b5e3e5d7fdd7f857e58fb85418b396e0ecaa1c818867d0dcdd3",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "317ba1375c755644c29928051786aa5702f5eaceeed9b9ca143a548ab8437b41",
+   "old_sha256": "1118c2757d9e24434ed4f83394b8d6590d8d8724c71d482610da9be1123e42ef",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "f34b4933b4b481470ba83b21ff699b449696067abb11f54b814ffe3663406703",
+   "old_sha256": "38251e6f1b8ae4c1f61e376275f8b10f6a9b70b5c85e79f56ed3aa65467c7b45",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "f34b4933b4b481470ba83b21ff699b449696067abb11f54b814ffe3663406703",
+   "old_sha256": "38251e6f1b8ae4c1f61e376275f8b10f6a9b70b5c85e79f56ed3aa65467c7b45",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/IMPLEMENTATION_FEATURE_MAP.json"
+  },
+  {
+   "new_sha256": "f34b4933b4b481470ba83b21ff699b449696067abb11f54b814ffe3663406703",
+   "old_sha256": "38251e6f1b8ae4c1f61e376275f8b10f6a9b70b5c85e79f56ed3aa65467c7b45",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-rotated-dual-pol-covariance-validation-20261109.json"
+  },
+  {
+   "new_sha256": "cbc2d9bf3d371f0f3572a1d9af6f5acd6ef313639a6e56d2d81fff8886e8ba47",
+   "old_sha256": "fc116bbbcc1ac3002270536e8ff7b08abca3d5a6d82ac3937b2573fda038d455",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "cbc2d9bf3d371f0f3572a1d9af6f5acd6ef313639a6e56d2d81fff8886e8ba47",
+   "old_sha256": "fc116bbbcc1ac3002270536e8ff7b08abca3d5a6d82ac3937b2573fda038d455",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-physical-dual-cross-handheld-ut-spatiotemporal-covariance-native-validation-20261110.json"
+  },
+  {
+   "new_sha256": "b4eeacadd7ae0385c72683f16c74dc3fd0931a46095387935af947b829cd35f3",
+   "old_sha256": "08262c6e7d4464af2dd3f339af2e63c96acc8a797ecf77d0cd20f2a6cdd43be8",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "01b62eeb920a4381fb10e3e6553fc8c10611e7d0fab3689359d7473364b0158e",
+   "old_sha256": "09186e73ef5a91f67388d086e1e88c82ca45ea56262a9a11fdf7fba711d68915",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "935b9e5c1d46b1e777693e9e7c7421cce8d90b4f9b0587fc8cd686c932bf1db2",
+   "old_sha256": "894a243740bf92afddd7ac630c21acaf955f191b0e638f00f67dbad6ecf24285",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "935b9e5c1d46b1e777693e9e7c7421cce8d90b4f9b0587fc8cd686c932bf1db2",
+   "old_sha256": "894a243740bf92afddd7ac630c21acaf955f191b0e638f00f67dbad6ecf24285",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-physical-handheld-ut-operating-point-spatiotemporal-covariance-native-validation-20261110.json"
+  },
+  {
+   "new_sha256": "e2747de64c9ecd77c2a3f14da28bdfe8c1772e95f4adbed2f95bfab075f1cdc0",
+   "old_sha256": "23fb95a0bd25ea44db9f47621d0115949783a030d5a14eaaa31d330e00517b3c",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "e2747de64c9ecd77c2a3f14da28bdfe8c1772e95f4adbed2f95bfab075f1cdc0",
+   "old_sha256": "23fb95a0bd25ea44db9f47621d0115949783a030d5a14eaaa31d330e00517b3c",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-physical-dual-cross-handheld-ut-spatiotemporal-covariance-native-validation-20261110.json"
+  },
+  {
+   "new_sha256": "ef389704d3e6b51686ab14893a1da9f6de4ac2ca1abd8a8ebebdf8f348c19ada",
+   "old_sha256": "6fbc6dfb2cdfa187b8707ed664c8868c238e7798b36db53973ba902b0e075df6",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "ef389704d3e6b51686ab14893a1da9f6de4ac2ca1abd8a8ebebdf8f348c19ada",
+   "old_sha256": "6fbc6dfb2cdfa187b8707ed664c8868c238e7798b36db53973ba902b0e075df6",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-physical-handheld-ut-spatiotemporal-covariance-native-validation-20261110.json"
+  },
+  {
+   "new_sha256": "62af37174c505bb2ad8f17a670ccd879a40c1211fc3edf95cb8b2c76fb21f6a8",
+   "old_sha256": "775c688ddbec6a44e56c38f9fcdf9beab429b04309b14db2ddfebebef02c4652",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "62af37174c505bb2ad8f17a670ccd879a40c1211fc3edf95cb8b2c76fb21f6a8",
+   "old_sha256": "775c688ddbec6a44e56c38f9fcdf9beab429b04309b14db2ddfebebef02c4652",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-joint-tx-rx-dual-pol-spatiotemporal-covariance-native-validation-20261109.json"
+  },
+  {
+   "new_sha256": "d6be82b2465ec3f5d2951993078472e66d2c7aadf583daafdee0189ea23dba18",
+   "old_sha256": "64c9f529c6f0da085f238a60b4dc2c15656289e748275a9ce167eb3c35e93175",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "d6be82b2465ec3f5d2951993078472e66d2c7aadf583daafdee0189ea23dba18",
+   "old_sha256": "64c9f529c6f0da085f238a60b4dc2c15656289e748275a9ce167eb3c35e93175",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-joint-tx-rx-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json"
+  },
+  {
+   "new_sha256": "413cfc8f817b8a6b6c38e5f233d8569037219abcdcc4e0603b71ded61fa0d0b5",
+   "old_sha256": "93f1d8c13fc728b05596619bd83762330b265602ebf4ec771fa1390f35477119",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "206ce0cf9276ac692f6a52eb055d1ab59916e8a3a3c8bf866ab1a868e61841f2",
+   "old_sha256": "4dd96d2db7a1722299c4d822c53f99108c86d43918395b32b5bc60252575ec5b",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "206ce0cf9276ac692f6a52eb055d1ab59916e8a3a3c8bf866ab1a868e61841f2",
+   "old_sha256": "4dd96d2db7a1722299c4d822c53f99108c86d43918395b32b5bc60252575ec5b",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-larger-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json"
+  },
+  {
+   "new_sha256": "95764c0296f638fe3614fab19a31817c39d3ee1dd8acdbe03e3c1db56b1c16ef",
+   "old_sha256": "566f7b64969fc5b103cf1f909fbb8ce45c5137d98ef4becf24aeb96fadf51ae3",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "95764c0296f638fe3614fab19a31817c39d3ee1dd8acdbe03e3c1db56b1c16ef",
+   "old_sha256": "566f7b64969fc5b103cf1f909fbb8ce45c5137d98ef4becf24aeb96fadf51ae3",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-larger-topology-joint-tx-rx-spatiotemporal-covariance-native-validation-20261109.json"
+  },
+  {
+   "new_sha256": "1c5f0408dedd46536f95b8876ba4e86fcc63edce3b5b804c45ed71508b2c2193",
+   "old_sha256": "22b14a596c4df4f3137c418b97d98735084f0caf81148073bcf1c337e13bf327",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "1c5f0408dedd46536f95b8876ba4e86fcc63edce3b5b804c45ed71508b2c2193",
+   "old_sha256": "22b14a596c4df4f3137c418b97d98735084f0caf81148073bcf1c337e13bf327",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-rotated-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json"
+  },
+  {
+   "new_sha256": "e4c248af1cfe8ed4a4f9457a1be9f9dc0fe5ba2ef571d3524fe64efa7dcd727e",
+   "old_sha256": "5eb375f14e84ec94842cc458c07db3e463381d636e72abdcd8bb77f641d9f6f5",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-rotated-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json"
+  },
+  {
+   "new_sha256": "a37b5133f839a7ee2b8b332caf27bd26e6842d1b8015fc2cd95becce94fca5a2",
+   "old_sha256": "71193b36a4bcafd9269561c1da5ba2143b0161fad8f1f2fd4560402e26950295",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/CDL_E_FRESH_SEED_REPLICATION_PROTOCOL_2026-11-12.md"
+  },
+  {
+   "new_sha256": "a37b5133f839a7ee2b8b332caf27bd26e6842d1b8015fc2cd95becce94fca5a2",
+   "old_sha256": "71193b36a4bcafd9269561c1da5ba2143b0161fad8f1f2fd4560402e26950295",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/CDL_E_FROZEN_MISS_REVIEW_2026-11-11.md"
+  },
+  {
+   "new_sha256": "a37b5133f839a7ee2b8b332caf27bd26e6842d1b8015fc2cd95becce94fca5a2",
+   "old_sha256": "71193b36a4bcafd9269561c1da5ba2143b0161fad8f1f2fd4560402e26950295",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "a37b5133f839a7ee2b8b332caf27bd26e6842d1b8015fc2cd95becce94fca5a2",
+   "old_sha256": "71193b36a4bcafd9269561c1da5ba2143b0161fad8f1f2fd4560402e26950295",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-four-element-covariance-frozen-execution-20261109.json"
+  },
+  {
+   "new_sha256": "d78fc6dcc49c8e60ddc0142527655ed866e9a329ae27e0e49dd3a858144366f3",
+   "old_sha256": "a38b385ab339ad4f0228ec6cf68fb19f706d88462489b4452ad1610681267ba0",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "d78fc6dcc49c8e60ddc0142527655ed866e9a329ae27e0e49dd3a858144366f3",
+   "old_sha256": "a38b385ab339ad4f0228ec6cf68fb19f706d88462489b4452ad1610681267ba0",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-cdl-spatiotemporal-covariance-native-validation-20261109.json"
+  },
+  {
+   "new_sha256": "c0b55ec45aa7d66f11a5e943d5e4117817bf7fbd90af84d3b962172848704bca",
+   "old_sha256": "c6c07aebdc949b011c1709ef901da71c5220913d1e48aadb9c22d5d3cbb05a95",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "8acfbcd5e32150e84f1d15922d769231d2e82cb95062852addfc5f9aa92c2a5c",
+   "old_sha256": "5bf4674c78e7570e23a4d7ae2aaecfa6b4d33fc61a63726ce51fd3c44c7af5bf",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "3f39fc732f8c7b0c51fe393b09a2cc8f6f78eaf26839ca6c23365b9aa9a5ce0c",
+   "old_sha256": "040625e8c8b1a335b7423b671f10c7d9e536178517c9de3c658f53ea9f1a5213",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "542c4c0c949b82bfa5447cb0d540d012c1b3471dc70cfbe96e75c32a73502562",
+   "old_sha256": "39b88d8374dc582e8641eecc504ccff9e340c49bda6a789bd08540767906d3de",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "542c4c0c949b82bfa5447cb0d540d012c1b3471dc70cfbe96e75c32a73502562",
+   "old_sha256": "39b88d8374dc582e8641eecc504ccff9e340c49bda6a789bd08540767906d3de",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-fixed-tdl-doppler-spectrum-native-validation-20261109.json"
+  },
+  {
+   "new_sha256": "3f23a856e5c0470e80f487a36bcd739ff149130140094cee456b77a734b3d5a9",
+   "old_sha256": "4981a80365f2e67c443e4f48328eacc50f9405314b14ea83506f706a0ace3586",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "3f23a856e5c0470e80f487a36bcd739ff149130140094cee456b77a734b3d5a9",
+   "old_sha256": "4981a80365f2e67c443e4f48328eacc50f9405314b14ea83506f706a0ace3586",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-fixed-tdl-rician-marginal-native-validation-20261109.json"
+  },
+  {
+   "new_sha256": "98a453f188f3fd492ab6295100b485f44b9189bd57d84619263e1961588dd854",
+   "old_sha256": "66671cce4b2d74eeea62348d44e582e7ae05ac4508c90e19df4076ab3584df76",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "98a453f188f3fd492ab6295100b485f44b9189bd57d84619263e1961588dd854",
+   "old_sha256": "66671cce4b2d74eeea62348d44e582e7ae05ac4508c90e19df4076ab3584df76",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-fixed-tdl-temporal-covariance-native-validation-20261109.json"
+  },
+  {
+   "new_sha256": "7cb428b897e69b8455fa1dea2f9c6a2b95e2faeae84a4ab869b47db1a39aadff",
+   "old_sha256": "5462d63755242d13c5026e31d8ad5bdccb1312463edab0823f3ba8275b81eeb0",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "779648046f76e43d176bfad7a82e945e925ee5f95a93110d26937068a756aed6",
+   "old_sha256": "ecf93a04b49421889b7127581c99fdb1923824fbc5456f36f16227d6644e4b1a",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "779648046f76e43d176bfad7a82e945e925ee5f95a93110d26937068a756aed6",
+   "old_sha256": "ecf93a04b49421889b7127581c99fdb1923824fbc5456f36f16227d6644e4b1a",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-scalable-tdl-doppler-spectrum-native-validation-20261109.json"
+  },
+  {
+   "new_sha256": "9699146e6544fa1683f9e285ed632f5cae2de9216876e1a9e63b5a2d99b4632b",
+   "old_sha256": "13515fa377f8d121b4c76c15ded8ddef252c82d75d230dbb412b6a5b52a9715e",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "9699146e6544fa1683f9e285ed632f5cae2de9216876e1a9e63b5a2d99b4632b",
+   "old_sha256": "13515fa377f8d121b4c76c15ded8ddef252c82d75d230dbb412b6a5b52a9715e",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-scalable-tdl-temporal-covariance-native-validation-20261109.json"
+  },
+  {
+   "new_sha256": "e44e441f3c6d337e7875d635f176642b971827fd7d17056fee724f76ac8c89ee",
+   "old_sha256": "e79903ac4bec37740728988e302d619e01dd6d4eea7b199da187dfbf70ad9c87",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/HELPER_WIRING_INVENTORY.json"
+  },
+  {
+   "new_sha256": "e44e441f3c6d337e7875d635f176642b971827fd7d17056fee724f76ac8c89ee",
+   "old_sha256": "e79903ac4bec37740728988e302d619e01dd6d4eea7b199da187dfbf70ad9c87",
+   "reason": "owner-authorized production-structure rename (2026-11-22)",
+   "referencing_file": "docs/research/results/g4-tdl-rayleigh-marginal-native-validation-20261109.json"
+  }
+ ],
+ "schema": "nr.digest_rebindings.v1"
+}

@@ -457,7 +457,7 @@ and the source-level derivation review found no arithmetic defect; the implied
 error is 3.5801 standard errors against a 3.4205 simultaneous critical value.
 The cause (sampling variation versus simulator/reference mismatch) remains
 unresolved. The review is recorded in
-`G4_CDL_E_FROZEN_MISS_REVIEW_2026-11-11.md`. Keep the original result failed;
+`CDL_E_FROZEN_MISS_REVIEW_2026-11-11.md`. Keep the original result failed;
 the separate post-hoc 65,536-draw diagnostic cannot replace it. A fresh-seed
 preregistration is queued and must not run until its seed roster and environment
 are frozen.
@@ -837,7 +837,7 @@ they do not authorize native qualification.
 The implied frozen error is 3.580059 standard errors against a 3.420527
 simultaneous critical value; the miss remains a failure, with stochastic
 variation versus simulator/reference mismatch unresolved. See
-`docs/research/G4_CDL_E_FROZEN_MISS_REVIEW_2026-11-11.md`. The five dependency-
+`docs/research/CDL_E_FROZEN_MISS_REVIEW_2026-11-11.md`. The five dependency-
 light oracle checks pass. No native rerun or result/threshold edit was made.
 
 **Preregistration increment (2026-11-12):** seed `2823000` clears the retained
@@ -1349,7 +1349,7 @@ implemented; native execution remains a later gated action.
 
 - **Dependencies:** E01 task-level scope audit; existing G5 receiver work and
   task-specific G3 acceptance definitions.
-- **Current evidence:** the 2026-11-12 [G5 receiver support matrix](G5_RECEIVER_SUPPORT_MATRIX_2026-11-12.md)
+- **Current evidence:** the 2026-11-12 [G5 receiver support matrix](RECEIVER_SUPPORT_MATRIX_2026-11-12.md)
   maps PUSCH, sample-domain impairment, multi-link, SSB/PBCH, PRS, and SRS
   receiver paths to their implemented boundaries and named blockers. It records
   the pinned Sionna 2.2.0 frequency-hopping/transform-precoding limitation and
@@ -1394,7 +1394,7 @@ implemented; native execution remains a later gated action.
   `NOT_QUALIFIED`; synthetic G5 v3 acceptance cannot satisfy that prerequisite.
   The complex-CSI scorer now uses `phase_comparison_disposition()` for records
   that carry paired physical-view contracts validated by strict schema
-  `evaluation/schema/g3-complex-csi-channel-view-contract.v1.schema.json`,
+  `evaluation/schema/complex-csi-channel-view-contract.v1.schema.json`,
   records the declared-gauge audit, and rejects mismatched or masked views; 50
   focused CSI/joint-evaluator tests pass. Legacy raw-array diagnostics remain
   accepted with `NOT_PROVIDED`, and the contract does not establish physical

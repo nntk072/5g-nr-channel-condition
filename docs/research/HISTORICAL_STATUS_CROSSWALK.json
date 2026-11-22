@@ -352,7 +352,7 @@
     },
     {
       "cited_existing_paths": [
-        "docs/research/G4_CDL_ANGULAR_POWER_SEED_AUDIT_2026-11-09.json",
+        "docs/research/CDL_ANGULAR_POWER_SEED_AUDIT_2026-11-09.json",
         "docs/research/results/g4-cdl-angular-power-native-validation-20261109.json"
       ],
       "current_status_authority": "docs/research/REQUIREMENT_LEDGER.json",
@@ -379,7 +379,7 @@
     },
     {
       "cited_existing_paths": [
-        "docs/research/G4_CDL_POLARIZATION_POWER_SEED_AUDIT_2026-11-09.json",
+        "docs/research/CDL_POLARIZATION_POWER_SEED_AUDIT_2026-11-09.json",
         "docs/research/results/g4-cdl-dual-vh-polarization-power-native-validation-20261109.json"
       ],
       "current_status_authority": "docs/research/REQUIREMENT_LEDGER.json",
@@ -406,7 +406,7 @@
     },
     {
       "cited_existing_paths": [
-        "docs/research/G4_PDP_RMS_SEED_AUDIT_2026-11-09.json",
+        "docs/research/PDP_RMS_SEED_AUDIT_2026-11-09.json",
         "docs/research/results/g4-pdp-rms-native-validation-20261109.json"
       ],
       "current_status_authority": "docs/research/REQUIREMENT_LEDGER.json",
@@ -1796,7 +1796,7 @@
     },
     {
       "cited_existing_paths": [
-        "docs/research/G5_SNR_PREREGISTRATION.md"
+        "docs/research/SNR_PREREGISTRATION.md"
       ],
       "current_status_authority": "docs/research/REQUIREMENT_LEDGER.json",
       "date": "2026-10-26",
@@ -1906,7 +1906,7 @@
     },
     {
       "cited_existing_paths": [
-        "docs/research/G4_SEED_ROSTER_AUDIT_2026-10-26_ALL_FROZEN.json"
+        "docs/research/SEED_ROSTER_AUDIT_2026-10-26_ALL_FROZEN.json"
       ],
       "current_status_authority": "docs/research/REQUIREMENT_LEDGER.json",
       "date": "2026-10-26",
@@ -1922,7 +1922,7 @@
     },
     {
       "cited_existing_paths": [
-        "docs/research/G4_SEED_ROSTER_AUDIT_2026-10-26.json"
+        "docs/research/SEED_ROSTER_AUDIT_2026-10-26.json"
       ],
       "current_status_authority": "docs/research/REQUIREMENT_LEDGER.json",
       "date": "2026-10-26",
@@ -2408,7 +2408,7 @@
     },
     {
       "cited_existing_paths": [
-        "tests/test_integrations/test_g5_srs_resource_mapping.py"
+        "tests/test_integrations/test_srs_resource_mapping.py"
       ],
       "current_status_authority": "docs/research/REQUIREMENT_LEDGER.json",
       "date": "2026-10-26",
@@ -2758,7 +2758,7 @@
     },
     {
       "cited_existing_paths": [
-        "tests/test_integrations/test_g5_srs_resource_mapping.py"
+        "tests/test_integrations/test_srs_resource_mapping.py"
       ],
       "current_status_authority": "docs/research/REQUIREMENT_LEDGER.json",
       "date": "2026-10-26",
@@ -5636,7 +5636,7 @@
     },
     {
       "cited_existing_paths": [
-        "docs/research/G5_09_SHARED_SYNC_INDEPENDENT_REPLICATION_PROTOCOL_2026-10-25.md",
+        "docs/research/SHARED_SYNC_INDEPENDENT_REPLICATION_PROTOCOL_2026-10-25.md",
         "docs/research/results/g5-ordered-impairments-independent-channels-cpu-64x8-shared-sync-replication-20261025.json"
       ],
       "current_status_authority": "docs/research/REQUIREMENT_LEDGER.json",
@@ -5885,7 +5885,7 @@
     },
     {
       "cited_existing_paths": [
-        "experiments/qualify_g5_delay_domain_dft.py"
+        "experiments/qualify_delay_domain_dft.py"
       ],
       "current_status_authority": "docs/research/REQUIREMENT_LEDGER.json",
       "date": "2026-10-24",
@@ -6012,8 +6012,8 @@
     {
       "cited_existing_paths": [
         "docs/research/results/g5-tdl-ae-dmrs-density-family-reconfirm-v2-20261024.json",
-        "experiments/audit_g5_tdl_profile_matrix.py",
-        "experiments/qualify_g5_tdl_profile_matrix_replication.py"
+        "experiments/audit_tdl_profile_matrix.py",
+        "experiments/qualify_tdl_profile_matrix_replication.py"
       ],
       "current_status_authority": "docs/research/REQUIREMENT_LEDGER.json",
       "date": "2026-10-24",
@@ -6033,7 +6033,7 @@
     },
     {
       "cited_existing_paths": [
-        "tests/test_integrations/test_g4_cdl_angular_power_confidence_native.py"
+        "tests/test_integrations/test_cdl_angular_power_confidence_native.py"
       ],
       "current_status_authority": "docs/research/REQUIREMENT_LEDGER.json",
       "date": "2026-10-24",
@@ -6175,7 +6175,7 @@
     },
     {
       "cited_existing_paths": [
-        "experiments/qualify_g5_tdl_c_dmrs_density.py"
+        "experiments/qualify_tdl_c_dmrs_density.py"
       ],
       "current_status_authority": "docs/research/REQUIREMENT_LEDGER.json",
       "date": "2026-10-24",
@@ -6811,7 +6811,7 @@
     },
     {
       "cited_existing_paths": [
-        "scripts/audit_g3_attestation_set.py"
+        "scripts/audit_attestation_set.py"
       ],
       "current_status_authority": "docs/research/REQUIREMENT_LEDGER.json",
       "date": "2026-10-24",
@@ -7123,7 +7123,7 @@
     },
     {
       "cited_existing_paths": [
-        "docs/research/G3_SCENE_FAMILY_LICENSE_AUDIT_2026-10-23.md"
+        "docs/research/SCENE_FAMILY_LICENSE_AUDIT_2026-10-23.md"
       ],
       "current_status_authority": "docs/research/REQUIREMENT_LEDGER.json",
       "date": "2026-10-24",
@@ -7163,7 +7163,7 @@
     },
     {
       "cited_existing_paths": [
-        "docs/research/G3_SCENE_FAMILY_LICENSE_AUDIT_2026-10-23.md"
+        "docs/research/SCENE_FAMILY_LICENSE_AUDIT_2026-10-23.md"
       ],
       "current_status_authority": "docs/research/REQUIREMENT_LEDGER.json",
       "date": "2026-10-24",
@@ -7251,7 +7251,7 @@
     },
     {
       "cited_existing_paths": [
-        "scripts/plan_g3_acquisition_design.py"
+        "scripts/plan_acquisition_design.py"
       ],
       "current_status_authority": "docs/research/REQUIREMENT_LEDGER.json",
       "date": "2026-10-24",
@@ -8068,7 +8068,7 @@
     {
       "cited_existing_paths": [
         "docs/research/results/g5-independent-channel-pusch-20261024.json",
-        "experiments/g5_independent_channel_receiver.py"
+        "experiments/independent_channel_receiver.py"
       ],
       "current_status_authority": "docs/research/REQUIREMENT_LEDGER.json",
       "date": "2026-10-24",
@@ -8124,7 +8124,7 @@
     },
     {
       "cited_existing_paths": [
-        "datasets/schema/g3.03-acquisition-package.v0.2.schema.json"
+        "datasets/schema/acquisition-package.v0.2.schema.json"
       ],
       "current_status_authority": "docs/research/REQUIREMENT_LEDGER.json",
       "date": "2026-10-24",
@@ -8544,7 +8544,7 @@
         "docs/research/results/tdl-pusch-time-profile-sweep-512-seed63000.json",
         "evaluation/uncertainty.py",
         "experiments/capacity_sweep.py",
-        "experiments/g5_time_varying_multipath_receiver.py",
+        "experiments/time_varying_multipath_receiver.py",
         "experiments/identifiability_repeated_calibration.py",
         "experiments/profile_holdout.py",
         "integrations/sionna/adapter.py",
@@ -11029,7 +11029,7 @@
     },
     {
       "cited_existing_paths": [
-        "docs/research/G4_FIXED_TDL_RICIAN_MARGINAL_SEED_AUDIT_2026-10-27.json"
+        "docs/research/FIXED_TDL_RICIAN_MARGINAL_SEED_AUDIT_2026-10-27.json"
       ],
       "current_status_authority": "docs/research/REQUIREMENT_LEDGER.json",
       "date": "2026-10-27",
@@ -14529,7 +14529,7 @@
     },
     {
       "cited_existing_paths": [
-        "docs/research/G4_07_FIXED_TDL_DOPPLER_SPECTRUM_PROTOCOL_V1_2026-10-27.md"
+        "docs/research/FIXED_TDL_DOPPLER_SPECTRUM_PROTOCOL_V1_2026-10-27.md"
       ],
       "current_status_authority": "docs/research/REQUIREMENT_LEDGER.json",
       "date": "2026-10-27",
@@ -14555,7 +14555,7 @@
     },
     {
       "cited_existing_paths": [
-        "docs/research/G4_07_FIXED_TDL_TEMPORAL_COVARIANCE_PROTOCOL_2026-10-27.md"
+        "docs/research/FIXED_TDL_TEMPORAL_COVARIANCE_PROTOCOL_2026-10-27.md"
       ],
       "current_status_authority": "docs/research/REQUIREMENT_LEDGER.json",
       "date": "2026-10-27",
@@ -15535,7 +15535,7 @@
     },
     {
       "cited_existing_paths": [
-        "docs/research/G5_SNR_PREREGISTRATION.md"
+        "docs/research/SNR_PREREGISTRATION.md"
       ],
       "current_status_authority": "docs/research/REQUIREMENT_LEDGER.json",
       "date": "2026-10-26",
@@ -16209,7 +16209,7 @@
     },
     {
       "cited_existing_paths": [
-        "tests/test_experiments/test_g5_acceptance.py"
+        "tests/test_experiments/test_acceptance.py"
       ],
       "current_status_authority": "docs/research/REQUIREMENT_LEDGER.json",
       "date": "2026-10-26",
@@ -16345,7 +16345,7 @@
     },
     {
       "cited_existing_paths": [
-        "tests/test_integrations/test_g5_srs_resource_mapping.py"
+        "tests/test_integrations/test_srs_resource_mapping.py"
       ],
       "current_status_authority": "docs/research/REQUIREMENT_LEDGER.json",
       "date": "2026-10-26",
@@ -16523,7 +16523,7 @@
     },
     {
       "cited_existing_paths": [
-        "tests/test_evaluation/test_g3_qualification_contract.py"
+        "tests/test_evaluation/test_qualification_contract.py"
       ],
       "current_status_authority": "docs/research/REQUIREMENT_LEDGER.json",
       "date": "2026-10-26",
@@ -18679,7 +18679,7 @@
     },
     {
       "cited_existing_paths": [
-        "experiments/g5_cp_bounded_dft_estimator.py",
+        "experiments/cp_bounded_dft_estimator.py",
         "integrations/sionna/nr_pusch.py"
       ],
       "current_status_authority": "docs/research/REQUIREMENT_LEDGER.json",
@@ -19714,7 +19714,7 @@
     },
     {
       "cited_existing_paths": [
-        "scripts/audit_g3_attestation_set.py"
+        "scripts/audit_attestation_set.py"
       ],
       "current_status_authority": "docs/research/REQUIREMENT_LEDGER.json",
       "date": "2026-10-24",
@@ -20004,7 +20004,7 @@
     },
     {
       "cited_existing_paths": [
-        "docs/research/G3_SCENE_FAMILY_LICENSE_AUDIT_2026-10-23.md"
+        "docs/research/SCENE_FAMILY_LICENSE_AUDIT_2026-10-23.md"
       ],
       "current_status_authority": "docs/research/REQUIREMENT_LEDGER.json",
       "date": "2026-10-24",
@@ -20044,7 +20044,7 @@
     },
     {
       "cited_existing_paths": [
-        "docs/research/G3_SCENE_FAMILY_LICENSE_AUDIT_2026-10-23.md"
+        "docs/research/SCENE_FAMILY_LICENSE_AUDIT_2026-10-23.md"
       ],
       "current_status_authority": "docs/research/REQUIREMENT_LEDGER.json",
       "date": "2026-10-24",
@@ -20064,7 +20064,7 @@
     },
     {
       "cited_existing_paths": [
-        "docs/research/G3_QUALIFICATION_COST_BASELINE_2026-10-24.md"
+        "docs/research/QUALIFICATION_COST_BASELINE_2026-10-24.md"
       ],
       "current_status_authority": "docs/research/REQUIREMENT_LEDGER.json",
       "date": "2026-10-24",
@@ -20724,7 +20724,7 @@
     {
       "cited_existing_paths": [
         "docs/research/results/g5-independent-channel-pusch-20261024.json",
-        "experiments/g5_independent_channel_receiver.py"
+        "experiments/independent_channel_receiver.py"
       ],
       "current_status_authority": "docs/research/REQUIREMENT_LEDGER.json",
       "date": "2026-10-24",
@@ -23116,7 +23116,7 @@
     },
     {
       "cited_existing_paths": [
-        "evaluation/schema/g3-complex-csi-channel-view-contract.v1.schema.json"
+        "evaluation/schema/complex-csi-channel-view-contract.v1.schema.json"
       ],
       "current_status_authority": "docs/research/REQUIREMENT_LEDGER.json",
       "date": "2026-11-12",
@@ -23421,7 +23421,7 @@
     },
     {
       "path": "docs/research/MVP_STATUS.md",
-      "sha256": "665d9a7757fc33f32e35fe60010d8e5f9c64a47f74ca5f520026d70844fda855"
+      "sha256": "e5635b7282d8c596a624624e4da26ab0d716d24d120813e7cb8cb79c4f57ec07"
     }
   ]
 }

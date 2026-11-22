@@ -9,7 +9,7 @@
   "branch": "main",
   "ci_sha256": "4a4418eacfa960a46ca225048af1c11b79132831cd91d1a96356c0d6c45be090",
   "date": "2026-11-19",
-  "execution_queue_sha256": "8a49c5c6a75973c0aeaf5ab93cd46ff99f4b1feff46b2a1074011d893838d7b7",
+  "execution_queue_sha256": "0ec2846b3f9c8ed277f0a3e05527b1ba45591e001e41d09c937c446c223db78d",
   "host": {
     "active_gpu_compute_processes": 0,
     "architecture": "x86_64",

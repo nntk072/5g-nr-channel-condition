@@ -16,7 +16,7 @@ owned_paths:
 readonly_paths:
   - docs/research/EXECUTION_QUEUE.md
   - docs/research/REQUIREMENT_LEDGER.json
-  - docs/research/G5_RECEIVER_SUPPORT_MATRIX_2026-11-12.md
+  - docs/research/RECEIVER_SUPPORT_MATRIX_2026-11-12.md
 resource_class: cpu_test
 verification_gates:
   - scoped

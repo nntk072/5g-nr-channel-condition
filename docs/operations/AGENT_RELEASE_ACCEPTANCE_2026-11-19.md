@@ -20,7 +20,7 @@ Authoritative inputs: [EXECUTION_QUEUE.md](../research/EXECUTION_QUEUE.md) and [
 ## Frozen source and authority evidence
 
 - Source revision: `2e6780dc7f006526a811fc48156358ff39f361ba` on branch `main`. Nothing was committed, pushed, merged, or rewritten.
-- `docs/research/EXECUTION_QUEUE.md` SHA-256 `8a49c5c6a75973c0aeaf5ab93cd46ff99f4b1feff46b2a1074011d893838d7b7`
+- `docs/research/EXECUTION_QUEUE.md` SHA-256 `0ec2846b3f9c8ed277f0a3e05527b1ba45591e001e41d09c937c446c223db78d`
 - `docs/research/REQUIREMENT_LEDGER.json` SHA-256 `de1c2b6d7b366cd3eb03de905915b7c2c5215cda1b54e6c618c65a7b40259b4e`
 - `git diff -- docs/research/EXECUTION_QUEUE.md docs/research/REQUIREMENT_LEDGER.json` produces zero bytes (see `logs/authority-diff.log`).
 - Halti has no `sbatch`. No native or GPU workload was launched. Sionna and Torch are not installed in the default `.venv`; the neural matrix job installs CPU Torch in its own environment only.
@@ -209,9 +209,9 @@ Status key: PASS = supported by current final-worktree evidence. PARTIAL = part 
 1. **Item 22 (independent review) and manual attestation.** No provider is configured (`provider: null`), so AgentOps' provider-driven review cannot run here. Independent reviews were performed by read-only subagents over frozen bundles. The `finalize-manual` route accepts a JSON review file that anyone with write access to the repository can produce, including the implementing agent or the card owner. AgentOps checks that the file's shape is exact, that `reviewer_id` equals the card's configured string and differs from the owner, that `verdict` is `APPROVE`, and that the four binding fields match the current source and worktree. It does not verify who wrote the file, does not run a reviewer provider, and verifies no receipt or signature. The protocol documents are qualified accordingly. Owner decision: keep this as an attested route, or gate it behind a reviewer-provider receipt bound to the review digest.
 2. **Item 19 (hosted CI).** The only hosted run, `44413305629`, was on the pinned baseline and was red. It has not been rerun, and it cannot be rerun without authorization to push or dispatch a workflow. The criterion is recorded here as portable local parity. If the master-plan text requires hosted CI, it is an external blocker. The master-plan file is absent from the repository and the home directory, so its wording could not be checked.
 3. **Attribution of changed files (round-one finding 6).** The worktree contains changes that no reviewed card owns. **Owner attestation (2026-11-22):** Long Nguyen states that he wrote the scientific-module changes himself, outside Claude sessions. The session logs contain no agent edits to them. They are committed on `agentops-architecture-transfer` in `91d8a8f`. The exception is the `datasets/nr.py` device fix and its formatting, which this session wrote during the GPU work. That hunk is agent-written under the owner's direction. The owner attestation also covers the two G5 test expectations noted below. They are committed as they are. This closes the authorship question but does not establish scientific validity. They are listed in full in `/home/l2nguyen/agent-final-2026-11-22/roster/`:
-   - `tracked-outside-owned-paths.txt` (133 tracked files) and `untracked-outside-owned-paths.txt` (70 files). Most of these are AgentOps and governance surfaces that the cards do not list in `owned_paths`, such as `.agents/`, `docs/operations/`, `config/agentops/`, `tools/check`, CI, and packaging. The rest are scientific Python modules that the reviewer found had AST-level semantic changes, including `evaluation/g3_*`, `integrations/sionna/srs.py`, `experiments/runner.py`, `experiments/g5_ordered_impairments_receiver.py`, `compute/resource_budget.py`, and `scripts/audit_channel_split_lineage.py`. Of 130 modified Python files, 69 are AST-identical to HEAD (formatting only, including `datasets/split_policy.py`) and 61 are AST-semantic: 3 E04 files and 58 outside the owned paths.
+   - `tracked-outside-owned-paths.txt` (133 tracked files) and `untracked-outside-owned-paths.txt` (70 files). Most of these are AgentOps and governance surfaces that the cards do not list in `owned_paths`, such as `.agents/`, `docs/operations/`, `config/agentops/`, `tools/check`, CI, and packaging. The rest are scientific Python modules that the reviewer found had AST-level semantic changes, including `evaluation/g3_*`, `integrations/sionna/srs.py`, `experiments/runner.py`, `experiments/ordered_impairments_receiver.py`, `compute/resource_budget.py`, and `scripts/audit_channel_split_lineage.py`. Of 130 modified Python files, 69 are AST-identical to HEAD (formatting only, including `datasets/split_policy.py`) and 61 are AST-semantic: 3 E04 files and 58 outside the owned paths.
    - About 69 Python modules differ only in formatting. The earlier statement that formatting debt was "not mass-fixed" is incorrect. These changes are what makes the Python 3.11/3.12 format and mypy steps pass today.
-   - The reviewer found no weakened scientific invariant. It did note that two retained G5 audit tests (`tests/test_experiments/test_audit_g5_tdl_dft_density.py`, `tests/test_experiments/test_g5_estimator_choice_diagnostic.py`) had their expected drift sets widened. Both still assert `FAIL`. A repository owner should confirm these edits.
+   - The reviewer found no weakened scientific invariant. It did note that two retained G5 audit tests (`tests/test_experiments/test_audit_tdl_dft_density.py`, `tests/test_experiments/test_estimator_choice_diagnostic.py`) had their expected drift sets widened. Both still assert `FAIL`. A repository owner should confirm these edits.
    - `config/agentops/baseline-lock.json` records `working_tree clean_at_capture`, but 79 tracked files share an mtime of 2026-11-21 22:46:10. Provenance of the bulk rewrite cannot be recovered from the release record.
    - Owner decision required: who authored these changes, and whether they belong in this release.
 4. **Stale verification.** E04 and `AGENT.INFRA.SELFTEST` are stale for the current worktree, as noted above.
@@ -243,3 +243,26 @@ Exact roster: `/home/l2nguyen/agent-final-2026-11-22/roster/tracked-name-status.
 2. Freeze the final worktree and obtain a fresh independent whole-diff re-review, with a bundle hash and a verdict file.
 3. If the verdict is `APPROVE`, mark items 22 and 30 `PASS` and decide item 19 (see limitation 2).
 4. Owner decision for item 3 (attribution of unowned changes).
+
+## Amendment record: protected documents (owner-authorized, 2026-11-22)
+
+The owner authorized updating protected and frozen documents during the production-structure refactor, so schema contracts can use descriptive names. Each change is listed here with old and new SHA-256 values. Scientific status is unchanged.
+
+| Artifact | Old SHA-256 | New SHA-256 | Change |
+| --- | --- | --- | --- |
+| `docs/research/REQUIREMENT_LEDGER.json` | `de1c2b6d7b366cd3eb03de905915b7c2c5215cda1b54e6c618c65a7b40259b4e` | `9d0dc89ed8d2defc4dc80c823015520089050b3e06a80f157636ec8eb7f900fa` | Schema file path references renamed (G-prefix removed). |
+| `docs/research/EXECUTION_QUEUE.md` | `0ec2846b3f9c8ed277f0a3e05527b1ba45591e001e41d09c937c446c223db78d` | unchanged | None in this batch. |
+| `docs/research/CDL_E_FRESH_SEED_REPLICATION_PROTOCOL_2026-11-12.md` | `784750be5b1b7ddc8b95cdd3cd006f14be9b04bdabd772b0067f63f9f40ac73e` | `1fe62127efd1591bc2a0dcbfbff2fdebbbbdb219b2185e1f3f785b754899e6a3` | Schema file references renamed. Preregistered digest pin in `scripts/run_cdl_e_fresh_seed_replication.py` and the `protocol_sha256` const in `datasets/schema/cdl-e-covariance-replication.v1.schema.json` updated to match. No retained result contains the old value. |
+| `docs/research/MASTER_RESEARCH_PLAN.md` | `f30d8f567f97443aec722eabc459843aa4e5821f7574ce67080ab99747c5de93` | `ef7c8803d7a365941d6b4ad62bc9096c97b7c2794f98d57db5042f11b8492534` | Schema file references renamed. This file is removed from the tree in a later phase. No registry pins it. |
+
+Schema `$id` values are contract identities and are not changed. Retained result JSON is not edited.
+
+### Amendment record, continued (owner-authorized, 2026-11-22)
+
+| Artifact | Old SHA-256 | New SHA-256 | Change |
+| --- | --- | --- | --- |
+| `docs/research/REQUIREMENT_LEDGER.json` | `9593bad8049fc6fb77b20c6d5b3a427ab2cb02350e2ed64abd677272aa4f79f6` | `943cb8754581163863dda9883bb45a309ce66666bf5d45f4a256f37f87710f4c` | Path references updated for all renamed files (schemas, modules, tests, docs, results). |
+| `docs/research/EXECUTION_QUEUE.md` | `8a49c5c6a75973c0aeaf5ab93cd46ff99f4b1feff46b2a1074011d893838d7b7` | unchanged | None. |
+| `docs/research/MASTER_RESEARCH_PLAN.md` | `f30d8f567f97443aec722eabc459843aa4e5821f7574ce67080ab99747c5de93` | removed from the tree | Kept at git tag `docs/master-research-plan-archive`. |
+
+Every renamed file is listed with its old and new path in `docs/reference/digest-rebindings.json`. Retained result JSON is not edited.

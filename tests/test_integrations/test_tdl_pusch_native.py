@@ -6,7 +6,7 @@ torch = pytest.importorskip("torch")
 pytest.importorskip("sionna")
 
 from datasets.nr_store import read_nr_record, write_nr_record  # noqa: E402
-from experiments.g5_cp_bounded_dft_estimator import FiniteDelayDFTChannelEstimator  # noqa: E402
+from experiments.cp_bounded_dft_estimator import FiniteDelayDFTChannelEstimator  # noqa: E402
 from experiments.link_curves import (  # noqa: E402
     run_tdl_pusch_bler_curve,
     run_tdl_pusch_rx_diversity_curve,

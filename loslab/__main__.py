@@ -198,7 +198,7 @@ def main() -> None:
         print(json.dumps(report, indent=2, sort_keys=True))
         return
     if args.command == "g3-path-roster-audit":
-        from evaluation.g3_path_equivalence_roster_cli import main as audit_path_roster
+        from evaluation.path_equivalence_roster_cli import main as audit_path_roster
 
         raise SystemExit(audit_path_roster([str(args.input)]))
     if args.command == "doctor":

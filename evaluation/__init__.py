@@ -8,21 +8,21 @@ from .duplicate_audit import (
     audit_cfr_near_duplicates,
     find_cross_split_temporal_overlaps,
 )
-from .g3_joint_evaluation import evaluate_g3_joint_evidence, verify_g3_joint_evidence_bundle
-from .g3_joint_evidence_artifact import run_g3_frozen_qualification_evaluation
-from .g3_joint_evidence_run_manifest import (
+from .joint_evaluation import evaluate_g3_joint_evidence, verify_g3_joint_evidence_bundle
+from .joint_evidence_artifact import run_g3_frozen_qualification_evaluation
+from .joint_evidence_run_manifest import (
     build_g3_joint_evidence_run_manifest,
     g3_evaluator_source_bundle_identity,
     verify_g3_joint_evidence_run_manifest,
 )
-from .g3_path_equivalence_assurance import evaluate_path_equivalence_roster
-from .g3_qualification_contract import (
+from .path_equivalence_assurance import evaluate_path_equivalence_roster
+from .qualification_contract import (
     build_g3_qualification_run_contract,
     build_g3_qualification_run_contract_v3,
     verify_g3_qualification_run_contract,
 )
-from .g3_receiver_impact import evaluate_receiver_impact
-from .g3_sample_size_planning import (
+from .receiver_impact import evaluate_receiver_impact
+from .sample_size_planning import (
     compose_g3_joint_sample_size_design,
     verify_g3_joint_sample_size_design,
 )

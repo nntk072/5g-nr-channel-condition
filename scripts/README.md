@@ -16,13 +16,13 @@ review before any release claim. Signed v4 inventories use the dedicated
 
 ## G4 normative-reference byte audit
 
-`audit_g4_standard_references.py` checks that locally downloaded ETSI PDF files
+`audit_standard_references.py` checks that locally downloaded ETSI PDF files
 match the external source identities in
-`docs/research/G4_STANDARD_REFERENCE_MANIFEST_2026-10-26.json`:
+`docs/research/STANDARD_REFERENCE_MANIFEST_2026-10-26.json`:
 
 ```bash
-python scripts/audit_g4_standard_references.py \
-  docs/research/G4_STANDARD_REFERENCE_MANIFEST_2026-10-26.json \
+python scripts/audit_standard_references.py \
+  docs/research/STANDARD_REFERENCE_MANIFEST_2026-10-26.json \
   /path/to/privately-downloaded-etsi-references
 ```
 
@@ -32,8 +32,8 @@ rejects unsafe or changing file inputs and reports `NOT_QUALIFIED` even when
 all bytes match. It verifies source identity only; it does not extract or
 compare normative parameter values or establish channel-model conformance.
 The manifest and emitted report contracts are defined in
-`datasets/schema/g4-standard-reference-manifest.v1.schema.json` and
-`datasets/schema/g4-standard-reference-audit.v1.schema.json`.
+`datasets/schema/standard-reference-manifest.v1.schema.json` and
+`datasets/schema/standard-reference-audit.v1.schema.json`.
 
 ## G4 scenario GBSM generation
 
@@ -45,7 +45,7 @@ independence across runs. Scenario LOS is retained as a standardized-model
 state, while geometric LOS and the physical RT path oracle remain absent.
 The v2 report lists the run-store and episode-store manifests and remains
 `SYNTHETIC_STANDARDIZED_MODEL_DATA_NOT_QUALIFIED`. See
-`docs/research/G4_SCENARIO_GBSM_GENERATION_CLI_V1.md` for the bounded config
+`docs/research/SCENARIO_GBSM_GENERATION_CLI_V1.md` for the bounded config
 contract and limitations.
 
 ## Standardized generator scope reports

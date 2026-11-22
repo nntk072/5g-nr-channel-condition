@@ -16,9 +16,9 @@
     {"family_id": "S11-measured-campaign", "role": "external_transfer", "description": "Independent measured campaign with documented fields, rights, and timestamps."}
   ],
   "evidence": [
-    {"path": "docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md", "sha256": "3285eb1398ee83ea4d79b4b0116478ceed9d1374537fe2d3510a3c65a7585da2", "purpose": "S00-S11 taxonomy, intended roles, independence rule, and geometry quality gates."},
+    {"path": "docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md", "sha256": "726066c9b636ca8fd76cc66a3bec3fc6d30673a8d90464cf4af3801e7f2baeb9", "purpose": "S00-S11 taxonomy, intended roles, independence rule, and geometry quality gates."},
     {"path": "docs/research/results/g3-scene-asset-material-audit-20261023.json", "sha256": "b4275ca39801667467004d1b6eb32c6333de4d0fd2256a32fb3adb19010640ef", "purpose": "Pinned asset closures and candidate scene classifications; no path solver was invoked."},
-    {"path": "docs/research/licenses/odbl-osm-scene-release-policy-20261023.json", "sha256": "529508f89e7c4f72e0688ef302c1f9c6c84d542594da13aa416cf44dd84a1fbc", "purpose": "Accepted internal ODbL research use and public-release hold for Etoile, Florence, and Munich."}
+    {"path": "docs/research/licenses/odbl-osm-scene-release-policy-20261023.json", "sha256": "f814a8dd6f3c1c04c681d40d395188e428642a3d08f7508152ef6b6adb0a9c04", "purpose": "Accepted internal ODbL research use and public-release hold for Etoile, Florence, and Munich."}
   ],
   "candidates": [
     {"candidate_id": "fixture:simple_street_canyon", "family_id": "S01-urban-canyon", "scene_id": "simple_street_canyon", "independence_group_id": "asset:d2824c41043d248c8d3089fe8396b7cc225ad1c328a626ad70c897951797004b", "source_kind": "procedural_fixture", "geometry_asset_sha256": "d2824c41043d248c8d3089fe8396b7cc225ad1c328a626ad70c897951797004b", "source_record_path": "docs/research/results/g3-scene-asset-material-audit-20261023.json", "source_record_sha256": "b4275ca39801667467004d1b6eb32c6333de4d0fd2256a32fb3adb19010640ef", "license": "not_independently_recorded", "internal_research_status": "not_recorded", "public_release_status": "review_required", "qualification_status": "NOT_QUALIFIED"},

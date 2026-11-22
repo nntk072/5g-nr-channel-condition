@@ -299,7 +299,7 @@ def run_tdl_pusch_time_bler_curve(
     )
     channel_estimator = None
     if channel_estimator_kind == "finite_delay_dft":
-        from experiments.g5_cp_bounded_dft_estimator import FiniteDelayDFTChannelEstimator
+        from experiments.cp_bounded_dft_estimator import FiniteDelayDFTChannelEstimator
 
         assert estimator_min_delay_samples is not None
         assert estimator_max_delay_samples is not None

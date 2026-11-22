@@ -1395,7 +1395,7 @@
     {
       "backlog_line": 314,
       "backlog_status": "marked_done",
-      "description": "Add a hash-bound joint numerical-criterion roll-up for material pilot margins, complex CSI, propagation metrics, receiver impact, and path equivalence. Missing or empty criterion rows remain unresolved; branch-specific outcome types prevent malformed strings or cross-branch `NOT_APPLICABLE` values from counting as passes. Propagation `NOT_APPLICABLE` metrics are neutral only when the branch explicitly reports at least one assessable metric; all-NA/missing-assessability families remain unresolved. The roll-up preserves `NOT_QUALIFIED` even when every numerical criterion passes. Artifact and bundle schemas advance to v2, with the new schema included in the current run-manifest source roster. The focused `test_g3_joint_evaluation.py` and `test_g3_joint_evidence_artifact.py` modules pass 82 tests in the current worktree. This verifies numerical criterion roll-up, artifact schema, and replay integrity only; full validation and scientific evidence remain deferred.",
+      "description": "Add a hash-bound joint numerical-criterion roll-up for material pilot margins, complex CSI, propagation metrics, receiver impact, and path equivalence. Missing or empty criterion rows remain unresolved; branch-specific outcome types prevent malformed strings or cross-branch `NOT_APPLICABLE` values from counting as passes. Propagation `NOT_APPLICABLE` metrics are neutral only when the branch explicitly reports at least one assessable metric; all-NA/missing-assessability families remain unresolved. The roll-up preserves `NOT_QUALIFIED` even when every numerical criterion passes. Artifact and bundle schemas advance to v2, with the new schema included in the current run-manifest source roster. The focused `test_joint_evaluation.py` and `test_joint_evidence_artifact.py` modules pass 82 tests in the current worktree. This verifies numerical criterion roll-up, artifact schema, and replay integrity only; full validation and scientific evidence remain deferred.",
       "evidence_file_sha256": {},
       "evidence_links": {
         "cli_entries": [],
@@ -1421,28 +1421,28 @@
     {
       "backlog_line": 315,
       "backlog_status": "open",
-      "description": "Complete report/run-manifest signature and trust-policy plumbing. Detached exact-byte verification, run-manifest signer roles, strict reviewer preflight, package-bound G3.03 attestations, and persisted-report signature verification now exist. Run-manifest v4 additionally signs and binds a complete runtime-inventory v3 receipt under a dedicated namespace, requires an independent signer/keyring from both reviewer and signer-policy roles, and joins package versions, platform, source revision, lockfiles, and runtime-inventory source digests. The report verifier in `evaluation/g3_joint_evidence_run_manifest.py` uses a dedicated OpenSSH namespace, strict receipt schema `datasets/schema/g3-run-verification-signature-receipt.v1.schema.json`, and standalone `loslab-verify-g3-run-report-signature` CLI in `scripts/verify_g3_run_report_signature.py`; regressions are in `tests/test_evaluation/test_g3_run_report_signature.py`. Its receipt binds exact report bytes, report schema digest, signer, signature, and caller-supplied allowed-signers digest while remaining `NOT_QUALIFIED`; report tampering is rejected. Reviewer/keyring custody, external trusted timestamps, runtime/hardware truth, measurement-unit truth, and scientific admission remain open. Reports and signature receipts remain `NOT_QUALIFIED` when external authority, independent provenance, or criteria are missing.",
+      "description": "Complete report/run-manifest signature and trust-policy plumbing. Detached exact-byte verification, run-manifest signer roles, strict reviewer preflight, package-bound G3.03 attestations, and persisted-report signature verification now exist. Run-manifest v4 additionally signs and binds a complete runtime-inventory v3 receipt under a dedicated namespace, requires an independent signer/keyring from both reviewer and signer-policy roles, and joins package versions, platform, source revision, lockfiles, and runtime-inventory source digests. The report verifier in `evaluation/joint_evidence_run_manifest.py` uses a dedicated OpenSSH namespace, strict receipt schema `datasets/schema/run-verification-signature-receipt.v1.schema.json`, and standalone `loslab-verify-g3-run-report-signature` CLI in `scripts/verify_run_report_signature.py`; regressions are in `tests/test_evaluation/test_run_report_signature.py`. Its receipt binds exact report bytes, report schema digest, signer, signature, and caller-supplied allowed-signers digest while remaining `NOT_QUALIFIED`; report tampering is rejected. Reviewer/keyring custody, external trusted timestamps, runtime/hardware truth, measurement-unit truth, and scientific admission remain open. Reports and signature receipts remain `NOT_QUALIFIED` when external authority, independent provenance, or criteria are missing.",
       "evidence_file_sha256": {
-        "datasets/schema/g3-run-verification-signature-receipt.v1.schema.json": "f69f2ffac57955c2ef635991b93fe72259f7f8617bd7282265b332cd04caba77",
-        "evaluation/g3_joint_evidence_run_manifest.py": "9427fe1c8c765f471abb7854569ce0d5e31d4f7d6e8b9fbb1a3436230dce507d",
-        "scripts/verify_g3_run_report_signature.py": "252675b08c7b60e781e7d73aba3208bc288bfe65ddbda87f0f4c4ea73832159f",
-        "tests/test_evaluation/test_g3_run_report_signature.py": "86afea91deddcaac74da4db670f9f29b466ccfe1479061a310e82cd351b94dee"
+        "datasets/schema/run-verification-signature-receipt.v1.schema.json": "f69f2ffac57955c2ef635991b93fe72259f7f8617bd7282265b332cd04caba77",
+        "evaluation/joint_evidence_run_manifest.py": "9427fe1c8c765f471abb7854569ce0d5e31d4f7d6e8b9fbb1a3436230dce507d",
+        "scripts/verify_run_report_signature.py": "d948ee9efc22604b609b4d9ce09e887af25d421b1e08e2624182e01e7cbe2603",
+        "tests/test_evaluation/test_run_report_signature.py": "86afea91deddcaac74da4db670f9f29b466ccfe1479061a310e82cd351b94dee"
       },
       "evidence_links": {
         "cli_entries": [
-          "loslab-verify-g3-run-report-signature -> scripts.verify_g3_run_report_signature:main (scripts/verify_g3_run_report_signature.py)",
-          "scripts/verify_g3_run_report_signature.py"
+          "loslab-verify-g3-run-report-signature -> scripts.verify_run_report_signature:main (scripts/verify_run_report_signature.py)",
+          "scripts/verify_run_report_signature.py"
         ],
         "documentation": [],
         "other_files": [],
         "regression_files": [
-          "tests/test_evaluation/test_g3_run_report_signature.py"
+          "tests/test_evaluation/test_run_report_signature.py"
         ],
         "schemas": [
-          "datasets/schema/g3-run-verification-signature-receipt.v1.schema.json"
+          "datasets/schema/run-verification-signature-receipt.v1.schema.json"
         ],
         "source_modules": [
-          "evaluation/g3_joint_evidence_run_manifest.py"
+          "evaluation/joint_evidence_run_manifest.py"
         ]
       },
       "feature_id": "PKG04-029",
@@ -1570,17 +1570,17 @@
     {
       "backlog_line": 323,
       "backlog_status": "marked_done",
-      "description": "Retain the preregistered G4.10 physical dual-cross handheld CDL covariance family and its 10 passing native cases and 3,200 passing simultaneous claims. Sources: docs/research/G4_10_CDL_PHYSICAL_DUAL_CROSS_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-10.md, docs/research/G4_CDL_PHYSICAL_DUAL_CROSS_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json, docs/research/results/g4-cdl-physical-dual-cross-handheld-ut-spatiotemporal-covariance-native-validation-20261110.json. This closes the named bounded case family; broader G4 remains open.",
+      "description": "Retain the preregistered G4.10 physical dual-cross handheld CDL covariance family and its 10 passing native cases and 3,200 passing simultaneous claims. Sources: docs/research/CDL_PHYSICAL_DUAL_CROSS_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-10.md, docs/research/CDL_PHYSICAL_DUAL_CROSS_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json, docs/research/results/g4-cdl-physical-dual-cross-handheld-ut-spatiotemporal-covariance-native-validation-20261110.json. This closes the named bounded case family; broader G4 remains open.",
       "evidence_file_sha256": {
-        "docs/research/G4_10_CDL_PHYSICAL_DUAL_CROSS_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-10.md": "7b02436d16d3769cd9a566d74053005c14c0ec828eb21f7ef0b26ffd76a2c6e0",
-        "docs/research/G4_CDL_PHYSICAL_DUAL_CROSS_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json": "0f4b7953040d7fec46524a8ba18c139113828af425225081ceaee33b6e3310fa",
+        "docs/research/CDL_PHYSICAL_DUAL_CROSS_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-10.md": "8ff82c2b1e9a8796c0fad623e0ecf8d653d40bbd56d93ac5f4fc02a3b1b07d48",
+        "docs/research/CDL_PHYSICAL_DUAL_CROSS_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json": "0f4b7953040d7fec46524a8ba18c139113828af425225081ceaee33b6e3310fa",
         "docs/research/results/g4-cdl-physical-dual-cross-handheld-ut-spatiotemporal-covariance-native-validation-20261110.json": "843c4c7c869e6cd280ccd91be9e70185ad0181a9d132b0ff2e89541e51c9c945"
       },
       "evidence_links": {
         "cli_entries": [],
         "documentation": [
-          "docs/research/G4_10_CDL_PHYSICAL_DUAL_CROSS_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-10.md",
-          "docs/research/G4_CDL_PHYSICAL_DUAL_CROSS_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json",
+          "docs/research/CDL_PHYSICAL_DUAL_CROSS_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-10.md",
+          "docs/research/CDL_PHYSICAL_DUAL_CROSS_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json",
           "docs/research/results/g4-cdl-physical-dual-cross-handheld-ut-spatiotemporal-covariance-native-validation-20261110.json"
         ],
         "other_files": [],
@@ -1709,9 +1709,9 @@
     {
       "backlog_line": 328,
       "backlog_status": "open",
-      "description": "Inventory each remaining G4 gate against existing native checks and implement only genuine gaps: hash-pinned tables, tap/delay/power and LOS partition, angular geometry, array/orientation, polarization, covariance, circularity, and temporal evolution. The frozen CDL joint delay/four-angle characteristic and fixed-TDL Rayleigh properness have pinned-reference native regression definitions; scalable TDL-A–E first-tap covariance and scalable/fixed TDL Doppler expectation inputs now come from independent ETSI component fixtures rather than adapter metadata. Scalable TDL-A–E now retain a source-bound three-lag Jakes temporal covariance native pass across all 95 ETSI-labeled Rayleigh taps (570 simultaneous coordinates), with a worst simultaneous bound of 0.02587134 versus 0.05 (`docs/research/results/g4-scalable-tdl-temporal-covariance-native-validation-20261109.json`). Fixed TDL A10/A30/B100/C60/C300/D10/D30 retain the matching 82-Rayleigh-tap/492-coordinate pass with a worst bound of 0.02634302 (`docs/research/results/g4-fixed-tdl-temporal-covariance-native-validation-20261109.json`). Their fresh seed audits cover 2,282 and 2,280 saved JSON/JSON.GZ files respectively. A scalable-TDL proper-complex protocol covers every ETSI-labeled Rayleigh tap outside the merged TDL-D/E LOS tap. A fixed-TDL-D10/D30 first-tap Rician marginal scorer and native regression derive the noncentral-chi-square reference from the byte-pinned ETSI component fixture. The 2026-11-09 fresh seed audit (`docs/research/G4_FIXED_TDL_RICIAN_MARGINAL_SEED_AUDIT_2026-11-09.json`) is clear within 2,279 scanned JSON/JSON.GZ files for seeds 1,880,010–1,880,011, without claiming global exclusivity. The focused portable plus native slice passes 12/12 tests, and the frozen 32,768-draw/profile rerun passes both profiles: D10 simultaneous CDF upper bound 0.01342599 and D30 0.01558082 versus the unchanged 0.05 ceiling. The retained result is `docs/research/results/g4-fixed-tdl-rician-marginal-native-validation-20261109.json`. This closes only the declared first-tap marginal family; fixed and scalable TDL temporal-covariance and Doppler-spectrum families now also have retained bounded native passes, while broader spatial/delay-angle/configuration coverage, measured/RT, receiver, and overall G4 qualification questions remain open.",
+      "description": "Inventory each remaining G4 gate against existing native checks and implement only genuine gaps: hash-pinned tables, tap/delay/power and LOS partition, angular geometry, array/orientation, polarization, covariance, circularity, and temporal evolution. The frozen CDL joint delay/four-angle characteristic and fixed-TDL Rayleigh properness have pinned-reference native regression definitions; scalable TDL-A–E first-tap covariance and scalable/fixed TDL Doppler expectation inputs now come from independent ETSI component fixtures rather than adapter metadata. Scalable TDL-A–E now retain a source-bound three-lag Jakes temporal covariance native pass across all 95 ETSI-labeled Rayleigh taps (570 simultaneous coordinates), with a worst simultaneous bound of 0.02587134 versus 0.05 (`docs/research/results/g4-scalable-tdl-temporal-covariance-native-validation-20261109.json`). Fixed TDL A10/A30/B100/C60/C300/D10/D30 retain the matching 82-Rayleigh-tap/492-coordinate pass with a worst bound of 0.02634302 (`docs/research/results/g4-fixed-tdl-temporal-covariance-native-validation-20261109.json`). Their fresh seed audits cover 2,282 and 2,280 saved JSON/JSON.GZ files respectively. A scalable-TDL proper-complex protocol covers every ETSI-labeled Rayleigh tap outside the merged TDL-D/E LOS tap. A fixed-TDL-D10/D30 first-tap Rician marginal scorer and native regression derive the noncentral-chi-square reference from the byte-pinned ETSI component fixture. The 2026-11-09 fresh seed audit (`docs/research/FIXED_TDL_RICIAN_MARGINAL_SEED_AUDIT_2026-11-09.json`) is clear within 2,279 scanned JSON/JSON.GZ files for seeds 1,880,010–1,880,011, without claiming global exclusivity. The focused portable plus native slice passes 12/12 tests, and the frozen 32,768-draw/profile rerun passes both profiles: D10 simultaneous CDF upper bound 0.01342599 and D30 0.01558082 versus the unchanged 0.05 ceiling. The retained result is `docs/research/results/g4-fixed-tdl-rician-marginal-native-validation-20261109.json`. This closes only the declared first-tap marginal family; fixed and scalable TDL temporal-covariance and Doppler-spectrum families now also have retained bounded native passes, while broader spatial/delay-angle/configuration coverage, measured/RT, receiver, and overall G4 qualification questions remain open.",
       "evidence_file_sha256": {
-        "docs/research/G4_FIXED_TDL_RICIAN_MARGINAL_SEED_AUDIT_2026-11-09.json": "4092015345dc2307749cdc41df10d5a96821b29bb1f457589f8471e798664c28",
+        "docs/research/FIXED_TDL_RICIAN_MARGINAL_SEED_AUDIT_2026-11-09.json": "4092015345dc2307749cdc41df10d5a96821b29bb1f457589f8471e798664c28",
         "docs/research/results/g4-fixed-tdl-rician-marginal-native-validation-20261109.json": "c646ff4762c275575bc075ce021190c0d4c0f0c8c563425a1d8ed1dc874f1f56",
         "docs/research/results/g4-fixed-tdl-temporal-covariance-native-validation-20261109.json": "14b22cc5541b6cec086ee1ed84b8119611b228ad0022d32e9c540562a3f82226",
         "docs/research/results/g4-scalable-tdl-temporal-covariance-native-validation-20261109.json": "883f27000bb71fd1212b63ab9dd5317adcf4622b024fa6c60e61a641c47b5db8"
@@ -1719,7 +1719,7 @@
       "evidence_links": {
         "cli_entries": [],
         "documentation": [
-          "docs/research/G4_FIXED_TDL_RICIAN_MARGINAL_SEED_AUDIT_2026-11-09.json",
+          "docs/research/FIXED_TDL_RICIAN_MARGINAL_SEED_AUDIT_2026-11-09.json",
           "docs/research/results/g4-fixed-tdl-rician-marginal-native-validation-20261109.json",
           "docs/research/results/g4-fixed-tdl-temporal-covariance-native-validation-20261109.json",
           "docs/research/results/g4-scalable-tdl-temporal-covariance-native-validation-20261109.json"
@@ -2277,12 +2277,12 @@
     {
       "backlog_line": 348,
       "backlog_status": "open",
-      "description": "Extend independent normative references to remaining multi-element array coupling, covariance, and temporal branches. The corrected three-orientation CDL-A/B/C dual-polarized two-element receive-covariance family passes 9/9 native cases under its frozen 144-claim, 8,192-draw design in `tests/test_integrations/test_g4_cdl_abc_rotated_dual_pol_array_covariance_native.py`; the CDL-D/E companion passes 12/12 tests (six deterministic Step-11 LOS-vector checks plus six frozen 16,384-draw statistical cases spanning 96 claims) in `tests/test_integrations/test_g4_cdl_de_rotated_los_dual_pol_array_covariance_native.py`, with the zero-orientation D/E control passing 2/2. Fresh corpus-scoped audits `docs/research/G4_SEED_ROSTER_AUDIT_2026-11-09_ROTATED_ABC.json` and `docs/research/G4_SEED_ROSTER_AUDIT_2026-11-09_ROTATED_DE.json` each scanned 2,277 files with no collision, malformed seed field, or incomplete file. The protocols `docs/research/G4_07_CDL_ABC_ROTATED_DUAL_POL_ARRAY_COVARIANCE_PROTOCOL_2026-10-26.md` and `docs/research/G4_07_CDL_DE_ROTATED_LOS_DUAL_POL_ARRAY_COVARIANCE_PROTOCOL_2026-10-26.md` record the corrected rotated-basis reference. Retained validation metadata is in docs/research/results/g4-cdl-rotated-dual-pol-covariance-validation-20261109.json. The joint two-element receive space-time covariance family additionally passes all 10 profile/velocity cases and all 80 simultaneous claims in `docs/research/results/g4-cdl-spatiotemporal-covariance-native-validation-20261109.json`. The frozen larger-topology joint TX/RX space-time family extends the same independent oracle to `(4,4)`, `(1,4)`, and `(4,1)` single-V links; all 15 profile/topology cases and all 2,880 simultaneous real/imaginary claims pass at 16,384 draws/case under the 0.05 half-width ceiling in `docs/research/results/g4-cdl-larger-topology-joint-tx-rx-spatiotemporal-covariance-native-validation-20261109.json`. The dual-TX/dual-RX companion fixes two physical dual-VH elements at each endpoint and passes all 5 profile cases and all 2,560 simultaneous claims at 16,384 draws/profile in `docs/research/results/g4-cdl-joint-tx-rx-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json`. The larger dual-TX/dual-RX companion extends the unchanged oracle to zero-oriented dual-VH physical-element topologies (4,2), (2,4), and (3,3); all 15 profile/topology cases and all 33,440 simultaneous claims pass at 16,384 draws/case in docs/research/results/g4-cdl-larger-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json. The rotated dual-TX/dual-RX companion additionally covers the three frozen simultaneous endpoint-orientation pairs at two physical dual-VH elements per endpoint; all 15 profile/orientation cases and all 7,680 simultaneous claims pass at 16,384 draws/case in `docs/research/results/g4-cdl-rotated-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json` (SHA-256 `237e50fb6f5fc75e7ae1e2599727641a22a75c4e123e9319b93bc98ff00b84e2`), generated from clean protocol commit `4fac135`. The separate physical-HandheldUTArray operating-point family now adds CDL-A-E coverage for `tr38901-4` and `tr38901` rosters across three preregistered orientation/velocity/carrier/lag points; all 30 cases and 2,400 simultaneous claims pass at 16,384 draws/case with maximum absolute error 0.01572676297150255 and maximum half-width 0.04232497534616065 in `docs/research/results/g4-cdl-physical-handheld-ut-operating-point-spatiotemporal-covariance-native-validation-20261110.json` (SHA-256 `376c76e23a2f7ecdd49b3d5104c85e1077e9cbe0b8a848859611a50a1292d1da`). This adds finite physical-handheld operating-point evidence only. Remaining arbitrary arrays beyond these frozen rosters, endpoint orientations/velocities beyond the retained finite families, patterned arrays, mutual coupling, RT/measured validation, receiver-impact validation, and scientific qualification keep this package open; G4 is not qualified.",
+      "description": "Extend independent normative references to remaining multi-element array coupling, covariance, and temporal branches. The corrected three-orientation CDL-A/B/C dual-polarized two-element receive-covariance family passes 9/9 native cases under its frozen 144-claim, 8,192-draw design in `tests/test_integrations/test_cdl_abc_rotated_dual_pol_array_covariance_native.py`; the CDL-D/E companion passes 12/12 tests (six deterministic Step-11 LOS-vector checks plus six frozen 16,384-draw statistical cases spanning 96 claims) in `tests/test_integrations/test_cdl_de_rotated_los_dual_pol_array_covariance_native.py`, with the zero-orientation D/E control passing 2/2. Fresh corpus-scoped audits `docs/research/SEED_ROSTER_AUDIT_2026-11-09_ROTATED_ABC.json` and `docs/research/SEED_ROSTER_AUDIT_2026-11-09_ROTATED_DE.json` each scanned 2,277 files with no collision, malformed seed field, or incomplete file. The protocols `docs/research/CDL_ABC_ROTATED_DUAL_POL_ARRAY_COVARIANCE_PROTOCOL_2026-10-26.md` and `docs/research/CDL_DE_ROTATED_LOS_DUAL_POL_ARRAY_COVARIANCE_PROTOCOL_2026-10-26.md` record the corrected rotated-basis reference. Retained validation metadata is in docs/research/results/g4-cdl-rotated-dual-pol-covariance-validation-20261109.json. The joint two-element receive space-time covariance family additionally passes all 10 profile/velocity cases and all 80 simultaneous claims in `docs/research/results/g4-cdl-spatiotemporal-covariance-native-validation-20261109.json`. The frozen larger-topology joint TX/RX space-time family extends the same independent oracle to `(4,4)`, `(1,4)`, and `(4,1)` single-V links; all 15 profile/topology cases and all 2,880 simultaneous real/imaginary claims pass at 16,384 draws/case under the 0.05 half-width ceiling in `docs/research/results/g4-cdl-larger-topology-joint-tx-rx-spatiotemporal-covariance-native-validation-20261109.json`. The dual-TX/dual-RX companion fixes two physical dual-VH elements at each endpoint and passes all 5 profile cases and all 2,560 simultaneous claims at 16,384 draws/profile in `docs/research/results/g4-cdl-joint-tx-rx-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json`. The larger dual-TX/dual-RX companion extends the unchanged oracle to zero-oriented dual-VH physical-element topologies (4,2), (2,4), and (3,3); all 15 profile/topology cases and all 33,440 simultaneous claims pass at 16,384 draws/case in docs/research/results/g4-cdl-larger-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json. The rotated dual-TX/dual-RX companion additionally covers the three frozen simultaneous endpoint-orientation pairs at two physical dual-VH elements per endpoint; all 15 profile/orientation cases and all 7,680 simultaneous claims pass at 16,384 draws/case in `docs/research/results/g4-cdl-rotated-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json` (SHA-256 `237e50fb6f5fc75e7ae1e2599727641a22a75c4e123e9319b93bc98ff00b84e2`), generated from clean protocol commit `4fac135`. The separate physical-HandheldUTArray operating-point family now adds CDL-A-E coverage for `tr38901-4` and `tr38901` rosters across three preregistered orientation/velocity/carrier/lag points; all 30 cases and 2,400 simultaneous claims pass at 16,384 draws/case with maximum absolute error 0.01572676297150255 and maximum half-width 0.04232497534616065 in `docs/research/results/g4-cdl-physical-handheld-ut-operating-point-spatiotemporal-covariance-native-validation-20261110.json` (SHA-256 `376c76e23a2f7ecdd49b3d5104c85e1077e9cbe0b8a848859611a50a1292d1da`). This adds finite physical-handheld operating-point evidence only. Remaining arbitrary arrays beyond these frozen rosters, endpoint orientations/velocities beyond the retained finite families, patterned arrays, mutual coupling, RT/measured validation, receiver-impact validation, and scientific qualification keep this package open; G4 is not qualified.",
       "evidence_file_sha256": {
-        "docs/research/G4_07_CDL_ABC_ROTATED_DUAL_POL_ARRAY_COVARIANCE_PROTOCOL_2026-10-26.md": "fc7bce1ead42dacba3f4658532b1333e87b6e57e73e2669d4dc4e845474cf145",
-        "docs/research/G4_07_CDL_DE_ROTATED_LOS_DUAL_POL_ARRAY_COVARIANCE_PROTOCOL_2026-10-26.md": "447c7f7c0b995c95e1f2dc381daf65bd3e26de5aa85966594e64bb9ecf9f2f07",
-        "docs/research/G4_SEED_ROSTER_AUDIT_2026-11-09_ROTATED_ABC.json": "58c0c2d8acd20866a7918b70d2a8e9a55c35110f343b1ba7082d6ca9c7b20015",
-        "docs/research/G4_SEED_ROSTER_AUDIT_2026-11-09_ROTATED_DE.json": "8967f8acc3f4a310398d3076535fd75f4ee180aa73a89c887fdeeb10028b22d5",
+        "docs/research/CDL_ABC_ROTATED_DUAL_POL_ARRAY_COVARIANCE_PROTOCOL_2026-10-26.md": "565251437aacead29cf58bae019a8a630af7b4af249997d18fdf7d99fa59803f",
+        "docs/research/CDL_DE_ROTATED_LOS_DUAL_POL_ARRAY_COVARIANCE_PROTOCOL_2026-10-26.md": "bd2b1752e635a98d7999ccbef0ae378d96709dd4133b5c4d77c2ef1ac552536b",
+        "docs/research/SEED_ROSTER_AUDIT_2026-11-09_ROTATED_ABC.json": "58c0c2d8acd20866a7918b70d2a8e9a55c35110f343b1ba7082d6ca9c7b20015",
+        "docs/research/SEED_ROSTER_AUDIT_2026-11-09_ROTATED_DE.json": "8967f8acc3f4a310398d3076535fd75f4ee180aa73a89c887fdeeb10028b22d5",
         "docs/research/results/g4-cdl-joint-tx-rx-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json": "40f46ce2cb3478d330a787431a82aabd66e1ab120cae7f9ef3b132259ac4582e",
         "docs/research/results/g4-cdl-larger-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json": "df3e13acd0009c175d91d3b19ab6bfc7762623a85b29d704b63f0653c5e072bc",
         "docs/research/results/g4-cdl-larger-topology-joint-tx-rx-spatiotemporal-covariance-native-validation-20261109.json": "8d3ccdadb27af6630c5f4d5bdd7c9e5b61c3bc53787c364ce859992a449c643e",
@@ -2290,16 +2290,16 @@
         "docs/research/results/g4-cdl-rotated-dual-pol-covariance-validation-20261109.json": "f2171708b51629b66210f72fde014c0a5ade3e737c594471ca2d04ab6e93de8e",
         "docs/research/results/g4-cdl-rotated-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json": "237e50fb6f5fc75e7ae1e2599727641a22a75c4e123e9319b93bc98ff00b84e2",
         "docs/research/results/g4-cdl-spatiotemporal-covariance-native-validation-20261109.json": "2f41b55c9a31fb994476f18e41de97411d6666216265430dad399cd7b14d8941",
-        "tests/test_integrations/test_g4_cdl_abc_rotated_dual_pol_array_covariance_native.py": "b0d33298d16e43f2536c735a5eb978a3d8e06f3e5162acc74da3d5b743c11ed6",
-        "tests/test_integrations/test_g4_cdl_de_rotated_los_dual_pol_array_covariance_native.py": "38251e6f1b8ae4c1f61e376275f8b10f6a9b70b5c85e79f56ed3aa65467c7b45"
+        "tests/test_integrations/test_cdl_abc_rotated_dual_pol_array_covariance_native.py": "f89320b82096605c9bf93395b831cb6f406b9ac4b256ebef27b09ca4da478d8c",
+        "tests/test_integrations/test_cdl_de_rotated_los_dual_pol_array_covariance_native.py": "f34b4933b4b481470ba83b21ff699b449696067abb11f54b814ffe3663406703"
       },
       "evidence_links": {
         "cli_entries": [],
         "documentation": [
-          "docs/research/G4_07_CDL_ABC_ROTATED_DUAL_POL_ARRAY_COVARIANCE_PROTOCOL_2026-10-26.md",
-          "docs/research/G4_07_CDL_DE_ROTATED_LOS_DUAL_POL_ARRAY_COVARIANCE_PROTOCOL_2026-10-26.md",
-          "docs/research/G4_SEED_ROSTER_AUDIT_2026-11-09_ROTATED_ABC.json",
-          "docs/research/G4_SEED_ROSTER_AUDIT_2026-11-09_ROTATED_DE.json",
+          "docs/research/CDL_ABC_ROTATED_DUAL_POL_ARRAY_COVARIANCE_PROTOCOL_2026-10-26.md",
+          "docs/research/CDL_DE_ROTATED_LOS_DUAL_POL_ARRAY_COVARIANCE_PROTOCOL_2026-10-26.md",
+          "docs/research/SEED_ROSTER_AUDIT_2026-11-09_ROTATED_ABC.json",
+          "docs/research/SEED_ROSTER_AUDIT_2026-11-09_ROTATED_DE.json",
           "docs/research/results/g4-cdl-joint-tx-rx-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json",
           "docs/research/results/g4-cdl-larger-dual-tx-rx-spatiotemporal-covariance-native-validation-20261110.json",
           "docs/research/results/g4-cdl-larger-topology-joint-tx-rx-spatiotemporal-covariance-native-validation-20261109.json",
@@ -2310,8 +2310,8 @@
         ],
         "other_files": [],
         "regression_files": [
-          "tests/test_integrations/test_g4_cdl_abc_rotated_dual_pol_array_covariance_native.py",
-          "tests/test_integrations/test_g4_cdl_de_rotated_los_dual_pol_array_covariance_native.py"
+          "tests/test_integrations/test_cdl_abc_rotated_dual_pol_array_covariance_native.py",
+          "tests/test_integrations/test_cdl_de_rotated_los_dual_pol_array_covariance_native.py"
         ],
         "schemas": [],
         "source_modules": []
@@ -4189,14 +4189,14 @@
     {
       "backlog_line": 428,
       "backlog_status": "marked_done",
-      "description": "Version the seed-roster collision report to v2 and continue after result files exceed the declared input/decompression ceiling; preserve skipped file path/reason, report `INCOMPLETE_SCAN`, and exit nonzero so a partial inventory cannot be presented as clear. Keep symlink, hardlink, and mutation checks fail closed. The scanner recurses through `per_seed` records and numeric seed-keyed maps, while ignoring empty non-seed arrays and seed-related metric labels. The expanded-JSON ceiling is now 384 MiB, still bounded. The focused suite passes 22 tests. The full frozen-protocol scan covers 2,262 files across results/outputs/artifacts for all currently protocolized G4 reserved seed rosters, with no collisions, malformed fields, or incomplete files; its hash-bearing report is `docs/research/G4_SEED_ROSTER_AUDIT_2026-10-26_ALL_FROZEN.json`. This is not global seed clearance or G4 qualification.",
+      "description": "Version the seed-roster collision report to v2 and continue after result files exceed the declared input/decompression ceiling; preserve skipped file path/reason, report `INCOMPLETE_SCAN`, and exit nonzero so a partial inventory cannot be presented as clear. Keep symlink, hardlink, and mutation checks fail closed. The scanner recurses through `per_seed` records and numeric seed-keyed maps, while ignoring empty non-seed arrays and seed-related metric labels. The expanded-JSON ceiling is now 384 MiB, still bounded. The focused suite passes 22 tests. The full frozen-protocol scan covers 2,262 files across results/outputs/artifacts for all currently protocolized G4 reserved seed rosters, with no collisions, malformed fields, or incomplete files; its hash-bearing report is `docs/research/SEED_ROSTER_AUDIT_2026-10-26_ALL_FROZEN.json`. This is not global seed clearance or G4 qualification.",
       "evidence_file_sha256": {
-        "docs/research/G4_SEED_ROSTER_AUDIT_2026-10-26_ALL_FROZEN.json": "05fdcdf6fe61488691f1fc96718e81beed8763f0f1a870821572eebf57bfc25c"
+        "docs/research/SEED_ROSTER_AUDIT_2026-10-26_ALL_FROZEN.json": "05fdcdf6fe61488691f1fc96718e81beed8763f0f1a870821572eebf57bfc25c"
       },
       "evidence_links": {
         "cli_entries": [],
         "documentation": [
-          "docs/research/G4_SEED_ROSTER_AUDIT_2026-10-26_ALL_FROZEN.json"
+          "docs/research/SEED_ROSTER_AUDIT_2026-10-26_ALL_FROZEN.json"
         ],
         "other_files": [],
         "regression_files": [],
@@ -4481,7 +4481,7 @@
       "backlog_status": "marked_done",
       "description": "Implement the fail-closed ODbL release exporter and strict v3 per-artifact rights/provenance manifest, including exact field rosters, canonical artifact hashes, scene/artifact cross-bindings, generated notices, and mandatory external OpenSSH review of exact manifest bytes. V3 requires exact timezone-bearing OSM extract time, explicit canonical source object IDs, a conversion recipe artifact bound by SHA-256, and a structured per-asset third-party license inventory bound to review-evidence SHA-256; each asset must declare redistribution permission and generated attribution text. Documented provenance gaps and assets without redistribution rights cannot pass release validation. The archive retains the signature and a trust-digest receipt under `datasets/schema/public-release-approval.v2.schema.json`. These contracts make review evidence auditable but do not establish its truth; the actual Etoile/Florence/Munich source records, live data offers, third-party inventory, and independent legal disposition remain external blockers, so no public release is eligible. Implementation evidence is `datasets/public_release.py`, `datasets/schema/public-release-manifest.v3.schema.json`, `datasets/schema/public-release-approval.v2.schema.json`, and `tests/test_datasets/test_public_release.py`.",
       "evidence_file_sha256": {
-        "datasets/public_release.py": "c7250e3eca5c2cdc296fa282ef7ee40790b12f1bc3cf0f570dee0cc862166173",
+        "datasets/public_release.py": "796619cbc98d0195f340579368dd3cbdcf89e7f998896c113cb9de8dea1db0b5",
         "datasets/schema/public-release-approval.v2.schema.json": "677c18988f29aa6cba49ead722a1adb57d6643cd81a626f519f00a5ec5f235c6",
         "datasets/schema/public-release-manifest.v3.schema.json": "896529865236815276fad33dca00c96097657cb90317805cc2c8d8717d8c1692",
         "tests/test_datasets/test_public_release.py": "bd83eaad1780ce585b9e5d59eeabea858a000cb4435c04c7252b9fe42127d542"

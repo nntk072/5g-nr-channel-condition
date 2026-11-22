@@ -62,12 +62,12 @@ def test_every_declared_profile_version_has_a_pinned_normative_source() -> None:
     report = standardized_profile_applicability_report()
     manifest_path = (
         Path(__file__).resolve().parents[2]
-        / "docs/research/G4_STANDARD_REFERENCE_MANIFEST_2026-10-26.json"
+        / "docs/research/STANDARD_REFERENCE_MANIFEST_2026-10-26.json"
     )
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     schema_path = (
         Path(__file__).resolve().parents[2]
-        / "datasets/schema/g4-standard-reference-manifest.v1.schema.json"
+        / "datasets/schema/standard-reference-manifest.v1.schema.json"
     )
     jsonschema = pytest.importorskip("jsonschema")
     jsonschema.Draft202012Validator(json.loads(schema_path.read_text(encoding="utf-8"))).validate(
