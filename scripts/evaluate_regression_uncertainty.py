@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+from typing import Any
 
 from artifacts.provenance import sha256_file
 from evaluation.uncertainty_io import (
@@ -44,7 +45,7 @@ def main() -> None:
     encoded = json.dumps(report, indent=2, sort_keys=True, allow_nan=False).encode() + b"\n"
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_bytes(encoded)
-    response = {"report": str(args.output), "sha256": sha256_file(args.output)}
+    response: dict[str, Any] = {"report": str(args.output), "sha256": sha256_file(args.output)}
     if node is not None:
         response["build_node"] = node
     print(json.dumps(response))

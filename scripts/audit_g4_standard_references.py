@@ -110,9 +110,7 @@ def _validate_manifest(value: Any) -> None:
     try:
         date.fromisoformat(value["snapshot_date"])
     except ValueError as error:
-        raise ValueError(
-            "snapshot_date must be a real calendar date in YYYY-MM-DD form"
-        ) from error
+        raise ValueError("snapshot_date must be a real calendar date in YYYY-MM-DD form") from error
     if value["redistribution_policy"] != "reference_identity_only; do_not_redistribute_etsi_pdf":
         raise ValueError("reference manifest must prohibit unlicensed PDF redistribution")
     if value["status"] != "SOURCE_IDENTITIES_PINNED_NOT_QUALIFIED":
@@ -126,16 +124,12 @@ def _validate_manifest(value: Any) -> None:
         if not isinstance(source, dict) or set(source) != _SOURCE_FIELDS:
             raise ValueError(f"source {index} has an unsupported field roster")
         source_id, filename = source["source_id"], source["filename"]
-        if not isinstance(source_id, str) or not re.fullmatch(
-            r"[a-z0-9][a-z0-9.-]+", source_id
-        ):
+        if not isinstance(source_id, str) or not re.fullmatch(r"[a-z0-9][a-z0-9.-]+", source_id):
             raise ValueError(f"source {index} has an invalid source_id")
         if source_id in seen_ids:
             raise ValueError(f"duplicate G4 source_id: {source_id}")
         seen_ids.add(source_id)
-        if not isinstance(filename, str) or not re.fullmatch(
-            r"[A-Za-z0-9._-]+\.pdf", filename
-        ):
+        if not isinstance(filename, str) or not re.fullmatch(r"[A-Za-z0-9._-]+\.pdf", filename):
             raise ValueError(f"source {source_id} filename must be a PDF basename")
         if filename in seen_names:
             raise ValueError(f"duplicate G4 reference filename: {filename}")
@@ -143,9 +137,7 @@ def _validate_manifest(value: Any) -> None:
         for field in ("standard", "limitations"):
             if not isinstance(source[field], str) or not source[field].strip():
                 raise ValueError(f"source {source_id} {field} must be nonempty text")
-        if not isinstance(source["version"], str) or not _VERSION_RE.fullmatch(
-            source["version"]
-        ):
+        if not isinstance(source["version"], str) or not _VERSION_RE.fullmatch(source["version"]):
             raise ValueError(f"source {source_id} version is invalid")
         url = source["source_url"]
         parsed_url = urlsplit(url) if isinstance(url, str) else None
@@ -158,16 +150,20 @@ def _validate_manifest(value: Any) -> None:
             or parsed_url.port is not None
         ):
             raise ValueError(f"source {source_id} must use an official ETSI HTTPS URL")
-        if not isinstance(source["sha256"], str) or not _SHA256_RE.fullmatch(
-            source["sha256"]
-        ):
+        if not isinstance(source["sha256"], str) or not _SHA256_RE.fullmatch(source["sha256"]):
             raise ValueError(f"source {source_id} sha256 is invalid")
         size = source["size_bytes"]
-        if isinstance(size, bool) or not isinstance(size, int) or not 1 <= size <= _MAX_REFERENCE_BYTES:
+        if (
+            isinstance(size, bool)
+            or not isinstance(size, int)
+            or not 1 <= size <= _MAX_REFERENCE_BYTES
+        ):
             raise ValueError(f"source {source_id} size_bytes exceeds the supported range")
         scope = source["reference_scope"]
-        if not isinstance(scope, list) or not scope or any(
-            not isinstance(item, str) or not item.strip() for item in scope
+        if (
+            not isinstance(scope, list)
+            or not scope
+            or any(not isinstance(item, str) or not item.strip() for item in scope)
         ):
             raise ValueError(f"source {source_id} reference_scope must contain nonempty text")
 
@@ -266,7 +262,14 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         report = audit_g4_standard_references(args.manifest, args.reference_root)
-    except (OSError, UnicodeDecodeError, ValueError, TypeError, RuntimeError, RecursionError) as error:
+    except (
+        OSError,
+        UnicodeDecodeError,
+        ValueError,
+        TypeError,
+        RuntimeError,
+        RecursionError,
+    ) as error:
         parser.exit(2, f"error: {error}\n")
     sys.stdout.write(json.dumps(report, indent=2, sort_keys=True, allow_nan=False) + "\n")
     return 0

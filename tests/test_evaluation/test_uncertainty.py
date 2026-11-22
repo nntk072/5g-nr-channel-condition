@@ -165,9 +165,7 @@ def test_grouped_uncertainty_rejects_coercive_input_domains(field, value, except
         ("risk_coverages", (1 + 0j,), TypeError, "real numeric"),
     ],
 )
-def test_grouped_uncertainty_rejects_coercive_probability_grids(
-    field, value, exception, message
-):
+def test_grouped_uncertainty_rejects_coercive_probability_grids(field, value, exception, message):
     inputs = {
         "calibration_target": [0.0, 1.0],
         "calibration_prediction": [0.1, 0.9],

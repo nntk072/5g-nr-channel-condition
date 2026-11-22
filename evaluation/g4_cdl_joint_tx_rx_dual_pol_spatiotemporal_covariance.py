@@ -189,7 +189,11 @@ def cdl_joint_tx_rx_dual_pol_spatiotemporal_covariance_reference(
         raise ValueError(f"unsupported CDL profile: {model}")
     if len(velocity_mps) != 3:
         raise ValueError("velocity_mps must contain exactly three Cartesian components")
-    velocity = tuple(_finite_real(value, label="velocity_mps component") for value in velocity_mps)
+    velocity = (
+        _finite_real(velocity_mps[0], label="velocity_mps component"),
+        _finite_real(velocity_mps[1], label="velocity_mps component"),
+        _finite_real(velocity_mps[2], label="velocity_mps component"),
+    )
     carrier = _finite_real(carrier_frequency_hz, label="carrier_frequency_hz")
     lag = _finite_real(lag_s, label="lag_s")
     spacing = _finite_real(element_spacing_wavelengths, label="element_spacing_wavelengths")

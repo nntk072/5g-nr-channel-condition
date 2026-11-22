@@ -533,9 +533,7 @@ def test_mixed_angular_grid_and_invalid_powers_are_rejected():
         evaluate_g3_material_calibration(payload)
 
 
-@pytest.mark.parametrize(
-    "invalid_value", ["1.0", True, 1.0 + 0.0j]
-)
+@pytest.mark.parametrize("invalid_value", ["1.0", True, 1.0 + 0.0j])
 @pytest.mark.parametrize(
     "field",
     [

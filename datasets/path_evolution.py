@@ -156,25 +156,38 @@ def _descriptors(table: PathOracleTable, group_index: int) -> tuple[_PathDescrip
     for row in range(start, stop):
         interactions = None
         if table.interaction_offsets is not None:
+            interaction_types = table.interaction_types
+            object_ids = table.object_ids
+            primitive_ids = table.primitive_ids
+            if interaction_types is None or object_ids is None or primitive_ids is None:
+                raise ValueError(
+                    "interaction offsets require interaction type/object/primitive arrays"
+                )
             left = int(table.interaction_offsets[row])
             right = int(table.interaction_offsets[row + 1])
             interactions = tuple(
                 (
-                    int(table.interaction_types[index]),
-                    int(table.object_ids[index]),
-                    int(table.primitive_ids[index]),
+                    int(interaction_types[index]),
+                    int(object_ids[index]),
+                    int(primitive_ids[index]),
                 )
                 for index in range(left, right)
             )
         aoa = (
             None
             if table.aoa_azimuth_elevation_rad is None
-            else tuple(float(value) for value in table.aoa_azimuth_elevation_rad[row])
+            else (
+                float(table.aoa_azimuth_elevation_rad[row, 0]),
+                float(table.aoa_azimuth_elevation_rad[row, 1]),
+            )
         )
         aod = (
             None
             if table.aod_azimuth_elevation_rad is None
-            else tuple(float(value) for value in table.aod_azimuth_elevation_rad[row])
+            else (
+                float(table.aod_azimuth_elevation_rad[row, 0]),
+                float(table.aod_azimuth_elevation_rad[row, 1]),
+            )
         )
         result.append(
             _PathDescriptor(
@@ -405,7 +418,9 @@ def audit_path_evolution(
                     if ordered[1] - ordered[0] <= ambiguity_cost_margin:
                         ambiguous_left.add(i)
                         ambiguous_right.update(
-                            j for j in finite if costs[i, j] - ordered[0] <= ambiguity_cost_margin
+                            int(j)
+                            for j in finite
+                            if costs[i, j] - ordered[0] <= ambiguity_cost_margin
                         )
             for j in range(len(current)):
                 finite = np.flatnonzero(np.isfinite(costs[:, j]))
@@ -414,7 +429,9 @@ def audit_path_evolution(
                     if ordered[1] - ordered[0] <= ambiguity_cost_margin:
                         ambiguous_right.add(j)
                         ambiguous_left.update(
-                            i for i in finite if costs[i, j] - ordered[0] <= ambiguity_cost_margin
+                            int(i)
+                            for i in finite
+                            if costs[i, j] - ordered[0] <= ambiguity_cost_margin
                         )
             available_left = [i for i in range(len(previous)) if i not in ambiguous_left]
             available_right = [j for j in range(len(current)) if j not in ambiguous_right]

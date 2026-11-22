@@ -307,10 +307,14 @@ def paired_cluster_binary_error_family_comparison(
         treatment_bool = treatment.astype(bool, copy=False)
         size_by_group = np.bincount(inverse, minlength=len(ordered_groups)).astype(np.float64)
         control_counts.append(
-            np.bincount(inverse, weights=control_bool.astype(np.float64), minlength=len(ordered_groups))
+            np.bincount(
+                inverse, weights=control_bool.astype(np.float64), minlength=len(ordered_groups)
+            )
         )
         treatment_counts.append(
-            np.bincount(inverse, weights=treatment_bool.astype(np.float64), minlength=len(ordered_groups))
+            np.bincount(
+                inverse, weights=treatment_bool.astype(np.float64), minlength=len(ordered_groups)
+            )
         )
         trial_counts.append(size_by_group)
         point_estimates.append(float(treatment_bool.mean() - control_bool.mean()))
@@ -352,9 +356,7 @@ def paired_cluster_binary_error_family_comparison(
     critical_value = float(np.quantile(max_deviation, 0.95))
     output: list[dict] = []
     for point_index, estimate in enumerate(estimates.tolist()):
-        pointwise_low, pointwise_high = np.quantile(
-            pointwise_draws[:, point_index], [0.025, 0.975]
-        )
+        pointwise_low, pointwise_high = np.quantile(pointwise_draws[:, point_index], [0.025, 0.975])
         output.append(
             {
                 "independent_groups": group_count,

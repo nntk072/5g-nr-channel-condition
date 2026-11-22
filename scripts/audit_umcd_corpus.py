@@ -145,11 +145,11 @@ def _load_signed_near_duplicate_dispositions(
     assert signature_path is not None
     assert signer_id is not None
     assert trusted_allowed_signers_path is not None
-    for value, label in (
+    for path_value, label in (
         (disposition_path, "near-duplicate dispositions"),
         (signature_path, "near-duplicate disposition signature"),
     ):
-        candidate = Path(value)
+        candidate = Path(path_value)
         if candidate.is_absolute():
             raise ValueError(f"{label} path must be relative to the inventory file")
         if (base / candidate).is_symlink():
@@ -284,7 +284,10 @@ def _load_json(path: Path) -> dict[str, Any]:
 def _validate_report(report: dict[str, Any]) -> None:
     import jsonschema
 
-    schema_path = _REPORT_SCHEMA_PATHS.get(report.get("schema"))
+    report_schema = report.get("schema")
+    if not isinstance(report_schema, str):
+        raise ValueError("unsupported corpus audit report schema")
+    schema_path = _REPORT_SCHEMA_PATHS.get(report_schema)
     if schema_path is None:
         raise ValueError("unsupported corpus audit report schema")
     schema = _load_json(schema_path)
@@ -1121,18 +1124,20 @@ def audit_inventory(
     channel_comparison_count = 0
     for group in duplicate_groups.values():
         counts: dict[str, int] = defaultdict(int)
-        for item in group:
-            counts[item.split_id] += 1
+        for channel_record in group:
+            counts[channel_record.split_id] += 1
         channel_cross_split_pair_count += (
             len(group) ** 2 - sum(count**2 for count in counts.values())
         ) // 2
         channel_comparison_count += len(group) * (len(group) - 1) // 2
     geometry_split_counts: dict[str, int] = defaultdict(int)
     geometry_hash_split_counts: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
-    for item in geometry_records:
-        geometry_split_counts[item.split_id] += 1
-        if item.family_site_geometry_hash is not None:
-            geometry_hash_split_counts[item.family_site_geometry_hash][item.split_id] += 1
+    for geometry_record in geometry_records:
+        geometry_split_counts[geometry_record.split_id] += 1
+        if geometry_record.family_site_geometry_hash is not None:
+            geometry_hash_split_counts[geometry_record.family_site_geometry_hash][
+                geometry_record.split_id
+            ] += 1
     geometry_cross_split_pair_count = (
         len(geometry_records) ** 2 - sum(count**2 for count in geometry_split_counts.values())
     ) // 2
@@ -1217,8 +1222,8 @@ def audit_inventory(
             else "not_run_no_cross_split_pairs"
         )
     skipped_reason_counts: dict[str, int] = defaultdict(int)
-    for item in skipped:
-        skipped_reason_counts[item.reason] += 1
+    for skipped_comparison in skipped:
+        skipped_reason_counts[skipped_comparison.reason] += 1
 
     report_core = {
         "schema": _REPORT_SCHEMA,

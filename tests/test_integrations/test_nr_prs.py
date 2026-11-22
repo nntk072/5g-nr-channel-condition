@@ -36,9 +36,7 @@ def _scalar_gold_bits(c_init: int, count: int) -> list[int]:
         x2[index] = (c_init >> index) & 1
     for index in range(stop):
         x1[index + 31] = (x1[index + 3] + x1[index]) % 2
-        x2[index + 31] = (
-            x2[index + 3] + x2[index + 2] + x2[index + 1] + x2[index]
-        ) % 2
+        x2[index + 31] = (x2[index + 3] + x2[index + 2] + x2[index + 1] + x2[index]) % 2
     return [x1[index] ^ x2[index] for index in range(1600, stop)]
 
 
@@ -54,8 +52,7 @@ def _scalar_prs(
     bits = _scalar_gold_bits(c_init, 2 * length)
     return np.asarray(
         [
-            ((1 - 2 * bits[2 * index]) + 1j * (1 - 2 * bits[2 * index + 1]))
-            / math.sqrt(2.0)
+            ((1 - 2 * bits[2 * index]) + 1j * (1 - 2 * bits[2 * index + 1])) / math.sqrt(2.0)
             for index in range(length)
         ],
         dtype=np.complex128,
@@ -162,9 +159,7 @@ def test_prs_mapping_uses_symbol_specific_comb_offsets_and_point_a_indices():
         (12, 12),
     ],
 )
-def test_prs_mapping_repeats_normative_comb_offset_cycle(
-    num_symbols: int, comb_size: int
-) -> None:
+def test_prs_mapping_repeats_normative_comb_offset_cycle(num_symbols: int, comb_size: int) -> None:
     normative_offsets = {
         2: (0, 1),
         4: (0, 2, 1, 3),
@@ -241,12 +236,8 @@ def test_prs_mapping_checks_exact_reserved_resource_elements():
 
 def test_prs_resource_set_composes_distinct_resources_and_keeps_member_masks():
     resources = (
-        NRPRSResourceConfiguration(
-            "prs-a", 0, 1, 10, 2, 0, 2, 2, beta_prs=0.5
-        ),
-        NRPRSResourceConfiguration(
-            "prs-b", 12, 1, 20, 2, 1, 2, 2, beta_prs=0.75
-        ),
+        NRPRSResourceConfiguration("prs-a", 0, 1, 10, 2, 0, 2, 2, beta_prs=0.5),
+        NRPRSResourceConfiguration("prs-b", 12, 1, 20, 2, 1, 2, 2, beta_prs=0.75),
     )
 
     result = map_nr_dl_prs_resource_set(
@@ -425,9 +416,7 @@ def test_prs_resource_set_schedule_resolves_periodicity_and_repetitions():
     third = nr_dl_prs_resource_occasion(system_frame_number=1, slot_in_frame=0, timing=timing)
     fourth = nr_dl_prs_resource_occasion(system_frame_number=1, slot_in_frame=2, timing=timing)
     gap = nr_dl_prs_resource_occasion(system_frame_number=0, slot_in_frame=9, timing=timing)
-    next_period = nr_dl_prs_resource_occasion(
-        system_frame_number=1, slot_in_frame=6, timing=timing
-    )
+    next_period = nr_dl_prs_resource_occasion(system_frame_number=1, slot_in_frame=6, timing=timing)
 
     assert (first.is_resource_occasion, first.transmitted, first.repetition_index) == (
         True,
@@ -458,12 +447,8 @@ def test_prs_resource_set_schedule_applies_option1_and_option2_muting():
     second_repetition = nr_dl_prs_resource_occasion(
         system_frame_number=0, slot_in_frame=1, timing=timing
     )
-    second_set = nr_dl_prs_resource_occasion(
-        system_frame_number=1, slot_in_frame=6, timing=timing
-    )
-    fourth_set = nr_dl_prs_resource_occasion(
-        system_frame_number=2, slot_in_frame=4, timing=timing
-    )
+    second_set = nr_dl_prs_resource_occasion(system_frame_number=1, slot_in_frame=6, timing=timing)
+    fourth_set = nr_dl_prs_resource_occasion(system_frame_number=2, slot_in_frame=4, timing=timing)
 
     assert (first_repetition.transmitted, first_repetition.option1_bit_index) == (True, 0)
     assert (second_repetition.transmitted, second_repetition.status) == (
@@ -634,9 +619,7 @@ def test_dl_tdoa_report_requires_exact_quality_roster_and_rejects_ambiguous_refe
     with pytest.raises(ValueError, match="equidistant"):
         build_nr_dl_tdoa_measurement_report(**base)
     with pytest.raises(ValueError, match="cover exactly"):
-        build_nr_dl_tdoa_measurement_report(
-            **{**base, "timing_quality_by_tp": {"tp-ref": quality}}
-        )
+        build_nr_dl_tdoa_measurement_report(**{**base, "timing_quality_by_tp": {"tp-ref": quality}})
 
 
 @pytest.mark.parametrize(

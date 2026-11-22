@@ -439,7 +439,11 @@ def verify_g3_acquisition_package(
         except (OSError, ValueError) as error:
             errors.append(f"cannot securely open package root: {error}")
         binding_for_inventory = package.get("evaluator_binding")
-        bound_artifact_names = ("scorer_input", "split_manifest", "evaluator_output")
+        bound_artifact_names: tuple[str, ...] = (
+            "scorer_input",
+            "split_manifest",
+            "evaluator_output",
+        )
         if package.get("schema_version") in V03_PLUS_SCHEMA_VERSIONS:
             bound_artifact_names += ("material_mapping",)
         bound_ids = {
@@ -695,12 +699,15 @@ def verify_g3_acquisition_package(
                     errors.append(
                         f"sample {record['sample_id']} acquired_utc lies outside campaign interval"
                     )
-                campaign_protocol = protocols.get(campaign.get("protocol_id"))
-                if (
-                    campaign_protocol is not None
-                    and campaign_protocol.get("target_frequency_hz")
-                    != record.get("frequency_hz")
-                ):
+                campaign_protocol_id = campaign.get("protocol_id")
+                campaign_protocol = (
+                    protocols.get(campaign_protocol_id)
+                    if isinstance(campaign_protocol_id, str)
+                    else None
+                )
+                if campaign_protocol is not None and campaign_protocol.get(
+                    "target_frequency_hz"
+                ) != record.get("frequency_hz"):
                     errors.append(
                         f"sample {record['sample_id']} frequency differs from campaign protocol"
                     )
@@ -715,7 +722,8 @@ def verify_g3_acquisition_package(
                     errors.append(
                         f"sample {record['sample_id']} frequency differs from instrument configuration"
                     )
-        sample_unit = units.get(record.get("unit_id"))
+        sample_unit_id = record.get("unit_id")
+        sample_unit = units.get(sample_unit_id) if isinstance(sample_unit_id, str) else None
         if sample_unit is not None and sample_unit.get("specimen_id") != record.get("specimen_id"):
             errors.append(
                 f"sample {record['sample_id']} specimen_id differs from its acquisition unit"
@@ -882,9 +890,7 @@ def verify_g3_acquisition_package(
                         f"csi {record['csi_id']}.h_floor noise input file {file_id!r} "
                         "must have inventory role 'noise_measurement'"
                     )
-        amplitude_floor = (
-            h_floor.get("amplitude_linear") if isinstance(h_floor, dict) else None
-        )
+        amplitude_floor = h_floor.get("amplitude_linear") if isinstance(h_floor, dict) else None
         try:
             amplitude_floor_float = (
                 float(amplitude_floor)
@@ -901,9 +907,7 @@ def verify_g3_acquisition_package(
         if package.get("schema_version") == "g3.03-acquisition-package.v0.4":
             expected_method = "noise_only_cfr_estimate_rms_v1"
             if isinstance(h_floor, dict) and h_floor.get("method") != expected_method:
-                errors.append(
-                    f"csi {record['csi_id']}.h_floor method must be {expected_method!r}"
-                )
+                errors.append(f"csi {record['csi_id']}.h_floor method must be {expected_method!r}")
             scale = 0.0
             normalized_sum_squares = 0.0
             sample_count = 0
@@ -967,9 +971,7 @@ def verify_g3_acquisition_package(
                     if scale > 0.0:
                         normalized_sum_squares *= (scale / new_scale) ** 2
                     if local_scale > 0.0:
-                        normalized_sum_squares += local_sum_squares * (
-                            local_scale / new_scale
-                        ) ** 2
+                        normalized_sum_squares += local_sum_squares * (local_scale / new_scale) ** 2
                     scale = new_scale
                 sample_count += local_count
             derived_floor = (
@@ -983,9 +985,7 @@ def verify_g3_acquisition_package(
                     "finite, strictly positive complex RMS"
                 )
                 derivation_valid = False
-            elif not math.isclose(
-                amplitude_floor_float, derived_floor, rel_tol=1e-9, abs_tol=0.0
-            ):
+            elif not math.isclose(amplitude_floor_float, derived_floor, rel_tol=1e-9, abs_tol=0.0):
                 errors.append(
                     f"csi {record['csi_id']}.h_floor amplitude_linear does not match "
                     f"derived complex-noise RMS ({derived_floor:.17g})"
@@ -1469,9 +1469,7 @@ def verify_g3_acquisition_package(
                             angular_id = row.get("angular_measurement_id")
                             if isinstance(angular_id, str):
                                 if angular_id in seen_angular_measurements:
-                                    errors.append(
-                                        "row_crosswalk repeats angular_measurement_id"
-                                    )
+                                    errors.append("row_crosswalk repeats angular_measurement_id")
                                 seen_angular_measurements.add(angular_id)
                             angular_record = (
                                 angular.get(angular_id) if isinstance(angular_id, str) else None

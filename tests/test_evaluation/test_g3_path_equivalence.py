@@ -200,9 +200,7 @@ def test_non_object_path_record_fails_with_contract_error() -> None:
         ("interaction_signature", [[True, 7]]),
     ],
 )
-def test_serialized_path_classes_reject_coercible_malformed_values(
-    field: str, value: Any
-) -> None:
+def test_serialized_path_classes_reject_coercible_malformed_values(field: str, value: Any) -> None:
     candidate = _build([_path(0)])
     challenger = _build([_path(1)])
     challenger["classes"][0][field] = value

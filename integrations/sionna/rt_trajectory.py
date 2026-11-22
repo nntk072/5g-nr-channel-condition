@@ -303,7 +303,7 @@ def _translated_scene_object_position(
 
     def vector3(value: object, name: str) -> np.ndarray:
         try:
-            components = tuple(value)  # type: ignore[arg-type]
+            components: tuple[object, ...] = tuple(value)  # type: ignore[arg-type]
         except TypeError as error:
             raise ValueError(f"scene-object {name} must have three numeric coordinates") from error
         if len(components) != 3 or any(
@@ -580,10 +580,13 @@ def generate_rt_nr_trajectory(
             scene_candidate_split_metadata,
         )
 
+        geometry_asset_sha256 = scene_asset_hashes.get("asset_set_sha256")
+        if not isinstance(geometry_asset_sha256, str):
+            raise ValueError("scene asset set digest must be a string")
         scene_family_identity = scene_candidate_split_metadata(
             load_scene_family_registry(),
             candidate_id=scene_family_candidate_id,
-            actual_geometry_asset_sha256=scene_asset_hashes["asset_set_sha256"],
+            actual_geometry_asset_sha256=geometry_asset_sha256,
         )
     runtime_versions = versions()
     from integrations.sionna.d1_generation_gate import (

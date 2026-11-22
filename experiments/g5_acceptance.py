@@ -153,7 +153,7 @@ def load_g5_snr_acceptance_contract(
         raise ValueError(
             "timestamped acceptance contract v2 requires a verified signature; v3 also requires one"
         )
-    signature_identity: dict[str, str] | None = None
+    signature_identity: dict[str, Any] | None = None
     if signature_path is not None:
         canonical_payload = _canonical_json_bytes(value)
         if payload != canonical_payload:
@@ -607,7 +607,9 @@ def evaluate_g5_snr_curve_acceptance(
 
     def matches_snr(row: dict[str, Any], expected_snr: float) -> bool:
         value = row.get("snr_db")
-        return _is_finite_real(value) and float(value) == expected_snr
+        if not _is_finite_real(value) or value is None:
+            return False
+        return float(value) == expected_snr
 
     digest = _sha256(_canonical_json_bytes(criteria))
     frozen_record: dict[str, Any] = {
@@ -660,11 +662,10 @@ def evaluate_g5_snr_curve_acceptance(
     ):
         raise ValueError("curve inference metadata does not match the frozen G5 method")
     simultaneous_radius = curve_inference.get("simultaneous_radius")
-    if (
-        not _is_finite_real(simultaneous_radius)
-        or simultaneous_radius < 0
-        or simultaneous_radius > 1
-    ):
+    if not _is_finite_real(simultaneous_radius) or simultaneous_radius is None:
+        raise ValueError("curve inference simultaneous radius must be finite and in [0, 1]")
+    simultaneous_radius_value = float(simultaneous_radius)
+    if simultaneous_radius_value < 0 or simultaneous_radius_value > 1:
         raise ValueError("curve inference simultaneous radius must be finite and in [0, 1]")
 
     conditions = curve_inference.get("by_condition")

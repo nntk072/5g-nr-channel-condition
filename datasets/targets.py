@@ -774,7 +774,7 @@ def target_definition_digest(
     value_axes: tuple[str, ...] | None = None,
 ) -> str:
     """Hash every field in a versioned target-definition contract."""
-    fields = {
+    fields: dict[str, object] = {
         "aggregation_rule": aggregation_rule,
         "definition_version": definition_version,
         "reference": reference,

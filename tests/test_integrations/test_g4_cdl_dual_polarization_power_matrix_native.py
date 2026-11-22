@@ -65,9 +65,7 @@ _RAY_BASIS_OFFSETS = (
     -2.1551,
 )
 _ROOT = Path(__file__).resolve().parents[2]
-_TAP_ANGLE_REFERENCE_PATH = (
-    _ROOT / "docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
-)
+_TAP_ANGLE_REFERENCE_PATH = _ROOT / "docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
 _PROFILE_SCALAR_REFERENCE_PATH = (
     _ROOT / "docs/research/G4_CDL_PROFILE_SCALAR_REFERENCE_2026-10-26.json"
 )
@@ -178,9 +176,7 @@ def _independent_los_cdl_port_power_reference(
     k_factor = 10.0 ** (float(scalar["los_k_factor_db"]) / 10.0)
     xpr_linear = 10.0 ** (float(profile["xpr_db"]) / 10.0)
     specular = next(
-        component
-        for component in profile["components"]
-        if component["component"] == "specular"
+        component for component in profile["components"] if component["component"] == "specular"
     )
     specular_angles = specular["angles_deg"]
     tx_psi = _los_displacement_angle_reference(
@@ -200,13 +196,10 @@ def _independent_los_cdl_port_power_reference(
         dtype=torch.float64,
     )
     diffuse_components = [
-        component
-        for component in profile["components"]
-        if component["component"] == "diffuse"
+        component for component in profile["components"] if component["component"] == "diffuse"
     ]
     raw_diffuse_cluster_powers = [
-        10.0 ** (float(component["power_db"]) / 10.0)
-        for component in diffuse_components
+        10.0 ** (float(component["power_db"]) / 10.0) for component in diffuse_components
     ]
     diffuse_cluster_power_sum = math.fsum(raw_diffuse_cluster_powers)
     diffuse_power_by_port_pair = [[0.0, 0.0], [0.0, 0.0]]

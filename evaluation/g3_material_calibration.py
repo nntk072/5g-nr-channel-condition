@@ -46,7 +46,9 @@ def _finite_number(value: Any, name: str) -> float:
 
 def _nonempty_string(value: Any, name: str) -> str:
     if not isinstance(value, str) or not value or value != value.strip():
-        raise ValueError(f"{name} must be a nonempty canonical string without surrounding whitespace")
+        raise ValueError(
+            f"{name} must be a nonempty canonical string without surrounding whitespace"
+        )
     return value
 
 
@@ -279,7 +281,9 @@ def evaluate_g3_material_calibration(payload: dict[str, Any]) -> dict[str, Any]:
     if len(split_manifest_hash) != 64 or any(
         char not in "0123456789abcdef" for char in split_manifest_hash
     ):
-        raise ValueError("full_split_manifest_sha256 must be a lowercase 64-character SHA-256 hex digest")
+        raise ValueError(
+            "full_split_manifest_sha256 must be a lowercase 64-character SHA-256 hex digest"
+        )
     if _canonical_sha256(full_split_manifest) != split_manifest_hash:
         raise ValueError("full_split_manifest_sha256 does not match canonical full_split_manifest")
     _nonempty_string(
@@ -349,9 +353,7 @@ def evaluate_g3_material_calibration(payload: dict[str, Any]) -> dict[str, Any]:
             assignment.get("incidence_group_id"), "assigned incidence_group_id"
         )
         material = _nonempty_string(assignment.get("material_id"), "assigned material_id")
-        polarization = _nonempty_string(
-            assignment.get("polarization"), "assigned polarization"
-        )
+        polarization = _nonempty_string(assignment.get("polarization"), "assigned polarization")
         if polarization not in {"V", "H"}:
             raise ValueError("assigned polarization must be V or H")
         incidence_stratum = _nonempty_string(

@@ -106,17 +106,13 @@ def spherical_cell_solid_angles(
     """
     zenith = _finite_vector(zenith_edges_rad, name="zenith_edges_rad")
     azimuth = _finite_vector(azimuth_edges_rad, name="azimuth_edges_rad")
-    if zenith[0] != 0.0 or not math.isclose(
-        zenith[-1], math.pi, rel_tol=0.0, abs_tol=1e-12
-    ):
+    if zenith[0] != 0.0 or not math.isclose(zenith[-1], math.pi, rel_tol=0.0, abs_tol=1e-12):
         raise ValueError("zenith edges must span [0, pi]")
     if np.any(np.diff(zenith) <= 0.0):
         raise ValueError("zenith edges must be strictly increasing")
     if np.any(np.diff(azimuth) <= 0.0):
         raise ValueError("azimuth edges must be strictly increasing")
-    if not math.isclose(
-        azimuth[-1] - azimuth[0], _TWO_PI, rel_tol=0.0, abs_tol=1e-12
-    ):
+    if not math.isclose(azimuth[-1] - azimuth[0], _TWO_PI, rel_tol=0.0, abs_tol=1e-12):
         raise ValueError("azimuth edges must span exactly 2*pi")
     zenith_factors = np.cos(zenith[:-1]) - np.cos(zenith[1:])
     azimuth_widths = np.diff(azimuth)
@@ -144,10 +140,7 @@ def map_spherical_power(
         raise ValueError("direction arrays must be equal-length nonempty vectors")
     if weights.shape != zenith.shape:
         raise ValueError("power_weights must match the direction arrays")
-    if (
-        np.any((zenith < 0.0) | (zenith > math.pi))
-        or np.any(weights < 0.0)
-    ):
+    if np.any((zenith < 0.0) | (zenith > math.pi)) or np.any(weights < 0.0):
         raise ValueError("directions must be finite/on-sphere and powers finite/nonnegative")
     total_power = float(weights.sum())
     if not math.isfinite(total_power) or total_power <= 0.0:
@@ -177,8 +170,7 @@ def map_spherical_power(
         "integrated_power_fractions": fractions.tolist(),
         "power_density_per_sr": density.tolist(),
         "bin_boundary_convention": (
-            "half-open; south pole in last zenith bin; "
-            "azimuth upper edge wraps to lower edge"
+            "half-open; south pole in last zenith bin; azimuth upper edge wraps to lower edge"
         ),
     }
 

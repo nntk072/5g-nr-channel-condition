@@ -70,7 +70,9 @@ def _quantile(values: list[float | int], q: float) -> float | int:
     return float(np.quantile(np.asarray(values, dtype=np.float64), q, method="higher"))
 
 
-def _headroom_integer(value: int, planned_units: int, factor: float) -> int:
+def _headroom_integer(value: int | float, planned_units: int, factor: float) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError("integer resource quantiles must remain integral")
     return math.ceil(Decimal(value) * planned_units * Decimal(str(factor)))
 
 

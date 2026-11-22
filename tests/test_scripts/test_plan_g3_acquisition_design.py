@@ -27,7 +27,9 @@ V5_EXAMPLE = (
 )
 
 
-def test_v5_status_requires_joint_composition_before_reporting_a_complete_assurance_design() -> None:
+def test_v5_status_requires_joint_composition_before_reporting_a_complete_assurance_design() -> (
+    None
+):
     status = _complete_design_status(
         schema_version="loslab.g3_acquisition_design_assumptions.v5",
         missing_designs=[],
@@ -556,9 +558,7 @@ def test_v5_schema_and_planner_accept_joint_family_v4(
     family_v3 = configuration["joint_acceptance_family"]
     configuration["joint_acceptance_family"] = build_g3_joint_acceptance_family_v4(
         family_id=family_v3["family_id"],
-        material_expected_strata=[
-            tuple(item) for item in family_v3["material_expected_strata"]
-        ],
+        material_expected_strata=[tuple(item) for item in family_v3["material_expected_strata"]],
         complex_csi_expected_strata=[
             tuple(item) for item in family_v3["complex_csi_expected_strata"]
         ],
@@ -593,9 +593,15 @@ def test_v5_planner_rejects_family_v3_without_path_episode_census(
     configuration["joint_acceptance_family"] = build_g3_joint_acceptance_family_v3(
         family_id=family_v4["family_id"],
         material_expected_strata=[tuple(row) for row in family_v4["material_expected_strata"]],
-        complex_csi_expected_strata=[tuple(row) for row in family_v4["complex_csi_expected_strata"]],
-        propagation_expected_strata=[tuple(row) for row in family_v4["propagation_expected_strata"]],
-        receiver_impact_expected_strata=[tuple(row) for row in family_v4["receiver_impact_expected_strata"]],
+        complex_csi_expected_strata=[
+            tuple(row) for row in family_v4["complex_csi_expected_strata"]
+        ],
+        propagation_expected_strata=[
+            tuple(row) for row in family_v4["propagation_expected_strata"]
+        ],
+        receiver_impact_expected_strata=[
+            tuple(row) for row in family_v4["receiver_impact_expected_strata"]
+        ],
     )
     schema_path = ROOT / "datasets/schema/g3.03-acquisition-design-assumptions.v5.schema.json"
     schema = json.loads(schema_path.read_text(encoding="utf-8"))

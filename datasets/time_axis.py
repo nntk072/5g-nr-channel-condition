@@ -9,7 +9,7 @@ from bisect import bisect_left, bisect_right
 from collections.abc import Mapping
 from dataclasses import dataclass
 from numbers import Real
-from typing import Iterable
+from typing import Iterable, SupportsFloat
 
 
 def canonical_time_axis(values: Iterable[object], *, name: str) -> tuple[float, ...]:
@@ -20,12 +20,15 @@ def canonical_time_axis(values: Iterable[object], *, name: str) -> tuple[float, 
         raise TypeError(f"{name} must be an iterable of real timestamps") from error
     if not raw_times:
         raise ValueError(f"{name} must be a non-empty finite time axis")
-    if any(isinstance(value, bool) or not isinstance(value, Real) for value in raw_times):
-        raise TypeError(f"{name} values must be real numeric timestamps")
-    try:
-        times = tuple(float(value) for value in raw_times)
-    except (OverflowError, ValueError) as error:
-        raise ValueError(f"{name} values must be finite real timestamps") from error
+    times_list: list[float] = []
+    for value in raw_times:
+        if isinstance(value, bool) or not isinstance(value, Real):
+            raise TypeError(f"{name} values must be real numeric timestamps")
+        try:
+            times_list.append(float(value))
+        except (OverflowError, ValueError) as error:
+            raise ValueError(f"{name} values must be finite real timestamps") from error
+    times = tuple(times_list)
     if any(not math.isfinite(value) for value in times):
         raise ValueError(f"{name} values must be finite real timestamps")
     if any(right <= left for left, right in zip(times, times[1:])):
@@ -205,7 +208,7 @@ def align_named_time_axes(
     reference_times_s: Iterable[object],
     observed_time_axes: Mapping[str, Iterable[object]],
     *,
-    tolerance_s: Real,
+    tolerance_s: SupportsFloat,
     require_complete: bool = False,
 ) -> MultiSourceTimeAlignment:
     """Align each named source clock independently to one episode axis.
@@ -237,7 +240,7 @@ def align_time_axes(
     reference_times_s: Iterable[object],
     observed_times_s: Iterable[object],
     *,
-    tolerance_s: Real,
+    tolerance_s: SupportsFloat,
     require_complete: bool = False,
 ) -> TimeAxisAlignment:
     """Match two monotone time axes without interpolation or sample reuse.

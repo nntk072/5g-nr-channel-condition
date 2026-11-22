@@ -22,8 +22,7 @@ from integrations.sionna.ofdm_impairments import (  # noqa: E402
 def test_time_varying_paths_can_appear_and_disappear_at_receive_samples() -> None:
     waveform = torch.arange(1, 9, dtype=torch.float64).to(torch.complex128)
     activity = torch.tensor(
-        [[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
-         [0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.5, 0.0]],
+        [[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.5, 0.0]],
         dtype=torch.float64,
     )
 

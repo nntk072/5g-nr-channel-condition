@@ -118,16 +118,14 @@ def _payload_v2() -> dict[str, Any]:
             "noise_bandwidth_hz": 20e6,
         },
     }
-    payload["receiver_impact"]["records"][0]["receiver_execution_context_sha256"] = (
-        hashlib.sha256(
-            json.dumps(
-                payload["receiver_execution"],
-                sort_keys=True,
-                separators=(",", ":"),
-                allow_nan=False,
-            ).encode("utf-8")
-        ).hexdigest()
-    )
+    payload["receiver_impact"]["records"][0]["receiver_execution_context_sha256"] = hashlib.sha256(
+        json.dumps(
+            payload["receiver_execution"],
+            sort_keys=True,
+            separators=(",", ":"),
+            allow_nan=False,
+        ).encode("utf-8")
+    ).hexdigest()
     return payload
 
 
@@ -360,9 +358,7 @@ def test_v4_schema_requires_row_configuration_identity() -> None:
         Path(__file__).resolve().parents[2]
         / "datasets/schema/g3-joint-evaluator-input.v4.schema.json"
     )
-    validator = jsonschema.Draft202012Validator(
-        json.loads(schema_path.read_text(encoding="utf-8"))
-    )
+    validator = jsonschema.Draft202012Validator(json.loads(schema_path.read_text(encoding="utf-8")))
 
     assert list(validator.iter_errors(payload))
 
@@ -376,9 +372,7 @@ def test_v4_schema_requires_path_comparison_binding() -> None:
         Path(__file__).resolve().parents[2]
         / "datasets/schema/g3-joint-evaluator-input.v4.schema.json"
     )
-    validator = jsonschema.Draft202012Validator(
-        json.loads(schema_path.read_text(encoding="utf-8"))
-    )
+    validator = jsonschema.Draft202012Validator(json.loads(schema_path.read_text(encoding="utf-8")))
 
     assert list(validator.iter_errors(payload))
 
@@ -390,9 +384,7 @@ def test_v5_schema_requires_raw_paths_and_frozen_configuration() -> None:
         Path(__file__).resolve().parents[2]
         / "datasets/schema/g3-joint-evaluator-input.v5.schema.json"
     )
-    validator = jsonschema.Draft202012Validator(
-        json.loads(schema_path.read_text(encoding="utf-8"))
-    )
+    validator = jsonschema.Draft202012Validator(json.loads(schema_path.read_text(encoding="utf-8")))
 
     assert list(validator.iter_errors(payload))
 
@@ -520,9 +512,7 @@ def _write_run_manifest(
     runtime_inventory_path: Path | None = None,
 ) -> None:
     run_id = (
-        qualification_contract["run_id"]
-        if qualification_contract is not None
-        else "joint-run-001"
+        qualification_contract["run_id"] if qualification_contract is not None else "joint-run-001"
     )
     manifest = run_manifest.build_g3_joint_evidence_run_manifest(
         run_id,
@@ -613,8 +603,7 @@ def _runtime_inventory_fixture(path: Path) -> None:
     source_root = Path(__file__).resolve().parents[2]
     inventory = json.loads(
         (
-            source_root
-            / "docs/research/results/runtime-inventory-v3-cuda-phy-20261027.json"
+            source_root / "docs/research/results/runtime-inventory-v3-cuda-phy-20261027.json"
         ).read_text(encoding="utf-8")
     )
     identity = run_manifest._runtime_identity()
@@ -642,8 +631,7 @@ def _runtime_inventory_fixture(path: Path) -> None:
             (source_root / relative_path).read_bytes()
         ).hexdigest()
     distribution_by_name = {
-        item["name"].lower().replace("_", "-"): item
-        for item in inventory["distributions"]
+        item["name"].lower().replace("_", "-"): item for item in inventory["distributions"]
     }
     runtime_packages = identity["packages"]
     package_candidates = {
@@ -661,8 +649,7 @@ def _runtime_inventory_fixture(path: Path) -> None:
             (
                 item
                 for item in matching
-                if item.get("installed") is True
-                and item.get("version") == package_version
+                if item.get("installed") is True and item.get("version") == package_version
             ),
             matching[0],
         )
@@ -673,15 +660,11 @@ def _runtime_inventory_fixture(path: Path) -> None:
             else:
                 distribution_name = distribution["name"]
                 distribution.clear()
-                distribution.update(
-                    {"name": distribution_name, "installed": False}
-                )
+                distribution.update({"name": distribution_name, "installed": False})
     _write_canonical(path, inventory)
 
 
-def _sign_runtime_inventory(
-    inventory_path: Path, directory: Path
-) -> tuple[Path, Path, str]:
+def _sign_runtime_inventory(inventory_path: Path, directory: Path) -> tuple[Path, Path, str]:
     ssh_keygen = shutil.which("ssh-keygen")
     if ssh_keygen is None:
         pytest.skip("OpenSSH is unavailable")
@@ -727,92 +710,88 @@ def _qualification_contract(
 ) -> dict[str, Any]:
     family = payload["joint_acceptance_family"]
     contract_spec: dict[str, Any] = {
-            "run_id": "g3-run-contract-001",
-            "joint_acceptance_family": family,
+        "run_id": "g3-run-contract-001",
+        "joint_acceptance_family": family,
         "task_scope": {
-                "task_id": "complex-csi-and-receiver-impact",
-                "scenario_ids": ["scene-a"],
-                "channel_conditions": ["LOS"],
-                "carrier_hz": 3.5e9,
+            "task_id": "complex-csi-and-receiver-impact",
+            "scenario_ids": ["scene-a"],
+            "channel_conditions": ["LOS"],
+            "carrier_hz": 3.5e9,
             **({"effective_bandwidth_hz": 20e6} if raw_paths else {}),
+        },
+        "candidate": {
+            "config_id": candidate_config_id,
+            "configuration": {"receiver": "ls"},
+        },
+        "challenger": {
+            "config_id": "challenger-a",
+            "configuration": {"receiver": "dft"},
+        },
+        "waveform": {
+            "waveform_id": "pusch-fixture",
+            "configuration": {"mu": 1, "carrier_hz": 3.5e9},
+        },
+        "link_budget_noise": {
+            "tx_power_dbm": 23.0,
+            "tx_gain_dbi": 0.0,
+            "rx_gain_dbi": 0.0,
+            "noise_figure_db": 7.0,
+            "noise_temperature_k": 290.0,
+            "noise_bandwidth_hz": 20e6,
+        },
+        "path_matching": {
+            "delay_tolerance_s": 1e-9,
+            "azimuth_tolerance_deg": 2.0,
+            "elevation_tolerance_deg": 2.0,
+            "coefficient_relative_tolerance": 0.05,
+            "minimum_bidirectional_coverage": 0.95,
+        },
+        "sampling": {
+            "episode_ids": ["episode-a"],
+            "path_equivalence_scenarios": [["scene-a", "LOS", "episode-a"]],
+            "unit_by_branch": {
+                "material_calibration": "independent_acquisition_unit",
+                "complex_csi": "independent_physical_episode",
+                "propagation_metrics": "independent_physical_episode",
+                "receiver_impact": "independent_transport_block_cluster",
+                "path_equivalence": "physical_episode",
             },
-            "candidate": {
-                "config_id": candidate_config_id,
-                "configuration": {"receiver": "ls"},
+            "planned_units_by_branch": {
+                "material_calibration": 30,
+                "complex_csi": 60,
+                "propagation_metrics": 60,
+                "receiver_impact": 100,
+                "path_equivalence": 1,
             },
-            "challenger": {
-                "config_id": "challenger-a",
-                "configuration": {"receiver": "dft"},
+            "planned_units_by_stratum": {
+                "material_calibration": [
+                    {"stratum": ["concrete", "V", "20deg"], "planned_units": 30}
+                ],
+                "complex_csi": [{"stratum": ["scene-a", "LOS"], "planned_units": 60}],
+                "propagation_metrics": [
+                    {"stratum": ["scene-a", "LOS", "total"], "planned_units": 60}
+                ],
+                "receiver_impact": [{"stratum": ["scene-a", "LOS"], "planned_units": 100}],
+                "path_equivalence": [
+                    {"stratum": ["scene-a", "LOS", "episode-a"], "planned_units": 1}
+                ],
             },
-            "waveform": {
-                "waveform_id": "pusch-fixture",
-                "configuration": {"mu": 1, "carrier_hz": 3.5e9},
-            },
-            "link_budget_noise": {
-                "tx_power_dbm": 23.0,
-                "tx_gain_dbi": 0.0,
-                "rx_gain_dbi": 0.0,
-                "noise_figure_db": 7.0,
-                "noise_temperature_k": 290.0,
-                "noise_bandwidth_hz": 20e6,
-            },
-            "path_matching": {
-                "delay_tolerance_s": 1e-9,
-                "azimuth_tolerance_deg": 2.0,
-                "elevation_tolerance_deg": 2.0,
-                "coefficient_relative_tolerance": 0.05,
-                "minimum_bidirectional_coverage": 0.95,
-            },
-            "sampling": {
-                "episode_ids": ["episode-a"],
-                "path_equivalence_scenarios": [["scene-a", "LOS", "episode-a"]],
-                "unit_by_branch": {
-                    "material_calibration": "independent_acquisition_unit",
-                    "complex_csi": "independent_physical_episode",
-                    "propagation_metrics": "independent_physical_episode",
-                    "receiver_impact": "independent_transport_block_cluster",
-                    "path_equivalence": "physical_episode",
-                },
-                "planned_units_by_branch": {
-                    "material_calibration": 30,
-                    "complex_csi": 60,
-                    "propagation_metrics": 60,
-                    "receiver_impact": 100,
-                    "path_equivalence": 1,
-                },
-                "planned_units_by_stratum": {
-                    "material_calibration": [
-                        {"stratum": ["concrete", "V", "20deg"], "planned_units": 30}
-                    ],
-                    "complex_csi": [
-                        {"stratum": ["scene-a", "LOS"], "planned_units": 60}
-                    ],
-                    "propagation_metrics": [
-                        {"stratum": ["scene-a", "LOS", "total"], "planned_units": 60}
-                    ],
-                    "receiver_impact": [
-                        {"stratum": ["scene-a", "LOS"], "planned_units": 100}
-                    ],
-                    "path_equivalence": [
-                        {"stratum": ["scene-a", "LOS", "episode-a"], "planned_units": 1}
-                    ],
-                },
-                "bootstrap_seed": 41,
-                "bootstrap_draws": 10000,
-            },
-            "solver_budget": {
-                "max_rays_per_link": 100000,
-                "max_interactions": 5,
-                "max_episodes": 200,
-                "max_wall_seconds": 3600,
-                "overflow_policy": "record_censored_episode",
-            },
-            "source_identity": {
-                "git_revision": "c" * 40,
-                "working_tree_dirty": True,
-                "source_bundle_sha256": source_bundle_sha256,
-            },
-        }
+            "bootstrap_seed": 41,
+            "bootstrap_draws": 10000,
+        },
+        "solver_budget": {
+            "max_rays_per_link": 100000,
+            "max_interactions": 5,
+            "max_episodes": 200,
+            "max_wall_seconds": 3600,
+            "overflow_policy": "record_censored_episode",
+        },
+        "source_identity": {
+            "git_revision": "c" * 40,
+            "working_tree_dirty": True,
+            "source_bundle_sha256": source_bundle_sha256,
+        },
+    }
     contract_spec["sample_size_design"] = _synthetic_complete_sample_size_design(family)
     if raw_paths:
         contract_spec["path_matching"].update(
@@ -833,7 +812,11 @@ def _synthetic_complete_sample_size_design(family: dict[str, Any]) -> dict[str, 
         "material_calibration": ("material_expected_strata", 20, "independent_acquisition_unit"),
         "complex_csi": ("complex_csi_expected_strata", 2, "independent_physical_episode"),
         "propagation_metrics": ("propagation_expected_strata", 2, "independent_physical_episode"),
-        "receiver_impact": ("receiver_impact_expected_strata", 20, "independent_transport_block_cluster"),
+        "receiver_impact": (
+            "receiver_impact_expected_strata",
+            20,
+            "independent_transport_block_cluster",
+        ),
         "path_equivalence": ("path_equivalence_expected_scenarios", 1, "physical_episode"),
     }
     branches = {
@@ -865,8 +848,7 @@ def _synthetic_complete_sample_size_design(family: dict[str, Any]) -> dict[str, 
             "family_sha256": family["family_sha256"],
         },
         "component_plans": {
-            name: {"schema": schema, "sha256": "a" * 64}
-            for name, schema in schemas.items()
+            name: {"schema": schema, "sha256": "a" * 64} for name, schema in schemas.items()
         },
         "sampling_units_are_distinct": True,
         "single_combined_sample_size_is_reported": False,
@@ -914,9 +896,7 @@ def test_run_manifest_hashes_and_replays_exact_inventory_bytes(
     assert report["qualification_status"] == "NOT_QUALIFIED"
     assert report["branch_count"] == 5
     assert report["evaluator_source_bundle_sha256"]
-    assert {"pyproject.toml", "uv.lock"}.issubset(
-        set(run_manifest.EVALUATOR_SOURCE_PATHS)
-    )
+    assert {"pyproject.toml", "uv.lock"}.issubset(set(run_manifest.EVALUATOR_SOURCE_PATHS))
     assert {
         run_manifest.INPUT_SCHEMA_V4_RELATIVE_PATH,
         run_manifest.INPUT_SCHEMA_V5_RELATIVE_PATH,
@@ -951,9 +931,7 @@ def test_strict_signed_reviewer_admission_rejects_unsigned_run_before_replay(
     assert report["status"] == "INCONSISTENT"
     assert report["qualification_status"] == "NOT_QUALIFIED"
     assert report["signed_reviewer_admission_status"] == "required"
-    assert any(
-        "strict signed reviewer admission requires" in error for error in report["errors"]
-    )
+    assert any("strict signed reviewer admission requires" in error for error in report["errors"])
 
 
 def test_run_manifest_v1_keeps_its_frozen_source_roster(
@@ -963,9 +941,7 @@ def test_run_manifest_v1_keeps_its_frozen_source_roster(
     source = tmp_path / "joint-input.json"
     saved = tmp_path / "joint-report.json"
     _write_canonical(source, _payload())
-    _write_canonical(
-        saved, _legacy_v1_report(artifact.evaluate_g3_joint_evidence_file(source))
-    )
+    _write_canonical(saved, _legacy_v1_report(artifact.evaluate_g3_joint_evidence_file(source)))
     manifest = run_manifest.build_g3_joint_evidence_run_manifest(
         "joint-run-001", source, saved, package_root=tmp_path
     )
@@ -984,9 +960,7 @@ def test_run_manifest_v1_keeps_its_frozen_source_roster(
     manifest.pop("runtime_identity")
     manifest["schema"] = "loslab.g3_joint_evidence_run_manifest.v1"
     manifest["evaluator_sources"] = legacy_sources
-    manifest["evaluator_source_bundle_sha256"] = run_manifest._source_bundle_sha256(
-        legacy_sources
-    )
+    manifest["evaluator_source_bundle_sha256"] = run_manifest._source_bundle_sha256(legacy_sources)
     manifest_path = tmp_path / "legacy-run-manifest.json"
     _write_canonical(manifest_path, manifest)
 
@@ -1003,9 +977,7 @@ def test_run_manifest_v2_remains_readable_after_runtime_identity_v3(
     source = tmp_path / "joint-input.json"
     saved = tmp_path / "joint-report.json"
     _write_canonical(source, _payload())
-    _write_canonical(
-        saved, _legacy_v1_report(artifact.evaluate_g3_joint_evidence_file(source))
-    )
+    _write_canonical(saved, _legacy_v1_report(artifact.evaluate_g3_joint_evidence_file(source)))
     manifest = run_manifest.build_g3_joint_evidence_run_manifest(
         "joint-run-001", source, saved, package_root=tmp_path
     )
@@ -1125,15 +1097,18 @@ def test_run_manifest_cli_publishes_schema_bound_report_without_overwrite(
     assert report["schema"] == "loslab.g3_joint_evidence_run_verification.v1"
     assert report["qualification_status"] == "NOT_QUALIFIED"
     assert len(report["report_schema_sha256"]) == 64
-    assert run_manifest.main(
-        [
-            str(manifest_path),
-            "--package-root",
-            str(tmp_path),
-            "--report-output",
-            str(verification_path),
-        ]
-    ) == 2
+    assert (
+        run_manifest.main(
+            [
+                str(manifest_path),
+                "--package-root",
+                str(tmp_path),
+                "--report-output",
+                str(verification_path),
+            ]
+        )
+        == 2
+    )
 
 
 def test_run_manifest_signature_resolves_external_signer_role_policy(
@@ -1329,9 +1304,7 @@ def test_signer_policy_requires_independent_custodian_and_keyring(
     }
 
     with pytest.raises(ValueError, match=message):
-        run_manifest._require_independent_signer_policy_custody(
-            manifest_identity, policy_identity
-        )
+        run_manifest._require_independent_signer_policy_custody(manifest_identity, policy_identity)
 
 
 def test_run_manifest_rejects_tampered_signed_signer_policy(
@@ -1411,7 +1384,9 @@ def test_run_manifest_rejects_tampered_signed_signer_policy(
     )
 
     assert report["status"] == "INCONSISTENT"
-    assert any("signature is invalid or signer is not trusted" in error for error in report["errors"])
+    assert any(
+        "signature is invalid or signer is not trusted" in error for error in report["errors"]
+    )
 
 
 def test_run_manifest_requires_all_signer_policy_signature_inputs_together(
@@ -1487,7 +1462,9 @@ def test_run_manifest_signature_rejects_changed_manifest_bytes(
     )
 
     assert report["status"] == "INCONSISTENT"
-    assert any("signature is invalid or signer is not trusted" in error for error in report["errors"])
+    assert any(
+        "signature is invalid or signer is not trusted" in error for error in report["errors"]
+    )
 
 
 def test_run_manifest_signature_options_must_be_supplied_together(tmp_path: Path) -> None:
@@ -1588,9 +1565,7 @@ def test_v4_contract_binds_raw_path_input_and_receipt(
     assert contract["schema"] == "loslab.g3_qualification_run_contract.v4"
     report = json.loads(saved.read_text(encoding="utf-8"))
     assert (
-        report["bundle"]["evaluations"]["path_equivalence"]["scenarios"][0][
-            "class_coverage_status"
-        ]
+        report["bundle"]["evaluations"]["path_equivalence"]["scenarios"][0]["class_coverage_status"]
         == "FAIL"
     )
     receipt = run_manifest.verify_g3_joint_evidence_run_manifest(manifest_path)
@@ -1693,9 +1668,7 @@ def test_contract_bound_run_rejects_v3_without_row_configuration_binding(
     payload = _payload_v3()
     _write_canonical(source, payload)
     source_identity = run_manifest.g3_evaluator_source_bundle_identity()
-    contract = _qualification_contract(
-        payload, source_identity["evaluator_source_bundle_sha256"]
-    )
+    contract = _qualification_contract(payload, source_identity["evaluator_source_bundle_sha256"])
     contract_path = tmp_path / "qualification-contract.json"
     _write_canonical(contract_path, contract)
 
@@ -1716,9 +1689,7 @@ def test_contract_preflight_rejects_receiver_row_bound_to_wrong_config(
     payload["receiver_impact"]["records"][0]["receiver_configuration_sha256"] = "0" * 64
     _write_canonical(source, payload)
     source_identity = run_manifest.g3_evaluator_source_bundle_identity()
-    contract = _qualification_contract(
-        payload, source_identity["evaluator_source_bundle_sha256"]
-    )
+    contract = _qualification_contract(payload, source_identity["evaluator_source_bundle_sha256"])
     contract_path = tmp_path / "qualification-contract.json"
     _write_canonical(contract_path, contract)
 
@@ -1741,9 +1712,7 @@ def test_contract_preflight_rejects_path_comparison_parameter_drift(
     ] = 2e-9
     _write_canonical(source, payload)
     source_identity = run_manifest.g3_evaluator_source_bundle_identity()
-    contract = _qualification_contract(
-        payload, source_identity["evaluator_source_bundle_sha256"]
-    )
+    contract = _qualification_contract(payload, source_identity["evaluator_source_bundle_sha256"])
     contract_path = tmp_path / "qualification-contract.json"
     _write_canonical(contract_path, contract)
 
@@ -1821,9 +1790,7 @@ def test_preregistered_run_rejects_execution_context_drift_before_scoring(
 
 
 @pytest.mark.parametrize("role", ["candidate", "challenger"])
-def test_joint_input_rejects_execution_configuration_hash_drift(
-    tmp_path: Path, role: str
-) -> None:
+def test_joint_input_rejects_execution_configuration_hash_drift(tmp_path: Path, role: str) -> None:
     source = tmp_path / "joint-input.json"
     payload = _payload_v2()
     payload["receiver_execution"][role]["configuration"]["receiver"] = "changed"

@@ -248,7 +248,7 @@ def _distribution_identity(name: str) -> dict[str, Any]:
         if relative.endswith(
             (".dist-info/RECORD", ".dist-info/WHEEL", ".dist-info/direct_url.json")
         ):
-            path = Path(dist.locate_file(entry))
+            path = Path(str(dist.locate_file(entry)))
             if path.exists():
                 identity_files[relative.rsplit("/", 1)[-1]] = _sha256(path)
         if (
@@ -256,12 +256,12 @@ def _distribution_identity(name: str) -> dict[str, Any]:
             and relative.startswith("sionna/phy/channel/tr38901/models/")
             and relative.endswith(".json")
         ):
-            path = Path(dist.locate_file(entry))
+            path = Path(str(dist.locate_file(entry)))
             table_files.append({"path": relative, "sha256": _sha256(path)})
     table_files.sort(key=lambda item: item["path"])
     table_payload = json.dumps(table_files, sort_keys=True, separators=(",", ":")).encode()
     return {
-        "name": dist.metadata.get("Name", name),
+        "name": dist.metadata["Name"] if "Name" in dist.metadata else name,
         "installed": True,
         "version": dist.version,
         "identity_completeness": "COMPLETE" if "RECORD" in identity_files else "INCOMPLETE",

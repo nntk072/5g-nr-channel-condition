@@ -26,8 +26,7 @@ _PROFILE_SHA256 = {
     "E": "04328f33d8d79b24aa3d0303fecb58b465ed7e13874930b05e76be0d97743480",
 }
 _REFERENCE_PATH = (
-    Path(__file__).resolve().parents[2]
-    / "docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
+    Path(__file__).resolve().parents[2] / "docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
 )
 _SCALAR_PATH = (
     Path(__file__).resolve().parents[2]
@@ -37,9 +36,26 @@ _REFERENCE_SHA256 = "24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc9
 _SCALAR_SHA256 = "3b5920e7c12b0e36c8e09d1c7f14025cfbb23b6d805e1044124bfcf147185620"
 _SOURCE_SHA256 = "b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4"
 _RAY_OFFSETS = (
-    0.0447, -0.0447, 0.1413, -0.1413, 0.2492, -0.2492, 0.3715, -0.3715,
-    0.5129, -0.5129, 0.6797, -0.6797, 0.8844, -0.8844, 1.1481, -1.1481,
-    1.5195, -1.5195, 2.1551, -2.1551,
+    0.0447,
+    -0.0447,
+    0.1413,
+    -0.1413,
+    0.2492,
+    -0.2492,
+    0.3715,
+    -0.3715,
+    0.5129,
+    -0.5129,
+    0.6797,
+    -0.6797,
+    0.8844,
+    -0.8844,
+    1.1481,
+    -1.1481,
+    1.5195,
+    -1.5195,
+    2.1551,
+    -2.1551,
 )
 _PORTS = 4  # V-element0, V-element1, H-element0, H-element1
 
@@ -81,12 +97,8 @@ def _reference(model: str) -> tuple[Any, str]:
     diffuse_powers /= diffuse_powers.sum()
     for weight, row in zip(diffuse_powers, diffuse, strict=True):
         angles = row["angles_deg"]
-        aoa = torch.deg2rad(
-            float(angles["aoa"]) + float(spread["asa"]) * offsets
-        )
-        zoa = torch.deg2rad(
-            float(angles["zoa"]) + float(spread["zsa"]) * offsets
-        )
+        aoa = torch.deg2rad(float(angles["aoa"]) + float(spread["asa"]) * offsets)
+        zoa = torch.deg2rad(float(angles["zoa"]) + float(spread["zsa"]) * offsets)
         projection = torch.sin(zoa)[:, None] * torch.sin(aoa)[None, :]
         phases = torch.exp(-1j * math.pi * projection)
         v_corr = phases.mean()

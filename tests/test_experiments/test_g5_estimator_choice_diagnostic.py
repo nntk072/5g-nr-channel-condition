@@ -40,4 +40,5 @@ def test_selected_failure_estimator_artifact_preserves_outcomes_and_flags_source
     assert current_sources == {
         "integrations/sionna/nr_pusch.py",
         "integrations/sionna/ofdm_impairments.py",
+        "receivers/nr/pusch.py",
     }

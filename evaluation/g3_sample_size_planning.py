@@ -823,9 +823,11 @@ def plan_g3_joint_independent_units(
             "per_claim_alpha_bonferroni": per_claim_alpha,
             "per_claim_power_target_bonferroni": per_claim_power,
             **(
-                {"path_equivalence_expected_scenarios": family[
-                    "path_equivalence_expected_scenarios"
-                ]}
+                {
+                    "path_equivalence_expected_scenarios": family[
+                        "path_equivalence_expected_scenarios"
+                    ]
+                }
                 if family["schema"] == FAMILY_SCHEMA_V4
                 else {}
             ),
@@ -889,9 +891,7 @@ def compose_g3_joint_sample_size_design(
     a single combined G3 sample size.
     """
     family = validate_g3_joint_acceptance_family(joint_acceptance_family)
-    target_joint = _probability(
-        target_joint_g3_assurance, "target_joint_g3_assurance"
-    )
+    target_joint = _probability(target_joint_g3_assurance, "target_joint_g3_assurance")
     if family.get("schema") != FAMILY_SCHEMA_V4:
         raise ValueError("joint design composition requires acceptance-family v4")
     expected_family = {
@@ -987,8 +987,7 @@ def compose_g3_joint_sample_size_design(
         matches = [
             row
             for row in candidates
-            if isinstance(row, Mapping)
-            and row.get("candidate_clusters_per_stratum") == selected
+            if isinstance(row, Mapping) and row.get("candidate_clusters_per_stratum") == selected
         ]
         if len(matches) != 1 or matches[0].get("meets_target_assurance") is not True:
             raise ValueError(f"{label} selected count is not a passing candidate design")
@@ -1009,8 +1008,11 @@ def compose_g3_joint_sample_size_design(
         for row in rows:
             if not isinstance(row, Mapping):
                 raise ValueError(f"{label} stratum assurance rows must be objects")
-            key = tuple(row.get(field) for field in stratum_key_fields)
-            if any(not isinstance(part, str) or not part for part in key) or key in observed:
+            raw_key = tuple(row.get(field) for field in stratum_key_fields)
+            if any(not isinstance(part, str) or not part for part in raw_key):
+                raise ValueError(f"{label} has invalid or duplicate assurance strata")
+            key = tuple(part for part in raw_key if isinstance(part, str))
+            if key in observed:
                 raise ValueError(f"{label} has invalid or duplicate assurance strata")
             observed.add(key)
             if row.get("cluster_count") != selected:
@@ -1028,11 +1030,7 @@ def compose_g3_joint_sample_size_design(
             raise ValueError(f"{label} assurance strata differ from the acceptance family")
         recomputed_joint_lower = max(
             0.0,
-            1.0
-            - sum(
-                1.0 - float(row["assurance_one_sided_exact_lower_bound"])
-                for row in rows
-            ),
+            1.0 - sum(1.0 - float(row["assurance_one_sided_exact_lower_bound"]) for row in rows),
         )
         if (
             isinstance(joint_lower, bool)
@@ -1050,7 +1048,9 @@ def compose_g3_joint_sample_size_design(
         plan: Mapping[str, Any],
     ) -> tuple[int | None, float | None]:
         if plan.get("joint_acceptance_family") != expected_family:
-            raise ValueError("material assurance plan does not match the supplied acceptance family")
+            raise ValueError(
+                "material assurance plan does not match the supplied acceptance family"
+            )
         roster = plan.get("stratum_roster_by_id")
         if not isinstance(roster, Mapping):
             raise ValueError("material assurance plan must bind material stratum IDs")
@@ -1066,9 +1066,7 @@ def compose_g3_joint_sample_size_design(
             ):
                 raise ValueError("material assurance plan contains an invalid stratum binding")
             normalized_roster[stratum_id] = tuple(stratum)
-        expected_material_strata = {
-            tuple(row) for row in strata_by_branch["material_calibration"]
-        }
+        expected_material_strata = {tuple(row) for row in strata_by_branch["material_calibration"]}
         if (
             len(normalized_roster) != len(expected_material_strata)
             or set(normalized_roster.values()) != expected_material_strata
@@ -1080,15 +1078,16 @@ def compose_g3_joint_sample_size_design(
         )
         if selected is None:
             return None, None
-        target = _probability(plan.get("target_assurance"), "material_assurance_plan.target_assurance")
+        target = _probability(
+            plan.get("target_assurance"), "material_assurance_plan.target_assurance"
+        )
         candidates = plan.get("candidate_designs")
         if not isinstance(candidates, list):
             raise ValueError("material_assurance_plan.candidate_designs must be an array")
         matches = [
             row
             for row in candidates
-            if isinstance(row, Mapping)
-            and row.get("independent_units_per_stratum") == selected
+            if isinstance(row, Mapping) and row.get("independent_units_per_stratum") == selected
         ]
         if len(matches) != 1 or matches[0].get("meets_target_assurance") is not True:
             raise ValueError("material assurance selection is not a passing candidate")
@@ -1135,7 +1134,9 @@ def compose_g3_joint_sample_size_design(
         joint_plan.get("single_combined_sample_size_is_reported") is not False
         or joint_plan.get("complete_g3_sample_size") is not None
     ):
-        raise ValueError("joint plan must keep sampling units separate and combined size unresolved")
+        raise ValueError(
+            "joint plan must keep sampling units separate and combined size unresolved"
+        )
     material_base_units = positive_count(
         material.get("required_independent_measurement_units_per_stratum_for_supported_claims"),
         "joint_plan.material_design.required_independent_measurement_units_per_stratum_for_supported_claims",
@@ -1230,15 +1231,15 @@ def compose_g3_joint_sample_size_design(
             ],
             "count_available": count is not None,
             "component_status": (
-                "EXACT_EPISODE_CENSUS" if branch == "path_equivalence" else
-                "SCENARIO_CONDITIONAL_COUNT_AVAILABLE" if count is not None else
-                "REQUIRED_ASSURANCE_COUNT_UNRESOLVED"
+                "EXACT_EPISODE_CENSUS"
+                if branch == "path_equivalence"
+                else "SCENARIO_CONDITIONAL_COUNT_AVAILABLE"
+                if count is not None
+                else "REQUIRED_ASSURANCE_COUNT_UNRESOLVED"
             ),
         }
 
-    all_counts_available = all(
-        design["count_available"] for design in branch_designs.values()
-    )
+    all_counts_available = all(design["count_available"] for design in branch_designs.values())
     component_design_complete = all(
         count is not None and lower is not None
         for count, lower in (
@@ -1254,9 +1255,11 @@ def compose_g3_joint_sample_size_design(
         "propagation_metrics": propagation_assurance_lower,
         "receiver_impact": receiver_assurance_lower,
     }
+    assurance_values = tuple(assurance_bounds.values())
+    present_assurance_values = tuple(bound for bound in assurance_values if bound is not None)
     joint_assurance_lower = (
-        max(0.0, 1.0 - sum(1.0 - bound for bound in assurance_bounds.values()))
-        if all(bound is not None for bound in assurance_bounds.values())
+        max(0.0, 1.0 - sum(1.0 - bound for bound in present_assurance_values))
+        if len(present_assurance_values) == len(assurance_values)
         else None
     )
     blockers = [
@@ -1269,9 +1272,7 @@ def compose_g3_joint_sample_size_design(
     if joint_assurance_lower is None:
         blockers.append("one or more evaluator-aligned branch assurance bounds remain unresolved")
     elif joint_assurance_lower < target_joint:
-        blockers.append(
-            "cross-branch union-bound assurance is below the requested joint G3 target"
-        )
+        blockers.append("cross-branch union-bound assurance is below the requested joint G3 target")
     angular = material.get("angular_maximum_claim")
     angular_supplied = isinstance(angular, Mapping) and angular.get("assumption_supplied") is True
     angular_compatible = (
@@ -1421,9 +1422,7 @@ def verify_g3_joint_sample_size_design(design: Mapping[str, Any]) -> dict[str, A
         isinstance(maximum, bool) or not isinstance(maximum, int) or maximum < 1
     ):
         raise ValueError("material angular-maximum count must be a positive integer or null")
-    if not angular_assumption["supplied"] and (
-        compatible is not None or maximum is not None
-    ):
+    if not angular_assumption["supplied"] and (compatible is not None or maximum is not None):
         raise ValueError("unsupplied angular-maximum assumptions cannot declare derived values")
     component_plans = saved.get("component_plans")
     expected_component_schemas = {
@@ -1524,9 +1523,7 @@ def verify_g3_joint_sample_size_design(design: Mapping[str, Any]) -> dict[str, A
         normalized_bounds.append(float(bound))
     declared_joint_assurance = saved.get("joint_g3_assurance_lower_bound_union_bound")
     if len(normalized_bounds) == len(assurance_branches):
-        expected_joint_assurance = max(
-            0.0, 1.0 - sum(1.0 - bound for bound in normalized_bounds)
-        )
+        expected_joint_assurance = max(0.0, 1.0 - sum(1.0 - bound for bound in normalized_bounds))
         if (
             isinstance(declared_joint_assurance, bool)
             or not isinstance(declared_joint_assurance, (int, float))
@@ -1555,8 +1552,7 @@ def verify_g3_joint_sample_size_design(design: Mapping[str, Any]) -> dict[str, A
         maximum_units = angular_assumption.get("maximum_units_per_stratum")
         material_rows = branches["material_calibration"]["required_units_by_stratum"]
         if maximum_units is not None and any(
-            row["required_units"] is not None
-            and row["required_units"] > maximum_units
+            row["required_units"] is not None and row["required_units"] > maximum_units
             for row in material_rows
         ):
             raise ValueError("material angular-maximum assumption conflicts with required counts")
@@ -1569,7 +1565,9 @@ def verify_g3_joint_sample_size_design(design: Mapping[str, Any]) -> dict[str, A
         and angular_assumption.get("compatible_with_material_design") is True
     )
     if saved["complete_precision_powered_g3_design"] is not expected_complete:
-        raise ValueError("complete_precision_powered_g3_design is inconsistent with component plans")
+        raise ValueError(
+            "complete_precision_powered_g3_design is inconsistent with component plans"
+        )
     return {
         "schema": "loslab.g3_joint_sample_size_design_verification.v1",
         "status": "PASS_DESIGN_INTEGRITY_NOT_QUALIFIED",

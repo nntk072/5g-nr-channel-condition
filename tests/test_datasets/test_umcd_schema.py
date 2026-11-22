@@ -887,9 +887,10 @@ def test_target_definition_digest_binds_every_canonical_field(changed_field, cha
 
 def test_definition_digest_hashes_exact_utf8_bytes_as_public_utility():
     canonical_definition = '{"semantic":"LOS"}'
-    assert definition_digest(canonical_definition) == hashlib.sha256(
-        canonical_definition.encode("utf-8")
-    ).hexdigest()
+    assert (
+        definition_digest(canonical_definition)
+        == hashlib.sha256(canonical_definition.encode("utf-8")).hexdigest()
+    )
     with pytest.raises(ValueError, match="non-empty string"):
         definition_digest("  ")
 

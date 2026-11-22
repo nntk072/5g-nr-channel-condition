@@ -16,7 +16,7 @@
     {"family_id": "S11-measured-campaign", "role": "external_transfer", "description": "Independent measured campaign with documented fields, rights, and timestamps."}
   ],
   "evidence": [
-    {"path": "docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md", "sha256": "9af3761eaa4fe7d258a9586ff7b3775bd28da2dca846154d3732d3b7b46a1883", "purpose": "S00-S11 taxonomy, intended roles, independence rule, and geometry quality gates."},
+    {"path": "docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md", "sha256": "3285eb1398ee83ea4d79b4b0116478ceed9d1374537fe2d3510a3c65a7585da2", "purpose": "S00-S11 taxonomy, intended roles, independence rule, and geometry quality gates."},
     {"path": "docs/research/results/g3-scene-asset-material-audit-20261023.json", "sha256": "b4275ca39801667467004d1b6eb32c6333de4d0fd2256a32fb3adb19010640ef", "purpose": "Pinned asset closures and candidate scene classifications; no path solver was invoked."},
     {"path": "docs/research/licenses/odbl-osm-scene-release-policy-20261023.json", "sha256": "529508f89e7c4f72e0688ef302c1f9c6c84d542594da13aa416cf44dd84a1fbc", "purpose": "Accepted internal ODbL research use and public-release hold for Etoile, Florence, and Munich."}
   ],

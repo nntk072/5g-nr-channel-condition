@@ -64,14 +64,14 @@ class EpisodeSplitRegistry:
         expected_key_count = len(fields)
         if any(len(value) != expected_key_count for value in keys.values()):
             raise ValueError("each episode must preserve one value for every group field")
-        for value in keys.values():
-            for item in value:
+        for group_values in keys.values():
+            for item in group_values:
                 _require_canonical_id(item, "episode group-key value")
         key_to_components: dict[tuple[str, str], set[str]] = {}
         for episode, values in keys.items():
             component = components[episode]
-            for field, value in zip(fields, values, strict=True):
-                key_to_components.setdefault((field, value), set()).add(component)
+            for field, group_value in zip(fields, values, strict=True):
+                key_to_components.setdefault((field, group_value), set()).add(component)
         if any(len(component_ids) != 1 for component_ids in key_to_components.values()):
             raise ValueError("episodes sharing a leakage key must share one connected component")
         object.__setattr__(self, "seed", seed)

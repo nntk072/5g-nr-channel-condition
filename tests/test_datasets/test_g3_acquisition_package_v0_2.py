@@ -223,9 +223,9 @@ def _package(schema_version="g3.03-acquisition-package.v0.2"):
         )
         for angular in package["angular_measurements"]:
             angular["coordinate_frame_id"] = "frame.example.1"
-        package["row_crosswalk"][0]["angular_measurement_id"] = package[
-            "angular_measurements"
-        ][0]["angular_id"]
+        package["row_crosswalk"][0]["angular_measurement_id"] = package["angular_measurements"][0][
+            "angular_id"
+        ]
     return package
 
 

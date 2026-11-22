@@ -228,7 +228,9 @@ def test_observed_strata_must_match_preregistered_set() -> None:
 
 
 def test_receiver_scorer_rejects_bootstrap_design_over_output_allocation_limit() -> None:
-    with pytest.raises(ValueError, match="bootstrap output arrays exceed the configured allocation limit"):
+    with pytest.raises(
+        ValueError, match="bootstrap output arrays exceed the configured allocation limit"
+    ):
         evaluate_receiver_impact(
             [],
             expected_strata=[("family-a", "LOS")],

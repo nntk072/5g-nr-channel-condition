@@ -123,7 +123,10 @@ def test_rt_label_complexity_verifies_v4_execution_provenance(tmp_path):
     execution = {
         "schema": "loslab.rt_execution_provenance.v1",
         "schema_sha256": hashlib.sha256(
-            (Path(__file__).resolve().parents[2] / "datasets/schema/rt-execution-provenance.v1.schema.json").read_bytes()
+            (
+                Path(__file__).resolve().parents[2]
+                / "datasets/schema/rt-execution-provenance.v1.schema.json"
+            ).read_bytes()
         ).hexdigest(),
         "started_at_utc": "2026-11-01T00:00:00.000000Z",
         "completed_at_utc": "2026-11-01T00:00:01.000000Z",

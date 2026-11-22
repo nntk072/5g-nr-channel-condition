@@ -144,15 +144,18 @@ def _validate_split_preregistration_order(
         for item in samples
         if isinstance(item, dict) and isinstance(item.get("sample_id"), str)
     }
-    held_out_ids = {
+    raw_held_out_ids = {
         row.get("acquisition_sample_id")
         for row in crosswalk
         if isinstance(row, dict) and row.get("split") == "test"
     }
-    if not held_out_ids or any(not isinstance(sample_id, str) for sample_id in held_out_ids):
+    if not raw_held_out_ids or any(
+        not isinstance(sample_id, str) for sample_id in raw_held_out_ids
+    ):
         raise ValueError(
             "split_preregistration requires held-out acquisition sample crosswalk rows"
         )
+    held_out_ids = {sample_id for sample_id in raw_held_out_ids if isinstance(sample_id, str)}
     if len(held_out_ids) != sum(
         1 for row in crosswalk if isinstance(row, dict) and row.get("split") == "test"
     ):

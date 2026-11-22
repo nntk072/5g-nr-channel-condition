@@ -80,7 +80,7 @@ def _relative_path(value: str, root: Path) -> str | None:
 
 
 def _classify_paths(paths: list[str]) -> dict[str, list[str]]:
-    result = {
+    result: dict[str, list[str]] = {
         "source_modules": [],
         "schemas": [],
         "cli_entries": [],

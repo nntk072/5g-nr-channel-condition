@@ -44,13 +44,11 @@ class IndependentSplit:
             (self.group_to_split, "group"),
         ):
             if any(
-                not isinstance(key, str) or not key or key != key.strip()
-                for key in assignments
+                not isinstance(key, str) or not key or key != key.strip() for key in assignments
             ):
                 raise ValueError(f"{label} assignment IDs must be nonempty canonical strings")
             if any(
-                not isinstance(value, str) or value not in allowed
-                for value in assignments.values()
+                not isinstance(value, str) or value not in allowed for value in assignments.values()
             ):
                 raise ValueError("split names must be train, validation, calibration, or test")
         object.__setattr__(self, "sample_to_split", MappingProxyType(dict(self.sample_to_split)))

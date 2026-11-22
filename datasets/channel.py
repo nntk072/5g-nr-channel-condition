@@ -75,9 +75,7 @@ class ChannelDataset:
                 raise ValueError(f"row {row_index} metadata must be an object")
             parent = metadata.get("split_subject_id")
             if not isinstance(parent, str) or not parent or parent != parent.strip():
-                raise ValueError(
-                    f"row {row_index} lacks a nonempty canonical split_subject_id"
-                )
+                raise ValueError(f"row {row_index} lacks a nonempty canonical split_subject_id")
             parents.add(parent)
             existing_child = metadata.get("split_child_id")
             existing_kind = metadata.get("split_child_kind")
@@ -142,9 +140,7 @@ class ChannelDataset:
         ):
             raise ValueError("label_semantics must be a non-empty string")
         if any(
-            not isinstance(group_id, str)
-            or not group_id
-            or group_id != group_id.strip()
+            not isinstance(group_id, str) or not group_id or group_id != group_id.strip()
             for group_id in self.group
         ):
             raise ValueError("group IDs must be nonempty canonical strings")

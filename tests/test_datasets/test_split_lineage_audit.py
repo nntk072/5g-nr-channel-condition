@@ -231,18 +231,27 @@ def test_saved_channel_lineage_builds_footprint_bound_v3_registry() -> None:
     assert len(subjects) == 4
     assert len(footprints) == 4
     assert registry.to_dict()["schema"] == "umcd.split_registry.v3"
-    assert registry_report["spatiotemporal_derivation_audit"] == evidence_report[
-        "spatiotemporal_derivation_audit"
-    ]
-    assert verify_registry_spatiotemporal_audit(
-        registry, footprints, spatial_buffer_m=0.0
-    ) == dict(registry.spatiotemporal_audit)
+    assert (
+        registry_report["spatiotemporal_derivation_audit"]
+        == evidence_report["spatiotemporal_derivation_audit"]
+    )
+    assert verify_registry_spatiotemporal_audit(registry, footprints, spatial_buffer_m=0.0) == dict(
+        registry.spatiotemporal_audit
+    )
 
 
 def test_lineage_report_counts_spatial_and_temporal_coverage_separately() -> None:
     rows = (
-        ("spatial-only", "family-a", {"split_positions_m": [0.0, 0.0, 0.0], "split_coordinate_frame_id": "map"}),
-        ("temporal-only", "family-a", {"split_time_scope_id": "clock", "split_start_time_s": 0.0, "split_end_time_s": 1.0}),
+        (
+            "spatial-only",
+            "family-a",
+            {"split_positions_m": [0.0, 0.0, 0.0], "split_coordinate_frame_id": "map"},
+        ),
+        (
+            "temporal-only",
+            "family-a",
+            {"split_time_scope_id": "clock", "split_start_time_s": 0.0, "split_end_time_s": 1.0},
+        ),
         (
             "both",
             "family-a",
@@ -339,9 +348,7 @@ def test_lineage_audit_joins_exact_shared_geometry_assets_across_scene_sets() ->
         ],
     )
 
-    subjects, report = derive_channel_dataset_split_subjects(
-        (left, right), spatial_buffer_m=1.0
-    )
+    subjects, report = derive_channel_dataset_split_subjects((left, right), spatial_buffer_m=1.0)
 
     assert report["spatially_linked_subjects"] == 0
     assert report["leakage_component_count"] == 1

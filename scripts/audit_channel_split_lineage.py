@@ -89,7 +89,9 @@ def _require_exact_child_object_owners(
     label: str,
 ) -> None:
     """Match every content-object manifest reference to the frozen owner roster."""
-    owners = [child_id for child_id, referenced_path in references if referenced_path == object_path]
+    owners = [
+        child_id for child_id, referenced_path in references if referenced_path == object_path
+    ]
     if len(owners) != len(set(owners)) or sorted(owners) != sorted(artifact_child_ids):
         raise ValueError(f"{label} manifest owners differ from the signed child roster")
 
@@ -133,9 +135,7 @@ def _stat_identity(metadata: os.stat_result) -> tuple[int, int, int, int, int, i
     )
 
 
-def _read_stable_regular_file(
-    path: Path, *, label: str, max_bytes: int | None = None
-) -> bytes:
+def _read_stable_regular_file(path: Path, *, label: str, max_bytes: int | None = None) -> bytes:
     """Read a stable regular file, optionally bounding memory before and during I/O."""
     if max_bytes is not None and (
         isinstance(max_bytes, bool) or not isinstance(max_bytes, int) or max_bytes < 0
@@ -349,10 +349,9 @@ def _enumerate_regular_files_beneath(root: Path) -> set[str]:
                     walk(nested_descriptor, relative, depth + 1)
                     after = os.fstat(nested_descriptor)
                     path_after = os.stat(name, dir_fd=descriptor, follow_symlinks=False)
-                    if (
-                        _stat_identity(after) != _stat_identity(opened)
-                        or _stat_identity(path_after) != _stat_identity(opened)
-                    ):
+                    if _stat_identity(after) != _stat_identity(opened) or _stat_identity(
+                        path_after
+                    ) != _stat_identity(opened):
                         raise ValueError("child artifact directory changed during enumeration")
                 finally:
                     os.close(nested_descriptor)
@@ -372,10 +371,9 @@ def _enumerate_regular_files_beneath(root: Path) -> set[str]:
         walk(root_descriptor, "", 0)
         after = os.fstat(root_descriptor)
         path_after = os.lstat(root)
-        if (
-            _stat_identity(after) != _stat_identity(opened_root)
-            or _stat_identity(path_after) != _stat_identity(opened_root)
-        ):
+        if _stat_identity(after) != _stat_identity(opened_root) or _stat_identity(
+            path_after
+        ) != _stat_identity(opened_root):
             raise ValueError("child artifact inventory root changed during enumeration")
     finally:
         os.close(root_descriptor)
@@ -408,7 +406,9 @@ def _read_channel_dataset_child_rows(
         file_descriptor = os.open(components[-1], file_flags, dir_fd=directory_descriptor)
         before = os.fstat(file_descriptor)
         if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1:
-            raise ValueError(f"split child artifact {child_id!r} must be a single-link regular file")
+            raise ValueError(
+                f"split child artifact {child_id!r} must be a single-link regular file"
+            )
         digest = hashlib.sha256()
         size = 0
         while True:
@@ -455,9 +455,7 @@ def _read_channel_dataset_child_rows(
                             f"split child artifact {child_id!r} metadata exceeds 64 MiB"
                         )
                     with archive.open(metadata_member) as metadata_stream:
-                        metadata_payload = metadata_stream.read(
-                            _MAX_CHILD_METADATA_NPY_BYTES + 1
-                        )
+                        metadata_payload = metadata_stream.read(_MAX_CHILD_METADATA_NPY_BYTES + 1)
                     if len(metadata_payload) > _MAX_CHILD_METADATA_NPY_BYTES:
                         raise ValueError(
                             f"split child artifact {child_id!r} metadata exceeds 64 MiB"
@@ -565,7 +563,9 @@ def _read_channel_dataset_child_rows(
             )
         for row_index, row in enumerate(rows):
             if not isinstance(row, dict):
-                raise ValueError(f"split child artifact {child_id!r} row {row_index} is not an object")
+                raise ValueError(
+                    f"split child artifact {child_id!r} row {row_index} is not an object"
+                )
             if row.get("split_child_id") != child_id:
                 raise ValueError(
                     f"split child artifact {child_id!r} row {row_index} has a different child ID"
@@ -646,8 +646,7 @@ def _load_split_child_artifact_roster(
         artifact_root_name = value["artifact_root"]
         if (
             not isinstance(artifact_root_name, str)
-            or re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}", artifact_root_name)
-            is None
+            or re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}", artifact_root_name) is None
             or artifact_root_name in {".", ".."}
         ):
             raise ValueError("split child artifact v3 root must be one safe directory name")
@@ -707,9 +706,7 @@ def _load_split_child_artifact_roster(
         else:
             artifact_id = entry["artifact_id"]
             artifact_type = entry["artifact_type"]
-            if (
-                roster_version == 5 and artifact_type == "umcd_episode_store_content_npz"
-            ) or (
+            if (roster_version == 5 and artifact_type == "umcd_episode_store_content_npz") or (
                 roster_version == 6 and artifact_type in _V6_MULTI_OWNER_ARTIFACT_TYPES
             ):
                 owner_child_ids = entry["child_ids"]
@@ -781,9 +778,7 @@ def _load_split_child_artifact_roster(
             ".json"
         ):
             raise ValueError("umcd_episode_store_manifest_json artifacts must use a .json path")
-        if artifact_type == "umcd_episode_store_content_npz" and not relative_path.endswith(
-            ".npz"
-        ):
+        if artifact_type == "umcd_episode_store_content_npz" and not relative_path.endswith(".npz"):
             raise ValueError("umcd_episode_store_content_npz artifacts must use a .npz path")
         declaration = {
             "artifact_id": artifact_id,
@@ -792,9 +787,7 @@ def _load_split_child_artifact_roster(
             "bytes": byte_count,
             "sha256": digest,
         }
-        if (
-            roster_version == 5 and artifact_type == "umcd_episode_store_content_npz"
-        ) or (
+        if (roster_version == 5 and artifact_type == "umcd_episode_store_content_npz") or (
             roster_version == 6 and artifact_type in _V6_MULTI_OWNER_ARTIFACT_TYPES
         ):
             if any(owner not in expected_child_bindings for owner in owner_child_ids):
@@ -875,9 +868,7 @@ def _load_split_child_artifact_roster(
             f"extra={sorted(observed_child_ids - expected_child_ids)})"
         )
     semantic_child_ids = {
-        entry["child_id"]
-        for entry in declared
-        if entry["artifact_type"] == "channel_dataset_npz"
+        entry["child_id"] for entry in declared if entry["artifact_type"] == "channel_dataset_npz"
     }
     if semantic_child_ids != expected_child_ids:
         raise ValueError(
@@ -889,7 +880,14 @@ def _load_split_child_artifact_roster(
         artifact_id = entry["artifact_id"]
         artifact_type = entry["artifact_type"]
         child_ids = entry.get("child_ids")
-        child_id = entry.get("child_id", child_ids[0] if child_ids else None)
+        child_id_value = entry.get("child_id", child_ids[0] if child_ids else None)
+        if (
+            not isinstance(child_id_value, str)
+            or not child_id_value
+            or child_id_value != child_id_value.strip()
+        ):
+            raise ValueError("split child artifact requires a canonical child_id")
+        child_id = child_id_value
         relative_path = entry["path"]
         byte_count = entry["bytes"]
         digest = entry["sha256"]
@@ -914,8 +912,7 @@ def _load_split_child_artifact_roster(
         elif artifact_type == "nr_trajectory_store_manifest_json":
             if not relative_path.startswith("manifests/trajectories/"):
                 raise ValueError(
-                    "nr_trajectory_store_manifest_json must be under "
-                    "manifests/trajectories/"
+                    "nr_trajectory_store_manifest_json must be under manifests/trajectories/"
                 )
             from datasets.nr_store import read_nr_trajectory
 
@@ -967,17 +964,13 @@ def _load_split_child_artifact_roster(
                     )
                 manifest_relative_path = relative_path
             else:
-                if not relative_path.startswith("records/") or not relative_path.endswith(
-                    ".npz"
-                ):
+                if not relative_path.startswith("records/") or not relative_path.endswith(".npz"):
                     raise ValueError(
                         "nr_record_store_content_npz must be beneath records/ with an .npz suffix"
                     )
-                manifest_candidates: list[tuple[str, dict[str, Any], str]] = []
+                record_manifest_candidates: list[tuple[str, dict[str, Any], str]] = []
                 for candidate in declared:
-                    if (
-                        candidate["artifact_type"] != "nr_record_store_manifest_json"
-                    ):
+                    if candidate["artifact_type"] != "nr_record_store_manifest_json":
                         continue
                     manifest_path = candidate["path"]
                     manifest_bytes = _read_stable_regular_file(
@@ -991,20 +984,22 @@ def _load_split_child_artifact_roster(
                             object_pairs_hook=_unique_json_object,
                         )
                     except (UnicodeDecodeError, json.JSONDecodeError, RecursionError) as error:
-                        raise ValueError("NR record manifest is not valid bounded UTF-8 JSON") from error
+                        raise ValueError(
+                            "NR record manifest is not valid bounded UTF-8 JSON"
+                        ) from error
                     if not isinstance(manifest_value, dict):
                         raise ValueError("NR record manifest must be a JSON object")
                     if manifest_value.get("relative_path") == relative_path:
-                        manifest_candidates.append(
+                        record_manifest_candidates.append(
                             (manifest_path, manifest_value, candidate["child_id"])
                         )
-                if len(manifest_candidates) != 1:
+                if len(record_manifest_candidates) != 1:
                     raise ValueError(
                         "nr_record_store_content_npz must be referenced by exactly one "
                         "rostered record manifest"
                     )
                 manifest_relative_path, matched_manifest, manifest_child_id = (
-                    manifest_candidates[0]
+                    record_manifest_candidates[0]
                 )
                 _require_exact_child_object_owners(
                     relative_path,
@@ -1051,7 +1046,9 @@ def _load_split_child_artifact_roster(
 
             run = read_scenario_gbsm_run(artifact_root, relative_path)
             if run.run_id in observed_scenario_run_ids:
-                raise ValueError(f"split child artifact roster repeats scenario run ID: {run.run_id}")
+                raise ValueError(
+                    f"split child artifact roster repeats scenario run ID: {run.run_id}"
+                )
             observed_scenario_run_ids.add(run.run_id)
             parent_ids = {record.sample_id for record in run.records}
             parent_to_children: dict[str, list[str]] = {}
@@ -1066,9 +1063,7 @@ def _load_split_child_artifact_roster(
                     f"{sorted(missing_parents)}"
                 )
             expected_owners = sorted(
-                child
-                for parent in parent_ids
-                for child in parent_to_children[parent]
+                child for parent in parent_ids for child in parent_to_children[parent]
             )
             if child_ids != expected_owners:
                 raise ValueError(
@@ -1087,9 +1082,8 @@ def _load_split_child_artifact_roster(
         elif artifact_type == "scenario_gbsm_record_content_npz":
             if roster_version < 6:
                 raise ValueError("scenario GBSM record objects require child artifact roster v6")
-            if (
-                not relative_path.startswith("scenario_gbsm/records/")
-                or not relative_path.endswith(".npz")
+            if not relative_path.startswith("scenario_gbsm/records/") or not relative_path.endswith(
+                ".npz"
             ):
                 raise ValueError(
                     "scenario_gbsm_record_content_npz must be beneath scenario_gbsm/records/"
@@ -1119,7 +1113,7 @@ def _load_split_child_artifact_roster(
             episode_id = bundle.episode.episode_id
             if episode_id in observed_episode_ids:
                 raise ValueError(
-                    "split child artifact roster repeats UMCD episode ID: " f"{episode_id}"
+                    f"split child artifact roster repeats UMCD episode ID: {episode_id}"
                 )
             observed_episode_ids.add(episode_id)
             parent_subject_id = expected_child_bindings[child_id].parent_subject_id
@@ -1138,7 +1132,7 @@ def _load_split_child_artifact_roster(
         elif artifact_type == "umcd_episode_store_content_npz":
             if not relative_path.startswith("objects/"):
                 raise ValueError("umcd_episode_store_content_npz must be beneath objects/")
-            manifest_candidates: list[tuple[str, str, dict[str, Any]]] = []
+            episode_manifest_candidates: list[tuple[str, str, dict[str, Any]]] = []
             for candidate in declared:
                 if candidate["artifact_type"] != "umcd_episode_store_manifest_json":
                     continue
@@ -1163,10 +1157,10 @@ def _load_split_child_artifact_roster(
                     raise ValueError("UMCD episode bundle manifest layers are invalid")
                 for reference in manifest_value["layers"]:
                     if isinstance(reference, dict) and reference.get("path") == relative_path:
-                        manifest_candidates.append(
+                        episode_manifest_candidates.append(
                             (manifest_path, candidate["child_id"], reference)
                         )
-            if not manifest_candidates:
+            if not episode_manifest_candidates:
                 raise ValueError(
                     "umcd_episode_store_content_npz must be referenced by a rostered "
                     "episode manifest"
@@ -1174,11 +1168,16 @@ def _load_split_child_artifact_roster(
             _require_exact_child_object_owners(
                 relative_path,
                 child_ids if child_ids is not None else [child_id],
-                [(manifest_child_id, reference["path"]) for _, manifest_child_id, reference in manifest_candidates],
+                [
+                    (manifest_child_id, reference["path"])
+                    for _, manifest_child_id, reference in episode_manifest_candidates
+                ],
                 label="UMCD episode content object",
             )
-            manifest_paths = sorted({manifest_path for manifest_path, _, _ in manifest_candidates})
-            _, _, reference = manifest_candidates[0]
+            manifest_paths = sorted(
+                {manifest_path for manifest_path, _, _ in episode_manifest_candidates}
+            )
+            _, _, reference = episode_manifest_candidates[0]
             layer = reference.get("layer")
             content_sha256 = reference.get("sha256")
             if (
@@ -1267,9 +1266,7 @@ def _load_split_child_artifact_roster(
         "child_count": len(observed_child_ids),
         "artifact_count": len(verified),
         "artifact_root": artifact_root_name,
-        "artifact_directory_inventory_status": (
-            "EXACT" if roster_version >= 3 else "NOT_DECLARED"
-        ),
+        "artifact_directory_inventory_status": ("EXACT" if roster_version >= 3 else "NOT_DECLARED"),
         "semantic_artifact_count": semantic_artifact_count,
         "byte_only_artifact_count": byte_only_count,
         "artifact_types": sorted({item["artifact_type"] for item in verified}),
@@ -1277,9 +1274,7 @@ def _load_split_child_artifact_roster(
         "authority": authority,
         "artifacts": verified,
         "row_count": sum(item.get("row_count", 0) for item in verified),
-        "trajectory_sample_count": sum(
-            item.get("trajectory_sample_count", 0) for item in verified
-        ),
+        "trajectory_sample_count": sum(item.get("trajectory_sample_count", 0) for item in verified),
         "trajectory_count": len(observed_trajectory_ids),
         "scenario_gbsm_run_count": len(observed_scenario_run_ids),
         "scenario_gbsm_parent_count": sum(
@@ -1629,9 +1624,7 @@ def audit_channel_datasets(
         raise TypeError("require_complete_split_audit must be a boolean")
     if require_complete_split_audit:
         if inventory_manifest is None or inventory_signature is None:
-            raise ValueError(
-                "complete split audit requires a signed frozen corpus inventory"
-            )
+            raise ValueError("complete split audit requires a signed frozen corpus inventory")
         if split_registry_path is None:
             raise ValueError("complete split audit requires a signed split registry")
     split_signature_arguments = (
@@ -1654,14 +1647,12 @@ def audit_channel_datasets(
     if split_child_artifact_rosters and not split_child_rosters:
         raise ValueError("split child artifact rosters require complete child binding rosters")
     if any(
-        not isinstance(entry, (tuple, list)) or len(entry) != 2
-        for entry in split_child_rosters
+        not isinstance(entry, (tuple, list)) or len(entry) != 2 for entry in split_child_rosters
     ):
         raise ValueError("split child rosters must be (child_kind, path) pairs")
     child_roster_kinds = [kind for kind, _ in split_child_rosters]
     if any(
-        not isinstance(kind, str) or not kind or kind != kind.strip()
-        for kind in child_roster_kinds
+        not isinstance(kind, str) or not kind or kind != kind.strip() for kind in child_roster_kinds
     ):
         raise ValueError("split child roster kinds must be canonical nonempty strings")
     if len(set(child_roster_kinds)) != len(child_roster_kinds):
@@ -1878,9 +1869,7 @@ def audit_channel_datasets(
             signer_id=split_registry_signer_id,
         )
         if require_complete_split_audit and not registry.child_bindings:
-            raise ValueError(
-                "complete split audit requires at least one frozen child binding"
-            )
+            raise ValueError("complete split audit requires at least one frozen child binding")
         if lineage_report.get("subjects_with_provisional_split_identity", 0) != 0:
             raise ValueError(
                 "signed split-registry audit refuses provisional RT scene identities; "
@@ -1902,9 +1891,7 @@ def audit_channel_datasets(
                     f"(missing={sorted(expected_kinds - supplied_kinds)}, "
                     f"extra={sorted(supplied_kinds - expected_kinds)})"
                 )
-            for child_kind, roster_path in sorted(
-                split_child_rosters, key=lambda item: item[0]
-            ):
+            for child_kind, roster_path in sorted(split_child_rosters, key=lambda item: item[0]):
                 bindings, roster_metadata = _load_split_child_roster(
                     roster_path, expected_child_kind=child_kind
                 )
@@ -1953,16 +1940,13 @@ def audit_channel_datasets(
                     )
                 )
         byte_only_artifact_count = sum(
-            roster["audit"]["byte_only_artifact_count"]
-            for roster in child_artifact_reports
+            roster["audit"]["byte_only_artifact_count"] for roster in child_artifact_reports
         )
         semantic_artifact_count = sum(
-            roster["audit"]["semantic_artifact_count"]
-            for roster in child_artifact_reports
+            roster["audit"]["semantic_artifact_count"] for roster in child_artifact_reports
         )
         trajectory_sample_count = sum(
-            roster["audit"]["trajectory_sample_count"]
-            for roster in child_artifact_reports
+            roster["audit"]["trajectory_sample_count"] for roster in child_artifact_reports
         )
         trajectory_count = sum(
             roster["audit"]["trajectory_count"] for roster in child_artifact_reports
@@ -1971,21 +1955,16 @@ def audit_channel_datasets(
             roster["audit"].get("episode_count", 0) for roster in child_artifact_reports
         )
         scenario_gbsm_run_count = sum(
-            roster["audit"].get("scenario_gbsm_run_count", 0)
-            for roster in child_artifact_reports
+            roster["audit"].get("scenario_gbsm_run_count", 0) for roster in child_artifact_reports
         )
         scenario_gbsm_parent_count = sum(
             roster["audit"].get("scenario_gbsm_parent_count", 0)
             for roster in child_artifact_reports
         )
-        expected_child_kinds = {
-            binding.child_kind for binding in registry.child_bindings.values()
-        }
+        expected_child_kinds = {binding.child_kind for binding in registry.child_bindings.values()}
         if require_complete_split_audit:
             supplied_binding_kinds = {kind for kind, _ in split_child_rosters}
-            supplied_artifact_kinds = {
-                kind for kind, _ in split_child_artifact_rosters
-            }
+            supplied_artifact_kinds = {kind for kind, _ in split_child_artifact_rosters}
             if supplied_binding_kinds != expected_child_kinds:
                 raise ValueError(
                     "complete split audit requires binding rosters for every frozen child kind "
@@ -2002,9 +1981,7 @@ def audit_channel_datasets(
                 raise ValueError(
                     "complete split audit rejects child artifacts without semantic validators"
                 )
-        roster_schemas = {
-            roster["audit"]["roster_schema"] for roster in child_artifact_reports
-        }
+        roster_schemas = {roster["audit"]["roster_schema"] for roster in child_artifact_reports}
         has_umcd_episode_artifacts = bool(
             roster_schemas
             & {
@@ -2036,8 +2013,7 @@ def audit_channel_datasets(
                     else "PASS_SIGNED_PARENT_FOOTPRINT_CHILD_BINDINGS_AND_SEMANTIC_ARTIFACT_ROWS"
                 )
                 if split_child_artifact_rosters
-                else
-                "PASS_SIGNED_PARENT_FOOTPRINT_AND_CHILD_BINDING_ROSTERS"
+                else "PASS_SIGNED_PARENT_FOOTPRINT_AND_CHILD_BINDING_ROSTERS"
                 if split_child_rosters
                 else "PASS_SIGNED_PARENT_AND_FOOTPRINT_AUDIT"
             ),
@@ -2080,9 +2056,11 @@ def _validate_split_audit_report(report: dict[str, Any]) -> None:
     validator = jsonschema.Draft202012Validator(schema)
     errors = sorted(validator.iter_errors(report), key=lambda error: tuple(map(str, error.path)))
     if errors:
-        error = errors[0]
-        location = ".".join(str(part) for part in error.path) or "<root>"
-        raise ValueError(f"channel split audit report violates schema at {location}: {error.message}")
+        schema_error = errors[0]
+        location = ".".join(str(part) for part in schema_error.path) or "<root>"
+        raise ValueError(
+            f"channel split audit report violates schema at {location}: {schema_error.message}"
+        )
 
 
 def _parse_dataset(value: str) -> tuple[str, Path]:

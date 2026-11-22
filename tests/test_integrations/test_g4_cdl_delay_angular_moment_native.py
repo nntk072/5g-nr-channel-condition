@@ -94,9 +94,7 @@ def _diffuse_components_and_powers(
     model: str,
 ) -> tuple[dict[str, Any], list[dict[str, Any]], Any]:
     profile = _reference_profile(model)
-    diffuse_components = [
-        item for item in profile["components"] if item["component"] == "diffuse"
-    ]
+    diffuse_components = [item for item in profile["components"] if item["component"] == "diffuse"]
     assert diffuse_components
     powers = torch.as_tensor(
         [10.0 ** (float(item["power_db"]) / 10.0) for item in diffuse_components],

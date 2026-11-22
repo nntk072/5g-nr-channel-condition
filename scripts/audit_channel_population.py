@@ -135,9 +135,9 @@ def audit_files(roster_path: Path, dataset_paths: list[Path]) -> dict[str, Any]:
     report = audit_expected_population(
         roster,
         observed_sample_ids=sample_ids,
-        observed_family_ids=data.source.astype(str),
-        observed_domain_ids=data.domain.astype(str),
-        observed_group_ids=data.group.astype(str),
+        observed_family_ids=data.source.astype(str).tolist(),
+        observed_domain_ids=data.domain.astype(str).tolist(),
+        observed_group_ids=data.group.astype(str).tolist(),
     )
     report["roster_source"] = {
         "path": str(roster_path.resolve()),

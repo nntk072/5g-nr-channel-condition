@@ -118,9 +118,7 @@ def _los_ray_reference(model: str, angle_name: str) -> tuple[float, np.ndarray]:
         [item["angles_deg"][angle_name] for item in diffuse_components], dtype=np.float64
     )
     spread = float(profile["cluster_spreads_deg"][_ANGLE_SPREAD_FIELDS[angle_name]])
-    ray_angles = np.deg2rad(
-        angle_cluster_mean[:, None] + spread * _RAY_ANGLE_OFFSETS[None, :]
-    )
+    ray_angles = np.deg2rad(angle_cluster_mean[:, None] + spread * _RAY_ANGLE_OFFSETS[None, :])
     cluster_cos_angle = np.cos(ray_angles).mean(axis=1)
     los_angle = float(specular_components[0]["angles_deg"][angle_name])
     los_cos_angle = math.cos(math.radians(los_angle))

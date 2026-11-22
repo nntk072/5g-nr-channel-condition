@@ -232,7 +232,7 @@ def pair_stored_frequency_bundles(
     independently checks the stored bundle hashes, split group, selected view,
     and unique carrier-matched oracle-channel provenance.
     """
-    from .episode_store import StoredEpisodeBundle, read_episode_bundle
+    from .episode_store import EpisodeBundle, StoredEpisodeBundle, read_episode_bundle
 
     if not isinstance(lower_bundle, StoredEpisodeBundle) or not isinstance(
         upper_bundle, StoredEpisodeBundle
@@ -249,7 +249,9 @@ def pair_stored_frequency_bundles(
     if lower.episode.split_group_id != upper.episode.split_group_id:
         raise ValueError("paired frequency bundles must share one frozen split group")
 
-    def selected(bundle: object, view_id: str) -> tuple[PhysicalChannelView, UMCDRunProvenance]:
+    def selected(
+        bundle: EpisodeBundle, view_id: str
+    ) -> tuple[PhysicalChannelView, UMCDRunProvenance]:
         channel_matches = [view for view in bundle.channel_views if view.view_id == view_id]
         if len(channel_matches) != 1:
             raise ValueError(f"stored bundle must contain exactly one channel view {view_id!r}")

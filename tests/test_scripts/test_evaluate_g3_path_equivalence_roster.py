@@ -49,9 +49,7 @@ def _input() -> dict[str, Any]:
         "challenger_bidirectional_coverage": 1.0,
         "matched_class_pair_count": 19,
         "matched_classes": matched,
-        "candidate_only_relevant_classes": [
-            {"receiver_relevance": {"receiver_relevant": True}}
-        ],
+        "candidate_only_relevant_classes": [{"receiver_relevance": {"receiver_relevant": True}}],
         "challenger_only_relevant_classes": [],
     }
     return {

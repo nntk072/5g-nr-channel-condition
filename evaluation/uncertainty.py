@@ -31,7 +31,9 @@ def _real_vector(value: Sequence[float] | np.ndarray, *, name: str) -> np.ndarra
     try:
         result = np.asarray(raw, dtype=np.float64)
     except (TypeError, ValueError, OverflowError) as error:
-        raise TypeError(f"{name} must contain real numeric values representable as float64") from error
+        raise TypeError(
+            f"{name} must contain real numeric values representable as float64"
+        ) from error
     if not np.isfinite(result).all():
         raise ValueError(f"{name} must contain only finite values representable as float64")
     return result
@@ -41,9 +43,7 @@ def _canonical_string_vector(value: Sequence[str] | np.ndarray, *, name: str) ->
     raw = np.asarray(value, dtype=object)
     if raw.ndim != 1 or not raw.size:
         raise ValueError(f"{name} must be a nonempty one-dimensional string vector")
-    if any(
-        not isinstance(item, str) or not item or item != item.strip() for item in raw.tolist()
-    ):
+    if any(not isinstance(item, str) or not item or item != item.strip() for item in raw.tolist()):
         raise ValueError(f"{name} must contain canonical nonempty strings")
     return raw.astype(str)
 
@@ -124,8 +124,7 @@ def _group_bootstrap_rmse(
         raise ValueError(f"draws exceeds the {_MAX_BOOTSTRAP_DRAWS}-draw ceiling")
     if unique.size > _MAX_BOOTSTRAP_PEAK_INDEX_CELLS:
         raise ValueError(
-            "group count exceeds the "
-            f"{_MAX_BOOTSTRAP_PEAK_INDEX_CELLS}-cell bootstrap peak ceiling"
+            f"group count exceeds the {_MAX_BOOTSTRAP_PEAK_INDEX_CELLS}-cell bootstrap peak ceiling"
         )
     resampling_cells = int(draws * unique.size)
     if resampling_cells > _MAX_BOOTSTRAP_RESAMPLING_CELLS:
@@ -320,7 +319,9 @@ def evaluate_grouped_regression_uncertainty(
                 "accepted_samples": int(np.sum(group_sizes[selected_groups])),
                 "mean_group_uncertainty": float(np.mean(group_mean_uncertainty[selected_groups])),
                 "group_macro_mae": float(np.mean(group_mae[selected_groups])),
-                "group_macro_rmse": float(np.mean(np.asarray(list(group_rmse.values()))[selected_groups])),
+                "group_macro_rmse": float(
+                    np.mean(np.asarray(list(group_rmse.values()))[selected_groups])
+                ),
                 "selection_rule": "ascending_mean_group_uncertainty_stable_by_group_id",
             }
         )

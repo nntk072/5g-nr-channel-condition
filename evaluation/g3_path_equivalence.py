@@ -36,9 +36,7 @@ _SOLVER_BUDGET_FIELDS = {
 }
 
 
-def _finite_real_array(
-    value: Any, name: str, *, allow_empty: bool = False
-) -> NDArray[np.float64]:
+def _finite_real_array(value: Any, name: str, *, allow_empty: bool = False) -> NDArray[np.float64]:
     """Parse finite real values without coercing booleans, strings, or complex data."""
     try:
         raw = np.asarray(value, dtype=object)
@@ -296,9 +294,7 @@ def build_path_equivalence_classes(
                 (member["cfr"] for member in members),
                 start=np.zeros_like(members[0]["cfr"]),
             )
-            aggregate_coefficient = sum(
-                (member["coefficient"] for member in members), start=0j
-            )
+            aggregate_coefficient = sum((member["coefficient"] for member in members), start=0j)
             if not math.isfinite(aggregate_coefficient.real) or not math.isfinite(
                 aggregate_coefficient.imag
             ):
@@ -362,6 +358,8 @@ def _class_view(item: Any) -> dict[str, Any]:
         for value in (coefficient_real, coefficient_imag)
     ):
         raise ValueError("path class aggregate coefficient must have finite real components")
+    assert coefficient_real is not None
+    assert coefficient_imag is not None
     aggregate_coefficient = complex(float(coefficient_real), float(coefficient_imag))
     if not math.isfinite(aggregate_coefficient.real) or not math.isfinite(
         aggregate_coefficient.imag
@@ -791,6 +789,8 @@ def _diffuse_path_power(path: dict[str, Any]) -> float:
     imag = path.get("coefficient_imag")
     if any(isinstance(value, bool) or not isinstance(value, Real) for value in (real, imag)):
         raise ValueError("diffuse path coefficients must be finite real and imaginary values")
+    assert real is not None
+    assert imag is not None
     real_value, imag_value = float(real), float(imag)
     if not math.isfinite(real_value) or not math.isfinite(imag_value):
         raise ValueError("diffuse path coefficients must be finite real and imaginary values")
@@ -857,17 +857,20 @@ def summarize_diffuse_stochastic_paths(paths: Sequence[dict[str, Any]]) -> dict[
             theta = path.get(f"theta_{endpoint}_rad")
             phi = path.get(f"phi_{endpoint}_rad")
             if any(
-                isinstance(value, bool) or not isinstance(value, Real)
-                for value in (theta, phi)
+                isinstance(value, bool) or not isinstance(value, Real) for value in (theta, phi)
             ):
                 raise ValueError("diffuse path directions must be finite real angles")
+            assert theta is not None
+            assert phi is not None
             theta_value, phi_value = float(theta), float(phi)
             if (
                 not math.isfinite(theta_value)
                 or not 0.0 <= theta_value <= math.pi
                 or not math.isfinite(phi_value)
             ):
-                raise ValueError("diffuse path directions must use finite zenith and azimuth angles")
+                raise ValueError(
+                    "diffuse path directions must use finite zenith and azimuth angles"
+                )
             zenith_values.append(theta_value)
             azimuth_values.append((phi_value + math.pi) % (2.0 * math.pi) - math.pi)
 
@@ -951,7 +954,10 @@ def compare_diffuse_stochastic_path_distributions(
     solver_budget_provenance: dict[str, Any],
 ) -> dict[str, Any]:
     """Return descriptive candidate/challenger summaries under frozen solver caps."""
-    if not isinstance(solver_budget_provenance, dict) or set(solver_budget_provenance) != _SOLVER_BUDGET_FIELDS:
+    if (
+        not isinstance(solver_budget_provenance, dict)
+        or set(solver_budget_provenance) != _SOLVER_BUDGET_FIELDS
+    ):
         raise ValueError("solver_budget_provenance must match the frozen five-field solver budget")
     normalized_budget: dict[str, Any] = {}
     for key in ("max_rays_per_link", "max_interactions", "max_episodes"):
@@ -976,16 +982,14 @@ def compare_diffuse_stochastic_path_distributions(
     normalized_budget["max_wall_seconds"] = wall_seconds_value
     normalized_budget["overflow_policy"] = overflow_policy
     budget_sha256 = hashlib.sha256(
-        json.dumps(normalized_budget, sort_keys=True, separators=(",", ":"), allow_nan=False).encode(
-            "utf-8"
-        )
+        json.dumps(
+            normalized_budget, sort_keys=True, separators=(",", ":"), allow_nan=False
+        ).encode("utf-8")
     ).hexdigest()
     candidate = summarize_diffuse_stochastic_paths(candidate_paths)
     challenger = summarize_diffuse_stochastic_paths(challenger_paths)
 
-    def quantile_deltas(
-        summary_field: str, field: str
-    ) -> dict[str, float] | None:
+    def quantile_deltas(summary_field: str, field: str) -> dict[str, float] | None:
         left = candidate[summary_field][field]
         right = challenger[summary_field][field]
         return quantile_mapping_delta(left, right)

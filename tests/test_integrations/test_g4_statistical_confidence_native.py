@@ -39,8 +39,7 @@ _FIXED_TDL_MODELS = ("A10", "A30", "B100", "C60", "C300", "D10", "D30")
 _TDL_RX_SPATIAL_MODELS = tuple("ABCDE")
 _TDL_RX_SPATIAL_COMPONENT_COUNT = len(_TDL_RX_SPATIAL_MODELS) * 2 * 4 * 4
 _CDL_REFERENCE_PATH = (
-    Path(__file__).resolve().parents[2]
-    / "docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
+    Path(__file__).resolve().parents[2] / "docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
 )
 _CDL_REFERENCE_SHA256 = "24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090"
 _CDL_ETSI_SOURCE_SHA256 = "b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4"
@@ -50,9 +49,7 @@ def _within_interval(estimate: Any, standard_error: Any, target: Any) -> bool:
     return bool((torch.abs(estimate - target) <= _Z_SIMULTANEOUS * standard_error).all())
 
 
-def _independent_cdl_pdp(
-    model: str, delay_spread_s: float
-) -> tuple[list[float], list[float]]:
+def _independent_cdl_pdp(model: str, delay_spread_s: float) -> tuple[list[float], list[float]]:
     """Derive the ensemble cluster PDP from the pinned ETSI table fixture."""
     reference_bytes = _CDL_REFERENCE_PATH.read_bytes()
     if hashlib.sha256(reference_bytes).hexdigest() != _CDL_REFERENCE_SHA256:
@@ -95,28 +92,19 @@ def _independent_cdl_pdp(
             or not isinstance(component.get("component"), str)
         ):
             raise ValueError(f"CDL-{model} reference contains an invalid component row")
-        if (
-            cluster_id in delay_by_cluster
-            and delay_by_cluster[cluster_id] != float(delay)
-        ):
-            raise ValueError(
-                f"CDL-{model} components in one cluster have inconsistent delays"
-            )
+        if cluster_id in delay_by_cluster and delay_by_cluster[cluster_id] != float(delay):
+            raise ValueError(f"CDL-{model} components in one cluster have inconsistent delays")
         delay_by_cluster[cluster_id] = float(delay)
         power_by_cluster[cluster_id] = power_by_cluster.get(cluster_id, 0.0) + 10.0 ** (
             float(power_db) / 10.0
         )
 
     if len(power_by_cluster) != profile.get("cluster_count"):
-        raise ValueError(
-            f"CDL-{model} reference cluster count does not match its component roster"
-        )
+        raise ValueError(f"CDL-{model} reference cluster count does not match its component roster")
     total_power = math.fsum(power_by_cluster.values())
     if not math.isfinite(total_power) or total_power <= 0:
         raise ValueError(f"CDL-{model} reference has invalid total cluster power")
-    cluster_ids = sorted(
-        power_by_cluster, key=lambda cluster: (delay_by_cluster[cluster], cluster)
-    )
+    cluster_ids = sorted(power_by_cluster, key=lambda cluster: (delay_by_cluster[cluster], cluster))
     return (
         [power_by_cluster[cluster] / total_power for cluster in cluster_ids],
         [delay_by_cluster[cluster] * delay_spread_s for cluster in cluster_ids],
@@ -451,9 +439,7 @@ def test_four_element_tdl_covariance_uses_simultaneous_draw_level_intervals() ->
 
 
 @pytest.mark.native_sionna
-@pytest.mark.parametrize(
-    ("profile_index", "model"), tuple(enumerate(_TDL_RX_SPATIAL_MODELS))
-)
+@pytest.mark.parametrize(("profile_index", "model"), tuple(enumerate(_TDL_RX_SPATIAL_MODELS)))
 def test_tdl_ae_receive_covariance_matches_one_simultaneous_matrix_family(
     profile_index: int, model: str
 ) -> None:
@@ -463,7 +449,7 @@ def test_tdl_ae_receive_covariance_matches_one_simultaneous_matrix_family(
     phase_rad = 0.23
     rx_corr_mat = tuple(
         tuple(
-            rho**abs(row - col)
+            rho ** abs(row - col)
             * complex(math.cos(phase_rad * (row - col)), math.sin(phase_rad * (row - col)))
             for col in range(4)
         )
@@ -491,18 +477,10 @@ def test_tdl_ae_receive_covariance_matches_one_simultaneous_matrix_family(
     real_se = outer_products.real.std(dim=0, unbiased=True) / math.sqrt(batch_size)
     imag_se = outer_products.imag.std(dim=0, unbiased=True) / math.sqrt(batch_size)
     independent_powers, _ = scalable_tdl_pdp_reference(model, delay_spread_s=100e-9)
-    expected = independent_powers[tap_index] * torch.as_tensor(
-        rx_corr_mat, dtype=torch.complex64
-    )
-    simultaneous_z = NormalDist().inv_cdf(
-        1.0 - 0.01 / (2.0 * _TDL_RX_SPATIAL_COMPONENT_COUNT)
-    )
-    assert bool(
-        (torch.abs(empirical.real - expected.real) <= simultaneous_z * real_se).all()
-    )
-    assert bool(
-        (torch.abs(empirical.imag - expected.imag) <= simultaneous_z * imag_se).all()
-    )
+    expected = independent_powers[tap_index] * torch.as_tensor(rx_corr_mat, dtype=torch.complex64)
+    simultaneous_z = NormalDist().inv_cdf(1.0 - 0.01 / (2.0 * _TDL_RX_SPATIAL_COMPONENT_COUNT))
+    assert bool((torch.abs(empirical.real - expected.real) <= simultaneous_z * real_se).all())
+    assert bool((torch.abs(empirical.imag - expected.imag) <= simultaneous_z * imag_se).all())
     torch.testing.assert_close(empirical, empirical.mH, rtol=0.0, atol=1e-7)
     assert float(torch.linalg.eigvalsh(empirical).min()) >= -1e-7
     assert channel.metadata["batch_axis_semantics"] == "independent_stochastic_channel_draws"

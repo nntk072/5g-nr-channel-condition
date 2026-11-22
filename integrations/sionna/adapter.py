@@ -841,10 +841,13 @@ def generate_raytraced(
             scene_candidate_split_metadata,
         )
 
+        geometry_asset_sha256 = scene_assets.get("asset_set_sha256")
+        if not isinstance(geometry_asset_sha256, str):
+            raise ValueError("scene asset set digest must be a string")
         scene_family_identity = scene_candidate_split_metadata(
             load_scene_family_registry(),
             candidate_id=scene_family_candidate_id,
-            actual_geometry_asset_sha256=scene_assets["asset_set_sha256"],
+            actual_geometry_asset_sha256=geometry_asset_sha256,
         )
     scene = _scene_override if _scene_override is not None else load_scene(scene_ref)
     scene.frequency = grid.carrier_hz
@@ -1538,10 +1541,13 @@ def generate_raytraced_cached(
             scene_candidate_split_metadata,
         )
 
+        geometry_asset_sha256 = assets.get("asset_set_sha256")
+        if not isinstance(geometry_asset_sha256, str):
+            raise ValueError("scene asset set digest must be a string")
         scene_family_identity = scene_candidate_split_metadata(
             load_scene_family_registry(),
             candidate_id=scene_family_candidate_id,
-            actual_geometry_asset_sha256=assets["asset_set_sha256"],
+            actual_geometry_asset_sha256=geometry_asset_sha256,
         )
     scene = rt.load_scene(scene_ref)
     scene.frequency = grid.carrier_hz

@@ -234,12 +234,17 @@ def _non_exported_plan_named_definitions(
                 tree = ast.parse(path.read_text(encoding="utf-8"), filename=relative)
             except (OSError, SyntaxError, UnicodeDecodeError):
                 continue
-            parents = {child: parent for parent in ast.walk(tree) for child in ast.iter_child_nodes(parent)}
+            parents = {
+                child: parent for parent in ast.walk(tree) for child in ast.iter_child_nodes(parent)
+            }
             module = relative.removesuffix(".py").replace("/", ".")
             for node in ast.walk(tree):
                 if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                     continue
-                if node.name not in plan_references or (relative, node.name) in exported_definitions:
+                if (
+                    node.name not in plan_references
+                    or (relative, node.name) in exported_definitions
+                ):
                     continue
                 parent = parents.get(node)
                 kind = "method" if isinstance(parent, ast.ClassDef) else "function"
@@ -312,9 +317,7 @@ def build_inventory(root: Path = ROOT) -> dict[str, Any]:
         non_exported_plan_definitions = _non_exported_plan_named_definitions(
             root=ROOT, exports=exports
         )
-        non_exported_refs = _reference_index(
-            non_exported_plan_definitions, scan_roots=SCAN_ROOTS
-        )
+        non_exported_refs = _reference_index(non_exported_plan_definitions, scan_roots=SCAN_ROOTS)
         non_exported_test_refs = _reference_index(
             non_exported_plan_definitions, scan_roots=TEST_SCAN_ROOTS
         )

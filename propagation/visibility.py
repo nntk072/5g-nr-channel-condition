@@ -201,9 +201,7 @@ def _point_in_triangle(point: np.ndarray, triangle: np.ndarray, tolerance_m: flo
     barycentric = _barycentric(point, triangle)
     if barycentric is None:
         return False
-    cross_norm = np.linalg.norm(
-        np.cross(triangle[1] - triangle[0], triangle[2] - triangle[0])
-    )
+    cross_norm = np.linalg.norm(np.cross(triangle[1] - triangle[0], triangle[2] - triangle[0]))
     face_scale = max(float(np.sqrt(cross_norm)), tolerance_m)
     return bool(np.min(barycentric) >= -tolerance_m / face_scale)
 

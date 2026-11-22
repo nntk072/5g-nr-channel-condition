@@ -95,7 +95,11 @@ def _validate_composition(torch: Any, composition: Any) -> tuple[Any, Any]:
     contributions = getattr(composition, "source_contributions", None)
     received = getattr(composition, "received_grid", None)
     powers = getattr(composition, "transmit_power_w_per_re", None)
-    if not torch.is_tensor(contributions) or not torch.is_complex(contributions):
+    if (
+        contributions is None
+        or not torch.is_tensor(contributions)
+        or not torch.is_complex(contributions)
+    ):
         raise TypeError("composition must contain complex PyTorch source contributions")
     if contributions is None:
         raise TypeError("composition must contain complex PyTorch source contributions")
@@ -388,7 +392,8 @@ def propagate_network_transmit_waveforms(
 
     waveform = getattr(transmitter_waveform, "waveform", None)
     if (
-        not torch.is_tensor(waveform)
+        waveform is None
+        or not torch.is_tensor(waveform)
         or waveform.layout != torch.strided
         or not torch.is_complex(waveform)
         or waveform.ndim != 4
@@ -1283,9 +1288,18 @@ def add_independent_receiver_waveform_awgn(
     contributions = getattr(composition, "source_contributions", None)
     offsets = getattr(composition, "link_start_samples", None)
     power_gain = getattr(composition, "link_power_gain_linear", None)
-    if not torch.is_tensor(received) or not torch.is_complex(received) or received.ndim != 4:
+    if (
+        received is None
+        or not torch.is_tensor(received)
+        or not torch.is_complex(received)
+        or received.ndim != 4
+    ):
         raise TypeError("composition must contain complex [batch, rx, rx_port, sample] waveforms")
-    if not torch.is_tensor(contributions) or not torch.is_complex(contributions):
+    if (
+        contributions is None
+        or not torch.is_tensor(contributions)
+        or not torch.is_complex(contributions)
+    ):
         raise TypeError("composition must contain complex per-link contributions")
     if contributions.ndim != 5 or tuple(contributions.shape[:2]) != tuple(received.shape[:2]):
         raise ValueError("composition link contributions have invalid axes")
@@ -1297,14 +1311,16 @@ def add_independent_receiver_waveform_awgn(
         raise ValueError("composition link contributions do not match the receiver waveform")
     integer_dtypes = {torch.uint8, torch.int8, torch.int16, torch.int32, torch.int64}
     if (
-        not torch.is_tensor(offsets)
+        offsets is None
+        or not torch.is_tensor(offsets)
         or offsets.layout != torch.strided
         or offsets.dtype not in integer_dtypes
         or offsets.shape != (received.shape[1], contributions.shape[3])
     ):
         raise ValueError("composition must contain one sample offset per receiver/transmitter")
     if (
-        not torch.is_tensor(power_gain)
+        power_gain is None
+        or not torch.is_tensor(power_gain)
         or tuple(power_gain.shape) != (received.shape[1], contributions.shape[3])
         or power_gain.device != received.device
         or not power_gain.is_floating_point()

@@ -58,9 +58,7 @@ def test_scenario_gbsm_cli_rejects_malformed_or_unbounded_config(mutate, message
 
 
 @pytest.mark.parametrize("alias_kind", ("symlink", "hardlink"))
-def test_scenario_gbsm_config_reader_rejects_file_aliases(
-    tmp_path: Path, alias_kind: str
-) -> None:
+def test_scenario_gbsm_config_reader_rejects_file_aliases(tmp_path: Path, alias_kind: str) -> None:
     source = tmp_path / "scenario.json"
     source.write_text(json.dumps(_config()), encoding="utf-8")
     alias = tmp_path / "scenario-alias.json"

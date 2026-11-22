@@ -1089,8 +1089,6 @@ def test_parameter_matched_neural_trio_uses_common_split_and_records_budget(
     tmp_path, monkeypatch
 ) -> None:
     from models.capacity import matched_capacity_names
-    from models.complex_cnn import build_complex_cnn
-    from models.real_cnn import build_real_cnn
 
     source = tmp_path / "debug.npz"
     debug_multipath(n_scenes=8, links_per_scene=8, n_subcarriers=16, seed=89).save(source)
@@ -1113,15 +1111,11 @@ def test_parameter_matched_neural_trio_uses_common_split_and_records_budget(
 
     def fake_real_cnn(x, y, x_validation, y_validation, *, seed, device, capacity):
         seen_capacities["cnn"] = capacity
-        model = build_real_cnn(2 * x.shape[1], capacity)
-        count = sum(parameter.numel() for parameter in model.parameters())
-        return Predictor(), {"trainable_parameters": count}
+        return Predictor(), {"trainable_parameters": profile["real_cnn_parameters"]}
 
     def fake_complex_cnn(x, y, x_validation, y_validation, *, seed, device, capacity):
         seen_capacities["cvnn"] = capacity
-        model = build_complex_cnn(x.shape[1], capacity)
-        count = sum(parameter.numel() for parameter in model.parameters())
-        return Predictor(), {"trainable_parameters": count}
+        return Predictor(), {"trainable_parameters": profile["complex_cnn_parameters"]}
 
     monkeypatch.setattr(runner_module, "fit_sklearn", capture_sklearn)
     monkeypatch.setattr(runner_module, "fit_real_cnn", fake_real_cnn)

@@ -120,6 +120,7 @@ def cdl_spatiotemporal_covariance_reference(
     for component, power in zip(components, powers, strict=True):
         base_aoa = float(component["angles_deg"]["aoa"])
         base_zoa = float(component["angles_deg"]["zoa"])
+        directions: tuple[tuple[float, float, float], ...]
         if component["component"] == "specular":
             directions = (_unit_arrival_direction(base_aoa, base_zoa),)
         elif component["component"] == "diffuse":

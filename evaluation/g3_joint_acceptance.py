@@ -276,10 +276,7 @@ def build_g3_joint_acceptance_family_v4(
         if (
             not isinstance(item, (list, tuple))
             or len(item) != 3
-            or any(
-                not isinstance(part, str) or not part or part != part.strip()
-                for part in item
-            )
+            or any(not isinstance(part, str) or not part or part != part.strip() for part in item)
             or item[1] not in {"LOS", "NLOS"}
         ):
             raise ValueError(

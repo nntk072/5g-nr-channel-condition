@@ -143,7 +143,7 @@ def build_rt_dmrs_generation_request(
             arrays[name] = {
                 "dtype": str(value.dtype),
                 "shape": list(value.shape),
-                "sha256": hashlib.sha256(value.view(np.uint8)).hexdigest(),
+                "sha256": hashlib.sha256(value.view(np.uint8).tobytes(order="C")).hexdigest(),
             }
         metadata_bytes = json.dumps(
             {

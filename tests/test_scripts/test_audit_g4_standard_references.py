@@ -68,9 +68,9 @@ def test_exact_reference_bytes_pass_but_report_remains_nonqualifying(tmp_path: P
         / "schema"
         / "g4-standard-reference-audit.v1.schema.json"
     )
-    jsonschema.Draft202012Validator(
-        json.loads(schema_path.read_text(encoding="utf-8"))
-    ).validate(report)
+    jsonschema.Draft202012Validator(json.loads(schema_path.read_text(encoding="utf-8"))).validate(
+        report
+    )
 
 
 def test_reference_tampering_and_missing_bytes_are_rejected(tmp_path: Path) -> None:

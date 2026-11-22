@@ -343,20 +343,23 @@ class NRChannelRecord:
                 ) from exc
             if broadcast_shape != target_shape:
                 raise ValueError(f"target mask {name!r} is not broadcastable to its target")
-            if torch_module is not None and torch_module.is_tensor(target):
-                expanded_mask = torch_module.broadcast_to(
-                    torch_module.as_tensor(mask, dtype=torch_module.bool, device=target.device),
+            # Resolve the tensor backend per target and per mask. The loop variable from the
+            # earlier target loop is stale here: a CUDA target followed by a NumPy target would
+            # otherwise reach np.asarray on device memory.
+            target_module = _torch_module_for_tensor_candidate(target)
+            if target_module is not None:
+                expanded_mask = target_module.broadcast_to(
+                    target_module.as_tensor(mask, dtype=target_module.bool, device=target.device),
                     target_shape,
                 )
-                unavailable = target.masked_select(torch_module.logical_not(expanded_mask))
-                if unavailable.numel() and bool(torch_module.any(unavailable != 0).item()):
+                unavailable = target.masked_select(target_module.logical_not(expanded_mask))
+                if unavailable.numel() and bool(target_module.any(unavailable != 0).item()):
                     raise ValueError(f"masked target elements for {name!r} must use zero storage")
             else:
                 target_array = np.asarray(target)
+                mask_module = _torch_module_for_tensor_candidate(mask)
                 mask_array = (
-                    mask.detach().cpu().numpy()
-                    if torch_module is not None and torch_module.is_tensor(mask)
-                    else np.asarray(mask)
+                    mask.detach().cpu().numpy() if mask_module is not None else np.asarray(mask)
                 )
                 expanded_mask = np.broadcast_to(mask_array.astype(bool, copy=False), target_shape)
                 if np.any(target_array[~expanded_mask] != 0):
@@ -367,7 +370,7 @@ class NRChannelRecord:
             if raw_mask is None:
                 expanded_mask = np.ones(target_shape, dtype=bool)
             else:
-                if torch_module is not None and torch_module.is_tensor(raw_mask):
+                if _torch_module_for_tensor_candidate(raw_mask) is not None:
                     mask_array = raw_mask.detach().cpu().numpy()
                 else:
                     mask_array = np.asarray(raw_mask)

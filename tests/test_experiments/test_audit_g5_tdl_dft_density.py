@@ -33,8 +33,14 @@ def test_saved_signed_lag_dft_confirmation_is_rejected_after_source_drift() -> N
 
     assert audited["status"] == "FAIL"
     assert set(audited["issues"]) == {
+        "source hash mismatch: evaluation/statistics.py",
         "source hash mismatch: experiments/g5_cp_bounded_dft_estimator.py",
+        "source hash mismatch: experiments/g5_independent_channel_receiver.py",
+        "source hash mismatch: experiments/link_curves.py",
+        "source hash mismatch: experiments/qualify_g5_tdl_c_dmrs_density.py",
         "source hash mismatch: integrations/sionna/nr_pusch.py",
+        "source hash mismatch: integrations/sionna/tdl_pusch.py",
+        "source hash mismatch: receivers/nr/pusch.py",
     }
     assert audited["source_matches_worktree"] is False
 

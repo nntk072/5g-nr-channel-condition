@@ -125,8 +125,7 @@ def _complete_design(spec: dict[str, object]) -> dict[str, object]:
         branch: {
             "sampling_unit": units[branch],
             "required_units_by_stratum": [
-                {"stratum": list(stratum), "required_units": count}
-                for stratum in family[field]
+                {"stratum": list(stratum), "required_units": count} for stratum in family[field]
             ],
             "count_available": True,
             "component_status": "SCENARIO_CONDITIONAL_COUNT_AVAILABLE",
@@ -150,8 +149,7 @@ def _complete_design(spec: dict[str, object]) -> dict[str, object]:
             "family_sha256": family["family_sha256"],
         },
         "component_plans": {
-            name: {"schema": schema, "sha256": "a" * 64}
-            for name, schema in schemas.items()
+            name: {"schema": schema, "sha256": "a" * 64} for name, schema in schemas.items()
         },
         "sampling_units_are_distinct": True,
         "single_combined_sample_size_is_reported": False,
@@ -215,9 +213,9 @@ def test_g3_qualification_contract_freezes_configs_and_sampling_design() -> None
         lambda spec: spec["sampling"].update(
             path_equivalence_scenarios=[["site-a ", "LOS", "episode-01"]]
         ),
-        lambda spec: spec["sampling"]["planned_units_by_stratum"][
-            "complex_csi"
-        ][0].update(stratum=["site-a", " LOS", "LOS"]),
+        lambda spec: spec["sampling"]["planned_units_by_stratum"]["complex_csi"][0].update(
+            stratum=["site-a", " LOS", "LOS"]
+        ),
     ],
 )
 def test_g3_qualification_contract_rejects_padded_identity_aliases(mutate) -> None:
@@ -241,8 +239,7 @@ def test_g3_qualification_contract_v3_binds_complete_design_and_digest() -> None
     )
     jsonschema = pytest.importorskip("jsonschema")
     schema_path = (
-        Path(__file__).parents[2]
-        / "datasets/schema/g3-qualification-run-contract.v3.schema.json"
+        Path(__file__).parents[2] / "datasets/schema/g3-qualification-run-contract.v3.schema.json"
     )
     schema = json.loads(schema_path.read_text(encoding="utf-8"))
     jsonschema.Draft202012Validator.check_schema(schema)
@@ -300,8 +297,7 @@ def test_g3_qualification_contract_v4_freezes_raw_path_analysis_configuration() 
     )
     jsonschema = pytest.importorskip("jsonschema")
     schema_path = (
-        Path(__file__).parents[2]
-        / "datasets/schema/g3-qualification-run-contract.v4.schema.json"
+        Path(__file__).parents[2] / "datasets/schema/g3-qualification-run-contract.v4.schema.json"
     )
     schema = json.loads(schema_path.read_text(encoding="utf-8-sig"))
     jsonschema.Draft202012Validator.check_schema(schema)
@@ -432,9 +428,7 @@ def test_g3_qualification_contract_rejects_per_stratum_evaluator_floor(
 
 def test_g3_qualification_contract_rejects_per_stratum_count_total_mismatch() -> None:
     spec = _spec()
-    spec["sampling"]["planned_units_by_stratum"]["receiver_impact"][0][
-        "planned_units"
-    ] = 101
+    spec["sampling"]["planned_units_by_stratum"]["receiver_impact"][0]["planned_units"] = 101
 
     with pytest.raises(ValueError, match="must equal the sum of its per-stratum counts"):
         build_g3_qualification_run_contract(spec)
@@ -451,9 +445,7 @@ def test_g3_qualification_contract_rejects_missing_acceptance_stratum_count() ->
 def test_g3_qualification_contract_binds_one_path_unit_per_frozen_episode() -> None:
     spec = _spec()
     spec["sampling"]["planned_units_by_branch"]["path_equivalence"] = 2
-    spec["sampling"]["planned_units_by_stratum"]["path_equivalence"][0][
-        "planned_units"
-    ] = 2
+    spec["sampling"]["planned_units_by_stratum"]["path_equivalence"][0]["planned_units"] = 2
 
     with pytest.raises(ValueError, match="exactly one per frozen episode"):
         build_g3_qualification_run_contract(spec)

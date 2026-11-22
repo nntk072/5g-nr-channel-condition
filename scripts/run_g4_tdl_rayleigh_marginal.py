@@ -85,7 +85,10 @@ def _validate_cases(cases: list[dict[str, Any]]) -> dict[str, float | int]:
                 raise ValueError(f"draw count mismatch for {model}")
             if abs(claim["confidence_radius"] - radius) > 1e-15:
                 raise ValueError(f"family-wise DKW radius mismatch for {model}")
-            if not claim["passed"] or claim["simultaneous_upper_bound"] > MAXIMUM_SIMULTANEOUS_CDF_ERROR:
+            if (
+                not claim["passed"]
+                or claim["simultaneous_upper_bound"] > MAXIMUM_SIMULTANEOUS_CDF_ERROR
+            ):
                 raise ValueError(f"frozen Rayleigh marginal criterion failed for {model}")
             maximum_ks = max(maximum_ks, float(claim["empirical_ks_distance"]))
             maximum_upper_bound = max(maximum_upper_bound, float(claim["simultaneous_upper_bound"]))
@@ -135,15 +138,13 @@ def main(argv: list[str] | None = None) -> int:
         parser.error(f"native pytest execution failed with exit code {exit_code}")
     summary = _validate_cases(collector.cases)
     cases = sorted(collector.cases, key=lambda case: MODELS.index(case["model"]))
-    claims = [
-        {"model": case["model"], **claim}
-        for case in cases
-        for claim in case["claims"]
-    ]
+    claims = [{"model": case["model"], **claim} for case in cases for claim in case["claims"]]
     report = {
         "schema": "loslab.g4_tdl_rayleigh_marginal_native_validation.v1",
         "date": "2026-11-09",
-        "base_commit": subprocess.check_output(["git", "-C", str(ROOT), "rev-parse", "HEAD"], text=True).strip(),
+        "base_commit": subprocess.check_output(
+            ["git", "-C", str(ROOT), "rev-parse", "HEAD"], text=True
+        ).strip(),
         "all_passed": True,
         "criteria_changed": False,
         "profiles": list(MODELS),
@@ -179,8 +180,12 @@ def main(argv: list[str] | None = None) -> int:
                 "batch_axis_semantics": case["batch_axis_semantics"],
                 "parameter_table_source": case["parameter_table_source"],
                 "parameter_table_sha256": case["parameter_table_sha256"],
-                "maximum_empirical_ks_distance": max(claim["empirical_ks_distance"] for claim in case["claims"]),
-                "maximum_simultaneous_upper_bound": max(claim["simultaneous_upper_bound"] for claim in case["claims"]),
+                "maximum_empirical_ks_distance": max(
+                    claim["empirical_ks_distance"] for claim in case["claims"]
+                ),
+                "maximum_simultaneous_upper_bound": max(
+                    claim["simultaneous_upper_bound"] for claim in case["claims"]
+                ),
                 "passed": all(claim["passed"] for claim in case["claims"]),
             }
             for case in cases

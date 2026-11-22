@@ -141,6 +141,9 @@ def convert_target_map(
 
         flat_values = target_value.values.reshape(-1)
         flat_mask = target_value.valid_mask.reshape(-1)
+        censoring_intervals = target_value.censoring_intervals
+        if censoring_intervals is None:
+            raise RuntimeError("validated TargetValue lacks normalized censoring intervals")
         if flat_values.size == 0:
             raise ValueError(f"target value for {target_id!r} must contain at least one element")
         definitions.append(
@@ -165,7 +168,7 @@ def convert_target_map(
                     None if reason is TargetValidity.VALID else reason.value
                     for reason in target_value.reason_codes
                 ),
-                censoring_intervals=target_value.censoring_intervals,
+                censoring_intervals=censoring_intervals,
             )
         )
     if not target_map:

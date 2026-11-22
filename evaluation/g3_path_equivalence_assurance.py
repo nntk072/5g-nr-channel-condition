@@ -91,9 +91,7 @@ def _recompute_raw_comparison(
             or coefficient_relative_tolerance < 0.0
         ):
             raise ValueError("coefficient_relative_tolerance must be finite and nonnegative")
-        normalized["coefficient_relative_tolerance"] = float(
-            coefficient_relative_tolerance
-        )
+        normalized["coefficient_relative_tolerance"] = float(coefficient_relative_tolerance)
     if normalized["direction_tolerance_rad"] > math.pi:
         raise ValueError("direction_tolerance_rad must not exceed pi")
 
@@ -109,13 +107,15 @@ def _recompute_raw_comparison(
     }
     candidate_paths = row.get("candidate_paths")
     challenger_paths = row.get("challenger_paths")
+    if not isinstance(candidate_paths, list) or not isinstance(challenger_paths, list):
+        raise ValueError("raw candidate/challenger paths must be arrays")
     diffuse_distribution: dict[str, Any] | None = None
     if solver_budget_provenance is None:
-        candidate_identity_paths = candidate_paths
-        challenger_identity_paths = challenger_paths
+        if any(not isinstance(path, dict) for path in candidate_paths + challenger_paths):
+            raise ValueError("raw candidate/challenger paths must contain path objects")
+        candidate_identity_paths = [path for path in candidate_paths if isinstance(path, dict)]
+        challenger_identity_paths = [path for path in challenger_paths if isinstance(path, dict)]
     else:
-        if not isinstance(candidate_paths, list) or not isinstance(challenger_paths, list):
-            raise ValueError("raw candidate/challenger paths must be arrays")
 
         def split_path_records(
             paths: list[Any], side: str
@@ -180,9 +180,9 @@ def _recompute_raw_comparison(
         candidate_configuration_id=normalized["candidate_configuration_id"],
         challenger_configuration_id=normalized["challenger_configuration_id"],
     )
-    raw_bytes = json.dumps(
-        row, sort_keys=True, separators=(",", ":"), allow_nan=False
-    ).encode("utf-8")
+    raw_bytes = json.dumps(row, sort_keys=True, separators=(",", ":"), allow_nan=False).encode(
+        "utf-8"
+    )
     return comparison, hashlib.sha256(raw_bytes).hexdigest(), diffuse_distribution
 
 
@@ -244,8 +244,10 @@ def _validate_comparison_coverage(comparison: dict[str, Any], key: tuple[str, st
     matched = comparison.get("matched_classes")
     candidate_only = comparison.get("candidate_only_relevant_classes")
     challenger_only = comparison.get("challenger_only_relevant_classes")
-    if not isinstance(matched, list) or not isinstance(candidate_only, list) or not isinstance(
-        challenger_only, list
+    if (
+        not isinstance(matched, list)
+        or not isinstance(candidate_only, list)
+        or not isinstance(challenger_only, list)
     ):
         raise ValueError(f"comparison class rosters must be lists: {key}")
     if count("matched_class_pair_count") != len(matched):
@@ -305,9 +307,8 @@ def _validate_comparison_coverage(comparison: dict[str, Any], key: tuple[str, st
                 if "coefficient_criterion_pass" in item:
                     raise ValueError(f"unexpected coefficient criterion result: {key}")
             elif relevant_pair:
-                expected_criterion_result = (
-                    float(coefficient_error) <= float(coefficient_tolerance)
-                )
+                assert isinstance(coefficient_error, (int, float))
+                expected_criterion_result = float(coefficient_error) <= float(coefficient_tolerance)
                 if criterion_result is not expected_criterion_result:
                     raise ValueError(f"coefficient criterion result disagrees with delta: {key}")
             elif criterion_result is not None:
@@ -430,8 +431,7 @@ def evaluate_path_equivalence_roster(
             not isinstance(item, tuple)
             or len(item) != 3
             or any(
-                not isinstance(value, str) or not value or value != value.strip()
-                for value in item
+                not isinstance(value, str) or not value or value != value.strip() for value in item
             )
             or item[1] not in {"LOS", "NLOS"}
         ):
@@ -445,9 +445,7 @@ def evaluate_path_equivalence_roster(
         family = validate_g3_joint_acceptance_family(joint_acceptance_family)
         if family["schema"] != FAMILY_SCHEMA_V4:
             raise ValueError("path-equivalence roster requires joint acceptance family v4")
-        declared = {
-            tuple(item) for item in family["path_equivalence_expected_scenarios"]
-        }
+        declared = {tuple(item) for item in family["path_equivalence_expected_scenarios"]}
         if declared != expected:
             raise ValueError("path-equivalence scenario roster differs from joint family v4")
         if family["path_equivalence_bidirectional_coverage_min"] != PATH_COVERAGE_LIMIT:
@@ -463,19 +461,21 @@ def evaluate_path_equivalence_roster(
     for row in records:
         if not isinstance(row, dict):
             raise ValueError("each scenario record must be an object")
-        family, condition, episode = (
-            row.get("family_id"),
-            row.get("condition"),
-            row.get("episode_id"),
-        )
-        if any(
-            not isinstance(value, str) or not value or value != value.strip()
-            for value in (family, episode)
+        row_family_id = row.get("family_id")
+        row_condition = row.get("condition")
+        row_episode_id = row.get("episode_id")
+        if (
+            not isinstance(row_family_id, str)
+            or not row_family_id
+            or row_family_id != row_family_id.strip()
+            or not isinstance(row_episode_id, str)
+            or not row_episode_id
+            or row_episode_id != row_episode_id.strip()
         ):
             raise ValueError("family_id and episode_id must be nonempty canonical strings")
-        if not isinstance(condition, str) or condition not in {"LOS", "NLOS"}:
+        if not isinstance(row_condition, str) or row_condition not in {"LOS", "NLOS"}:
             raise ValueError("condition must be LOS or NLOS")
-        key = (family, condition, episode)
+        key: tuple[str, str, str] = (row_family_id, row_condition, row_episode_id)
         if key in observed:
             raise ValueError(f"duplicate path-equivalence episode: {key}")
         raw_path_input_sha256 = None
@@ -525,7 +525,12 @@ def evaluate_path_equivalence_roster(
         status = _validate_comparison_coverage(comparison, key)
         candidate = comparison.get("candidate_bidirectional_coverage")
         challenger = comparison.get("challenger_bidirectional_coverage")
-        if status not in {"PASS", "FAIL", "UNRESOLVED_NO_RELEVANT_CLASSES", "NOT_ASSESSABLE_NO_CLASSES"}:
+        if status not in {
+            "PASS",
+            "FAIL",
+            "UNRESOLVED_NO_RELEVANT_CLASSES",
+            "NOT_ASSESSABLE_NO_CLASSES",
+        }:
             raise ValueError(f"unsupported path-coverage status for {key}: {status!r}")
         for value, name in ((candidate, "candidate"), (challenger, "challenger")):
             if value is not None and (

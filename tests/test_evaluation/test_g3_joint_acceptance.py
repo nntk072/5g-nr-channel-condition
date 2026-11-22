@@ -71,9 +71,7 @@ def test_joint_family_rejects_ambiguous_or_invalid_strata(material, csi, message
         ),
     ],
 )
-def test_joint_family_rejects_padded_identity_labels(
-    family_id, material, csi, path_scenario
-):
+def test_joint_family_rejects_padded_identity_labels(family_id, material, csi, path_scenario):
     kwargs: dict[str, Any] = {
         "family_id": family_id,
         "material_expected_strata": material,
@@ -308,9 +306,7 @@ def test_v4_joint_family_rejects_path_roster_tampering_and_duplicates():
     }
     family = build_g3_joint_acceptance_family_v4(**kwargs)
     tampered = deepcopy(family)
-    tampered["path_equivalence_expected_scenarios"].append(
-        ["site-a", "NLOS", "episode-2"]
-    )
+    tampered["path_equivalence_expected_scenarios"].append(["site-a", "NLOS", "episode-2"])
     with pytest.raises(ValueError, match="fields or canonical SHA-256 are inconsistent"):
         validate_g3_joint_acceptance_family(tampered)
     with pytest.raises(ValueError, match="duplicate path-equivalence"):

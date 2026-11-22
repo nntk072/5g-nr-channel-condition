@@ -15,7 +15,7 @@ import sys
 import tempfile
 import zipfile
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeGuard
 
 import numpy as np
 from evaluation.g3_signed_attestation import verify_openssh_signature_for_bytes
@@ -115,9 +115,12 @@ def _g5_declared_preregistration_order_matches(criteria: Any, signature: Any) ->
     """Check v2 declared UTC chronology without claiming trusted timestamp proof."""
     if not isinstance(criteria, dict) or not isinstance(signature, dict):
         return False
+    receiver_run_started_utc = signature.get("receiver_run_started_utc")
+    if not isinstance(receiver_run_started_utc, str):
+        return False
     try:
         expected = validate_g5_preregistration_order(
-            criteria, receiver_run_started_utc=signature.get("receiver_run_started_utc")
+            criteria, receiver_run_started_utc=receiver_run_started_utc
         )
     except (TypeError, ValueError):
         return False
@@ -350,12 +353,15 @@ def _read_bounded_evidence_file(path: Path, *, maximum_bytes: int) -> bytes:
         os.close(descriptor)
 
 
-def _same_float(actual: Any, expected: float) -> bool:
+def _same_float(actual: Any, expected: Any) -> bool:
     return (
         not isinstance(actual, bool)
         and isinstance(actual, (int, float))
+        and not isinstance(expected, bool)
+        and isinstance(expected, (int, float))
         and math.isfinite(float(actual))
-        and math.isclose(float(actual), expected, rel_tol=0.0, abs_tol=1e-12)
+        and math.isfinite(float(expected))
+        and math.isclose(float(actual), float(expected), rel_tol=0.0, abs_tol=1e-12)
     )
 
 
@@ -368,7 +374,7 @@ def _is_finite_nonnegative(value: Any) -> bool:
     )
 
 
-def _is_finite_number(value: Any) -> bool:
+def _is_finite_number(value: Any) -> TypeGuard[int | float]:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return False
     try:
@@ -1696,23 +1702,36 @@ def _audit_independent_snr_curve(
                 else None
                 for row in records
             ]
-            if any(
-                not isinstance(vector, list)
-                or len(vector) != blocks
-                or any(not isinstance(value, bool) for value in vector)
-                for vector in vectors
-            ):
+            validated_vectors: list[list[bool]] = []
+            vectors_valid = True
+            for vector in vectors:
+                if (
+                    not isinstance(vector, list)
+                    or len(vector) != blocks
+                    or any(not isinstance(value, bool) for value in vector)
+                ):
+                    vectors_valid = False
+                    break
+                validated_vectors.append([value for value in vector if isinstance(value, bool)])
+            if not vectors_valid:
                 points_consistent = False
                 continue
-            for channel_index, vector in enumerate(vectors):
+            for channel_index, vector in enumerate(validated_vectors):
                 blocks_for_channel = records[channel_index]["transport_blocks"]
-                if any(
-                    block.get("crc_pass_by_condition", {}).get(condition) != vector[block_index]
-                    for block_index, block in enumerate(blocks_for_channel)
-                ):
-                    points_consistent = False
-            failures = sum(sum(not value for value in vector) for vector in vectors)
-            channel_rates = [sum(not value for value in vector) / blocks for vector in vectors]
+                for block_index, block in enumerate(blocks_for_channel):
+                    block_crc = (
+                        block.get("crc_pass_by_condition") if isinstance(block, dict) else None
+                    )
+                    if (
+                        not isinstance(block_crc, dict)
+                        or block_crc.get(condition) != vector[block_index]
+                    ):
+                        points_consistent = False
+                        break
+            failures = sum(int(not value) for vector in validated_vectors for value in vector)
+            channel_rates = [
+                sum(int(not value) for value in vector) / blocks for vector in validated_vectors
+            ]
             summary = outcomes.get(condition)
             if not isinstance(summary, dict) or not (
                 summary.get("blocks") == point_blocks
@@ -1725,6 +1744,7 @@ def _audit_independent_snr_curve(
     curve_inference = experiment.get("curve_inference")
     inference_consistent = isinstance(curve_inference, dict)
     if inference_consistent:
+        assert isinstance(curve_inference, dict)
         conditions = ("clean", "uncorrected", "corrected")
         by_condition = curve_inference.get("by_condition")
         seed_roster_consistent = _inference_seed_roster_consistent(
@@ -1774,6 +1794,7 @@ def _audit_independent_snr_curve(
             )
         )
         if inference_consistent and len(seeds) < 2:
+            assert isinstance(by_condition, dict)
             inference_consistent = (
                 curve_inference.get("status") == "unavailable"
                 and isinstance(curve_inference.get("reason"), str)
@@ -1781,12 +1802,15 @@ def _audit_independent_snr_curve(
                 and (not has_paired_contrast or by_paired_contrast == [])
             )
         elif inference_consistent:
+            assert isinstance(by_condition, dict)
             inference_consistent = (
                 points_consistent and curve_inference.get("status") == "available"
             )
             if inference_consistent:
                 reports_for_rates = [point["experiment"] for point in points]
-                rates = np.empty((len(points), len(conditions), len(seeds)), dtype=np.float64)
+                rates: np.ndarray = np.empty(
+                    (len(points), len(conditions), len(seeds)), dtype=np.float64
+                )
                 for snr_index, report in enumerate(reports_for_rates):
                     for condition_index, condition in enumerate(conditions):
                         for channel_index, row in enumerate(report["config"]["per_channel_draws"]):
@@ -1942,6 +1966,7 @@ def _audit_independent_snr_curve(
         frozen_contract = frozen_acceptance.get("criteria")
         contract_consistent = isinstance(frozen_contract, dict)
         if contract_consistent:
+            assert isinstance(frozen_contract, dict)
             base_contract_keys = {
                 "schema",
                 "snr_db",
@@ -2096,16 +2121,19 @@ def _audit_independent_snr_curve(
                 }
                 policy_consistent = not reviewer_policy_required
                 if reviewer_policy_required:
+                    signature_dict = signature if isinstance(signature, dict) else {}
                     policy_consistent = (
                         isinstance(policy_identity, dict)
                         and policy_identity.get("status") == "verified"
-                        and policy_identity.get("reviewer_principal") == signature.get("signer_id")
+                        and policy_identity.get("reviewer_principal")
+                        == signature_dict.get("signer_id")
                         and "independent_reviewer"
                         in str(policy_identity.get("reviewer_roles", "")).split(",")
                         and policy_identity.get("purpose") == G5_SNR_REVIEWER_POLICY_PURPOSE
                         and policy_identity.get("signature_namespace")
                         == G5_SNR_REVIEWER_POLICY_SIGNATURE_NAMESPACE
-                        and policy_identity.get("custodian_principal") != signature.get("signer_id")
+                        and policy_identity.get("custodian_principal")
+                        != signature_dict.get("signer_id")
                         and policy_identity.get("trust_file_custody")
                         == "not_established_by_this_verifier"
                     )
@@ -2151,6 +2179,7 @@ def _audit_independent_snr_curve(
         expected_points: list[dict[str, Any]] = []
         if decision_consistent:
             assert isinstance(frozen_contract, dict)
+            assert isinstance(curve_inference, dict)
             corrected_rows = curve_inference["by_condition"]["corrected"]
             improvement_rows = curve_inference["by_paired_contrast"]
             all_pass = True
@@ -2248,7 +2277,9 @@ def _audit_independent_snr_curve(
             point_manifest = point_config.get("waveform_evidence")
             records = point_config.get("per_channel_draws")
             acceptance = report.get("acceptance") if isinstance(report, dict) else None
-            observed = acceptance.get("observed") if isinstance(acceptance, dict) else None
+            observed_acceptance = (
+                acceptance.get("observed") if isinstance(acceptance, dict) else None
+            )
             criteria = (
                 acceptance.get("criteria_frozen_before_run")
                 if isinstance(acceptance, dict)
@@ -2257,7 +2288,7 @@ def _audit_independent_snr_curve(
             if (
                 point_manifest != evidence_manifest
                 or not isinstance(records, list)
-                or not isinstance(observed, dict)
+                or not isinstance(observed_acceptance, dict)
                 or not isinstance(criteria, dict)
             ):
                 evidence_checks.append(False)
@@ -2272,11 +2303,16 @@ def _audit_independent_snr_curve(
                 evidence_checks.append(
                     abs(
                         maximum_error
-                        - float(observed.get("max_samplewise_reference_absolute_error", math.inf))
+                        - float(
+                            observed_acceptance.get(
+                                "max_samplewise_reference_absolute_error", math.inf
+                            )
+                        )
                     )
                     <= 5e-6
                     and abs(
-                        minimum_wrong_order - float(observed.get("min_wrong_order_rmse", -math.inf))
+                        minimum_wrong_order
+                        - float(observed_acceptance.get("min_wrong_order_rmse", -math.inf))
                     )
                     <= 5e-6
                     and maximum_error
@@ -2443,7 +2479,7 @@ def audit_result_file(
         evidence_manifest = (
             curve_config.get("waveform_evidence") if isinstance(curve_config, dict) else None
         )
-        waveform_evidence_bytes = None
+        curve_waveform_evidence_bytes: bytes | None = None
         if evidence_manifest is not None:
             if not isinstance(evidence_manifest, dict):
                 raise ValueError("SNR curve waveform_evidence manifest must be an object")
@@ -2457,7 +2493,7 @@ def audit_result_file(
                 or evidence_name in {".", ".."}
             ):
                 raise ValueError("SNR curve waveform evidence must be a sibling file name")
-            waveform_evidence_bytes = _read_bounded_evidence_file(
+            curve_waveform_evidence_bytes = _read_bounded_evidence_file(
                 path.parent / evidence_name,
                 maximum_bytes=_MAX_WAVEFORM_EVIDENCE_BYTES,
             )
@@ -2465,7 +2501,7 @@ def audit_result_file(
             result,
             source_bytes,
             committed_source,
-            waveform_evidence_bytes=waveform_evidence_bytes,
+            waveform_evidence_bytes=curve_waveform_evidence_bytes,
             acceptance_signature_path=acceptance_signature_path,
             trusted_allowed_signers_path=trusted_allowed_signers_path,
             reviewer_policy_path=reviewer_policy_path,

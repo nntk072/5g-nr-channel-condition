@@ -128,9 +128,7 @@ def test_half_frame_builder_rejects_mismatched_candidate_count() -> None:
 def test_radio_frame_builder_places_each_half_frame_and_tracks_transmissions() -> None:
     fft_size = 256
     candidate_count = len(
-        ssb_candidate_symbols(
-            "A", 3.5e9, subcarrier_spacing_hz=15_000, frequency_range="FR1"
-        )
+        ssb_candidate_symbols("A", 3.5e9, subcarrier_spacing_hz=15_000, frequency_range="FR1")
     )
     blocks_by_half_frame = {
         0: {0: _block(0, candidate_count, half_frame=0)},

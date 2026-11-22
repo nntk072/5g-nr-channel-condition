@@ -517,6 +517,8 @@ def cdl_handheld_ut_dual_spatiotemporal_covariance_reference(
     for component, raw_power in zip(components, raw_powers, strict=True):
         kind = component["component"]
         angles = component["angles_deg"]
+        receive_directions: tuple[tuple[float, float, float], ...]
+        transmit_directions: tuple[tuple[float, float, float], ...]
         if kind == "specular":
             receive_directions = (_unit_direction(float(angles["aoa"]), float(angles["zoa"])),)
             transmit_directions = (_unit_direction(float(angles["aod"]), float(angles["zod"])),)

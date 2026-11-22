@@ -82,10 +82,7 @@ def _patterned_vh_basis(
     """Return patterned local V/H fields in the GCS theta/phi basis."""
     amplitude = math.sqrt(_pattern_power(pattern, orientation_rad, direction))
     base = _vh_basis(orientation_rad, direction)
-    return tuple(
-        (amplitude * field[0], amplitude * field[1])
-        for field in base
-    )  # type: ignore[return-value]
+    return tuple((amplitude * field[0], amplitude * field[1]) for field in base)  # type: ignore[return-value]
 
 
 def _endpoint_moments(
@@ -161,13 +158,20 @@ def cdl_patterned_rotated_dual_tx_rx_spatiotemporal_covariance_reference(
         raise ValueError("tx_pattern and rx_pattern must be supported TR 38.901 element patterns")
     if len(velocity_mps) != 3:
         raise ValueError("velocity_mps must contain exactly three Cartesian components")
-    velocity = tuple(_finite_real(value, label="velocity_mps component") for value in velocity_mps)
+    velocity = (
+        _finite_real(velocity_mps[0], label="velocity_mps component"),
+        _finite_real(velocity_mps[1], label="velocity_mps component"),
+        _finite_real(velocity_mps[2], label="velocity_mps component"),
+    )
     tx_orientation = _orientation(tx_orientation_rad, label="tx_orientation_rad")
     rx_orientation = _orientation(rx_orientation_rad, label="rx_orientation_rad")
     carrier = _finite_real(carrier_frequency_hz, label="carrier_frequency_hz")
     lag = _finite_real(lag_s, label="lag_s")
     spacing = _finite_real(element_spacing_wavelengths, label="element_spacing_wavelengths")
-    for name, count in (("tx_element_count", tx_element_count), ("rx_element_count", rx_element_count)):
+    for name, count in (
+        ("tx_element_count", tx_element_count),
+        ("rx_element_count", rx_element_count),
+    ):
         if isinstance(count, bool) or not isinstance(count, int) or count < 1:
             raise ValueError(f"{name} must be a positive integer")
     if carrier <= 0.0 or lag < 0.0 or spacing < 0.0:
@@ -192,15 +196,23 @@ def cdl_patterned_rotated_dual_tx_rx_spatiotemporal_covariance_reference(
     for component, raw_power in zip(components, raw_powers, strict=True):
         kind = component["component"]
         angles = component["angles_deg"]
+        receive_directions: tuple[tuple[float, float, float], ...]
+        transmit_directions: tuple[tuple[float, float, float], ...]
         if kind == "specular":
             receive_directions = (_unit_direction(float(angles["aoa"]), float(angles["zoa"])),)
             transmit_directions = (_unit_direction(float(angles["aod"]), float(angles["zod"])),)
         elif kind == "diffuse":
             receive_directions = _diffuse_directions(
-                float(angles["aoa"]), float(angles["zoa"]), float(spreads["asa"]), float(spreads["zsa"])
+                float(angles["aoa"]),
+                float(angles["zoa"]),
+                float(spreads["asa"]),
+                float(spreads["zsa"]),
             )
             transmit_directions = _diffuse_directions(
-                float(angles["aod"]), float(angles["zod"]), float(spreads["asd"]), float(spreads["zsd"])
+                float(angles["aod"]),
+                float(angles["zod"]),
+                float(spreads["asd"]),
+                float(spreads["zsd"]),
             )
         else:
             raise ValueError(f"unsupported CDL component kind: {kind}")
@@ -229,17 +241,29 @@ def cdl_patterned_rotated_dual_tx_rx_spatiotemporal_covariance_reference(
             row_tx_pol, row_tx_element = _decode_dual_vh_port(row_tx_port, tx_element_count)
             for column in range(channel_port_count):
                 column_rx_port, column_tx_port = divmod(column, tx_port_count)
-                column_rx_pol, column_rx_element = _decode_dual_vh_port(column_rx_port, rx_element_count)
-                column_tx_pol, column_tx_element = _decode_dual_vh_port(column_tx_port, tx_element_count)
+                column_rx_pol, column_rx_element = _decode_dual_vh_port(
+                    column_rx_port, rx_element_count
+                )
+                column_tx_pol, column_tx_element = _decode_dual_vh_port(
+                    column_tx_port, tx_element_count
+                )
                 delta_rx = column_rx_element - row_rx_element
                 delta_tx = column_tx_element - row_tx_element
                 if kind == "diffuse":
                     term = 0.0j
                     for rx_field_index in range(2):
-                        rx_factor = rx_moments[(delta_rx, row_rx_pol, column_rx_pol, rx_field_index)]
+                        rx_factor = rx_moments[
+                            (delta_rx, row_rx_pol, column_rx_pol, rx_field_index)
+                        ]
                         for tx_field_index in range(2):
-                            tx_factor = tx_moments[(delta_tx, row_tx_pol, column_tx_pol, tx_field_index)]
-                            term += jones_variances[rx_field_index][tx_field_index] * rx_factor * tx_factor
+                            tx_factor = tx_moments[
+                                (delta_tx, row_tx_pol, column_tx_pol, tx_field_index)
+                            ]
+                            term += (
+                                jones_variances[rx_field_index][tx_field_index]
+                                * rx_factor
+                                * tx_factor
+                            )
                 else:
                     receive_direction = receive_directions[0]
                     transmit_direction = transmit_directions[0]
@@ -264,9 +288,13 @@ def cdl_patterned_rotated_dual_tx_rx_spatiotemporal_covariance_reference(
                         transmit_direction=transmit_direction,
                     )
                     phase = (
-                        spatial_scale * delta_rx * _dot(receive_direction, _local_y_unit_vector(rx_orientation))
+                        spatial_scale
+                        * delta_rx
+                        * _dot(receive_direction, _local_y_unit_vector(rx_orientation))
                         + temporal_scale * _dot(velocity, receive_direction)
-                        + spatial_scale * delta_tx * _dot(transmit_direction, _local_y_unit_vector(tx_orientation))
+                        + spatial_scale
+                        * delta_tx
+                        * _dot(transmit_direction, _local_y_unit_vector(tx_orientation))
                     )
                     term = row_field * column_field * cmath.exp(1j * phase)
                 covariance[row][column] += normalized_power * term

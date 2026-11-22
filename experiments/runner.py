@@ -13,7 +13,7 @@ import sys
 import zipfile
 from pathlib import Path
 from time import perf_counter
-from typing import Any, Mapping, Sequence
+from typing import Any, Callable, Mapping, Sequence
 
 import numpy as np
 from artifacts.build_dag import BuildNodeSpec, resolve_build_artifact, run_build_node
@@ -624,6 +624,7 @@ def _array_sha256(array: np.ndarray) -> str:
 
 
 def _feature_transform_implementation_sha256(method: str) -> str:
+    transform: Callable[..., Any]
     if method in ("cnn", "cvnn"):
         transform = _identity_complex_cfr
     elif method == "source_only":
@@ -956,12 +957,12 @@ def build_model_input_artifact_contract(
         field = "group" if method == "group_only" else "domain"
         if not isinstance(metadata_values, dict) or set(metadata_values) != {field}:
             raise ValueError(f"{method} contracts require only the {field} identifier roster")
-        expected_features, transform = _single_metadata_features(
+        expected_features, metadata_transform = _single_metadata_features(
             metadata_values[field], field=field, train_indices=checked_indices["train"]
         )
         if not np.array_equal(expected_features, method_input):
             raise ValueError(f"{method} features differ from the training vocabulary transform")
-        feature_contract["metadata_vocabulary_transform"] = transform
+        feature_contract["metadata_vocabulary_transform"] = metadata_transform
     feature_contract_sha256 = canonical_hash(feature_contract)
     return {
         "schema": f"loslab.model_input_artifact_contract.{input_contract_version}",
@@ -1128,6 +1129,8 @@ def verify_model_input_artifact_contract(
     if not isinstance(feature, dict) or set(feature) != expected_feature_fields:
         raise ValueError("model feature contract fields are invalid")
     method = feature.get("method")
+    if not isinstance(method, str):
+        raise ValueError("model feature contract method must be a string")
     expected_format = (
         "loslab.sklearn.v1"
         if method
@@ -1320,10 +1323,19 @@ def verify_model_input_artifact_contract(
         permutation = feature.get("supervision_transform")
         if not isinstance(permutation, dict):
             raise ValueError("label-permuted feature contract lacks its supervision transform")
+        permutation_run_seed = permutation.get("run_seed")
+        permutation_base_seed = permutation.get("base_seed")
+        if (
+            isinstance(permutation_run_seed, bool)
+            or not isinstance(permutation_run_seed, int)
+            or isinstance(permutation_base_seed, bool)
+            or not isinstance(permutation_base_seed, int)
+        ):
+            raise ValueError("label-permuted feature contract seeds must be integers")
         _, replayed_permutation = _permute_training_labels(
             training_targets,
-            run_seed=permutation.get("run_seed"),
-            base_seed=permutation.get("base_seed"),
+            run_seed=permutation_run_seed,
+            base_seed=permutation_base_seed,
         )
         if replayed_permutation != permutation:
             raise ValueError("label permutation does not replay from the retained training labels")
@@ -1341,10 +1353,19 @@ def verify_model_input_artifact_contract(
         permutation = feature.get("feature_row_permutation")
         if not isinstance(permutation, dict):
             raise ValueError("row-shuffled feature contract lacks its permutation")
+        permutation_run_seed = permutation.get("run_seed")
+        permutation_base_seed = permutation.get("base_seed")
+        if (
+            isinstance(permutation_run_seed, bool)
+            or not isinstance(permutation_run_seed, int)
+            or isinstance(permutation_base_seed, bool)
+            or not isinstance(permutation_base_seed, int)
+        ):
+            raise ValueError("row-shuffled feature contract seeds must be integers")
         shuffled, replayed_permutation = _permute_training_feature_rows(
             source_method_input[partition_indices["train"]],
-            run_seed=permutation.get("run_seed"),
-            base_seed=permutation.get("base_seed"),
+            run_seed=permutation_run_seed,
+            base_seed=permutation_base_seed,
         )
         replayed_input = np.array(source_method_input, copy=True)
         replayed_input[partition_indices["train"]] = shuffled
@@ -2630,6 +2651,8 @@ def _run_experiment_impl(
                 if method == "oracle_label_leak"
                 else x
             )
+            if not isinstance(method_input, np.ndarray):
+                raise RuntimeError(f"model input is unavailable for method {method}")
             if method == "label_permuted":
                 training_targets, _ = _permute_training_labels(
                     data.y[train], run_seed=int(seed), base_seed=int(label_permutation_seed)
@@ -2761,6 +2784,7 @@ def _run_experiment_impl(
                 _validate_evaluation_payload(
                     calibrator_report, "group-platt-calibrator.v1.schema.json"
                 )
+                assert calibrator_report is not None
                 val_calibrated = apply_platt_calibrator(val_scores_raw, calibrator_report)
                 val_model_calibrated = val_calibrated
                 val_scores, prior_shift_report = adjust_probabilities_for_prior_shift(
@@ -2782,6 +2806,8 @@ def _run_experiment_impl(
             if prior_shift_report is None:
                 model_output_threshold = threshold
             else:
+                assert resolved_prior_shift is not None
+                assert calibrator_report is not None
                 model_output_threshold = float(
                     invert_platt_calibrator(
                         adjust_probabilities_between_priors(
@@ -2926,6 +2952,7 @@ def _run_experiment_impl(
             if resolved_prior_shift is None:
                 prob = test_scores_raw
             else:
+                assert calibrator_report is not None
                 test_calibrated = apply_platt_calibrator(test_scores_raw, calibrator_report)
                 prob, test_prior_shift_report = adjust_probabilities_for_prior_shift(
                     test_calibrated,

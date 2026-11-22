@@ -110,7 +110,14 @@ def main(argv: list[str] | None = None) -> int:
             ],
             joint_acceptance_family=family,
         )
-    except (OSError, UnicodeDecodeError, ValueError, TypeError, RuntimeError, RecursionError) as error:
+    except (
+        OSError,
+        UnicodeDecodeError,
+        ValueError,
+        TypeError,
+        RuntimeError,
+        RecursionError,
+    ) as error:
         parser.exit(2, f"error: {error}\n")
     sys.stdout.write(json.dumps(report, indent=2, sort_keys=True, allow_nan=False) + "\n")
     return 0

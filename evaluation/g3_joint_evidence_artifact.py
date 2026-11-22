@@ -75,10 +75,7 @@ def _read_regular_file(path: Path, *, limit: int, label: str) -> bytes:
         raise ValueError(f"{label} must be a single-link regular file")
     descriptor = os.open(
         path,
-        os.O_RDONLY
-        | os.O_NOFOLLOW
-        | getattr(os, "O_NONBLOCK", 0)
-        | getattr(os, "O_CLOEXEC", 0),
+        os.O_RDONLY | os.O_NOFOLLOW | getattr(os, "O_NONBLOCK", 0) | getattr(os, "O_CLOEXEC", 0),
     )
     try:
         opened = os.fstat(descriptor)
@@ -243,6 +240,9 @@ def run_g3_frozen_qualification_evaluation(
         raise ValueError("qualification contract must be canonical compact JSON")
     import jsonschema
 
+    contract_schema = contract.get("schema")
+    if not isinstance(contract_schema, str):
+        raise ValueError("new contract-bound G3 evaluation requires contract v3 or v4")
     contract_schema_path = {
         "loslab.g3_qualification_run_contract.v3": (
             run_manifest.QUALIFICATION_CONTRACT_SCHEMA_RELATIVE_PATH
@@ -250,7 +250,7 @@ def run_g3_frozen_qualification_evaluation(
         "loslab.g3_qualification_run_contract.v4": (
             run_manifest.QUALIFICATION_CONTRACT_SCHEMA_V4_RELATIVE_PATH
         ),
-    }.get(contract.get("schema"))
+    }.get(contract_schema)
     if contract_schema_path is None:
         raise ValueError("new contract-bound G3 evaluation requires contract v3 or v4")
     schema_raw = run_manifest._read_rooted_source_file(
@@ -265,10 +265,13 @@ def run_g3_frozen_qualification_evaluation(
         )
     contract_result = run_manifest.verify_g3_qualification_run_contract(contract)
     source_identity = run_manifest.g3_evaluator_source_bundle_identity(source_root=source_dir)
-    if contract["source_identity"]["source_bundle_sha256"] != source_identity[
-        "evaluator_source_bundle_sha256"
-    ]:
-        raise ValueError("qualification contract source bundle differs from current evaluator sources")
+    if (
+        contract["source_identity"]["source_bundle_sha256"]
+        != source_identity["evaluator_source_bundle_sha256"]
+    ):
+        raise ValueError(
+            "qualification contract source bundle differs from current evaluator sources"
+        )
     input_payload = _parse_json(input_raw, label="G3 joint evaluator input")
     input_schema_path = run_manifest._validate_joint_evaluator_input_schema(
         input_payload, source_root=source_dir
@@ -318,9 +321,7 @@ def run_g3_frozen_qualification_evaluation(
         "qualification_status": "NOT_QUALIFIED",
         "run_id": contract["run_id"],
         "qualification_contract_sha256": contract_result["contract_sha256"],
-        "evaluator_source_bundle_sha256": source_identity[
-            "evaluator_source_bundle_sha256"
-        ],
+        "evaluator_source_bundle_sha256": source_identity["evaluator_source_bundle_sha256"],
         "input_sha256": report["input_bytes_sha256"],
         "artifact_sha256": artifact_digest,
         "run_manifest_sha256": hashlib.sha256(_canonical_json_bytes(manifest)).hexdigest(),
@@ -337,9 +338,7 @@ def verify_g3_joint_evidence_file(
     artifact_raw = _read_regular_file(
         Path(artifact_path), limit=MAX_ARTIFACT_BYTES, label="G3 joint artifact"
     )
-    input_raw = _read_regular_file(
-        Path(input_path), limit=MAX_INPUT_BYTES, label="G3 joint input"
-    )
+    input_raw = _read_regular_file(Path(input_path), limit=MAX_INPUT_BYTES, label="G3 joint input")
     return verify_g3_joint_evidence_bytes(
         input_raw,
         artifact_raw,

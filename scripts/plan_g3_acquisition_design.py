@@ -89,9 +89,7 @@ _ASSURANCE_SOURCE_GROUPS = {
 
 def _source_group_identity(relative_paths: Sequence[str]) -> dict[str, Any]:
     file_hashes = {
-        relative_path: hashlib.sha256(
-            (REPOSITORY_ROOT / relative_path).read_bytes()
-        ).hexdigest()
+        relative_path: hashlib.sha256((REPOSITORY_ROOT / relative_path).read_bytes()).hexdigest()
         for relative_path in sorted(relative_paths)
     }
     rows = [
@@ -162,6 +160,8 @@ def _complete_design_status(
     if unmet:
         return "SCENARIO_CONDITIONAL_ASSURANCE_TARGET_NOT_MET:" + ",".join(unmet)
     return "SCENARIO_CONDITIONAL_SEPARATE_DESIGNS_REPORTED"
+
+
 _BOOTSTRAP_FIELDS = {
     "scenarios_by_stratum",
     "candidate_units_per_stratum",
@@ -780,6 +780,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                 receiver_bootstrap_report,
             )
         ):
+            assert bootstrap_report is not None
+            assert csi_bootstrap_report is not None
+            assert propagation_bootstrap_report is not None
+            assert receiver_bootstrap_report is not None
             joint_design_composition = compose_g3_joint_sample_size_design(
                 joint_acceptance_family=family,
                 joint_plan=independent,
@@ -794,12 +798,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 REPOSITORY_ROOT
                 / "datasets/schema/g3-joint-sample-size-design-composition.v1.schema.json"
             )
-            composition_schema = json.loads(
-                composition_schema_path.read_text(encoding="utf-8")
-            )
-            jsonschema.Draft202012Validator(composition_schema).validate(
-                joint_design_composition
-            )
+            composition_schema = json.loads(composition_schema_path.read_text(encoding="utf-8"))
+            jsonschema.Draft202012Validator(composition_schema).validate(joint_design_composition)
             verify_g3_joint_sample_size_design(joint_design_composition)
         schema_path = (
             REPOSITORY_ROOT
@@ -832,9 +832,11 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "familywise_alpha": family["familywise_alpha"],
                 "per_claim_alpha": family["per_claim_alpha"],
                 **(
-                    {"path_equivalence_expected_scenarios": family[
-                        "path_equivalence_expected_scenarios"
-                    ]}
+                    {
+                        "path_equivalence_expected_scenarios": family[
+                            "path_equivalence_expected_scenarios"
+                        ]
+                    }
                     if family["schema"] == FAMILY_SCHEMA_V4
                     else {}
                 ),
@@ -855,9 +857,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                     "NOT_SUPPLIED"
                     if bootstrap_report is None
                     else "NO_EVALUATED_CANDIDATE_MET_TARGET"
-                    if bootstrap_report[
-                        "selected_units_per_stratum_among_evaluated_candidates"
-                    ]
+                    if bootstrap_report["selected_units_per_stratum_among_evaluated_candidates"]
                     is None
                     else "SCENARIO_CONDITIONAL_CANDIDATE_FOUND"
                 ),
@@ -899,7 +899,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 complex_csi=csi_bootstrap_report,
                 receiver_impact=receiver_bootstrap_report,
                 propagation=propagation_bootstrap_report,
-                    joint_design=joint_design_composition,
+                joint_design=joint_design_composition,
             ),
             "propagation_assurance_status": (
                 "NO_EVALUATED_CANDIDATE_MEETS_TARGET_ASSURANCE"

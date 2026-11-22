@@ -192,9 +192,9 @@ def _make_package(root: Path, schema_version="g3.03-acquisition-package.v0.2") -
         }
     ]
     if schema_version in V03_PLUS:
-        package["row_crosswalk"][0]["angular_measurement_id"] = package[
-            "angular_measurements"
-        ][0]["angular_id"]
+        package["row_crosswalk"][0]["angular_measurement_id"] = package["angular_measurements"][0][
+            "angular_id"
+        ]
     if schema_version in V03_PLUS:
         mapping = {
             "schema": "loslab.g3_material_mapping.v1",
@@ -221,9 +221,7 @@ def _make_package(root: Path, schema_version="g3.03-acquisition-package.v0.2") -
             "exact_bytes_size": 0,
             "byte_scope": "exact_file_bytes",
         }
-        mapping_bytes = (
-            json.dumps(mapping, sort_keys=True, separators=(",", ":")) + "\n"
-        ).encode()
+        mapping_bytes = (json.dumps(mapping, sort_keys=True, separators=(",", ":")) + "\n").encode()
         _put(root, package, "file.material.mapping", mapping_bytes)
     files = {item["file_id"]: item for item in package["files"]}
     split_file_id = package["evaluator_binding"]["split_manifest"]["file_id"]
@@ -242,10 +240,7 @@ def _make_package(root: Path, schema_version="g3.03-acquisition-package.v0.2") -
             output_file_id,
             "file.material.mapping",
         }:
-            if (
-                schema_version == "g3.03-acquisition-package.v0.4"
-                and file_id == "file.noise.input"
-            ):
+            if schema_version == "g3.03-acquisition-package.v0.4" and file_id == "file.noise.input":
                 noise_stream = io.BytesIO()
                 noise = np.asarray([3.0 + 4.0j, 0.0j, 0.0j, 0.0j], dtype=np.complex128)
                 np.save(noise_stream, noise.reshape((1, 1, 2, 2)))

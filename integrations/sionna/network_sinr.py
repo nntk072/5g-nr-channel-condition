@@ -151,7 +151,7 @@ def run_network_grid_sinr(
             noise_variance_w_per_re,
         )
 
-    implementation_functions = [
+    implementation_functions: list[tuple[str, Any]] = [
         ("grid_composition", compose_downlink_resource_grids),
         ("resource_sinr", network_resource_sinr),
         ("workflow", run_network_grid_sinr),

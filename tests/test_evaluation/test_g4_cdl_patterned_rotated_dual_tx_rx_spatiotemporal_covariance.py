@@ -63,7 +63,9 @@ def test_patterned_reference_has_expected_shape_and_finite_values() -> None:
     )
     assert len(matrix) == 16
     assert all(len(row) == 16 for row in matrix)
-    assert all(math.isfinite(value.real) and math.isfinite(value.imag) for row in matrix for value in row)
+    assert all(
+        math.isfinite(value.real) and math.isfinite(value.imag) for row in matrix for value in row
+    )
 
 
 @pytest.mark.parametrize("bad_pattern", ("", "invalid", "38.902"))

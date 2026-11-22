@@ -607,9 +607,7 @@ def derive_spatiotemporal_leakage_relations(
                     for subject_id in sorted(component)
                 },
             }
-            add_component_relations(
-                LeakageNamespace.SPATIAL_BUFFER, scope, component, evidence
-            )
+            add_component_relations(LeakageNamespace.SPATIAL_BUFFER, scope, component, evidence)
     for scope, component in time_groups:
         evidence = {
             "interval_semantics": "half-open",
@@ -640,9 +638,7 @@ def audit_spatiotemporal_leakage_relations(
     that registered relations were actually derived from the supplied
     authoritative footprint inventory.
     """
-    derived = derive_spatiotemporal_leakage_relations(
-        footprints, spatial_buffer_m=spatial_buffer_m
-    )
+    derived = derive_spatiotemporal_leakage_relations(footprints, spatial_buffer_m=spatial_buffer_m)
     subject_by_id: dict[str, SplitSubject] = {}
     for subject in subjects:
         if not isinstance(subject, SplitSubject):
@@ -685,14 +681,9 @@ def audit_spatiotemporal_leakage_relations(
         "spatial_buffer_m": float(spatial_buffer_m),
         "derivation_algorithm": "umcd.spatiotemporal-leakage.v2",
         "parent_count": len(subject_by_id),
-        "subject_ids_sha256": hashlib.sha256(
-            _canonical_json(sorted(subject_by_id))
-        ).hexdigest(),
+        "subject_ids_sha256": hashlib.sha256(_canonical_json(sorted(subject_by_id))).hexdigest(),
         "spatially_linked_parent_count": sum(
-            any(
-                relation.namespace is LeakageNamespace.SPATIAL_BUFFER
-                for relation in derived[item]
-            )
+            any(relation.namespace is LeakageNamespace.SPATIAL_BUFFER for relation in derived[item])
             for item in derived
         ),
         "temporally_linked_parent_count": sum(
@@ -1067,9 +1058,7 @@ class SplitPolicyRegistry:
             if key != binding.child_id:
                 raise ValueError("child mapping keys must equal child IDs")
             if binding.child_id in subjects:
-                raise ValueError(
-                    f"child ID collides with a parent subject ID: {binding.child_id}"
-                )
+                raise ValueError(f"child ID collides with a parent subject ID: {binding.child_id}")
             if binding.parent_subject_id not in subjects:
                 raise ValueError(
                     f"child references an unknown split parent: {binding.parent_subject_id}"
@@ -1116,11 +1105,9 @@ class SplitPolicyRegistry:
             )
             if (
                 set(lineage_audit) != expected_audit_keys
-                or lineage_audit.get("schema")
-                != "umcd.spatiotemporal_lineage_audit.v2"
+                or lineage_audit.get("schema") != "umcd.spatiotemporal_lineage_audit.v2"
                 or lineage_audit.get("status") != "PASS_INPUT_SCOPED"
-                or lineage_audit.get("derivation_algorithm")
-                != "umcd.spatiotemporal-leakage.v2"
+                or lineage_audit.get("derivation_algorithm") != "umcd.spatiotemporal-leakage.v2"
                 or isinstance(buffer_m, bool)
                 or not isinstance(buffer_m, Real)
                 or not math.isfinite(float(buffer_m))
@@ -1410,7 +1397,9 @@ def audit_split_policy_child_roster(
             raise ValueError(f"duplicate child binding in audit: {binding.child_id}")
         frozen = expected.get(binding.child_id)
         if frozen is None:
-            raise ValueError(f"child is absent from frozen {child_kind!r} roster: {binding.child_id}")
+            raise ValueError(
+                f"child is absent from frozen {child_kind!r} roster: {binding.child_id}"
+            )
         if binding != frozen:
             raise ValueError(f"frozen parent binding changed for child {binding.child_id}")
         observed[binding.child_id] = binding
@@ -1425,9 +1414,7 @@ def audit_split_policy_child_roster(
         "child_count": len(observed),
         "child_ids_sha256": hashlib.sha256(_canonical_json(sorted(observed))).hexdigest(),
         "bindings_sha256": hashlib.sha256(
-            _canonical_json(
-                [observed[child_id].to_dict() for child_id in sorted(observed)]
-            )
+            _canonical_json([observed[child_id].to_dict() for child_id in sorted(observed)])
         ).hexdigest(),
     }
     report["audit_sha256"] = hashlib.sha256(_canonical_json(report)).hexdigest()
@@ -1581,8 +1568,7 @@ def freeze_split_policy_registry(path: str | Path, registry: SplitPolicyRegistry
     encoded = (json.dumps(registry.to_dict(), indent=2, sort_keys=True) + "\n").encode()
     if len(encoded) > MAX_SPLIT_POLICY_LOCK_BYTES:
         raise ValueError(
-            "split-policy lock exceeds its "
-            f"{MAX_SPLIT_POLICY_LOCK_BYTES}-byte reader limit"
+            f"split-policy lock exceeds its {MAX_SPLIT_POLICY_LOCK_BYTES}-byte reader limit"
         )
     destination.parent.mkdir(parents=True, exist_ok=True)
     if destination.exists():

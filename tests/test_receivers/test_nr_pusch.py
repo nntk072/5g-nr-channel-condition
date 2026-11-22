@@ -7,10 +7,12 @@ import pytest
 from receivers.nr import (
     NRChannelEstimate,
     NRPUSCHConfig,
+    NRPUSCHIntraSlotHopDMRSGrid,
     build_pusch_intra_slot_hop_dmrs_grid,
     compose_pusch_intra_slot_hops,
     dehop_pusch_intra_slot_received_grid,
     derive_pusch_intra_slot_hop_dmrs_plan,
+    estimate_demap_pusch_intra_slot_hop,
     map_pusch_intra_slot_hop_data_symbols,
     verify_pusch_intra_slot_dehopped_grid,
     verify_pusch_intra_slot_hop_allocation_grid,
@@ -255,6 +257,261 @@ def test_pusch_intra_slot_hop_data_mapping_follows_frequency_then_symbol_order()
         first_hop_symbol_count=5,
     )
     assert carrier.metadata["receiver_hopping_qualification"] == "NOT_QUALIFIED"
+
+
+def _build_hopped_estimator_fixture():
+    plan = derive_pusch_intra_slot_hop_dmrs_plan(
+        mapping_type="B",
+        allocation_start_symbol=2,
+        first_hop_symbol_count=5,
+        second_hop_symbol_count=5,
+        dmrs_additional_position=1,
+    )
+    dmrs = build_pusch_intra_slot_hop_dmrs_grid(
+        plan.metadata,
+        allocation_rb_count=1,
+        dmrs_config_type=1,
+        n_cell_id=17,
+        dmrs_n_id=(100, 321),
+        dmrs_n_scid=1,
+        subcarrier_spacing_khz=30,
+        slot_index=3,
+    )
+    first_data = (1 + np.arange(48, dtype=np.float64)).astype(np.complex128) + 0.25j
+    second_data = (101 + np.arange(48, dtype=np.float64)).astype(np.complex128) - 0.5j
+    mapped = map_pusch_intra_slot_hop_data_symbols(
+        plan.metadata,
+        dmrs,
+        first_hop_data_symbols=first_data,
+        second_hop_data_symbols=second_data,
+    )
+    return plan, dmrs, mapped, first_data, second_data
+
+
+def test_pusch_hop_estimator_demapper_round_trips_mapper_order_on_flat_channel():
+    plan, dmrs, mapped, first_data, second_data = _build_hopped_estimator_fixture()
+    channel = np.complex128(0.75 + 0.5j)
+    received = (mapped.allocation_grid * channel)[np.newaxis, np.newaxis, np.newaxis]
+
+    result = estimate_demap_pusch_intra_slot_hop(
+        plan.metadata,
+        dmrs,
+        data_mask=mapped.data_mask,
+        allocation_metadata=mapped.metadata,
+        received_allocation_grid=received,
+        noise_variance=0.0,
+    )
+
+    expected_data = np.concatenate((first_data, second_data)) * channel
+    np.testing.assert_allclose(result.received_data_symbols[0, 0, 0], expected_data)
+    np.testing.assert_allclose(result.channel_estimate, channel)
+    np.testing.assert_array_equal(result.error_variance, 0.0)
+    assert result.received_data_symbols.shape == (1, 1, 1, 96)
+    assert result.channel_estimate.shape == result.received_data_symbols.shape
+    assert result.metadata["allocation_start_symbol"] == 2
+    assert result.metadata["allocation_symbol_count"] == 10
+    assert result.metadata["active_allocation_shape"] == [10, 12]
+    assert result.metadata["data_mapping_order"] == mapped.metadata["data_mapping_order"]
+    assert result.metadata["qualification"] == "NOT_QUALIFIED"
+    assert not result.received_data_symbols.flags.writeable
+    assert not result.channel_estimate.flags.writeable
+    assert not result.error_variance.flags.writeable
+
+
+def test_pusch_hop_estimator_demapper_broadcasts_noise_and_preserves_inputs():
+    plan, dmrs, mapped, _, _ = _build_hopped_estimator_fixture()
+    received = np.broadcast_to(
+        mapped.allocation_grid,
+        (2, 1, 3, *mapped.allocation_grid.shape),
+    ).copy()
+    mask_before = mapped.data_mask.copy()
+    dmrs_mask_before = dmrs.pilot_mask.copy()
+    dmrs_grid_before = dmrs.pilot_grid.copy()
+    received_before = received.copy()
+    metadata_before = dict(mapped.metadata)
+
+    result = estimate_demap_pusch_intra_slot_hop(
+        plan.metadata,
+        dmrs,
+        data_mask=mapped.data_mask,
+        allocation_metadata=mapped.metadata,
+        received_allocation_grid=received,
+        noise_variance=np.asarray([0.25, 0.5]),
+    )
+
+    assert result.error_variance.shape == (2, 1, 3, 96)
+    np.testing.assert_allclose(result.error_variance[0], 0.25)
+    np.testing.assert_allclose(result.error_variance[1], 0.5)
+    np.testing.assert_array_equal(mapped.data_mask, mask_before)
+    np.testing.assert_array_equal(dmrs.pilot_mask, dmrs_mask_before)
+    np.testing.assert_array_equal(dmrs.pilot_grid, dmrs_grid_before)
+    np.testing.assert_array_equal(received, received_before)
+    assert dict(mapped.metadata) == metadata_before
+
+
+def test_pusch_hop_estimator_demapper_rejects_mask_and_replay_mismatches():
+    plan, dmrs, mapped, _, _ = _build_hopped_estimator_fixture()
+    received = mapped.allocation_grid[np.newaxis, np.newaxis, np.newaxis]
+
+    punctured = mapped.data_mask.copy()
+    punctured[0, 1] = False
+    with pytest.raises(ValueError, match="puncturing or muting"):
+        estimate_demap_pusch_intra_slot_hop(
+            plan.metadata,
+            dmrs,
+            data_mask=punctured,
+            allocation_metadata=mapped.metadata,
+            received_allocation_grid=received,
+            noise_variance=0.0,
+        )
+
+    wrong_digest = dict(mapped.metadata)
+    wrong_digest["data_mask_sha256"] = "0" * 64
+    with pytest.raises(ValueError, match="digest"):
+        estimate_demap_pusch_intra_slot_hop(
+            plan.metadata,
+            dmrs,
+            data_mask=mapped.data_mask,
+            allocation_metadata=wrong_digest,
+            received_allocation_grid=received,
+            noise_variance=0.0,
+        )
+
+    wrong_span = dict(mapped.metadata)
+    wrong_span["allocation_start_symbol"] = 1
+    with pytest.raises(ValueError, match="active allocation span"):
+        estimate_demap_pusch_intra_slot_hop(
+            plan.metadata,
+            dmrs,
+            data_mask=mapped.data_mask,
+            allocation_metadata=wrong_span,
+            received_allocation_grid=received,
+            noise_variance=0.0,
+        )
+
+
+@pytest.mark.parametrize("digest_key", ("pilot_mask_sha256", "pilot_grid_sha256"))
+def test_pusch_hop_estimator_demapper_rejects_tampered_dmrs_metadata_digest(digest_key):
+    plan, dmrs, mapped, _, _ = _build_hopped_estimator_fixture()
+    received = mapped.allocation_grid[np.newaxis, np.newaxis, np.newaxis]
+    tampered_dmrs = NRPUSCHIntraSlotHopDMRSGrid(
+        dmrs.pilot_mask,
+        dmrs.pilot_grid,
+        {**dmrs.metadata, digest_key: "0" * 64},
+    )
+    tampered_allocation = dict(mapped.metadata)
+    if digest_key == "pilot_grid_sha256":
+        tampered_allocation["dmrs_grid_sha256"] = "0" * 64
+
+    with pytest.raises(ValueError, match=f"DM-RS {digest_key} metadata does not match replay"):
+        estimate_demap_pusch_intra_slot_hop(
+            plan.metadata,
+            tampered_dmrs,
+            data_mask=mapped.data_mask,
+            allocation_metadata=tampered_allocation,
+            received_allocation_grid=received,
+            noise_variance=0.0,
+        )
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    (
+        ("data_mapping_order", "tampered_order"),
+        ("first_hop_data_symbol_count", 47),
+        ("second_hop_data_symbol_count", 47),
+        ("data_mapping_clause", "tampered_clause"),
+    ),
+)
+def test_pusch_hop_estimator_demapper_rejects_tampered_mapper_contract(field, value):
+    plan, dmrs, mapped, _, _ = _build_hopped_estimator_fixture()
+    received = mapped.allocation_grid[np.newaxis, np.newaxis, np.newaxis]
+    tampered = {**mapped.metadata, field: value}
+
+    with pytest.raises(ValueError, match="mapper contract"):
+        estimate_demap_pusch_intra_slot_hop(
+            plan.metadata,
+            dmrs,
+            data_mask=mapped.data_mask,
+            allocation_metadata=tampered,
+            received_allocation_grid=received,
+            noise_variance=0.0,
+        )
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "message"),
+    (
+        ({"num_cdm_groups_without_data": 2}, "CDM groups"),
+        ({"pt_rs_enabled": True}, "PT-RS"),
+        ({"puncture_mask": np.eye(10, 12, dtype=np.bool_)}, "punctured REs"),
+    ),
+)
+def test_pusch_hop_estimator_demapper_rejects_unsupported_re_modes(kwargs, message):
+    plan, dmrs, mapped, _, _ = _build_hopped_estimator_fixture()
+    received = mapped.allocation_grid[np.newaxis, np.newaxis, np.newaxis]
+    with pytest.raises(ValueError, match=message):
+        estimate_demap_pusch_intra_slot_hop(
+            plan.metadata,
+            dmrs,
+            data_mask=mapped.data_mask,
+            allocation_metadata=mapped.metadata,
+            received_allocation_grid=received,
+            noise_variance=0.0,
+            **kwargs,
+        )
+
+
+@pytest.mark.parametrize(
+    ("mutator", "message"),
+    (
+        (lambda received: received.real, "complex64 or complex128"),
+        (lambda received: received[..., :-1, :], "active allocation span"),
+        (
+            lambda received: np.where(
+                np.indices(received.shape)[-1] == 0,
+                np.complex128(np.nan + 0j),
+                received,
+            ),
+            "finite",
+        ),
+    ),
+)
+def test_pusch_hop_estimator_demapper_rejects_invalid_received_grid(mutator, message):
+    plan, dmrs, mapped, _, _ = _build_hopped_estimator_fixture()
+    received = mapped.allocation_grid[np.newaxis, np.newaxis, np.newaxis]
+    with pytest.raises(ValueError, match=message):
+        estimate_demap_pusch_intra_slot_hop(
+            plan.metadata,
+            dmrs,
+            data_mask=mapped.data_mask,
+            allocation_metadata=mapped.metadata,
+            received_allocation_grid=mutator(received),
+            noise_variance=0.0,
+        )
+
+
+@pytest.mark.parametrize(
+    ("noise", "exception", "message"),
+    (
+        (1 + 0j, TypeError, "real numeric"),
+        (-0.1, ValueError, "nonnegative"),
+        (np.nan, ValueError, "finite"),
+        (np.ones((2, 2, 2, 2)), ValueError, "at most three"),
+    ),
+)
+def test_pusch_hop_estimator_demapper_rejects_invalid_noise(noise, exception, message):
+    plan, dmrs, mapped, _, _ = _build_hopped_estimator_fixture()
+    received = mapped.allocation_grid[np.newaxis, np.newaxis, np.newaxis]
+    with pytest.raises(exception, match=message):
+        estimate_demap_pusch_intra_slot_hop(
+            plan.metadata,
+            dmrs,
+            data_mask=mapped.data_mask,
+            allocation_metadata=mapped.metadata,
+            received_allocation_grid=received,
+            noise_variance=noise,
+        )
 
 
 def test_pusch_config_accepts_bwp_offset_inside_wider_carrier_grid():

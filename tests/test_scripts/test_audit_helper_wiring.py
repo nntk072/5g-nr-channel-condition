@@ -46,8 +46,7 @@ def test_helper_wiring_inventory_binds_exports_and_direct_call_sites() -> None:
     )
 
     planned_internal = {
-        item["qualified_name"]: item
-        for item in inventory["non_exported_plan_named_definitions"]
+        item["qualified_name"]: item for item in inventory["non_exported_plan_named_definitions"]
     }
     assert inventory["non_exported_plan_named_definition_count"] == len(planned_internal)
     assert "datasets.model_input_audit._validated_real_scalar" in planned_internal
@@ -55,9 +54,9 @@ def test_helper_wiring_inventory_binds_exports_and_direct_call_sites() -> None:
     assert planned_internal["datasets.model_input_audit._validated_real_scalar"][
         "direct_production_references"
     ]
-    assert planned_internal[
-        "receivers.nr.pusch.compose_pusch_intra_slot_hops"
-    ]["direct_test_references"]
+    assert planned_internal["receivers.nr.pusch.compose_pusch_intra_slot_hops"][
+        "direct_test_references"
+    ]
 
     for source, digest in inventory["source_sha256"].items():
         assert len(digest) == 64

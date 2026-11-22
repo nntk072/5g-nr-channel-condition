@@ -43,7 +43,9 @@ class PBCHMessageClassExtension:
         if len(values) != _BIT_COUNT - 1:
             raise ValueError("trailing_bits must contain 23 bits")
         if any(
-            isinstance(bit, (bool, np.bool_)) or not isinstance(bit, Integral) or int(bit) not in (0, 1)
+            isinstance(bit, (bool, np.bool_))
+            or not isinstance(bit, Integral)
+            or int(bit) not in (0, 1)
             for bit in values
         ):
             raise ValueError("trailing_bits must contain only integer binary values")

@@ -88,15 +88,15 @@ def _independent_dual_pol_array_covariance_reference(model: str) -> tuple[Any, s
     powers = powers / powers.sum()
     offsets = torch.as_tensor(_RAY_ANGLE_OFFSETS, dtype=torch.float64)
     aoa = torch.deg2rad(
-        torch.as_tensor(
-            [row["angles_deg"]["aoa"] for row in components], dtype=torch.float64
-        )[:, None]
+        torch.as_tensor([row["angles_deg"]["aoa"] for row in components], dtype=torch.float64)[
+            :, None
+        ]
         + float(profile["cluster_spreads_deg"]["asa"]) * offsets
     )
     zoa = torch.deg2rad(
-        torch.as_tensor(
-            [row["angles_deg"]["zoa"] for row in components], dtype=torch.float64
-        )[:, None]
+        torch.as_tensor([row["angles_deg"]["zoa"] for row in components], dtype=torch.float64)[
+            :, None
+        ]
         + float(profile["cluster_spreads_deg"]["zsa"]) * offsets
     )
 
@@ -114,8 +114,7 @@ def _independent_dual_pol_array_covariance_reference(model: str) -> tuple[Any, s
     vertical_diagonal = (powers * vertical_power.mean(dim=1)).sum()
     horizontal_diagonal = (powers * horizontal_power.mean(dim=1)).sum()
     vertical_correlation = (
-        powers.to(torch.complex128)
-        * (vertical_power[:, :, None] * spatial_phase).mean(dim=(1, 2))
+        powers.to(torch.complex128) * (vertical_power[:, :, None] * spatial_phase).mean(dim=(1, 2))
     ).sum()
     horizontal_correlation = (
         powers.to(torch.complex128)

@@ -245,7 +245,10 @@ def test_legacy_report_without_per_channel_waveform_diagnostics_remains_auditabl
     assert report["checks"]["waveform_diagnostic_extrema"] is None
     assert report["checks"]["acceptance_verdict"] is True
     assert report["status"] == "VERIFIED_RESULT_AND_WORKTREE_SOURCE_PENDING_COMMIT"
-    assert any("predates per-channel waveform-diagnostic retention" in item for item in report["limitations"])
+    assert any(
+        "predates per-channel waveform-diagnostic retention" in item
+        for item in report["limitations"]
+    )
 
 
 def test_legacy_report_rejects_partial_per_channel_waveform_diagnostics() -> None:

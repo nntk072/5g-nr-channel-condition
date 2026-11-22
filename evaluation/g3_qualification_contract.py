@@ -133,10 +133,7 @@ def _string_list(value: Any, name: str, *, nonempty: bool = True) -> list[str]:
     if not isinstance(value, (list, tuple)) or (nonempty and not value):
         raise ValueError(f"{name} must be a {'nonempty ' if nonempty else ''}array of strings")
     items = list(value)
-    if any(
-        not isinstance(item, str) or not item or item != item.strip()
-        for item in items
-    ):
+    if any(not isinstance(item, str) or not item or item != item.strip() for item in items):
         raise ValueError(
             f"{name} entries must be nonempty canonical strings without surrounding whitespace"
         )
@@ -163,7 +160,9 @@ def build_g3_qualification_run_contract(spec: Mapping[str, Any]) -> dict[str, An
     _canonical_bytes(dict(spec))
     run_id = spec["run_id"]
     if not isinstance(run_id, str) or _RUN_ID.fullmatch(run_id) is None:
-        raise ValueError("run_id must be 3–64 lowercase letters, digits, dots, underscores, or hyphens")
+        raise ValueError(
+            "run_id must be 3–64 lowercase letters, digits, dots, underscores, or hyphens"
+        )
     family = validate_g3_joint_acceptance_family(spec["joint_acceptance_family"])
     if family.get("schema") != "loslab.g3_joint_acceptance_family.v4":
         raise ValueError("G3 qualification contract requires acceptance-family v4")
@@ -174,15 +173,9 @@ def build_g3_qualification_run_contract(spec: Mapping[str, Any]) -> dict[str, An
         {"task_id", "scenario_ids", "channel_conditions", "carrier_hz"},
     )
     for name in ("task_id",):
-        if (
-            not isinstance(task[name], str)
-            or not task[name]
-            or task[name] != task[name].strip()
-        ):
+        if not isinstance(task[name], str) or not task[name] or task[name] != task[name].strip():
             raise ValueError(f"task_scope.{name} must be a nonempty canonical string")
-    task["scenario_ids"] = sorted(
-        _string_list(task["scenario_ids"], "task_scope.scenario_ids")
-    )
+    task["scenario_ids"] = sorted(_string_list(task["scenario_ids"], "task_scope.scenario_ids"))
     conditions = _string_list(task["channel_conditions"], "task_scope.channel_conditions")
     if set(conditions) - {"LOS", "NLOS"}:
         raise ValueError("channel_conditions may contain only LOS and NLOS")
@@ -192,7 +185,9 @@ def build_g3_qualification_run_contract(spec: Mapping[str, Any]) -> dict[str, An
     if not {row[0] for row in family_scenarios}.issubset(task["scenario_ids"]):
         raise ValueError("task_scope.scenario_ids must cover every acceptance-family scenario")
     if not {row[1] for row in family_scenarios}.issubset(task["channel_conditions"]):
-        raise ValueError("task_scope.channel_conditions must cover every acceptance-family condition")
+        raise ValueError(
+            "task_scope.channel_conditions must cover every acceptance-family condition"
+        )
 
     normalized_configs: dict[str, dict[str, Any]] = {}
     for role in ("candidate", "challenger"):
@@ -212,7 +207,10 @@ def build_g3_qualification_run_contract(spec: Mapping[str, Any]) -> dict[str, An
             "configuration": configuration,
             "configuration_sha256": _digest(configuration),
         }
-    if normalized_configs["candidate"]["config_id"] == normalized_configs["challenger"]["config_id"]:
+    if (
+        normalized_configs["candidate"]["config_id"]
+        == normalized_configs["challenger"]["config_id"]
+    ):
         raise ValueError("candidate and challenger config_id values must differ")
 
     waveform = _object(spec["waveform"], "waveform", {"waveform_id", "configuration"})
@@ -308,10 +306,7 @@ def build_g3_qualification_run_contract(spec: Mapping[str, Any]) -> dict[str, An
         if (
             not isinstance(row, (list, tuple))
             or len(row) != 3
-            or any(
-                not isinstance(item, str) or not item or item != item.strip()
-                for item in row
-            )
+            or any(not isinstance(item, str) or not item or item != item.strip() for item in row)
         ):
             raise ValueError("path-equivalence roster rows must be nonempty string triples")
         normalized_path_roster.append(list(row))
@@ -319,13 +314,19 @@ def build_g3_qualification_run_contract(spec: Mapping[str, Any]) -> dict[str, An
         raise ValueError("sampling.path_equivalence_scenarios must be unique")
     family_path_roster = [list(row) for row in family["path_equivalence_expected_scenarios"]]
     if sorted(normalized_path_roster) != sorted(family_path_roster):
-        raise ValueError("sampling.path_equivalence_scenarios must exactly match the acceptance family")
+        raise ValueError(
+            "sampling.path_equivalence_scenarios must exactly match the acceptance family"
+        )
     path_episodes = sorted({row[2] for row in family_path_roster})
     if sorted(episode_ids) != path_episodes:
-        raise ValueError("sampling.episode_ids must exactly match the acceptance family's path roster")
+        raise ValueError(
+            "sampling.episode_ids must exactly match the acceptance family's path roster"
+        )
     units = _object(sampling["unit_by_branch"], "sampling.unit_by_branch", set(_BRANCHES))
     if units != _SAMPLE_UNITS:
-        raise ValueError("sampling.unit_by_branch differs from the declared independent-unit contract")
+        raise ValueError(
+            "sampling.unit_by_branch differs from the declared independent-unit contract"
+        )
     planned = _object(
         sampling["planned_units_by_branch"], "sampling.planned_units_by_branch", set(_BRANCHES)
     )
@@ -355,32 +356,29 @@ def build_g3_qualification_run_contract(spec: Mapping[str, Any]) -> dict[str, An
                     "stratum and planned_units"
                 )
             stratum = row["stratum"]
-            if (
-                not isinstance(stratum, (list, tuple))
-                or any(
-                    not isinstance(value, str) or not value or value != value.strip()
-                    for value in stratum
-                )
+            if not isinstance(stratum, (list, tuple)) or any(
+                not isinstance(value, str) or not value or value != value.strip()
+                for value in stratum
             ):
                 raise ValueError(
                     f"planned_units_by_stratum.{branch}.stratum must contain canonical strings"
                 )
-            key = tuple(stratum)
-            if key in observed_keys:
+            stratum_key = tuple(value for value in stratum if isinstance(value, str))
+            if stratum_key in observed_keys:
                 raise ValueError(f"planned_units_by_stratum.{branch} contains duplicate strata")
-            observed_keys.append(key)
+            observed_keys.append(stratum_key)
             count = row["planned_units"]
             minimum = _MINIMUM_UNITS_PER_STRATUM[branch]
             if isinstance(count, bool) or not isinstance(count, int) or count < minimum:
                 raise ValueError(
-                    f"planned_units_by_stratum.{branch}{key} must be at least {minimum}; "
+                    f"planned_units_by_stratum.{branch}{stratum_key} must be at least {minimum}; "
                     "this is an evaluator/pilot floor, not a powered sample-size guarantee"
                 )
             if branch == "path_equivalence" and count != 1:
                 raise ValueError(
                     "path_equivalence planned_units must be exactly one per frozen episode"
                 )
-            normalized_rows.append({"stratum": list(key), "planned_units": count})
+            normalized_rows.append({"stratum": list(stratum_key), "planned_units": count})
         if set(observed_keys) != set(expected_keys) or len(observed_keys) != len(expected_keys):
             raise ValueError(
                 f"planned_units_by_stratum.{branch} must exactly match its acceptance-family roster"
@@ -411,7 +409,13 @@ def build_g3_qualification_run_contract(spec: Mapping[str, Any]) -> dict[str, An
     caps = _object(
         spec["solver_budget"],
         "solver_budget",
-        {"max_rays_per_link", "max_interactions", "max_episodes", "max_wall_seconds", "overflow_policy"},
+        {
+            "max_rays_per_link",
+            "max_interactions",
+            "max_episodes",
+            "max_wall_seconds",
+            "overflow_policy",
+        },
     )
     for key in ("max_rays_per_link", "max_interactions", "max_episodes"):
         value = caps[key]
@@ -428,13 +432,17 @@ def build_g3_qualification_run_contract(spec: Mapping[str, Any]) -> dict[str, An
         "source_identity",
         {"git_revision", "working_tree_dirty", "source_bundle_sha256"},
     )
-    if not isinstance(source["git_revision"], str) or _REVISION.fullmatch(source["git_revision"]) is None:
+    if (
+        not isinstance(source["git_revision"], str)
+        or _REVISION.fullmatch(source["git_revision"]) is None
+    ):
         raise ValueError("source_identity.git_revision must be a 40-character lowercase Git SHA")
     if not isinstance(source["working_tree_dirty"], bool):
         raise TypeError("source_identity.working_tree_dirty must be boolean")
-    if not isinstance(source["source_bundle_sha256"], str) or _SHA256.fullmatch(
-        source["source_bundle_sha256"]
-    ) is None:
+    if (
+        not isinstance(source["source_bundle_sha256"], str)
+        or _SHA256.fullmatch(source["source_bundle_sha256"]) is None
+    ):
         raise ValueError("source_identity.source_bundle_sha256 must be a SHA-256 digest")
 
     contract: dict[str, Any] = {
@@ -462,9 +470,7 @@ def _validate_sample_size_design_binding(
 ) -> dict[str, Any]:
     verification = verify_g3_joint_sample_size_design(design)
     if verification["complete_precision_powered_g3_design"] is not True:
-        raise ValueError(
-            "G3 contract v3 requires a complete precision- and power-based design"
-        )
+        raise ValueError("G3 contract v3 requires a complete precision- and power-based design")
     family = base_contract["joint_acceptance_family"]
     identity = design.get("joint_acceptance_family")
     if not isinstance(identity, Mapping) or identity != {
@@ -473,17 +479,15 @@ def _validate_sample_size_design_binding(
     }:
         raise ValueError("sample-size design acceptance family differs from contract")
     branches = design.get("branch_designs")
+    if not isinstance(branches, Mapping):
+        raise ValueError("sample-size design branch_designs must be an object")
     sampling = base_contract["sampling"]
     for branch in _BRANCHES:
         branch_design = branches[branch]
         requirements = branch_design["required_units_by_stratum"]
         planned = sampling["planned_units_by_stratum"][branch]
-        required_by_stratum = {
-            tuple(row["stratum"]): row["required_units"] for row in requirements
-        }
-        planned_by_stratum = {
-            tuple(row["stratum"]): row["planned_units"] for row in planned
-        }
+        required_by_stratum = {tuple(row["stratum"]): row["required_units"] for row in requirements}
+        planned_by_stratum = {tuple(row["stratum"]): row["planned_units"] for row in planned}
         if set(required_by_stratum) != set(planned_by_stratum):
             raise ValueError(f"{branch} sample-size strata differ from the frozen contract")
         for stratum, required in required_by_stratum.items():

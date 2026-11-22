@@ -96,7 +96,7 @@ def binary_metrics(y: np.ndarray, probability: np.ndarray, threshold: float = 0.
         take = (p >= lo) & ((p < hi) if hi < 1 else (p <= hi))
         if take.any():
             ece += float(take.mean() * abs(y[take].mean() - p[take].mean()))
-    metrics = {
+    metrics: dict[str, object] = {
         "accuracy": float(accuracy_score(y, pred)),
         "balanced_accuracy": (
             float(balanced_accuracy_score(y, pred)) if len(present_classes) == 2 else None

@@ -43,10 +43,16 @@ def _generator(tx_pattern: str, rx_pattern: str) -> ChannelCoefficientsGenerator
     tx_config = CDLArrayConfig(**common, antenna_pattern=tx_pattern)
     rx_config = CDLArrayConfig(**common, antenna_pattern=rx_pattern)
     tx_array = PanelArray(
-        **asdict(tx_config), carrier_frequency=_CARRIER_FREQUENCY_HZ, precision="double", device="cpu"
+        **asdict(tx_config),
+        carrier_frequency=_CARRIER_FREQUENCY_HZ,
+        precision="double",
+        device="cpu",
     )
     rx_array = PanelArray(
-        **asdict(rx_config), carrier_frequency=_CARRIER_FREQUENCY_HZ, precision="double", device="cpu"
+        **asdict(rx_config),
+        carrier_frequency=_CARRIER_FREQUENCY_HZ,
+        precision="double",
+        device="cpu",
     )
     return ChannelCoefficientsGenerator(
         carrier_frequency=_CARRIER_FREQUENCY_HZ,

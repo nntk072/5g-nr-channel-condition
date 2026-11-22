@@ -24,14 +24,29 @@ _MAX_SUBCARRIERS = 4096
 _MAX_TIME_STEPS = 256
 _MAX_GRID_ELEMENTS = 2_000_000
 _ROOT_FIELDS = {
-    "schema", "run_id", "sample_ids", "scenario", "seed", "carrier_frequency_hz",
-    "subcarrier_spacing_hz", "num_subcarriers", "topology", "generator",
+    "schema",
+    "run_id",
+    "sample_ids",
+    "scenario",
+    "seed",
+    "carrier_frequency_hz",
+    "subcarrier_spacing_hz",
+    "num_subcarriers",
+    "topology",
+    "generator",
 }
 _TOPOLOGY_REQUIRED = {"ut_loc", "bs_loc", "ut_velocities", "in_state", "los"}
 _TOPOLOGY_OPTIONAL = {"ut_orientations", "bs_orientations"}
 _GENERATOR_FIELDS = {
-    "direction", "num_time_steps", "sampling_frequency_hz", "scenario_options",
-    "enable_pathloss", "enable_shadow_fading", "spec_version", "device", "ut_array",
+    "direction",
+    "num_time_steps",
+    "sampling_frequency_hz",
+    "scenario_options",
+    "enable_pathloss",
+    "enable_shadow_fading",
+    "spec_version",
+    "device",
+    "ut_array",
     "bs_array",
 }
 
@@ -97,13 +112,16 @@ def _validate_config(config: dict[str, Any]) -> tuple[dict[str, Any], dict[str, 
     for name in ("carrier_frequency_hz", "subcarrier_spacing_hz"):
         value = config[name]
         if (
-            isinstance(value, bool) or not isinstance(value, (int, float))
-            or not math.isfinite(float(value)) or value <= 0
+            isinstance(value, bool)
+            or not isinstance(value, (int, float))
+            or not math.isfinite(float(value))
+            or value <= 0
         ):
             raise ValueError(f"{name} must be finite and positive")
     subcarriers = config["num_subcarriers"]
     if (
-        isinstance(subcarriers, bool) or not isinstance(subcarriers, int)
+        isinstance(subcarriers, bool)
+        or not isinstance(subcarriers, int)
         or not 8 <= subcarriers <= _MAX_SUBCARRIERS
     ):
         raise ValueError(f"num_subcarriers must be in [8, {_MAX_SUBCARRIERS}]")
@@ -120,9 +138,11 @@ def _validate_config(config: dict[str, Any]) -> tuple[dict[str, Any], dict[str, 
             continue
         rows = topology[name]
         if (
-            not isinstance(rows, list) or len(rows) != batch
+            not isinstance(rows, list)
+            or len(rows) != batch
             or any(
-                not isinstance(row, list) or len(row) != 3
+                not isinstance(row, list)
+                or len(row) != 3
                 or any(
                     isinstance(component, bool)
                     or not isinstance(component, (int, float))
@@ -135,14 +155,19 @@ def _validate_config(config: dict[str, Any]) -> tuple[dict[str, Any], dict[str, 
             raise ValueError(f"topology.{name} must contain one finite 3-vector per sample")
     for name in ("in_state", "los"):
         values = topology[name]
-        if not isinstance(values, list) or len(values) != batch or any(type(v) is not bool for v in values):
+        if (
+            not isinstance(values, list)
+            or len(values) != batch
+            or any(type(v) is not bool for v in values)
+        ):
             raise ValueError(f"topology.{name} must contain one Boolean per sample")
     generator = config["generator"]
     if not isinstance(generator, dict) or set(generator) - _GENERATOR_FIELDS:
         raise ValueError("generator has unknown fields")
     time_steps = generator.get("num_time_steps", 1)
     if (
-        isinstance(time_steps, bool) or not isinstance(time_steps, int)
+        isinstance(time_steps, bool)
+        or not isinstance(time_steps, int)
         or not 1 <= time_steps <= _MAX_TIME_STEPS
     ):
         raise ValueError(f"generator.num_time_steps must be in [1, {_MAX_TIME_STEPS}]")
@@ -217,10 +242,7 @@ def generate_and_store(config_path: Path, output_dir: Path) -> dict[str, Any]:
         record.sample_id for record in run.records
     ):
         raise ValueError("canonical episode bundles must exactly cover the scenario run roster")
-    episode_pointers = [
-        write_episode_bundle(episode_root, bundle)
-        for bundle in bundles
-    ]
+    episode_pointers = [write_episode_bundle(episode_root, bundle) for bundle in bundles]
     expected_episode_ids = tuple(record.sample_id for record in run.records)
     if tuple(pointer.episode_id for pointer in episode_pointers) != expected_episode_ids:
         raise ValueError("published episode manifests must exactly cover the scenario run roster")

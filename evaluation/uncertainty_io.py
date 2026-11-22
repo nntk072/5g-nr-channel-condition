@@ -300,9 +300,7 @@ def evaluate_prediction_file_build_node(
     )
 
     def build(staging: Path) -> None:
-        report = evaluate_prediction_file(
-            input_path, seed=seed, bootstrap_draws=bootstrap_draws
-        )
+        report = evaluate_prediction_file(input_path, seed=seed, bootstrap_draws=bootstrap_draws)
         (staging / "uncertainty-report.json").write_text(
             json.dumps(report, sort_keys=True, indent=2, allow_nan=False) + "\n",
             encoding="utf-8",
@@ -318,7 +316,8 @@ def evaluate_prediction_file_build_node(
     import jsonschema
 
     report_schema_path = (
-        Path(__file__).resolve().parent / "schema/grouped-regression-uncertainty-report.v1.schema.json"
+        Path(__file__).resolve().parent
+        / "schema/grouped-regression-uncertainty-report.v1.schema.json"
     )
     jsonschema.validate(report, json.loads(report_schema_path.read_text(encoding="utf-8")))
     manifest_bytes = _read_prediction_snapshot(result.manifest_path)

@@ -30,8 +30,7 @@ _CDL_TABLE_SHA256 = {
 }
 _PROFILE_COUNT = 5
 _CDL_ETSI_REFERENCE_PATH = (
-    Path(__file__).resolve().parents[2]
-    / "docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
+    Path(__file__).resolve().parents[2] / "docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
 )
 _RAY_ANGLE_OFFSETS = (
     0.0447,

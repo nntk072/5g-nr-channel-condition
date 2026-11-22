@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib
 import importlib.metadata
 import io
 import json
@@ -23,10 +24,21 @@ import tempfile
 import zipfile
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Sequence
+from typing import TYPE_CHECKING, Any, Sequence
 
 import numpy as np
-import torch
+
+if TYPE_CHECKING:
+    import torch
+else:
+
+    class _LazyTorch:
+        def __getattr__(self, name: str) -> Any:
+            module = importlib.import_module("torch")
+            globals()["torch"] = module
+            return getattr(module, name)
+
+    torch = _LazyTorch()
 from integrations.sionna.nr_pusch import SionnaPUSCHLSReceiver
 from integrations.sionna.ofdm_impairments import (
     apply_integer_timing_offset,
@@ -187,7 +199,7 @@ def _write_bounded_npz(
                 )
                 for chunk in chunks:
                     contiguous = np.ascontiguousarray(chunk)
-                    member.write(memoryview(contiguous).cast("B"))
+                    member.write(contiguous.tobytes(order="C"))
 
 
 def _combine_snr_curve_waveform_evidence(
@@ -1550,6 +1562,8 @@ def run_independent_ordered_impairment_snr_curve(
         ):
             raise ValueError("preregistration signature identity does not bind the frozen contract")
         if reviewer_policy_identity is not None:
+            assert isinstance(frozen_acceptance, dict)
+            assert isinstance(preregistration_signature, dict)
             expected_policy_fields = {
                 "status",
                 "policy_id",
@@ -1596,6 +1610,8 @@ def run_independent_ordered_impairment_snr_curve(
                 )
             ):
                 raise ValueError("G5 independent reviewer policy identity is invalid")
+        assert isinstance(frozen_acceptance, dict)
+        assert isinstance(preregistration_signature, dict)
         if frozen_acceptance.get("schema") in {
             G5_SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
             G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA,
@@ -1876,7 +1892,7 @@ def _independent_snr_curve_cluster_inference(
             raise ValueError("SNR-curve points do not share the exact channel-seed roster")
     channel_count = len(channel_seeds)
     blocks_per_channel = reports[0]["config"]["blocks_per_channel"]
-    cells: dict[str, list[dict[str, float | None]]] = {condition: [] for condition in conditions}
+    cells: dict[str, list[dict[str, Any]]] = {condition: [] for condition in conditions}
     if channel_count < 2:
         return {
             "status": "unavailable",

@@ -298,7 +298,7 @@ def _array_sha256(values: np.ndarray) -> str:
     digest = hashlib.sha256()
     digest.update(header)
     digest.update(b"\0")
-    digest.update(memoryview(contiguous).cast("B"))
+    digest.update(contiguous.tobytes(order="C"))
     return digest.hexdigest()
 
 
@@ -522,7 +522,12 @@ def measure_ul_srs_rsrp_from_noisy_network_grid(
             }
         )
     if any(
-        value["network_sinr_linear"] is not None and not math.isfinite(value["network_sinr_linear"])
+        (sinr := value["network_sinr_linear"]) is not None
+        and (
+            isinstance(sinr, bool)
+            or not isinstance(sinr, (int, float))
+            or not math.isfinite(float(sinr))
+        )
         for value in branch_component_measurements
     ):
         raise ValueError("network component SINR is not representable in float64")

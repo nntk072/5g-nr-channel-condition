@@ -25,7 +25,9 @@ from sionna.phy.channel.tr38901 import models as profile_resources  # noqa: E402
 
 _MODELS = tuple("ABCDE")
 _PATTERNS = ("38.901", "38.901-handheld")
-_PATTERN_PAIRS = tuple((tx_pattern, rx_pattern) for tx_pattern in _PATTERNS for rx_pattern in _PATTERNS)
+_PATTERN_PAIRS = tuple(
+    (tx_pattern, rx_pattern) for tx_pattern in _PATTERNS for rx_pattern in _PATTERNS
+)
 _TX_ORIENTATION = (-0.7, 0.35, 1.1)
 _RX_ORIENTATION = (0.2, -0.1, 0.3)
 _VELOCITY = (10.0, 20.0, 20.0)
@@ -48,7 +50,9 @@ _PROFILE_SHA256 = {
     "D": "a8960f176347de457c0cb90fbc8cf137ac98bb1c5295b096f004d8d5c6e40176",
     "E": "04328f33d8d79b24aa3d0303fecb58b465ed7e13874930b05e76be0d97743480",
 }
-_REFERENCE_PATH = Path(__file__).resolve().parents[2] / "docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
+_REFERENCE_PATH = (
+    Path(__file__).resolve().parents[2] / "docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
+)
 _REFERENCE_SHA256 = "24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090"
 _SIONNA_ANTENNA_SHA256 = "09e20b89f4c4d990bed1a3ce3d6314f9fe7e45c090737a6f5790166d4a63f926"
 _SIONNA_COEFFICIENTS_SHA256 = "47059c7bf0998d2a230909e70743832ee928a738a97b9b5a25a185bb4947b5fc"
@@ -74,8 +78,18 @@ def _claims(
         for column in range(_CHANNEL_PORT_COUNT):
             expected = reference[row][column]
             for component, observed, target, half_width in (
-                ("real", float(estimate[row, column].real), expected.real, float(half_width_real[row, column])),
-                ("imag", float(estimate[row, column].imag), expected.imag, float(half_width_imag[row, column])),
+                (
+                    "real",
+                    float(estimate[row, column].real),
+                    expected.real,
+                    float(half_width_real[row, column]),
+                ),
+                (
+                    "imag",
+                    float(estimate[row, column].imag),
+                    expected.imag,
+                    float(half_width_imag[row, column]),
+                ),
             ):
                 error = abs(observed - target)
                 claims.append(
@@ -94,10 +108,13 @@ def _claims(
 
 
 @pytest.mark.native_sionna
-@pytest.mark.parametrize(("pattern_index", "tx_pattern", "rx_pattern"), tuple(
-    (index, tx_pattern, rx_pattern)
-    for index, (tx_pattern, rx_pattern) in enumerate(_PATTERN_PAIRS)
-))
+@pytest.mark.parametrize(
+    ("pattern_index", "tx_pattern", "rx_pattern"),
+    tuple(
+        (index, tx_pattern, rx_pattern)
+        for index, (tx_pattern, rx_pattern) in enumerate(_PATTERN_PAIRS)
+    ),
+)
 @pytest.mark.parametrize("model", _MODELS)
 def test_cdl_patterned_rotated_dual_tx_rx_spatiotemporal_covariance_matches_independent_reference(
     model: str,

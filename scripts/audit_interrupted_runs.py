@@ -195,10 +195,10 @@ def _recovery_supported(payload: dict[str, Any]) -> bool:
         replay = _validate_observable_stage_receipt(payload)
         return payload.get("state") == "running" and replay["state"] == "running"
     if schema == "loslab.observable_multipath_staging.v2":
-        replay = _validate_observable_stage_receipt_v2(payload)
+        replay_v2 = _validate_observable_stage_receipt_v2(payload)
         if payload.get("state") != "running":
             return False
-        return replay is None or replay["state"] == "running"
+        return replay_v2 is None or replay_v2["state"] == "running"
     return False
 
 

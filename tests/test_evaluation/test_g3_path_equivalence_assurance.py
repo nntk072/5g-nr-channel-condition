@@ -12,9 +12,7 @@ from evaluation.g3_joint_acceptance import build_g3_joint_acceptance_family_v4
 from evaluation.g3_path_equivalence_assurance import evaluate_path_equivalence_roster
 
 
-def _comparison(
-    status: str, candidate: float | None, challenger: float | None
-) -> dict[str, Any]:
+def _comparison(status: str, candidate: float | None, challenger: float | None) -> dict[str, Any]:
     left = Fraction(str(candidate)).limit_denominator(100) if candidate is not None else None
     right = Fraction(str(challenger)).limit_denominator(100) if challenger is not None else None
     matched = math.lcm(
@@ -220,9 +218,9 @@ def test_budget_bound_roster_separates_diffuse_distribution_from_path_identity()
         Path(__file__).resolve().parents[2]
         / "datasets/schema/g3-path-equivalence-roster-diagnostic.v2.schema.json"
     )
-    jsonschema.Draft202012Validator(
-        json.loads(schema_path.read_text(encoding="utf-8"))
-    ).validate(report)
+    jsonschema.Draft202012Validator(json.loads(schema_path.read_text(encoding="utf-8"))).validate(
+        report
+    )
 
 
 def test_solver_budget_cannot_be_attached_to_legacy_precomputed_comparisons() -> None:

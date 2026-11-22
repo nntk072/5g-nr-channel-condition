@@ -73,62 +73,70 @@ _MAX_CAPTURE_BYTES = MAX_JSON_ARTIFACT_BYTES
 _MAX_MANIFEST_TOTAL_BYTES = _MAX_CAPTURE_BYTES * 2
 _MAX_V4_MANIFEST_TOTAL_BYTES = _MAX_CAPTURE_BYTES * 3
 _MAX_SOURCE_BUNDLE_BYTES = 64 * 1024 * 1024
-V1_EVALUATOR_SOURCE_PATHS = tuple(sorted((
-    V1_SCHEMA_RELATIVE_PATH,
-    ARTIFACT_SCHEMA_V1_RELATIVE_PATH,
-    "datasets/schema/g3-joint-evaluator-input.v1.schema.json",
-    "datasets/schema/g3-joint-evaluator-input.v2.schema.json",
-    "datasets/schema/g3-qualification-run-contract.v2.schema.json",
-    SIGNER_POLICY_RELATIVE_PATH,
-    "evaluation/g3_acquisition_package.py",
-    "evaluation/g3_complex_csi.py",
-    "evaluation/g3_joint_acceptance.py",
-    "evaluation/g3_joint_evaluation.py",
-    "evaluation/g3_joint_evidence_artifact.py",
-    "evaluation/g3_joint_evidence_run_manifest.py",
-    "evaluation/g3_qualification_contract.py",
-    "evaluation/g3_material_calibration.py",
-    "evaluation/g3_numeric.py",
-    "evaluation/g3_path_equivalence_assurance.py",
-    "evaluation/g3_propagation_metrics.py",
-    "evaluation/g3_receiver_impact.py",
-    "evaluation/g3_signed_attestation.py",
-)))
-V2_EVALUATOR_SOURCE_PATHS = tuple(sorted((
-    "pyproject.toml",
-    "uv.lock",
-    ARTIFACT_SCHEMA_V1_RELATIVE_PATH,
-    "datasets/schema/g3-joint-evaluator-input.v1.schema.json",
-    "datasets/schema/g3-joint-evaluator-input.v2.schema.json",
-    "datasets/schema/g3-joint-sample-size-design-composition.v1.schema.json",
-    INPUT_SCHEMA_V3_RELATIVE_PATH,
-    INPUT_SCHEMA_V4_RELATIVE_PATH,
-    INPUT_SCHEMA_V5_RELATIVE_PATH,
-    INPUT_SCHEMA_V6_RELATIVE_PATH,
-    PATH_DIAGNOSTIC_SCHEMA_V2_RELATIVE_PATH,
-    SCHEMA_RELATIVE_PATH,
-    "datasets/schema/g3-qualification-run-contract.v2.schema.json",
-    QUALIFICATION_CONTRACT_SCHEMA_RELATIVE_PATH,
-    QUALIFICATION_CONTRACT_SCHEMA_V4_RELATIVE_PATH,
-    SIGNER_POLICY_RELATIVE_PATH,
-    "evaluation/g3_acquisition_package.py",
-    "evaluation/g3_complex_csi.py",
-    "evaluation/g3_joint_acceptance.py",
-    "evaluation/g3_joint_evaluation.py",
-    "evaluation/g3_joint_evidence_artifact.py",
-    "evaluation/g3_joint_evidence_run_manifest.py",
-    "evaluation/g3_qualification_contract.py",
-    "evaluation/g3_material_calibration.py",
-    "evaluation/g3_numeric.py",
-    "evaluation/g3_path_equivalence.py",
-    "evaluation/g3_path_equivalence_assurance.py",
-    "evaluation/g3_propagation_assurance.py",
-    "evaluation/g3_propagation_metrics.py",
-    "evaluation/g3_receiver_impact.py",
-    "evaluation/g3_receiver_assurance.py",
-    "evaluation/g3_sample_size_planning.py",
-    "evaluation/g3_signed_attestation.py",
-)))
+V1_EVALUATOR_SOURCE_PATHS = tuple(
+    sorted(
+        (
+            V1_SCHEMA_RELATIVE_PATH,
+            ARTIFACT_SCHEMA_V1_RELATIVE_PATH,
+            "datasets/schema/g3-joint-evaluator-input.v1.schema.json",
+            "datasets/schema/g3-joint-evaluator-input.v2.schema.json",
+            "datasets/schema/g3-qualification-run-contract.v2.schema.json",
+            SIGNER_POLICY_RELATIVE_PATH,
+            "evaluation/g3_acquisition_package.py",
+            "evaluation/g3_complex_csi.py",
+            "evaluation/g3_joint_acceptance.py",
+            "evaluation/g3_joint_evaluation.py",
+            "evaluation/g3_joint_evidence_artifact.py",
+            "evaluation/g3_joint_evidence_run_manifest.py",
+            "evaluation/g3_qualification_contract.py",
+            "evaluation/g3_material_calibration.py",
+            "evaluation/g3_numeric.py",
+            "evaluation/g3_path_equivalence_assurance.py",
+            "evaluation/g3_propagation_metrics.py",
+            "evaluation/g3_receiver_impact.py",
+            "evaluation/g3_signed_attestation.py",
+        )
+    )
+)
+V2_EVALUATOR_SOURCE_PATHS = tuple(
+    sorted(
+        (
+            "pyproject.toml",
+            "uv.lock",
+            ARTIFACT_SCHEMA_V1_RELATIVE_PATH,
+            "datasets/schema/g3-joint-evaluator-input.v1.schema.json",
+            "datasets/schema/g3-joint-evaluator-input.v2.schema.json",
+            "datasets/schema/g3-joint-sample-size-design-composition.v1.schema.json",
+            INPUT_SCHEMA_V3_RELATIVE_PATH,
+            INPUT_SCHEMA_V4_RELATIVE_PATH,
+            INPUT_SCHEMA_V5_RELATIVE_PATH,
+            INPUT_SCHEMA_V6_RELATIVE_PATH,
+            PATH_DIAGNOSTIC_SCHEMA_V2_RELATIVE_PATH,
+            SCHEMA_RELATIVE_PATH,
+            "datasets/schema/g3-qualification-run-contract.v2.schema.json",
+            QUALIFICATION_CONTRACT_SCHEMA_RELATIVE_PATH,
+            QUALIFICATION_CONTRACT_SCHEMA_V4_RELATIVE_PATH,
+            SIGNER_POLICY_RELATIVE_PATH,
+            "evaluation/g3_acquisition_package.py",
+            "evaluation/g3_complex_csi.py",
+            "evaluation/g3_joint_acceptance.py",
+            "evaluation/g3_joint_evaluation.py",
+            "evaluation/g3_joint_evidence_artifact.py",
+            "evaluation/g3_joint_evidence_run_manifest.py",
+            "evaluation/g3_qualification_contract.py",
+            "evaluation/g3_material_calibration.py",
+            "evaluation/g3_numeric.py",
+            "evaluation/g3_path_equivalence.py",
+            "evaluation/g3_path_equivalence_assurance.py",
+            "evaluation/g3_propagation_assurance.py",
+            "evaluation/g3_propagation_metrics.py",
+            "evaluation/g3_receiver_impact.py",
+            "evaluation/g3_receiver_assurance.py",
+            "evaluation/g3_sample_size_planning.py",
+            "evaluation/g3_signed_attestation.py",
+        )
+    )
+)
 EVALUATOR_SOURCE_PATHS = tuple(
     sorted(
         (
@@ -195,8 +203,16 @@ def _verify_signed_runtime_inventory_bindings(
     python_identity = runtime_inventory.get("python")
     platform_identity = runtime_inventory.get("platform")
     loaded = runtime_inventory.get("loaded_native_libraries")
-    if not all(isinstance(value, dict) for value in (source, python_identity, platform_identity, loaded)):
-        raise ValueError("signed runtime inventory is missing source, platform, or loaded-library identity")
+    if not all(
+        isinstance(value, dict) for value in (source, python_identity, platform_identity, loaded)
+    ):
+        raise ValueError(
+            "signed runtime inventory is missing source, platform, or loaded-library identity"
+        )
+    assert isinstance(source, dict)
+    assert isinstance(python_identity, dict)
+    assert isinstance(platform_identity, dict)
+    assert isinstance(loaded, dict)
     if (
         runtime_inventory.get("schema") != "umcd.runtime_inventory.v3"
         or runtime_inventory.get("status") != "SELF_REPORTED_INTEGRITY_ONLY"
@@ -211,8 +227,7 @@ def _verify_signed_runtime_inventory_bindings(
         raise ValueError("runtime inventory commit differs from the run runtime identity")
     if (
         python_identity.get("version") != runtime_identity.get("python")
-        or python_identity.get("implementation")
-        != runtime_identity.get("python_implementation")
+        or python_identity.get("implementation") != runtime_identity.get("python_implementation")
         or platform_identity.get("system") != runtime_identity.get("platform_system")
         or platform_identity.get("release") != runtime_identity.get("platform_release")
         or platform_identity.get("machine") != runtime_identity.get("machine")
@@ -240,9 +255,7 @@ def _verify_signed_runtime_inventory_bindings(
     for package_name, candidates in package_distributions.items():
         declared_version = packages.get(package_name)
         matching_distributions = [
-            distribution_by_name[name]
-            for name in candidates
-            if name in distribution_by_name
+            distribution_by_name[name] for name in candidates if name in distribution_by_name
         ]
         if not matching_distributions:
             raise ValueError(f"runtime inventory omits package identity: {package_name}")
@@ -257,8 +270,7 @@ def _verify_signed_runtime_inventory_bindings(
                     f"runtime identity says {package_name} is absent but inventory records it installed"
                 )
         elif not any(
-            distribution.get("version") == declared_version
-            for distribution in installed_matches
+            distribution.get("version") == declared_version for distribution in installed_matches
         ):
             raise ValueError(
                 f"runtime inventory package version differs from runtime identity: {package_name}"
@@ -266,7 +278,9 @@ def _verify_signed_runtime_inventory_bindings(
     source_by_path = {item["path"]: item["sha256"] for item in evaluator_sources}
     for path in ("pyproject.toml", "uv.lock"):
         if source.get(path) != source_by_path.get(path):
-            raise ValueError(f"runtime inventory {path} digest differs from evaluator source roster")
+            raise ValueError(
+                f"runtime inventory {path} digest differs from evaluator source roster"
+            )
     runtime_sources = source.get("runtime_inventory_sources")
     if not isinstance(runtime_sources, dict):
         raise ValueError("runtime inventory source-code digest roster is missing")
@@ -276,7 +290,9 @@ def _verify_signed_runtime_inventory_bindings(
         "scripts/report_runtime_inventory.py",
     ):
         if runtime_sources.get(path) != source_by_path.get(path):
-            raise ValueError(f"runtime inventory source digest differs from evaluator roster: {path}")
+            raise ValueError(
+                f"runtime inventory source digest differs from evaluator roster: {path}"
+            )
 
 
 def _authorize_run_manifest_signer(signer_id: str, policy_bytes: bytes) -> dict[str, str]:
@@ -418,9 +434,7 @@ def _read_rooted_source_file(root: Path, relative_path: str, *, limit: int) -> b
         os.close(root_fd)
 
 
-def _validate_joint_evaluator_input_schema(
-    payload: Any, *, source_root: Path
-) -> str:
+def _validate_joint_evaluator_input_schema(payload: Any, *, source_root: Path) -> str:
     """Validate a serialized joint input against its version-pinned source schema."""
     if not isinstance(payload, dict):
         raise ValueError("G3 joint evaluator input must be an object")
@@ -432,7 +446,10 @@ def _validate_joint_evaluator_input_schema(
         "loslab.g3_joint_evaluator_inputs.v5": INPUT_SCHEMA_V5_RELATIVE_PATH,
         "loslab.g3_joint_evaluator_inputs.v6": INPUT_SCHEMA_V6_RELATIVE_PATH,
     }
-    schema_path = schema_by_version.get(payload.get("schema"))
+    schema_version = payload.get("schema")
+    if not isinstance(schema_version, str):
+        raise ValueError("G3 joint evaluator input schema must be a string")
+    schema_path = schema_by_version.get(schema_version)
     if schema_path is None:
         raise ValueError("unsupported G3 joint evaluator input schema")
     schema = _json_bytes(
@@ -467,14 +484,10 @@ def _verify_qualification_contract_bindings(
             raise ValueError(
                 "new contract-bound G3 evaluation requires qualification contract v3 or v4"
             )
-        design_verification = verify_g3_joint_sample_size_design(
-            contract["sample_size_design"]
-        )
+        design_verification = verify_g3_joint_sample_size_design(contract["sample_size_design"])
         if design_verification["complete_precision_powered_g3_design"] is not True:
             raise ValueError("contract-bound G3 evaluation requires a complete powered design")
-    if require_raw_path_criteria and contract_schema != (
-        "loslab.g3_qualification_run_contract.v4"
-    ):
+    if require_raw_path_criteria and contract_schema != ("loslab.g3_qualification_run_contract.v4"):
         raise ValueError(
             "strict signed reviewer admission requires qualification contract v4 "
             "with raw path criteria and a complete powered design"
@@ -531,8 +544,10 @@ def _verify_qualification_contract_bindings(
                 "propagation effective bandwidth differs from frozen qualification task scope"
             )
     path_input = input_payload.get("path_equivalence")
-    if not isinstance(path_input, dict) or path_input.get("expected_scenarios") != (
-        contract["sampling"]["path_equivalence_scenarios"]
+    if (
+        not isinstance(path_input, dict)
+        or path_input.get("expected_scenarios")
+        != (contract["sampling"]["path_equivalence_scenarios"])
     ):
         raise ValueError("qualification contract path roster differs from run input")
     path_records = path_input.get("records")
@@ -555,12 +570,11 @@ def _verify_qualification_contract_bindings(
             },
         }
         if path_input.get("comparison_configuration") != expected_path_configuration:
-            raise ValueError(
-                "raw path-equivalence configuration differs from frozen contract v4"
-            )
-        if input_schema == "loslab.g3_joint_evaluator_inputs.v6" and path_input.get(
-            "solver_budget_provenance"
-        ) != contract["solver_budget"]:
+            raise ValueError("raw path-equivalence configuration differs from frozen contract v4")
+        if (
+            input_schema == "loslab.g3_joint_evaluator_inputs.v6"
+            and path_input.get("solver_budget_provenance") != contract["solver_budget"]
+        ):
             raise ValueError("diffuse-path solver budget differs from frozen contract v4")
         for index, record in enumerate(path_records):
             if not isinstance(record, dict) or "comparison" in record:
@@ -579,16 +593,18 @@ def _verify_qualification_contract_bindings(
                 raise ValueError(f"path-equivalence record {index} needs a comparison object")
             comparison = record["comparison"]
             configuration = comparison.get("configuration")
-            if not isinstance(configuration, dict) or any(
-                configuration.get(key) != expected
-                for key, expected in expected_path_configuration.items()
-            ) or comparison.get("coverage_criterion") != expected_coverage:
+            if (
+                not isinstance(configuration, dict)
+                or any(
+                    configuration.get(key) != expected
+                    for key, expected in expected_path_configuration.items()
+                )
+                or comparison.get("coverage_criterion") != expected_coverage
+            ):
                 raise ValueError(
                     f"path-equivalence comparison {index} configuration differs from frozen contract"
                 )
-    expected_episodes = {
-        tuple(item) for item in contract["sampling"]["path_equivalence_scenarios"]
-    }
+    expected_episodes = {tuple(item) for item in contract["sampling"]["path_equivalence_scenarios"]}
     receiver_records = receiver_input.get("records")
     if not isinstance(receiver_records, list) or not receiver_records:
         raise ValueError("receiver-impact input must include a nonempty episode-bound record list")
@@ -619,8 +635,7 @@ def _verify_qualification_contract_bindings(
         if (
             not isinstance(configuration_id, str)
             or configuration_id not in config_digests
-            or record.get("receiver_configuration_sha256")
-            != config_digests.get(configuration_id)
+            or record.get("receiver_configuration_sha256") != config_digests.get(configuration_id)
         ):
             raise ValueError(
                 f"receiver-impact record {index} configuration binding differs from frozen contract"
@@ -655,9 +670,7 @@ def g3_evaluator_source_bundle_identity(
         if not isinstance(include_runtime_inventory, bool):
             raise TypeError("include_runtime_inventory must be a boolean")
         source_roster = (
-            V4_EVALUATOR_SOURCE_PATHS
-            if include_runtime_inventory
-            else EVALUATOR_SOURCE_PATHS
+            V4_EVALUATOR_SOURCE_PATHS if include_runtime_inventory else EVALUATOR_SOURCE_PATHS
         )
         for relative_path in source_roster:
             remaining = _MAX_SOURCE_BUNDLE_BYTES - total
@@ -753,9 +766,7 @@ def build_g3_joint_evidence_run_manifest(
                 "runtime inventory v3 schema",
             )
             inventory_errors = list(
-                jsonschema.Draft202012Validator(inventory_schema).iter_errors(
-                    inventory_payload
-                )
+                jsonschema.Draft202012Validator(inventory_schema).iter_errors(inventory_payload)
             )
             if inventory_errors:
                 raise ValueError(
@@ -819,9 +830,7 @@ def build_g3_joint_evidence_run_manifest(
         ),
         "run_id": run_id,
         "qualification_status": "NOT_QUALIFIED",
-        "runtime_identity": (
-            _runtime_identity() if runtime_identity is None else runtime_identity
-        ),
+        "runtime_identity": (_runtime_identity() if runtime_identity is None else runtime_identity),
         "input": {
             "path": input_relative,
             "size_bytes": input_size,
@@ -858,9 +867,7 @@ def build_g3_joint_evidence_run_manifest(
         ),
         "G3 run manifest schema",
     )
-    schema_errors = list(
-        jsonschema.Draft202012Validator(manifest_schema).iter_errors(manifest)
-    )
+    schema_errors = list(jsonschema.Draft202012Validator(manifest_schema).iter_errors(manifest))
     if schema_errors:
         raise ValueError(
             "G3 run manifest violates selected schema: "
@@ -998,9 +1005,7 @@ def verify_g3_joint_evidence_run_manifest(
                     "manifest_signature_namespace": signature_identity["namespace"],
                     "manifest_signer_id": signature_identity["signer_id"],
                     "manifest_signature_sha256": signature_identity["signature_sha256"],
-                    "trusted_allowed_signers_sha256": signature_identity[
-                        "allowed_signers_sha256"
-                    ],
+                    "trusted_allowed_signers_sha256": signature_identity["allowed_signers_sha256"],
                     "trust_file_custody": "not_established_by_this_verifier",
                 }
             )
@@ -1029,9 +1034,7 @@ def verify_g3_joint_evidence_run_manifest(
                             "signer_policy_signature_namespace": policy_signature_identity[
                                 "namespace"
                             ],
-                            "signer_policy_signer_id": policy_signature_identity[
-                                "signer_id"
-                            ],
+                            "signer_policy_signer_id": policy_signature_identity["signer_id"],
                             "signer_policy_detached_signature_sha256": policy_signature_identity[
                                 "signature_sha256"
                             ],
@@ -1062,9 +1065,13 @@ def verify_g3_joint_evidence_run_manifest(
                 report["signer_authorization_status"] = "not_provided"
         if require_signed_reviewer_admission:
             if report["manifest_signature_status"] != "verified":
-                raise ValueError("strict signed reviewer admission requires a verified run signature")
+                raise ValueError(
+                    "strict signed reviewer admission requires a verified run signature"
+                )
             if report["signer_policy_signature_status"] != "verified":
-                raise ValueError("strict signed reviewer admission requires a verified policy signature")
+                raise ValueError(
+                    "strict signed reviewer admission requires a verified policy signature"
+                )
         manifest = _json_bytes(manifest_raw, "G3 run manifest")
         if not isinstance(manifest, dict):
             raise ValueError("G3 run manifest root must be an object")
@@ -1081,9 +1088,7 @@ def verify_g3_joint_evidence_run_manifest(
 
         def validate_schema(document: Any, schema_relative_path: str, label: str) -> None:
             schema = _json_bytes(
-                _read_rooted_source_file(
-                    source_dir, schema_relative_path, limit=MAX_SCHEMA_BYTES
-                ),
+                _read_rooted_source_file(source_dir, schema_relative_path, limit=MAX_SCHEMA_BYTES),
                 f"{label} schema",
             )
             schema_errors = list(jsonschema.Draft202012Validator(schema).iter_errors(document))
@@ -1129,26 +1134,25 @@ def verify_g3_joint_evidence_run_manifest(
                 }
             )
         qualification_contract = manifest.get("qualification_contract")
-        if require_signed_reviewer_admission and qualification_contract is None:
-            raise ValueError("strict signed reviewer admission requires a frozen G3 contract")
-        if require_signed_reviewer_admission and qualification_contract.get("schema") != (
-            "loslab.g3_qualification_run_contract.v4"
-        ):
-            raise ValueError(
-                "strict signed reviewer admission requires qualification contract v4 "
-                "with raw path criteria and a complete powered design"
-            )
+        if require_signed_reviewer_admission:
+            if not isinstance(qualification_contract, dict):
+                raise ValueError("strict signed reviewer admission requires a frozen G3 contract")
+            if qualification_contract.get("schema") != ("loslab.g3_qualification_run_contract.v4"):
+                raise ValueError(
+                    "strict signed reviewer admission requires qualification contract v4 "
+                    "with raw path criteria and a complete powered design"
+                )
         qualification_contract_sha256: str | None = None
         if qualification_contract is not None:
+            if not isinstance(qualification_contract, dict):
+                raise ValueError("qualification contract must be an object")
             if qualification_contract["run_id"] != manifest["run_id"]:
                 raise ValueError("qualification contract run_id differs from run receipt")
             qualification_schema_path = (
                 QUALIFICATION_CONTRACT_SCHEMA_V4_RELATIVE_PATH
-                if qualification_contract.get("schema")
-                == "loslab.g3_qualification_run_contract.v4"
+                if qualification_contract.get("schema") == "loslab.g3_qualification_run_contract.v4"
                 else QUALIFICATION_CONTRACT_SCHEMA_RELATIVE_PATH
-                if qualification_contract.get("schema")
-                == "loslab.g3_qualification_run_contract.v3"
+                if qualification_contract.get("schema") == "loslab.g3_qualification_run_contract.v3"
                 else QUALIFICATION_CONTRACT_SCHEMA_V2_RELATIVE_PATH
             )
             validate_schema(
@@ -1160,18 +1164,13 @@ def verify_g3_joint_evidence_run_manifest(
                 qualification_contract
             )["contract_sha256"]
         if not manifest_raw.endswith(b"\n") or manifest_raw != (
-            json.dumps(manifest, sort_keys=True, separators=(",", ":"), allow_nan=False)
-            + "\n"
+            json.dumps(manifest, sort_keys=True, separators=(",", ":"), allow_nan=False) + "\n"
         ).encode("utf-8"):
             raise ValueError("G3 run manifest must use canonical compact JSON and one newline")
 
         root = Path(package_root) if package_root is not None else manifest_file.parent
         root = root.resolve(strict=True)
-        if (
-            not root.is_dir()
-            or not hasattr(os, "O_DIRECTORY")
-            or os.open not in os.supports_dir_fd
-        ):
+        if not root.is_dir() or not hasattr(os, "O_DIRECTORY") or os.open not in os.supports_dir_fd:
             raise ValueError("package root must be a directory with safe dir_fd support")
         root_fd = os.open(
             root, os.O_RDONLY | os.O_DIRECTORY | getattr(os, "O_CLOEXEC", 0) | os.O_NOFOLLOW
@@ -1227,8 +1226,8 @@ def verify_g3_joint_evidence_run_manifest(
             os.close(root_fd)
 
         sources = manifest["evaluator_sources"]
-        expected_source_paths = sorted(expected_source_paths)
-        if [entry["path"] for entry in sources] != expected_source_paths:
+        sorted_expected_source_paths = sorted(expected_source_paths)
+        if [entry["path"] for entry in sources] != sorted_expected_source_paths:
             raise ValueError(
                 "evaluator source roster differs from the selected manifest-version roster"
             )
@@ -1237,13 +1236,11 @@ def verify_g3_joint_evidence_run_manifest(
         if qualification_contract is not None and qualification_contract["source_identity"][
             "source_bundle_sha256"
         ] != _source_bundle_sha256(
-            [
-                item
-                for item in sources
-                if item["path"] in EVALUATOR_SOURCE_PATHS
-            ]
+            [item for item in sources if item["path"] in EVALUATOR_SOURCE_PATHS]
         ):
-            raise ValueError("qualification contract source bundle differs from run receipt sources")
+            raise ValueError(
+                "qualification contract source bundle differs from run receipt sources"
+            )
         source_fd = os.open(
             source_dir,
             os.O_RDONLY | os.O_DIRECTORY | getattr(os, "O_CLOEXEC", 0) | os.O_NOFOLLOW,
@@ -1263,7 +1260,9 @@ def verify_g3_joint_evidence_run_manifest(
                 )
                 source_bytes_total += size
                 if size != entry["size_bytes"] or digest != entry["sha256"]:
-                    raise ValueError(f"evaluator source bytes differ from manifest: {entry['path']}")
+                    raise ValueError(
+                        f"evaluator source bytes differ from manifest: {entry['path']}"
+                    )
         finally:
             os.close(source_fd)
 
@@ -1273,7 +1272,8 @@ def verify_g3_joint_evidence_run_manifest(
         _validate_joint_evaluator_input_schema(input_payload, source_root=source_dir)
         artifact_schema_path = (
             ARTIFACT_SCHEMA_RELATIVE_PATH
-            if manifest_version in (
+            if manifest_version
+            in (
                 "loslab.g3_joint_evidence_run_manifest.v3",
                 "loslab.g3_joint_evidence_run_manifest.v4",
             )
@@ -1307,9 +1307,7 @@ def verify_g3_joint_evidence_run_manifest(
                 report.update(
                     {
                         "runtime_inventory_signature_status": "verified",
-                        "runtime_inventory_signer_id": runtime_signature_identity[
-                            "signer_id"
-                        ],
+                        "runtime_inventory_signer_id": runtime_signature_identity["signer_id"],
                         "runtime_inventory_signature_sha256": runtime_signature_identity[
                             "signature_sha256"
                         ],
@@ -1320,17 +1318,26 @@ def verify_g3_joint_evidence_run_manifest(
                 )
                 if signature_identity is not None:
                     if runtime_signature_identity["signer_id"] == signature_identity["signer_id"]:
-                        raise ValueError("runtime inventory signer must differ from run-manifest signer")
-                    if runtime_signature_identity["allowed_signers_sha256"] == signature_identity[
-                        "allowed_signers_sha256"
-                    ]:
-                        raise ValueError("runtime inventory trust keyring must differ from run-manifest keyring")
+                        raise ValueError(
+                            "runtime inventory signer must differ from run-manifest signer"
+                        )
+                    if (
+                        runtime_signature_identity["allowed_signers_sha256"]
+                        == signature_identity["allowed_signers_sha256"]
+                    ):
+                        raise ValueError(
+                            "runtime inventory trust keyring must differ from run-manifest keyring"
+                        )
                 if runtime_signature_identity["signer_id"] == report.get("signer_policy_signer_id"):
-                    raise ValueError("runtime inventory signer must differ from signer-policy custodian")
+                    raise ValueError(
+                        "runtime inventory signer must differ from signer-policy custodian"
+                    )
                 if runtime_signature_identity["allowed_signers_sha256"] == report.get(
                     "signer_policy_allowed_signers_sha256"
                 ):
-                    raise ValueError("runtime inventory trust keyring must differ from signer-policy keyring")
+                    raise ValueError(
+                        "runtime inventory trust keyring must differ from signer-policy keyring"
+                    )
                 _verify_signed_runtime_inventory_bindings(
                     runtime_inventory_payload,
                     manifest["runtime_identity"],
@@ -1345,7 +1352,9 @@ def verify_g3_joint_evidence_run_manifest(
                     }
                 )
             elif require_signed_reviewer_admission:
-                raise ValueError("strict signed reviewer admission requires signed runtime inventory")
+                raise ValueError(
+                    "strict signed reviewer admission requires signed runtime inventory"
+                )
         if qualification_contract is not None:
             qualification_contract_sha256 = _verify_qualification_contract_bindings(
                 qualification_contract,
@@ -1360,8 +1369,7 @@ def verify_g3_joint_evidence_run_manifest(
         coefficient_tolerance = (
             qualification_contract["path_matching"]["coefficient_relative_tolerance"]
             if qualification_contract is not None
-            and qualification_contract.get("schema")
-            == "loslab.g3_qualification_run_contract.v4"
+            and qualification_contract.get("schema") == "loslab.g3_qualification_run_contract.v4"
             else None
         )
         replay = verify_g3_joint_evidence_bytes(
@@ -1376,9 +1384,7 @@ def verify_g3_joint_evidence_run_manifest(
                 "artifact_sha256": hashlib.sha256(captured["artifact"]).hexdigest(),
                 "bundle_sha256": replay["bundle_sha256"],
                 "branch_count": replay["branch_count"],
-                "evaluator_source_bundle_sha256": manifest[
-                    "evaluator_source_bundle_sha256"
-                ],
+                "evaluator_source_bundle_sha256": manifest["evaluator_source_bundle_sha256"],
                 "qualification_contract_sha256": qualification_contract_sha256,
                 "qualification_contract_bound": qualification_contract is not None,
             }
@@ -1468,9 +1474,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--artifact", type=Path, help="joint evaluator artifact for manifest creation"
     )
-    parser.add_argument(
-        "--output", type=Path, help="new manifest destination (must not exist)"
-    )
+    parser.add_argument("--output", type=Path, help="new manifest destination (must not exist)")
     parser.add_argument(
         "--report-output",
         type=Path,
@@ -1555,29 +1559,32 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
     if args.print_source_bundle:
-        if any(
-            value is not None
-            for value in (
-                args.manifest,
-                args.create_run_id,
-                args.input,
-                args.artifact,
-                args.output,
-                args.report_output,
-                args.qualification_contract,
-                args.signature,
-                args.trusted_allowed_signers,
-                args.trusted_signer_policy,
-                args.signer_id,
-                args.trusted_signer_policy_signature,
-                args.trusted_policy_allowed_signers,
-                args.policy_signer_id,
-                args.runtime_inventory,
-                args.runtime_inventory_signature,
-                args.trusted_runtime_inventory_allowed_signers,
-                args.runtime_inventory_signer_id,
+        if (
+            any(
+                value is not None
+                for value in (
+                    args.manifest,
+                    args.create_run_id,
+                    args.input,
+                    args.artifact,
+                    args.output,
+                    args.report_output,
+                    args.qualification_contract,
+                    args.signature,
+                    args.trusted_allowed_signers,
+                    args.trusted_signer_policy,
+                    args.signer_id,
+                    args.trusted_signer_policy_signature,
+                    args.trusted_policy_allowed_signers,
+                    args.policy_signer_id,
+                    args.runtime_inventory,
+                    args.runtime_inventory_signature,
+                    args.trusted_runtime_inventory_allowed_signers,
+                    args.runtime_inventory_signer_id,
+                )
             )
-        ) or args.require_signed_reviewer_admission:
+            or args.require_signed_reviewer_admission
+        ):
             parser.error("--print-source-bundle cannot be combined with run-manifest arguments")
         try:
             print(
@@ -1608,12 +1615,14 @@ def main(argv: list[str] | None = None) -> int:
             args.trusted_signer_policy_signature,
             args.trusted_policy_allowed_signers,
             args.policy_signer_id,
-                args.runtime_inventory_signature,
-                args.trusted_runtime_inventory_allowed_signers,
-                args.runtime_inventory_signer_id,
+            args.runtime_inventory_signature,
+            args.trusted_runtime_inventory_allowed_signers,
+            args.runtime_inventory_signer_id,
         )
     ):
-        parser.error("manifest signature options are only valid when verifying an existing manifest")
+        parser.error(
+            "manifest signature options are only valid when verifying an existing manifest"
+        )
     if args.create_run_id is not None and args.require_signed_reviewer_admission:
         parser.error("--require-signed-reviewer-admission is only valid when verifying a manifest")
     if args.create_run_id is not None and args.report_output is not None:
@@ -1669,11 +1678,9 @@ def main(argv: list[str] | None = None) -> int:
         trusted_signer_policy_signature_path=args.trusted_signer_policy_signature,
         trusted_policy_allowed_signers_path=args.trusted_policy_allowed_signers,
         policy_signer_id=args.policy_signer_id,
-            runtime_inventory_signature_path=args.runtime_inventory_signature,
-            trusted_runtime_inventory_signers_path=(
-                args.trusted_runtime_inventory_allowed_signers
-            ),
-            runtime_inventory_signer_id=args.runtime_inventory_signer_id,
+        runtime_inventory_signature_path=args.runtime_inventory_signature,
+        trusted_runtime_inventory_signers_path=(args.trusted_runtime_inventory_allowed_signers),
+        runtime_inventory_signer_id=args.runtime_inventory_signer_id,
         require_signed_reviewer_admission=args.require_signed_reviewer_admission,
     )
     if args.report_output is not None:

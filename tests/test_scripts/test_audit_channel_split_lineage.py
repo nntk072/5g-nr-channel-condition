@@ -69,7 +69,9 @@ def test_split_audit_report_schema_rejects_qualified_claims_and_unknown_fields()
             "input_hashes_cover_original_bytes": True,
         },
         "input_completeness": {"status": "unverified_input_scope", "authority": "none"},
-        "inputs": [{"name": "sample", "path": "sample.npz", "sha256": "a" * 64, "bytes": 0, "rows": 0}],
+        "inputs": [
+            {"name": "sample", "path": "sample.npz", "sha256": "a" * 64, "bytes": 0, "rows": 0}
+        ],
         "lineage": {},
         "subjects": [],
         "interpretation": "Diagnostic only.",
@@ -93,7 +95,9 @@ def test_split_audit_report_schema_checks_signed_registry_summary_counts() -> No
             "input_hashes_cover_original_bytes": True,
         },
         "input_completeness": {"status": "unverified_input_scope", "authority": "none"},
-        "inputs": [{"name": "sample", "path": "sample.npz", "sha256": "a" * 64, "bytes": 0, "rows": 0}],
+        "inputs": [
+            {"name": "sample", "path": "sample.npz", "sha256": "a" * 64, "bytes": 0, "rows": 0}
+        ],
         "lineage": {},
         "subjects": [],
         "interpretation": "Diagnostic only.",
@@ -156,6 +160,7 @@ def test_content_addressed_child_object_owners_must_match_frozen_roster() -> Non
             [("child-2", "objects/oracle_paths/aa/object.npz")],
             label="episode content object",
         )
+
 
 _INVENTORY_SIGNER = "umcd-inventory-reviewer"
 _INVENTORY_NAMESPACE = "umcd-channel-dataset-inventory-v1@github.com"
@@ -296,9 +301,7 @@ def test_dataset_cli_parser_rejects_padded_names(tmp_path: Path) -> None:
             _parse_dataset(malformed)
 
 
-@pytest.mark.parametrize(
-    "roster_argument", ["split_child_rosters", "split_child_artifact_rosters"]
-)
+@pytest.mark.parametrize("roster_argument", ["split_child_rosters", "split_child_artifact_rosters"])
 def test_split_child_roster_api_rejects_padded_kind_before_reading_inputs(
     roster_argument: str, tmp_path: Path
 ) -> None:
@@ -369,7 +372,9 @@ def test_child_artifact_roster_schema_and_cli_contract(tmp_path) -> None:
         ],
     }
     assert list(jsonschema.Draft202012Validator(v2_schema).iter_errors(v2_valid)) == []
-    invalid_v2 = dict(v2_valid, artifacts=[dict(v2_valid["artifacts"][0], artifact_type="Bad Type")])
+    invalid_v2 = dict(
+        v2_valid, artifacts=[dict(v2_valid["artifacts"][0], artifact_type="Bad Type")]
+    )
     assert list(jsonschema.Draft202012Validator(v2_schema).iter_errors(invalid_v2))
     v3_schema_path = (
         Path(__file__).parents[2]
@@ -471,7 +476,7 @@ def test_child_artifact_roster_v2_binds_multiple_typed_artifacts_per_child(tmp_p
     write_dataset(tmp_path / "child-1.npz", "child-1", "parent-1")
     write_dataset(tmp_path / "child-2.npz", "child-2", "parent-2")
     supplemental = tmp_path / "child-1-trajectory.json"
-    supplemental.write_bytes(b"{\"episode\":\"episode-1\"}")
+    supplemental.write_bytes(b'{"episode":"episode-1"}')
     specifications = [
         ("artifact-1-dataset", "channel_dataset_npz", "child-1", "child-1.npz"),
         (
@@ -532,9 +537,9 @@ def test_child_artifact_roster_v2_binds_multiple_typed_artifacts_per_child(tmp_p
     assert audit["byte_only_artifact_count"] == 1
     assert audit["row_count"] == 2
     assert audit["status"] == "PASS_EXACT_FROZEN_CHILD_ARTIFACT_BYTES_WITH_PARTIAL_SEMANTICS"
-    assert "unrecognized supplemental types receive byte-integrity checks only" in audit[
-        "authority"
-    ]
+    assert (
+        "unrecognized supplemental types receive byte-integrity checks only" in audit["authority"]
+    )
 
 
 def test_child_artifact_roster_v2_requires_channel_dataset_for_each_child(tmp_path) -> None:
@@ -633,9 +638,7 @@ def test_child_artifact_roster_v3_rejects_unlisted_or_unsafe_tree_entries(
         signer_id="test-signer",
         namespace=_CHILD_ARTIFACT_ROSTER_SIGNATURE_NAMESPACE,
     )
-    bindings = {
-        "child-1": SplitChildBinding("child-1", "parent-1", "receiver_observation")
-    }
+    bindings = {"child-1": SplitChildBinding("child-1", "parent-1", "receiver_observation")}
 
     report = _load_split_child_artifact_roster(
         tmp_path / "roster.json",
@@ -826,9 +829,7 @@ def test_child_artifact_roster_v4_semantically_binds_umcd_episode_store(tmp_path
         signer_id="test-signer",
         namespace=_CHILD_ARTIFACT_ROSTER_SIGNATURE_NAMESPACE,
     )
-    bindings = {
-        "child-1": SplitChildBinding("child-1", "parent-1", "episode_bundle")
-    }
+    bindings = {"child-1": SplitChildBinding("child-1", "parent-1", "episode_bundle")}
 
     audit = _load_split_child_artifact_roster(
         tmp_path / "roster.json",
@@ -858,9 +859,7 @@ def test_child_artifact_roster_v4_semantically_binds_umcd_episode_store(tmp_path
     )
     assert isinstance(v4_content_artifact["episode_manifest_path"], str)
 
-    incorrect_bindings = {
-        "child-1": SplitChildBinding("child-1", "other-parent", "episode_bundle")
-    }
+    incorrect_bindings = {"child-1": SplitChildBinding("child-1", "other-parent", "episode_bundle")}
     with pytest.raises(ValueError, match="different split parent episode ID"):
         _load_split_child_artifact_roster(
             tmp_path / "roster.json",
@@ -869,9 +868,7 @@ def test_child_artifact_roster_v4_semantically_binds_umcd_episode_store(tmp_path
             verified_artifact=verified,
         )
 
-    second_episode = replace(
-        episode, episode_id="parent-2", split_group_id="asset-group-2"
-    )
+    second_episode = replace(episode, episode_id="parent-2", split_group_id="asset-group-2")
     second_stored = write_episode_bundle(
         artifact_root, EpisodeBundle(second_episode, path_table, (), ())
     )
@@ -910,7 +907,10 @@ def test_child_artifact_roster_v4_semantically_binds_umcd_episode_store(tmp_path
         elif relative_path == second_channel_path.name:
             artifact_type, owner = "channel_dataset_npz", "child-2"
         elif relative_path in manifest_owners:
-            artifact_type, owner = "umcd_episode_store_manifest_json", manifest_owners[relative_path]
+            artifact_type, owner = (
+                "umcd_episode_store_manifest_json",
+                manifest_owners[relative_path],
+            )
         else:
             artifact_type = "umcd_episode_store_content_npz"
             owner = sorted(object_owners[relative_path])[0]
@@ -956,9 +956,7 @@ def test_child_artifact_roster_v4_semantically_binds_umcd_episode_store(tmp_path
     )["audit"]
     assert shared_audit["schema"] == "umcd.split_child_artifact_audit.v6"
     shared_entry = next(
-        item
-        for item in shared_audit["artifacts"]
-        if item["path"] in shared_object_paths
+        item for item in shared_audit["artifacts"] if item["path"] in shared_object_paths
     )
     assert shared_entry["child_ids"] == ["child-1", "child-2"]
     assert len(shared_entry["episode_manifest_paths"]) == 2
@@ -1117,9 +1115,7 @@ def test_nr_trajectory_child_artifact_validates_store_and_split_lineage(
     )
     stored = write_nr_trajectory(tmp_path, trajectory)
     manifest_path = stored.manifest_relative_path
-    record_manifest_path = (
-        f"manifests/{hashlib.sha256(b'sample-1').hexdigest()}.json"
-    )
+    record_manifest_path = f"manifests/{hashlib.sha256(b'sample-1').hexdigest()}.json"
     specifications = [
         ("record", "nr_record_store_manifest_json", record_manifest_path),
         ("dataset", "channel_dataset_npz", "child.npz"),
@@ -1155,9 +1151,7 @@ def test_nr_trajectory_child_artifact_validates_store_and_split_lineage(
         signer_id="test-signer",
         namespace=_CHILD_ARTIFACT_ROSTER_SIGNATURE_NAMESPACE,
     )
-    bindings = {
-        child_id: SplitChildBinding(child_id, parent_id, "receiver_observation")
-    }
+    bindings = {child_id: SplitChildBinding(child_id, parent_id, "receiver_observation")}
 
     if declared_parent != parent_id:
         with pytest.raises(ValueError, match="different split_subject_id"):
@@ -1323,7 +1317,10 @@ def test_child_artifact_semantic_rows_must_match_frozen_child_and_parent(tmp_pat
     ("array_change", "message"),
     [
         (lambda arrays: arrays.update(h=np.ones((2, 1, 8), dtype=np.complex64)), "row counts"),
-        (lambda arrays: arrays.update(h=np.ones((1, 1, 8), dtype=np.float32)), "invalid shapes or dtypes"),
+        (
+            lambda arrays: arrays.update(h=np.ones((1, 1, 8), dtype=np.float32)),
+            "invalid shapes or dtypes",
+        ),
         (lambda arrays: arrays.update(group=np.asarray(["parent-1", "extra"])), "row counts"),
     ],
 )
@@ -1573,9 +1570,7 @@ def test_saved_dataset_audit_rechecks_signed_v3_split_lock_and_footprints(tmp_pa
         path = tmp_path / f"scene-{index}.npz"
         _write_dataset(path, f"parent-{index}", 0.0, f"{index + 1:064x}")
         paths.append(path)
-    named_datasets = [
-        (path.stem, ChannelDataset.load(path)) for path in paths
-    ]
+    named_datasets = [(path.stem, ChannelDataset.load(path)) for path in paths]
     registry, _ = make_channel_dataset_split_registry(
         named_datasets,
         spatial_buffer_m=0.0,
@@ -1659,9 +1654,10 @@ def test_saved_dataset_audit_rechecks_signed_v3_split_lock_and_footprints(tmp_pa
             "allowed_signers_sha256",
         )
     )
-    assert verification["spatiotemporal_audit"]["footprints_sha256"] == registry.spatiotemporal_audit[
-        "footprints_sha256"
-    ]
+    assert (
+        verification["spatiotemporal_audit"]["footprints_sha256"]
+        == registry.spatiotemporal_audit["footprints_sha256"]
+    )
     assert verification["children_audited"] is False
     assert verification["child_bindings_verified"] is True
     assert verification["child_artifact_existence_verified"] is False
@@ -1766,13 +1762,11 @@ def test_saved_dataset_audit_rechecks_signed_v3_split_lock_and_footprints(tmp_pa
     assert artifact_verification["child_artifact_trajectory_sample_count"] == 0
     assert artifact_verification["child_artifact_trajectory_count"] == 0
     assert artifact_verification["children_audited"] is True
-    assert (
-        artifact_verification["child_artifact_roster_audits"][0]["audit"]["child_count"]
-        == len(children)
+    assert artifact_verification["child_artifact_roster_audits"][0]["audit"]["child_count"] == len(
+        children
     )
-    assert (
-        artifact_verification["child_artifact_roster_audits"][0]["audit"]["row_count"]
-        == len(children)
+    assert artifact_verification["child_artifact_roster_audits"][0]["audit"]["row_count"] == len(
+        children
     )
     artifact_roster_metadata = artifact_verification["child_artifact_roster_audits"][0]
     assert artifact_roster_metadata["signature_namespace"] == (
@@ -1864,7 +1858,7 @@ def test_complete_split_audit_requires_signed_corpus_inventory_and_registry(tmp_
         audit_channel_datasets(
             [("dataset", dataset)],
             spatial_buffer_m=0.0,
-        require_complete_split_audit=True,
+            require_complete_split_audit=True,
         )
 
     with pytest.raises(ValueError, match="requires a signed split registry"):
@@ -1917,13 +1911,9 @@ def test_complete_split_audit_rejects_registry_without_child_bindings(
         ),
         encoding="utf-8",
     )
-    inventory_signature, inventory_allowed_signers = _sign_inventory(
-        inventory_path, tmp_path
-    )
+    inventory_signature, inventory_allowed_signers = _sign_inventory(inventory_path, tmp_path)
 
-    with pytest.raises(
-        ValueError, match="requires at least one frozen child binding"
-    ):
+    with pytest.raises(ValueError, match="requires at least one frozen child binding"):
         audit_channel_datasets(
             [(path.stem, path) for path in dataset_paths],
             spatial_buffer_m=0.0,

@@ -304,6 +304,7 @@ def decode_noisy_network_pusch(
     fir_support = fir_support.to(device=received.device)
     fir_support_by_link: list[list[dict[str, int]]] = []
     composed_support_by_receiver: list[dict[str, float | int | None]] = []
+    composed_support_spans: list[int] = []
     maximum_fir_memory_samples = 0
     for rx_index in range(rx_count):
         receiver_support: list[dict[str, int]] = []
@@ -337,6 +338,8 @@ def decode_noisy_network_pusch(
                 }
             )
         fir_support_by_link.append(receiver_support)
+        support_start: float | None
+        support_end: float | None
         if effective_support_bounds:
             support_start = min(bound[0] for bound in effective_support_bounds)
             support_end = max(bound[1] for bound in effective_support_bounds)
@@ -344,6 +347,7 @@ def decode_noisy_network_pusch(
         else:
             support_start = support_end = None
             support_span = 0
+        composed_support_spans.append(support_span)
         composed_support_by_receiver.append(
             {
                 "first_effective_support_sample_relative_to_capture": support_start,
@@ -351,10 +355,7 @@ def decode_noisy_network_pusch(
                 "span_upper_bound_samples": support_span,
             }
         )
-    maximum_composed_support_span_samples = max(
-        (int(row["span_upper_bound_samples"]) for row in composed_support_by_receiver),
-        default=0,
-    )
+    maximum_composed_support_span_samples = max(composed_support_spans, default=0)
     estimated_grid_elements = batch * rx_count * rx_ports * symbol_count * fft_size
     estimated_receiver_waveform_elements = batch * rx_count * rx_ports * sample_count
     estimated_total_elements = (

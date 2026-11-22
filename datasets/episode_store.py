@@ -780,7 +780,7 @@ def _target_payload(target: TargetValue) -> bytes:
         "confidence": target.confidence,
         "censoring_intervals": [
             None if interval is None else interval.to_dict()
-            for interval in target.censoring_intervals
+            for interval in (target.censoring_intervals or ())
         ],
     }
     return _pack_npz(metadata, values=target.values, valid_mask=target.valid_mask)
@@ -1229,9 +1229,7 @@ def read_receiver_model_inputs(
     Use :func:`read_receiver_inference_records` when a prediction artifact must
     retain a stable evaluation join key separately from its model input.
     """
-    return tuple(
-        record.model_inputs for record in read_receiver_inference_records(root, manifest)
-    )
+    return tuple(record.model_inputs for record in read_receiver_inference_records(root, manifest))
 
 
 def read_frequency_model_inputs(

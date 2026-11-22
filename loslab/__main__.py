@@ -204,21 +204,21 @@ def main() -> None:
     if args.command == "doctor":
         from .provenance import versions
 
-        report: dict[str, object] = dict(versions())
+        doctor_report: dict[str, object] = dict(versions())
         if args.probe_rt:
             from integrations.sionna.backend import select_rt_backend
 
             try:
                 selection = select_rt_backend(args.mitsuba_variant)
             except (ImportError, RuntimeError) as error:
-                report["rt_backend"] = {
+                doctor_report["rt_backend"] = {
                     "requested": args.mitsuba_variant,
                     "probe_passed": False,
                     "error": str(error),
                 }
             else:
-                report["rt_backend"] = selection.as_dict()
-        print(json.dumps(report, indent=2))
+                doctor_report["rt_backend"] = selection.as_dict()
+        print(json.dumps(doctor_report, indent=2))
         return
     if args.command == "city-scene":
         from .geometry import CityConfig, make_city

@@ -230,7 +230,11 @@ def cdl_rotated_dual_tx_rx_spatiotemporal_covariance_reference(
         raise ValueError(f"unsupported CDL profile: {model}")
     if len(velocity_mps) != 3:
         raise ValueError("velocity_mps must contain exactly three Cartesian components")
-    velocity = tuple(_finite_real(value, label="velocity_mps component") for value in velocity_mps)
+    velocity = (
+        _finite_real(velocity_mps[0], label="velocity_mps component"),
+        _finite_real(velocity_mps[1], label="velocity_mps component"),
+        _finite_real(velocity_mps[2], label="velocity_mps component"),
+    )
     tx_orientation = _orientation(tx_orientation_rad, label="tx_orientation_rad")
     rx_orientation = _orientation(rx_orientation_rad, label="rx_orientation_rad")
     carrier = _finite_real(carrier_frequency_hz, label="carrier_frequency_hz")
@@ -267,6 +271,8 @@ def cdl_rotated_dual_tx_rx_spatiotemporal_covariance_reference(
     for component, raw_power in zip(components, raw_powers, strict=True):
         kind = component["component"]
         angles = component["angles_deg"]
+        receive_directions: tuple[tuple[float, float, float], ...]
+        transmit_directions: tuple[tuple[float, float, float], ...]
         if kind == "specular":
             receive_directions = (_unit_direction(float(angles["aoa"]), float(angles["zoa"])),)
             transmit_directions = (_unit_direction(float(angles["aod"]), float(angles["zod"])),)

@@ -140,9 +140,7 @@ def score_rayleigh_tap_marginal_family(
             )
         resolved_family_tap_count = family_tap_count
 
-    radius = rayleigh_marginal_dkw_radius(
-        samples.shape[0], resolved_family_tap_count, alpha=alpha
-    )
+    radius = rayleigh_marginal_dkw_radius(samples.shape[0], resolved_family_tap_count, alpha=alpha)
     return tuple(
         RayleighTapMarginalResult(
             tap_index=tap_index,

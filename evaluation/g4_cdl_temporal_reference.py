@@ -9,8 +9,7 @@ from pathlib import Path
 from typing import Any
 
 _REFERENCE_PATH = (
-    Path(__file__).resolve().parents[1]
-    / "docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
+    Path(__file__).resolve().parents[1] / "docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
 )
 _REFERENCE_SHA256 = "24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090"
 _SOURCE_SHA256 = "b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4"
@@ -67,7 +66,9 @@ def _load_pinned_cdl_profile(model: str) -> dict[str, Any]:
     profiles = reference.get("profiles")
     if not isinstance(profiles, list):
         raise ValueError("CDL temporal reference must contain a profile list")
-    matches = [row for row in profiles if isinstance(row, dict) and row.get("profile_model") == model]
+    matches = [
+        row for row in profiles if isinstance(row, dict) and row.get("profile_model") == model
+    ]
     if len(matches) != 1:
         raise ValueError(f"CDL temporal reference must contain one CDL-{model} profile")
     profile = matches[0]

@@ -156,10 +156,7 @@ def test_sample_domain_tdl_pusch_curve_runs_on_cpu() -> None:
     assert result["configuration"]["confidence_interval"] == (
         "two-sided 95% Wilson score interval across codewords"
     )
-    assert (
-        result["configuration"]["batch_cluster_confidence_interval"]["bootstrap_draws"]
-        == 5000
-    )
+    assert result["configuration"]["batch_cluster_confidence_interval"]["bootstrap_draws"] == 5000
     assert all(
         point["bler_batch_cluster_bootstrap"]["independent_groups"] == 2
         and point["bler_batch_cluster_bootstrap"]["status"] == "estimated"

@@ -14,15 +14,29 @@ from typing import Any
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-TEST = ROOT / "tests/test_integrations/test_g4_cdl_patterned_rotated_dual_tx_rx_spatiotemporal_covariance_native.py"
-ORACLE_TEST = ROOT / "tests/test_integrations/test_g4_cdl_patterned_rotated_dual_tx_rx_spatiotemporal_oracle_native.py"
-PROTOCOL = ROOT / "docs/research/G4_08_CDL_PATTERNED_ROTATED_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-10.md"
-SEED_AUDIT = ROOT / "docs/research/G4_CDL_PATTERNED_ROTATED_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json"
+TEST = (
+    ROOT
+    / "tests/test_integrations/test_g4_cdl_patterned_rotated_dual_tx_rx_spatiotemporal_covariance_native.py"
+)
+ORACLE_TEST = (
+    ROOT
+    / "tests/test_integrations/test_g4_cdl_patterned_rotated_dual_tx_rx_spatiotemporal_oracle_native.py"
+)
+PROTOCOL = (
+    ROOT
+    / "docs/research/G4_08_CDL_PATTERNED_ROTATED_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-10.md"
+)
+SEED_AUDIT = (
+    ROOT
+    / "docs/research/G4_CDL_PATTERNED_ROTATED_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json"
+)
 REFERENCE = ROOT / "docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
 EVALUATION = ROOT / "evaluation/g4_cdl_patterned_rotated_dual_tx_rx_spatiotemporal_covariance.py"
 MODELS = tuple("ABCDE")
 PATTERNS = ("38.901", "38.901-handheld")
-PATTERN_PAIRS = tuple((tx_pattern, rx_pattern) for tx_pattern in PATTERNS for rx_pattern in PATTERNS)
+PATTERN_PAIRS = tuple(
+    (tx_pattern, rx_pattern) for tx_pattern in PATTERNS for rx_pattern in PATTERNS
+)
 TX_ORIENTATION = (-0.7, 0.35, 1.1)
 RX_ORIENTATION = (0.2, -0.1, 0.3)
 SEED_START = 2_817_000
@@ -71,9 +85,7 @@ def _validate_cases(cases: list[dict[str, Any]]) -> dict[str, float | int | bool
         raise ValueError(f"expected {CASE_COUNT} cases, observed {len(cases)}")
     by_case = {(case["model"], case["pattern_index"]): case for case in cases}
     expected_keys = {
-        (model, pattern_index)
-        for model in MODELS
-        for pattern_index in range(len(PATTERN_PAIRS))
+        (model, pattern_index) for model in MODELS for pattern_index in range(len(PATTERN_PAIRS))
     }
     if set(by_case) != expected_keys:
         raise ValueError("profile/pattern-pair roster differs from frozen protocol")

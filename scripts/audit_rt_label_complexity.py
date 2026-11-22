@@ -17,8 +17,7 @@ from artifacts.provenance import canonical_hash
 from datasets.channel import ChannelDataset
 
 _EXECUTION_PROVENANCE_SCHEMA = (
-    Path(__file__).resolve().parents[1]
-    / "datasets/schema/rt-execution-provenance.v1.schema.json"
+    Path(__file__).resolve().parents[1] / "datasets/schema/rt-execution-provenance.v1.schema.json"
 )
 
 
@@ -106,8 +105,7 @@ def _verify_execution_provenance(generation: dict[str, Any]) -> None:
         or not isinstance(execution["base_seed"], int)
         or execution["base_seed"] < 0
         or execution["base_seed"] != generation.get("seed")
-        or execution["attempt_seed_scheme"]
-        != "base_seed_plus_zero_based_candidate_attempt_index"
+        or execution["attempt_seed_scheme"] != "base_seed_plus_zero_based_candidate_attempt_index"
         or isinstance(execution["candidate_attempt_count"], bool)
         or not isinstance(execution["candidate_attempt_count"], int)
         or execution["candidate_attempt_count"] != generation["attempt_counts"]["attempts_started"]

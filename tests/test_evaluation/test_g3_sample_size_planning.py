@@ -822,16 +822,10 @@ def test_joint_design_composer_aligns_branch_counts_without_claiming_qualificati
     )
 
     branches = result["branch_designs"]
-    assert branches["material_calibration"]["required_units_by_stratum"][0][
-        "required_units"
-    ] == 50
+    assert branches["material_calibration"]["required_units_by_stratum"][0]["required_units"] == 50
     assert branches["complex_csi"]["required_units_by_stratum"][0]["required_units"] == 35
-    assert branches["propagation_metrics"]["required_units_by_stratum"][0][
-        "required_units"
-    ] == 45
-    assert branches["receiver_impact"]["required_units_by_stratum"][0][
-        "required_units"
-    ] == 45
+    assert branches["propagation_metrics"]["required_units_by_stratum"][0]["required_units"] == 45
+    assert branches["receiver_impact"]["required_units_by_stratum"][0]["required_units"] == 45
     assert [
         row["required_units"] for row in branches["path_equivalence"]["required_units_by_stratum"]
     ] == [1, 1]

@@ -81,18 +81,28 @@ from integrations.sionna.srs import (
 
 def test_dci_0_3_srs_request_selector_decodes_bounded_msb_first_field() -> None:
     payload = (1, 0, 1, 1, 0, 1)
-    assert nr_srs_dci_0_3_request_list_index_from_bits(
-        payload, field_offset=1, request_list_entry_count=3
-    ) == 1
-    assert nr_srs_dci_0_3_request_list_index_from_bits(
-        payload, field_offset=2, request_list_entry_count=4
-    ) == 3
-    assert nr_srs_dci_0_3_request_list_index_from_bits(
-        (), field_offset=0, request_list_entry_count=1
-    ) == 0
-    assert nr_srs_dci_0_3_request_list_index_from_bits(
-        payload, field_offset=0, request_list_entry_count=0
-    ) is None
+    assert (
+        nr_srs_dci_0_3_request_list_index_from_bits(
+            payload, field_offset=1, request_list_entry_count=3
+        )
+        == 1
+    )
+    assert (
+        nr_srs_dci_0_3_request_list_index_from_bits(
+            payload, field_offset=2, request_list_entry_count=4
+        )
+        == 3
+    )
+    assert (
+        nr_srs_dci_0_3_request_list_index_from_bits((), field_offset=0, request_list_entry_count=1)
+        == 0
+    )
+    assert (
+        nr_srs_dci_0_3_request_list_index_from_bits(
+            payload, field_offset=0, request_list_entry_count=0
+        )
+        is None
+    )
 
 
 def test_dci_0_3_layout_parser_decodes_complete_field_roster_msb_first() -> None:
@@ -150,9 +160,7 @@ def test_dci_0_3_layout_parser_decodes_complete_field_roster_msb_first() -> None
         for shift in range(widths[name] - 1, -1, -1)
     ]
 
-    decoded = nr_dci_0_3_field_values_from_layout(
-        bits + [False, False], field_widths_bits=widths
-    )
+    decoded = nr_dci_0_3_field_values_from_layout(bits + [False, False], field_widths_bits=widths)
 
     assert decoded["identifier_for_dci_formats"] == 2
     assert decoded["scheduled_cells_indicator"] == 1
@@ -270,15 +278,16 @@ def test_dci_0_3_srs_selector_offset_comes_from_full_ordered_field_width_roster(
         srs_request=2,
         ul_sch_indicator=1,
     )
-    expected_offset = sum(
-        widths[name] for name in field_names[: field_names.index("srs_request")]
-    )
+    expected_offset = sum(widths[name] for name in field_names[: field_names.index("srs_request")])
     payload = [0] * sum(widths.values())
     payload[expected_offset : expected_offset + 2] = [1, 0]
 
-    assert nr_srs_dci_0_3_request_list_index_from_layout(
-        payload, field_widths_bits=widths, request_list_entry_count=3
-    ) == 2
+    assert (
+        nr_srs_dci_0_3_request_list_index_from_layout(
+            payload, field_widths_bits=widths, request_list_entry_count=3
+        )
+        == 2
+    )
 
 
 def test_dci_0_3_frequency_assignment_widths_follow_active_bwp_configuration() -> None:
@@ -332,9 +341,7 @@ def test_dci_0_3_frequency_assignment_widths_follow_active_bwp_configuration() -
         },
     }
 
-    widths = nr_srs_dci_0_3_frequency_assignment_widths(
-        cells, configured, active, configs
-    )
+    widths = nr_srs_dci_0_3_frequency_assignment_widths(cells, configured, active, configs)
 
     assert widths == {
         "type0": 10,
@@ -542,48 +549,66 @@ def test_dci_0_3_known_widths_derive_from_decoded_cell_bwp_and_srs_configuration
         )
     assert widths["pdcch_monitoring_adaptation_indication"] == 0
     assert widths["measurement_gap_cancellation"] == 0
-    assert nr_srs_dci_0_3_field_widths_from_configuration(
-        **resolver_inputs,
-        scheduled_cells_indicator_value=2,
-        measurement_gap_cancellation_configured=True,
-    )["measurement_gap_cancellation"] == 1
+    assert (
+        nr_srs_dci_0_3_field_widths_from_configuration(
+            **resolver_inputs,
+            scheduled_cells_indicator_value=2,
+            measurement_gap_cancellation_configured=True,
+        )["measurement_gap_cancellation"]
+        == 1
+    )
     with pytest.raises(TypeError, match="must be a boolean"):
         nr_srs_dci_0_3_field_widths_from_configuration(
             **resolver_inputs,
             scheduled_cells_indicator_value=2,
             measurement_gap_cancellation_configured=1,
         )
-    assert nr_srs_dci_0_3_field_widths_from_configuration(
-        **resolver_inputs,
-        scheduled_cells_indicator_value=2,
-        pdcch_monitoring_adaptation_enabled=True,
-        pdcch_skipping_duration_count=1,
-    )["pdcch_monitoring_adaptation_indication"] == 1
-    assert nr_srs_dci_0_3_field_widths_from_configuration(
-        **resolver_inputs,
-        scheduled_cells_indicator_value=2,
-        pdcch_monitoring_adaptation_enabled=True,
-        pdcch_skipping_duration_count=3,
-    )["pdcch_monitoring_adaptation_indication"] == 2
-    assert nr_srs_dci_0_3_field_widths_from_configuration(
-        **resolver_inputs,
-        scheduled_cells_indicator_value=2,
-        pdcch_monitoring_adaptation_enabled=True,
-        search_space_group_ids=(0, 1),
-    )["pdcch_monitoring_adaptation_indication"] == 1
-    assert nr_srs_dci_0_3_field_widths_from_configuration(
-        **resolver_inputs,
-        scheduled_cells_indicator_value=2,
-        pdcch_monitoring_adaptation_enabled=True,
-        search_space_group_ids=(0, 1, 2),
-    )["pdcch_monitoring_adaptation_indication"] == 2
-    assert nr_srs_dci_0_3_field_widths_from_configuration(
-        **resolver_inputs,
-        scheduled_cells_indicator_value=2,
-        pdcch_monitoring_adaptation_enabled=True,
-        pdcch_skipping_duration_count=1,
-        search_space_group_ids=(0, 1),
-    )["pdcch_monitoring_adaptation_indication"] == 2
+    assert (
+        nr_srs_dci_0_3_field_widths_from_configuration(
+            **resolver_inputs,
+            scheduled_cells_indicator_value=2,
+            pdcch_monitoring_adaptation_enabled=True,
+            pdcch_skipping_duration_count=1,
+        )["pdcch_monitoring_adaptation_indication"]
+        == 1
+    )
+    assert (
+        nr_srs_dci_0_3_field_widths_from_configuration(
+            **resolver_inputs,
+            scheduled_cells_indicator_value=2,
+            pdcch_monitoring_adaptation_enabled=True,
+            pdcch_skipping_duration_count=3,
+        )["pdcch_monitoring_adaptation_indication"]
+        == 2
+    )
+    assert (
+        nr_srs_dci_0_3_field_widths_from_configuration(
+            **resolver_inputs,
+            scheduled_cells_indicator_value=2,
+            pdcch_monitoring_adaptation_enabled=True,
+            search_space_group_ids=(0, 1),
+        )["pdcch_monitoring_adaptation_indication"]
+        == 1
+    )
+    assert (
+        nr_srs_dci_0_3_field_widths_from_configuration(
+            **resolver_inputs,
+            scheduled_cells_indicator_value=2,
+            pdcch_monitoring_adaptation_enabled=True,
+            search_space_group_ids=(0, 1, 2),
+        )["pdcch_monitoring_adaptation_indication"]
+        == 2
+    )
+    assert (
+        nr_srs_dci_0_3_field_widths_from_configuration(
+            **resolver_inputs,
+            scheduled_cells_indicator_value=2,
+            pdcch_monitoring_adaptation_enabled=True,
+            pdcch_skipping_duration_count=1,
+            search_space_group_ids=(0, 1),
+        )["pdcch_monitoring_adaptation_indication"]
+        == 2
+    )
     with pytest.raises(ValueError, match="requires a skipping-duration list"):
         nr_srs_dci_0_3_field_widths_from_configuration(
             **resolver_inputs,
@@ -606,14 +631,17 @@ def test_dci_0_3_known_widths_derive_from_decoded_cell_bwp_and_srs_configuration
             carried_on_primary_cell_within_drx_active_time=True,
             scell_has_multiple_dl_bwps=True,
         )["scell_dormancy_indication"] == len(group_ids)
-    assert nr_srs_dci_0_3_field_widths_from_configuration(
-        **resolver_inputs,
-        scheduled_cells_indicator_value=2,
-        dormancy_configured=True,
-        dormancy_group_ids=(0, 1),
-        carried_on_primary_cell_within_drx_active_time=False,
-        scell_has_multiple_dl_bwps=True,
-    )["scell_dormancy_indication"] == 0
+    assert (
+        nr_srs_dci_0_3_field_widths_from_configuration(
+            **resolver_inputs,
+            scheduled_cells_indicator_value=2,
+            dormancy_configured=True,
+            dormancy_group_ids=(0, 1),
+            carried_on_primary_cell_within_drx_active_time=False,
+            scell_has_multiple_dl_bwps=True,
+        )["scell_dormancy_indication"]
+        == 0
+    )
     with pytest.raises(ValueError, match="requires configured dormancy group IDs"):
         nr_srs_dci_0_3_field_widths_from_configuration(
             **resolver_inputs,
@@ -773,14 +801,15 @@ def test_dci_0_3_known_widths_derive_from_decoded_cell_bwp_and_srs_configuration
     assert widths["srs_request"] == 2
     assert widths["srs_offset_indicator"] == 3
     assert widths["csi_request"] == 3
-    srs_offset = sum(
-        widths[name] for name in field_names[: field_names.index("srs_request")]
-    )
+    srs_offset = sum(widths[name] for name in field_names[: field_names.index("srs_request")])
     payload = [0] * sum(widths.values())
     payload[srs_offset : srs_offset + 2] = [1, 0]
-    assert nr_srs_dci_0_3_request_list_index_from_layout(
-        payload, field_widths_bits=widths, request_list_entry_count=3
-    ) == 2
+    assert (
+        nr_srs_dci_0_3_request_list_index_from_layout(
+            payload, field_widths_bits=widths, request_list_entry_count=3
+        )
+        == 2
+    )
 
     single_cell_widths = nr_srs_dci_0_3_field_widths_from_configuration(
         **resolver_inputs, scheduled_cells_indicator_value=0
@@ -897,12 +926,8 @@ def test_dci_0_3_field_widths_derive_absent_frequency_hopping_and_single_tdra_en
         configured_ul_bwp_ids_by_cell={"cell-1": (0,), "cell-2": (0,)},
         active_ul_bwp_id_by_cell={"cell-1": 0, "cell-2": 0},
         ul_bwp_frequency_allocation_by_cell={
-            "cell-1": {
-                0: {"size_prb": 10, "start_prb": 0, "resource_allocation": "type0"}
-            },
-            "cell-2": {
-                0: {"size_prb": 10, "start_prb": 0, "resource_allocation": "type0"}
-            },
+            "cell-1": {0: {"size_prb": 10, "start_prb": 0, "resource_allocation": "type0"}},
+            "cell-2": {0: {"size_prb": 10, "start_prb": 0, "resource_allocation": "type0"}},
         },
         request_list_entry_count=0,
         srs_offset_list=None,
@@ -1220,26 +1245,69 @@ def test_dci_0_3_cell_selection_uses_implicit_default_and_single_combo() -> None
     )
 
     assert nr_srs_dci_0_3_scheduled_cell_ids(configs) == ("cell-4", "cell-8")
-    assert nr_srs_dci_0_3_scheduled_cell_ids(
-        configs, default_set_id=2
-    ) == ("cell-4", "cell-8")
+    assert nr_srs_dci_0_3_scheduled_cell_ids(configs, default_set_id=2) == ("cell-4", "cell-8")
 
 
 @pytest.mark.parametrize(
     ("configs", "kwargs", "error", "message"),
     (
-        (({"set_id": 0, "scheduled_cell_ids": ("a", "b")},),
-         {"scheduled_cells_indicator": 0}, ValueError, "no combo list"),
-        (({"set_id": 0, "scheduled_cell_ids": ("a", "b"), "scheduled_cell_combos": ((0, 1),)},),
-         {"scheduled_cells_indicator": 0}, ValueError, "single combo"),
-        (({"set_id": 0, "scheduled_cell_ids": ("a", "b"), "scheduled_cell_combos": ((0,), (1,))},),
-         {"scheduled_cells_indicator": 2}, ValueError, "no configured combo"),
-        (({"set_id": 0, "scheduled_cell_ids": ("a", "b"), "scheduled_cell_combos": ((1, 0), (0,))},),
-         {"scheduled_cells_indicator": 0}, ValueError, "ascending"),
-        (({"set_id": 0, "scheduled_cell_ids": ("a", "b"), "scheduled_cell_combos": ((0, 2), (1,))},),
-         {"scheduled_cells_indicator": 0}, ValueError, "outside scheduled_cell_ids"),
-        (({"set_id": 0, "scheduled_cell_ids": ("a", "b")}, {"set_id": 1, "scheduled_cell_ids": ("c", "d")}),
-         {}, ValueError, "multiple cell sets"),
+        (
+            ({"set_id": 0, "scheduled_cell_ids": ("a", "b")},),
+            {"scheduled_cells_indicator": 0},
+            ValueError,
+            "no combo list",
+        ),
+        (
+            ({"set_id": 0, "scheduled_cell_ids": ("a", "b"), "scheduled_cell_combos": ((0, 1),)},),
+            {"scheduled_cells_indicator": 0},
+            ValueError,
+            "single combo",
+        ),
+        (
+            (
+                {
+                    "set_id": 0,
+                    "scheduled_cell_ids": ("a", "b"),
+                    "scheduled_cell_combos": ((0,), (1,)),
+                },
+            ),
+            {"scheduled_cells_indicator": 2},
+            ValueError,
+            "no configured combo",
+        ),
+        (
+            (
+                {
+                    "set_id": 0,
+                    "scheduled_cell_ids": ("a", "b"),
+                    "scheduled_cell_combos": ((1, 0), (0,)),
+                },
+            ),
+            {"scheduled_cells_indicator": 0},
+            ValueError,
+            "ascending",
+        ),
+        (
+            (
+                {
+                    "set_id": 0,
+                    "scheduled_cell_ids": ("a", "b"),
+                    "scheduled_cell_combos": ((0, 2), (1,)),
+                },
+            ),
+            {"scheduled_cells_indicator": 0},
+            ValueError,
+            "outside scheduled_cell_ids",
+        ),
+        (
+            (
+                {"set_id": 0, "scheduled_cell_ids": ("a", "b")},
+                {"set_id": 1, "scheduled_cell_ids": ("c", "d")},
+            ),
+            {},
+            ValueError,
+            "multiple cell sets",
+        ),
     ),
 )
 def test_dci_0_3_cell_selection_rejects_invalid_configurations(
@@ -1353,15 +1421,18 @@ def test_dci_0_3_selector_bits_compose_directly_with_multicell_srs_scheduler() -
 
 
 def test_dci_0_3_selector_schedule_returns_none_without_request_list() -> None:
-    assert nr_srs_dci_0_3_multicell_aperiodic_resource_set_schedules_from_bits(
-        (),
-        field_offset=0,
-        request_list=(),
-        serving_cell_ids=(),
-        resource_sets_by_cell={},
-        triggering_dci_slot_by_cell={},
-        cell_set_configs=(),
-    ) is None
+    assert (
+        nr_srs_dci_0_3_multicell_aperiodic_resource_set_schedules_from_bits(
+            (),
+            field_offset=0,
+            request_list=(),
+            serving_cell_ids=(),
+            resource_sets_by_cell={},
+            triggering_dci_slot_by_cell={},
+            cell_set_configs=(),
+        )
+        is None
+    )
 
 
 def test_dci_0_3_request_combo_is_scoped_to_selected_cell_set() -> None:
@@ -1472,9 +1543,7 @@ def test_srs_frequency_hopping_handles_odd_and_even_tree_radices() -> None:
         (0, 0, 2, 1),
     )
     actual = tuple(
-        nr_srs_frequency_position_indices(
-            55, b_srs=3, b_hop=1, n_srs=counter
-        )
+        nr_srs_frequency_position_indices(55, b_srs=3, b_hop=1, n_srs=counter)
         for counter in range(len(expected))
     )
 
@@ -1547,9 +1616,7 @@ def test_srs_resource_frequency_allocations_join_periodic_counter_and_hops() -> 
         ("sl81920", 81920),
     ],
 )
-def test_srs_periodicity_choice_decodes_slot_period_and_offset(
-    choice: str, period: int
-) -> None:
+def test_srs_periodicity_choice_decodes_slot_period_and_offset(choice: str, period: int) -> None:
     encoded_offset = None if period == 1 else period - 1
     assert nr_srs_periodicity_and_offset_slots({choice: encoded_offset}) == (
         period,
@@ -1829,12 +1896,15 @@ def test_multicell_periodic_srs_requires_exact_cell_rosters() -> None:
 def test_srs_aperiodic_target_slot_uses_dci_offset_selection() -> None:
     assert nr_srs_aperiodic_target_slot_index(100) == 100
     assert nr_srs_aperiodic_target_slot_index(100, slot_offset=2) == 102
-    assert nr_srs_aperiodic_target_slot_index(
-        100,
-        slot_offset=2,
-        available_slot_offsets=[4, 7],
-        selected_available_offset_index=1,
-    ) == 109
+    assert (
+        nr_srs_aperiodic_target_slot_index(
+            100,
+            slot_offset=2,
+            available_slot_offsets=[4, 7],
+            selected_available_offset_index=1,
+        )
+        == 109
+    )
 
 
 def test_aperiodic_srs_schedule_binds_target_slot_to_symbol_hops() -> None:
@@ -1922,15 +1992,9 @@ def test_srs_request_selects_all_configured_matching_aperiodic_sets() -> None:
         },
     ]
 
-    assert nr_srs_triggered_resource_set_ids(
-        2, resource_sets, dci_format="0_1"
-    ) == (12,)
-    assert nr_srs_triggered_resource_set_ids(
-        3, resource_sets, dci_format="0_1"
-    ) == (4, 12)
-    assert nr_srs_triggered_resource_set_ids(
-        0, resource_sets, dci_format="0_1"
-    ) == ()
+    assert nr_srs_triggered_resource_set_ids(2, resource_sets, dci_format="0_1") == (12,)
+    assert nr_srs_triggered_resource_set_ids(3, resource_sets, dci_format="0_1") == (4, 12)
+    assert nr_srs_triggered_resource_set_ids(0, resource_sets, dci_format="0_1") == ()
 
 
 @pytest.mark.parametrize("dci_format", ["0_2", "1_2"])
@@ -1948,9 +2012,12 @@ def test_srs_request_uses_one_bit_for_dci_format_0_2_and_1_2(dci_format: str) ->
         },
     ]
 
-    assert nr_srs_triggered_resource_set_ids(
-        0, resource_sets, dci_format=dci_format, srs_request_mode=1
-    ) == ()
+    assert (
+        nr_srs_triggered_resource_set_ids(
+            0, resource_sets, dci_format=dci_format, srs_request_mode=1
+        )
+        == ()
+    )
     assert nr_srs_triggered_resource_set_ids(
         1, resource_sets, dci_format=dci_format, srs_request_mode=1
     ) == (4,)
@@ -2116,8 +2183,7 @@ def test_srs_multicell_request_and_offset_combo_compose_per_cell_schedules() -> 
     )
 
     assert tuple(
-        (cell, tuple(item.resource_set_id for item in schedules))
-        for cell, schedules in result
+        (cell, tuple(item.resource_set_id for item in schedules)) for cell, schedules in result
     ) == (("cell-3", (31,)), ("cell-9", (91,)))
     assert tuple(schedules[0].target_slot_index for _, schedules in result) == (26, 201)
     assert tuple(
@@ -2251,16 +2317,10 @@ def test_srs_request_composes_selection_and_resource_set_schedules() -> None:
 
 
 def test_srs_request_requires_allocation_only_for_triggered_resource_sets() -> None:
-    resource_sets = [
-        {"resource_set_id": 4, "resource_type": "aperiodic", "aperiodic_trigger": 1}
-    ]
-    assert nr_srs_aperiodic_resource_set_schedules(
-        50, 0, resource_sets, dci_format="0_1"
-    ) == ()
+    resource_sets = [{"resource_set_id": 4, "resource_type": "aperiodic", "aperiodic_trigger": 1}]
+    assert nr_srs_aperiodic_resource_set_schedules(50, 0, resource_sets, dci_format="0_1") == ()
     with pytest.raises(ValueError, match="requires an allocation mapping"):
-        nr_srs_aperiodic_resource_set_schedules(
-            50, 1, resource_sets, dci_format="0_1"
-        )
+        nr_srs_aperiodic_resource_set_schedules(50, 1, resource_sets, dci_format="0_1")
 
 
 def test_srs_hopped_mapper_uses_each_symbols_frequency_allocation() -> None:
@@ -2395,12 +2455,15 @@ def test_srs_hopped_multiport_mapper_preserves_per_port_symbols_and_offsets() ->
 
 @pytest.mark.parametrize("symbol_index", range(4))
 def test_srs_aperiodic_transmission_counter_uses_repetition_factor(symbol_index) -> None:
-    assert nr_srs_transmission_counter(
-        resource_type="aperiodic",
-        srs_symbol_count=4,
-        resource_symbol_index=symbol_index,
-        repetition_factor=2,
-    ) == symbol_index // 2
+    assert (
+        nr_srs_transmission_counter(
+            resource_type="aperiodic",
+            srs_symbol_count=4,
+            resource_symbol_index=symbol_index,
+            repetition_factor=2,
+        )
+        == symbol_index // 2
+    )
 
 
 def test_srs_aperiodic_counter_accounts_for_eight_port_tdm() -> None:
@@ -2458,12 +2521,8 @@ def test_positioning_srs_long_period_applies_hyper_sfn_gate() -> None:
         "numerology": 1,
     }
 
-    assert nr_srs_transmission_counter(
-        **common, hyper_frame_number=3, hyper_sfn_index=1
-    ) == 0
-    assert nr_srs_transmission_counter(
-        **common, hyper_frame_number=3, hyper_sfn_index=0
-    ) is None
+    assert nr_srs_transmission_counter(**common, hyper_frame_number=3, hyper_sfn_index=1) == 0
+    assert nr_srs_transmission_counter(**common, hyper_frame_number=3, hyper_sfn_index=0) is None
 
 
 def test_positioning_srs_hyper_sfn_configuration_is_validated_off_occasion() -> None:
@@ -2611,9 +2670,7 @@ def test_srs_positioning_mapper_applies_distinct_comb_offsets_by_symbol() -> Non
 
 
 def test_srs_positioning_mapper_broadcasts_one_sequence_row_and_applies_beta() -> None:
-    allocation = nr_srs_fixed_frequency_allocation(
-        55, transmission_comb=4, b_srs=3, b_hop=3
-    )
+    allocation = nr_srs_fixed_frequency_allocation(55, transmission_comb=4, b_srs=3, b_hop=3)
     sequence = np.full(allocation.bandwidth.sequence_length, 1.0 + 2.0j)
     mapped = map_nr_srs_positioning_resource(
         sequence,
@@ -2636,9 +2693,7 @@ def test_srs_positioning_mapper_broadcasts_one_sequence_row_and_applies_beta() -
 
 
 def test_srs_positioning_multiport_mapper_keeps_port_and_symbol_rosters() -> None:
-    allocation = nr_srs_fixed_frequency_allocation(
-        55, transmission_comb=4, b_srs=3, b_hop=3
-    )
+    allocation = nr_srs_fixed_frequency_allocation(55, transmission_comb=4, b_srs=3, b_hop=3)
     sequences = np.stack(
         [
             np.full((4, allocation.bandwidth.sequence_length), 1.0 + 1.0j),
@@ -2712,9 +2767,7 @@ def test_srs_positioning_multiport_mapper_applies_eight_port_tdm() -> None:
     ],
 )
 def test_srs_positioning_mapper_rejects_invalid_configuration(overrides, error, message) -> None:
-    allocation = nr_srs_fixed_frequency_allocation(
-        55, transmission_comb=4, b_srs=3, b_hop=3
-    )
+    allocation = nr_srs_fixed_frequency_allocation(55, transmission_comb=4, b_srs=3, b_hop=3)
     config = {
         "slot_symbol_count": 14,
         "subcarrier_count": 512,
@@ -2755,15 +2808,73 @@ def test_srs_type1_bandwidth_table_b_srs_zero_matches_all_64_c_srs_rows(
 ) -> None:
     # TS 38.211 V19.2.0 Table 6.4.1.4.3-1, m_SRS,0 (b_SRS=0).
     expected_bandwidth_rb = (
-        4, 8, 12, 16, 16, 20, 24, 24, 28, 32, 36, 40, 48, 48, 52, 56,
-        60, 64, 72, 72, 76, 80, 88, 96, 96, 104, 112, 120, 120, 120, 128, 128,
-        128, 132, 136, 144, 144, 144, 144, 152, 160, 160, 160, 168, 176, 184, 192, 192,
-        192, 192, 208, 216, 224, 240, 240, 240, 240, 256, 256, 256, 264, 272, 272, 272,
+        4,
+        8,
+        12,
+        16,
+        16,
+        20,
+        24,
+        24,
+        28,
+        32,
+        36,
+        40,
+        48,
+        48,
+        52,
+        56,
+        60,
+        64,
+        72,
+        72,
+        76,
+        80,
+        88,
+        96,
+        96,
+        104,
+        112,
+        120,
+        120,
+        120,
+        128,
+        128,
+        128,
+        132,
+        136,
+        144,
+        144,
+        144,
+        144,
+        152,
+        160,
+        160,
+        160,
+        168,
+        176,
+        184,
+        192,
+        192,
+        192,
+        192,
+        208,
+        216,
+        224,
+        240,
+        240,
+        240,
+        240,
+        256,
+        256,
+        256,
+        264,
+        272,
+        272,
+        272,
     )
     for c_srs, bandwidth_rb in enumerate(expected_bandwidth_rb):
-        config = nr_srs_type1_bandwidth_configuration(
-            c_srs, transmission_comb=transmission_comb
-        )
+        config = nr_srs_type1_bandwidth_configuration(c_srs, transmission_comb=transmission_comb)
         assert isinstance(config, NRSRSBandwidthConfiguration)
         assert config.c_srs == c_srs
         assert config.b_srs == 0
@@ -2777,23 +2888,40 @@ def test_srs_type1_bandwidth_table_b_srs_zero_matches_all_64_c_srs_rows(
 @pytest.mark.parametrize(
     ("c_srs", "b_srs", "bandwidth_rb", "subband_count"),
     [
-        (0, 0, 4, 1), (0, 1, 4, 1), (0, 2, 4, 1), (0, 3, 4, 1),
-        (9, 1, 16, 2), (9, 2, 8, 2), (9, 3, 4, 2),
-        (13, 1, 24, 2), (13, 2, 12, 2), (13, 3, 4, 3),
-        (36, 1, 48, 3), (36, 2, 24, 2), (36, 3, 12, 2),
-        (49, 1, 24, 8), (49, 2, 8, 3), (49, 3, 4, 2),
-        (55, 1, 48, 5), (55, 2, 16, 3), (55, 3, 8, 2),
-        (61, 1, 136, 2), (61, 2, 68, 2), (61, 3, 4, 17),
-        (62, 1, 68, 4), (62, 2, 4, 17), (62, 3, 4, 1),
-        (63, 1, 16, 17), (63, 2, 8, 2), (63, 3, 4, 2),
+        (0, 0, 4, 1),
+        (0, 1, 4, 1),
+        (0, 2, 4, 1),
+        (0, 3, 4, 1),
+        (9, 1, 16, 2),
+        (9, 2, 8, 2),
+        (9, 3, 4, 2),
+        (13, 1, 24, 2),
+        (13, 2, 12, 2),
+        (13, 3, 4, 3),
+        (36, 1, 48, 3),
+        (36, 2, 24, 2),
+        (36, 3, 12, 2),
+        (49, 1, 24, 8),
+        (49, 2, 8, 3),
+        (49, 3, 4, 2),
+        (55, 1, 48, 5),
+        (55, 2, 16, 3),
+        (55, 3, 8, 2),
+        (61, 1, 136, 2),
+        (61, 2, 68, 2),
+        (61, 3, 4, 17),
+        (62, 1, 68, 4),
+        (62, 2, 4, 17),
+        (62, 3, 4, 1),
+        (63, 1, 16, 17),
+        (63, 2, 8, 2),
+        (63, 3, 4, 2),
     ],
 )
 def test_srs_type1_bandwidth_table_resolves_all_b_srs_levels(
     c_srs, b_srs, bandwidth_rb, subband_count
 ) -> None:
-    config = nr_srs_type1_bandwidth_configuration(
-        c_srs, b_srs=b_srs, transmission_comb=4
-    )
+    config = nr_srs_type1_bandwidth_configuration(c_srs, b_srs=b_srs, transmission_comb=4)
 
     assert config.bandwidth_rb == bandwidth_rb
     assert config.subband_count == subband_count
@@ -2948,19 +3076,20 @@ def test_srs_multiport_sequences_use_explicit_cyclic_shifts_and_are_orthogonal()
 def test_srs_port_cyclic_shift_roster_matches_standard_mapping(
     ports, comb, base, ports8_tdm, expected
 ) -> None:
-    assert nr_srs_port_cyclic_shift_indices(
-        ports,
-        transmission_comb=comb,
-        base_cyclic_shift=base,
-        ports8_tdm=ports8_tdm,
-    ) == expected
+    assert (
+        nr_srs_port_cyclic_shift_indices(
+            ports,
+            transmission_comb=comb,
+            base_cyclic_shift=base,
+            ports8_tdm=ports8_tdm,
+        )
+        == expected
+    )
 
 
 def test_srs_port_cyclic_shift_roster_rejects_partial_or_invalid_ports() -> None:
     with pytest.raises(ValueError, match="complete configured"):
-        nr_srs_port_cyclic_shift_indices(
-            (1000, 1002), transmission_comb=2, base_cyclic_shift=0
-        )
+        nr_srs_port_cyclic_shift_indices((1000, 1002), transmission_comb=2, base_cyclic_shift=0)
 
 
 def test_srs_cyclic_shift_hopping_offset_is_frame_periodic_and_subset_bounded() -> None:
@@ -2974,10 +3103,7 @@ def test_srs_cyclic_shift_hopping_offset_is_frame_periodic_and_subset_bounded() 
         "resource_symbol_index": 1,
     }
     first = nr_srs_cyclic_shift_hopping_offset(radio_frame_index=4, **common)
-    assert (
-        nr_srs_cyclic_shift_hopping_offset(radio_frame_index=132, **common)
-        == first
-    )
+    assert nr_srs_cyclic_shift_hopping_offset(radio_frame_index=132, **common) == first
     assert 0 <= first < 8
     subset = (False, True, False, True, False, False, True, False)
     selected = nr_srs_cyclic_shift_hopping_offset(
@@ -2998,9 +3124,7 @@ def test_srs_cyclic_shift_hopping_rejects_invalid_subset_and_symbol_coordinates(
         "resource_symbol_index": 1,
     }
     with pytest.raises(ValueError, match="between 2"):
-        nr_srs_cyclic_shift_hopping_offset(
-            **common, hopping_subset=(True,) + (False,) * 11
-        )
+        nr_srs_cyclic_shift_hopping_offset(**common, hopping_subset=(True,) + (False,) * 11)
     with pytest.raises(ValueError, match="cannot both"):
         nr_srs_cyclic_shift_hopping_offset(
             **common,
@@ -3008,15 +3132,11 @@ def test_srs_cyclic_shift_hopping_rejects_invalid_subset_and_symbol_coordinates(
             hopping_finer_granularity=True,
         )
     with pytest.raises(ValueError, match="inside the slot"):
-        nr_srs_cyclic_shift_hopping_offset(
-            **{**common, "resource_symbol_index": 2}
-        )
+        nr_srs_cyclic_shift_hopping_offset(**{**common, "resource_symbol_index": 2})
 
 
 def test_srs_cyclic_shift_finer_granularity_adds_half_shift() -> None:
-    ordinary = nr_srs_sequence_type1(
-        72, group_index=5, transmission_comb=2
-    )
+    ordinary = nr_srs_sequence_type1(72, group_index=5, transmission_comb=2)
     half_shifted = nr_srs_sequence_type1(
         72,
         group_index=5,
@@ -3062,12 +3182,8 @@ def test_srs_multiport_resource_mapping_preserves_port_axis_and_mask() -> None:
     assert result.mask.shape == result.grid.shape
     assert result.symbol_indices == (12, 13)
     assert int(np.count_nonzero(result.mask)) == 2 * 2 * 24
-    np.testing.assert_array_equal(
-        result.grid[0, 12, 0::2], 0.5 / np.sqrt(2) * sequences[0, 0]
-    )
-    np.testing.assert_array_equal(
-        result.grid[1, 13, 0::2], 0.5 / np.sqrt(2) * sequences[1, 1]
-    )
+    np.testing.assert_array_equal(result.grid[0, 12, 0::2], 0.5 / np.sqrt(2) * sequences[0, 0])
+    np.testing.assert_array_equal(result.grid[1, 13, 0::2], 0.5 / np.sqrt(2) * sequences[1, 1])
     assert not result.grid.flags.writeable
     assert not result.mask.flags.writeable
 
@@ -3083,9 +3199,7 @@ def test_srs_multiport_mapping_normalizes_four_port_three_tx_power() -> None:
         "comb_offset": 0,
     }
 
-    result = map_nr_srs_multiport_resource(
-        sequences, four_port_srs_3tx=True, **common
-    )
+    result = map_nr_srs_multiport_resource(sequences, four_port_srs_3tx=True, **common)
     np.testing.assert_array_equal(
         result.grid[:, 13, 0::2],
         np.full((4, 24), 1 / np.sqrt(3), dtype=np.complex128),
@@ -3096,9 +3210,7 @@ def test_srs_multiport_mapping_normalizes_four_port_three_tx_power() -> None:
 
 def test_srs_eight_port_tdm_activity_matches_resource_local_symbol_pattern() -> None:
     ports = tuple(range(1000, 1008))
-    activity = nr_srs_port_symbol_activity(
-        ports, srs_symbol_count=4, ports8_tdm=True
-    )
+    activity = nr_srs_port_symbol_activity(ports, srs_symbol_count=4, ports8_tdm=True)
     assert activity == (
         (True, False, True, False),
         (True, False, True, False),
@@ -3196,6 +3308,8 @@ def test_srs_rrc_ports8tdm_rejects_release19_hopping_combinations() -> None:
         nr_srs_port_configuration_from_rrc("ports8")
     with pytest.raises(ValueError, match="ports8 or ports8tdm"):
         nr_srs_port_configuration_from_rrc(None, nrof_srs_ports_n8="ports16")
+
+
 def test_srs_scheduled_port_sequence_and_eight_port_tdm_grid() -> None:
     ports = tuple(range(1000, 1008))
     sequences = nr_srs_scheduled_port_sequences_type1(
@@ -3295,9 +3409,7 @@ def test_srs_multiport_mapper_rejects_wrong_rank_and_symbol_count() -> None:
     with pytest.raises(ValueError, match=r"shape \[ports, SRS symbols"):
         map_nr_srs_multiport_resource(np.ones((2, 24), dtype=np.complex128), **common)
     with pytest.raises(ValueError, match="exactly srs_symbol_count"):
-        map_nr_srs_multiport_resource(
-            np.ones((2, 1, 24), dtype=np.complex128), **common
-        )
+        map_nr_srs_multiport_resource(np.ones((2, 1, 24), dtype=np.complex128), **common)
 
 
 @pytest.mark.parametrize(
@@ -3476,20 +3588,19 @@ def _scalar_gold_bits(c_init: int, count: int) -> list[int]:
 def test_srs_group_hopping_index_matches_scalar_gold_recurrence(
     sequence_id, slot_index, start_symbol_index, resource_symbol_index, slot_symbol_count
 ) -> None:
-    offset = 8 * (
-        slot_symbol_count * slot_index + start_symbol_index + resource_symbol_index
-    )
+    offset = 8 * (slot_symbol_count * slot_index + start_symbol_index + resource_symbol_index)
     bits = _scalar_gold_bits(sequence_id, offset + 8)
     hopping_value = sum(bits[offset + bit] << bit for bit in range(8))
-    assert nr_srs_group_hopping_index(
-        sequence_id,
-        slot_index,
-        start_symbol_index,
-        resource_symbol_index,
-        slot_symbol_count=slot_symbol_count,
-    ) == (
-        hopping_value + sequence_id
-    ) % 30
+    assert (
+        nr_srs_group_hopping_index(
+            sequence_id,
+            slot_index,
+            start_symbol_index,
+            resource_symbol_index,
+            slot_symbol_count=slot_symbol_count,
+        )
+        == (hopping_value + sequence_id) % 30
+    )
 
 
 @pytest.mark.parametrize(
@@ -3544,21 +3655,22 @@ def test_srs_sequence_hopping_index_matches_scalar_gold_bit(
 ) -> None:
     bit_index = slot_symbol_count * slot_index + start_symbol_index + resource_symbol_index
     expected = _scalar_gold_bits(sequence_id, bit_index + 1)[bit_index]
-    assert nr_srs_sequence_hopping_index(
-        sequence_id,
-        slot_index,
-        start_symbol_index,
-        resource_symbol_index,
-        72,
-        slot_symbol_count=slot_symbol_count,
-    ) == expected
+    assert (
+        nr_srs_sequence_hopping_index(
+            sequence_id,
+            slot_index,
+            start_symbol_index,
+            resource_symbol_index,
+            72,
+            slot_symbol_count=slot_symbol_count,
+        )
+        == expected
+    )
 
 
 @pytest.mark.parametrize("sequence_length", [6, 12, 18, 24, 30, 36, 71])
 def test_srs_sequence_hopping_is_disabled_below_72(sequence_length) -> None:
-    assert (
-        nr_srs_sequence_hopping_index(101, 7, 0, 2, sequence_length) == 0
-    )
+    assert nr_srs_sequence_hopping_index(101, 7, 0, 2, sequence_length) == 0
 
 
 @pytest.mark.parametrize("hopping_mode", ["neither", "groupHopping"])
@@ -3721,15 +3833,17 @@ def test_srs_resource_sequence_rows_derive_cyclic_shift_hopping_per_symbol(
     expected_offsets = []
     for resource_symbol in range(arguments["srs_symbol_count"]):
         symbol_offset = (
-            ((arguments["radio_frame_index"] % 128) * arguments["slots_per_frame"]
-             + arguments["slot_index"])
+            (
+                (arguments["radio_frame_index"] % 128) * arguments["slots_per_frame"]
+                + arguments["slot_index"]
+            )
             * arguments["slot_symbol_count"]
             + arguments["start_symbol_index"]
             + resource_symbol
         )
-        bits = _scalar_gold_bits(
-            arguments["cyclic_shift_hopping_id"], 8 * symbol_offset + 8
-        )[8 * symbol_offset :]
+        bits = _scalar_gold_bits(arguments["cyclic_shift_hopping_id"], 8 * symbol_offset + 8)[
+            8 * symbol_offset :
+        ]
         hop_word = sum(bit << bit_index for bit_index, bit in enumerate(bits))
         expected_offsets.append(hop_word % (16 if finer_granularity else 8))
     assert offsets == tuple(expected_offsets)
@@ -4032,9 +4146,7 @@ def test_srs_multiport_ls_estimator_separates_ports_and_reports_noise_covariance
     received = np.einsum("rpk,psk->rsk", channel, mapped.grid)
     noise = np.array([0.01, 0.04], dtype=np.float64)
 
-    result = nr_srs_multiport_ls_channel_estimate(
-        mapped, received, noise_variance_by_rx_ant=noise
-    )
+    result = nr_srs_multiport_ls_channel_estimate(mapped, received, noise_variance_by_rx_ant=noise)
 
     active_subcarriers = np.any(mapped.mask, axis=(0, 1))
     np.testing.assert_array_equal(result.valid_subcarrier_mask, active_subcarriers)
@@ -4117,9 +4229,7 @@ def test_srs_multiport_weighted_ls_uses_per_symbol_noise_variance() -> None:
     )
     for rx_index in range(2):
         np.testing.assert_allclose(
-            result.noise_covariance_by_rx_subcarrier[
-                rx_index, active_subcarrier
-            ],
+            result.noise_covariance_by_rx_subcarrier[rx_index, active_subcarrier],
             expected_covariance[rx_index],
         )
     np.testing.assert_array_equal(result.noise_variance_by_rx_symbol, symbol_noise)
@@ -4138,9 +4248,7 @@ def test_srs_multiport_ls_estimator_marks_rank_deficient_port_signatures() -> No
     )
     received = np.ones((1, 14, 48), dtype=np.complex128)
 
-    result = nr_srs_multiport_ls_channel_estimate(
-        mapped, received, noise_variance_by_rx_ant=0.01
-    )
+    result = nr_srs_multiport_ls_channel_estimate(mapped, received, noise_variance_by_rx_ant=0.01)
 
     active_subcarriers = np.any(mapped.mask, axis=(0, 1))
     assert not result.valid_subcarrier_mask[active_subcarriers].any()
@@ -4166,13 +4274,9 @@ def test_srs_multiport_ls_estimator_rejects_noise_and_receive_shape_errors() -> 
             mapped, received[:, :-1], noise_variance_by_rx_ant=0.01
         )
     with pytest.raises(ValueError, match="finite and positive"):
-        nr_srs_multiport_ls_channel_estimate(
-            mapped, received, noise_variance_by_rx_ant=0.0
-        )
+        nr_srs_multiport_ls_channel_estimate(mapped, received, noise_variance_by_rx_ant=0.0)
     with pytest.raises(TypeError, match="real-valued"):
-        nr_srs_multiport_ls_channel_estimate(
-            mapped, received, noise_variance_by_rx_ant=1.0 + 0.0j
-        )
+        nr_srs_multiport_ls_channel_estimate(mapped, received, noise_variance_by_rx_ant=1.0 + 0.0j)
     symbol_noise = np.ones((1, 14), dtype=np.float64)
     with pytest.raises(TypeError, match="real-valued"):
         nr_srs_multiport_ls_channel_estimate(
@@ -4209,9 +4313,7 @@ def test_srs_multiport_ls_estimator_rejects_noise_and_receive_shape_errors() -> 
         (np.full((14, 48), np.nan + 0j), "finite"),
     ],
 )
-def test_srs_single_port_ls_estimator_rejects_invalid_receive_grid(
-    received, message
-) -> None:
+def test_srs_single_port_ls_estimator_rejects_invalid_receive_grid(received, message) -> None:
     mapped = map_nr_srs_resource(
         np.ones(24, dtype=np.complex128),
         slot_symbol_count=14,
@@ -4279,9 +4381,9 @@ def test_srs_intercell_overlap_audit_counts_shared_resource_elements_only() -> N
         Path(__file__).resolve().parents[2]
         / "datasets/schema/nr-srs-intercell-re-overlap.v1.schema.json"
     )
-    jsonschema.Draft202012Validator(
-        json.loads(schema_path.read_text(encoding="utf-8"))
-    ).validate(report)
+    jsonschema.Draft202012Validator(json.loads(schema_path.read_text(encoding="utf-8"))).validate(
+        report
+    )
 
     no_overlap = audit_nr_srs_intercell_re_overlap(
         [
@@ -4295,9 +4397,7 @@ def test_srs_intercell_overlap_audit_counts_shared_resource_elements_only() -> N
 
 
 def test_srs_intercell_overlap_audit_rejects_incomparable_grid_contexts() -> None:
-    allocation = nr_srs_fixed_frequency_allocation(
-        0, transmission_comb=2, b_srs=0, b_hop=0
-    )
+    allocation = nr_srs_fixed_frequency_allocation(0, transmission_comb=2, b_srs=0, b_hop=0)
     base = {
         "resource_set_id": 0,
         "resource_id": 0,

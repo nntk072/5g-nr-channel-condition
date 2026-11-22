@@ -21,9 +21,7 @@ def test_fixed_tdl_rician_power_components_are_independent_reference_values() ->
 def test_rician_power_cdf_reduces_to_rayleigh_when_specular_power_is_zero() -> None:
     powers = np.asarray([0.0, 0.1, 0.5, 1.0, 3.0])
     expected = -np.expm1(-powers)
-    observed = rician_normalized_power_cdf(
-        powers, diffuse_power=0.37, specular_power=0.0
-    )
+    observed = rician_normalized_power_cdf(powers, diffuse_power=0.37, specular_power=0.0)
     np.testing.assert_allclose(observed, expected, rtol=0.0, atol=1e-14)
 
 
@@ -35,24 +33,18 @@ def test_rician_power_cdf_matches_noncentral_chi_square_parameterization() -> No
         df=2,
         nc=2.0 * specular / diffuse,
     )
-    observed = rician_normalized_power_cdf(
-        powers, diffuse_power=diffuse, specular_power=specular
-    )
+    observed = rician_normalized_power_cdf(powers, diffuse_power=diffuse, specular_power=specular)
     np.testing.assert_allclose(observed, expected, rtol=0.0, atol=0.0)
 
 
 def test_synthetic_independent_rician_first_taps_pass_familywise_dkw_bound() -> None:
     rng = np.random.default_rng(1_880_003)
     draw_count = 32_768
-    powers = {
-        model: fixed_tdl_first_tap_power_components(model)
-        for model in ("D10", "D30")
-    }
+    powers = {model: fixed_tdl_first_tap_power_components(model) for model in ("D10", "D30")}
     samples = {
         model: np.sqrt(diffuse / 2.0)
         * (rng.standard_normal(draw_count) + 1j * rng.standard_normal(draw_count))
-        + np.sqrt(specular)
-        * np.exp(2j * np.pi * rng.random(draw_count))
+        + np.sqrt(specular) * np.exp(2j * np.pi * rng.random(draw_count))
         for model, (diffuse, specular) in powers.items()
     }
 

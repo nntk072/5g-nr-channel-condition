@@ -86,15 +86,15 @@ def _independent_cdl_spatial_covariance_reference(model: str) -> tuple[Any, str]
     powers = powers / powers.sum()
     offsets = torch.as_tensor(_RAY_ANGLE_OFFSETS, dtype=torch.float64)
     aoa = torch.deg2rad(
-        torch.as_tensor(
-            [item["angles_deg"]["aoa"] for item in components], dtype=torch.float64
-        )[:, None]
+        torch.as_tensor([item["angles_deg"]["aoa"] for item in components], dtype=torch.float64)[
+            :, None
+        ]
         + float(profile["cluster_spreads_deg"]["asa"]) * offsets
     )
     zoa = torch.deg2rad(
-        torch.as_tensor(
-            [item["angles_deg"]["zoa"] for item in components], dtype=torch.float64
-        )[:, None]
+        torch.as_tensor([item["angles_deg"]["zoa"] for item in components], dtype=torch.float64)[
+            :, None
+        ]
         + float(profile["cluster_spreads_deg"]["zsa"]) * offsets
     )
 

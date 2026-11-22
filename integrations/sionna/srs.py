@@ -148,9 +148,7 @@ _SRS_PERIODICITY_OFFSETS = {
         )
     },
 }
-_SRS_PERIODICITY_EXT_OFFSETS = {
-    f"sl{period}": period for period in (128, 256, 512, 20480)
-}
+_SRS_PERIODICITY_EXT_OFFSETS = {f"sl{period}": period for period in (128, 256, 512, 20480)}
 _SRS_REQUEST_DCI_FORMATS = frozenset({"0_1", "0_2", "1_1", "1_2"})
 # TS 38.211 V19.2.0 Table 6.4.1.4.3-1, each row is
 # ((m_SRS,0, N_0), ..., (m_SRS,3, N_3)).
@@ -223,21 +221,36 @@ _SRS_BANDWIDTH_TABLE: tuple[tuple[tuple[int, int], ...], ...] = (
 # TS 38.211 V19.2.0, Tables 5.2.2.2-1 through 5.2.2.2-4.
 _LOW_PAPR_SHORT_PHASES: dict[int, tuple[tuple[int, ...], ...]] = {
     6: (
-        (-3, -1, 3, 3, -1, -3), (-3, 3, -1, -1, 3, -3),
-        (-3, -3, -3, 3, 1, -3), (1, 1, 1, 3, -1, -3),
-        (1, 1, 1, -3, -1, 3), (-3, 1, -1, -3, -3, -3),
-        (-3, 1, 3, -3, -3, -3), (-3, -1, 1, -3, 1, -1),
-        (-3, -1, -3, 1, -3, -3), (-3, -3, 1, -3, 3, -3),
-        (-3, 1, 3, 1, -3, -3), (-3, -1, -3, 1, 1, -3),
-        (1, 1, 3, -1, -3, 3), (1, 1, 3, 3, -1, 3),
-        (1, 1, 1, -3, 3, -1), (1, 1, 1, -1, 3, -3),
-        (-3, -1, -1, -1, 3, -1), (-3, -3, -1, 1, -1, -3),
-        (-3, -3, -3, 1, -3, -1), (-3, 1, 1, -3, -1, -3),
-        (-3, 3, -3, 1, 1, -3), (-3, 1, -3, -3, -3, -1),
-        (1, 1, -3, 3, 1, 3), (1, 1, -3, -3, 1, -3),
-        (1, 1, 3, -1, 3, 3), (1, 1, -3, 1, 3, 3),
-        (1, 1, -1, -1, 3, -1), (1, 1, -1, 3, -1, -1),
-        (1, 1, -1, 3, -3, -1), (1, 1, -3, 1, -1, -1),
+        (-3, -1, 3, 3, -1, -3),
+        (-3, 3, -1, -1, 3, -3),
+        (-3, -3, -3, 3, 1, -3),
+        (1, 1, 1, 3, -1, -3),
+        (1, 1, 1, -3, -1, 3),
+        (-3, 1, -1, -3, -3, -3),
+        (-3, 1, 3, -3, -3, -3),
+        (-3, -1, 1, -3, 1, -1),
+        (-3, -1, -3, 1, -3, -3),
+        (-3, -3, 1, -3, 3, -3),
+        (-3, 1, 3, 1, -3, -3),
+        (-3, -1, -3, 1, 1, -3),
+        (1, 1, 3, -1, -3, 3),
+        (1, 1, 3, 3, -1, 3),
+        (1, 1, 1, -3, 3, -1),
+        (1, 1, 1, -1, 3, -3),
+        (-3, -1, -1, -1, 3, -1),
+        (-3, -3, -1, 1, -1, -3),
+        (-3, -3, -3, 1, -3, -1),
+        (-3, 1, 1, -3, -1, -3),
+        (-3, 3, -3, 1, 1, -3),
+        (-3, 1, -3, -3, -3, -1),
+        (1, 1, -3, 3, 1, 3),
+        (1, 1, -3, -3, 1, -3),
+        (1, 1, 3, -1, 3, 3),
+        (1, 1, -3, 1, 3, 3),
+        (1, 1, -1, -1, 3, -1),
+        (1, 1, -1, 3, -1, -1),
+        (1, 1, -1, 3, -3, -1),
+        (1, 1, -3, 1, -1, -1),
     ),
     12: (
         (-3, 1, -3, -3, -3, 3, -3, -1, 1, 1, 1, -3),
@@ -379,7 +392,9 @@ class NRSRSPortConfiguration:
     def __post_init__(self) -> None:
         if not isinstance(self.antenna_ports, tuple) or not self.antenna_ports:
             raise TypeError("antenna_ports must be a nonempty tuple")
-        if any(isinstance(port, bool) or not isinstance(port, Integral) for port in self.antenna_ports):
+        if any(
+            isinstance(port, bool) or not isinstance(port, Integral) for port in self.antenna_ports
+        ):
             raise TypeError("antenna_ports must contain integers")
         if not isinstance(self.ports8_tdm, bool):
             raise TypeError("ports8_tdm must be a boolean")
@@ -442,7 +457,9 @@ def nr_srs_port_configuration_from_rrc(
             raise ValueError("nrofSRS-Ports-n8 must be ports8 or ports8tdm")
         ports8_tdm = nrof_srs_ports_n8 == "ports8tdm"
         if ports8_tdm and (cyclic_shift_hopping_enabled or comb_offset_hopping_enabled):
-            raise ValueError("ports8tdm cannot be combined with cyclic-shift or comb-offset hopping")
+            raise ValueError(
+                "ports8tdm cannot be combined with cyclic-shift or comb-offset hopping"
+            )
         return NRSRSPortConfiguration(tuple(range(1000, 1008)), ports8_tdm)
     if nrof_srs_ports is None:
         nrof_srs_ports = "port1"
@@ -486,10 +503,7 @@ def nr_srs_port_cyclic_shift_indices(
     base_cyclic_shift = int(base_cyclic_shift)
     if not 0 <= base_cyclic_shift < maximum:
         raise ValueError(f"base_cyclic_shift must be in [0, {maximum})")
-    if any(
-        isinstance(port, bool) or not isinstance(port, Integral)
-        for port in antenna_ports
-    ):
+    if any(isinstance(port, bool) or not isinstance(port, Integral) for port in antenna_ports):
         raise TypeError("antenna_ports must contain integers")
     ports = tuple(int(port) for port in antenna_ports)
     port_count = 8 if ports8_tdm else len(ports)
@@ -501,17 +515,11 @@ def nr_srs_port_cyclic_shift_indices(
     shifts: list[int] = []
     for port in ports:
         offset = port - 1000
-        mapped_port = (
-            1000 + offset % 2 + (2 if offset >= 4 else 0)
-            if ports8_tdm
-            else port
-        )
+        mapped_port = 1000 + offset % 2 + (2 if offset >= 4 else 0) if ports8_tdm else port
         mapped_index = mapped_port - 1000
         if effective_count == 8 and maximum == 6:
             increment = maximum * (mapped_index // 4) // (effective_count // 4)
-        elif (effective_count == 4 and maximum == 6) or (
-            effective_count == 8 and maximum == 12
-        ):
+        elif (effective_count == 4 and maximum == 6) or (effective_count == 8 and maximum == 12):
             increment = maximum * (mapped_index // 2) // (effective_count // 2)
         else:
             increment = maximum * mapped_index // effective_count
@@ -535,14 +543,10 @@ def nr_srs_port_symbol_activity(
         raise ValueError("srs_symbol_count is unsupported")
     if not isinstance(ports8_tdm, bool):
         raise TypeError("ports8_tdm must be a boolean")
-    if any(
-        isinstance(port, bool) or not isinstance(port, Integral) for port in antenna_ports
-    ):
+    if any(isinstance(port, bool) or not isinstance(port, Integral) for port in antenna_ports):
         raise TypeError("antenna_ports must contain integers")
     ports = tuple(int(port) for port in antenna_ports)
-    if len(set(ports)) != len(ports) or any(
-        port not in range(1000, 1008) for port in ports
-    ):
+    if len(set(ports)) != len(ports) or any(port not in range(1000, 1008) for port in ports):
         raise ValueError("antenna_ports must be unique SRS ports in [1000, 1008)")
     if ports8_tdm and ports != tuple(range(1000, 1008)):
         raise ValueError("ports8_tdm requires the complete ordered port roster 1000 through 1007")
@@ -602,11 +606,7 @@ def nr_srs_cyclic_shift_hopping_offset(
     resource_symbol = int(resource_symbol_index)
     if not 0 <= identity <= 65535:
         raise ValueError("cyclic_shift_hopping_id must be in [0, 65535]")
-    if (
-        frame < 0
-        or slots not in {10, 20, 40, 80, 160, 320}
-        or not 0 <= slot < slots
-    ):
+    if frame < 0 or slots not in {10, 20, 40, 80, 160, 320} or not 0 <= slot < slots:
         raise ValueError("radio frame and frame-local slot indices are invalid")
     if symbols not in {12, 14}:
         raise ValueError("slot_symbol_count must be 12 or 14")
@@ -627,9 +627,7 @@ def nr_srs_cyclic_shift_hopping_offset(
         if not 1 < len(subset) <= maximum:
             raise ValueError("hopping_subset must enable between 2 and n_cs,max shifts")
 
-    symbol_offset = (
-        ((frame % 128) * slots + slot) * symbols + start + resource_symbol
-    )
+    symbol_offset = ((frame % 128) * slots + slot) * symbols + start + resource_symbol
     bits = _nr_gold_bits(identity, 8 * symbol_offset + 8)[8 * symbol_offset :]
     hop_word = sum(int(bit) << bit_index for bit_index, bit in enumerate(bits))
     return subset[hop_word % len(subset)]
@@ -791,9 +789,7 @@ class NRSRSFixedFrequencyAllocation:
         if self.start_subcarrier != expected_start:
             raise ValueError("start_subcarrier disagrees with the resolved SRS allocation")
         if self.n_srs is not None and (
-            isinstance(self.n_srs, bool)
-            or not isinstance(self.n_srs, Integral)
-            or self.n_srs < 0
+            isinstance(self.n_srs, bool) or not isinstance(self.n_srs, Integral) or self.n_srs < 0
         ):
             raise ValueError("n_srs must be a nonnegative integer when provided")
         object.__setattr__(self, "position_indices", tuple(int(index) for index in indices))
@@ -901,9 +897,7 @@ class NRSRSResourceSetAperiodicSchedule:
             or self.resource_set_id < 0
         ):
             raise ValueError("resource_set_id must be a nonnegative integer")
-        schedule = NRSRSAperiodicResourceSchedule(
-            self.target_slot_index, tuple(self.allocations)
-        )
+        schedule = NRSRSAperiodicResourceSchedule(self.target_slot_index, tuple(self.allocations))
         object.__setattr__(self, "resource_set_id", int(self.resource_set_id))
         object.__setattr__(self, "target_slot_index", schedule.target_slot_index)
         object.__setattr__(self, "allocations", schedule.allocations)
@@ -955,9 +949,9 @@ class NRSRSBWPSelection:
         ):
             raise ValueError("BWP outcome rows contain an invalid status")
         object.__setattr__(self, "indicator_bit_width", int(self.indicator_bit_width))
-        object.__setattr__(self, "selected_bwp_id_by_cell", tuple(
-            (cell, int(bwp_id)) for cell, bwp_id in selected
-        ))
+        object.__setattr__(
+            self, "selected_bwp_id_by_cell", tuple((cell, int(bwp_id)) for cell, bwp_id in selected)
+        )
         object.__setattr__(self, "outcome_by_cell", outcomes)
 
 
@@ -1045,12 +1039,8 @@ class NRSRSBWPPeriodicResourceSetSchedule:
             raise ValueError("ul_bwp_id must be in [0, 4]")
         if not isinstance(self.frequency_bounds, NRSRSBWPFrequencyBounds):
             raise TypeError("frequency_bounds must be NRSRSBWPFrequencyBounds")
-        if not isinstance(
-            self.resource_set_schedule, NRSRSPeriodicResourceSetSchedule
-        ):
-            raise TypeError(
-                "resource_set_schedule must be NRSRSPeriodicResourceSetSchedule"
-            )
+        if not isinstance(self.resource_set_schedule, NRSRSPeriodicResourceSetSchedule):
+            raise TypeError("resource_set_schedule must be NRSRSPeriodicResourceSetSchedule")
         for resource_id, schedule in self.resource_set_schedule.resources:
             for allocation in schedule.allocations:
                 allocation_end = (
@@ -1090,13 +1080,8 @@ class NRSRSBWPCellPeriodicResourceSetSchedules:
         if not isinstance(self.frequency_bounds, NRSRSBWPFrequencyBounds):
             raise TypeError("frequency_bounds must be NRSRSBWPFrequencyBounds")
         schedules = tuple(self.resource_set_schedules)
-        if any(
-            not isinstance(item, NRSRSBWPPeriodicResourceSetSchedule)
-            for item in schedules
-        ):
-            raise TypeError(
-                "resource_set_schedules must contain BWP-validated periodic sets"
-            )
+        if any(not isinstance(item, NRSRSBWPPeriodicResourceSetSchedule) for item in schedules):
+            raise TypeError("resource_set_schedules must contain BWP-validated periodic sets")
         if any(
             item.cell_id != self.cell_id.strip()
             or item.ul_bwp_id != int(self.ul_bwp_id)
@@ -1104,9 +1089,7 @@ class NRSRSBWPCellPeriodicResourceSetSchedules:
             for item in schedules
         ):
             raise ValueError("periodic resource sets must share the cell's active-BWP binding")
-        resource_set_ids = tuple(
-            item.resource_set_schedule.resource_set_id for item in schedules
-        )
+        resource_set_ids = tuple(item.resource_set_schedule.resource_set_id for item in schedules)
         if len(set(resource_set_ids)) != len(resource_set_ids):
             raise ValueError("periodic SRS resource-set IDs must be unique within a cell")
         object.__setattr__(self, "cell_id", self.cell_id.strip())
@@ -1189,7 +1172,7 @@ class NRSRSScheduledResourceOccurrence:
         ):
             raise TypeError("subcarrier_spacing_hz must be a finite positive number")
         spacing_hz = float(self.subcarrier_spacing_hz)
-        expected_spacing_hz = 15_000.0 * (2**int(self.numerology))
+        expected_spacing_hz = 15_000.0 * (2 ** int(self.numerology))
         if not np.isfinite(spacing_hz) or spacing_hz != expected_spacing_hz:
             raise ValueError("subcarrier_spacing_hz disagrees with numerology")
         for name in (
@@ -1238,9 +1221,7 @@ def audit_nr_srs_intercell_re_overlap(
         raise ValueError("scheduled SRS occurrence identities must be unique")
     expanded_count = sum(
         sum(
-            item.allocations[
-                0 if len(item.allocations) == 1 else symbol
-            ].bandwidth.sequence_length
+            item.allocations[0 if len(item.allocations) == 1 else symbol].bandwidth.sequence_length
             for symbol in range(item.srs_symbol_count)
         )
         for item in normalized
@@ -1329,9 +1310,7 @@ def audit_nr_srs_intercell_re_overlap(
     ]
     return {
         "schema": "loslab.nr_srs_intercell_re_overlap.v1",
-        "status": "INTERCELL_RE_OVERLAP_DETECTED"
-        if overlap_count
-        else "NO_INTERCELL_RE_OVERLAP",
+        "status": "INTERCELL_RE_OVERLAP_DETECTED" if overlap_count else "NO_INTERCELL_RE_OVERLAP",
         "admission_possible": False,
         "grid": {
             "grid_id": grid_id,
@@ -1556,20 +1535,20 @@ def nr_srs_transmission_counter(
     counter_per_resource = symbols_per_port_group // repetition_factor
     symbol_counter = resource_symbol_index // (port_factor * repetition_factor)
     if resource_type == "aperiodic":
-        if any(value is not None for value in (absolute_slot_index, periodicity_slots, slot_offset)):
-            raise ValueError("aperiodic SRS does not use periodic slot parameters")
         if any(
-            value is not None for value in (numerology, hyper_frame_number, hyper_sfn_index)
+            value is not None for value in (absolute_slot_index, periodicity_slots, slot_offset)
         ):
+            raise ValueError("aperiodic SRS does not use periodic slot parameters")
+        if any(value is not None for value in (numerology, hyper_frame_number, hyper_sfn_index)):
             raise ValueError("aperiodic SRS does not use Hyper-SFN parameters")
         return symbol_counter
 
-    for name, value in (
+    for name, periodic_value in (
         ("absolute_slot_index", absolute_slot_index),
         ("periodicity_slots", periodicity_slots),
         ("slot_offset", slot_offset),
     ):
-        if isinstance(value, bool) or not isinstance(value, Integral):
+        if isinstance(periodic_value, bool) or not isinstance(periodic_value, Integral):
             raise TypeError(f"{name} must be an integer for periodic SRS")
     assert absolute_slot_index is not None
     assert periodicity_slots is not None
@@ -1577,11 +1556,7 @@ def nr_srs_transmission_counter(
     absolute_slot_index = int(absolute_slot_index)
     periodicity_slots = int(periodicity_slots)
     slot_offset = int(slot_offset)
-    if (
-        absolute_slot_index < 0
-        or periodicity_slots < 1
-        or not 0 <= slot_offset < periodicity_slots
-    ):
+    if absolute_slot_index < 0 or periodicity_slots < 1 or not 0 <= slot_offset < periodicity_slots:
         raise ValueError("periodic SRS requires nonnegative slots and offset inside its period")
     elapsed_slots = absolute_slot_index - slot_offset
     if hyper_sfn_index is not None:
@@ -1592,12 +1567,8 @@ def nr_srs_transmission_counter(
         if not 0 <= int(numerology) <= 6:
             raise ValueError("numerology must be between 0 and 6")
         if periodicity_slots < (1 << int(numerology)) * 10240:
-            raise ValueError(
-                "Hyper-SFN index requires a period of at least 2^mu * 10240 slots"
-            )
-        if isinstance(hyper_frame_number, bool) or not isinstance(
-            hyper_frame_number, Integral
-        ):
+            raise ValueError("Hyper-SFN index requires a period of at least 2^mu * 10240 slots")
+        if isinstance(hyper_frame_number, bool) or not isinstance(hyper_frame_number, Integral):
             raise TypeError("hyper_frame_number must be a nonnegative integer")
         if not 0 <= int(hyper_frame_number) <= 1023:
             raise ValueError("hyper_frame_number must be in [0, 1023]")
@@ -1702,9 +1673,8 @@ def nr_srs_aperiodic_target_slot_index(
             raise ValueError("available slot offsets must be in [0, 7]")
         if len(set(available_slot_offsets)) != len(available_slot_offsets):
             raise ValueError("available slot offsets must be distinct")
-        if (
-            isinstance(selected_available_offset_index, bool)
-            or not isinstance(selected_available_offset_index, Integral)
+        if isinstance(selected_available_offset_index, bool) or not isinstance(
+            selected_available_offset_index, Integral
         ):
             raise TypeError("selected_available_offset_index must be an integer")
         if not 0 <= selected_available_offset_index < len(available_slot_offsets):
@@ -1754,9 +1724,7 @@ def nr_srs_triggered_resource_set_ids(
         if srs_request_mode is not None:
             raise ValueError("srs_request_mode applies only to DCI 0_2/1_2")
         request_bit_count = 2
-    if isinstance(srs_request_codepoint, bool) or not isinstance(
-        srs_request_codepoint, Integral
-    ):
+    if isinstance(srs_request_codepoint, bool) or not isinstance(srs_request_codepoint, Integral):
         raise TypeError("srs_request_codepoint must be an integer")
     codepoint = int(srs_request_codepoint)
     field_bit_count = request_bit_count + int(supplementary_uplink)
@@ -1796,15 +1764,11 @@ def nr_srs_triggered_resource_set_ids(
             continue
         configured_carrier = resource_set.get("ul_carrier")
         if supplementary_uplink and (
-            not isinstance(configured_carrier, str)
-            or configured_carrier not in {"non_sul", "sul"}
+            not isinstance(configured_carrier, str) or configured_carrier not in {"non_sul", "sul"}
         ):
-            raise ValueError(
-                f"resource_sets[{index}].ul_carrier must identify non_sul or sul"
-            )
+            raise ValueError(f"resource_sets[{index}].ul_carrier must identify non_sul or sul")
         if configured_carrier is not None and (
-            not isinstance(configured_carrier, str)
-            or configured_carrier not in {"non_sul", "sul"}
+            not isinstance(configured_carrier, str) or configured_carrier not in {"non_sul", "sul"}
         ):
             raise ValueError(f"resource_sets[{index}].ul_carrier is invalid")
         if configured_carrier is not None and configured_carrier != carrier:
@@ -1857,9 +1821,7 @@ def nr_srs_dci_0_3_ul_bwp_selection(
     This resolves a decoded field only; it does not parse DCI bits or perform
     resource-set lookup for the selected BWP.
     """
-    if not isinstance(scheduled_cell_ids, Sequence) or isinstance(
-        scheduled_cell_ids, (str, bytes)
-    ):
+    if not isinstance(scheduled_cell_ids, Sequence) or isinstance(scheduled_cell_ids, (str, bytes)):
         raise TypeError("scheduled_cell_ids must be an ordered sequence")
     cells = tuple(scheduled_cell_ids)
     if not cells or any(not isinstance(cell, str) or not cell for cell in cells):
@@ -1890,9 +1852,7 @@ def nr_srs_dci_0_3_ul_bwp_selection(
             raise TypeError(f"configured UL BWP IDs for {cell!r} must be an ordered sequence")
         bwp_ids = tuple(raw_ids)
         if not bwp_ids or any(
-            isinstance(bwp_id, bool)
-            or not isinstance(bwp_id, Integral)
-            or not 0 <= bwp_id <= 4
+            isinstance(bwp_id, bool) or not isinstance(bwp_id, Integral) or not 0 <= bwp_id <= 4
             for bwp_id in bwp_ids
         ):
             raise ValueError(f"configured UL BWP IDs for {cell!r} must lie in [0, 4]")
@@ -1913,12 +1873,8 @@ def nr_srs_dci_0_3_ul_bwp_selection(
         configured_by_cell[cell] = normalized_ids
         active_by_cell[cell] = int(active_id)
 
-    max_noninitial = max(
-        len(bwp_ids) - 1 for bwp_ids in configured_by_cell.values()
-    )
-    indicator_domain_size = (
-        max_noninitial + 1 if max_noninitial <= 3 else max_noninitial
-    )
+    max_noninitial = max(len(bwp_ids) - 1 for bwp_ids in configured_by_cell.values())
+    indicator_domain_size = max_noninitial + 1 if max_noninitial <= 3 else max_noninitial
     bit_width = (indicator_domain_size - 1).bit_length()
     if bit_width == 0:
         if bwp_indicator is not None:
@@ -1949,11 +1905,7 @@ def nr_srs_dci_0_3_ul_bwp_selection(
                 indicated_id = indicator_value + 1
             else:
                 assert indicator_value is not None
-                indicated_id = (
-                    bwp_ids[indicator_value]
-                    if indicator_value < len(bwp_ids)
-                    else -1
-                )
+                indicated_id = bwp_ids[indicator_value] if indicator_value < len(bwp_ids) else -1
             if indicated_id in bwp_ids:
                 selected_id = indicated_id
                 outcome = "selected_by_indicator"
@@ -1989,9 +1941,7 @@ def nr_srs_dci_0_3_scheduled_cell_ids(
     already represent ascending serving-cell indexes. This function consumes
     decoded values; it does not parse DCI bits or ASN.1 PER.
     """
-    if not isinstance(cell_set_configs, Sequence) or isinstance(
-        cell_set_configs, (str, bytes)
-    ):
+    if not isinstance(cell_set_configs, Sequence) or isinstance(cell_set_configs, (str, bytes)):
         raise TypeError("cell_set_configs must be an ordered sequence")
     if not 1 <= len(cell_set_configs) <= 4:
         raise ValueError("cell_set_configs must contain 1..4 configured sets")
@@ -2014,9 +1964,7 @@ def nr_srs_dci_0_3_scheduled_cell_ids(
         if not isinstance(raw_cells, Sequence) or isinstance(raw_cells, (str, bytes)):
             raise TypeError("scheduled_cell_ids must be an ordered sequence")
         cells = tuple(raw_cells)
-        if not 2 <= len(cells) <= 4 or any(
-            not isinstance(cell, str) or not cell for cell in cells
-        ):
+        if not 2 <= len(cells) <= 4 or any(not isinstance(cell, str) or not cell for cell in cells):
             raise ValueError("scheduled_cell_ids must contain 2..4 nonempty IDs")
         if len(set(cells)) != len(cells):
             raise ValueError("scheduled_cell_ids must be unique within each set")
@@ -2117,9 +2065,7 @@ def nr_srs_dci_0_3_request_list_index_from_bits(
     first (most-significant) bit. This function does not decode CRC, polar
     coding, or ASN.1 RRC configuration.
     """
-    if not isinstance(payload_bits, Sequence) or isinstance(
-        payload_bits, (str, bytes)
-    ):
+    if not isinstance(payload_bits, Sequence) or isinstance(payload_bits, (str, bytes)):
         raise TypeError("payload_bits must be a sequence of decoded bits")
     if isinstance(field_offset, bool) or not isinstance(field_offset, Integral):
         raise TypeError("field_offset must be an integer")
@@ -2183,9 +2129,7 @@ def nr_dci_0_3_field_values_from_layout(
     if set(field_widths_bits) != expected_names:
         missing = sorted(expected_names - set(field_widths_bits))
         extra = sorted(set(field_widths_bits) - expected_names)
-        raise ValueError(
-            f"DCI 0_3 field-width roster mismatch; missing={missing}, extra={extra}"
-        )
+        raise ValueError(f"DCI 0_3 field-width roster mismatch; missing={missing}, extra={extra}")
     normalized_widths: dict[str, int] = {}
     total_width = 0
     for field_name in _DCI_0_3_FIELD_ORDER:
@@ -2287,9 +2231,7 @@ def _nr_srs_dci_0_3_antenna_ports_width(
             "transform_precoding_enabled_by_cell must cover the full scheduled cell list"
         )
     if set(dmrs_port_configuration_by_cell) != set(full_cell_roster):
-        raise ValueError(
-            "dmrs_port_configuration_by_cell must cover the full scheduled cell list"
-        )
+        raise ValueError("dmrs_port_configuration_by_cell must cover the full scheduled cell list")
     widths: dict[str, int] = {}
     for cell in full_cell_roster:
         transform_precoding = transform_precoding_enabled_by_cell[cell]
@@ -2342,12 +2284,7 @@ def _nr_srs_dci_0_3_antenna_ports_width(
                     )
                 width = 2 * max_length_value
             else:
-                width = (
-                    2
-                    + max_length_value
-                    + int(dmrs_type_value == 2)
-                    + int(enhanced)
-                )
+                width = 2 + max_length_value + int(dmrs_type_value == 2) + int(enhanced)
             mapping_widths.append(width)
         widths[cell] = max(mapping_widths)
     if mode == "type1a":
@@ -2407,9 +2344,7 @@ def _nr_srs_dci_0_3_precoding_width(
             "codebook",
             "nonCodebook",
         }:
-            raise ValueError(
-                f"tx_config_by_cell[{cell!r}] must be 'codebook' or 'nonCodebook'"
-            )
+            raise ValueError(f"tx_config_by_cell[{cell!r}] must be 'codebook' or 'nonCodebook'")
         transform_precoding = transform_precoding_enabled_by_cell[cell]
         if type(transform_precoding) is not bool:
             raise TypeError("transform-precoding configuration values must be booleans")
@@ -2573,14 +2508,10 @@ def _nr_srs_dci_0_3_sri_width(
             "codebook",
             "nonCodebook",
         }:
-            raise ValueError(
-                f"tx_config_by_cell[{cell!r}] must be 'codebook' or 'nonCodebook'"
-            )
+            raise ValueError(f"tx_config_by_cell[{cell!r}] must be 'codebook' or 'nonCodebook'")
         supports_configured_max = ue_supports_max_mimo_layers_by_cell[cell]
         if type(supports_configured_max) is not bool:
-            raise TypeError(
-                "ue_supports_max_mimo_layers_by_cell values must be booleans"
-            )
+            raise TypeError("ue_supports_max_mimo_layers_by_cell values must be booleans")
         raw_count = srs_resource_count_by_cell[cell]
         if isinstance(raw_count, bool) or not isinstance(raw_count, Integral):
             raise TypeError(f"SRS resource count for {cell!r} must be an integer")
@@ -2600,9 +2531,7 @@ def _nr_srs_dci_0_3_sri_width(
                 )
             raw_layers = ue_max_noncodebook_layers_by_cell[cell]
         if isinstance(raw_layers, bool) or not isinstance(raw_layers, Integral):
-            raise TypeError(
-                f"maximum non-codebook PUSCH layers for {cell!r} must be an integer"
-            )
+            raise TypeError(f"maximum non-codebook PUSCH layers for {cell!r} must be an integer")
         max_layers = int(raw_layers)
         if not 1 <= max_layers <= 8:
             raise ValueError("maximum non-codebook PUSCH layers must be in [1, 8]")
@@ -2654,9 +2583,7 @@ def nr_srs_dci_0_3_frequency_assignment_widths(
         if not isinstance(raw_bwp_ids, Sequence) or isinstance(raw_bwp_ids, (str, bytes)):
             raise TypeError(f"configured BWP IDs for {cell!r} must be an ordered sequence")
         if any(
-            isinstance(value, bool)
-            or not isinstance(value, Integral)
-            or not 0 <= value <= 4
+            isinstance(value, bool) or not isinstance(value, Integral) or not 0 <= value <= 4
             for value in raw_bwp_ids
         ):
             raise ValueError(f"configured BWP IDs for {cell!r} must be integers in [0, 4]")
@@ -2666,15 +2593,10 @@ def nr_srs_dci_0_3_frequency_assignment_widths(
         raw_configs = bwp_frequency_config_by_cell[cell]
         if (
             not isinstance(raw_configs, Mapping)
-            or any(
-                isinstance(key, bool) or not isinstance(key, Integral)
-                for key in raw_configs
-            )
+            or any(isinstance(key, bool) or not isinstance(key, Integral) for key in raw_configs)
             or set(raw_configs) != set(bwp_ids)
         ):
-            raise ValueError(
-                f"BWP frequency configurations for {cell!r} must cover every BWP"
-            )
+            raise ValueError(f"BWP frequency configurations for {cell!r} must cover every BWP")
         active_id = active_bwp_id_by_cell[cell]
         if isinstance(active_id, bool) or not isinstance(active_id, Integral):
             raise TypeError(f"active BWP ID for {cell!r} must be an integer")
@@ -2682,9 +2604,7 @@ def nr_srs_dci_0_3_frequency_assignment_widths(
             raise ValueError(f"active BWP {active_id!r} for {cell!r} is not configured")
         config = raw_configs[int(active_id)]
         if not isinstance(config, Mapping):
-            raise TypeError(
-                f"active BWP frequency configuration for {cell!r} must be a mapping"
-            )
+            raise TypeError(f"active BWP frequency configuration for {cell!r} must be a mapping")
 
         size_raw = config.get("size_prb")
         start_raw = config.get("start_prb")
@@ -2693,11 +2613,7 @@ def nr_srs_dci_0_3_frequency_assignment_widths(
                 raise TypeError(f"{label} for {cell!r} must be an integer")
         size_prb = int(cast(Integral, size_raw))
         start_prb = int(cast(Integral, start_raw))
-        if (
-            not 1 <= size_prb <= 275
-            or not 0 <= start_prb <= 274
-            or start_prb + size_prb > 275
-        ):
+        if not 1 <= size_prb <= 275 or not 0 <= start_prb <= 274 or start_prb + size_prb > 275:
             raise ValueError(f"active BWP PRB extent for {cell!r} is outside supported bounds")
 
         interlace = config.get("use_interlace", False)
@@ -2732,9 +2648,7 @@ def nr_srs_dci_0_3_frequency_assignment_widths(
         if hopping:
             offset_count = config.get("frequency_hopping_offset_count")
             if isinstance(offset_count, bool) or not isinstance(offset_count, Integral):
-                raise TypeError(
-                    f"frequency_hopping_offset_count for {cell!r} must be an integer"
-                )
+                raise TypeError(f"frequency_hopping_offset_count for {cell!r} must be an integer")
             offset_count = int(offset_count)
             if offset_count not in {2, 4}:
                 raise ValueError("frequency hopping offset list must contain 2 or 4 values")
@@ -2745,12 +2659,8 @@ def nr_srs_dci_0_3_frequency_assignment_widths(
         rbg_config_raw = config.get("rbg_size_config", 1)
         if isinstance(rbg_config_raw, str) and rbg_config_raw.startswith("config"):
             rbg_config_raw = rbg_config_raw.removeprefix("config")
-        if isinstance(rbg_config_raw, bool) or not isinstance(
-            rbg_config_raw, (Integral, str)
-        ):
-            raise TypeError(
-                f"rbg_size_config for {cell!r} must be config1, config2, or config3"
-            )
+        if isinstance(rbg_config_raw, bool) or not isinstance(rbg_config_raw, (Integral, str)):
+            raise TypeError(f"rbg_size_config for {cell!r} must be config1, config2, or config3")
         try:
             rbg_config = int(rbg_config_raw)
         except ValueError as exc:
@@ -2758,24 +2668,18 @@ def nr_srs_dci_0_3_frequency_assignment_widths(
         if rbg_config not in rbg_sizes:
             raise ValueError("rbg_size_config must be config1, config2, or config3")
         type0_p = next(
-            limit_size
-            for limit, limit_size in rbg_sizes[rbg_config]
-            if size_prb <= limit
+            limit_size for limit, limit_size in rbg_sizes[rbg_config] if size_prb <= limit
         )
         type0_count = (size_prb + start_prb % type0_p + type0_p - 1) // type0_p
         type0_width = type0_count
 
         granularity_raw = config.get("type1_granularity_prb", 1)
-        if isinstance(granularity_raw, bool) or not isinstance(
-            granularity_raw, Integral
-        ):
+        if isinstance(granularity_raw, bool) or not isinstance(granularity_raw, Integral):
             raise TypeError(f"type1_granularity_prb for {cell!r} must be an integer")
         granularity = int(granularity_raw)
         if granularity not in {1, 2, 4, 8}:
             raise ValueError("type1_granularity_prb must be one of 1, 2, 4, or 8")
-        type1_count = (
-            size_prb + start_prb % granularity + granularity - 1
-        ) // granularity
+        type1_count = (size_prb + start_prb % granularity + granularity - 1) // granularity
         type1_width = (type1_count * (type1_count + 1) // 2 - 1).bit_length()
         if allocation == "type0":
             widths[cell] = type0_width
@@ -2868,14 +2772,10 @@ def _nr_srs_dci_0_3_scell_dormancy_width(
                 "applicable SCell dormancy indication requires configured dormancy group IDs"
             )
         return 0
-    if not isinstance(dormancy_group_ids, Sequence) or isinstance(
-        dormancy_group_ids, (str, bytes)
-    ):
+    if not isinstance(dormancy_group_ids, Sequence) or isinstance(dormancy_group_ids, (str, bytes)):
         raise TypeError("dormancy_group_ids must be an ordered sequence or None")
     if any(
-        isinstance(group_id, bool)
-        or not isinstance(group_id, Integral)
-        or int(group_id) < 0
+        isinstance(group_id, bool) or not isinstance(group_id, Integral) or int(group_id) < 0
         for group_id in dormancy_group_ids
     ):
         raise ValueError("dormancy_group_ids must contain nonnegative integers")
@@ -2884,10 +2784,7 @@ def _nr_srs_dci_0_3_scell_dormancy_width(
         raise ValueError("dormancy_group_ids must be unique")
     if not dormancy_configured:
         return 0
-    if (
-        not carried_on_primary_cell_within_drx_active_time
-        or not scell_has_multiple_dl_bwps
-    ):
+    if not carried_on_primary_cell_within_drx_active_time or not scell_has_multiple_dl_bwps:
         return 0
     if not 1 <= len(groups) <= 5:
         raise ValueError("applicable dormancy_group_ids must contain 1..5 groups")
@@ -2899,9 +2796,7 @@ def nr_srs_dci_0_3_field_widths_from_configuration(
     cell_set_configs: Sequence[Mapping[str, object]],
     configured_ul_bwp_ids_by_cell: Mapping[str, Sequence[int]],
     active_ul_bwp_id_by_cell: Mapping[str, int],
-    ul_bwp_frequency_allocation_by_cell: Mapping[
-        str, Mapping[int, Mapping[str, object]]
-    ],
+    ul_bwp_frequency_allocation_by_cell: Mapping[str, Mapping[int, Mapping[str, object]]],
     request_list_entry_count: int,
     srs_offset_list: Sequence[Sequence[int]] | None,
     report_trigger_size: int,
@@ -2920,9 +2815,7 @@ def nr_srs_dci_0_3_field_widths_from_configuration(
     srs_resource_count_by_cell: Mapping[str, int],
     max_noncodebook_layers_by_cell: Mapping[str, int | None],
     ue_supports_max_mimo_layers_by_cell: Mapping[str, bool],
-    dmrs_port_configuration_by_cell: Mapping[
-        str, Sequence[Mapping[str, object]]
-    ],
+    dmrs_port_configuration_by_cell: Mapping[str, Sequence[Mapping[str, object]]],
     codebook_srs_antenna_port_counts_by_cell: Mapping[str, Sequence[int]],
     codebook_subset_by_cell: Mapping[str, str | None],
     max_rank_for_codebook_by_cell: Mapping[str, int | None],
@@ -3000,9 +2893,7 @@ def nr_srs_dci_0_3_field_widths_from_configuration(
     The function rejects omitted and extra field names so its result can be
     passed directly to :func:`nr_srs_dci_0_3_request_list_index_from_layout`.
     """
-    if not isinstance(cell_set_configs, Sequence) or isinstance(
-        cell_set_configs, (str, bytes)
-    ):
+    if not isinstance(cell_set_configs, Sequence) or isinstance(cell_set_configs, (str, bytes)):
         raise TypeError("cell_set_configs must be an ordered sequence")
     # Reuse the cell-set adapter for complete roster and row validation.
     if selected_cell_set_id is None:
@@ -3020,9 +2911,7 @@ def nr_srs_dci_0_3_field_widths_from_configuration(
     if len(selected_configs) != 1:
         raise ValueError("selected_cell_set_id must identify exactly one configured cell set")
     full_cell_roster = selected_configs[0]["scheduled_cell_ids"]
-    if not isinstance(full_cell_roster, Sequence) or isinstance(
-        full_cell_roster, (str, bytes)
-    ):
+    if not isinstance(full_cell_roster, Sequence) or isinstance(full_cell_roster, (str, bytes)):
         raise TypeError("scheduled_cell_ids must be an ordered sequence")
     combos = selected_configs[0].get("scheduled_cell_combos")
     if combos is None:
@@ -3048,9 +2937,7 @@ def nr_srs_dci_0_3_field_widths_from_configuration(
         cell_ids=selected_cell_roster,
         tx_config_by_cell=tx_config_by_cell,
         transform_precoding_enabled_by_cell=transform_precoding_enabled_by_cell,
-        codebook_srs_antenna_port_counts_by_cell=(
-            codebook_srs_antenna_port_counts_by_cell
-        ),
+        codebook_srs_antenna_port_counts_by_cell=(codebook_srs_antenna_port_counts_by_cell),
         codebook_subset_by_cell=codebook_subset_by_cell,
         max_rank_for_codebook_by_cell=max_rank_for_codebook_by_cell,
         ul_full_power_transmission_by_cell=ul_full_power_transmission_by_cell,
@@ -3112,9 +2999,7 @@ def nr_srs_dci_0_3_field_widths_from_configuration(
         raise ValueError(
             "transform_precoding_enabled_by_cell must cover the full scheduled cell list"
         )
-    if any(
-        type(value) is not bool for value in transform_precoding_enabled_by_cell.values()
-    ):
+    if any(type(value) is not bool for value in transform_precoding_enabled_by_cell.values()):
         raise TypeError("transform-precoding configuration values must be booleans")
     if ptrs_uplink_configured_by_cell is None and max_pusch_rank_by_cell is None:
         ptrs_dmrs_width_by_cell = dict.fromkeys(full_cell_roster, 0)
@@ -3129,10 +3014,7 @@ def nr_srs_dci_0_3_field_widths_from_configuration(
             raise ValueError("PTRS configuration must cover the full scheduled cell list")
         if set(max_pusch_rank_by_cell) != set(full_cell_roster):
             raise ValueError("maximum PUSCH rank must cover the full scheduled cell list")
-        if any(
-            type(value) is not bool
-            for value in ptrs_uplink_configured_by_cell.values()
-        ):
+        if any(type(value) is not bool for value in ptrs_uplink_configured_by_cell.values()):
             raise TypeError("PTRS-UplinkConfig states must be booleans")
         max_pusch_rank: dict[str, int] = {}
         for cell, raw_rank in max_pusch_rank_by_cell.items():
@@ -3162,9 +3044,7 @@ def nr_srs_dci_0_3_field_widths_from_configuration(
     else:
         p0_configured = cast(Mapping[str, bool], p0_pusch_set_list_configured_by_cell)
         sri_present = cast(Mapping[str, bool], sri_field_present_by_cell)
-        olpc_bits_config = cast(
-            Mapping[str, int], olpc_parameter_set_dci_0_1_bits_by_cell
-        )
+        olpc_bits_config = cast(Mapping[str, int], olpc_parameter_set_dci_0_1_bits_by_cell)
         for name, roster in (
             ("p0_pusch_set_list_configured_by_cell", p0_configured),
             ("sri_field_present_by_cell", sri_present),
@@ -3185,21 +3065,13 @@ def nr_srs_dci_0_3_field_widths_from_configuration(
                 raise ValueError("configured OLPC indication widths must be one or two bits")
             olpc_bits[cell] = width
         olpc_width_by_cell = {
-            cell: (
-                0
-                if not p0_configured[cell]
-                else 1
-                if sri_present[cell]
-                else olpc_bits[cell]
-            )
+            cell: (0 if not p0_configured[cell] else 1 if sri_present[cell] else olpc_bits[cell])
             for cell in full_cell_roster
         }
     if not isinstance(beta_offsets_semi_static_by_cell, Mapping):
         raise TypeError("beta_offsets_semi_static_by_cell must be a mapping")
     if set(beta_offsets_semi_static_by_cell) != set(full_cell_roster):
-        raise ValueError(
-            "beta_offsets_semi_static_by_cell must cover the full scheduled cell list"
-        )
+        raise ValueError("beta_offsets_semi_static_by_cell must cover the full scheduled cell list")
     if any(type(value) is not bool for value in beta_offsets_semi_static_by_cell.values()):
         raise TypeError("beta-offset configuration values must be booleans")
     if not isinstance(harq_ack_codebook_types, Sequence) or isinstance(
@@ -3219,14 +3091,9 @@ def nr_srs_dci_0_3_field_widths_from_configuration(
         raise TypeError(
             "dynamic_harq_ack_two_sub_codebooks_by_codebook must be an ordered sequence"
         )
-    if len(dynamic_harq_ack_two_sub_codebooks_by_codebook) != len(
-        harq_ack_codebook_types
-    ):
+    if len(dynamic_harq_ack_two_sub_codebooks_by_codebook) != len(harq_ack_codebook_types):
         raise ValueError("HARQ-ACK codebook state sequences must have equal lengths")
-    if any(
-        type(value) is not bool
-        for value in dynamic_harq_ack_two_sub_codebooks_by_codebook
-    ):
+    if any(type(value) is not bool for value in dynamic_harq_ack_two_sub_codebooks_by_codebook):
         raise TypeError("two-sub-codebook flags must be booleans")
     if any(
         codebook_type == "semi_static" and two_sub_codebooks
@@ -3282,9 +3149,7 @@ def nr_srs_dci_0_3_field_widths_from_configuration(
     if not isinstance(redundancy_version_bits_by_cell, Mapping):
         raise TypeError("redundancy_version_bits_by_cell must be a mapping")
     if set(redundancy_version_bits_by_cell) != set(full_cell_roster):
-        raise ValueError(
-            "redundancy_version_bits_by_cell must cover the full scheduled cell list"
-        )
+        raise ValueError("redundancy_version_bits_by_cell must cover the full scheduled cell list")
     redundancy_widths: dict[str, int] = {}
     for cell, raw_width in redundancy_version_bits_by_cell.items():
         if isinstance(raw_width, bool) or not isinstance(raw_width, Integral):
@@ -3309,9 +3174,7 @@ def nr_srs_dci_0_3_field_widths_from_configuration(
     if srs_offset_list is None:
         offset_count = 0
     else:
-        if not isinstance(srs_offset_list, Sequence) or isinstance(
-            srs_offset_list, (str, bytes)
-        ):
+        if not isinstance(srs_offset_list, Sequence) or isinstance(srs_offset_list, (str, bytes)):
             raise TypeError("srs_offset_list must be an ordered sequence or None")
         offset_count = len(srs_offset_list)
         if not 1 <= offset_count <= 8:
@@ -3330,9 +3193,7 @@ def nr_srs_dci_0_3_field_widths_from_configuration(
                 for value in row
             ):
                 raise ValueError("SRS offset-list indexes must be integers in [0, 7]")
-    if isinstance(report_trigger_size, bool) or not isinstance(
-        report_trigger_size, Integral
-    ):
+    if isinstance(report_trigger_size, bool) or not isinstance(report_trigger_size, Integral):
         raise TypeError("report_trigger_size must be an integer")
     csi_width = int(report_trigger_size)
     if not 0 <= csi_width <= 6:
@@ -3348,32 +3209,21 @@ def nr_srs_dci_0_3_field_widths_from_configuration(
         ),
         "time_domain_resource_assignment": (tdra_entry_count - 1).bit_length(),
         "frequency_hopping_flag": int(any(frequency_hopping_enabled_by_cell.values())),
-        "dmrs_sequence_initialization": int(
-            not all(transform_precoding_enabled_by_cell.values())
-        ),
+        "dmrs_sequence_initialization": int(not all(transform_precoding_enabled_by_cell.values())),
         "ul_sch_indicator": 1,
         "priority_indicator": int(priority_indicator_configured),
-        "minimum_applicable_scheduling_offset_indicator": int(
-            minimum_scheduling_offset_configured
-        ),
-        "beta_offset_indicator": 0
-        if all(beta_offsets_semi_static_by_cell.values())
-        else 2,
+        "minimum_applicable_scheduling_offset_indicator": int(minimum_scheduling_offset_configured),
+        "beta_offset_indicator": 0 if all(beta_offsets_semi_static_by_cell.values()) else 2,
         "tpc_command_for_scheduled_pusch": 2 * len(selected_cell_roster),
-        "harq_process_number": sum(
-            harq_process_widths[cell] for cell in selected_cell_roster
-        ),
+        "harq_process_number": sum(harq_process_widths[cell] for cell in selected_cell_roster),
         "modulation_and_coding_scheme": 5 * len(selected_cell_roster),
-        "new_data_indicator": sum(
-            schedulable_pusch_counts[cell] for cell in selected_cell_roster
-        ),
+        "new_data_indicator": sum(schedulable_pusch_counts[cell] for cell in selected_cell_roster),
         "redundancy_version": sum(
             schedulable_pusch_counts[cell] * redundancy_widths[cell]
             for cell in selected_cell_roster
         ),
         "first_downlink_assignment_index": max(
-            1 if codebook_type == "semi_static" else 2
-            for codebook_type in harq_ack_codebook_types
+            1 if codebook_type == "semi_static" else 2 for codebook_type in harq_ack_codebook_types
         ),
         "second_downlink_assignment_index": max(
             2 if codebook_type == "dynamic" and two_sub_codebooks else 0
@@ -3448,9 +3298,7 @@ def nr_srs_dci_0_3_multicell_aperiodic_resource_set_schedules(
         scheduled_cells_indicator=scheduled_cells_indicator,
         default_set_id=default_set_id,
     )
-    ordered_configs = sorted(
-        cell_set_configs, key=lambda item: int(cast(Integral, item["set_id"]))
-    )
+    ordered_configs = sorted(cell_set_configs, key=lambda item: int(cast(Integral, item["set_id"])))
     if scheduled_cell_set_indicator is not None:
         set_index = int(scheduled_cell_set_indicator)
     elif default_set_id is not None:
@@ -3461,12 +3309,8 @@ def nr_srs_dci_0_3_multicell_aperiodic_resource_set_schedules(
         )
     else:
         set_index = 0
-    set_cells = tuple(
-        cast(Sequence[str], ordered_configs[set_index]["scheduled_cell_ids"])
-    )
-    if not isinstance(serving_cell_ids, Sequence) or isinstance(
-        serving_cell_ids, (str, bytes)
-    ):
+    set_cells = tuple(cast(Sequence[str], ordered_configs[set_index]["scheduled_cell_ids"]))
+    if not isinstance(serving_cell_ids, Sequence) or isinstance(serving_cell_ids, (str, bytes)):
         raise TypeError("serving_cell_ids must be an ordered sequence")
     global_cells = tuple(serving_cell_ids)
     if not global_cells or any(not isinstance(cell, str) or not cell for cell in global_cells):
@@ -3474,9 +3318,7 @@ def nr_srs_dci_0_3_multicell_aperiodic_resource_set_schedules(
     if len(set(global_cells)) != len(global_cells):
         raise ValueError("serving_cell_ids must be unique")
     if tuple(cell for cell in global_cells if cell in set(set_cells)) != set_cells:
-        raise ValueError(
-            "selected set scheduled_cell_ids must follow serving_cell_ids order"
-        )
+        raise ValueError("selected set scheduled_cell_ids must follow serving_cell_ids order")
     if not isinstance(supplementary_uplink_cells, Sequence) or isinstance(
         supplementary_uplink_cells, (str, bytes)
     ):
@@ -3559,17 +3401,13 @@ def nr_srs_dci_0_3_multicell_aperiodic_resource_set_schedules_by_bwp(
     request_list_index: int,
     request_list: Sequence[Sequence[int]],
     serving_cell_ids: Sequence[str],
-    resource_sets_by_cell_and_bwp: Mapping[
-        str, Mapping[int, Sequence[Mapping[str, object]]]
-    ],
+    resource_sets_by_cell_and_bwp: Mapping[str, Mapping[int, Sequence[Mapping[str, object]]]],
     triggering_dci_slot_by_cell: Mapping[str, int],
     *,
     cell_set_configs: Sequence[Mapping[str, object]],
     configured_ul_bwp_ids_by_cell: Mapping[str, Sequence[int]],
     active_ul_bwp_id_by_cell: Mapping[str, int],
-    ul_bwp_frequency_bounds_by_cell_and_bwp: Mapping[
-        str, Mapping[int, NRSRSBWPFrequencyBounds]
-    ],
+    ul_bwp_frequency_bounds_by_cell_and_bwp: Mapping[str, Mapping[int, NRSRSBWPFrequencyBounds]],
     bwp_indicator: int | None,
     supports_active_bwp_change: bool = True,
     scheduled_cell_set_indicator: int | None = None,
@@ -3591,9 +3429,7 @@ def nr_srs_dci_0_3_multicell_aperiodic_resource_set_schedules_by_bwp(
     same subcarrier coordinate system. Returned rows retain the selected BWP
     and its bounds even when no SRS set was triggered.
     """
-    ordered_configs = sorted(
-        cell_set_configs, key=lambda item: int(cast(Integral, item["set_id"]))
-    )
+    ordered_configs = sorted(cell_set_configs, key=lambda item: int(cast(Integral, item["set_id"])))
     if scheduled_cell_set_indicator is not None:
         set_index = int(scheduled_cell_set_indicator)
     elif default_set_id is not None:
@@ -3604,9 +3440,7 @@ def nr_srs_dci_0_3_multicell_aperiodic_resource_set_schedules_by_bwp(
         )
     else:
         set_index = 0
-    set_cells = tuple(
-        cast(Sequence[str], ordered_configs[set_index]["scheduled_cell_ids"])
-    )
+    set_cells = tuple(cast(Sequence[str], ordered_configs[set_index]["scheduled_cell_ids"]))
 
     bwp_selection = nr_srs_dci_0_3_ul_bwp_selection(
         set_cells,
@@ -3619,9 +3453,7 @@ def nr_srs_dci_0_3_multicell_aperiodic_resource_set_schedules_by_bwp(
     if not isinstance(ul_bwp_frequency_bounds_by_cell_and_bwp, Mapping):
         raise TypeError("ul_bwp_frequency_bounds_by_cell_and_bwp must be a mapping")
     if set(ul_bwp_frequency_bounds_by_cell_and_bwp) != set(set_cells):
-        raise ValueError(
-            "UL BWP frequency-bound keys must exactly match the selected cell set"
-        )
+        raise ValueError("UL BWP frequency-bound keys must exactly match the selected cell set")
     bounds_by_cell: dict[str, dict[int, NRSRSBWPFrequencyBounds]] = {}
     for cell in set_cells:
         raw_bounds = ul_bwp_frequency_bounds_by_cell_and_bwp[cell]
@@ -3631,8 +3463,7 @@ def nr_srs_dci_0_3_multicell_aperiodic_resource_set_schedules_by_bwp(
             sorted(int(bwp_id) for bwp_id in configured_ul_bwp_ids_by_cell[cell])
         )
         if any(
-            isinstance(bwp_id, bool) or not isinstance(bwp_id, Integral)
-            for bwp_id in raw_bounds
+            isinstance(bwp_id, bool) or not isinstance(bwp_id, Integral) for bwp_id in raw_bounds
         ):
             raise TypeError(f"UL BWP frequency-bound IDs for {cell!r} must be integers")
         if set(raw_bounds) != set(configured_bwps):
@@ -3663,10 +3494,7 @@ def nr_srs_dci_0_3_multicell_aperiodic_resource_set_schedules_by_bwp(
         by_bwp = resource_sets_by_cell_and_bwp[cell]
         if not isinstance(by_bwp, Mapping):
             raise TypeError(f"per-BWP resource-set table for {cell!r} must be a mapping")
-        if any(
-            isinstance(bwp_id, bool) or not isinstance(bwp_id, Integral)
-            for bwp_id in by_bwp
-        ):
+        if any(isinstance(bwp_id, bool) or not isinstance(bwp_id, Integral) for bwp_id in by_bwp):
             raise TypeError(f"per-BWP resource-set keys for {cell!r} must be integer IDs")
         if set(by_bwp) != set(configured_bwps):
             raise ValueError(
@@ -3690,9 +3518,7 @@ def nr_srs_dci_0_3_multicell_aperiodic_resource_set_schedules_by_bwp(
                 available = allocation.get("available_slot_offsets")
                 if available is None:
                     continue
-                if not isinstance(available, Sequence) or isinstance(
-                    available, (str, bytes)
-                ):
+                if not isinstance(available, Sequence) or isinstance(available, (str, bytes)):
                     raise TypeError("available_slot_offsets must be an ordered sequence")
                 if not available:
                     raise ValueError("available_slot_offsets must not be empty")
@@ -3764,9 +3590,7 @@ def nr_srs_multicell_request_resource_set_ids(
     request_list_index = int(request_list_index)
     if not 0 <= request_list_index < len(request_list):
         raise ValueError("request_list_index does not select a configured entry")
-    if not isinstance(serving_cell_ids, Sequence) or isinstance(
-        serving_cell_ids, (str, bytes)
-    ):
+    if not isinstance(serving_cell_ids, Sequence) or isinstance(serving_cell_ids, (str, bytes)):
         raise TypeError("serving_cell_ids must be an ordered sequence")
     cell_ids = tuple(serving_cell_ids)
     if not cell_ids or any(not isinstance(cell, str) or not cell for cell in cell_ids):
@@ -3785,9 +3609,9 @@ def nr_srs_multicell_request_resource_set_ids(
             not isinstance(cell, str) or not cell for cell in scheduled_cells
         ):
             raise ValueError("scheduled_cell_ids must contain nonempty cell IDs")
-        if len(set(scheduled_cells)) != len(scheduled_cells) or not set(
-            scheduled_cells
-        ).issubset(cell_ids):
+        if len(set(scheduled_cells)) != len(scheduled_cells) or not set(scheduled_cells).issubset(
+            cell_ids
+        ):
             raise ValueError("scheduled_cell_ids must be a unique subset of serving_cell_ids")
         if tuple(cell for cell in cell_ids if cell in set(scheduled_cells)) != scheduled_cells:
             raise ValueError("scheduled_cell_ids must follow serving-cell order")
@@ -3863,9 +3687,7 @@ def nr_srs_multicell_aperiodic_resource_set_schedules(
         supplementary_uplink_cells=supplementary_uplink_cells,
     )
     cells = tuple(serving_cell_ids)
-    if not isinstance(scheduled_cell_ids, Sequence) or isinstance(
-        scheduled_cell_ids, (str, bytes)
-    ):
+    if not isinstance(scheduled_cell_ids, Sequence) or isinstance(scheduled_cell_ids, (str, bytes)):
         raise TypeError("scheduled_cell_ids must be an ordered sequence")
     scheduled_cells = tuple(scheduled_cell_ids)
     if not scheduled_cells or any(
@@ -3927,11 +3749,16 @@ def nr_srs_multicell_aperiodic_resource_set_schedules(
     for cell_id in scheduled_cells:
         resource_sets = resource_sets_by_cell[cell_id]
         selected_ids = schedules_by_cell[cell_id]
-        sets_by_id = {
-            int(record["resource_set_id"]): record
-            for record in resource_sets
-            if isinstance(record, Mapping)
-        }
+        sets_by_id: dict[int, Mapping[str, object]] = {}
+        for record in resource_sets:
+            if not isinstance(record, Mapping):
+                continue
+            resource_set_id_value = record.get("resource_set_id")
+            if isinstance(resource_set_id_value, bool) or not isinstance(
+                resource_set_id_value, Integral
+            ):
+                raise ValueError("SRS resource_set_id must be an integer")
+            sets_by_id[int(resource_set_id_value)] = record
         cell_schedules: list[NRSRSResourceSetAperiodicSchedule] = []
         for resource_set_id in selected_ids:
             resource_set = sets_by_id[resource_set_id]
@@ -3985,9 +3812,7 @@ def nr_srs_multicell_aperiodic_resource_set_schedules(
     return tuple(result)
 
 
-def _normalized_multiport_beta(
-    beta_srs: float, port_count: int, four_port_srs_3tx: bool
-) -> float:
+def _normalized_multiport_beta(beta_srs: float, port_count: int, four_port_srs_3tx: bool) -> float:
     if (
         isinstance(beta_srs, bool)
         or not isinstance(beta_srs, Real)
@@ -4187,9 +4012,7 @@ def nr_srs_periodic_resource_schedule(
     feasibility, and collisions with other transmissions.
     """
 
-    if isinstance(absolute_slot_index, bool) or not isinstance(
-        absolute_slot_index, Integral
-    ):
+    if isinstance(absolute_slot_index, bool) or not isinstance(absolute_slot_index, Integral):
         raise TypeError("absolute_slot_index must be an integer")
     if absolute_slot_index < 0:
         raise ValueError("absolute_slot_index must be nonnegative")
@@ -4249,9 +4072,7 @@ def nr_srs_periodic_resource_set_schedule(
     configuration. The returned set contains only resources active in this
     slot; ``None`` means none are active.
     """
-    if isinstance(absolute_slot_index, bool) or not isinstance(
-        absolute_slot_index, Integral
-    ):
+    if isinstance(absolute_slot_index, bool) or not isinstance(absolute_slot_index, Integral):
         raise TypeError("absolute_slot_index must be an integer")
     if absolute_slot_index < 0:
         raise ValueError("absolute_slot_index must be nonnegative")
@@ -4341,8 +4162,7 @@ def nr_srs_periodic_resource_set_schedule(
         unsupported_timing = set(resource_timing) - timing_keys
         if unsupported_timing:
             raise ValueError(
-                f"resources[{index}].timing has unsupported fields: "
-                f"{sorted(unsupported_timing)}"
+                f"resources[{index}].timing has unsupported fields: {sorted(unsupported_timing)}"
             )
         schedule = nr_srs_periodic_resource_schedule(
             absolute_slot_index,
@@ -4352,7 +4172,9 @@ def nr_srs_periodic_resource_set_schedule(
         )
         schedules.append((resource_id, schedule))
 
-    active = [(resource_id, schedule) for resource_id, schedule in schedules if schedule is not None]
+    active = [
+        (resource_id, schedule) for resource_id, schedule in schedules if schedule is not None
+    ]
     if not active:
         return None
     return NRSRSPeriodicResourceSetSchedule(
@@ -4431,9 +4253,7 @@ def nr_srs_multicell_periodic_resource_set_schedules_by_bwp(
     The output preserves serving-cell order and active-BWP identity, including
     cells with no SRS occasion in the supplied slot.
     """
-    if not isinstance(serving_cell_ids, Sequence) or isinstance(
-        serving_cell_ids, (str, bytes)
-    ):
+    if not isinstance(serving_cell_ids, Sequence) or isinstance(serving_cell_ids, (str, bytes)):
         raise TypeError("serving_cell_ids must be an ordered sequence")
     cells = tuple(serving_cell_ids)
     if not cells or any(not isinstance(cell, str) or not cell.strip() for cell in cells):
@@ -4679,10 +4499,7 @@ def _nr_gold_bits(c_init: int, count: int) -> np.ndarray:
     for bit_index in range(sequence_length):
         x1[bit_index + 31] = x1[bit_index + 3] ^ x1[bit_index]
         x2[bit_index + 31] = (
-            x2[bit_index + 3]
-            ^ x2[bit_index + 2]
-            ^ x2[bit_index + 1]
-            ^ x2[bit_index]
+            x2[bit_index + 3] ^ x2[bit_index + 2] ^ x2[bit_index + 1] ^ x2[bit_index]
         )
     return x1[1600 : 1600 + count] ^ x2[1600 : 1600 + count]
 
@@ -4693,9 +4510,7 @@ def _srs_gold_bit_offset(
     resource_symbol_index: int,
     slot_symbol_count: int,
 ) -> int:
-    return 8 * (
-        slot_symbol_count * slot_index + start_symbol_index + resource_symbol_index
-    )
+    return 8 * (slot_symbol_count * slot_index + start_symbol_index + resource_symbol_index)
 
 
 def _validate_srs_hopping_position(
@@ -4773,9 +4588,7 @@ def nr_srs_group_hopping_index(
         slot_index, start_symbol_index, resource_symbol_index, slot_symbol_count
     )
     hopping_bits = _nr_gold_bits(sequence_id, first_bit + 8)
-    group_hopping_value = sum(
-        int(hopping_bits[first_bit + bit]) << bit for bit in range(8)
-    )
+    group_hopping_value = sum(int(hopping_bits[first_bit + bit]) << bit for bit in range(8))
     return (group_hopping_value + sequence_id) % 30
 
 
@@ -4882,17 +4695,13 @@ def nr_low_papr_sequence_type1(
         raise ValueError("cyclic_shift_index must be in [0, cyclic_shift_count)")
     hop_denominator = 2 if hopping_finer_granularity else 1
     if not 0 <= cyclic_shift_hopping_offset < hop_denominator * cyclic_shift_count:
-        raise ValueError(
-            "cyclic_shift_hopping_offset is outside the configured shift range"
-        )
+        raise ValueError("cyclic_shift_hopping_offset is outside the configured shift range")
     indices = np.arange(sequence_length, dtype=np.float64)
     if sequence_length in _LOW_PAPR_SHORT_PHASES:
         phases = np.asarray(_LOW_PAPR_SHORT_PHASES[sequence_length][group_index])
         base = np.exp(1j * np.pi * phases / 4.0)
     elif sequence_length == 30:
-        base = np.exp(
-            -1j * np.pi * group_index * (indices + 1.0) * (indices + 2.0) / 31.0
-        )
+        base = np.exp(-1j * np.pi * group_index * (indices + 1.0) * (indices + 2.0) / 31.0)
     else:
         zc_length = _largest_prime_below(sequence_length)
         q_numerator = zc_length * (group_index + 1)
@@ -5051,7 +4860,11 @@ def nr_srs_resource_sequences_type1(
     if not isinstance(hopping_finer_granularity, bool):
         raise TypeError("hopping_finer_granularity must be a boolean")
     if cyclic_shift_hopping_id is None:
-        if radio_frame_index is not None or slots_per_frame is not None or hopping_subset is not None:
+        if (
+            radio_frame_index is not None
+            or slots_per_frame is not None
+            or hopping_subset is not None
+        ):
             raise ValueError("cyclic-shift hopping coordinates require cyclic_shift_hopping_id")
     else:
         if cyclic_shift_hopping_offsets is not None:
@@ -5144,9 +4957,7 @@ def nr_srs_port_sequences_type1(
         if isinstance(index, bool) or not isinstance(index, Integral):
             raise TypeError("cyclic_shift_indices must contain integers")
         if not 0 <= index < shift_count:
-            raise ValueError(
-                f"cyclic-shift indices must be in [0, {shift_count}) for this comb"
-            )
+            raise ValueError(f"cyclic-shift indices must be in [0, {shift_count}) for this comb")
     if not isinstance(allow_duplicate_cyclic_shifts, bool):
         raise TypeError("allow_duplicate_cyclic_shifts must be a boolean")
     if not allow_duplicate_cyclic_shifts and len(set(cyclic_shift_indices)) != len(
@@ -5565,15 +5376,11 @@ class NRSRSPositioningMultiportResourceGrid:
                 or any(not isinstance(value, (bool, np.bool_)) for value in row)
                 for row in active
             ):
-                raise ValueError(
-                    "active_port_symbols must be boolean [ports, resource symbols]"
-                )
+                raise ValueError("active_port_symbols must be boolean [ports, resource symbols]")
             active = tuple(tuple(bool(value) for value in row) for row in active)
         expected_mask = np.zeros(grid.shape, dtype=np.bool_)
         for port_index, port_activity in enumerate(active):
-            for symbol, row, is_active in zip(
-                symbols, subcarriers, port_activity, strict=True
-            ):
+            for symbol, row, is_active in zip(symbols, subcarriers, port_activity, strict=True):
                 if is_active:
                     expected_mask[port_index, symbol, np.asarray(row, dtype=np.intp)] = True
         if not np.array_equal(mask, expected_mask):
@@ -5639,9 +5446,7 @@ class NRSRSMultiportResourceGrid:
                 or any(not isinstance(value, (bool, np.bool_)) for value in row)
                 for row in active
             ):
-                raise ValueError(
-                    "active_port_symbols must be boolean [ports, resource symbols]"
-                )
+                raise ValueError("active_port_symbols must be boolean [ports, resource symbols]")
             active = tuple(tuple(bool(value) for value in row) for row in active)
         expected_mask = np.zeros(grid.shape, dtype=np.bool_)
         for port_index, active_symbols in enumerate(active):
@@ -5718,10 +5523,7 @@ def map_nr_srs_resource(
         raise ValueError("subcarrier_count must be positive")
     if srs_symbol_count not in _SRS_SYMBOL_COUNTS or srs_symbol_count > slot_symbol_count:
         raise ValueError("unsupported SRS symbol count for the declared slot")
-    if (
-        start_position_offset < srs_symbol_count - 1
-        or start_position_offset >= slot_symbol_count
-    ):
+    if start_position_offset < srs_symbol_count - 1 or start_position_offset >= slot_symbol_count:
         raise ValueError("start_position_offset must fit the SRS symbols in the slot")
     if comb_size not in _SRS_COMB_SIZES:
         raise ValueError("comb_size must be 2, 4, or 8")
@@ -5746,9 +5548,7 @@ def map_nr_srs_resource(
     if not np.iscomplexobj(values):
         raise TypeError("sequence must be complex-valued")
     if values.ndim not in {1, 2}:
-        raise ValueError(
-            "sequence must have shape [occupied REs] or [SRS symbols, occupied REs]"
-        )
+        raise ValueError("sequence must have shape [occupied REs] or [SRS symbols, occupied REs]")
     frequency_width = (
         subcarrier_count - frequency_start_subcarrier
         if allocated_bandwidth_subcarriers is None
@@ -5774,9 +5574,7 @@ def map_nr_srs_resource(
     grid = np.zeros((slot_symbol_count, subcarrier_count), dtype=np.complex128)
     mask = np.zeros((slot_symbol_count, subcarrier_count), dtype=np.bool_)
     rows = (
-        values
-        if values.ndim == 2
-        else np.broadcast_to(values, (srs_symbol_count, occupied_count))
+        values if values.ndim == 2 else np.broadcast_to(values, (srs_symbol_count, occupied_count))
     )
     for symbol_offset, symbol_index in enumerate(symbol_indices):
         grid[symbol_index, list(subcarrier_indices)] = beta_srs * rows[symbol_offset]
@@ -5837,10 +5635,7 @@ def map_nr_srs_hopped_resource(
         raise ValueError("subcarrier_count must be positive")
     if srs_symbol_count not in _SRS_SYMBOL_COUNTS or srs_symbol_count > slot_symbol_count:
         raise ValueError("unsupported SRS symbol count for the declared slot")
-    if (
-        start_position_offset < srs_symbol_count - 1
-        or start_position_offset >= slot_symbol_count
-    ):
+    if start_position_offset < srs_symbol_count - 1 or start_position_offset >= slot_symbol_count:
         raise ValueError("start_position_offset must fit the SRS symbols in the slot")
     if (
         isinstance(beta_srs, bool)
@@ -5861,9 +5656,7 @@ def map_nr_srs_hopped_resource(
         for allocation in allocations[1:]
     ):
         raise ValueError("per-symbol frequency allocations must share one SRS configuration")
-    rows_allocations = (
-        allocations * srs_symbol_count if len(allocations) == 1 else allocations
-    )
+    rows_allocations = allocations * srs_symbol_count if len(allocations) == 1 else allocations
     width = first.bandwidth.allocated_bandwidth_subcarriers
     comb_size = first.bandwidth.transmission_comb
     offsets = (
@@ -5950,14 +5743,10 @@ def map_nr_srs_hopped_multiport_resource(
     if not np.iscomplexobj(values):
         raise TypeError("sequences must be complex-valued")
     if values.ndim != 3 or values.shape[0] < 1:
-        raise ValueError(
-            "sequences must have shape [ports, SRS symbols, occupied REs]"
-        )
+        raise ValueError("sequences must have shape [ports, SRS symbols, occupied REs]")
     if values.shape[1] != srs_symbol_count:
         raise ValueError("each port must have exactly srs_symbol_count rows")
-    normalized_beta = _normalized_multiport_beta(
-        beta_srs, values.shape[0], four_port_srs_3tx
-    )
+    normalized_beta = _normalized_multiport_beta(beta_srs, values.shape[0], four_port_srs_3tx)
     mapped = tuple(
         map_nr_srs_hopped_resource(
             port_sequences,
@@ -6039,10 +5828,7 @@ def map_nr_srs_positioning_resource(
         )
         for symbol_index in range(srs_symbol_count)
     )
-    if (
-        start_position_offset < srs_symbol_count - 1
-        or start_position_offset >= slot_symbol_count
-    ):
+    if start_position_offset < srs_symbol_count - 1 or start_position_offset >= slot_symbol_count:
         raise ValueError("start_position_offset must fit the SRS symbols in the slot")
     if comb_size not in _SRS_COMB_SIZES:
         raise ValueError("comb_size must be 2, 4, or 8")
@@ -6067,9 +5853,7 @@ def map_nr_srs_positioning_resource(
     if not np.iscomplexobj(values):
         raise TypeError("sequence must be complex-valued")
     if values.ndim not in {1, 2}:
-        raise ValueError(
-            "sequence must have shape [occupied REs] or [SRS symbols, occupied REs]"
-        )
+        raise ValueError("sequence must have shape [occupied REs] or [SRS symbols, occupied REs]")
     expected_length = allocated_bandwidth_subcarriers // comb_size
     if values.shape[-1] != expected_length:
         raise ValueError("sequence length does not match the positioning SRS comb")
@@ -6082,9 +5866,7 @@ def map_nr_srs_positioning_resource(
     symbol_indices = tuple(range(first_symbol, first_symbol + srs_symbol_count))
     subcarriers_by_symbol = tuple(
         tuple(
-            frequency_start_subcarrier
-            + (comb_offset + offset) % comb_size
-            + comb_size * index
+            frequency_start_subcarrier + (comb_offset + offset) % comb_size + comb_size * index
             for index in range(expected_length)
         )
         for offset in offsets
@@ -6092,9 +5874,7 @@ def map_nr_srs_positioning_resource(
     grid = np.zeros((slot_symbol_count, subcarrier_count), dtype=np.complex128)
     mask = np.zeros((slot_symbol_count, subcarrier_count), dtype=np.bool_)
     rows = (
-        values
-        if values.ndim == 2
-        else np.broadcast_to(values, (srs_symbol_count, expected_length))
+        values if values.ndim == 2 else np.broadcast_to(values, (srs_symbol_count, expected_length))
     )
     for row_index, (symbol, subcarriers) in enumerate(
         zip(symbol_indices, subcarriers_by_symbol, strict=True)
@@ -6131,18 +5911,14 @@ def map_nr_srs_positioning_multiport_resource(
     if not np.iscomplexobj(values):
         raise TypeError("sequences must be complex-valued")
     if values.ndim != 3 or values.shape[0] < 1:
-        raise ValueError(
-            "sequences must have shape [ports, SRS symbols, occupied REs]"
-        )
+        raise ValueError("sequences must have shape [ports, SRS symbols, occupied REs]")
     if values.shape[1] != srs_symbol_count:
         raise ValueError("each port must have exactly srs_symbol_count rows")
     if not isinstance(ports8_tdm, bool):
         raise TypeError("ports8_tdm must be a boolean")
     if ports8_tdm and (values.shape[0] != 8 or four_port_srs_3tx):
         raise ValueError("ports8_tdm requires eight ports and cannot combine with four-port 3Tx")
-    normalized_beta = _normalized_multiport_beta(
-        beta_srs, values.shape[0], four_port_srs_3tx
-    )
+    normalized_beta = _normalized_multiport_beta(beta_srs, values.shape[0], four_port_srs_3tx)
     mapped = [
         map_nr_srs_positioning_resource(
             port_sequences,
@@ -6215,9 +5991,7 @@ def map_nr_srs_multiport_resource(
         raise TypeError("ports8_tdm must be a boolean")
     if ports8_tdm and (values.shape[0] != 8 or four_port_srs_3tx):
         raise ValueError("ports8_tdm requires eight ports and cannot combine with four-port 3Tx")
-    normalized_beta = _normalized_multiport_beta(
-        beta_srs, values.shape[0], four_port_srs_3tx
-    )
+    normalized_beta = _normalized_multiport_beta(beta_srs, values.shape[0], four_port_srs_3tx)
     mapped = [
         map_nr_srs_resource(
             port_sequences,
@@ -6383,12 +6157,16 @@ class NRSRSMultiportChannelEstimate:
         reasons = tuple(self.reason_codes)
         symbols = tuple(self.symbol_indices)
         if channel.ndim != 3 or not np.iscomplexobj(channel):
-            raise ValueError("channel estimate must be complex [rx antennas, TX ports, subcarriers]")
+            raise ValueError(
+                "channel estimate must be complex [rx antennas, TX ports, subcarriers]"
+            )
         rx_count, port_count, subcarrier_count = channel.shape
         if min(rx_count, port_count, subcarrier_count) < 1:
             raise ValueError("channel estimate dimensions must be nonempty")
         if covariance.shape != (rx_count, subcarrier_count, port_count, port_count):
-            raise ValueError("noise covariance shape must be [rx antennas, subcarriers, ports, ports]")
+            raise ValueError(
+                "noise covariance shape must be [rx antennas, subcarriers, ports, ports]"
+            )
         if not np.iscomplexobj(covariance):
             raise TypeError("noise covariance must be complex-valued")
         if valid.shape != (subcarrier_count,) or valid.dtype != np.bool_:
@@ -6399,10 +6177,14 @@ class NRSRSMultiportChannelEstimate:
             raise ValueError("condition and reason rosters must match subcarrier count")
         if noise.shape != (rx_count,) or noise.dtype.kind not in "iuf":
             raise ValueError("noise_variance_by_rx_ant must be real [rx antennas]")
-        if not symbols or any(
-            isinstance(value, bool) or not isinstance(value, Integral) or value < 0
-            for value in symbols
-        ) or len(set(symbols)) != len(symbols):
+        if (
+            not symbols
+            or any(
+                isinstance(value, bool) or not isinstance(value, Integral) or value < 0
+                for value in symbols
+            )
+            or len(set(symbols)) != len(symbols)
+        ):
             raise ValueError("symbol_indices must be unique nonnegative integers")
         if symbol_noise is not None and (
             symbol_noise.ndim != 2
@@ -6548,9 +6330,7 @@ def nr_srs_multiport_ls_channel_estimate(
 
     port_count, _, subcarrier_count = transmit.shape
     channel = np.zeros((rx_count, port_count, subcarrier_count), dtype=np.complex128)
-    covariance = np.zeros(
-        (rx_count, subcarrier_count, port_count, port_count), dtype=np.complex128
-    )
+    covariance = np.zeros((rx_count, subcarrier_count, port_count, port_count), dtype=np.complex128)
     valid = np.zeros(subcarrier_count, dtype=np.bool_)
     ranks = np.zeros(subcarrier_count, dtype=np.int64)
     condition_numbers: list[float | None] = [None] * subcarrier_count
@@ -6610,9 +6390,7 @@ def nr_srs_multiport_ls_channel_estimate(
                 reasons[subcarrier] = "singular_weighted_port_signature"
                 condition_numbers[subcarrier] = None
                 break
-            if not np.isfinite(coefficients).all() or not np.isfinite(
-                coefficient_covariance
-            ).all():
+            if not np.isfinite(coefficients).all() or not np.isfinite(coefficient_covariance).all():
                 channel[:, :, subcarrier] = 0
                 covariance[:, subcarrier] = 0
                 reasons[subcarrier] = "nonfinite_weighted_estimate"

@@ -92,10 +92,7 @@ def _validate_scenarios(
                 block_count = int(matrix.shape[0])
                 normalized[field] = matrix.astype(bool).tolist()
             atoms.append(normalized)
-        if (
-            np.any(probabilities <= 0.0)
-            or abs(float(probabilities.sum()) - 1.0) > 1e-9
-        ):
+        if np.any(probabilities <= 0.0) or abs(float(probabilities.sum()) - 1.0) > 1e-9:
             raise ValueError("receiver scenario probabilities must be positive and sum to one")
         result[stratum] = atoms, probabilities
     return result

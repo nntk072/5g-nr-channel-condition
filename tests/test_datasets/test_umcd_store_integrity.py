@@ -154,9 +154,9 @@ def _versioned_complex_cfr_target() -> TargetValue:
     return TargetValue(
         entity_id="gNB-0-to-UE-0",
         definition=definition,
-        values=np.asarray([1.25 - 0.5j, 0.0 + 0.0j], dtype=np.complex64),
-        valid_mask=np.asarray([True, False]),
-        reason_codes=(TargetValidity.VALID, TargetValidity.NOT_OBSERVABLE),
+        values=np.asarray([1.25 - 0.5j], dtype=np.complex64),
+        valid_mask=np.asarray([True]),
+        reason_codes=(TargetValidity.VALID,),
         confidence="synthetic_fixture",
     )
 

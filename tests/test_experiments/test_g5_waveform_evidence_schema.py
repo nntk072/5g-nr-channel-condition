@@ -155,9 +155,7 @@ def test_waveform_evidence_v4_manifest_matches_versioned_schema() -> None:
         ("arrays", ["channel_seeds"]),
     ],
 )
-def test_waveform_evidence_manifest_rejects_contract_violations(
-    field: str, value: Any
-) -> None:
+def test_waveform_evidence_manifest_rejects_contract_violations(field: str, value: Any) -> None:
     jsonschema = pytest.importorskip("jsonschema")
     schema_path = (
         Path(__file__).parents[2]

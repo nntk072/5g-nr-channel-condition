@@ -213,8 +213,7 @@ def compare_curves(
                 or treatment_groups != control_groups
                 or any(not isinstance(group, str) or not group.strip() for group in control_groups)
                 or len(set(control_groups)) < 2
-                or set(control_groups)
-                != {str(check["seed"]) for check in control_checks}
+                or set(control_groups) != {str(check["seed"]) for check in control_checks}
             ):
                 raise ValueError(
                     "estimator curves need identical IDs for at least two declared batch clusters"
@@ -242,14 +241,10 @@ def compare_curves(
                         right["frame_error_mask"],
                         seed=1,
                         draws=20_000,
-                        control_bits_per_success=left[
-                            "mean_transmitted_tb_bits_per_codeword"
-                        ]
+                        control_bits_per_success=left["mean_transmitted_tb_bits_per_codeword"]
                         if "mean_transmitted_tb_bits_per_codeword" in left
                         else left["bits"] / left["frames"],
-                        treatment_bits_per_success=right[
-                            "mean_transmitted_tb_bits_per_codeword"
-                        ]
+                        treatment_bits_per_success=right["mean_transmitted_tb_bits_per_codeword"]
                         if "mean_transmitted_tb_bits_per_codeword" in right
                         else right["bits"] / right["frames"],
                     ),
@@ -369,7 +364,7 @@ def compare_curves(
         + (
             [
                 "Estimator comparison intervals resample batch-seed clusters and are conditional on the sampled TDL simulation configuration.",
-                "Estimator comparison intervals are pointwise and are not multiplicity-adjusted across the SNR grid."
+                "Estimator comparison intervals are pointwise and are not multiplicity-adjusted across the SNR grid.",
             ]
             if varying_config_field == "channel_estimator"
             else []

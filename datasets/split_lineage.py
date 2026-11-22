@@ -328,7 +328,7 @@ def derive_channel_dataset_split_evidence(
                     )
                 ):
                     raise ValueError(f"{context} has no finite RT receiver position for its ID")
-                if identity_complete and tuple(map(float, position_value)) != tuple(
+                if identity_complete and tuple(map(float, identity_position)) != tuple(
                     map(float, receiver_position)
                 ):
                     raise ValueError(

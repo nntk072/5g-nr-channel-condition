@@ -390,17 +390,18 @@ def _scenario_array_spec(
         normalized_positions = np.asarray(
             array_layout.get("normalized_element_positions_wavelengths"), dtype=np.float64
         )
-        labels = array_layout.get("pattern_labels_in_port_order")
+        raw_labels = array_layout.get("pattern_labels_in_port_order")
         if (
             normalized_positions.ndim != 2
             or normalized_positions.shape[1] != 3
             or normalized_positions.shape[0] < 1
             or not np.isfinite(normalized_positions).all()
-            or not isinstance(labels, (list, tuple))
-            or not labels
-            or any(not isinstance(label, str) or not label.strip() for label in labels)
+            or not isinstance(raw_labels, (list, tuple))
+            or not raw_labels
+            or any(not isinstance(label, str) or not label.strip() for label in raw_labels)
         ):
             raise ValueError(f"scenario {endpoint} array layout is malformed")
+        labels = [label for label in raw_labels if isinstance(label, str)]
     element_count = len(normalized_positions)
     port_count_from_layout = len(labels) * element_count
     port_ids = tuple(
