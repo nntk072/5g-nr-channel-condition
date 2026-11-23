@@ -118,6 +118,16 @@ Recorded before the run. The question is whether the 99% family-wise intervals a
 - Calibrated: at most 2 of the 50 seeds show any miss. This is the rule fixed here. At a family-wise alpha of 0.01, about 0.5 of 50 seeds should miss by chance, so more than 2 would indicate a bias or a too-tight interval.
 - Temporary copies of the test files are used and deleted afterwards. Tolerances, interval definitions and committed tests are unchanged.
 
+### Calibration result
+
+Run as pre-registered, in the GPU environment with CUDA hidden. Temporary copies were deleted afterwards (`git status` clean).
+
+- Joint `[B]`, 50 seeds (`30_000_000 + k`), 32 components per seed: 0 seeds with any miss; worst error-to-half-width ratio 0.918.
+- Four-element `[E]`, 50 seeds (`50_000 + k`), 16 components per seed: 0 seeds with any miss; worst ratio 0.915.
+- Both cases are within the pre-registered rule (at most 2 of 50 seeds with a miss). The intervals are calibrated: no miss in 100 seed-draws, and the largest ratio is 0.92.
+
+Reading: the single misses at the committed seeds (ratios 1.014 and 1.047) are rare draws. At a family-wise 99% level each seed has about a 1% chance of a miss, so a single-seed assertion is flaky by design. The committed tests and tolerances are unchanged. A coverage test over a fixed multi-seed set would be the fitting assertion; that is a change to what the test claims, and it needs approval.
+
 ## Goal items
 
 1. **Helper wiring.** `scripts/audit_helper_wiring.py` resolves package re-exports and facade re-exports to the defining submodule. The helper count is `254`; `--check` exits 0; `tests/test_scripts/test_audit_helper_wiring.py` passes. Dispositions: 245 manual review, 1 no direct reference, 8 route mapping required. The moved `compose_pusch_intra_slot_hops` is now `receivers.nr.pusch_core.hopping.compose_pusch_intra_slot_hops`.
