@@ -155,3 +155,20 @@ The co-channel PUSCH and reciprocity tests pass in both trees now.
   `exp(-jπ·sinZoA·sinAoA)`; the native CDL output has the opposite phase sign. Which sign
   TR 38.901 specifies is a convention decision, and changing either the reference or the
   native generator would change a scientific definition. Neither has been changed.
+
+## Update: CDL dual-pol root cause resolved (test configuration)
+
+- **Source of truth:** TR 38.901 equations (7.5-22), (7.5-23) and (7.5-28) use the
+  element phase `exp(+j2π·r̂ᵀ·d/λ0)`. Sionna's implementation uses the same form, and its
+  CDL-A tables match the pinned reference exactly.
+- **Cause:** the native adapter's default UT array orientation is `[π, 0, 0]`, a 180°
+  yaw that mirrors the array along y. The dual-pol protocol specifies a frozen zero
+  array orientation, and the test did not pass one, so it ran at the adapter default.
+- **Fix:** the test now passes `ut_orientation_rad=[0.0, 0.0, 0.0]`, the frozen protocol
+  orientation. The reference formula, the pinned angle source and the tolerance are
+  unchanged. With zero orientation the maximum deviation is 0.0124, inside the test's
+  simultaneous confidence half-width. The adapter's default orientation is unchanged,
+  so stored data semantics are unchanged.
+- **Result:** `test_cdl_dual_pol_array_covariance_native.py`: 3 passed (`[A]`, `[B]`, `[C]`).
+  The base tree fails the same test for the same reason; that base result is not
+  rerun here.

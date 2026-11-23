@@ -250,7 +250,7 @@
     "tests/test_integrations/test_cdl_de_rotated_los_dual_pol_array_covariance_native.py": "f34b4933b4b481470ba83b21ff699b449696067abb11f54b814ffe3663406703",
     "tests/test_integrations/test_cdl_delay_angular_moment_native.py": "88d6a58a21e686899d5a01052c7997de3ccf38cc5cd7596146e6f0f2e8e8abfb",
     "tests/test_integrations/test_cdl_dual_cross_handheld_ut_spatiotemporal_covariance_native.py": "cbc2d9bf3d371f0f3572a1d9af6f5acd6ef313639a6e56d2d81fff8886e8ba47",
-    "tests/test_integrations/test_cdl_dual_pol_array_covariance_native.py": "b8b4ee0031139ef1ce4d7e1c021b7de80a76542beb5d803dca5fe7d4c224e930",
+    "tests/test_integrations/test_cdl_dual_pol_array_covariance_native.py": "fb79283185c4f37f9c27728e2c0d4fdc14dbbfa59fbc07f06fc436b27f8f9a62",
     "tests/test_integrations/test_cdl_dual_polarization_power_matrix_native.py": "d06f1382358c7ff16d3327c019bb0f080a3be4a7bd02ce3ce62efba25c82cbf0",
     "tests/test_integrations/test_cdl_dual_polarized_xpr_covariance_native.py": "b4eeacadd7ae0385c72683f16c74dc3fd0931a46095387935af947b829cd35f3",
     "tests/test_integrations/test_cdl_e_los_temporal_reference_native.py": "01b62eeb920a4381fb10e3e6553fc8c10611e7d0fab3689359d7473364b0158e",

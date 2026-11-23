@@ -177,6 +177,9 @@ def test_cdl_dual_polarized_array_covariance_matches_pinned_reference(model: str
         ),
         spec_version="19.2",
         device="cpu",
+        # The frozen protocol specifies a zero UT array orientation. The adapter's default
+        # orientation is a 180 degree yaw, which mirrors the array along y.
+        ut_orientation_rad=[0.0, 0.0, 0.0],
     )
 
     # Sum clusters into one narrowband receive vector per independent draw.
