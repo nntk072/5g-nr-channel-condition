@@ -47,11 +47,13 @@ from evaluation.run_manifest.constants import (
     SCHEMA_RELATIVE_PATH,
     SCHEMA_V3_RELATIVE_PATH,
     SCHEMA_V4_RELATIVE_PATH,
+    SCHEMA_V5_RELATIVE_PATH,
     SIGNER_POLICY_SIGNATURE_NAMESPACE,
     V1_EVALUATOR_SOURCE_PATHS,
     V1_SCHEMA_RELATIVE_PATH,
     V2_EVALUATOR_SOURCE_PATHS,
     V4_EVALUATOR_SOURCE_PATHS,
+    V5_EVALUATOR_SOURCE_PATHS,
 )
 from evaluation.run_manifest.contracts import (
     _validate_joint_evaluator_input_schema,
@@ -70,6 +72,10 @@ from evaluation.run_manifest.sources import (
 from evaluation.signed_attestation import verify_openssh_signature_for_bytes
 
 _REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+_V4_AND_LATER = (
+    "loslab.g3_joint_evidence_run_manifest.v4",
+    "loslab.g3_joint_evidence_run_manifest.v5",
+)
 
 
 def verify_g3_joint_evidence_run_manifest(
@@ -307,11 +313,12 @@ def verify_g3_joint_evidence_run_manifest(
         elif manifest_version == "loslab.g3_joint_evidence_run_manifest.v4":
             manifest_schema_path = SCHEMA_V4_RELATIVE_PATH
             expected_source_paths = V4_EVALUATOR_SOURCE_PATHS
+        elif manifest_version == "loslab.g3_joint_evidence_run_manifest.v5":
+            manifest_schema_path = SCHEMA_V5_RELATIVE_PATH
+            expected_source_paths = V5_EVALUATOR_SOURCE_PATHS
         else:
             raise ValueError("unsupported G3 run manifest schema")
-        if require_signed_reviewer_admission and manifest_version != (
-            "loslab.g3_joint_evidence_run_manifest.v4"
-        ):
+        if require_signed_reviewer_admission and manifest_version not in _V4_AND_LATER:
             raise ValueError(
                 "strict signed reviewer admission requires v4 signed runtime inventory provenance"
             )
@@ -319,6 +326,7 @@ def verify_g3_joint_evidence_run_manifest(
         if manifest_version in (
             "loslab.g3_joint_evidence_run_manifest.v3",
             "loslab.g3_joint_evidence_run_manifest.v4",
+            "loslab.g3_joint_evidence_run_manifest.v5",
         ):
             runtime_identity = manifest["runtime_identity"]
             report.update(
@@ -387,7 +395,7 @@ def verify_g3_joint_evidence_run_manifest(
                     min(MAX_ARTIFACT_BYTES, _MAX_CAPTURE_BYTES),
                 ),
             ]
-            if manifest_version == "loslab.g3_joint_evidence_run_manifest.v4":
+            if manifest_version in _V4_AND_LATER:
                 capture_fields.append(
                     (
                         "runtime_inventory",
@@ -403,7 +411,7 @@ def verify_g3_joint_evidence_run_manifest(
                 seen_paths.add(parts)
                 total_limit = (
                     _MAX_V4_MANIFEST_TOTAL_BYTES
-                    if manifest_version == "loslab.g3_joint_evidence_run_manifest.v4"
+                    if manifest_version in _V4_AND_LATER
                     else _MAX_MANIFEST_TOTAL_BYTES
                 )
                 remaining = total_limit - total
@@ -479,6 +487,7 @@ def verify_g3_joint_evidence_run_manifest(
             in (
                 "loslab.g3_joint_evidence_run_manifest.v3",
                 "loslab.g3_joint_evidence_run_manifest.v4",
+                "loslab.g3_joint_evidence_run_manifest.v5",
             )
             else ARTIFACT_SCHEMA_V1_RELATIVE_PATH
         )
@@ -487,7 +496,7 @@ def verify_g3_joint_evidence_run_manifest(
             artifact_schema_path,
             "G3 joint evaluator artifact",
         )
-        if manifest_version == "loslab.g3_joint_evidence_run_manifest.v4":
+        if manifest_version in _V4_AND_LATER:
             runtime_inventory_payload = _json_bytes(
                 captured["runtime_inventory"], "G3 runtime inventory"
             )
@@ -496,7 +505,7 @@ def verify_g3_joint_evidence_run_manifest(
                 RUNTIME_INVENTORY_SCHEMA_V3_RELATIVE_PATH,
                 "G3 runtime inventory",
             )
-        if manifest_version == "loslab.g3_joint_evidence_run_manifest.v4":
+        if manifest_version in _V4_AND_LATER:
             if runtime_inventory_signature_path is not None:
                 assert trusted_runtime_inventory_signers_path is not None
                 assert runtime_inventory_signer_id is not None

@@ -52,9 +52,9 @@ def test_run_manifest_v4_binds_runtime_inventory_and_preserves_not_qualified_sta
     _write_canonical(manifest_path, manifest)
     report = run_manifest.verify_g3_joint_evidence_run_manifest(manifest_path)
 
-    assert manifest["schema"] == "loslab.g3_joint_evidence_run_manifest.v4"
+    assert manifest["schema"] == "loslab.g3_joint_evidence_run_manifest.v5"
     assert manifest["runtime_inventory"]["role"] == "runtime_inventory"
-    assert len(manifest["evaluator_sources"]) == len(run_manifest.V4_EVALUATOR_SOURCE_PATHS)
+    assert len(manifest["evaluator_sources"]) == len(run_manifest.V5_EVALUATOR_SOURCE_PATHS)
     assert report["status"] == "PASS_INPUT_SCOPED_RECOMPUTATION"
     assert report["qualification_status"] == "NOT_QUALIFIED"
     assert report["runtime_inventory_signature_status"] == "not_provided"
@@ -176,6 +176,14 @@ def test_run_manifest_source_roster_sizes_match_versioned_schemas() -> None:
         (
             run_manifest.SCHEMA_V3_RELATIVE_PATH,
             run_manifest.EVALUATOR_SOURCE_PATHS,
+        ),
+        (
+            run_manifest.SCHEMA_V4_RELATIVE_PATH,
+            run_manifest.V4_EVALUATOR_SOURCE_PATHS,
+        ),
+        (
+            run_manifest.SCHEMA_V5_RELATIVE_PATH,
+            run_manifest.V5_EVALUATOR_SOURCE_PATHS,
         ),
     )
 

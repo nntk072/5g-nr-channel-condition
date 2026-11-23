@@ -24,8 +24,8 @@ from evaluation.run_manifest.constants import (
     EVALUATOR_SOURCE_PATHS,
     RUNTIME_INVENTORY_SCHEMA_V3_RELATIVE_PATH,
     SCHEMA_V3_RELATIVE_PATH,
-    SCHEMA_V4_RELATIVE_PATH,
-    V4_EVALUATOR_SOURCE_PATHS,
+    SCHEMA_V5_RELATIVE_PATH,
+    V5_EVALUATOR_SOURCE_PATHS,
 )
 from evaluation.run_manifest.contracts import (
     _validate_joint_evaluator_input_schema,
@@ -141,7 +141,7 @@ def build_joint_evidence_run_manifest(
         sources: list[dict[str, Any]] = []
         source_bytes_total = 0
         source_roster = (
-            V4_EVALUATOR_SOURCE_PATHS
+            V5_EVALUATOR_SOURCE_PATHS
             if runtime_inventory_entry is not None
             else EVALUATOR_SOURCE_PATHS
         )
@@ -170,7 +170,7 @@ def build_joint_evidence_run_manifest(
         raise ValueError("qualification contract source bundle differs from run receipt sources")
     manifest = {
         "schema": (
-            "loslab.g3_joint_evidence_run_manifest.v4"
+            "loslab.g3_joint_evidence_run_manifest.v5"
             if runtime_inventory_entry is not None
             else "loslab.g3_joint_evidence_run_manifest.v3"
         ),
@@ -206,7 +206,7 @@ def build_joint_evidence_run_manifest(
     manifest_schema = _json_bytes(
         _read_rooted_source_file(
             source_dir,
-            SCHEMA_V4_RELATIVE_PATH
+            SCHEMA_V5_RELATIVE_PATH
             if runtime_inventory_entry is not None
             else SCHEMA_V3_RELATIVE_PATH,
             limit=MAX_SCHEMA_BYTES,

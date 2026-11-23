@@ -18,6 +18,7 @@ SCHEMA_V3_RELATIVE_PATH = "datasets/schema/joint-evidence-run-manifest.v3.schema
 
 
 SCHEMA_V4_RELATIVE_PATH = "datasets/schema/joint-evidence-run-manifest.v4.schema.json"
+SCHEMA_V5_RELATIVE_PATH = "datasets/schema/joint-evidence-run-manifest.v5.schema.json"
 
 
 RUNTIME_INVENTORY_SCHEMA_V3_RELATIVE_PATH = "datasets/schema/runtime-inventory.v3.schema.json"
@@ -199,6 +200,35 @@ V4_EVALUATOR_SOURCE_PATHS = tuple(
         )
     )
 )
+
+
+# Protocol v5 (owner-approved, 2026-11-23): the split submodules of the evaluator
+# modules join the signed roster. The V4 roster and schema are unchanged.
+NEW_V5_SOURCE_PATHS = (
+    "evaluation/acquisition/__init__.py",
+    "evaluation/acquisition/canonical.py",
+    "evaluation/acquisition/constants.py",
+    "evaluation/acquisition/files.py",
+    "evaluation/acquisition/index.py",
+    "evaluation/acquisition/noise.py",
+    "evaluation/acquisition/verify.py",
+    "evaluation/run_manifest/__init__.py",
+    "evaluation/run_manifest/build.py",
+    "evaluation/run_manifest/cli.py",
+    "evaluation/run_manifest/common.py",
+    "evaluation/run_manifest/constants.py",
+    "evaluation/run_manifest/contracts.py",
+    "evaluation/run_manifest/signatures.py",
+    "evaluation/run_manifest/sources.py",
+    "evaluation/run_manifest/verify.py",
+    "evaluation/sample_size/__init__.py",
+    "evaluation/sample_size/binomial.py",
+    "evaluation/sample_size/bootstrap.py",
+    "evaluation/sample_size/constants.py",
+    "evaluation/sample_size/independent_units.py",
+    "evaluation/sample_size/joint_design.py",
+)
+V5_EVALUATOR_SOURCE_PATHS = tuple(sorted((*V4_EVALUATOR_SOURCE_PATHS, *NEW_V5_SOURCE_PATHS)))
 
 
 _RUN_ID_PATTERN = re.compile(r"^[a-z][a-z0-9._-]{2,63}$")

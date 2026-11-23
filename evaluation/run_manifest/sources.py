@@ -18,7 +18,7 @@ from evaluation.run_manifest.common import (
 from evaluation.run_manifest.constants import (
     _MAX_SOURCE_BUNDLE_BYTES,
     EVALUATOR_SOURCE_PATHS,
-    V4_EVALUATOR_SOURCE_PATHS,
+    V5_EVALUATOR_SOURCE_PATHS,
 )
 
 
@@ -81,7 +81,7 @@ def evaluator_source_bundle_identity(
         if not isinstance(include_runtime_inventory, bool):
             raise TypeError("include_runtime_inventory must be a boolean")
         source_roster = (
-            V4_EVALUATOR_SOURCE_PATHS if include_runtime_inventory else EVALUATOR_SOURCE_PATHS
+            V5_EVALUATOR_SOURCE_PATHS if include_runtime_inventory else EVALUATOR_SOURCE_PATHS
         )
         for relative_path in source_roster:
             remaining = _MAX_SOURCE_BUNDLE_BYTES - total

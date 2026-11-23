@@ -16,7 +16,7 @@ from evaluation.run_manifest.common import (
     _canonical_json_bytes,
     _runtime_identity,
 )
-from evaluation.run_manifest.constants import (
+from evaluation.run_manifest.constants import (  # noqa: F401
     _MAX_CAPTURE_BYTES,
     _MAX_MANIFEST_TOTAL_BYTES,
     _MAX_SOURCE_BUNDLE_BYTES,
@@ -31,6 +31,7 @@ from evaluation.run_manifest.constants import (
     INPUT_SCHEMA_V4_RELATIVE_PATH,
     INPUT_SCHEMA_V5_RELATIVE_PATH,
     INPUT_SCHEMA_V6_RELATIVE_PATH,
+    NEW_V5_SOURCE_PATHS,
     PATH_DIAGNOSTIC_SCHEMA_V2_RELATIVE_PATH,
     QUALIFICATION_CONTRACT_SCHEMA_RELATIVE_PATH,
     QUALIFICATION_CONTRACT_SCHEMA_V2_RELATIVE_PATH,
@@ -42,6 +43,7 @@ from evaluation.run_manifest.constants import (
     SCHEMA_RELATIVE_PATH,
     SCHEMA_V3_RELATIVE_PATH,
     SCHEMA_V4_RELATIVE_PATH,
+    SCHEMA_V5_RELATIVE_PATH,
     SIGNER_POLICY_PURPOSE,
     SIGNER_POLICY_RELATIVE_PATH,
     SIGNER_POLICY_SCHEMA,
@@ -50,6 +52,7 @@ from evaluation.run_manifest.constants import (
     V1_SCHEMA_RELATIVE_PATH,
     V2_EVALUATOR_SOURCE_PATHS,
     V4_EVALUATOR_SOURCE_PATHS,
+    V5_EVALUATOR_SOURCE_PATHS,
     VERIFICATION_REPORT_SCHEMA_RELATIVE_PATH,
 )
 from evaluation.run_manifest.contracts import (
@@ -74,6 +77,9 @@ from evaluation.run_manifest.verify import (
 )
 
 __all__ = [
+    "NEW_V5_SOURCE_PATHS",
+    "SCHEMA_V5_RELATIVE_PATH",
+    "V5_EVALUATOR_SOURCE_PATHS",
     "MAX_SCHEMA_BYTES",
     "verify_qualification_run_contract",
     "ARTIFACT_SCHEMA_RELATIVE_PATH",
