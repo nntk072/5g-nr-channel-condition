@@ -26,7 +26,7 @@ repeat, not a causal diagnosis of the original discrepancy.
   then the raw 4×4 empirical spatial covariance. Do not normalize individual
   draws or the empirical covariance.
 - Reference: independent ray expectation from
-  `docs/research/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json`; fixture SHA-256
+  `docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json`; fixture SHA-256
   `24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090`;
   ETSI source SHA-256
   `b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4`.
@@ -43,7 +43,7 @@ repeat, not a causal diagnosis of the original discrepancy.
 
 ## Seed audit
 
-`CDL_E_FRESH_SEED_AUDIT_2026-11-12.json` reports
+`G4_CDL_E_FRESH_SEED_AUDIT_2026-11-12.json` reports
 `CLEAR_WITHIN_SCANNED_JSON_CORPUS` for seed `2823000`: 2,302 regular JSON and
 JSON.GZ files were scanned under `docs/research/results`, `outputs`, and
 `artifacts`, with no collisions, malformed seed fields, or incomplete files.
@@ -55,13 +55,13 @@ seed exclusivity.
 ## Provenance and retention required before execution
 
 The existing frozen test is
-`tests/test_integrations/test_cdl_spatial_covariance_4element_native.py`
-(SHA-256 `a37b5133f839a7ee2b8b332caf27bd26e6842d1b8015fc2cd95becce94fca5a2`)
+`tests/test_integrations/test_g4_cdl_spatial_covariance_4element_native.py`
+(SHA-256 `71193b36a4bcafd9269561c1da5ba2143b0161fad8f1f2fd4560402e26950295`)
 and hard-codes seed `6714`. The replication uses a separate, versioned runner
 and report path; do not edit that frozen case or run it with an overridden
 seed. The separate runner is
-`scripts/run_cdl_e_fresh_seed_replication.py`; its report contract is
-`datasets/schema/cdl-e-covariance-replication.v1.schema.json`. Before
+`scripts/run_g4_cdl_e_fresh_seed_replication.py`; its report contract is
+`datasets/schema/g4-cdl-e-covariance-replication.v1.schema.json`. Before
 execution, the runner binds its own source hash, evaluator and frozen-test
 hashes, this protocol hash, the seed-audit hash, the profile-table hash, the
 reference-fixture hash, Sionna/Torch/Python versions, platform, command, and
@@ -73,7 +73,7 @@ The reproducible native command is:
 
 ```bash
 CUDA_VISIBLE_DEVICES='' uv run --no-sync --locked \
-  python -m scripts.run_cdl_e_fresh_seed_replication \
+  python -m scripts.run_g4_cdl_e_fresh_seed_replication \
   --output docs/research/results/g4-cdl-e-fresh-seed-replication-20261112.json
 ```
 

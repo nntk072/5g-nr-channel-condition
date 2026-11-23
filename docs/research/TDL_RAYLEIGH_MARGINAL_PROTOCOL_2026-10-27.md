@@ -19,10 +19,10 @@ specular LOS behavior, or G4 qualification.
   at the frequencies and nominal bandwidth constraints encoded by the pinned
   TS 38.101-4 profile reference.
 - Reference bytes: scalable TR 38.901 v19.2.0 profile component table
-  `SCALABLE_TDL_POWER_DELAY_REFERENCE_2026-10-26.json`, SHA-256
+  `G4_SCALABLE_TDL_POWER_DELAY_REFERENCE_2026-10-26.json`, SHA-256
   `38b897029bd4cc6de49eece5096e69c75291eaf6dac45bebe04767ed24a4f0bd`; fixed
   TS 38.101-4 v19.2.2 component table
-  `FIXED_TDL_TAP_PROFILE_REFERENCE_2026-10-26.json`, SHA-256
+  `G4_FIXED_TDL_TAP_PROFILE_REFERENCE_2026-10-26.json`, SHA-256
   `fe22560a71f4e5683ea6780f73e84466155b26f5f97cc4b63e3250c102fafda3`.
 - Only taps whose complete component roster is labeled Rayleigh are included.
   TDL-D/E and D10/D30 mixed LOS-plus-diffuse first taps are excluded. The
@@ -42,7 +42,7 @@ specular LOS behavior, or G4 qualification.
   simultaneous DKW radius is at most 0.05. The 0.05 margin is a project
   regression tolerance, not an ETSI numerical limit.
 - Seeds: `1,780,000` through `1,780,011` in the profile order listed above.
-  Seed audit `TDL_RAYLEIGH_MARGINAL_SEED_AUDIT_2026-10-27.json`, SHA-256
+  Seed audit `G4_TDL_RAYLEIGH_MARGINAL_SEED_AUDIT_2026-10-27.json`, SHA-256
   `89988383b244c1f388034277f3ed5cf23d1b4b8aa55584066e3be7b595aaf351`, scanned
   2,275 saved JSON/JSON.GZ files under research results, outputs, and artifacts;
   status is `CLEAR_WITHIN_SCANNED_JSON_CORPUS` with no collisions, malformed
@@ -54,7 +54,7 @@ After code implementation and consolidated software validation, run only:
 
 ```bash
 uv run --locked python -m pytest -q -m native_sionna \
-  tests/test_integrations/test_tdl_rayleigh_marginal_native.py
+  tests/test_integrations/test_g4_tdl_rayleigh_marginal_native.py
 ```
 
 Do not pool this family with properness, covariance, Doppler, earlier TDL

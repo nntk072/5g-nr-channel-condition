@@ -26,7 +26,7 @@ A pass is limited to the exact geometry and operating point below; it is not ind
 
 ## Pinned reference and source identities
 
-- Frozen ETSI-derived profile/tap/angle fixture: docs/research/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json, SHA-256 24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090.
+- Frozen ETSI-derived profile/tap/angle fixture: docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json, SHA-256 24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090.
 - ETSI source bytes SHA-256 b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4.
 - Sionna antenna.py SHA-256 09e20b89f4c4d990bed1a3ce3d6314f9fe7e45c090737a6f5790166d4a63f926.
 - Sionna channel_coefficients.py SHA-256 47059c7bf0998d2a230909e70743832ee928a738a97b9b5a25a185bb4947b5fc.
@@ -47,7 +47,7 @@ The 32,768-draw count was selected before any formal-seed observation. The scope
 ## Seed audit and admissibility
 
 The pre-run seed roster was audited by scripts/audit_seed_roster_collisions.py across the saved .json and .json.gz corpus in docs/research/results, outputs, and artifacts. Audit output:
-docs/research/CDL_PHYSICAL_DUAL_CROSS_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json.
+docs/research/G4_CDL_PHYSICAL_DUAL_CROSS_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json.
 
 It scanned 2,301 files; no reserved-seed collisions, malformed seed fields, or incomplete files were reported. SHA-256 of retained audit JSON: 0f4b7953040d7fec46524a8ba18c139113828af425225081ceaee33b6e3310fa. This is **corpus-scoped only**; global seed exclusivity is not established.
 

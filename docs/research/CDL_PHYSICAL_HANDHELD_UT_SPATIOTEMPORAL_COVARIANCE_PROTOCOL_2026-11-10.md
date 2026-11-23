@@ -4,7 +4,7 @@
 
 This protocol freezes one bounded Sionna PHY 2.2.0 / TR 38.901 V19.2.0 implementation-consistency family for the cross-time covariance E[h_i(0)^* h_j(tau)] of Sionna's physical HandheldUTArray geometry.
 
-It closes the specific physical-handheld gap left by the earlier patterned PanelArray family. The independent oracle is evaluation/cdl_handheld_ut_spatiotemporal_covariance.py. It reconstructs the TR 38.901 handheld candidate positions, per-port local bases, Table 7.3-2 element field response, array phase, Doppler, diffuse Jones statistics, and CDL-D/E specular contribution without calling Sionna for expected covariance values.
+It closes the specific physical-handheld gap left by the earlier patterned PanelArray family. The independent oracle is evaluation/g4_cdl_handheld_ut_spatiotemporal_covariance.py. It reconstructs the TR 38.901 handheld candidate positions, per-port local bases, Table 7.3-2 element field response, array phase, Doppler, diffuse Jones statistics, and CDL-D/E specular contribution without calling Sionna for expected covariance values.
 
 ## Frozen design
 
@@ -45,7 +45,7 @@ For CDL-D/E specular LOS, the oracle applies deterministic diag(1,-1) Jones coup
 
 ## Pinned provenance
 
-- ETSI-derived CDL tap/angle fixture: docs/research/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json.
+- ETSI-derived CDL tap/angle fixture: docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json.
 - Fixture SHA-256: 24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090.
 - ETSI source bytes SHA-256: b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4.
 - Sionna antenna.py: 09e20b89f4c4d990bed1a3ce3d6314f9fe7e45c090737a6f5790166d4a63f926.
@@ -65,7 +65,7 @@ Before freezing this protocol:
 
 ## Seed audit
 
-docs/research/CDL_PHYSICAL_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json must clear seeds 2,819,000-2,819,009 against the saved docs/research/results, outputs, and artifacts JSON/JSON.GZ corpora before native execution. The audit is corpus-scoped and does not establish global seed exclusivity.
+docs/research/G4_CDL_PHYSICAL_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json must clear seeds 2,819,000-2,819,009 against the saved docs/research/results, outputs, and artifacts JSON/JSON.GZ corpora before native execution. The audit is corpus-scoped and does not establish global seed exclusivity.
 
 ## Interpretation limits
 

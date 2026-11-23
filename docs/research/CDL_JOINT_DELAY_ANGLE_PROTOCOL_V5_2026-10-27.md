@@ -7,7 +7,7 @@ claim's estimate, reference, interval, and pass state.
 
 ## Frozen design and acceptance
 
-Follow `CDL_JOINT_DELAY_ANGLE_PROTOCOL_V4_2026-10-27.md` without changing
+Follow `G4_07_CDL_JOINT_DELAY_ANGLE_PROTOCOL_V4_2026-10-27.md` without changing
 its deterministic float32 roster checks, stochastic joint vectors, 60-claim
 family, alpha 0.01, confidence interval method, 8,192 draws/profile, or 0.05
 half-width cap. Profiles remain CDL-A–E using Sionna 2.2.0 and TR 38.901

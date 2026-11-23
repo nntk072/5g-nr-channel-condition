@@ -10,10 +10,10 @@ under one acceptance-family-v4 input:
 - path equivalence diagnostics.
 
 It makes the existing in-memory scorer usable with retained files. The separate
-`loslab.joint_evidence_run_manifest.v2` contract binds the exact input and
+`loslab.g3_joint_evidence_run_manifest.v2` contract binds the exact input and
 artifact paths, lengths, hashes, and roles, then verifies and replays the
 captured bytes. Its verifier is available as
-`evaluation.joint_evidence_run_manifest.verify_g3_joint_evidence_run_manifest`.
+`evaluation.g3_joint_evidence_run_manifest.verify_g3_joint_evidence_run_manifest`.
 The manifest also binds the complete fixed roster of evaluator source modules,
 the shared bounded-file reader, the signed-attestation verifier, and all
 input/artifact/manifest/contract schemas, plus `pyproject.toml` and `uv.lock`;
@@ -34,7 +34,7 @@ permanently marked `NOT_QUALIFIED`.
 ## Input encoding
 
 Diagnostic v1 inputs follow
-`datasets/schema/joint-evaluator-input.v1.schema.json`. Input v2 adds
+`datasets/schema/g3-joint-evaluator-input.v1.schema.json`. Input v2 adds
 candidate/challenger configurations, waveform, link budget, and a digest of
 that declared execution context on every receiver-impact row. Input v3 adds
 the receiver row's scene, condition, and episode identity. New contract-bound
@@ -76,8 +76,8 @@ the exact input-byte SHA-256 and a digest of the canonical serialized bundle.
 ## Run and replay
 
 ```bash
-python -m evaluation.joint_evidence_artifact evaluate joint-input.json joint-report.json
-python -m evaluation.joint_evidence_artifact verify joint-input.json joint-report.json
+python -m evaluation.g3_joint_evidence_artifact evaluate joint-input.json joint-report.json
+python -m evaluation.g3_joint_evidence_artifact verify joint-input.json joint-report.json
 ```
 
 After installing the project, the same evaluator is available as
@@ -105,7 +105,7 @@ deterministic recomputation under the current worktree.
 ## Run-manifest contract
 
 New standalone manifests follow
-`datasets/schema/joint-evidence-run-manifest.v2.schema.json`; the verifier
+`datasets/schema/g3-joint-evidence-run-manifest.v2.schema.json`; the verifier
 retains the v1 schema and source-roster reader for historical receipts. A v2
 manifest is canonical
 compact UTF-8 JSON with one trailing newline. The two distinct relative paths
@@ -117,7 +117,7 @@ match the acquisition verifier's bounded artifact reader.
 Run the manifest verifier from the repository root:
 
 ```bash
-python -m evaluation.joint_evidence_run_manifest run-manifest.json
+python -m evaluation.g3_joint_evidence_run_manifest run-manifest.json
 ```
 
 An authorized custodian can sign the exact manifest bytes with OpenSSH in the
@@ -126,7 +126,7 @@ dedicated namespace and verify it against a separately governed trust file:
 ```bash
 ssh-keygen -Y sign -n loslab-g3-joint-run-manifest-v1@github.com \
   -f "$G3_RUN_SIGNING_KEY" run-manifest.json
-python -m evaluation.joint_evidence_run_manifest run-manifest.json \
+python -m evaluation.g3_joint_evidence_run_manifest run-manifest.json \
   --signature run-manifest.json.sig \
   --trusted-allowed-signers /etc/loslab/g3-allowed-signers \
   --signer-id g3-reviewer@example.org
@@ -140,7 +140,7 @@ remain `NOT_QUALIFIED`.
 
 ## Frozen qualification sampling contract versions
 
-`datasets/schema/qualification-run-contract.v2.schema.json` freezes the
+`datasets/schema/g3-qualification-run-contract.v2.schema.json` freezes the
 planned independent-unit count for every expected stratum in each evaluator
 branch and requires the per-branch total to equal the sum of those strata. The
 roster must exactly match the shared acceptance family. Its minimum counts are
@@ -157,7 +157,7 @@ evidence and review gates pass.
 Create a manifest after generating the input and numerical artifact:
 
 ```bash
-python -m evaluation.joint_evidence_run_manifest \
+python -m evaluation.g3_joint_evidence_run_manifest \
   --create-run-id joint-run-001 \
   --input joint-input.json \
   --artifact joint-report.json \

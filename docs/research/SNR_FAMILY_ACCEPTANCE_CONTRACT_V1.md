@@ -22,7 +22,7 @@ This proves that the supplied allowed-signers file authorizes the principal for 
 
 ## Contract
 
-The v1, v2 and v3 input schemas are `datasets/schema/ordered-impairments-snr-acceptance.v1.schema.json`, `datasets/schema/ordered-impairments-snr-acceptance.v2.schema.json` and `datasets/schema/ordered-impairments-snr-acceptance.v3.schema.json`. Threshold arrays must have one entry per SNR point. Contract channel seeds, SNR values, estimator, and block count must exactly match the run request. V2 and v3 require a UTC timestamp ending in `Z`; v3 additionally requires the exact three-part execution context and its SHA-256 digest.
+The v1, v2 and v3 input schemas are `datasets/schema/g5-ordered-impairments-snr-acceptance.v1.schema.json`, `datasets/schema/g5-ordered-impairments-snr-acceptance.v2.schema.json` and `datasets/schema/g5-ordered-impairments-snr-acceptance.v3.schema.json`. Threshold arrays must have one entry per SNR point. Contract channel seeds, SNR values, estimator, and block count must exactly match the run request. V2 and v3 require a UTC timestamp ending in `Z`; v3 additionally requires the exact three-part execution context and its SHA-256 digest.
 
 ~~~json
 {

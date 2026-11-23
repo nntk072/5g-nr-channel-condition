@@ -568,7 +568,7 @@ def test_deterministic_replay_rejects_a_mismatched_recomputed_experiment(
     replayed = deepcopy(result["experiment"])
     replayed["acceptance"]["observed"]["max_samplewise_reference_absolute_error"] += 1.0
     monkeypatch.setattr(
-        auditor,
+        auditor.waveform,
         "_run_receiver_probe",
         lambda **_: replayed,
     )

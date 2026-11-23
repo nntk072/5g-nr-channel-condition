@@ -10,6 +10,8 @@ from pathlib import Path
 from statistics import NormalDist
 from typing import Any
 
+from artifacts.rebinding import current_repo_path, recorded_digest_matches
+
 from experiments.independent_channel_receiver import (
     clopper_pearson_upper_bound,
     cluster_bootstrap_interval,
@@ -115,21 +117,26 @@ def audit_report(
     }:
         issues.append("condition matrix differs from the frozen protocol")
 
-    protocol_file = root / protocol_path
+    protocol_file = root / current_repo_path(protocol_path.as_posix(), root)
     protocol_bytes = protocol_file.read_bytes() if protocol_file.is_file() else b""
-    if report.get("protocol_sha256") != _sha256(protocol_bytes):
+    if not recorded_digest_matches(report.get("protocol_sha256"), protocol_bytes, root):
         issues.append("protocol hash differs from the checked-in protocol")
-    if report.get("protocol_path") != protocol_path.as_posix():
+    if current_repo_path(str(report.get("protocol_path")), root) != protocol_path.as_posix():
         issues.append("protocol path is unexpected")
 
     source_hashes = report.get("source_sha256")
-    if not isinstance(source_hashes, dict) or set(source_hashes) != expected_source_paths:
+    if (
+        not isinstance(source_hashes, dict)
+        or {current_repo_path(key, root) for key in source_hashes} != expected_source_paths
+    ):
         issues.append("source inventory is incomplete or has unexpected paths")
         source_hashes = source_hashes if isinstance(source_hashes, dict) else {}
     for relative, expected_hash in source_hashes.items():
-        source_path = root / relative
-        if not source_path.is_file() or _sha256(source_path.read_bytes()) != expected_hash:
-            issues.append(f"source hash mismatch: {relative}")
+        source_path = root / current_repo_path(relative, root)
+        if not source_path.is_file() or not recorded_digest_matches(
+            expected_hash, source_path.read_bytes(), root
+        ):
+            issues.append(f"source hash mismatch: {current_repo_path(relative, root)}")
     if report.get("source_inventory_sha256") != _canonical_sha256(source_hashes):
         issues.append("source inventory hash is invalid")
     source_integrity_issues = (

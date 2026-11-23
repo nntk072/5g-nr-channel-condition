@@ -11,7 +11,7 @@ acceptance criteria.
 Use the question, reference construction, delay harmonics, four-angle vectors,
 100 real/imaginary claims, Bonferroni family-wise alpha 0.01, and maximum
 simultaneous interval half-width 0.05 from
-`CDL_JOINT_DELAY_ANGLE_PROTOCOL_2026-10-25.md`. All claims must contain
+`G4_07_CDL_JOINT_DELAY_ANGLE_PROTOCOL_2026-10-25.md`. All claims must contain
 their table-derived reference and meet the same precision cap.
 
 ## Preregistered replication

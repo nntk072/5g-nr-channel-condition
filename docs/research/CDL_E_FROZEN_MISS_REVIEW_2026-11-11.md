@@ -7,7 +7,7 @@ not change the protocol, thresholds, result bytes, or G4 qualification status.
 ## Frozen evidence
 
 The retained run is
-`docs/research/results/cdl-four-element-covariance-frozen-execution-20261109.json`:
+`docs/research/results/g4-cdl-four-element-covariance-frozen-execution-20261109.json`:
 seed 6714, 8,192 channel draws per CDL profile, 16 unique real covariance
 coordinates per profile, two-sided 99% Bonferroni intervals, and maximum
 half-width 0.05. CDL-A–D pass. CDL-E fails only `Re(C[0,1])`: absolute error
@@ -23,10 +23,10 @@ changes this decision.
 ## Independent source derivation review
 
 The reviewed implementation is
-`tests/test_integrations/test_cdl_spatial_covariance_4element_native.py` at
+`tests/test_integrations/test_g4_cdl_spatial_covariance_4element_native.py` at
 SHA-256
-`a37b5133f839a7ee2b8b332caf27bd26e6842d1b8015fc2cd95becce94fca5a2`. Its
-fixture `docs/research/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json` is pinned at
+`71193b36a4bcafd9269561c1da5ba2143b0161fad8f1f2fd4560402e26950295`. Its
+fixture `docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json` is pinned at
 SHA-256
 `24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090`; that
 fixture records the ETSI source digest

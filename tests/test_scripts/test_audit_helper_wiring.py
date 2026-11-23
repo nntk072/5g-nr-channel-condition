@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from scripts.audit_helper_wiring import SCHEMA, build_inventory
+from scripts.audit_helper_wiring import ARCHIVED_SOURCES, SCHEMA, build_inventory
 
 
 def test_helper_wiring_inventory_binds_exports_and_direct_call_sites() -> None:
@@ -60,4 +60,7 @@ def test_helper_wiring_inventory_binds_exports_and_direct_call_sites() -> None:
 
     for source, digest in inventory["source_sha256"].items():
         assert len(digest) == 64
-        assert (Path(__file__).resolve().parents[2] / source).is_file()
+        # Archived sources are read from the archive tag, not the working tree.
+        assert (Path(__file__).resolve().parents[2] / source).is_file() or Path(
+            source
+        ) in ARCHIVED_SOURCES

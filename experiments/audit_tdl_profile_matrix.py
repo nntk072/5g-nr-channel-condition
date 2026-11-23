@@ -10,6 +10,7 @@ import random
 from pathlib import Path
 from typing import Any
 
+from artifacts.rebinding import current_repo_path, recorded_digest_matches
 from scipy.stats import beta
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -396,13 +397,19 @@ def audit_report(report: dict[str, Any], *, root: Path = ROOT) -> dict[str, Any]
     ) != _sha256(protocol_bytes):
         issues.append("protocol path or digest mismatch")
     source_hashes = report.get("source_sha256")
-    if not isinstance(source_hashes, dict) or set(source_hashes) != source_paths:
+    if (
+        not isinstance(source_hashes, dict)
+        or {current_repo_path(key, root) for key in source_hashes} != source_paths
+    ):
         issues.append("source inventory is incomplete or unexpected")
         source_hashes = source_hashes if isinstance(source_hashes, dict) else {}
     for path, digest in source_hashes.items():
-        candidate = root / path
-        if not candidate.is_file() or _sha256(candidate.read_bytes()) != digest:
-            issues.append(f"source hash mismatch: {path}")
+        current = current_repo_path(path, root)
+        candidate = root / current
+        if not candidate.is_file() or not recorded_digest_matches(
+            digest, candidate.read_bytes(), root
+        ):
+            issues.append(f"source hash mismatch: {current}")
     if report.get("source_inventory_sha256") != _canonical_sha256(source_hashes):
         issues.append("source inventory digest mismatch")
 

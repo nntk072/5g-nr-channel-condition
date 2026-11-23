@@ -23,7 +23,7 @@ DFT estimator, while position 0 meets the static-reference adequacy limits?
   estimate outside the pilot-symbol range.
 - Propagate pilot noise variance through the least-squares fit and temporal
   interpolation as implemented in
-  `experiments/cp_bounded_dft_estimator.py`.
+  `experiments/g5_cp_bounded_dft_estimator.py`.
 - Do not change the delay interval, interpolation, variance model, estimator,
   thresholds, seeds, or endpoints after the run starts. Any implementation
   correction requires a new protocol revision and unused seed roster.
@@ -77,10 +77,10 @@ or two-path runs.
 
 ## Reproduction
 
-Run `uv run --no-sync --locked python experiments/qualify_tdl_dft_density.py`.
+Run `uv run --no-sync --locked python experiments/qualify_g5_tdl_dft_density.py`.
 The output is
-`docs/research/results/tdl-c-signed-lag-dft-confirm-20261024.json`.
+`docs/research/results/g5-tdl-c-signed-lag-dft-confirm-20261024.json`.
 Verify it with
-`uv run --no-sync --locked python experiments/audit_tdl_dft_density.py`.
+`uv run --no-sync --locked python experiments/audit_g5_tdl_dft_density.py`.
 The report binds this protocol, source hashes, the exact estimator interval,
 seed roster, retained per-channel outcomes, and recomputed acceptance claims.

@@ -4,6 +4,8 @@ import hashlib
 import json
 from pathlib import Path
 
+from artifacts.rebinding import current_repo_path, recorded_digest_matches
+
 ROOT = Path(__file__).resolve().parents[2]
 RESULT = ROOT / "docs/research/results/estimator-choice-posthoc-20261024.json"
 
@@ -33,9 +35,11 @@ def test_selected_failure_estimator_artifact_preserves_outcomes_and_flags_source
     assert "torch_version" not in report
 
     current_sources = {
-        path
+        current_repo_path(path, ROOT)
         for path, digest in report["source_sha256"].items()
-        if hashlib.sha256((ROOT / path).read_bytes()).hexdigest() != digest
+        if not recorded_digest_matches(
+            digest, (ROOT / current_repo_path(path, ROOT)).read_bytes(), ROOT
+        )
     }
     assert current_sources == {
         "integrations/sionna/nr_pusch.py",

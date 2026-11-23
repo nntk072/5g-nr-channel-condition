@@ -252,10 +252,12 @@ The owner authorized updating protected and frozen documents during the producti
 | --- | --- | --- | --- |
 | `docs/research/REQUIREMENT_LEDGER.json` | `de1c2b6d7b366cd3eb03de905915b7c2c5215cda1b54e6c618c65a7b40259b4e` | `9d0dc89ed8d2defc4dc80c823015520089050b3e06a80f157636ec8eb7f900fa` | Schema file path references renamed (G-prefix removed). |
 | `docs/research/EXECUTION_QUEUE.md` | `0ec2846b3f9c8ed277f0a3e05527b1ba45591e001e41d09c937c446c223db78d` | unchanged | None in this batch. |
-| `docs/research/CDL_E_FRESH_SEED_REPLICATION_PROTOCOL_2026-11-12.md` | `784750be5b1b7ddc8b95cdd3cd006f14be9b04bdabd772b0067f63f9f40ac73e` | `1fe62127efd1591bc2a0dcbfbff2fdebbbbdb219b2185e1f3f785b754899e6a3` | Schema file references renamed. Preregistered digest pin in `scripts/run_cdl_e_fresh_seed_replication.py` and the `protocol_sha256` const in `datasets/schema/cdl-e-covariance-replication.v1.schema.json` updated to match. No retained result contains the old value. |
+| `docs/research/CDL_E_FRESH_SEED_REPLICATION_PROTOCOL_2026-11-12.md` | `784750be5b1b7ddc8b95cdd3cd006f14be9b04bdabd772b0067f63f9f40ac73e` | `784750be5b1b7ddc8b95cdd3cd006f14be9b04bdabd772b0067f63f9f40ac73e` | Reverted on 2026-11-23. An earlier pass changed the frozen protocol bytes (descriptive names in its text) and moved the preregistered pin. The bytes are restored to the preregistered content, so the original pin stands and no digest changes. The file itself moved to its descriptive path. |
 | `docs/research/MASTER_RESEARCH_PLAN.md` | `f30d8f567f97443aec722eabc459843aa4e5821f7574ce67080ab99747c5de93` | `ef7c8803d7a365941d6b4ad62bc9096c97b7c2794f98d57db5042f11b8492534` | Schema file references renamed. This file is removed from the tree in a later phase. No registry pins it. |
 
 Schema `$id` values are contract identities and are not changed. Retained result JSON is not edited.
+
+Reversal (2026-11-23): an earlier rename pass had edited the text of 49 frozen research documents (protocols, contracts, and rosters) and two retained replay fixtures. Those files are restored to their pre-refactor bytes from the base commit `016168e` and the replay fixtures' original rename-commit parent `1ba22e2~1`, so their original preregistered digests stand. Only their paths moved. The pin and source-digest rebinding entries that pointed at the edited bytes were removed, and the pins that referenced them were set back to the original digests. The CDL-E protocol row above therefore records no digest change.
 
 ### Amendment record, continued (owner-authorized, 2026-11-22)
 

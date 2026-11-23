@@ -1,4 +1,4 @@
-"""Independently verify the frozen G5 delay-domain DFT result artifact."""
+"""Independently verify the frozen delay-domain DFT result artifact."""
 
 from __future__ import annotations
 
@@ -7,6 +7,8 @@ import hashlib
 import json
 from pathlib import Path
 from typing import Any
+
+from artifacts.rebinding import current_repo_path
 
 from experiments.independent_channel_receiver import (
     clopper_pearson_upper_bound,
@@ -37,7 +39,7 @@ def audit_report(report: dict[str, Any], *, root: Path) -> dict[str, Any]:
     digest_payload = dict(report)
     digest_payload.pop("result_sha256", None)
     _require(claimed_digest == _canonical_sha256(digest_payload), "result digest mismatch")
-    protocol_path = root / report["protocol_path"]
+    protocol_path = root / current_repo_path(report["protocol_path"], root)
     _require(
         hashlib.sha256(protocol_path.read_bytes()).hexdigest() == report["protocol_sha256"],
         "protocol digest mismatch",

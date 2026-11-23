@@ -4,7 +4,7 @@
 
 This protocol freezes one bounded Sionna PHY 2.2.0 / TR 38.901 V19.2.0 implementation-consistency family for the full cross-time covariance `E[h_p(0)^* h_q(tau)]` when both endpoints simultaneously have two physical dual-VH elements, nonzero 3D orientation, directional element patterns, spatial phase, polarization-basis rotation, Step-8 random angular coupling, and receive-side Doppler.
 
-The independent oracle is `evaluation/cdl_patterned_rotated_dual_tx_rx_spatiotemporal_covariance.py`. It extends the already checked rotated dual-endpoint equations with the TR 38.901 Tables 7.3-1/7.3-2 element amplitude law evaluated after inverse rotation into each endpoint local frame. It does not call Sionna for expected values.
+The independent oracle is `evaluation/g4_cdl_patterned_rotated_dual_tx_rx_spatiotemporal_covariance.py`. It extends the already checked rotated dual-endpoint equations with the TR 38.901 Tables 7.3-1/7.3-2 element amplitude law evaluated after inverse rotation into each endpoint local frame. It does not call Sionna for expected values.
 
 ## Frozen design
 
@@ -48,7 +48,7 @@ For CDL-D/E specular LOS, the oracle applies the same patterned endpoint fields,
 
 ## Pinned provenance
 
-- ETSI-derived CDL tap/angle fixture: `docs/research/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json`.
+- ETSI-derived CDL tap/angle fixture: `docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json`.
 - Fixture SHA-256: `24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090`.
 - ETSI source bytes SHA-256: `b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4`.
 - Sionna `antenna.py`: `09e20b89f4c4d990bed1a3ce3d6314f9fe7e45c090737a6f5790166d4a63f926`.
@@ -66,7 +66,7 @@ Before freezing this protocol:
 
 ## Seed audit
 
-`docs/research/CDL_PATTERNED_ROTATED_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json` clears seeds 2,817,000–2,817,019 against the saved `docs/research/results`, `outputs`, and `artifacts` JSON/JSON.GZ corpora before native execution. The audit scanned 2,298 eligible artifacts with no collisions, malformed seed fields, or incomplete files. Its SHA-256 is `9a80f72bc544894e5b4a7ab2fb53c079ee72720e0f67b4006b5cc6fb4d6ba355`. The audit is corpus-scoped and does not establish global seed exclusivity.
+`docs/research/G4_CDL_PATTERNED_ROTATED_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json` clears seeds 2,817,000–2,817,019 against the saved `docs/research/results`, `outputs`, and `artifacts` JSON/JSON.GZ corpora before native execution. The audit scanned 2,298 eligible artifacts with no collisions, malformed seed fields, or incomplete files. Its SHA-256 is `9a80f72bc544894e5b4a7ab2fb53c079ee72720e0f67b4006b5cc6fb4d6ba355`. The audit is corpus-scoped and does not establish global seed exclusivity.
 
 ## Interpretation limits
 

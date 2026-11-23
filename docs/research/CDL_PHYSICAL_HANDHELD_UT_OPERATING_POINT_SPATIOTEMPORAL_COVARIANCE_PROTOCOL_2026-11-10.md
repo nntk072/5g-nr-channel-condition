@@ -4,7 +4,7 @@
 
 This protocol freezes a bounded Sionna PHY 2.2.0 / TR 38.901 V19.2.0 implementation-consistency family for the cross-time covariance E[h_i(0)^* h_j(tau)] of Sionna's physical HandheldUTArray across multiple handset orientations, mobility directions, carriers, and temporal lags.
 
-It extends G4.08 without changing the physical-handheld oracle. The independent reference in evaluation/cdl_handheld_ut_spatiotemporal_covariance.py reconstructs the TR 38.901 handheld candidate geometry, per-port local bases, Table 7.3-2 element field response, physical array phase, receive Doppler, diffuse Jones/XPR statistics, and CDL-D/E specular contribution. Sionna is used only as the system under test for the retained native family.
+It extends G4.08 without changing the physical-handheld oracle. The independent reference in evaluation/g4_cdl_handheld_ut_spatiotemporal_covariance.py reconstructs the TR 38.901 handheld candidate geometry, per-port local bases, Table 7.3-2 element field response, physical array phase, receive Doppler, diffuse Jones/XPR statistics, and CDL-D/E specular contribution. Sionna is used only as the system under test for the retained native family.
 
 ## Frozen design
 
@@ -55,7 +55,7 @@ For CDL-D/E specular LOS, the oracle applies deterministic diag(1,-1) Jones coup
 
 ## Pinned provenance
 
-- ETSI-derived CDL tap/angle fixture: docs/research/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json.
+- ETSI-derived CDL tap/angle fixture: docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json.
 - Fixture SHA-256: 24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090.
 - ETSI source bytes SHA-256: b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4.
 - Sionna antenna.py: 09e20b89f4c4d990bed1a3ce3d6314f9fe7e45c090737a6f5790166d4a63f926.
@@ -74,7 +74,7 @@ These diagnostic seeds and estimates are non-admissible and cannot replace the f
 
 ## Seed audit
 
-docs/research/CDL_PHYSICAL_HANDHELD_UT_OPERATING_POINT_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json must clear all formal seeds 2,820,000-2,820,029 against the saved research-result/output/artifact JSON corpora before formal native execution. The audit is corpus-scoped and does not establish global seed exclusivity.
+docs/research/G4_CDL_PHYSICAL_HANDHELD_UT_OPERATING_POINT_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json must clear all formal seeds 2,820,000-2,820,029 against the saved research-result/output/artifact JSON corpora before formal native execution. The audit is corpus-scoped and does not establish global seed exclusivity.
 
 ## Interpretation limits
 

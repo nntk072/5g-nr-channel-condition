@@ -12,7 +12,7 @@ sampling uncertainty, so the stochastic acceptance interpretation is retired.
 - Profiles: CDL-A, CDL-B, CDL-C, CDL-D, and CDL-E under Sionna PHY 2.2.0.
 - Source: package tables are SHA-256 pinned by the native test and compared to
   the independent v19.2.0 ETSI transcription in
-  `CDL_TAP_ANGLE_REFERENCE_2026-10-26.json`.
+  `G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json`.
 - The deterministic reference uses float32 operations matching the pinned
   implementation, excludes only the specular LOS component, and sorts diffuse
   clusters by their declared delays.
@@ -24,7 +24,7 @@ sampling uncertainty, so the stochastic acceptance interpretation is retired.
 - Joint angle-coupling checks remain in their separate Fourier-family tests.
 
 The native cases are marked `native_sionna`. The seed values are covered by
-`SEED_ROSTER_AUDIT_2026-10-26_ALL_FROZEN.json`; the deterministic check does
+`G4_SEED_ROSTER_AUDIT_2026-10-26_ALL_FROZEN.json`; the deterministic check does
 not consume a stochastic acceptance roster. A pass verifies only these
 table-defined marginal ray atoms and powers for the pinned implementation. It
 does not establish joint angular coupling, temporal behavior, arbitrary array

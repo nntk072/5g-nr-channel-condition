@@ -27,7 +27,7 @@ Keep both signed source documents, detached `.sig` files, and the two allowed-si
 The receiver CLI requires all four reviewer-policy inputs together with the signed acceptance inputs:
 
 ```sh
-python -m experiments.ordered_impairments_receiver \
+python -m experiments.g5_ordered_impairments_receiver \
   --independent-channel-count CHANNEL_COUNT \
   --snr-db SNR_1 SNR_2 \
   --acceptance-contract acceptance-contract.json \
@@ -44,7 +44,7 @@ python -m experiments.ordered_impairments_receiver \
 Use the exact frozen channel roster and configuration in the contract; the placeholders above are not a recommended sample size or acceptance threshold. Recheck both detached signatures and their role separation with the retained-result auditor:
 
 ```sh
-python -m experiments.audit_ordered_impairments_result g5-snr-curve.json \
+python -m experiments.audit_g5_ordered_impairments_result g5-snr-curve.json \
   --acceptance-signature acceptance-contract.json.sig \
   --acceptance-allowed-signers acceptance-allowed-signers \
   --reviewer-policy reviewer-policy.json \

@@ -32,7 +32,7 @@ Retained G4 evidence already covers zero-oriented dual-polarized TX/RX joint spa
 
 ## Independent reference
 
-`evaluation/cdl_rotated_dual_tx_rx_spatiotemporal_covariance.py` is the preregistered reference. It does not read adapter metadata and is based on the digest-pinned ETSI-derived CDL tap/angle fixture plus analytic TR 38.901 field, array, polarization, and Doppler equations.
+`evaluation/g4_cdl_rotated_dual_tx_rx_spatiotemporal_covariance.py` is the preregistered reference. It does not read adapter metadata and is based on the digest-pinned ETSI-derived CDL tap/angle fixture plus analytic TR 38.901 field, array, polarization, and Doppler equations.
 
 For omni dual-VH ports, each endpoint maps the local V/H basis into the GCS through the TR 38.901 displacement angle `psi`. Diffuse channel coefficients are represented as `r^T J t`, where `r` and `t` are the rotated receive and transmit field vectors and the four entries of `J` have independent Step-10 phases. Their variances are 1 for co-polar entries and `1/XPR` for cross-polar entries.
 
@@ -40,7 +40,7 @@ Sionna's CDL Step-8 implementation independently shuffles AoA, AoD, ZoA, and ZoD
 
 Rotated physical panel positions use the forward TR 38.901 orientation matrix. With a one-row panel, element differences lie along the rotated local-y direction. Receive phase combines this spatial term with Doppler; transmit phase contains the rotated departure spatial term. CDL-D/E LOS uses the deterministic Step-11 `diag(1,-1)` Jones matrix together with both endpoint field transforms, both spatial offsets, and receive-side Doppler.
 
-The pinned ETSI-derived tap/angle fixture is `docs/research/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json`, SHA-256 `24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090`, sourced from ETSI bytes SHA-256 `b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4`.
+The pinned ETSI-derived tap/angle fixture is `docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json`, SHA-256 `24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090`, sourced from ETSI bytes SHA-256 `b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4`.
 
 ## Pre-freeze oracle validation
 
@@ -52,7 +52,7 @@ Before this protocol was frozen:
 
 ## Seed audit
 
-`CDL_ROTATED_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json` clears the complete frozen seed roster against the saved `docs/research/results`, `outputs`, and `artifacts` JSON corpora before native execution. The audit is corpus-scoped and does not establish global seed exclusivity.
+`G4_CDL_ROTATED_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json` clears the complete frozen seed roster against the saved `docs/research/results`, `outputs`, and `artifacts` JSON corpora before native execution. The audit is corpus-scoped and does not establish global seed exclusivity.
 
 ## Interpretation limits
 

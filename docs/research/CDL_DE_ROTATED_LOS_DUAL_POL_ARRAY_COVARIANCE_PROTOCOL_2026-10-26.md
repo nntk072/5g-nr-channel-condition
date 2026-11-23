@@ -6,7 +6,7 @@
 - Topology: one vertical single-polarized TX port and a two-element, half-wavelength UT ULA with vertical/horizontal ports at each element.
 - UT orientations: Euler angles `(0.37, 0.28, -0.41)`, `(0, 0, 0.65)`, and `(0.28, -0.36, 0)` rad; BS orientation is zero in every case. The roster includes mixed-axis, pure-yaw, and roll/pitch rotations. Omni element patterns isolate orientation-dependent polarization-basis and array-axis rotation.
 - Observable: the zero-frequency, cluster-summed 4-by-4 receive-channel second-moment matrix, with ports ordered V-element0, V-element1, H-element0, H-element1.
-- Independent inputs: ETSI-derived component powers, angles, angular spreads, and XPR from `CDL_TAP_ANGLE_REFERENCE_2026-10-26.json`; LOS K factor from `CDL_PROFILE_SCALAR_REFERENCE_2026-10-26.json`; Table 7.5-3 ray offsets. Both reference fixture digests and the pinned ETSI source digest are checked. The Sionna CDL table hash is implementation provenance only.
+- Independent inputs: ETSI-derived component powers, angles, angular spreads, and XPR from `G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json`; LOS K factor from `G4_CDL_PROFILE_SCALAR_REFERENCE_2026-10-26.json`; Table 7.5-3 ray offsets. Both reference fixture digests and the pinned ETSI source digest are checked. The Sionna CDL table hash is implementation provenance only.
 - Seed roster: orientation 0 uses `1720000`/`1720001` for D/E, orientation 1 uses `1720002`/`1720003`, and orientation 2 uses `1720004`/`1720005`. Run the structured G4 seed-collision audit before execution.
 - Sampling unit: one independently generated stochastic channel draw; 16,384 draws/profile.
 - Inference: a two-sided Bonferroni 99% family over 16 unique real Hermitian components × two profiles × three orientations (96 claims). Every interval must contain its independent reference and have half-width at most 0.05 normalized mean power.
@@ -35,7 +35,7 @@ Proceed only if the report is `CLEAR_WITHIN_SCANNED_JSON_CORPUS`; that status is
 
 ```bash
 uv run --locked --no-sync python -m pytest -q -o addopts= \
-  tests/test_integrations/test_cdl_de_rotated_los_dual_pol_array_covariance_native.py
+  tests/test_integrations/test_g4_cdl_de_rotated_los_dual_pol_array_covariance_native.py
 ```
 
 

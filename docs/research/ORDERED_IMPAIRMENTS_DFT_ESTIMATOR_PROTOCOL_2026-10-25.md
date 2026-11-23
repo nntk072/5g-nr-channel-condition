@@ -23,7 +23,7 @@ as the existing Sionna default-LS run?
   uncorrected, and corrected waveform chain.
 - Channel estimator: raw-pilot finite-delay DFT fit on integer delays 0 through
   7 samples inclusive, using the implementation in
-  `experiments/cp_bounded_dft_estimator.py`. The runner retains its exact
+  `experiments/g5_cp_bounded_dft_estimator.py`. The runner retains its exact
   SHA-256 and the auditor checks the worktree implementation and, when supplied,
   a requested committed revision.
 - Independent channels: seeds 180001 through 180064 inclusive, with eight
@@ -58,11 +58,11 @@ changing the acceptance verdict.
 uv run --no-sync --locked python scripts/audit_seed_roster_collisions.py \
   --root docs/research/results --root experiments/results \
   --seed-range 180001 180065
-uv run --no-sync --locked python experiments/ordered_impairments_receiver.py \
+uv run --no-sync --locked python experiments/g5_ordered_impairments_receiver.py \
   --independent-channel-count 64 --channel-seed-start 180001 \
   --blocks-per-seed 8 --channel-estimator finite_delay_dft \
   --output docs/research/results/g5-ordered-impairments-dft-20261025.json
-uv run --no-sync --locked python experiments/audit_ordered_impairments_result.py \
+uv run --no-sync --locked python experiments/audit_g5_ordered_impairments_result.py \
   docs/research/results/g5-ordered-impairments-dft-20261025.json
 ```
 

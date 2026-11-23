@@ -8,6 +8,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from artifacts.rebinding import current_repo_path
+
 from experiments.audit_tdl_c_dmrs_density import ROOT, _canonical_sha256
 from experiments.audit_tdl_dft_density import EXPECTED_ESTIMATOR, audit_dft_report
 
@@ -57,7 +59,7 @@ def audit_family_report(report: dict[str, Any], *, root: Path = ROOT) -> dict[st
         issues.append("frozen family protocol is unavailable")
     if report.get("schema") != "umcd.g5_tdl_ae_signed_lag_dft_family_confirmatory.v1":
         issues.append("family schema identifier is invalid")
-    if report.get("protocol_path") != PROTOCOL.as_posix():
+    if current_repo_path(str(report.get("protocol_path")), root) != PROTOCOL.as_posix():
         issues.append("family protocol path differs from the frozen protocol")
     if report.get("protocol_sha256") != protocol_digest:
         issues.append("family protocol digest differs from frozen protocol bytes")

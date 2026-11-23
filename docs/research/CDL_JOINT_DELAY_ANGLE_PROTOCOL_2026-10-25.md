@@ -49,7 +49,7 @@ specular LOS atom is excluded; only their diffuse clusters are compared.
 
 The implementation is
 `test_cdl_joint_delay_angle_characteristics_match_table_reference` in
-`tests/test_integrations/test_cdl_joint_angular_characteristic_native.py`.
+`tests/test_integrations/test_g4_cdl_joint_angular_characteristic_native.py`.
 This finite selection is a joint delay/angular consistency check for the
 pinned profiles. It does not establish the full delay-angle law, arbitrary
 arrays/orientations, antenna-pattern behavior, geometric RT validity, or

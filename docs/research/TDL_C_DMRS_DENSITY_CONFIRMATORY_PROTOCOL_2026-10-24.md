@@ -69,7 +69,7 @@ general receiver performance, G5.09 closure, or physical RT qualification.
 
 ## Reproduction
 
-Run `uv run --no-sync --locked python experiments/qualify_tdl_c_dmrs_density.py`.
+Run `uv run --no-sync --locked python experiments/qualify_g5_tdl_c_dmrs_density.py`.
 The runner writes
-`docs/research/results/tdl-c-dmrs-density-confirm-20261024.json` and refuses
+`docs/research/results/g5-tdl-c-dmrs-density-confirm-20261024.json` and refuses
 to overwrite an existing result.

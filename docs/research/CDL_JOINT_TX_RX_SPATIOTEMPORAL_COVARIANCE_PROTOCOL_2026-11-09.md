@@ -24,7 +24,7 @@ The retained G4 evidence separately covers joint TX/RX spatial covariance and si
 
 ## Independent reference
 
-`evaluation/cdl_joint_tx_rx_spatiotemporal_covariance.py` uses only the exact-digest-pinned ETSI-derived CDL component fixture. For flattened port `(rx,tx)`, the `h_p(0)^* h_q(tau)` phase combines receive spatial separation, transmit spatial separation, and receive Doppler:
+`evaluation/g4_cdl_joint_tx_rx_spatiotemporal_covariance.py` uses only the exact-digest-pinned ETSI-derived CDL component fixture. For flattened port `(rx,tx)`, the `h_p(0)^* h_q(tau)` phase combines receive spatial separation, transmit spatial separation, and receive Doppler:
 
 `2*pi*d_rx*Delta_rx*u_rx,y + 2*pi*d_tx*Delta_tx*u_tx,y + 2*pi*f_c*tau*(v dot u_rx)/c`.
 
@@ -34,7 +34,7 @@ The native estimate uses the same draw-level mean four-port receive power as the
 
 ## Seed audit
 
-`CDL_JOINT_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-09.json` clears the five frozen seeds only within the saved research-results/outputs/artifacts corpus snapshot. It does not establish global seed exclusivity.
+`G4_CDL_JOINT_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-09.json` clears the five frozen seeds only within the saved research-results/outputs/artifacts corpus snapshot. It does not establish global seed exclusivity.
 
 ## Interpretation limits
 

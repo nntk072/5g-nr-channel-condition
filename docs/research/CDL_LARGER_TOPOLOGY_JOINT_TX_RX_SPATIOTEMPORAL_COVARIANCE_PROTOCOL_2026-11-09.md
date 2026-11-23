@@ -32,7 +32,7 @@ This is a separate bounded family. It does not overwrite, reinterpret, or repair
 
 ## Independent reference
 
-`evaluation/cdl_joint_tx_rx_spatiotemporal_covariance.py` is already parameterized by transmit and receive element count and uses only the exact-digest-pinned ETSI-derived CDL component fixture. For flattened port `(rx,tx)`, the `h_p(0)^* h_q(tau)` phase combines receive spatial separation, transmit spatial separation, and receive Doppler:
+`evaluation/g4_cdl_joint_tx_rx_spatiotemporal_covariance.py` is already parameterized by transmit and receive element count and uses only the exact-digest-pinned ETSI-derived CDL component fixture. For flattened port `(rx,tx)`, the `h_p(0)^* h_q(tau)` phase combines receive spatial separation, transmit spatial separation, and receive Doppler:
 
 `2*pi*d_rx*Delta_rx*u_rx,y + 2*pi*d_tx*Delta_tx*u_tx,y + 2*pi*f_c*tau*(v dot u_rx)/c`.
 
@@ -42,7 +42,7 @@ The native estimator uses the draw-level mean channel power across all flattened
 
 ## Seed audit
 
-`CDL_LARGER_TOPOLOGY_JOINT_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-09.json` clears the 15 frozen seeds only within the saved `docs/research/results`, `outputs`, and `artifacts` JSON corpus snapshot. The audit scanned 2,294 eligible saved JSON artifacts and found no collisions, malformed seed fields, or incomplete files. It does not establish global seed exclusivity.
+`G4_CDL_LARGER_TOPOLOGY_JOINT_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-09.json` clears the 15 frozen seeds only within the saved `docs/research/results`, `outputs`, and `artifacts` JSON corpus snapshot. The audit scanned 2,294 eligible saved JSON artifacts and found no collisions, malformed seed fields, or incomplete files. It does not establish global seed exclusivity.
 
 ## Interpretation limits
 

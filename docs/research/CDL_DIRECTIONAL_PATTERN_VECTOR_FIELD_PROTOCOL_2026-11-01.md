@@ -9,8 +9,8 @@ not a consolidated qualification report.
 
 ## Retained-result workflow
 
-Run `./.venv/bin/python -m scripts.run_cdl_directional_pattern_power
---output docs/research/results/cdl-directional-pattern-power-result-20261101.json`.
+Run `./.venv/bin/python -m scripts.run_g4_cdl_directional_pattern_power
+--output docs/research/results/g4-cdl-directional-pattern-power-result-20261101.json`.
 The runner uses the frozen seeds and draw count, captures the per-cluster
 reference, estimate, interval, and case identity from each test, checks the
 exact 70-case/1,358-claim roster and interval arithmetic, validates the strict
@@ -40,10 +40,10 @@ variance without raw draws.
   one-end orientations, and 776 claims across the dual-end cases. Every
   reference must lie inside its simultaneous interval, whose half-width is
   capped at 5% of that case's total expected pattern-weighted power.
-- Fresh seeds are assigned in `test_cdl_antenna_pattern_power_native.py`:
+- Fresh seeds are assigned in `test_g4_cdl_antenna_pattern_power_native.py`:
   one-end seeds are `2,700,000`–`2,700,029`; dual-end seeds are
   `2,701,000`–`2,701,039`. The pre-run scan is
-  `CDL_ANTENNA_PATTERN_VECTOR_FIELD_SEED_AUDIT_2026-11-01.json`, SHA-256
+  `G4_CDL_ANTENNA_PATTERN_VECTOR_FIELD_SEED_AUDIT_2026-11-01.json`, SHA-256
   `190c3c0865cabceae01ec18468939cee5f94e5090bd4c24c73efd97a30c5b39c`. It
   scanned 2,276 JSON/JSON.GZ files under research results, outputs, and
   artifacts and found no collisions, malformed seed fields, or incomplete
@@ -76,7 +76,7 @@ expectation because NLOS initial phases are independent and uniform. The
 expected reference contains no native generated outputs.
 
 The regression implementation is
-`tests/test_integrations/test_cdl_antenna_pattern_power_native.py`. All
+`tests/test_integrations/test_g4_cdl_antenna_pattern_power_native.py`. All
 cohorts must be run with these frozen seeds and limits. Do not replace a seed,
 increase the draw count, change a margin, or waive a failed cluster after
 observing results.

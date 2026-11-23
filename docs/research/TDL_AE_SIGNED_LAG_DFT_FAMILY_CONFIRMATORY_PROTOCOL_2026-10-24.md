@@ -20,7 +20,7 @@ fit integer delays -6 through +7 samples inclusive using complex least squares
 on the actual centered FFT bins; reconstruct the CFR; linearly interpolate in
 time between pilot-bearing symbols and hold the nearest estimate outside the
 pilot range; and propagate pilot-noise variance through the fit and temporal
-interpolation as implemented in `experiments/cp_bounded_dft_estimator.py`.
+interpolation as implemented in `experiments/g5_cp_bounded_dft_estimator.py`.
 The identical estimator configuration applies to every profile and condition.
 No estimator, interval, interpolation, noise model, or criterion may change
 after the run starts. Any correction requires a new protocol and disjoint
@@ -76,8 +76,8 @@ channel validation or general G5.09 closure.
 ## Reproduction and audit
 
 Run `uv run --no-sync --locked python
-experiments/qualify_tdl_dft_profile_matrix.py`; audit with
+experiments/qualify_g5_tdl_dft_profile_matrix.py`; audit with
 `uv run --no-sync --locked python
-experiments/audit_tdl_dft_profile_matrix.py`. The family report retains
+experiments/audit_g5_tdl_dft_profile_matrix.py`. The family report retains
 each profile report and binds the protocol, source inventory, estimator,
 seed roster, complete per-seed outcomes, and all acceptance calculations.

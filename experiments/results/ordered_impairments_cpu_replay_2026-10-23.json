@@ -468,7 +468,7 @@
       "torch_device": "cpu"
     },
     "source_matches_git_revision": true,
-    "source_path": "experiments/ordered_impairments_receiver.py",
+    "source_path": "experiments/g5_ordered_impairments_receiver.py",
     "source_sha256": "bb9abef2f032d2b25598fedd884e696a781c8a42faf4ebab2a94f36739273635"
   },
   "result_sha256": "9900d699e97f40e4c48e9ac043f705cd9d478794cc655a9c7b0c454a9d4a9ef9",

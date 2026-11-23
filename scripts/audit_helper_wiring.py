@@ -12,6 +12,7 @@ import hashlib
 import json
 import os
 import re
+import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -30,6 +31,10 @@ PLAN_SOURCES = (
     Path("docs/research/IMPLEMENTATION_BACKLOG.md"),
     Path("docs/research/EXECUTION_QUEUE.md"),
 )
+# The master research plan was removed from the tree. Its text is still read from
+# the archive tag so the reference inventory keeps the same plan-reference coverage.
+ARCHIVE_REVISION = "docs/master-research-plan-archive"
+ARCHIVED_SOURCES = frozenset({Path("docs/research/MASTER_RESEARCH_PLAN.md")})
 PACKAGES = (
     "datasets",
     "evaluation",
@@ -52,6 +57,22 @@ TEST_SCAN_ROOTS = ("tests",)
 EXCLUDED_PARTS = {"tests", ".venv", "build", "dist", "__pycache__"}
 CODE = re.compile(r"`([^`]+)`")
 _NON_EXPORTABLE_GENERIC_NAMES = {"load", "save", "select", "complete", "metadata", "sha256"}
+
+
+def _source_bytes(root: Path, source: Path | str) -> bytes:
+    """Return a plan or source file's bytes from the tree, or from the archive tag."""
+    source = Path(source)
+    path = root / source
+    if path.is_file():
+        return path.read_bytes()
+    if source in ARCHIVED_SOURCES:
+        completed = subprocess.run(
+            ["git", "-C", str(root), "show", f"{ARCHIVE_REVISION}:{source.as_posix()}"],
+            capture_output=True,
+            check=True,
+        )
+        return completed.stdout
+    raise FileNotFoundError(source.as_posix())
 
 
 def _relative_module(base: Path, level: int, module: str | None) -> Path:
@@ -213,7 +234,7 @@ def _non_exported_plan_named_definitions(
     """
     plan_references: dict[str, set[str]] = {}
     for source in PLAN_SOURCES:
-        text = (root / source).read_text(encoding="utf-8")
+        text = _source_bytes(root, source).decode("utf-8")
         for value in CODE.findall(text):
             symbol = value.rsplit(".", 1)[-1]
             if (
@@ -305,7 +326,7 @@ def build_inventory(root: Path = ROOT) -> dict[str, Any]:
             source.as_posix(): set(
                 re.findall(
                     r"[A-Za-z_][A-Za-z0-9_]*",
-                    (ROOT / source).read_text(encoding="utf-8"),
+                    _source_bytes(ROOT, source).decode("utf-8"),
                 )
             )
             for source in PLAN_SOURCES
@@ -357,7 +378,7 @@ def build_inventory(root: Path = ROOT) -> dict[str, Any]:
             "reference_scan_roots": list(SCAN_ROOTS),
             "test_reference_scan_roots": list(TEST_SCAN_ROOTS),
             "source_sha256": {
-                source: hashlib.sha256((ROOT / source).read_bytes()).hexdigest()
+                source: hashlib.sha256(_source_bytes(ROOT, source)).hexdigest()
                 for source in sorted(source_paths)
             },
             "helper_count": len(items),

@@ -7,6 +7,7 @@ import random
 from pathlib import Path
 
 import pytest
+from artifacts.rebinding import current_repo_path
 from scipy.stats import beta
 from tests.test_experiments.frozen_source_manifest import assert_frozen_source_manifest
 
@@ -33,7 +34,7 @@ def test_confirmatory_dmrs_density_result_is_source_and_protocol_bound():
     actual_digest = hashlib.sha256(
         json.dumps(report, sort_keys=True, separators=(",", ":"), allow_nan=False).encode("utf-8")
     ).hexdigest()
-    protocol = root / report["protocol_path"]
+    protocol = root / current_repo_path(report["protocol_path"], root)
     development = root / "docs/research/results/doppler-dmrs-density-scan-20261024.json"
     development_report = json.loads(development.read_text(encoding="utf-8"))
 

@@ -61,3 +61,23 @@ def recorded_digest_matches(recorded_sha256: object, current_bytes: bytes, root:
     if recorded_sha256 == current:
         return True
     return _source_digest_map(root).get(recorded_sha256) == current
+
+
+@lru_cache(maxsize=1)
+def _path_map(root: Path) -> dict[str, str]:
+    record = root / "docs" / "reference" / "digest-rebindings.json"
+    if not record.is_file():
+        return {}
+    payload = json.loads(record.read_text(encoding="utf-8"))
+    return {
+        item["old_path"]: item["new_path"]
+        for item in payload.get("file_moves", [])
+        if item.get("old_path") != item.get("new_path")
+    }
+
+
+def current_repo_path(recorded: str, root: Path) -> str:
+    """Return the current repository-relative path for a path recorded in evidence."""
+    if (root / recorded).exists():
+        return recorded
+    return _path_map(root).get(recorded, recorded)

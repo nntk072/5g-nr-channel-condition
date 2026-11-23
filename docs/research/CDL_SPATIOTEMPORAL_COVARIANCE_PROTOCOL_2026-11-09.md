@@ -23,7 +23,7 @@ Existing retained families check CDL spatial covariance and temporal covariance 
 
 ## Independent reference
 
-`evaluation/cdl_spatiotemporal_covariance.py` reads the exact SHA-256-pinned ETSI-derived CDL component fixture. For a local-y element separation `d` wavelengths and arrival direction `u`, the reference for `h_i(0)^* h_j(tau)` uses the combined phase
+`evaluation/g4_cdl_spatiotemporal_covariance.py` reads the exact SHA-256-pinned ETSI-derived CDL component fixture. For a local-y element separation `d` wavelengths and arrival direction `u`, the reference for `h_i(0)^* h_j(tau)` uses the combined phase
 
 `2*pi*d*(j-i)*u_y + 2*pi*f_c*tau*(v dot u)/c`.
 
@@ -33,7 +33,7 @@ The native estimate normalizes each cross-time matrix by the same draw-level mea
 
 ## Seed audit
 
-The pre-run collision audit is `CDL_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-09.json`. It scans the saved research-results, outputs, and artifacts corpus for the frozen ten-seed roster. Clearance is corpus-scoped only and never establishes global seed exclusivity.
+The pre-run collision audit is `G4_CDL_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-09.json`. It scans the saved research-results, outputs, and artifacts corpus for the frozen ten-seed roster. Clearance is corpus-scoped only and never establishes global seed exclusivity.
 
 ## Interpretation limits
 

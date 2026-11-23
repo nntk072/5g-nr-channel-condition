@@ -26,7 +26,7 @@ Retained G4 evidence separately covers static joint TX/RX spatial covariance, du
 
 ## Independent reference
 
-\`evaluation/cdl_joint_tx_rx_dual_pol_spatiotemporal_covariance.py\` is independent of generated channel coefficients and uses the exact-digest-pinned ETSI-derived CDL component fixture.
+\`evaluation/g4_cdl_joint_tx_rx_dual_pol_spatiotemporal_covariance.py\` is independent of generated channel coefficients and uses the exact-digest-pinned ETSI-derived CDL component fixture.
 
 The vertical/vertical block deliberately reuses the already-established independent single-V joint TX/RX space-time oracle. For a diffuse cluster, the horizontal/horizontal receive block uses the same transmit spatial phase and receive spatial-plus-Doppler phase but scales the component power by \`1/XPR\`, as required for the cross-polar term from a single-V transmitter at the frozen zero endpoint orientations. The V/H and H/V ensemble blocks are zero because the pinned TR 38.901 ray construction assigns independent polarization phases. For CDL-D/E, the deterministic LOS component is V-only at the frozen zero orientations; the horizontal block therefore contains diffuse power only.
 
@@ -38,7 +38,7 @@ Diffuse departure and arrival angle couplings are independently averaged over th
 
 ## Seed audit
 
-\`CDL_JOINT_TX_RX_DUAL_POL_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-09.json\` must clear the five frozen seeds within the saved \`docs/research/results\`, \`outputs\`, and \`artifacts\` corpus snapshot before native execution. This audit is corpus-scoped and does not establish global seed exclusivity.
+\`G4_CDL_JOINT_TX_RX_DUAL_POL_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-09.json\` must clear the five frozen seeds within the saved \`docs/research/results\`, \`outputs\`, and \`artifacts\` corpus snapshot before native execution. This audit is corpus-scoped and does not establish global seed exclusivity.
 
 ## Interpretation limits
 

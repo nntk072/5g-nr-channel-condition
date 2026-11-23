@@ -29,7 +29,7 @@ Before freezing this protocol, the independent oracle was exercised by portable 
 
 ## Independent reference
 
-`evaluation/cdl_joint_tx_rx_dual_tx_rx_spatiotemporal_covariance.py` uses only the digest-pinned ETSI-derived CDL component fixture and analytic TR 38.901/Sionna polarization laws; generated channel coefficients are never used to construct the reference.
+`evaluation/g4_cdl_joint_tx_rx_dual_tx_rx_spatiotemporal_covariance.py` uses only the digest-pinned ETSI-derived CDL component fixture and analytic TR 38.901/Sionna polarization laws; generated channel coefficients are never used to construct the reference.
 
 At zero endpoint orientation with dual-VH omni elements, each diffuse ray selects one of the four Jones entries `(VV,VH,HV,HH)`. Sionna PHY 2.2.0 implements four independent Step-10 random phases. Therefore ensemble covariance between different Jones entries is zero. Same-entry covariance uses coefficient power `1` for `VV` and `HH`, and `1/XPR` for `VH` and `HV`. For the same Jones entry, the already-established spatial/Doppler expectation is reused: the receive spatial-plus-Doppler mean times the transmit spatial mean for each CDL component.
 
@@ -40,11 +40,11 @@ The installed source files that define the port and polarization contract are pi
 - `sionna/phy/channel/tr38901/antenna.py`: `09e20b89f4c4d990bed1a3ce3d6314f9fe7e45c090737a6f5790166d4a63f926`
 - `sionna/phy/channel/tr38901/channel_coefficients.py`: `47059c7bf0998d2a230909e70743832ee928a738a97b9b5a25a185bb4947b5fc`
 
-The pinned ETSI-derived tap/angle fixture remains `docs/research/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json`, SHA-256 `24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090`, sourced from ETSI bytes SHA-256 `b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4`.
+The pinned ETSI-derived tap/angle fixture remains `docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json`, SHA-256 `24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090`, sourced from ETSI bytes SHA-256 `b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4`.
 
 ## Seed audit
 
-`CDL_JOINT_TX_RX_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json` scanned the saved `docs/research/results`, `outputs`, and `artifacts` JSON corpora before protocol freeze. It scanned 2,295 eligible artifacts and found zero collisions, zero malformed seed fields, and zero incomplete files for seeds 2,814,000-2,814,004. The audit is corpus-scoped and does not establish global seed exclusivity.
+`G4_CDL_JOINT_TX_RX_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json` scanned the saved `docs/research/results`, `outputs`, and `artifacts` JSON corpora before protocol freeze. It scanned 2,295 eligible artifacts and found zero collisions, zero malformed seed fields, and zero incomplete files for seeds 2,814,000-2,814,004. The audit is corpus-scoped and does not establish global seed exclusivity.
 
 ## Interpretation limits
 

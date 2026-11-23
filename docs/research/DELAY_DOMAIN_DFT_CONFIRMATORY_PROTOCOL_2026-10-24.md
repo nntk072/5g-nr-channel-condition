@@ -85,9 +85,9 @@ qualification.
 
 ## Reproduction
 
-Run `uv run --no-sync --locked python experiments/qualify_delay_domain_dft.py`.
+Run `uv run --no-sync --locked python experiments/qualify_g5_delay_domain_dft.py`.
 The command writes
-`docs/research/results/delay-domain-dft-confirm-20261024.json` and binds the
+`docs/research/results/g5-delay-domain-dft-confirm-20261024.json` and binds the
 protocol digest, source hashes, seed roster, estimator configuration, retained
 outcomes, statistical method, and result digest. The report must be independently
 audited before interpreting the three claims.

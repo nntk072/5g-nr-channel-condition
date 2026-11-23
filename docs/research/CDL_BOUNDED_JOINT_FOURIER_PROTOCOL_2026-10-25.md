@@ -51,4 +51,4 @@ This is a finite low-frequency characterization, not proof of the complete
 continuous four-angle distribution, arbitrary array/pattern behavior,
 geometric RT validity, or measured-channel accuracy. The test is
 `test_cdl_four_angle_bounded_joint_fourier_family_matches_table_reference` in
-`tests/test_integrations/test_cdl_joint_angular_characteristic_native.py`.
+`tests/test_integrations/test_g4_cdl_joint_angular_characteristic_native.py`.

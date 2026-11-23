@@ -9,7 +9,7 @@ law, validate a field population, or close G5.09.
 
 ## Frozen run
 
-- Runner: `experiments/ordered_impairments_receiver.py`, independent-channel
+- Runner: `experiments/g5_ordered_impairments_receiver.py`, independent-channel
   probe. Frozen worktree SHA-256: `81aaf06d9f3e69c580703fe59c92d80e230e4830f0edcb83dfe7c6a81e3c2b04`.
 - Runtime: locked Python environment, Sionna PUSCH PHY on CPU; no RT solver or
   GPU.
@@ -24,7 +24,7 @@ law, validate a field population, or close G5.09.
 - Impairments, physical order, shared CP-based timing/CFO acquisition, fixed
   timing/CFO guards, three receiver conditions, and nested-channel inference
   are unchanged from the first replication protocol
-  (`SHARED_SYNC_INDEPENDENT_REPLICATION_PROTOCOL_2026-10-25.md`).
+  (`G5_09_SHARED_SYNC_INDEPENDENT_REPLICATION_PROTOCOL_2026-10-25.md`).
 - Compute bound: exactly 64 channel seeds × 8 blocks; no retries, tuning,
   budget sweeps, or replacement seeds.
 
@@ -50,11 +50,11 @@ Run exactly once:
 
 ```bash
 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 uv run --no-sync --locked \
-  python -m experiments.ordered_impairments_receiver \
+  python -m experiments.g5_ordered_impairments_receiver \
   --independent-channel-count 64 \
   --blocks-per-seed 8 \
   --channel-seed-start 120000 \
-  --output docs/research/results/ordered-impairments-independent-channels-cpu-64x8-shared-sync-replication-v2-20261025.json
+  --output docs/research/results/g5-ordered-impairments-independent-channels-cpu-64x8-shared-sync-replication-v2-20261025.json
 ```
 
 Audit the retained artifact against the exact worktree source. Preserve a

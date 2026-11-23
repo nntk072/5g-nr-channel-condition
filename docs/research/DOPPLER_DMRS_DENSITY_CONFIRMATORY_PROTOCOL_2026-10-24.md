@@ -62,8 +62,8 @@ G5.09 qualification remain separate requirements.
 
 ## Reproduction
 
-Run `uv run --no-sync --locked python experiments/qualify_doppler_dmrs_density.py`.
+Run `uv run --no-sync --locked python experiments/qualify_g5_doppler_dmrs_density.py`.
 The output is
-`docs/research/results/doppler-dmrs-density-confirm-20261024.json` and binds
+`docs/research/results/g5-doppler-dmrs-density-confirm-20261024.json` and binds
 the exact protocol SHA-256, source hashes, configuration, seed lists, retained
 outcomes, statistical method, and result digest.

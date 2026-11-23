@@ -28,15 +28,15 @@ The retained dual-TX/dual-RX joint space-time covariance family covers two physi
 
 ## Independent reference
 
-evaluation/cdl_joint_tx_rx_dual_tx_rx_spatiotemporal_covariance.py is reused unchanged. It is already parameterized by physical TX/RX element counts and uses only the digest-pinned ETSI-derived CDL component fixture plus analytic TR 38.901 polarization, spatial, and Doppler laws.
+evaluation/g4_cdl_joint_tx_rx_dual_tx_rx_spatiotemporal_covariance.py is reused unchanged. It is already parameterized by physical TX/RX element counts and uses only the digest-pinned ETSI-derived CDL component fixture plus analytic TR 38.901 polarization, spatial, and Doppler laws.
 
 At zero endpoint orientation, diffuse Jones entries (VV,VH,HV,HH) have independent Step-10 phases. Same-entry covariance therefore carries power 1 for co-polar entries and 1/XPR for cross-polar entries, while covariance across distinct diffuse Jones entries is zero. Receive spatial phase and Doppler are evaluated jointly per ray; transmit spatial phase is evaluated per departure ray. CDL-D/E specular LOS uses the frozen signed diag(1,-1) polarization contribution.
 
-The pinned ETSI-derived tap/angle fixture is docs/research/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json, SHA-256 24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090, sourced from ETSI bytes SHA-256 b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4.
+The pinned ETSI-derived tap/angle fixture is docs/research/G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json, SHA-256 24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090, sourced from ETSI bytes SHA-256 b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4.
 
 ## Seed audit
 
-CDL_LARGER_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json must clear the complete frozen seed roster against the saved docs/research/results, outputs, and artifacts JSON corpora before native execution. The audit is corpus-scoped and does not establish global seed exclusivity.
+G4_CDL_LARGER_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json must clear the complete frozen seed roster against the saved docs/research/results, outputs, and artifacts JSON corpora before native execution. The audit is corpus-scoped and does not establish global seed exclusivity.
 
 ## Interpretation limits
 

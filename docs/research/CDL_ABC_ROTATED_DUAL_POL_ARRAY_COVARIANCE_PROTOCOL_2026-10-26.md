@@ -24,7 +24,7 @@ qualification.
   or collisions for this roster and returned `CLEAR_WITHIN_SCANNED_JSON_CORPUS`;
   this remains corpus-scoped rather than global seed exclusivity.
 - Reference: diffuse powers, AoA/ZoA, cluster spreads, and XPR come from
-  `CDL_TAP_ANGLE_REFERENCE_2026-10-26.json`, whose SHA-256 is
+  `G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json`, whose SHA-256 is
   `24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090`; the
   source PDF digest is `b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4`.
   The Sionna packaged-table digests identify the system-under-test only.
@@ -40,7 +40,7 @@ qualification.
   interval must contain the independent reference and have half-width no
   greater than 0.05 normalized mean power.
 
-The test is `tests/test_integrations/test_cdl_abc_rotated_dual_pol_array_covariance_native.py`.
+The test is `tests/test_integrations/test_g4_cdl_abc_rotated_dual_pol_array_covariance_native.py`.
 The frozen orientation set does not establish continuous-orientation behavior,
 mutual coupling, arbitrary array geometries, directional element patterns,
 temporal evolution, geometric RT truth, or overall G4 qualification. Do not

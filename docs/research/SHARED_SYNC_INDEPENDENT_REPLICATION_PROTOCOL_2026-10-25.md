@@ -10,7 +10,7 @@ synthetic channel law into a field population or close G5.09.
 
 ## Frozen experiment
 
-- Runner: `experiments/ordered_impairments_receiver.py`, independent-channel
+- Runner: `experiments/g5_ordered_impairments_receiver.py`, independent-channel
   probe, exact source bytes recorded in the result provenance.
 - Runtime: locked Python environment, Sionna PUSCH PHY on CPU; no geometric RT
   solver or GPU.
@@ -64,11 +64,11 @@ criterion.
 Run exactly once:
 
 ```bash
-uv run --no-sync --locked python -m experiments.ordered_impairments_receiver \
+uv run --no-sync --locked python -m experiments.g5_ordered_impairments_receiver \
   --independent-channel-count 64 \
   --blocks-per-seed 8 \
   --channel-seed-start 80000 \
-  --output docs/research/results/ordered-impairments-independent-channels-cpu-64x8-shared-sync-replication-20261025.json
+  --output docs/research/results/g5-ordered-impairments-independent-channels-cpu-64x8-shared-sync-replication-20261025.json
 ```
 
 Run the result auditor against the retained report without deterministic
