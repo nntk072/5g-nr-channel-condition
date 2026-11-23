@@ -55,3 +55,7 @@ temporary_data
 resnet_*/
 model_*/
 ray_tracing_data/
+
+# Documentation build output and generated API pages
+docs/_build/
+docs/api/generated/

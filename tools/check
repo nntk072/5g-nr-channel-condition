@@ -137,6 +137,10 @@ elif gate in {"core", "test"}:
 elif gate == "neural":
     # CI installs the boosting extra and CPU-only PyTorch before this gate runs.
     uv("run", "--no-sync", "--locked", "python", "-m", "pytest")
+elif gate == "docs":
+    # Sphinx site: warnings are errors so that every broken link or docstring fails the gate.
+    uv("run", "--locked", "--extra", "docs", "sphinx-build", "-W", "--keep-going", "-q",
+       "-b", "html", "docs", "docs/_build/html")
 elif gate == "build":
     uv("build")
     uv("run", "--locked", "python", "-c", IMPORT_SMOKE)
@@ -161,7 +165,7 @@ elif gate == "native-smoke":
     raise SystemExit(4)
 else:
     print(
-        "usage: tools/check {lock|lint|typecheck|architecture|test|core|neural|build|agent|fast|full|native-smoke}",
+        "usage: tools/check {lock|lint|typecheck|architecture|test|core|neural|build|docs|agent|fast|full|native-smoke}",
         file=sys.stderr,
     )
     raise SystemExit(2)
