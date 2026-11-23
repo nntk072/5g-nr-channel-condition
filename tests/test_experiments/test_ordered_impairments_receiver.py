@@ -455,11 +455,12 @@ def test_independent_snr_curve_retains_each_condition_input_across_snr(
     assert all(point["experiment"]["schema"].endswith(".v19") for point in report["points"])
     assert list(tmp_path.iterdir()) == [evidence_path]
 
-    monkeypatch.setattr(
-        audit_module,
-        "_recompute_waveform_diagnostics",
-        lambda config, records, payload, *, snr_index=None: (0.01, 1.0),
-    )
+    for module in (audit_module.independent, audit_module.waveform):
+        monkeypatch.setattr(
+            module,
+            "_recompute_waveform_diagnostics",
+            lambda config, records, payload, *, snr_index=None: (0.01, 1.0),
+        )
     result_path = tmp_path / "curve.json"
     result_path.write_text(
         json.dumps(build_hash_bound_result(report, created_utc="2026-10-26T00:00:00+00:00")),

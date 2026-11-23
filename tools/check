@@ -1,14 +1,29 @@
 #!/usr/bin/env python3
 import os
 import shutil
+import ast
+import re
 import subprocess
 import sys
-import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 UV = shutil.which("uv") or str(Path.home() / ".local/bin/uv")
-_PACKAGES = tomllib.loads((ROOT / "config" / "packages.toml").read_text(encoding="utf-8"))["packages"]
+
+
+def _read_package_list():
+    """Read config/packages.toml without a TOML library (the gate runs on any python3)."""
+    text = (ROOT / "config" / "packages.toml").read_text(encoding="utf-8")
+    values = {}
+    for key in ("names", "test_roots"):
+        match = re.search(rf"^{key} = (\[.*?\])", text, re.S | re.M)
+        if match is None:
+            raise SystemExit(f"config/packages.toml: missing {key}")
+        values[key] = ast.literal_eval(match.group(1))
+    return values
+
+
+_PACKAGES = _read_package_list()
 PACKAGE_NAMES = list(_PACKAGES["names"])
 BASE = [*PACKAGE_NAMES, *_PACKAGES["test_roots"]]
 AGENT = ["agentops", "tests/test_agentops", "tools/agent"]
