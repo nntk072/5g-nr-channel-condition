@@ -110,8 +110,10 @@ def test_cpu_rt_path_retraces_and_stores_receiver_only_trajectory(tmp_path, monk
     assert len(bundle.receiver_observations) == 2
     assert len(bundle.channel_views) == 1
     assert bundle.channel_views[0].delay_reference.value == "absolute_propagation_delay"
+    # One visibility target, then one derived RMS delay-spread target per link (one link here).
     assert [target.definition.semantic for target in bundle.targets] == [
-        "geometric direct-path visibility"
+        "geometric direct-path visibility",
+        "rms_delay_spread",
     ]
     assert {record.subject_layer for record in bundle.provenance_records} == {
         "oracle_paths",

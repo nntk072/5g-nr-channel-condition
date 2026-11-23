@@ -75,19 +75,27 @@ Option 2, diagnostic probes. Temporary copies of the two CDL test files printed 
 component's error against its interval half-width, run in the GPU environment with
 CUDA hidden. The copies were deleted afterwards; no expectation was changed.
 
-- CDL joint `[B]`: one component of 16 fails. Row 0, column 1, real part: error 0.022122 against half-width 0.021810 (ratio 1.014).
+- CDL joint `[B]`: one component of 32 fails. Row 0, column 1, real part: error 0.022122 against half-width 0.021810 (ratio 1.014).
 - CDL four-element `[E]`: one component of 16 fails. Component 4 (row 0, column 1, real part): error 0.013574 against half-width 0.012969 (ratio 1.047). The largest half-width is 0.017116, under the 0.05 cap.
 
-Both misses are marginal, and each is a single component under a family-wise 99% interval. One run with fixed seeds cannot separate sampling noise from a small reference or model bias. An independent-seed replication would be needed; that is a new scientific run and is not done here.
+Both misses are marginal, and each is a single component under a family-wise 99% interval.
+
+Replication with fresh seeds (pre-registered above; GPU environment, CUDA hidden; temporary copies deleted afterwards):
+
+- Joint `[B]`, seed 12811001: all 32 components inside their 99% half-widths; worst error-to-half-width ratio 0.585. Passed.
+- Four-element `[E]`, seed 98714: all 16 components inside; worst ratio 0.325. Passed.
+
+The fixed-seed misses were therefore sampling noise at the original seeds, not a reproducible bias. The committed tests and tolerances are unchanged.
 
 Option 5, RT oracle claim. The test asserted that the geometric-LOS provenance starts with `independent Mitsuba`, and that its source is `mitsuba_segment_intersection_oracle`. The code states `digest-bound NumPy loaded-scene triangle inventory, cross-checked by Mitsuba segment intersection and depth-zero Sionna PathSolver`, and its source is `numpy_loaded_scene_triangle_inventory`. Both test assertions now state the code's description; the test no longer claims independence.
 
-Two items need a decision and were not changed:
+Caveat recorded for the frozen identity. The identity `umcd.rt-trajectory.geometric-los.v1` in `datasets/targets.py` still carries the semantic `independent Mitsuba segment-intersection geometry oracle`. That wording overstates independence, and the target definition hashes it. Identity strings must stay, so the caveat is recorded here. A new identity version with the accurate semantic is a separate contract change, to be approved later.
 
-- The frozen identity `umcd.rt-trajectory.geometric-los.v1` in `datasets/targets.py` still carries the semantic `independent Mitsuba segment-intersection geometry oracle`. The target definition hashes that semantic, and identity strings must stay, so the code and the identity now disagree. Resolving it needs a new identity version with the accurate semantic, which is a contract change.
-- The same RT test then fails at a third stale expectation: the list of stored target semantics expects only `geometric direct-path visibility`, but the code also derives `rms_delay_spread` (the flag `derive_rms_delay_spread_targets=True` dates from commit `2e6780d`). Choosing between the code and the test is a claim decision.
+The stored target list now expects the visibility target and the derived `rms_delay_spread` target, in code order. The code derives one RMS target per link, and the scenario has one link.
 
-The native table above was run on `8d3c62d`, before this change. The RT test file was then re-run alone on the GPU environment: `1 failed, 7 passed in 45.12s`, with the failure at the target-list assertion. The two CDL cases are unchanged.
+The RT test still fails at a further stale expectation. It reads the material state as a structured description (`schema` `sionna_rt_material_state.v1`, with reflector scattering values). The code now stores `material_state` as the summary string `constant_loaded_manifest_for_entire_run` and records a hash of the material manifest (`material_state_sha256`). Making the test check the material properties requires reading the stored manifest and deciding what it must contain, so it is open.
+
+The native table above was run on `8d3c62d`, before these changes. The RT test file was then re-run alone on the GPU environment: `1 failed, 7 passed in 44.26s`, with the failure at the material-state assertion. The two CDL cases pass on their fresh-seed replication (above) and keep their committed expectations.
 
 ## Pre-registered CDL replication (fresh seeds)
 
