@@ -108,6 +108,16 @@ interval definitions are unchanged; only the random seeds are replaced.
 - The replication runs as a temporary copy of each test file, which is deleted afterwards. The committed tests are not changed for this run.
 - If a case fails the replication, the result is recorded as a failure. No further seeds are tried in this record.
 
+## Pre-registered calibration study (50 seeds per case)
+
+Recorded before the run. The question is whether the 99% family-wise intervals are calibrated, not whether one seed passes.
+
+- Joint `[B]`: seeds `30_000_000 + k` for k = 0 to 49. The tests' own seed rule is not used.
+- Four-element `[E]`: seeds `50_000 + k` for k = 0 to 49.
+- Per seed, a miss is any component whose error exceeds its half-width. The number of seeds with at least one miss is counted, and the largest error-to-half-width ratio is recorded.
+- Calibrated: at most 2 of the 50 seeds show any miss. This is the rule fixed here. At a family-wise alpha of 0.01, about 0.5 of 50 seeds should miss by chance, so more than 2 would indicate a bias or a too-tight interval.
+- Temporary copies of the test files are used and deleted afterwards. Tolerances, interval definitions and committed tests are unchanged.
+
 ## Goal items
 
 1. **Helper wiring.** `scripts/audit_helper_wiring.py` resolves package re-exports and facade re-exports to the defining submodule. The helper count is `254`; `--check` exits 0; `tests/test_scripts/test_audit_helper_wiring.py` passes. Dispositions: 245 manual review, 1 no direct reference, 8 route mapping required. The moved `compose_pusch_intra_slot_hops` is now `receivers.nr.pusch_core.hopping.compose_pusch_intra_slot_hops`.
