@@ -85,7 +85,7 @@
     "evaluation/uncertainty_io.py": "e02da53cd45809ac68c2b178d1474a6c397ab8650072731bd543160203a4e880",
     "experiments/audit_cp_bounded_dft_diagnostic.py": "1d925e23143a3f5576a783c14b252d45355005dde94ebe2e029abbd94abba2ce",
     "experiments/audit_static_reference_failures.py": "0f76e9adb9ffc21501215737d3b3678fa7829adeb8e42b7c0505f01e0532c609",
-    "experiments/audit_tdl_dmrs_density_development.py": "fb2fd52ddc75ba2336ee705ef45339b5f8f01193ac896a11f79c05b85108062a",
+    "experiments/audit_tdl/dmrs_density_development.py": "2a2b7454d0796db1ef9d2eef1cdbfd57dc05219181ee1ba5be9208449c43da90",
     "experiments/capacity_sweep.py": "123cfcec10335e46fda2a00c53e8a448e5fd4fa3cdc23af06f464d824f52dc40",
     "experiments/cp_margin.py": "27c3d25e03f17e43ef41251eddee79bd1790f84d902039836f8b1b439e3bfb6a",
     "experiments/diagnose_estimator_choice.py": "9edc5832219c384a42d837a36202569db105887b5f0492f353e8aff89e28f463",
@@ -194,7 +194,7 @@
     "tests/test_datasets/test_data.py": "5508a73e2ec30bccfd4f9257e7978a984bb0a707cf41edb2857f6293e0685b8c",
     "tests/test_datasets/test_frequency_pair.py": "1884a086ae0fe7ae7c150023d4b00ec8afd579459f6ac38b62fbd0b2347841bf",
     "tests/test_datasets/test_model_input_audit.py": "acf7f0b706f10bbb39209031ca5f9cc0db7a3acc0c2e75fe5db7b6445128eb09",
-    "tests/test_datasets/test_nr.py": "8da6208566d5d9d36beb0d86380d1b3050eb02c30a0219d438752463f0eaceaa",
+    "tests/test_datasets/test_nr.py": "a76123c254afceb9b4771425df9a5ba017f5fbea93c14f2227a2bacee51301ec",
     "tests/test_datasets/test_nr_observation_mask.py": "fabb9a265171ef7c50984ef9dfab27e8f603070c054157c60e558eb2c3147448",
     "tests/test_datasets/test_nr_store_memory_scaling.py": "aeb8c0d1e41b58fb561d0ba00c865783b897c634a32e24bf2cb627c7a55163d4",
     "tests/test_datasets/test_nr_store_streaming.py": "e05fd037677cb98b8e0c127b38c18530009b1ebac8701e9c45949d740719d0f5",
@@ -210,11 +210,11 @@
     "tests/test_datasets/test_time_axis.py": "656c112d9a9f37968e82a15bc473523c095bd24cddcc27b41ff7ad19f86556be",
     "tests/test_datasets/test_umcd_channel_receiver_views.py": "b8b9fe5631b1aec07562d4fd56410d6c4f71b5eea82933e780b2021ef73204d3",
     "tests/test_datasets/test_umcd_path_oracle.py": "c5aa7462d180ced9ad7ab2737069154da81727da067a5fc1134c4efd63894f40",
-    "tests/test_datasets/test_umcd_provenance_lineage.py": "cae59019ae2c517c8acd77c2b52025ca249edbee1b4e6dd8e901548a0ac7f48f",
+    "tests/test_datasets/test_umcd_provenance_lineage.py": "23123c6941b18bdb0420739ae5ea6e809bc0ad5ff4f25538fe7fc1455ca9a27a",
     "tests/test_datasets/test_umcd_schema.py": "7984691e74941cf525d0fe34948194ee86050f3cf9b8d1e48a291582cdbe8667",
     "tests/test_datasets/test_umcd_splits.py": "9c4ef2f806baefeaf2e20ca86c90207033e66f7e9d703e3ea22c53fe1d53ab39",
     "tests/test_datasets/test_umcd_store_integrity.py": "988f79b990890b7e0d52863d916fac3b5fc2f0944e29fc3a5aa069b4c03de3e8",
-    "tests/test_datasets/test_umcd_targets.py": "a5ce47f61dd5539f80cd7931f408ac5d50e5c29a69bfe210e42403bef79ee639",
+    "tests/test_datasets/test_umcd_targets.py": "05dc0eae97a1d0b7a9deee8efbf88c743e66f66fae9f854c369a2a85e22b7247",
     "tests/test_evaluation/joint_evidence_artifact_support.py": "27aa6a950398e9068ee2587c5342bf3ccb434e09e6cf7308d3bfff1c81faeef1",
     "tests/test_evaluation/test_benchmark_partitions.py": "e69be8cc1c6117c70ee765be74608b6ab724e2442942da80dec8b04dc066dafb",
     "tests/test_evaluation/test_class_support.py": "445bf93cc05c046989d1ebfdacc3ea3970cc38fdaf5ffc2c2dfeae74ab6d99cb",
@@ -12893,8 +12893,8 @@
       ],
       "direct_production_references": [
         {
-          "path": "experiments/audit_tdl_dmrs_density_development.py",
-          "line": 90
+          "path": "experiments/audit_tdl/dmrs_density_development.py",
+          "line": 80
         },
         {
           "path": "experiments/qualify_tdl_c_dmrs_density.py",
