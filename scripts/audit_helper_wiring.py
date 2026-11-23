@@ -157,6 +157,55 @@ def _package_exports(package: str) -> list[dict[str, Any]]:
     return results
 
 
+def _index_facade_reexports(
+    exports: list[dict[str, Any]],
+    import_targets: dict[tuple[str, str], set[str]],
+    module_targets: dict[str, dict[str, set[str]]],
+) -> None:
+    """Index names that a facade module imports from a defining submodule.
+
+    A caller that imports the name from the facade reaches the defining submodule, so the
+    facade import is indexed as well as the export entry that the package reports.
+    """
+    facade_paths: list[Path] = []
+    for scan_root in (*SCAN_ROOTS, *TEST_SCAN_ROOTS):
+        start_dir = ROOT / scan_root
+        if start_dir.exists():
+            facade_paths.extend(sorted(start_dir.rglob("*.py")))
+    for path in sorted(set(facade_paths)):
+        if path.name == "__init__.py" or any(part in EXCLUDED_PARTS for part in path.parts):
+            continue
+        try:
+            facade_tree = ast.parse(path.read_text(encoding="utf-8"))
+        except (OSError, SyntaxError, UnicodeDecodeError):
+            continue
+        facade_module = path.relative_to(ROOT).with_suffix("").as_posix().replace("/", ".")
+        for statement in facade_tree.body:
+            if not (
+                isinstance(statement, ast.ImportFrom) and statement.level == 0 and statement.module
+            ):
+                continue
+            for alias in statement.names:
+                found = _defining_function(Path(*statement.module.split(".")), alias.name)
+                if found is None:
+                    continue
+                defining_file = found[0]
+                qualified = (
+                    defining_file.with_suffix("").as_posix().replace("/", ".") + "." + alias.name
+                )
+                resolved = {qualified}
+                for export in exports:
+                    if (
+                        export["public_name"] == alias.name
+                        and export["source"] == defining_file.as_posix()
+                    ):
+                        resolved.add(export["qualified_name"])
+                import_targets.setdefault((facade_module, alias.name), set()).update(resolved)
+                module_targets.setdefault(facade_module, {}).setdefault(alias.name, set()).update(
+                    resolved
+                )
+
+
 def _reference_index(
     exports: list[dict[str, Any]], *, scan_roots: tuple[str, ...]
 ) -> dict[str, list[dict[str, Any]]]:
@@ -200,43 +249,7 @@ def _reference_index(
                 Path(directory) / filename for filename in filenames if filename.endswith(".py")
             )
 
-    # A facade module re-exports names defined in a submodule. A caller that imports the
-    # name from the facade reaches the defining submodule, so index that edge too.
-    facade_paths: list[Path] = []
-    for scan_root in (*SCAN_ROOTS, *TEST_SCAN_ROOTS):
-        start = ROOT / scan_root
-        if start.exists():
-            facade_paths.extend(sorted(start.rglob("*.py")))
-    for path in sorted(set(facade_paths)):
-        if path.name == "__init__.py" or any(part in EXCLUDED_PARTS for part in path.parts):
-            continue
-        try:
-            facade_tree = ast.parse(path.read_text(encoding="utf-8"))
-        except (OSError, SyntaxError, UnicodeDecodeError):
-            continue
-        facade_module = path.relative_to(ROOT).with_suffix("").as_posix().replace("/", ".")
-        for node in facade_tree.body:
-            if not (isinstance(node, ast.ImportFrom) and node.level == 0 and node.module):
-                continue
-            for alias in node.names:
-                found = _defining_function(Path(*node.module.split(".")), alias.name)
-                if found is None:
-                    continue
-                defining_file = found[0]
-                qualified = (
-                    defining_file.with_suffix("").as_posix().replace("/", ".") + "." + alias.name
-                )
-                targets = {qualified}
-                for export in exports:
-                    if (
-                        export["public_name"] == alias.name
-                        and export["source"] == defining_file.as_posix()
-                    ):
-                        targets.add(export["qualified_name"])
-                import_targets.setdefault((facade_module, alias.name), set()).update(targets)
-                module_targets.setdefault(facade_module, {}).setdefault(alias.name, set()).update(
-                    targets
-                )
+    _index_facade_reexports(exports, import_targets, module_targets)
 
     for path in sorted(source_paths):
         relative = path.relative_to(ROOT)
