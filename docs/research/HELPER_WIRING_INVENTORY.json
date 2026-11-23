@@ -52,11 +52,11 @@
     "datasets/synthetic.py": "eacec8d5eb8001160c6765bfa70520036cf19a4e03668f3370c88af65729fd56",
     "datasets/targets.py": "44a40657feb775938f879393d6c1d211362d26d392b924413ad67f0e340850d0",
     "datasets/time_axis.py": "8db701f1eb34ba5c60f7c62ae792a5c851ddec8c7d7a76822675bc6a6daa8fbb",
-    "dev-docs/reference/helper-wiring-matrix.md": "d8cc579c0c5190053e09d24b8f39e647f84d0200da145c24f042786a1ff1afe8",
-    "docs/research/EXECUTION_QUEUE.md": "b1edbe7f6640d87ca7b590944077461d464f25e13f5149e5ead3c102aed6c0b4",
-    "docs/research/IMPLEMENTATION_BACKLOG.md": "f19649f86bcbc174eb331dbdfa0cd5c55adf600f3a9b0dccc20b953d6b1deadc",
+    "dev-docs/reference/helper-wiring-matrix.md": "aa450b0d1865734d78f0bf461e75eedb8a7b3b779cde89929a7b53e967b7d0e1",
+    "docs/research/EXECUTION_QUEUE.md": "8a49c5c6a75973c0aeaf5ab93cd46ff99f4b1feff46b2a1074011d893838d7b7",
+    "docs/research/IMPLEMENTATION_BACKLOG.md": "45282b0ce4128421f9a289b0d5cbb23727ff58978ec0ef423bc5ad2fe0305bcb",
     "docs/research/MASTER_RESEARCH_PLAN.md": "f30d8f567f97443aec722eabc459843aa4e5821f7574ce67080ab99747c5de93",
-    "docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md": "6228c56d4ea0866d6b5d11967e9464e8ba13dd99c3d3619854becf208d54f72d",
+    "docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md": "7fb79e4eaf19e1bbd1ac4d95c07d7e132fe6dc8e0fc4891f21b9fe3ce226fda3",
     "docs/research/schema/helper-wiring-inventory.v1.schema.json": "cbf3f4f5d3f5711d5d0bd208060e90543cbfba890ca718228f7be2befd0a170f",
     "evaluation/caez_forecast.py": "43a1f1d284c28ba12c8bc8265ef5d9e6aba15ef109a4c7f8e884718e1984c61e",
     "evaluation/class_support.py": "8c0e4836b3771a5895ff155ce7568acc1d2c7a366ef7a0a701043286c58fd23f",
@@ -184,7 +184,7 @@
     "scripts/plan_acquisition_design.py": "40515c7308bd8957e1c8a49b3a9b0fdc0e98a04f03c004c051e65da605525964",
     "scripts/render_rt_endpoint_positions.py": "7fc16121d551402f042cdccaeca206b0a541172796c3c0d6ddf7d54ad2faae18",
     "scripts/render_rt_path_qa.py": "9a46318f58d860819b7d41ee89afbb89fa0ecd425c33ae01268dcf050ece0339",
-    "scripts/run_cdl_e_fresh_seed_replication.py": "fd4a05073a1667a5897a166cbc4930e77cb70aed0672aa5b909f28f7436f7117",
+    "scripts/run_cdl_e_fresh_seed_replication.py": "462da0fbcc0ae784b2587b07095dae04603786d424ea8d4446b1574f7bfbd80c",
     "scripts/run_observable_multipath_experiment.py": "ade85753c92f35f8337a893aa89c24689e657c161a298fe9fd3202e9b016ed33",
     "scripts/run_profile_proxy_dataset.py": "7e569af9db6b7463eecb592380e3e67f5d2dcdd0eb9c5b8e6ea7befd1cecfeaf",
     "scripts/run_rt_solver_convergence.py": "df0da07a637aa177178ceaa1cb765d46e59ea96aa2d3b8ccfe79fb29175bc66c",
@@ -251,28 +251,28 @@
     "tests/test_integrations/test_cdl_de_los_dual_pol_array_covariance_native.py": "3f9e681d7a7df81c801709d6104340ff04dd6e08eb57a7f708179ea4d24bf78b",
     "tests/test_integrations/test_cdl_de_rotated_los_dual_pol_array_covariance_native.py": "f34b4933b4b481470ba83b21ff699b449696067abb11f54b814ffe3663406703",
     "tests/test_integrations/test_cdl_delay_angular_moment_native.py": "88d6a58a21e686899d5a01052c7997de3ccf38cc5cd7596146e6f0f2e8e8abfb",
-    "tests/test_integrations/test_cdl_dual_cross_handheld_ut_spatiotemporal_covariance_native.py": "cbc2d9bf3d371f0f3572a1d9af6f5acd6ef313639a6e56d2d81fff8886e8ba47",
+    "tests/test_integrations/test_cdl_dual_cross_handheld_ut_spatiotemporal_covariance_native.py": "6e77759f5c46c2d91e1a1a130f966144d8886bcfe596596aa5d042cba507be0e",
     "tests/test_integrations/test_cdl_dual_pol_array_covariance_native.py": "fb79283185c4f37f9c27728e2c0d4fdc14dbbfa59fbc07f06fc436b27f8f9a62",
     "tests/test_integrations/test_cdl_dual_polarization_power_matrix_native.py": "d06f1382358c7ff16d3327c019bb0f080a3be4a7bd02ce3ce62efba25c82cbf0",
     "tests/test_integrations/test_cdl_dual_polarized_xpr_covariance_native.py": "b4eeacadd7ae0385c72683f16c74dc3fd0931a46095387935af947b829cd35f3",
     "tests/test_integrations/test_cdl_e_los_temporal_reference_native.py": "01b62eeb920a4381fb10e3e6553fc8c10611e7d0fab3689359d7473364b0158e",
-    "tests/test_integrations/test_cdl_handheld_ut_operating_point_spatiotemporal_covariance_native.py": "935b9e5c1d46b1e777693e9e7c7421cce8d90b4f9b0587fc8cd686c932bf1db2",
-    "tests/test_integrations/test_cdl_handheld_ut_oracle_native.py": "e2747de64c9ecd77c2a3f14da28bdfe8c1772e95f4adbed2f95bfab075f1cdc0",
-    "tests/test_integrations/test_cdl_handheld_ut_spatiotemporal_covariance_native.py": "ef389704d3e6b51686ab14893a1da9f6de4ac2ca1abd8a8ebebdf8f348c19ada",
-    "tests/test_integrations/test_cdl_joint_tx_rx_dual_pol_spatiotemporal_covariance_native.py": "62af37174c505bb2ad8f17a670ccd879a40c1211fc3edf95cb8b2c76fb21f6a8",
-    "tests/test_integrations/test_cdl_joint_tx_rx_dual_tx_rx_spatiotemporal_covariance_native.py": "d6be82b2465ec3f5d2951993078472e66d2c7aadf583daafdee0189ea23dba18",
+    "tests/test_integrations/test_cdl_handheld_ut_operating_point_spatiotemporal_covariance_native.py": "8498d07fe524e2e147492dc19d14dbc0625f4014f645f03fd15d7a6be7dc7073",
+    "tests/test_integrations/test_cdl_handheld_ut_oracle_native.py": "f76cfe2ae9489dc10961a1158600380bb9d2dda6b41b1f9a4c5678f11a86c1ec",
+    "tests/test_integrations/test_cdl_handheld_ut_spatiotemporal_covariance_native.py": "7b1ea3fc1b5bb4e714bdeb38383aed5aa9c46a8a29471df3e5c8375476ff4944",
+    "tests/test_integrations/test_cdl_joint_tx_rx_dual_pol_spatiotemporal_covariance_native.py": "f329e05f90a9779a33fe9f6b135d74697b6c0f962fa29f604f1b12416335a61c",
+    "tests/test_integrations/test_cdl_joint_tx_rx_dual_tx_rx_spatiotemporal_covariance_native.py": "e5193d8f824b444fa7013b9aa16a5e8ff7f986dfe1b3f5ecf7269cf4a93d3071",
     "tests/test_integrations/test_cdl_joint_tx_rx_spatial_covariance_native.py": "23350d7eb48839718781bdd4ef816bd30ce5c80daf635363419233a9881c9ad0",
-    "tests/test_integrations/test_cdl_joint_tx_rx_spatiotemporal_covariance_native.py": "413cfc8f817b8a6b6c38e5f233d8569037219abcdcc4e0603b71ded61fa0d0b5",
-    "tests/test_integrations/test_cdl_larger_dual_tx_rx_spatiotemporal_covariance_native.py": "206ce0cf9276ac692f6a52eb055d1ab59916e8a3a3c8bf866ab1a868e61841f2",
-    "tests/test_integrations/test_cdl_larger_topology_joint_tx_rx_spatiotemporal_covariance_native.py": "95764c0296f638fe3614fab19a31817c39d3ee1dd8acdbe03e3c1db56b1c16ef",
+    "tests/test_integrations/test_cdl_joint_tx_rx_spatiotemporal_covariance_native.py": "f5419f3009eae6dd9963d8f6ec39740b7134d331292fb50683961ce3585119eb",
+    "tests/test_integrations/test_cdl_larger_dual_tx_rx_spatiotemporal_covariance_native.py": "4d162e8d2ec51770aac5704e019b70975dc3421f91ee8157cc8a6410676bf18a",
+    "tests/test_integrations/test_cdl_larger_topology_joint_tx_rx_spatiotemporal_covariance_native.py": "89d8da6cc0d5f2ea8cb0782a1d7a266493656ac9262d8a7b7e8a560acdffef2e",
     "tests/test_integrations/test_cdl_los_delay_angular_moment_native.py": "70d7fb60c975071680233b9eeb84d5bf3d04a94387012c5f53ca8e1c1f6201aa",
     "tests/test_integrations/test_cdl_native.py": "756fc25cc89e00c192cae8d630e32aba123ddc3633e573a39394fd7ad1fde477",
-    "tests/test_integrations/test_cdl_patterned_rotated_dual_tx_rx_spatiotemporal_covariance_native.py": "de77b509c4d769b055751c2a3b402e4abf456afb6296cc2b54936da2f61486fe",
+    "tests/test_integrations/test_cdl_patterned_rotated_dual_tx_rx_spatiotemporal_covariance_native.py": "a1736044fccdc31390db5ac07f5b9029176608a6acdd9702e6f60463e4a24b88",
     "tests/test_integrations/test_cdl_profile_tables_native.py": "b6b0ea7aecba9a8f73ff352e02145d196b62740438ed98f568498952669c2228",
-    "tests/test_integrations/test_cdl_rotated_dual_tx_rx_spatiotemporal_covariance_native.py": "1c5f0408dedd46536f95b8876ba4e86fcc63edce3b5b804c45ed71508b2c2193",
+    "tests/test_integrations/test_cdl_rotated_dual_tx_rx_spatiotemporal_covariance_native.py": "10d20df3d9ba2268ad7f503ed151f0228704681d40d3e62dbeebfd88c18c4f76",
     "tests/test_integrations/test_cdl_spatial_covariance_4element_native.py": "a37b5133f839a7ee2b8b332caf27bd26e6842d1b8015fc2cd95becce94fca5a2",
     "tests/test_integrations/test_cdl_spatial_covariance_reference_native.py": "da0ba387f38aebb982c76ebc683a10a3b810f5afee0313b0816ae47d67f1df9d",
-    "tests/test_integrations/test_cdl_spatiotemporal_covariance_native.py": "d78fc6dcc49c8e60ddc0142527655ed866e9a329ae27e0e49dd3a858144366f3",
+    "tests/test_integrations/test_cdl_spatiotemporal_covariance_native.py": "0e4fa19f0bdf9bb8272ca4f79055344ab5561eea2869d6f757f0aec587b3938e",
     "tests/test_integrations/test_cdl_temporal_vector_reference_native.py": "c0b55ec45aa7d66f11a5e943d5e4117817bf7fbd90af84d3b962172848704bca",
     "tests/test_integrations/test_channel_draw_semantics_native.py": "06d870e7d9272a1f312be529bfc4da23772acf1f5b2aff13091e9925138f6f04",
     "tests/test_integrations/test_core1_covariance_matrix_native.py": "8acfbcd5e32150e84f1d15922d769231d2e82cb95062852addfc5f9aa92c2a5c",
@@ -321,7 +321,7 @@
     "tests/test_integrations/test_ssb_waveform_config_native.py": "abb06cd5cda4ea97ae0c27dc0567db5f562725d883c081b69908d31ca30ade4f",
     "tests/test_integrations/test_standardized_generation_native.py": "5c83f09544bb98b9f6b2d2563c567673b43a739809b0cfb1b4961c9c648165f9",
     "tests/test_integrations/test_standardized_pusch_native.py": "3da1f5ad91aa5a489c8ae3f416f81f18d1a5024296942d0e6319932b674d6f47",
-    "tests/test_integrations/test_statistical_confidence_native.py": "7065e5b4f7df7de4dac94fc964a1b76f66aeac57d21d37bb0582653b5d2b8c8f",
+    "tests/test_integrations/test_statistical_confidence_native.py": "d5e4179c03564ac1a33799378e0db8ed2bc21dcaec137876a3403a79e82b9b67",
     "tests/test_integrations/test_tdl_adapter_contract.py": "88d9a583247c2177b22edc7d17a84582db0b095d5b27a597bef652d3823f5451",
     "tests/test_integrations/test_tdl_contract.py": "e36a4c76f0122414b24e2951e60376bf0729775675b41d55aefcba827d068a7a",
     "tests/test_integrations/test_tdl_distribution_native.py": "4385e4b0af100050a7d036b6d15b8631fb8c89748cdd72bfee1e93d853a107d2",
@@ -5146,8 +5146,8 @@
           "line": 1876
         }
       ],
-      "documented_route": true,
-      "audit_disposition": "documented_route_requires_manual_review",
+      "documented_route": false,
+      "audit_disposition": "route_mapping_required",
       "exact_plan_reference_files": []
     },
     {
@@ -5240,8 +5240,8 @@
           "line": 451
         }
       ],
-      "documented_route": true,
-      "audit_disposition": "documented_route_requires_manual_review",
+      "documented_route": false,
+      "audit_disposition": "route_mapping_required",
       "exact_plan_reference_files": []
     },
     {
@@ -5277,8 +5277,8 @@
           "line": 273
         }
       ],
-      "documented_route": true,
-      "audit_disposition": "documented_route_requires_manual_review",
+      "documented_route": false,
+      "audit_disposition": "route_mapping_required",
       "exact_plan_reference_files": []
     },
     {
@@ -5410,8 +5410,8 @@
           "line": 591
         }
       ],
-      "documented_route": true,
-      "audit_disposition": "documented_route_requires_manual_review",
+      "documented_route": false,
+      "audit_disposition": "route_mapping_required",
       "exact_plan_reference_files": []
     },
     {
@@ -5699,8 +5699,8 @@
           "line": 1872
         }
       ],
-      "documented_route": true,
-      "audit_disposition": "documented_route_requires_manual_review",
+      "documented_route": false,
+      "audit_disposition": "route_mapping_required",
       "exact_plan_reference_files": []
     },
     {
@@ -6204,8 +6204,8 @@
           "line": 1776
         }
       ],
-      "documented_route": true,
-      "audit_disposition": "documented_route_requires_manual_review",
+      "documented_route": false,
+      "audit_disposition": "route_mapping_required",
       "exact_plan_reference_files": []
     },
     {
@@ -6404,8 +6404,8 @@
           "line": 381
         }
       ],
-      "documented_route": true,
-      "audit_disposition": "documented_route_requires_manual_review",
+      "documented_route": false,
+      "audit_disposition": "no_direct_production_reference_found",
       "exact_plan_reference_files": []
     },
     {
@@ -6445,8 +6445,8 @@
           "line": 894
         }
       ],
-      "documented_route": true,
-      "audit_disposition": "documented_route_requires_manual_review",
+      "documented_route": false,
+      "audit_disposition": "route_mapping_required",
       "exact_plan_reference_files": []
     },
     {
@@ -6486,8 +6486,8 @@
           "line": 295
         }
       ],
-      "documented_route": true,
-      "audit_disposition": "documented_route_requires_manual_review",
+      "documented_route": false,
+      "audit_disposition": "route_mapping_required",
       "exact_plan_reference_files": []
     },
     {
