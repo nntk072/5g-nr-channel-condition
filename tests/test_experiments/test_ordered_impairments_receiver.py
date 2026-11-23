@@ -483,7 +483,7 @@ def test_independent_snr_curve_retains_each_condition_input_across_snr(
     assert all(point["experiment"]["schema"].endswith(".v19") for point in report["points"])
     assert list(tmp_path.iterdir()) == [evidence_path]
 
-    for module in (audit_module.independent, audit_module.waveform):
+    for module in (audit_module.independent, audit_module.snr_curve, audit_module.waveform):
         monkeypatch.setattr(
             module,
             "_recompute_waveform_diagnostics",
