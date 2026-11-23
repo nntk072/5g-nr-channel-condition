@@ -82,6 +82,19 @@ def is_frozen(path: Path, frozen_digests: set[str]) -> bool:
     return hashlib.sha256(path.read_bytes()).hexdigest() in frozen_digests
 
 
+FULL_LINK = re.compile(r"\[([^\]]*)\]\(([^)\s#]+)(#[^)\s]*)?\)")
+
+
+def unique_basename(name: str) -> str | None:
+    """Return the repository path of the only file with this basename under docs/ or dev-docs/."""
+    matches = []
+    for base in ("docs", "dev-docs"):
+        for path in (ROOT / base).rglob(name):
+            if path.is_file() and "_build" not in path.parts and "generated" not in path.parts:
+                matches.append(path.relative_to(ROOT).as_posix())
+    return matches[0] if len(matches) == 1 else None
+
+
 def documents() -> list[Path]:
     found = []
     for base in ("docs", "dev-docs"):
@@ -123,12 +136,36 @@ def process(
                 new_rel = os.path.relpath(ROOT / new_repo, path.parent).replace(os.sep, "/")
                 return f"{match.group(1)}{new_rel}{match.group(3) or ''}{match.group(4)}"
             if new_repo is None:
+                base_name = Path(target).name
+                found = unique_basename(base_name)
+                if found is not None and editable and write:
+                    changed = True
+                    new_rel = os.path.relpath(ROOT / found, path.parent).replace(os.sep, "/")
+                    return f"{match.group(1)}{new_rel}{match.group(3) or ''}{match.group(4)}"
                 problems.append(f"{rel}:{number}: unresolved link {target}")
             else:
                 problems.append(f"{rel}:{number}: link {target} moved to {new_repo}")
             return match.group(0)
 
-        out_lines.append(LINK.sub(fix, line))
+        line = LINK.sub(fix, line)
+        if editable and write:
+            # A target that is not in this tree becomes plain text, marked as such.
+            def plain(match: re.Match[str]) -> str:
+                nonlocal changed
+                target = match.group(2)
+                if target.startswith(SKIP_PREFIXES) or target.startswith("/"):
+                    return match.group(0)
+                resolved = (path.parent / target).resolve()
+                if resolved.exists() or not resolved.is_relative_to(ROOT):
+                    return match.group(0)
+                if current_location(resolved.relative_to(ROOT).as_posix(), table) is not None:
+                    return match.group(0)
+                if unique_basename(Path(target).name) is not None:
+                    return match.group(0)
+                changed = True
+                return f"{match.group(1)} (not in this tree)"
+            line = FULL_LINK.sub(lambda m: plain(m) if m.group(0).startswith("[") else m.group(0), line)
+        out_lines.append(line)
     if changed:
         path.write_text("\n".join(out_lines), encoding="utf-8")
     return problems
